@@ -262,13 +262,15 @@
                     })
                 });
 
+                const data = await response.json().catch(() => null);
                 if (!response.ok) {
-                    throw new Error(`Server error: ${response.status}`);
+                    throw new Error(data?.error || `Server error: ${response.status}`);
                 }
 
-                const data = await response.json();
-                if (data.reply) return data.reply;
-                if (data.error) throw new Error(data.error);
+                if (data && Object.prototype.hasOwnProperty.call(data, 'reply')) {
+                    return data.reply;
+                }
+                if (data?.error) throw new Error(data.error);
                 throw new Error('Unknown error occurred');
             } catch (error) {
                 console.error('Error:', error);

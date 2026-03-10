@@ -262,6 +262,62 @@ async def handle_mcp(request, env) -> Response:
 # ---------------------------------------------------------------------------
 # Internal helpers used by both direct API and MCP
 # ---------------------------------------------------------------------------
+def _extract_ai_text(ai_response) -> str | None:
+    """Normalize text extraction across Cloudflare/OpenAI-style responses."""
+
+    # 1) OpenAI-compatible shape: choices[0].message.content
+    if isinstance(ai_response, dict):
+        choices = ai_response.get("choices")
+        if isinstance(choices, list) and choices:
+            first_choice = choices[0]
+            if isinstance(first_choice, dict):
+                message = first_choice.get("message")
+                if isinstance(message, dict):
+                    content = message.get("content")
+                    if isinstance(content, str):
+                        return content
+
+    # 2) Prefer explicit output payload, then response payload, then raw response
+    payload = ai_response
+    if isinstance(ai_response, dict):
+        if "output" in ai_response:
+            payload = ai_response["output"]
+        elif ai_response.get("response") is not None:
+            payload = ai_response.get("response")
+
+    # 3) List-style output: find assistant item and extract content
+    if isinstance(payload, list):
+        for item in payload:
+            if not isinstance(item, dict) or item.get("role") != "assistant":
+                continue
+            content = item.get("content")
+            if isinstance(content, str):
+                return content
+            if isinstance(content, list):
+                parts = []
+                for part in content:
+                    if isinstance(part, dict) and part.get("type") == "output_text":
+                        text = part.get("text")
+                        if isinstance(text, str) and text:
+                            parts.append(text)
+                if parts:
+                    return "\n".join(parts)
+        return None
+
+    # 4) Dict/str outputs
+    if isinstance(payload, dict):
+        for key in ("response", "reply", "text", "content"):
+            value = payload.get(key)
+            if isinstance(value, str):
+                return value
+        return None
+
+    if isinstance(payload, str):
+        return payload
+
+    return None
+
+
 async def _run_chat(env, message: str, history: list) -> dict:
     if not message:
         return {"error": "'message' is required", "status": 400}
@@ -307,44 +363,8 @@ async def _run_chat(env, message: str, history: list) -> dict:
         
         print(f"AI Response Keys: {list(ai_response.keys()) if isinstance(ai_response, dict) else 'Not a dict'}")
             
-        reply = None
-
-        # 1. Handle OpenAI-compatible format (choices[0].message.content)
-        if isinstance(ai_response, dict) and 'choices' in ai_response:
-            choices = ai_response['choices']
-            if isinstance(choices, list) and len(choices) > 0:
-                choice = choices[0]
-                if isinstance(choice, dict):
-                    msg = choice.get('message', {})
-                    if isinstance(msg, dict):
-                        # ONLY pick up 'content'. Do NOT show 'reasoning_content' (thought process) to the user.
-                        reply = msg.get('content')
-
-        # 2. Handle standard Workers AI format (output or response)
-        if reply is None:
-            response_output = ai_response.get('output') if isinstance(ai_response, dict) else ai_response
-            
-            if isinstance(response_output, list):
-                for item in response_output:
-                    if isinstance(item, dict) and item.get('role') == 'assistant':
-                        content = item.get('content', [])
-                        if isinstance(content, list):
-                            for content_item in content:
-                                if isinstance(content_item, dict) and content_item.get('type') == 'output_text':
-                                    reply = content_item.get('text')
-                                    break
-                        elif isinstance(content, str):
-                            reply = content
-                        break
-            elif isinstance(response_output, str):
-                reply = response_output
-            elif isinstance(response_output, dict):
-                reply = (
-                    response_output.get('response') or 
-                    response_output.get('reply') or 
-                    response_output.get('text') or 
-                    response_output.get('content')
-                )
+        # Shared extraction logic keeps chat/scan behavior consistent.
+        reply = _extract_ai_text(ai_response)
             
         if reply is None:
             if isinstance(ai_response, dict):
@@ -406,22 +426,9 @@ async def _run_scan(env, url: str, scan_type: str = "quick") -> dict:
         traceback.print_exc()
         return {"error": "The AI service is temporarily unavailable. Please try again."}
 
-    reply = None
-    # 1. OpenAI-style
-    if isinstance(ai_response, dict) and 'choices' in ai_response:
-        choices = ai_response['choices']
-        if isinstance(choices, list) and len(choices) > 0:
-            choice = choices[0]
-            if isinstance(choice, dict):
-                msg = choice.get('message', {})
-                if isinstance(msg, dict):
-                    # Only final content
-                    reply = msg.get('content')
-
-    # 2. Standard style
+    reply = _extract_ai_text(ai_response)
     if reply is None:
-        output = ai_response.get("response") or ai_response.get("output") if isinstance(ai_response, dict) else ai_response
-        reply = str(output) if output is not None else ""
+        reply = ""
 
     try:
         return json.loads(reply)
@@ -529,16 +536,18 @@ class Default(WorkerEntrypoint):
 
         # HTML serving routes (GET requests)
         if method == "GET":
+            origin = "/".join(str(request.url).split("/", 3)[:3])
             # Serve top-level HTML through the static assets binding.
             if path in ("/", "/index.html"):
-                request_url = str(request.url)
-                if path == "/":
-                    request_url = request_url.rstrip("/") + "/index.html"
-                return await self.env.ASSETS.fetch(request_url)
+                request_url = (
+                    origin + "/index.html"
+                    if path == "/"
+                    else str(request.url).split("?", 1)[0]
+                )
             
             # Chat page
             if path == "/chat":
-                request_url = str(request.url).rstrip("/") + "/chat.html"
+                request_url = origin + "/chat.html"
                 return await self.env.ASSETS.fetch(request_url)
         
         # 404 for unknown API paths
