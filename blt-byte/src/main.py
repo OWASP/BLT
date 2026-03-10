@@ -11,6 +11,7 @@ Routes:
 
 import json
 import hashlib
+import re
 import traceback
 import pyodide
 import js
@@ -284,6 +285,31 @@ async def handle_mcp(request, env) -> Response:
 # ---------------------------------------------------------------------------
 # Internal helpers used by both direct API and MCP
 # ---------------------------------------------------------------------------
+def _sanitize_ai_output(text: str) -> str | None:
+    """Strip internal reasoning wrappers/preambles from model output."""
+
+    cleaned = text
+
+    # Remove common hidden-thought block wrappers first.
+    cleaned = re.sub(r"(?is)<think\b[^>]*>.*?</think>", " ", cleaned)
+    cleaned = re.sub(r"(?is)<reasoning\b[^>]*>.*?</reasoning>", " ", cleaned)
+    cleaned = re.sub(r"(?is)<analysis\b[^>]*>.*?</analysis>", " ", cleaned)
+
+    # Remove generic XML/HTML-like tags/blocks that may wrap reasoning output.
+    cleaned = re.sub(r"(?is)<([a-zA-Z][\w:-]*)\b[^>]*>.*?</\1>", " ", cleaned)
+    cleaned = re.sub(r"(?is)</?[a-zA-Z][\w:-]*\b[^>]*>", " ", cleaned)
+
+    # Drop common reasoning preambles at the beginning.
+    cleaned = re.sub(
+        r"(?im)^\s*(?:reasoning|analysis|thought process|chain\s*of\s*thought|internal reasoning)\s*:\s*",
+        "",
+        cleaned,
+    )
+
+    cleaned = cleaned.strip()
+    return cleaned or None
+
+
 def _extract_ai_text(ai_response) -> str | None:
     """Normalize text extraction across Cloudflare/OpenAI-style responses."""
 
@@ -307,9 +333,9 @@ def _extract_ai_text(ai_response) -> str | None:
                             if isinstance(text, str) and text:
                                 parts.append(text)
                         if parts:
-                            return "\n".join(parts)
+                            return _sanitize_ai_output("\n".join(parts))
                     if isinstance(content, str):
-                        return content
+                        return _sanitize_ai_output(content)
 
     # 2) Prefer explicit output payload, then response payload, then raw response
     payload = ai_response
@@ -326,7 +352,7 @@ def _extract_ai_text(ai_response) -> str | None:
                 continue
             content = item.get("content")
             if isinstance(content, str):
-                return content
+                return _sanitize_ai_output(content)
             if isinstance(content, list):
                 parts = []
                 for part in content:
@@ -338,7 +364,7 @@ def _extract_ai_text(ai_response) -> str | None:
                     if isinstance(text, str) and text:
                         parts.append(text)
                 if parts:
-                    return "\n".join(parts)
+                    return _sanitize_ai_output("\n".join(parts))
         return None
 
     # 4) Dict/str outputs
@@ -346,11 +372,11 @@ def _extract_ai_text(ai_response) -> str | None:
         for key in ("response", "reply", "text", "content"):
             value = payload.get(key)
             if isinstance(value, str):
-                return value
+                return _sanitize_ai_output(value)
         return None
 
     if isinstance(payload, str):
-        return payload
+        return _sanitize_ai_output(payload)
 
     return None
 
