@@ -7,6 +7,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { spawn } = require('child_process');
 
 // ANSI color codes for output
 const colors = {
@@ -33,6 +34,71 @@ function testResult(testName, passed, message = '') {
     testsFailed++;
     log(`✗ ${testName}`, colors.red);
     if (message) log(`  ${message}`, colors.red);
+  }
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function getSetCookieHeader(response) {
+  if (response?.headers?.getSetCookie) {
+    return response.headers.getSetCookie().join('\n');
+  }
+  return response?.headers?.get('set-cookie') || '';
+}
+
+async function waitForEndpoint(url, timeoutMs = 25000) {
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    try {
+      const resp = await fetch(url, { redirect: 'manual' });
+      if (resp && resp.status) {
+        return true;
+      }
+    } catch (_) {
+      // keep waiting for wrangler dev to become ready
+    }
+    await sleep(500);
+  }
+  return false;
+}
+
+async function startRuntimeServer() {
+  const port = 8788;
+  const baseUrl = `http://127.0.0.1:${port}`;
+  const cmd = process.platform === 'win32' ? 'npx.cmd' : 'npx';
+  const args = ['wrangler', 'dev', '--local', '--ip', '127.0.0.1', '--port', String(port), '--log-level', 'error'];
+
+  const child = spawn(cmd, args, {
+    cwd: __dirname,
+    env: { ...process.env, BROWSER: 'none' },
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+
+  let output = '';
+  child.stdout.on('data', (chunk) => {
+    output += chunk.toString();
+  });
+  child.stderr.on('data', (chunk) => {
+    output += chunk.toString();
+  });
+
+  const ready = await waitForEndpoint(`${baseUrl}/api/auth/user`);
+  if (!ready) {
+    child.kill('SIGTERM');
+    throw new Error(`wrangler dev did not become ready within timeout. Output:\n${output}`);
+  }
+
+  return { child, baseUrl };
+}
+
+async function stopRuntimeServer(runtime) {
+  if (!runtime || !runtime.child || runtime.child.killed) return;
+  runtime.child.kill('SIGTERM');
+  await sleep(800);
+  if (!runtime.child.killed) {
+    runtime.child.kill('SIGKILL');
   }
 }
 
@@ -520,8 +586,119 @@ function testAuthenticationImplementation() {
   }
 }
 
+// Test 8: Verify OAuth runtime behavior with real HTTP responses
+async function testAuthenticationRuntimeBehavior() {
+  log('\n=== Testing Authentication Runtime Behavior ===\n', colors.blue);
+
+  let runtime;
+  try {
+    runtime = await startRuntimeServer();
+
+    // Callback error path should redirect and clear state cookie
+    const callbackErrorResp = await fetch(`${runtime.baseUrl}/api/auth/callback?error=access_denied`, {
+      redirect: 'manual',
+    });
+    const callbackErrorLocation = callbackErrorResp.headers.get('Location') || callbackErrorResp.headers.get('location') || '';
+    const callbackErrorCookies = getSetCookieHeader(callbackErrorResp);
+
+    testResult(
+      'Runtime callback error returns auth error redirect',
+      callbackErrorLocation.includes('?auth=error'),
+      callbackErrorLocation ? `Location: ${callbackErrorLocation}` : 'Missing Location header'
+    );
+    testResult(
+      'Runtime callback error clears OAuth state cookie',
+      callbackErrorCookies.includes('blt_oauth_state=') && callbackErrorCookies.includes('Max-Age=0'),
+      callbackErrorCookies ? 'Found state cookie clear header' : 'Missing Set-Cookie header'
+    );
+
+    // Missing code should redirect and clear state cookie
+    const missingCodeResp = await fetch(`${runtime.baseUrl}/api/auth/callback?state=abc123`, {
+      redirect: 'manual',
+      headers: { Cookie: 'blt_oauth_state=abc123' },
+    });
+    const missingCodeLocation = missingCodeResp.headers.get('Location') || missingCodeResp.headers.get('location') || '';
+    const missingCodeCookies = getSetCookieHeader(missingCodeResp);
+
+    testResult(
+      'Runtime callback missing code redirects to auth error',
+      missingCodeLocation.includes('?auth=error'),
+      missingCodeLocation ? `Location: ${missingCodeLocation}` : 'Missing Location header'
+    );
+    testResult(
+      'Runtime callback missing code clears state cookie',
+      missingCodeCookies.includes('blt_oauth_state=') && missingCodeCookies.includes('Max-Age=0'),
+      missingCodeCookies ? 'Found state cookie clear header' : 'Missing Set-Cookie header'
+    );
+
+    // Invalid state should redirect and clear state cookie
+    const invalidStateResp = await fetch(`${runtime.baseUrl}/api/auth/callback?code=fake-code&state=bad-state`, {
+      redirect: 'manual',
+      headers: { Cookie: 'blt_oauth_state=good-state' },
+    });
+    const invalidStateLocation = invalidStateResp.headers.get('Location') || invalidStateResp.headers.get('location') || '';
+    const invalidStateCookies = getSetCookieHeader(invalidStateResp);
+
+    testResult(
+      'Runtime callback invalid state redirects to auth error',
+      invalidStateLocation.includes('?auth=error'),
+      invalidStateLocation ? `Location: ${invalidStateLocation}` : 'Missing Location header'
+    );
+    testResult(
+      'Runtime callback invalid state clears state cookie',
+      invalidStateCookies.includes('blt_oauth_state=') && invalidStateCookies.includes('Max-Age=0'),
+      invalidStateCookies ? 'Found state cookie clear header' : 'Missing Set-Cookie header'
+    );
+
+    // User endpoint should invalidate malformed session cookie
+    const userResp = await fetch(`${runtime.baseUrl}/api/auth/user`, {
+      headers: { Cookie: 'blt_oauth_session=invalid.session.payload' },
+    });
+    const userData = await userResp.json();
+    const userCookies = getSetCookieHeader(userResp);
+
+    testResult(
+      'Runtime auth user reports invalid session cookie',
+      userData && userData.auth_reason === 'invalid_session_cookie' && userData.authenticated === false,
+      `auth_reason=${userData?.auth_reason}, authenticated=${userData?.authenticated}`
+    );
+    testResult(
+      'Runtime auth user clears invalid session cookie',
+      userCookies.includes('blt_oauth_session=') && userCookies.includes('Max-Age=0'),
+      userCookies ? 'Found session cookie clear header' : 'Missing Set-Cookie header'
+    );
+
+    // Logout should clear both session and state cookies
+    const logoutResp = await fetch(`${runtime.baseUrl}/api/auth/logout`, {
+      method: 'POST',
+    });
+    const logoutData = await logoutResp.json();
+    const logoutCookies = getSetCookieHeader(logoutResp);
+
+    testResult(
+      'Runtime logout returns success payload',
+      logoutData && logoutData.success === true && logoutData.authenticated === false,
+      JSON.stringify(logoutData)
+    );
+    testResult(
+      'Runtime logout clears session cookie',
+      logoutCookies.includes('blt_oauth_session=') && logoutCookies.includes('Max-Age=0'),
+      logoutCookies ? 'Found session clear cookie header' : 'Missing Set-Cookie header'
+    );
+    testResult(
+      'Runtime logout clears state cookie',
+      logoutCookies.includes('blt_oauth_state=') && logoutCookies.includes('Max-Age=0'),
+      logoutCookies ? 'Found state clear cookie header' : 'Missing Set-Cookie header'
+    );
+  } catch (error) {
+    testResult('Authentication runtime behavior test setup', false, error.message);
+  } finally {
+    await stopRuntimeServer(runtime);
+  }
+}
+
 // Main test runner
-function runTests() {
+async function runTests() {
   log('\n' + '='.repeat(60), colors.blue);
   log('  BLT-Leaf Data Display Test Suite', colors.blue);
   log('='.repeat(60) + '\n', colors.blue);
@@ -533,6 +710,7 @@ function runTests() {
   testPackageJson();
   testAPIRouting();
   testAuthenticationImplementation();
+  await testAuthenticationRuntimeBehavior();
 
   // Summary
   log('\n' + '='.repeat(60), colors.blue);

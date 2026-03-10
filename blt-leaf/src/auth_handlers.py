@@ -174,12 +174,6 @@ async def handle_auth_callback(request, env):
             cookies=[clear_state_cookie()],
         )
 
-    if not is_oauth_configured(env):
-        return _json_response(
-            {'error': 'GitHub OAuth is not configured on this deployment.'},
-            status=503,
-        )
-
     code = url.searchParams.get('code')
     state = url.searchParams.get('state')
 
@@ -190,6 +184,12 @@ async def handle_auth_callback(request, env):
         )
 
     if not validate_oauth_state(request, state):
+        return _redirect_response(
+            f'{root_path}?auth=error',
+            cookies=[clear_state_cookie()],
+        )
+
+    if not is_oauth_configured(env):
         return _redirect_response(
             f'{root_path}?auth=error',
             cookies=[clear_state_cookie()],
