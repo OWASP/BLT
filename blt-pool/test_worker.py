@@ -1762,8 +1762,366 @@ class TestBackfillRepoMonthIdempotency(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------------
-# check_unresolved_conversations tests
+# Review backfill tests
 # ---------------------------------------------------------------------------
+
+
+class TestBackfillReviewCredits(unittest.TestCase):
+    """Test that _backfill_repo_month_if_needed backfills review credits for merged PRs."""
+
+    def _make_mock_db(self):
+        mock_db = MagicMock()
+        prepare_calls = []
+
+        def _prepare(sql):
+            prepare_calls.append(sql)
+            stmt = AsyncMock()
+            stmt.bind = MagicMock(return_value=stmt)
+            stmt.run = AsyncMock(return_value={"success": True})
+            if "leaderboard_backfill_repo_done" in sql and "SELECT" in sql:
+                stmt.all = AsyncMock(return_value={"results": []})
+            elif "leaderboard_pr_state" in sql and "SELECT pr_number" in sql:
+                stmt.all = AsyncMock(return_value={"results": []})
+            else:
+                stmt.all = AsyncMock(return_value={"results": []})
+            return stmt
+
+        mock_db.prepare = MagicMock(side_effect=_prepare)
+        mock_db._prepare_calls = prepare_calls
+        return mock_db
+
+    def _make_api_response(self, data, status=200):
+        return types.SimpleNamespace(
+            status=status,
+            text=AsyncMock(return_value=json.dumps(data)),
+        )
+
+    def test_review_credits_awarded_for_merged_prs(self):
+        """Reviews on merged PRs in the window should earn credits for non-bot reviewers."""
+        async def _inner():
+            mock_db = self._make_mock_db()
+            env = types.SimpleNamespace(LEADERBOARD_DB=mock_db)
+            start_ts, end_ts = _worker._month_window("2026-03")
+
+            open_prs = []
+            closed_prs = [
+                {
+                    "number": 10,
+                    "user": {"login": "alice", "type": "User"},
+                    "merged_at": "2026-03-05T10:00:00Z",
+                    "closed_at": "2026-03-05T10:00:00Z",
+                }
+            ]
+            reviews = [
+                {"user": {"login": "bob", "type": "User"}, "state": "APPROVED"},
+                {"user": {"login": "carol", "type": "User"}, "state": "APPROVED"},
+            ]
+
+            monthly_inc_calls = []
+
+            async def _mock_api(method, path, token, body=None):
+                if "state=open" in path:
+                    return self._make_api_response(open_prs)
+                if "state=closed" in path:
+                    return self._make_api_response(closed_prs)
+                if "/reviews" in path:
+                    return self._make_api_response(reviews)
+                return self._make_api_response([])
+
+            with patch.object(_worker, "github_api", new=_mock_api):
+                with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
+                    with patch.object(_worker, "_d1_inc_monthly", new=AsyncMock(
+                        side_effect=lambda db, org, mk, login, field, delta=1: monthly_inc_calls.append((login, field))
+                    )):
+                        with patch.object(_worker, "_d1_run", new=AsyncMock(return_value={"success": True})):
+                            with patch.object(_worker, "_d1_all", new=AsyncMock(return_value=[])):
+                                with patch.object(_worker, "_d1_first", new=AsyncMock(return_value=None)):
+                                    with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None)):
+                                        await _worker._backfill_repo_month_if_needed(
+                                            "OWASP-BLT", "test-repo", "tok", env,
+                                            month_key="2026-03", start_ts=start_ts, end_ts=end_ts,
+                                        )
+
+            review_credits = [(login, field) for login, field in monthly_inc_calls if field == "reviews"]
+            review_logins = [login for login, _ in review_credits]
+            self.assertIn("bob", review_logins)
+            self.assertIn("carol", review_logins)
+
+        _run(_inner())
+
+    def test_pr_author_not_credited_as_reviewer(self):
+        """The PR author should not receive a review credit for their own PR."""
+        async def _inner():
+            mock_db = self._make_mock_db()
+            env = types.SimpleNamespace(LEADERBOARD_DB=mock_db)
+            start_ts, end_ts = _worker._month_window("2026-03")
+
+            closed_prs = [
+                {
+                    "number": 20,
+                    "user": {"login": "alice", "type": "User"},
+                    "merged_at": "2026-03-05T10:00:00Z",
+                    "closed_at": "2026-03-05T10:00:00Z",
+                }
+            ]
+            # alice reviews her own PR — should not get credit
+            reviews = [
+                {"user": {"login": "alice", "type": "User"}, "state": "APPROVED"},
+            ]
+
+            monthly_inc_calls = []
+
+            async def _mock_api(method, path, token, body=None):
+                if "state=open" in path:
+                    return self._make_api_response([])
+                if "state=closed" in path:
+                    return self._make_api_response(closed_prs)
+                if "/reviews" in path:
+                    return self._make_api_response(reviews)
+                return self._make_api_response([])
+
+            with patch.object(_worker, "github_api", new=_mock_api):
+                with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
+                    with patch.object(_worker, "_d1_inc_monthly", new=AsyncMock(
+                        side_effect=lambda db, org, mk, login, field, delta=1: monthly_inc_calls.append((login, field))
+                    )):
+                        with patch.object(_worker, "_d1_run", new=AsyncMock(return_value={"success": True})):
+                            with patch.object(_worker, "_d1_all", new=AsyncMock(return_value=[])):
+                                with patch.object(_worker, "_d1_first", new=AsyncMock(return_value=None)):
+                                    with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None)):
+                                        await _worker._backfill_repo_month_if_needed(
+                                            "OWASP-BLT", "test-repo", "tok", env,
+                                            month_key="2026-03", start_ts=start_ts, end_ts=end_ts,
+                                        )
+
+            review_logins = [login for login, field in monthly_inc_calls if field == "reviews"]
+            self.assertNotIn("alice", review_logins)
+
+        _run(_inner())
+
+    def test_review_credit_capped_at_two_per_pr(self):
+        """At most 2 reviewers per PR should receive review credits."""
+        async def _inner():
+            mock_db = self._make_mock_db()
+            env = types.SimpleNamespace(LEADERBOARD_DB=mock_db)
+            start_ts, end_ts = _worker._month_window("2026-03")
+
+            closed_prs = [
+                {
+                    "number": 30,
+                    "user": {"login": "alice", "type": "User"},
+                    "merged_at": "2026-03-05T10:00:00Z",
+                    "closed_at": "2026-03-05T10:00:00Z",
+                }
+            ]
+            reviews = [
+                {"user": {"login": "bob", "type": "User"}, "state": "APPROVED"},
+                {"user": {"login": "carol", "type": "User"}, "state": "APPROVED"},
+                {"user": {"login": "dave", "type": "User"}, "state": "APPROVED"},
+            ]
+
+            monthly_inc_calls = []
+            # Simulate that 'cnt' returns 0 for first two, 2 for third check
+            cnt_sequence = [0, 1, 2]
+            cnt_iter = iter(cnt_sequence)
+
+            async def _d1_first_mock(db, sql, params=()):
+                if "COUNT(*)" in sql:
+                    cnt = next(cnt_iter, 2)
+                    return {"cnt": cnt}
+                return None  # no existing credit
+
+            with patch.object(_worker, "github_api", new=AsyncMock(side_effect=lambda method, path, token, body=None: (
+                types.SimpleNamespace(status=200, text=AsyncMock(return_value=json.dumps([]))) if "state=open" in path
+                else types.SimpleNamespace(status=200, text=AsyncMock(return_value=json.dumps(closed_prs))) if "state=closed" in path
+                else types.SimpleNamespace(status=200, text=AsyncMock(return_value=json.dumps(reviews)))
+            ))):
+                with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
+                    with patch.object(_worker, "_d1_inc_monthly", new=AsyncMock(
+                        side_effect=lambda db, org, mk, login, field, delta=1: monthly_inc_calls.append((login, field))
+                    )):
+                        with patch.object(_worker, "_d1_run", new=AsyncMock(return_value={"success": True})):
+                            with patch.object(_worker, "_d1_all", new=AsyncMock(return_value=[])):
+                                with patch.object(_worker, "_d1_first", new=_d1_first_mock):
+                                    with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None)):
+                                        await _worker._backfill_repo_month_if_needed(
+                                            "OWASP-BLT", "test-repo", "tok", env,
+                                            month_key="2026-03", start_ts=start_ts, end_ts=end_ts,
+                                        )
+
+            review_credits = [login for login, field in monthly_inc_calls if field == "reviews"]
+            # Only 2 reviewers should be credited (cap is 2 per PR)
+            self.assertLessEqual(len(review_credits), 2)
+            # Reviews are processed in list order; bob and carol (first two) should be credited
+            self.assertIn("bob", review_credits)
+            self.assertIn("carol", review_credits)
+            # dave (third) should be excluded by the 2-reviewer cap
+            self.assertNotIn("dave", review_credits)
+
+        _run(_inner())
+
+    def test_reviews_not_fetched_for_unmerged_closed_prs(self):
+        """Review backfill should only run for merged PRs, not unmerged closed PRs."""
+        async def _inner():
+            mock_db = self._make_mock_db()
+            env = types.SimpleNamespace(LEADERBOARD_DB=mock_db)
+            start_ts, end_ts = _worker._month_window("2026-03")
+
+            closed_prs = [
+                {
+                    "number": 40,
+                    "user": {"login": "alice", "type": "User"},
+                    "merged_at": None,
+                    "closed_at": "2026-03-05T10:00:00Z",
+                }
+            ]
+
+            api_calls = []
+
+            async def _mock_api(method, path, token, body=None):
+                api_calls.append(path)
+                if "state=open" in path:
+                    return self._make_api_response([])
+                if "state=closed" in path:
+                    return self._make_api_response(closed_prs)
+                return self._make_api_response([])
+
+            with patch.object(_worker, "github_api", new=_mock_api):
+                with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
+                    with patch.object(_worker, "_d1_run", new=AsyncMock(return_value={"success": True})):
+                        with patch.object(_worker, "_d1_all", new=AsyncMock(return_value=[])):
+                            with patch.object(_worker, "_d1_first", new=AsyncMock(return_value=None)):
+                                with patch.object(_worker, "_d1_inc_monthly", new=AsyncMock()):
+                                    with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None)):
+                                        await _worker._backfill_repo_month_if_needed(
+                                            "OWASP-BLT", "test-repo", "tok", env,
+                                            month_key="2026-03", start_ts=start_ts, end_ts=end_ts,
+                                        )
+
+            reviews_calls = [p for p in api_calls if "/reviews" in p]
+            self.assertEqual(len(reviews_calls), 0)
+
+        _run(_inner())
+
+
+# ---------------------------------------------------------------------------
+# Admin reset endpoint tests
+# ---------------------------------------------------------------------------
+
+
+class TestAdminResetLeaderboard(unittest.TestCase):
+    """Test the POST /admin/reset-leaderboard-month endpoint."""
+
+    def _make_request(self, method="POST", path="/admin/reset-leaderboard-month",
+                      body=None, auth=None):
+        headers = _HeadersStub({"Authorization": auth} if auth else {})
+        req = types.SimpleNamespace(
+            method=method,
+            url=f"https://example.com{path}",
+            headers=headers,
+            text=AsyncMock(return_value=json.dumps(body) if body is not None else ""),
+        )
+        return req
+
+    def _make_env(self, admin_secret="test-secret", with_db=True):
+        mock_db = MagicMock()
+        stmt = AsyncMock()
+        stmt.bind = MagicMock(return_value=stmt)
+        stmt.run = AsyncMock(return_value={"success": True})
+        stmt.all = AsyncMock(return_value={"results": []})
+        mock_db.prepare = MagicMock(return_value=stmt)
+        return types.SimpleNamespace(
+            ADMIN_SECRET=admin_secret,
+            LEADERBOARD_DB=mock_db if with_db else None,
+        )
+
+    def test_no_admin_secret_configured_returns_403(self):
+        """If ADMIN_SECRET is not set in env, the endpoint should return 403."""
+        async def _inner():
+            env = types.SimpleNamespace(LEADERBOARD_DB=MagicMock())
+            # No ADMIN_SECRET attribute
+            req = self._make_request(body={"org": "OWASP-BLT"}, auth="Bearer anything")
+            with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None)):
+                resp = await _worker.on_fetch(req, env)
+            self.assertEqual(resp.status, 403)
+
+        _run(_inner())
+
+    def test_wrong_secret_returns_401(self):
+        """An incorrect ADMIN_SECRET should return 401 Unauthorized."""
+        async def _inner():
+            env = self._make_env(admin_secret="correct-secret")
+            req = self._make_request(body={"org": "OWASP-BLT"}, auth="Bearer wrong-secret")
+            with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
+                with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None)):
+                    resp = await _worker.on_fetch(req, env)
+            self.assertEqual(resp.status, 401)
+
+        _run(_inner())
+
+    def test_missing_org_returns_400(self):
+        """Missing org in request body should return 400 Bad Request."""
+        async def _inner():
+            env = self._make_env()
+            req = self._make_request(body={}, auth="Bearer test-secret")
+            with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
+                with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None)):
+                    resp = await _worker.on_fetch(req, env)
+            self.assertEqual(resp.status, 400)
+
+        _run(_inner())
+
+    def test_valid_request_resets_data(self):
+        """Valid authenticated request should clear leaderboard tables and return 200."""
+        async def _inner():
+            env = self._make_env()
+            req = self._make_request(
+                body={"org": "OWASP-BLT", "month_key": "2026-03"},
+                auth="Bearer test-secret",
+            )
+            deleted_calls = []
+
+            async def _mock_reset(org, month_key, db):
+                deleted_calls.append((org, month_key))
+                return {"leaderboard_monthly_stats": "cleared"}
+
+            with patch.object(_worker, "_reset_leaderboard_month", new=_mock_reset):
+                with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None)):
+                    resp = await _worker.on_fetch(req, env)
+
+            self.assertEqual(resp.status, 200)
+            body = json.loads(resp.body)
+            self.assertTrue(body["ok"])
+            self.assertEqual(body["org"], "OWASP-BLT")
+            self.assertEqual(body["month_key"], "2026-03")
+            self.assertEqual(len(deleted_calls), 1)
+            self.assertEqual(deleted_calls[0], ("OWASP-BLT", "2026-03"))
+
+        _run(_inner())
+
+    def test_defaults_to_current_month_when_month_key_omitted(self):
+        """If month_key is not provided, it should default to the current month."""
+        async def _inner():
+            env = self._make_env()
+            req = self._make_request(
+                body={"org": "OWASP-BLT"},
+                auth="Bearer test-secret",
+            )
+            deleted_calls = []
+
+            async def _mock_reset(org, month_key, db):
+                deleted_calls.append((org, month_key))
+                return {}
+
+            with patch.object(_worker, "_reset_leaderboard_month", new=_mock_reset):
+                with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None)):
+                    resp = await _worker.on_fetch(req, env)
+
+            self.assertEqual(resp.status, 200)
+            current_mk = _worker._month_key()
+            self.assertEqual(deleted_calls[0][1], current_mk)
+
+        _run(_inner())
 
 
 class TestCheckUnresolvedConversations(unittest.TestCase):
