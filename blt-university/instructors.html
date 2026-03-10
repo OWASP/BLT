@@ -23,7 +23,7 @@ permalink: /instructors/
             class="bg-white rounded-[2rem] p-8 shadow-sm hover:shadow-float border border-gray-100 flex flex-col items-center text-center transition-all duration-300 hover:-translate-y-1">
             <div class="w-24 h-24 rounded-full border-4 border-bltRedLight shadow-inner overflow-hidden mb-5">
                 {% if instructor.avatar %}
-                <img src="{{ instructor.avatar }}" alt="{{ instructor.title }}" class="w-full h-full object-cover">
+                <img src="{{ instructor.avatar | relative_url }}" alt="{{ instructor.title }}" class="w-full h-full object-cover">
                 {% else %}
                 <div class="w-full h-full bg-gray-100 flex items-center justify-center text-3xl">👤</div>
                 {% endif %}
