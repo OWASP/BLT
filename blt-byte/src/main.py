@@ -169,7 +169,10 @@ async def handle_chat(request, env) -> Response:
     if not isinstance(body, dict):
         return error_response("JSON body must be an object")
 
-    user_message = body.get("message", "").strip()
+    user_message = body.get("message", "")
+    if not isinstance(user_message, str):
+        return error_response("'message' field must be a string")
+    user_message = user_message.strip()
     if not user_message:
         return error_response("'message' field is required")
 
@@ -195,7 +198,10 @@ async def handle_scan(request, env) -> Response:
     if not isinstance(body, dict):
         return error_response("JSON body must be an object")
 
-    target = body.get("url", "").strip()
+    target = body.get("url", "")
+    if not isinstance(target, str):
+        return error_response("'url' field must be a string")
+    target = target.strip()
     if not target:
         return error_response("'url' field is required")
 
@@ -236,6 +242,8 @@ async def handle_mcp(request, env) -> Response:
 
         if tool_name == "chat":
             message = params.get("message", "")
+            if not isinstance(message, str) or not message.strip():
+                return error_response("'message' must be a non-empty string", 400)
             history = params.get("history", [])
             # Reuse chat logic by building a synthetic request-like object
             result = await _run_chat(env, message, history)
@@ -243,6 +251,8 @@ async def handle_mcp(request, env) -> Response:
 
         if tool_name == "scan_url":
             url = params.get("url", "")
+            if not isinstance(url, str) or not url.strip():
+                return error_response("'url' must be a non-empty string", 400)
             scan_type = params.get("scan_type", "quick")
             if scan_type not in ("quick", "full"):
                 return error_response("Invalid 'scan_type'. Allowed values: quick, full", 400)
@@ -544,6 +554,7 @@ class Default(WorkerEntrypoint):
                     if path == "/"
                     else str(request.url).split("?", 1)[0]
                 )
+                return await self.env.ASSETS.fetch(request_url)
             
             # Chat page
             if path == "/chat":

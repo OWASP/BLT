@@ -299,6 +299,7 @@
                 conversationHistory.push({ role: 'user', content: message });
                 addMessage(response, false);
                 conversationHistory.push({ role: 'assistant', content: response });
+                conversationHistory = conversationHistory.slice(-10);
             } catch (error) {
                 showError(error.message || 'Failed to send message. Please try again.');
             } finally {
