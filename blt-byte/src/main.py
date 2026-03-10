@@ -247,6 +247,8 @@ async def handle_mcp(request, env) -> Response:
             history = params.get("history", [])
             # Reuse chat logic by building a synthetic request-like object
             result = await _run_chat(env, message, history)
+            if "error" in result:
+                return error_response(result["error"], int(result.get("status", 502)))
             return json_response({"tool": tool_name, "result": result})
 
         if tool_name == "scan_url":
@@ -257,10 +259,19 @@ async def handle_mcp(request, env) -> Response:
             if scan_type not in ("quick", "full"):
                 return error_response("Invalid 'scan_type'. Allowed values: quick, full", 400)
             result = await _run_scan(env, url, scan_type)
+            if "error" in result:
+                return error_response(result["error"], int(result.get("status", 502)))
             return json_response({"tool": tool_name, "result": result})
 
         if tool_name == "get_onboarding_guide":
             role = params.get("role", "contributor")
+            if not isinstance(role, str):
+                return error_response("'role' must be a string", 400)
+            if role not in ("contributor", "bug_hunter", "organisation"):
+                return error_response(
+                    "Invalid 'role'. Allowed values: contributor, bug_hunter, organisation",
+                    400,
+                )
             result = _get_onboarding_guide(role)
             return json_response({"tool": tool_name, "result": result})
 
@@ -395,7 +406,10 @@ async def _run_chat(env, message: str, history: list) -> dict:
                 f"response_keys={response_keys[:10]} "
                 f"response_sha256={response_hash}"
             )
-            reply = "I received a response but couldn't parse the text. Please check the logs."
+            return {
+                "error": "The AI service returned an unsupported response format. Please try again.",
+                "status": 502,
+            }
             
     except Exception as ai_error:
         print(f"AI call crash: {ai_error!s}")
@@ -557,7 +571,7 @@ class Default(WorkerEntrypoint):
                 return await self.env.ASSETS.fetch(request_url)
             
             # Chat page
-            if path == "/chat":
+            if path in ("/chat", "/chat/"):
                 request_url = origin + "/chat.html"
                 return await self.env.ASSETS.fetch(request_url)
         
