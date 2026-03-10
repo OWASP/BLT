@@ -11,8 +11,8 @@ database_id = "9ab4a669-1a95-4b98-bb01-284012a217dd"
 # ---------------------------------------------------------------------------
 # Static assets — serve files from public/ directory
 # ---------------------------------------------------------------------------
-[site]
-bucket = "./public"
+[assets]
+directory = "./public"
 
 # ---------------------------------------------------------------------------
 # Non-secret variables — safe to commit
