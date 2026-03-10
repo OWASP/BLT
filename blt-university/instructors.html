@@ -24,7 +24,9 @@ permalink: /instructors/
                 {% if instructor.avatar %}
                 <img src="{{ instructor.avatar | relative_url }}" alt="{{ instructor.title }}" class="w-full h-full object-cover">
                 {% else %}
-                <div class="w-full h-full bg-gray-100 flex items-center justify-center text-3xl">👤</div>
+                <div class="w-full h-full bg-gray-100 flex items-center justify-center">
++                   <i class="ph-bold ph-user text-3xl text-gray-600"></i>
++               </div>
                 {% endif %}
             </div>
 
