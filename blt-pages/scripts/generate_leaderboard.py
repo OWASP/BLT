@@ -20,6 +20,7 @@ import os
 import re
 import sys
 import urllib.parse
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from urllib.parse import urlparse, quote
 import urllib.request
@@ -50,20 +51,6 @@ if TOKEN:
 # ---------------------------------------------------------------------------
 # GitHub API helpers
 # ---------------------------------------------------------------------------
-
-def _get(url, params=None):
-    """Perform a GET request and return the parsed JSON body."""
-    if params:
-        query = "&".join(f"{k}={urllib.parse.quote(str(v))}" for k, v in params.items())
-        url = f"{url}?{query}"
-    req = urllib.request.Request(url, headers=HEADERS)
-    try:
-        with urllib.request.urlopen(req) as resp:
-            return json.loads(resp.read().decode())
-    except urllib.error.HTTPError as exc:
-        print(f"HTTP {exc.code} for {url}: {exc.reason}", file=sys.stderr)
-        raise
-
 
 def paginate(url, params=None):
     """Fetch every page of a GitHub list endpoint and return all items."""
@@ -463,7 +450,7 @@ def patch_html(html, payload):
     """Apply all SSR patches to the HTML string and return the result."""
 
     # ── Inline JSON data ─────────────────────────────────────────────────────
-    inline_json = json.dumps(payload, ensure_ascii=True).replace("</script>", "<\\/script>")
+    inline_json = re.sub(r'</script>', r'<\\/script>', json.dumps(payload, ensure_ascii=True), flags=re.IGNORECASE)
     inline_script = (
         f'<script id="leaderboard-inline-data">'
         f'window.__BLT_LEADERBOARD__ = {inline_json};</script>'
@@ -645,14 +632,21 @@ def main():
 
     # ── Top commenters & comment map ─────────────────────────────────────────
     print("  Fetching comments …")
+
+    issues_needing_comments = [i for i in bug_issues if i["comments"] > 0]
+
+    def fetch_comments(issue):
+        return issue["number"], paginate(f"{BASE_URL}/issues/{issue['number']}/comments")
+
+    issue_comments_map = {i["number"]: [] for i in bug_issues}
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        futures = {executor.submit(fetch_comments, issue): issue for issue in issues_needing_comments}
+        for future in as_completed(futures):
+            number, comments = future.result()
+            issue_comments_map[number] = comments
+
     comment_counts = {}
-    issue_comments_map = {}
-    for issue in bug_issues:
-        if issue["comments"] == 0:
-            issue_comments_map[issue["number"]] = []
-            continue
-        comments = paginate(f"{BASE_URL}/issues/{issue['number']}/comments")
-        issue_comments_map[issue["number"]] = comments
+    for comments in issue_comments_map.values():
         for comment in comments:
             c_login = comment["user"]["login"]
             if c_login.endswith("[bot]"):
