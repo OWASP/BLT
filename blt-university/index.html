@@ -208,7 +208,7 @@ title: Home
                 <div class="h-48 bg-gray-900 relative overflow-hidden">
                     <div class="absolute inset-0 bg-gradient-to-t from-gray-900/80 to-transparent z-10"></div>
                     <img src="{{ course.image | default: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=600&q=80' }}"
-                        alt="Course Cover"
+                        alt="{{ course.title }}"
                         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-90">
                     <div class="absolute bottom-4 left-4 z-20 flex gap-2">
                         <span
