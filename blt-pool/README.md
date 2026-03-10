@@ -25,7 +25,6 @@
 - [Project Structure](#project-structure)
 - [Roadmap](#roadmap)
 - [Related Projects](#related-projects)
-
 - [License](#license)
 
 ---
@@ -262,22 +261,32 @@ BLT-GitHub-App/
 
 ## Roadmap
 
-Everything below is planned for future development. Items are ordered roughly by priority.
+The following features are actively being developed in open branches. Once reviewed and merged, they will be reflected here.
+
+### 🔧 In Progress
+
+| Feature | Branch | Description |
+|---|---|---|
+| **PR Automation Labels** | `feat/pr-labels-and-checks` | Auto-labels PRs by files changed (`files-changed: N`), detects Django migration files (`migrations`), validates linked issue in PR body (`linked-issue`), detects merge conflicts, and exposes feature toggles for all automation. |
+| **GitHub Checks API — Console Statement Scanner** | `feature/ci-checks` | Creates a GitHub Check Run that scans changed JS/TS files for `console.*` calls and annotates offending lines directly in the PR diff. |
+| **PR Automation Labels (extended)** | `feature/pr-automation` | Extends label automation with additional feature toggles and rate-limiting improvements. |
+| **PR Summary Comment** | `feature/pr-summary-comments` | Posts a rich summary comment on every PR with file stats, estimated contribution points, a pre-merge checklist, and the contributor's current leaderboard rank. |
+
+### 📋 Planned
+
+The items below are defined in the [Implementation Blueprint](BLT%20GitHub%20App%20Implementation%20Blueprint.md) and are targeted for future development.
 
 | Feature | Description |
 |---|---|
-| **PR automation labels** | Auto-label PRs by number of files changed (`files-changed: N`), detect Django migration files (`migrations`), validate that the PR body references a linked issue (`linked-issue`), and flag merge conflicts — with feature toggles for each check. |
-| **GitHub Checks — console statement scanner** | Create a GitHub Check Run that scans changed JS/TS files for `console.*` calls and annotates the exact offending lines directly in the PR diff. |
-| **PR summary comment** | Post a rich summary on every PR showing file-change stats, estimated contribution points, a pre-merge checklist, and the author's current leaderboard rank. |
-| **Security scanning** | GitHub Checks API integration for Gitleaks (secrets), Semgrep (SAST), Checkov (IaC), and CodeQL — results surfaced as inline PR annotations with SARIF uploaded to GitHub Code Scanning. |
-| **Python linting check** | Ruff linting and formatting check exposed as a GitHub Check Run with per-line PR annotations. |
-| **Auto-fix commits** | Automatically commit Ruff / isort / djLint fixes to the PR branch when linting issues are found, with loop detection and rate limiting. |
-| **Quality labels** | Mutual-exclusion labels (`quality: high`, `quality: medium`, `quality: low`) applied to PRs based on review feedback signals. |
+| **Security scanning checks** | GitHub Checks API integration for Gitleaks (secrets), Semgrep (SAST), Checkov (IaC), and CodeQL — results posted as inline PR annotations and SARIF uploaded to GitHub Code Scanning. |
+| **Python linting check** | Ruff linting and formatting check surfaced as a GitHub Check Run with per-line annotations. |
+| **Auto-fix commits** | Automatically commit Ruff / isort / djLint fixes to the PR branch when linting issues are detected; includes loop detection and rate limiting. |
+| **Quality labels** | Mutual-exclusion labels (`quality: high`, `quality: medium`, `quality: low`) applied based on review feedback. |
 | **Test result labels** | `tests: passing` / `tests: failing` labels and failure summary comments driven by CI status checks. |
-| **Comment count label** | A label that tracks PR discussion activity and is updated on each new comment. |
-| **Last-active label** | Automatically marks PRs that have been idle for a configurable time window to surface stale work. |
+| **Comment count label** | Label tracking PR discussion activity, updated on each new comment. |
+| **Last-active label** | Marks PRs that have been inactive for a configurable time window to surface stale work. |
 | **Bounty payout integration** | When a PR merges and closes an issue carrying a `$amount` label, trigger the BLT bounty payout API automatically. |
-| **Reviewer suggestions** | Suggest relevant reviewers based on file ownership history and past contribution patterns. |
+| **Reviewer suggestions** | Suggest relevant reviewers based on file ownership and past contribution patterns. |
 
 ---
 
