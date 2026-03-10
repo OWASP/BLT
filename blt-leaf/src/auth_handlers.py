@@ -233,26 +233,19 @@ async def handle_auth_user(request, env):
     oauth_enabled = is_oauth_configured(env)
     resolved = await resolve_github_token(request, env)
 
-    session_payload, invalid_cookie = await get_oauth_session(request, env)
-    authenticated = bool(session_payload and session_payload.get('access_token'))
-
-    user_payload = None
-    if authenticated:
-        user_data = session_payload.get('user') or {}
-        user_payload = {
-            'login': user_data.get('login'),
-            'avatar_url': user_data.get('avatar_url'),
-            'name': user_data.get('name'),
-        }
+    authenticated = resolved.get('oauth_authenticated', False)
+    invalid_cookie = resolved.get('invalid_oauth_cookie', False)
+    token_source = resolved.get('token_source', 'unauthenticated')
+    user_payload = resolved.get('user') or None
 
     response = _json_response(
         {
             'authenticated': authenticated,
             'oauth_enabled': oauth_enabled,
-            'token_source': resolved['token_source'],
+            'token_source': token_source,
             'user': user_payload,
             'session_cookie_present': bool(request.headers.get('cookie') and 'blt_oauth_session=' in (request.headers.get('cookie') or '')),
-            'session_cookie_valid': bool(session_payload),
+            'session_cookie_valid': authenticated,
             'auth_reason': (
                 'authenticated' if authenticated else
                 'invalid_session_cookie' if invalid_cookie else
@@ -263,7 +256,7 @@ async def handle_auth_user(request, env):
     )
     response.headers.set('Vary', 'Cookie')
 
-    if resolved.get('invalid_oauth_cookie'):
+    if invalid_cookie:
         response.headers.append('Set-Cookie', clear_session_cookie())
 
     return response
