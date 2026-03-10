@@ -101,10 +101,11 @@ async def _exchange_code_for_token(code: str, request, env):
     )
 
     response = await fetch('https://github.com/login/oauth/access_token', options)
-    payload = (await response.json()).to_py()
 
     if not response.ok:
         raise Exception(f"GitHub OAuth token exchange failed: status={response.status}")
+
+    payload = (await response.json()).to_py()
 
     access_token = payload.get('access_token')
     if not access_token:
