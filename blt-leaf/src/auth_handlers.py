@@ -169,7 +169,10 @@ async def handle_auth_callback(request, env):
 
     oauth_error = url.searchParams.get('error')
     if oauth_error:
-        return _redirect_response(f'{root_path}?auth=error')
+        return _redirect_response(
+            f'{root_path}?auth=error',
+            cookies=[clear_state_cookie()],
+        )
 
     if not is_oauth_configured(env):
         return _json_response(
@@ -181,12 +184,16 @@ async def handle_auth_callback(request, env):
     state = url.searchParams.get('state')
 
     if not code:
-        return _json_response({'error': 'Missing OAuth code'}, status=400)
+        return _redirect_response(
+            f'{root_path}?auth=error',
+            cookies=[clear_state_cookie()],
+        )
 
     if not validate_oauth_state(request, state):
-        response = _json_response({'error': 'Invalid OAuth state'}, status=401)
-        response.headers.append('Set-Cookie', clear_state_cookie())
-        return response
+        return _redirect_response(
+            f'{root_path}?auth=error',
+            cookies=[clear_state_cookie()],
+        )
 
     try:
         token_payload = await _exchange_code_for_token(code, request, env)

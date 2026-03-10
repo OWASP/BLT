@@ -472,7 +472,7 @@ function testAuthenticationImplementation() {
     ];
     const getAsyncFunctionBlock = (content, fnName) => {
       const escaped = fnName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const re = new RegExp(`async\\s+def\\s+${escaped}\\([\\s\\S]*?(?=\\nasync\\s+def\\s+|\\n\\Z)`, 'm');
+      const re = new RegExp(`async\\s+def\\s+${escaped}\\([\\s\\S]*?(?=\\nasync\\s+def\\s+|\\n$)`, 'm');
       const match = content.match(re);
       return match ? match[0] : '';
     };
