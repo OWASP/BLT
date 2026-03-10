@@ -16,12 +16,11 @@ import pyodide
 import js
 
 from workers import Response, WorkerEntrypoint
-from pyodide.ffi import JsProxy
 
 # Enable deep debugging for proxy errors
 try:
     pyodide.setDebug(True)
-except Exception:
+except AttributeError:
     pass # Debug mode not available in this Pyodide build
 
 # ---------------------------------------------------------------------------
@@ -211,7 +210,7 @@ async def handle_scan(request, env) -> Response:
 
     result = await _run_scan(env, target, scan_type)
     if "error" in result:
-        return error_response(result["error"], 502)
+        return error_response(result["error"], int(result.get("status", 502)))
     return json_response({"target": target, "scan_type": scan_type, "result": result})
 
 
@@ -365,7 +364,7 @@ async def _run_chat(env, message: str, history: list) -> dict:
     # Add current user message
     messages.append({"role": "user", "content": message})
     
-            # Call Cloudflare AI using JS serialization to avoid proxy issues
+    # Call Cloudflare AI using JS serialization to avoid proxy issues
     try:
         # Convert Python options to pure JS to avoid proxy errors
         ai_options = js.JSON.parse(json.dumps({
@@ -424,7 +423,7 @@ async def _run_chat(env, message: str, history: list) -> dict:
 
 async def _run_scan(env, url: str, scan_type: str = "quick") -> dict:
     if not url:
-        return {"error": "'url' is required"}
+        return {"error": "'url' is required", "status": 400}
     depth_note = (
         "Provide a comprehensive deep-dive analysis."
         if scan_type == "full"
@@ -452,7 +451,7 @@ async def _run_scan(env, url: str, scan_type: str = "quick") -> dict:
 
     reply = _extract_ai_text(ai_response)
     if reply is None:
-        reply = ""
+        return {"error": "The AI service returned an unsupported response format.", "status": 502}
 
     try:
         return json.loads(reply)
