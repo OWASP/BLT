@@ -126,8 +126,8 @@ async function loadLeaderboard() {
       updateHeaderBugStats(inlineData.total_bugs, inlineData.open_bugs, inlineData.closed_bugs);
       if (isHomepage) {
         renderLeaderboard(container, inlineData, limit);
-        renderTopCommenters(document.getElementById("commenters-rows"), inlineData, 5);
-        renderTopDomains(document.getElementById("domains-rows"), inlineData, 5);
+        renderTopCommenters(document.getElementById("commenters-rows"), inlineData, limit);
+        renderTopDomains(document.getElementById("domains-rows"), inlineData, limit);
       }
     }
     return;
@@ -452,7 +452,7 @@ async function loadRecentBugsFromAPI(grid) {
         if (issue.comments > 0) {
           try {
             const commentsRes = await fetch(
-              `${baseUrl}/issues/${issue.number}/comments?per_page=1&sort=created&direction=desc`,
+              `${baseUrl}/issues/${issue.number}/comments?per_page=1&page=${issue.comments}`,
               { headers: { Accept: "application/vnd.github+json" } }
             );
 
