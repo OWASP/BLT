@@ -1137,9 +1137,9 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
       <div class="flex items-center justify-between gap-4 mb-8">
         <div>
           <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-8">
-            <span class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Recent Submissions</span>
+            <h2 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Recent Submissions</h2>
             <a href="show-all-entries.html"
-               class="inline-flex items-center gap-1.5 text-[#E10101] font-semibold text-sm
+               class="inline-flex items-center gap-1.5 text-[`#E10101`] font-semibold text-sm
                       self-start sm:self-auto whitespace-nowrap
                       hover:gap-2.5 transition-all duration-200">
               View Entries <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
@@ -1400,20 +1400,24 @@ def build_show_all_entries_html(contests_data: list[dict], last_updated: str) ->
         </a>
 
         <div class="hidden md:flex items-center gap-6 text-sm font-medium">
-          <a href="index.html" class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] transition-colors inline-flex items-center gap-1.5">
+          <a href="index.html" class="text-gray-600 dark:text-gray-300 hover:text-[`#E10101`] transition-colors inline-flex items-center gap-1.5">
             <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> All Contests
           </a>
-          <a href="index.html#recent-submissions" class="text-[#E10101] font-semibold inline-flex items-center gap-1.5">
+          <a href="show-all-entries.html"
+             class="text-[`#E10101`] font-semibold inline-flex items-center gap-1.5"
+             aria-current="page">
+            <i class="fa-solid fa-images" aria-hidden="true"></i> All Entries
+          </a>
             <i class="fa-solid fa-images" aria-hidden="true"></i> All Entries
           </a>
           <a href="https://github.com/{REPO}" target="_blank" rel="noopener"
              class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] transition-colors inline-flex items-center gap-1">
-            <i class="fa-brands fa-github" aria-hidden="true"></i> GitHub
-          </a>
-        </div>
-
-        <a href="{first_submit_url}"
+        <a href="index.html#contests"
            target="_blank" rel="noopener"
+           class="inline-flex items-center gap-2 bg-[`#E10101`] hover:bg-red-700 text-white text-sm font-semibold px-4 py-2 rounded-md transition-colors shrink-0">
+          <i class="fa-solid fa-plus" aria-hidden="true"></i>
+          <span>Choose Contest</span>
+        </a>
            class="inline-flex items-center gap-2 bg-[#E10101] hover:bg-red-700 text-white text-sm font-semibold px-4 py-2 rounded-md transition-colors shrink-0">
           <i class="fa-solid fa-plus" aria-hidden="true"></i>
           <span>Submit Design</span>
