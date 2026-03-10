@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-03-10T00:22:45.478Z",
-  "commit_sha": "a139cb6b05026220755d7f99cb8fad27a8f94ede",
+  "updated_at": "2026-03-10T02:43:43.870901Z",
+  "commit_sha": "b885dff74e9fac5118b6acff1685ddb7dbc691a5",
   "total_bugs": 16,
   "open_bugs": 3,
   "closed_bugs": 13,
@@ -88,27 +88,34 @@
     },
     {
       "rank": 7,
+      "login": "Shubhangpathak",
+      "count": 1,
+      "avatar_url": "https://avatars.githubusercontent.com/u/147265305?v=4",
+      "profile_url": "https://github.com/Shubhangpathak"
+    },
+    {
+      "rank": 8,
       "login": "sidd190",
       "count": 1,
       "avatar_url": "https://avatars.githubusercontent.com/u/73955358?v=4",
       "profile_url": "https://github.com/sidd190"
     },
     {
-      "rank": 8,
+      "rank": 9,
       "login": "yogeshwarithombare",
       "count": 1,
       "avatar_url": "https://avatars.githubusercontent.com/u/247213611?v=4",
       "profile_url": "https://github.com/yogeshwarithombare"
     },
     {
-      "rank": 9,
+      "rank": 10,
       "login": "Armaansaxena",
       "count": 1,
       "avatar_url": "https://avatars.githubusercontent.com/u/143505186?v=4",
       "profile_url": "https://github.com/Armaansaxena"
     },
     {
-      "rank": 10,
+      "rank": 11,
       "login": "swaparup36",
       "count": 1,
       "avatar_url": "https://avatars.githubusercontent.com/u/82692857?v=4",
@@ -143,7 +150,7 @@
       "title": "[BUG] whole div \"Chapters\", should be clickable and remove test data",
       "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/81",
       "created_at": "2026-03-08T23:31:51Z",
-      "comment_count": 1,
+      "comment_count": 3,
       "user": {
         "login": "DonnieBLT",
         "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
@@ -155,9 +162,9 @@
         "eyes": 1
       },
       "latest_comment": {
-        "body": "👋 Thanks for opening this issue, @DonnieBLT!\n\nOur team will review it shortly. In the meantime:\n- If you'd like to work on this issue, comment `/assign` to get assigned.\n- Visit [OWASP BLT](https://owaspblt.org) for more information about our bug bounty platform.\n",
-        "created_at": "2026-03-08T23:31:54Z",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/81#issuecomment-4020254478",
+        "body": "@Shubhangpathak You have been assigned to this issue! 🎉\n\nPlease submit a pull request within **8 hours** (by Tue, 10 Mar 2026 08:54:55 UTC).\n\nIf you need more time or cannot complete the work, please comment `/unassign` so others can pick it up.\n\nHappy coding! 🚀 — [OWASP BLT](https://owaspblt.org)",
+        "created_at": "2026-03-10T00:54:55Z",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/81#issuecomment-4027875893",
         "user": {
           "login": "owasp-blt[bot]",
           "avatar_url": "https://avatars.githubusercontent.com/in/1159228?v=4",
