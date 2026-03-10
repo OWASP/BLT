@@ -2410,7 +2410,7 @@ async def handle_webhook(request, env) -> Response:
 
 # ---------------------------------------------------------------------------
 # Landing page HTML — separated into src/index_template.py for maintainability.
-# Edit public/index.html and regenerate src/index_template.py before deploying.
+# Edit templates/index.html and regenerate src/index_template.py before deploying.
 # ---------------------------------------------------------------------------
 
 _CALLBACK_HTML = """\

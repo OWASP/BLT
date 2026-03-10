@@ -1,7 +1,7 @@
 """HTML template for the BLT GitHub App landing page.
 
-This is auto-generated from public/index.html.
-Edit public/index.html and regenerate this file before deploying.
+This is auto-generated from templates/index.html.
+Edit templates/index.html and regenerate this file before deploying.
 
 Template variables:
     {{INSTALL_URL}} — GitHub App installation URL
