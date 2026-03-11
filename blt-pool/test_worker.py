@@ -559,9 +559,7 @@ class TestHandlePullRequestOpened(unittest.TestCase):
         payload = _make_pr_payload()
         comments = []
         self._run_opened(payload, comments)
-        self.assertEqual(len(comments), 1)
-        self.assertIn("Thanks for opening this pull request", comments[0])
-        self.assertIn("OWASP BLT", comments[0])
+        self.assertEqual(comments, [])
 
     def test_ignores_bot_senders(self):
         payload = _make_pr_payload(sender={"login": "bot", "type": "Bot"})
@@ -989,8 +987,6 @@ class TestHandlePullRequestOpenedLeaderboard(unittest.TestCase):
         self.assertEqual(len(close_calls), 1)
         # Should post leaderboard
         self.assertEqual(len(leaderboard_calls), 1)
-        # Should post welcome comment
-        self.assertTrue(any("Thanks for opening this pull request" in c for c in comments))
 
     def test_skips_bots(self):
         payload = _make_pr_payload(sender={"login": "dependabot", "type": "Bot"})

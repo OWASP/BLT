@@ -1852,20 +1852,6 @@ async def handle_pull_request_opened(payload: dict, token: str, env=None) -> Non
     # Track open PR counter in D1.
     await _track_pr_opened_in_d1(payload, env)
     
-    # Post welcome message
-    body = (
-        f"👋 Thanks for opening this pull request, @{author_login}!\n\n"
-        "**Before your PR is reviewed, please ensure:**\n"
-        "- [ ] Your code follows the project's coding style and guidelines.\n"
-        "- [ ] You have written or updated tests for your changes.\n"
-        "- [ ] The commit messages are clear and descriptive.\n"
-        "- [ ] You have linked any relevant issues (e.g., `Closes #123`).\n\n"
-        "🔍 Our team will review your PR shortly. "
-        "If you have questions, feel free to ask in the comments.\n\n"
-        "🚀 Keep up the great work! — [OWASP BLT](https://owaspblt.org)"
-    )
-    await create_comment(owner, repo, pr_number, body, token)
-    
     # Post leaderboard
     if env is None:
         await _post_or_update_leaderboard(owner, repo, pr_number, author_login, token)
