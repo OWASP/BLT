@@ -33,7 +33,7 @@ from typing import Optional, Tuple
 from urllib.parse import quote, urlparse
 
 from js import Headers, Response, console, fetch  # Cloudflare Workers JS bindings
-from index_template import INDEX_HTML  # Landing page HTML template
+from index_template import GITHUB_PAGE_HTML  # Landing page HTML template
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -2744,7 +2744,7 @@ def _secret_vars_status_html(env) -> str:
     return "\n".join(rows)
 
 
-def _landing_html(app_slug: str, env=None) -> str:
+def _github_app_html(app_slug: str, env=None) -> str:
     install_url = (
         f"https://github.com/apps/{app_slug}/installations/new"
         if app_slug
@@ -2753,7 +2753,7 @@ def _landing_html(app_slug: str, env=None) -> str:
     year = time.gmtime().tm_year
     secret_vars_html = _secret_vars_status_html(env) if env is not None else ""
     return (
-        INDEX_HTML
+        GITHUB_PAGE_HTML
         .replace("{{INSTALL_URL}}", install_url)
         .replace("{{YEAR}}", str(year))
         .replace("{{SECRET_VARS_STATUS}}", secret_vars_html)
@@ -2813,7 +2813,7 @@ def _generate_mentor_card(mentor: dict) -> str:
     '''
 
 
-def _mentor_grid_html() -> str:
+def _index_html() -> str:
     """Generate the BLT-Pool mentor grid homepage."""
     year = time.gmtime().tm_year
     mentor_count = len(MENTORS)
@@ -3039,11 +3039,11 @@ async def on_fetch(request, env) -> Response:
     path = urlparse(str(request.url)).path.rstrip("/") or "/"
 
     if method == "GET" and path == "/":
-        return _html(_mentor_grid_html())
+        return _html(_index_html())
 
     if method == "GET" and path in ("/github-app", "/github-pages"):
         app_slug = getattr(env, "GITHUB_APP_SLUG", "")
-        return _html(_landing_html(app_slug, env))
+        return _html(_github_app_html(app_slug, env))
 
     if method == "GET" and path == "/health":
         return _json({"status": "ok", "service": "BLT-Pool"})

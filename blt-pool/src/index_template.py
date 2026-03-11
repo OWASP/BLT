@@ -9,7 +9,7 @@ Template variables:
     {{SECRET_VARS_STATUS}} — HTML rows showing environment variable status
 """
 
-INDEX_HTML = """\
+GITHUB_PAGE_HTML = """\
 <!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
 <head>
@@ -70,6 +70,9 @@ INDEX_HTML = """\
       <nav class="hidden items-center gap-2 rounded-xl border border-blt-border bg-white p-1 md:flex" aria-label="Main">
         <a href="/" class="rounded-lg px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">Mentors</a>
         <a href="/github-pages" class="rounded-lg bg-[#feeae9] px-3 py-2 text-sm font-semibold text-blt-primary">GitHub Pages</a>
+        <a href="https://owaspblt.org" target="_blank" rel="noopener" class="rounded-lg px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">
+          OWASP BLT <i class="fa-solid fa-arrow-up-right-from-square text-xs" aria-hidden="true"></i>
+        </a>
       </nav>
       <span role="status" aria-label="Service status: Operational" class="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
         <i class="fa-solid fa-circle text-[0.45rem]" aria-hidden="true"></i>
@@ -257,3 +260,5 @@ INDEX_HTML = """\
 </body>
 </html>
 """
+
+
