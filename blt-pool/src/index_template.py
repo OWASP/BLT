@@ -91,11 +91,11 @@ GITHUB_PAGE_HTML = """\
             BLT-Pool Repo Page for OWASP-BLT
           </span>
           <h2 class="text-3xl font-extrabold leading-tight text-blt-dark-base sm:text-5xl">
-            A clean extension landing page
-            <span class="text-blt-primary">for your GitHub workflow</span>
+            Automate Your GitHub Workflow
+            <span class="text-blt-primary">with Intelligent Automation</span>
           </h2>
           <p class="mt-4 max-w-2xl text-base leading-relaxed text-gray-600 sm:text-lg">
-            This extension automates assignment flow, leaderboard scoring, bug reporting, and contributor health checks. It is built for busy maintainers and first-time contributors.
+            Streamline issue assignments, track contributor leaderboards, sync bug reports to BLT, and enforce healthy PR workflows. Built for busy maintainers and first-time contributors.
           </p>
           <div class="mt-7 flex flex-wrap items-center gap-3">
             <a href="{{INSTALL_URL}}" class="inline-flex items-center gap-2 rounded-md bg-blt-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-blt-primary-hover focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2">
