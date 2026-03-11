@@ -1,7 +1,11 @@
-"""BLT GitHub App — Python Cloudflare Worker.
+"""BLT-Pool — Mentor Matching & GitHub Automation Platform.
 
-Handles GitHub webhooks and serves a landing homepage.
-This is the Python / Cloudflare Workers port of the original Node.js Probot app.
+A dual-purpose platform that:
+1. Connects contributors with mentors through a shared mentor pool
+2. Automates GitHub workflows (issue assignment, leaderboard, webhooks)
+
+Homepage (/) displays the mentor grid with availability and assignments.
+GitHub App documentation and installation at /github-app.
 
 Entry point: ``on_fetch(request, env)`` — called by the Cloudflare runtime for
 every incoming HTTP request.
@@ -40,6 +44,22 @@ LEADERBOARD_COMMAND = "/leaderboard"
 MAX_ASSIGNEES = 1
 ASSIGNMENT_DURATION_HOURS = 8
 BUG_LABELS = {"bug", "vulnerability", "security"}
+
+# Mentor pool for BLT-Pool platform
+MENTORS = [
+    {"name": "Shriyash Soni", "github_username": "", "slack_username": "", "project": None, "mentee": None, "status": "available"},
+    {"name": "Mohammed Faiyaz Shaikh", "github_username": "", "slack_username": "", "project": None, "mentee": None, "status": "available"},
+    {"name": "Manikandan Chandran", "github_username": "", "slack_username": "", "project": None, "mentee": None, "status": "available"},
+    {"name": "Rinkit Adhana", "github_username": "", "slack_username": "", "project": None, "mentee": None, "status": "available"},
+    {"name": "Raj Gupta", "github_username": "", "slack_username": "", "project": None, "mentee": None, "status": "available"},
+    {"name": "Shivam Kumar", "github_username": "", "slack_username": "", "project": None, "mentee": None, "status": "available"},
+    {"name": "Vinamra Vaswani", "github_username": "", "slack_username": "", "project": None, "mentee": None, "status": "available"},
+    {"name": "Carla Voorhees", "github_username": "", "slack_username": "", "project": None, "mentee": None, "status": "available"},
+    {"name": "Akshay Behl", "github_username": "", "slack_username": "", "project": None, "mentee": None, "status": "available"},
+    {"name": "Ahmed ElSheik", "github_username": "", "slack_username": "", "project": None, "mentee": None, "status": "available"},
+    {"name": "Vedant Anand", "github_username": "", "slack_username": "", "project": None, "mentee": None, "status": "available"},
+    {"name": "Rishab Kumar Jha", "github_username": "", "slack_username": "", "project": None, "mentee": None, "status": "available"},
+]
 
 # DER OID sequence for rsaEncryption (used when wrapping PKCS#1 → PKCS#8)
 _RSA_OID_SEQ = bytes([
@@ -2743,6 +2763,212 @@ def _callback_html() -> str:
     return _CALLBACK_HTML
 
 
+def _generate_mentor_card(mentor: dict) -> str:
+    """Generate HTML for a single mentor card."""
+    name = mentor.get("name", "Unknown")
+    github = mentor.get("github_username", "")
+    slack = mentor.get("slack_username", "")
+    project = mentor.get("project")
+    mentee = mentor.get("mentee")
+    status = mentor.get("status", "available")
+    
+    # Use GitHub avatar if username provided, otherwise default avatar
+    avatar_url = f"https://github.com/{github}.png" if github else "https://api.dicebear.com/7.x/initials/svg?seed=" + quote(name)
+    
+    status_badge = ""
+    if status == "available":
+        status_badge = '<span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-green-500/10 text-green-400 border border-green-500/25"><i class="fa-solid fa-circle text-[0.4rem]" aria-hidden="true"></i> Available</span>'
+    elif status == "assigned":
+        status_badge = '<span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/25"><i class="fa-solid fa-circle text-[0.4rem]" aria-hidden="true"></i> Mentoring</span>'
+    else:
+        status_badge = '<span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-gray-500/10 text-gray-400 border border-gray-500/25"><i class="fa-solid fa-circle text-[0.4rem]" aria-hidden="true"></i> Unavailable</span>'
+    
+    assignment_html = ""
+    if project and mentee:
+        assignment_html = f'''
+        <div class="mt-3 pt-3 border-t border-gray-700 text-xs text-gray-400">
+          <p class="mb-1"><span class="font-semibold text-gray-300">Project:</span> {project}</p>
+          <p><span class="font-semibold text-gray-300">Mentee:</span> {mentee}</p>
+        </div>
+        '''
+    
+    github_link = f'<a href="https://github.com/{github}" target="_blank" class="text-gray-400 hover:text-white transition-colors"><i class="fa-brands fa-github" aria-hidden="true"></i></a>' if github else '<span class="text-gray-600"><i class="fa-brands fa-github" aria-hidden="true"></i></span>'
+    slack_link = f'<span class="text-gray-400" title="Slack: {slack}"><i class="fa-brands fa-slack" aria-hidden="true"></i></span>' if slack else '<span class="text-gray-600"><i class="fa-brands fa-slack" aria-hidden="true"></i></span>'
+    
+    return f'''
+    <div class="bg-[#1F2937] border border-gray-700 rounded-xl p-6 hover:border-gray-600 transition-all">
+      <div class="flex items-start gap-4">
+        <img src="{avatar_url}" alt="{name}" class="w-16 h-16 rounded-full object-cover border-2 border-gray-700">
+        <div class="flex-1 min-w-0">
+          <h4 class="text-lg font-bold text-white truncate">{name}</h4>
+          <div class="mt-2">{status_badge}</div>
+        </div>
+      </div>
+      <div class="mt-4 flex items-center gap-3 text-sm">
+        {github_link}
+        {slack_link}
+      </div>
+      {assignment_html}
+    </div>
+    '''
+
+
+def _mentor_grid_html() -> str:
+    """Generate the BLT-Pool mentor grid homepage."""
+    year = time.gmtime().tm_year
+    mentor_count = len(MENTORS)
+    available_count = len([m for m in MENTORS if m.get("status") == "available"])
+    
+    mentor_cards_html = "\n".join(_generate_mentor_card(mentor) for mentor in MENTORS)
+    
+    return f'''<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="BLT-Pool — Connect with mentors and contributors in the OWASP BLT community">
+  <title>BLT-Pool — Mentor Directory</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+  <script>
+    tailwind.config = {{
+      theme: {{
+        extend: {{
+          colors: {{
+            'blt-red': '#E10101',
+            'blt-red-hover': '#b91c1c',
+          }}
+        }}
+      }}
+    }}
+  </script>
+</head>
+<body class="min-h-screen flex flex-col bg-[#111827] text-gray-100 antialiased">
+  
+  <!-- Header -->
+  <header class="w-full px-6 py-4 flex items-center gap-4 bg-[#1F2937] border-b border-gray-700">
+    <div class="w-10 h-10 bg-blt-red rounded-lg flex items-center justify-center font-bold text-white text-xl">
+      BP
+    </div>
+    <h1 class="flex-1 text-xl font-bold text-white">BLT-Pool</h1>
+    <nav class="hidden md:flex items-center gap-6 text-sm">
+      <a href="/" class="text-blt-red font-semibold">Mentors</a>
+      <a href="/github-app" class="text-gray-400 hover:text-white transition-colors">GitHub App</a>
+      <a href="https://owaspblt.org" target="_blank" rel="noopener" class="text-gray-400 hover:text-white transition-colors">
+        OWASP BLT <i class="fa-solid fa-arrow-up-right-from-square text-xs ml-1" aria-hidden="true"></i>
+      </a>
+    </nav>
+    <span role="status" aria-label="Service status: Operational" 
+          class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-green-500/10 text-green-400 border border-green-500/25">
+      <i class="fa-solid fa-circle text-[0.45rem]" aria-hidden="true"></i>
+      Operational
+    </span>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-1 w-full max-w-7xl mx-auto px-4 py-12 space-y-12">
+
+    <!-- Hero Section -->
+    <section class="text-center py-12 px-8">
+      <h2 class="text-5xl md:text-6xl font-extrabold text-white mb-4">
+        Find Your <span class="text-blt-red">Mentor</span>
+      </h2>
+      <p class="text-xl max-w-3xl mx-auto mb-6 leading-relaxed text-gray-400">
+        Connect with experienced mentors in the OWASP BLT community. Get guidance on your first PR, learn security best practices, and accelerate your open-source journey.
+      </p>
+      <p class="text-lg max-w-2xl mx-auto mb-8 text-gray-500">
+        Our mentor pool uses intelligent round-robin assignment to ensure balanced workload and faster support for every contributor.
+      </p>
+      <div class="flex flex-wrap justify-center gap-4">
+        <a href="https://owasp.slack.com/signup" 
+           target="_blank" rel="noopener"
+           class="inline-flex items-center gap-2 bg-blt-red hover:bg-blt-red-hover text-white font-semibold text-base px-6 py-3 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blt-red focus:ring-offset-2 focus:ring-offset-[#111827]">
+          <i class="fa-brands fa-slack" aria-hidden="true"></i>
+          Join OWASP Slack
+        </a>
+        <a href="/github-app" 
+           class="inline-flex items-center gap-2 bg-gray-700 hover:bg-gray-600 text-white font-semibold text-base px-6 py-3 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-[#111827]">
+          <i class="fa-brands fa-github" aria-hidden="true"></i>
+          Install GitHub App
+        </a>
+      </div>
+    </section>
+
+    <!-- Mentor Grid -->
+    <section class="space-y-6">
+      <div class="flex items-center justify-between">
+        <h3 class="text-3xl font-bold text-white">
+          Mentors <span class="text-gray-500 text-lg font-normal">({mentor_count} total, {available_count} available)</span>
+        </h3>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {mentor_cards_html}
+      </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="py-12 px-8 rounded-xl bg-[#1F2937] border border-gray-700">
+      <h3 class="text-3xl font-bold text-white mb-6 text-center">How Mentor Matching Works</h3>
+      <div class="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+        <div class="text-center">
+          <div class="w-16 h-16 bg-blt-red/10 border border-blt-red/25 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fa-solid fa-user-plus text-2xl text-blt-red" aria-hidden="true"></i>
+          </div>
+          <h4 class="text-lg font-bold text-white mb-2">1. Pick an Issue</h4>
+          <p class="text-gray-400 text-sm">When you pick up an issue or it's labeled "needs mentor", the system kicks in.</p>
+        </div>
+        <div class="text-center">
+          <div class="w-16 h-16 bg-blt-red/10 border border-blt-red/25 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fa-solid fa-arrows-rotate text-2xl text-blt-red" aria-hidden="true"></i>
+          </div>
+          <h4 class="text-lg font-bold text-white mb-2">2. Auto-Assignment</h4>
+          <p class="text-gray-400 text-sm">A mentor is automatically assigned using round-robin to balance workload.</p>
+        </div>
+        <div class="text-center">
+          <div class="w-16 h-16 bg-blt-red/10 border border-blt-red/25 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fa-solid fa-comments text-2xl text-blt-red" aria-hidden="true"></i>
+          </div>
+          <h4 class="text-lg font-bold text-white mb-2">3. Get Guidance</h4>
+          <p class="text-gray-400 text-sm">Your mentor provides feedback, reviews code, and helps you succeed.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Call to Action -->
+    <section class="text-center py-16 px-8 rounded-xl bg-gradient-to-br from-[#1F2937] to-[#111827] border border-gray-700">
+      <h3 class="text-3xl font-bold text-white mb-4">Want to Become a Mentor?</h3>
+      <p class="text-lg max-w-2xl mx-auto mb-8 text-gray-400">
+        Share your knowledge and help contributors grow. Mentors guide contributors through their first PRs, review code, and provide valuable feedback.
+      </p>
+      <a href="https://owasp.slack.com/archives/C0DKR6LAW" 
+         target="_blank" rel="noopener"
+         class="inline-flex items-center gap-2 bg-blt-red hover:bg-blt-red-hover text-white font-semibold text-base px-6 py-3 rounded-md transition-colors">
+        <i class="fa-regular fa-comments" aria-hidden="true"></i>
+        Reach Out on Slack
+      </a>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="w-full px-6 py-8 bg-[#1F2937] border-t border-gray-700 text-center text-sm text-gray-400">
+    <p>
+      Built with ❤️ by the <a href="https://owaspblt.org" target="_blank" rel="noopener" class="text-blt-red hover:underline">OWASP BLT</a> community
+      &middot; <a href="/github-app" class="hover:text-white transition-colors">GitHub App</a>
+      &middot; <a href="https://github.com/OWASP-BLT" target="_blank" rel="noopener" class="hover:text-white transition-colors">GitHub</a>
+    </p>
+    <p class="mt-2 text-xs">&copy; {year} OWASP Foundation. All rights reserved.</p>
+  </footer>
+
+  <script>
+    console.log('BLT-Pool v1.0 - Connecting mentors and contributors');
+  </script>
+
+</body>
+</html>'''
+
+
 # ---------------------------------------------------------------------------
 # Response helpers
 # ---------------------------------------------------------------------------
@@ -2777,11 +3003,14 @@ async def on_fetch(request, env) -> Response:
     path = urlparse(str(request.url)).path.rstrip("/") or "/"
 
     if method == "GET" and path == "/":
+        return _html(_mentor_grid_html())
+
+    if method == "GET" and path == "/github-app":
         app_slug = getattr(env, "GITHUB_APP_SLUG", "")
         return _html(_landing_html(app_slug, env))
 
     if method == "GET" and path == "/health":
-        return _json({"status": "ok", "service": "BLT GitHub App"})
+        return _json({"status": "ok", "service": "BLT-Pool"})
 
     if method == "POST" and path == "/api/github/webhooks":
         return await handle_webhook(request, env)
