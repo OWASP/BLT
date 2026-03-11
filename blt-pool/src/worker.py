@@ -50,8 +50,8 @@ BUG_LABELS = {"bug", "vulnerability", "security"}
 MENTORS = [
     {"name": "Rinkit Adhana", "github_username": "rinkitadhana", "slack_username": "Rinkit Adhana", "project": "Project A", "mentee": None, "status": "available"},
     {"name": "Raj Gupta", "github_username": "Rajgupta36", "slack_username": "raj", "project": "Project A", "mentee": None, "status": "available"},
-    {"name": "Shriyash Soni", "github_username": "", "slack_username": "", "project": "", "mentee": None, "status": "available"},
-    {"name": "Mohammed Faiyaz Shaikh", "github_username": "", "slack_username": "", "project": None, "mentee": None, "status": "available"},
+    {"name": "Shriyash Soni", "github_username": "shriyashsoni", "slack_username": "shriyash soni", "project": "", "mentee": None, "status": "available"},
+    {"name": "Mohammed Faiyaz Shaikh", "github_username": "Mohammedfaiyaz29", "slack_username": "faiyaz", "project": None, "mentee": None, "status": "available"},
     {"name": "Manikandan Chandran", "github_username": "", "slack_username": "", "project": None, "mentee": None, "status": "available"},
     {"name": "Shivam Kumar", "github_username": "", "slack_username": "", "project": None, "mentee": None, "status": "available"},
     {"name": "Vinamra Vaswani", "github_username": "Vaswani2003", "slack_username": "@Vinamra", "project": None, "mentee": None, "status": "available"},
@@ -61,8 +61,8 @@ MENTORS = [
     {"name": "Kunal Kashyap", "github_username": "Kunal1522", "slack_username": "Kunal", "project": None, "mentee": None, "status": "available"},
     {"name": "Rudra Bhaskar", "github_username": "RudraBhaskar9439", "slack_username": "@Rudra9439", "project": None, "mentee": None, "status": "available"},
     {"name": "Sanidhya Shishodia", "github_username": "dev-sanidhya", "slack_username": "@Sanidhya Shishodia", "project": None, "mentee": None, "status": "available"},
-    {"name": "Vedant Anand", "github_username": "", "slack_username": "", "project": None, "mentee": None, "status": "available"},
-    {"name": "Rishab Kumar Jha", "github_username": "", "slack_username": "", "project": None, "mentee": None, "status": "available"},
+    {"name": "Vedant Anand", "github_username": "VedantAnand17", "slack_username": "Vedant Anand", "project": None, "mentee": None, "status": "available"},
+    {"name": "Rishab Kumar Jha", "github_username": "Rishab87", "slack_username": "Rishab Kumar Jha", "project": None, "mentee": None, "status": "available"},
 ]
 
 # DER OID sequence for rsaEncryption (used when wrapping PKCS#1 → PKCS#8)
