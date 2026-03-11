@@ -2036,6 +2036,94 @@ async def check_unresolved_conversations(payload, token):
 
 
 # ---------------------------------------------------------------------------
+# Workflow approval labels
+# ---------------------------------------------------------------------------
+
+
+async def check_workflows_awaiting_approval(
+    owner: str, repo: str, pr_number: int, head_sha: str, token: str
+) -> None:
+    """Update the 'X workflows awaiting approval' label on a PR.
+
+    Queries GitHub for workflow runs on *head_sha* that are in
+    ``action_required`` status (i.e. awaiting a maintainer's approval).
+    Adds a red label with the count when any are pending; removes all
+    such labels when none remain.
+    """
+    resp = await github_api(
+        "GET",
+        f"/repos/{owner}/{repo}/actions/runs?head_sha={head_sha}&status=action_required",
+        token,
+    )
+
+    waiting_count = 0
+    if resp.status == 200:
+        data = json.loads(await resp.text())
+        waiting_count = data.get("total_count", 0)
+
+    # Remove any existing "workflows awaiting approval" labels
+    resp_labels = await github_api(
+        "GET",
+        f"/repos/{owner}/{repo}/issues/{pr_number}/labels",
+        token,
+    )
+    if resp_labels.status == 200:
+        current_labels = json.loads(await resp_labels.text())
+        for lb in current_labels:
+            if "workflow" in lb["name"] and "awaiting approval" in lb["name"]:
+                await github_api(
+                    "DELETE",
+                    f"/repos/{owner}/{repo}/issues/{pr_number}/labels/{quote(lb['name'], safe='')}",
+                    token,
+                )
+
+    if waiting_count > 0:
+        noun = "workflow" if waiting_count == 1 else "workflows"
+        label = f"{waiting_count} {noun} awaiting approval"
+        await _ensure_label_exists(owner, repo, label, "e74c3c", token)
+        await github_api(
+            "POST",
+            f"/repos/{owner}/{repo}/issues/{pr_number}/labels",
+            token,
+            {"labels": [label]},
+        )
+
+
+async def handle_workflow_run(payload: dict, token: str) -> None:
+    """Handle workflow_run events to update 'awaiting approval' labels on PRs.
+
+    Resolves the PR(s) associated with the workflow run and calls
+    ``check_workflows_awaiting_approval`` for each one.  Falls back to
+    searching open PRs by head SHA when the payload's ``pull_requests``
+    array is empty (e.g. fork PRs).
+    """
+    workflow_run = payload.get("workflow_run", {})
+    owner = payload["repository"]["owner"]["login"]
+    repo = payload["repository"]["name"]
+    head_sha = workflow_run.get("head_sha", "")
+
+    pr_numbers: set[int] = set()
+    for pr in workflow_run.get("pull_requests", []):
+        pr_numbers.add(pr["number"])
+
+    # For fork PRs the pull_requests array is empty; fall back to a lookup
+    if not pr_numbers and head_sha:
+        resp = await github_api(
+            "GET",
+            f"/repos/{owner}/{repo}/pulls?state=open&per_page=100",
+            token,
+        )
+        if resp.status == 200:
+            pulls = json.loads(await resp.text())
+            for pull in pulls:
+                if pull.get("head", {}).get("sha") == head_sha:
+                    pr_numbers.add(pull["number"])
+
+    for pr_number in pr_numbers:
+        await check_workflows_awaiting_approval(owner, repo, pr_number, head_sha, token)
+
+
+# ---------------------------------------------------------------------------
 # Peer review enforcement
 # ---------------------------------------------------------------------------
 
@@ -2333,6 +2421,8 @@ async def handle_webhook(request, env) -> Response:
             await check_unresolved_conversations(payload, token)
         elif event == "pull_request_review_thread":
             await check_unresolved_conversations(payload, token)
+        elif event == "workflow_run":
+            await handle_workflow_run(payload, token)
 
     except Exception as exc:
         console.error(f"[BLT] Webhook handler error: {exc}")
