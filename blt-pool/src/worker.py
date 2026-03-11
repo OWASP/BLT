@@ -22,6 +22,7 @@ import calendar
 import hashlib
 import hmac as _hmac
 import json
+import re
 import time
 from typing import Optional, Tuple
 from urllib.parse import quote, urlparse
@@ -1111,6 +1112,28 @@ async def _backfill_repo_month_if_needed(
         closed_page += 1
     console.log(f"[Backfill] Found {merged_count} merged, {closed_count} closed PRs in month range")
 
+    # Also include webhook-tracked merged PRs whose review webhooks may have been missed
+    # (e.g. during app downtime). The leaderboard_review_credits idempotency guard ensures
+    # no duplicate credits are awarded even if a PR is processed again.
+    if len(merged_prs_for_review) < MAX_REVIEW_BACKFILL:
+        tracked_merged_rows = await _d1_all(
+            db,
+            """
+            SELECT pr_number, author_login FROM leaderboard_pr_state
+            WHERE org = ? AND repo = ? AND merged = 1
+            """,
+            (owner, repo_name),
+        )
+        newly_added = {pr_num for pr_num, _ in merged_prs_for_review}
+        for row in (tracked_merged_rows or []):
+            if len(merged_prs_for_review) >= MAX_REVIEW_BACKFILL:
+                break
+            pr_num = row.get("pr_number")
+            author = row.get("author_login", "")
+            if pr_num and pr_num not in newly_added:
+                merged_prs_for_review.append((pr_num, author))
+                newly_added.add(pr_num)
+
     # Backfill review credits for merged PRs in the window (up to MAX_REVIEW_BACKFILL).
     # Mirrors the idempotency logic in _track_review_in_d1: only the first two unique
     # non-bot, non-author reviewers per PR per month get credit.
@@ -1123,6 +1146,9 @@ async def _backfill_repo_month_if_needed(
                 f"/repos/{owner}/{repo_name}/pulls/{pr_number}/reviews?per_page=100",
                 token,
             )
+            if reviews_resp.status == 429:
+                console.error(f"[Backfill] GitHub rate limit hit fetching reviews for PR #{pr_number}; skipping remaining review backfill")
+                break
             if reviews_resp.status != 200:
                 console.error(f"[Backfill] Failed to fetch reviews for PR #{pr_number}: status={reviews_resp.status}")
                 continue
@@ -1150,7 +1176,7 @@ async def _backfill_repo_month_if_needed(
                 seen_reviewers.add(reviewer_login)
                 if reviewer_login in already_credited_set:
                     continue
-                # Cap: at most 2 unique reviewers credited per PR per month.
+                # Stop processing once 2 unique reviewers have been credited for this PR.
                 if len(already_credited_set) >= 2:
                     break
                 await _d1_run(
@@ -1192,14 +1218,11 @@ async def _reset_leaderboard_month(org: str, month_key: str, db) -> dict:
     - leaderboard_monthly_stats       for org + month_key
     - leaderboard_backfill_repo_done  for org + month_key  (allows re-backfill)
     - leaderboard_review_credits      for org + month_key
-    - leaderboard_pr_state            for org              (no month scope; cleared so
-                                                            re-backfill starts with a
-                                                            clean slate for idempotency)
-    - leaderboard_open_prs            for org              (no month scope; cleared so
-                                                            re-backfill recalculates
-                                                            open PR counts accurately)
+    - leaderboard_pr_state            for org where closed_at falls within the month window
+    - leaderboard_open_prs            for org              (open PR counts are recalculated
+                                                            fresh on next backfill)
 
-    Returns a dict summarising deleted row counts.
+    Returns a dict summarising cleared tables.
     """
     await _ensure_leaderboard_schema(db)
     deleted: dict = {}
@@ -1216,13 +1239,37 @@ async def _reset_leaderboard_month(org: str, month_key: str, db) -> dict:
             console.error(f"[AdminReset] Error clearing {table}: {e}")
             deleted[table] = f"error: {e}"
 
-    for table in ("leaderboard_pr_state", "leaderboard_open_prs"):
-        try:
-            await _d1_run(db, f"DELETE FROM {table} WHERE org = ?", (org,))
-            deleted[table] = "cleared"
-        except Exception as e:
-            console.error(f"[AdminReset] Error clearing {table}: {e}")
-            deleted[table] = f"error: {e}"
+    # Scope the pr_state delete to the target month's timestamp window so that
+    # rows for other months (e.g. the current active month) are not destroyed.
+    start_ts, end_ts = _month_window(month_key)
+    try:
+        # Two cases:
+        #   1. Closed/merged PRs: closed_at falls within the month window.
+        #   2. Open PRs recorded during this month: state='open', no closed_at,
+        #      updated_at falls within the month window.
+        await _d1_run(
+            db,
+            """
+            DELETE FROM leaderboard_pr_state
+            WHERE org = ?
+              AND (
+                closed_at BETWEEN ? AND ?
+                OR (state = 'open' AND closed_at IS NULL AND updated_at BETWEEN ? AND ?)
+              )
+            """,
+            (org, start_ts, end_ts, start_ts, end_ts),
+        )
+        deleted["leaderboard_pr_state"] = "cleared"
+    except Exception as e:
+        console.error(f"[AdminReset] Error clearing leaderboard_pr_state: {e}")
+        deleted["leaderboard_pr_state"] = f"error: {e}"
+
+    try:
+        await _d1_run(db, "DELETE FROM leaderboard_open_prs WHERE org = ?", (org,))
+        deleted["leaderboard_open_prs"] = "cleared"
+    except Exception as e:
+        console.error(f"[AdminReset] Error clearing leaderboard_open_prs: {e}")
+        deleted["leaderboard_open_prs"] = f"error: {e}"
 
     console.log(f"[AdminReset] Cleared leaderboard data for org={org} month={month_key}")
     return deleted
@@ -2766,6 +2813,8 @@ async def on_fetch(request, env) -> Response:
                  "Provide an explicit month to prevent accidental resets."},
                 400,
             )
+        if not re.fullmatch(r"\d{4}-\d{2}", month_key):
+            return _json({"error": "month_key must be in YYYY-MM format (e.g. '2026-03')"}, 400)
         db = _d1_binding(env)
         if not db:
             return _json({"error": "No D1 binding available"}, 500)

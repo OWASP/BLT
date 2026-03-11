@@ -16,6 +16,7 @@ import json
 import sys
 import types
 import unittest
+import urllib.parse
 from unittest.mock import AsyncMock, MagicMock, patch
 
 # ---------------------------------------------------------------------------
@@ -1579,7 +1580,14 @@ class TestBackfillRepoMonthIdempotency(unittest.TestCase):
             text=AsyncMock(return_value=json.dumps(data)),
         )
 
-    async def _run_backfill(self, mock_db, open_prs_data, closed_prs_data, month_key="2026-03"):
+    async def _run_backfill(self, mock_db, open_prs_data, closed_prs_data, month_key="2026-03",
+                            closed_prs_pages=None):
+        """Run backfill with mocked API.
+
+        closed_prs_pages: optional list of page-specific PR lists; if provided,
+            closed_prs_data is ignored and page N returns closed_prs_pages[N-1]
+            (or [] for pages beyond the list).
+        """
         env = types.SimpleNamespace(LEADERBOARD_DB=mock_db)
         start_ts, end_ts = _worker._month_window(month_key)
 
@@ -1590,6 +1598,13 @@ class TestBackfillRepoMonthIdempotency(unittest.TestCase):
             if "state=open" in path:
                 return self._make_api_response(open_prs_data)
             if "state=closed" in path:
+                if closed_prs_pages is not None:
+                    # Extract page number from query string (defaults to 1)
+                    qs = path.split("?", 1)[-1]
+                    params = dict(p.split("=", 1) for p in qs.split("&") if "=" in p)
+                    page = int(params.get("page", 1))
+                    data = closed_prs_pages[page - 1] if page <= len(closed_prs_pages) else []
+                    return self._make_api_response(data)
                 return self._make_api_response(closed_prs_data)
             return self._make_api_response([])
 
@@ -1698,63 +1713,45 @@ class TestBackfillRepoMonthIdempotency(unittest.TestCase):
 
     def test_pagination_fetches_multiple_pages(self):
         """Backfill should paginate closed PRs when first page returns exactly 100 results."""
-        async def _inner():
-            mock_db = self._make_mock_db(pr_state_rows=[])
-            api_calls = []
-            monthly_inc_calls = []
+        # Build 100 merged PRs for page 1, and 5 for page 2
+        page1_prs = [
+            {
+                "number": i,
+                "user": {"login": f"user{i}", "type": "User"},
+                "merged_at": "2026-03-05T10:00:00Z",
+                "closed_at": "2026-03-05T10:00:00Z",
+            }
+            for i in range(1, 101)
+        ]
+        page2_prs = [
+            {
+                "number": i,
+                "user": {"login": f"user{i}", "type": "User"},
+                "merged_at": "2026-03-06T10:00:00Z",
+                "closed_at": "2026-03-06T10:00:00Z",
+            }
+            for i in range(101, 106)
+        ]
 
-            env = types.SimpleNamespace(LEADERBOARD_DB=mock_db)
-            start_ts, end_ts = _worker._month_window("2026-03")
+        mock_db = self._make_mock_db(pr_state_rows=[])
+        monthly_inc_calls = []
 
-            # Build 100 merged PRs for page 1, and 5 for page 2
-            page1_prs = [
-                {
-                    "number": i,
-                    "user": {"login": f"user{i}", "type": "User"},
-                    "merged_at": "2026-03-05T10:00:00Z",
-                    "closed_at": "2026-03-05T10:00:00Z",
-                }
-                for i in range(1, 101)
-            ]
-            page2_prs = [
-                {
-                    "number": i,
-                    "user": {"login": f"user{i}", "type": "User"},
-                    "merged_at": "2026-03-06T10:00:00Z",
-                    "closed_at": "2026-03-06T10:00:00Z",
-                }
-                for i in range(101, 106)
-            ]
+        with patch.object(_worker, "_d1_inc_monthly", new=AsyncMock(
+            side_effect=lambda db, org, mk, login, field, delta=1: monthly_inc_calls.append((login, field))
+        )):
+            with patch.object(_worker, "_d1_run", new=AsyncMock(return_value={"success": True})):
+                with patch.object(_worker, "_d1_all", new=AsyncMock(return_value=[])):
+                    _, api_calls = _run(self._run_backfill(
+                        mock_db, [], [],
+                        closed_prs_pages=[page1_prs, page2_prs],
+                    ))
 
-            async def _mock_api(method, path, token, body=None):
-                api_calls.append(path)
-                if "state=open" in path:
-                    return self._make_api_response([])
-                if "state=closed" in path and "page=2" in path:
-                    return self._make_api_response(page2_prs)
-                if "state=closed" in path:
-                    return self._make_api_response(page1_prs)
-                return self._make_api_response([])
-
-            with patch.object(_worker, "github_api", new=_mock_api):
-                with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
-                    with patch.object(_worker, "_d1_inc_monthly", new=AsyncMock(side_effect=lambda db, org, mk, login, field, delta=1: monthly_inc_calls.append((login, field)))):
-                        with patch.object(_worker, "_d1_run", new=AsyncMock(return_value={"success": True})):
-                            with patch.object(_worker, "_d1_all", new=AsyncMock(return_value=[])):
-                                with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None)):
-                                    await _worker._backfill_repo_month_if_needed(
-                                        "OWASP-BLT", "test-repo", "tok", env,
-                                        month_key="2026-03", start_ts=start_ts, end_ts=end_ts,
-                                    )
-
-            # Should have fetched both page 1 and page 2 of closed PRs
-            closed_calls = [p for p in api_calls if "state=closed" in p]
-            self.assertEqual(len(closed_calls), 2)
-            # All 105 PRs (100 from page 1 + 5 from page 2) should be counted as merged
-            merged_inc_count = sum(1 for _, field in monthly_inc_calls if field == "merged_prs")
-            self.assertEqual(merged_inc_count, 105)
-
-        _run(_inner())
+        # Should have fetched both page 1 and page 2 of closed PRs
+        closed_calls = [p for p in api_calls if "state=closed" in p]
+        self.assertEqual(len(closed_calls), 2)
+        # All 105 PRs (100 from page 1 + 5 from page 2) should be counted as merged
+        merged_inc_count = sum(1 for _, field in monthly_inc_calls if field == "merged_prs")
+        self.assertEqual(merged_inc_count, 105)
 
 
 # ---------------------------------------------------------------------------
@@ -1987,6 +1984,61 @@ class TestBackfillReviewCredits(unittest.TestCase):
 
         _run(_inner())
 
+    def test_review_backfill_stops_on_rate_limit(self):
+        """When GitHub returns 429, review backfill should stop and log a warning."""
+        async def _inner():
+            mock_db = self._make_mock_db()
+            env = types.SimpleNamespace(LEADERBOARD_DB=mock_db)
+            start_ts, end_ts = _worker._month_window("2026-03")
+
+            # Two merged PRs — the second should not be attempted after a 429 on the first.
+            closed_prs = [
+                {
+                    "number": 10,
+                    "user": {"login": "alice", "type": "User"},
+                    "merged_at": "2026-03-05T10:00:00Z",
+                    "closed_at": "2026-03-05T10:00:00Z",
+                },
+                {
+                    "number": 11,
+                    "user": {"login": "bob", "type": "User"},
+                    "merged_at": "2026-03-05T10:00:00Z",
+                    "closed_at": "2026-03-05T10:00:00Z",
+                },
+            ]
+            review_api_calls = []
+            error_msgs = []
+
+            async def _mock_api(method, path, token, body=None):
+                if "state=open" in path:
+                    return types.SimpleNamespace(status=200, text=AsyncMock(return_value=json.dumps([])))
+                if "state=closed" in path:
+                    return types.SimpleNamespace(status=200, text=AsyncMock(return_value=json.dumps(closed_prs)))
+                if "/reviews" in path:
+                    review_api_calls.append(path)
+                    return types.SimpleNamespace(status=429, text=AsyncMock(return_value="rate limited"))
+                return types.SimpleNamespace(status=200, text=AsyncMock(return_value=json.dumps([])))
+
+            with patch.object(_worker, "github_api", new=_mock_api):
+                with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
+                    with patch.object(_worker, "_d1_inc_monthly", new=AsyncMock()):
+                        with patch.object(_worker, "_d1_run", new=AsyncMock(return_value={"success": True})):
+                            with patch.object(_worker, "_d1_all", new=AsyncMock(return_value=[])):
+                                with patch.object(_worker, "console", new=types.SimpleNamespace(
+                                    error=lambda x: error_msgs.append(x), log=lambda x: None
+                                )):
+                                    await _worker._backfill_repo_month_if_needed(
+                                        "OWASP-BLT", "test-repo", "tok", env,
+                                        month_key="2026-03", start_ts=start_ts, end_ts=end_ts,
+                                    )
+
+            # Only 1 review API call should have been made (stopped after 429)
+            self.assertEqual(len(review_api_calls), 1)
+            # An error log about the rate limit should have been emitted
+            self.assertTrue(any("rate limit" in m.lower() or "429" in m for m in error_msgs))
+
+        _run(_inner())
+
 
 # ---------------------------------------------------------------------------
 # Admin reset endpoint tests
@@ -2097,6 +2149,23 @@ class TestAdminResetLeaderboard(unittest.TestCase):
             self.assertEqual(resp.status, 400)
             body = json.loads(resp.body)
             self.assertIn("month_key", body.get("error", ""))
+
+        _run(_inner())
+
+    def test_invalid_month_key_format_returns_400(self):
+        """month_key with wrong format (e.g. missing leading zero) should return 400."""
+        async def _inner():
+            env = self._make_env()
+            req = self._make_request(
+                body={"org": "OWASP-BLT", "month_key": "2026-3"},  # missing leading zero
+                auth="Bearer test-secret",
+            )
+            with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None)):
+                resp = await _worker.on_fetch(req, env)
+
+            self.assertEqual(resp.status, 400)
+            body = json.loads(resp.body)
+            self.assertIn("YYYY-MM", body.get("error", ""))
 
         _run(_inner())
 
