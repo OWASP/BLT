@@ -15,235 +15,243 @@ INDEX_HTML = """\
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Automate issue assignment, bug reporting, and contributor onboarding for your GitHub organization with OWASP BLT.">
-  <title>BLT GitHub App — Automate Your Workflow</title>
+  <meta name="description" content="BLT-Pool GitHub App for OWASP BLT. Automate issue assignment, leaderboard scoring, bug reporting, and contributor workflows.">
+  <title>BLT-Pool GitHub App | OWASP BLT</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
   <script>
     tailwind.config = {
       theme: {
         extend: {
           colors: {
-            'blt-red': '#E10101',
-            'blt-red-hover': '#b91c1c',
+            "blt-primary": "#E10101",
+            "blt-primary-hover": "#b91c1c",
+            "blt-border": "#E5E5E5",
+            "blt-dark-base": "#111827",
+            "blt-dark-surface": "#1F2937"
+          },
+          fontFamily: {
+            sans: ["Plus Jakarta Sans", "ui-sans-serif", "system-ui", "sans-serif"]
+          },
+          boxShadow: {
+            "soft-red": "0 14px 40px rgba(225, 1, 1, 0.10)"
           }
         }
       }
     }
   </script>
+  <style>
+    body {
+      background:
+        radial-gradient(circle at 10% 10%, rgba(225, 1, 1, 0.08), transparent 32%),
+        radial-gradient(circle at 92% 7%, rgba(225, 1, 1, 0.06), transparent 28%),
+        #f8fafc;
+    }
+
+    .glass {
+      backdrop-filter: blur(8px);
+    }
+  </style>
 </head>
-<body class="min-h-screen flex flex-col bg-[#111827] text-gray-100 antialiased">
-  
-  <!-- Header -->
-  <header class="w-full px-6 py-4 flex items-center gap-4 bg-[#1F2937] border-b border-gray-700">
-    <div class="w-10 h-10 bg-blt-red rounded-lg flex items-center justify-center font-bold text-white text-xl">
-      BP
-    </div>
-    <h1 class="flex-1 text-xl font-bold text-white">BLT-Pool</h1>
-    <nav class="hidden md:flex items-center gap-6 text-sm">
-      <a href="/" class="font-semibold">Mentors</a>
-      <a href="/github-app" class="text-blt-red hover:text-white transition-colors">GitHub App</a>
-      <a href="https://owaspblt.org" target="_blank" rel="noopener" class="text-gray-400 hover:text-white transition-colors">
-        OWASP BLT <i class="fa-solid fa-arrow-up-right-from-square text-xs ml-1" aria-hidden="true"></i>
+<body class="min-h-screen font-sans text-gray-900 antialiased">
+
+  <header class="sticky top-0 z-40 border-b border-blt-border/90 bg-white/90 glass">
+    <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+      <a href="/" class="flex items-center gap-3" aria-label="BLT-Pool home">
+        <img src="/logo-sm.png" alt="OWASP BLT logo" class="h-10 w-10 rounded-xl border border-blt-border bg-white object-contain p-1">
+        <div>
+          <p class="text-sm font-semibold uppercase tracking-wide text-gray-500">OWASP BLT</p>
+          <h1 class="text-lg font-extrabold text-blt-dark-base">BLT-Pool Extension</h1>
+        </div>
       </a>
-    </nav>
-    <span role="status" aria-label="Service status: Operational" 
-          class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-green-500/10 text-green-400 border border-green-500/25">
-      <i class="fa-solid fa-circle text-[0.45rem]" aria-hidden="true"></i>
-      Operational
-    </span>
+      <nav class="hidden items-center gap-2 rounded-xl border border-blt-border bg-white p-1 md:flex" aria-label="Main">
+        <a href="/" class="rounded-lg px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">Mentors</a>
+        <a href="/github-pages" class="rounded-lg bg-[#feeae9] px-3 py-2 text-sm font-semibold text-blt-primary">GitHub Pages</a>
+      </nav>
+      <span role="status" aria-label="Service status: Operational" class="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+        <i class="fa-solid fa-circle text-[0.45rem]" aria-hidden="true"></i>
+        Operational
+      </span>
+    </div>
   </header>
 
-  <!-- Main Content -->
-  <main class="flex-1 w-full max-w-5xl mx-auto px-4 py-12 space-y-12">
+  <main class="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
 
-    <!-- Hero Section -->
-    <section class="text-center py-16 px-8 rounded-xl bg-[#1F2937] border border-gray-700">
-      <h2 class="text-4xl md:text-5xl font-extrabold text-white mb-4">
-        Supercharge Your GitHub Org&nbsp;with&nbsp;BLT
-      </h2>
-      <p class="text-lg max-w-2xl mx-auto mb-8 leading-relaxed text-gray-400">
-        Automate issue assignment, bug reporting to OWASP BLT, leaderboard tracking, and contributor onboarding — powered by a lightweight Python Cloudflare Worker.
-      </p>
-      <div class="flex flex-wrap justify-center gap-3">
-        <!-- Primary Button -->
-        <a href="{{INSTALL_URL}}" class="inline-flex items-center gap-2 bg-blt-red hover:bg-blt-red-hover text-white font-semibold text-base px-6 py-3 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blt-red focus:ring-offset-2 focus:ring-offset-[#1F2937]">
-          <i class="fa-brands fa-github" aria-hidden="true"></i>
-          Add to GitHub Organization
-        </a>
-        <!-- Outline Button -->
-        <a href="https://github.com/OWASP-BLT/BLT-GitHub-App" target="_blank" rel="noopener" class="inline-flex items-center gap-2 border border-blt-red text-blt-red hover:bg-blt-red hover:text-white font-semibold text-base px-6 py-3 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blt-red focus:ring-offset-2 focus:ring-offset-[#1F2937]">
-          <i class="fa-solid fa-code" aria-hidden="true"></i>
-          View Source
-        </a>
+    <section class="overflow-hidden rounded-3xl border border-blt-border bg-white p-7 shadow-soft-red sm:p-10">
+      <div class="grid gap-8 lg:grid-cols-2 lg:items-center">
+        <div>
+          <span class="mb-4 inline-flex items-center gap-2 rounded-full border border-blt-border bg-gray-50 px-3 py-1 text-xs font-semibold text-gray-700">
+            <i class="fa-solid fa-puzzle-piece text-blt-primary" aria-hidden="true"></i>
+            BLT-Pool Repo Page for OWASP-BLT
+          </span>
+          <h2 class="text-3xl font-extrabold leading-tight text-blt-dark-base sm:text-5xl">
+            A clean extension landing page
+            <span class="text-blt-primary">for your GitHub workflow</span>
+          </h2>
+          <p class="mt-4 max-w-2xl text-base leading-relaxed text-gray-600 sm:text-lg">
+            This extension automates assignment flow, leaderboard scoring, bug reporting, and contributor health checks. It is built for busy maintainers and first-time contributors.
+          </p>
+          <div class="mt-7 flex flex-wrap items-center gap-3">
+            <a href="{{INSTALL_URL}}" class="inline-flex items-center gap-2 rounded-md bg-blt-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-blt-primary-hover focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2">
+              <i class="fa-brands fa-github" aria-hidden="true"></i>
+              Add to GitHub Organization
+            </a>
+            <a href="https://github.com/OWASP-BLT/BLT-Pool" target="_blank" rel="noopener" class="inline-flex items-center gap-2 rounded-md border border-[#E10101] px-5 py-3 text-sm font-semibold text-[#E10101] transition hover:bg-[#E10101] hover:text-white focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2">
+              <i class="fa-solid fa-code" aria-hidden="true"></i>
+              View Source
+            </a>
+          </div>
+        </div>
+        <div class="grid gap-3 sm:grid-cols-2">
+          <article class="rounded-2xl border border-blt-border bg-gray-50 p-4">
+            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Route</p>
+            <p class="mt-1 text-sm font-bold text-blt-dark-base">/api/github/webhooks</p>
+          </article>
+          <article class="rounded-2xl border border-blt-border bg-gray-50 p-4">
+            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Runtime</p>
+            <p class="mt-1 text-sm font-bold text-blt-dark-base">Cloudflare Python Worker</p>
+          </article>
+          <article class="rounded-2xl border border-blt-border bg-gray-50 p-4">
+            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Data Store</p>
+            <p class="mt-1 text-sm font-bold text-blt-dark-base">Cloudflare D1</p>
+          </article>
+          <article class="rounded-2xl border border-blt-border bg-gray-50 p-4">
+            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Scheduler</p>
+            <p class="mt-1 text-sm font-bold text-blt-dark-base">Every 2 hours</p>
+          </article>
+        </div>
       </div>
     </section>
 
-    <!-- Features Grid -->
-    <section>
-      <h2 class="text-2xl font-bold text-white mb-6">Features</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        
-        <!-- Feature Card: /assign & /unassign -->
-        <article class="rounded-xl p-6 bg-[#1F2937] border border-gray-700 hover:border-gray-600 transition-colors">
-          <div class="w-12 h-12 rounded-lg flex items-center justify-center mb-4 bg-blt-red/10">
-            <i class="fa-solid fa-list-check text-xl text-blt-red" aria-hidden="true"></i>
+    <section class="mt-10">
+      <div class="mb-5 flex items-center justify-between">
+        <h3 class="text-2xl font-bold text-blt-dark-base">Feature Highlights</h3>
+        <a href="https://owaspblt.org" target="_blank" rel="noopener" class="text-sm font-semibold text-red-600 hover:underline">Why OWASP BLT</a>
+      </div>
+      <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+
+        <article class="rounded-2xl border border-blt-border bg-white p-5 transition hover:-translate-y-0.5 hover:shadow-md">
+          <div class="mb-3 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-[#feeae9] text-blt-primary">
+            <i class="fa-solid fa-list-check" aria-hidden="true"></i>
           </div>
-          <h3 class="text-white font-semibold text-lg mb-2">/assign &amp; /unassign</h3>
-          <p class="text-sm leading-relaxed text-gray-400">
-            Comment <code class="rounded text-xs px-1.5 py-0.5 bg-[#111827] text-gray-300">/assign</code> on any issue to claim it with an 8-hour deadline. Release with <code class="rounded text-xs px-1.5 py-0.5 bg-[#111827] text-gray-300">/unassign</code>.
-          </p>
+          <h4 class="text-base font-bold text-blt-dark-base">Issue Claim Commands</h4>
+          <p class="mt-2 text-sm leading-relaxed text-gray-600">Use <code class="rounded bg-gray-100 px-1.5 py-0.5 text-xs">/assign</code> and <code class="rounded bg-gray-100 px-1.5 py-0.5 text-xs">/unassign</code> with an 8-hour claim window.</p>
         </article>
 
-        <!-- Feature Card: Leaderboard -->
-        <article class="rounded-xl p-6 bg-[#1F2937] border border-gray-700 hover:border-gray-600 transition-colors">
-          <div class="w-12 h-12 rounded-lg flex items-center justify-center mb-4 bg-blt-red/10">
-            <i class="fa-solid fa-trophy text-xl text-blt-red" aria-hidden="true"></i>
+        <article class="rounded-2xl border border-blt-border bg-white p-5 transition hover:-translate-y-0.5 hover:shadow-md">
+          <div class="mb-3 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-[#feeae9] text-blt-primary">
+            <i class="fa-solid fa-ranking-star" aria-hidden="true"></i>
           </div>
-          <h3 class="text-white font-semibold text-lg mb-2">Leaderboard</h3>
-          <p class="text-sm leading-relaxed text-gray-400">
-            Comment <code class="rounded text-xs px-1.5 py-0.5 bg-[#111827] text-gray-300">/leaderboard</code> to see your monthly rank. Automatically posted on PRs. Works across all org repos!
-          </p>
+          <h4 class="text-base font-bold text-blt-dark-base">Live Leaderboard</h4>
+          <p class="mt-2 text-sm leading-relaxed text-gray-600">Monthly scores are computed from PRs, reviews, and comments for fast org-wide ranking.</p>
         </article>
 
-        <!-- Feature Card: Auto Bug Reporting -->
-        <article class="rounded-xl p-6 bg-[#1F2937] border border-gray-700 hover:border-gray-600 transition-colors">
-          <div class="w-12 h-12 rounded-lg flex items-center justify-center mb-4 bg-blt-red/10">
-            <i class="fa-solid fa-bug text-xl text-blt-red" aria-hidden="true"></i>
+        <article class="rounded-2xl border border-blt-border bg-white p-5 transition hover:-translate-y-0.5 hover:shadow-md">
+          <div class="mb-3 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-[#feeae9] text-blt-primary">
+            <i class="fa-solid fa-bug" aria-hidden="true"></i>
           </div>
-          <h3 class="text-white font-semibold text-lg mb-2">Auto Bug Reporting</h3>
-          <p class="text-sm leading-relaxed text-gray-400">
-            Issues labeled <code class="rounded text-xs px-1.5 py-0.5 bg-[#111827] text-gray-300">bug</code>, <code class="rounded text-xs px-1.5 py-0.5 bg-[#111827] text-gray-300">vulnerability</code>, or <code class="rounded text-xs px-1.5 py-0.5 bg-[#111827] text-gray-300">security</code> are instantly reported to the OWASP BLT platform.
-          </p>
+          <h4 class="text-base font-bold text-blt-dark-base">Bug Label Sync</h4>
+          <p class="mt-2 text-sm leading-relaxed text-gray-600">Issues labeled <code class="rounded bg-gray-100 px-1.5 py-0.5 text-xs">bug</code>, <code class="rounded bg-gray-100 px-1.5 py-0.5 text-xs">security</code>, or <code class="rounded bg-gray-100 px-1.5 py-0.5 text-xs">vulnerability</code> are sent to BLT API.</p>
         </article>
 
-        <!-- Feature Card: Welcome Messages -->
-        <article class="rounded-xl p-6 bg-[#1F2937] border border-gray-700 hover:border-gray-600 transition-colors">
-          <div class="w-12 h-12 rounded-lg flex items-center justify-center mb-4 bg-blt-red/10">
-            <i class="fa-solid fa-comments text-xl text-blt-red" aria-hidden="true"></i>
+        <article class="rounded-2xl border border-blt-border bg-white p-5 transition hover:-translate-y-0.5 hover:shadow-md">
+          <div class="mb-3 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-[#feeae9] text-blt-primary">
+            <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
           </div>
-          <h3 class="text-white font-semibold text-lg mb-2">Welcome Messages</h3>
-          <p class="text-sm leading-relaxed text-gray-400">
-            New issues and pull requests receive friendly onboarding messages with contribution guidelines.
-          </p>
+          <h4 class="text-base font-bold text-blt-dark-base">PR Protection</h4>
+          <p class="mt-2 text-sm leading-relaxed text-gray-600">Auto-closes excess open PRs per author to keep contribution quality high.</p>
         </article>
 
-        <!-- Feature Card: Merge Recognition -->
-        <article class="rounded-xl p-6 bg-[#1F2937] border border-gray-700 hover:border-gray-600 transition-colors">
-          <div class="w-12 h-12 rounded-lg flex items-center justify-center mb-4 bg-blt-red/10">
-            <i class="fa-solid fa-medal text-xl text-blt-red" aria-hidden="true"></i>
+        <article class="rounded-2xl border border-blt-border bg-white p-5 transition hover:-translate-y-0.5 hover:shadow-md">
+          <div class="mb-3 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-[#feeae9] text-blt-primary">
+            <i class="fa-solid fa-people-arrows" aria-hidden="true"></i>
           </div>
-          <h3 class="text-white font-semibold text-lg mb-2">Merge Recognition</h3>
-          <p class="text-sm leading-relaxed text-gray-400">
-            Merged PRs trigger celebrations and rank improvements are automatically recognized with congratulatory messages.
-          </p>
+          <h4 class="text-base font-bold text-blt-dark-base">Peer Review Signals</h4>
+          <p class="mt-2 text-sm leading-relaxed text-gray-600">Automated labels track unresolved conversations, workflow approvals, and peer-review status.</p>
         </article>
 
-        <!-- Feature Card: Auto-Close Protection -->
-        <article class="rounded-xl p-6 bg-[#1F2937] border border-gray-700 hover:border-gray-600 transition-colors">
-          <div class="w-12 h-12 rounded-lg flex items-center justify-center mb-4 bg-blt-red/10">
-            <i class="fa-solid fa-shield-halved text-xl text-blt-red" aria-hidden="true"></i>
+        <article class="rounded-2xl border border-blt-border bg-white p-5 transition hover:-translate-y-0.5 hover:shadow-md">
+          <div class="mb-3 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-[#feeae9] text-blt-primary">
+            <i class="fa-solid fa-hourglass-half" aria-hidden="true"></i>
           </div>
-          <h3 class="text-white font-semibold text-lg mb-2">Auto-Close Protection</h3>
-          <p class="text-sm leading-relaxed text-gray-400">
-            PRs are auto-closed if an author has 50+ open PRs, preventing spam and encouraging focused contributions.
-          </p>
+          <h4 class="text-base font-bold text-blt-dark-base">Scheduled Cleanup</h4>
+          <p class="mt-2 text-sm leading-relaxed text-gray-600">Every 2 hours, stale claims without linked PRs are automatically released.</p>
         </article>
 
       </div>
     </section>
 
-    <!-- System Status -->
-    <section class="rounded-xl p-6 bg-[#1F2937] border border-gray-700">
-      <h2 class="text-2xl font-bold text-white mb-4">System Status</h2>
-      <div class="divide-y divide-gray-700">
-        
-        <div class="flex justify-between items-center py-3 text-sm">
-          <span class="text-gray-300">Worker</span>
-          <span class="font-semibold flex items-center gap-1.5 text-green-400">
-            <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
-            Operational
-          </span>
-        </div>
+    <section class="mt-10 grid gap-6 lg:grid-cols-5">
+      <article class="rounded-2xl border border-blt-border bg-white p-6 lg:col-span-3">
+        <h3 class="text-2xl font-bold text-blt-dark-base">How It Is Used</h3>
+        <ol class="mt-5 space-y-4">
+          <li class="relative rounded-xl border border-blt-border bg-gray-50 px-4 py-4 pl-14">
+            <span class="absolute left-4 top-4 inline-flex h-7 w-7 items-center justify-center rounded-full bg-blt-primary text-xs font-bold text-white">1</span>
+            <h4 class="font-semibold text-blt-dark-base">Install the extension</h4>
+            <p class="mt-1 text-sm text-gray-600">Connect the app to selected repositories in your organization.</p>
+          </li>
+          <li class="relative rounded-xl border border-blt-border bg-gray-50 px-4 py-4 pl-14">
+            <span class="absolute left-4 top-4 inline-flex h-7 w-7 items-center justify-center rounded-full bg-blt-primary text-xs font-bold text-white">2</span>
+            <h4 class="font-semibold text-blt-dark-base">Contributors use slash commands</h4>
+            <p class="mt-1 text-sm text-gray-600">Assignment and leaderboard commands are handled directly in issue/PR threads.</p>
+          </li>
+          <li class="relative rounded-xl border border-blt-border bg-gray-50 px-4 py-4 pl-14">
+            <span class="absolute left-4 top-4 inline-flex h-7 w-7 items-center justify-center rounded-full bg-blt-primary text-xs font-bold text-white">3</span>
+            <h4 class="font-semibold text-blt-dark-base">Maintainers monitor labels & status</h4>
+            <p class="mt-1 text-sm text-gray-600">Review health, pending approvals, and stale assignments remain visible and actionable.</p>
+          </li>
+          <li class="relative rounded-xl border border-blt-border bg-gray-50 px-4 py-4 pl-14">
+            <span class="absolute left-4 top-4 inline-flex h-7 w-7 items-center justify-center rounded-full bg-blt-primary text-xs font-bold text-white">4</span>
+            <h4 class="font-semibold text-blt-dark-base">Leaderboard motivates contributions</h4>
+            <p class="mt-1 text-sm text-gray-600">Transparent scorecards reward healthy contribution behavior every month.</p>
+          </li>
+        </ol>
+      </article>
 
-        <div class="flex justify-between items-center py-3 text-sm">
-          <span class="text-gray-300">GitHub Webhooks</span>
-          <span class="font-semibold flex items-center gap-1.5 text-green-400">
-            <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
-            Listening
-          </span>
-        </div>
-
-        <div class="flex justify-between items-center py-3 text-sm">
-          <span class="text-gray-300">BLT API</span>
-          <span class="font-semibold flex items-center gap-1.5 text-green-400">
-            <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
-            Connected
-          </span>
-        </div>
-
-        <div class="flex justify-between items-center py-3 text-sm">
-          <span class="text-gray-300">Webhook endpoint</span>
-          <code class="rounded text-xs px-2 py-1 bg-[#111827] text-gray-400">/api/github/webhooks</code>
-        </div>
-
-        <div class="flex justify-between items-center py-3 text-sm">
-          <span class="text-gray-300">Health endpoint</span>
-          <code class="rounded text-xs px-2 py-1 bg-[#111827] text-gray-400">/health</code>
-        </div>
+      <article class="rounded-2xl border border-blt-border bg-white p-6 lg:col-span-2">
+        <h3 class="text-2xl font-bold text-blt-dark-base">System Status</h3>
+        <div class="mt-4 divide-y divide-blt-border rounded-xl border border-blt-border bg-gray-50 px-4">
+          <div class="flex items-center justify-between py-3 text-sm">
+            <span class="text-gray-600">Worker</span>
+            <span class="inline-flex items-center gap-1.5 font-semibold text-emerald-700"><i class="fa-solid fa-circle-check" aria-hidden="true"></i>Operational</span>
+          </div>
+          <div class="flex items-center justify-between py-3 text-sm">
+            <span class="text-gray-600">GitHub Webhooks</span>
+            <span class="inline-flex items-center gap-1.5 font-semibold text-emerald-700"><i class="fa-solid fa-circle-check" aria-hidden="true"></i>Listening</span>
+          </div>
+          <div class="flex items-center justify-between py-3 text-sm">
+            <span class="text-gray-600">BLT API</span>
+            <span class="inline-flex items-center gap-1.5 font-semibold text-emerald-700"><i class="fa-solid fa-circle-check" aria-hidden="true"></i>Connected</span>
+          </div>
+          <div class="flex items-center justify-between py-3 text-sm">
+            <span class="text-gray-600">Health endpoint</span>
+            <code class="rounded bg-white px-2 py-1 text-xs text-gray-700">/health</code>
+          </div>
+          <div class="flex items-center justify-between py-3 text-sm">
+            <span class="text-gray-600">Webhook endpoint</span>
+            <code class="rounded bg-white px-2 py-1 text-xs text-gray-700">/api/github/webhooks</code>
+          </div>
 
 {{SECRET_VARS_STATUS}}
-      </div>
-    </section>
-
-    <!-- Installation Guide -->
-    <section>
-      <h2 class="text-2xl font-bold text-white mb-6">How to Add to Your Organization</h2>
-      <ol class="space-y-4">
-        
-        <li class="relative rounded-xl px-6 py-4 pl-16 bg-[#1F2937] border border-gray-700">
-          <span class="absolute left-5 top-4 w-8 h-8 bg-blt-red text-white text-sm font-bold rounded-full flex items-center justify-center" aria-hidden="true">1</span>
-          <h3 class="text-white font-semibold mb-1">Click "Add to GitHub Organization" above</h3>
-          <p class="text-sm text-gray-400">This starts the GitHub App installation flow.</p>
-        </li>
-
-        <li class="relative rounded-xl px-6 py-4 pl-16 bg-[#1F2937] border border-gray-700">
-          <span class="absolute left-5 top-4 w-8 h-8 bg-blt-red text-white text-sm font-bold rounded-full flex items-center justify-center" aria-hidden="true">2</span>
-          <h3 class="text-white font-semibold mb-1">Choose your organization or account</h3>
-          <p class="text-sm text-gray-400">Select the GitHub organization or personal account where you want to install BLT.</p>
-        </li>
-
-        <li class="relative rounded-xl px-6 py-4 pl-16 bg-[#1F2937] border border-gray-700">
-          <span class="absolute left-5 top-4 w-8 h-8 bg-blt-red text-white text-sm font-bold rounded-full flex items-center justify-center" aria-hidden="true">3</span>
-          <h3 class="text-white font-semibold mb-1">Grant repository access</h3>
-          <p class="text-sm text-gray-400">Choose which repositories the app should monitor — all repos or a specific selection.</p>
-        </li>
-
-        <li class="relative rounded-xl px-6 py-4 pl-16 bg-[#1F2937] border border-gray-700">
-          <span class="absolute left-5 top-4 w-8 h-8 bg-blt-red text-white text-sm font-bold rounded-full flex items-center justify-center" aria-hidden="true">4</span>
-          <h3 class="text-white font-semibold mb-1">You're done!</h3>
-          <p class="text-sm text-gray-400">BLT will immediately start responding to issues and pull requests in the selected repositories.</p>
-        </li>
-
-      </ol>
+        </div>
+      </article>
     </section>
 
   </main>
 
-  <!-- Footer -->
-  <footer class="w-full px-6 py-6 text-center text-sm bg-[#1F2937] border-t border-gray-700 text-gray-400">
-    <p class="flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
-      <span class="inline-flex items-center gap-1">
-        Built with <i class="fa-solid fa-heart text-blt-red" aria-hidden="true"></i> by
-      </span>
-      <a href="https://owasp.org/www-project-bug-logging-tool/" target="_blank" rel="noopener" class="text-blt-red hover:underline focus:outline-none focus:underline">OWASP BLT</a>
-      <span aria-hidden="true">·</span>
-      <a href="https://github.com/OWASP-BLT/BLT-GitHub-App" target="_blank" rel="noopener" class="text-blt-red hover:underline focus:outline-none focus:underline">Source on GitHub</a>
-      <span aria-hidden="true">·</span>
-      <a href="https://owaspblt.org" target="_blank" rel="noopener" class="text-blt-red hover:underline focus:outline-none focus:underline">owaspblt.org</a>
-      <span aria-hidden="true">·</span>
-      <span>© {{YEAR}} OWASP BLT — AGPL-3.0</span>
-    </p>
+  <footer class="border-t border-blt-border bg-white">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-2 px-4 py-6 text-sm text-gray-600 sm:px-6 lg:px-8">
+      <span>Built for OWASP BLT contributors</span>
+      <span aria-hidden="true">•</span>
+      <a href="https://owaspblt.org" target="_blank" rel="noopener" class="text-red-600 hover:underline">owaspblt.org</a>
+      <span aria-hidden="true">•</span>
+      <a href="https://github.com/OWASP-BLT/BLT-Pool" target="_blank" rel="noopener" class="text-red-600 hover:underline">BLT-Pool Repo</a>
+      <span aria-hidden="true">•</span>
+      <span>© {{YEAR}} OWASP BLT</span>
+    </div>
   </footer>
 
 </body>

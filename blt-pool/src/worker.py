@@ -5,7 +5,8 @@ A dual-purpose platform that:
 2. Automates GitHub workflows (issue assignment, leaderboard, webhooks)
 
 Homepage (/) displays the mentor grid with availability and assignments.
-GitHub App documentation and installation at /github-app.
+GitHub App documentation and installation at /github-pages
+(legacy alias: /github-app).
 
 Entry point: ``on_fetch(request, env)`` — called by the Cloudflare runtime for
 every incoming HTTP request.
@@ -47,11 +48,11 @@ BUG_LABELS = {"bug", "vulnerability", "security"}
 
 # Mentor pool for BLT-Pool platform
 MENTORS = [
-    {"name": "Shriyash Soni", "github_username": "", "slack_username": "", "project": None, "mentee": None, "status": "available"},
+    {"name": "Rinkit Adhana", "github_username": "", "slack_username": "", "project": "Project A", "mentee": None, "status": "available"},
+    {"name": "Raj Gupta", "github_username": "", "slack_username": "", "project": "Project A", "mentee": None, "status": "available"},
+    {"name": "Shriyash Soni", "github_username": "", "slack_username": "", "project": "", "mentee": None, "status": "available"},
     {"name": "Mohammed Faiyaz Shaikh", "github_username": "", "slack_username": "", "project": None, "mentee": None, "status": "available"},
     {"name": "Manikandan Chandran", "github_username": "", "slack_username": "", "project": None, "mentee": None, "status": "available"},
-    {"name": "Rinkit Adhana", "github_username": "", "slack_username": "", "project": None, "mentee": None, "status": "available"},
-    {"name": "Raj Gupta", "github_username": "", "slack_username": "", "project": None, "mentee": None, "status": "available"},
     {"name": "Shivam Kumar", "github_username": "", "slack_username": "", "project": None, "mentee": None, "status": "available"},
     {"name": "Vinamra Vaswani", "github_username": "", "slack_username": "", "project": None, "mentee": None, "status": "available"},
     {"name": "Carla Voorhees", "github_username": "", "slack_username": "", "project": None, "mentee": None, "status": "available"},
@@ -2700,17 +2701,17 @@ _CALLBACK_HTML = """\
 def _secret_vars_status_html(env) -> str:
     """Generate HTML rows showing whether each secret/config variable is set."""
     _SET_BADGE = (
-        '<span class="font-semibold flex items-center gap-1.5" style="color:#4ade80;">'
+        '<span class="inline-flex items-center gap-1.5 font-semibold text-emerald-700">'
         '<i class="fa-solid fa-circle-check" aria-hidden="true"></i> Set'
         "</span>"
     )
     _MISSING_BADGE = (
-        '<span class="font-semibold flex items-center gap-1.5" style="color:#f87171;">'
+        '<span class="inline-flex items-center gap-1.5 font-semibold text-red-700">'
         '<i class="fa-solid fa-circle-xmark" aria-hidden="true"></i> Not set'
         "</span>"
     )
     _OPTIONAL_BADGE = (
-        '<span class="font-semibold flex items-center gap-1.5" style="color:#9ca3af;">'
+        '<span class="inline-flex items-center gap-1.5 font-semibold text-gray-500">'
         '<i class="fa-solid fa-circle-minus" aria-hidden="true"></i> Not configured'
         "</span>"
     )
@@ -2719,25 +2720,25 @@ def _secret_vars_status_html(env) -> str:
     optional_vars = ["GITHUB_CLIENT_ID", "GITHUB_CLIENT_SECRET"]
 
     rows = [
-        '        <div style="border-top:1px solid #374151;margin-top:1rem;padding-top:0.5rem;">',
-        '          <p class="text-xs font-semibold uppercase tracking-wider mb-1" style="color:#6b7280;">Secret Variables</p>',
+        '        <div class="mt-4 border-t border-[#E5E5E5] pt-3">',
+        '          <p class="mb-1 text-xs font-semibold uppercase tracking-wider text-gray-500">Secret Variables</p>',
         "        </div>",
     ]
     for name in required_vars:
         is_set = bool(getattr(env, name, ""))
         badge = _SET_BADGE if is_set else _MISSING_BADGE
         rows.append(
-            f'        <div class="flex justify-between items-center py-3 text-sm" style="border-bottom:1px solid #374151;">'
-            f'<span style="color:#d1d5db;"><code style="font-size:0.75rem;">{name}</code></span>'
+            f'        <div class="flex items-center justify-between border-b border-[#E5E5E5] py-3 text-sm">'
+            f'<span class="text-gray-700"><code class="text-xs">{name}</code></span>'
             f"{badge}</div>"
         )
     for name in optional_vars:
         is_set = bool(getattr(env, name, ""))
         badge = _SET_BADGE if is_set else _OPTIONAL_BADGE
         rows.append(
-            f'        <div class="flex justify-between items-center py-3 text-sm" style="border-bottom:1px solid #374151;">'
-            f'<span style="color:#d1d5db;"><code style="font-size:0.75rem;">{name}</code>'
-            f' <span style="color:#6b7280;font-size:0.7rem;">(optional)</span></span>'
+            f'        <div class="flex items-center justify-between border-b border-[#E5E5E5] py-3 text-sm">'
+            f'<span class="text-gray-700"><code class="text-xs">{name}</code>'
+            f' <span class="text-[0.7rem] text-gray-500">(optional)</span></span>'
             f"{badge}</div>"
         )
     return "\n".join(rows)
@@ -2771,45 +2772,44 @@ def _generate_mentor_card(mentor: dict) -> str:
     project = mentor.get("project")
     mentee = mentor.get("mentee")
     status = mentor.get("status", "available")
-    
-    # Use GitHub avatar if username provided, otherwise default avatar
+
+    # Use GitHub avatar if username provided, otherwise default avatar.
     avatar_url = f"https://github.com/{github}.png" if github else "https://api.dicebear.com/7.x/initials/svg?seed=" + quote(name)
-    
-    status_badge = ""
+
     if status == "available":
-        status_badge = '<span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-green-500/10 text-green-400 border border-green-500/25"><i class="fa-solid fa-circle text-[0.4rem]" aria-hidden="true"></i> Available</span>'
+        status_badge = '<span class="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700"><i class="fa-solid fa-circle text-[0.4rem]" aria-hidden="true"></i> Available</span>'
     elif status == "assigned":
-        status_badge = '<span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/25"><i class="fa-solid fa-circle text-[0.4rem]" aria-hidden="true"></i> Mentoring</span>'
+        status_badge = '<span class="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700"><i class="fa-solid fa-circle text-[0.4rem]" aria-hidden="true"></i> Mentoring</span>'
     else:
-        status_badge = '<span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full bg-gray-500/10 text-gray-400 border border-gray-500/25"><i class="fa-solid fa-circle text-[0.4rem]" aria-hidden="true"></i> Unavailable</span>'
-    
+        status_badge = '<span class="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs font-semibold text-gray-600"><i class="fa-solid fa-circle text-[0.4rem]" aria-hidden="true"></i> Unavailable</span>'
+
     assignment_html = ""
     if project and mentee:
         assignment_html = f'''
-        <div class="mt-3 pt-3 border-t border-gray-700 text-xs text-gray-400">
-          <p class="mb-1"><span class="font-semibold text-gray-300">Project:</span> {project}</p>
-          <p><span class="font-semibold text-gray-300">Mentee:</span> {mentee}</p>
+        <div class="mt-4 border-t border-[#E5E5E5] pt-3 text-xs text-gray-600">
+          <p class="mb-1"><span class="font-semibold text-gray-800">Project:</span> {project}</p>
+          <p><span class="font-semibold text-gray-800">Mentee:</span> {mentee}</p>
         </div>
         '''
-    
-    github_link = f'<a href="https://github.com/{github}" target="_blank" class="text-gray-400 hover:text-white transition-colors"><i class="fa-brands fa-github" aria-hidden="true"></i></a>' if github else '<span class="text-gray-600"><i class="fa-brands fa-github" aria-hidden="true"></i></span>'
-    slack_link = f'<span class="text-gray-400" title="Slack: {slack}"><i class="fa-brands fa-slack" aria-hidden="true"></i></span>' if slack else '<span class="text-gray-600"><i class="fa-brands fa-slack" aria-hidden="true"></i></span>'
-    
+
+    github_link = f'<a href="https://github.com/{github}" target="_blank" rel="noopener" class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-[#E5E5E5] text-gray-600 transition hover:border-[#E10101] hover:text-[#E10101]" aria-label="{name} GitHub profile"><i class="fa-brands fa-github" aria-hidden="true"></i></a>' if github else '<span class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-[#E5E5E5] text-gray-400"><i class="fa-brands fa-github" aria-hidden="true"></i></span>'
+    slack_link = f'<span class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-[#E5E5E5] text-gray-600" title="Slack: {slack}" aria-label="{name} Slack username"><i class="fa-brands fa-slack" aria-hidden="true"></i></span>' if slack else '<span class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-[#E5E5E5] text-gray-400"><i class="fa-brands fa-slack" aria-hidden="true"></i></span>'
+
     return f'''
-    <div class="bg-[#1F2937] border border-gray-700 rounded-xl p-6 hover:border-gray-600 transition-all">
+    <article class="rounded-2xl border border-[#E5E5E5] bg-white p-6 transition hover:-translate-y-0.5 hover:shadow-md">
       <div class="flex items-start gap-4">
-        <img src="{avatar_url}" alt="{name}" class="w-16 h-16 rounded-full object-cover border-2 border-gray-700">
-        <div class="flex-1 min-w-0">
-          <h4 class="text-lg font-bold text-white truncate">{name}</h4>
+        <img src="{avatar_url}" alt="{name}" class="h-16 w-16 rounded-full border-2 border-[#E5E5E5] bg-white object-cover">
+        <div class="min-w-0 flex-1">
+          <h4 class="truncate text-lg font-bold text-[#111827]">{name}</h4>
           <div class="mt-2">{status_badge}</div>
         </div>
       </div>
-      <div class="mt-4 flex items-center gap-3 text-sm">
+      <div class="mt-4 flex items-center gap-2 text-sm">
         {github_link}
         {slack_link}
       </div>
       {assignment_html}
-    </div>
+    </article>
     '''
 
 
@@ -2818,152 +2818,188 @@ def _mentor_grid_html() -> str:
     year = time.gmtime().tm_year
     mentor_count = len(MENTORS)
     available_count = len([m for m in MENTORS if m.get("status") == "available"])
-    
+
     mentor_cards_html = "\n".join(_generate_mentor_card(mentor) for mentor in MENTORS)
-    
+
     return f'''<!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="BLT-Pool — Connect with mentors and contributors in the OWASP BLT community">
-  <title>BLT-Pool — Mentor Directory</title>
+  <meta name="description" content="BLT-Pool for OWASP BLT. Connect with mentors and install the BLT GitHub extension.">
+  <title>BLT-Pool | OWASP BLT Mentor Directory</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
   <script>
     tailwind.config = {{
       theme: {{
         extend: {{
           colors: {{
-            'blt-red': '#E10101',
-            'blt-red-hover': '#b91c1c',
+            'blt-primary': '#E10101',
+            'blt-primary-hover': '#b91c1c',
+            'blt-border': '#E5E5E5'
+          }},
+          fontFamily: {{
+            sans: ['Plus Jakarta Sans', 'ui-sans-serif', 'system-ui', 'sans-serif']
           }}
         }}
       }}
     }}
   </script>
+  <style>
+    body {{
+      background:
+        radial-gradient(circle at 0% 0%, rgba(225, 1, 1, 0.09), transparent 32%),
+        radial-gradient(circle at 95% 4%, rgba(225, 1, 1, 0.05), transparent 28%),
+        #f8fafc;
+    }}
+  </style>
 </head>
-<body class="min-h-screen flex flex-col bg-[#111827] text-gray-100 antialiased">
-  
-  <!-- Header -->
-  <header class="w-full px-6 py-4 flex items-center gap-4 bg-[#1F2937] border-b border-gray-700">
-    <div class="w-10 h-10 bg-blt-red rounded-lg flex items-center justify-center font-bold text-white text-xl">
-      BP
-    </div>
-    <h1 class="flex-1 text-xl font-bold text-white">BLT-Pool</h1>
-    <nav class="hidden md:flex items-center gap-6 text-sm">
-      <a href="/" class="text-blt-red font-semibold">Mentors</a>
-      <a href="/github-app" class="text-gray-400 hover:text-white transition-colors">GitHub App</a>
-      <a href="https://owaspblt.org" target="_blank" rel="noopener" class="text-gray-400 hover:text-white transition-colors">
-        OWASP BLT <i class="fa-solid fa-arrow-up-right-from-square text-xs ml-1" aria-hidden="true"></i>
+<body class="min-h-screen font-sans text-gray-900 antialiased">
+
+  <header class="sticky top-0 z-40 border-b border-[#E5E5E5] bg-white/90 backdrop-blur">
+    <div class="mx-auto flex w-full max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+      <a href="/" class="flex items-center gap-3" aria-label="BLT-Pool home">
+        <img src="/logo-sm.png" alt="OWASP BLT logo" class="h-10 w-10 rounded-xl border border-[#E5E5E5] bg-white object-contain p-1">
+        <div>
+          <p class="text-sm font-semibold uppercase tracking-wide text-gray-500">OWASP BLT</p>
+          <h1 class="text-lg font-extrabold text-[#111827]">BLT-Pool</h1>
+        </div>
       </a>
-    </nav>
-    <span role="status" aria-label="Service status: Operational" 
-          class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-green-500/10 text-green-400 border border-green-500/25">
-      <i class="fa-solid fa-circle text-[0.45rem]" aria-hidden="true"></i>
-      Operational
-    </span>
+      <nav class="hidden items-center gap-1 rounded-xl border border-[#E5E5E5] bg-white p-1 md:flex" aria-label="Primary">
+        <a href="/" class="rounded-lg bg-[#feeae9] px-3 py-2 text-sm font-semibold text-[#E10101]">Mentors</a>
+        <a href="/github-pages" class="rounded-lg px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">GitHub Pages</a>
+        <a href="https://owaspblt.org" target="_blank" rel="noopener" class="rounded-lg px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">
+          OWASP BLT <i class="fa-solid fa-arrow-up-right-from-square text-xs" aria-hidden="true"></i>
+        </a>
+      </nav>
+      <span role="status" aria-label="Service status: Operational"
+            class="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+        <i class="fa-solid fa-circle text-[0.45rem]" aria-hidden="true"></i>
+        Operational
+      </span>
+    </div>
   </header>
 
-  <!-- Main Content -->
-  <main class="flex-1 w-full max-w-7xl mx-auto px-4 py-12 space-y-12">
+  <main class="mx-auto flex-1 w-full max-w-7xl space-y-10 px-4 py-10 sm:px-6 lg:px-8">
 
-    <!-- Hero Section -->
-    <section class="text-center py-12 px-8">
-      <h2 class="text-5xl md:text-6xl font-extrabold text-white mb-4">
-        Find Your <span class="text-blt-red">Mentor</span>
-      </h2>
-      <p class="text-xl max-w-3xl mx-auto mb-6 leading-relaxed text-gray-400">
-        Connect with experienced mentors in the OWASP BLT community. Get guidance on your first PR, learn security best practices, and accelerate your open-source journey.
-      </p>
-      <p class="text-lg max-w-2xl mx-auto mb-8 text-gray-500">
-        Our mentor pool uses intelligent round-robin assignment to ensure balanced workload and faster support for every contributor.
-      </p>
-      <div class="flex flex-wrap justify-center gap-4">
-        <a href="https://owasp.slack.com/signup" 
-           target="_blank" rel="noopener"
-           class="inline-flex items-center gap-2 bg-blt-red hover:bg-blt-red-hover text-white font-semibold text-base px-6 py-3 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blt-red focus:ring-offset-2 focus:ring-offset-[#111827]">
-          <i class="fa-brands fa-slack" aria-hidden="true"></i>
-          Join OWASP Slack
-        </a>
-        <a href="/github-app" 
-           class="inline-flex items-center gap-2 bg-gray-700 hover:bg-gray-600 text-white font-semibold text-base px-6 py-3 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-[#111827]">
-          <i class="fa-brands fa-github" aria-hidden="true"></i>
-          Install GitHub App
-        </a>
+    <section class="overflow-hidden rounded-3xl border border-[#E5E5E5] bg-white p-7 shadow-[0_14px_40px_rgba(225,1,1,0.10)] sm:p-10">
+      <div class="grid gap-8 lg:grid-cols-2 lg:items-center">
+        <div>
+          <span class="mb-4 inline-flex items-center gap-2 rounded-full border border-[#E5E5E5] bg-gray-50 px-3 py-1 text-xs font-semibold text-gray-700">
+            <i class="fa-solid fa-users text-[#E10101]" aria-hidden="true"></i>
+            Mentor directory for BLT contributors
+          </span>
+          <h2 class="text-3xl font-extrabold leading-tight text-[#111827] sm:text-5xl">
+            Find your guide inside
+            <span class="text-[#E10101]">OWASP BLT-Pool</span>
+          </h2>
+          <p class="mt-4 max-w-2xl text-base leading-relaxed text-gray-600 sm:text-lg">
+            Connect with mentors, get support for your first pull request, and keep contribution quality high with a practical community workflow.
+          </p>
+          <div class="mt-7 flex flex-wrap gap-3">
+            <a href="https://owasp.slack.com/signup" target="_blank" rel="noopener"
+               class="inline-flex items-center gap-2 rounded-md bg-[#E10101] px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2">
+              <i class="fa-brands fa-slack" aria-hidden="true"></i>
+              Join OWASP Slack
+            </a>
+            <a href="/github-pages"
+               class="inline-flex items-center gap-2 rounded-md border border-[#E10101] px-5 py-3 text-sm font-semibold text-[#E10101] transition hover:bg-[#E10101] hover:text-white focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2">
+              <i class="fa-brands fa-github" aria-hidden="true"></i>
+              Open GitHub Pages
+            </a>
+          </div>
+        </div>
+        <div class="grid gap-3 sm:grid-cols-2">
+          <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-4">
+            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Mentors</p>
+            <p class="mt-1 text-2xl font-extrabold text-[#111827]">{mentor_count}</p>
+          </article>
+          <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-4">
+            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Available Now</p>
+            <p class="mt-1 text-2xl font-extrabold text-[#111827]">{available_count}</p>
+          </article>
+          <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-4 sm:col-span-2">
+            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Why It Works</p>
+            <p class="mt-1 text-sm font-semibold text-gray-700">Round-robin assignment prevents overload and keeps responses timely.</p>
+          </article>
+        </div>
       </div>
     </section>
 
-    <!-- Mentor Grid -->
-    <section class="space-y-6">
-      <div class="flex items-center justify-between">
-        <h3 class="text-3xl font-bold text-white">
-          Mentors <span class="text-gray-500 text-lg font-normal">({mentor_count} total, {available_count} available)</span>
+    <section class="space-y-5">
+      <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <h3 class="text-2xl font-bold text-[#111827]">
+          Mentor Pool <span class="text-base font-medium text-gray-500">({mentor_count} total, {available_count} available)</span>
         </h3>
+        <label for="mentor-search" class="relative block w-full sm:w-80">
+          <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+          </span>
+          <input id="mentor-search" type="search" placeholder="Search mentors (coming soon)"
+                 class="w-full rounded-md border border-gray-400 bg-white px-4 py-2 pl-10 text-sm text-gray-700 placeholder:text-gray-400 focus:border-red-600 focus:ring-1 focus:ring-red-600 focus:outline-none">
+        </label>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div class="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
         {mentor_cards_html}
       </div>
     </section>
 
-    <!-- How It Works -->
-    <section class="py-12 px-8 rounded-xl bg-[#1F2937] border border-gray-700">
-      <h3 class="text-3xl font-bold text-white mb-6 text-center">How Mentor Matching Works</h3>
-      <div class="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-        <div class="text-center">
-          <div class="w-16 h-16 bg-blt-red/10 border border-blt-red/25 rounded-full flex items-center justify-center mx-auto mb-4">
-            <i class="fa-solid fa-user-plus text-2xl text-blt-red" aria-hidden="true"></i>
+    <section class="rounded-2xl border border-[#E5E5E5] bg-white p-7 sm:p-9">
+      <h3 class="text-2xl font-bold text-[#111827]">How Mentor Matching Works</h3>
+      <div class="mt-6 grid gap-5 md:grid-cols-3">
+        <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-5">
+          <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-[#feeae9] text-[#E10101]">
+            <i class="fa-solid fa-user-plus" aria-hidden="true"></i>
           </div>
-          <h4 class="text-lg font-bold text-white mb-2">1. Pick an Issue</h4>
-          <p class="text-gray-400 text-sm">When you pick up an issue or it's labeled "needs mentor", the system kicks in.</p>
-        </div>
-        <div class="text-center">
-          <div class="w-16 h-16 bg-blt-red/10 border border-blt-red/25 rounded-full flex items-center justify-center mx-auto mb-4">
-            <i class="fa-solid fa-arrows-rotate text-2xl text-blt-red" aria-hidden="true"></i>
+          <h4 class="text-base font-bold text-[#111827]">1. Pick an issue</h4>
+          <p class="mt-2 text-sm text-gray-600">Start with an issue tagged for contribution or mentor support.</p>
+        </article>
+        <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-5">
+          <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-[#feeae9] text-[#E10101]">
+            <i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i>
           </div>
-          <h4 class="text-lg font-bold text-white mb-2">2. Auto-Assignment</h4>
-          <p class="text-gray-400 text-sm">A mentor is automatically assigned using round-robin to balance workload.</p>
-        </div>
-        <div class="text-center">
-          <div class="w-16 h-16 bg-blt-red/10 border border-blt-red/25 rounded-full flex items-center justify-center mx-auto mb-4">
-            <i class="fa-solid fa-comments text-2xl text-blt-red" aria-hidden="true"></i>
+          <h4 class="text-base font-bold text-[#111827]">2. Get assigned</h4>
+          <p class="mt-2 text-sm text-gray-600">Mentors are matched with healthy load balancing to avoid bottlenecks.</p>
+        </article>
+        <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-5">
+          <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-[#feeae9] text-[#E10101]">
+            <i class="fa-solid fa-comments" aria-hidden="true"></i>
           </div>
-          <h4 class="text-lg font-bold text-white mb-2">3. Get Guidance</h4>
-          <p class="text-gray-400 text-sm">Your mentor provides feedback, reviews code, and helps you succeed.</p>
-        </div>
+          <h4 class="text-base font-bold text-[#111827]">3. Build and review</h4>
+          <p class="mt-2 text-sm text-gray-600">Work with your mentor on review quality, security checks, and merge confidence.</p>
+        </article>
       </div>
     </section>
 
-    <!-- Call to Action -->
-    <section class="text-center py-16 px-8 rounded-xl bg-gradient-to-br from-[#1F2937] to-[#111827] border border-gray-700">
-      <h3 class="text-3xl font-bold text-white mb-4">Want to Become a Mentor?</h3>
-      <p class="text-lg max-w-2xl mx-auto mb-8 text-gray-400">
-        Share your knowledge and help contributors grow. Mentors guide contributors through their first PRs, review code, and provide valuable feedback.
+    <section class="rounded-2xl border border-[#E5E5E5] bg-white p-7 text-center sm:p-9">
+      <h3 class="text-2xl font-bold text-[#111827]">Want to become a mentor?</h3>
+      <p class="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-gray-600 sm:text-base">
+        Help newcomers ship quality contributions. Mentors guide issue triage, implementation, and review best practices.
       </p>
-      <a href="https://owasp.slack.com/archives/C0DKR6LAW" 
-         target="_blank" rel="noopener"
-         class="inline-flex items-center gap-2 bg-blt-red hover:bg-blt-red-hover text-white font-semibold text-base px-6 py-3 rounded-md transition-colors">
+      <a href="https://owasp.slack.com/archives/C0DKR6LAW" target="_blank" rel="noopener"
+         class="mt-6 inline-flex items-center gap-2 rounded-md bg-[#E10101] px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2">
         <i class="fa-regular fa-comments" aria-hidden="true"></i>
-        Reach Out on Slack
+        Reach out on Slack
       </a>
     </section>
 
   </main>
 
-  <!-- Footer -->
-  <footer class="w-full px-6 py-8 bg-[#1F2937] border-t border-gray-700 text-center text-sm text-gray-400">
-    <p>
-      Built with ❤️ by the <a href="https://owaspblt.org" target="_blank" rel="noopener" class="text-blt-red hover:underline">OWASP BLT</a> community
-      &middot; <a href="/github-app" class="hover:text-white transition-colors">GitHub App</a>
-      &middot; <a href="https://github.com/OWASP-BLT" target="_blank" rel="noopener" class="hover:text-white transition-colors">GitHub</a>
-    </p>
-    <p class="mt-2 text-xs">&copy; {year} OWASP Foundation. All rights reserved.</p>
+  <footer class="border-t border-[#E5E5E5] bg-white">
+    <div class="mx-auto max-w-7xl px-4 py-6 text-center text-sm text-gray-600 sm:px-6 lg:px-8">
+      Built by the <a href="https://owaspblt.org" target="_blank" rel="noopener" class="text-red-600 hover:underline">OWASP BLT community</a>
+      <span aria-hidden="true"> • </span>
+      <a href="/github-pages" class="text-red-600 hover:underline">GitHub Pages</a>
+      <span aria-hidden="true"> • </span>
+      <a href="https://github.com/OWASP-BLT/BLT-Pool" target="_blank" rel="noopener" class="text-red-600 hover:underline">BLT-Pool Repo</a>
+      <p class="mt-2 text-xs text-gray-500">&copy; {year} OWASP Foundation. All rights reserved.</p>
+    </div>
   </footer>
-
-  <script>
-    console.log('BLT-Pool v1.0 - Connecting mentors and contributors');
-  </script>
 
 </body>
 </html>'''
@@ -3005,7 +3041,7 @@ async def on_fetch(request, env) -> Response:
     if method == "GET" and path == "/":
         return _html(_mentor_grid_html())
 
-    if method == "GET" and path == "/github-app":
+    if method == "GET" and path in ("/github-app", "/github-pages"):
         app_slug = getattr(env, "GITHUB_APP_SLUG", "")
         return _html(_landing_html(app_slug, env))
 
