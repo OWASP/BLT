@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-03-11T00:17:28.223826Z",
-  "commit_sha": "7b7f288627d96d437814d3259e557345a4703399",
+  "updated_at": "2026-03-11T06:16:47.591910Z",
+  "commit_sha": "97d2a96dbe7246d2320043ab427d7e1f59a6af40",
   "total_bugs": 16,
   "open_bugs": 3,
   "closed_bugs": 13,
@@ -102,27 +102,34 @@
     },
     {
       "rank": 9,
+      "login": "tiggachris",
+      "count": 1,
+      "avatar_url": "https://avatars.githubusercontent.com/u/169353352?v=4",
+      "profile_url": "https://github.com/tiggachris"
+    },
+    {
+      "rank": 10,
       "login": "akhileshjadhav-coder",
       "count": 1,
       "avatar_url": "https://avatars.githubusercontent.com/u/226160161?v=4",
       "profile_url": "https://github.com/akhileshjadhav-coder"
     },
     {
-      "rank": 10,
+      "rank": 11,
       "login": "yogeshwarithombare",
       "count": 1,
       "avatar_url": "https://avatars.githubusercontent.com/u/247213611?v=4",
       "profile_url": "https://github.com/yogeshwarithombare"
     },
     {
-      "rank": 11,
+      "rank": 12,
       "login": "Armaansaxena",
       "count": 1,
       "avatar_url": "https://avatars.githubusercontent.com/u/143505186?v=4",
       "profile_url": "https://github.com/Armaansaxena"
     },
     {
-      "rank": 12,
+      "rank": 13,
       "login": "swaparup36",
       "count": 1,
       "avatar_url": "https://avatars.githubusercontent.com/u/82692857?v=4",
@@ -157,7 +164,7 @@
       "title": "[BUG] whole div \"Chapters\", should be clickable and remove test data",
       "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/81",
       "created_at": "2026-03-08T23:31:51Z",
-      "comment_count": 5,
+      "comment_count": 7,
       "user": {
         "login": "DonnieBLT",
         "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
@@ -169,13 +176,13 @@
         "eyes": 1
       },
       "latest_comment": {
-        "body": "Yes, this is a bug reported for http://www.owasp.community/ it will stay open until they fix it",
-        "created_at": "2026-03-10T03:07:21Z",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/81#issuecomment-4028300418",
+        "body": "@tiggachris This issue already has the maximum number of assignees (1). Please work on a different issue.",
+        "created_at": "2026-03-11T06:13:06Z",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/81#issuecomment-4036768843",
         "user": {
-          "login": "DonnieBLT",
-          "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
-          "profile_url": "https://github.com/DonnieBLT"
+          "login": "owasp-blt[bot]",
+          "avatar_url": "https://avatars.githubusercontent.com/in/1159228?v=4",
+          "profile_url": "https://github.com/apps/owasp-blt"
         }
       }
     },
