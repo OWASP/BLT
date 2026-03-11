@@ -1,6 +1,6 @@
 """
 BLT-NetGuardian Cloudflare Python Worker
-Backend API for the security pipeline - Frontend hosted on GitHub Pages
+Serves the frontend (public/) as static assets and handles the backend API.
 """
 import json
 import hashlib
@@ -54,27 +54,8 @@ class BLTWorker:
             return Response('', headers=cors_headers)
         
         try:
-            # Route to appropriate handler - API only, no HTML
-            if path == '' or path == '/':
-                response = self.json_response({
-                    'name': 'BLT-NetGuardian API',
-                    'version': '1.0.0',
-                    'status': 'operational',
-                    'message': 'Backend API for BLT-NetGuardian security pipeline',
-                    'frontend': 'https://owasp-blt.github.io/BLT-NetGuardian/',
-                    'endpoints': {
-                        'queue_tasks': '/api/tasks/queue',
-                        'register_target': '/api/targets/register',
-                        'ingest_results': '/api/results/ingest',
-                        'job_status': '/api/jobs/status',
-                        'list_tasks': '/api/tasks/list',
-                        'vulnerabilities': '/api/vulnerabilities',
-                        'discovery_suggest': '/api/discovery/suggest',
-                        'discovery_status': '/api/discovery/status',
-                        'discovery_recent': '/api/discovery/recent'
-                    }
-                })
-            elif path == 'api/discovery/suggest':
+            # Route to appropriate handler - API routes only
+            if path == 'api/discovery/suggest':
                 response = await self.handle_discovery_suggest(request)
             elif path == 'api/discovery/status':
                 response = await self.handle_discovery_status(request)
@@ -571,5 +552,13 @@ class BLTWorker:
 # Main worker entry point
 async def on_fetch(request, env, ctx):
     """Cloudflare Workers fetch handler."""
+    url = request.url
+    path = url.split('?')[0].split('/', 3)[-1] if '/' in url else ''
+
+    # Delegate non-API requests to the static assets binding (serves index.html, etc.)
+    assets = getattr(env, 'ASSETS', None)
+    if assets is not None and not path.startswith('api/'):
+        return await assets.fetch(request)
+
     worker = BLTWorker(env)
     return await worker.handle_request(request)
