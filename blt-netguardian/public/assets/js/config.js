@@ -1,15 +1,12 @@
 /**
  * Configuration for BLT-NetGuardian
- * Update API_BASE_URL with your deployed Cloudflare Worker URL
  */
 
 const CONFIG = {
-    // IMPORTANT: Change this to your deployed Cloudflare Worker URL
-    // After deploying with 'wrangler publish', update this with your actual URL
-    API_BASE_URL: 'https://blt-netguardian.your-subdomain.workers.dev',  // TODO: Update this!
-    
-    // For local development with wrangler dev
-    // API_BASE_URL: 'http://localhost:8787',
+    // Frontend and API are served from the same Cloudflare Worker, so use the
+    // current page origin. For local development with `wrangler dev` this will
+    // automatically resolve to http://localhost:8787.
+    API_BASE_URL: (typeof window !== 'undefined' ? window.location.origin : ''),
     
     // API endpoints
     ENDPOINTS: {

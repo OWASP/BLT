@@ -1,6 +1,6 @@
 """
 BLT-NetGuardian Cloudflare Python Worker
-Backend API for the security pipeline - Frontend hosted on GitHub Pages
+Serves the frontend (public/) as static assets and handles the backend API.
 """
 import json
 import hashlib
@@ -54,14 +54,8 @@ class BLTWorker:
             return Response('', headers=cors_headers)
         
         try:
-            # Route to appropriate handler
-            if path == '' or path == '/':
-                response = Response(
-                    '',
-                    status=302,
-                    headers={'Location': 'https://owasp-blt.github.io/BLT-NetGuardian/'}
-                )
-            elif path == 'api/discovery/suggest':
+            # Route to appropriate handler - API routes only
+            if path == 'api/discovery/suggest':
                 response = await self.handle_discovery_suggest(request)
             elif path == 'api/discovery/status':
                 response = await self.handle_discovery_status(request)
@@ -558,5 +552,13 @@ class BLTWorker:
 # Main worker entry point
 async def on_fetch(request, env, ctx):
     """Cloudflare Workers fetch handler."""
+    url = request.url
+    path = url.split('?')[0].split('/', 3)[-1] if '/' in url else ''
+
+    # Delegate non-API requests to the static assets binding (serves index.html, etc.)
+    assets = getattr(env, 'ASSETS', None)
+    if assets is not None and not path.startswith('api/'):
+        return await assets.fetch(request)
+
     worker = BLTWorker(env)
     return await worker.handle_request(request)

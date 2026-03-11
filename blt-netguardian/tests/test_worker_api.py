@@ -60,14 +60,16 @@ async def test_handle_request_options_returns_cors_headers():
 
 
 @pytest.mark.asyncio
-async def test_handle_request_root_redirects_to_homepage():
+async def test_handle_request_root_returns_404_without_assets():
+    """When no ASSETS binding is present (e.g. in tests) the worker returns 404
+    for the root path; in production the ASSETS binding intercepts it first."""
     worker = BLTWorker(SimpleNamespace(DB=None))
 
     response = await worker.handle_request(FakeRequest("https://api.example.com/"))
+    payload = parse_json(response)
 
-    assert response.status == 302
-    assert response.headers["Location"] == "https://owasp-blt.github.io/BLT-NetGuardian/"
-    assert response.headers["Access-Control-Allow-Origin"] == "*"
+    assert response.status == 404
+    assert payload["error"] == "Not found"
 
 
 @pytest.mark.asyncio
@@ -326,12 +328,14 @@ async def test_handle_request_returns_500_when_handler_raises():
 
 
 @pytest.mark.asyncio
-async def test_on_fetch_entrypoint_uses_worker_handler():
+async def test_on_fetch_entrypoint_routes_api_requests():
+    """on_fetch delegates API paths to the BLTWorker handler."""
     response = await on_fetch(
-        FakeRequest("https://api.example.com/"),
+        FakeRequest("https://api.example.com/api/jobs/status"),
         SimpleNamespace(DB=None),
         None,
     )
+    payload = parse_json(response)
 
-    assert response.status == 302
-    assert response.headers["Location"] == "https://owasp-blt.github.io/BLT-NetGuardian/"
+    assert response.status == 400
+    assert payload["error"] == "Missing job_id parameter"
