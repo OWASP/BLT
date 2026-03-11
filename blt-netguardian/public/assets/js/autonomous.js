@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     setupDiscoverySearch();
+    setupClientDownloadDelegation();
 
     // Start live updates
     startLiveUpdates();
@@ -157,6 +158,14 @@ function displayDiscoveries(discoveries) {
                         `<span class="severity ${escapeHtml(v.severity || 'info')}">${escapeHtml(String(v.count || 0))} ${escapeHtml(v.severity || 'info')}</span>`
                     ).join('') : ''}
                     <span class="status ${escapeHtml(discovery.status || 'queued')}">${escapeHtml(statusText)}</span>
+                    <button class="btn-download-client"
+                        data-type="${escapeHtml(discovery.type || 'target')}"
+                        data-target="${escapeHtml(discovery.target || 'unknown')}"
+                        data-status="${escapeHtml(discovery.status || 'queued')}"
+                        data-discovered-at="${escapeHtml(discovery.discovered_at || '')}"
+                        title="Download task to local client">
+                        <i class="fa-solid fa-download" aria-hidden="true"></i> Send to Client
+                    </button>
                 </div>
             </div>
         `;
@@ -318,5 +327,50 @@ function escapeHtml(value) {
         .replace(/'/g, '&#39;');
 }
 
+function setupClientDownloadDelegation() {
+    const list = document.getElementById('discoveriesList');
+    if (!list) {
+        return;
+    }
+    list.addEventListener('click', e => {
+        const btn = e.target.closest('.btn-download-client');
+        if (!btn) {
+            return;
+        }
+        downloadToClient({
+            type: btn.dataset.type || 'target',
+            target: btn.dataset.target || 'unknown',
+            status: btn.dataset.status || 'queued',
+            discovered_at: btn.dataset.discoveredAt || ''
+        });
+    });
+}
+
+function downloadToClient(taskData) {
+    const task = {
+        source: 'BLT-NetGuardian',
+        client_repo: 'https://github.com/OWASP-BLT/BLT-NetGuardian-Client',
+        exported_at: new Date().toISOString(),
+        task: {
+            type: taskData.type || 'target',
+            target: taskData.target || 'unknown',
+            status: taskData.status || 'queued',
+            discovered_at: taskData.discovered_at || new Date().toISOString()
+        }
+    };
+
+    const blob = new Blob([JSON.stringify(task, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const safeName = String(task.task.target).replace(/[^a-zA-Z0-9._-]/g, '_');
+    a.href = url;
+    a.download = `netguardian-task-${safeName}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
 window.viewDiscoveryQueue = viewDiscoveryQueue;
 window.viewContactLog = viewContactLog;
+window.downloadToClient = downloadToClient;
