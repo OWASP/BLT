@@ -1,11 +1,7 @@
 ﻿name: Update Leaderboard and Deploy
 
 on:
-  # Regenerate every 6 hours
-  schedule:
-    - cron: "0 */6 * * *"
-
-  # Also regenerate whenever a bug-labelled issue is opened or closed
+  # Regenerate whenever a bug-labelled issue is opened or closed
   issues:
     types:
       - opened
