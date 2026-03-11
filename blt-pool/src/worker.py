@@ -353,6 +353,7 @@ def _extract_command(body: str) -> Optional[str]:
 
 # Leaderboard configuration constants
 LEADERBOARD_MARKER = "<!-- leaderboard-bot -->"
+REVIEWER_LEADERBOARD_MARKER = "<!-- reviewer-leaderboard-bot -->"
 MAX_OPEN_PRS_PER_AUTHOR = 50
 LEADERBOARD_COMMENT_MARKER = LEADERBOARD_MARKER
 
@@ -1590,6 +1591,100 @@ def _format_leaderboard_comment(author_login: str, leaderboard_data: dict, owner
     return comment
 
 
+def _format_reviewer_leaderboard_comment(leaderboard_data: dict, owner: str, pr_reviewers: list = None) -> str:
+    """Format a reviewer leaderboard comment showing top reviewers for the month."""
+    sorted_users = leaderboard_data["sorted"]
+    start_ts = leaderboard_data["start_timestamp"]
+
+    # Sort users by reviews descending, then alphabetically
+    reviewer_sorted = sorted(
+        [u for u in sorted_users if u["reviews"] > 0],
+        key=lambda u: (-u["reviews"], u["login"].lower()),
+    )
+
+    # Format month display
+    month_struct = time.gmtime(start_ts)
+    display_month = time.strftime("%B %Y", month_struct)
+
+    comment = REVIEWER_LEADERBOARD_MARKER + "\n"
+    comment += "## 🔍 Reviewer Leaderboard\n\n"
+    comment += f"Top reviewers for {display_month} (across the {owner} org):\n\n"
+
+    medals = ["🥇", "🥈", "🥉"]
+
+    def row_for(rank: int, u: dict, highlight: bool = False) -> str:
+        medal = medals[rank - 1] if rank <= 3 else ""
+        rank_cell = f"{medal} #{rank}" if medal else f"#{rank}"
+        user_cell = f"**`@{u['login']}`** ⭐" if highlight else f"`@{u['login']}`"
+        return f"| {rank_cell} | {user_cell} | {u['reviews']} |"
+
+    comment += "| Rank | Reviewer | Reviews this month |\n"
+    comment += "| --- | --- | --- |\n"
+
+    pr_reviewer_set = set(pr_reviewers or [])
+
+    if not reviewer_sorted:
+        comment += "| - | _No review activity recorded yet_ | 0 |\n"
+    else:
+        top_n = reviewer_sorted[:5]
+        shown_logins = {u["login"] for u in top_n}
+        for i, u in enumerate(top_n):
+            highlight = u["login"] in pr_reviewer_set
+            comment += row_for(i + 1, u, highlight) + "\n"
+
+        # Show any PR reviewers not already in the top 5
+        extra_reviewers = [
+            u for u in reviewer_sorted
+            if u["login"] in pr_reviewer_set and u["login"] not in shown_logins
+        ]
+        if extra_reviewers:
+            comment += "| … | … | … |\n"
+            for u in extra_reviewers:
+                rank = reviewer_sorted.index(u) + 1
+                comment += row_for(rank, u, highlight=True) + "\n"
+
+    comment += "\n---\n"
+    comment += (
+        "Reviews earn **+5 points** each in the monthly leaderboard "
+        "(first two reviewers per PR). Thank you to everyone who helps review PRs! 🙏\n"
+    )
+    return comment
+
+
+async def _post_reviewer_leaderboard(owner: str, repo: str, pr_number: int, token: str, env=None, pr_reviewers: list = None) -> None:
+    """Post or update a reviewer leaderboard comment on a merged PR."""
+    leaderboard_data = None
+    if env is not None:
+        leaderboard_data = await _calculate_leaderboard_stats_from_d1(owner, env)
+    if leaderboard_data is None:
+        # Fallback: build minimal data from GitHub API is expensive; skip if unavailable.
+        console.log(f"[ReviewerLeaderboard] No D1 data available for {owner}; skipping reviewer leaderboard")
+        return
+
+    comment_body = _format_reviewer_leaderboard_comment(leaderboard_data, owner, pr_reviewers)
+
+    # Delete any existing reviewer leaderboard comment then post a fresh one
+    resp = await github_api("GET", f"/repos/{owner}/{repo}/issues/{pr_number}/comments?per_page=100", token)
+    if resp.status == 200:
+        existing_comments = json.loads(await resp.text())
+        for c in existing_comments:
+            body = c.get("body") or ""
+            if REVIEWER_LEADERBOARD_MARKER in body:
+                delete_resp = await github_api(
+                    "DELETE",
+                    f"/repos/{owner}/{repo}/issues/comments/{c['id']}",
+                    token,
+                )
+                if delete_resp.status not in (204, 200):
+                    console.error(
+                        f"[ReviewerLeaderboard] Failed to delete old reviewer leaderboard comment {c['id']} "
+                        f"for {owner}/{repo}#{pr_number}: status={delete_resp.status}"
+                    )
+
+    await create_comment(owner, repo, pr_number, comment_body, token)
+    console.log(f"[ReviewerLeaderboard] Posted reviewer leaderboard for {owner}/{repo}#{pr_number}")
+
+
 async def _post_or_update_leaderboard(owner: str, repo: str, issue_number: int, author_login: str, token: str, env=None) -> None:
     """Post or update a leaderboard comment on an issue/PR."""
     leaderboard_note = ""
@@ -2115,6 +2210,13 @@ async def handle_pull_request_closed(payload: dict, token: str, env=None) -> Non
         await _post_or_update_leaderboard(owner, repo, pr_number, author_login, token)
     else:
         await _post_or_update_leaderboard(owner, repo, pr_number, author_login, token, env)
+
+    # Post reviewer leaderboard to celebrate reviewers on merge
+    pr_reviewers = await get_valid_reviewers(owner, repo, pr_number, author_login, token)
+    if env is not None:
+        await _post_reviewer_leaderboard(owner, repo, pr_number, token, env, pr_reviewers)
+    else:
+        await _post_reviewer_leaderboard(owner, repo, pr_number, token, pr_reviewers=pr_reviewers)
 
 
 async def handle_pull_request_review_submitted(payload: dict, env=None) -> None:
