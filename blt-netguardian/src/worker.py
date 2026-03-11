@@ -243,9 +243,15 @@ class BLTWorker:
             task_types = data.get('task_types', [])
             priority = data.get('priority', 'medium')
             
-            if not target_id or not task_types:
+            missing_fields = []
+            if not target_id:
+                missing_fields.append('target_id')
+            if not task_types:
+                missing_fields.append('task_types')
+
+            if missing_fields:
                 return self.json_response({
-                    'error': 'Missing required fields: target_id, task_types'
+                    'error': f"Missing required fields: {', '.join(missing_fields)}"
                 }, status=400)
             
             # Generate job ID
