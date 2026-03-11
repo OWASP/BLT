@@ -64,7 +64,7 @@ GITHUB_PAGE_HTML = """\
         <img src="/logo-sm.png" alt="OWASP BLT logo" class="h-10 w-10 rounded-xl border border-blt-border bg-white object-contain p-1">
         <div>
           <p class="text-sm font-semibold uppercase tracking-wide text-gray-500">OWASP BLT</p>
-          <h1 class="text-lg font-extrabold text-blt-dark-base">BLT-Pool Extension</h1>
+          <h1 class="text-lg font-extrabold text-blt-dark-base">BLT-Pool</h1>
         </div>
       </a>
       <nav class="hidden items-center gap-2 rounded-xl border border-blt-border bg-white p-1 md:flex" aria-label="Main">
