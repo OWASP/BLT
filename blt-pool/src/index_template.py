@@ -35,10 +35,20 @@ INDEX_HTML = """\
 <body class="min-h-screen flex flex-col bg-[#111827] text-gray-100 antialiased">
   
   <!-- Header -->
-  <header class="w-full px-6 py-4 flex items-center gap-3 bg-[#1F2937] border-b border-gray-700">
-    <img src="/logo-sm.png" alt="OWASP BLT logo" class="w-10 h-10 rounded-lg">
-    <h1 class="flex-1 text-lg font-bold text-white">BLT GitHub App</h1>
-    <span role="status" aria-label="Service status: Operational" class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-green-500/10 text-green-400 border border-green-500/25">
+  <header class="w-full px-6 py-4 flex items-center gap-4 bg-[#1F2937] border-b border-gray-700">
+    <div class="w-10 h-10 bg-blt-red rounded-lg flex items-center justify-center font-bold text-white text-xl">
+      BP
+    </div>
+    <h1 class="flex-1 text-xl font-bold text-white">BLT-Pool</h1>
+    <nav class="hidden md:flex items-center gap-6 text-sm">
+      <a href="/" class="font-semibold">Mentors</a>
+      <a href="/github-app" class="text-blt-red hover:text-white transition-colors">GitHub App</a>
+      <a href="https://owaspblt.org" target="_blank" rel="noopener" class="text-gray-400 hover:text-white transition-colors">
+        OWASP BLT <i class="fa-solid fa-arrow-up-right-from-square text-xs ml-1" aria-hidden="true"></i>
+      </a>
+    </nav>
+    <span role="status" aria-label="Service status: Operational" 
+          class="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-green-500/10 text-green-400 border border-green-500/25">
       <i class="fa-solid fa-circle text-[0.45rem]" aria-hidden="true"></i>
       Operational
     </span>
