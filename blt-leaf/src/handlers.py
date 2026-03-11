@@ -1396,7 +1396,11 @@ async def handle_pr_timeline(request, env, path):
     """
     try:
         # Extract PR ID from path: /api/prs/123/timeline
-        pr_id = path.split('/')[3]  # Split by / and get the ID
+        path_parts = path.split('/')
+        if len(path_parts) < 4 or not path_parts[3].isdigit():
+            return Response.new(json.dumps({'error': 'Invalid PR ID in path'}),
+                              {'status': 400, 'headers': {'Content-Type': 'application/json'}})
+        pr_id = path_parts[3]
         
         # Get client IP for rate limiting
         client_ip = (
@@ -1487,7 +1491,11 @@ async def handle_pr_review_analysis(request, env, path):
     """
     try:
         # Extract PR ID from path: /api/prs/123/review-analysis
-        pr_id = path.split('/')[3]
+        path_parts = path.split('/')
+        if len(path_parts) < 4 or not path_parts[3].isdigit():
+            return Response.new(json.dumps({'error': 'Invalid PR ID in path'}),
+                              {'status': 400, 'headers': {'Content-Type': 'application/json'}})
+        pr_id = path_parts[3]
         
         # Get client IP for rate limiting
         client_ip = (
@@ -1694,7 +1702,11 @@ async def handle_pr_readiness(request, env, path):
     """
     try:
         # Extract PR ID from path: /api/prs/123/readiness
-        pr_id = path.split('/')[3]
+        path_parts = path.split('/')
+        if len(path_parts) < 4 or not path_parts[3].isdigit():
+            return Response.new(json.dumps({'error': 'Invalid PR ID in path'}),
+                              {'status': 400, 'headers': {'Content-Type': 'application/json'}})
+        pr_id = path_parts[3]
         
         # Check cache first
         cached_result = await get_readiness_cache(env, pr_id)
