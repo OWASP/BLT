@@ -48,16 +48,19 @@ BUG_LABELS = {"bug", "vulnerability", "security"}
 
 # Mentor pool for BLT-Pool platform
 MENTORS = [
-    {"name": "Rinkit Adhana", "github_username": "", "slack_username": "", "project": "Project A", "mentee": None, "status": "available"},
-    {"name": "Raj Gupta", "github_username": "", "slack_username": "", "project": "Project A", "mentee": None, "status": "available"},
+    {"name": "Rinkit Adhana", "github_username": "rinkitadhana", "slack_username": "Rinkit Adhana", "project": "Project A", "mentee": None, "status": "available"},
+    {"name": "Raj Gupta", "github_username": "Rajgupta36", "slack_username": "raj", "project": "Project A", "mentee": None, "status": "available"},
     {"name": "Shriyash Soni", "github_username": "", "slack_username": "", "project": "", "mentee": None, "status": "available"},
     {"name": "Mohammed Faiyaz Shaikh", "github_username": "", "slack_username": "", "project": None, "mentee": None, "status": "available"},
     {"name": "Manikandan Chandran", "github_username": "", "slack_username": "", "project": None, "mentee": None, "status": "available"},
     {"name": "Shivam Kumar", "github_username": "", "slack_username": "", "project": None, "mentee": None, "status": "available"},
-    {"name": "Vinamra Vaswani", "github_username": "", "slack_username": "", "project": None, "mentee": None, "status": "available"},
-    {"name": "Carla Voorhees", "github_username": "", "slack_username": "", "project": None, "mentee": None, "status": "available"},
-    {"name": "Akshay Behl", "github_username": "", "slack_username": "", "project": None, "mentee": None, "status": "available"},
-    {"name": "Ahmed ElSheik", "github_username": "", "slack_username": "", "project": None, "mentee": None, "status": "available"},
+    {"name": "Vinamra Vaswani", "github_username": "Vaswani2003", "slack_username": "@Vinamra", "project": None, "mentee": None, "status": "available"},
+    {"name": "Carla Voorhees", "github_username": "kittenbytes", "slack_username": "@Carla", "project": None, "mentee": None, "status": "available"},
+    {"name": "Akshay Behl", "github_username": "Captain-T2004", "slack_username": "@Akshay Behl", "project": None, "mentee": None, "status": "available"},
+    {"name": "Ahmed ElSheik", "github_username": "elsheik21", "slack_username": "Ahmed ElSheik", "project": None, "mentee": None, "status": "available"},
+    {"name": "Kunal Kashyap", "github_username": "Kunal1522", "slack_username": "Kunal", "project": None, "mentee": None, "status": "available"},
+    {"name": "Rudra Bhaskar", "github_username": "RudraBhaskar9439", "slack_username": "@Rudra9439", "project": None, "mentee": None, "status": "available"},
+    {"name": "Sanidhya Shishodia", "github_username": "dev-sanidhya", "slack_username": "@Sanidhya Shishodia", "project": None, "mentee": None, "status": "available"},
     {"name": "Vedant Anand", "github_username": "", "slack_username": "", "project": None, "mentee": None, "status": "available"},
     {"name": "Rishab Kumar Jha", "github_username": "", "slack_username": "", "project": None, "mentee": None, "status": "available"},
 ]
@@ -2793,7 +2796,22 @@ def _generate_mentor_card(mentor: dict) -> str:
         '''
 
     github_link = f'<a href="https://github.com/{github}" target="_blank" rel="noopener" class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-[#E5E5E5] text-gray-600 transition hover:border-[#E10101] hover:text-[#E10101]" aria-label="{name} GitHub profile"><i class="fa-brands fa-github" aria-hidden="true"></i></a>' if github else '<span class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-[#E5E5E5] text-gray-400"><i class="fa-brands fa-github" aria-hidden="true"></i></span>'
-    slack_link = f'<span class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-[#E5E5E5] text-gray-600" title="Slack: {slack}" aria-label="{name} Slack username"><i class="fa-brands fa-slack" aria-hidden="true"></i></span>' if slack else '<span class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-[#E5E5E5] text-gray-400"><i class="fa-brands fa-slack" aria-hidden="true"></i></span>'
+    slack_display = ""
+    if slack:
+        formatted_slack = slack if slack.startswith("@") else f"@{slack}"
+        slack_display = (
+            '<span class="inline-flex h-8 items-center gap-1.5 rounded-md border border-[#E10101]/20 bg-[#feeae9] px-2.5 text-xs font-medium text-[#E10101]">'
+            '<i class="fa-brands fa-slack" aria-hidden="true"></i>'
+            f'<span class="leading-none">{formatted_slack}</span>'
+            "</span>"
+        )
+    else:
+        slack_display = (
+            '<span class="inline-flex h-8 items-center gap-1.5 rounded-md border border-[#E5E5E5] px-2.5 text-xs text-gray-400">'
+            '<i class="fa-brands fa-slack" aria-hidden="true"></i>'
+            '<span class="leading-none">No Slack</span>'
+            "</span>"
+        )
 
     return f'''
     <article class="rounded-2xl border border-[#E5E5E5] bg-white p-6 transition hover:-translate-y-0.5 hover:shadow-md">
@@ -2804,10 +2822,11 @@ def _generate_mentor_card(mentor: dict) -> str:
           <div class="mt-2">{status_badge}</div>
         </div>
       </div>
-      <div class="mt-4 flex items-center gap-2 text-sm">
+      <div class="mt-4 flex flex-wrap items-center gap-2 text-sm">
         {github_link}
-        {slack_link}
+        {slack_display}
       </div>
+
       {assignment_html}
     </article>
     '''
