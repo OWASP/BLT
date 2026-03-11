@@ -34,6 +34,7 @@ GITHUB_APP_SLUG = "blt-github-app"
 # WEBHOOK_SECRET       — GitHub App webhook secret
 # GITHUB_CLIENT_ID     — OAuth client ID     (optional)
 # GITHUB_CLIENT_SECRET — OAuth client secret (optional)
+# ADMIN_SECRET         — Bearer token for POST /admin/reset-leaderboard-month (optional)
 
 
 # ---------------------------------------------------------------------------

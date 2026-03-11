@@ -22,6 +22,7 @@ import calendar
 import hashlib
 import hmac as _hmac
 import json
+import re
 import time
 from typing import Optional, Tuple
 from urllib.parse import quote, urlparse
@@ -984,6 +985,18 @@ async def _backfill_repo_month_if_needed(
 
     console.log(f"[Backfill] Starting backfill for {owner}/{repo_name} month={mk}")
 
+    # Load all PR numbers already tracked via webhooks for this repo to avoid
+    # double-counting PRs that were already processed by webhook event handlers.
+    tracked_rows = await _d1_all(
+        db,
+        "SELECT pr_number FROM leaderboard_pr_state WHERE org = ? AND repo = ?",
+        (owner, repo_name),
+    )
+    already_tracked = {int(row["pr_number"]) for row in (tracked_rows or [])}
+    console.log(f"[Backfill] {len(already_tracked)} PRs already tracked for {owner}/{repo_name}")
+
+    now_ts = int(time.time())
+
     # Open PRs snapshot for this repo.
     open_resp = await github_api(
         "GET",
@@ -998,9 +1011,25 @@ async def _backfill_repo_month_if_needed(
             if _is_bot(user):
                 continue
             login = user.get("login")
-            if login:
-                open_by_user[login] = open_by_user.get(login, 0) + 1
-        console.log(f"[Backfill] Found {len(open_prs)} open PRs, {len(open_by_user)} unique users")
+            pr_number = pr.get("number")
+            if not login or not pr_number:
+                continue
+            if pr_number in already_tracked:
+                console.log(f"[Backfill] Skipping open PR #{pr_number} (already tracked via webhook)")
+                continue
+            open_by_user[login] = open_by_user.get(login, 0) + 1
+            # Record in pr_state so webhook handlers can coordinate future state changes.
+            await _d1_run(
+                db,
+                """
+                INSERT INTO leaderboard_pr_state (org, repo, pr_number, author_login, state, merged, closed_at, updated_at)
+                VALUES (?, ?, ?, ?, 'open', 0, NULL, ?)
+                ON CONFLICT(org, repo, pr_number) DO NOTHING
+                """,
+                (owner, repo_name, pr_number, login, now_ts),
+            )
+            already_tracked.add(pr_number)
+        console.log(f"[Backfill] Found {len(open_prs)} open PRs, {len(open_by_user)} unique users (new)")
         for login, cnt in open_by_user.items():
             console.log(f"[Backfill] User {login}: {cnt} open PRs")
             await _d1_inc_open_pr(db, owner, login, cnt)
@@ -1008,39 +1037,161 @@ async def _backfill_repo_month_if_needed(
         console.error(f"[Backfill] Failed to fetch open PRs: status={open_resp.status}")
 
     # Closed/merged monthly stats for this repo.
-    closed_resp = await github_api(
-        "GET",
-        f"/repos/{owner}/{repo_name}/pulls?state=closed&per_page=100&sort=updated&direction=desc",
-        token,
-    )
-    if closed_resp.status == 200:
+    # Paginate up to 3 pages to catch repos with more than 100 closed PRs in the month.
+    merged_count = 0
+    closed_count = 0
+    closed_page = 1
+    # Collect merged PRs for review backfill (capped to limit extra API calls).
+    merged_prs_for_review = []
+    MAX_REVIEW_BACKFILL = 20
+    while closed_page <= 3:
+        closed_resp = await github_api(
+            "GET",
+            f"/repos/{owner}/{repo_name}/pulls?state=closed&per_page=100&sort=updated&direction=desc&page={closed_page}",
+            token,
+        )
+        if closed_resp.status != 200:
+            console.error(f"[Backfill] Failed to fetch closed PRs page {closed_page}: status={closed_resp.status}")
+            break
         closed_prs = json.loads(await closed_resp.text())
-        merged_count = 0
-        closed_count = 0
+        if not closed_prs:
+            break
         for pr in closed_prs:
             user = pr.get("user") or {}
             if _is_bot(user):
                 continue
             login = user.get("login")
-            if not login:
+            pr_number = pr.get("number")
+            if not login or not pr_number:
+                continue
+            if pr_number in already_tracked:
+                console.log(f"[Backfill] Skipping closed PR #{pr_number} (already tracked via webhook)")
                 continue
             merged_at = pr.get("merged_at")
             closed_at = pr.get("closed_at")
             if merged_at:
                 merged_ts = _parse_github_timestamp(merged_at)
                 if start_ts <= merged_ts <= end_ts:
-                    console.log(f"[Backfill] User {login}: merged PR (#{pr.get('number')})")
+                    console.log(f"[Backfill] User {login}: merged PR (#{pr_number})")
                     merged_count += 1
                     await _d1_inc_monthly(db, owner, mk, login, "merged_prs", 1)
+                    # Use closed_at for the stored timestamp to match the idempotency check
+                    # in _track_pr_closed_in_d1, falling back to merged_ts if absent.
+                    pr_closed_ts = _parse_github_timestamp(closed_at) if closed_at else merged_ts
+                    await _d1_run(
+                        db,
+                        """
+                        INSERT INTO leaderboard_pr_state (org, repo, pr_number, author_login, state, merged, closed_at, updated_at)
+                        VALUES (?, ?, ?, ?, 'closed', 1, ?, ?)
+                        ON CONFLICT(org, repo, pr_number) DO NOTHING
+                        """,
+                        (owner, repo_name, pr_number, login, pr_closed_ts, now_ts),
+                    )
+                    already_tracked.add(pr_number)
+                    if len(merged_prs_for_review) < MAX_REVIEW_BACKFILL:
+                        merged_prs_for_review.append((pr_number, login))
             elif closed_at:
-                closed_ts = _parse_github_timestamp(closed_at)
-                if start_ts <= closed_ts <= end_ts:
-                    console.log(f"[Backfill] User {login}: closed PR (#{pr.get('number')})")
+                closed_ts_val = _parse_github_timestamp(closed_at)
+                if start_ts <= closed_ts_val <= end_ts:
+                    console.log(f"[Backfill] User {login}: closed PR (#{pr_number})")
                     closed_count += 1
                     await _d1_inc_monthly(db, owner, mk, login, "closed_prs", 1)
-        console.log(f"[Backfill] Found {merged_count} merged, {closed_count} closed PRs in month range")
-    else:
-        console.error(f"[Backfill] Failed to fetch closed PRs: status={closed_resp.status}")
+                    await _d1_run(
+                        db,
+                        """
+                        INSERT INTO leaderboard_pr_state (org, repo, pr_number, author_login, state, merged, closed_at, updated_at)
+                        VALUES (?, ?, ?, ?, 'closed', 0, ?, ?)
+                        ON CONFLICT(org, repo, pr_number) DO NOTHING
+                        """,
+                        (owner, repo_name, pr_number, login, closed_ts_val, now_ts),
+                    )
+                    already_tracked.add(pr_number)
+        # Stop paginating if fewer than 100 results (last page).
+        if len(closed_prs) < 100:
+            break
+        closed_page += 1
+    console.log(f"[Backfill] Found {merged_count} merged, {closed_count} closed PRs in month range")
+
+    # Also include webhook-tracked merged PRs whose review webhooks may have been missed
+    # (e.g. during app downtime). The leaderboard_review_credits idempotency guard ensures
+    # no duplicate credits are awarded even if a PR is processed again.
+    if len(merged_prs_for_review) < MAX_REVIEW_BACKFILL:
+        tracked_merged_rows = await _d1_all(
+            db,
+            """
+            SELECT pr_number, author_login FROM leaderboard_pr_state
+            WHERE org = ? AND repo = ? AND merged = 1
+            """,
+            (owner, repo_name),
+        )
+        newly_added = {pr_num for pr_num, _ in merged_prs_for_review}
+        for row in (tracked_merged_rows or []):
+            if len(merged_prs_for_review) >= MAX_REVIEW_BACKFILL:
+                break
+            pr_num = row.get("pr_number")
+            author = row.get("author_login", "")
+            if pr_num and pr_num not in newly_added:
+                merged_prs_for_review.append((pr_num, author))
+                newly_added.add(pr_num)
+
+    # Backfill review credits for merged PRs in the window (up to MAX_REVIEW_BACKFILL).
+    # Mirrors the idempotency logic in _track_review_in_d1: only the first two unique
+    # non-bot, non-author reviewers per PR per month get credit.
+    if merged_prs_for_review:
+        console.log(f"[Backfill] Fetching reviews for {len(merged_prs_for_review)} merged PRs")
+    for pr_number, pr_author in merged_prs_for_review:
+        try:
+            reviews_resp = await github_api(
+                "GET",
+                f"/repos/{owner}/{repo_name}/pulls/{pr_number}/reviews?per_page=100",
+                token,
+            )
+            if reviews_resp.status == 429:
+                console.error(f"[Backfill] GitHub rate limit hit fetching reviews for PR #{pr_number}; skipping remaining review backfill")
+                break
+            if reviews_resp.status != 200:
+                console.error(f"[Backfill] Failed to fetch reviews for PR #{pr_number}: status={reviews_resp.status}")
+                continue
+            reviews = json.loads(await reviews_resp.text())
+            # Load all existing credits for this PR in one query to avoid N+1 SELECTs.
+            credit_rows = await _d1_all(
+                db,
+                """
+                SELECT reviewer_login FROM leaderboard_review_credits
+                WHERE org = ? AND repo = ? AND pr_number = ? AND month_key = ?
+                """,
+                (owner, repo_name, pr_number, mk),
+            )
+            already_credited_set = {row["reviewer_login"] for row in (credit_rows or [])}
+            seen_reviewers: set = set()
+            for review in reviews:
+                reviewer = review.get("user") or {}
+                if _is_bot(reviewer):
+                    continue
+                reviewer_login = reviewer.get("login", "")
+                if not reviewer_login or reviewer_login == pr_author:
+                    continue
+                if reviewer_login in seen_reviewers:
+                    continue
+                seen_reviewers.add(reviewer_login)
+                if reviewer_login in already_credited_set:
+                    continue
+                # Stop processing once 2 unique reviewers have been credited for this PR.
+                if len(already_credited_set) >= 2:
+                    break
+                await _d1_run(
+                    db,
+                    """
+                    INSERT INTO leaderboard_review_credits (org, repo, pr_number, month_key, reviewer_login, created_at)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                    """,
+                    (owner, repo_name, pr_number, mk, reviewer_login, now_ts),
+                )
+                await _d1_inc_monthly(db, owner, mk, reviewer_login, "reviews", 1)
+                already_credited_set.add(reviewer_login)
+                console.log(f"[Backfill] Review credit: {reviewer_login} reviewed PR #{pr_number}")
+        except Exception as e:
+            console.error(f"[Backfill] Error fetching reviews for PR #{pr_number}: {e}")
 
     try:
         await _d1_run(
@@ -1058,6 +1209,70 @@ async def _backfill_repo_month_if_needed(
     except Exception as e:
         console.error(f"[Backfill] Failed to mark repo as done: {e}")
         return False
+
+
+async def _reset_leaderboard_month(org: str, month_key: str, db) -> dict:
+    """Clear all leaderboard data for an org/month so a fresh backfill can re-populate it.
+
+    Deletes:
+    - leaderboard_monthly_stats       for org + month_key
+    - leaderboard_backfill_repo_done  for org + month_key  (allows re-backfill)
+    - leaderboard_review_credits      for org + month_key
+    - leaderboard_pr_state            for org where closed_at falls within the month window
+    - leaderboard_open_prs            for org              (open PR counts are recalculated
+                                                            fresh on next backfill)
+
+    Returns a dict summarising cleared tables.
+    """
+    await _ensure_leaderboard_schema(db)
+    deleted: dict = {}
+
+    for table, params in [
+        ("leaderboard_monthly_stats", (org, month_key)),
+        ("leaderboard_backfill_repo_done", (org, month_key)),
+        ("leaderboard_review_credits", (org, month_key)),
+    ]:
+        try:
+            await _d1_run(db, f"DELETE FROM {table} WHERE org = ? AND month_key = ?", params)
+            deleted[table] = "cleared"
+        except Exception as e:
+            console.error(f"[AdminReset] Error clearing {table}: {e}")
+            deleted[table] = f"error: {e}"
+
+    # Scope the pr_state delete to the target month's timestamp window so that
+    # rows for other months (e.g. the current active month) are not destroyed.
+    start_ts, end_ts = _month_window(month_key)
+    try:
+        # Two cases:
+        #   1. Closed/merged PRs: closed_at falls within the month window.
+        #   2. Open PRs recorded during this month: state='open', no closed_at,
+        #      updated_at falls within the month window.
+        await _d1_run(
+            db,
+            """
+            DELETE FROM leaderboard_pr_state
+            WHERE org = ?
+              AND (
+                closed_at BETWEEN ? AND ?
+                OR (state = 'open' AND closed_at IS NULL AND updated_at BETWEEN ? AND ?)
+              )
+            """,
+            (org, start_ts, end_ts, start_ts, end_ts),
+        )
+        deleted["leaderboard_pr_state"] = "cleared"
+    except Exception as e:
+        console.error(f"[AdminReset] Error clearing leaderboard_pr_state: {e}")
+        deleted["leaderboard_pr_state"] = f"error: {e}"
+
+    try:
+        await _d1_run(db, "DELETE FROM leaderboard_open_prs WHERE org = ?", (org,))
+        deleted["leaderboard_open_prs"] = "cleared"
+    except Exception as e:
+        console.error(f"[AdminReset] Error clearing leaderboard_open_prs: {e}")
+        deleted["leaderboard_open_prs"] = f"error: {e}"
+
+    console.log(f"[AdminReset] Cleared leaderboard data for org={org} month={month_key}")
+    return deleted
 
 
 async def _fetch_org_repos(org: str, token: str, limit: int = 10) -> list:
@@ -2574,6 +2789,37 @@ async def on_fetch(request, env) -> Response:
     # GitHub redirects here after a successful installation
     if method == "GET" and path == "/callback":
         return _html(_callback_html())
+
+    # Admin: reset corrupted leaderboard data for a given org/month so a fresh
+    # backfill can re-populate it.  Requires ADMIN_SECRET env variable.
+    if method == "POST" and path == "/admin/reset-leaderboard-month":
+        admin_secret = getattr(env, "ADMIN_SECRET", "")
+        if not admin_secret:
+            return _json({"error": "Admin endpoint not configured"}, 403)
+        auth_header = (request.headers.get("Authorization") or "").strip()
+        if auth_header != f"Bearer {admin_secret}":
+            return _json({"error": "Unauthorized"}, 401)
+        try:
+            body = json.loads(await request.text())
+        except Exception:
+            return _json({"error": "Invalid JSON body"}, 400)
+        org = (body.get("org") or "").strip()
+        if not org:
+            return _json({"error": "Missing required field: org"}, 400)
+        month_key = (body.get("month_key") or "").strip()
+        if not month_key:
+            return _json(
+                {"error": "Missing required field: month_key (e.g. '2026-03'). "
+                 "Provide an explicit month to prevent accidental resets."},
+                400,
+            )
+        if not re.fullmatch(r"\d{4}-\d{2}", month_key):
+            return _json({"error": "month_key must be in YYYY-MM format (e.g. '2026-03')"}, 400)
+        db = _d1_binding(env)
+        if not db:
+            return _json({"error": "No D1 binding available"}, 500)
+        deleted = await _reset_leaderboard_month(org, month_key, db)
+        return _json({"ok": True, "org": org, "month_key": month_key, "tables_cleared": deleted})
 
     return _json({"error": "Not found"}, 404)
 
