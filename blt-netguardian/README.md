@@ -8,6 +8,14 @@
 
 Click the button above to deploy BLT-NetGuardian to your Cloudflare account in one click!
 
+## Client Application
+
+> **Want to run scans locally?** The desktop client for BLT-NetGuardian is maintained in a separate repository:
+>
+> 👉 **[BLT-NetGuardian-Client](https://github.com/OWASP-BLT/BLT-NetGuardian-Client)**
+>
+> The client lets you download individual scan tasks from the server and process them on your own machine, offloading work from the Cloudflare Worker to your local environment. Each discovery in the dashboard has a **"Send to Client"** button that exports the task as a JSON file ready to be loaded by the client application.
+
 ## Overview
 
 BLT-NetGuardian is an **autonomous security scanning system** that continuously discovers and scans the internet for security vulnerabilities. Unlike traditional scanners that require manual target submission, BLT-NetGuardian actively discovers domains, repositories, smart contracts, and APIs using multiple discovery methods, automatically scans them for vulnerabilities, and contacts stakeholders when issues are found.
@@ -77,9 +85,10 @@ BLT-NetGuardian is an **autonomous security scanning system** that continuously 
 
 ## Architecture
 
-BLT-NetGuardian uses a split architecture:
+BLT-NetGuardian uses a three-tier architecture:
 - **Frontend**: Static HTML/CSS/JS hosted on **GitHub Pages**
 - **Backend**: Python API worker running on **Cloudflare Workers**
+- **Client**: Optional local desktop client in [BLT-NetGuardian-Client](https://github.com/OWASP-BLT/BLT-NetGuardian-Client) for offloading scan tasks
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
