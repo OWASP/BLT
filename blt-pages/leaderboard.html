@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description"
+        content="OWASP BLT - Community-powered bug reporting leaderboard. Track top contributors and bug reporting metrics." />
+    <title>Leaderboard - OWASP BLT</title>
+    <link rel="icon" type="image/png" href="/static/logo.png" />
+
+    <script>
+        (function () {
+            try {
+                var saved = localStorage.getItem('blt-theme');
+                if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    document.documentElement.classList.add('dark');
+                }
+            } catch (e) { }
+        })();
+    </script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#E10101',
+                        'primary-hover': '#B91C1C',
+                        'neutral-border': '#E5E5E5',
+                        'dark-base': '#111827',
+                        'dark-surface': '#1F2937',
+                        'active-bg': '#feeae9'
+                    },
+                    fontFamily: {
+                        sans: ['Manrope', 'ManropeFallback', 'ui-sans-serif', 'system-ui', 'sans-serif']
+                    },
+                    boxShadow: {
+                        soft: '0 14px 40px -28px rgba(17, 24, 39, 0.35)'
+                    }
+                }
+            }
+        };
+    </script>
+
+    <style>
+        .fa-icon {
+            display: inline-block;
+            height: 1em;
+            width: auto;
+            aspect-ratio: 1;
+            vertical-align: -0.125em;
+            fill: currentColor;
+            overflow: visible;
+        }
+
+        :root {
+            --blt-primary: #E10101;
+            --blt-border: #E5E5E5;
+            --blt-surface: #ffffff;
+            --blt-background: #f8fafc;
+        }
+
+        .dark {
+            --blt-primary: #EF4444;
+            --blt-border: #374151;
+            --blt-surface: #1F2937;
+            --blt-background: #111827;
+        }
+
+        body {
+            background: var(--blt-background);
+            transition: background-color 0.3s ease;
+        }
+
+        .surface-card {
+            background: var(--blt-surface);
+            border: 1px solid var(--blt-border);
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+            transition: all 0.3s ease;
+        }
+
+        @font-face {
+            font-family: 'Manrope';
+            font-style: normal;
+            font-weight: 400;
+            font-display: swap;
+            src: url('/static/fonts/manrope-latin-400-normal.woff2') format('woff2');
+        }
+
+        @font-face {
+            font-family: 'Manrope';
+            font-style: normal;
+            font-weight: 700;
+            font-display: swap;
+            src: url('/static/fonts/manrope-latin-700-normal.woff2') format('woff2');
+        }
+
+        @font-face {
+            font-family: 'ManropeFallback';
+            src: local('ui-sans-serif'), local('system-ui'), local('Arial');
+            ascent-override: 93%;
+            descent-override: 23%;
+            line-gap-override: 0%;
+            size-adjust: 100%;
+        }
+    </style>
+</head>
+
+<body class="font-sans text-gray-900 antialiased dark:bg-dark-base dark:text-gray-100">
+    <svg xmlns="http://www.w3.org/2000/svg" class="hidden" aria-hidden="true">
+        <symbol id="fa-bug" viewBox="0 0 576 512">
+            <path fill="currentColor"
+                d="M192 96c0-53 43-96 96-96s96 43 96 96l0 3.6c0 15.7-12.7 28.4-28.4 28.4l-135.1 0c-15.7 0-28.4-12.7-28.4-28.4l0-3.6zm345.6 12.8c10.6 14.1 7.7 34.2-6.4 44.8l-97.8 73.3c5.3 8.9 9.3 18.7 11.8 29.1l98.8 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-96 0 0 32c0 2.6-.1 5.3-.2 7.9l83.4 62.5c14.1 10.6 17 30.7 6.4 44.8s-30.7 17-44.8 6.4l-63.1-47.3c-23.2 44.2-66.5 76.2-117.7 83.9L312 280c0-13.3-10.7-24-24-24s-24 10.7-24 24l0 230.2c-51.2-7.7-94.5-39.7-117.7-83.9L83.2 473.6c-14.1 10.6-34.2 7.7-44.8-6.4s-7.7-34.2 6.4-44.8l83.4-62.5c-.1-2.6-.2-5.2-.2-7.9l0-32-96 0c-17.7 0-32-14.3-32-32s-14.3-32-32-32l98.8 0c2.5-10.4 6.5-20.2 11.8-29.1L44.8 153.6c-14.1-10.6-17-30.7-6.4-44.8s30.7-17 44.8-6.4L192 184c12.3-5.1 25.8-8 40-8l112 0c14.2 0 27.7 2.8 40 8l108.8-81.6c14.1-10.6 34.2-7.7 44.8 6.4z" />
+        </symbol>
+        <symbol id="fa-moon" viewBox="0 0 512 512">
+            <path fill="currentColor"
+                d="M256 0C114.6 0 0 114.6 0 256S114.6 512 256 512c68.8 0 131.3-27.2 177.3-71.4 7.3-7 9.4-17.9 5.3-27.1s-13.7-14.9-23.8-14.1c-4.9 .4-9.8 .6-14.8 .6-101.6 0-184-82.4-184-184 0-72.1 41.5-134.6 102.1-164.8 9.1-4.5 14.3-14.3 13.1-24.4S322.6 8.5 312.7 6.3C294.4 2.2 275.4 0 256 0z" />
+        </symbol>
+        <symbol id="fa-sun" viewBox="0 0 576 512">
+            <path fill="currentColor"
+                d="M288-32c8.4 0 16.3 4.4 20.6 11.7L364.1 72.3 468.9 46c8.2-2 16.9 .4 22.8 6.3S500 67 498 75.1l-26.3 104.7 92.7 55.5c7.2 4.3 11.7 12.2 11.7 20.6s-4.4 16.3-11.7 20.6L471.7 332.1 498 436.8c2 8.2-.4 16.9-6.3 22.8S477 468 468.9 466l-104.7-26.3-55.5 92.7c-4.3 7.2-12.2 11.7-20.6 11.7s-16.3-4.4-20.6-11.7L211.9 439.7 107.2 466c-8.2 2-16.8-.4-22.8-6.3S76 445 78 436.8l26.2-104.7-92.6-55.5C4.4 272.2 0 264.4 0 256s4.4-16.3 11.7-20.6L104.3 179.9 78 75.1c-2-8.2 .3-16.8 6.3-22.8S99 44 107.2 46l104.7 26.2 55.5-92.6 1.8-2.6c4.5-5.7 11.4-9.1 18.8-9.1zm0 144a144 144 0 1 0 0 288 144 144 0 1 0 0-288zm0 240a96 96 0 1 1 0-192 96 96 0 1 1 0 192z" />
+        </symbol>
+        <symbol id="fa-bars" viewBox="0 0 448 512">
+            <path fill="currentColor"
+                d="M0 96C0 78.3 14.3 64 32 64l384 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 128C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32l384 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 288c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32L32 448c-17.7 0-32-14.3-32-32s14.3-32 32-32l384 0c17.7 0 32 14.3 32 32z" />
+        </symbol>
+        <symbol id="fa-trophy" viewBox="0 0 512 512">
+            <path fill="currentColor"
+                d="M144.3 0l224 0c26.5 0 48.1 21.8 47.1 48.2-.2 5.3-.4 10.6-.7 15.8l49.6 0c26.1 0 49.1 21.6 47.1 49.8-7.5 103.7-60.5 160.7-118 190.5-15.8 8.2-31.9 14.3-47.2 18.8-20.2 28.6-41.2 43.7-57.9 51.8l0 73.1 64 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-192 0c-17.7 0-32-14.3-32-32s14.3-32 32-32l64 0 0-73.1c-16-7.7-35.9-22-55.3-48.3-18.4-4.8-38.4-12.1-57.9-23.1-54.1-30.3-102.9-87.4-109.9-189.9-1.9-28.1 21-49.7 47.1-49.7l49.6 0c-.3-5.2-.5-10.4-.7-15.8-1-26.5 20.6-48.2 47.1-48.2zM101.5 112l-52.4 0c6.2 84.7 45.1 127.1 85.2 149.6-14.4-37.3-26.3-86-32.8-149.6zM380 256.8c40.5-23.8 77.1-66.1 83.3-144.8L411 112c-6.2 60.9-17.4 108.2-31 144.8z" />
+        </symbol>
+        <symbol id="fa-magnifying-glass" viewBox="0 0 512 512">
+            <path fill="currentColor"
+                d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376C296.3 401.1 253.9 416 208 416 93.1 416 0 322.9 0 208S93.1 0 208 0 416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z" />
+        </symbol>
+        <symbol id="fa-globe" viewBox="0 0 512 512">
+            <path fill="currentColor"
+                d="M351.9 280l-190.9 0c2.9 64.5 17.2 123.9 37.5 167.4 11.4 24.5 23.7 41.8 35.1 52.4 11.2 10.5 18.9 12.2 22.9 12.2s11.7-1.7 22.9-12.2c11.4-10.6 23.7-28 35.1-52.4 20.3-43.5 34.6-102.9 37.5-167.4zM160.9 232l190.9 0C349 167.5 334.7 108.1 314.4 64.6 303 40.2 290.7 22.8 279.3 12.2 268.1 1.7 260.4 0 256.4 0s-11.7 1.7-22.9 12.2c-11.4 10.6-23.7 28-35.1 52.4-20.3 43.5-34.6 102.9-37.5 167.4zm-48 0C116.4 146.4 138.5 66.9 170.8 14.7 78.7 47.3 10.9 131.2 1.5 232l111.4 0zM1.5 280c9.4 100.8 77.2 184.7 169.3 217.3-32.3-52.2-54.4-131.7-57.9-217.3L1.5 280zm398.4 0c-3.5 85.6-25.6 165.1-57.9 217.3 92.1-32.7 159.9-116.5 169.3-217.3l-111.4 0zm111.4-48C501.9 131.2 434.1 47.3 342 14.7 374.3 66.9 396.4 146.4 399.9 232l111.4 0z" />
+        </symbol>
+        <symbol id="fa-comments" viewBox="0 0 576 512">
+            <path fill="currentColor"
+                d="M384 144c0 97.2-86 176-192 176-26.7 0-52.1-5-75.2-14L35.2 349.2c-9.3 4.9-20.7 3.2-28.2-4.2s-9.2-18.9-4.2-28.2l35.6-67.2C14.3 220.2 0 183.6 0 144 0 46.8 86-32 192-32S384 46.8 384 144zm0 368c-94.1 0-172.4-62.1-188.8-144 120-1.5 224.3-86.9 235.8-202.7 83.3 19.2 145 88.3 145 170.7 0 39.6-14.3 76.2-38.4 105.6l35.6 67.2c4.9 9.3 3.2 20.7-4.2 28.2s-18.9 9.2-28.2 4.2L459.2 498c-23.1 9-48.5 14-75.2 14z" />
+        </symbol>
+        <symbol id="fa-github" viewBox="0 0 512 512">
+            <path fill="currentColor"
+                d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3 .3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5 .3-6.2 2.3zm44.2-1.7c-2.9 .7-4.9 2.6-4.6 4.9 .3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM252.8 8c-138.7 0-244.8 105.3-244.8 244 0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1 100-33.2 167.8-128.1 167.8-239 0-138.7-112.5-244-251.2-244zM105.2 352.9c-1.3 1-1 3.3 .7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3 .3 2.9 2.3 3.9 1.6 1 3.6 .7 4.3-.7 .7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3 .7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3 .7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z" />
+        </symbol>
+    </svg>
+
+    <header
+        class="sticky top-0 z-50 border-b border-neutral-border bg-white/95 backdrop-blur dark:border-gray-700 dark:bg-dark-surface/95">
+        <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+            <a href="/" class="flex items-center gap-3" aria-label="OWASP BLT home">
+                <img src="./static/logo.png" alt="BLT logo" class="h-8 w-8 rounded-md object-contain"
+                    style="background-color:transparent"
+                    onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');" />
+                <span
+                    class="hidden h-9 w-9 items-center justify-center rounded-md bg-primary text-sm font-extrabold text-white">B</span>
+                <div>
+                    <p class="text-sm font-extrabold leading-none dark:text-gray-100">OWASP BLT</p>
+                    <p class="text-xs font-semibold text-gray-500 dark:text-gray-400">OWASP Bug Logging Tool</p>
+                </div>
+            </a>
+
+            <nav class="hidden items-center gap-6 md:flex" aria-label="Main navigation">
+                <a href="index.html#features"
+                    class="section-link text-sm font-semibold dark:text-gray-200 hover:text-primary transition-colors">Features</a>
+                <a href="index.html#how-it-works"
+                    class="section-link text-sm font-semibold dark:text-gray-200 hover:text-primary transition-colors">How
+                    it works</a>
+                <a href="leaderboard.html"
+                    class="section-link text-sm font-semibold dark:text-gray-200 hover:text-primary transition-colors text-primary underline underline-offset-4">Leaderboard</a>
+                <a href="https://github.com/OWASP-BLT/BLT-Pages" target="_blank" rel="noopener noreferrer"
+                    class="section-link text-sm font-semibold dark:text-gray-200 hover:text-primary transition-colors">
+                    <svg class="fa-icon mr-1" aria-hidden="true">
+                        <use href="#fa-github"></use>
+                    </svg>GitHub
+                </a>
+            </nav>
+
+            <div class="hidden items-center gap-3 text-xs font-semibold md:flex" aria-label="Bug statistics">
+                <span class="flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-1 dark:bg-gray-700"
+                    title="Total bugs reported">
+                    <svg class="fa-icon text-gray-500 dark:text-gray-400" aria-hidden="true">
+                        <use href="#fa-bug"></use>
+                    </svg>
+                    <span id="header-stat-total" class="text-gray-700 dark:text-gray-200">-</span>
+                    <span class="text-gray-500 dark:text-gray-400">total</span>
+                </span>
+                <span class="flex items-center gap-1 rounded-full bg-green-50 px-2.5 py-1 dark:bg-green-900/30"
+                    title="Open bugs">
+                    <span class="h-1.5 w-1.5 rounded-full bg-green-500" aria-hidden="true"></span>
+                    <span id="header-stat-open" class="text-green-700 dark:text-green-400">-</span>
+                    <span class="text-green-600 dark:text-green-500">open</span>
+                </span>
+                <span class="flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-1 dark:bg-gray-700"
+                    title="Closed bugs">
+                    <span class="h-1.5 w-1.5 rounded-full bg-gray-400 dark:bg-gray-500" aria-hidden="true"></span>
+                    <span id="header-stat-closed" class="text-gray-600 dark:text-gray-300">-</span>
+                    <span class="text-gray-500 dark:text-gray-400">closed</span>
+                </span>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button id="dark-toggle"
+                    class="inline-flex h-10 w-10 items-center justify-center rounded-md border border-neutral-border text-gray-700 transition hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                    aria-label="Toggle dark mode" type="button">
+                    <svg class="fa-icon dark:hidden" aria-hidden="true">
+                        <use href="#fa-moon"></use>
+                    </svg>
+                    <svg class="fa-icon hidden dark:inline-block" aria-hidden="true">
+                        <use href="#fa-sun"></use>
+                    </svg>
+                </button>
+                <a href="https://github.com/OWASP-BLT/BLT-Pages/issues/new?template=bug_report.yml" target="_blank"
+                    rel="noopener noreferrer"
+                    class="hidden rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700 sm:inline-flex">
+                    <svg class="fa-icon mr-2" aria-hidden="true">
+                        <use href="#fa-bug"></use>
+                    </svg>Report Bug
+                </a>
+                <button id="mobile-menu-toggle"
+                    class="inline-flex h-10 w-10 items-center justify-center rounded-md border border-neutral-border text-gray-700 transition hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 md:hidden"
+                    aria-label="Open navigation menu" aria-expanded="false" type="button">
+                    <svg class="fa-icon" aria-hidden="true">
+                        <use href="#fa-bars"></use>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <div id="mobile-menu"
+            class="hidden border-t border-neutral-border bg-white px-4 py-4 dark:border-gray-700 dark:bg-dark-surface md:hidden">
+            <nav class="flex flex-col gap-4">
+                <a href="index.html" class="text-base font-semibold dark:text-gray-200">Home</a>
+                <a href="index.html#features" class="text-base font-semibold dark:text-gray-200">Features</a>
+                <a href="index.html#how-it-works" class="text-base font-semibold dark:text-gray-200">How it works</a>
+                <a href="leaderboard.html" class="text-base font-semibold text-primary">Leaderboard</a>
+                <a href="https://github.com/OWASP-BLT/BLT-Pages" target="_blank" rel="noopener noreferrer"
+                    class="text-base font-semibold dark:text-gray-200">GitHub</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <div class="mb-12 text-center">
+            <h1 class="text-4xl font-extrabold text-gray-900 dark:text-white sm:text-5xl">Community Leaderboard</h1>
+            <p class="mt-4 text-lg text-gray-600 dark:text-gray-300">Recognizing our top bug reporters and contributors.
+            </p>
+        </div>
+
+        <!-- Search and Filters -->
+        <div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div class="relative w-full sm:max-w-xs">
+                <label for="leaderboard-search" class="sr-only">Search reporters</label>
+                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                    <svg class="fa-icon text-gray-400" aria-hidden="true">
+                        <use href="#fa-magnifying-glass"></use>
+                    </svg>
+                </div>
+                <input type="text" id="leaderboard-search"
+                    class="block w-full rounded-xl border border-neutral-border bg-white py-2.5 pl-10 pr-3 leading-5 placeholder-gray-500 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-700 dark:bg-dark-surface dark:text-white sm:text-sm"
+                    placeholder="Search collaborators..." />
+            </div>
+            <p id="leaderboard-updated" class="text-sm text-gray-500 dark:text-gray-400">Loading update status...</p>
+        </div>
+
+        <div class="grid gap-12 lg:grid-cols-2 mb-16">
+            <!-- Top Reporters -->
+            <section>
+                <h2 class="mb-6 flex items-center text-2xl font-bold text-gray-900 dark:text-white">
+                    <svg class="fa-icon mr-3 text-primary" aria-hidden="true">
+                        <use href="#fa-trophy"></use>
+                    </svg>
+                    Top Reporters
+                </h2>
+                <div
+                    class="overflow-hidden rounded-2xl border border-neutral-border bg-white shadow-soft dark:border-gray-700 dark:bg-dark-surface">
+                    <table class="w-full table-auto">
+                        <thead>
+                            <tr
+                                class="border-b border-neutral-border bg-gray-50 text-left text-xs font-bold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
+                                <th scope="col" class="w-16 px-4 py-3 text-center">Rank</th>
+                                <th scope="col" class="px-4 py-3 text-left">Reporter</th>
+                                <th scope="col" class="hidden w-28 px-4 py-3 text-right sm:table-cell">Bugs</th>
+                                <th scope="col" class="hidden w-40 px-4 py-3 pr-6 text-right sm:table-cell"
+                                    title="Impact Score: Based on total contributions">Activity
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="leaderboard-rows" class="divide-y divide-neutral-border dark:divide-gray-700">
+                            <!-- Dynamic Injection -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Top Commenters -->
+            <section>
+                <h2 class="mb-6 flex items-center text-2xl font-bold text-gray-900 dark:text-white">
+                    <svg class="fa-icon mr-3 text-primary" aria-hidden="true">
+                        <use href="#fa-comments"></use>
+                    </svg>
+                    Top Commenters
+                </h2>
+                <div
+                    class="overflow-hidden rounded-2xl border border-neutral-border bg-white shadow-soft dark:border-gray-700 dark:bg-dark-surface">
+                    <table class="w-full table-auto">
+                        <thead>
+                            <tr
+                                class="border-b border-neutral-border bg-gray-50 text-left text-xs font-bold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
+                                <th scope="col" class="w-16 px-4 py-3 text-center">Rank</th>
+                                <th scope="col" class="px-4 py-3 text-left">Commenter</th>
+                                <th scope="col" class="hidden w-28 px-4 py-3 text-right sm:table-cell">Count</th>
+                                <th scope="col" class="hidden w-40 px-4 py-3 pr-6 text-right sm:table-cell"
+                                    title="Impact Score: Based on total contributions">Activity
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="commenters-rows" class="divide-y divide-neutral-border dark:divide-gray-700">
+                            <!-- Dynamic Injection -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+        <!-- Top Domains (Centered below) -->
+        <section class="max-w-3xl mx-auto">
+            <h2 class="mb-6 flex items-center text-2xl font-bold text-gray-900 dark:text-white">
+                <svg class="fa-icon mr-3 text-primary" aria-hidden="true">
+                    <use href="#fa-globe"></use>
+                </svg>
+                Top Domains
+            </h2>
+            <div
+                class="overflow-hidden rounded-2xl border border-neutral-border bg-white shadow-soft dark:border-gray-700 dark:bg-dark-surface">
+                <table class="w-full table-auto">
+                    <thead>
+                        <tr
+                            class="border-b border-neutral-border bg-gray-50 text-left text-xs font-bold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
+                            <th scope="col" class="w-16 px-4 py-3 text-center">Rank</th>
+                            <th scope="col" class="px-4 py-3 text-left">Domain</th>
+                            <th scope="col" class="hidden w-28 px-4 py-3 text-right sm:table-cell">Reports</th>
+                            <th scope="col" class="hidden w-40 px-4 py-3 pr-6 text-right sm:table-cell"
+                                title="Impact Score: Based on total contributions">Activity
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="domains-rows" class="divide-y divide-neutral-border dark:divide-gray-700">
+                        <!-- Dynamic Injection -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <footer class="mt-16 border-t border-neutral-border bg-white py-12 dark:border-gray-700 dark:bg-dark-surface">
+        <div class="mx-auto max-w-7xl px-4 text-center text-sm text-gray-500 dark:text-gray-400">
+            <p>&copy; <span id="footer-year"></span> OWASP Foundation and BLT Contributors.</p>
+        </div>
+    </footer>
+
+    <script src="js/config.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        document.getElementById('footer-year').textContent = new Date().getFullYear();
+    </script>
+</body>
+
+</html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
 <head>
   <meta charset="UTF-8" />
@@ -45,10 +45,6 @@
       }
     };
   </script>
-
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=optional" rel="stylesheet" />
 
   <style>
 
@@ -122,6 +118,41 @@
     ::-webkit-scrollbar-thumb { background: #E10101; border-radius: 999px; }
     .dark ::-webkit-scrollbar-thumb { background: #EF4444; }
 
+    @font-face {
+      font-family: 'Manrope';
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+      src: url('/static/fonts/manrope-latin-400-normal.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Manrope';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url('/static/fonts/manrope-latin-500-normal.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Manrope';
+      font-style: normal;
+      font-weight: 600;
+      font-display: swap;
+      src: url('/static/fonts/manrope-latin-600-normal.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Manrope';
+      font-style: normal;
+      font-weight: 700;
+      font-display: swap;
+      src: url('/static/fonts/manrope-latin-700-normal.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Manrope';
+      font-style: normal;
+      font-weight: 800;
+      font-display: swap;
+      src: url('/static/fonts/manrope-latin-800-normal.woff2') format('woff2');
+    }
     @font-face {
       font-family: 'ManropeFallback';
       src: local('ui-sans-serif'), local('system-ui'), local('Arial');
@@ -217,32 +248,59 @@
   <div class="pointer-events-none fixed inset-x-0 top-0 -z-10 h-[500px] hero-glow"></div>
 
   <header class="sticky top-0 z-50 border-b border-neutral-border bg-white/95 backdrop-blur dark:border-gray-700 dark:bg-dark-surface/95">
-    <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-      <a href="/" class="flex items-center gap-3" aria-label="OWASP BLT home">
+    <div class="mx-auto flex h-16 max-w-7xl items-center justify-between gap-2 px-4 sm:px-6 lg:px-8">
+      <a href="/" class="flex min-w-0 shrink-0 items-center gap-3" aria-label="OWASP BLT home">
       <img
         src="./static/logo.png"
         alt="BLT logo"
-        class="h-8 w-8 rounded-md object-contain"
+        class="h-8 w-8 shrink-0 rounded-md object-contain"
+        style="background-color:transparent"
         onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');"
       />
-        <span class="hidden h-9 w-9 items-center justify-center rounded-md bg-primary text-sm font-extrabold text-white">B</span>
-        <div>
-          <p class="text-sm font-extrabold leading-none dark:text-gray-100">OWASP BLT</p>
-          <p class="text-xs font-semibold text-gray-500 dark:text-gray-400">OWASP Bug Logging Tool</p>
+        <span class="hidden h-9 w-9 shrink-0 items-center justify-center rounded-md bg-primary text-sm font-extrabold text-white">B</span>
+        <div class="min-w-0">
+          <p class="whitespace-nowrap text-sm font-extrabold leading-none dark:text-gray-100">OWASP BLT</p>
+          <p class="hidden whitespace-nowrap text-xs font-semibold text-gray-500 dark:text-gray-400 xl:block">OWASP Bug Logging Tool</p>
         </div>
       </a>
 
-      <nav class="hidden items-center gap-6 md:flex" aria-label="Main navigation">
-        <a href="#features" class="section-link text-sm font-semibold dark:text-gray-200">Features</a>
-        <a href="#how-it-works" class="section-link text-sm font-semibold dark:text-gray-200">How it works</a>
-        <a href="#leaderboard" class="section-link text-sm font-semibold dark:text-gray-200">Leaderboard</a>
-        <a href="#pricing" id="pricing-nav-link" class="section-link text-sm font-semibold dark:text-gray-200">Pricing</a>
-        <a href="https://github.com/OWASP-BLT/BLT-Pages" target="_blank" rel="noopener noreferrer" class="section-link text-sm font-semibold dark:text-gray-200">
-          <svg class="fa-icon mr-1" aria-hidden="true"><use href="#fa-github"></use></svg>GitHub
-        </a>
-      </nav>
+      <div class="hidden min-w-0 flex-1 items-center justify-end gap-4 lg:flex xl:gap-6">
+        <nav class="flex shrink-0 items-center gap-4 xl:gap-6" aria-label="Main navigation">
+          <a href="#features" class="section-link whitespace-nowrap text-sm font-semibold dark:text-gray-200">Features</a>
+          <a href="#how-it-works" class="section-link whitespace-nowrap text-sm font-semibold dark:text-gray-200">How it works</a>
+          <a href="leaderboard.html" class="section-link whitespace-nowrap text-sm font-semibold dark:text-gray-200">Leaderboard</a>
+          <a href="https://github.com/OWASP-BLT/BLT-Pages" target="_blank" rel="noopener noreferrer" class="section-link inline-flex items-center whitespace-nowrap text-sm font-semibold dark:text-gray-200">
+            <svg class="fa-icon mr-1" aria-hidden="true"><use href="#fa-github"></use></svg>GitHub
+          </a>
+        </nav>
 
-      <div class="flex items-center gap-2">
+        <div class="flex shrink-0 items-center gap-2 text-xs font-semibold xl:gap-3" aria-label="Bug statistics">
+          <span class="flex items-center gap-1 whitespace-nowrap rounded-full bg-gray-100 px-2.5 py-1 dark:bg-gray-700" title="Total bugs reported">
+            <svg class="fa-icon text-gray-500 dark:text-gray-400" aria-hidden="true"><use href="#fa-bug"></use></svg>
+            <span id="header-stat-total" class="text-gray-700 dark:text-gray-200">17</span>
+            <span class="hidden text-gray-500 dark:text-gray-400 xl:inline">total</span>
+          </span>
+          <span class="flex items-center gap-1 whitespace-nowrap rounded-full bg-green-50 px-2.5 py-1 dark:bg-green-900/30" title="Open bugs">
+            <span class="h-1.5 w-1.5 rounded-full bg-green-500" aria-hidden="true"></span>
+            <span id="header-stat-open" class="text-green-700 dark:text-green-400">4</span>
+            <span class="hidden text-green-600 dark:text-green-500 xl:inline">open</span>
+          </span>
+          <span class="flex items-center gap-1 whitespace-nowrap rounded-full bg-gray-100 px-2.5 py-1 dark:bg-gray-700" title="Closed bugs">
+            <span class="h-1.5 w-1.5 rounded-full bg-gray-400 dark:bg-gray-500" aria-hidden="true"></span>
+            <span id="header-stat-closed" class="text-gray-600 dark:text-gray-300">13</span>
+            <span class="hidden text-gray-500 dark:text-gray-400 xl:inline">closed</span>
+          </span>
+        </div>
+
+        <a
+          href="https://github.com/OWASP-BLT/BLT-Pages/issues/new?template=bug_report.yml" target="_blank" rel="noopener noreferrer"
+          class="inline-flex shrink-0 items-center whitespace-nowrap rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white transition hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700 xl:px-4"
+        >
+          <svg class="fa-icon mr-2" aria-hidden="true"><use href="#fa-bug"></use></svg>Report Bug
+        </a>
+      </div>
+
+      <div class="flex shrink-0 items-center gap-2">
         <button
           id="dark-toggle"
           class="inline-flex h-10 w-10 items-center justify-center rounded-md border border-neutral-border text-gray-700 transition hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
@@ -252,15 +310,9 @@
           <svg class="fa-icon dark:hidden" aria-hidden="true"><use href="#fa-moon"></use></svg>
           <svg class="fa-icon hidden dark:inline-block" aria-hidden="true"><use href="#fa-sun"></use></svg>
         </button>
-        <a
-          href="https://github.com/OWASP-BLT/BLT-Pages/issues/new?template=bug_report.yml" target="_blank" rel="noopener noreferrer"
-          class="hidden rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700 sm:inline-flex"
-        >
-          <svg class="fa-icon mr-2" aria-hidden="true"><use href="#fa-bug"></use></svg>Report Bug
-        </a>
         <button
           id="mobile-menu-toggle"
-          class="inline-flex h-10 w-10 items-center justify-center rounded-md border border-neutral-border text-gray-700 transition hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 md:hidden"
+          class="inline-flex h-10 w-10 items-center justify-center rounded-md border border-neutral-border text-gray-700 transition hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 lg:hidden"
           aria-label="Open navigation menu"
           aria-expanded="false"
           type="button"
@@ -270,12 +322,11 @@
       </div>
     </div>
 
-    <div id="mobile-menu" class="hidden border-t border-neutral-border bg-white px-4 py-4 dark:border-gray-700 dark:bg-dark-surface md:hidden">
+    <div id="mobile-menu" class="hidden border-t border-neutral-border bg-white px-4 py-4 dark:border-gray-700 dark:bg-dark-surface lg:hidden">
       <nav class="space-y-3" aria-label="Mobile navigation">
         <a href="#features" class="block text-sm font-semibold text-red-600 hover:underline dark:text-red-400">Features</a>
         <a href="#how-it-works" class="block text-sm font-semibold text-red-600 hover:underline dark:text-red-400">How it works</a>
-        <a href="#leaderboard" class="block text-sm font-semibold text-red-600 hover:underline dark:text-red-400">Leaderboard</a>
-        <a href="#pricing" id="pricing-nav-link-mobile" class="block text-sm font-semibold text-red-600 hover:underline dark:text-red-400">Pricing</a>
+        <a href="leaderboard.html" class="block text-sm font-semibold text-red-600 hover:underline dark:text-red-400">Leaderboard</a>
         <a href="https://github.com/OWASP-BLT/BLT-Pages" target="_blank" rel="noopener noreferrer" class="block text-sm font-semibold text-red-600 hover:underline dark:text-red-400">
           <svg class="fa-icon mr-2" aria-hidden="true"><use href="#fa-github"></use></svg>GitHub
         </a>
@@ -326,15 +377,15 @@
 
             <dl class="mt-9 grid max-w-2xl grid-cols-3 gap-4 rounded-2xl border border-neutral-border bg-white p-5 shadow-soft dark:border-gray-700 dark:bg-dark-surface">
               <div>
-                <dd id="stat-total-bugs" class="text-2xl font-extrabold text-primary dark:text-red-400">12</dd>
+                <dd id="stat-total-bugs" class="text-2xl font-extrabold text-primary dark:text-red-400">17</dd>
                 <dt class="mt-1 text-xs font-medium text-gray-500 dark:text-gray-400">Bugs reported</dt>
               </div>
               <div class="border-x border-neutral-border px-3 dark:border-gray-700">
-                <dd id="stat-domains" class="text-2xl font-extrabold text-primary dark:text-red-400">2</dd>
+                <dd id="stat-domains" class="text-2xl font-extrabold text-primary dark:text-red-400">4</dd>
                 <dt class="mt-1 text-xs font-medium text-gray-500 dark:text-gray-400">Domains</dt>
               </div>
               <div>
-                <dd id="stat-reporters" class="text-2xl font-extrabold text-primary dark:text-red-400">4</dd>
+                <dd id="stat-reporters" class="text-2xl font-extrabold text-primary dark:text-red-400">5</dd>
                 <dt class="mt-1 text-xs font-medium text-gray-500 dark:text-gray-400">Active reporters</dt>
               </div>
             </dl>
@@ -519,7 +570,7 @@
           </a>
         </div>
 
-        <div id="recent-bugs-grid" data-pre-rendered="true" class="grid gap-6 md:grid-cols-3"><!-- SSR:recent-bugs --><div class="bg-white dark:bg-dark-base border border-neutral-border dark:border-gray-700 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col"><div class="aspect-video bg-gray-100 dark:bg-gray-800 rounded-xl mb-4 overflow-hidden flex-shrink-0"><img src="https://github.com/user-attachments/assets/30711d77-a7e4-4006-bb6c-77be99bdf3d3" alt="Bug screenshot" class="w-full h-full object-cover" loading="lazy" onerror="this.parentElement.classList.add(&#039;hidden&#039;)" /></div><h3 class="font-semibold text-gray-900 dark:text-white mb-3 line-clamp-2 flex-1"><a href="https://github.com/OWASP-BLT/BLT-Pages/issues/63" target="_blank" rel="noopener noreferrer" class="hover:text-primary transition-colors"><img src="https://www.google.com/s2/favicons?domain=owaspblt.org&amp;sz=32" alt="owaspblt.org favicon" class="w-4 h-4 rounded flex-shrink-0 inline-block align-middle mr-1" loading="lazy" referrerpolicy="no-referrer" onerror="this.outerHTML=&#039;<i class=\'fa-solid fa-globe text-gray-400 w-4 h-4\' aria-hidden=\'true\'></i>&#039;" />[BUG] The BLT Pages is not changes to OWASP BLT in the footer</a></h3><div class="flex items-center justify-between gap-3 mt-auto pt-3 border-t border-neutral-border dark:border-gray-700 flex-wrap"><div class="flex items-center gap-3"><a href="https://github.com/ananya-09" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 group"><img src="https://avatars.githubusercontent.com/u/175581593?v=4" alt="ananya-09&#039;s avatar" class="w-7 h-7 rounded-full border border-neutral-border dark:border-gray-700" loading="lazy" onerror="this.src=&#039;https://github.com/identicons/ananya-09.png&#039;" /><span class="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-primary transition-colors">ananya-09</span></a><span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded-full text-xs text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors align-middle" title="eyes: 1" aria-label="eyes: 1"><span aria-hidden="true">👀</span><span class="font-medium">1</span></span></div><span class="text-xs text-gray-400 dark:text-gray-500">Mar 3, 2026</span></div><div class="mt-3 pt-3 border-t border-neutral-border dark:border-gray-700"><div class="flex items-start gap-2"><a href="https://github.com/ananya-09" target="_blank" rel="noopener noreferrer" class="flex-shrink-0"><img src="https://avatars.githubusercontent.com/u/175581593?v=4" alt="ananya-09&#039;s avatar" class="w-6 h-6 rounded-full border border-neutral-border dark:border-gray-700" loading="lazy" onerror="this.src=&#039;https://github.com/identicons/ananya-09.png&#039;" /></a><div class="min-w-0 flex-1"><p class="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">Is it intentional or really a bug?</p><a href="https://github.com/OWASP-BLT/BLT-Pages/issues/63" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 mt-1 text-xs text-gray-400 hover:text-primary transition-colors"><i class="fa-solid fa-comment text-xs" aria-hidden="true"></i>1 comment</a></div></div></div></div><div class="bg-white dark:bg-dark-base border border-neutral-border dark:border-gray-700 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col"><div class="aspect-video bg-gray-100 dark:bg-gray-800 rounded-xl mb-4 overflow-hidden flex-shrink-0"><img src="https://github.com/user-attachments/assets/af58f298-babe-4ef3-ad29-ab81d7ec5967" alt="Bug screenshot" class="w-full h-full object-cover" loading="lazy" onerror="this.parentElement.classList.add(&#039;hidden&#039;)" /></div><h3 class="font-semibold text-gray-900 dark:text-white mb-3 line-clamp-2 flex-1"><a href="https://github.com/OWASP-BLT/BLT-Pages/issues/61" target="_blank" rel="noopener noreferrer" class="hover:text-primary transition-colors"><img src="https://www.google.com/s2/favicons?domain=owaspblt.org&amp;sz=32" alt="owaspblt.org favicon" class="w-4 h-4 rounded flex-shrink-0 inline-block align-middle mr-1" loading="lazy" referrerpolicy="no-referrer" onerror="this.outerHTML=&#039;<i class=\'fa-solid fa-globe text-gray-400 w-4 h-4\' aria-hidden=\'true\'></i>&#039;" />[BUG] report anonymously should go to Blt next</a></h3><div class="flex items-center justify-between gap-3 mt-auto pt-3 border-t border-neutral-border dark:border-gray-700 flex-wrap"><div class="flex items-center gap-3"><a href="https://github.com/DonnieBLT" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 group"><img src="https://avatars.githubusercontent.com/u/128622481?v=4" alt="DonnieBLT&#039;s avatar" class="w-7 h-7 rounded-full border border-neutral-border dark:border-gray-700" loading="lazy" onerror="this.src=&#039;https://github.com/identicons/DonnieBLT.png&#039;" /><span class="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-primary transition-colors">DonnieBLT</span></a><span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded-full text-xs text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors align-middle" title="eyes: 1" aria-label="eyes: 1"><span aria-hidden="true">👀</span><span class="font-medium">1</span></span></div><span class="text-xs text-gray-400 dark:text-gray-500">Mar 3, 2026</span></div><div class="mt-3 pt-3 border-t border-neutral-border dark:border-gray-700"><a href="https://github.com/OWASP-BLT/BLT-Pages/issues/61" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-xs text-primary hover:underline"><i class="fa-solid fa-comment text-xs" aria-hidden="true"></i>Be the first to comment</a></div></div><div class="bg-white dark:bg-dark-base border border-neutral-border dark:border-gray-700 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col"><div class="aspect-video bg-gray-100 dark:bg-gray-800 rounded-xl mb-4 overflow-hidden flex-shrink-0"><img src="https://github.com/user-attachments/assets/6c188f2b-5aab-4aad-94f3-d7c540518d45" alt="Bug screenshot" class="w-full h-full object-cover" loading="lazy" onerror="this.parentElement.classList.add(&#039;hidden&#039;)" /></div><h3 class="font-semibold text-gray-900 dark:text-white mb-3 line-clamp-2 flex-1"><a href="https://github.com/OWASP-BLT/BLT-Pages/issues/17" target="_blank" rel="noopener noreferrer" class="hover:text-primary transition-colors"><img src="https://www.google.com/s2/favicons?domain=owaspblt.org&amp;sz=32" alt="owaspblt.org favicon" class="w-4 h-4 rounded flex-shrink-0 inline-block align-middle mr-1" loading="lazy" referrerpolicy="no-referrer" onerror="this.outerHTML=&#039;<i class=\'fa-solid fa-globe text-gray-400 w-4 h-4\' aria-hidden=\'true\'></i>&#039;" />[BUG] video bugs are not showing up</a></h3><div class="flex items-center justify-between gap-3 mt-auto pt-3 border-t border-neutral-border dark:border-gray-700 flex-wrap"><div class="flex items-center gap-3"><a href="https://github.com/DonnieBLT" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 group"><img src="https://avatars.githubusercontent.com/u/128622481?v=4" alt="DonnieBLT&#039;s avatar" class="w-7 h-7 rounded-full border border-neutral-border dark:border-gray-700" loading="lazy" onerror="this.src=&#039;https://github.com/identicons/DonnieBLT.png&#039;" /><span class="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-primary transition-colors">DonnieBLT</span></a><span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded-full text-xs text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors align-middle" title="+1: 1" aria-label="+1: 1"><span aria-hidden="true">👍</span><span class="font-medium">1</span></span></div><span class="text-xs text-gray-400 dark:text-gray-500">Mar 2, 2026</span></div><div class="mt-3 pt-3 border-t border-neutral-border dark:border-gray-700"><div class="flex items-start gap-2"><a href="https://github.com/sidd190" target="_blank" rel="noopener noreferrer" class="flex-shrink-0"><img src="https://avatars.githubusercontent.com/u/73955358?v=4" alt="sidd190&#039;s avatar" class="w-6 h-6 rounded-full border border-neutral-border dark:border-gray-700" loading="lazy" onerror="this.src=&#039;https://github.com/identicons/sidd190.png&#039;" /></a><div class="min-w-0 flex-1"><p class="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">On it!</p><a href="https://github.com/OWASP-BLT/BLT-Pages/issues/17" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 mt-1 text-xs text-gray-400 hover:text-primary transition-colors"><i class="fa-solid fa-comment text-xs" aria-hidden="true"></i>1 comment</a></div></div></div></div><!-- /SSR:recent-bugs -->
+        <div id="recent-bugs-grid" data-pre-rendered="true" class="grid gap-6 md:grid-cols-3"><!-- SSR:recent-bugs --><div class="bg-white dark:bg-dark-base border border-neutral-border dark:border-gray-700 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col"><div class="aspect-video bg-gray-100 dark:bg-gray-800 rounded-xl mb-4 overflow-hidden flex-shrink-0"><img src="https://github.com/user-attachments/assets/5730ec94-d7c8-4c49-ab5c-f8bdf9493486" alt="Bug screenshot" class="w-full h-full object-cover" loading="lazy" onerror="this.parentElement.classList.add('hidden')" /></div><h3 class="font-semibold text-gray-900 dark:text-white mb-3 line-clamp-2 flex-1"><a href="https://github.com/OWASP-BLT/BLT-Pages/issues/87" target="_blank" rel="noopener noreferrer" class="hover:text-primary transition-colors"><img src="https://www.google.com/s2/favicons?domain=github.com&amp;sz=32" alt="github.com favicon" class="w-4 h-4 rounded flex-shrink-0 inline-block align-middle mr-1" loading="lazy" referrerpolicy="no-referrer" onerror="this.outerHTML='<svg class=\'fa-icon text-gray-400 w-4 h-4\' aria-hidden=\'true\'><use href=\'#fa-globe\'></use></svg>'" />[BUG] open / closed count is not showing correct open counts</a></h3><div class="flex items-center justify-between gap-3 mt-auto pt-3 border-t border-neutral-border dark:border-gray-700 flex-wrap"><div class="flex items-center gap-3"><a href="https://github.com/DonnieBLT" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 group"><img src="https://avatars.githubusercontent.com/u/128622481?v=4" alt="DonnieBLT&#039;s avatar" class="w-7 h-7 rounded-full border border-neutral-border dark:border-gray-700" loading="lazy" onerror="this.src=&#039;https://github.com/identicons/DonnieBLT.png&#039;" /><span class="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-primary transition-colors">DonnieBLT</span></a><span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded-full text-xs text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors align-middle" title="eyes: 1" aria-label="eyes: 1"><span aria-hidden="true">👀</span><span class="font-medium">1</span></span></div><span class="text-xs text-gray-400 dark:text-gray-500">Mar 11, 2026</span></div><div class="mt-3 pt-3 border-t border-neutral-border dark:border-gray-700"><div class="flex items-start gap-2"><a href="https://github.com/apps/owasp-blt" target="_blank" rel="noopener noreferrer" class="flex-shrink-0"><img src="https://avatars.githubusercontent.com/in/1159228?v=4" alt="owasp-blt[bot]&#039;s avatar" class="w-6 h-6 rounded-full border border-neutral-border dark:border-gray-700" loading="lazy" onerror="this.src=&#039;https://github.com/identicons/owasp-blt[bot].png&#039;" /></a><div class="min-w-0 flex-1"><p class="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">👋 Thanks for opening this issue, @DonnieBLT! Our team will review it shortly. In the meantime: - If you&#039;d like to work on this issue, comment `/assign` to get assigned. - Visit [OWASP BLT](https://owaspblt.org) for more information about our bug bounty platform.</p><a href="https://github.com/OWASP-BLT/BLT-Pages/issues/87" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 mt-1 text-xs text-gray-400 hover:text-primary transition-colors"><svg class="fa-icon text-xs" aria-hidden="true"><use href="#fa-comment"></use></svg>1 comment</a></div></div></div></div><div class="bg-white dark:bg-dark-base border border-neutral-border dark:border-gray-700 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col"><div class="aspect-video bg-gray-100 dark:bg-gray-800 rounded-xl mb-4 overflow-hidden flex-shrink-0"><img src="https://github.com/user-attachments/assets/90330d80-7329-4058-941a-4b50b831d9cf" alt="Bug screenshot" class="w-full h-full object-cover" loading="lazy" onerror="this.parentElement.classList.add('hidden')" /></div><h3 class="font-semibold text-gray-900 dark:text-white mb-3 line-clamp-2 flex-1"><a href="https://github.com/OWASP-BLT/BLT-Pages/issues/81" target="_blank" rel="noopener noreferrer" class="hover:text-primary transition-colors"><img src="https://www.google.com/s2/favicons?domain=www.owasp.community&amp;sz=32" alt="www.owasp.community favicon" class="w-4 h-4 rounded flex-shrink-0 inline-block align-middle mr-1" loading="lazy" referrerpolicy="no-referrer" onerror="this.outerHTML='<svg class=\'fa-icon text-gray-400 w-4 h-4\' aria-hidden=\'true\'><use href=\'#fa-globe\'></use></svg>'" />[BUG] whole div &quot;Chapters&quot;, should be clickable and remove test data</a></h3><div class="flex items-center justify-between gap-3 mt-auto pt-3 border-t border-neutral-border dark:border-gray-700 flex-wrap"><div class="flex items-center gap-3"><a href="https://github.com/DonnieBLT" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 group"><img src="https://avatars.githubusercontent.com/u/128622481?v=4" alt="DonnieBLT&#039;s avatar" class="w-7 h-7 rounded-full border border-neutral-border dark:border-gray-700" loading="lazy" onerror="this.src=&#039;https://github.com/identicons/DonnieBLT.png&#039;" /><span class="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-primary transition-colors">DonnieBLT</span></a><span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded-full text-xs text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors align-middle" title="eyes: 1" aria-label="eyes: 1"><span aria-hidden="true">👀</span><span class="font-medium">1</span></span></div><span class="text-xs text-gray-400 dark:text-gray-500">Mar 8, 2026</span></div><div class="mt-3 pt-3 border-t border-neutral-border dark:border-gray-700"><div class="flex items-start gap-2"><a href="https://github.com/apps/owasp-blt" target="_blank" rel="noopener noreferrer" class="flex-shrink-0"><img src="https://avatars.githubusercontent.com/in/1159228?v=4" alt="owasp-blt[bot]&#039;s avatar" class="w-6 h-6 rounded-full border border-neutral-border dark:border-gray-700" loading="lazy" onerror="this.src=&#039;https://github.com/identicons/owasp-blt[bot].png&#039;" /></a><div class="min-w-0 flex-1"><p class="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">@tiggachris This issue already has the maximum number of assignees (1). Please work on a different issue.</p><a href="https://github.com/OWASP-BLT/BLT-Pages/issues/81" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 mt-1 text-xs text-gray-400 hover:text-primary transition-colors"><svg class="fa-icon text-xs" aria-hidden="true"><use href="#fa-comment"></use></svg>7 comments</a></div></div></div></div><div class="bg-white dark:bg-dark-base border border-neutral-border dark:border-gray-700 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col"><div class="aspect-video bg-gray-100 dark:bg-gray-800 rounded-xl mb-4 overflow-hidden flex-shrink-0"><img src="https://github.com/user-attachments/assets/6c188f2b-5aab-4aad-94f3-d7c540518d45" alt="Bug screenshot" class="w-full h-full object-cover" loading="lazy" onerror="this.parentElement.classList.add('hidden')" /></div><h3 class="font-semibold text-gray-900 dark:text-white mb-3 line-clamp-2 flex-1"><a href="https://github.com/OWASP-BLT/BLT-Pages/issues/17" target="_blank" rel="noopener noreferrer" class="hover:text-primary transition-colors"><img src="https://www.google.com/s2/favicons?domain=owaspblt.org&amp;sz=32" alt="owaspblt.org favicon" class="w-4 h-4 rounded flex-shrink-0 inline-block align-middle mr-1" loading="lazy" referrerpolicy="no-referrer" onerror="this.outerHTML='<svg class=\'fa-icon text-gray-400 w-4 h-4\' aria-hidden=\'true\'><use href=\'#fa-globe\'></use></svg>'" />[BUG] video bugs are not showing up</a></h3><div class="flex items-center justify-between gap-3 mt-auto pt-3 border-t border-neutral-border dark:border-gray-700 flex-wrap"><div class="flex items-center gap-3"><a href="https://github.com/DonnieBLT" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 group"><img src="https://avatars.githubusercontent.com/u/128622481?v=4" alt="DonnieBLT&#039;s avatar" class="w-7 h-7 rounded-full border border-neutral-border dark:border-gray-700" loading="lazy" onerror="this.src=&#039;https://github.com/identicons/DonnieBLT.png&#039;" /><span class="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-primary transition-colors">DonnieBLT</span></a><span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded-full text-xs text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors align-middle" title="+1: 1" aria-label="+1: 1"><span aria-hidden="true">👍</span><span class="font-medium">1</span></span> <span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded-full text-xs text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors align-middle" title="eyes: 1" aria-label="eyes: 1"><span aria-hidden="true">👀</span><span class="font-medium">1</span></span></div><span class="text-xs text-gray-400 dark:text-gray-500">Mar 2, 2026</span></div><div class="mt-3 pt-3 border-t border-neutral-border dark:border-gray-700"><div class="flex items-start gap-2"><a href="https://github.com/sidd190" target="_blank" rel="noopener noreferrer" class="flex-shrink-0"><img src="https://avatars.githubusercontent.com/u/73955358?v=4" alt="sidd190&#039;s avatar" class="w-6 h-6 rounded-full border border-neutral-border dark:border-gray-700" loading="lazy" onerror="this.src=&#039;https://github.com/identicons/sidd190.png&#039;" /></a><div class="min-w-0 flex-1"><p class="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">Issues aren&#039;t particularly assigned here as such. You can directly raise a PR if the copilot one is not in the ready to merge zone yet. If it is, then that&#039;ll probably get merged.</p><a href="https://github.com/OWASP-BLT/BLT-Pages/issues/17" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 mt-1 text-xs text-gray-400 hover:text-primary transition-colors"><svg class="fa-icon text-xs" aria-hidden="true"><use href="#fa-comment"></use></svg>2 comments</a></div></div></div></div><!-- /SSR:recent-bugs -->
         </div>
       </div>
     </section>
@@ -564,100 +615,91 @@
         <div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl dark:text-gray-100">
-              <svg class="fa-icon mr-2 text-primary dark:text-red-400" aria-hidden="true"><use href="#fa-trophy"></use></svg>
+              <svg class="fa-icon mr-2 text-primary dark:text-red-400" aria-hidden="true">
+                <use href="#fa-trophy"></use>
+              </svg>
               Leaderboard
             </h2>
-            <p id="leaderboard-updated" class="mt-1 text-sm text-gray-500 dark:text-gray-400">Updated Mar 3, 2026</p>
+            <p id="leaderboard-updated" class="mt-1 text-sm text-gray-500 dark:text-gray-400">Updated Mar 11, 2026</p>
           </div>
-          <a
-            href="https://github.com/OWASP-BLT/BLT-Pages/issues/new?template=bug_report.yml" target="_blank" rel="noopener noreferrer"
-            class="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700"
-          >
-            <svg class="fa-icon mr-2" aria-hidden="true"><use href="#fa-plus"></use></svg>Submit report
+          <a href="https://github.com/OWASP-BLT/BLT-Pages/issues/new?template=bug_report.yml" target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700">
+            <svg class="fa-icon mr-2" aria-hidden="true">
+              <use href="#fa-plus"></use>
+            </svg>Submit report
           </a>
         </div>
 
-        <div class="overflow-hidden rounded-2xl border border-neutral-border bg-white shadow-soft dark:border-gray-700 dark:bg-dark-surface">
-          <table class="w-full table-fixed" aria-label="Bug reporter leaderboard">
-            <thead>
-              <tr class="border-b border-neutral-border bg-gray-50 text-left text-xs font-bold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
-                <th scope="col" class="w-12 px-4 py-3 text-center">Rank</th>
-                <th scope="col" class="px-4 py-3">Reporter</th>
-                <th scope="col" class="hidden w-16 px-4 py-3 text-right sm:table-cell">Bugs</th>
-                <th scope="col" class="hidden w-28 px-4 py-3 pr-6 text-right sm:table-cell">Activity</th>
-              </tr>
-            </thead>
-            <tbody id="leaderboard-rows" data-pre-rendered="true" class="divide-y divide-neutral-border dark:divide-gray-700"><!-- SSR:leaderboard-rows --><tr class="bg-active-bg dark:bg-red-900/10 transition-colors"><td class="px-4 py-3 text-center w-12"><span class="text-xl" aria-label="Rank 1">🥇</span></td><td class="px-4 py-3"><a href="https://github.com/DonnieBLT" target="_blank" rel="noopener noreferrer" class="flex items-center gap-3 group min-w-0"><img src="https://avatars.githubusercontent.com/u/128622481?v=4" alt="DonnieBLT&#039;s avatar" class="w-8 h-8 rounded-full border border-neutral-border dark:border-gray-700 flex-shrink-0" loading="lazy" onerror="this.src=&#039;https://github.com/identicons/DonnieBLT.png&#039;" /><span class="font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors truncate min-w-0 flex-1">DonnieBLT</span></a><div class="flex sm:hidden items-center gap-2 mt-1 pl-11"><span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white text-xs"><i class="fa-solid fa-bug text-primary text-xs" aria-hidden="true"></i>7</span><div class="bg-gray-100 dark:bg-gray-700 rounded-full h-1.5 flex-1 overflow-hidden"><div class="bg-primary h-1.5 rounded-full" style="width:100%"></div></div></div></td><td class="hidden px-4 py-3 text-right sm:table-cell"><span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white"><i class="fa-solid fa-bug text-primary text-xs" aria-hidden="true"></i>7</span></td><td class="px-4 py-3 hidden sm:table-cell"><div class="flex justify-end"><div class="bg-gray-100 dark:bg-gray-700 rounded-full h-2 w-24 overflow-hidden"><div class="bg-primary h-2 rounded-full" style="width:100%"></div></div></div></td></tr><tr class="bg-active-bg dark:bg-red-900/10 transition-colors"><td class="px-4 py-3 text-center w-12"><span class="text-xl" aria-label="Rank 2">🥈</span></td><td class="px-4 py-3"><a href="https://github.com/ananya-09" target="_blank" rel="noopener noreferrer" class="flex items-center gap-3 group min-w-0"><img src="https://avatars.githubusercontent.com/u/175581593?v=4" alt="ananya-09&#039;s avatar" class="w-8 h-8 rounded-full border border-neutral-border dark:border-gray-700 flex-shrink-0" loading="lazy" onerror="this.src=&#039;https://github.com/identicons/ananya-09.png&#039;" /><span class="font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors truncate min-w-0 flex-1">ananya-09</span></a><div class="flex sm:hidden items-center gap-2 mt-1 pl-11"><span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white text-xs"><i class="fa-solid fa-bug text-primary text-xs" aria-hidden="true"></i>3</span><div class="bg-gray-100 dark:bg-gray-700 rounded-full h-1.5 flex-1 overflow-hidden"><div class="bg-primary h-1.5 rounded-full" style="width:42.857142857142854%"></div></div></div></td><td class="hidden px-4 py-3 text-right sm:table-cell"><span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white"><i class="fa-solid fa-bug text-primary text-xs" aria-hidden="true"></i>3</span></td><td class="px-4 py-3 hidden sm:table-cell"><div class="flex justify-end"><div class="bg-gray-100 dark:bg-gray-700 rounded-full h-2 w-24 overflow-hidden"><div class="bg-primary h-2 rounded-full" style="width:42.857142857142854%"></div></div></div></td></tr><tr class="bg-active-bg dark:bg-red-900/10 transition-colors"><td class="px-4 py-3 text-center w-12"><span class="text-xl" aria-label="Rank 3">🥉</span></td><td class="px-4 py-3"><a href="https://github.com/kittenbytes" target="_blank" rel="noopener noreferrer" class="flex items-center gap-3 group min-w-0"><img src="https://avatars.githubusercontent.com/u/171991749?v=4" alt="kittenbytes&#039;s avatar" class="w-8 h-8 rounded-full border border-neutral-border dark:border-gray-700 flex-shrink-0" loading="lazy" onerror="this.src=&#039;https://github.com/identicons/kittenbytes.png&#039;" /><span class="font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors truncate min-w-0 flex-1">kittenbytes</span></a><div class="flex sm:hidden items-center gap-2 mt-1 pl-11"><span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white text-xs"><i class="fa-solid fa-bug text-primary text-xs" aria-hidden="true"></i>1</span><div class="bg-gray-100 dark:bg-gray-700 rounded-full h-1.5 flex-1 overflow-hidden"><div class="bg-primary h-1.5 rounded-full" style="width:14.285714285714285%"></div></div></div></td><td class="hidden px-4 py-3 text-right sm:table-cell"><span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white"><i class="fa-solid fa-bug text-primary text-xs" aria-hidden="true"></i>1</span></td><td class="px-4 py-3 hidden sm:table-cell"><div class="flex justify-end"><div class="bg-gray-100 dark:bg-gray-700 rounded-full h-2 w-24 overflow-hidden"><div class="bg-primary h-2 rounded-full" style="width:14.285714285714285%"></div></div></div></td></tr><tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"><td class="px-4 py-3 text-center w-12"><span class="font-bold text-gray-500 dark:text-gray-400">#4</span></td><td class="px-4 py-3"><a href="https://github.com/sidd190" target="_blank" rel="noopener noreferrer" class="flex items-center gap-3 group min-w-0"><img src="https://avatars.githubusercontent.com/u/73955358?v=4" alt="sidd190&#039;s avatar" class="w-8 h-8 rounded-full border border-neutral-border dark:border-gray-700 flex-shrink-0" loading="lazy" onerror="this.src=&#039;https://github.com/identicons/sidd190.png&#039;" /><span class="font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors truncate min-w-0 flex-1">sidd190</span></a><div class="flex sm:hidden items-center gap-2 mt-1 pl-11"><span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white text-xs"><i class="fa-solid fa-bug text-primary text-xs" aria-hidden="true"></i>1</span><div class="bg-gray-100 dark:bg-gray-700 rounded-full h-1.5 flex-1 overflow-hidden"><div class="bg-primary h-1.5 rounded-full" style="width:14.285714285714285%"></div></div></div></td><td class="hidden px-4 py-3 text-right sm:table-cell"><span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white"><i class="fa-solid fa-bug text-primary text-xs" aria-hidden="true"></i>1</span></td><td class="px-4 py-3 hidden sm:table-cell"><div class="flex justify-end"><div class="bg-gray-100 dark:bg-gray-700 rounded-full h-2 w-24 overflow-hidden"><div class="bg-primary h-2 rounded-full" style="width:14.285714285714285%"></div></div></div></td></tr><!-- /SSR:leaderboard-rows -->
-            </tbody>
-          </table>
-        </div>
+        <div id="homepage-leaderboard-grid" class="grid gap-6 lg:grid-cols-3">
+          <!-- Reporters -->
+          <div
+            class="overflow-hidden rounded-2xl border border-neutral-border bg-white shadow-soft dark:border-gray-700 dark:bg-dark-surface">
+            <h3
+              class="px-4 py-3 border-b border-neutral-border bg-gray-50 text-xs font-bold uppercase tracking-wider text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 flex items-center gap-2">
+              <svg class="fa-icon text-primary" aria-hidden="true">
+                <use href="#fa-trophy"></use>
+              </svg>
+              Top Reporters
+            </h3>
+            <input type="hidden" id="homepage-leaderboard-limit" value="5">
+            <table class="w-full table-fixed compact-table" aria-label="Bug reporter leaderboard">
+              <tbody id="leaderboard-rows" data-pre-rendered="true" class="divide-y divide-neutral-border dark:divide-gray-700">
+                <!-- SSR:leaderboard-rows -->
+              </tbody>
+            </table>
+          </div>
 
-        <p class="mt-4 text-center text-xs text-gray-400 dark:text-gray-500">
-          Leaderboard refreshes every 6 hours via GitHub Actions.
-          <a href="https://github.com/OWASP-BLT/BLT-Pages/issues?q=label%3Abug" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:underline dark:text-red-400">View all reports on GitHub</a>.
-        </p>
+          <!-- Commenters -->
+          <div
+            class="overflow-hidden rounded-2xl border border-neutral-border bg-white shadow-soft dark:border-gray-700 dark:bg-dark-surface">
+            <h3
+              class="px-4 py-3 border-b border-neutral-border bg-gray-50 text-xs font-bold uppercase tracking-wider text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 flex items-center gap-2">
+              <svg class="fa-icon text-primary" aria-hidden="true">
+                <use href="#fa-comments"></use>
+              </svg>
+              Top Commenters
+            </h3>
+            <table class="w-full table-fixed compact-table" aria-label="Top commenters leaderboard">
+              <tbody id="commenters-rows" data-pre-rendered="true" class="divide-y divide-neutral-border dark:divide-gray-700">
+                <!-- SSR:commenters-rows -->
+              </tbody>
+            </table>
+          </div>
 
-        <!-- Top Commenters -->
-        <div class="mt-12">
-          <h3 class="mb-6 text-2xl font-extrabold text-gray-900 dark:text-gray-100">
-            <svg class="fa-icon mr-2 text-primary dark:text-red-400" aria-hidden="true"><use href="#fa-comments"></use></svg>
-            Top Commenters
-          </h3>
-          <div class="overflow-hidden rounded-2xl border border-neutral-border bg-white shadow-soft dark:border-gray-700 dark:bg-dark-surface">
-            <table class="w-full table-fixed" aria-label="Top commenters leaderboard">
-              <thead>
-                <tr class="border-b border-neutral-border bg-gray-50 text-left text-xs font-bold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
-                  <th scope="col" class="w-12 px-4 py-3 text-center">Rank</th>
-                  <th scope="col" class="px-4 py-3">Commenter</th>
-                  <th scope="col" class="hidden w-20 px-4 py-3 text-right sm:table-cell">Comments</th>
-                  <th scope="col" class="hidden w-28 px-4 py-3 pr-6 text-right sm:table-cell">Activity</th>
-                </tr>
-              </thead>
-              <tbody id="commenters-rows" data-pre-rendered="true" class="divide-y divide-neutral-border dark:divide-gray-700"><!-- SSR:commenters-rows --><tr class="bg-active-bg dark:bg-red-900/10 transition-colors"><td class="px-4 py-3 text-center w-12"><span class="text-xl" aria-label="Rank 1">🥇</span></td><td class="px-4 py-3"><a href="https://github.com/ananya-09" target="_blank" rel="noopener noreferrer" class="flex items-center gap-3 group min-w-0"><img src="https://avatars.githubusercontent.com/u/175581593?v=4" alt="ananya-09&#039;s avatar" class="w-8 h-8 rounded-full border border-neutral-border dark:border-gray-700 flex-shrink-0" loading="lazy" onerror="this.src=&#039;https://github.com/identicons/ananya-09.png&#039;" /><span class="font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors truncate min-w-0 flex-1">ananya-09</span></a><div class="flex sm:hidden items-center gap-2 mt-1 pl-11"><span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white text-xs"><i class="fa-solid fa-comment text-primary text-xs" aria-hidden="true"></i>2</span><div class="bg-gray-100 dark:bg-gray-700 rounded-full h-1.5 flex-1 overflow-hidden"><div class="bg-primary h-1.5 rounded-full" style="width:100%"></div></div></div></td><td class="hidden px-4 py-3 text-right sm:table-cell"><span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white"><i class="fa-solid fa-comment text-primary text-xs" aria-hidden="true"></i>2</span></td><td class="px-4 py-3 hidden sm:table-cell"><div class="flex justify-end"><div class="bg-gray-100 dark:bg-gray-700 rounded-full h-2 w-24 overflow-hidden"><div class="bg-primary h-2 rounded-full" style="width:100%"></div></div></div></td></tr><tr class="bg-active-bg dark:bg-red-900/10 transition-colors"><td class="px-4 py-3 text-center w-12"><span class="text-xl" aria-label="Rank 2">🥈</span></td><td class="px-4 py-3"><a href="https://github.com/sidd190" target="_blank" rel="noopener noreferrer" class="flex items-center gap-3 group min-w-0"><img src="https://avatars.githubusercontent.com/u/73955358?v=4" alt="sidd190&#039;s avatar" class="w-8 h-8 rounded-full border border-neutral-border dark:border-gray-700 flex-shrink-0" loading="lazy" onerror="this.src=&#039;https://github.com/identicons/sidd190.png&#039;" /><span class="font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors truncate min-w-0 flex-1">sidd190</span></a><div class="flex sm:hidden items-center gap-2 mt-1 pl-11"><span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white text-xs"><i class="fa-solid fa-comment text-primary text-xs" aria-hidden="true"></i>2</span><div class="bg-gray-100 dark:bg-gray-700 rounded-full h-1.5 flex-1 overflow-hidden"><div class="bg-primary h-1.5 rounded-full" style="width:100%"></div></div></div></td><td class="hidden px-4 py-3 text-right sm:table-cell"><span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white"><i class="fa-solid fa-comment text-primary text-xs" aria-hidden="true"></i>2</span></td><td class="px-4 py-3 hidden sm:table-cell"><div class="flex justify-end"><div class="bg-gray-100 dark:bg-gray-700 rounded-full h-2 w-24 overflow-hidden"><div class="bg-primary h-2 rounded-full" style="width:100%"></div></div></div></td></tr><tr class="bg-active-bg dark:bg-red-900/10 transition-colors"><td class="px-4 py-3 text-center w-12"><span class="text-xl" aria-label="Rank 3">🥉</span></td><td class="px-4 py-3"><a href="https://github.com/azizrebhi" target="_blank" rel="noopener noreferrer" class="flex items-center gap-3 group min-w-0"><img src="https://avatars.githubusercontent.com/u/154744962?v=4" alt="azizrebhi&#039;s avatar" class="w-8 h-8 rounded-full border border-neutral-border dark:border-gray-700 flex-shrink-0" loading="lazy" onerror="this.src=&#039;https://github.com/identicons/azizrebhi.png&#039;" /><span class="font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors truncate min-w-0 flex-1">azizrebhi</span></a><div class="flex sm:hidden items-center gap-2 mt-1 pl-11"><span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white text-xs"><i class="fa-solid fa-comment text-primary text-xs" aria-hidden="true"></i>2</span><div class="bg-gray-100 dark:bg-gray-700 rounded-full h-1.5 flex-1 overflow-hidden"><div class="bg-primary h-1.5 rounded-full" style="width:100%"></div></div></div></td><td class="hidden px-4 py-3 text-right sm:table-cell"><span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white"><i class="fa-solid fa-comment text-primary text-xs" aria-hidden="true"></i>2</span></td><td class="px-4 py-3 hidden sm:table-cell"><div class="flex justify-end"><div class="bg-gray-100 dark:bg-gray-700 rounded-full h-2 w-24 overflow-hidden"><div class="bg-primary h-2 rounded-full" style="width:100%"></div></div></div></td></tr><tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"><td class="px-4 py-3 text-center w-12"><span class="font-bold text-gray-500 dark:text-gray-400">#4</span></td><td class="px-4 py-3"><a href="https://github.com/yogeshwarithombare" target="_blank" rel="noopener noreferrer" class="flex items-center gap-3 group min-w-0"><img src="https://avatars.githubusercontent.com/u/247213611?v=4" alt="yogeshwarithombare&#039;s avatar" class="w-8 h-8 rounded-full border border-neutral-border dark:border-gray-700 flex-shrink-0" loading="lazy" onerror="this.src=&#039;https://github.com/identicons/yogeshwarithombare.png&#039;" /><span class="font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors truncate min-w-0 flex-1">yogeshwarithombare</span></a><div class="flex sm:hidden items-center gap-2 mt-1 pl-11"><span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white text-xs"><i class="fa-solid fa-comment text-primary text-xs" aria-hidden="true"></i>1</span><div class="bg-gray-100 dark:bg-gray-700 rounded-full h-1.5 flex-1 overflow-hidden"><div class="bg-primary h-1.5 rounded-full" style="width:50%"></div></div></div></td><td class="hidden px-4 py-3 text-right sm:table-cell"><span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white"><i class="fa-solid fa-comment text-primary text-xs" aria-hidden="true"></i>1</span></td><td class="px-4 py-3 hidden sm:table-cell"><div class="flex justify-end"><div class="bg-gray-100 dark:bg-gray-700 rounded-full h-2 w-24 overflow-hidden"><div class="bg-primary h-2 rounded-full" style="width:50%"></div></div></div></td></tr><tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"><td class="px-4 py-3 text-center w-12"><span class="font-bold text-gray-500 dark:text-gray-400">#5</span></td><td class="px-4 py-3"><a href="https://github.com/Armaansaxena" target="_blank" rel="noopener noreferrer" class="flex items-center gap-3 group min-w-0"><img src="https://avatars.githubusercontent.com/u/143505186?v=4" alt="Armaansaxena&#039;s avatar" class="w-8 h-8 rounded-full border border-neutral-border dark:border-gray-700 flex-shrink-0" loading="lazy" onerror="this.src=&#039;https://github.com/identicons/Armaansaxena.png&#039;" /><span class="font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors truncate min-w-0 flex-1">Armaansaxena</span></a><div class="flex sm:hidden items-center gap-2 mt-1 pl-11"><span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white text-xs"><i class="fa-solid fa-comment text-primary text-xs" aria-hidden="true"></i>1</span><div class="bg-gray-100 dark:bg-gray-700 rounded-full h-1.5 flex-1 overflow-hidden"><div class="bg-primary h-1.5 rounded-full" style="width:50%"></div></div></div></td><td class="hidden px-4 py-3 text-right sm:table-cell"><span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white"><i class="fa-solid fa-comment text-primary text-xs" aria-hidden="true"></i>1</span></td><td class="px-4 py-3 hidden sm:table-cell"><div class="flex justify-end"><div class="bg-gray-100 dark:bg-gray-700 rounded-full h-2 w-24 overflow-hidden"><div class="bg-primary h-2 rounded-full" style="width:50%"></div></div></div></td></tr><tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"><td class="px-4 py-3 text-center w-12"><span class="font-bold text-gray-500 dark:text-gray-400">#6</span></td><td class="px-4 py-3"><a href="https://github.com/mdkaifansari04" target="_blank" rel="noopener noreferrer" class="flex items-center gap-3 group min-w-0"><img src="https://avatars.githubusercontent.com/u/117475603?v=4" alt="mdkaifansari04&#039;s avatar" class="w-8 h-8 rounded-full border border-neutral-border dark:border-gray-700 flex-shrink-0" loading="lazy" onerror="this.src=&#039;https://github.com/identicons/mdkaifansari04.png&#039;" /><span class="font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors truncate min-w-0 flex-1">mdkaifansari04</span></a><div class="flex sm:hidden items-center gap-2 mt-1 pl-11"><span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white text-xs"><i class="fa-solid fa-comment text-primary text-xs" aria-hidden="true"></i>1</span><div class="bg-gray-100 dark:bg-gray-700 rounded-full h-1.5 flex-1 overflow-hidden"><div class="bg-primary h-1.5 rounded-full" style="width:50%"></div></div></div></td><td class="hidden px-4 py-3 text-right sm:table-cell"><span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white"><i class="fa-solid fa-comment text-primary text-xs" aria-hidden="true"></i>1</span></td><td class="px-4 py-3 hidden sm:table-cell"><div class="flex justify-end"><div class="bg-gray-100 dark:bg-gray-700 rounded-full h-2 w-24 overflow-hidden"><div class="bg-primary h-2 rounded-full" style="width:50%"></div></div></div></td></tr><tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"><td class="px-4 py-3 text-center w-12"><span class="font-bold text-gray-500 dark:text-gray-400">#7</span></td><td class="px-4 py-3"><a href="https://github.com/DonnieBLT" target="_blank" rel="noopener noreferrer" class="flex items-center gap-3 group min-w-0"><img src="https://avatars.githubusercontent.com/u/128622481?v=4" alt="DonnieBLT&#039;s avatar" class="w-8 h-8 rounded-full border border-neutral-border dark:border-gray-700 flex-shrink-0" loading="lazy" onerror="this.src=&#039;https://github.com/identicons/DonnieBLT.png&#039;" /><span class="font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors truncate min-w-0 flex-1">DonnieBLT</span></a><div class="flex sm:hidden items-center gap-2 mt-1 pl-11"><span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white text-xs"><i class="fa-solid fa-comment text-primary text-xs" aria-hidden="true"></i>1</span><div class="bg-gray-100 dark:bg-gray-700 rounded-full h-1.5 flex-1 overflow-hidden"><div class="bg-primary h-1.5 rounded-full" style="width:50%"></div></div></div></td><td class="hidden px-4 py-3 text-right sm:table-cell"><span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white"><i class="fa-solid fa-comment text-primary text-xs" aria-hidden="true"></i>1</span></td><td class="px-4 py-3 hidden sm:table-cell"><div class="flex justify-end"><div class="bg-gray-100 dark:bg-gray-700 rounded-full h-2 w-24 overflow-hidden"><div class="bg-primary h-2 rounded-full" style="width:50%"></div></div></div></td></tr><!-- /SSR:commenters-rows -->
+          <!-- Domains -->
+          <div
+            class="overflow-hidden rounded-2xl border border-neutral-border bg-white shadow-soft dark:border-gray-700 dark:bg-dark-surface">
+            <h3
+              class="px-4 py-3 border-b border-neutral-border bg-gray-50 text-xs font-bold uppercase tracking-wider text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 flex items-center gap-2">
+              <svg class="fa-icon text-primary" aria-hidden="true">
+                <use href="#fa-globe"></use>
+              </svg>
+              Top Domains
+            </h3>
+            <table class="w-full table-fixed compact-table" aria-label="Top reported domains leaderboard">
+              <tbody id="domains-rows" data-pre-rendered="true" class="divide-y divide-neutral-border dark:divide-gray-700">
+                <!-- SSR:domains-rows -->
               </tbody>
             </table>
           </div>
         </div>
 
-        <!-- Top Domains -->
-        <div class="mt-12">
-          <h3 class="mb-6 text-2xl font-extrabold text-gray-900 dark:text-gray-100">
-            <svg class="fa-icon mr-2 text-primary dark:text-red-400" aria-hidden="true"><use href="#fa-globe"></use></svg>
-            Top Domains
-          </h3>
-          <div class="overflow-hidden rounded-2xl border border-neutral-border bg-white shadow-soft dark:border-gray-700 dark:bg-dark-surface">
-            <table class="w-full table-fixed" aria-label="Top reported domains leaderboard">
-              <thead>
-                <tr class="border-b border-neutral-border bg-gray-50 text-left text-xs font-bold uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
-                  <th scope="col" class="w-12 px-4 py-3 text-center">Rank</th>
-                  <th scope="col" class="px-4 py-3">Domain</th>
-                  <th scope="col" class="hidden w-20 px-4 py-3 text-right sm:table-cell">Reports</th>
-                  <th scope="col" class="hidden w-28 px-4 py-3 pr-6 text-right sm:table-cell">Activity</th>
-                </tr>
-              </thead>
-              <tbody id="domains-rows" data-pre-rendered="true" class="divide-y divide-neutral-border dark:divide-gray-700"><!-- SSR:domains-rows --><tr class="bg-active-bg dark:bg-red-900/10 transition-colors"><td class="px-4 py-3 text-center w-12"><span class="text-xl" aria-label="Rank 1">🥇</span></td><td class="px-4 py-3"><a href="https://owaspblt.org" target="_blank" rel="noopener noreferrer" class="flex items-center gap-3 group min-w-0"><img src="https://www.google.com/s2/favicons?domain=owaspblt.org&amp;sz=32" alt="owaspblt.org favicon" class="w-5 h-5 rounded flex-shrink-0" loading="lazy" onerror="this.outerHTML=&#039;<i class=\'fa-solid fa-globe text-gray-400 w-5 h-5 flex-shrink-0\' aria-hidden=\'true\'></i>&#039;" /><span class="font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors truncate min-w-0 flex-1">owaspblt.org</span></a><div class="flex sm:hidden items-center gap-2 mt-1 pl-8"><span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white text-xs"><i class="fa-solid fa-bug text-primary text-xs" aria-hidden="true"></i>10</span><div class="bg-gray-100 dark:bg-gray-700 rounded-full h-1.5 flex-1 overflow-hidden"><div class="bg-primary h-1.5 rounded-full" style="width:100%"></div></div></div></td><td class="hidden px-4 py-3 text-right sm:table-cell"><span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white"><i class="fa-solid fa-bug text-primary text-xs" aria-hidden="true"></i>10</span></td><td class="px-4 py-3 hidden sm:table-cell"><div class="flex justify-end"><div class="bg-gray-100 dark:bg-gray-700 rounded-full h-2 w-24 overflow-hidden"><div class="bg-primary h-2 rounded-full" style="width:100%"></div></div></div></td></tr><tr class="bg-active-bg dark:bg-red-900/10 transition-colors"><td class="px-4 py-3 text-center w-12"><span class="text-xl" aria-label="Rank 2">🥈</span></td><td class="px-4 py-3"><a href="https://www.owasp.community" target="_blank" rel="noopener noreferrer" class="flex items-center gap-3 group min-w-0"><img src="https://www.google.com/s2/favicons?domain=www.owasp.community&amp;sz=32" alt="www.owasp.community favicon" class="w-5 h-5 rounded flex-shrink-0" loading="lazy" onerror="this.outerHTML=&#039;<i class=\'fa-solid fa-globe text-gray-400 w-5 h-5 flex-shrink-0\' aria-hidden=\'true\'></i>&#039;" /><span class="font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors truncate min-w-0 flex-1">www.owasp.community</span></a><div class="flex sm:hidden items-center gap-2 mt-1 pl-8"><span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white text-xs"><i class="fa-solid fa-bug text-primary text-xs" aria-hidden="true"></i>2</span><div class="bg-gray-100 dark:bg-gray-700 rounded-full h-1.5 flex-1 overflow-hidden"><div class="bg-primary h-1.5 rounded-full" style="width:20%"></div></div></div></td><td class="hidden px-4 py-3 text-right sm:table-cell"><span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white"><i class="fa-solid fa-bug text-primary text-xs" aria-hidden="true"></i>2</span></td><td class="px-4 py-3 hidden sm:table-cell"><div class="flex justify-end"><div class="bg-gray-100 dark:bg-gray-700 rounded-full h-2 w-24 overflow-hidden"><div class="bg-primary h-2 rounded-full" style="width:20%"></div></div></div></td></tr><!-- /SSR:domains-rows -->
-              </tbody>
-            </table>
-          </div>
+        <div class="mt-8 text-center">
+          <a href="leaderboard.html"
+            class="inline-flex items-center rounded-md border border-primary px-6 py-3 text-base font-semibold text-primary transition hover:bg-primary hover:text-white dark:border-red-500 dark:text-red-400 dark:hover:bg-red-600 dark:hover:text-white">
+            <svg class="fa-icon mr-2" aria-hidden="true">
+              <use href="#fa-trophy"></use>
+            </svg>
+            View Full Leaderboard
+          </a>
+          <p class="mt-4 text-xs text-gray-400 dark:text-gray-500">
+            Leaderboard refreshes every 6 hours via GitHub Actions.
+          </p>
         </div>
       </div>
     </section>
 
-    <section id="pricing" class="py-14 sm:py-16">
-      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div class="mx-auto mb-10 max-w-3xl text-center">
-          <h2 class="text-3xl font-extrabold text-gray-900 sm:text-4xl dark:text-gray-100">Simple, transparent pricing</h2>
-          <p class="mt-3 text-base text-gray-600 dark:text-gray-300">Public bug reporting remains free. Commercial forks can enable managed intake plans.</p>
-        </div>
-
-        <div id="pricing-grid" class="mx-auto grid max-w-5xl gap-6 md:grid-cols-3"></div>
-
-        <p class="mt-8 text-center text-xs text-gray-400 dark:text-gray-500">
-          Revenue share is paid monthly to reporters whose submissions resulted in company sign-up.
-          <a href="https://github.com/OWASP-BLT/BLT-Pages" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:underline dark:text-red-400">See the source code</a>.
-        </p>
-      </div>
-    </section>
   </main>
 
   <footer class="border-t border-neutral-border bg-white dark:border-gray-700 dark:bg-dark-surface">
@@ -669,10 +711,11 @@
               src="./static/logo.png"
               alt="BLT logo"
               class="h-8 w-8 rounded-md object-contain"
+              style="background-color:transparent"
               onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');"
             />
             <span class="hidden h-8 w-8 items-center justify-center rounded-md bg-primary text-xs font-extrabold text-white">B</span>
-            <span class="font-bold text-gray-900 dark:text-gray-100">BLT <span class="text-primary dark:text-red-400">Pages</span></span>
+            <span class="font-bold text-gray-900 dark:text-gray-100">OWASP BLT</span>
           </div>
           <p class="text-sm leading-relaxed text-gray-500 dark:text-gray-400">An OWASP Foundation project focused on open, practical bug reporting workflows.</p>
           <p class="mt-3 text-xs text-gray-400 dark:text-gray-500">
@@ -686,7 +729,7 @@
           <ul class="space-y-2 text-sm font-semibold">
             <li><a href="https://github.com/OWASP-BLT/BLT-Pages/issues/new?template=bug_report.yml" class="text-red-600 hover:underline dark:text-red-400"><svg class="fa-icon mr-2" aria-hidden="true"><use href="#fa-bug"></use></svg>Public bug</a></li>
             <li><a href="https://zero.owaspblt.org" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:underline dark:text-red-400"><svg class="fa-icon mr-2" aria-hidden="true"><use href="#fa-shield-halved"></use></svg>Security vulnerability</a></li>
-            <li><a href="https://github.com/OWASP-BLT/BLT-Pages/issues/new?template=bug_report.yml&amp;anonymous=true" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:underline dark:text-red-400"><svg class="fa-icon mr-2" aria-hidden="true"><use href="#fa-user-secret"></use></svg>Anonymous route</a></li>
+            <li><a href="https://next.owaspblt.org/pages/report-bug" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:underline dark:text-red-400"><svg class="fa-icon mr-2" aria-hidden="true"><use href="#fa-user-secret"></use></svg>Anonymous route</a></li>
           </ul>
         </div>
 
@@ -715,16 +758,16 @@
           <a href="https://github.com/OWASP-BLT" target="_blank" rel="noopener noreferrer" class="text-gray-400 transition hover:text-primary dark:text-gray-500 dark:hover:text-red-400" aria-label="OWASP BLT on GitHub">
             <svg class="fa-icon text-lg" aria-hidden="true"><use href="#fa-github"></use></svg>
           </a>
-          <a href="https://twitter.com/owasp" target="_blank" rel="noopener noreferrer" class="text-gray-400 transition hover:text-primary dark:text-gray-500 dark:hover:text-red-400" aria-label="OWASP on X">
+          <a href="https://x.com/OWASP_BLT" target="_blank" rel="noopener noreferrer" class="text-gray-400 transition hover:text-primary dark:text-gray-500 dark:hover:text-red-400" aria-label="OWASP on X">
             <svg class="fa-icon text-lg" aria-hidden="true"><use href="#fa-x-twitter"></use></svg>
           </a>
         </div>
       </div>
-      <p id="homepage-updated" class="mt-3 text-center text-xs text-gray-400 dark:text-gray-500">Last updated: Mar 3, 2026, 10:10 PM UTC &mdash; <a href="https://github.com/OWASP-BLT/BLT-Pages/commit/997130bd18fefaece4b97990aaf779d7f68d802b" target="_blank" rel="noopener noreferrer" class="hover:underline">997130b</a></p>
+      <p id="homepage-updated" class="mt-3 text-center text-xs text-gray-400 dark:text-gray-500">Last updated: Mar 11, 2026, 8:09 AM UTC &mdash; <a href="https://github.com/OWASP-BLT/BLT-Pages/commit/5f54f2b071dc555e66e500b6e75021f49fbdef62" target="_blank" rel="noopener noreferrer" class="hover:underline">5f54f2b</a></p>
     </div>
   </footer>
 
-  <script id="leaderboard-inline-data">window.__BLT_LEADERBOARD__ = {"updated_at":"2026-03-03T22:10:42.624Z","commit_sha":"997130bd18fefaece4b97990aaf779d7f68d802b","total_bugs":12,"total_domains":2,"total_orgs":0,"leaderboard":[{"rank":1,"login":"DonnieBLT","count":7,"avatar_url":"https://avatars.githubusercontent.com/u/128622481?v=4","profile_url":"https://github.com/DonnieBLT"},{"rank":2,"login":"ananya-09","count":3,"avatar_url":"https://avatars.githubusercontent.com/u/175581593?v=4","profile_url":"https://github.com/ananya-09"},{"rank":3,"login":"kittenbytes","count":1,"avatar_url":"https://avatars.githubusercontent.com/u/171991749?v=4","profile_url":"https://github.com/kittenbytes"},{"rank":4,"login":"sidd190","count":1,"avatar_url":"https://avatars.githubusercontent.com/u/73955358?v=4","profile_url":"https://github.com/sidd190"}],"top_commenters":[{"rank":1,"login":"ananya-09","count":2,"avatar_url":"https://avatars.githubusercontent.com/u/175581593?v=4","profile_url":"https://github.com/ananya-09"},{"rank":2,"login":"sidd190","count":2,"avatar_url":"https://avatars.githubusercontent.com/u/73955358?v=4","profile_url":"https://github.com/sidd190"},{"rank":3,"login":"azizrebhi","count":2,"avatar_url":"https://avatars.githubusercontent.com/u/154744962?v=4","profile_url":"https://github.com/azizrebhi"},{"rank":4,"login":"yogeshwarithombare","count":1,"avatar_url":"https://avatars.githubusercontent.com/u/247213611?v=4","profile_url":"https://github.com/yogeshwarithombare"},{"rank":5,"login":"Armaansaxena","count":1,"avatar_url":"https://avatars.githubusercontent.com/u/143505186?v=4","profile_url":"https://github.com/Armaansaxena"},{"rank":6,"login":"mdkaifansari04","count":1,"avatar_url":"https://avatars.githubusercontent.com/u/117475603?v=4","profile_url":"https://github.com/mdkaifansari04"},{"rank":7,"login":"DonnieBLT","count":1,"avatar_url":"https://avatars.githubusercontent.com/u/128622481?v=4","profile_url":"https://github.com/DonnieBLT"}],"top_domains":[{"rank":1,"domain":"owaspblt.org","count":10},{"rank":2,"domain":"www.owasp.community","count":2}],"recent_bugs":[{"number":63,"title":"[BUG] The BLT Pages is not changes to OWASP BLT in the footer","html_url":"https://github.com/OWASP-BLT/BLT-Pages/issues/63","created_at":"2026-03-03T22:09:15Z","comment_count":1,"user":{"login":"ananya-09","avatar_url":"https://avatars.githubusercontent.com/u/175581593?v=4","profile_url":"https://github.com/ananya-09"},"image_url":"https://github.com/user-attachments/assets/30711d77-a7e4-4006-bb6c-77be99bdf3d3","domain":"owaspblt.org","reactions":{"eyes":1},"latest_comment":{"body":"Is it intentional or really a bug?","created_at":"2026-03-03T22:10:27Z","html_url":"https://github.com/OWASP-BLT/BLT-Pages/issues/63#issuecomment-3993881391","user":{"login":"ananya-09","avatar_url":"https://avatars.githubusercontent.com/u/175581593?v=4","profile_url":"https://github.com/ananya-09"}}},{"number":61,"title":"[BUG] report anonymously should go to Blt next","html_url":"https://github.com/OWASP-BLT/BLT-Pages/issues/61","created_at":"2026-03-03T22:01:53Z","comment_count":0,"user":{"login":"DonnieBLT","avatar_url":"https://avatars.githubusercontent.com/u/128622481?v=4","profile_url":"https://github.com/DonnieBLT"},"image_url":"https://github.com/user-attachments/assets/af58f298-babe-4ef3-ad29-ab81d7ec5967","domain":"owaspblt.org","reactions":{"eyes":1},"latest_comment":null},{"number":17,"title":"[BUG] video bugs are not showing up","html_url":"https://github.com/OWASP-BLT/BLT-Pages/issues/17","created_at":"2026-03-02T20:50:49Z","comment_count":1,"user":{"login":"DonnieBLT","avatar_url":"https://avatars.githubusercontent.com/u/128622481?v=4","profile_url":"https://github.com/DonnieBLT"},"image_url":"https://github.com/user-attachments/assets/6c188f2b-5aab-4aad-94f3-d7c540518d45","domain":"owaspblt.org","reactions":{"+1":1},"latest_comment":{"body":"On it!","created_at":"2026-03-02T21:08:52Z","html_url":"https://github.com/OWASP-BLT/BLT-Pages/issues/17#issuecomment-3986924492","user":{"login":"sidd190","avatar_url":"https://avatars.githubusercontent.com/u/73955358?v=4","profile_url":"https://github.com/sidd190"}}}]};</script>
+  <script id="leaderboard-inline-data">window.__BLT_LEADERBOARD__ = {"updated_at": "2026-03-11T08:09:57.542711Z", "commit_sha": "5f54f2b071dc555e66e500b6e75021f49fbdef62", "total_bugs": 17, "open_bugs": 4, "closed_bugs": 13, "total_domains": 4, "total_orgs": 0, "leaderboard": [{"rank": 1, "login": "DonnieBLT", "count": 11, "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4", "profile_url": "https://github.com/DonnieBLT"}, {"rank": 2, "login": "ananya-09", "count": 3, "avatar_url": "https://avatars.githubusercontent.com/u/175581593?v=4", "profile_url": "https://github.com/ananya-09"}, {"rank": 3, "login": "Nachiket-Roy", "count": 1, "avatar_url": "https://avatars.githubusercontent.com/u/204239697?v=4", "profile_url": "https://github.com/Nachiket-Roy"}, {"rank": 4, "login": "kittenbytes", "count": 1, "avatar_url": "https://avatars.githubusercontent.com/u/171991749?v=4", "profile_url": "https://github.com/kittenbytes"}, {"rank": 5, "login": "sidd190", "count": 1, "avatar_url": "https://avatars.githubusercontent.com/u/73955358?v=4", "profile_url": "https://github.com/sidd190"}], "top_commenters": [{"rank": 1, "login": "DonnieBLT", "count": 3, "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4", "profile_url": "https://github.com/DonnieBLT"}, {"rank": 2, "login": "mdkaifansari04", "count": 3, "avatar_url": "https://avatars.githubusercontent.com/u/117475603?v=4", "profile_url": "https://github.com/mdkaifansari04"}, {"rank": 3, "login": "Shubhangpathak", "count": 2, "avatar_url": "https://avatars.githubusercontent.com/u/147265305?v=4", "profile_url": "https://github.com/Shubhangpathak"}, {"rank": 4, "login": "Nachiket-Roy", "count": 2, "avatar_url": "https://avatars.githubusercontent.com/u/204239697?v=4", "profile_url": "https://github.com/Nachiket-Roy"}, {"rank": 5, "login": "ananya-09", "count": 2, "avatar_url": "https://avatars.githubusercontent.com/u/175581593?v=4", "profile_url": "https://github.com/ananya-09"}, {"rank": 6, "login": "sidd190", "count": 2, "avatar_url": "https://avatars.githubusercontent.com/u/73955358?v=4", "profile_url": "https://github.com/sidd190"}, {"rank": 7, "login": "azizrebhi", "count": 2, "avatar_url": "https://avatars.githubusercontent.com/u/154744962?v=4", "profile_url": "https://github.com/azizrebhi"}, {"rank": 8, "login": "e-esakman", "count": 1, "avatar_url": "https://avatars.githubusercontent.com/u/187769872?v=4", "profile_url": "https://github.com/e-esakman"}, {"rank": 9, "login": "tiggachris", "count": 1, "avatar_url": "https://avatars.githubusercontent.com/u/169353352?v=4", "profile_url": "https://github.com/tiggachris"}, {"rank": 10, "login": "akhileshjadhav-coder", "count": 1, "avatar_url": "https://avatars.githubusercontent.com/u/226160161?v=4", "profile_url": "https://github.com/akhileshjadhav-coder"}, {"rank": 11, "login": "yogeshwarithombare", "count": 1, "avatar_url": "https://avatars.githubusercontent.com/u/247213611?v=4", "profile_url": "https://github.com/yogeshwarithombare"}, {"rank": 12, "login": "Armaansaxena", "count": 1, "avatar_url": "https://avatars.githubusercontent.com/u/143505186?v=4", "profile_url": "https://github.com/Armaansaxena"}, {"rank": 13, "login": "swaparup36", "count": 1, "avatar_url": "https://avatars.githubusercontent.com/u/82692857?v=4", "profile_url": "https://github.com/swaparup36"}], "top_domains": [{"rank": 1, "domain": "owaspblt.org", "count": 11}, {"rank": 2, "domain": "www.owasp.community", "count": 3}, {"rank": 3, "domain": "github.com", "count": 2}, {"rank": 4, "domain": "www.owaspblt.org", "count": 1}], "recent_bugs": [{"number": 87, "title": "[BUG] open / closed count is not showing correct open counts", "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/87", "created_at": "2026-03-11T08:09:43Z", "comment_count": 1, "user": {"login": "DonnieBLT", "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4", "profile_url": "https://github.com/DonnieBLT"}, "image_url": "https://github.com/user-attachments/assets/5730ec94-d7c8-4c49-ab5c-f8bdf9493486", "domain": "github.com", "reactions": {"eyes": 1}, "latest_comment": {"body": "\ud83d\udc4b Thanks for opening this issue, @DonnieBLT!\n\nOur team will review it shortly. In the meantime:\n- If you'd like to work on this issue, comment `/assign` to get assigned.\n- Visit [OWASP BLT](https://owaspblt.org) for more information about our bug bounty platform.\n", "created_at": "2026-03-11T08:09:46Z", "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/87#issuecomment-4037299535", "user": {"login": "owasp-blt[bot]", "avatar_url": "https://avatars.githubusercontent.com/in/1159228?v=4", "profile_url": "https://github.com/apps/owasp-blt"}}}, {"number": 81, "title": "[BUG] whole div \"Chapters\", should be clickable and remove test data", "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/81", "created_at": "2026-03-08T23:31:51Z", "comment_count": 7, "user": {"login": "DonnieBLT", "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4", "profile_url": "https://github.com/DonnieBLT"}, "image_url": "https://github.com/user-attachments/assets/90330d80-7329-4058-941a-4b50b831d9cf", "domain": "www.owasp.community", "reactions": {"eyes": 1}, "latest_comment": {"body": "@tiggachris This issue already has the maximum number of assignees (1). Please work on a different issue.", "created_at": "2026-03-11T06:13:06Z", "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/81#issuecomment-4036768843", "user": {"login": "owasp-blt[bot]", "avatar_url": "https://avatars.githubusercontent.com/in/1159228?v=4", "profile_url": "https://github.com/apps/owasp-blt"}}}, {"number": 17, "title": "[BUG] video bugs are not showing up", "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/17", "created_at": "2026-03-02T20:50:49Z", "comment_count": 2, "user": {"login": "DonnieBLT", "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4", "profile_url": "https://github.com/DonnieBLT"}, "image_url": "https://github.com/user-attachments/assets/6c188f2b-5aab-4aad-94f3-d7c540518d45", "domain": "owaspblt.org", "reactions": {"+1": 1, "eyes": 1}, "latest_comment": {"body": "Issues aren't particularly assigned here as such. You can directly raise a PR if the copilot one is not in the ready to merge zone yet. If it is, then that'll probably get merged.", "created_at": "2026-03-10T16:49:17Z", "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/17#issuecomment-4032926080", "user": {"login": "sidd190", "avatar_url": "https://avatars.githubusercontent.com/u/73955358?v=4", "profile_url": "https://github.com/sidd190"}}}]};</script>
   <script src="js/config.js"></script>
   <script src="js/app.js"></script>
   <script>
