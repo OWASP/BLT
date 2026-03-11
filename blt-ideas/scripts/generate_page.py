@@ -20,38 +20,49 @@ ORG = "OWASP-BLT"
 # Maximum number of contributors to display per idea row before truncating
 MAX_DISPLAY_CONTRIBUTORS = 10
 
-# Known BLT org repos for each idea (from file content "Repository:" lines and README)
+# Table column indices (0-based) — keep in sync with thead and row generation
+COL_IDEA = 0
+COL_TITLE = 1
+COL_ONELINER = 2
+COL_REPO = 3
+COL_DISCUSSION = 4
+COL_UPVOTES = 5
+COL_OVERLAPS = 6
+COL_CONTRIBUTORS = 7
+
+# Known BLT org repos for each idea (matched against OWASP-BLT GitHub org)
 IDEA_REPO_MAP = {
-    "A": "OWASP-BLT/BLT",
-    "B": "OWASP-BLT/BLT",
-    "C": "OWASP-BLT/BLT",
-    "D": "OWASP-BLT/BLT",
-    "E": "OWASP-BLT/BLT",
-    "E.1": "OWASP-BLT/BLT",
-    "E.2": "OWASP-BLT/BLT",
-    "F": "OWASP-BLT/BLT",
-    "G": "OWASP-BLT/BLT-NetGuardian",
-    "H": "OWASP-BLT/BLT",
-    "I": "OWASP-BLT/BLT",
-    "J": "OWASP-BLT/BLT",
-    "K": "OWASP-BLT/BLT",
-    "L": "OWASP-BLT/BLT",
-    "L2": "OWASP-BLT/BLT",
-    "M": "OWASP-BLT/BLT",
-    "N": "OWASP-BLT/BLT",
-    "O": "OWASP-BLT/BLT-Extension",
-    "P": "OWASP-BLT/BLT",
-    "Q": "OWASP-BLT/BLT",
-    "R": "OWASP-BLT/BLT-Flutter",
-    "RS": "OWASP-BLT/BLT",
-    "S": "OWASP-BLT/BLT-CVE",
-    "T": "OWASP-BLT/BLT-NetGuardian",
-    "U": "OWASP-BLT/BLT",
-    "V": "OWASP-BLT/BLT-API",
-    "W": "OWASP-BLT/BLT",
-    "X": "OWASP-BLT/BLT",
-    "Y": "OWASP-BLT/BLT",
-    "Z": "OWASP-BLT/BLT",
+    "A": "OWASP-BLT/BLT-CVE",          # CVE Detection & Validation Pipeline
+    "B": "OWASP-BLT/BLT-Rewards",       # Security Contribution Gamification & BACON
+    "C": "OWASP-BLT/BLT-University",    # Security Labs & Community Intelligence
+    "D": "OWASP-BLT/BLT",               # Knowledge Sharing & Community Impact
+    "E": "OWASP-BLT/BLT",               # Fallback for un-suffixed Idea E references
+    "E.1": "OWASP-BLT/BLT-Preflight",  # AI-Assisted Security Remediation Triage
+    "E.2": "OWASP-BLT/BLT-Leaf",       # PR Risk Intelligence & Readiness Dashboard
+    "F": "OWASP-BLT/BLT-Hackathons",   # Contributor Quality Leaderboards
+    "G": "OWASP-BLT/BLT-NetGuardian",  # Zero-Trust Encrypted Web Scanner
+    "H": "OWASP-BLT/BLT-Sizzle",       # Sizzle-First Contributor Growth
+    "I": "OWASP-BLT/BLT-docs",         # First-Time Contributor Experience
+    "J": "OWASP-BLT/BLT-CVE",          # Cybersecurity Intelligence Dashboard
+    "K": "OWASP-BLT/BLT-Next",         # BLT Migration to Next.js/Cloudflare
+    "L": "OWASP-BLT/BLT-Rewards",      # Automated Bounty & Reward Pipeline
+    "L2": "OWASP-BLT/BLT-Preflight",   # Pre-Contribution Security Intent & Guidance
+    "M": "OWASP-BLT/BLT-CVE",          # CVE Remediation Pipeline
+    "M-S": "OWASP-BLT/BLT",            # Security Knowledge Mining & Pattern Intelligence
+    "N": "OWASP-BLT/BLT",              # RAG AI Agent for Onboarding
+    "O": "OWASP-BLT/BLT-Extension",    # BLT Browser Extension
+    "P": "OWASP-BLT/BLT-API",          # API v2 — Django Ninja Migration
+    "Q": "OWASP-BLT/BLT-Toasty",       # Toasty AI Triage Assistant
+    "R": "OWASP-BLT/BLT-Flutter",      # BLT Flutter Mobile App
+    "RS": "OWASP-BLT/BLT",             # Report Signal Intelligence & Pre-Triage
+    "S": "OWASP-BLT/BLT-CVE",          # BLT-CVE Explorer
+    "T": "OWASP-BLT/BLT-NetGuardian",  # BLT Target Registry
+    "U": "OWASP-BLT/BLT-Preflight",    # Pre-Contribution Security Intent & Guidance
+    "V": "OWASP-BLT/BLT-API",          # Unified Event-Driven Gamification Engine
+    "W": "OWASP-BLT/BLT-Hackathons",   # BLT Security Campaigns
+    "X": "OWASP-BLT/BLT-OWASP-Bumper", # RepoTrust Score
+    "Y": "OWASP-BLT/BLT-SafeCloak",    # SecureCall: Privacy-First Video Note Taker
+    "Z": "OWASP-BLT/BLT-MCP",          # BLT Model Context Protocol Server
 }
 
 
@@ -117,15 +128,19 @@ def get_file_contributors(filepath):
         return []
 
 
-def get_discussion_participants(discussion_num):
-    """Fetch participants from an OWASP-BLT org discussion via GraphQL."""
+def get_discussion_data(discussion_num):
+    """Fetch participants and upvote count from an OWASP-BLT org discussion via GraphQL.
+
+    Returns a tuple (participants: list[str], upvotes: int).
+    """
     if not discussion_num or not GITHUB_TOKEN:
-        return []
+        return [], 0
 
     query = """
     {
       organization(login: "OWASP-BLT") {
         discussion(number: %s) {
+          upvoteCount
           author { login }
           comments(first: 100) {
             nodes {
@@ -139,17 +154,18 @@ def get_discussion_participants(discussion_num):
 
     data = github_graphql(query)
     if not data or "data" not in data:
-        return []
+        return [], 0
 
     participants = set()
     disc = (data.get("data") or {}).get("organization") or {}
     disc = disc.get("discussion") or {}
+    upvotes = disc.get("upvoteCount") or 0
     if disc.get("author"):
         participants.add(disc["author"]["login"])
     for comment in (disc.get("comments") or {}).get("nodes") or []:
         if comment.get("author"):
             participants.add(comment["author"]["login"])
-    return sorted(participants)
+    return sorted(participants), upvotes
 
 
 def get_pr_participants():
@@ -244,16 +260,18 @@ def parse_idea_file(path):
         "related": sorted(related),
         "git_contributors": [],
         "discussion_participants": [],
+        "upvotes": 0,
     }
 
 
 def sort_key(idea_id):
     """Sort ideas: single letters first, then compound IDs."""
-    # Map E.1 → E, E.2 → E Extended, RS → after R, L2 → after L
+    # Map E.1 → E, E.2 → E Extended, RS → after R, L2 → after L, M-S → after M
     mapping = {
         "E.1": ("E", 1),
         "E.2": ("E", 2),
         "L2": ("L", 2),
+        "M-S": ("M", 1),
         "RS": ("RS", 0),
     }
     if idea_id in mapping:
@@ -358,15 +376,25 @@ def generate_html(ideas, overlap_matrix):
             1 for other_id, v in overlap_matrix.get(idea_id, {}).items() if v and other_id != idea_id
         )
 
+        # Upvotes
+        upvotes = idea.get("upvotes", 0)
+        if upvotes:
+            upvotes_html = f'<span class="font-semibold text-green-600">👍 {upvotes}</span>'
+        elif idea["discussion_url"]:
+            upvotes_html = '<span class="muted">0</span>'
+        else:
+            upvotes_html = '<span class="muted">—</span>'
+
         rows_html.append(
             f"""      <tr>
-        <td data-sort="{html_escape(idea_id)}">{idea_link}</td>
-        <td data-sort="{title}">{title}</td>
-        <td class="oneliner" data-sort="{html_escape(idea["one_liner"])}">{one_liner}</td>
-        <td data-sort="{html_escape(blt_repo)}">{repo_link}</td>
-        <td data-sort="{(idea.get('discussion_num') or '0').zfill(6)}">{disc_link}</td>
-        <td data-sort="{overlap_count:03d}">{related_html}</td>
-        <td data-sort="{len(all_contributors):03d}">{contrib_html}</td>
+        <td data-label="Idea" data-sort="{html_escape(idea_id)}">{idea_link}</td>
+        <td data-label="Title" data-sort="{title}">{title}</td>
+        <td data-label="One-Liner" class="oneliner" data-sort="{html_escape(idea["one_liner"])}">{one_liner}</td>
+        <td data-label="BLT Repo" data-sort="{html_escape(blt_repo)}">{repo_link}</td>
+        <td data-label="Discussion" data-sort="{(idea.get('discussion_num') or '0').zfill(6)}">{disc_link}</td>
+        <td data-label="Upvotes" data-sort="{upvotes:06d}" class="text-center">{upvotes_html}</td>
+        <td data-label="Overlaps" data-sort="{overlap_count:03d}">{related_html}</td>
+        <td data-label="Contributors" data-sort="{len(all_contributors):03d}">{contrib_html}</td>
       </tr>"""
         )
 
@@ -580,6 +608,42 @@ def generate_html(ideas, overlap_matrix):
     .top-list li:last-child {{
       border-bottom: none;
     }}
+    /* ── Mobile card layout ─────────────────────────────────────────── */
+    @media (max-width: 767px) {{
+      .table-wrap {{ border: none; background: transparent; box-shadow: none; }}
+      #ideas-table thead {{ display: none; }}
+      #ideas-table tbody tr {{
+        display: block;
+        margin-bottom: 0.875rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.75rem;
+        padding: 0.875rem 1rem;
+        background: #ffffff;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      }}
+      #ideas-table tbody tr:hover {{ background: #fff7f7; }}
+      #ideas-table tbody td {{
+        display: flex;
+        align-items: baseline;
+        gap: 0.5rem;
+        padding: 0.3rem 0;
+        border: none;
+        font-size: 0.85rem;
+        vertical-align: top;
+      }}
+      #ideas-table tbody td::before {{
+        content: attr(data-label);
+        font-weight: 700;
+        color: #9ca3af;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        min-width: 6.5rem;
+        flex-shrink: 0;
+        padding-top: 0.1rem;
+      }}
+      #ideas-table tbody td.oneliner {{ max-width: none; }}
+    }}
   </style>
 </head>
 <body class="font-sans antialiased">
@@ -720,6 +784,10 @@ def generate_html(ideas, overlap_matrix):
             <p class="mt-2 text-3xl font-extrabold text-primary" id="stat-with-discussion">0</p>
           </article>
           <article class="rounded-xl border border-neutral-border bg-white p-5 shadow-sm">
+            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Total Discussion Upvotes</p>
+            <p class="mt-2 text-3xl font-extrabold text-primary" id="stat-total-upvotes">0</p>
+          </article>
+          <article class="rounded-xl border border-neutral-border bg-white p-5 shadow-sm">
             <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">With Overlaps</p>
             <p class="mt-2 text-3xl font-extrabold text-primary" id="stat-with-overlaps">0</p>
           </article>
@@ -759,13 +827,14 @@ def generate_html(ideas, overlap_matrix):
             <table id="ideas-table" class="min-w-full divide-y divide-gray-200 text-sm">
               <thead class="bg-gray-50 text-xs uppercase tracking-wide text-gray-600">
                 <tr>
-                  <th data-col="0" class="px-3 py-3 text-left font-bold">Idea</th>
-                  <th data-col="1" class="px-3 py-3 text-left font-bold">Title</th>
-                  <th data-col="2" class="px-3 py-3 text-left font-bold">One-Liner</th>
-                  <th data-col="3" class="px-3 py-3 text-left font-bold">BLT Repo</th>
-                  <th data-col="4" class="px-3 py-3 text-left font-bold">Discussion</th>
-                  <th data-col="5" class="px-3 py-3 text-left font-bold">Overlapping Ideas</th>
-                  <th data-col="6" class="px-3 py-3 text-left font-bold">Interested Contributors</th>
+                  <th data-col="{COL_IDEA}" class="px-3 py-3 text-left font-bold">Idea</th>
+                  <th data-col="{COL_TITLE}" class="px-3 py-3 text-left font-bold">Title</th>
+                  <th data-col="{COL_ONELINER}" class="px-3 py-3 text-left font-bold">One-Liner</th>
+                  <th data-col="{COL_REPO}" class="px-3 py-3 text-left font-bold">BLT Repo</th>
+                  <th data-col="{COL_DISCUSSION}" class="px-3 py-3 text-left font-bold">Discussion</th>
+                  <th data-col="{COL_UPVOTES}" class="px-3 py-3 text-center font-bold">👍 Upvotes</th>
+                  <th data-col="{COL_OVERLAPS}" class="px-3 py-3 text-left font-bold">Overlapping Ideas</th>
+                  <th data-col="{COL_CONTRIBUTORS}" class="px-3 py-3 text-left font-bold">Interested Contributors</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-gray-100 bg-white text-gray-700">
@@ -847,7 +916,9 @@ def generate_html(ideas, overlap_matrix):
     document.querySelectorAll('thead th[data-col]').forEach(th => {{
       th.addEventListener('click', () => sortTable(parseInt(th.dataset.col)));
     }});
-    sortTable(0); // default sort by idea ID
+    // Default: sort by upvotes (col {COL_UPVOTES}) descending
+    sortCol = {COL_UPVOTES}; sortDir = -1;
+    sortTable({COL_UPVOTES});
 
     // ── Search / filter ──────────────────────────────────────────────────
     const searchInput = document.getElementById('search');
@@ -855,7 +926,7 @@ def generate_html(ideas, overlap_matrix):
 
     // Populate repo dropdown
     const repos = [...new Set(
-      Array.from(tbody.rows).map(r => r.cells[3].textContent.trim())
+      Array.from(tbody.rows).map(r => r.cells[{COL_REPO}].textContent.trim())
     )].sort();
     repos.forEach(r => {{
       const opt = document.createElement('option');
@@ -869,7 +940,7 @@ def generate_html(ideas, overlap_matrix):
       let visible = 0;
       Array.from(tbody.rows).forEach(row => {{
         const text = row.textContent.toLowerCase();
-        const rowRepo = row.cells[3].textContent.trim().toLowerCase();
+        const rowRepo = row.cells[{COL_REPO}].textContent.trim().toLowerCase();
         const show = (!q || text.includes(q)) && (!repo || rowRepo === repo);
         row.style.display = show ? '' : 'none';
         if (show) visible++;
@@ -882,13 +953,20 @@ def generate_html(ideas, overlap_matrix):
     // ── Stats ────────────────────────────────────────────────────────────
     const rows = Array.from(tbody.rows);
     document.getElementById('stat-with-discussion').textContent =
-      rows.filter(r => r.cells[4].textContent.trim() !== '—').length;
+      rows.filter(r => r.cells[{COL_DISCUSSION}].textContent.trim() !== '—').length;
+
+    const totalUpvotes = rows.reduce((sum, r) => {{
+      const v = parseInt(r.cells[{COL_UPVOTES}].dataset.sort, 10);
+      return sum + (isNaN(v) ? 0 : v);
+    }}, 0);
+    document.getElementById('stat-total-upvotes').textContent = totalUpvotes;
+
     document.getElementById('stat-with-overlaps').textContent =
-      rows.filter(r => r.cells[5].textContent.trim() !== '—').length;
+      rows.filter(r => r.cells[{COL_OVERLAPS}].textContent.trim() !== '—').length;
 
     const allContribs = new Set();
     rows.forEach(r => {{
-      r.cells[6].textContent.split(',').forEach(c => {{
+      r.cells[{COL_CONTRIBUTORS}].textContent.split(',').forEach(c => {{
         const t = c.trim();
         if (t && t !== '—') allContribs.add(t);
       }});
@@ -926,15 +1004,16 @@ def main():
         if idea["git_contributors"]:
             print(f"  {idea['filename']}: {idea['git_contributors']}")
 
-    print("Fetching discussion participants…")
+    print("Fetching discussion participants and upvotes…")
     for idea in ideas:
         if idea["discussion_num"]:
             print(f"  Fetching discussion #{idea['discussion_num']} for Idea {idea['id']}…")
-            idea["discussion_participants"] = get_discussion_participants(
-                idea["discussion_num"]
-            )
+            participants, upvotes = get_discussion_data(idea["discussion_num"])
+            idea["discussion_participants"] = participants
+            idea["upvotes"] = upvotes
             if idea["discussion_participants"]:
                 print(f"    Participants: {idea['discussion_participants']}")
+            print(f"    Upvotes: {upvotes}")
 
     print("Building overlap matrix…")
     overlap_matrix = build_overlap_matrix(ideas)
