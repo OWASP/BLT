@@ -1831,12 +1831,11 @@ class TestBackfillReviewCredits(unittest.TestCase):
                     )):
                         with patch.object(_worker, "_d1_run", new=AsyncMock(return_value={"success": True})):
                             with patch.object(_worker, "_d1_all", new=AsyncMock(return_value=[])):
-                                with patch.object(_worker, "_d1_first", new=AsyncMock(return_value=None)):
-                                    with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None)):
-                                        await _worker._backfill_repo_month_if_needed(
-                                            "OWASP-BLT", "test-repo", "tok", env,
-                                            month_key="2026-03", start_ts=start_ts, end_ts=end_ts,
-                                        )
+                                with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None)):
+                                    await _worker._backfill_repo_month_if_needed(
+                                        "OWASP-BLT", "test-repo", "tok", env,
+                                        month_key="2026-03", start_ts=start_ts, end_ts=end_ts,
+                                    )
 
             review_credits = [(login, field) for login, field in monthly_inc_calls if field == "reviews"]
             review_logins = [login for login, _ in review_credits]
@@ -1883,12 +1882,11 @@ class TestBackfillReviewCredits(unittest.TestCase):
                     )):
                         with patch.object(_worker, "_d1_run", new=AsyncMock(return_value={"success": True})):
                             with patch.object(_worker, "_d1_all", new=AsyncMock(return_value=[])):
-                                with patch.object(_worker, "_d1_first", new=AsyncMock(return_value=None)):
-                                    with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None)):
-                                        await _worker._backfill_repo_month_if_needed(
-                                            "OWASP-BLT", "test-repo", "tok", env,
-                                            month_key="2026-03", start_ts=start_ts, end_ts=end_ts,
-                                        )
+                                with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None)):
+                                    await _worker._backfill_repo_month_if_needed(
+                                        "OWASP-BLT", "test-repo", "tok", env,
+                                        month_key="2026-03", start_ts=start_ts, end_ts=end_ts,
+                                    )
 
             review_logins = [login for login, field in monthly_inc_calls if field == "reviews"]
             self.assertNotIn("alice", review_logins)
@@ -1917,15 +1915,6 @@ class TestBackfillReviewCredits(unittest.TestCase):
             ]
 
             monthly_inc_calls = []
-            # Simulate that 'cnt' returns 0 for first two, 2 for third check
-            cnt_sequence = [0, 1, 2]
-            cnt_iter = iter(cnt_sequence)
-
-            async def _d1_first_mock(db, sql, params=()):
-                if "COUNT(*)" in sql:
-                    cnt = next(cnt_iter, 2)
-                    return {"cnt": cnt}
-                return None  # no existing credit
 
             with patch.object(_worker, "github_api", new=AsyncMock(side_effect=lambda method, path, token, body=None: (
                 types.SimpleNamespace(status=200, text=AsyncMock(return_value=json.dumps([]))) if "state=open" in path
@@ -1937,13 +1926,13 @@ class TestBackfillReviewCredits(unittest.TestCase):
                         side_effect=lambda db, org, mk, login, field, delta=1: monthly_inc_calls.append((login, field))
                     )):
                         with patch.object(_worker, "_d1_run", new=AsyncMock(return_value={"success": True})):
+                            # No pre-existing credits: empty list returned for all _d1_all calls
                             with patch.object(_worker, "_d1_all", new=AsyncMock(return_value=[])):
-                                with patch.object(_worker, "_d1_first", new=_d1_first_mock):
-                                    with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None)):
-                                        await _worker._backfill_repo_month_if_needed(
-                                            "OWASP-BLT", "test-repo", "tok", env,
-                                            month_key="2026-03", start_ts=start_ts, end_ts=end_ts,
-                                        )
+                                with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None)):
+                                    await _worker._backfill_repo_month_if_needed(
+                                        "OWASP-BLT", "test-repo", "tok", env,
+                                        month_key="2026-03", start_ts=start_ts, end_ts=end_ts,
+                                    )
 
             review_credits = [login for login, field in monthly_inc_calls if field == "reviews"]
             # Only 2 reviewers should be credited (cap is 2 per PR)
@@ -1986,13 +1975,12 @@ class TestBackfillReviewCredits(unittest.TestCase):
                 with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
                     with patch.object(_worker, "_d1_run", new=AsyncMock(return_value={"success": True})):
                         with patch.object(_worker, "_d1_all", new=AsyncMock(return_value=[])):
-                            with patch.object(_worker, "_d1_first", new=AsyncMock(return_value=None)):
-                                with patch.object(_worker, "_d1_inc_monthly", new=AsyncMock()):
-                                    with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None)):
-                                        await _worker._backfill_repo_month_if_needed(
-                                            "OWASP-BLT", "test-repo", "tok", env,
-                                            month_key="2026-03", start_ts=start_ts, end_ts=end_ts,
-                                        )
+                            with patch.object(_worker, "_d1_inc_monthly", new=AsyncMock()):
+                                with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None)):
+                                    await _worker._backfill_repo_month_if_needed(
+                                        "OWASP-BLT", "test-repo", "tok", env,
+                                        month_key="2026-03", start_ts=start_ts, end_ts=end_ts,
+                                    )
 
             reviews_calls = [p for p in api_calls if "/reviews" in p]
             self.assertEqual(len(reviews_calls), 0)
@@ -2095,27 +2083,20 @@ class TestAdminResetLeaderboard(unittest.TestCase):
 
         _run(_inner())
 
-    def test_defaults_to_current_month_when_month_key_omitted(self):
-        """If month_key is not provided, it should default to the current month."""
+    def test_missing_month_key_returns_400(self):
+        """Missing month_key should return 400 — no silent default to prevent accidental resets."""
         async def _inner():
             env = self._make_env()
             req = self._make_request(
                 body={"org": "OWASP-BLT"},
                 auth="Bearer test-secret",
             )
-            deleted_calls = []
+            with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None)):
+                resp = await _worker.on_fetch(req, env)
 
-            async def _mock_reset(org, month_key, db):
-                deleted_calls.append((org, month_key))
-                return {}
-
-            with patch.object(_worker, "_reset_leaderboard_month", new=_mock_reset):
-                with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None)):
-                    resp = await _worker.on_fetch(req, env)
-
-            self.assertEqual(resp.status, 200)
-            current_mk = _worker._month_key()
-            self.assertEqual(deleted_calls[0][1], current_mk)
+            self.assertEqual(resp.status, 400)
+            body = json.loads(resp.body)
+            self.assertIn("month_key", body.get("error", ""))
 
         _run(_inner())
 

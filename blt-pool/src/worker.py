@@ -1055,7 +1055,6 @@ async def _backfill_repo_month_if_needed(
         closed_prs = json.loads(await closed_resp.text())
         if not closed_prs:
             break
-        found_in_window = False
         for pr in closed_prs:
             user = pr.get("user") or {}
             if _is_bot(user):
@@ -1073,7 +1072,6 @@ async def _backfill_repo_month_if_needed(
                 merged_ts = _parse_github_timestamp(merged_at)
                 if start_ts <= merged_ts <= end_ts:
                     console.log(f"[Backfill] User {login}: merged PR (#{pr_number})")
-                    found_in_window = True
                     merged_count += 1
                     await _d1_inc_monthly(db, owner, mk, login, "merged_prs", 1)
                     # Use closed_at for the stored timestamp to match the idempotency check
@@ -1095,7 +1093,6 @@ async def _backfill_repo_month_if_needed(
                 closed_ts_val = _parse_github_timestamp(closed_at)
                 if start_ts <= closed_ts_val <= end_ts:
                     console.log(f"[Backfill] User {login}: closed PR (#{pr_number})")
-                    found_in_window = True
                     closed_count += 1
                     await _d1_inc_monthly(db, owner, mk, login, "closed_prs", 1)
                     await _d1_run(
@@ -1130,6 +1127,16 @@ async def _backfill_repo_month_if_needed(
                 console.error(f"[Backfill] Failed to fetch reviews for PR #{pr_number}: status={reviews_resp.status}")
                 continue
             reviews = json.loads(await reviews_resp.text())
+            # Load all existing credits for this PR in one query to avoid N+1 SELECTs.
+            credit_rows = await _d1_all(
+                db,
+                """
+                SELECT reviewer_login FROM leaderboard_review_credits
+                WHERE org = ? AND repo = ? AND pr_number = ? AND month_key = ?
+                """,
+                (owner, repo_name, pr_number, mk),
+            )
+            already_credited_set = {row["reviewer_login"] for row in (credit_rows or [])}
             seen_reviewers: set = set()
             for review in reviews:
                 reviewer = review.get("user") or {}
@@ -1141,28 +1148,10 @@ async def _backfill_repo_month_if_needed(
                 if reviewer_login in seen_reviewers:
                     continue
                 seen_reviewers.add(reviewer_login)
-                # Check idempotency: skip if this reviewer already has credit for this PR/month.
-                existing = await _d1_first(
-                    db,
-                    """
-                    SELECT 1 FROM leaderboard_review_credits
-                    WHERE org = ? AND repo = ? AND pr_number = ? AND month_key = ? AND reviewer_login = ?
-                    """,
-                    (owner, repo_name, pr_number, mk, reviewer_login),
-                )
-                if existing:
+                if reviewer_login in already_credited_set:
                     continue
-                # Check cap: at most 2 reviewers credited per PR per month.
-                cnt_row = await _d1_first(
-                    db,
-                    """
-                    SELECT COUNT(*) AS cnt FROM leaderboard_review_credits
-                    WHERE org = ? AND repo = ? AND pr_number = ? AND month_key = ?
-                    """,
-                    (owner, repo_name, pr_number, mk),
-                )
-                already_credited = int((cnt_row or {}).get("cnt") or 0)
-                if already_credited >= 2:
+                # Cap: at most 2 unique reviewers credited per PR per month.
+                if len(already_credited_set) >= 2:
                     break
                 await _d1_run(
                     db,
@@ -1173,6 +1162,7 @@ async def _backfill_repo_month_if_needed(
                     (owner, repo_name, pr_number, mk, reviewer_login, now_ts),
                 )
                 await _d1_inc_monthly(db, owner, mk, reviewer_login, "reviews", 1)
+                already_credited_set.add(reviewer_login)
                 console.log(f"[Backfill] Review credit: {reviewer_login} reviewed PR #{pr_number}")
         except Exception as e:
             console.error(f"[Backfill] Error fetching reviews for PR #{pr_number}: {e}")
@@ -2769,7 +2759,13 @@ async def on_fetch(request, env) -> Response:
         org = (body.get("org") or "").strip()
         if not org:
             return _json({"error": "Missing required field: org"}, 400)
-        month_key = (body.get("month_key") or _month_key()).strip()
+        month_key = (body.get("month_key") or "").strip()
+        if not month_key:
+            return _json(
+                {"error": "Missing required field: month_key (e.g. '2026-03'). "
+                 "Provide an explicit month to prevent accidental resets."},
+                400,
+            )
         db = _d1_binding(env)
         if not db:
             return _json({"error": "No D1 binding available"}, 500)
