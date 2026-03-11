@@ -1540,11 +1540,12 @@ class TestTrackingOperations(unittest.TestCase):
 class TestBackfillRepoMonthIdempotency(unittest.TestCase):
     """Test that _backfill_repo_month_if_needed skips PRs already tracked via webhooks."""
 
-    def _make_mock_db(self, pr_state_rows=None, already_done=False):
+    def _make_mock_db(self, pr_state_rows=None, already_done=False, pr_state_with_state=None):
         """Create a mock D1 DB for backfill tests.
 
-        pr_state_rows: rows returned for 'SELECT pr_number FROM leaderboard_pr_state'
+        pr_state_rows: list of PR numbers to pre-track (state defaults to 'closed')
         already_done: whether the repo is already marked done in leaderboard_backfill_repo_done
+        pr_state_with_state: optional dict mapping pr_number -> state, overrides the default
         """
         mock_db = MagicMock()
 
@@ -1562,8 +1563,14 @@ class TestBackfillRepoMonthIdempotency(unittest.TestCase):
                 rows = [{"1": 1}] if already_done else []
                 stmt.all = AsyncMock(return_value={"results": rows})
             elif "leaderboard_pr_state" in sql and "SELECT pr_number" in sql:
-                # Return pre-tracked PRs
-                rows = [{"pr_number": r} for r in (pr_state_rows or [])]
+                # Return pre-tracked PRs with their states.  The default state is
+                # 'closed' so that existing idempotency tests keep passing; the
+                # pr_state_with_state dict allows tests to override per PR.
+                state_overrides = pr_state_with_state or {}
+                rows = [
+                    {"pr_number": r, "state": state_overrides.get(r, "closed")}
+                    for r in (pr_state_rows or [])
+                ]
                 stmt.all = AsyncMock(return_value={"results": rows})
             else:
                 stmt.all = AsyncMock(return_value={"results": []})
@@ -1753,10 +1760,178 @@ class TestBackfillRepoMonthIdempotency(unittest.TestCase):
         merged_inc_count = sum(1 for _, field in monthly_inc_calls if field == "merged_prs")
         self.assertEqual(merged_inc_count, 105)
 
+    def test_self_heal_open_pr_that_was_merged(self):
+        """A PR recorded as 'open' whose merge webhook was missed should be healed.
+
+        Expected behaviour:
+        - open_prs is decremented by 1 (the stale open count is removed)
+        - merged_prs is incremented by 1 (the merge is now counted)
+        - leaderboard_pr_state is updated via DO UPDATE SET
+        """
+        async def _inner():
+            env = types.SimpleNamespace(LEADERBOARD_DB=MagicMock())
+            start_ts, end_ts = _worker._month_window("2026-03")
+
+            # PR #5 was previously tracked as 'open' in the database.
+            tracked_state_data = [{"pr_number": 5, "state": "open"}]
+
+            open_pr_delta_calls = []
+            monthly_inc_calls = []
+            d1_run_sqls = []
+
+            async def _smart_d1_all(db, sql, params=()):
+                if "leaderboard_pr_state" in sql and "SELECT pr_number" in sql:
+                    return tracked_state_data
+                return []
+
+            async def _mock_api(method, path, token, body=None):
+                if "state=open" in path:
+                    return types.SimpleNamespace(status=200, text=AsyncMock(return_value=json.dumps([])))
+                if "state=closed" in path:
+                    return types.SimpleNamespace(status=200, text=AsyncMock(return_value=json.dumps([
+                        {
+                            "number": 5,
+                            "user": {"login": "alice", "type": "User"},
+                            "merged_at": "2026-03-10T12:00:00Z",
+                            "closed_at": "2026-03-10T12:00:00Z",
+                        }
+                    ])))
+                # reviews and any other call
+                return types.SimpleNamespace(status=200, text=AsyncMock(return_value=json.dumps([])))
+
+            with patch.object(_worker, "github_api", new=_mock_api):
+                with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
+                    with patch.object(_worker, "_d1_all", new=_smart_d1_all):
+                        with patch.object(_worker, "_d1_inc_open_pr", new=AsyncMock(
+                            side_effect=lambda db, org, login, cnt: open_pr_delta_calls.append((login, cnt))
+                        )):
+                            with patch.object(_worker, "_d1_inc_monthly", new=AsyncMock(
+                                side_effect=lambda db, org, mk, login, field, delta=1: monthly_inc_calls.append((login, field))
+                            )):
+                                with patch.object(_worker, "_d1_run", new=AsyncMock(
+                                    side_effect=lambda db, sql, params=(): d1_run_sqls.append(sql)
+                                )):
+                                    with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None)):
+                                        await _worker._backfill_repo_month_if_needed(
+                                            "OWASP-BLT", "test-repo", "tok", env,
+                                            month_key="2026-03", start_ts=start_ts, end_ts=end_ts,
+                                        )
+
+            # open_prs should have been decremented by 1 to undo the stale open count
+            open_deltas = [delta for login, delta in open_pr_delta_calls if login == "alice"]
+            self.assertIn(-1, open_deltas)
+
+            # merged_prs should have been incremented
+            merged_logins = [login for login, field in monthly_inc_calls if field == "merged_prs"]
+            self.assertIn("alice", merged_logins)
+
+            # pr_state should have been updated with DO UPDATE SET (not DO NOTHING)
+            update_sqls = [s for s in d1_run_sqls if "DO UPDATE SET" in s and "leaderboard_pr_state" in s]
+            self.assertTrue(len(update_sqls) > 0, "Expected an UPDATE to leaderboard_pr_state")
+
+        _run(_inner())
+
+    def test_self_heal_does_not_double_count_already_closed(self):
+        """A PR already recorded as 'closed' should never be counted again."""
+        async def _inner():
+            env = types.SimpleNamespace(LEADERBOARD_DB=MagicMock())
+            start_ts, end_ts = _worker._month_window("2026-03")
+
+            # PR #7 already properly tracked as closed via webhook.
+            tracked_state_data = [{"pr_number": 7, "state": "closed"}]
+
+            open_pr_delta_calls = []
+            monthly_inc_calls = []
+
+            async def _smart_d1_all(db, sql, params=()):
+                if "leaderboard_pr_state" in sql and "SELECT pr_number" in sql:
+                    return tracked_state_data
+                return []
+
+            async def _mock_api(method, path, token, body=None):
+                if "state=open" in path:
+                    return types.SimpleNamespace(status=200, text=AsyncMock(return_value=json.dumps([])))
+                if "state=closed" in path:
+                    return types.SimpleNamespace(status=200, text=AsyncMock(return_value=json.dumps([
+                        {
+                            "number": 7,
+                            "user": {"login": "bob", "type": "User"},
+                            "merged_at": "2026-03-10T12:00:00Z",
+                            "closed_at": "2026-03-10T12:00:00Z",
+                        }
+                    ])))
+                return types.SimpleNamespace(status=200, text=AsyncMock(return_value=json.dumps([])))
+
+            with patch.object(_worker, "github_api", new=_mock_api):
+                with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
+                    with patch.object(_worker, "_d1_all", new=_smart_d1_all):
+                        with patch.object(_worker, "_d1_inc_open_pr", new=AsyncMock(
+                            side_effect=lambda db, org, login, cnt: open_pr_delta_calls.append((login, cnt))
+                        )):
+                            with patch.object(_worker, "_d1_inc_monthly", new=AsyncMock(
+                                side_effect=lambda db, org, mk, login, field, delta=1: monthly_inc_calls.append((login, field))
+                            )):
+                                with patch.object(_worker, "_d1_run", new=AsyncMock(return_value={"success": True})):
+                                    with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None)):
+                                        await _worker._backfill_repo_month_if_needed(
+                                            "OWASP-BLT", "test-repo", "tok", env,
+                                            month_key="2026-03", start_ts=start_ts, end_ts=end_ts,
+                                        )
+
+            # merged_prs should NOT have been counted (PR was already properly closed)
+            merged_logins = [login for login, field in monthly_inc_calls if field == "merged_prs"]
+            self.assertNotIn("bob", merged_logins)
+            # open_prs should not have been decremented (was already closed, not open)
+            self.assertEqual(open_pr_delta_calls, [])
+
+        _run(_inner())
+
 
 # ---------------------------------------------------------------------------
-# Review backfill tests
+# Admin reset clears backfill state tests
 # ---------------------------------------------------------------------------
+
+
+class TestResetLeaderboardMonthClearsBackfillState(unittest.TestCase):
+    """Test that _reset_leaderboard_month also clears leaderboard_backfill_state."""
+
+    def test_reset_clears_backfill_state(self):
+        """After a reset, leaderboard_backfill_state must be deleted so backfill restarts."""
+        deleted_tables = []
+
+        async def _mock_d1_run(db, sql, params=()):
+            # Capture which table DELETE statements target.
+            if sql.strip().upper().startswith("DELETE FROM"):
+                table = sql.strip().split()[2]
+                deleted_tables.append(table)
+            return {"success": True}
+
+        mock_db = MagicMock()
+
+        async def _inner():
+            with patch.object(_worker, "_d1_run", new=_mock_d1_run):
+                with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
+                    with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None)):
+                        await _worker._reset_leaderboard_month("OWASP-BLT", "2026-03", mock_db)
+
+        _run(_inner())
+
+        self.assertIn("leaderboard_backfill_state", deleted_tables,
+                      "leaderboard_backfill_state should be cleared on reset so backfill can re-run")
+
+    def test_reset_returns_backfill_state_in_result(self):
+        """The reset result dict should include leaderboard_backfill_state."""
+        mock_db = MagicMock()
+
+        async def _inner():
+            with patch.object(_worker, "_d1_run", new=AsyncMock(return_value={"success": True})):
+                with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
+                    with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None)):
+                        return await _worker._reset_leaderboard_month("OWASP-BLT", "2026-03", mock_db)
+
+        result = _run(_inner())
+        self.assertIn("leaderboard_backfill_state", result,
+                      "reset result should report leaderboard_backfill_state table status")
 
 
 class TestBackfillReviewCredits(unittest.TestCase):

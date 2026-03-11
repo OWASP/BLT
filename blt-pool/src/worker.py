@@ -987,12 +987,15 @@ async def _backfill_repo_month_if_needed(
 
     # Load all PR numbers already tracked via webhooks for this repo to avoid
     # double-counting PRs that were already processed by webhook event handlers.
+    # Also load the recorded state so we can self-heal PRs that were tracked as
+    # 'open' but whose close/merge webhook was missed.
     tracked_rows = await _d1_all(
         db,
-        "SELECT pr_number FROM leaderboard_pr_state WHERE org = ? AND repo = ?",
+        "SELECT pr_number, state FROM leaderboard_pr_state WHERE org = ? AND repo = ?",
         (owner, repo_name),
     )
-    already_tracked = {int(row["pr_number"]) for row in (tracked_rows or [])}
+    already_tracked_state = {int(row["pr_number"]): row.get("state", "") for row in (tracked_rows or [])}
+    already_tracked = set(already_tracked_state.keys())
     console.log(f"[Backfill] {len(already_tracked)} PRs already tracked for {owner}/{repo_name}")
 
     now_ts = int(time.time())
@@ -1029,6 +1032,7 @@ async def _backfill_repo_month_if_needed(
                 (owner, repo_name, pr_number, login, now_ts),
             )
             already_tracked.add(pr_number)
+            already_tracked_state[pr_number] = "open"
         console.log(f"[Backfill] Found {len(open_prs)} open PRs, {len(open_by_user)} unique users (new)")
         for login, cnt in open_by_user.items():
             console.log(f"[Backfill] User {login}: {cnt} open PRs")
@@ -1064,9 +1068,18 @@ async def _backfill_repo_month_if_needed(
             pr_number = pr.get("number")
             if not login or not pr_number:
                 continue
-            if pr_number in already_tracked:
+            tracked_state = already_tracked_state.get(pr_number)
+            if tracked_state == "closed":
+                # Already properly tracked as closed — skip to avoid double-counting.
                 console.log(f"[Backfill] Skipping closed PR #{pr_number} (already tracked via webhook)")
                 continue
+            # Self-heal: PR was recorded as 'open' in the database but GitHub now shows it
+            # as closed/merged, meaning the close/merge webhook was missed.  Undo the open
+            # count that was previously recorded and fall through to count it correctly.
+            is_self_heal = tracked_state == "open"
+            if is_self_heal:
+                console.log(f"[Backfill] Self-healing PR #{pr_number} for {login}: was 'open', now closed")
+                await _d1_inc_open_pr(db, owner, login, -1)
             merged_at = pr.get("merged_at")
             closed_at = pr.get("closed_at")
             if merged_at:
@@ -1083,11 +1096,16 @@ async def _backfill_repo_month_if_needed(
                         """
                         INSERT INTO leaderboard_pr_state (org, repo, pr_number, author_login, state, merged, closed_at, updated_at)
                         VALUES (?, ?, ?, ?, 'closed', 1, ?, ?)
-                        ON CONFLICT(org, repo, pr_number) DO NOTHING
+                        ON CONFLICT(org, repo, pr_number) DO UPDATE SET
+                            state = 'closed',
+                            merged = 1,
+                            closed_at = excluded.closed_at,
+                            updated_at = excluded.updated_at
                         """,
                         (owner, repo_name, pr_number, login, pr_closed_ts, now_ts),
                     )
                     already_tracked.add(pr_number)
+                    already_tracked_state[pr_number] = "closed"
                     if len(merged_prs_for_review) < MAX_REVIEW_BACKFILL:
                         merged_prs_for_review.append((pr_number, login))
             elif closed_at:
@@ -1101,11 +1119,16 @@ async def _backfill_repo_month_if_needed(
                         """
                         INSERT INTO leaderboard_pr_state (org, repo, pr_number, author_login, state, merged, closed_at, updated_at)
                         VALUES (?, ?, ?, ?, 'closed', 0, ?, ?)
-                        ON CONFLICT(org, repo, pr_number) DO NOTHING
+                        ON CONFLICT(org, repo, pr_number) DO UPDATE SET
+                            state = 'closed',
+                            merged = 0,
+                            closed_at = excluded.closed_at,
+                            updated_at = excluded.updated_at
                         """,
                         (owner, repo_name, pr_number, login, closed_ts_val, now_ts),
                     )
                     already_tracked.add(pr_number)
+                    already_tracked_state[pr_number] = "closed"
         # Stop paginating if fewer than 100 results (last page).
         if len(closed_prs) < 100:
             break
@@ -1218,6 +1241,7 @@ async def _reset_leaderboard_month(org: str, month_key: str, db) -> dict:
     - leaderboard_monthly_stats       for org + month_key
     - leaderboard_backfill_repo_done  for org + month_key  (allows re-backfill)
     - leaderboard_review_credits      for org + month_key
+    - leaderboard_backfill_state      for org + month_key  (allows backfill to restart)
     - leaderboard_pr_state            for org where closed_at falls within the month window
     - leaderboard_open_prs            for org              (open PR counts are recalculated
                                                             fresh on next backfill)
@@ -1231,6 +1255,7 @@ async def _reset_leaderboard_month(org: str, month_key: str, db) -> dict:
         ("leaderboard_monthly_stats", (org, month_key)),
         ("leaderboard_backfill_repo_done", (org, month_key)),
         ("leaderboard_review_credits", (org, month_key)),
+        ("leaderboard_backfill_state", (org, month_key)),
     ]:
         try:
             await _d1_run(db, f"DELETE FROM {table} WHERE org = ? AND month_key = ?", params)
