@@ -54,26 +54,13 @@ class BLTWorker:
             return Response('', headers=cors_headers)
         
         try:
-            # Route to appropriate handler - API only, no HTML
+            # Route to appropriate handler
             if path == '' or path == '/':
-                response = self.json_response({
-                    'name': 'BLT-NetGuardian API',
-                    'version': '1.0.0',
-                    'status': 'operational',
-                    'message': 'Backend API for BLT-NetGuardian security pipeline',
-                    'frontend': 'https://owasp-blt.github.io/BLT-NetGuardian/',
-                    'endpoints': {
-                        'queue_tasks': '/api/tasks/queue',
-                        'register_target': '/api/targets/register',
-                        'ingest_results': '/api/results/ingest',
-                        'job_status': '/api/jobs/status',
-                        'list_tasks': '/api/tasks/list',
-                        'vulnerabilities': '/api/vulnerabilities',
-                        'discovery_suggest': '/api/discovery/suggest',
-                        'discovery_status': '/api/discovery/status',
-                        'discovery_recent': '/api/discovery/recent'
-                    }
-                })
+                response = Response(
+                    '',
+                    status=302,
+                    headers={'Location': 'https://owasp-blt.github.io/BLT-NetGuardian/'}
+                )
             elif path == 'api/discovery/suggest':
                 response = await self.handle_discovery_suggest(request)
             elif path == 'api/discovery/status':

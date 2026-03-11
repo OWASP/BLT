@@ -60,16 +60,13 @@ async def test_handle_request_options_returns_cors_headers():
 
 
 @pytest.mark.asyncio
-async def test_handle_request_root_returns_api_info_and_cors_headers():
+async def test_handle_request_root_redirects_to_homepage():
     worker = BLTWorker(SimpleNamespace(DB=None))
 
     response = await worker.handle_request(FakeRequest("https://api.example.com/"))
-    payload = parse_json(response)
 
-    assert response.status == 200
-    assert payload["name"] == "BLT-NetGuardian API"
-    assert payload["status"] == "operational"
-    assert payload["endpoints"]["queue_tasks"] == "/api/tasks/queue"
+    assert response.status == 302
+    assert response.headers["Location"] == "https://owasp-blt.github.io/BLT-NetGuardian/"
     assert response.headers["Access-Control-Allow-Origin"] == "*"
 
 
@@ -335,7 +332,6 @@ async def test_on_fetch_entrypoint_uses_worker_handler():
         SimpleNamespace(DB=None),
         None,
     )
-    payload = parse_json(response)
 
-    assert response.status == 200
-    assert payload["status"] == "operational"
+    assert response.status == 302
+    assert response.headers["Location"] == "https://owasp-blt.github.io/BLT-NetGuardian/"
