@@ -552,7 +552,8 @@ class TestHandlePullRequestOpened(unittest.TestCase):
             with patch.object(_worker, "create_comment", new=AsyncMock(side_effect=lambda o, r, n, b, t: comments.append(b))):
                 with patch.object(_worker, "_check_and_close_excess_prs", new=AsyncMock(return_value=False)):
                     with patch.object(_worker, "_post_or_update_leaderboard", new=AsyncMock()):
-                        await _worker.handle_pull_request_opened(payload, "tok")
+                        with patch.object(_worker, "apply_file_based_labels", new=AsyncMock()):
+                            await _worker.handle_pull_request_opened(payload, "tok")
         _run(_inner())
 
     def test_posts_welcome_message(self):
@@ -599,6 +600,164 @@ class TestHandlePullRequestClosed(unittest.TestCase):
         self._run_closed(payload, comments)
         self.assertEqual(comments, [])
 
+
+class TestDetectPrLabels(unittest.TestCase):
+    """_detect_pr_labels — pure function, no I/O required."""
+
+    def test_python_file(self):
+        self.assertEqual(_worker._detect_pr_labels(["src/worker.py"]), {"python"})
+
+    def test_javascript_extensions(self):
+        for ext in (".js", ".ts", ".mjs", ".cjs"):
+            with self.subTest(ext=ext):
+                labels = _worker._detect_pr_labels([f"app{ext}"])
+                self.assertIn("javascript", labels)
+
+    def test_ci_workflow_file(self):
+        labels = _worker._detect_pr_labels([".github/workflows/ci.yml"])
+        self.assertIn("ci", labels)
+
+    def test_markdown_documentation(self):
+        labels = _worker._detect_pr_labels(["README.md"])
+        self.assertIn("documentation", labels)
+
+    def test_root_toml_configuration(self):
+        labels = _worker._detect_pr_labels(["wrangler.toml"])
+        self.assertIn("configuration", labels)
+
+    def test_root_json_configuration(self):
+        labels = _worker._detect_pr_labels(["package.json"])
+        self.assertIn("configuration", labels)
+
+    def test_root_dotenv_configuration(self):
+        labels = _worker._detect_pr_labels([".env.example"])
+        self.assertIn("configuration", labels)
+
+    def test_gitignore_configuration(self):
+        labels = _worker._detect_pr_labels([".gitignore"])
+        self.assertIn("configuration", labels)
+
+    def test_nested_toml_not_configuration(self):
+        labels = _worker._detect_pr_labels(["subdir/something.toml"])
+        self.assertNotIn("configuration", labels)
+
+    def test_multiple_labels_from_multiple_files(self):
+        labels = _worker._detect_pr_labels(["src/worker.py", "README.md"])
+        self.assertIn("python", labels)
+        self.assertIn("documentation", labels)
+
+    def test_empty_filenames(self):
+        self.assertEqual(_worker._detect_pr_labels([]), set())
+
+    def test_unrelated_file_produces_no_label(self):
+        labels = _worker._detect_pr_labels(["public/logo.png"])
+        self.assertEqual(labels, set())
+
+
+class TestApplyFileBasedLabels(unittest.TestCase):
+    """apply_file_based_labels — integration with GitHub API mocked."""
+
+    def _make_files_response(self, filenames, status=200):
+        body = json.dumps([{"filename": f} for f in filenames])
+        mock = MagicMock()
+        mock.status = status
+        mock.text = AsyncMock(return_value=body)
+        return mock
+
+    def _make_labels_response(self, label_names=None, status=200):
+        label_names = label_names or []
+        body = json.dumps([{"name": n} for n in label_names])
+        mock = MagicMock()
+        mock.status = status
+        mock.text = AsyncMock(return_value=body)
+        return mock
+
+    def test_applies_python_label(self):
+        api_calls = []
+
+        async def fake_api(method, path, token, body=None):
+            api_calls.append((method, path, body))
+            if "files" in path:
+                return self._make_files_response(["src/worker.py"])
+            if path.endswith("/labels") and method == "GET":
+                return self._make_labels_response([])
+            mock = MagicMock()
+            mock.status = 200
+            mock.text = AsyncMock(return_value="{}")
+            return mock
+
+        async def _inner():
+            with patch.object(_worker, "github_api", side_effect=fake_api):
+                await _worker.apply_file_based_labels("owner", "repo", 1, "tok")
+
+        _run(_inner())
+        posted_labels = [
+            b["labels"][0] for m, p, b in api_calls
+            if m == "POST" and "/issues/" in p and "/labels" in p and b
+        ]
+        self.assertIn("python", posted_labels)
+
+    def test_skips_labels_already_present(self):
+        api_calls = []
+
+        async def fake_api(method, path, token, body=None):
+            api_calls.append((method, path, body))
+            if "files" in path:
+                return self._make_files_response(["README.md"])
+            if path.endswith("/labels") and method == "GET":
+                return self._make_labels_response(["documentation"])
+            mock = MagicMock()
+            mock.status = 200
+            mock.text = AsyncMock(return_value="{}")
+            return mock
+
+        async def _inner():
+            with patch.object(_worker, "github_api", side_effect=fake_api):
+                await _worker.apply_file_based_labels("owner", "repo", 2, "tok")
+
+        _run(_inner())
+        posted_labels = [
+            b["labels"][0] for m, p, b in api_calls
+            if m == "POST" and "/issues/" in p and "/labels" in p and b
+        ]
+        self.assertNotIn("documentation", posted_labels)
+
+    def test_does_nothing_when_no_matching_files(self):
+        api_calls = []
+
+        async def fake_api(method, path, token, body=None):
+            api_calls.append((method, path, body))
+            if "files" in path:
+                return self._make_files_response(["public/logo.png"])
+            mock = MagicMock()
+            mock.status = 200
+            mock.text = AsyncMock(return_value="{}")
+            return mock
+
+        async def _inner():
+            with patch.object(_worker, "github_api", side_effect=fake_api):
+                await _worker.apply_file_based_labels("owner", "repo", 3, "tok")
+
+        _run(_inner())
+        post_label_calls = [
+            a for a in api_calls
+            if a[0] == "POST" and "/issues/" in a[1] and "/labels" in a[1]
+        ]
+        self.assertEqual(post_label_calls, [])
+
+    def test_handles_files_api_error_gracefully(self):
+        async def fake_api(method, path, token, body=None):
+            mock = MagicMock()
+            mock.status = 500
+            mock.text = AsyncMock(return_value="error")
+            return mock
+
+        async def _inner():
+            with patch.object(_worker, "github_api", side_effect=fake_api):
+                # Should not raise
+                await _worker.apply_file_based_labels("owner", "repo", 4, "tok")
+
+        _run(_inner())  # no exception expected
 
 class TestSecretVarsStatusHtml(unittest.TestCase):
     """_secret_vars_status_html and _landing_html secret variable display"""

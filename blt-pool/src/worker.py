@@ -1829,6 +1829,92 @@ async def handle_issue_labeled(
         )
 
 
+# ---------------------------------------------------------------------------
+# File-based PR label detection
+# ---------------------------------------------------------------------------
+
+# Label definitions: (name, hex-color)
+_FILE_LABEL_DEFS = {
+    "python":        "3572A5",
+    "javascript":    "f1e05a",
+    "ci":            "e4e669",
+    "documentation": "0075ca",
+    "configuration": "6e7781",
+}
+
+
+def _detect_pr_labels(filenames: list) -> set:
+    """Return the set of label names to apply based on a list of changed file paths."""
+    labels = set()
+    for filename in filenames:
+        f = filename.replace("\\", "/")
+        if f.endswith(".py"):
+            labels.add("python")
+        if f.endswith((".js", ".ts", ".mjs", ".cjs")):
+            labels.add("javascript")
+        if f.startswith(".github/workflows/"):
+            labels.add("ci")
+        if f.endswith(".md"):
+            labels.add("documentation")
+        is_root = "/" not in f
+        basename = f.rsplit("/", 1)[-1] if "/" in f else f
+        if is_root and (
+            f.endswith((".toml", ".json"))
+            or basename.startswith(".env")
+            or f == ".gitignore"
+        ):
+            labels.add("configuration")
+    return labels
+
+
+async def apply_file_based_labels(
+    owner: str, repo: str, pr_number: int, token: str
+) -> None:
+    """Detect file-type labels from the PR's changed files and apply them.
+
+    Fetches the list of files changed in the PR, determines which labels to
+    apply via :func:`_detect_pr_labels`, ensures each label exists in the
+    repository, and adds any that are not already present on the PR.
+    """
+    resp = await github_api(
+        "GET",
+        f"/repos/{owner}/{repo}/pulls/{pr_number}/files?per_page=100",
+        token,
+    )
+    if resp.status != 200:
+        console.error(
+            f"[BLT] apply_file_based_labels: could not fetch PR files "
+            f"({resp.status}) for {owner}/{repo}#{pr_number}"
+        )
+        return
+
+    files_data = json.loads(await resp.text())
+    filenames = [f.get("filename", "") for f in files_data if isinstance(f, dict)]
+    desired_labels = _detect_pr_labels(filenames)
+    if not desired_labels:
+        return
+
+    labels_resp = await github_api(
+        "GET",
+        f"/repos/{owner}/{repo}/issues/{pr_number}/labels",
+        token,
+    )
+    current_label_names: set = set()
+    if labels_resp.status == 200:
+        current_labels = json.loads(await labels_resp.text())
+        current_label_names = {lb.get("name") for lb in current_labels}
+
+    for label_name in desired_labels - current_label_names:
+        color = _FILE_LABEL_DEFS.get(label_name, "ededed")
+        await _ensure_label_exists(owner, repo, label_name, color, token)
+        await github_api(
+            "POST",
+            f"/repos/{owner}/{repo}/issues/{pr_number}/labels",
+            token,
+            {"labels": [label_name]},
+        )
+
+
 async def handle_pull_request_opened(payload: dict, token: str, env=None) -> None:
     pr = payload["pull_request"]
     sender = payload["sender"]
@@ -1863,6 +1949,12 @@ async def handle_pull_request_opened(payload: dict, token: str, env=None) -> Non
         await check_unresolved_conversations(payload, token)
     except Exception as exc:
         console.error(f"[BLT] check_unresolved_conversations failed (best-effort, ignored): {exc}")
+
+    # Apply file-type labels (python, javascript, ci, documentation, configuration)
+    try:
+        await apply_file_based_labels(owner, repo, pr_number, token)
+    except Exception as exc:
+        console.error(f"[BLT] apply_file_based_labels failed (best-effort, ignored): {exc}")
 
 
 async def handle_pull_request_closed(payload: dict, token: str, env=None) -> None:
@@ -2309,6 +2401,12 @@ async def handle_pull_request_for_review(payload: dict, token: str) -> None:
     pr_author = pr["user"]["login"]
     
     await check_peer_review_and_comment(owner, repo, pr["number"], pr_author, token)
+
+    # Apply file-type labels (python, javascript, ci, documentation, configuration)
+    try:
+        await apply_file_based_labels(owner, repo, pr["number"], token)
+    except Exception as exc:
+        console.error(f"[BLT] apply_file_based_labels failed (best-effort, ignored): {exc}")
 
 
 # ---------------------------------------------------------------------------
