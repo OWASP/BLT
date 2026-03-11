@@ -29,7 +29,7 @@
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swapamp;family=Manrope:wght@400;500;600;700;800family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swapamp;display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
@@ -216,6 +216,9 @@
                                 </div>
                                 <div class="discovery-status">
                                     <span class="status queued">Queued for scan</span>
+                                    <button class="btn-download-client" data-type="domain" data-target="newstartup.io" data-status="queued" title="Download task to local client">
+                                        <i class="fa-solid fa-download" aria-hidden="true"></i> Send to Client
+                                    </button>
                                 </div>
                             </div>
                             <div class="discovery-item">
@@ -226,6 +229,9 @@
                                 </div>
                                 <div class="discovery-status">
                                     <span class="status running">Scanning...</span>
+                                    <button class="btn-download-client" data-type="repository" data-target="github.com/acme/webapp" data-status="running" title="Download task to local client">
+                                        <i class="fa-solid fa-download" aria-hidden="true"></i> Send to Client
+                                    </button>
                                 </div>
                             </div>
                             <div class="discovery-item vulnerability-found">
@@ -238,6 +244,9 @@
                                     <span class="severity high">2 high</span>
                                     <span class="severity medium">5 medium</span>
                                     <span class="status contacted">Contact attempted</span>
+                                    <button class="btn-download-client" data-type="domain" data-target="oldcompany.com" data-status="contacted" title="Download task to local client">
+                                        <i class="fa-solid fa-download" aria-hidden="true"></i> Send to Client
+                                    </button>
                                 </div>
                             </div>
                         </div>

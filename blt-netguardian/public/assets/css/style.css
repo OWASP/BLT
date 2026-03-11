@@ -319,6 +319,37 @@ a:hover {
     gap: 0.5rem;
 }
 
+.btn-download-client {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    border: 1px solid #d1d5db;
+    border-radius: 999px;
+    background: #ffffff;
+    color: #374151;
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 0.2rem 0.65rem;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    white-space: nowrap;
+}
+
+.btn-download-client:hover {
+    background: #f3f4f6;
+    border-color: #9ca3af;
+    color: #111827;
+}
+
+.btn-download-client:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(55, 65, 81, 0.25);
+}
+
+.btn-download-client i {
+    font-size: 0.65rem;
+}
+
 table {
     width: 100%;
     border-collapse: collapse;
