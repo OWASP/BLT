@@ -5,7 +5,7 @@ A dual-purpose platform that:
 2. Automates GitHub workflows (issue assignment, leaderboard, webhooks)
 
 Homepage (/) displays the mentor grid with availability and assignments.
-GitHub App documentation and installation at /github-pages
+GitHub App documentation and installation at /github-app
 (legacy alias: /github-app).
 
 Entry point: ``on_fetch(request, env)`` — called by the Cloudflare runtime for
@@ -2871,7 +2871,7 @@ def _index_html() -> str:
       </a>
       <nav class="hidden items-center gap-1 rounded-xl border border-[#E5E5E5] bg-white p-1 md:flex" aria-label="Primary">
         <a href="/" class="rounded-lg bg-[#feeae9] px-3 py-2 text-sm font-semibold text-[#E10101]">Mentors</a>
-        <a href="/github-pages" class="rounded-lg px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">GitHub Pages</a>
+        <a href="/github-app" class="rounded-lg px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">GitHub Pages</a>
         <a href="https://owaspblt.org" target="_blank" rel="noopener" class="rounded-lg px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">
           OWASP BLT <i class="fa-solid fa-arrow-up-right-from-square text-xs" aria-hidden="true"></i>
         </a>
@@ -2906,10 +2906,10 @@ def _index_html() -> str:
               <i class="fa-brands fa-slack" aria-hidden="true"></i>
               Join OWASP Slack
             </a>
-            <a href="/github-pages"
+            <a href="/github-app"
                class="inline-flex items-center gap-2 rounded-md border border-[#E10101] px-5 py-3 text-sm font-semibold text-[#E10101] transition hover:bg-[#E10101] hover:text-white focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2">
               <i class="fa-brands fa-github" aria-hidden="true"></i>
-              Open GitHub Pages
+              Open GitHub App
             </a>
           </div>
         </div>
@@ -2994,7 +2994,7 @@ def _index_html() -> str:
     <div class="mx-auto max-w-7xl px-4 py-6 text-center text-sm text-gray-600 sm:px-6 lg:px-8">
       Built by the <a href="https://owaspblt.org" target="_blank" rel="noopener" class="text-red-600 hover:underline">OWASP BLT community</a>
       <span aria-hidden="true"> • </span>
-      <a href="/github-pages" class="text-red-600 hover:underline">GitHub Pages</a>
+      <a href="/github-app" class="text-red-600 hover:underline">GitHub App</a>
       <span aria-hidden="true"> • </span>
       <a href="https://github.com/OWASP-BLT/BLT-Pool" target="_blank" rel="noopener" class="text-red-600 hover:underline">BLT-Pool Repo</a>
       <p class="mt-2 text-xs text-gray-500">&copy; {year} OWASP Foundation. All rights reserved.</p>
@@ -3041,7 +3041,7 @@ async def on_fetch(request, env) -> Response:
     if method == "GET" and path == "/":
         return _html(_index_html())
 
-    if method == "GET" and path in ("/github-app", "/github-pages"):
+    if method == "GET" and path == "/github-app":
         app_slug = getattr(env, "GITHUB_APP_SLUG", "")
         return _html(_github_app_html(app_slug, env))
 
