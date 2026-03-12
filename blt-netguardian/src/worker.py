@@ -587,7 +587,7 @@ class BLTWorker:
             return False
         if method in self.MUTATING_METHODS:
             return True
-        return self.get_boolean_env('AUTHENTICATE_READ_ENDPOINTS', default=False)
+        return self.get_boolean_env('AUTHENTICATE_READ_ENDPOINTS', default=True)
 
     def get_boolean_env(self, key: str, default: bool = False) -> bool:
         """Read boolean flags from environment variables."""
@@ -634,8 +634,7 @@ class BLTWorker:
         """Return a generic 500 response and log exception details server-side."""
         self.log_exception(error_message, error)
         return self.json_response({
-            'error': error_message,
-            'message': str(error)
+              'error': error_message
         }, status=500, headers=headers)
     
     def get_query_param(self, request, key: str, default: Optional[str] = None) -> Optional[str]:
