@@ -46,23 +46,192 @@ MAX_ASSIGNEES = 1
 ASSIGNMENT_DURATION_HOURS = 8
 BUG_LABELS = {"bug", "vulnerability", "security"}
 
+# ---------------------------------------------------------------------------
+# Mentor pool — slash commands and label names
+# ---------------------------------------------------------------------------
+
+MENTOR_COMMAND = "/mentor"
+MENTOR_PAUSE_COMMAND = "/mentor-pause"
+HANDOFF_COMMAND = "/handoff"
+REMATCH_COMMAND = "/rematch"
+NEEDS_MENTOR_LABEL = "needs-mentor"
+MENTOR_ASSIGNED_LABEL = "mentor-assigned"
+MENTOR_MAX_MENTEES = 3
+MENTOR_STALE_DAYS = 14
+MENTOR_LABEL_COLOR = "7057ff"
+MENTOR_ASSIGNED_LABEL_COLOR = "0075ca"
+# Issues with these labels bypass mentor auto-assignment (go to core maintainers).
+SECURITY_BYPASS_LABELS = {"security", "vulnerability", "security-sensitive", "private-security"}
+# Seconds in a day — used for stale-assignment threshold calculations.
+_SECONDS_PER_DAY = 86400
+
 # Mentor pool for BLT-Pool platform
 MENTORS = [
-    {"name": "Rinkit Adhana", "github_username": "rinkitadhana", "slack_username": "Rinkit Adhana", "project": "Project A", "mentee": None, "status": "available"},
-    {"name": "Raj Gupta", "github_username": "Rajgupta36", "slack_username": "raj", "project": "Project A", "mentee": None, "status": "available"},
-    {"name": "Shriyash Soni", "github_username": "shriyashsoni", "slack_username": "shriyash soni", "project": "", "mentee": None, "status": "available"},
-    {"name": "Mohammed Faiyaz Shaikh", "github_username": "Mohammedfaiyaz29", "slack_username": "faiyaz", "project": None, "mentee": None, "status": "available"},
-    {"name": "Manikandan Chandran", "github_username": "", "slack_username": "", "project": None, "mentee": None, "status": "available"},
-    {"name": "Shivam Kumar", "github_username": "", "slack_username": "", "project": None, "mentee": None, "status": "available"},
-    {"name": "Vinamra Vaswani", "github_username": "Vaswani2003", "slack_username": "@Vinamra", "project": None, "mentee": None, "status": "available"},
-    {"name": "Carla Voorhees", "github_username": "kittenbytes", "slack_username": "@Carla", "project": None, "mentee": None, "status": "available"},
-    {"name": "Akshay Behl", "github_username": "Captain-T2004", "slack_username": "@Akshay Behl", "project": None, "mentee": None, "status": "available"},
-    {"name": "Ahmed ElSheik", "github_username": "elsheik21", "slack_username": "Ahmed ElSheik", "project": None, "mentee": None, "status": "available"},
-    {"name": "Kunal Kashyap", "github_username": "Kunal1522", "slack_username": "Kunal", "project": None, "mentee": None, "status": "available"},
-    {"name": "Rudra Bhaskar", "github_username": "RudraBhaskar9439", "slack_username": "@Rudra9439", "project": None, "mentee": None, "status": "available"},
-    {"name": "Sanidhya Shishodia", "github_username": "dev-sanidhya", "slack_username": "@Sanidhya Shishodia", "project": None, "mentee": None, "status": "available"},
-    {"name": "Vedant Anand", "github_username": "VedantAnand17", "slack_username": "Vedant Anand", "project": None, "mentee": None, "status": "available"},
-    {"name": "Rishab Kumar Jha", "github_username": "Rishab87", "slack_username": "Rishab Kumar Jha", "project": None, "mentee": None, "status": "available"},
+    {
+        "name": "Rinkit Adhana",
+        "github_username": "rinkitadhana",
+        "slack_username": "Rinkit Adhana",
+        "project": "Project A",
+        "mentee": None,
+        "status": "available",
+        "specialties": ["frontend", "javascript"],
+        "max_mentees": 3,
+        "active": True,
+    },
+    {
+        "name": "Raj Gupta",
+        "github_username": "Rajgupta36",
+        "slack_username": "raj",
+        "project": "Project A",
+        "mentee": None,
+        "status": "available",
+        "specialties": ["backend", "python"],
+        "max_mentees": 3,
+        "active": True,
+    },
+    {
+        "name": "Shriyash Soni",
+        "github_username": "shriyashsoni",
+        "slack_username": "shriyash soni",
+        "project": "",
+        "mentee": None,
+        "status": "available",
+        "specialties": [],
+        "max_mentees": 3,
+        "active": True,
+    },
+    {
+        "name": "Mohammed Faiyaz Shaikh",
+        "github_username": "Mohammedfaiyaz29",
+        "slack_username": "faiyaz",
+        "project": None,
+        "mentee": None,
+        "status": "available",
+        "specialties": [],
+        "max_mentees": 3,
+        "active": True,
+    },
+    {
+        "name": "Manikandan Chandran",
+        "github_username": "",
+        "slack_username": "",
+        "project": None,
+        "mentee": None,
+        "status": "available",
+        "specialties": [],
+        "max_mentees": 3,
+        "active": False,
+    },
+    {
+        "name": "Shivam Kumar",
+        "github_username": "",
+        "slack_username": "",
+        "project": None,
+        "mentee": None,
+        "status": "available",
+        "specialties": [],
+        "max_mentees": 3,
+        "active": False,
+    },
+    {
+        "name": "Vinamra Vaswani",
+        "github_username": "Vaswani2003",
+        "slack_username": "@Vinamra",
+        "project": None,
+        "mentee": None,
+        "status": "available",
+        "specialties": [],
+        "max_mentees": 3,
+        "active": True,
+    },
+    {
+        "name": "Carla Voorhees",
+        "github_username": "kittenbytes",
+        "slack_username": "@Carla",
+        "project": None,
+        "mentee": None,
+        "status": "available",
+        "specialties": [],
+        "max_mentees": 3,
+        "active": True,
+    },
+    {
+        "name": "Akshay Behl",
+        "github_username": "Captain-T2004",
+        "slack_username": "@Akshay Behl",
+        "project": None,
+        "mentee": None,
+        "status": "available",
+        "specialties": [],
+        "max_mentees": 3,
+        "active": True,
+    },
+    {
+        "name": "Ahmed ElSheik",
+        "github_username": "elsheik21",
+        "slack_username": "Ahmed ElSheik",
+        "project": None,
+        "mentee": None,
+        "status": "available",
+        "specialties": [],
+        "max_mentees": 3,
+        "active": True,
+    },
+    {
+        "name": "Kunal Kashyap",
+        "github_username": "Kunal1522",
+        "slack_username": "Kunal",
+        "project": None,
+        "mentee": None,
+        "status": "available",
+        "specialties": [],
+        "max_mentees": 3,
+        "active": True,
+    },
+    {
+        "name": "Rudra Bhaskar",
+        "github_username": "RudraBhaskar9439",
+        "slack_username": "@Rudra9439",
+        "project": None,
+        "mentee": None,
+        "status": "available",
+        "specialties": [],
+        "max_mentees": 3,
+        "active": True,
+    },
+    {
+        "name": "Sanidhya Shishodia",
+        "github_username": "dev-sanidhya",
+        "slack_username": "@Sanidhya Shishodia",
+        "project": None,
+        "mentee": None,
+        "status": "available",
+        "specialties": [],
+        "max_mentees": 3,
+        "active": True,
+    },
+    {
+        "name": "Vedant Anand",
+        "github_username": "VedantAnand17",
+        "slack_username": "Vedant Anand",
+        "project": None,
+        "mentee": None,
+        "status": "available",
+        "specialties": [],
+        "max_mentees": 3,
+        "active": True,
+    },
+    {
+        "name": "Rishab Kumar Jha",
+        "github_username": "Rishab87",
+        "slack_username": "Rishab Kumar Jha",
+        "project": None,
+        "mentee": None,
+        "status": "available",
+        "specialties": [],
+        "max_mentees": 3,
+        "active": True,
+    },
 ]
 
 # DER OID sequence for rsaEncryption (used when wrapping PKCS#1 → PKCS#8)
@@ -363,7 +532,15 @@ def _extract_command(body: str) -> Optional[str]:
     tokens = body.strip().split()
     if not tokens:
         return None
-    supported = {ASSIGN_COMMAND, UNASSIGN_COMMAND, LEADERBOARD_COMMAND}
+    supported = {
+        ASSIGN_COMMAND,
+        UNASSIGN_COMMAND,
+        LEADERBOARD_COMMAND,
+        MENTOR_COMMAND,
+        MENTOR_PAUSE_COMMAND,
+        HANDOFF_COMMAND,
+        REMATCH_COMMAND,
+    }
     for t in tokens:
         tok = t.strip().lower().rstrip(".,!?:;")
         if tok in supported:
@@ -1858,6 +2035,625 @@ async def _check_rank_improvement(owner: str, repo: str, pr_number: int, author_
 
 
 # ---------------------------------------------------------------------------
+# Mentor Pool — Configuration, Selection, and Command Handlers
+# ---------------------------------------------------------------------------
+
+
+def _parse_yaml_scalar(s: str):
+    """Convert a YAML scalar string to an appropriate Python value."""
+    if s.lower() in ("true", "yes"):
+        return True
+    if s.lower() in ("false", "no"):
+        return False
+    if s.lower() in ("null", "~", ""):
+        return None
+    try:
+        return int(s)
+    except ValueError:
+        pass
+    if (s.startswith('"') and s.endswith('"')) or (s.startswith("'") and s.endswith("'")):
+        return s[1:-1]
+    return s
+
+
+def _parse_mentors_yaml(content: str) -> list:
+    """Parse a simple mentors YAML file into a list of mentor dicts.
+
+    Handles the specific format used in ``.github/mentors.yml``:
+
+    .. code-block:: yaml
+
+        mentors:
+          - github_username: alice
+            name: Alice Smith
+            specialties:
+              - frontend
+            max_mentees: 3
+            active: true
+    """
+    mentors: list = []
+    current: Optional[dict] = None
+    current_list_key: Optional[str] = None
+
+    for raw_line in content.splitlines():
+        line = raw_line.rstrip()
+        if not line.strip() or line.strip().startswith("#"):
+            continue
+        indent = len(line) - len(line.lstrip())
+        stripped = line.strip()
+
+        if stripped == "mentors:":
+            continue
+
+        if stripped.startswith("- ") and indent == 2:
+            # New mentor entry
+            if current is not None:
+                mentors.append(current)
+            current = {}
+            current_list_key = None
+            kv = stripped[2:]
+            if ":" in kv:
+                k, _, v = kv.partition(":")
+                current[k.strip()] = _parse_yaml_scalar(v.strip())
+        elif stripped.startswith("- ") and indent >= 6 and current is not None and current_list_key:
+            # List item (e.g. a specialty entry)
+            current[current_list_key].append(stripped[2:].strip())
+        elif ":" in stripped and not stripped.startswith("-") and current is not None:
+            k, _, v = stripped.partition(":")
+            k = k.strip()
+            v = v.strip()
+            if v == "":
+                current_list_key = k
+                current[k] = []
+            else:
+                current_list_key = None
+                current[k] = _parse_yaml_scalar(v)
+
+    if current is not None:
+        mentors.append(current)
+
+    return mentors
+
+
+async def _fetch_mentors_config(owner: str, repo: str, token: str) -> list:
+    """Fetch and parse ``.github/mentors.yml`` from the repository.
+
+    Returns the parsed mentor list, or falls back to the built-in :data:`MENTORS`
+    list when the file does not exist or cannot be parsed.
+    """
+    resp = await github_api(
+        "GET",
+        f"/repos/{owner}/{repo}/contents/.github/mentors.yml",
+        token,
+    )
+    if resp.status == 404:
+        return MENTORS
+    if resp.status != 200:
+        console.error(f"[MentorPool] Failed to fetch .github/mentors.yml: {resp.status}")
+        return MENTORS
+    try:
+        data = json.loads(await resp.text())
+        content_b64 = data.get("content", "")
+        # GitHub wraps base64 content with newlines; strip before decoding.
+        content_decoded = base64.b64decode(content_b64.replace("\n", "")).decode("utf-8")
+        parsed = _parse_mentors_yaml(content_decoded)
+        if parsed:
+            console.log(f"[MentorPool] Loaded {len(parsed)} mentors from .github/mentors.yml")
+            return parsed
+    except Exception as exc:
+        console.error(f"[MentorPool] Error parsing .github/mentors.yml: {exc}")
+    return MENTORS
+
+
+async def _get_mentor_load_map(owner: str, token: str) -> dict:
+    """Return a mapping of mentor_username → open mentored issue count.
+
+    Uses a single GitHub search API call to count all currently
+    open issues labelled ``mentor-assigned`` per assignee.
+    """
+    resp = await github_api(
+        "GET",
+        f"/search/issues?q=org:{owner}+is:issue+is:open+label:{MENTOR_ASSIGNED_LABEL}&per_page=100",
+        token,
+    )
+    if resp.status != 200:
+        return {}
+    data = json.loads(await resp.text())
+    load_map: dict = {}
+    for item in data.get("items", []):
+        for assignee in item.get("assignees", []):
+            login = assignee.get("login", "")
+            if login:
+                load_map[login] = load_map.get(login, 0) + 1
+    return load_map
+
+
+async def _select_mentor(
+    owner: str,
+    token: str,
+    issue_labels: Optional[list] = None,
+    mentors_config: Optional[list] = None,
+    exclude: Optional[str] = None,
+) -> Optional[dict]:
+    """Select the best available mentor using capacity-aware round-robin.
+
+    The algorithm:
+    1. Filter to active mentors with a GitHub username (optionally excluding one).
+    2. If the issue has labels that match any mentor's specialties, prefer those mentors.
+    3. Fetch the current load map (single API call).
+    4. Skip mentors who are at or over their ``max_mentees`` cap.
+    5. Return the mentor with the fewest active issues; break ties alphabetically.
+
+    Returns ``None`` when no mentor is available.
+    """
+    pool = mentors_config if mentors_config is not None else MENTORS
+    active = [
+        m for m in pool
+        if m.get("active", True)
+        and m.get("github_username")
+        and (exclude is None or m["github_username"].lower() != exclude.lower())
+    ]
+    if not active:
+        return None
+
+    # Specialty matching: narrow to mentors who match the issue's labels.
+    if issue_labels:
+        label_set = {lb.lower() for lb in issue_labels}
+        specialty_matched = [
+            m for m in active
+            if any(s.lower() in label_set for s in m.get("specialties", []))
+        ]
+        if specialty_matched:
+            active = specialty_matched
+
+    load_map = await _get_mentor_load_map(owner, token)
+
+    # Build candidates filtered by capacity.
+    candidates = []
+    for m in active:
+        username = m["github_username"]
+        load = load_map.get(username, 0)
+        cap = m.get("max_mentees", MENTOR_MAX_MENTEES)
+        if load < cap:
+            candidates.append((m, load))
+
+    if not candidates:
+        return None
+
+    # Pick mentor with fewest active issues; break ties alphabetically.
+    candidates.sort(key=lambda x: (x[1], x[0]["github_username"].lower()))
+    return candidates[0][0]
+
+
+async def _find_assigned_mentor_from_comments(
+    owner: str, repo: str, issue_number: int, token: str
+) -> Optional[str]:
+    """Scan issue comments for the ``blt-mentor-assigned`` hidden marker.
+
+    Returns the mentor's GitHub username, or ``None`` if no marker is found.
+    """
+    resp = await github_api(
+        "GET",
+        f"/repos/{owner}/{repo}/issues/{issue_number}/comments?per_page=100",
+        token,
+    )
+    if resp.status != 200:
+        return None
+    comments = json.loads(await resp.text())
+    marker = "<!-- blt-mentor-assigned:"
+    for comment in reversed(comments):
+        body = comment.get("body", "")
+        if marker in body:
+            start = body.find(marker) + len(marker)
+            end = body.find("-->", start)
+            if end > start:
+                return body[start:end].strip().lstrip("@")
+    return None
+
+
+def _is_security_issue(issue: dict) -> bool:
+    """Return ``True`` if the issue carries any security-sensitive label."""
+    labels = {lb.get("name", "").lower() for lb in issue.get("labels", [])}
+    return bool(labels & SECURITY_BYPASS_LABELS)
+
+
+async def _assign_mentor_to_issue(
+    owner: str,
+    repo: str,
+    issue: dict,
+    contributor_login: str,
+    token: str,
+    mentors_config: Optional[list] = None,
+    exclude: Optional[str] = None,
+) -> bool:
+    """Assign a mentor from the pool to an issue.
+
+    Steps:
+    1. Reject security-sensitive issues.
+    2. Skip if the issue already has the ``mentor-assigned`` label.
+    3. Select a mentor via capacity-aware round-robin.
+    4. Ensure the ``needs-mentor`` and ``mentor-assigned`` labels exist, then apply
+       ``mentor-assigned`` to the issue.
+    5. Add the mentor as a GitHub assignee.
+    6. Post a welcome comment with a hidden ``blt-mentor-assigned`` marker.
+
+    Returns ``True`` on success, ``False`` otherwise.
+    """
+    issue_number = issue["number"]
+
+    if _is_security_issue(issue):
+        console.log(
+            f"[MentorPool] Skipping security issue {owner}/{repo}#{issue_number}"
+        )
+        return False
+
+    current_labels = {lb.get("name", "").lower() for lb in issue.get("labels", [])}
+    if MENTOR_ASSIGNED_LABEL.lower() in current_labels:
+        console.log(
+            f"[MentorPool] Mentor already assigned to {owner}/{repo}#{issue_number}"
+        )
+        return False
+
+    issue_label_names = [lb.get("name", "") for lb in issue.get("labels", [])]
+    mentor = await _select_mentor(
+        owner, token, issue_label_names, mentors_config, exclude=exclude
+    )
+
+    if mentor is None:
+        await create_comment(
+            owner,
+            repo,
+            issue_number,
+            "👋 A mentor was requested for this issue, but all mentors are currently "
+            "at capacity. Please check back soon or ask for guidance in the "
+            "[OWASP Slack](https://owasp.slack.com/archives/C0DKR6LAW).",
+            token,
+        )
+        return False
+
+    mentor_username = mentor["github_username"]
+
+    # Ensure labels exist in the repo before applying them.
+    await _ensure_label_exists(owner, repo, NEEDS_MENTOR_LABEL, MENTOR_LABEL_COLOR, token)
+    await _ensure_label_exists(
+        owner, repo, MENTOR_ASSIGNED_LABEL, MENTOR_ASSIGNED_LABEL_COLOR, token
+    )
+
+    # Apply mentor-assigned label.
+    await github_api(
+        "POST",
+        f"/repos/{owner}/{repo}/issues/{issue_number}/labels",
+        token,
+        {"labels": [MENTOR_ASSIGNED_LABEL]},
+    )
+
+    # Add mentor as a GitHub assignee.
+    await github_api(
+        "POST",
+        f"/repos/{owner}/{repo}/issues/{issue_number}/assignees",
+        token,
+        {"assignees": [mentor_username]},
+    )
+
+    specialties_info = ""
+    if mentor.get("specialties"):
+        specialties_info = f" (specialties: {', '.join(mentor['specialties'])})"
+
+    contributor_mention = f"@{contributor_login}" if contributor_login else "the contributor"
+    body = (
+        f"<!-- blt-mentor-assigned: @{mentor_username} -->\n"
+        f"🎓 A mentor has been assigned to this issue!\n\n"
+        f"**Mentor:** @{mentor_username}{specialties_info}\n"
+        f"**Contributor:** {contributor_mention}\n\n"
+        f"@{mentor_username} — please provide guidance and support. "
+        f"Use `/handoff` if you need to transfer mentorship.\n\n"
+        f"{contributor_mention} — @{mentor_username} will help you through this. "
+        "Feel free to ask questions here. Use `/rematch` if you need a different mentor.\n\n"
+        "Happy coding! 🚀 — [OWASP BLT](https://owaspblt.org)"
+    )
+    await create_comment(owner, repo, issue_number, body, token)
+    console.log(
+        f"[MentorPool] Assigned @{mentor_username} as mentor for {owner}/{repo}#{issue_number}"
+    )
+    return True
+
+
+async def handle_mentor_command(
+    owner: str,
+    repo: str,
+    issue: dict,
+    login: str,
+    token: str,
+    mentors_config: Optional[list] = None,
+) -> None:
+    """Handle the ``/mentor`` slash command (contributor requests mentorship)."""
+    issue_number = issue["number"]
+    current_labels = {lb.get("name", "").lower() for lb in issue.get("labels", [])}
+    if MENTOR_ASSIGNED_LABEL.lower() in current_labels:
+        await create_comment(
+            owner,
+            repo,
+            issue_number,
+            f"@{login} This issue already has a mentor assigned. "
+            "Use `/rematch` if you'd like a different mentor.",
+            token,
+        )
+        return
+    await _assign_mentor_to_issue(owner, repo, issue, login, token, mentors_config)
+
+
+async def handle_mentor_pause(
+    owner: str,
+    repo: str,
+    issue: dict,
+    login: str,
+    token: str,
+    mentors_config: Optional[list] = None,
+) -> None:
+    """Handle the ``/mentor-pause`` slash command (mentor opts out of new assignments).
+
+    Because mentor state is stored in ``.github/mentors.yml`` (version-controlled),
+    this handler acknowledges the request and instructs the mentor to open a PR to
+    set ``active: false`` for their entry.
+    """
+    pool = mentors_config if mentors_config is not None else MENTORS
+    mentor_usernames = {
+        m.get("github_username", "").lower()
+        for m in pool
+        if m.get("github_username")
+    }
+    if login.lower() not in mentor_usernames:
+        await create_comment(
+            owner,
+            repo,
+            issue["number"],
+            f"@{login} The `/mentor-pause` command is only available to active mentors.",
+            token,
+        )
+        return
+    await create_comment(
+        owner,
+        repo,
+        issue["number"],
+        f"@{login} Your pause request has been noted. 🙏\n\n"
+        "To formally pause your availability in the mentor pool, please open a PR that sets "
+        "`active: false` for your entry in `.github/mentors.yml`.\n\n"
+        "Until that PR is merged the system may still select you for new assignments. "
+        "Contact a maintainer if you need an immediate pause.",
+        token,
+    )
+
+
+async def handle_mentor_handoff(
+    owner: str,
+    repo: str,
+    issue: dict,
+    login: str,
+    token: str,
+    mentors_config: Optional[list] = None,
+) -> None:
+    """Handle the ``/handoff`` slash command (mentor transfers mentorship to a new mentor)."""
+    issue_number = issue["number"]
+    pool = mentors_config if mentors_config is not None else MENTORS
+    mentor_usernames = {
+        m.get("github_username", "").lower()
+        for m in pool
+        if m.get("github_username")
+    }
+    if login.lower() not in mentor_usernames:
+        await create_comment(
+            owner,
+            repo,
+            issue_number,
+            f"@{login} The `/handoff` command is only available to assigned mentors.",
+            token,
+        )
+        return
+
+    current_mentor = await _find_assigned_mentor_from_comments(
+        owner, repo, issue_number, token
+    )
+    if current_mentor and current_mentor.lower() != login.lower():
+        await create_comment(
+            owner,
+            repo,
+            issue_number,
+            f"@{login} You are not the currently assigned mentor for this issue "
+            f"(@{current_mentor} is). Only the assigned mentor can use `/handoff`.",
+            token,
+        )
+        return
+
+    # Unassign current mentor.
+    await github_api(
+        "DELETE",
+        f"/repos/{owner}/{repo}/issues/{issue_number}/assignees",
+        token,
+        {"assignees": [login]},
+    )
+
+    # Remove mentor-assigned label so _assign_mentor_to_issue can re-apply it.
+    await github_api(
+        "DELETE",
+        f"/repos/{owner}/{repo}/issues/{issue_number}/labels/{MENTOR_ASSIGNED_LABEL}",
+        token,
+    )
+
+    # Determine contributor login from existing assignees (skip mentor usernames).
+    contributor = None
+    for assignee in issue.get("assignees", []):
+        a_login = assignee.get("login", "")
+        if a_login.lower() not in mentor_usernames and a_login.lower() != login.lower():
+            contributor = a_login
+            break
+
+    # Build a temporary issue view with the mentor-assigned label stripped so the
+    # assignment check inside _assign_mentor_to_issue does not abort early.
+    updated_issue = {
+        **issue,
+        "labels": [
+            lb for lb in issue.get("labels", [])
+            if lb.get("name", "").lower() != MENTOR_ASSIGNED_LABEL.lower()
+        ],
+    }
+
+    assigned = await _assign_mentor_to_issue(
+        owner, repo, updated_issue, contributor or "", token, pool, exclude=login
+    )
+    if not assigned:
+        await create_comment(
+            owner,
+            repo,
+            issue_number,
+            f"@{login} Handoff request noted, but no other mentor is currently available. "
+            "Please reach out on [OWASP Slack](https://owasp.slack.com/archives/C0DKR6LAW) "
+            "for assistance.",
+            token,
+        )
+        return
+    console.log(
+        f"[MentorPool] Handoff from @{login} completed for {owner}/{repo}#{issue_number}"
+    )
+
+
+async def handle_mentor_rematch(
+    owner: str,
+    repo: str,
+    issue: dict,
+    login: str,
+    token: str,
+    mentors_config: Optional[list] = None,
+) -> None:
+    """Handle the ``/rematch`` slash command (contributor requests a different mentor)."""
+    issue_number = issue["number"]
+    pool = mentors_config if mentors_config is not None else MENTORS
+    current_labels = {lb.get("name", "").lower() for lb in issue.get("labels", [])}
+    if MENTOR_ASSIGNED_LABEL.lower() not in current_labels:
+        await create_comment(
+            owner,
+            repo,
+            issue_number,
+            f"@{login} This issue does not have a mentor assigned yet. "
+            "Use `/mentor` to request one.",
+            token,
+        )
+        return
+
+    current_mentor = await _find_assigned_mentor_from_comments(
+        owner, repo, issue_number, token
+    )
+
+    # Unassign current mentor if known.
+    if current_mentor:
+        await github_api(
+            "DELETE",
+            f"/repos/{owner}/{repo}/issues/{issue_number}/assignees",
+            token,
+            {"assignees": [current_mentor]},
+        )
+
+    # Remove mentor-assigned label before re-assigning.
+    await github_api(
+        "DELETE",
+        f"/repos/{owner}/{repo}/issues/{issue_number}/labels/{MENTOR_ASSIGNED_LABEL}",
+        token,
+    )
+
+    updated_issue = {
+        **issue,
+        "labels": [
+            lb for lb in issue.get("labels", [])
+            if lb.get("name", "").lower() != MENTOR_ASSIGNED_LABEL.lower()
+        ],
+    }
+
+    await _assign_mentor_to_issue(
+        owner,
+        repo,
+        updated_issue,
+        login,
+        token,
+        pool,
+        exclude=current_mentor,
+    )
+    console.log(
+        f"[MentorPool] Rematch completed for @{login} on {owner}/{repo}#{issue_number}"
+    )
+
+
+async def _check_stale_mentor_assignments(owner: str, repo: str, token: str) -> None:
+    """Unassign mentors from issues that have been inactive for MENTOR_STALE_DAYS days.
+
+    Iterates over open issues that carry the ``mentor-assigned`` label.  When the
+    issue's ``updated_at`` timestamp is older than the stale threshold the mentor is
+    unassigned, the ``mentor-assigned`` label is removed, and an explanatory comment
+    is posted.
+    """
+    try:
+        resp = await github_api(
+            "GET",
+            f"/repos/{owner}/{repo}/issues?state=open&labels={MENTOR_ASSIGNED_LABEL}&per_page=100",
+            token,
+        )
+        if resp.status != 200:
+            return
+
+        issues = json.loads(await resp.text())
+        stale_threshold = MENTOR_STALE_DAYS * _SECONDS_PER_DAY
+        current_time = time.time()
+
+        for issue in issues:
+            if "pull_request" in issue:
+                continue
+            issue_number = issue["number"]
+            updated_at = issue.get("updated_at", "")
+            if not updated_at:
+                continue
+            updated_ts = _parse_github_timestamp(updated_at)
+            if not updated_ts:
+                continue
+            if current_time - updated_ts <= stale_threshold:
+                continue
+
+            # Issue is stale — find and unassign the mentor.
+            current_mentor = await _find_assigned_mentor_from_comments(
+                owner, repo, issue_number, token
+            )
+            if current_mentor:
+                await github_api(
+                    "DELETE",
+                    f"/repos/{owner}/{repo}/issues/{issue_number}/assignees",
+                    token,
+                    {"assignees": [current_mentor]},
+                )
+
+            # Remove the mentor-assigned label.
+            await github_api(
+                "DELETE",
+                f"/repos/{owner}/{repo}/issues/{issue_number}/labels/{MENTOR_ASSIGNED_LABEL}",
+                token,
+            )
+
+            days_elapsed = int((current_time - updated_ts) / _SECONDS_PER_DAY)
+            mentor_mention = f"@{current_mentor} " if current_mentor else ""
+            await create_comment(
+                owner,
+                repo,
+                issue_number,
+                f"{mentor_mention}This issue has had no activity for {days_elapsed} days "
+                f"so the mentor assignment has been automatically released. "
+                "The issue remains open — use `/mentor` to request a new mentor when work resumes.\n\n"
+                "— [OWASP BLT](https://owaspblt.org)",
+                token,
+            )
+            console.log(
+                f"[MentorPool] Released stale mentor assignment on {owner}/{repo}#{issue_number}"
+            )
+    except Exception as exc:
+        console.error(f"[MentorPool] Error checking stale mentors in {owner}/{repo}: {exc}")
+
+
+# ---------------------------------------------------------------------------
 # Event handlers — mirror the Node.js handler logic exactly
 # ---------------------------------------------------------------------------
 
@@ -1881,11 +2677,11 @@ async def handle_issue_comment(payload: dict, token: str, env=None) -> None:
     login = comment["user"]["login"]
     issue_number = issue["number"]
     comment_id = comment.get("id")
-    
+
     # Add eyes reaction immediately to acknowledge command receipt
     if comment_id and command:
         await create_reaction(owner, repo, comment_id, "eyes", token)
-    
+
     if command == ASSIGN_COMMAND:
         await _assign(owner, repo, issue, login, token)
     elif command == UNASSIGN_COMMAND:
@@ -1918,6 +2714,22 @@ async def handle_issue_comment(payload: dict, token: str, env=None) -> None:
                 f"@{login} I hit an error while generating the leaderboard. Please try again in a moment.",
                 token,
             )
+    elif command in (MENTOR_COMMAND, MENTOR_PAUSE_COMMAND, HANDOFF_COMMAND, REMATCH_COMMAND):
+        # Fetch mentors config once for all mentor-related commands.
+        try:
+            mentors_config = await _fetch_mentors_config(owner, repo, token)
+        except Exception as exc:
+            console.error(f"[MentorPool] Failed to fetch mentors config: {exc}")
+            mentors_config = MENTORS
+
+        if command == MENTOR_COMMAND:
+            await handle_mentor_command(owner, repo, issue, login, token, mentors_config)
+        elif command == MENTOR_PAUSE_COMMAND:
+            await handle_mentor_pause(owner, repo, issue, login, token, mentors_config)
+        elif command == HANDOFF_COMMAND:
+            await handle_mentor_handoff(owner, repo, issue, login, token, mentors_config)
+        elif command == REMATCH_COMMAND:
+            await handle_mentor_rematch(owner, repo, issue, login, token, mentors_config)
 
 
 async def _assign(
@@ -2044,14 +2856,33 @@ async def handle_issue_labeled(
     issue = payload["issue"]
     label = payload.get("label") or {}
     label_name = label.get("name", "").lower()
+    owner = payload["repository"]["owner"]["login"]
+    repo = payload["repository"]["name"]
+
+    # --- needs-mentor label: trigger mentor pool assignment ---
+    if label_name == NEEDS_MENTOR_LABEL:
+        # The contributor is whoever opened the issue (or the first assignee if set).
+        assignees = issue.get("assignees", [])
+        contributor_login = (
+            assignees[0]["login"] if assignees else (payload.get("sender") or {}).get("login", "")
+        )
+        try:
+            mentors_config = await _fetch_mentors_config(owner, repo, token)
+        except Exception as exc:
+            console.error(f"[MentorPool] Failed to fetch mentors config on label event: {exc}")
+            mentors_config = MENTORS
+        await _assign_mentor_to_issue(
+            owner, repo, issue, contributor_login, token, mentors_config
+        )
+        return
+
+    # --- Bug labels: report to BLT ---
     if label_name not in BUG_LABELS:
         return
     all_labels = [lb["name"].lower() for lb in issue.get("labels", [])]
     # Only report the first time a bug label is added (avoid duplicates)
     if any(lb in BUG_LABELS for lb in all_labels if lb != label_name):
         return
-    owner = payload["repository"]["owner"]["login"]
-    repo = payload["repository"]["name"]
     bug_data = await report_bug_to_blt(blt_api_url, {
         "url": issue["html_url"],
         "description": issue["title"],
@@ -2073,16 +2904,16 @@ async def handle_pull_request_opened(payload: dict, token: str, env=None) -> Non
     sender = payload["sender"]
     if not _is_human(sender):
         return
-    
+
     # Skip bots more thoroughly
     if _is_bot(sender):
         return
-    
+
     owner = payload["repository"]["owner"]["login"]
     repo = payload["repository"]["name"]
     pr_number = pr["number"]
     author_login = sender["login"]
-    
+
     # Check for too many open PRs and auto-close if needed
     was_closed = await _check_and_close_excess_prs(owner, repo, pr_number, author_login, token)
     if was_closed:
@@ -2090,12 +2921,18 @@ async def handle_pull_request_opened(payload: dict, token: str, env=None) -> Non
 
     # Track open PR counter in D1.
     await _track_pr_opened_in_d1(payload, env)
-    
+
     # Post leaderboard
     if env is None:
         await _post_or_update_leaderboard(owner, repo, pr_number, author_login, token)
     else:
         await _post_or_update_leaderboard(owner, repo, pr_number, author_login, token, env)
+
+    # If this PR is linked to a mentored issue, request the mentor as a reviewer.
+    try:
+        await _request_mentor_reviewer_for_pr(owner, repo, pr, token)
+    except Exception as exc:
+        console.error(f"[MentorPool] Mentor reviewer request failed (best-effort): {exc}")
 
     # Check for unresolved review conversations
     try:
@@ -2105,6 +2942,68 @@ async def handle_pull_request_opened(payload: dict, token: str, env=None) -> Non
 
     # Label PR with number of pending checks (queued/waiting/action_required)
     await _try_label_pending_checks(owner, repo, pr, token)
+
+
+async def _request_mentor_reviewer_for_pr(
+    owner: str, repo: str, pr: dict, token: str
+) -> None:
+    """Request the assigned mentor as a reviewer if the PR is linked to a mentored issue.
+
+    Parses the PR body for "Closes/Fixes/Resolves #N" references, fetches each linked
+    issue, and — when the issue carries the ``mentor-assigned`` label — adds the mentor
+    as a requested reviewer on the PR.
+    """
+    pr_number = pr["number"]
+    pr_body = pr.get("body") or ""
+    pr_author = (pr.get("user") or {}).get("login", "")
+
+    # Extract issue numbers from common closing keywords.
+    linked_issues = re.findall(
+        r"(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)\s*#(\d+)",
+        pr_body,
+        re.IGNORECASE,
+    )
+    if not linked_issues:
+        return
+
+    for issue_num_str in linked_issues:
+        issue_number = int(issue_num_str)
+        resp = await github_api(
+            "GET",
+            f"/repos/{owner}/{repo}/issues/{issue_number}",
+            token,
+        )
+        if resp.status != 200:
+            continue
+        issue = json.loads(await resp.text())
+        labels = {lb.get("name", "").lower() for lb in issue.get("labels", [])}
+        if MENTOR_ASSIGNED_LABEL.lower() not in labels:
+            continue
+
+        # Find the mentor from issue comments.
+        mentor_username = await _find_assigned_mentor_from_comments(
+            owner, repo, issue_number, token
+        )
+        if not mentor_username or mentor_username.lower() == pr_author.lower():
+            continue
+
+        # Request the mentor as a reviewer on the PR.
+        review_resp = await github_api(
+            "POST",
+            f"/repos/{owner}/{repo}/pulls/{pr_number}/requested_reviewers",
+            token,
+            {"reviewers": [mentor_username]},
+        )
+        if review_resp.status in (200, 201):
+            console.log(
+                f"[MentorPool] Requested @{mentor_username} as reviewer "
+                f"for PR {owner}/{repo}#{pr_number} (linked issue #{issue_number})"
+            )
+        else:
+            console.error(
+                f"[MentorPool] Failed to request reviewer @{mentor_username} "
+                f"for PR #{pr_number}: status={review_resp.status}"
+            )
 
 
 async def handle_pull_request_closed(payload: dict, token: str, env=None) -> None:
@@ -3253,6 +4152,7 @@ async def _run_scheduled(env):
                 owner = repo_data["owner"]["login"]
                 
                 await _check_stale_assignments(owner, repo_name, token)
+                await _check_stale_mentor_assignments(owner, repo_name, token)
         
         console.log("[CRON] Stale assignment check complete")
         

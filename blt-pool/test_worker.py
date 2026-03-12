@@ -2719,5 +2719,737 @@ class TestHandleCheckRun(unittest.TestCase):
         self.assertEqual(checked, [])
 
 
+# ---------------------------------------------------------------------------
+# Mentor Pool Tests
+# ---------------------------------------------------------------------------
+
+
+class TestParseMentorsYaml(unittest.TestCase):
+    """_parse_mentors_yaml — minimal YAML parser for .github/mentors.yml"""
+
+    def test_parses_single_mentor(self):
+        content = """\
+mentors:
+  - github_username: alice
+    name: Alice Smith
+    specialties:
+      - frontend
+      - javascript
+    max_mentees: 3
+    active: true
+"""
+        result = _worker._parse_mentors_yaml(content)
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]["github_username"], "alice")
+        self.assertEqual(result[0]["name"], "Alice Smith")
+        self.assertEqual(result[0]["specialties"], ["frontend", "javascript"])
+        self.assertEqual(result[0]["max_mentees"], 3)
+        self.assertTrue(result[0]["active"])
+
+    def test_parses_multiple_mentors(self):
+        content = """\
+mentors:
+  - github_username: alice
+    name: Alice
+    active: true
+  - github_username: bob
+    name: Bob
+    active: false
+"""
+        result = _worker._parse_mentors_yaml(content)
+        self.assertEqual(len(result), 2)
+        self.assertEqual(result[0]["github_username"], "alice")
+        self.assertTrue(result[0]["active"])
+        self.assertEqual(result[1]["github_username"], "bob")
+        self.assertFalse(result[1]["active"])
+
+    def test_returns_empty_for_empty_content(self):
+        self.assertEqual(_worker._parse_mentors_yaml(""), [])
+        self.assertEqual(_worker._parse_mentors_yaml("# just a comment\n"), [])
+
+    def test_ignores_comment_lines(self):
+        content = """\
+# This is a comment
+mentors:
+  # Another comment
+  - github_username: alice
+    active: true
+"""
+        result = _worker._parse_mentors_yaml(content)
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]["github_username"], "alice")
+
+    def test_no_specialties_list(self):
+        content = """\
+mentors:
+  - github_username: alice
+    max_mentees: 2
+    active: true
+"""
+        result = _worker._parse_mentors_yaml(content)
+        self.assertEqual(result[0].get("specialties"), None)
+        self.assertEqual(result[0]["max_mentees"], 2)
+
+
+class TestParseYamlScalar(unittest.TestCase):
+    """_parse_yaml_scalar — YAML value conversion"""
+
+    def test_boolean_true(self):
+        self.assertTrue(_worker._parse_yaml_scalar("true"))
+        self.assertTrue(_worker._parse_yaml_scalar("yes"))
+        self.assertTrue(_worker._parse_yaml_scalar("True"))
+
+    def test_boolean_false(self):
+        self.assertFalse(_worker._parse_yaml_scalar("false"))
+        self.assertFalse(_worker._parse_yaml_scalar("no"))
+
+    def test_null(self):
+        self.assertIsNone(_worker._parse_yaml_scalar("null"))
+        self.assertIsNone(_worker._parse_yaml_scalar("~"))
+
+    def test_integer(self):
+        self.assertEqual(_worker._parse_yaml_scalar("3"), 3)
+        self.assertEqual(_worker._parse_yaml_scalar("0"), 0)
+
+    def test_string(self):
+        self.assertEqual(_worker._parse_yaml_scalar("alice"), "alice")
+        self.assertEqual(_worker._parse_yaml_scalar('"quoted"'), "quoted")
+        self.assertEqual(_worker._parse_yaml_scalar("'single'"), "single")
+
+
+class TestIsSecurityIssue(unittest.TestCase):
+    """_is_security_issue — security label bypass"""
+
+    def test_security_label_bypasses(self):
+        issue = {"labels": [{"name": "security"}], "number": 1}
+        self.assertTrue(_worker._is_security_issue(issue))
+
+    def test_vulnerability_label_bypasses(self):
+        issue = {"labels": [{"name": "vulnerability"}], "number": 1}
+        self.assertTrue(_worker._is_security_issue(issue))
+
+    def test_normal_label_does_not_bypass(self):
+        issue = {"labels": [{"name": "bug"}, {"name": "feature"}], "number": 1}
+        self.assertFalse(_worker._is_security_issue(issue))
+
+    def test_no_labels_does_not_bypass(self):
+        issue = {"labels": [], "number": 1}
+        self.assertFalse(_worker._is_security_issue(issue))
+
+    def test_case_insensitive(self):
+        issue = {"labels": [{"name": "Security"}], "number": 1}
+        self.assertTrue(_worker._is_security_issue(issue))
+
+
+class TestExtractCommandMentorCommands(unittest.TestCase):
+    """_extract_command now recognises mentor-pool slash commands"""
+
+    def test_mentor_command(self):
+        self.assertEqual(_worker._extract_command("/mentor"), "/mentor")
+
+    def test_mentor_pause_command(self):
+        self.assertEqual(_worker._extract_command("/mentor-pause"), "/mentor-pause")
+
+    def test_handoff_command(self):
+        self.assertEqual(_worker._extract_command("/handoff"), "/handoff")
+
+    def test_rematch_command(self):
+        self.assertEqual(_worker._extract_command("/rematch"), "/rematch")
+
+    def test_existing_commands_still_work(self):
+        self.assertEqual(_worker._extract_command("/assign"), "/assign")
+        self.assertEqual(_worker._extract_command("/unassign"), "/unassign")
+        self.assertEqual(_worker._extract_command("/leaderboard"), "/leaderboard")
+
+    def test_unknown_command_returns_none(self):
+        self.assertIsNone(_worker._extract_command("/unknown"))
+        self.assertIsNone(_worker._extract_command("not a command"))
+
+
+class TestSelectMentor(unittest.TestCase):
+    """_select_mentor — capacity-aware round-robin mentor selection"""
+
+    _MENTORS_FIXTURE = [
+        {"github_username": "alice", "name": "Alice", "specialties": ["frontend"], "max_mentees": 3, "active": True},
+        {"github_username": "bob", "name": "Bob", "specialties": ["backend"], "max_mentees": 2, "active": True},
+        {"github_username": "carol", "name": "Carol", "specialties": [], "max_mentees": 3, "active": False},
+    ]
+
+    def _run_select(self, load_map, issue_labels=None, exclude=None):
+        async def _inner():
+            with patch.object(
+                _worker,
+                "_get_mentor_load_map",
+                new=AsyncMock(return_value=load_map),
+            ):
+                return await _worker._select_mentor(
+                    "OWASP-BLT",
+                    "tok",
+                    issue_labels=issue_labels,
+                    mentors_config=self._MENTORS_FIXTURE,
+                    exclude=exclude,
+                )
+
+        return _run(_inner())
+
+    def test_selects_mentor_with_fewest_issues(self):
+        # alice has 1 mentee, bob has 0 — bob should be selected
+        result = self._run_select({"alice": 1, "bob": 0})
+        self.assertIsNotNone(result)
+        self.assertEqual(result["github_username"], "bob")
+
+    def test_skips_inactive_mentors(self):
+        # carol is inactive; only alice and bob are active
+        result = self._run_select({})
+        # Both alice and bob have 0 load; alice comes first alphabetically
+        self.assertIn(result["github_username"], ["alice", "bob"])
+        self.assertNotEqual(result.get("github_username"), "carol")
+
+    def test_skips_mentors_at_capacity(self):
+        # bob has max_mentees=2 and currently 2 → over capacity
+        result = self._run_select({"alice": 0, "bob": 2})
+        self.assertIsNotNone(result)
+        self.assertEqual(result["github_username"], "alice")
+
+    def test_returns_none_when_all_at_capacity(self):
+        result = self._run_select({"alice": 3, "bob": 2})
+        self.assertIsNone(result)
+
+    def test_specialty_matching_narrows_pool(self):
+        # frontend label → alice should be preferred over bob
+        result = self._run_select({}, issue_labels=["frontend"])
+        self.assertIsNotNone(result)
+        self.assertEqual(result["github_username"], "alice")
+
+    def test_falls_back_to_all_active_when_no_specialty_match(self):
+        # "docs" label matches nobody → fall back to all active mentors
+        result = self._run_select({}, issue_labels=["docs"])
+        self.assertIsNotNone(result)
+        self.assertIn(result["github_username"], ["alice", "bob"])
+
+    def test_exclude_parameter(self):
+        # Exclude alice → should select bob
+        result = self._run_select({"alice": 0, "bob": 0}, exclude="alice")
+        self.assertIsNotNone(result)
+        self.assertEqual(result["github_username"], "bob")
+
+    def test_returns_none_when_no_active_mentors(self):
+        only_inactive = [
+            {"github_username": "dave", "active": False, "max_mentees": 3, "specialties": []},
+        ]
+        async def _inner():
+            with patch.object(_worker, "_get_mentor_load_map", new=AsyncMock(return_value={})):
+                return await _worker._select_mentor(
+                    "OWASP-BLT", "tok", mentors_config=only_inactive
+                )
+        result = _run(_inner())
+        self.assertIsNone(result)
+
+
+class TestAssignMentorToIssue(unittest.TestCase):
+    """_assign_mentor_to_issue — full assignment flow"""
+
+    _MENTOR_FIXTURE = [
+        {"github_username": "alice", "name": "Alice", "specialties": ["frontend"], "max_mentees": 3, "active": True},
+    ]
+
+    def _run_assign(self, issue, comments, select_return=None):
+        if select_return is None:
+            select_return = self._MENTOR_FIXTURE[0]
+
+        async def _inner():
+            with patch.object(_worker, "_select_mentor", new=AsyncMock(return_value=select_return)):
+                with patch.object(_worker, "_get_mentor_load_map", new=AsyncMock(return_value={})):
+                    with patch.object(_worker, "_ensure_label_exists", new=AsyncMock()):
+                        with patch.object(
+                            _worker,
+                            "github_api",
+                            new=AsyncMock(return_value=types.SimpleNamespace(
+                                status=200, text=AsyncMock(return_value="{}")
+                            )),
+                        ):
+                            with patch.object(
+                                _worker,
+                                "create_comment",
+                                new=AsyncMock(side_effect=lambda o, r, n, b, t: comments.append(b)),
+                            ):
+                                return await _worker._assign_mentor_to_issue(
+                                    "OWASP-BLT", "TestRepo", issue, "bob", "tok",
+                                    self._MENTOR_FIXTURE,
+                                )
+
+        return _run(_inner())
+
+    def test_assigns_mentor_and_posts_comment(self):
+        issue = {"number": 1, "labels": [], "assignees": [], "state": "open"}
+        comments = []
+        result = self._run_assign(issue, comments)
+        self.assertTrue(result)
+        self.assertTrue(any("blt-mentor-assigned" in c for c in comments))
+        self.assertTrue(any("alice" in c for c in comments))
+        self.assertTrue(any("bob" in c for c in comments))
+
+    def test_skips_security_issue(self):
+        issue = {"number": 2, "labels": [{"name": "security"}], "assignees": [], "state": "open"}
+        comments = []
+        result = self._run_assign(issue, comments)
+        self.assertFalse(result)
+        self.assertEqual(comments, [])
+
+    def test_skips_already_mentored_issue(self):
+        issue = {
+            "number": 3,
+            "labels": [{"name": "mentor-assigned"}],
+            "assignees": [],
+            "state": "open",
+        }
+        comments = []
+        result = self._run_assign(issue, comments)
+        self.assertFalse(result)
+        self.assertEqual(comments, [])
+
+    def test_posts_capacity_message_when_no_mentor_available(self):
+        issue = {"number": 4, "labels": [], "assignees": [], "state": "open"}
+        comments = []
+
+        async def _inner():
+            with patch.object(_worker, "_select_mentor", new=AsyncMock(return_value=None)):
+                with patch.object(
+                    _worker,
+                    "create_comment",
+                    new=AsyncMock(side_effect=lambda o, r, n, b, t: comments.append(b)),
+                ):
+                    return await _worker._assign_mentor_to_issue(
+                        "OWASP-BLT", "TestRepo", issue, "bob", "tok"
+                    )
+
+        result = _run(_inner())
+        self.assertFalse(result)
+        self.assertTrue(any("at capacity" in c for c in comments))
+
+
+class TestHandleMentorCommand(unittest.TestCase):
+    """handle_mentor_command — /mentor slash command"""
+
+    def _run_cmd(self, issue, assign_calls, comments):
+        async def _inner():
+            with patch.object(
+                _worker,
+                "_assign_mentor_to_issue",
+                new=AsyncMock(side_effect=lambda *a, **kw: assign_calls.append(a)),
+            ):
+                with patch.object(
+                    _worker,
+                    "create_comment",
+                    new=AsyncMock(side_effect=lambda o, r, n, b, t: comments.append(b)),
+                ):
+                    await _worker.handle_mentor_command(
+                        "OWASP-BLT", "TestRepo", issue, "alice", "tok"
+                    )
+
+        _run(_inner())
+
+    def test_triggers_assignment_when_no_mentor_yet(self):
+        issue = {"number": 1, "labels": [], "assignees": [], "state": "open"}
+        assign_calls, comments = [], []
+        self._run_cmd(issue, assign_calls, comments)
+        self.assertEqual(len(assign_calls), 1)
+        self.assertEqual(comments, [])
+
+    def test_rejects_duplicate_request(self):
+        issue = {
+            "number": 2,
+            "labels": [{"name": "mentor-assigned"}],
+            "assignees": [],
+            "state": "open",
+        }
+        assign_calls, comments = [], []
+        self._run_cmd(issue, assign_calls, comments)
+        self.assertEqual(assign_calls, [])
+        self.assertTrue(any("already has a mentor" in c for c in comments))
+
+
+class TestHandleMentorPause(unittest.TestCase):
+    """handle_mentor_pause — /mentor-pause slash command"""
+
+    _POOL = [
+        {"github_username": "alice", "active": True, "max_mentees": 3, "specialties": []},
+    ]
+
+    def _run_pause(self, login, comments):
+        issue = {"number": 1, "labels": [], "assignees": []}
+
+        async def _inner():
+            with patch.object(
+                _worker,
+                "create_comment",
+                new=AsyncMock(side_effect=lambda o, r, n, b, t: comments.append(b)),
+            ):
+                await _worker.handle_mentor_pause(
+                    "OWASP-BLT", "TestRepo", issue, login, "tok", self._POOL
+                )
+
+        _run(_inner())
+
+    def test_acknowledges_valid_mentor(self):
+        comments = []
+        self._run_pause("alice", comments)
+        self.assertTrue(any("pause" in c.lower() for c in comments))
+        self.assertTrue(any("mentors.yml" in c for c in comments))
+
+    def test_rejects_non_mentor(self):
+        comments = []
+        self._run_pause("notamentor", comments)
+        self.assertTrue(any("only available to active mentors" in c for c in comments))
+
+
+class TestHandleMentorHandoff(unittest.TestCase):
+    """handle_mentor_handoff — /handoff slash command"""
+
+    _POOL = [
+        {"github_username": "alice", "active": True, "max_mentees": 3, "specialties": []},
+        {"github_username": "bob", "active": True, "max_mentees": 3, "specialties": []},
+    ]
+
+    def _run_handoff(self, login, current_mentor_in_comments, assign_calls, comments):
+        issue = {
+            "number": 1,
+            "labels": [{"name": "mentor-assigned"}],
+            "assignees": [{"login": "contributor"}],
+            "state": "open",
+        }
+
+        async def _inner():
+            with patch.object(
+                _worker,
+                "_find_assigned_mentor_from_comments",
+                new=AsyncMock(return_value=current_mentor_in_comments),
+            ):
+                with patch.object(
+                    _worker,
+                    "_assign_mentor_to_issue",
+                    new=AsyncMock(side_effect=lambda *a, **kw: assign_calls.append(a) or True),
+                ):
+                    with patch.object(
+                        _worker,
+                        "github_api",
+                        new=AsyncMock(return_value=types.SimpleNamespace(status=200)),
+                    ):
+                        with patch.object(
+                            _worker,
+                            "create_comment",
+                            new=AsyncMock(side_effect=lambda o, r, n, b, t: comments.append(b)),
+                        ):
+                            await _worker.handle_mentor_handoff(
+                                "OWASP-BLT", "TestRepo", issue, login, "tok", self._POOL
+                            )
+
+        _run(_inner())
+
+    def test_valid_mentor_triggers_reassignment(self):
+        assign_calls, comments = [], []
+        self._run_handoff("alice", "alice", assign_calls, comments)
+        self.assertEqual(len(assign_calls), 1)
+
+    def test_rejects_non_mentor(self):
+        assign_calls, comments = [], []
+        self._run_handoff("stranger", "alice", assign_calls, comments)
+        self.assertEqual(assign_calls, [])
+        self.assertTrue(any("only available to assigned mentors" in c for c in comments))
+
+    def test_rejects_wrong_mentor(self):
+        # alice is assigned but bob tries to hand off
+        assign_calls, comments = [], []
+        self._run_handoff("bob", "alice", assign_calls, comments)
+        self.assertEqual(assign_calls, [])
+        self.assertTrue(any("not the currently assigned mentor" in c for c in comments))
+
+
+class TestHandleMentorRematch(unittest.TestCase):
+    """handle_mentor_rematch — /rematch slash command"""
+
+    _POOL = [
+        {"github_username": "alice", "active": True, "max_mentees": 3, "specialties": []},
+        {"github_username": "bob", "active": True, "max_mentees": 3, "specialties": []},
+    ]
+
+    def _run_rematch(self, issue, current_mentor_in_comments, assign_calls, comments):
+        async def _inner():
+            with patch.object(
+                _worker,
+                "_find_assigned_mentor_from_comments",
+                new=AsyncMock(return_value=current_mentor_in_comments),
+            ):
+                with patch.object(
+                    _worker,
+                    "_assign_mentor_to_issue",
+                    new=AsyncMock(side_effect=lambda *a, **kw: assign_calls.append(a) or True),
+                ):
+                    with patch.object(
+                        _worker,
+                        "github_api",
+                        new=AsyncMock(return_value=types.SimpleNamespace(status=200)),
+                    ):
+                        with patch.object(
+                            _worker,
+                            "create_comment",
+                            new=AsyncMock(side_effect=lambda o, r, n, b, t: comments.append(b)),
+                        ):
+                            await _worker.handle_mentor_rematch(
+                                "OWASP-BLT", "TestRepo", issue, "contributor", "tok", self._POOL
+                            )
+
+        _run(_inner())
+
+    def test_triggers_reassignment_when_mentor_present(self):
+        issue = {
+            "number": 1,
+            "labels": [{"name": "mentor-assigned"}],
+            "assignees": [],
+            "state": "open",
+        }
+        assign_calls, comments = [], []
+        self._run_rematch(issue, "alice", assign_calls, comments)
+        self.assertEqual(len(assign_calls), 1)
+
+    def test_rejects_when_no_mentor_assigned(self):
+        issue = {"number": 2, "labels": [], "assignees": [], "state": "open"}
+        assign_calls, comments = [], []
+        self._run_rematch(issue, None, assign_calls, comments)
+        self.assertEqual(assign_calls, [])
+        self.assertTrue(any("does not have a mentor" in c for c in comments))
+
+
+class TestHandleIssueLabeledNeedsMentor(unittest.TestCase):
+    """handle_issue_labeled — needs-mentor label triggers mentor assignment"""
+
+    def _run_labeled(self, label_name, assign_calls, bug_calls):
+        issue = {
+            "number": 1,
+            "labels": [{"name": label_name}],
+            "assignees": [{"login": "contributor"}],
+            "html_url": "https://github.com/test/test/issues/1",
+            "title": "test issue",
+            "state": "open",
+        }
+        payload = {
+            "repository": {"owner": {"login": "OWASP-BLT"}, "name": "TestRepo"},
+            "issue": issue,
+            "label": {"name": label_name},
+            "sender": {"login": "admin", "type": "User"},
+        }
+
+        async def _inner():
+            async def mock_report(url, data):
+                bug_calls.append(data)
+                return None
+
+            with patch.object(
+                _worker,
+                "_assign_mentor_to_issue",
+                new=AsyncMock(side_effect=lambda *a, **kw: assign_calls.append(a) or True),
+            ):
+                with patch.object(
+                    _worker,
+                    "_fetch_mentors_config",
+                    new=AsyncMock(return_value=_worker.MENTORS),
+                ):
+                    with patch.object(_worker, "report_bug_to_blt", new=mock_report):
+                        await _worker.handle_issue_labeled(payload, "tok", "https://blt.example")
+
+        _run(_inner())
+
+    def test_needs_mentor_triggers_assignment(self):
+        assign_calls, bug_calls = [], []
+        self._run_labeled("needs-mentor", assign_calls, bug_calls)
+        self.assertEqual(len(assign_calls), 1)
+        # Should not report to BLT
+        self.assertEqual(bug_calls, [])
+
+    def test_bug_label_does_not_trigger_assignment(self):
+        assign_calls, bug_calls = [], []
+        self._run_labeled("bug", assign_calls, bug_calls)
+        self.assertEqual(assign_calls, [])
+
+    def test_other_label_does_not_trigger_assignment(self):
+        assign_calls, bug_calls = [], []
+        self._run_labeled("enhancement", assign_calls, bug_calls)
+        self.assertEqual(assign_calls, [])
+
+
+class TestHandleIssueCommentMentorCommands(unittest.TestCase):
+    """handle_issue_comment routes mentor commands to the correct handlers"""
+
+    def _run_comment(self, comment_body, mentor_calls, pause_calls, handoff_calls, rematch_calls):
+        payload = _make_issue_payload(comment_body=comment_body)
+
+        async def _inner():
+            with patch.object(
+                _worker, "_fetch_mentors_config", new=AsyncMock(return_value=_worker.MENTORS)
+            ):
+                with patch.object(
+                    _worker,
+                    "handle_mentor_command",
+                    new=AsyncMock(side_effect=lambda *a, **kw: mentor_calls.append(a)),
+                ):
+                    with patch.object(
+                        _worker,
+                        "handle_mentor_pause",
+                        new=AsyncMock(side_effect=lambda *a, **kw: pause_calls.append(a)),
+                    ):
+                        with patch.object(
+                            _worker,
+                            "handle_mentor_handoff",
+                            new=AsyncMock(side_effect=lambda *a, **kw: handoff_calls.append(a)),
+                        ):
+                            with patch.object(
+                                _worker,
+                                "handle_mentor_rematch",
+                                new=AsyncMock(side_effect=lambda *a, **kw: rematch_calls.append(a)),
+                            ):
+                                with patch.object(_worker, "create_reaction", new=AsyncMock()):
+                                    await _worker.handle_issue_comment(payload, "tok")
+
+        _run(_inner())
+
+    def test_routes_mentor_command(self):
+        mentor, pause, handoff, rematch = [], [], [], []
+        self._run_comment("/mentor", mentor, pause, handoff, rematch)
+        self.assertEqual(len(mentor), 1)
+        self.assertEqual(pause + handoff + rematch, [])
+
+    def test_routes_mentor_pause_command(self):
+        mentor, pause, handoff, rematch = [], [], [], []
+        self._run_comment("/mentor-pause", mentor, pause, handoff, rematch)
+        self.assertEqual(len(pause), 1)
+
+    def test_routes_handoff_command(self):
+        mentor, pause, handoff, rematch = [], [], [], []
+        self._run_comment("/handoff", mentor, pause, handoff, rematch)
+        self.assertEqual(len(handoff), 1)
+
+    def test_routes_rematch_command(self):
+        mentor, pause, handoff, rematch = [], [], [], []
+        self._run_comment("/rematch", mentor, pause, handoff, rematch)
+        self.assertEqual(len(rematch), 1)
+
+
+class TestFindAssignedMentorFromComments(unittest.TestCase):
+    """_find_assigned_mentor_from_comments — scan comments for blt-mentor-assigned marker"""
+
+    def _run_find(self, comments_body_list):
+        async def _inner():
+            mock_comments = [{"body": b} for b in comments_body_list]
+            mock_resp = types.SimpleNamespace(
+                status=200,
+                text=AsyncMock(return_value=json.dumps(mock_comments)),
+            )
+            with patch.object(_worker, "github_api", new=AsyncMock(return_value=mock_resp)):
+                return await _worker._find_assigned_mentor_from_comments(
+                    "OWASP-BLT", "TestRepo", 1, "tok"
+                )
+
+        return _run(_inner())
+
+    def test_finds_mentor_from_marker(self):
+        body = "<!-- blt-mentor-assigned: @alice -->\nHello!"
+        result = self._run_find([body])
+        self.assertEqual(result, "alice")
+
+    def test_returns_most_recent_assignment(self):
+        # The scan iterates comments in reversed order (newest first).
+        # With [old_comment, new_comment], reversed() yields new first → carol is returned.
+        old = "<!-- blt-mentor-assigned: @bob -->\nOld."
+        new = "<!-- blt-mentor-assigned: @carol -->\nNew."
+        result = self._run_find([old, new])
+        self.assertEqual(result, "carol")
+
+    def test_returns_none_when_no_marker(self):
+        result = self._run_find(["No marker here", "Just a normal comment"])
+        self.assertIsNone(result)
+
+    def test_returns_none_on_api_failure(self):
+        async def _inner():
+            mock_resp = types.SimpleNamespace(status=404)
+            with patch.object(_worker, "github_api", new=AsyncMock(return_value=mock_resp)):
+                return await _worker._find_assigned_mentor_from_comments(
+                    "OWASP-BLT", "TestRepo", 1, "tok"
+                )
+
+        result = _run(_inner())
+        self.assertIsNone(result)
+
+
+class TestRequestMentorReviewerForPr(unittest.TestCase):
+    """_request_mentor_reviewer_for_pr — auto-requests mentor as PR reviewer"""
+
+    def _make_pr(self, body, number=42, author="contributor"):
+        return {
+            "number": number,
+            "body": body,
+            "user": {"login": author},
+        }
+
+    def _run(self, pr, issue_labels, mentor_in_comments, reviewer_calls):
+        issue_json = json.dumps(
+            {"number": 1, "labels": [{"name": lb} for lb in issue_labels]}
+        )
+
+        async def _mock_api(method, path, token, body=None):
+            if "/issues/1" in path and method == "GET":
+                return types.SimpleNamespace(
+                    status=200, text=AsyncMock(return_value=issue_json)
+                )
+            if "requested_reviewers" in path and method == "POST":
+                reviewer_calls.append(body)
+                return types.SimpleNamespace(status=201, text=AsyncMock(return_value="{}"))
+            return types.SimpleNamespace(status=200, text=AsyncMock(return_value="{}"))
+
+        async def _inner():
+            with patch.object(_worker, "github_api", new=_mock_api):
+                with patch.object(
+                    _worker,
+                    "_find_assigned_mentor_from_comments",
+                    new=AsyncMock(return_value=mentor_in_comments),
+                ):
+                    await _worker._request_mentor_reviewer_for_pr(
+                        "OWASP-BLT", "TestRepo", pr, "tok"
+                    )
+
+        _run(_inner())
+
+    def test_requests_reviewer_for_mentored_linked_issue(self):
+        pr = self._make_pr("Closes #1")
+        reviewer_calls = []
+        self._run(pr, ["mentor-assigned"], "alice", reviewer_calls)
+        self.assertEqual(len(reviewer_calls), 1)
+        self.assertIn("alice", reviewer_calls[0]["reviewers"])
+
+    def test_skips_non_mentored_linked_issue(self):
+        pr = self._make_pr("Closes #1")
+        reviewer_calls = []
+        self._run(pr, ["bug"], "alice", reviewer_calls)
+        self.assertEqual(reviewer_calls, [])
+
+    def test_skips_when_no_linked_issue(self):
+        pr = self._make_pr("Just a description, no closes keyword")
+        reviewer_calls = []
+        self._run(pr, ["mentor-assigned"], "alice", reviewer_calls)
+        self.assertEqual(reviewer_calls, [])
+
+    def test_skips_when_mentor_is_pr_author(self):
+        pr = self._make_pr("Fixes #1", author="alice")
+        reviewer_calls = []
+        self._run(pr, ["mentor-assigned"], "alice", reviewer_calls)
+        self.assertEqual(reviewer_calls, [])
+
+    def test_handles_various_closing_keywords(self):
+        for keyword in ["Closes", "Fixes", "Resolves", "Close", "Fix", "Resolve"]:
+            pr = self._make_pr(f"{keyword} #1")
+            reviewer_calls = []
+            self._run(pr, ["mentor-assigned"], "alice", reviewer_calls)
+            self.assertEqual(len(reviewer_calls), 1, f"Failed for keyword: {keyword}")
+
+
 if __name__ == "__main__":
     unittest.main()
