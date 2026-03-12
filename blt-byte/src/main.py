@@ -123,9 +123,10 @@ MCP_MANIFEST = {
                     "role": {
                         "type": "string",
                         "enum": ["contributor", "bug_hunter", "organisation"],
-                        "description": "User role",
+                        "description": "User role (required). Valid values: contributor, bug_hunter, organisation. Defaults to contributor if not specified by client but intended for explicit tool calls.",
                     }
                 },
+                "required": ["role"],
             },
         },
     ],
@@ -490,7 +491,7 @@ async def _run_scan(env, url: str, scan_type: str = "quick") -> dict:
     except Exception as ai_error:
         print(f"AI scan call crash: {ai_error!s}")
         traceback.print_exc()
-        return {"error": "The AI service is temporarily unavailable. Please try again."}
+        return {"error": "The AI service is temporarily unavailable. Please try again.", "status": 502}
 
     reply = _extract_ai_text(ai_response)
     if reply is None:
