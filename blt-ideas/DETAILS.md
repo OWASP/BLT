@@ -263,69 +263,37 @@ Idea B can be extended with a **light C** add-on in the same 350-hour slot. Ligh
 
 ---
 
-## Differentiation (standalone options)
+## 2026 Grouped Idea List
 
-| Idea | Focus | Beneficiaries | Dependencies | Risk level |
-|------|-------|---------------|--------------|------------|
-| A | Detection + validation | Maintainers, contributors | NVD, scanning | High (false positives) |
-| B | Rewards + recognition | Active contributors | Verified signals (or mocks) | Medium (gaming, economics) |
-| C | Education platform | New contributors | Content, mentoring | Medium (content burden) |
-| D | Knowledge sharing | OSS ecosystem | Aggregated data, governance | Medium (privacy) |
-| E | PR readiness & workflow | Contributors, maintainers | GitHub API, (optional) BLT auth | Medium (API limits, parsers) |
-| E (Extended) | Security triage for PRs | Contributors, maintainers | Idea E, CI signals | Medium (false positives) |
-| F | Trust & reputation scoring | Maintainers, reviewers | Verified contributions, BLT data | Medium (gaming, privacy) |
-| G | Security scanning platform | Security researchers, maintainers | Scanning tools, volunteer clients | Medium (accuracy, disclosure) |
-| H | Contributor growth + time-aware recommendations | Individual contributors, maintainers | Sizzle (time tracking), Gemini free tier (or local LLM), GitHub API | Medium (Sizzle adoption, LLM quality) |
-| I | First-time contributor onboarding | New contributors | BLT documentation, OWASP resources | Low (content organization) |
-| J | Vulnerability intelligence | BLT users, security teams | Public CVE feeds, security advisories | Medium (data quality, aggregation) |
-| N | AI-assisted onboarding & security learning (RAG) | New users, contributors, maintainers | OWASP public resources, GitHub Discussions (read-only), Public CVE feeds | Low–Medium (hallucinations) |
-| L | Automated bounty & reward pipeline | Contributors, maintainers, organizations | GitHub API, payment gateway, social media APIs | Medium (payment processing, automation complexity) |
-| M | CVE remediation lifecycle | Maintainers, contributors | Idea A and/or G (discovery), AI verification | Medium (AI accuracy, pattern detection) |
-| K | Frontend migration to Next.js | All users, developers | Django API backend, Cloudflare Pages | Medium (migration complexity, feature parity) |
-| O | Browser extension modernization | Bug reporters, contributors | Browser APIs, BLT API | Low–Medium (cross-browser compatibility) |
-| P | API v2 migration to Django Ninja | API consumers, developers | Existing DRF v1 API | Medium (migration path, SDK generation) |
-| Q | AI triage & disclosure assistant | Maintainers, security researchers | BLT/GitHub events, vector store | Medium (PII detection, false positives) |
-| R | Flutter mobile app | Mobile contributors | BLT API, Firebase/push notifications | Medium (offline mode, platform consistency) |
-| S | CVE explorer & mirror | BLT users, security teams | NVD, GitHub Advisory feeds | Medium (sync reliability, API rate limits) |
-| T | Target registry | Security researchers, maintainers | Public disclosure policies, security.txt | Low (moderation overhead) |
-| U | Pre-contribution security guidance | New contributors | GitHub API, AI models | Low–Medium (guidance quality, adoption) |
-| V | Event-driven gamification engine | All contributors, maintainers | BLT events, Celery/Redis | Medium (ledger consistency, event replay) |
-| W | Security campaigns | Maintainers, contributors | Issue tracking, campaign templates | Low (scope definition, engagement) |
-| X | RepoTrust security score | Founders, maintainers | BLT data, dependency health APIs | Medium (scoring fairness, signal quality) |
-| Y | Privacy-first video call note taker | Security researchers, maintainers | WebRTC, speech-to-text API, LLM | Medium (privacy trust, external APIs) |
-| Z | MCP server for BLT | AI agents, developers, automation tools | BLT backend, OAuth 2.0 | Medium (protocol maturity, abuse prevention) |
+### Large Projects (Consolidated)
 
----
+| Group | Description | Ideas |
+| --- | --- | --- |
+| CVE Detection Pipeline | End-to-end vulnerability pipeline: scanning, CVE validation, and remediation lifecycle | [A](Idea-A.md), [G](Idea-G.md), [M](Idea-M.md) |
+| Security Education Platform | Hands-on security labs, contributor onboarding UX, AI guidance (RAG chatbot), and pre-PR advisory workflows | [C](Idea-C.md), [D](Idea-D.md), [I](Idea-I.md), [N](Idea-N.md), [L2](Idea-L2.md) |
+| Gamification & Contributor Growth | BACON rewards, bounty pipeline, reputation scoring, contributor growth powered by an event engine | [B](Idea-B.md), [L](Idea-L.md), [F](Idea-F.md), [V](Idea-V.md), [H](Idea-H.md) |
+| AI Review Intelligence | AI-driven issue triage, PR security analysis, and mining of historical review patterns | [E.1](Idea-E.1.md), [Q](Idea-Q.md), [M-S](Idea-M-S.md) |
+| Platform Core Architecture | BLT frontend migration, API v1 | [K](Idea-K.md), [P](Idea-P.md) |
+| MCP | AI agent-first interface and CLI | [Z](Idea-Z.md) |
 
-## Decision guide
+### Medium Projects (Standalone)
 
-Choose by primary goal (one idea per slot):
+| Idea | Description |
+| --- | --- |
+| [J](Idea-J.md) | Aggregates CVEs and advisories into searchable dashboards and newsletters |
+| [O](Idea-O.md) | Cross-browser extension with AI explanations for vulnerabilities |
+| [R](Idea-R.md) | Mobile bug reporting, offline drafts, and contributor dashboards |
+| [T](Idea-T.md) | Directory of projects that welcome responsible disclosure |
+| [W](Idea-W.md) | Time-boxed security improvement campaigns with curated issues |
+| [X](Idea-X.md) | Explainable trust score for repositories using public signals |
+| [Y](Idea-Y.md) | Ephemeral secure video call tool for disclosure discussions with zero persistence |
 
-- **Rewards & recognition for verified security work** (BACON, badges, leaderboards, education bridge) → **Idea B + light C**
-- **CVE detection & verification pipeline** (GHSC, NVD, maintainer verification UI/API) → **Idea A**
-- **PR readiness & merge workflow** (CI aggregation, discussion analysis, reviewer intent, web dashboard) → **Idea E**
-- **PR security triage** (advisory security insights, remediation guidance, GitHub annotations) → **Idea E (Extended)**
-- **Structured education & knowledge sharing** (labs, playbooks, dashboards, approval workflow) → **Idea C + D** (combined into one 350h effort)
-- **Contributor growth, time-aware progress, and AI-guided "what to work on next"** (Sizzle-first, personal dashboard, maintainer capacity) → **Idea H (BLT Growth)**
-- **Trust & reputation scoring for contributors** (verified contribution tracking, explainable trust scores, anti-gaming controls) → **Idea F**
-- **Distributed security scanning platform** (volunteer clients, real vulnerability detection, responsible disclosure) → **Idea G (NetGuardian)**
-- **First-time contributor experience** (onboarding, documentation clarity, AI-assisted security guide) → **Idea I**
-- **Vulnerability intelligence & news** (CVE aggregation, dashboard, API, newsletter) → **Idea J**
-- **Automated bounty & reward pipeline** (GitHub integration, social automation, native payment processing) → **Idea L**
-- **CVE remediation lifecycle** (AI-verified fixes, pattern detection, verified events to Idea B) → **Idea M**
-- **Frontend modernization** (Next.js/TypeScript, Cloudflare Pages, edge optimization) → **Idea K**
-- **Browser extension for bug reporting** (modernized extension, AI-assisted reporting) → **Idea O**
-- **API v2 development** (Django Ninja migration, OpenAPI-first SDKs, secure endpoints) → **Idea P**
-- **AI triage assistant** (event ingestion, duplicate detection, responsible disclosure) → **Idea Q (Toasty)**
-- **Mobile contributor companion** (Flutter app, bug reporting, BACON tracking) → **Idea R**
-- **CVE explorer & mirror** (multi-source aggregation, search, watchlists) → **Idea S**
-- **Target registry** (passive directory, disclosure policies, security-friendly projects) → **Idea T**
-- **Pre-contribution guidance** (security intent & risk awareness before coding) → **Idea U**
-- **Event-driven gamification** (Pub/Sub architecture, rule engine, double-entry ledger) → **Idea V**
-- **Security campaigns** (time-bound sprints, curated issues, progress tracking) → **Idea W**
-- **RepoTrust score** (0-100 security health score, explainable signals, actionable guidance) → **Idea X**
-- **Privacy-first secure video calls** (ephemeral note-taking for disclosure discussions, zero persistence) → **Idea Y**
-- **AI-agent-friendly platform integration** (MCP server, resources/tools/prompts, Claude Desktop support) → **Idea Z**
+### Small Projects
+
+| Idea | Description |
+| --- | --- |
+| [RS](Idea-RS.md) | Flags low-effort or duplicate vulnerability reports before review |
+| [S](Idea-S.md) | Community notes, watchlists, export tools, and audit logging |
 
 ---
 

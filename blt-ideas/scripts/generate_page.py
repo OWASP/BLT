@@ -65,6 +65,81 @@ IDEA_REPO_MAP = {
     "Z": "OWASP-BLT/BLT-MCP",          # BLT Model Context Protocol Server
 }
 
+LARGE_PROJECT_GROUPS = [
+    {
+      "group": "CVE Detection Pipeline",
+      "description": "End-to-end vulnerability pipeline: scanning, CVE validation, and remediation lifecycle",
+      "ideas": ["A", "G", "M"],
+    },
+    {
+      "group": "Security Education Platform",
+      "description": "Hands-on security labs, contributor onboarding UX, AI guidance (RAG chatbot), and pre-PR advisory workflows",
+      "ideas": ["C", "D", "I", "N", "L2"],
+    },
+    {
+      "group": "Gamification & Contributor Growth",
+      "description": "BACON rewards, bounty pipeline, reputation scoring, contributor growth powered by an event engine",
+      "ideas": ["B", "L", "F", "V", "H"],
+    },
+    {
+      "group": "AI Review Intelligence",
+      "description": "AI-driven issue triage, PR security analysis, and mining of historical review patterns",
+      "ideas": ["E.1", "Q", "M-S"],
+    },
+    {
+      "group": "Platform Core Architecture",
+      "description": "BLT frontend migration, API v1",
+      "ideas": ["K", "P"],
+    },
+    {
+      "group": "MCP",
+      "description": "AI agent-first interface and CLI",
+      "ideas": ["Z"],
+    },
+]
+
+MEDIUM_PROJECTS = [
+    {
+      "idea": "J",
+      "description": "Aggregates CVEs and advisories into searchable dashboards and newsletters",
+    },
+    {
+      "idea": "O",
+      "description": "Cross-browser extension with AI explanations for vulnerabilities",
+    },
+    {
+      "idea": "R",
+      "description": "Mobile bug reporting, offline drafts, and contributor dashboards",
+    },
+    {
+      "idea": "T",
+      "description": "Directory of projects that welcome responsible disclosure",
+    },
+    {
+      "idea": "W",
+      "description": "Time-boxed security improvement campaigns with curated issues",
+    },
+    {
+      "idea": "X",
+      "description": "Explainable trust score for repositories using public signals",
+    },
+    {
+      "idea": "Y",
+      "description": "Ephemeral secure video call tool for disclosure discussions with zero persistence",
+    },
+]
+
+SMALL_PROJECTS = [
+    {
+      "idea": "RS",
+      "description": "Flags low-effort or duplicate vulnerability reports before review",
+    },
+    {
+      "idea": "S",
+      "description": "Community notes, watchlists, export tools, and audit logging",
+    },
+]
+
 
 def github_api_rest(endpoint):
     """Call GitHub REST API."""
@@ -315,8 +390,125 @@ def html_escape(s):
     )
 
 
+def render_idea_group_links(idea_ids, ideas_by_id):
+    links = []
+    for idea_id in idea_ids:
+        idea = ideas_by_id.get(idea_id)
+        if idea:
+            file_url = f"{REPO_URL}/blob/main/{idea['filename']}"
+            links.append(
+                f'<a href="{file_url}" target="_blank" class="badge" title="{html_escape(idea["title"])}">Idea&nbsp;{html_escape(idea_id)}</a>'
+            )
+        else:
+            links.append(f'<span class="badge">Idea&nbsp;{html_escape(idea_id)}</span>')
+    return " ".join(links)
+
+
+def render_grouped_projects_section(ideas):
+    ideas_by_id = {idea["id"]: idea for idea in ideas}
+
+    large_rows = "".join(
+        f"""              <tr>
+                <td class="px-4 py-3 align-top font-bold text-gray-900">{html_escape(group['group'])}</td>
+                <td class="px-4 py-3 align-top text-gray-600">{html_escape(group['description'])}</td>
+                <td class="px-4 py-3 align-top">{render_idea_group_links(group['ideas'], ideas_by_id)}</td>
+              </tr>"""
+        for group in LARGE_PROJECT_GROUPS
+    )
+
+    medium_rows = "".join(
+        f"""              <tr>
+                <td class="px-4 py-3 align-top">{render_idea_group_links([item['idea']], ideas_by_id)}</td>
+                <td class="px-4 py-3 align-top text-gray-600">{html_escape(item['description'])}</td>
+              </tr>"""
+        for item in MEDIUM_PROJECTS
+    )
+
+    small_rows = "".join(
+        f"""              <tr>
+                <td class="px-4 py-3 align-top">{render_idea_group_links([item['idea']], ideas_by_id)}</td>
+                <td class="px-4 py-3 align-top text-gray-600">{html_escape(item['description'])}</td>
+              </tr>"""
+        for item in SMALL_PROJECTS
+    )
+
+    return f"""
+        <section id="project-groups" class="rounded-2xl border border-neutral-border bg-white p-5 shadow-sm sm:p-6">
+          <div class="mb-5 flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p class="text-xs font-bold uppercase tracking-[0.25em] text-gray-500">Updated Idea Packaging</p>
+              <h2 class="mt-2 text-xl font-extrabold text-gray-900">Large, Medium, and Small Projects</h2>
+            </div>
+          </div>
+
+          <article class="rounded-xl border border-red-100 bg-red-50/60 p-4">
+            <div class="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-red-700">
+              <span>Large Projects</span>
+              <span class="rounded-full bg-white px-2 py-0.5 text-xs text-red-700">Consolidated</span>
+            </div>
+            <div class="table-wrap border-red-100">
+              <table class="min-w-full divide-y divide-red-100 text-sm">
+                <thead class="bg-white/80 text-xs uppercase tracking-wide text-red-800">
+                  <tr>
+                    <th class="px-4 py-3 text-left font-bold">Group</th>
+                    <th class="px-4 py-3 text-left font-bold">Description</th>
+                    <th class="px-4 py-3 text-left font-bold">Ideas</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-red-100 bg-white/70 text-gray-700">
+{large_rows}
+                </tbody>
+              </table>
+            </div>
+          </article>
+
+          <div class="mt-5 grid gap-5 xl:grid-cols-2">
+            <article class="rounded-xl border border-amber-100 bg-amber-50/60 p-4">
+              <div class="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-amber-800">
+                <span>Medium Projects</span>
+                <span class="rounded-full bg-white px-2 py-0.5 text-xs text-amber-800">Standalone</span>
+              </div>
+              <div class="table-wrap border-amber-100">
+                <table class="min-w-full divide-y divide-amber-100 text-sm">
+                  <thead class="bg-white/80 text-xs uppercase tracking-wide text-amber-900">
+                    <tr>
+                      <th class="px-4 py-3 text-left font-bold">Idea</th>
+                      <th class="px-4 py-3 text-left font-bold">Description</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-amber-100 bg-white/70 text-gray-700">
+{medium_rows}
+                  </tbody>
+                </table>
+              </div>
+            </article>
+
+            <article class="rounded-xl border border-emerald-100 bg-emerald-50/60 p-4">
+              <div class="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-emerald-800">
+                <span>Small Projects</span>
+              </div>
+              <div class="table-wrap border-emerald-100">
+                <table class="min-w-full divide-y divide-emerald-100 text-sm">
+                  <thead class="bg-white/80 text-xs uppercase tracking-wide text-emerald-900">
+                    <tr>
+                      <th class="px-4 py-3 text-left font-bold">Idea</th>
+                      <th class="px-4 py-3 text-left font-bold">Description</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-emerald-100 bg-white/70 text-gray-700">
+{small_rows}
+                  </tbody>
+                </table>
+              </div>
+            </article>
+          </div>
+        </section>
+"""
+
+
 def generate_html(ideas, overlap_matrix):
     """Generate a complete HTML page with sortable table and overlap analysis."""
+    grouped_projects_html = render_grouped_projects_section(ideas)
 
     # Prepare table rows
     rows_html = []
@@ -686,6 +878,7 @@ def generate_html(ideas, overlap_matrix):
             <p class="mb-2 text-xs font-bold uppercase tracking-wide text-gray-500">Navigate</p>
             <ul class="space-y-1 text-sm font-semibold">
               <li><a href="#landing" class="btn-link block rounded-md bg-[#feeae9] px-3 py-2 text-[#E10101]">Overview</a></li>
+              <li><a href="#project-groups" class="btn-link block rounded-md px-3 py-2 text-gray-700 hover:bg-gray-50">Project Groups</a></li>
               <li><a href="#ideas-overview" class="btn-link block rounded-md px-3 py-2 text-gray-700 hover:bg-gray-50">Feature Catalog</a></li>
               <li><a href="#overlap-matrix" class="btn-link block rounded-md px-3 py-2 text-gray-700 hover:bg-gray-50">Overlap Matrix</a></li>
               <li><a href="#top-ideas" class="btn-link block rounded-md px-3 py-2 text-gray-700 hover:bg-gray-50">Most Connected</a></li>
@@ -723,10 +916,10 @@ def generate_html(ideas, overlap_matrix):
                 Plan Better OWASP BLT Extensions With Clear, Actionable Ideas
               </h1>
               <p class="mt-4 text-base leading-relaxed text-gray-600">
-                This landing page brings all proposal specs, dependencies, and contributor signals into one practical workspace. Teams can evaluate why an idea matters, how it integrates with BLT, and where collaboration already exists.
+                This landing page brings the updated project groupings, full proposal specs, dependencies, and contributor signals into one practical workspace. Teams can compare consolidated tracks, inspect standalone options, and see where collaboration already exists.
               </p>
               <div class="mt-5 flex flex-wrap gap-2 text-sm font-semibold text-gray-600">
-                <span class="rounded-full border border-neutral-border bg-gray-50 px-3 py-1">Feature list visibility</span>
+                <span class="rounded-full border border-neutral-border bg-gray-50 px-3 py-1">Large and standalone tracks</span>
                 <span class="rounded-full border border-neutral-border bg-gray-50 px-3 py-1">Usage guidance</span>
                 <span class="rounded-full border border-neutral-border bg-gray-50 px-3 py-1">Cross-idea dependencies</span>
               </div>
@@ -753,10 +946,10 @@ def generate_html(ideas, overlap_matrix):
         <section aria-label="Feature highlights" class="grid gap-4 sm:grid-cols-3">
           <article class="rounded-xl border border-neutral-border bg-white p-4 shadow-sm">
             <div class="mb-3 inline-flex h-9 w-9 items-center justify-center rounded-lg bg-red-50 text-primary">
-              <i class="fa-solid fa-table-list" aria-hidden="true"></i>
+              <i class="fa-solid fa-layer-group" aria-hidden="true"></i>
             </div>
-            <h2 class="text-base font-bold text-gray-900">Complete Feature List</h2>
-            <p class="mt-2 text-sm text-gray-600">Every idea is indexed with title, one-liner, linked repo, discussions, and contributors.</p>
+            <h2 class="text-base font-bold text-gray-900">Curated Project Tracks</h2>
+            <p class="mt-2 text-sm text-gray-600">Large projects are now consolidated, while medium and small options stay independently scannable.</p>
           </article>
           <article class="rounded-xl border border-neutral-border bg-white p-4 shadow-sm">
             <div class="mb-3 inline-flex h-9 w-9 items-center justify-center rounded-lg bg-red-50 text-primary">
@@ -796,6 +989,8 @@ def generate_html(ideas, overlap_matrix):
             <p class="mt-2 text-3xl font-extrabold text-primary" id="stat-contributors">0</p>
           </article>
         </section>
+
+      {grouped_projects_html}
 
         <section id="ideas-overview" class="rounded-2xl border border-neutral-border bg-white p-5 shadow-sm sm:p-6">
           <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
