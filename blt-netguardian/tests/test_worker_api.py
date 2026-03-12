@@ -4,7 +4,7 @@ import json
 import sys
 import types
 from types import SimpleNamespace
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, Mock
 
 import pytest
 
@@ -237,6 +237,74 @@ async def test_handle_result_ingestion_updates_state_and_notifies():
 
 
 @pytest.mark.asyncio
+async def test_handle_result_ingestion_rejects_non_string_identifiers():
+    worker = BLTWorker(SimpleNamespace(DB=None))
+
+    response = await worker.handle_result_ingestion(
+        FakeRequest(
+            "https://api.example.com/api/results/ingest",
+            method="POST",
+            payload={
+                "task_id": 123,
+                "agent_type": ["static_analyzer"],
+                "results": {},
+            },
+        )
+    )
+    payload = parse_json(response)
+
+    assert response.status == 400
+    assert payload["error"] == "Missing required fields: task_id, agent_type"
+
+
+@pytest.mark.asyncio
+async def test_handle_result_ingestion_returns_success_when_notifier_fails():
+    worker = BLTWorker(SimpleNamespace(DB=None))
+    worker.vuln_db = SimpleNamespace(store_vulnerability=AsyncMock())
+    worker.task_queue = SimpleNamespace(
+        get_task=AsyncMock(return_value={"job_id": "job-1", "target_id": "target-1"}),
+        update_task=AsyncMock(),
+    )
+    worker.job_store = SimpleNamespace(update_job_progress=AsyncMock())
+    worker.target_registry = SimpleNamespace(
+        get_target=AsyncMock(return_value={"target_url": "https://example.com"})
+    )
+    worker.notifier = SimpleNamespace(
+        notify_vulnerability=AsyncMock(side_effect=RuntimeError("notify failed"))
+    )
+    worker.log_exception = Mock()
+
+    response = await worker.handle_result_ingestion(
+        FakeRequest(
+            "https://api.example.com/api/results/ingest",
+            method="POST",
+            payload={
+                "task_id": "task-1",
+                "agent_type": "static_analyzer",
+                "results": {
+                    "vulnerabilities": [
+                        {
+                            "type": "xss",
+                            "severity": "high",
+                            "title": "Reflected XSS",
+                        }
+                    ],
+                },
+            },
+        )
+    )
+    payload = parse_json(response)
+
+    assert response.status == 200
+    assert payload["success"] is True
+    assert payload["contact_attempted"] is True
+    assert payload["contact_successful"] == 0
+    worker.task_queue.update_task.assert_awaited_once()
+    worker.job_store.update_job_progress.assert_awaited_once_with("job-1")
+    worker.log_exception.assert_called_once()
+
+
+@pytest.mark.asyncio
 async def test_handle_job_status_validates_query_param():
     worker = BLTWorker(SimpleNamespace(DB=None))
 
@@ -309,6 +377,19 @@ async def test_handle_vulnerabilities_passes_limit_and_severity():
     assert response.status == 200
     assert payload == {"count": 1, "vulnerabilities": [{"id": 1}]}
     worker.vuln_db.get_vulnerabilities.assert_awaited_once_with(25, "high")
+
+
+@pytest.mark.asyncio
+async def test_handle_vulnerabilities_rejects_blank_limit():
+    worker = BLTWorker(SimpleNamespace(DB=None))
+
+    response = await worker.handle_vulnerabilities(
+        FakeRequest("https://api.example.com/api/vulnerabilities?limit=")
+    )
+    payload = parse_json(response)
+
+    assert response.status == 400
+    assert payload["error"] == "Invalid limit parameter"
 
 
 @pytest.mark.asyncio

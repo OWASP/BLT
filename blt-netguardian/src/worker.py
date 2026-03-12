@@ -352,10 +352,16 @@ class BLTWorker:
             agent_type = data.get('agent_type')
             results = data.get('results', {})
 
-            if not task_id or not agent_type:
+            if (
+                not isinstance(task_id, str) or not task_id.strip()
+                or not isinstance(agent_type, str) or not agent_type.strip()
+            ):
                 return self.json_response({
                     'error': 'Missing required fields: task_id, agent_type'
                 }, status=400)
+
+            task_id = task_id.strip()
+            agent_type = agent_type.strip()
 
             if results is None:
                 results = {}
@@ -410,6 +416,7 @@ class BLTWorker:
 
             # Automatically contact stakeholders if vulnerabilities found
             contact_result = None
+            contact_attempted = False
             if result.vulnerabilities:
                 # Get target info
                 target_id = task.get('target_id')
@@ -420,17 +427,21 @@ class BLTWorker:
                     target_url = target_info.get('target_url', 'unknown')
 
                     # Attempt to notify
-                    contact_result = await self.notifier.notify_vulnerability(
-                        target=target_url,
-                        vulnerabilities=result.vulnerabilities
-                    )
+                    contact_attempted = True
+                    try:
+                        contact_result = await self.notifier.notify_vulnerability(
+                            target=target_url,
+                            vulnerabilities=result.vulnerabilities
+                        )
+                    except Exception as notify_error:
+                        self.log_exception('Failed to notify stakeholders', notify_error)
 
             return self.json_response({
                 'success': True,
                 'result_id': result.result_id,
                 'vulnerabilities_found': len(result.vulnerabilities),
                 'triage_ready': False,
-                'contact_attempted': contact_result is not None,
+                'contact_attempted': contact_attempted,
                 'contact_successful': contact_result.get('successful_contacts', 0) if contact_result else 0,
                 'message': 'Results ingested successfully'
             })
@@ -640,7 +651,7 @@ class BLTWorker:
     def get_query_param(self, request, key: str, default: Optional[str] = None) -> Optional[str]:
         """Extract query parameter from request."""
         query_string = request.url.split('?')[1] if '?' in request.url else ''
-        params = parse_qs(query_string)
+        params = parse_qs(query_string, keep_blank_values=True)
         return params.get(key, [default])[0]
     
     def json_response(self, data: Dict[str, Any], status: int = 200,
