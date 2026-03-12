@@ -313,6 +313,7 @@ def _make_pr_payload(
     merged=False,
     pr_user=None,
     sender=None,
+    head_sha="deadbeef",
 ):
     if pr_user is None:
         pr_user = {"login": "alice", "type": "User"}
@@ -320,7 +321,7 @@ def _make_pr_payload(
         sender = {"login": "alice", "type": "User"}
     return {
         "repository": {"owner": {"login": owner}, "name": repo},
-        "pull_request": {"number": number, "merged": merged, "user": pr_user},
+        "pull_request": {"number": number, "merged": merged, "user": pr_user, "head": {"sha": head_sha}},
         "sender": sender,
     }
 
@@ -553,7 +554,8 @@ class TestHandlePullRequestOpened(unittest.TestCase):
             with patch.object(_worker, "create_comment", new=AsyncMock(side_effect=lambda o, r, n, b, t: comments.append(b))):
                 with patch.object(_worker, "_check_and_close_excess_prs", new=AsyncMock(return_value=False)):
                     with patch.object(_worker, "_post_or_update_leaderboard", new=AsyncMock()):
-                        await _worker.handle_pull_request_opened(payload, "tok")
+                        with patch.object(_worker, "label_pending_checks", new=AsyncMock()):
+                            await _worker.handle_pull_request_opened(payload, "tok")
         _run(_inner())
 
     def test_posts_welcome_message(self):
@@ -2350,12 +2352,12 @@ class TestCheckUnresolvedConversations(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------------
-# check_workflows_awaiting_approval / handle_workflow_run tests
+# label_pending_checks / handle_workflow_run / handle_check_run tests
 # ---------------------------------------------------------------------------
 
 
-class TestCheckWorkflowsAwaitingApproval(unittest.TestCase):
-    """check_workflows_awaiting_approval — adds/removes label based on pending workflow runs."""
+class TestLabelPendingChecks(unittest.TestCase):
+    """label_pending_checks — adds/removes 'N checks pending' label based on queued workflow runs."""
 
     def _runs_response(self, total_count):
         """Build a mock REST response for GET actions/runs."""
@@ -2377,39 +2379,70 @@ class TestCheckWorkflowsAwaitingApproval(unittest.TestCase):
         resp.text = AsyncMock(return_value="{}")
         return resp
 
-    def test_adds_red_label_when_workflows_pending(self):
-        """When workflows are awaiting approval, a red label should be added."""
+    def test_adds_yellow_label_when_checks_pending(self):
+        """When workflow runs are queued the label 'N checks pending' should be added."""
         api_calls = []
 
         async def mock_api(*args, **kwargs):
             api_calls.append(args)
             if args[0] == "GET" and "actions/runs" in args[1]:
-                return self._runs_response(2)
+                # Return 2 queued runs for 'queued', 0 for others
+                if "status=queued" in args[1]:
+                    return self._runs_response(2)
+                return self._runs_response(0)
             if args[0] == "GET" and "/issues/5/labels" in args[1] and "labels/" not in args[1]:
                 return self._labels_response([])
             return self._ok_response()
 
         async def _inner():
             with patch.object(_worker, "github_api", new=AsyncMock(side_effect=mock_api)):
-                await _worker.check_workflows_awaiting_approval("acme", "widgets", 5, "abc123", "tok")
+                await _worker.label_pending_checks("acme", "widgets", 5, "abc123", "tok")
 
         _run(_inner())
         post_label_calls = [c for c in api_calls if c[0] == "POST" and "/issues/5/labels" in c[1]]
         self.assertEqual(len(post_label_calls), 1, f"Expected 1 POST to add label, got {api_calls}")
         self.assertTrue(
-            any("2 workflows awaiting approval" in json.dumps(c) for c in api_calls),
-            f"Expected label text '2 workflows awaiting approval' in calls: {api_calls}",
+            any("2 checks pending" in json.dumps(c) for c in api_calls),
+            f"Expected label text '2 checks pending' in calls: {api_calls}",
         )
-        # Verify the label color is red via the PATCH/POST to /labels endpoint
+        # Verify yellow color
         label_create_calls = [c for c in api_calls if c[0] in ("POST", "PATCH") and "/labels" in c[1] and "/issues/" not in c[1]]
         self.assertTrue(
-            any("e74c3c" in json.dumps(c) for c in label_create_calls),
-            f"Expected red color e74c3c in label create/update calls: {label_create_calls}",
+            any("e4c84b" in json.dumps(c) for c in label_create_calls),
+            f"Expected yellow color e4c84b in label create/update calls: {label_create_calls}",
         )
 
-    def test_removes_label_when_no_workflows_pending(self):
-        """When no workflows are awaiting approval, any existing label should be removed and no new one added."""
-        existing_labels = [{"name": "3 workflows awaiting approval"}, {"name": "bug"}]
+    def test_sums_across_all_statuses(self):
+        """Total count should be the sum of queued + waiting + action_required runs."""
+        api_calls = []
+
+        async def mock_api(*args, **kwargs):
+            api_calls.append(args)
+            if args[0] == "GET" and "actions/runs" in args[1]:
+                if "status=queued" in args[1]:
+                    return self._runs_response(1)
+                if "status=waiting" in args[1]:
+                    return self._runs_response(1)
+                if "status=action_required" in args[1]:
+                    return self._runs_response(1)
+                return self._runs_response(0)
+            if args[0] == "GET" and "/issues/7/labels" in args[1] and "labels/" not in args[1]:
+                return self._labels_response([])
+            return self._ok_response()
+
+        async def _inner():
+            with patch.object(_worker, "github_api", new=AsyncMock(side_effect=mock_api)):
+                await _worker.label_pending_checks("acme", "widgets", 7, "abc123", "tok")
+
+        _run(_inner())
+        self.assertTrue(
+            any("3 checks pending" in json.dumps(c) for c in api_calls),
+            f"Expected combined count '3 checks pending', got: {api_calls}",
+        )
+
+    def test_removes_label_when_no_checks_pending(self):
+        """When no runs are pending the existing label should be removed and none added."""
+        existing_labels = [{"name": "3 checks pending"}, {"name": "bug"}]
         api_calls = []
 
         async def mock_api(*args, **kwargs):
@@ -2422,72 +2455,94 @@ class TestCheckWorkflowsAwaitingApproval(unittest.TestCase):
 
         async def _inner():
             with patch.object(_worker, "github_api", new=AsyncMock(side_effect=mock_api)):
-                await _worker.check_workflows_awaiting_approval("acme", "widgets", 5, "abc123", "tok")
+                await _worker.label_pending_checks("acme", "widgets", 5, "abc123", "tok")
 
         _run(_inner())
-        # Should DELETE the old label (plural form: "3 workflows awaiting approval")
-        delete_calls = [c for c in api_calls if c[0] == "DELETE" and "awaiting%20approval" in c[1]]
+        delete_calls = [c for c in api_calls if c[0] == "DELETE" and "checks%20pending" in c[1]]
         self.assertEqual(len(delete_calls), 1, f"Expected 1 DELETE for stale label, got {api_calls}")
-        # Should NOT add a new label
         post_label_calls = [c for c in api_calls if c[0] == "POST" and "/issues/5/labels" in c[1]]
         self.assertEqual(len(post_label_calls), 0, f"Expected no POST to add label, got {api_calls}")
-        # Should NOT delete the unrelated "bug" label
         bug_deletes = [c for c in api_calls if c[0] == "DELETE" and "bug" in c[1]]
         self.assertEqual(len(bug_deletes), 0)
 
-    def test_removes_stale_label_and_adds_updated_count(self):
-        """Old approval label should be replaced when the count changes."""
-        existing_labels = [{"name": "1 workflow awaiting approval"}]
+    def test_removes_legacy_awaiting_approval_label(self):
+        """Old 'workflows awaiting approval' labels should also be cleaned up."""
+        existing_labels = [{"name": "2 workflows awaiting approval"}]
         api_calls = []
 
         async def mock_api(*args, **kwargs):
             api_calls.append(args)
             if args[0] == "GET" and "actions/runs" in args[1]:
-                return self._runs_response(3)
+                return self._runs_response(0)
+            if args[0] == "GET" and "/issues/5/labels" in args[1] and "labels/" not in args[1]:
+                return self._labels_response(existing_labels)
+            return self._ok_response()
+
+        async def _inner():
+            with patch.object(_worker, "github_api", new=AsyncMock(side_effect=mock_api)):
+                await _worker.label_pending_checks("acme", "widgets", 5, "abc123", "tok")
+
+        _run(_inner())
+        delete_calls = [c for c in api_calls if c[0] == "DELETE" and "awaiting%20approval" in c[1]]
+        self.assertEqual(len(delete_calls), 1, f"Expected 1 DELETE for legacy label, got {api_calls}")
+
+    def test_removes_stale_label_and_adds_updated_count(self):
+        """Old pending label should be replaced when the count changes."""
+        existing_labels = [{"name": "1 check pending"}]
+        api_calls = []
+
+        async def mock_api(*args, **kwargs):
+            api_calls.append(args)
+            if args[0] == "GET" and "actions/runs" in args[1]:
+                if "status=queued" in args[1]:
+                    return self._runs_response(3)
+                return self._runs_response(0)
             if args[0] == "GET" and "/issues/9/labels" in args[1] and "labels/" not in args[1]:
                 return self._labels_response(existing_labels)
             return self._ok_response()
 
         async def _inner():
             with patch.object(_worker, "github_api", new=AsyncMock(side_effect=mock_api)):
-                await _worker.check_workflows_awaiting_approval("acme", "widgets", 9, "deadbeef", "tok")
+                await _worker.label_pending_checks("acme", "widgets", 9, "deadbeef", "tok")
 
         _run(_inner())
-        delete_calls = [c for c in api_calls if c[0] == "DELETE" and "workflow%20awaiting%20approval" in c[1]]
+        delete_calls = [c for c in api_calls if c[0] == "DELETE" and "check%20pending" in c[1]]
         self.assertEqual(len(delete_calls), 1, f"Expected 1 DELETE for old label, got {api_calls}")
         self.assertTrue(
-            any("3 workflows awaiting approval" in json.dumps(c) for c in api_calls),
+            any("3 checks pending" in json.dumps(c) for c in api_calls),
             f"Expected updated label count in calls: {api_calls}",
         )
 
-    def test_uses_singular_form_for_one_workflow(self):
-        """When exactly 1 workflow is pending, label should use singular 'workflow'."""
+    def test_uses_singular_form_for_one_check(self):
+        """When exactly 1 check is pending, label should use singular 'check'."""
         api_calls = []
 
         async def mock_api(*args, **kwargs):
             api_calls.append(args)
             if args[0] == "GET" and "actions/runs" in args[1]:
-                return self._runs_response(1)
+                if "status=queued" in args[1]:
+                    return self._runs_response(1)
+                return self._runs_response(0)
             if args[0] == "GET" and "/issues/5/labels" in args[1] and "labels/" not in args[1]:
                 return self._labels_response([])
             return self._ok_response()
 
         async def _inner():
             with patch.object(_worker, "github_api", new=AsyncMock(side_effect=mock_api)):
-                await _worker.check_workflows_awaiting_approval("acme", "widgets", 5, "abc123", "tok")
+                await _worker.label_pending_checks("acme", "widgets", 5, "abc123", "tok")
 
         _run(_inner())
         self.assertTrue(
-            any("1 workflow awaiting approval" in json.dumps(c) for c in api_calls),
-            f"Expected singular label '1 workflow awaiting approval', got: {api_calls}",
+            any("1 check pending" in json.dumps(c) for c in api_calls),
+            f"Expected singular label '1 check pending', got: {api_calls}",
         )
         self.assertFalse(
-            any("1 workflows awaiting approval" in json.dumps(c) for c in api_calls),
+            any("1 checks pending" in json.dumps(c) for c in api_calls),
             f"Should NOT use plural form for count 1, got: {api_calls}",
         )
 
-    def test_no_api_calls_when_runs_query_fails(self):
-        """Should not crash and should skip label update when actions/runs API fails."""
+    def test_leaves_labels_unchanged_when_all_queries_fail(self):
+        """Should not remove existing labels when all status queries return errors."""
         api_calls = []
         fail_resp = MagicMock()
         fail_resp.status = 500
@@ -2501,11 +2556,19 @@ class TestCheckWorkflowsAwaitingApproval(unittest.TestCase):
 
         async def _inner():
             with patch.object(_worker, "github_api", new=AsyncMock(side_effect=mock_api)):
-                await _worker.check_workflows_awaiting_approval("acme", "widgets", 5, "abc123", "tok")
+                await _worker.label_pending_checks("acme", "widgets", 5, "abc123", "tok")
 
         _run(_inner())
-        post_label_calls = [c for c in api_calls if c[0] == "POST" and "/issues/" in c[1]]
-        self.assertEqual(len(post_label_calls), 0, "Should not POST a label when runs query fails")
+        # Must not POST a label or DELETE any existing one
+        label_mutations = [
+            c for c in api_calls
+            if c[0] in ("POST", "DELETE") and "/issues/" in c[1]
+        ]
+        self.assertEqual(label_mutations, [], "Should make no label changes when all queries fail")
+
+    def test_alias_check_workflows_awaiting_approval(self):
+        """check_workflows_awaiting_approval should be an alias for label_pending_checks."""
+        self.assertIs(_worker.check_workflows_awaiting_approval, _worker.label_pending_checks)
 
 
 class TestHandleWorkflowRun(unittest.TestCase):
@@ -2528,14 +2591,14 @@ class TestHandleWorkflowRun(unittest.TestCase):
         return resp
 
     def test_calls_check_for_each_pr_in_payload(self):
-        """Should call check_workflows_awaiting_approval once per PR in pull_requests."""
+        """Should call label_pending_checks once per PR in pull_requests."""
         checked = []
 
         async def mock_check(owner, repo, pr_number, head_sha, token):
             checked.append(pr_number)
 
         async def _inner():
-            with patch.object(_worker, "check_workflows_awaiting_approval", new=mock_check):
+            with patch.object(_worker, "label_pending_checks", new=mock_check):
                 await _worker.handle_workflow_run(self._make_payload(pr_numbers=[1, 2, 3]), "tok")
 
         _run(_inner())
@@ -2559,7 +2622,7 @@ class TestHandleWorkflowRun(unittest.TestCase):
             return pulls_resp
 
         async def _inner():
-            with patch.object(_worker, "check_workflows_awaiting_approval", new=mock_check):
+            with patch.object(_worker, "label_pending_checks", new=mock_check):
                 with patch.object(_worker, "github_api", new=AsyncMock(side_effect=mock_api)):
                     await _worker.handle_workflow_run(self._make_payload(pr_numbers=[], head_sha="abc123"), "tok")
 
@@ -2577,9 +2640,80 @@ class TestHandleWorkflowRun(unittest.TestCase):
             checked.append(pr_number)
 
         async def _inner():
-            with patch.object(_worker, "check_workflows_awaiting_approval", new=mock_check):
+            with patch.object(_worker, "label_pending_checks", new=mock_check):
                 with patch.object(_worker, "github_api", new=AsyncMock(return_value=pulls_resp)):
                     await _worker.handle_workflow_run(self._make_payload(pr_numbers=[], head_sha="abc123"), "tok")
+
+        _run(_inner())
+        self.assertEqual(checked, [])
+
+
+class TestHandleCheckRun(unittest.TestCase):
+    """handle_check_run — routes check_run events to per-PR label updates."""
+
+    def _make_payload(self, pr_numbers=None, head_sha="abc123"):
+        pull_requests = [{"number": n} for n in (pr_numbers or [])]
+        return {
+            "repository": {"owner": {"login": "acme"}, "name": "widgets"},
+            "check_run": {
+                "head_sha": head_sha,
+                "pull_requests": pull_requests,
+            },
+        }
+
+    def test_calls_label_pending_for_each_pr(self):
+        """Should call label_pending_checks once per PR in check_run.pull_requests."""
+        checked = []
+
+        async def mock_label(owner, repo, pr_number, head_sha, token):
+            checked.append(pr_number)
+
+        async def _inner():
+            with patch.object(_worker, "label_pending_checks", new=mock_label):
+                await _worker.handle_check_run(self._make_payload(pr_numbers=[5, 6]), "tok")
+
+        _run(_inner())
+        self.assertEqual(sorted(checked), [5, 6])
+
+    def test_falls_back_to_sha_lookup_for_fork_prs(self):
+        """When pull_requests is empty, should search open PRs by head SHA."""
+        checked = []
+        open_pulls = [
+            {"number": 10, "head": {"sha": "abc123"}},
+            {"number": 20, "head": {"sha": "other"}},
+        ]
+        pulls_resp = MagicMock()
+        pulls_resp.status = 200
+        pulls_resp.text = AsyncMock(return_value=json.dumps(open_pulls))
+
+        async def mock_label(owner, repo, pr_number, head_sha, token):
+            checked.append(pr_number)
+
+        async def mock_api(*args, **kwargs):
+            return pulls_resp
+
+        async def _inner():
+            with patch.object(_worker, "label_pending_checks", new=mock_label):
+                with patch.object(_worker, "github_api", new=AsyncMock(side_effect=mock_api)):
+                    await _worker.handle_check_run(self._make_payload(pr_numbers=[], head_sha="abc123"), "tok")
+
+        _run(_inner())
+        self.assertEqual(checked, [10])
+
+    def test_no_label_when_no_prs_found(self):
+        """When no PRs match, label_pending_checks should not be called."""
+        checked = []
+        pulls_resp = MagicMock()
+        pulls_resp.status = 200
+        pulls_resp.text = AsyncMock(return_value=json.dumps([]))
+
+        async def mock_label(owner, repo, pr_number, head_sha, token):
+            checked.append(pr_number)
+
+        async def _inner():
+            with patch.object(_worker, "label_pending_checks", new=mock_label):
+                with patch.object(_worker, "github_api", new=AsyncMock(return_value=pulls_resp)):
+                    await _worker.handle_check_run(self._make_payload(pr_numbers=[], head_sha="abc123"), "tok")
 
         _run(_inner())
         self.assertEqual(checked, [])

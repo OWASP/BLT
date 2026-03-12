@@ -2103,6 +2103,9 @@ async def handle_pull_request_opened(payload: dict, token: str, env=None) -> Non
     except Exception as exc:
         console.error(f"[BLT] check_unresolved_conversations failed (best-effort, ignored): {exc}")
 
+    # Label PR with number of pending checks (queued/waiting/action_required)
+    await _try_label_pending_checks(owner, repo, pr, token)
+
 
 async def handle_pull_request_closed(payload: dict, token: str, env=None) -> None:
     pr = payload["pull_request"]
@@ -2265,28 +2268,40 @@ async def check_unresolved_conversations(payload, token):
 # ---------------------------------------------------------------------------
 
 
-async def check_workflows_awaiting_approval(
+# Pending checks labels
+# ---------------------------------------------------------------------------
+
+
+async def label_pending_checks(
     owner: str, repo: str, pr_number: int, head_sha: str, token: str
 ) -> None:
-    """Update the 'X workflows awaiting approval' label on a PR.
+    """Update the 'N checks pending' label on a PR.
 
-    Queries GitHub for workflow runs on *head_sha* that are in
-    ``action_required`` status (i.e. awaiting a maintainer's approval).
-    Adds a red label with the count when any are pending; removes all
-    such labels when none remain.
+    Counts workflow runs for *head_sha* across the ``queued``, ``waiting``,
+    and ``action_required`` statuses (all mean "waiting to be run") and
+    applies a yellow label with the combined count.  Removes any pre-existing
+    ``"* checks pending"`` or legacy ``"* workflow* awaiting approval"`` labels
+    before adding the fresh one.  When all status queries fail the label is
+    left unchanged to avoid spurious removals during API outages.
     """
-    resp = await github_api(
-        "GET",
-        f"/repos/{owner}/{repo}/actions/runs?head_sha={head_sha}&status=action_required",
-        token,
-    )
+    pending_count = 0
+    any_succeeded = False
+    for status in ("queued", "waiting", "action_required"):
+        resp = await github_api(
+            "GET",
+            f"/repos/{owner}/{repo}/actions/runs?head_sha={head_sha}&status={status}&per_page=100",
+            token,
+        )
+        if resp.status == 200:
+            any_succeeded = True
+            data = json.loads(await resp.text())
+            pending_count += data.get("total_count", 0)
 
-    waiting_count = 0
-    if resp.status == 200:
-        data = json.loads(await resp.text())
-        waiting_count = data.get("total_count", 0)
+    if not any_succeeded:
+        # Can't determine state; leave existing labels untouched.
+        return
 
-    # Remove any existing "workflows awaiting approval" labels
+    # Remove any existing pending-checks labels (both new and legacy formats).
     resp_labels = await github_api(
         "GET",
         f"/repos/{owner}/{repo}/issues/{pr_number}/labels",
@@ -2295,17 +2310,20 @@ async def check_workflows_awaiting_approval(
     if resp_labels.status == 200:
         current_labels = json.loads(await resp_labels.text())
         for lb in current_labels:
-            if "workflow" in lb["name"] and "awaiting approval" in lb["name"]:
+            name = lb.get("name", "")
+            is_pending = "check" in name and "pending" in name
+            is_legacy = "workflow" in name and "awaiting approval" in name
+            if is_pending or is_legacy:
                 await github_api(
                     "DELETE",
-                    f"/repos/{owner}/{repo}/issues/{pr_number}/labels/{quote(lb['name'], safe='')}",
+                    f"/repos/{owner}/{repo}/issues/{pr_number}/labels/{quote(name, safe='')}",
                     token,
                 )
 
-    if waiting_count > 0:
-        noun = "workflow" if waiting_count == 1 else "workflows"
-        label = f"{waiting_count} {noun} awaiting approval"
-        await _ensure_label_exists(owner, repo, label, "e74c3c", token)
+    if pending_count > 0:
+        noun = "check" if pending_count == 1 else "checks"
+        label = f"{pending_count} {noun} pending"
+        await _ensure_label_exists(owner, repo, label, "e4c84b", token)
         await github_api(
             "POST",
             f"/repos/{owner}/{repo}/issues/{pr_number}/labels",
@@ -2314,13 +2332,32 @@ async def check_workflows_awaiting_approval(
         )
 
 
+# Keep old name as an alias so any external callers remain compatible.
+check_workflows_awaiting_approval = label_pending_checks
+
+
+async def _try_label_pending_checks(
+    owner: str, repo: str, pr: dict, token: str
+) -> None:
+    """Best-effort wrapper: extract the head SHA from *pr* and call
+    :func:`label_pending_checks`, logging any exception instead of raising.
+    """
+    head_sha = pr.get("head", {}).get("sha", "")
+    if not head_sha:
+        return
+    try:
+        await label_pending_checks(owner, repo, pr["number"], head_sha, token)
+    except Exception as exc:
+        console.error(f"[BLT] label_pending_checks failed (best-effort, ignored): {exc}")
+
+
 async def handle_workflow_run(payload: dict, token: str) -> None:
-    """Handle workflow_run events to update 'awaiting approval' labels on PRs.
+    """Handle workflow_run events to update 'checks pending' labels on PRs.
 
     Resolves the PR(s) associated with the workflow run and calls
-    ``check_workflows_awaiting_approval`` for each one.  Falls back to
-    searching open PRs by head SHA when the payload's ``pull_requests``
-    array is empty (e.g. fork PRs).
+    :func:`label_pending_checks` for each one.  Falls back to searching open
+    PRs by head SHA when the payload's ``pull_requests`` array is empty
+    (e.g. fork PRs).
     """
     workflow_run = payload.get("workflow_run", {})
     owner = payload["repository"]["owner"]["login"]
@@ -2345,7 +2382,40 @@ async def handle_workflow_run(payload: dict, token: str) -> None:
                     pr_numbers.add(pull["number"])
 
     for pr_number in pr_numbers:
-        await check_workflows_awaiting_approval(owner, repo, pr_number, head_sha, token)
+        await label_pending_checks(owner, repo, pr_number, head_sha, token)
+
+
+async def handle_check_run(payload: dict, token: str) -> None:
+    """Handle check_run events to keep 'N checks pending' labels accurate.
+
+    Called for ``check_run.created`` and ``check_run.completed`` actions.
+    Resolves the PR(s) linked to the check run's head SHA and updates the
+    pending-checks label for each one.
+    """
+    check_run = payload.get("check_run", {})
+    owner = payload["repository"]["owner"]["login"]
+    repo = payload["repository"]["name"]
+    head_sha = check_run.get("head_sha", "")
+
+    pr_numbers: set[int] = set()
+    for pr in check_run.get("pull_requests", []):
+        pr_numbers.add(pr["number"])
+
+    # For fork PRs the pull_requests array is empty; look up by head SHA.
+    if not pr_numbers and head_sha:
+        resp = await github_api(
+            "GET",
+            f"/repos/{owner}/{repo}/pulls?state=open&per_page=100",
+            token,
+        )
+        if resp.status == 200:
+            pulls = json.loads(await resp.text())
+            for pull in pulls:
+                if pull.get("head", {}).get("sha") == head_sha:
+                    pr_numbers.add(pull["number"])
+
+    for pr_number in pr_numbers:
+        await label_pending_checks(owner, repo, pr_number, head_sha, token)
 
 
 # ---------------------------------------------------------------------------
@@ -2549,6 +2619,9 @@ async def handle_pull_request_for_review(payload: dict, token: str) -> None:
     
     await check_peer_review_and_comment(owner, repo, pr["number"], pr_author, token)
 
+    # Label PR with number of pending checks (queued/waiting/action_required)
+    await _try_label_pending_checks(owner, repo, pr, token)
+
 
 # ---------------------------------------------------------------------------
 # Webhook dispatcher
@@ -2648,6 +2721,8 @@ async def handle_webhook(request, env) -> Response:
             await check_unresolved_conversations(payload, token)
         elif event == "workflow_run":
             await handle_workflow_run(payload, token)
+        elif event == "check_run" and action in ("created", "completed"):
+            await handle_check_run(payload, token)
 
     except Exception as exc:
         console.error(f"[BLT] Webhook handler error: {exc}")
