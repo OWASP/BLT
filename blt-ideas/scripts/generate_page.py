@@ -394,13 +394,12 @@ def render_idea_group_links(idea_ids, ideas_by_id):
     links = []
     for idea_id in idea_ids:
         idea = ideas_by_id.get(idea_id)
-        if idea:
-            file_url = f"{REPO_URL}/blob/main/{idea['filename']}"
-            links.append(
-                f'<a href="{file_url}" target="_blank" class="badge" title="{html_escape(idea["title"])}">Idea&nbsp;{html_escape(idea_id)}</a>'
-            )
-        else:
-            links.append(f'<span class="badge">Idea&nbsp;{html_escape(idea_id)}</span>')
+        if not idea:
+            raise ValueError(f"Unknown curated idea ID: {idea_id}")
+        file_url = f"{REPO_URL}/blob/main/{idea['filename']}"
+        links.append(
+            f'<a href="{file_url}" target="_blank" class="badge" title="{html_escape(idea["title"])}">Idea&nbsp;{html_escape(idea_id)}</a>'
+        )
     return " ".join(links)
 
 
@@ -1068,7 +1067,7 @@ def generate_html(ideas, overlap_matrix):
       const rows = Array.from(tbody.rows);
       rows.sort((a, b) => getVal(a, col) < getVal(b, col) ? -sortDir : sortDir);
       rows.forEach(r => tbody.appendChild(r));
-      document.querySelectorAll('thead th').forEach((th, i) => {{
+      table.tHead.querySelectorAll('th[data-col]').forEach((th, i) => {{
         th.classList.remove('sorted-asc', 'sorted-desc');
         if (i === col) th.classList.add(sortDir === 1 ? 'sorted-asc' : 'sorted-desc');
       }});
