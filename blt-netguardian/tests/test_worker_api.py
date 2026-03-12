@@ -313,7 +313,7 @@ async def test_handle_vulnerabilities_passes_limit_and_severity():
 
 @pytest.mark.asyncio
 async def test_handle_request_returns_500_when_handler_raises():
-    worker = BLTWorker(SimpleNamespace(DB=None))
+    worker = BLTWorker(SimpleNamespace(DB=None, AUTHENTICATE_READ_ENDPOINTS="false"))
     worker.handle_vulnerabilities = AsyncMock(side_effect=RuntimeError("boom"))
 
     response = await worker.handle_request(
@@ -323,7 +323,7 @@ async def test_handle_request_returns_500_when_handler_raises():
 
     assert response.status == 500
     assert payload["error"] == "Internal server error"
-    assert payload["message"] == "boom"
+    assert "message" not in payload
     assert response.headers["Access-Control-Allow-Origin"] == "*"
 
 
@@ -332,10 +332,23 @@ async def test_on_fetch_entrypoint_routes_api_requests():
     """on_fetch delegates API paths to the BLTWorker handler."""
     response = await on_fetch(
         FakeRequest("https://api.example.com/api/jobs/status"),
-        SimpleNamespace(DB=None),
+        SimpleNamespace(DB=None, AUTHENTICATE_READ_ENDPOINTS="false"),
         None,
     )
     payload = parse_json(response)
 
     assert response.status == 400
     assert payload["error"] == "Missing job_id parameter"
+
+
+@pytest.mark.asyncio
+async def test_handle_request_requires_authentication_for_read_endpoints_by_default():
+    worker = BLTWorker(SimpleNamespace(DB=None))
+
+    response = await worker.handle_request(
+        FakeRequest("https://api.example.com/api/jobs/status?job_id=job-1")
+    )
+    payload = parse_json(response)
+
+    assert response.status == 503
+    assert payload["error"] == "API authentication is not configured"
