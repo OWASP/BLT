@@ -614,18 +614,6 @@ def generate_html(ideas, overlap_matrix):
     matrix_rows_html = "\n".join(matrix_rows)
     total_ideas = len(ideas)
 
-    # Ideas with the most connections
-    top_connected = sorted(
-        ideas,
-        key=lambda i: sum(1 for v in overlap_matrix.get(i["id"], {}).values() if v),
-        reverse=True,
-    )[:5]
-    top_connected_html = "".join(
-        f'<li><strong>Idea {html_escape(i["id"])}</strong> — {html_escape(i["title"])} '
-        f'({sum(1 for v in overlap_matrix.get(i["id"], {}).values() if v)} connections)</li>'
-        for i in top_connected
-    )
-
     html = f"""<!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
 <head>
@@ -788,18 +776,6 @@ def generate_html(ideas, overlap_matrix):
       color: #9ca3af;
       font-weight: 700;
     }}
-    .top-list {{
-      list-style: none;
-    }}
-    .top-list li {{
-      border-bottom: 1px solid #f3f4f6;
-      padding: 0.65rem 0;
-      font-size: 0.95rem;
-      color: #374151;
-    }}
-    .top-list li:last-child {{
-      border-bottom: none;
-    }}
     /* ── Mobile card layout ─────────────────────────────────────────── */
     @media (max-width: 767px) {{
       .table-wrap {{ border: none; background: transparent; box-shadow: none; }}
@@ -881,7 +857,6 @@ def generate_html(ideas, overlap_matrix):
               <li><a href="#project-groups" class="btn-link block rounded-md px-3 py-2 text-gray-700 hover:bg-gray-50">Project Groups</a></li>
               <li><a href="#ideas-overview" class="btn-link block rounded-md px-3 py-2 text-gray-700 hover:bg-gray-50">Feature Catalog</a></li>
               <li><a href="#overlap-matrix" class="btn-link block rounded-md px-3 py-2 text-gray-700 hover:bg-gray-50">Overlap Matrix</a></li>
-              <li><a href="#top-ideas" class="btn-link block rounded-md px-3 py-2 text-gray-700 hover:bg-gray-50">Most Connected</a></li>
             </ul>
           </nav>
           <section class="rounded-xl border border-neutral-border bg-white p-4">
@@ -963,7 +938,7 @@ def generate_html(ideas, overlap_matrix):
               <i class="fa-solid fa-route" aria-hidden="true"></i>
             </div>
             <h2 class="text-base font-bold text-gray-900">How Teams Use It</h2>
-            <p class="mt-2 text-sm text-gray-600">Filter ideas by repo, inspect discussions, then prioritize the best-connected roadmap items.</p>
+            <p class="mt-2 text-sm text-gray-600">Filter ideas by repo, inspect discussions, then prioritize roadmap items that fit your timeline.</p>
           </article>
         </section>
 
@@ -1063,15 +1038,6 @@ def generate_html(ideas, overlap_matrix):
           </div>
         </section>
 
-        <section id="top-ideas" class="rounded-2xl border border-neutral-border bg-white p-5 shadow-sm sm:p-6">
-          <h3 class="flex items-center gap-2 text-xl font-extrabold text-gray-900">
-            <i class="fa-solid fa-ranking-star text-primary" aria-hidden="true"></i>
-            Most-Connected Ideas
-          </h3>
-          <ul class="top-list mt-3">
-{top_connected_html}
-          </ul>
-        </section>
       </div>
     </div>
   </main>
