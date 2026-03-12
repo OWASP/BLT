@@ -79,7 +79,9 @@ def get_dashboard_html(
     active_tab="overview",
 ):
     """Generate the dashboard HTML with workspace statistics and controls."""
-    user_name = html_escape((user or {}).get("name") or "User")
+    user_name = html_escape(
+        (user or {}).get("name") or (user or {}).get("slack_user_id") or "User"
+    )
     user_slack_id = html_escape((user or {}).get("slack_user_id") or "")
     user_avatar_url = (user or {}).get("avatar_url") or ""
 
@@ -184,7 +186,7 @@ def get_dashboard_html(
         )
         ev_type = html_escape(ev.get("event_type", ""))
         raw_user_name = (ev.get("user_name") or "").strip()
-        user_name = html_escape(raw_user_name or "Unknown User")
+        user_name = html_escape(raw_user_name or "Unknown")
         ev_time = html_escape(ev.get("created_at", "") or "-")
         request_data_raw = str(ev.get("request_data") or "").strip()
         request_data_tooltip = html_escape(request_data_raw)

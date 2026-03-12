@@ -1353,7 +1353,7 @@ async def db_get_or_create_user(
         # Ensure required columns are never NULL for inserts/updates.
         slack_user_id = slack_user_id or ""
         team_id = team_id or "unknown"
-        name = name or ""
+        name = name or slack_user_id
         email = email or ""
         access_token = access_token or ""
         avatar_url = avatar_url or ""
@@ -1986,7 +1986,7 @@ async def db_get_events(env, workspace_id, limit=20):
     try:
         return _rows(
             await env.DB.prepare(
-                "SELECT e.*, u.name AS user_name "
+                "SELECT e.*, COALESCE(NULLIF(u.name, ''), e.user_slack_id) AS user_name "
                 "FROM events e "
                 "LEFT JOIN users u ON u.slack_user_id = e.user_slack_id "
                 "WHERE e.workspace_id = ? "
