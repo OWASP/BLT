@@ -3074,6 +3074,7 @@ class TestHandleMentorPause(unittest.TestCase):
 
     _POOL = [
         {"github_username": "alice", "active": True, "max_mentees": 3, "specialties": []},
+        {"github_username": "dave", "active": False, "max_mentees": 3, "specialties": []},
     ]
 
     def _run_pause(self, login, comments):
@@ -3100,6 +3101,12 @@ class TestHandleMentorPause(unittest.TestCase):
     def test_rejects_non_mentor(self):
         comments = []
         self._run_pause("notamentor", comments)
+        self.assertTrue(any("only available to active mentors" in c for c in comments))
+
+    def test_rejects_inactive_mentor(self):
+        # dave is in the pool but inactive — should be rejected
+        comments = []
+        self._run_pause("dave", comments)
         self.assertTrue(any("only available to active mentors" in c for c in comments))
 
 
@@ -3164,6 +3171,13 @@ class TestHandleMentorHandoff(unittest.TestCase):
         self.assertEqual(assign_calls, [])
         self.assertTrue(any("not the currently assigned mentor" in c for c in comments))
 
+    def test_aborts_when_marker_missing(self):
+        # current_mentor is None (marker not found) — should abort without modifying state
+        assign_calls, comments = [], []
+        self._run_handoff("alice", None, assign_calls, comments)
+        self.assertEqual(assign_calls, [])
+        self.assertTrue(any("Unable to confirm" in c for c in comments))
+
 
 class TestHandleMentorRematch(unittest.TestCase):
     """handle_mentor_rematch — /rematch slash command"""
@@ -3173,17 +3187,21 @@ class TestHandleMentorRematch(unittest.TestCase):
         {"github_username": "bob", "active": True, "max_mentees": 3, "specialties": []},
     ]
 
-    def _run_rematch(self, issue, current_mentor_in_comments, assign_calls, comments):
+    def _run_rematch(self, issue, current_mentor_in_comments, assign_calls, comments, assign_returns=True):
         async def _inner():
             with patch.object(
                 _worker,
                 "_find_assigned_mentor_from_comments",
                 new=AsyncMock(return_value=current_mentor_in_comments),
             ):
+                async def _mock_assign(*a, **kw):
+                    assign_calls.append(a)
+                    return assign_returns
+
                 with patch.object(
                     _worker,
                     "_assign_mentor_to_issue",
-                    new=AsyncMock(side_effect=lambda *a, **kw: assign_calls.append(a) or True),
+                    new=_mock_assign,
                 ):
                     with patch.object(
                         _worker,
@@ -3219,24 +3237,60 @@ class TestHandleMentorRematch(unittest.TestCase):
         self.assertEqual(assign_calls, [])
         self.assertTrue(any("does not have a mentor" in c for c in comments))
 
+    def test_keeps_original_mentor_when_no_replacement_available(self):
+        # When _assign_mentor_to_issue returns False, old state should be preserved
+        # (we don't make DELETE calls for the old assignee or label).
+        issue = {
+            "number": 3,
+            "labels": [{"name": "mentor-assigned"}],
+            "assignees": [{"login": "alice"}],
+            "state": "open",
+        }
+        api_calls = []
+
+        async def _inner():
+            async def _mock_assign(*a, **kw):
+                return False  # No replacement available
+
+            with patch.object(
+                _worker,
+                "_find_assigned_mentor_from_comments",
+                new=AsyncMock(return_value="alice"),
+            ):
+                with patch.object(_worker, "_assign_mentor_to_issue", new=_mock_assign):
+                    with patch.object(
+                        _worker,
+                        "github_api",
+                        new=AsyncMock(side_effect=lambda *a, **kw: api_calls.append(a)),
+                    ):
+                        await _worker.handle_mentor_rematch(
+                            "OWASP-BLT", "TestRepo", issue, "contributor", "tok", self._POOL
+                        )
+
+        _run(_inner())
+        # No DELETE calls should have been made — old mentor state preserved.
+        delete_calls = [c for c in api_calls if c[0] == "DELETE"]
+        self.assertEqual(delete_calls, [])
+
 
 class TestHandleIssueLabeledNeedsMentor(unittest.TestCase):
     """handle_issue_labeled — needs-mentor label triggers mentor assignment"""
 
-    def _run_labeled(self, label_name, assign_calls, bug_calls):
-        issue = {
+    def _run_labeled(self, label_name, assign_calls, bug_calls, issue_override=None, sender_login="admin"):
+        issue = issue_override or {
             "number": 1,
             "labels": [{"name": label_name}],
             "assignees": [{"login": "contributor"}],
             "html_url": "https://github.com/test/test/issues/1",
             "title": "test issue",
             "state": "open",
+            "user": {"login": "issue-opener"},
         }
         payload = {
             "repository": {"owner": {"login": "OWASP-BLT"}, "name": "TestRepo"},
             "issue": issue,
             "label": {"name": label_name},
-            "sender": {"login": "admin", "type": "User"},
+            "sender": {"login": sender_login, "type": "User"},
         }
 
         async def _inner():
@@ -3265,6 +3319,27 @@ class TestHandleIssueLabeledNeedsMentor(unittest.TestCase):
         self.assertEqual(len(assign_calls), 1)
         # Should not report to BLT
         self.assertEqual(bug_calls, [])
+
+    def test_uses_issue_author_as_contributor_when_no_assignees(self):
+        # When there are no assignees the contributor should be the issue author,
+        # NOT the sender (who is the labeler — often a maintainer).
+        issue = {
+            "number": 5,
+            "labels": [{"name": "needs-mentor"}],
+            "assignees": [],
+            "html_url": "https://github.com/test/test/issues/5",
+            "title": "test issue",
+            "state": "open",
+            "user": {"login": "real-author"},
+        }
+        assign_calls, bug_calls = [], []
+        # sender is "maintainer-labeler", which should NOT be used as contributor
+        self._run_labeled("needs-mentor", assign_calls, bug_calls, issue_override=issue, sender_login="maintainer-labeler")
+        self.assertEqual(len(assign_calls), 1)
+        # The contributor_login arg (index 3) should be the issue author, not the sender.
+        contributor_arg = assign_calls[0][3]
+        self.assertEqual(contributor_arg, "real-author")
+        self.assertNotEqual(contributor_arg, "maintainer-labeler")
 
     def test_bug_label_does_not_trigger_assignment(self):
         assign_calls, bug_calls = [], []

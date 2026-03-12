@@ -2148,23 +2148,40 @@ async def _fetch_mentors_config(owner: str, repo: str, token: str) -> list:
 async def _get_mentor_load_map(owner: str, token: str) -> dict:
     """Return a mapping of mentor_username → open mentored issue count.
 
-    Uses a single GitHub search API call to count all currently
+    Uses the GitHub search API (with pagination) to count all currently
     open issues labelled ``mentor-assigned`` per assignee.
     """
-    resp = await github_api(
-        "GET",
-        f"/search/issues?q=org:{owner}+is:issue+is:open+label:{MENTOR_ASSIGNED_LABEL}&per_page=100",
-        token,
-    )
-    if resp.status != 200:
-        return {}
-    data = json.loads(await resp.text())
+    # Limit pagination to avoid excessive subrequests.
+    max_pages = 5
+    per_page = 100
     load_map: dict = {}
-    for item in data.get("items", []):
-        for assignee in item.get("assignees", []):
-            login = assignee.get("login", "")
-            if login:
-                load_map[login] = load_map.get(login, 0) + 1
+
+    for page in range(1, max_pages + 1):
+        resp = await github_api(
+            "GET",
+            f"/search/issues?q=org:{owner}+is:issue+is:open+label:{MENTOR_ASSIGNED_LABEL}"
+            f"&per_page={per_page}&page={page}",
+            token,
+        )
+        if resp.status != 200:
+            if page == 1:
+                return {}
+            break
+
+        data = json.loads(await resp.text())
+        items = data.get("items", [])
+        if not items:
+            break
+
+        for item in items:
+            for assignee in item.get("assignees", []):
+                login = assignee.get("login", "")
+                if login:
+                    load_map[login] = load_map.get(login, 0) + 1
+
+        if len(items) < per_page:
+            break
+
     return load_map
 
 
@@ -2208,11 +2225,15 @@ async def _select_mentor(
 
     load_map = await _get_mentor_load_map(owner, token)
 
+    # Normalize load_map keys to lowercase: GitHub usernames are case-insensitive
+    # but config entries and API responses may differ in casing.
+    normalized_load = {k.lower(): v for k, v in load_map.items()}
+
     # Build candidates filtered by capacity.
     candidates = []
     for m in active:
         username = m["github_username"]
-        load = load_map.get(username, 0)
+        load = normalized_load.get(username.lower(), 0)
         cap = m.get("max_mentees", MENTOR_MAX_MENTEES)
         if load < cap:
             candidates.append((m, load))
@@ -2397,10 +2418,11 @@ async def handle_mentor_pause(
     set ``active: false`` for their entry.
     """
     pool = mentors_config if mentors_config is not None else MENTORS
+    # Only active mentors can pause; inactive ones already aren't receiving assignments.
     mentor_usernames = {
         m.get("github_username", "").lower()
         for m in pool
-        if m.get("github_username")
+        if m.get("github_username") and m.get("active", True)
     }
     if login.lower() not in mentor_usernames:
         await create_comment(
@@ -2453,7 +2475,19 @@ async def handle_mentor_handoff(
     current_mentor = await _find_assigned_mentor_from_comments(
         owner, repo, issue_number, token
     )
-    if current_mentor and current_mentor.lower() != login.lower():
+    # Require a confirmed current mentor before proceeding; if the marker is missing
+    # (API failure or marker never posted) we cannot safely authorize the handoff.
+    if not current_mentor:
+        await create_comment(
+            owner,
+            repo,
+            issue_number,
+            f"@{login} Unable to confirm the currently assigned mentor for this issue. "
+            "Please contact a maintainer for assistance with the handoff.",
+            token,
+        )
+        return
+    if current_mentor.lower() != login.lower():
         await create_comment(
             owner,
             repo,
@@ -2463,21 +2497,6 @@ async def handle_mentor_handoff(
             token,
         )
         return
-
-    # Unassign current mentor.
-    await github_api(
-        "DELETE",
-        f"/repos/{owner}/{repo}/issues/{issue_number}/assignees",
-        token,
-        {"assignees": [login]},
-    )
-
-    # Remove mentor-assigned label so _assign_mentor_to_issue can re-apply it.
-    await github_api(
-        "DELETE",
-        f"/repos/{owner}/{repo}/issues/{issue_number}/labels/{MENTOR_ASSIGNED_LABEL}",
-        token,
-    )
 
     # Determine contributor login from existing assignees (skip mentor usernames).
     contributor = None
@@ -2497,6 +2516,8 @@ async def handle_mentor_handoff(
         ],
     }
 
+    # Select and assign the replacement mentor BEFORE removing current state so
+    # that if no mentor is available the issue is not left in an unmentored state.
     assigned = await _assign_mentor_to_issue(
         owner, repo, updated_issue, contributor or "", token, pool, exclude=login
     )
@@ -2511,6 +2532,14 @@ async def handle_mentor_handoff(
             token,
         )
         return
+
+    # Replacement assigned successfully — now remove the outgoing mentor.
+    await github_api(
+        "DELETE",
+        f"/repos/{owner}/{repo}/issues/{issue_number}/assignees",
+        token,
+        {"assignees": [login]},
+    )
     console.log(
         f"[MentorPool] Handoff from @{login} completed for {owner}/{repo}#{issue_number}"
     )
@@ -2543,22 +2572,8 @@ async def handle_mentor_rematch(
         owner, repo, issue_number, token
     )
 
-    # Unassign current mentor if known.
-    if current_mentor:
-        await github_api(
-            "DELETE",
-            f"/repos/{owner}/{repo}/issues/{issue_number}/assignees",
-            token,
-            {"assignees": [current_mentor]},
-        )
-
-    # Remove mentor-assigned label before re-assigning.
-    await github_api(
-        "DELETE",
-        f"/repos/{owner}/{repo}/issues/{issue_number}/labels/{MENTOR_ASSIGNED_LABEL}",
-        token,
-    )
-
+    # Build a temporary issue view with the mentor-assigned label stripped so the
+    # assignment check inside _assign_mentor_to_issue does not abort early.
     updated_issue = {
         **issue,
         "labels": [
@@ -2567,7 +2582,9 @@ async def handle_mentor_rematch(
         ],
     }
 
-    await _assign_mentor_to_issue(
+    # Attempt to assign a replacement mentor BEFORE removing old state so that
+    # if no mentor is available the issue stays in a mentored state.
+    assigned = await _assign_mentor_to_issue(
         owner,
         repo,
         updated_issue,
@@ -2576,6 +2593,30 @@ async def handle_mentor_rematch(
         pool,
         exclude=current_mentor,
     )
+    if not assigned:
+        # _assign_mentor_to_issue already posted a "no mentor available" comment.
+        console.log(
+            f"[MentorPool] Rematch for @{login} on {owner}/{repo}#{issue_number} "
+            "aborted: no replacement mentor available"
+        )
+        return
+
+    # Replacement assigned — now remove the previous mentor's assignee record.
+    if current_mentor:
+        await github_api(
+            "DELETE",
+            f"/repos/{owner}/{repo}/issues/{issue_number}/assignees",
+            token,
+            {"assignees": [current_mentor]},
+        )
+
+    # Remove the old mentor-assigned label (the new assignment already re-applied it).
+    await github_api(
+        "DELETE",
+        f"/repos/{owner}/{repo}/issues/{issue_number}/labels/{MENTOR_ASSIGNED_LABEL}",
+        token,
+    )
+
     console.log(
         f"[MentorPool] Rematch completed for @{login} on {owner}/{repo}#{issue_number}"
     )
@@ -2590,65 +2631,78 @@ async def _check_stale_mentor_assignments(owner: str, repo: str, token: str) -> 
     is posted.
     """
     try:
-        resp = await github_api(
-            "GET",
-            f"/repos/{owner}/{repo}/issues?state=open&labels={MENTOR_ASSIGNED_LABEL}&per_page=100",
-            token,
-        )
-        if resp.status != 200:
-            return
-
-        issues = json.loads(await resp.text())
         stale_threshold = MENTOR_STALE_DAYS * _SECONDS_PER_DAY
         current_time = time.time()
+        per_page = 100
+        max_pages = 10  # Conservative limit to avoid excessive subrequests.
+        page = 1
 
-        for issue in issues:
-            if "pull_request" in issue:
-                continue
-            issue_number = issue["number"]
-            updated_at = issue.get("updated_at", "")
-            if not updated_at:
-                continue
-            updated_ts = _parse_github_timestamp(updated_at)
-            if not updated_ts:
-                continue
-            if current_time - updated_ts <= stale_threshold:
-                continue
-
-            # Issue is stale — find and unassign the mentor.
-            current_mentor = await _find_assigned_mentor_from_comments(
-                owner, repo, issue_number, token
+        while page <= max_pages:
+            resp = await github_api(
+                "GET",
+                f"/repos/{owner}/{repo}/issues"
+                f"?state=open&labels={MENTOR_ASSIGNED_LABEL}&per_page={per_page}&page={page}",
+                token,
             )
-            if current_mentor:
+            if resp.status != 200:
+                break
+
+            issues = json.loads(await resp.text())
+            if not issues:
+                break
+
+            for issue in issues:
+                if "pull_request" in issue:
+                    continue
+                issue_number = issue["number"]
+                updated_at = issue.get("updated_at", "")
+                if not updated_at:
+                    continue
+                updated_ts = _parse_github_timestamp(updated_at)
+                if not updated_ts:
+                    continue
+                if current_time - updated_ts <= stale_threshold:
+                    continue
+
+                # Issue is stale — find and unassign the mentor.
+                current_mentor = await _find_assigned_mentor_from_comments(
+                    owner, repo, issue_number, token
+                )
+                if current_mentor:
+                    await github_api(
+                        "DELETE",
+                        f"/repos/{owner}/{repo}/issues/{issue_number}/assignees",
+                        token,
+                        {"assignees": [current_mentor]},
+                    )
+
+                # Remove the mentor-assigned label.
                 await github_api(
                     "DELETE",
-                    f"/repos/{owner}/{repo}/issues/{issue_number}/assignees",
+                    f"/repos/{owner}/{repo}/issues/{issue_number}/labels/{MENTOR_ASSIGNED_LABEL}",
                     token,
-                    {"assignees": [current_mentor]},
                 )
 
-            # Remove the mentor-assigned label.
-            await github_api(
-                "DELETE",
-                f"/repos/{owner}/{repo}/issues/{issue_number}/labels/{MENTOR_ASSIGNED_LABEL}",
-                token,
-            )
+                days_elapsed = int((current_time - updated_ts) / _SECONDS_PER_DAY)
+                mentor_mention = f"@{current_mentor} " if current_mentor else ""
+                await create_comment(
+                    owner,
+                    repo,
+                    issue_number,
+                    f"{mentor_mention}This issue has had no activity for {days_elapsed} days "
+                    f"so the mentor assignment has been automatically released. "
+                    "The issue remains open — use `/mentor` to request a new mentor when work resumes.\n\n"
+                    "— [OWASP BLT](https://owaspblt.org)",
+                    token,
+                )
+                console.log(
+                    f"[MentorPool] Released stale mentor assignment on {owner}/{repo}#{issue_number}"
+                )
 
-            days_elapsed = int((current_time - updated_ts) / _SECONDS_PER_DAY)
-            mentor_mention = f"@{current_mentor} " if current_mentor else ""
-            await create_comment(
-                owner,
-                repo,
-                issue_number,
-                f"{mentor_mention}This issue has had no activity for {days_elapsed} days "
-                f"so the mentor assignment has been automatically released. "
-                "The issue remains open — use `/mentor` to request a new mentor when work resumes.\n\n"
-                "— [OWASP BLT](https://owaspblt.org)",
-                token,
-            )
-            console.log(
-                f"[MentorPool] Released stale mentor assignment on {owner}/{repo}#{issue_number}"
-            )
+            if len(issues) < per_page:
+                break
+
+            page += 1
     except Exception as exc:
         console.error(f"[MentorPool] Error checking stale mentors in {owner}/{repo}: {exc}")
 
@@ -2861,10 +2915,12 @@ async def handle_issue_labeled(
 
     # --- needs-mentor label: trigger mentor pool assignment ---
     if label_name == NEEDS_MENTOR_LABEL:
-        # The contributor is whoever opened the issue (or the first assignee if set).
+        # The contributor is the first assignee if set, otherwise the issue author.
+        # Avoid using payload['sender'] because for labeled events the sender is the
+        # labeler (often a maintainer or bot), not the person working on the issue.
         assignees = issue.get("assignees", [])
         contributor_login = (
-            assignees[0]["login"] if assignees else (payload.get("sender") or {}).get("login", "")
+            assignees[0]["login"] if assignees else (issue.get("user") or {}).get("login", "")
         )
         try:
             mentors_config = await _fetch_mentors_config(owner, repo, token)
