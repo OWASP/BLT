@@ -394,7 +394,7 @@
       if (isUser) {
         inner.textContent = content;
       } else {
-        inner.innerHTML = DOMPurify.sanitize(marked.parse(content));
+        inner.innerHTML = BLT.sanitize(marked.parse(content));
       }
 
       msgDiv.appendChild(avatar);

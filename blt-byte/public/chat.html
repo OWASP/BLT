@@ -224,7 +224,7 @@
            if (isUser) {
                 messageContent.textContent = content;
             } else {
-                messageContent.innerHTML = DOMPurify.sanitize(marked.parse(content));
+                messageContent.innerHTML = BLT.sanitize(marked.parse(content));
             }
 
             messageDiv.appendChild(avatar);

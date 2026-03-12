@@ -18,9 +18,9 @@ import js
 
 from workers import Response, WorkerEntrypoint
 
-# Enable deep debugging for proxy errors
+# Production mode: Disable deep debugging
 try:
-    pyodide.setDebug(True)
+    pyodide.setDebug(False)
 except AttributeError:
     pass # Debug mode not available in this Pyodide build
 
@@ -295,9 +295,9 @@ def _sanitize_ai_output(text: str) -> str | None:
     cleaned = re.sub(r"(?is)<reasoning\b[^>]*>.*?</reasoning>", " ", cleaned)
     cleaned = re.sub(r"(?is)<analysis\b[^>]*>.*?</analysis>", " ", cleaned)
 
-    # Remove generic XML/HTML-like tags/blocks that may wrap reasoning output.
-    cleaned = re.sub(r"(?is)<([a-zA-Z][\w:-]*)\b[^>]*>.*?</\1>", " ", cleaned)
-    cleaned = re.sub(r"(?is)</?[a-zA-Z][\w:-]*\b[^>]*>", " ", cleaned)
+    # Remove specific reasoning tags only. Avoid broad regex that strips all XML-like tags.
+    # We explicitly preserve common formatting or structural tags that might be in the markdown.
+    cleaned = re.sub(r"(?is)</?(?:think|reasoning|analysis|thought|brain|monologue)\b[^>]*>", " ", cleaned)
 
     # Drop common reasoning preambles at the beginning.
     cleaned = re.sub(
@@ -497,9 +497,19 @@ async def _run_scan(env, url: str, scan_type: str = "quick") -> dict:
         return {"error": "The AI service returned an unsupported response format.", "status": 502}
 
     try:
-        return json.loads(reply)
+        data = json.loads(reply)
+        # Ensure minimal schema compliance even on partial JSON
+        if not isinstance(data, dict):
+             return {"headers_to_check": [], "vulnerabilities_to_test": [], "blt_categories": [], "notes": reply}
+        return data
     except (json.JSONDecodeError, ValueError):
-        return {"analysis": reply}
+        # Prevent schema downgrade: wrap raw text in the expected JSON structure
+        return {
+            "headers_to_check": [],
+            "vulnerabilities_to_test": [],
+            "blt_categories": [],
+            "notes": reply
+        }
 
 
 def _get_onboarding_guide(role: str) -> dict:
