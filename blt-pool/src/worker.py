@@ -26,6 +26,7 @@ import base64
 import calendar
 import hashlib
 import hmac as _hmac
+import html as _html_mod
 import json
 import re
 import time
@@ -3922,78 +3923,126 @@ def _callback_html() -> str:
     return _CALLBACK_HTML
 
 
-def _generate_mentor_card(mentor: dict) -> str:
-    """Generate HTML for a single mentor card."""
-    name = mentor.get("name", "Unknown")
+def _generate_mentor_row(mentor: dict) -> str:
+    """Generate HTML for a single mentor list row."""
+    name = _html_mod.escape(mentor.get("name", "Unknown"))
     github = mentor.get("github_username", "")
-    slack = mentor.get("slack_username", "")
-    project = mentor.get("project")
-    mentee = mentor.get("mentee")
+    specialties = mentor.get("specialties", [])
+    max_mentees = mentor.get("max_mentees", 3)
+    timezone = mentor.get("timezone", "")
     status = mentor.get("status", "available")
+    active = mentor.get("active", True)
 
-    # Use GitHub avatar if username provided, otherwise default avatar.
-    avatar_url = f"https://github.com/{github}.png" if github else "https://api.dicebear.com/7.x/initials/svg?seed=" + quote(name)
+    avatar_url = (
+        f"https://github.com/{github}.png"
+        if github
+        else "https://api.dicebear.com/7.x/initials/svg?seed=" + quote(name)
+    )
 
-    if status == "available":
-        status_badge = '<span class="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700"><i class="fa-solid fa-circle text-[0.4rem]" aria-hidden="true"></i> Available</span>'
+    if not active or status == "inactive":
+        status_badge = '<span class="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-xs font-semibold text-gray-500">Inactive</span>'
     elif status == "assigned":
-        status_badge = '<span class="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700"><i class="fa-solid fa-circle text-[0.4rem]" aria-hidden="true"></i> Mentoring</span>'
+        status_badge = '<span class="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700">Mentoring</span>'
     else:
-        status_badge = '<span class="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs font-semibold text-gray-600"><i class="fa-solid fa-circle text-[0.4rem]" aria-hidden="true"></i> Unavailable</span>'
+        status_badge = '<span class="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700">Available</span>'
 
-    assignment_html = ""
-    if project and mentee:
-        assignment_html = f'''
-        <div class="mt-4 border-t border-[#E5E5E5] pt-3 text-xs text-gray-600">
-          <p class="mb-1"><span class="font-semibold text-gray-800">Project:</span> {project}</p>
-          <p><span class="font-semibold text-gray-800">Mentee:</span> {mentee}</p>
-        </div>
-        '''
+    specialty_chips = " ".join(
+        f'<span class="rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-600">{s}</span>'
+        for s in specialties
+    ) if specialties else '<span class="text-xs text-gray-400">—</span>'
 
-    github_link = f'<a href="https://github.com/{github}" target="_blank" rel="noopener" class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-[#E5E5E5] text-gray-600 transition hover:border-[#E10101] hover:text-[#E10101]" aria-label="{name} GitHub profile"><i class="fa-brands fa-github" aria-hidden="true"></i></a>' if github else '<span class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-[#E5E5E5] text-gray-400"><i class="fa-brands fa-github" aria-hidden="true"></i></span>'
-    slack_display = ""
-    if slack:
-        formatted_slack = slack if slack.startswith("@") else f"@{slack}"
-        slack_display = (
-            '<span class="inline-flex h-8 items-center gap-1.5 rounded-md border border-[#E10101]/20 bg-[#feeae9] px-2.5 text-xs font-medium text-[#E10101]">'
-            '<i class="fa-brands fa-slack" aria-hidden="true"></i>'
-            f'<span class="leading-none">{formatted_slack}</span>'
-            "</span>"
-        )
-    else:
-        slack_display = (
-            '<span class="inline-flex h-8 items-center gap-1.5 rounded-md border border-[#E5E5E5] px-2.5 text-xs text-gray-400">'
-            '<i class="fa-brands fa-slack" aria-hidden="true"></i>'
-            '<span class="leading-none">No Slack</span>'
-            "</span>"
-        )
+    github_link = (
+        f'<a href="https://github.com/{github}" target="_blank" rel="noopener" '
+        f'class="text-gray-500 hover:text-[#E10101]" aria-label="{name} GitHub profile">'
+        '<i class="fa-brands fa-github" aria-hidden="true"></i></a>'
+        if github
+        else '<span class="text-gray-300"><i class="fa-brands fa-github" aria-hidden="true"></i></span>'
+    )
+
+    tz_cell = f'<span class="text-xs text-gray-500">{_html_mod.escape(timezone)}</span>' if timezone else '<span class="text-xs text-gray-400">—</span>'
 
     return f'''
-    <article class="rounded-2xl border border-[#E5E5E5] bg-white p-6 transition hover:-translate-y-0.5 hover:shadow-md">
-      <div class="flex items-start gap-4">
-        <img src="{avatar_url}" alt="{name}" class="h-16 w-16 rounded-full border-2 border-[#E5E5E5] bg-white object-cover">
-        <div class="min-w-0 flex-1">
-          <h4 class="truncate text-lg font-bold text-[#111827]">{name}</h4>
-          <div class="mt-2">{status_badge}</div>
+    <li class="flex items-center gap-4 rounded-xl border border-[#E5E5E5] bg-white px-4 py-3 transition hover:shadow-sm">
+      <img src="{avatar_url}" alt="{name}" class="h-10 w-10 shrink-0 rounded-full border border-[#E5E5E5] bg-white object-cover">
+      <div class="min-w-0 flex-1 grid grid-cols-1 gap-1 sm:grid-cols-[1fr_auto_auto_auto_auto] sm:items-center sm:gap-4">
+        <div class="min-w-0">
+          <p class="truncate font-semibold text-[#111827] text-sm">{name}</p>
+          <div class="mt-0.5 flex flex-wrap gap-1">{specialty_chips}</div>
         </div>
+        <div class="hidden sm:block">{status_badge}</div>
+        <div class="hidden sm:block text-center">
+          <p class="text-xs text-gray-400 leading-none">Cap</p>
+          <p class="text-sm font-semibold text-gray-700">{max_mentees}</p>
+        </div>
+        <div class="hidden sm:block">{tz_cell}</div>
+        <div>{github_link}</div>
       </div>
-      <div class="mt-4 flex flex-wrap items-center gap-2 text-sm">
-        {github_link}
-        {slack_display}
-      </div>
-
-      {assignment_html}
-    </article>
+    </li>
     '''
 
 
-def _index_html() -> str:
-    """Generate the BLT-Pool mentor grid homepage."""
-    year = time.gmtime().tm_year
-    mentor_count = len(MENTORS)
-    available_count = len([m for m in MENTORS if m.get("status") == "available"])
+def _build_referral_leaderboard(mentors: list) -> list:
+    """Return a sorted list of (referrer_username, count) tuples."""
+    counts: dict = {}
+    for m in mentors:
+        ref = m.get("referred_by", "").strip()
+        if ref:
+            counts[ref] = counts.get(ref, 0) + 1
+    return sorted(counts.items(), key=lambda x: x[1], reverse=True)
 
-    mentor_cards_html = "\n".join(_generate_mentor_card(mentor) for mentor in MENTORS)
+
+def _index_html(mentors: list = None) -> str:
+    """Generate the BLT-Pool mentor directory homepage.
+
+    Args:
+        mentors: Optional mentor list loaded from ``.github/mentors.yml``.
+                 Falls back to the built-in :data:`MENTORS` constant if omitted.
+    """
+    if mentors is None:
+        mentors = MENTORS
+    year = time.gmtime().tm_year
+    mentor_count = len(mentors)
+    available_count = len([m for m in mentors if m.get("active", True) and m.get("status", "available") == "available"])
+
+    mentor_rows_html = "\n".join(_generate_mentor_row(m) for m in mentors)
+
+    leaderboard_rows = _build_referral_leaderboard(mentors)
+    if leaderboard_rows:
+        lb_items = "\n".join(
+            f'''<li class="flex items-center justify-between gap-2 py-1.5 border-b border-[#E5E5E5] last:border-0">
+              <a href="https://github.com/{ref}" target="_blank" rel="noopener"
+                 class="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-[#E10101] truncate">
+                <img src="https://github.com/{ref}.png" alt="{ref}" class="h-6 w-6 rounded-full border border-[#E5E5E5]">
+                @{ref}
+              </a>
+              <span class="shrink-0 rounded-full bg-[#feeae9] px-2 py-0.5 text-xs font-bold text-[#E10101]">{cnt}</span>
+            </li>'''
+            for ref, cnt in leaderboard_rows[:10]
+        )
+        leaderboard_html = f'''
+        <section class="rounded-2xl border border-[#E5E5E5] bg-white p-6 h-fit sticky top-24">
+          <div class="mb-4 flex items-center gap-2">
+            <div class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[#feeae9] text-[#E10101]">
+              <i class="fa-solid fa-trophy text-sm" aria-hidden="true"></i>
+            </div>
+            <h3 class="text-lg font-bold text-[#111827]">Referral Leaderboard</h3>
+          </div>
+          <p class="mb-4 text-xs text-gray-500">GitHub users who have referred the most mentors to the pool.</p>
+          <ol class="space-y-0">
+            {lb_items}
+          </ol>
+        </section>'''
+    else:
+        leaderboard_html = '''
+        <section class="rounded-2xl border border-[#E5E5E5] bg-white p-6 h-fit sticky top-24">
+          <div class="mb-4 flex items-center gap-2">
+            <div class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[#feeae9] text-[#E10101]">
+              <i class="fa-solid fa-trophy text-sm" aria-hidden="true"></i>
+            </div>
+            <h3 class="text-lg font-bold text-[#111827]">Referral Leaderboard</h3>
+          </div>
+          <p class="text-sm text-gray-500">No referrals yet — be the first to invite a mentor!</p>
+        </section>'''
 
     return f'''<!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
@@ -4104,24 +4153,33 @@ def _index_html() -> str:
       </div>
     </section>
 
-    <section class="space-y-5">
-      <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h3 class="text-2xl font-bold text-[#111827]">
-          Mentor Pool <span class="text-base font-medium text-gray-500">({mentor_count} total, {available_count} available)</span>
-        </h3>
-        <label for="mentor-search" class="relative block w-full sm:w-80">
-          <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
-            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
-          </span>
-          <input id="mentor-search" type="search" placeholder="Search mentors (coming soon)"
-                 class="w-full rounded-md border border-gray-400 bg-white px-4 py-2 pl-10 text-sm text-gray-700 placeholder:text-gray-400 focus:border-red-600 focus:ring-1 focus:ring-red-600 focus:outline-none">
-        </label>
-      </div>
+    <!-- Two-column layout: mentor list (2/3) + referral leaderboard (1/3) -->
+    <div class="grid grid-cols-1 gap-8 lg:grid-cols-[2fr_1fr] lg:items-start">
 
-      <div class="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
-        {mentor_cards_html}
-      </div>
-    </section>
+      <!-- Mentor list -->
+      <section class="space-y-4">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <h3 class="text-2xl font-bold text-[#111827]">
+            Mentor Pool <span class="text-base font-medium text-gray-500">({mentor_count} total, {available_count} available)</span>
+          </h3>
+        </div>
+        <ul class="space-y-2" aria-label="Mentor list">
+          <!-- Header row (desktop) -->
+          <li class="hidden sm:grid sm:grid-cols-[1fr_auto_auto_auto_auto] sm:items-center sm:gap-4 sm:px-4 sm:py-1 text-xs font-semibold uppercase tracking-wide text-gray-400">
+            <span>Mentor</span>
+            <span>Status</span>
+            <span class="text-center">Cap</span>
+            <span>Timezone</span>
+            <span>Link</span>
+          </li>
+          {mentor_rows_html}
+        </ul>
+      </section>
+
+      <!-- Referral leaderboard -->
+      {leaderboard_html}
+
+    </div>
 
     <section class="rounded-2xl border border-[#E5E5E5] bg-white p-7 sm:p-9">
       <h3 class="text-2xl font-bold text-[#111827]">How Mentor Matching Works</h3>
@@ -4183,9 +4241,8 @@ def _index_html() -> str:
         <div>
           <h3 class="text-2xl font-bold text-[#111827]">Become a Mentor</h3>
           <p class="mt-1 text-sm leading-relaxed text-gray-600">
-            Fill in the form and click the button — it opens a pre-filled GitHub issue. Once the
-            <code class="rounded bg-gray-100 px-1 text-xs font-mono">mentor-application</code>
-            label is added to that issue, you are added to the pool automatically and the issue is closed.
+            Fill in the form and click the button — it opens a pre-filled GitHub issue.
+            You are added to the mentor pool automatically when the issue is created.
           </p>
         </div>
       </div>
@@ -4225,6 +4282,13 @@ def _index_html() -> str:
           <input id="mf-tz" type="text" placeholder="e.g. UTC+5:30"
                  class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#E10101] focus:ring-1 focus:ring-[#E10101] focus:outline-none">
         </div>
+        <div class="sm:col-span-2">
+          <label for="mf-referral" class="mb-1 block text-sm font-semibold text-gray-700">
+            Referred By <span class="text-xs font-normal text-gray-400">(optional — GitHub username of who invited you)</span>
+          </label>
+          <input id="mf-referral" type="text" placeholder="e.g. janedoe"
+                 class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#E10101] focus:ring-1 focus:ring-[#E10101] focus:outline-none">
+        </div>
         <div id="mf-error" role="alert" class="hidden sm:col-span-2 text-sm font-semibold text-[#E10101]"></div>
         <div class="sm:col-span-2">
           <button type="submit"
@@ -4238,12 +4302,13 @@ def _index_html() -> str:
         (function () {{
           document.getElementById('mentor-form').addEventListener('submit', function (e) {{
             e.preventDefault();
-            var name   = document.getElementById('mf-name').value.trim();
-            var github = document.getElementById('mf-github').value.trim().replace(/^@/, '');
-            var specs  = document.getElementById('mf-specialties').value.trim();
-            var maxM   = document.getElementById('mf-max').value.trim() || '3';
-            var tz     = document.getElementById('mf-tz').value.trim();
-            var errEl  = document.getElementById('mf-error');
+            var name     = document.getElementById('mf-name').value.trim();
+            var github   = document.getElementById('mf-github').value.trim().replace(/^@/, '');
+            var specs    = document.getElementById('mf-specialties').value.trim();
+            var maxM     = document.getElementById('mf-max').value.trim() || '3';
+            var tz       = document.getElementById('mf-tz').value.trim();
+            var referral = document.getElementById('mf-referral').value.trim().replace(/^@/, '');
+            var errEl    = document.getElementById('mf-error');
             if (!name || !github) {{
               errEl.textContent = 'Display name and GitHub username are required.';
               errEl.classList.remove('hidden');
@@ -4258,9 +4323,10 @@ def _index_html() -> str:
               '- **Specialties**: ' + (specs || '_none_'),
               '- **Max Mentees**: ' + maxM,
               '- **Timezone**: ' + (tz || '_not specified_'),
+              '- **Referred By**: ' + (referral ? '@' + referral : '_not specified_'),
               '',
               '---',
-              '_Submitted via the BLT-Pool mentor application form. A maintainer will add the mentor-application label to trigger automatic onboarding._'
+              '_Submitted via the BLT-Pool mentor application form. The bot adds you automatically when this issue is created._'
             ].join('\\n');
             var url = 'https://github.com/OWASP-BLT/BLT-Pool/issues/new'
               + '?title=' + encodeURIComponent('Mentor Application: @' + github)
@@ -4323,7 +4389,12 @@ async def on_fetch(request, env) -> Response:
     path = urlparse(str(request.url)).path.rstrip("/") or "/"
 
     if method == "GET" and path == "/":
-        return _html(_index_html())
+        # Populate the homepage from .github/mentors.yml (public repo, unauthenticated).
+        try:
+            mentors = await _fetch_mentors_config("OWASP-BLT", "BLT-Pool", "")
+        except Exception:
+            mentors = MENTORS
+        return _html(_index_html(mentors))
 
     if method == "GET" and path == "/github-app":
         app_slug = getattr(env, "GITHUB_APP_SLUG", "")

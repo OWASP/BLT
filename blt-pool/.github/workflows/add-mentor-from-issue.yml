@@ -1,23 +1,21 @@
 name: Add Mentor from Application Issue
 
-# Triggered when the "mentor-application" label is added to an issue.
-# The workflow parses the issue body, commits the new mentor entry directly to
-# the default branch, closes the issue, and posts a confirmation comment.
+# Triggered when a new mentor-application issue is opened.
+# The workflow detects the issue body format, parses the application,
+# commits the new mentor entry directly to the default branch, closes
+# the issue, and posts a confirmation comment.
 
 on:
   issues:
-    types: [labeled]
-
-# Serialize runs for the same issue to prevent push conflicts when the label is
-# added more than once (e.g., removed and re-added by a maintainer).
-# cancel-in-progress: false ensures a second run queues rather than being killed.
-concurrency:
-  group: add-mentor-issue-${{ github.event.issue.number }}
-  cancel-in-progress: false
+    types: [opened]
 
 jobs:
   add-mentor:
-    if: github.event.label.name == 'mentor-application'
+    # Only process issues whose title starts with "Mentor Application:" or
+    # whose body contains the "## Mentor Application" section heading.
+    if: >
+      startsWith(github.event.issue.title, 'Mentor Application:') ||
+      contains(github.event.issue.body, '## Mentor Application')
     runs-on: ubuntu-latest
     permissions:
       contents: write

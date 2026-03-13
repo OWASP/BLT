@@ -14,8 +14,8 @@ labels: mentor-application
 - **Specialties**: frontend, python  <!-- comma-separated, or delete this line if none -->
 - **Max Mentees**: 3  <!-- how many concurrent mentees you can handle (1–10) -->
 - **Timezone**: UTC+0  <!-- e.g. UTC+5:30, or delete this line -->
+- **Referred By**: @optional-github-username  <!-- who invited you? delete if not applicable -->
 
 ---
 
-*Once a maintainer adds the `mentor-application` label, an automated workflow will open a PR
-to add you to `.github/mentors.yml`. You will be notified when the PR is merged.*
+*An automated workflow will add you to `.github/mentors.yml` and close this issue as soon as it is opened. No manual review or label is required.*

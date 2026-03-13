@@ -64,6 +64,7 @@ def parse_body(body: str) -> dict:
     raw_specialties = _parse_field(r"^\s*-\s*\*\*Specialties\*\*:\s*(.+)$", body)
     max_mentees_raw = _parse_field(r"^\s*-\s*\*\*Max Mentees\*\*:\s*(\d+)", body)
     timezone = _parse_field(r"^\s*-\s*\*\*Timezone\*\*:\s*(.+)$", body)
+    raw_referred_by = _parse_field(r"^\s*-\s*\*\*Referred By\*\*:\s*@?(\S+)", body)
 
     # Normalize placeholder values to empty string
     for placeholder in ("_none_", "_not specified_", "none", "n/a", "-", ""):
@@ -71,6 +72,14 @@ def parse_body(body: str) -> dict:
             raw_specialties = ""
         if timezone.lower() == placeholder:
             timezone = ""
+        if raw_referred_by.lower() == placeholder:
+            raw_referred_by = ""
+
+    # Strip leading @ from referred_by if present (single @ only)
+    referred_by = (raw_referred_by[1:] if raw_referred_by.startswith("@") else raw_referred_by).strip()
+    # Validate referred_by as a GitHub username (optional field)
+    if referred_by and not _USERNAME_RE.match(referred_by):
+        referred_by = ""
 
     # Parse and validate specialties
     specialties = []
@@ -92,6 +101,7 @@ def parse_body(body: str) -> dict:
         "specialties": specialties,
         "max_mentees": max_mentees,
         "timezone": timezone,
+        "referred_by": referred_by,
     }
 
 
@@ -119,6 +129,8 @@ def build_entry(fields: dict) -> str:
     lines.append("    active: true")
     if fields["timezone"]:
         lines.append(f'    timezone: {_yaml_quote(fields["timezone"])}')
+    if fields.get("referred_by"):
+        lines.append(f'    referred_by: {_yaml_quote(fields["referred_by"])}')
     return "\n".join(lines)
 
 
