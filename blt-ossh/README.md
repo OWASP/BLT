@@ -65,7 +65,7 @@ It complements the main [BLT platform](https://github.com/OWASP-BLT/BLT) by focu
 
 ### Key Architectural Decisions
 
-- **No backend** — All logic runs in the browser. GitHub API is called directly from the client.
+- **No runtime backend** — The web app runs entirely in the browser and calls the GitHub API directly; automation jobs (GitHub Actions) only pre-generate community profile data.
 - **Static deployment** — Hosted on GitHub Pages with no server-side dependencies.
 - **GitHub Issues as a database** — Community profiles are stored as GitHub Issues with the `profile` label, enabling moderation and editing without a database.
 
@@ -278,14 +278,6 @@ After analyzing your GitHub profile, the system automatically pre-fills:
    - Search by name, skills, or location
    - Connect via GitHub, website, or social media
 
-### For Contributors
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on:
-- Adding new project recommendations
-- Improving the matching algorithm
-- Enhancing the UI/UX
-- Adding new features
-
 ## Features in Detail
 
 - See [Smart Matching Algorithm](#smart-matching-algorithm)
@@ -294,7 +286,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on:
 
 ## Contributing
 
-Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on adding project recommendations, improving the matching algorithm, and more.
+Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on adding project recommendations, improving the matching algorithm, enhancing the UI/UX, and more.
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/AmazingFeature`)

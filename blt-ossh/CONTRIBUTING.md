@@ -1,6 +1,6 @@
 # Contributing to BLT-OSSH
 
-Thank you for your interest in contributing to BLT-OSSH (Open Source Sorting Hat)!
+Thank you for your interest in contributing to BLT-OSSH (Open-Source Sorting Hat)!
 
 ## How to Contribute
 
