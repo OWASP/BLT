@@ -6,6 +6,7 @@ path parameters and different HTTP methods.
 """
 
 import re
+from urllib.parse import parse_qs, urlparse
 from typing import Callable, Dict, List, Optional, Tuple, Any
 from utils import error_response, json_response
 
@@ -136,15 +137,9 @@ class Router:
         return path
     
     def _parse_query_params(self, url: str) -> Dict[str, str]:
-        """Parse query parameters from URL."""
-        params = {}
-        if "?" in url:
-            query_string = url.split("?", 1)[1]
-            for pair in query_string.split("&"):
-                if "=" in pair:
-                    key, value = pair.split("=", 1)
-                    params[key] = value
-        return params
+        """Parse query parameters from URL, decoding percent-encoded and plus-encoded values."""
+        query_string = urlparse(url).query
+        return {k: v[0] for k, v in parse_qs(query_string).items()}
     
     async def handle(self, request: Any, env: Any) -> Any:
         """
