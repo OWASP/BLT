@@ -1,0 +1,36 @@
+name: CI - Python tests
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade "pip>=25.1"
+          if [ -f pyproject.toml ]; then
+            # Install the development dependency group defined in pyproject.toml (PEP 735)
+            pip install --group dev
+          else
+            pip install pytest pytest-asyncio
+          fi
+
+      - name: Run tests
+        run: |
+          python -m pytest tests/ -v
+
