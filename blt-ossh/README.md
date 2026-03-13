@@ -71,11 +71,10 @@ It complements the main [BLT platform](https://github.com/OWASP-BLT/BLT) by focu
 
 ### Smart Matching Algorithm
 
-- Analyzes your repository languages and frequency
-- Considers your starred repos and topics
-- Matches you with trending and well-maintained projects
-- Weighs factors like activity, stars, and relevance
-- Implementation: `assignHouse()` and `buildRecommendations()` in `js/app.js` (see also `index.html` for inline logic)
+- Extracts language frequencies from the user's repositories
+- Returns the user's non-fork repos sorted by stargazers count
+- Assigns users to Four Houses based on languages and keywords (when available)
+- Implementation: `buildRecommendations()` and `assignHouse()` in `js/app.js`
 
 ### Community Features
 
@@ -215,7 +214,6 @@ The system interacts with the **GitHub REST API** to retrieve user and repositor
 |----------|---------|
 | `GET https://api.github.com/users/{username}` | User profile data (name, bio, avatar, follower counts) |
 | `GET https://api.github.com/users/{username}/repos?sort=updated&per_page=100` | User repository list with languages and topics |
-| `GET https://api.github.com/users/{username}/events/public?per_page=100` | Recent public events used to calculate the contributor activity score |
 | `GET https://api.github.com/repos/{owner}/{repo}/issues?labels=profile&state=open` | Community profiles (used by workflow) |
 | `data/profiles.json` | Community profiles (static file; workflow populates it from GitHub Issues) |
 
@@ -224,14 +222,13 @@ The system interacts with the **GitHub REST API** to retrieve user and repositor
 - **User profile** — Avatar, bio, public repos count, followers, following
 - **Repositories** — Names, descriptions, languages, stars, fork status
 - **Languages used** — Extracted from repository metadata and weighted by frequency
-- **Public events** — Recent PushEvent, PullRequestEvent, and IssuesEvent counts used for activity scoring (see `js/app.js`, `activity_score`, `activity_breakdown`)
 - **Community profiles** — The workflow generates `data/profiles.json` from GitHub Issues; the Community page reads profiles from this file.
 
 ### Rate Limits
 
 - **Unauthenticated requests**: 60 requests/hour per IP address
 - **Authenticated requests**: 5,000 requests/hour (if you add a token — not required for basic use)
-- The app typically makes 2–4 requests per profile analysis (profile, repos, optionally events), so casual use stays within limits
+- The app makes exactly 2 requests per profile analysis (profile and repos), so casual use stays within limits
 - If rate limited, the app displays: *"GitHub API rate limit exceeded. Please wait a few minutes and try again."*
 
 ## Community Profile Template
@@ -248,7 +245,7 @@ Profiles are created as GitHub Issues using a structured template with these fie
 - **Location** (optional) - Your geographical location
 - **Website/Portfolio** (optional) - Your personal website or portfolio link
 - **Twitter** (optional) - Handle without @
-- **LinkedIn** (optional) - LinkedIn username
+- **LinkedIn** (optional) - LinkedIn profile URL (e.g., https://linkedin.com/in/yourprofile)
 
 ### Pre-filled Profile Creation
 
