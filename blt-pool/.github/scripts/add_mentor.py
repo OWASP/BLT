@@ -30,10 +30,16 @@ _SPECIALTY_RE = re.compile(r"^[a-z0-9][a-z0-9+#.\-]{0,29}$")
 
 
 def _clean_text(val: str) -> str:
-    """Strip whitespace and remove characters that are special in YAML scalars."""
+    """Strip whitespace and remove characters that are special in YAML scalars.
+
+    Newlines and carriage returns are collapsed to a single space first to prevent
+    YAML multi-line injection (e.g. a crafted name field that adds extra YAML keys).
+    """
+    # Collapse newlines/carriage returns before any other processing
+    val = re.sub(r"[\r\n]+", " ", val)
     val = val.strip()
-    # Remove YAML-unsafe characters to prevent injection
-    val = re.sub(r'["\'\[\]{{}}|>&]', "", val)
+    # Remove other YAML-unsafe characters
+    val = re.sub(r'["\'\[\]{}|>&]', "", val)
     return val.strip()
 
 

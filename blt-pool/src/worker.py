@@ -2165,7 +2165,15 @@ async def _get_mentor_load_map(owner: str, token: str) -> dict:
         )
         if resp.status != 200:
             if page == 1:
+                console.log(
+                    f"[MentorPool] _get_mentor_load_map: GitHub search API returned {resp.status} "
+                    f"on page {page} — returning empty load map (all mentors appear at zero load)."
+                )
                 return {}
+            console.log(
+                f"[MentorPool] _get_mentor_load_map: GitHub search API returned {resp.status} "
+                f"on page {page} — using load counts collected so far."
+            )
             break
 
         data = json.loads(await resp.text())
@@ -2462,6 +2470,10 @@ async def handle_mentor_handoff(
         for m in pool
         if m.get("github_username")
     }
+    # First gate: check that the commenter is in the mentor pool at all (any entry).
+    # The second gate below verifies they are specifically the *assigned* mentor for
+    # this issue.  Having two separate gates gives a clearer error message to
+    # non-mentor users vs. mentor-pool members who are not assigned here.
     if login.lower() not in mentor_usernames:
         await create_comment(
             owner,
