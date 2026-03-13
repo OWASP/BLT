@@ -63,6 +63,12 @@ const HACKATHONS_CONFIG = {
                 showReviewsInLeaderboard: true
             },
             
+            // Optional: path to a YAML file listing allowed participants.
+            // When set, only the listed GitHub usernames are counted as
+            // contributors (merged PRs leaderboard).  The review leaderboard
+            // remains open to everyone.
+            // participantsFile: "hackathon-participants/gsoc-2026-warmup.yml",
+            
             // Banner image (optional)
             bannerImage: "images/How-do-hackathons-work-1024x576.png"
         },
