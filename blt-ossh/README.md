@@ -73,8 +73,7 @@ It complements the main [BLT platform](https://github.com/OWASP-BLT/BLT) by focu
 
 - Extracts language frequencies from the user's repositories
 - Returns the user's non-fork repos sorted by stargazers count
-- Assigns users to Four Houses based on languages and keywords (when available)
-- Implementation: `buildRecommendations()` and `assignHouse()` in `js/app.js`
+- Implementation: `buildRecommendations()` in `js/app.js`
 
 ### Community Features
 
