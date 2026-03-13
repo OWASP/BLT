@@ -1,183 +1,1369 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
-  <meta name="description" content="All BLT Design Contest submissions in one place." />
-  <title>All Entries - BLT Design Contests</title>
+    <html lang="en" class="scroll-smooth">
+    <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <meta name="description" content="All BLT Design Contest submissions in one place." />
+    <title>All Entries - BLT Design Contests</title>
 
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
     tailwind.config = {
       darkMode: 'class',
       theme: {
-        extend: {
-          colors: {
-            brand: '#E10101',
-          },
-        },
+      extend: {
+      colors: {
+      brand: '#E10101',
+      },
+      },
       },
     };
-  </script>
+    </script>
 
-  <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-        integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
-        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+      integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+      crossorigin="anonymous" referrerpolicy="no-referrer" />
 
-  <style>
+    <style>
     :root { --brand: #E10101; }
     *:focus-visible {
       outline: 2px solid var(--brand);
       outline-offset: 2px;
     }
-    script {
-      spellcheck: false;
-    }
-  </style>
-</head>
+    </style>
+    </head>
 
-<body class="bg-gray-50 dark:bg-[#111827] text-gray-900 dark:text-gray-100 min-h-screen flex flex-col font-sans antialiased">
-  <a href="#all-entries"
+    <body class="bg-gray-50 dark:bg-[#111827] text-gray-900 dark:text-gray-100 min-h-screen flex flex-col font-sans antialiased">
+    <a href="#all-entries"
      class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-[#E10101] focus:text-white focus:rounded-md focus:font-medium">
     Skip to content
-  </a>
+    </a>
 
-  <header class="bg-white dark:bg-[#1F2937] border-b border-[#E5E5E5] dark:border-gray-700 sticky top-0 z-40">
+    <header class="bg-white dark:bg-[#1F2937] border-b border-[#E5E5E5] dark:border-gray-700 sticky top-0 z-40">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <nav class="flex items-center justify-between h-16 gap-4" aria-label="Primary navigation">
-        <a href="index.html" class="flex items-center gap-2 shrink-0 group" aria-label="BLT Design Contests home">
-          <span class="inline-flex items-center justify-center w-8 h-8 rounded-md bg-[#E10101] text-white font-black text-sm select-none">BLT</span>
-          <span class="font-semibold text-gray-900 dark:text-gray-100 hidden sm:block">Design Contests</span>
-        </a>
+      <a href="index.html" class="flex items-center gap-2 shrink-0 group" aria-label="BLT Design Contests home">
+      <span class="inline-flex items-center justify-center w-8 h-8 rounded-md bg-[#E10101] text-white font-black text-sm select-none">BLT</span>
+      <span class="font-semibold text-gray-900 dark:text-gray-100 hidden sm:block">Design Contests</span>
+      </a>
 
-        <div class="hidden md:flex items-center gap-6 text-sm font-medium">
-          <a href="index.html" class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] transition-colors inline-flex items-center gap-1.5">  
-            <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> All Contests  
-          </a>  
-          <a href="show-all-entries.html"  
-             class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] transition-colors inline-flex items-center gap-1.5"  
-             aria-current="page">  
-            active
-            <i class="fa-solid fa-images" aria-hidden="true"></i> All Entries  
-          </a> 
-          <a href="https://github.com/OWASP-BLT/BLT-Design-Contest" target="_blank" rel="noopener"
-             class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] transition-colors inline-flex items-center gap-1">
-            <i class="fa-brands fa-github" aria-hidden="true"></i> GitHub
-          </a>
-        </div>
+      <div class="hidden md:flex items-center gap-6 text-sm font-medium">
+      <a href="index.html" class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] transition-colors inline-flex items-center gap-1.5">
+      <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> All Contests
+      </a>
+      <a href="show-all-entries.html"
+       class="text-[#E10101] font-semibold inline-flex items-center gap-1.5"
+       aria-current="page">
+      <i class="fa-solid fa-images" aria-hidden="true"></i> All Entries
+      </a>
+      <a href="https://github.com/OWASP-BLT/BLT-Design-Contest" target="_blank" rel="noopener"
+       class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] transition-colors inline-flex items-center gap-1">
+      <i class="fa-brands fa-github" aria-hidden="true"></i> GitHub
+      </a>
+      </div>
 
-        <a href="index.html#contests"
-           target="_blank" rel="noopener"
-           class="inline-flex items-center gap-2 bg-[#E10101] hover:bg-red-700 text-white text-sm font-semibold px-4 py-2 rounded-md transition-colors shrink-0">
-          <i class="fa-solid fa-plus" aria-hidden="true"></i>
-          <span>Choose Contest</span>
-        </a>
+      <a href="index.html#contests"
+       class="inline-flex items-center gap-2 bg-[#E10101] hover:bg-red-700 text-white text-sm font-semibold px-4 py-2 rounded-md transition-colors shrink-0">
+      <i class="fa-solid fa-plus" aria-hidden="true"></i>
+      <span>Choose Contest</span>
+      </a>
 
-        <button id="theme-toggle" type="button"
-                class="p-2 rounded-md text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                aria-label="Toggle dark mode">
-          <i class="fa-solid fa-moon dark:hidden" aria-hidden="true"></i>
-          <i class="fa-solid fa-sun hidden dark:inline" aria-hidden="true"></i>
-        </button>
+      <button id="theme-toggle" type="button"
+      class="p-2 rounded-md text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+      aria-label="Toggle dark mode">
+      <i class="fa-solid fa-moon dark:hidden" aria-hidden="true"></i>
+      <i class="fa-solid fa-sun hidden dark:inline" aria-hidden="true"></i>
+      </button>
       </nav>
     </div>
-  </header>
+    </header>
 
-  <section class="bg-white dark:bg-[#1F2937] border-b border-[#E5E5E5] dark:border-gray-700">
+    <section class="bg-white dark:bg-[#1F2937] border-b border-[#E5E5E5] dark:border-gray-700">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center">
       <span class="inline-block mb-4 bg-[#feeae9] dark:bg-red-900/30 text-[#E10101] text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wide">
-        Unified Showcase
+      Unified Showcase
       </span>
       <h1 class="text-3xl sm:text-4xl font-black text-gray-900 dark:text-gray-50 leading-tight mb-3">
-        All Contest Entries
+      All Contest Entries
       </h1>
       <p class="max-w-2xl mx-auto text-base sm:text-lg text-gray-600 dark:text-gray-300">
-        Browse every current submission from all BLT design contests in one page.
+      Browse every current submission from all BLT design contests in one page.
       </p>
+      <p class="mt-3 text-xs text-gray-400 dark:text-gray-500">Last updated 13 Mar 2026 23:07 UTC</p>
     </div>
-  </section>
+    </section>
 
-  <main id="all-entries" class="flex-1 bg-gray-50 dark:bg-[#111827] border-t border-[#E5E5E5] dark:border-gray-700">
+    <main id="all-entries" class="flex-1 bg-gray-50 dark:bg-[#111827] border-t border-[#E5E5E5] dark:border-gray-700">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div class="mb-6">
-        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Entries</h2>
-        <p id="entries-status" class="mt-1 text-sm text-gray-500 dark:text-gray-400">Loading entries...</p>
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Entries</h2>
+      <p id="entries-status" class="mt-1 text-sm text-gray-500 dark:text-gray-400">Loading entries...</p>
       </div>
 
       <div class="flex flex-wrap items-center gap-2 mb-8" id="contest-filters" aria-label="Contest filters">
-        <button type="button" data-filter="all"
-                class="filter-btn inline-flex items-center gap-2 border text-sm font-semibold px-4 py-2 rounded-md transition-colors"
-                aria-pressed="true">
-          All Contests
-        </button>
-        <button type="button" data-filter="blt-tshirt"
-                class="filter-btn inline-flex items-center gap-2 border text-sm font-semibold px-4 py-2 rounded-md transition-colors"
-                aria-pressed="false">
-          BLT T-Shirt Design Contest
-        </button>
-        <button type="button" data-filter="blt-logo"
-                class="filter-btn inline-flex items-center gap-2 border text-sm font-semibold px-4 py-2 rounded-md transition-colors"
-                aria-pressed="false">
-          BLT Logo Contest
-        </button>
-        <button type="button" data-filter="blt-homepage"
-                class="filter-btn inline-flex items-center gap-2 border text-sm font-semibold px-4 py-2 rounded-md transition-colors"
-                aria-pressed="false">
-          BLT Homepage Design
-        </button>
+      <button type="button" data-filter="all" class="filter-btn inline-flex items-center gap-2 border text-sm font-semibold px-4 py-2 rounded-md transition-colors" aria-pressed="true">All Contests</button>
+        <button type="button" data-filter="blt-tshirt" class="filter-btn inline-flex items-center gap-2 border text-sm font-semibold px-4 py-2 rounded-md transition-colors" aria-pressed="false">BLT T-Shirt Design Contest</button>
+        <button type="button" data-filter="blt-logo" class="filter-btn inline-flex items-center gap-2 border text-sm font-semibold px-4 py-2 rounded-md transition-colors" aria-pressed="false">BLT Logo Contest</button>
+        <button type="button" data-filter="blt-homepage" class="filter-btn inline-flex items-center gap-2 border text-sm font-semibold px-4 py-2 rounded-md transition-colors" aria-pressed="false">BLT Homepage Design</button>
       </div>
 
-      <div id="all-entries-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" aria-live="polite"></div>
+      <div id="all-entries-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" aria-live="polite">
+      
+        <article class="group bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
+                       border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                       hover:shadow-lg hover:border-[#E10101] transition-all duration-200"
+                 data-contest="blt-homepage">
+          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+          <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/88" target="_blank" rel="noopener"    class="block overflow-hidden aspect-video bg-gray-100 dark:bg-gray-700">  <img src="https://github.com/user-attachments/assets/4c030d97-329a-46a9-bf43-23fbde9e57ab" alt="Untitled submission preview" loading="lazy"        class="w-full h-full object-cover transition-transform duration-300               group-hover:scale-105" /></a>
+          <div class="p-5 flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]">BLT Homepage Design</span>
+              <span class="text-xs text-gray-400 dark:text-gray-500">
+                <time class="sub-date" datetime="2026-03-08T18:10:29Z">2026-03-08</time>
+              </span>
+            </div>
+            <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/88" target="_blank" rel="noopener"
+                 class="hover:text-[#E10101] transition-colors">Untitled submission</a>
+            </h3>
+            <div class="flex items-center justify-between gap-3 pt-2
+                        border-t border-[#E5E5E5] dark:border-gray-700">
+              <a href="blt-homepage.html"
+                 class="text-sm text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">
+                Open Contest
+              </a>
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/88" target="_blank" rel="noopener"
+                 class="inline-flex items-center gap-1 text-sm font-medium
+                        border border-[#E10101] text-[#E10101] rounded-md px-3 py-1
+                        hover:bg-[#E10101] hover:text-white transition-colors">
+                <i class="fa-brands fa-github" aria-hidden="true"></i> Issue
+              </a>
+            </div>
+          </div>
+        </article>
 
-      <div id="load-fallback" class="hidden mt-8 p-5 bg-white dark:bg-[#1F2937] rounded-xl border border-[#E5E5E5] dark:border-gray-700">
-        <p class="text-sm text-gray-600 dark:text-gray-300 mb-2">
-          Some entries could not be loaded automatically.
-        </p>
-        <div class="flex flex-wrap items-center gap-3 text-sm">
-          <a href="blt-tshirt.html" class="text-[#E10101] hover:underline">BLT T-Shirt Design Contest</a>
-          <a href="blt-logo.html" class="text-[#E10101] hover:underline">BLT Logo Contest</a>
-          <a href="blt-homepage.html" class="text-[#E10101] hover:underline">BLT Homepage Design</a>
-        </div>
+        <article class="group bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
+                       border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                       hover:shadow-lg hover:border-[#E10101] transition-all duration-200"
+                 data-contest="blt-logo">
+          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+          <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/85" target="_blank" rel="noopener"    class="block overflow-hidden aspect-video bg-gray-100 dark:bg-gray-700">  <img src="https://github.com/user-attachments/assets/9fb66e4a-74df-49fe-a4e0-3f2cc071a78a" alt="Untitled submission preview" loading="lazy"        class="w-full h-full object-cover transition-transform duration-300               group-hover:scale-105" /></a>
+          <div class="p-5 flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]">BLT Logo Contest</span>
+              <span class="text-xs text-gray-400 dark:text-gray-500">
+                <time class="sub-date" datetime="2026-03-03T20:41:16Z">2026-03-03</time>
+              </span>
+            </div>
+            <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/85" target="_blank" rel="noopener"
+                 class="hover:text-[#E10101] transition-colors">Untitled submission</a>
+            </h3>
+            <div class="flex items-center justify-between gap-3 pt-2
+                        border-t border-[#E5E5E5] dark:border-gray-700">
+              <a href="blt-logo.html"
+                 class="text-sm text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">
+                Open Contest
+              </a>
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/85" target="_blank" rel="noopener"
+                 class="inline-flex items-center gap-1 text-sm font-medium
+                        border border-[#E10101] text-[#E10101] rounded-md px-3 py-1
+                        hover:bg-[#E10101] hover:text-white transition-colors">
+                <i class="fa-brands fa-github" aria-hidden="true"></i> Issue
+              </a>
+            </div>
+          </div>
+        </article>
+
+        <article class="group bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
+                       border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                       hover:shadow-lg hover:border-[#E10101] transition-all duration-200"
+                 data-contest="blt-tshirt">
+          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+          <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/84" target="_blank" rel="noopener"    class="block overflow-hidden aspect-video bg-gray-100 dark:bg-gray-700">  <img src="https://github.com/user-attachments/assets/45603fef-1e06-40d6-a6b8-b46add56b94a" alt="Hunting bugs preview" loading="lazy"        class="w-full h-full object-cover transition-transform duration-300               group-hover:scale-105" /></a>
+          <div class="p-5 flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]">BLT T-Shirt Design Contest</span>
+              <span class="text-xs text-gray-400 dark:text-gray-500">
+                <time class="sub-date" datetime="2026-03-02T20:47:46Z">2026-03-02</time>
+              </span>
+            </div>
+            <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/84" target="_blank" rel="noopener"
+                 class="hover:text-[#E10101] transition-colors">Hunting bugs</a>
+            </h3>
+            <div class="flex items-center justify-between gap-3 pt-2
+                        border-t border-[#E5E5E5] dark:border-gray-700">
+              <a href="blt-tshirt.html"
+                 class="text-sm text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">
+                Open Contest
+              </a>
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/84" target="_blank" rel="noopener"
+                 class="inline-flex items-center gap-1 text-sm font-medium
+                        border border-[#E10101] text-[#E10101] rounded-md px-3 py-1
+                        hover:bg-[#E10101] hover:text-white transition-colors">
+                <i class="fa-brands fa-github" aria-hidden="true"></i> Issue
+              </a>
+            </div>
+          </div>
+        </article>
+
+        <article class="group bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
+                       border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                       hover:shadow-lg hover:border-[#E10101] transition-all duration-200"
+                 data-contest="blt-logo">
+          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+          <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/83" target="_blank" rel="noopener"    class="block overflow-hidden aspect-video bg-gray-100 dark:bg-gray-700">  <img src="https://github.com/user-attachments/assets/98a5cdd8-24d0-4fdc-9c65-b15633ba3538" alt="Small Logos preview" loading="lazy"        class="w-full h-full object-cover transition-transform duration-300               group-hover:scale-105" /></a>
+          <div class="p-5 flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]">BLT Logo Contest</span>
+              <span class="text-xs text-gray-400 dark:text-gray-500">
+                <time class="sub-date" datetime="2026-03-02T00:51:32Z">2026-03-02</time>
+              </span>
+            </div>
+            <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/83" target="_blank" rel="noopener"
+                 class="hover:text-[#E10101] transition-colors">Small Logos</a>
+            </h3>
+            <div class="flex items-center justify-between gap-3 pt-2
+                        border-t border-[#E5E5E5] dark:border-gray-700">
+              <a href="blt-logo.html"
+                 class="text-sm text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">
+                Open Contest
+              </a>
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/83" target="_blank" rel="noopener"
+                 class="inline-flex items-center gap-1 text-sm font-medium
+                        border border-[#E10101] text-[#E10101] rounded-md px-3 py-1
+                        hover:bg-[#E10101] hover:text-white transition-colors">
+                <i class="fa-brands fa-github" aria-hidden="true"></i> Issue
+              </a>
+            </div>
+          </div>
+        </article>
+
+        <article class="group bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
+                       border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                       hover:shadow-lg hover:border-[#E10101] transition-all duration-200"
+                 data-contest="blt-tshirt">
+          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+          <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/66" target="_blank" rel="noopener"    class="block overflow-hidden aspect-video bg-gray-100 dark:bg-gray-700">  <img src="https://github.com/user-attachments/assets/e18b234b-0355-42cb-8f06-a05c8d66c047" alt="Emergence preview" loading="lazy"        class="w-full h-full object-cover transition-transform duration-300               group-hover:scale-105" /></a>
+          <div class="p-5 flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]">BLT T-Shirt Design Contest</span>
+              <span class="text-xs text-gray-400 dark:text-gray-500">
+                <time class="sub-date" datetime="2026-03-01T03:05:10Z">2026-03-01</time>
+              </span>
+            </div>
+            <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/66" target="_blank" rel="noopener"
+                 class="hover:text-[#E10101] transition-colors">Emergence</a>
+            </h3>
+            <div class="flex items-center justify-between gap-3 pt-2
+                        border-t border-[#E5E5E5] dark:border-gray-700">
+              <a href="blt-tshirt.html"
+                 class="text-sm text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">
+                Open Contest
+              </a>
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/66" target="_blank" rel="noopener"
+                 class="inline-flex items-center gap-1 text-sm font-medium
+                        border border-[#E10101] text-[#E10101] rounded-md px-3 py-1
+                        hover:bg-[#E10101] hover:text-white transition-colors">
+                <i class="fa-brands fa-github" aria-hidden="true"></i> Issue
+              </a>
+            </div>
+          </div>
+        </article>
+
+        <article class="group bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
+                       border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                       hover:shadow-lg hover:border-[#E10101] transition-all duration-200"
+                 data-contest="blt-tshirt">
+          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+          <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/61" target="_blank" rel="noopener"    class="block overflow-hidden aspect-video bg-gray-100 dark:bg-gray-700">  <img src="https://github.com/user-attachments/assets/a67e2012-ca79-4312-a324-e40ab5a06630" alt="BLT&#x27;s Merchandise Design Attempt preview" loading="lazy"        class="w-full h-full object-cover transition-transform duration-300               group-hover:scale-105" /></a>
+          <div class="p-5 flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]">BLT T-Shirt Design Contest</span>
+              <span class="text-xs text-gray-400 dark:text-gray-500">
+                <time class="sub-date" datetime="2026-02-28T22:20:33Z">2026-02-28</time>
+              </span>
+            </div>
+            <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/61" target="_blank" rel="noopener"
+                 class="hover:text-[#E10101] transition-colors">BLT&#x27;s Merchandise Design Attempt</a>
+            </h3>
+            <div class="flex items-center justify-between gap-3 pt-2
+                        border-t border-[#E5E5E5] dark:border-gray-700">
+              <a href="blt-tshirt.html"
+                 class="text-sm text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">
+                Open Contest
+              </a>
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/61" target="_blank" rel="noopener"
+                 class="inline-flex items-center gap-1 text-sm font-medium
+                        border border-[#E10101] text-[#E10101] rounded-md px-3 py-1
+                        hover:bg-[#E10101] hover:text-white transition-colors">
+                <i class="fa-brands fa-github" aria-hidden="true"></i> Issue
+              </a>
+            </div>
+          </div>
+        </article>
+
+        <article class="group bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
+                       border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                       hover:shadow-lg hover:border-[#E10101] transition-all duration-200"
+                 data-contest="blt-tshirt">
+          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+          <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/59" target="_blank" rel="noopener"    class="block overflow-hidden aspect-video bg-gray-100 dark:bg-gray-700">  <img src="https://github.com/user-attachments/assets/baf5cbd6-e058-4865-b403-97a9f484a574" alt="Signal &amp;  Response preview" loading="lazy"        class="w-full h-full object-cover transition-transform duration-300               group-hover:scale-105" /></a>
+          <div class="p-5 flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]">BLT T-Shirt Design Contest</span>
+              <span class="text-xs text-gray-400 dark:text-gray-500">
+                <time class="sub-date" datetime="2026-02-28T19:11:13Z">2026-02-28</time>
+              </span>
+            </div>
+            <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/59" target="_blank" rel="noopener"
+                 class="hover:text-[#E10101] transition-colors">Signal &amp;  Response</a>
+            </h3>
+            <div class="flex items-center justify-between gap-3 pt-2
+                        border-t border-[#E5E5E5] dark:border-gray-700">
+              <a href="blt-tshirt.html"
+                 class="text-sm text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">
+                Open Contest
+              </a>
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/59" target="_blank" rel="noopener"
+                 class="inline-flex items-center gap-1 text-sm font-medium
+                        border border-[#E10101] text-[#E10101] rounded-md px-3 py-1
+                        hover:bg-[#E10101] hover:text-white transition-colors">
+                <i class="fa-brands fa-github" aria-hidden="true"></i> Issue
+              </a>
+            </div>
+          </div>
+        </article>
+
+        <article class="group bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
+                       border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                       hover:shadow-lg hover:border-[#E10101] transition-all duration-200"
+                 data-contest="blt-tshirt">
+          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+          <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/58" target="_blank" rel="noopener"    class="block overflow-hidden aspect-video bg-gray-100 dark:bg-gray-700">  <img src="https://github.com/user-attachments/assets/a368e853-5d36-4411-a795-d964b0e813c6" alt="The BLT System Sandwich (Hoodie) preview" loading="lazy"        class="w-full h-full object-cover transition-transform duration-300               group-hover:scale-105" /></a>
+          <div class="p-5 flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]">BLT T-Shirt Design Contest</span>
+              <span class="text-xs text-gray-400 dark:text-gray-500">
+                <time class="sub-date" datetime="2026-02-28T17:13:22Z">2026-02-28</time>
+              </span>
+            </div>
+            <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/58" target="_blank" rel="noopener"
+                 class="hover:text-[#E10101] transition-colors">The BLT System Sandwich (Hoodie)</a>
+            </h3>
+            <div class="flex items-center justify-between gap-3 pt-2
+                        border-t border-[#E5E5E5] dark:border-gray-700">
+              <a href="blt-tshirt.html"
+                 class="text-sm text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">
+                Open Contest
+              </a>
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/58" target="_blank" rel="noopener"
+                 class="inline-flex items-center gap-1 text-sm font-medium
+                        border border-[#E10101] text-[#E10101] rounded-md px-3 py-1
+                        hover:bg-[#E10101] hover:text-white transition-colors">
+                <i class="fa-brands fa-github" aria-hidden="true"></i> Issue
+              </a>
+            </div>
+          </div>
+        </article>
+
+        <article class="group bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
+                       border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                       hover:shadow-lg hover:border-[#E10101] transition-all duration-200"
+                 data-contest="blt-tshirt">
+          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+          <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/57" target="_blank" rel="noopener"    class="block overflow-hidden aspect-video bg-gray-100 dark:bg-gray-700">  <img src="https://github.com/user-attachments/assets/8abe394a-ce15-45dc-bbda-263e1fa5764e" alt="Buggy Squashing Bug preview" loading="lazy"        class="w-full h-full object-cover transition-transform duration-300               group-hover:scale-105" /></a>
+          <div class="p-5 flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]">BLT T-Shirt Design Contest</span>
+              <span class="text-xs text-gray-400 dark:text-gray-500">
+                <time class="sub-date" datetime="2026-02-28T15:03:33Z">2026-02-28</time>
+              </span>
+            </div>
+            <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/57" target="_blank" rel="noopener"
+                 class="hover:text-[#E10101] transition-colors">Buggy Squashing Bug</a>
+            </h3>
+            <div class="flex items-center justify-between gap-3 pt-2
+                        border-t border-[#E5E5E5] dark:border-gray-700">
+              <a href="blt-tshirt.html"
+                 class="text-sm text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">
+                Open Contest
+              </a>
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/57" target="_blank" rel="noopener"
+                 class="inline-flex items-center gap-1 text-sm font-medium
+                        border border-[#E10101] text-[#E10101] rounded-md px-3 py-1
+                        hover:bg-[#E10101] hover:text-white transition-colors">
+                <i class="fa-brands fa-github" aria-hidden="true"></i> Issue
+              </a>
+            </div>
+          </div>
+        </article>
+
+        <article class="group bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
+                       border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                       hover:shadow-lg hover:border-[#E10101] transition-all duration-200"
+                 data-contest="blt-tshirt">
+          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+          <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/56" target="_blank" rel="noopener"    class="block overflow-hidden aspect-video bg-gray-100 dark:bg-gray-700">  <img src="https://github.com/user-attachments/assets/7ebeaf5e-c1de-4e0a-950d-bf44f9211f33" alt="BLT-Karuna Design Contest Submission preview" loading="lazy"        class="w-full h-full object-cover transition-transform duration-300               group-hover:scale-105" /></a>
+          <div class="p-5 flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]">BLT T-Shirt Design Contest</span>
+              <span class="text-xs text-gray-400 dark:text-gray-500">
+                <time class="sub-date" datetime="2026-02-28T13:39:56Z">2026-02-28</time>
+              </span>
+            </div>
+            <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/56" target="_blank" rel="noopener"
+                 class="hover:text-[#E10101] transition-colors">BLT-Karuna Design Contest Submission</a>
+            </h3>
+            <div class="flex items-center justify-between gap-3 pt-2
+                        border-t border-[#E5E5E5] dark:border-gray-700">
+              <a href="blt-tshirt.html"
+                 class="text-sm text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">
+                Open Contest
+              </a>
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/56" target="_blank" rel="noopener"
+                 class="inline-flex items-center gap-1 text-sm font-medium
+                        border border-[#E10101] text-[#E10101] rounded-md px-3 py-1
+                        hover:bg-[#E10101] hover:text-white transition-colors">
+                <i class="fa-brands fa-github" aria-hidden="true"></i> Issue
+              </a>
+            </div>
+          </div>
+        </article>
+
+        <article class="group bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
+                       border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                       hover:shadow-lg hover:border-[#E10101] transition-all duration-200"
+                 data-contest="blt-tshirt">
+          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+          <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/55" target="_blank" rel="noopener"    class="block overflow-hidden aspect-video bg-gray-100 dark:bg-gray-700">  <img src="https://github.com/user-attachments/assets/bf6a7f67-d8af-4671-b05f-5fa63b5fa015" alt="Agent P’s Bug Heist: Heist &#x27;em Bugs preview" loading="lazy"        class="w-full h-full object-cover transition-transform duration-300               group-hover:scale-105" /></a>
+          <div class="p-5 flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]">BLT T-Shirt Design Contest</span>
+              <span class="text-xs text-gray-400 dark:text-gray-500">
+                <time class="sub-date" datetime="2026-02-28T12:25:38Z">2026-02-28</time>
+              </span>
+            </div>
+            <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/55" target="_blank" rel="noopener"
+                 class="hover:text-[#E10101] transition-colors">Agent P’s Bug Heist: Heist &#x27;em Bugs</a>
+            </h3>
+            <div class="flex items-center justify-between gap-3 pt-2
+                        border-t border-[#E5E5E5] dark:border-gray-700">
+              <a href="blt-tshirt.html"
+                 class="text-sm text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">
+                Open Contest
+              </a>
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/55" target="_blank" rel="noopener"
+                 class="inline-flex items-center gap-1 text-sm font-medium
+                        border border-[#E10101] text-[#E10101] rounded-md px-3 py-1
+                        hover:bg-[#E10101] hover:text-white transition-colors">
+                <i class="fa-brands fa-github" aria-hidden="true"></i> Issue
+              </a>
+            </div>
+          </div>
+        </article>
+
+        <article class="group bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
+                       border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                       hover:shadow-lg hover:border-[#E10101] transition-all duration-200"
+                 data-contest="blt-tshirt">
+          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+          <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/54" target="_blank" rel="noopener"    class="block overflow-hidden aspect-video bg-gray-100 dark:bg-gray-700">  <img src="https://github.com/user-attachments/assets/9de3603c-5d17-4660-b91a-44ac549827a4" alt="BLT: Minimalist Branding Concept preview" loading="lazy"        class="w-full h-full object-cover transition-transform duration-300               group-hover:scale-105" /></a>
+          <div class="p-5 flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]">BLT T-Shirt Design Contest</span>
+              <span class="text-xs text-gray-400 dark:text-gray-500">
+                <time class="sub-date" datetime="2026-02-28T09:41:44Z">2026-02-28</time>
+              </span>
+            </div>
+            <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/54" target="_blank" rel="noopener"
+                 class="hover:text-[#E10101] transition-colors">BLT: Minimalist Branding Concept</a>
+            </h3>
+            <div class="flex items-center justify-between gap-3 pt-2
+                        border-t border-[#E5E5E5] dark:border-gray-700">
+              <a href="blt-tshirt.html"
+                 class="text-sm text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">
+                Open Contest
+              </a>
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/54" target="_blank" rel="noopener"
+                 class="inline-flex items-center gap-1 text-sm font-medium
+                        border border-[#E10101] text-[#E10101] rounded-md px-3 py-1
+                        hover:bg-[#E10101] hover:text-white transition-colors">
+                <i class="fa-brands fa-github" aria-hidden="true"></i> Issue
+              </a>
+            </div>
+          </div>
+        </article>
+
+        <article class="group bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
+                       border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                       hover:shadow-lg hover:border-[#E10101] transition-all duration-200"
+                 data-contest="blt-tshirt">
+          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+          <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/53" target="_blank" rel="noopener"    class="block overflow-hidden aspect-video bg-gray-100 dark:bg-gray-700">  <img src="https://github.com/user-attachments/assets/6522a8d6-f175-4cf2-b87a-569bf9eab4c3" alt="Simple &amp; Wearable OWASP BLT T-Shirt Merch preview" loading="lazy"        class="w-full h-full object-cover transition-transform duration-300               group-hover:scale-105" /></a>
+          <div class="p-5 flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]">BLT T-Shirt Design Contest</span>
+              <span class="text-xs text-gray-400 dark:text-gray-500">
+                <time class="sub-date" datetime="2026-02-27T18:44:28Z">2026-02-27</time>
+              </span>
+            </div>
+            <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/53" target="_blank" rel="noopener"
+                 class="hover:text-[#E10101] transition-colors">Simple &amp; Wearable OWASP BLT T-Shirt Merch</a>
+            </h3>
+            <div class="flex items-center justify-between gap-3 pt-2
+                        border-t border-[#E5E5E5] dark:border-gray-700">
+              <a href="blt-tshirt.html"
+                 class="text-sm text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">
+                Open Contest
+              </a>
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/53" target="_blank" rel="noopener"
+                 class="inline-flex items-center gap-1 text-sm font-medium
+                        border border-[#E10101] text-[#E10101] rounded-md px-3 py-1
+                        hover:bg-[#E10101] hover:text-white transition-colors">
+                <i class="fa-brands fa-github" aria-hidden="true"></i> Issue
+              </a>
+            </div>
+          </div>
+        </article>
+
+        <article class="group bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
+                       border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                       hover:shadow-lg hover:border-[#E10101] transition-all duration-200"
+                 data-contest="blt-tshirt">
+          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+          <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/52" target="_blank" rel="noopener"    class="block overflow-hidden aspect-video bg-gray-100 dark:bg-gray-700">  <img src="https://github.com/user-attachments/assets/63c49ca4-5600-4ea9-975b-a44bec1f4276" alt="3 preview" loading="lazy"        class="w-full h-full object-cover transition-transform duration-300               group-hover:scale-105" /></a>
+          <div class="p-5 flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]">BLT T-Shirt Design Contest</span>
+              <span class="text-xs text-gray-400 dark:text-gray-500">
+                <time class="sub-date" datetime="2026-02-27T13:59:37Z">2026-02-27</time>
+              </span>
+            </div>
+            <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/52" target="_blank" rel="noopener"
+                 class="hover:text-[#E10101] transition-colors">3</a>
+            </h3>
+            <div class="flex items-center justify-between gap-3 pt-2
+                        border-t border-[#E5E5E5] dark:border-gray-700">
+              <a href="blt-tshirt.html"
+                 class="text-sm text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">
+                Open Contest
+              </a>
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/52" target="_blank" rel="noopener"
+                 class="inline-flex items-center gap-1 text-sm font-medium
+                        border border-[#E10101] text-[#E10101] rounded-md px-3 py-1
+                        hover:bg-[#E10101] hover:text-white transition-colors">
+                <i class="fa-brands fa-github" aria-hidden="true"></i> Issue
+              </a>
+            </div>
+          </div>
+        </article>
+
+        <article class="group bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
+                       border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                       hover:shadow-lg hover:border-[#E10101] transition-all duration-200"
+                 data-contest="blt-tshirt">
+          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+          <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/51" target="_blank" rel="noopener"    class="block overflow-hidden aspect-video bg-gray-100 dark:bg-gray-700">  <img src="https://github.com/user-attachments/assets/27ba35a5-78f7-4fee-8ad2-6d62200f6e15" alt="1-2 preview" loading="lazy"        class="w-full h-full object-cover transition-transform duration-300               group-hover:scale-105" /></a>
+          <div class="p-5 flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]">BLT T-Shirt Design Contest</span>
+              <span class="text-xs text-gray-400 dark:text-gray-500">
+                <time class="sub-date" datetime="2026-02-27T13:58:36Z">2026-02-27</time>
+              </span>
+            </div>
+            <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/51" target="_blank" rel="noopener"
+                 class="hover:text-[#E10101] transition-colors">1-2</a>
+            </h3>
+            <div class="flex items-center justify-between gap-3 pt-2
+                        border-t border-[#E5E5E5] dark:border-gray-700">
+              <a href="blt-tshirt.html"
+                 class="text-sm text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">
+                Open Contest
+              </a>
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/51" target="_blank" rel="noopener"
+                 class="inline-flex items-center gap-1 text-sm font-medium
+                        border border-[#E10101] text-[#E10101] rounded-md px-3 py-1
+                        hover:bg-[#E10101] hover:text-white transition-colors">
+                <i class="fa-brands fa-github" aria-hidden="true"></i> Issue
+              </a>
+            </div>
+          </div>
+        </article>
+
+        <article class="group bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
+                       border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                       hover:shadow-lg hover:border-[#E10101] transition-all duration-200"
+                 data-contest="blt-tshirt">
+          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+          <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/49" target="_blank" rel="noopener"    class="block overflow-hidden aspect-video bg-gray-100 dark:bg-gray-700">  <img src="https://github.com/user-attachments/assets/b350ed8b-d637-4f73-a061-cb86b8291219" alt="BLT preview" loading="lazy"        class="w-full h-full object-cover transition-transform duration-300               group-hover:scale-105" /></a>
+          <div class="p-5 flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]">BLT T-Shirt Design Contest</span>
+              <span class="text-xs text-gray-400 dark:text-gray-500">
+                <time class="sub-date" datetime="2026-02-27T13:21:52Z">2026-02-27</time>
+              </span>
+            </div>
+            <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/49" target="_blank" rel="noopener"
+                 class="hover:text-[#E10101] transition-colors">BLT</a>
+            </h3>
+            <div class="flex items-center justify-between gap-3 pt-2
+                        border-t border-[#E5E5E5] dark:border-gray-700">
+              <a href="blt-tshirt.html"
+                 class="text-sm text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">
+                Open Contest
+              </a>
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/49" target="_blank" rel="noopener"
+                 class="inline-flex items-center gap-1 text-sm font-medium
+                        border border-[#E10101] text-[#E10101] rounded-md px-3 py-1
+                        hover:bg-[#E10101] hover:text-white transition-colors">
+                <i class="fa-brands fa-github" aria-hidden="true"></i> Issue
+              </a>
+            </div>
+          </div>
+        </article>
+
+        <article class="group bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
+                       border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                       hover:shadow-lg hover:border-[#E10101] transition-all duration-200"
+                 data-contest="blt-tshirt">
+          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+          <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/39" target="_blank" rel="noopener"    class="block overflow-hidden aspect-video bg-gray-100 dark:bg-gray-700">  <img src="https://github.com/user-attachments/assets/a6af1448-7dce-4a8b-aebf-1c49c7e1a6da" alt="Security blueprint. preview" loading="lazy"        class="w-full h-full object-cover transition-transform duration-300               group-hover:scale-105" /></a>
+          <div class="p-5 flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]">BLT T-Shirt Design Contest</span>
+              <span class="text-xs text-gray-400 dark:text-gray-500">
+                <time class="sub-date" datetime="2026-02-27T10:14:30Z">2026-02-27</time>
+              </span>
+            </div>
+            <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/39" target="_blank" rel="noopener"
+                 class="hover:text-[#E10101] transition-colors">Security blueprint.</a>
+            </h3>
+            <div class="flex items-center justify-between gap-3 pt-2
+                        border-t border-[#E5E5E5] dark:border-gray-700">
+              <a href="blt-tshirt.html"
+                 class="text-sm text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">
+                Open Contest
+              </a>
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/39" target="_blank" rel="noopener"
+                 class="inline-flex items-center gap-1 text-sm font-medium
+                        border border-[#E10101] text-[#E10101] rounded-md px-3 py-1
+                        hover:bg-[#E10101] hover:text-white transition-colors">
+                <i class="fa-brands fa-github" aria-hidden="true"></i> Issue
+              </a>
+            </div>
+          </div>
+        </article>
+
+        <article class="group bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
+                       border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                       hover:shadow-lg hover:border-[#E10101] transition-all duration-200"
+                 data-contest="blt-tshirt">
+          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+          <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/38" target="_blank" rel="noopener"    class="block overflow-hidden aspect-video bg-gray-100 dark:bg-gray-700">  <img src="https://github.com/user-attachments/assets/df3dd54c-550e-4346-9121-fccdd10f0384" alt="BLT-lettuce preview" loading="lazy"        class="w-full h-full object-cover transition-transform duration-300               group-hover:scale-105" /></a>
+          <div class="p-5 flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]">BLT T-Shirt Design Contest</span>
+              <span class="text-xs text-gray-400 dark:text-gray-500">
+                <time class="sub-date" datetime="2026-02-26T16:20:12Z">2026-02-26</time>
+              </span>
+            </div>
+            <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/38" target="_blank" rel="noopener"
+                 class="hover:text-[#E10101] transition-colors">BLT-lettuce</a>
+            </h3>
+            <div class="flex items-center justify-between gap-3 pt-2
+                        border-t border-[#E5E5E5] dark:border-gray-700">
+              <a href="blt-tshirt.html"
+                 class="text-sm text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">
+                Open Contest
+              </a>
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/38" target="_blank" rel="noopener"
+                 class="inline-flex items-center gap-1 text-sm font-medium
+                        border border-[#E10101] text-[#E10101] rounded-md px-3 py-1
+                        hover:bg-[#E10101] hover:text-white transition-colors">
+                <i class="fa-brands fa-github" aria-hidden="true"></i> Issue
+              </a>
+            </div>
+          </div>
+        </article>
+
+        <article class="group bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
+                       border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                       hover:shadow-lg hover:border-[#E10101] transition-all duration-200"
+                 data-contest="blt-tshirt">
+          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+          <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/37" target="_blank" rel="noopener"    class="block overflow-hidden aspect-video bg-gray-100 dark:bg-gray-700">  <img src="https://github.com/user-attachments/assets/220e5e28-3cb5-44e7-9177-5b2da17841a5" alt="Bug Heist vs OWASP BLT preview" loading="lazy"        class="w-full h-full object-cover transition-transform duration-300               group-hover:scale-105" /></a>
+          <div class="p-5 flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]">BLT T-Shirt Design Contest</span>
+              <span class="text-xs text-gray-400 dark:text-gray-500">
+                <time class="sub-date" datetime="2026-02-25T19:57:05Z">2026-02-25</time>
+              </span>
+            </div>
+            <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/37" target="_blank" rel="noopener"
+                 class="hover:text-[#E10101] transition-colors">Bug Heist vs OWASP BLT</a>
+            </h3>
+            <div class="flex items-center justify-between gap-3 pt-2
+                        border-t border-[#E5E5E5] dark:border-gray-700">
+              <a href="blt-tshirt.html"
+                 class="text-sm text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">
+                Open Contest
+              </a>
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/37" target="_blank" rel="noopener"
+                 class="inline-flex items-center gap-1 text-sm font-medium
+                        border border-[#E10101] text-[#E10101] rounded-md px-3 py-1
+                        hover:bg-[#E10101] hover:text-white transition-colors">
+                <i class="fa-brands fa-github" aria-hidden="true"></i> Issue
+              </a>
+            </div>
+          </div>
+        </article>
+
+        <article class="group bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
+                       border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                       hover:shadow-lg hover:border-[#E10101] transition-all duration-200"
+                 data-contest="blt-tshirt">
+          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+          <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/36" target="_blank" rel="noopener"    class="block overflow-hidden aspect-video bg-gray-100 dark:bg-gray-700">  <img src="https://github.com/user-attachments/assets/68a6cd63-2701-4001-896c-5083a51cd3fc" alt="Log Out UR Bugs Community Tee preview" loading="lazy"        class="w-full h-full object-cover transition-transform duration-300               group-hover:scale-105" /></a>
+          <div class="p-5 flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]">BLT T-Shirt Design Contest</span>
+              <span class="text-xs text-gray-400 dark:text-gray-500">
+                <time class="sub-date" datetime="2026-02-25T18:41:57Z">2026-02-25</time>
+              </span>
+            </div>
+            <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/36" target="_blank" rel="noopener"
+                 class="hover:text-[#E10101] transition-colors">Log Out UR Bugs Community Tee</a>
+            </h3>
+            <div class="flex items-center justify-between gap-3 pt-2
+                        border-t border-[#E5E5E5] dark:border-gray-700">
+              <a href="blt-tshirt.html"
+                 class="text-sm text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">
+                Open Contest
+              </a>
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/36" target="_blank" rel="noopener"
+                 class="inline-flex items-center gap-1 text-sm font-medium
+                        border border-[#E10101] text-[#E10101] rounded-md px-3 py-1
+                        hover:bg-[#E10101] hover:text-white transition-colors">
+                <i class="fa-brands fa-github" aria-hidden="true"></i> Issue
+              </a>
+            </div>
+          </div>
+        </article>
+
+        <article class="group bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
+                       border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                       hover:shadow-lg hover:border-[#E10101] transition-all duration-200"
+                 data-contest="blt-tshirt">
+          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+          <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/35" target="_blank" rel="noopener"    class="block overflow-hidden aspect-video bg-gray-100 dark:bg-gray-700">  <img src="https://github.com/user-attachments/assets/bb816915-d43e-4d32-a11f-f4c7d1099e17" alt="BLT-rewards preview" loading="lazy"        class="w-full h-full object-cover transition-transform duration-300               group-hover:scale-105" /></a>
+          <div class="p-5 flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]">BLT T-Shirt Design Contest</span>
+              <span class="text-xs text-gray-400 dark:text-gray-500">
+                <time class="sub-date" datetime="2026-02-25T18:40:24Z">2026-02-25</time>
+              </span>
+            </div>
+            <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/35" target="_blank" rel="noopener"
+                 class="hover:text-[#E10101] transition-colors">BLT-rewards</a>
+            </h3>
+            <div class="flex items-center justify-between gap-3 pt-2
+                        border-t border-[#E5E5E5] dark:border-gray-700">
+              <a href="blt-tshirt.html"
+                 class="text-sm text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">
+                Open Contest
+              </a>
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/35" target="_blank" rel="noopener"
+                 class="inline-flex items-center gap-1 text-sm font-medium
+                        border border-[#E10101] text-[#E10101] rounded-md px-3 py-1
+                        hover:bg-[#E10101] hover:text-white transition-colors">
+                <i class="fa-brands fa-github" aria-hidden="true"></i> Issue
+              </a>
+            </div>
+          </div>
+        </article>
+
+        <article class="group bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
+                       border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                       hover:shadow-lg hover:border-[#E10101] transition-all duration-200"
+                 data-contest="blt-tshirt">
+          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+          <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/34" target="_blank" rel="noopener"    class="block overflow-hidden aspect-video bg-gray-100 dark:bg-gray-700">  <img src="https://github.com/user-attachments/assets/c54c7103-a581-4c10-bfe2-89fb47559947" alt="Log. Track. Execute preview" loading="lazy"        class="w-full h-full object-cover transition-transform duration-300               group-hover:scale-105" /></a>
+          <div class="p-5 flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]">BLT T-Shirt Design Contest</span>
+              <span class="text-xs text-gray-400 dark:text-gray-500">
+                <time class="sub-date" datetime="2026-02-25T18:38:37Z">2026-02-25</time>
+              </span>
+            </div>
+            <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/34" target="_blank" rel="noopener"
+                 class="hover:text-[#E10101] transition-colors">Log. Track. Execute</a>
+            </h3>
+            <div class="flex items-center justify-between gap-3 pt-2
+                        border-t border-[#E5E5E5] dark:border-gray-700">
+              <a href="blt-tshirt.html"
+                 class="text-sm text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">
+                Open Contest
+              </a>
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/34" target="_blank" rel="noopener"
+                 class="inline-flex items-center gap-1 text-sm font-medium
+                        border border-[#E10101] text-[#E10101] rounded-md px-3 py-1
+                        hover:bg-[#E10101] hover:text-white transition-colors">
+                <i class="fa-brands fa-github" aria-hidden="true"></i> Issue
+              </a>
+            </div>
+          </div>
+        </article>
+
+        <article class="group bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
+                       border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                       hover:shadow-lg hover:border-[#E10101] transition-all duration-200"
+                 data-contest="blt-tshirt">
+          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+          <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/32" target="_blank" rel="noopener"    class="block overflow-hidden aspect-video bg-gray-100 dark:bg-gray-700">  <img src="https://github.com/user-attachments/assets/a190d3a1-a763-4a3c-8cba-2c8b28617969" alt="BLT Leaf preview" loading="lazy"        class="w-full h-full object-cover transition-transform duration-300               group-hover:scale-105" /></a>
+          <div class="p-5 flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]">BLT T-Shirt Design Contest</span>
+              <span class="text-xs text-gray-400 dark:text-gray-500">
+                <time class="sub-date" datetime="2026-02-25T17:23:51Z">2026-02-25</time>
+              </span>
+            </div>
+            <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/32" target="_blank" rel="noopener"
+                 class="hover:text-[#E10101] transition-colors">BLT Leaf</a>
+            </h3>
+            <div class="flex items-center justify-between gap-3 pt-2
+                        border-t border-[#E5E5E5] dark:border-gray-700">
+              <a href="blt-tshirt.html"
+                 class="text-sm text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">
+                Open Contest
+              </a>
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/32" target="_blank" rel="noopener"
+                 class="inline-flex items-center gap-1 text-sm font-medium
+                        border border-[#E10101] text-[#E10101] rounded-md px-3 py-1
+                        hover:bg-[#E10101] hover:text-white transition-colors">
+                <i class="fa-brands fa-github" aria-hidden="true"></i> Issue
+              </a>
+            </div>
+          </div>
+        </article>
+
+        <article class="group bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
+                       border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                       hover:shadow-lg hover:border-[#E10101] transition-all duration-200"
+                 data-contest="blt-tshirt">
+          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+          <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/31" target="_blank" rel="noopener"    class="block overflow-hidden aspect-video bg-gray-100 dark:bg-gray-700">  <img src="https://github.com/user-attachments/assets/c35a1e6c-551d-48ec-9a7e-206a1c37b1dc" alt="Catch bug preview" loading="lazy"        class="w-full h-full object-cover transition-transform duration-300               group-hover:scale-105" /></a>
+          <div class="p-5 flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]">BLT T-Shirt Design Contest</span>
+              <span class="text-xs text-gray-400 dark:text-gray-500">
+                <time class="sub-date" datetime="2026-02-25T16:55:09Z">2026-02-25</time>
+              </span>
+            </div>
+            <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/31" target="_blank" rel="noopener"
+                 class="hover:text-[#E10101] transition-colors">Catch bug</a>
+            </h3>
+            <div class="flex items-center justify-between gap-3 pt-2
+                        border-t border-[#E5E5E5] dark:border-gray-700">
+              <a href="blt-tshirt.html"
+                 class="text-sm text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">
+                Open Contest
+              </a>
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/31" target="_blank" rel="noopener"
+                 class="inline-flex items-center gap-1 text-sm font-medium
+                        border border-[#E10101] text-[#E10101] rounded-md px-3 py-1
+                        hover:bg-[#E10101] hover:text-white transition-colors">
+                <i class="fa-brands fa-github" aria-hidden="true"></i> Issue
+              </a>
+            </div>
+          </div>
+        </article>
+
+        <article class="group bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
+                       border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                       hover:shadow-lg hover:border-[#E10101] transition-all duration-200"
+                 data-contest="blt-tshirt">
+          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+          <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/29" target="_blank" rel="noopener"    class="block overflow-hidden aspect-video bg-gray-100 dark:bg-gray-700">  <img src="https://github.com/user-attachments/assets/7965a43a-2bb2-48b9-a2e7-1c8aab0dcdc3" alt="Squash the bugs preview" loading="lazy"        class="w-full h-full object-cover transition-transform duration-300               group-hover:scale-105" /></a>
+          <div class="p-5 flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]">BLT T-Shirt Design Contest</span>
+              <span class="text-xs text-gray-400 dark:text-gray-500">
+                <time class="sub-date" datetime="2026-02-24T23:11:27Z">2026-02-24</time>
+              </span>
+            </div>
+            <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/29" target="_blank" rel="noopener"
+                 class="hover:text-[#E10101] transition-colors">Squash the bugs</a>
+            </h3>
+            <div class="flex items-center justify-between gap-3 pt-2
+                        border-t border-[#E5E5E5] dark:border-gray-700">
+              <a href="blt-tshirt.html"
+                 class="text-sm text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">
+                Open Contest
+              </a>
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/29" target="_blank" rel="noopener"
+                 class="inline-flex items-center gap-1 text-sm font-medium
+                        border border-[#E10101] text-[#E10101] rounded-md px-3 py-1
+                        hover:bg-[#E10101] hover:text-white transition-colors">
+                <i class="fa-brands fa-github" aria-hidden="true"></i> Issue
+              </a>
+            </div>
+          </div>
+        </article>
+
+        <article class="group bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
+                       border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                       hover:shadow-lg hover:border-[#E10101] transition-all duration-200"
+                 data-contest="blt-tshirt">
+          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+          <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/28" target="_blank" rel="noopener"    class="block overflow-hidden aspect-video bg-gray-100 dark:bg-gray-700">  <img src="https://github.com/user-attachments/assets/67ca9db6-d26c-45d9-9bcb-f573af319fcd" alt="BlT &amp; Team (General) preview" loading="lazy"        class="w-full h-full object-cover transition-transform duration-300               group-hover:scale-105" /></a>
+          <div class="p-5 flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]">BLT T-Shirt Design Contest</span>
+              <span class="text-xs text-gray-400 dark:text-gray-500">
+                <time class="sub-date" datetime="2026-02-24T21:41:28Z">2026-02-24</time>
+              </span>
+            </div>
+            <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/28" target="_blank" rel="noopener"
+                 class="hover:text-[#E10101] transition-colors">BlT &amp; Team (General)</a>
+            </h3>
+            <div class="flex items-center justify-between gap-3 pt-2
+                        border-t border-[#E5E5E5] dark:border-gray-700">
+              <a href="blt-tshirt.html"
+                 class="text-sm text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">
+                Open Contest
+              </a>
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/28" target="_blank" rel="noopener"
+                 class="inline-flex items-center gap-1 text-sm font-medium
+                        border border-[#E10101] text-[#E10101] rounded-md px-3 py-1
+                        hover:bg-[#E10101] hover:text-white transition-colors">
+                <i class="fa-brands fa-github" aria-hidden="true"></i> Issue
+              </a>
+            </div>
+          </div>
+        </article>
+
+        <article class="group bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
+                       border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                       hover:shadow-lg hover:border-[#E10101] transition-all duration-200"
+                 data-contest="blt-tshirt">
+          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+          <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/27" target="_blank" rel="noopener"    class="block overflow-hidden aspect-video bg-gray-100 dark:bg-gray-700">  <img src="https://github.com/user-attachments/assets/351a83d2-feb7-4bf2-992a-6de138bdd346" alt="BLT: Bacon-Led Testing preview" loading="lazy"        class="w-full h-full object-cover transition-transform duration-300               group-hover:scale-105" /></a>
+          <div class="p-5 flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]">BLT T-Shirt Design Contest</span>
+              <span class="text-xs text-gray-400 dark:text-gray-500">
+                <time class="sub-date" datetime="2026-02-24T20:06:32Z">2026-02-24</time>
+              </span>
+            </div>
+            <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/27" target="_blank" rel="noopener"
+                 class="hover:text-[#E10101] transition-colors">BLT: Bacon-Led Testing</a>
+            </h3>
+            <div class="flex items-center justify-between gap-3 pt-2
+                        border-t border-[#E5E5E5] dark:border-gray-700">
+              <a href="blt-tshirt.html"
+                 class="text-sm text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">
+                Open Contest
+              </a>
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/27" target="_blank" rel="noopener"
+                 class="inline-flex items-center gap-1 text-sm font-medium
+                        border border-[#E10101] text-[#E10101] rounded-md px-3 py-1
+                        hover:bg-[#E10101] hover:text-white transition-colors">
+                <i class="fa-brands fa-github" aria-hidden="true"></i> Issue
+              </a>
+            </div>
+          </div>
+        </article>
+
+        <article class="group bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
+                       border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                       hover:shadow-lg hover:border-[#E10101] transition-all duration-200"
+                 data-contest="blt-tshirt">
+          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+          <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/26" target="_blank" rel="noopener"    class="block overflow-hidden aspect-video bg-gray-100 dark:bg-gray-700">  <img src="https://github.com/user-attachments/assets/f7da98fd-3097-4cd2-a9fb-d64486609d89" alt="Cyber surgery preview" loading="lazy"        class="w-full h-full object-cover transition-transform duration-300               group-hover:scale-105" /></a>
+          <div class="p-5 flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]">BLT T-Shirt Design Contest</span>
+              <span class="text-xs text-gray-400 dark:text-gray-500">
+                <time class="sub-date" datetime="2026-02-24T20:00:54Z">2026-02-24</time>
+              </span>
+            </div>
+            <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/26" target="_blank" rel="noopener"
+                 class="hover:text-[#E10101] transition-colors">Cyber surgery</a>
+            </h3>
+            <div class="flex items-center justify-between gap-3 pt-2
+                        border-t border-[#E5E5E5] dark:border-gray-700">
+              <a href="blt-tshirt.html"
+                 class="text-sm text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">
+                Open Contest
+              </a>
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/26" target="_blank" rel="noopener"
+                 class="inline-flex items-center gap-1 text-sm font-medium
+                        border border-[#E10101] text-[#E10101] rounded-md px-3 py-1
+                        hover:bg-[#E10101] hover:text-white transition-colors">
+                <i class="fa-brands fa-github" aria-hidden="true"></i> Issue
+              </a>
+            </div>
+          </div>
+        </article>
+
+        <article class="group bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
+                       border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                       hover:shadow-lg hover:border-[#E10101] transition-all duration-200"
+                 data-contest="blt-tshirt">
+          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+          <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/25" target="_blank" rel="noopener"    class="block overflow-hidden aspect-video bg-gray-100 dark:bg-gray-700">  <img src="https://github.com/user-attachments/assets/e3c4bee8-d8f9-45ef-ba12-a8c7952a369d" alt="Bug bounty hunters preview" loading="lazy"        class="w-full h-full object-cover transition-transform duration-300               group-hover:scale-105" /></a>
+          <div class="p-5 flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]">BLT T-Shirt Design Contest</span>
+              <span class="text-xs text-gray-400 dark:text-gray-500">
+                <time class="sub-date" datetime="2026-02-24T19:57:38Z">2026-02-24</time>
+              </span>
+            </div>
+            <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/25" target="_blank" rel="noopener"
+                 class="hover:text-[#E10101] transition-colors">Bug bounty hunters</a>
+            </h3>
+            <div class="flex items-center justify-between gap-3 pt-2
+                        border-t border-[#E5E5E5] dark:border-gray-700">
+              <a href="blt-tshirt.html"
+                 class="text-sm text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">
+                Open Contest
+              </a>
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/25" target="_blank" rel="noopener"
+                 class="inline-flex items-center gap-1 text-sm font-medium
+                        border border-[#E10101] text-[#E10101] rounded-md px-3 py-1
+                        hover:bg-[#E10101] hover:text-white transition-colors">
+                <i class="fa-brands fa-github" aria-hidden="true"></i> Issue
+              </a>
+            </div>
+          </div>
+        </article>
+
+        <article class="group bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
+                       border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                       hover:shadow-lg hover:border-[#E10101] transition-all duration-200"
+                 data-contest="blt-tshirt">
+          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+          <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/24" target="_blank" rel="noopener"    class="block overflow-hidden aspect-video bg-gray-100 dark:bg-gray-700">  <img src="https://github.com/user-attachments/assets/a613e504-966d-47d2-a210-7c18bacbce6f" alt="The Full Stack Scout: Bug, Log, Triumph preview" loading="lazy"        class="w-full h-full object-cover transition-transform duration-300               group-hover:scale-105" /></a>
+          <div class="p-5 flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]">BLT T-Shirt Design Contest</span>
+              <span class="text-xs text-gray-400 dark:text-gray-500">
+                <time class="sub-date" datetime="2026-02-24T19:37:41Z">2026-02-24</time>
+              </span>
+            </div>
+            <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/24" target="_blank" rel="noopener"
+                 class="hover:text-[#E10101] transition-colors">The Full Stack Scout: Bug, Log, Triumph</a>
+            </h3>
+            <div class="flex items-center justify-between gap-3 pt-2
+                        border-t border-[#E5E5E5] dark:border-gray-700">
+              <a href="blt-tshirt.html"
+                 class="text-sm text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">
+                Open Contest
+              </a>
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/24" target="_blank" rel="noopener"
+                 class="inline-flex items-center gap-1 text-sm font-medium
+                        border border-[#E10101] text-[#E10101] rounded-md px-3 py-1
+                        hover:bg-[#E10101] hover:text-white transition-colors">
+                <i class="fa-brands fa-github" aria-hidden="true"></i> Issue
+              </a>
+            </div>
+          </div>
+        </article>
+
+        <article class="group bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
+                       border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                       hover:shadow-lg hover:border-[#E10101] transition-all duration-200"
+                 data-contest="blt-tshirt">
+          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+          <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/23" target="_blank" rel="noopener"    class="block overflow-hidden aspect-video bg-gray-100 dark:bg-gray-700">  <img src="https://github.com/user-attachments/assets/5ee7de87-c28d-4a87-aec2-b427989192ad" alt="Secure Your Code with BLT preview" loading="lazy"        class="w-full h-full object-cover transition-transform duration-300               group-hover:scale-105" /></a>
+          <div class="p-5 flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]">BLT T-Shirt Design Contest</span>
+              <span class="text-xs text-gray-400 dark:text-gray-500">
+                <time class="sub-date" datetime="2026-02-24T13:01:28Z">2026-02-24</time>
+              </span>
+            </div>
+            <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/23" target="_blank" rel="noopener"
+                 class="hover:text-[#E10101] transition-colors">Secure Your Code with BLT</a>
+            </h3>
+            <div class="flex items-center justify-between gap-3 pt-2
+                        border-t border-[#E5E5E5] dark:border-gray-700">
+              <a href="blt-tshirt.html"
+                 class="text-sm text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">
+                Open Contest
+              </a>
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/23" target="_blank" rel="noopener"
+                 class="inline-flex items-center gap-1 text-sm font-medium
+                        border border-[#E10101] text-[#E10101] rounded-md px-3 py-1
+                        hover:bg-[#E10101] hover:text-white transition-colors">
+                <i class="fa-brands fa-github" aria-hidden="true"></i> Issue
+              </a>
+            </div>
+          </div>
+        </article>
+
+        <article class="group bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
+                       border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                       hover:shadow-lg hover:border-[#E10101] transition-all duration-200"
+                 data-contest="blt-tshirt">
+          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+          <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/20" target="_blank" rel="noopener"    class="block overflow-hidden aspect-video bg-gray-100 dark:bg-gray-700">  <img src="https://github.com/user-attachments/assets/24b687a3-7dac-4235-af26-bde17c3c5d0f" alt="Representing BLT and projects preview" loading="lazy"        class="w-full h-full object-cover transition-transform duration-300               group-hover:scale-105" /></a>
+          <div class="p-5 flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]">BLT T-Shirt Design Contest</span>
+              <span class="text-xs text-gray-400 dark:text-gray-500">
+                <time class="sub-date" datetime="2026-02-23T13:13:29Z">2026-02-23</time>
+              </span>
+            </div>
+            <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/20" target="_blank" rel="noopener"
+                 class="hover:text-[#E10101] transition-colors">Representing BLT and projects</a>
+            </h3>
+            <div class="flex items-center justify-between gap-3 pt-2
+                        border-t border-[#E5E5E5] dark:border-gray-700">
+              <a href="blt-tshirt.html"
+                 class="text-sm text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">
+                Open Contest
+              </a>
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/20" target="_blank" rel="noopener"
+                 class="inline-flex items-center gap-1 text-sm font-medium
+                        border border-[#E10101] text-[#E10101] rounded-md px-3 py-1
+                        hover:bg-[#E10101] hover:text-white transition-colors">
+                <i class="fa-brands fa-github" aria-hidden="true"></i> Issue
+              </a>
+            </div>
+          </div>
+        </article>
+
+        <article class="group bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
+                       border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                       hover:shadow-lg hover:border-[#E10101] transition-all duration-200"
+                 data-contest="blt-tshirt">
+          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+          <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/19" target="_blank" rel="noopener"    class="block overflow-hidden aspect-video bg-gray-100 dark:bg-gray-700">  <img src="https://github.com/user-attachments/assets/09cd5b13-c904-4d24-87b7-b4e3efdad8eb" alt="Subtle BLT spirit design preview" loading="lazy"        class="w-full h-full object-cover transition-transform duration-300               group-hover:scale-105" /></a>
+          <div class="p-5 flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]">BLT T-Shirt Design Contest</span>
+              <span class="text-xs text-gray-400 dark:text-gray-500">
+                <time class="sub-date" datetime="2026-02-23T13:11:18Z">2026-02-23</time>
+              </span>
+            </div>
+            <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/19" target="_blank" rel="noopener"
+                 class="hover:text-[#E10101] transition-colors">Subtle BLT spirit design</a>
+            </h3>
+            <div class="flex items-center justify-between gap-3 pt-2
+                        border-t border-[#E5E5E5] dark:border-gray-700">
+              <a href="blt-tshirt.html"
+                 class="text-sm text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">
+                Open Contest
+              </a>
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/19" target="_blank" rel="noopener"
+                 class="inline-flex items-center gap-1 text-sm font-medium
+                        border border-[#E10101] text-[#E10101] rounded-md px-3 py-1
+                        hover:bg-[#E10101] hover:text-white transition-colors">
+                <i class="fa-brands fa-github" aria-hidden="true"></i> Issue
+              </a>
+            </div>
+          </div>
+        </article>
+
+        <article class="group bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
+                       border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                       hover:shadow-lg hover:border-[#E10101] transition-all duration-200"
+                 data-contest="blt-tshirt">
+          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+          <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/17" target="_blank" rel="noopener"    class="block overflow-hidden aspect-video bg-gray-100 dark:bg-gray-700">  <img src="https://github.com/user-attachments/assets/1109067f-305c-4cfa-a5f7-329445c5ced3" alt="DDD(Detect Defend Defeat) preview" loading="lazy"        class="w-full h-full object-cover transition-transform duration-300               group-hover:scale-105" /></a>
+          <div class="p-5 flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]">BLT T-Shirt Design Contest</span>
+              <span class="text-xs text-gray-400 dark:text-gray-500">
+                <time class="sub-date" datetime="2026-02-22T16:58:52Z">2026-02-22</time>
+              </span>
+            </div>
+            <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/17" target="_blank" rel="noopener"
+                 class="hover:text-[#E10101] transition-colors">DDD(Detect Defend Defeat)</a>
+            </h3>
+            <div class="flex items-center justify-between gap-3 pt-2
+                        border-t border-[#E5E5E5] dark:border-gray-700">
+              <a href="blt-tshirt.html"
+                 class="text-sm text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">
+                Open Contest
+              </a>
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/17" target="_blank" rel="noopener"
+                 class="inline-flex items-center gap-1 text-sm font-medium
+                        border border-[#E10101] text-[#E10101] rounded-md px-3 py-1
+                        hover:bg-[#E10101] hover:text-white transition-colors">
+                <i class="fa-brands fa-github" aria-hidden="true"></i> Issue
+              </a>
+            </div>
+          </div>
+        </article>
+
+        <article class="group bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
+                       border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                       hover:shadow-lg hover:border-[#E10101] transition-all duration-200"
+                 data-contest="blt-tshirt">
+          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+          <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/16" target="_blank" rel="noopener"    class="block overflow-hidden aspect-video bg-gray-100 dark:bg-gray-700">  <img src="https://github.com/user-attachments/assets/df48a24f-24a0-4649-a94d-1d5476d30c85" alt="Hacker alert on digital security vulnerabilities preview" loading="lazy"        class="w-full h-full object-cover transition-transform duration-300               group-hover:scale-105" /></a>
+          <div class="p-5 flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]">BLT T-Shirt Design Contest</span>
+              <span class="text-xs text-gray-400 dark:text-gray-500">
+                <time class="sub-date" datetime="2026-02-22T00:36:24Z">2026-02-22</time>
+              </span>
+            </div>
+            <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/16" target="_blank" rel="noopener"
+                 class="hover:text-[#E10101] transition-colors">Hacker alert on digital security vulnerabilities</a>
+            </h3>
+            <div class="flex items-center justify-between gap-3 pt-2
+                        border-t border-[#E5E5E5] dark:border-gray-700">
+              <a href="blt-tshirt.html"
+                 class="text-sm text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">
+                Open Contest
+              </a>
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/16" target="_blank" rel="noopener"
+                 class="inline-flex items-center gap-1 text-sm font-medium
+                        border border-[#E10101] text-[#E10101] rounded-md px-3 py-1
+                        hover:bg-[#E10101] hover:text-white transition-colors">
+                <i class="fa-brands fa-github" aria-hidden="true"></i> Issue
+              </a>
+            </div>
+          </div>
+        </article>
+
+        <article class="group bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
+                       border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                       hover:shadow-lg hover:border-[#E10101] transition-all duration-200"
+                 data-contest="blt-tshirt">
+          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+          <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/9" target="_blank" rel="noopener"    class="block overflow-hidden aspect-video bg-gray-100 dark:bg-gray-700">  <img src="https://github.com/user-attachments/assets/3b7aab03-fa52-4862-bde9-1c1033f8c768" alt="Squash bugs, hold big tech accountable preview" loading="lazy"        class="w-full h-full object-cover transition-transform duration-300               group-hover:scale-105" /></a>
+          <div class="p-5 flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]">BLT T-Shirt Design Contest</span>
+              <span class="text-xs text-gray-400 dark:text-gray-500">
+                <time class="sub-date" datetime="2026-02-21T23:51:28Z">2026-02-21</time>
+              </span>
+            </div>
+            <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/9" target="_blank" rel="noopener"
+                 class="hover:text-[#E10101] transition-colors">Squash bugs, hold big tech accountable</a>
+            </h3>
+            <div class="flex items-center justify-between gap-3 pt-2
+                        border-t border-[#E5E5E5] dark:border-gray-700">
+              <a href="blt-tshirt.html"
+                 class="text-sm text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">
+                Open Contest
+              </a>
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/9" target="_blank" rel="noopener"
+                 class="inline-flex items-center gap-1 text-sm font-medium
+                        border border-[#E10101] text-[#E10101] rounded-md px-3 py-1
+                        hover:bg-[#E10101] hover:text-white transition-colors">
+                <i class="fa-brands fa-github" aria-hidden="true"></i> Issue
+              </a>
+            </div>
+          </div>
+        </article>
+
+        <article class="group bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
+                       border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                       hover:shadow-lg hover:border-[#E10101] transition-all duration-200"
+                 data-contest="blt-tshirt">
+          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+          <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/5" target="_blank" rel="noopener"    class="block overflow-hidden aspect-video bg-gray-100 dark:bg-gray-700">  <img src="https://github.com/user-attachments/assets/fa8cb51c-9f23-4ee0-80dd-e5adf7624f3f" alt="I log bugs for fun preview" loading="lazy"        class="w-full h-full object-cover transition-transform duration-300               group-hover:scale-105" /></a>
+          <div class="p-5 flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]">BLT T-Shirt Design Contest</span>
+              <span class="text-xs text-gray-400 dark:text-gray-500">
+                <time class="sub-date" datetime="2026-02-21T23:30:52Z">2026-02-21</time>
+              </span>
+            </div>
+            <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/5" target="_blank" rel="noopener"
+                 class="hover:text-[#E10101] transition-colors">I log bugs for fun</a>
+            </h3>
+            <div class="flex items-center justify-between gap-3 pt-2
+                        border-t border-[#E5E5E5] dark:border-gray-700">
+              <a href="blt-tshirt.html"
+                 class="text-sm text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">
+                Open Contest
+              </a>
+              <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/5" target="_blank" rel="noopener"
+                 class="inline-flex items-center gap-1 text-sm font-medium
+                        border border-[#E10101] text-[#E10101] rounded-md px-3 py-1
+                        hover:bg-[#E10101] hover:text-white transition-colors">
+                <i class="fa-brands fa-github" aria-hidden="true"></i> Issue
+              </a>
+            </div>
+          </div>
+        </article>
+      <div id="no-filter-results" class="hidden sm:col-span-2 lg:col-span-3 bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border border-[#E5E5E5] dark:border-gray-700 p-6 text-center text-sm text-gray-500 dark:text-gray-400">No entries found for this filter.</div>
       </div>
-
-      <noscript>
-        <div class="mt-6 p-5 bg-white rounded-xl border border-[#E5E5E5] text-sm text-gray-600">
-          JavaScript is required to aggregate entries from contest pages.
-        </div>
-      </noscript>
     </div>
-  </main>
+    </main>
 
-  <footer class="bg-white dark:bg-[#1F2937] border-t border-[#E5E5E5] dark:border-gray-700">
+    <footer class="bg-white dark:bg-[#1F2937] border-t border-[#E5E5E5] dark:border-gray-700">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-gray-500 dark:text-gray-400">
       <p>
-        &copy; 2026
-        <a href="https://owasp.org/www-project-blt/" target="_blank" rel="noopener" class="text-[#E10101] hover:underline font-medium">OWASP BLT</a>.
-        Content licensed under
-        <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" class="text-[#E10101] hover:underline">CC BY 4.0</a>.
+      &copy; 2026
+      <a href="https://owasp.org/www-project-blt/" target="_blank" rel="noopener" class="text-[#E10101] hover:underline font-medium">OWASP BLT</a>.
+      Content licensed under
+      <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" class="text-[#E10101] hover:underline">CC BY 4.0</a>.
       </p>
       <div class="flex items-center gap-4">
-        <a href="index.html" class="hover:text-[#E10101] transition-colors inline-flex items-center gap-1">
-          <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> All Contests
-        </a>
-        <a href="https://github.com/OWASP-BLT/BLT-Design-Contest" target="_blank" rel="noopener" class="hover:text-[#E10101] transition-colors inline-flex items-center gap-1">
-          <i class="fa-brands fa-github" aria-hidden="true"></i> Source
-        </a>
+      <a href="index.html" class="hover:text-[#E10101] transition-colors inline-flex items-center gap-1">
+      <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> All Contests
+      </a>
+      <a href="https://github.com/OWASP-BLT/BLT-Design-Contest" target="_blank" rel="noopener" class="hover:text-[#E10101] transition-colors inline-flex items-center gap-1">
+      <i class="fa-brands fa-github" aria-hidden="true"></i> Source
+      </a>
       </div>
     </div>
-  </footer>
+    </footer>
 
-  <script>
+    <script>
     const toggle = document.getElementById('theme-toggle');
     const html = document.documentElement;
 
     if (localStorage.theme === 'dark' ||
-        (!('theme' in localStorage) &&
-         window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      (!('theme' in localStorage) &&
+       window.matchMedia('(prefers-color-scheme: dark)').matches)) {
       html.classList.add('dark');
     }
 
@@ -186,201 +1372,75 @@
       localStorage.theme = html.classList.contains('dark') ? 'dark' : 'light';
     });
 
-    const contests = [
-      { id: 'blt-tshirt', name: 'BLT T-Shirt Design Contest', page: 'blt-tshirt.html' },
-      { id: 'blt-logo', name: 'BLT Logo Contest', page: 'blt-logo.html' },
-      { id: 'blt-homepage', name: 'BLT Homepage Design', page: 'blt-homepage.html' },
-    ];
-
-    const grid = document.getElementById('all-entries-grid');
-    const statusEl = document.getElementById('entries-status');
-    const fallback = document.getElementById('load-fallback');
-
     const baseBtn = ['border-gray-300', 'dark:border-gray-600', 'text-gray-700', 'dark:text-gray-200'];
     const activeBtn = ['border-[#E10101]', 'text-[#E10101]', 'bg-red-50', 'dark:bg-red-900/20', 'dark:text-red-300'];
 
-    let allEntries = [];
     let activeFilter = 'all';
+    const statusEl = document.getElementById('entries-status');
+    const allCards = Array.from(document.querySelectorAll('#all-entries-grid > article[data-contest]'));
+    const noFilterResults = document.getElementById('no-filter-results');
 
     function setButtonState(button, active) {
       button.classList.remove(...baseBtn, ...activeBtn);
       if (active) {
-        button.classList.add(...activeBtn);
+      button.classList.add(...activeBtn);
       } else {
-        button.classList.add(...baseBtn);
+      button.classList.add(...baseBtn);
       }
       button.setAttribute('aria-pressed', active ? 'true' : 'false');
     }
 
-    function updateButtonGroups() {
+    function updateFilterButtons() {
       document.querySelectorAll('.filter-btn').forEach((btn) => {
-        setButtonState(btn, btn.dataset.filter === activeFilter);
+      setButtonState(btn, btn.dataset.filter === activeFilter);
       });
     }
 
     function formatDates() {
       const now = new Date();
       document.querySelectorAll('time.sub-date').forEach((el) => {
-        const raw = el.getAttribute('datetime');
-        if (!raw) return;
-        let d = new Date(raw);
-        if (isNaN(d.getTime())) return;
-        if (d > now) d = now;
-        el.textContent = d.toLocaleDateString(undefined, {
-          year: 'numeric', month: 'short', day: 'numeric'
-        });
+      const raw = el.getAttribute('datetime');
+      if (!raw) return;
+      let d = new Date(raw);
+      if (isNaN(d.getTime())) return;
+      if (d > now) d = now;
+      el.textContent = d.toLocaleDateString(undefined, {
+      year: 'numeric', month: 'short', day: 'numeric'
+      });
       });
     }
 
-    function renderEntries() {
-      const filtered = activeFilter === 'all'
-        ? [...allEntries]
-        : allEntries.filter((entry) => entry.contestId === activeFilter);
-
-      // Keep entries in newest-first order.
-      filtered.sort((a, b) => b.submittedAt - a.submittedAt);
-
-      grid.innerHTML = '';
-      if (!filtered.length) {
-        grid.innerHTML = '<div class="sm:col-span-2 lg:col-span-3 bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border border-[#E5E5E5] dark:border-gray-700 p-6 text-center text-sm text-gray-500 dark:text-gray-400">No entries found for this filter.</div>';
-      } else {
-        filtered.forEach((entry) => {
-          grid.appendChild(entry.card);
-        });
+    function applyFilter() {
+      if (!allCards.length) {
+      statusEl.textContent = 'No entries available right now.';
+      return;
       }
 
-      statusEl.textContent = 'Showing ' + filtered.length + ' entr' + (filtered.length === 1 ? 'y' : 'ies') + ' from all contests.';
+      let visibleCount = 0;
+      allCards.forEach((card) => {
+      const show = activeFilter === 'all' || card.dataset.contest === activeFilter;
+      card.classList.toggle('hidden', !show);
+      if (show) visibleCount += 1;
+      });
+
+      if (noFilterResults) {
+      noFilterResults.classList.toggle('hidden', visibleCount !== 0);
+      }
+
+      statusEl.textContent = 'Showing ' + visibleCount + ' entr' + (visibleCount === 1 ? 'y' : 'ies') + ' from all contests.';
       formatDates();
-    }
-
-    function escapeHtml(value) {
-      return String(value || '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-    }
-
-    function buildSimpleCard(entry) {
-      const article = document.createElement('article');
-      article.className = 'group bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border border-[#E5E5E5] dark:border-gray-700 overflow-hidden hover:shadow-lg hover:border-[#E10101] transition-all duration-200';
-
-      const safeTitle = escapeHtml(entry.title || 'Untitled submission');
-      const safeContestName = escapeHtml(entry.contestName);
-      const safeContestPage = escapeHtml(entry.contestPage);
-      const safeIssueUrl = escapeHtml(entry.issueUrl || '#');
-      const safeSubmittedIso = escapeHtml(entry.submittedIso || '');
-      const safeSubmittedFallback = escapeHtml(entry.submittedFallback || '');
-
-      const previewBlock = entry.previewUrl
-        ? '<a href="' + safeIssueUrl + '" target="_blank" rel="noopener" class="block overflow-hidden aspect-video bg-gray-100 dark:bg-gray-700">'
-            + '<img src="' + escapeHtml(entry.previewUrl) + '" alt="' + escapeHtml(entry.previewAlt || (entry.title + ' preview')) + '" loading="lazy" '
-            + 'class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />'
-          + '</a>'
-        : '<a href="' + safeIssueUrl + '" target="_blank" rel="noopener" class="flex items-center justify-center aspect-video bg-gray-100 dark:bg-gray-700 text-gray-400">'
-            + '<i class="fa-solid fa-image text-3xl" aria-hidden="true"></i>'
-          + '</a>';
-
-      article.innerHTML =
-        '<div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>'
-        + previewBlock
-        + '<div class="p-5 flex flex-col gap-3">'
-          + '<div class="flex items-center justify-between gap-2 flex-wrap">'
-            + '<span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]">' + safeContestName + '</span>'
-            + '<span class="text-xs text-gray-400 dark:text-gray-500">'
-              + '<time class="sub-date" datetime="' + safeSubmittedIso + '">' + safeSubmittedFallback + '</time>'
-            + '</span>'
-          + '</div>'
-          + '<h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">'
-            + '<a href="' + safeIssueUrl + '" target="_blank" rel="noopener" class="hover:text-[#E10101] transition-colors">' + safeTitle + '</a>'
-          + '</h3>'
-          + '<div class="flex items-center justify-between gap-3 pt-2 border-t border-[#E5E5E5] dark:border-gray-700">'
-            + '<a href="' + safeContestPage + '" class="text-sm text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">Open Contest</a>'
-            + '<a href="' + safeIssueUrl + '" target="_blank" rel="noopener" class="inline-flex items-center gap-1 text-sm font-medium border border-[#E10101] text-[#E10101] rounded-md px-3 py-1 hover:bg-[#E10101] hover:text-white transition-colors">'
-              + '<i class="fa-brands fa-github" aria-hidden="true"></i> Issue'
-            + '</a>'
-          + '</div>'
-        + '</div>';
-
-      return article;
-    }
-
-    async function loadContestCards(contest) {
-      const response = await fetch(contest.page, { cache: 'no-store' });
-      if (!response.ok) {
-        throw new Error('Failed to fetch ' + contest.page);
-      }
-
-      const text = await response.text();
-      const doc = new DOMParser().parseFromString(text, 'text/html');
-      const cards = Array.from(doc.querySelectorAll('div[id^="cards-grid-"] > article'));
-
-      return cards.map((sourceCard) => {
-        const issueAnchor = sourceCard.querySelector('h2 a, h3 a');
-        const issueUrl = issueAnchor ? issueAnchor.getAttribute('href') : (sourceCard.dataset.issueUrl || '#');
-        const title = issueAnchor ? issueAnchor.textContent.trim() : 'Untitled submission';
-        const timeEl = sourceCard.querySelector('time.sub-date');
-        const submittedIso = timeEl ? (timeEl.getAttribute('datetime') || '') : '';
-        const submittedFallback = timeEl ? (timeEl.textContent.trim() || '') : '';
-        const previewImg = sourceCard.querySelector('img');
-        const previewUrl = previewImg ? (previewImg.getAttribute('src') || '') : '';
-        const previewAlt = previewImg ? (previewImg.getAttribute('alt') || '') : '';
-
-        const card = buildSimpleCard({
-          contestName: contest.name,
-          contestPage: contest.page,
-          issueUrl,
-          title,
-          previewUrl,
-          previewAlt,
-          submittedIso,
-          submittedFallback,
-        });
-        card.dataset.contestId = contest.id;
-
-        const submittedAt = submittedIso ? new Date(submittedIso).getTime() : 0;
-
-        return {
-          card,
-          contestId: contest.id,
-          submittedAt: isNaN(submittedAt) ? 0 : submittedAt,
-        };
-      });
-    }
-
-    async function loadAllEntries() {
-      statusEl.textContent = 'Loading entries...';
-      const failed = [];
-      const loaded = [];
-
-      for (const contest of contests) {
-        try {
-          const entries = await loadContestCards(contest);
-          loaded.push(...entries);
-        } catch (error) {
-          failed.push(contest.id);
-        }
-      }
-
-      allEntries = loaded;
-      renderEntries();
-
-      if (failed.length) {
-        fallback.classList.remove('hidden');
-      }
     }
 
     document.querySelectorAll('.filter-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
-        activeFilter = btn.dataset.filter;
-        updateButtonGroups();
-        renderEntries();
+      activeFilter = btn.dataset.filter;
+      updateFilterButtons();
+      applyFilter();
       });
     });
 
-    updateButtonGroups();
-    loadAllEntries();
-  </script>
-</body>
-</html>
+    updateFilterButtons();
+    applyFilter();
+    </script>
+    </body>
+    </html>
