@@ -32,3 +32,24 @@ def _make_workers_stub():
 
 # Inject before any test module imports src/entry.py
 sys.modules.setdefault("workers", _make_workers_stub())
+
+
+def _make_js_stub():
+    """Return a minimal stub of the 'js' module."""
+    import json as _json
+    mod = ModuleType("js")
+
+    class JSON:
+        @staticmethod
+        def parse(s):
+            return _json.loads(s)
+
+        @staticmethod
+        def stringify(obj):
+            return _json.dumps(obj)
+
+    mod.JSON = JSON
+    return mod
+
+
+sys.modules.setdefault("js", _make_js_stub())

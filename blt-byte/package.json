@@ -6,9 +6,14 @@
     "scripts": {
         "deploy": "wrangler deploy",
         "dev": "wrangler dev",
-        "start": "wrangler run dev"
+        "start": "wrangler run dev",
+        "test": "pytest && vitest run",
+        "test:js": "vitest run"
     },
     "devDependencies": {
-        "wrangler": "^4.46.0"
+        "wrangler": "^4.46.0",
+        "vitest": "^1.0.0",
+        "jsdom": "^24.0.0",
+        "@vitest/coverage-v8": "^1.0.0"
     }
 }

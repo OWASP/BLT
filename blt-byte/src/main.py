@@ -15,8 +15,15 @@ import re
 import traceback
 import pyodide
 import js
+import time
 
 from workers import Response, WorkerEntrypoint
+
+# Security constants
+MAX_INPUT_LENGTH = 2000
+MAX_URL_LENGTH = 500
+RATE_LIMIT_INTERVAL = 1.0  # seconds
+IP_RATE_LIMITS = {}
 
 # Production mode: Disable deep debugging
 try:
@@ -123,7 +130,8 @@ MCP_MANIFEST = {
                     "role": {
                         "type": "string",
                         "enum": ["contributor", "bug_hunter", "organisation"],
-                        "description": "User role (required). Valid values: contributor, bug_hunter, organisation. Defaults to contributor if not specified by client but intended for explicit tool calls.",
+                        "description": "User role (required). Valid values: contributor, bug_hunter, organisation.",
+                        "default": "contributor",
                     }
                 },
                 "required": ["role"],
@@ -131,6 +139,29 @@ MCP_MANIFEST = {
         },
     ],
 }
+
+
+def get_ai_model(env) -> str:
+    """Return the configured AI model or a default."""
+    if hasattr(env, "CLOUDFLARE_AI_MODEL") and env.CLOUDFLARE_AI_MODEL:
+        return str(env.CLOUDFLARE_AI_MODEL)
+    return CLOUDFLARE_AI_MODEL
+
+
+def is_rate_limited(request) -> bool:
+    """Basic IP-based rate limiting using an in-memory dictionary."""
+    try:
+        ip = request.headers.get("cf-connecting-ip") or "unknown"
+        now = time.time()
+        last_request_time = IP_RATE_LIMITS.get(ip, 0)
+        
+        if now - last_request_time < RATE_LIMIT_INTERVAL:
+            return True
+        
+        IP_RATE_LIMITS[ip] = now
+        return False
+    except Exception:
+        return False
 
 
 # ---------------------------------------------------------------------------
@@ -160,6 +191,9 @@ def error_response(message: str, status: int = 400) -> Response:
 # Chat handler
 # ---------------------------------------------------------------------------
 async def handle_chat(request, env) -> Response:
+    if is_rate_limited(request):
+        return error_response("Too many requests", 429)
+
     # Avoid JsProxy for inputs by using text() + native json.loads()
     body_text = await request.text()
     try:
@@ -175,6 +209,9 @@ async def handle_chat(request, env) -> Response:
     user_message = user_message.strip()
     if not user_message:
         return error_response("'message' field is required")
+    
+    if len(user_message) > MAX_INPUT_LENGTH:
+        return error_response(f"Message too long (max {MAX_INPUT_LENGTH} chars)")
 
     history = body.get("history", [])
     result = await _run_chat(env, user_message, history)
@@ -182,13 +219,16 @@ async def handle_chat(request, env) -> Response:
     if "error" in result:
         return error_response(result["error"], int(result.get("status", 502)))
         
-    return json_response({**result, "model": CLOUDFLARE_AI_MODEL})
+    return json_response({**result, "model": get_ai_model(env)})
 
 
 # ---------------------------------------------------------------------------
 # Security scan handler
 # ---------------------------------------------------------------------------
 async def handle_scan(request, env) -> Response:
+    if is_rate_limited(request):
+        return error_response("Too many requests", 429)
+
     # Avoid JsProxy for inputs by using text() + native json.loads()
     body_text = await request.text()
     try:
@@ -204,6 +244,9 @@ async def handle_scan(request, env) -> Response:
     target = target.strip()
     if not target:
         return error_response("'url' field is required")
+        
+    if len(target) > MAX_URL_LENGTH:
+        return error_response(f"URL too long (max {MAX_URL_LENGTH} chars)")
 
     scan_type = body.get("scan_type", "quick")
     if scan_type not in ("quick", "full"):
@@ -227,6 +270,9 @@ async def handle_mcp(request, env) -> Response:
 
     # Tool invocation
     if method == "POST":
+        if is_rate_limited(request):
+            return error_response("Too many requests", 429)
+
         body_text = await request.text()
         try:
             body = json.loads(body_text) if body_text else {}
@@ -247,6 +293,10 @@ async def handle_mcp(request, env) -> Response:
             message = params.get("message", "")
             if not isinstance(message, str) or not message.strip():
                 return error_response("'message' must be a non-empty string", 400)
+            
+            if len(message) > MAX_INPUT_LENGTH:
+                return error_response(f"Message too long (max {MAX_INPUT_LENGTH} chars)")
+                
             history = params.get("history", [])
             # Reuse chat logic by building a synthetic request-like object
             result = await _run_chat(env, message, history)
@@ -258,6 +308,9 @@ async def handle_mcp(request, env) -> Response:
             url = params.get("url", "")
             if not isinstance(url, str) or not url.strip():
                 return error_response("'url' must be a non-empty string", 400)
+            
+            if len(url) > MAX_URL_LENGTH:
+                return error_response(f"URL too long (max {MAX_URL_LENGTH} chars)")
             scan_type = params.get("scan_type", "quick")
             if scan_type not in ("quick", "full"):
                 return error_response("Invalid 'scan_type'. Allowed values: quick, full", 400)
@@ -417,7 +470,7 @@ async def _run_chat(env, message: str, history: list) -> dict:
         }))
         
         raw_ai_response = await env.AI.run(
-            CLOUDFLARE_AI_MODEL,
+            get_ai_model(env),
             ai_options
         )
         
@@ -482,7 +535,7 @@ async def _run_scan(env, url: str, scan_type: str = "quick") -> dict:
         ai_options = js.JSON.parse(json.dumps({"messages": messages, "max_tokens": 768}))
         
         raw_ai_response = await env.AI.run(
-            CLOUDFLARE_AI_MODEL,
+            get_ai_model(env),
             ai_options
         )
         
