@@ -69,7 +69,7 @@ It complements the main [BLT platform](https://github.com/OWASP-BLT/BLT) by focu
 - **Static deployment** — Hosted on GitHub Pages with no server-side dependencies.
 - **GitHub Issues as a database** — Community profiles are stored as GitHub Issues with the `profile` label, enabling moderation and editing without a database.
 
-### Smart Hatching Algorithm
+### Smart Matching Algorithm
 
 - Analyzes your repository languages and frequency
 - Considers your starred repos and topics
@@ -292,7 +292,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on:
 
 ## Features in Detail
 
-- See [Smart Hatching Algorithm](#smart-hatching-algorithm)
+- See [Smart Matching Algorithm](#smart-matching-algorithm)
 - See [Community Features](#community-features)
 - See [Recommendation Categories](#recommendation-categories)
 
