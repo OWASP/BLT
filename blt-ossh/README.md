@@ -284,14 +284,6 @@ After analyzing your GitHub profile, the system automatically pre-fills:
 - See [Community Features](#community-features)
 - See [Recommendation Categories](#recommendation-categories)
 
-### For Contributors
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on:
-- Adding new project recommendations
-- Improving the matching algorithm
-- Enhancing the UI/UX
-- Adding new features
-
 ## Contributing
 
 Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on adding project recommendations, improving the matching algorithm, enhancing the UI/UX, and more.
