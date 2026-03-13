@@ -64,6 +64,11 @@ MENTOR_ASSIGNED_LABEL_COLOR = "0075ca"
 SECURITY_BYPASS_LABELS = {"security", "vulnerability", "security-sensitive", "private-security"}
 # Seconds in a day — used for stale-assignment threshold calculations.
 _SECONDS_PER_DAY = 86400
+# When True, one active mentor is auto-requested as a reviewer on every newly
+# opened PR using a deterministic round-robin order (PR number mod pool size).
+# Set to False (default) to keep the existing behaviour of only requesting the
+# mentor when the PR explicitly closes a mentored issue.
+MENTOR_AUTO_PR_REVIEWER_ENABLED = False
 
 # Mentor pool for BLT-Pool platform
 MENTORS = [
@@ -117,7 +122,7 @@ MENTORS = [
         "slack_username": "",
         "project": None,
         "mentee": None,
-        "status": "available",
+        "status": "inactive",
         "specialties": [],
         "max_mentees": 3,
         "active": False,
@@ -128,7 +133,7 @@ MENTORS = [
         "slack_username": "",
         "project": None,
         "mentee": None,
-        "status": "available",
+        "status": "inactive",
         "specialties": [],
         "max_mentees": 3,
         "active": False,
@@ -2294,6 +2299,39 @@ async def _find_assigned_mentor_from_comments(
     return last_mentor
 
 
+async def _get_last_human_activity_ts(
+    owner: str, repo: str, issue_number: int, issue: dict, token: str
+) -> float:
+    """Return the timestamp (epoch seconds) of the most recent non-bot activity.
+
+    Fetches the most recently created page of issue comments and returns the
+    timestamp of the latest comment posted by a non-bot human.  If no human
+    comments are found the issue's ``created_at`` value is used as a fallback so
+    that newly opened issues without any comments are still eligible for stale
+    checks after ``MENTOR_STALE_DAYS`` days.
+    """
+    fallback = _parse_github_timestamp(issue.get("created_at", "")) or 0.0
+
+    resp = await github_api(
+        "GET",
+        f"/repos/{owner}/{repo}/issues/{issue_number}/comments"
+        f"?sort=created&direction=desc&per_page=100",
+        token,
+    )
+    if resp.status != 200:
+        return fallback
+
+    comments = json.loads(await resp.text())
+    for comment in comments:
+        user = comment.get("user") or {}
+        if _is_human(user) and not _is_bot(user):
+            ts = _parse_github_timestamp(comment.get("created_at", ""))
+            if ts:
+                return ts
+
+    return fallback
+
+
 def _is_security_issue(issue: dict) -> bool:
     """Return ``True`` if the issue carries any security-sensitive label."""
     labels = {lb.get("name", "").lower() for lb in issue.get("labels", [])}
@@ -2368,14 +2406,6 @@ async def _assign_mentor_to_issue(
         f"/repos/{owner}/{repo}/issues/{issue_number}/labels",
         token,
         {"labels": [MENTOR_ASSIGNED_LABEL]},
-    )
-
-    # Add mentor as a GitHub assignee.
-    await github_api(
-        "POST",
-        f"/repos/{owner}/{repo}/issues/{issue_number}/assignees",
-        token,
-        {"assignees": [mentor_username]},
     )
 
     specialties_info = ""
@@ -2559,13 +2589,8 @@ async def handle_mentor_handoff(
         )
         return
 
-    # Replacement assigned successfully — now remove the outgoing mentor.
-    await github_api(
-        "DELETE",
-        f"/repos/{owner}/{repo}/issues/{issue_number}/assignees",
-        token,
-        {"assignees": [login]},
-    )
+    # Replacement assigned successfully — the outgoing mentor's label was already
+    # replaced by _assign_mentor_to_issue; no assignee record to clean up.
     console.log(
         f"[MentorPool] Handoff from @{login} completed for {owner}/{repo}#{issue_number}"
     )
@@ -2627,22 +2652,8 @@ async def handle_mentor_rematch(
         )
         return
 
-    # Replacement assigned — now remove the previous mentor's assignee record.
-    if current_mentor:
-        await github_api(
-            "DELETE",
-            f"/repos/{owner}/{repo}/issues/{issue_number}/assignees",
-            token,
-            {"assignees": [current_mentor]},
-        )
-
-    # Remove the old mentor-assigned label (the new assignment already re-applied it).
-    await github_api(
-        "DELETE",
-        f"/repos/{owner}/{repo}/issues/{issue_number}/labels/{MENTOR_ASSIGNED_LABEL}",
-        token,
-    )
-
+    # Replacement assigned — _assign_mentor_to_issue already applied the label
+    # and posted the assignment comment.  No old assignee or label to clean up.
     console.log(
         f"[MentorPool] Rematch completed for @{login} on {owner}/{repo}#{issue_number}"
     )
@@ -2681,26 +2692,21 @@ async def _check_stale_mentor_assignments(owner: str, repo: str, token: str) -> 
                 if "pull_request" in issue:
                     continue
                 issue_number = issue["number"]
-                updated_at = issue.get("updated_at", "")
-                if not updated_at:
+                # Use the last human (non-bot) comment timestamp as the activity
+                # signal so that bot-posted comments (e.g. mentor assignment
+                # notices) don't reset the stale clock.
+                last_human_ts = await _get_last_human_activity_ts(
+                    owner, repo, issue_number, issue, token
+                )
+                if not last_human_ts:
                     continue
-                updated_ts = _parse_github_timestamp(updated_at)
-                if not updated_ts:
-                    continue
-                if current_time - updated_ts <= stale_threshold:
+                if current_time - last_human_ts <= stale_threshold:
                     continue
 
-                # Issue is stale — find and unassign the mentor.
+                # Issue is stale — identify the mentor from the hidden comment marker.
                 current_mentor = await _find_assigned_mentor_from_comments(
                     owner, repo, issue_number, token
                 )
-                if current_mentor:
-                    await github_api(
-                        "DELETE",
-                        f"/repos/{owner}/{repo}/issues/{issue_number}/assignees",
-                        token,
-                        {"assignees": [current_mentor]},
-                    )
 
                 # Remove the mentor-assigned label.
                 await github_api(
@@ -2709,7 +2715,7 @@ async def _check_stale_mentor_assignments(owner: str, repo: str, token: str) -> 
                     token,
                 )
 
-                days_elapsed = int((current_time - updated_ts) / _SECONDS_PER_DAY)
+                days_elapsed = int((current_time - last_human_ts) / _SECONDS_PER_DAY)
                 mentor_mention = f"@{current_mentor} " if current_mentor else ""
                 await create_comment(
                     owner,
@@ -2795,6 +2801,16 @@ async def handle_issue_comment(payload: dict, token: str, env=None) -> None:
                 token,
             )
     elif command in (MENTOR_COMMAND, MENTOR_PAUSE_COMMAND, HANDOFF_COMMAND, REMATCH_COMMAND):
+        # Mentor slash commands only make sense on issues, not pull requests.
+        if issue.get("pull_request"):
+            await create_comment(
+                owner,
+                repo,
+                issue_number,
+                f"@{login} Mentor commands are only available on issues, not pull requests.",
+                token,
+            )
+            return
         # Fetch mentors config once for all mentor-related commands.
         try:
             mentors_config = await _fetch_mentors_config(owner, repo, token)
@@ -3016,6 +3032,18 @@ async def handle_pull_request_opened(payload: dict, token: str, env=None) -> Non
     except Exception as exc:
         console.error(f"[MentorPool] Mentor reviewer request failed (best-effort): {exc}")
 
+    # When MENTOR_AUTO_PR_REVIEWER_ENABLED is True, also request a round-robin
+    # mentor as a reviewer for every newly opened PR regardless of linked issues.
+    if MENTOR_AUTO_PR_REVIEWER_ENABLED:
+        try:
+            mentors_config = await _fetch_mentors_config(owner, repo, token)
+        except Exception:
+            mentors_config = MENTORS
+        try:
+            await _assign_round_robin_mentor_reviewer(owner, repo, pr, mentors_config, token)
+        except Exception as exc:
+            console.error(f"[MentorPool] Round-robin reviewer failed (best-effort): {exc}")
+
     # Check for unresolved review conversations
     try:
         await check_unresolved_conversations(payload, token)
@@ -3048,6 +3076,7 @@ async def _request_mentor_reviewer_for_pr(
     if not linked_issues:
         return
 
+    already_requested: set = set()
     for issue_num_str in linked_issues:
         issue_number = int(issue_num_str)
         resp = await github_api(
@@ -3068,6 +3097,11 @@ async def _request_mentor_reviewer_for_pr(
         )
         if not mentor_username or mentor_username.lower() == pr_author.lower():
             continue
+        # Skip if this mentor was already requested for this PR (multiple linked issues
+        # may reference the same mentor; avoid duplicate reviewer-request API calls).
+        if mentor_username.lower() in already_requested:
+            continue
+        already_requested.add(mentor_username.lower())
 
         # Request the mentor as a reviewer on the PR.
         review_resp = await github_api(
@@ -3086,6 +3120,66 @@ async def _request_mentor_reviewer_for_pr(
                 f"[MentorPool] Failed to request reviewer @{mentor_username} "
                 f"for PR #{pr_number}: status={review_resp.status}"
             )
+
+
+async def _assign_round_robin_mentor_reviewer(
+    owner: str,
+    repo: str,
+    pr: dict,
+    mentors_config: Optional[list],
+    token: str,
+) -> None:
+    """Auto-request one mentor as a reviewer on a newly opened PR (round-robin).
+
+    Enabled only when ``MENTOR_AUTO_PR_REVIEWER_ENABLED`` is ``True``.
+    Picks one active mentor using ``(pr_number - 1) mod pool_size`` so the
+    assignment cycles predictably across consecutive PRs.  The PR author is
+    never chosen as their own reviewer.
+    """
+    if not MENTOR_AUTO_PR_REVIEWER_ENABLED:
+        return
+
+    pool = mentors_config if mentors_config is not None else MENTORS
+    active = [
+        m for m in pool
+        if m.get("active", True) and m.get("github_username")
+    ]
+    if not active:
+        return
+
+    pr_number = pr["number"]
+    pr_author = (pr.get("user") or {}).get("login", "").lower()
+
+    # Sort by username for a stable, deterministic order.
+    active.sort(key=lambda m: m["github_username"].lower())
+
+    # Try each slot in order starting at the round-robin position until we find
+    # a mentor who is not the PR author.
+    for offset in range(len(active)):
+        index = (pr_number - 1 + offset) % len(active)
+        mentor = active[index]
+        username = mentor["github_username"]
+        if username.lower() == pr_author:
+            continue
+        # Candidate found — request this mentor and stop regardless of outcome
+        # so only one reviewer is assigned per PR.
+        resp = await github_api(
+            "POST",
+            f"/repos/{owner}/{repo}/pulls/{pr_number}/requested_reviewers",
+            token,
+            {"reviewers": [username]},
+        )
+        if resp.status in (200, 201):
+            console.log(
+                f"[MentorPool] Auto round-robin reviewer: requested @{username} "
+                f"for {owner}/{repo}#{pr_number}"
+            )
+        else:
+            console.error(
+                f"[MentorPool] Auto round-robin reviewer: failed to request @{username} "
+                f"for PR #{pr_number}: status={resp.status}"
+            )
+        break  # Only assign one reviewer per PR.
 
 
 async def handle_pull_request_closed(payload: dict, token: str, env=None) -> None:

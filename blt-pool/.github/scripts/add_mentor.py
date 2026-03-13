@@ -108,7 +108,7 @@ def _yaml_quote(val: str) -> str:
 def build_entry(fields: dict) -> str:
     """Return a YAML block for one mentor entry, indented for the mentors list."""
     lines = [
-        f'  - github_username: {fields["github_username"]}',
+        f'  - github_username: {_yaml_quote(fields["github_username"])}',
         f'    name: {_yaml_quote(fields["name"])}',
     ]
     if fields["specialties"]:

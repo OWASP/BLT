@@ -3525,6 +3525,201 @@ class TestRequestMentorReviewerForPr(unittest.TestCase):
             self._run(pr, ["mentor-assigned"], "alice", reviewer_calls)
             self.assertEqual(len(reviewer_calls), 1, f"Failed for keyword: {keyword}")
 
+    def test_deduplicates_reviewer_when_multiple_linked_issues_share_same_mentor(self):
+        """When two linked issues both have the same mentor, only one reviewer request is made."""
+        pr = self._make_pr("Closes #1\nFixes #2", number=55)
+        reviewer_calls = []
+        # Both issues use the same mentor "alice".
+        issue_json = json.dumps(
+            {"number": 1, "labels": [{"name": "mentor-assigned"}]}
+        )
+
+        async def _mock_api(method, path, token, body=None):
+            if "/issues/" in path and method == "GET":
+                return types.SimpleNamespace(
+                    status=200, text=AsyncMock(return_value=issue_json)
+                )
+            if "requested_reviewers" in path and method == "POST":
+                reviewer_calls.append(body)
+                return types.SimpleNamespace(status=201, text=AsyncMock(return_value="{}"))
+            return types.SimpleNamespace(status=200, text=AsyncMock(return_value="{}"))
+
+        async def _inner():
+            with patch.object(_worker, "github_api", new=_mock_api):
+                with patch.object(
+                    _worker,
+                    "_find_assigned_mentor_from_comments",
+                    new=AsyncMock(return_value="alice"),
+                ):
+                    await _worker._request_mentor_reviewer_for_pr(
+                        "OWASP-BLT", "TestRepo", pr, "tok"
+                    )
+
+        _run(_inner())
+        self.assertEqual(len(reviewer_calls), 1, "Duplicate reviewer request should be suppressed")
+
+
+class TestMentorCommandPrGuard(unittest.TestCase):
+    """handle_issue_comment — mentor commands are rejected on pull requests."""
+
+    def test_mentor_command_rejected_on_pr(self):
+        """When the issue payload has a pull_request key, mentor commands post an error."""
+        pr_issue = {
+            "number": 7,
+            "pull_request": {"url": "https://api.github.com/repos/org/repo/pulls/7"},
+            "state": "open",
+            "labels": [],
+            "assignees": [],
+            "user": {"login": "contributor"},
+        }
+        payload = {
+            "comment": {"body": "/mentor", "user": {"login": "alice", "type": "User"}, "id": 1},
+            "issue": pr_issue,
+            "repository": {"owner": {"login": "OWASP-BLT"}, "name": "TestRepo"},
+            "sender": {"login": "alice", "type": "User"},
+        }
+        comments = []
+
+        async def _inner():
+            with patch.object(
+                _worker,
+                "github_api",
+                new=AsyncMock(return_value=types.SimpleNamespace(status=201, text=AsyncMock(return_value="{}"))),
+            ):
+                with patch.object(
+                    _worker,
+                    "create_comment",
+                    new=AsyncMock(side_effect=lambda o, r, n, b, t: comments.append(b)),
+                ):
+                    await _worker.handle_issue_comment(payload, "tok")
+
+        _run(_inner())
+        self.assertTrue(
+            any("only available on issues" in c for c in comments),
+            f"Expected PR-guard error, got: {comments}",
+        )
+
+
+class TestRoundRobinMentorReviewer(unittest.TestCase):
+    """_assign_round_robin_mentor_reviewer — deterministic round-robin reviewer assignment."""
+
+    _POOL = [
+        {"github_username": "alice", "active": True, "max_mentees": 3, "specialties": []},
+        {"github_username": "bob", "active": True, "max_mentees": 3, "specialties": []},
+        {"github_username": "carol", "active": True, "max_mentees": 3, "specialties": []},
+    ]
+
+    def _run_round_robin(self, pr_number, author, reviewer_calls):
+        pr = {"number": pr_number, "user": {"login": author}}
+
+        async def _inner():
+            with patch.object(_worker, "MENTOR_AUTO_PR_REVIEWER_ENABLED", True):
+                with patch.object(
+                    _worker,
+                    "github_api",
+                    new=AsyncMock(side_effect=lambda m, p, t, b=None: (
+                        reviewer_calls.append(b) or
+                        types.SimpleNamespace(status=201, text=AsyncMock(return_value="{}"))
+                    )),
+                ):
+                    await _worker._assign_round_robin_mentor_reviewer(
+                        "OWASP-BLT", "TestRepo", pr, self._POOL, "tok"
+                    )
+
+        _run(_inner())
+
+    def test_assigns_one_reviewer_per_pr(self):
+        reviewer_calls = []
+        self._run_round_robin(1, "contributor", reviewer_calls)
+        self.assertEqual(len(reviewer_calls), 1)
+
+    def test_round_robin_cycles_across_prs(self):
+        """Different PR numbers should pick different mentors (cycling through the pool)."""
+        chosen = []
+        for pr_num in range(1, 4):
+            calls = []
+            self._run_round_robin(pr_num, "contributor", calls)
+            if calls:
+                chosen.append(calls[0]["reviewers"][0])
+        # Should have 3 different mentors for 3 consecutive PRs.
+        self.assertEqual(len(set(chosen)), 3)
+
+    def test_skips_pr_author(self):
+        """The PR author is never assigned as their own reviewer."""
+        # alice is the first in the pool (sorted); PR #1 picks index 0 = alice.
+        # Since alice is the author, the function should fall back to the next mentor.
+        reviewer_calls = []
+        self._run_round_robin(1, "alice", reviewer_calls)
+        self.assertEqual(len(reviewer_calls), 1)
+        self.assertNotEqual(reviewer_calls[0]["reviewers"][0].lower(), "alice")
+
+    def test_disabled_by_default(self):
+        """When MENTOR_AUTO_PR_REVIEWER_ENABLED is False, no reviewer is requested."""
+        pr = {"number": 1, "user": {"login": "contributor"}}
+        reviewer_calls = []
+
+        async def _inner():
+            # Do not patch MENTOR_AUTO_PR_REVIEWER_ENABLED — default is False.
+            with patch.object(
+                _worker,
+                "github_api",
+                new=AsyncMock(side_effect=lambda m, p, t, b=None: (
+                    reviewer_calls.append(b) or
+                    types.SimpleNamespace(status=201, text=AsyncMock(return_value="{}"))
+                )),
+            ):
+                await _worker._assign_round_robin_mentor_reviewer(
+                    "OWASP-BLT", "TestRepo", pr, self._POOL, "tok"
+                )
+
+        _run(_inner())
+        self.assertEqual(reviewer_calls, [])
+
+
+class TestGetLastHumanActivityTs(unittest.TestCase):
+    """_get_last_human_activity_ts — returns most recent non-bot comment timestamp."""
+
+    def _run(self, comments_response, issue_created_at="2024-01-01T00:00:00Z"):
+        issue = {"created_at": issue_created_at}
+        comments_json = json.dumps(comments_response)
+
+        async def _inner():
+            with patch.object(
+                _worker,
+                "github_api",
+                new=AsyncMock(return_value=types.SimpleNamespace(
+                    status=200, text=AsyncMock(return_value=comments_json)
+                )),
+            ):
+                return await _worker._get_last_human_activity_ts(
+                    "OWASP-BLT", "TestRepo", 1, issue, "tok"
+                )
+
+        return _run(_inner())
+
+    def test_returns_most_recent_human_comment_ts(self):
+        # Comments are returned newest-first (direction=desc).
+        comments = [
+            {"user": {"login": "bob", "type": "User"}, "created_at": "2024-06-20T12:00:00Z"},
+            {"user": {"login": "alice", "type": "User"}, "created_at": "2024-06-15T12:00:00Z"},
+        ]
+        ts = self._run(comments)
+        # The function should return bob's timestamp (first non-bot comment in desc order).
+        self.assertAlmostEqual(ts, _worker._parse_github_timestamp("2024-06-20T12:00:00Z"), delta=1)
+
+    def test_falls_back_to_created_at_when_no_human_comments(self):
+        comments = [
+            {"user": {"login": "github-actions[bot]", "type": "Bot"}, "created_at": "2024-06-15T12:00:00Z"},
+        ]
+        ts = self._run(comments, issue_created_at="2024-01-10T08:00:00Z")
+        expected = _worker._parse_github_timestamp("2024-01-10T08:00:00Z")
+        self.assertAlmostEqual(ts, expected, delta=1)
+
+    def test_falls_back_when_no_comments(self):
+        ts = self._run([], issue_created_at="2024-03-05T10:00:00Z")
+        expected = _worker._parse_github_timestamp("2024-03-05T10:00:00Z")
+        self.assertAlmostEqual(ts, expected, delta=1)
+
 
 if __name__ == "__main__":
     unittest.main()
