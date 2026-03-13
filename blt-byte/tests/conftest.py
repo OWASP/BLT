@@ -52,4 +52,12 @@ def _make_js_stub():
     return mod
 
 
+def _make_pyodide_stub():
+    """Return a minimal stub of the 'pyodide' module."""
+    mod = ModuleType("pyodide")
+    mod.ffi = MagicMock()
+    return mod
+
+
 sys.modules.setdefault("js", _make_js_stub())
+sys.modules.setdefault("pyodide", _make_pyodide_stub())

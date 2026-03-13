@@ -160,13 +160,19 @@ def is_rate_limited(request) -> bool:
     Fails closed (returns True) on exception for security.
     """
     try:
-        ip = request.headers.get("cf-connecting-ip") or "unknown"
+        headers = getattr(request, "headers", None)
+        if headers is None:
+            return True
+        
+        ip = headers.get("cf-connecting-ip") or "unknown"
         now = time.time()
+        
         if len(IP_RATE_LIMITS) > RATE_LIMIT_MAX_KEYS:
             cutoff = now - RATE_LIMIT_TTL
             stale_keys = [k for k, ts in IP_RATE_LIMITS.items() if ts < cutoff]
             for k in stale_keys:
                 IP_RATE_LIMITS.pop(k, None)
+        
         last_request_time = IP_RATE_LIMITS.get(ip, 0)
         
         if now - last_request_time < RATE_LIMIT_INTERVAL:

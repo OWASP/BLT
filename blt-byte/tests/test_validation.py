@@ -143,3 +143,10 @@ async def test_is_rate_limited_fails_closed():
     
     from main import is_rate_limited
     assert is_rate_limited(req) is True
+
+@pytest.mark.asyncio
+async def test_is_rate_limited_no_headers_fails_closed():
+    # Verification of the getattr guard: should return True if headers attribute is missing
+    req = object() # Basic object with no headers
+    from main import is_rate_limited
+    assert is_rate_limited(req) is True
