@@ -19,6 +19,7 @@ Environment variables (set by the GitHub Actions workflow):
 import os
 import re
 import sys
+import yaml
 
 
 # ---------------------------------------------------------------------------
@@ -32,9 +33,13 @@ _SPECIALTY_RE = re.compile(r"^[a-z0-9][a-z0-9+#.\-]{0,29}$")
 def _clean_text(val: str) -> str:
     """Strip whitespace and remove characters that are special in YAML scalars.
 
-    Newlines and carriage returns are collapsed to a single space first to prevent
+    HTML comments are stripped first so that inline ``<!-- ... -->`` fragments
+    from GitHub issue templates don't pollute parsed field values.
+    Newlines and carriage returns are then collapsed to a single space to prevent
     YAML multi-line injection (e.g. a crafted name field that adds extra YAML keys).
     """
+    # Remove HTML comments (e.g. template guidance hints like <!-- required -->)
+    val = re.sub(r"<!--.*?-->", "", val, flags=re.DOTALL)
     # Collapse newlines/carriage returns before any other processing
     val = re.sub(r"[\r\n]+", " ", val)
     val = val.strip()
@@ -94,11 +99,17 @@ def parse_body(body: str) -> dict:
 # YAML entry builder
 # ---------------------------------------------------------------------------
 
+def _yaml_quote(val: str) -> str:
+    """Return a double-quoted YAML scalar representation of val using PyYAML."""
+    # yaml.dump with double-quote style handles all special characters correctly.
+    return yaml.dump(val, default_style='"').rstrip("\n")
+
+
 def build_entry(fields: dict) -> str:
     """Return a YAML block for one mentor entry, indented for the mentors list."""
     lines = [
         f'  - github_username: {fields["github_username"]}',
-        f'    name: {fields["name"]}',
+        f'    name: {_yaml_quote(fields["name"])}',
     ]
     if fields["specialties"]:
         lines.append("    specialties:")
@@ -107,7 +118,7 @@ def build_entry(fields: dict) -> str:
     lines.append(f'    max_mentees: {fields["max_mentees"]}')
     lines.append("    active: true")
     if fields["timezone"]:
-        lines.append(f'    timezone: {fields["timezone"]}')
+        lines.append(f'    timezone: {_yaml_quote(fields["timezone"])}')
     return "\n".join(lines)
 
 
@@ -147,13 +158,24 @@ def main() -> None:
         print(f"ERROR: Cannot read {mentors_path}: {exc}", file=sys.stderr)
         sys.exit(1)
 
-    # Case-insensitive duplicate check
-    if fields["github_username"].lower() in content.lower():
+    # Exact case-insensitive duplicate check: parse the YAML and compare usernames
+    # rather than doing a raw substring search (which causes false positives).
+    try:
+        existing = yaml.safe_load(content) or {}
+        existing_mentors = existing.get("mentors", []) if isinstance(existing, dict) else []
+    except yaml.YAMLError:
+        existing_mentors = []
+    username_lower = fields["github_username"].lower()
+    if any(
+        str(m.get("github_username", "")).lower() == username_lower
+        for m in existing_mentors
+        if isinstance(m, dict)
+    ):
         print(
-            f"::warning::{fields['github_username']} may already be in {mentors_path} — skipping.",
+            f"::warning::{fields['github_username']} is already in {mentors_path} — skipping.",
             flush=True,
         )
-        # Write empty outputs so the "Create PR" step is skipped
+        # Write empty outputs so the downstream step is skipped
         _write_output("github_username", "")
         _write_output("name", "")
         sys.exit(0)

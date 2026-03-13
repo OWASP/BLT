@@ -2041,9 +2041,9 @@ async def _check_rank_improvement(owner: str, repo: str, pr_number: int, author_
 
 def _parse_yaml_scalar(s: str):
     """Convert a YAML scalar string to an appropriate Python value."""
-    if s.lower() in ("true", "yes"):
+    if s.lower() in ("true", "yes", "on"):
         return True
-    if s.lower() in ("false", "no"):
+    if s.lower() in ("false", "no", "off"):
         return False
     if s.lower() in ("null", "~", ""):
         return None
@@ -2259,25 +2259,39 @@ async def _find_assigned_mentor_from_comments(
 ) -> Optional[str]:
     """Scan issue comments for the ``blt-mentor-assigned`` hidden marker.
 
-    Returns the mentor's GitHub username, or ``None`` if no marker is found.
+    Paginates through all comments (100 per page) so the marker is found even
+    on issues with many comments.  Returns the mentor's GitHub username from the
+    most recent marker found, or ``None`` if no marker exists.
     """
-    resp = await github_api(
-        "GET",
-        f"/repos/{owner}/{repo}/issues/{issue_number}/comments?per_page=100",
-        token,
-    )
-    if resp.status != 200:
-        return None
-    comments = json.loads(await resp.text())
     marker = "<!-- blt-mentor-assigned:"
-    for comment in reversed(comments):
-        body = comment.get("body", "")
-        if marker in body:
-            start = body.find(marker) + len(marker)
-            end = body.find("-->", start)
-            if end > start:
-                return body[start:end].strip().lstrip("@")
-    return None
+    per_page = 100
+    page = 1
+    last_mentor: Optional[str] = None
+    while True:
+        resp = await github_api(
+            "GET",
+            f"/repos/{owner}/{repo}/issues/{issue_number}/comments"
+            f"?per_page={per_page}&page={page}",
+            token,
+        )
+        if resp.status != 200:
+            return None
+        comments = json.loads(await resp.text())
+        if not comments:
+            break
+        # Iterate in forward order, tracking the last match so the most recent
+        # assignment marker wins without needing to reverse the full list.
+        for comment in comments:
+            body = comment.get("body", "")
+            if marker in body:
+                start = body.find(marker) + len(marker)
+                end = body.find("-->", start)
+                if end > start:
+                    last_mentor = body[start:end].strip().lstrip("@")
+        if len(comments) < per_page:
+            break
+        page += 1
+    return last_mentor
 
 
 def _is_security_issue(issue: dict) -> bool:
