@@ -1,0 +1,147 @@
+name: Announce Contest Winner
+
+# Triggered whenever someone comments on an issue.
+# The real work only runs when the comment is "/approve" on a winner-announcement issue.
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  issues: write   # needed to add labels, post comments, and close issues
+
+jobs:
+  approve-winner:
+    name: Process /approve command
+    runs-on: ubuntu-latest
+    # Skip pull-request comments — only handle issue comments
+    if: github.event.issue.pull_request == null
+
+    steps:
+      - name: Process winner approval
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const owner        = context.repo.owner;
+            const repo         = context.repo.repo;
+            const issueNumber  = context.issue.number;
+            const commentBody  = context.payload.comment.body.trim();
+            const commenter    = context.payload.comment.user.login;
+
+            // ── 1. Only react to /approve ──────────────────────────────────────
+            if (!commentBody.startsWith('/approve')) {
+              console.log('Not an /approve command — skipping.');
+              return;
+            }
+
+            // ── 2. Issue must carry the winner-announcement label ──────────────
+            const issueLabels = (context.payload.issue.labels || []).map(l => l.name);
+            if (!issueLabels.includes('winner-announcement')) {
+              console.log('Issue is not a winner-announcement — skipping.');
+              return;
+            }
+
+            // ── 3. Commenter must be the repository owner ─────────────────────
+            if (commenter !== owner) {
+              await github.rest.issues.createComment({
+                owner, repo, issue_number: issueNumber,
+                body: `❌ Only the repository owner (@${owner}) can approve a winner announcement.`,
+              });
+              console.log(`Rejected: ${commenter} is not the repo owner.`);
+              return;
+            }
+
+            // ── 4. Parse the structured issue body ────────────────────────────
+            const body = context.payload.issue.body || '';
+
+            function parseFormField(text, fieldName) {
+              // Escape any regex special characters in the field name before building the pattern.
+              const escaped = fieldName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+              const re = new RegExp(`### ${escaped}\\s*\\n+([\\s\\S]*?)(?=\\n###|$)`, 'i');
+              const m  = text.match(re);
+              return m ? m[1].trim() : null;
+            }
+
+            const contestField     = parseFormField(body, 'Contest');
+            const winnerUsername   = parseFormField(body, "Winner's GitHub Username");
+            const winningIssueStr  = parseFormField(body, 'Winning Submission Issue Number');
+
+            if (!contestField || !winnerUsername || !winningIssueStr) {
+              await github.rest.issues.createComment({
+                owner, repo, issue_number: issueNumber,
+                body: '❌ Could not parse the winner announcement. Please check that all required fields are filled in.',
+              });
+              return;
+            }
+
+            const winningIssueNum = parseInt(winningIssueStr, 10);
+            if (isNaN(winningIssueNum) || winningIssueNum <= 0) {
+              await github.rest.issues.createComment({
+                owner, repo, issue_number: issueNumber,
+                body: `❌ Invalid winning issue number: "${winningIssueStr}". Please provide a valid positive integer.`,
+              });
+              return;
+            }
+
+            // ── 5. Verify the winning submission issue exists ─────────────────
+            let winningIssue;
+            try {
+              const resp = await github.rest.issues.get({
+                owner, repo, issue_number: winningIssueNum,
+              });
+              winningIssue = resp.data;
+            } catch (e) {
+              await github.rest.issues.createComment({
+                owner, repo, issue_number: issueNumber,
+                body: `❌ Could not find issue #${winningIssueNum}. Please double-check the issue number.`,
+              });
+              return;
+            }
+
+            // ── 6. Ensure the "winner" label exists in the repo ───────────────
+            try {
+              await github.rest.issues.getLabel({ owner, repo, name: 'winner' });
+            } catch (e) {
+              if (e.status === 404) {
+                await github.rest.issues.createLabel({
+                  owner, repo,
+                  name: 'winner',
+                  color: 'f59e0b',
+                  description: 'Contest winner',
+                });
+                console.log('Created missing "winner" label.');
+              } else {
+                throw e;
+              }
+            }
+
+            // ── 7. Apply the winner label to the winning submission ───────────
+            await github.rest.issues.addLabels({
+              owner, repo,
+              issue_number: winningIssueNum,
+              labels: ['winner'],
+            });
+            console.log(`Applied "winner" label to issue #${winningIssueNum}.`);
+
+            // ── 8. Post a success comment on the announcement issue ───────────
+            await github.rest.issues.createComment({
+              owner, repo, issue_number: issueNumber,
+              body: [
+                `✅ **Winner approved!**`,
+                ``,
+                `🏆 Congratulations to @${winnerUsername}!`,
+                `The \`winner\` label has been applied to issue #${winningIssueNum}.`,
+                ``,
+                `The showcase pages will be rebuilt automatically to highlight the winning design.`,
+              ].join('\n'),
+            });
+
+            // ── 9. Close the announcement issue as completed ──────────────────
+            await github.rest.issues.update({
+              owner, repo,
+              issue_number: issueNumber,
+              state: 'closed',
+              state_reason: 'completed',
+            });
+
+            console.log(`Winner announcement #${issueNumber} closed successfully.`);

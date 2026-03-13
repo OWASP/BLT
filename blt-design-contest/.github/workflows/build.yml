@@ -56,10 +56,11 @@ jobs:
 
             // All labels that need to exist, plus the title prefix used to auto-apply them
             const contestLabels = [
-              { name: 'design-submission',  color: 'e10101', description: 'BLT App Redesign submission',  titlePrefix: '[Design]'   },
-              { name: 'logo-submission',    color: 'a855f7', description: 'BLT Logo Contest submission',  titlePrefix: '[Logo]'     },
-              { name: 'homepage-submission',color: '3b82f6', description: 'BLT Homepage Design submission', titlePrefix: '[Homepage]' },
-              { name: 'winner',             color: 'f59e0b', description: 'Contest winner',               titlePrefix: null         },
+              { name: 'design-submission',    color: 'e10101', description: 'BLT App Redesign submission',     titlePrefix: '[Design]'   },
+              { name: 'logo-submission',      color: 'a855f7', description: 'BLT Logo Contest submission',     titlePrefix: '[Logo]'     },
+              { name: 'homepage-submission',  color: '3b82f6', description: 'BLT Homepage Design submission',  titlePrefix: '[Homepage]' },
+              { name: 'winner',               color: 'f59e0b', description: 'Contest winner',                  titlePrefix: null         },
+              { name: 'winner-announcement',  color: '10b981', description: 'Pending winner announcement',     titlePrefix: null         },
             ];
 
             // Ensure each label exists

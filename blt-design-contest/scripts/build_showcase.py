@@ -1571,6 +1571,127 @@ def build_show_all_entries_html(contests_data: list[dict], last_updated: str) ->
     </html>"""
 
 
+def build_winner_showcase(winner_issues: list, title_prefix: str) -> str:
+    """Return a prominent winner-showcase hero section for a contest page.
+
+    Displayed at the top of the main content area when one or more winners
+    have been selected.  Each winner gets their design image, GitHub avatar,
+    username, and a link back to the winning submission.
+    """
+    if not winner_issues:
+        return ""
+
+    entry_blocks: list[str] = []
+    for i, issue in enumerate(winner_issues):
+        number = issue["number"]
+        raw_title = (
+            issue.get("title", "Untitled").replace(
+                title_prefix + " ", "", 1
+            ).strip() if title_prefix else issue.get("title", "Untitled")
+        )
+        title = html.escape(raw_title)
+        issue_url = html.escape(issue.get("html_url", "#"))
+        user = issue.get("user", {})
+        author_login = html.escape(user.get("login", "unknown"))
+        author_url = html.escape(user.get("html_url", "#"))
+        author_avatar = html.escape(user.get("avatar_url", ""))
+
+        body_text = issue.get("body", "") or ""
+        fields = parse_issue_body(body_text)
+        preview_url = html.escape(extract_preview_url(fields, body_text))
+
+        avatar_img = (
+            f'<img src="{author_avatar}" alt="{author_login}\'s avatar" '
+            f'class="w-12 h-12 rounded-full border-2 border-amber-400 shadow-sm" />'
+            if author_avatar
+            else (
+                '<span class="inline-flex items-center justify-center w-12 h-12 '
+                "rounded-full bg-amber-200 dark:bg-amber-800\">"
+                '<i class="fa-solid fa-user text-amber-700 dark:text-amber-300"'
+                ' aria-hidden="true"></i></span>'
+            )
+        )
+
+        preview_html = (
+            f'<a href="{issue_url}" target="_blank" rel="noopener"'
+            f'   class="block w-full md:w-1/2 lg:w-2/5 shrink-0 rounded-xl'
+            f"          overflow-hidden shadow-lg border-2 border-amber-300"
+            f'          dark:border-amber-600">'
+            f'  <img src="{preview_url}" alt="{title} - winning design"'
+            f'       class="w-full object-cover" style="max-height:20rem" />'
+            f"</a>"
+        ) if preview_url else ""
+
+        sep = (
+            '<hr class="border-amber-200 dark:border-amber-700" />'
+            if i > 0
+            else ""
+        )
+        entry_blocks.append(f"""
+        {sep}
+        <div class="flex flex-col md:flex-row gap-6 items-center">
+          <div class="flex-1 min-w-0 flex flex-col gap-4">
+            <div class="flex items-center gap-3">
+              {avatar_img}
+              <div class="min-w-0">
+                <a href="{author_url}" target="_blank" rel="noopener"
+                   class="text-lg font-bold text-amber-800 dark:text-amber-300 hover:underline">
+                  @{author_login}
+                </a>
+                <p class="text-xs text-amber-600 dark:text-amber-500">
+                  <i class="fa-solid fa-trophy" aria-hidden="true"></i> Contest Winner
+                </p>
+              </div>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100 leading-snug">
+              {title}
+            </h3>
+            <a href="{issue_url}" target="_blank" rel="noopener"
+               class="inline-flex items-center gap-2 bg-amber-400 hover:bg-amber-500
+                      text-amber-900 font-semibold text-sm px-4 py-2 rounded-md
+                      transition-colors w-fit">
+              <i class="fa-brands fa-github" aria-hidden="true"></i>
+              View Winning Submission #{number}
+            </a>
+          </div>
+          {preview_html}
+        </div>""")
+
+    count = len(winner_issues)
+    s = "s" if count > 1 else ""
+    have = "have" if count > 1 else "has"
+    entries_combined = "\n".join(entry_blocks)
+
+    return f"""
+    <!-- ══════════════════════════════════════════
+         WINNER SHOWCASE HERO
+    ══════════════════════════════════════════ -->
+    <section aria-label="Contest winner showcase"
+             class="mb-8 bg-gradient-to-br from-amber-50 via-yellow-50 to-amber-50
+                    dark:from-amber-900/25 dark:via-yellow-900/15 dark:to-amber-900/25
+                    border border-amber-300 dark:border-amber-600
+                    rounded-2xl overflow-hidden shadow-sm">
+      <div class="px-6 py-4 border-b border-amber-200 dark:border-amber-700
+                  flex items-center gap-3">
+        <span class="inline-flex items-center justify-center w-10 h-10 rounded-full
+                     bg-amber-400 text-amber-900 text-xl">
+          <i class="fa-solid fa-trophy" aria-hidden="true"></i>
+        </span>
+        <div>
+          <h2 class="text-lg font-bold text-amber-800 dark:text-amber-300">
+            Winner{s} Announced!
+          </h2>
+          <p class="text-sm text-amber-600 dark:text-amber-500">
+            The following design{s} {have} been selected as the winner{s} of this contest.
+          </p>
+        </div>
+      </div>
+      <div class="p-6 flex flex-col gap-6">
+        {entries_combined}
+      </div>
+    </section>"""
+
+
 def build_contest_page_html(contest_data: dict, last_updated: str) -> str:
     """Return a complete standalone HTML page for a single contest."""
     c = contest_data["config"]
@@ -1581,6 +1702,14 @@ def build_contest_page_html(contest_data: dict, last_updated: str) -> str:
         f"https://github.com/{REPO}/issues/new?template={c['template']}"
     )
     deadline = c["deadline"]
+
+    # Build winner showcase from issues carrying the winner label
+    winner_issues = [
+        issue
+        for issue in contest_data.get("issues", [])
+        if WINNER_LABEL in [lb["name"] for lb in issue.get("labels", [])]
+    ]
+    winner_showcase = build_winner_showcase(winner_issues, c["title_prefix"])
 
     # The contest content (info bar + winner banner + sort controls + cards grid)
     contest_section = build_contest_section(
@@ -1712,6 +1841,7 @@ def build_contest_page_html(contest_data: dict, last_updated: str) -> str:
         Last updated {last_updated}
       </p>
 
+      {winner_showcase}
       {contest_section}
 
     </div>
