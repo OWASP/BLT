@@ -1271,7 +1271,7 @@ def build_show_all_entries_html(contests_data: list[dict], last_updated: str) ->
             if item["preview_url"]:
                 preview_block = (
                     f'<a href="{item["issue_url"]}" target="_blank" rel="noopener" '
-                    f'   class="block overflow-hidden aspect-video bg-gray-100 dark:bg-gray-700">'
+                    f'   class="block overflow-hidden aspect-square bg-gray-100 dark:bg-gray-700">'
                     f'  <img src="{item["preview_url"]}" alt="{item["title"]} preview" loading="lazy" '
                     f'       class="w-full h-full object-cover transition-transform duration-300 '
                     f'              group-hover:scale-105" />'
@@ -1280,7 +1280,7 @@ def build_show_all_entries_html(contests_data: list[dict], last_updated: str) ->
             else:
                 preview_block = (
                     f'<a href="{item["issue_url"]}" target="_blank" rel="noopener" '
-                    f'   class="flex items-center justify-center aspect-video '
+                    f'   class="flex items-center justify-center aspect-square '
                     f'          bg-gray-100 dark:bg-gray-700 text-gray-400">'
                     f'  <i class="fa-solid fa-image text-3xl" aria-hidden="true"></i>'
                     f'</a>'
