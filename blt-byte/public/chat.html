@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BLT Byte - AI Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js" integrity="sha384-/TQbtLCAerC3jgaim+N78RZSDYV7ryeoBCVqTuzRrFec2akfBkHS7ACQ3PQhvMVi" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="/static/common.css">
+    <script src="/static/common.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js" integrity="sha384-+VfUPEb0PdtChMwmBcBmykRMDd+v6D/oFmB3rZM/puCMDYcIvF968OimRh4KQY9a" crossorigin="anonymous"></script>
+</head>
+
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen flex flex-col font-sans transition-colors duration-200">
+    <!-- Gradient overlay -->
+    <div
+        class="pointer-events-none fixed inset-0 -z-10 h-[460px] bg-gradient-to-b from-red-50 via-white to-transparent dark:from-red-950/20 dark:via-gray-900 dark:to-transparent">
+    </div>
+
+    <!-- Header -->
+    <header
+        class="sticky top-0 z-50 bg-white/98 dark:bg-gray-800/98 backdrop-blur border-b border-gray-200 dark:border-gray-700 shadow-sm">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <img src="/static/logo.png" alt="BLT Byte Logo" class="w-10 h-10 object-contain">
+                <div>
+                    <h1 class="text-xl font-extrabold text-gray-900 dark:text-gray-100 leading-tight">BLT Byte</h1>
+                    <p class="text-sm font-semibold text-gray-600 dark:text-gray-400">AI-Powered Bug Bounty Assistant
+                    </p>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <button id="dark-toggle"
+                    class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+                    aria-label="Toggle dark mode">
+                    <svg class="w-5 h-5 dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                        stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z">
+                        </path>
+                    </svg>
+                    <svg class="w-5 h-5 hidden dark:block" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
+                    </svg>
+                </button>
+                <a href="/" class="text-sm text-blt-red hover:text-red-700 font-bold transition">
+                    ← Back
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Chat Area -->
+    <main class="flex-1 overflow-y-auto px-4 sm:px-6 py-6" id="chatMain">
+        <div class="max-w-4xl mx-auto">
+            <!-- Welcome Message -->
+            <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 mb-4 shadow-sm animate-fade-in transition-colors duration-200"
+                id="welcomeCard">
+                <h2 class="text-lg font-extrabold text-gray-900 dark:text-gray-100 mb-3">👋 Welcome to BLT Byte!</h2>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-4 leading-relaxed">
+                    I'm your AI assistant for bug bounty hunting and security research. I can help you with:
+                </p>
+                <ul class="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+                    <li class="flex items-start">
+                        <span class="text-blt-red font-bold mr-2">•</span>
+                        <span class="font-medium">Understanding how to report bugs on BugHeist</span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-blt-red font-bold mr-2">•</span>
+                        <span class="font-medium">Learning about different vulnerability types</span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-blt-red font-bold mr-2">•</span>
+                        <span class="font-medium">Bug bounty best practices and methodologies</span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-blt-red font-bold mr-2">•</span>
+                        <span class="font-medium">Responsible disclosure guidelines</span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-blt-red font-bold mr-2">•</span>
+                        <span class="font-medium">Security research tips and techniques</span>
+                    </li>
+                </ul>
+
+                <!-- Quick Prompts in Welcome Card -->
+                <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300">
+                    <p class="text-xs font-semibold text-gray-500 dark:text-gray-500 mb-2 uppercase tracking-wide">Quick
+                        Start</p>
+                    <div class="flex flex-wrap gap-2" id="welcomeQuickPrompts">
+                        <button class="quick-prompt-btn">What is OWASP BLT?</button>
+                        <button class="quick-prompt-btn">How do I report a bug?</button>
+                        <button class="quick-prompt-btn">How do I contribute code?</button>
+                        <button class="quick-prompt-btn">What rewards can I earn?</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Messages Container -->
+            <div class="space-y-4" id="chatMessages" aria-live="polite" aria-relevant="additions text">
+                <!-- Loading Indicator -->
+                <div class="hidden animate-fade-in" id="loadingIndicator">
+                    <div class="flex gap-3">
+                        <div
+                            class="w-9 h-9 bg-blt-red rounded-lg flex items-center justify-center text-white font-bold text-sm flex-shrink-0 shadow-sm">
+                            B
+                        </div>
+                        <div
+                            class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 shadow-sm">
+                            <div class="flex gap-1.5">
+                                <span class="w-2 h-2 bg-blt-red rounded-full animate-bounce-dot"></span>
+                                <span class="w-2 h-2 bg-blt-red rounded-full animate-bounce-dot"></span>
+                                <span class="w-2 h-2 bg-blt-red rounded-full animate-bounce-dot"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Input Area -->
+    <div
+        class="sticky bottom-0 bg-white/98 dark:bg-gray-800/98 backdrop-blur border-t border-gray-200 dark:border-gray-700 px-4 sm:px-6 py-4 shadow-lg transition-colors duration-200">
+        <div class="max-w-4xl mx-auto">
+            <form class="flex gap-3 items-end" id="chatForm">
+                <textarea
+                    class="flex-1 px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl text-sm focus:border-blt-red focus:ring-4 focus:ring-red-100 dark:focus:ring-red-900/40 outline-none transition resize-none min-h-[48px] max-h-[120px] bg-white dark:bg-gray-700 dark:text-gray-100"
+                    id="messageInput" placeholder="Ask me anything about bug bounty hunting..." rows="1"
+                    autocomplete="off" required></textarea>
+                <button type="submit"
+                    class="px-7 py-3 bg-blt-red text-white rounded-xl font-bold text-sm hover:bg-red-700 active:translate-y-0 transition-all disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap h-[48px] hover:-translate-y-0.5 hover:shadow-lg hover:shadow-red-200 dark:hover:shadow-red-950"
+                    id="sendButton">
+                    Send
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <style>
+        .quick-prompt-btn {
+            background: transparent;
+            border: 1px solid #e5e7eb;
+            color: #6b7280;
+            border-radius: 16px;
+            padding: .3rem .8rem;
+            font-size: .78rem;
+            cursor: pointer;
+            transition: all .2s;
+            font-weight: 500;
+        }
+
+        .dark .quick-prompt-btn {
+            border-color: #374151;
+            color: #9ca3af;
+        }
+
+        .quick-prompt-btn:hover {
+            border-color: #E10101;
+            color: #E10101;
+            background: rgba(225, 1, 1, .05);
+        }
+    </style>
+
+    <script>
+        const chatMain = document.getElementById('chatMain');
+        const chatMessages = document.getElementById('chatMessages');
+        const chatForm = document.getElementById('chatForm');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const welcomeCard = document.getElementById('welcomeCard');
+        let hasStartedChat = false;
+        let conversationHistory = [];
+
+        // Auto-resize textarea
+        messageInput.addEventListener('input', function () {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+        });
+
+        // Handle enter key
+        messageInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                chatForm.dispatchEvent(new Event('submit'));
+            }
+        });
+
+        // Auto-scroll to bottom
+        function scrollToBottom() {
+            chatMain.scrollTop = chatMain.scrollHeight;
+        }
+
+        // Hide welcome card when chat starts
+        function hideWelcomeCard() {
+            if (!hasStartedChat && welcomeCard) {
+                hasStartedChat = true;
+                welcomeCard.classList.add('animate-fade-out');
+                setTimeout(() => {
+                    welcomeCard.style.display = 'none';
+                }, 300);
+            }
+        }
+
+        // Add message to chat
+        function addMessage(content, isUser = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `flex gap-3 animate-fade-in ${isUser ? 'flex-row-reverse' : ''}`;
+
+            const avatar = document.createElement('div');
+            avatar.className = `w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-sm ${isUser ? 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300' : 'bg-blt-red text-white'}`;
+            avatar.textContent = isUser ? 'U' : 'B';
+
+            const messageContent = document.createElement('div');
+            messageContent.className = `flex-1 max-w-[75%] px-4 py-3 rounded-2xl text-sm leading-relaxed transition-colors duration-200 ${isUser
+                ? 'bg-blt-red text-white font-medium shadow-sm whitespace-pre-wrap'
+                : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 shadow-sm prose dark:prose-invert'
+                }`;
+
+            // Render markdown or escape text
+           if (isUser) {
+                messageContent.textContent = content;
+            } else {
+                messageContent.innerHTML = BLT.sanitize(marked.parse(content));
+            }
+
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(messageContent);
+
+            chatMessages.insertBefore(messageDiv, loadingIndicator);
+            setTimeout(scrollToBottom, 50);
+        }
+
+        // Show error
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.setAttribute('role', 'alert');
+            errorDiv.className = 'bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-400 px-4 py-3 rounded-xl border border-red-200 dark:border-red-900/50 text-sm font-medium animate-fade-in';
+            errorDiv.textContent = `⚠ ${message}`;
+            chatMessages.insertBefore(errorDiv, loadingIndicator);
+            scrollToBottom();
+
+            setTimeout(() => {
+                errorDiv.style.opacity = '0';
+                errorDiv.style.transition = 'opacity 0.3s';
+                setTimeout(() => errorDiv.remove(), 300);
+            }, 5000);
+        }
+
+        // Send message
+        async function sendMessage(message, history) {
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: message,
+                        history: history
+                    })
+                });
+
+                const data = await response.json().catch(() => null);
+                if (!response.ok) {
+                    throw new Error(data?.error || `Server error: ${response.status}`);
+                }
+
+                if (data && Object.prototype.hasOwnProperty.call(data, 'reply')) {
+                    return data.reply;
+                }
+                if (data?.error) throw new Error(data.error);
+                throw new Error('Unknown error occurred');
+            } catch (error) {
+                console.error('Error:', error);
+                throw error;
+            }
+        }
+
+        // Handle form submission
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            hideWelcomeCard();
+            addMessage(message, true);
+            const requestHistory = conversationHistory.slice(-10);
+
+            messageInput.value = '';
+            messageInput.style.height = 'auto';
+            messageInput.disabled = true;
+            sendButton.disabled = true;
+            loadingIndicator.classList.remove('hidden');
+
+            try {
+                const response = await sendMessage(message, requestHistory);
+                conversationHistory.push({ role: 'user', content: message });
+                addMessage(response, false);
+                conversationHistory.push({ role: 'assistant', content: response });
+                conversationHistory = conversationHistory.slice(-10);
+            } catch (error) {
+                showError(error.message || 'Failed to send message. Please try again.');
+            } finally {
+                messageInput.disabled = false;
+                sendButton.disabled = false;
+                loadingIndicator.classList.add('hidden');
+                messageInput.focus();
+            }
+        });
+
+        // Handle quick prompt buttons
+        document.getElementById('welcomeQuickPrompts').addEventListener('click', (e) => {
+            if (e.target.classList.contains('quick-prompt-btn')) {
+                messageInput.value = e.target.textContent;
+                sendButton.click();
+            }
+        });
+
+        // Focus input on load
+        window.addEventListener('load', () => {
+            messageInput.focus();
+        });
+    </script>
+
+</body>
+
+</html>

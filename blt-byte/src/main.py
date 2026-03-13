@@ -10,59 +10,55 @@ Routes:
 """
 
 import json
-from pathlib import Path
+import hashlib
+import re
+import traceback
+import pyodide
+import js
 
 from workers import Response, WorkerEntrypoint
+
+# Production mode: Disable deep debugging
+try:
+    pyodide.setDebug(False)
+except AttributeError:
+    pass # Debug mode not available in this Pyodide build
 
 # ---------------------------------------------------------------------------
 # BLT FAQ knowledge base
 # ---------------------------------------------------------------------------
 CLOUDFLARE_AI_MODEL = "@cf/openai/gpt-oss-120b"
 FAQ_CONTEXT = """
-You are Byte, the AI assistant for OWASP BLT (Bug Logging Tool).
-OWASP BLT is a gamified, crowd-sourced QA testing and vulnerability disclosure
-platform. Key facts:
+You are Byte, the AI assistant for OWASP BLT (Bug Logging Tool), a gamified QA and vulnerability disclosure platform.
 
-- Website: https://www.bugheist.com / https://owasp.org/www-project-bug-logging-tool/
+Key Information:
+- Websites: https://www.bugheist.com, https://owasp.org/www-project-bug-logging-tool/
 - GitHub: https://github.com/OWASP-BLT/BLT
-- Purpose: Help security researchers discover, report, and get rewarded for
-  finding bugs in websites, apps, and Git repositories.
-- Key features: bug reporting, gamification (points, badges), leaderboards,
-  organisation management, SIZZLE token rewards, Bacon (BLT's internal currency).
-- Tech stack: Python/Django backend, Cloudflare Workers AI for Byte.
-- Slack: https://owasp.org/slack/invite (channel #project-blt)
+- Features: Bug reporting, gamification (points, leaderboards), SIZZLE tokens, Bacon currency.
+- Tech: Python/Django backend, Cloudflare Workers AI.
+- Slack: #project-blt at https://owasp.org/slack/invite
 
-Onboarding steps for new contributors:
-  1. Fork https://github.com/OWASP-BLT/BLT and clone locally.
-  2. Copy .env.example to .env and fill in required credentials.
-  3. Run `docker-compose up` (or follow the manual Django setup in CONTRIBUTING.md).
-  4. Browse to http://localhost:8000.
-  5. Pick a good-first-issue and submit a PR.
+Contributor Onboarding:
+1. Fork & clone the BLT GitHub repo.
+2. Setup .env from .env.example.
+3. Run `docker-compose up` and visit http://localhost:8000.
+4. Claim a 'good-first-issue' and submit a PR.
 
-Onboarding steps for bug hunters:
-  1. Register at https://www.bugheist.com.
-  2. Choose a domain/project to test.
-  3. Find a bug, screenshot it, submit a report.
-  4. Earn points and climb the leaderboard.
+Bug Hunter Onboarding:
+1. Register at https://www.bugheist.com.
+2. Select a target, find bugs, and submit reports with screenshots.
+3. Earn points and climb the leaderboard.
 
-Security scanning capabilities (via /api/scan):
-  - Header analysis: checks for missing or misconfigured security headers.
-  - SSL/TLS check: verifies certificate validity and protocol versions.
-  - Open redirect detection hints.
-  - Exposed sensitive files check.
+Capabilities:
+- /api/scan: Header analysis, SSL/TLS checks, redirect detection, sensitive file checks.
+- /api/mcp: search_bugs, submit_bug, get_leaderboard, scan_url.
 
-MCP integration (/api/mcp):
-  - Exposes BLT tool capabilities as MCP tools so AI IDEs (Cursor, Zed, etc.)
-    can interact with BLT directly.
-  - Available tools: search_bugs, submit_bug, get_leaderboard, scan_url.
-
-Always be concise, friendly, and security-focused. If unsure, direct the user
-to the BLT GitHub repository or Slack.
+Be concise, friendly, and security-focused. **DO NOT include any internal monologue, thought process, or "We should respond as..." meta-commentary. Respond only as Byte speaking to the user.**
 """
 
 SCAN_SYSTEM_PROMPT = """
 You are a security analysis assistant for OWASP BLT. Given a URL or domain,
-provide a structured security assessment covering:
+provide a structured security assessment. **Respond ONLY with the final analysis. Do not include internal reasoning or thought processes.**
 1. Recommended security headers to check (CSP, HSTS, X-Frame-Options, etc.)
 2. Common vulnerabilities to test for (OWASP Top 10 relevant items)
 3. Suggested BLT report categories
@@ -127,7 +123,7 @@ MCP_MANIFEST = {
                     "role": {
                         "type": "string",
                         "enum": ["contributor", "bug_hunter", "organisation"],
-                        "description": "User role",
+                        "description": "User role (required). Valid values: contributor, bug_hunter, organisation. Defaults to contributor if not specified by client but intended for explicit tool calls.",
                     }
                 },
                 "required": ["role"],
@@ -164,123 +160,59 @@ def error_response(message: str, status: int = 400) -> Response:
 # Chat handler
 # ---------------------------------------------------------------------------
 async def handle_chat(request, env) -> Response:
+    # Avoid JsProxy for inputs by using text() + native json.loads()
+    body_text = await request.text()
     try:
-        body = await request.json()
-    except Exception:
+        body = json.loads(body_text) if body_text else {}
+    except json.JSONDecodeError:
         return error_response("Invalid JSON body")
+    if not isinstance(body, dict):
+        return error_response("JSON body must be an object")
 
-    user_message = body.get("message", "").strip()
+    user_message = body.get("message", "")
+    if not isinstance(user_message, str):
+        return error_response("'message' field must be a string")
+    user_message = user_message.strip()
     if not user_message:
         return error_response("'message' field is required")
 
     history = body.get("history", [])
-
-    # Build system instructions with context
-    system_instructions = FAQ_CONTEXT
+    result = await _run_chat(env, user_message, history)
     
-    # Add conversation history to instructions
-    # Convert to list and extract values immediately to avoid Pyodide proxy destruction
-    history_list = list(history[-10:]) if history else []
-    if history_list:
-        system_instructions += "\n\nConversation history:\n"
-        for turn in history_list:
-            role = str(turn.get("role", "user"))
-            content = str(turn.get("content", ""))
-            if role in ("user", "assistant") and content:
-                system_instructions += f"{role}: {content}\n"
-
-    # Call Cloudflare AI
-    try:
-        ai_response = await env.AI.run(
-            CLOUDFLARE_AI_MODEL,
-            {
-                "instructions": system_instructions,
-                "input": user_message,
-            },
-        )
+    if "error" in result:
+        return error_response(result["error"], int(result.get("status", 502)))
         
-        # Extract the response - convert JsProxy to Python object
-        response_output = ai_response.output if hasattr(ai_response, 'output') else ai_response
-        
-        # Convert JsProxy to Python object if needed
-        if hasattr(response_output, 'to_py'):
-            response_output = response_output.to_py()
-        
-        # The output is a list with reasoning and assistant message
-        # Find the assistant message (last item with role="assistant")
-        reply = "I'm having trouble generating a response."
-        
-        if isinstance(response_output, list):
-            # Find the assistant message object
-            for item in response_output:
-                if isinstance(item, dict) and item.get('role') == 'assistant':
-                    content = item.get('content', [])
-                    # Content is an array of objects, find the output_text
-                    if isinstance(content, list):
-                        for content_item in content:
-                            if isinstance(content_item, dict) and content_item.get('type') == 'output_text':
-                                reply = content_item.get('text', reply)
-                                break
-                    break
-        else:
-            print(f"Response output is not a list, it's: {type(response_output)}")
-    
-    except Exception as ai_error:
-        print(f"AI call error: {str(ai_error)}")
-        reply = "I'm having trouble connecting to the AI service. Please try again."
-
-    return json_response({"reply": reply, "model": CLOUDFLARE_AI_MODEL})
+    return json_response({**result, "model": CLOUDFLARE_AI_MODEL})
 
 
 # ---------------------------------------------------------------------------
 # Security scan handler
 # ---------------------------------------------------------------------------
 async def handle_scan(request, env) -> Response:
+    # Avoid JsProxy for inputs by using text() + native json.loads()
+    body_text = await request.text()
     try:
-        body = await request.json()
-    except Exception:
+        body = json.loads(body_text) if body_text else {}
+    except json.JSONDecodeError:
         return error_response("Invalid JSON body")
+    if not isinstance(body, dict):
+        return error_response("JSON body must be an object")
 
-    target = body.get("url", "").strip()
+    target = body.get("url", "")
+    if not isinstance(target, str):
+        return error_response("'url' field must be a string")
+    target = target.strip()
     if not target:
         return error_response("'url' field is required")
 
     scan_type = body.get("scan_type", "quick")
+    if scan_type not in ("quick", "full"):
+        return error_response("Invalid 'scan_type'. Allowed values: quick, full", 400)
 
-    depth_note = (
-        "Provide a comprehensive deep-dive analysis."
-        if scan_type == "full"
-        else "Provide a concise quick-scan checklist."
-    )
-
-    messages = [
-        {"role": "system", "content": SCAN_SYSTEM_PROMPT},
-        {
-            "role": "user",
-            "content": f"Analyse this target: {target}\n{depth_note}",
-        },
-    ]
-
-    ai_response = await env.AI.run(
-        CLOUDFLARE_AI_MODEL,
-        {"messages": messages, "max_tokens": 768},
-    )
-
-    raw = (
-        ai_response.get("response", "")
-        if isinstance(ai_response, dict)
-        else str(ai_response)
-    )
-
-    # Attempt to parse AI JSON output; fall back to plain text wrapper
-    try:
-        parsed = json.loads(raw)
-    except (json.JSONDecodeError, ValueError):
-        parsed = {"analysis": raw}
-
-    return json_response(
-        {"target": target, "scan_type": scan_type, "result": parsed}
-    )
+    result = await _run_scan(env, target, scan_type)
+    if "error" in result:
+        return error_response(result["error"], int(result.get("status", 502)))
+    return json_response({"target": target, "scan_type": scan_type, "result": result})
 
 
 # ---------------------------------------------------------------------------
@@ -295,29 +227,54 @@ async def handle_mcp(request, env) -> Response:
 
     # Tool invocation
     if method == "POST":
+        body_text = await request.text()
         try:
-            body = await request.json()
-        except Exception:
+            body = json.loads(body_text) if body_text else {}
+        except json.JSONDecodeError:
             return error_response("Invalid JSON body")
+        if not isinstance(body, dict):
+            return error_response("JSON body must be an object")
 
         tool_name = body.get("tool")
+        if not isinstance(tool_name, str) or not tool_name.strip():
+            return error_response("'tool' must be a non-empty string", 400)
+        tool_name = tool_name.strip()
         params = body.get("params", {})
+        if not isinstance(params, dict):
+            return error_response("'params' must be an object", 400)
 
         if tool_name == "chat":
             message = params.get("message", "")
+            if not isinstance(message, str) or not message.strip():
+                return error_response("'message' must be a non-empty string", 400)
             history = params.get("history", [])
             # Reuse chat logic by building a synthetic request-like object
             result = await _run_chat(env, message, history)
+            if "error" in result:
+                return error_response(result["error"], int(result.get("status", 502)))
             return json_response({"tool": tool_name, "result": result})
 
         if tool_name == "scan_url":
             url = params.get("url", "")
+            if not isinstance(url, str) or not url.strip():
+                return error_response("'url' must be a non-empty string", 400)
             scan_type = params.get("scan_type", "quick")
+            if scan_type not in ("quick", "full"):
+                return error_response("Invalid 'scan_type'. Allowed values: quick, full", 400)
             result = await _run_scan(env, url, scan_type)
+            if "error" in result:
+                return error_response(result["error"], int(result.get("status", 502)))
             return json_response({"tool": tool_name, "result": result})
 
         if tool_name == "get_onboarding_guide":
             role = params.get("role", "contributor")
+            if not isinstance(role, str):
+                return error_response("'role' must be a string", 400)
+            if role not in ("contributor", "bug_hunter", "organisation"):
+                return error_response(
+                    "Invalid 'role'. Allowed values: contributor, bug_hunter, organisation",
+                    400,
+                )
             result = _get_onboarding_guide(role)
             return json_response({"tool": tool_name, "result": result})
 
@@ -329,70 +286,188 @@ async def handle_mcp(request, env) -> Response:
 # ---------------------------------------------------------------------------
 # Internal helpers used by both direct API and MCP
 # ---------------------------------------------------------------------------
+def _sanitize_ai_output(text: str) -> str | None:
+    """Strip internal reasoning wrappers/preambles from model output."""
+
+    cleaned = text
+
+    # Remove common hidden-thought block wrappers first.
+    cleaned = re.sub(r"(?is)<think\b[^>]*>.*?</think>", " ", cleaned)
+    cleaned = re.sub(r"(?is)<reasoning\b[^>]*>.*?</reasoning>", " ", cleaned)
+    cleaned = re.sub(r"(?is)<analysis\b[^>]*>.*?</analysis>", " ", cleaned)
+
+    # Remove specific reasoning tags only. Avoid broad regex that strips all XML-like tags.
+    # We explicitly preserve common formatting or structural tags that might be in the markdown.
+    cleaned = re.sub(r"(?is)</?(?:think|reasoning|analysis|thought|brain|monologue)\b[^>]*>", " ", cleaned)
+
+    # Drop common reasoning preambles at the beginning.
+    cleaned = re.sub(
+        r"(?im)^\s*(?:reasoning|analysis|thought process|chain\s*of\s*thought|internal reasoning)\s*:\s*",
+        "",
+        cleaned,
+    )
+
+    cleaned = cleaned.strip()
+    return cleaned or None
+
+
+def _extract_ai_text(ai_response) -> str | None:
+    """Normalize text extraction across Cloudflare/OpenAI-style responses."""
+
+    # 1) OpenAI-compatible shape: choices[0].message.content
+    if isinstance(ai_response, dict):
+        choices = ai_response.get("choices")
+        if isinstance(choices, list) and choices:
+            first_choice = choices[0]
+            if isinstance(first_choice, dict):
+                message = first_choice.get("message")
+                if isinstance(message, dict):
+                    content = message.get("content")
+                    if isinstance(content, list):
+                        parts = []
+                        for item in content:
+                            if not isinstance(item, dict):
+                                continue
+                            if item.get("type") not in ("text", "output_text"):
+                                continue
+                            text = item.get("text")
+                            if isinstance(text, str) and text:
+                                parts.append(text)
+                        if parts:
+                            return _sanitize_ai_output("\n".join(parts))
+                    if isinstance(content, str):
+                        return _sanitize_ai_output(content)
+
+    # 2) Prefer explicit output payload, then response payload, then raw response
+    payload = ai_response
+    if isinstance(ai_response, dict):
+        if "output" in ai_response:
+            payload = ai_response["output"]
+        elif ai_response.get("response") is not None:
+            payload = ai_response.get("response")
+
+    # 3) List-style output: find assistant item and extract content
+    if isinstance(payload, list):
+        for item in payload:
+            if not isinstance(item, dict) or item.get("role") != "assistant":
+                continue
+            content = item.get("content")
+            if isinstance(content, str):
+                return _sanitize_ai_output(content)
+            if isinstance(content, list):
+                parts = []
+                for part in content:
+                    if not isinstance(part, dict):
+                        continue
+                    if part.get("type") not in ("text", "output_text"):
+                        continue
+                    text = part.get("text")
+                    if isinstance(text, str) and text:
+                        parts.append(text)
+                if parts:
+                    return _sanitize_ai_output("\n".join(parts))
+        return None
+
+    # 4) Dict/str outputs
+    if isinstance(payload, dict):
+        for key in ("response", "reply", "text", "content"):
+            value = payload.get(key)
+            if isinstance(value, str):
+                return _sanitize_ai_output(value)
+        return None
+
+    if isinstance(payload, str):
+        return _sanitize_ai_output(payload)
+
+    return None
+
+
 async def _run_chat(env, message: str, history: list) -> dict:
     if not message:
-        return {"error": "'message' is required"}
+        return {"error": "'message' is required", "status": 400}
+    if history is None:
+        history = []
+    if not isinstance(history, list):
+        return {"error": "'history' must be an array", "status": 400}
     
-    # Build system instructions with context
-    system_instructions = FAQ_CONTEXT
+    # Build message array for better model performance
+    messages = [
+        {"role": "system", "content": FAQ_CONTEXT}
+    ]
     
-    # Add conversation history to instructions
-    # Convert to list and extract values immediately to avoid Pyodide proxy destruction
+    # Add conversation history
     history_list = list(history[-10:]) if history else []
-    if history_list:
-        system_instructions += "\n\nConversation history:\n"
-        for turn in history_list:
-            role = str(turn.get("role", "user"))
-            content = str(turn.get("content", ""))
-            if role in ("user", "assistant") and content:
-                system_instructions += f"{role}: {content}\n"
+    for turn in history_list:
+        if not isinstance(turn, dict):
+            continue
+        role = str(turn.get("role", ""))
+        content = str(turn.get("content", ""))
+        if role in ("user", "assistant") and content:
+            messages.append({"role": role, "content": content})
     
-    # Call Cloudflare AI
+    # Add current user message
+    messages.append({"role": "user", "content": message})
+    
+    # Call Cloudflare AI using JS serialization to avoid proxy issues
     try:
-        ai_response = await env.AI.run(
+        # Convert Python options to pure JS to avoid proxy errors
+        ai_options = js.JSON.parse(json.dumps({
+            "messages": messages,
+            "max_tokens": 2048  # Give the model enough room to finish thinking AND answer
+        }))
+        
+        raw_ai_response = await env.AI.run(
             CLOUDFLARE_AI_MODEL,
-            {
-                "instructions": system_instructions,
-                "input": message,
-            },
+            ai_options
         )
         
-        # Extract the response - convert JsProxy to Python object
-        response_output = ai_response.output if hasattr(ai_response, 'output') else ai_response
+        # NUCLEAR EXTRACTION: Convert JS Result to pure Python tree via JSON bridge
+        # This is the only 100% reliable way to avoid nested "borrowed proxy" issues.
+        ai_response = json.loads(js.JSON.stringify(raw_ai_response))
         
-        # Convert JsProxy to Python object if needed
-        if hasattr(response_output, 'to_py'):
-            response_output = response_output.to_py()
-        
-        # The output is a list with reasoning and assistant message
-        # Find the assistant message (last item with role="assistant")
-        reply = "I'm having trouble generating a response."
-        
-        if isinstance(response_output, list):
-            # Find the assistant message object
-            for item in response_output:
-                if isinstance(item, dict) and item.get('role') == 'assistant':
-                    content = item.get('content', [])
-                    # Content is an array of objects, find the output_text
-                    if isinstance(content, list):
-                        for content_item in content:
-                            if isinstance(content_item, dict) and content_item.get('type') == 'output_text':
-                                reply = content_item.get('text', reply)
-                                break
-                    break
-        else:
-            print(f"Response output is not a list, it's: {type(response_output)}")
-    
+        print(f"AI Response Keys: {list(ai_response.keys()) if isinstance(ai_response, dict) else 'Not a dict'}")
+            
+        # Shared extraction logic keeps chat/scan behavior consistent.
+        reply = _extract_ai_text(ai_response)
+            
+        if reply is None:
+            if isinstance(ai_response, dict):
+                response_keys = list(ai_response.keys())
+            else:
+                response_keys = []
+
+            try:
+                response_dump = json.dumps(ai_response, sort_keys=True, default=str)
+            except Exception:
+                response_dump = str(type(ai_response))
+
+            response_hash = hashlib.sha256(response_dump.encode("utf-8")).hexdigest()
+            print(
+                "AI fallback extraction needed. "
+                f"response_type={type(ai_response).__name__} "
+                f"response_len={len(response_dump)} "
+                f"response_keys={response_keys[:10]} "
+                f"response_sha256={response_hash}"
+            )
+            return {
+                "error": "The AI service returned an unsupported response format. Please try again.",
+                "status": 502,
+            }
+            
     except Exception as ai_error:
-        print(f"AI call error: {str(ai_error)}")
-        reply = "I'm having trouble connecting to the AI service. Please try again."
+        print(f"AI call crash: {ai_error!s}")
+        traceback.print_exc()
+        return {
+            "error": "The AI service is temporarily unavailable. Please try again.",
+            "status": 502,
+        }
     
     return {"reply": reply}
 
 
 async def _run_scan(env, url: str, scan_type: str = "quick") -> dict:
     if not url:
-        return {"error": "'url' is required"}
+        return {"error": "'url' is required", "status": 400}
     depth_note = (
         "Provide a comprehensive deep-dive analysis."
         if scan_type == "full"
@@ -402,19 +477,40 @@ async def _run_scan(env, url: str, scan_type: str = "quick") -> dict:
         {"role": "system", "content": SCAN_SYSTEM_PROMPT},
         {"role": "user", "content": f"Analyse this target: {url}\n{depth_note}"},
     ]
-    ai_response = await env.AI.run(
-        CLOUDFLARE_AI_MODEL,
-        {"messages": messages, "max_tokens": 768},
-    )
-    raw = (
-        ai_response.get("response", "")
-        if isinstance(ai_response, dict)
-        else str(ai_response)
-    )
+    # Call Cloudflare AI using JS serialization to avoid proxy issues
     try:
-        return json.loads(raw)
+        ai_options = js.JSON.parse(json.dumps({"messages": messages, "max_tokens": 768}))
+        
+        raw_ai_response = await env.AI.run(
+            CLOUDFLARE_AI_MODEL,
+            ai_options
+        )
+        
+        # Nuclear conversion
+        ai_response = json.loads(js.JSON.stringify(raw_ai_response))
+    except Exception as ai_error:
+        print(f"AI scan call crash: {ai_error!s}")
+        traceback.print_exc()
+        return {"error": "The AI service is temporarily unavailable. Please try again.", "status": 502}
+
+    reply = _extract_ai_text(ai_response)
+    if reply is None:
+        return {"error": "The AI service returned an unsupported response format.", "status": 502}
+
+    try:
+        data = json.loads(reply)
+        # Ensure minimal schema compliance even on partial JSON
+        if not isinstance(data, dict):
+             return {"headers_to_check": [], "vulnerabilities_to_test": [], "blt_categories": [], "notes": reply}
+        return data
     except (json.JSONDecodeError, ValueError):
-        return {"analysis": raw}
+        # Prevent schema downgrade: wrap raw text in the expected JSON structure
+        return {
+            "headers_to_check": [],
+            "vulnerabilities_to_test": [],
+            "blt_categories": [],
+            "notes": reply
+        }
 
 
 def _get_onboarding_guide(role: str) -> dict:
@@ -517,13 +613,20 @@ class Default(WorkerEntrypoint):
 
         # HTML serving routes (GET requests)
         if method == "GET":
-            # Landing page
+            origin = "/".join(str(request.url).split("/", 3)[:3])
+            # Serve top-level HTML through the static assets binding.
             if path in ("/", "/index.html"):
-                return self._serve_html()
+                request_url = (
+                    origin + "/index.html"
+                    if path == "/"
+                    else str(request.url).split("?", 1)[0]
+                )
+                return await self.env.ASSETS.fetch(request_url)
             
             # Chat page
-            if path == "/chat":
-                return self._serve_chat_html()
+            if path in ("/chat", "/chat/"):
+                request_url = origin + "/chat.html"
+                return await self.env.ASSETS.fetch(request_url)
         
         # 404 for unknown API paths
         if path.startswith("/api/"):
@@ -531,37 +634,3 @@ class Default(WorkerEntrypoint):
 
         # All other routes: let Assets binding serve static files (logo, etc.)
         return await self.env.ASSETS.fetch(request)
-    
-    def _serve_html(self) -> Response:
-        """Serve the landing page HTML"""
-        try:
-            html_file = Path(__file__).parent / 'pages' / "index.html"
-            html_content = html_file.read_text()
-            return Response(
-                html_content,
-                status=200,
-                headers={
-                    "Content-Type": "text/html; charset=utf-8",
-                    "Cache-Control": "public, max-age=300",
-                    **cors_headers()
-                }
-            )
-        except FileNotFoundError:
-            return error_response("HTML file not found", 404)
-    
-    def _serve_chat_html(self) -> Response:
-        """Serve the chat page HTML"""
-        try:
-            html_file = Path(__file__).parent / 'pages' / "chat.html"
-            html_content = html_file.read_text()
-            return Response(
-                html_content,
-                status=200,
-                headers={
-                    "Content-Type": "text/html; charset=utf-8",
-                    "Cache-Control": "public, max-age=300",
-                    **cors_headers()
-                }
-            )
-        except FileNotFoundError:
-            return error_response("Chat HTML file not found", 404)
