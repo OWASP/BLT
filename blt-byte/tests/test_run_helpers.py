@@ -9,6 +9,8 @@ from main import _run_chat, _run_scan
 def make_env(ai_return_value):
     """Build a mock env whose AI.run returns the given value."""
     env = MagicMock()
+    # Ensure get_ai_model falls back to default constant
+    env.CLOUDFLARE_AI_MODEL = None
     # Handle the fact that AI.run might expect a dict or return a JsProxy-like object
     # In tests, we mock it to return what _extract_ai_text expects
     env.AI.run = AsyncMock(return_value=ai_return_value)
@@ -41,7 +43,7 @@ class TestRunChat:
         long_history = [{"role": "user", "content": f"msg {i}"} for i in range(20)]
         result = await _run_chat(env, "Final message", long_history)
         assert "reply" in result  # Should succeed
-        called_model, called_options = env.AI.run.await_args.args
+        _, called_options = env.AI.run.await_args.args
         # system + last 10 history + current user message
         assert len(called_options["messages"]) == 12
 
