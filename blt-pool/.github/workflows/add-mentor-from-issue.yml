@@ -8,6 +8,13 @@ on:
   issues:
     types: [labeled]
 
+# Serialize runs for the same issue to prevent duplicate-branch push conflicts
+# when the label is added more than once (e.g., removed and re-added).
+# cancel-in-progress: false ensures a second run waits instead of being killed.
+concurrency:
+  group: add-mentor-issue-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
 jobs:
   add-mentor:
     if: github.event.label.name == 'mentor-application'
@@ -39,10 +46,35 @@ jobs:
           BRANCH="add-mentor-${GITHUB_USERNAME}-${ISSUE_NUMBER}"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git checkout -b "$BRANCH"
+
+          # Idempotent: reuse the branch if it already exists (e.g. label re-added).
+          git checkout -b "$BRANCH" 2>/dev/null || git checkout "$BRANCH"
+
           git add .github/mentors.yml
+          # Nothing to commit means a previous run already did this — skip gracefully.
+          git diff --cached --quiet && echo "No changes to commit — branch already up to date." && exit 0
           git commit -m "Add mentor @${GITHUB_USERNAME} from issue #${ISSUE_NUMBER}"
-          git push origin "$BRANCH"
+
+          # Retry push up to 3 times with a rebase pull on conflict.
+          PUSH_SUCCESS=false
+          for attempt in 1 2 3; do
+            if git pull --rebase origin "$BRANCH" 2>/dev/null; then
+              echo "Rebase pull succeeded on attempt ${attempt}."
+            else
+              echo "Rebase pull failed on attempt ${attempt} (branch may not exist remotely yet — continuing)."
+            fi
+            if git push origin "$BRANCH"; then
+              PUSH_SUCCESS=true
+              break
+            fi
+            echo "Push attempt ${attempt} failed, retrying in $((attempt * 2))s..."
+            sleep $((attempt * 2))
+          done
+          if [ "$PUSH_SUCCESS" != "true" ]; then
+            echo "::error::All 3 push attempts failed for branch ${BRANCH}."
+            exit 1
+          fi
+
           gh pr create \
             --title "Add mentor: @${GITHUB_USERNAME}" \
             --body "Automated PR to add **${MENTOR_NAME}** (\`@${GITHUB_USERNAME}\`) to the mentor pool.
@@ -52,7 +84,7 @@ jobs:
           Once merged, \`@${GITHUB_USERNAME}\` will appear in the pool and receive new mentee assignments." \
             --label "mentor-pool" \
             --base main \
-            --head "$BRANCH"
+            --head "$BRANCH" 2>/dev/null || echo "PR already exists for branch ${BRANCH} — skipping."
 
       - name: Comment on issue
         if: steps.update.outputs.github_username != ''
