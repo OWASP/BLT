@@ -1136,7 +1136,15 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
       <div class="flex items-center justify-between gap-4 mb-8">
         <div>
-          <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Recent Submissions</h2>
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-8">
+            <h2 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Recent Submissions</h2>
+            <a href="show-all-entries.html"
+              class="inline-flex items-center gap-1.5 text-[#E10101] font-semibold text-sm
+                      self-start sm:self-auto whitespace-nowrap
+                      hover:gap-2.5 transition-all duration-200">
+              View Entries <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+            </a>
+          </div>
           <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
             Latest 3 entries sorted by submitted time.
           </p>
@@ -1212,6 +1220,355 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
   </script>
 </body>
 </html>"""
+
+
+def build_show_all_entries_html(contests_data: list[dict], last_updated: str) -> str:
+    """Return a standalone page with all submissions in a simple card layout."""
+    entries = []
+
+    for d in contests_data:
+        c = d["config"]
+        cid = c["id"]
+        contest_name = html.escape(c["name"])
+        contest_page = html.escape(f"{cid}.html")
+        title_prefix = c.get("title_prefix", "")
+
+        for issue in d.get("issues", []):
+            created_at = issue.get("created_at", "")
+            if not created_at:
+                continue
+            try:
+                submitted_dt = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
+            except ValueError:
+                continue
+
+            raw_title = (issue.get("title", "Untitled submission") or "Untitled submission").strip()
+            if title_prefix and raw_title.startswith(title_prefix):
+                raw_title = raw_title[len(title_prefix):].strip()
+
+            body = issue.get("body", "") or ""
+            fields = parse_issue_body(body)
+            preview_url = html.escape(extract_preview_url(fields, body))
+            issue_url = html.escape(issue.get("html_url", "#"))
+
+            entries.append({
+                "contest_id": html.escape(cid),
+                "contest_name": contest_name,
+                "contest_page": contest_page,
+                "title": html.escape(raw_title or "Untitled submission"),
+                "issue_url": issue_url,
+                "preview_url": preview_url,
+                "submitted_iso": html.escape(created_at),
+                "submitted_fallback": html.escape(created_at[:10]),
+                "submitted_dt": submitted_dt,
+            })
+
+    entries.sort(key=lambda item: item["submitted_dt"], reverse=True)
+
+    if entries:
+        cards = []
+        for item in entries:
+            if item["preview_url"]:
+                preview_block = (
+                    f'<a href="{item["issue_url"]}" target="_blank" rel="noopener" '
+                    f'   class="block overflow-hidden aspect-video bg-gray-100 dark:bg-gray-700">'
+                    f'  <img src="{item["preview_url"]}" alt="{item["title"]} preview" loading="lazy" '
+                    f'       class="w-full h-full object-cover transition-transform duration-300 '
+                    f'              group-hover:scale-105" />'
+                    f'</a>'
+                )
+            else:
+                preview_block = (
+                    f'<a href="{item["issue_url"]}" target="_blank" rel="noopener" '
+                    f'   class="flex items-center justify-center aspect-video '
+                    f'          bg-gray-100 dark:bg-gray-700 text-gray-400">'
+                    f'  <i class="fa-solid fa-image text-3xl" aria-hidden="true"></i>'
+                    f'</a>'
+                )
+
+            cards.append(f"""
+        <article class="group bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
+                       border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                       hover:shadow-lg hover:border-[#E10101] transition-all duration-200"
+                 data-contest="{item["contest_id"]}">
+          <div class="h-1.5 bg-gradient-to-r from-[#E10101] to-red-400"></div>
+          {preview_block}
+          <div class="p-5 flex flex-col gap-3">
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]">{item["contest_name"]}</span>
+              <span class="text-xs text-gray-400 dark:text-gray-500">
+                <time class="sub-date" datetime="{item["submitted_iso"]}">{item["submitted_fallback"]}</time>
+              </span>
+            </div>
+            <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
+              <a href="{item["issue_url"]}" target="_blank" rel="noopener"
+                 class="hover:text-[#E10101] transition-colors">{item["title"]}</a>
+            </h3>
+            <div class="flex items-center justify-between gap-3 pt-2
+                        border-t border-[#E5E5E5] dark:border-gray-700">
+              <a href="{item["contest_page"]}"
+                 class="text-sm text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">
+                Open Contest
+              </a>
+              <a href="{item["issue_url"]}" target="_blank" rel="noopener"
+                 class="inline-flex items-center gap-1 text-sm font-medium
+                        border border-[#E10101] text-[#E10101] rounded-md px-3 py-1
+                        hover:bg-[#E10101] hover:text-white transition-colors">
+                <i class="fa-brands fa-github" aria-hidden="true"></i> Issue
+              </a>
+            </div>
+          </div>
+        </article>""")
+
+        cards_html = "\n".join(cards)
+    else:
+        cards_html = (
+            '<div class="sm:col-span-2 lg:col-span-3 bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm '
+            'border border-[#E5E5E5] dark:border-gray-700 p-6 text-center text-sm '
+            'text-gray-500 dark:text-gray-400">No entries available right now.</div>'
+        )
+
+    filter_buttons = [
+        '<button type="button" data-filter="all" '
+        'class="filter-btn inline-flex items-center gap-2 border text-sm font-semibold px-4 py-2 rounded-md transition-colors" '
+        'aria-pressed="true">All Contests</button>'
+    ]
+    for c in CONTESTS:
+        filter_buttons.append(
+            f'<button type="button" data-filter="{html.escape(c["id"])}" '
+            f'class="filter-btn inline-flex items-center gap-2 border text-sm font-semibold px-4 py-2 rounded-md transition-colors" '
+            f'aria-pressed="false">{html.escape(c["name"])}</button>'
+        )
+    filter_buttons_html = "\n        ".join(filter_buttons)
+
+    first_submit_url = html.escape(
+        f"https://github.com/{REPO}/issues/new?template={contests_data[0]['config']['template']}"
+        if contests_data else f"https://github.com/{REPO}/issues/new"
+    )
+
+    return f"""<!DOCTYPE html>
+    <html lang="en" class="scroll-smooth">
+    <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <meta name="description" content="All BLT Design Contest submissions in one place." />
+    <title>All Entries - BLT Design Contests</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+    tailwind.config = {{
+      darkMode: 'class',
+      theme: {{
+      extend: {{
+      colors: {{
+      brand: '#E10101',
+      }},
+      }},
+      }},
+    }};
+    </script>
+
+    <link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+      integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+      crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <style>
+    :root {{ --brand: #E10101; }}
+    *:focus-visible {{
+      outline: 2px solid var(--brand);
+      outline-offset: 2px;
+    }}
+    </style>
+    </head>
+
+    <body class="bg-gray-50 dark:bg-[#111827] text-gray-900 dark:text-gray-100 min-h-screen flex flex-col font-sans antialiased">
+    <a href="#all-entries"
+     class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:px-4 focus:py-2 focus:bg-[#E10101] focus:text-white focus:rounded-md focus:font-medium">
+    Skip to content
+    </a>
+
+    <header class="bg-white dark:bg-[#1F2937] border-b border-[#E5E5E5] dark:border-gray-700 sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <nav class="flex items-center justify-between h-16 gap-4" aria-label="Primary navigation">
+      <a href="index.html" class="flex items-center gap-2 shrink-0 group" aria-label="BLT Design Contests home">
+      <span class="inline-flex items-center justify-center w-8 h-8 rounded-md bg-[#E10101] text-white font-black text-sm select-none">BLT</span>
+      <span class="font-semibold text-gray-900 dark:text-gray-100 hidden sm:block">Design Contests</span>
+      </a>
+
+      <div class="hidden md:flex items-center gap-6 text-sm font-medium">
+      <a href="index.html" class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] transition-colors inline-flex items-center gap-1.5">
+      <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> All Contests
+      </a>
+      <a href="show-all-entries.html"
+       class="text-[#E10101] font-semibold inline-flex items-center gap-1.5"
+       aria-current="page">
+      <i class="fa-solid fa-images" aria-hidden="true"></i> All Entries
+      </a>
+      <a href="https://github.com/{REPO}" target="_blank" rel="noopener"
+       class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] transition-colors inline-flex items-center gap-1">
+      <i class="fa-brands fa-github" aria-hidden="true"></i> GitHub
+      </a>
+      </div>
+
+      <a href="index.html#contests"
+       class="inline-flex items-center gap-2 bg-[#E10101] hover:bg-red-700 text-white text-sm font-semibold px-4 py-2 rounded-md transition-colors shrink-0">
+      <i class="fa-solid fa-plus" aria-hidden="true"></i>
+      <span>Choose Contest</span>
+      </a>
+
+      <button id="theme-toggle" type="button"
+      class="p-2 rounded-md text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+      aria-label="Toggle dark mode">
+      <i class="fa-solid fa-moon dark:hidden" aria-hidden="true"></i>
+      <i class="fa-solid fa-sun hidden dark:inline" aria-hidden="true"></i>
+      </button>
+      </nav>
+    </div>
+    </header>
+
+    <section class="bg-white dark:bg-[#1F2937] border-b border-[#E5E5E5] dark:border-gray-700">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center">
+      <span class="inline-block mb-4 bg-[#feeae9] dark:bg-red-900/30 text-[#E10101] text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wide">
+      Unified Showcase
+      </span>
+      <h1 class="text-3xl sm:text-4xl font-black text-gray-900 dark:text-gray-50 leading-tight mb-3">
+      All Contest Entries
+      </h1>
+      <p class="max-w-2xl mx-auto text-base sm:text-lg text-gray-600 dark:text-gray-300">
+      Browse every current submission from all BLT design contests in one page.
+      </p>
+      <p class="mt-3 text-xs text-gray-400 dark:text-gray-500">Last updated {last_updated}</p>
+    </div>
+    </section>
+
+    <main id="all-entries" class="flex-1 bg-gray-50 dark:bg-[#111827] border-t border-[#E5E5E5] dark:border-gray-700">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div class="mb-6">
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Entries</h2>
+      <p id="entries-status" class="mt-1 text-sm text-gray-500 dark:text-gray-400">Loading entries...</p>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2 mb-8" id="contest-filters" aria-label="Contest filters">
+      {filter_buttons_html}
+      </div>
+
+      <div id="all-entries-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" aria-live="polite">
+      {cards_html}
+      <div id="no-filter-results" class="hidden sm:col-span-2 lg:col-span-3 bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border border-[#E5E5E5] dark:border-gray-700 p-6 text-center text-sm text-gray-500 dark:text-gray-400">No entries found for this filter.</div>
+      </div>
+    </div>
+    </main>
+
+    <footer class="bg-white dark:bg-[#1F2937] border-t border-[#E5E5E5] dark:border-gray-700">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-gray-500 dark:text-gray-400">
+      <p>
+      &copy; {datetime.now(timezone.utc).year}
+      <a href="https://owasp.org/www-project-blt/" target="_blank" rel="noopener" class="text-[#E10101] hover:underline font-medium">OWASP BLT</a>.
+      Content licensed under
+      <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener" class="text-[#E10101] hover:underline">CC BY 4.0</a>.
+      </p>
+      <div class="flex items-center gap-4">
+      <a href="index.html" class="hover:text-[#E10101] transition-colors inline-flex items-center gap-1">
+      <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> All Contests
+      </a>
+      <a href="https://github.com/{REPO}" target="_blank" rel="noopener" class="hover:text-[#E10101] transition-colors inline-flex items-center gap-1">
+      <i class="fa-brands fa-github" aria-hidden="true"></i> Source
+      </a>
+      </div>
+    </div>
+    </footer>
+
+    <script>
+    const toggle = document.getElementById('theme-toggle');
+    const html = document.documentElement;
+
+    if (localStorage.theme === 'dark' ||
+      (!('theme' in localStorage) &&
+       window.matchMedia('(prefers-color-scheme: dark)').matches)) {{
+      html.classList.add('dark');
+    }}
+
+    toggle.addEventListener('click', () => {{
+      html.classList.toggle('dark');
+      localStorage.theme = html.classList.contains('dark') ? 'dark' : 'light';
+    }});
+
+    const baseBtn = ['border-gray-300', 'dark:border-gray-600', 'text-gray-700', 'dark:text-gray-200'];
+    const activeBtn = ['border-[#E10101]', 'text-[#E10101]', 'bg-red-50', 'dark:bg-red-900/20', 'dark:text-red-300'];
+
+    let activeFilter = 'all';
+    const statusEl = document.getElementById('entries-status');
+    const allCards = Array.from(document.querySelectorAll('#all-entries-grid > article[data-contest]'));
+    const noFilterResults = document.getElementById('no-filter-results');
+
+    function setButtonState(button, active) {{
+      button.classList.remove(...baseBtn, ...activeBtn);
+      if (active) {{
+      button.classList.add(...activeBtn);
+      }} else {{
+      button.classList.add(...baseBtn);
+      }}
+      button.setAttribute('aria-pressed', active ? 'true' : 'false');
+    }}
+
+    function updateFilterButtons() {{
+      document.querySelectorAll('.filter-btn').forEach((btn) => {{
+      setButtonState(btn, btn.dataset.filter === activeFilter);
+      }});
+    }}
+
+    function formatDates() {{
+      const now = new Date();
+      document.querySelectorAll('time.sub-date').forEach((el) => {{
+      const raw = el.getAttribute('datetime');
+      if (!raw) return;
+      let d = new Date(raw);
+      if (isNaN(d.getTime())) return;
+      if (d > now) d = now;
+      el.textContent = d.toLocaleDateString(undefined, {{
+      year: 'numeric', month: 'short', day: 'numeric'
+      }});
+      }});
+    }}
+
+    function applyFilter() {{
+      if (!allCards.length) {{
+      statusEl.textContent = 'No entries available right now.';
+      return;
+      }}
+
+      let visibleCount = 0;
+      allCards.forEach((card) => {{
+      const show = activeFilter === 'all' || card.dataset.contest === activeFilter;
+      card.classList.toggle('hidden', !show);
+      if (show) visibleCount += 1;
+      }});
+
+      if (noFilterResults) {{
+      noFilterResults.classList.toggle('hidden', visibleCount !== 0);
+      }}
+
+      statusEl.textContent = 'Showing ' + visibleCount + ' entr' + (visibleCount === 1 ? 'y' : 'ies') + ' from all contests.';
+      formatDates();
+    }}
+
+    document.querySelectorAll('.filter-btn').forEach((btn) => {{
+      btn.addEventListener('click', () => {{
+      activeFilter = btn.dataset.filter;
+      updateFilterButtons();
+      applyFilter();
+      }});
+    }});
+
+    updateFilterButtons();
+    applyFilter();
+    </script>
+    </body>
+    </html>"""
 
 
 def build_contest_page_html(contest_data: dict, last_updated: str) -> str:
@@ -1660,6 +2017,13 @@ def main() -> None:
     with open(out_path, "w", encoding="utf-8") as fh:
         fh.write(page_html)
     print(f"\nWritten → {out_path}")
+
+    # Write the all-entries aggregation page (show-all-entries.html)
+    show_all_html = build_show_all_entries_html(contests_data, last_updated)
+    show_all_out_path = os.path.join(root_dir, "show-all-entries.html")
+    with open(show_all_out_path, "w", encoding="utf-8") as fh:
+        fh.write(show_all_html)
+    print(f"Written → {show_all_out_path}")
 
     # Write a standalone page for each contest (e.g. blt-tshirt.html)
     for contest_data in contests_data:
