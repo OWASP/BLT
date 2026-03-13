@@ -3,3 +3,4 @@ test-results/
 playwright-report/
 __pycache__/
 *.pyc
+nohup.out
