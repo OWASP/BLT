@@ -48,7 +48,7 @@ class TestRunChat:
     @pytest.mark.asyncio
     async def test_ai_exception_returns_502(self):
         env = MagicMock()
-        env.AI.run = AsyncMock(side_effect=Exception("AI down"))
+        env.AI.run = AsyncMock(side_effect=RuntimeError("AI down"))
         result = await _run_chat(env, "Hello", [])
         assert result.get("status") == 502
         assert "error" in result

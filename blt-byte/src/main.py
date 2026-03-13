@@ -227,12 +227,12 @@ async def handle_chat(request, env) -> Response:
     user_message = body.get("message", "")
     if not isinstance(user_message, str):
         return error_response("'message' field must be a string")
+    if len(user_message) > MAX_INPUT_LENGTH:
+        return error_response(f"Message too long (max {MAX_INPUT_LENGTH} chars)")
+
     user_message = user_message.strip()
     if not user_message:
         return error_response("'message' field is required")
-    
-    if len(user_message) > MAX_INPUT_LENGTH:
-        return error_response(f"Message too long (max {MAX_INPUT_LENGTH} chars)")
 
     history = body.get("history", [])
     result = await _run_chat(env, user_message, history)
@@ -262,12 +262,12 @@ async def handle_scan(request, env) -> Response:
     target = body.get("url", "")
     if not isinstance(target, str):
         return error_response("'url' field must be a string")
+    if len(target) > MAX_URL_LENGTH:
+        return error_response(f"URL too long (max {MAX_URL_LENGTH} chars)")
+
     target = target.strip()
     if not target:
         return error_response("'url' field is required")
-        
-    if len(target) > MAX_URL_LENGTH:
-        return error_response(f"URL too long (max {MAX_URL_LENGTH} chars)")
 
     scan_type = body.get("scan_type", "quick")
     if scan_type not in ("quick", "full"):

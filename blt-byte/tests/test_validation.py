@@ -134,12 +134,35 @@ class TestEndpointValidation:
         assert data["tool"] == "get_onboarding_guide"
         assert data["result"]["role"] == "contributor"
 
+    @pytest.mark.asyncio
+    @pytest.mark.usefixtures("bypass_rate_limit")
+    async def test_handle_chat_whitespace_length_rejection(self):
+        from main import MAX_INPUT_LENGTH
+        # Message that is under limit after stripping whitespace, but over limit before
+        long_ws = " " * (MAX_INPUT_LENGTH + 1)
+        req = make_mock_request({"message": long_ws})
+        response = await handle_chat(req, MagicMock())
+        assert response.status == 400
+        assert "long" in response.body.lower()
+
+    @pytest.mark.asyncio
+    @pytest.mark.usefixtures("bypass_rate_limit")
+    async def test_handle_scan_whitespace_length_rejection(self):
+        from main import MAX_URL_LENGTH
+        # URL that is under limit after stripping whitespace, but over limit before
+        long_ws = " " * (MAX_URL_LENGTH + 1)
+        req = make_mock_request({"url": long_ws})
+        response = await handle_scan(req, MagicMock())
+        assert response.status == 400
+        assert "long" in response.body.lower()
+
+
 @pytest.mark.asyncio
 async def test_is_rate_limited_fails_closed():
     # Verification of the security fix: should return True (limited) on error
     req = MagicMock()
-    # Mocking headers to raise an exception when accessed
-    type(req).headers = PropertyMock(side_effect=Exception("Simulated error"))
+    # Mocking headers.get to raise a TypeError when accessed
+    req.headers.get.side_effect = TypeError("Simulated type error")
     
     from main import is_rate_limited
     assert is_rate_limited(req) is True
