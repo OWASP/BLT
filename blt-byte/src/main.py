@@ -137,7 +137,7 @@ MCP_MANIFEST = {
                     "role": {
                         "type": "string",
                         "enum": ["contributor", "bug_hunter", "organisation"],
-                        "description": "User role (required). Valid values: contributor, bug_hunter, organisation.",
+                        "description": "User role. Valid values: contributor, bug_hunter, organisation.",
                         "default": "contributor",
                     }
                 },
@@ -180,7 +180,7 @@ def is_rate_limited(request) -> bool:
         
         IP_RATE_LIMITS[ip] = now
         return False
-    except Exception as e:
+    except (AttributeError, TypeError) as e:
         print(f"Error in is_rate_limited: {e}")
         return True
 
@@ -512,7 +512,7 @@ async def _run_chat(env, message: str, history: list) -> dict:
 
             try:
                 response_dump = json.dumps(ai_response, sort_keys=True, default=str)
-            except Exception:
+            except (TypeError, ValueError):
                 response_dump = str(type(ai_response))
 
             response_hash = hashlib.sha256(response_dump.encode("utf-8")).hexdigest()
@@ -528,7 +528,7 @@ async def _run_chat(env, message: str, history: list) -> dict:
                 "status": 502,
             }
             
-    except Exception as ai_error:
+    except (AttributeError, TypeError, ValueError, RuntimeError) as ai_error:
         print(f"AI call crash: {ai_error!s}")
         traceback.print_exc()
         return {
@@ -562,7 +562,7 @@ async def _run_scan(env, url: str, scan_type: str = "quick") -> dict:
         
         # Nuclear conversion
         ai_response = json.loads(js.JSON.stringify(raw_ai_response))
-    except Exception as ai_error:
+    except (AttributeError, TypeError, ValueError, RuntimeError) as ai_error:
         print(f"AI scan call crash: {ai_error!s}")
         traceback.print_exc()
         return {"error": "The AI service is temporarily unavailable. Please try again.", "status": 502}
@@ -656,7 +656,7 @@ class Default(WorkerEntrypoint):
         # Parse path from full URL
         try:
             path = "/" + "/".join(url.split("/")[3:]).split("?")[0].lstrip("/")
-        except Exception:
+        except IndexError:
             path = "/"
 
         method = request.method.upper()
