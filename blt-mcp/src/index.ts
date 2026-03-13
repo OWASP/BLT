@@ -14,7 +14,6 @@ import {
 // BLT API configuration
 const BLT_API_BASE = process.env.BLT_API_BASE || "https://blt.owasp.org/api";
 const BLT_API_KEY = process.env.BLT_API_KEY || "";
-
 // Types for API requests and responses
 interface ApiRequestBody {
   [key: string]: unknown;
@@ -213,35 +212,16 @@ server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
 
     switch (resourceType) {
       case "issues":
-        if (resourceId) {
-          data = await makeApiRequest(`/issues/${resourceId}`);
-        } else {
-          data = await makeApiRequest("/issues");
-        }
-        break;
-
       case "repos":
-        if (resourceId) {
-          data = await makeApiRequest(`/repos/${resourceId}`);
-        } else {
-          data = await makeApiRequest("/repos");
-        }
-        break;
-
       case "contributors":
-        if (resourceId) {
-          data = await makeApiRequest(`/contributors/${resourceId}`);
-        } else {
-          data = await makeApiRequest("/contributors");
-        }
-        break;
-
       case "workflows":
-        if (resourceId) {
-          data = await makeApiRequest(`/workflows/${resourceId}`);
-        } else {
-          data = await makeApiRequest("/workflows");
+        if (resourceId && !/^[A-Za-z0-9_-]+$/.test(resourceId)) {
+          throw new Error(`Invalid resource id for ${resourceType}: ${resourceId}`);
         }
+        const endpoint = resourceId
+          ? `/${resourceType}/${encodeURIComponent(resourceId)}`
+          : `/${resourceType}`;
+        data = await makeApiRequest(endpoint);
         break;
 
       case "leaderboards":
