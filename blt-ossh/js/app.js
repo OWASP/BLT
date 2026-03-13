@@ -76,8 +76,6 @@ form.addEventListener('submit', async (e) => {
 
         // Build and display results
         const data = buildRecommendations(userData, reposData);
-        console.log("user recommendation ", data);
-
         displayResults(data);
 
     } catch (error) {
@@ -200,8 +198,6 @@ function hideError() {
 }
 
 function displayResults(data) {
-    console.log("result", JSON.stringify(data));
-
     const resultsSection = document.getElementById('results-section');
     const githubStats = data.github_stats;
 
@@ -312,8 +308,19 @@ function displayResults(data) {
         channelsContainer.appendChild(channelCard);
     });
 
-    // Update GitHub profile link
-    document.getElementById('view-github-profile').href = `https://github.com/${encodeURIComponent(githubStats.username)}`;
+    // Update GitHub profile link (in stats area)
+    const profileLink = document.getElementById('github-profile-link');
+    if (profileLink) {
+        profileLink.href = `https://github.com/${encodeURIComponent(githubStats.username)}`;
+        const span = profileLink.querySelector('span');
+        if (span) span.textContent = `View ${githubStats.username}'s GitHub profile`;
+    }
+
+    // Update GitHub profile link (in button row)
+    const viewProfileBtn = document.getElementById('view-github-profile');
+    if (viewProfileBtn) {
+        viewProfileBtn.href = `https://github.com/${encodeURIComponent(githubStats.username)}`;
+    }
 
     // Show results section and scroll to it
     resultsSection.classList.remove('hidden');
