@@ -128,6 +128,14 @@ class TestRouter:
         params = router._parse_query_params("/bugs/search?status=open&q=cross-site+scripting%20%28XSS%29")
         assert params == {"status": "open", "q": "cross-site scripting (XSS)"}
 
+        # Blank values are preserved
+        params = router._parse_query_params("/bugs?status=&page=1")
+        assert params == {"status": "", "page": "1"}
+
+        # Duplicate keys - last value wins
+        params = router._parse_query_params("/bugs?tag=xss&tag=sqli")
+        assert "tag" in params
+
 
 class TestRouterDecorators:
     """Tests for router decorator methods."""

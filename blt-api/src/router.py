@@ -139,7 +139,7 @@ class Router:
     def _parse_query_params(self, url: str) -> Dict[str, str]:
         """Parse query parameters from URL, decoding percent-encoded and plus-encoded values."""
         query_string = urlparse(url).query
-        return {k: v[0] for k, v in parse_qs(query_string).items()}
+        return {k: v[0] for k, v in parse_qs(query_string, keep_blank_values=True).items()}
     
     async def handle(self, request: Any, env: Any) -> Any:
         """
