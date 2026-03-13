@@ -128,6 +128,11 @@ jobs:
           GITHUB_SHA: ${{ github.sha }}
         run: python scripts/generate_leaderboard.py
 
+      - name: Commit and push leaderboard data
+        if: github.event_name != 'push' || github.actor != 'github-actions[bot]'
+        uses: actions/github-script@v7
+        with:
+          script: |
             // Commit and push the updated files
             const { execSync } = require('child_process');
             execSync('git config user.name "github-actions[bot]"');
