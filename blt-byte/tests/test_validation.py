@@ -1,8 +1,11 @@
-import sys, os, json
+import sys
+import os
+import json
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 import pytest
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch, PropertyMock
 from main import handle_chat, handle_scan, handle_mcp
 
 
@@ -17,65 +20,78 @@ def make_mock_request(body_dict, headers=None, method="POST"):
     req.headers = headers or {}
     return req
 
+@pytest.fixture
+def bypass_rate_limit():
+    """Disable rate limiting for all validation tests."""
+    with patch("main.is_rate_limited", return_value=False):
+        yield
 
 class TestEndpointValidation:
 
     # --- Chat Endpoint ---
     @pytest.mark.asyncio
+    @pytest.mark.usefixtures("bypass_rate_limit")
     async def test_chat_rejects_missing_message(self):
         req = make_mock_request({})
         response = await handle_chat(req, MagicMock())
         assert response.status == 400
-        assert b"required" in response.body.lower()
+        assert "required" in response.body.lower()
 
     @pytest.mark.asyncio
+    @pytest.mark.usefixtures("bypass_rate_limit")
     async def test_chat_rejects_oversized_message(self):
         # Limit is 2000
         req = make_mock_request({"message": "A" * 2001})
         response = await handle_chat(req, MagicMock())
         assert response.status == 400
-        assert b"long" in response.body.lower()
+        assert "long" in response.body.lower()
 
     @pytest.mark.asyncio
+    @pytest.mark.usefixtures("bypass_rate_limit")
     async def test_chat_rejects_non_dict_payload(self):
         # We simulate this slightly differently because handle_chat expects json.loads
         req = MagicMock()
         req.text = AsyncMock(return_value="[1, 2, 3]")
         response = await handle_chat(req, MagicMock())
         assert response.status == 400
-        assert b"object" in response.body.lower()
+        assert "object" in response.body.lower()
 
     # --- Scan Endpoint ---
     @pytest.mark.asyncio
+    @pytest.mark.usefixtures("bypass_rate_limit")
     async def test_scan_rejects_missing_url(self):
         req = make_mock_request({})
         response = await handle_scan(req, MagicMock())
         assert response.status == 400
-        assert b"required" in response.body.lower()
+        assert "required" in response.body.lower()
 
     @pytest.mark.asyncio
+    @pytest.mark.usefixtures("bypass_rate_limit")
     async def test_scan_rejects_oversized_url(self):
         # Limit is 500
         req = make_mock_request({"url": "http://" + "A" * 501})
         response = await handle_scan(req, MagicMock())
         assert response.status == 400
-        assert b"long" in response.body.lower()
+        assert "long" in response.body.lower()
 
     @pytest.mark.asyncio
+    @pytest.mark.usefixtures("bypass_rate_limit")
     async def test_scan_rejects_invalid_type(self):
         req = make_mock_request({"url": "example.com", "scan_type": "mega"})
         response = await handle_scan(req, MagicMock())
         assert response.status == 400
-        assert b"scan_type" in response.body.lower()
+        assert "scan_type" in response.body.lower()
 
     # --- MCP Endpoint ---
     @pytest.mark.asyncio
+    @pytest.mark.usefixtures("bypass_rate_limit")
     async def test_mcp_rejects_unknown_tool(self):
         req = make_mock_request({"tool": "hack_the_world", "params": {}})
         response = await handle_mcp(req, MagicMock())
         assert response.status == 404
 
     @pytest.mark.asyncio
+    @pytest.mark.usefixtures("bypass_rate_limit")
     async def test_mcp_chat_validates_message_length(self):
         req = make_mock_request({
             "tool": "chat",
@@ -83,9 +99,10 @@ class TestEndpointValidation:
         })
         response = await handle_mcp(req, MagicMock())
         assert response.status == 400
-        assert b"long" in response.body.lower()
+        assert "long" in response.body.lower()
 
     @pytest.mark.asyncio
+    @pytest.mark.usefixtures("bypass_rate_limit")
     async def test_mcp_scan_validates_url_length(self):
         req = make_mock_request({
             "tool": "scan_url",
@@ -93,11 +110,36 @@ class TestEndpointValidation:
         })
         response = await handle_mcp(req, MagicMock())
         assert response.status == 400
-        assert b"long" in response.body.lower()
+        assert "long" in response.body.lower()
 
     @pytest.mark.asyncio
+    @pytest.mark.usefixtures("bypass_rate_limit")
     async def test_mcp_rejects_non_dict_params(self):
         req = make_mock_request({"tool": "chat", "params": "string"})
         response = await handle_mcp(req, MagicMock())
         assert response.status == 400
-        assert b"object" in response.body.lower()
+        assert "object" in response.body.lower()
+
+    @pytest.mark.asyncio
+    @pytest.mark.usefixtures("bypass_rate_limit")
+    async def test_mcp_get_onboarding_guide_optional_role(self):
+        # Verification of the fix: role should be optional
+        req = make_mock_request({
+            "tool": "get_onboarding_guide",
+            "params": {} # role is missing, should use default
+        })
+        response = await handle_mcp(req, MagicMock())
+        assert response.status == 200
+        data = json.loads(response.body)
+        assert data["tool"] == "get_onboarding_guide"
+        assert data["result"]["role"] == "contributor"
+
+@pytest.mark.asyncio
+async def test_is_rate_limited_fails_closed():
+    # Verification of the security fix: should return True (limited) on error
+    req = MagicMock()
+    # Mocking headers to raise an exception when accessed
+    type(req).headers = PropertyMock(side_effect=Exception("Simulated error"))
+    
+    from main import is_rate_limited
+    assert is_rate_limited(req) is True

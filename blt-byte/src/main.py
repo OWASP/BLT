@@ -13,8 +13,13 @@ import json
 import hashlib
 import re
 import traceback
-import pyodide
-import js
+try:
+    import pyodide
+    import js
+except ImportError:
+    # Local testing environment
+    pyodide = None
+    js = None
 import time
 
 from workers import Response, WorkerEntrypoint
@@ -24,6 +29,8 @@ MAX_INPUT_LENGTH = 2000
 MAX_URL_LENGTH = 500
 RATE_LIMIT_INTERVAL = 1.0  # seconds
 IP_RATE_LIMITS = {}
+RATE_LIMIT_MAX_KEYS = 10000
+RATE_LIMIT_TTL = 60.0
 
 # Production mode: Disable deep debugging
 try:
@@ -134,7 +141,7 @@ MCP_MANIFEST = {
                         "default": "contributor",
                     }
                 },
-                "required": ["role"],
+                "required": [],
             },
         },
     ],
@@ -149,10 +156,17 @@ def get_ai_model(env) -> str:
 
 
 def is_rate_limited(request) -> bool:
-    """Basic IP-based rate limiting using an in-memory dictionary."""
+    """Basic IP-based rate limiting using an in-memory dictionary.
+    Fails closed (returns True) on exception for security.
+    """
     try:
         ip = request.headers.get("cf-connecting-ip") or "unknown"
         now = time.time()
+        if len(IP_RATE_LIMITS) > RATE_LIMIT_MAX_KEYS:
+            cutoff = now - RATE_LIMIT_TTL
+            stale_keys = [k for k, ts in IP_RATE_LIMITS.items() if ts < cutoff]
+            for k in stale_keys:
+                IP_RATE_LIMITS.pop(k, None)
         last_request_time = IP_RATE_LIMITS.get(ip, 0)
         
         if now - last_request_time < RATE_LIMIT_INTERVAL:
@@ -160,8 +174,9 @@ def is_rate_limited(request) -> bool:
         
         IP_RATE_LIMITS[ip] = now
         return False
-    except Exception:
-        return False
+    except Exception as e:
+        print(f"Error in is_rate_limited: {e}")
+        return True
 
 
 # ---------------------------------------------------------------------------

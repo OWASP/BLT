@@ -3,6 +3,10 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { JSDOM } from 'jsdom';
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const commonJsCode = fs.readFileSync(path.resolve(__dirname, '../public/static/common.js'), 'utf8');
 
@@ -18,15 +22,33 @@ describe('BLT Common JS Utilities', () => {
       resources: 'usable'
     });
     window = dom.window;
+    
+    // Mock matchMedia
+    window.matchMedia = vi.fn().mockImplementation(query => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }));
+
     global.window = window;
     global.document = window.document;
     global.localStorage = window.localStorage;
-    global.navigator = window.navigator;
+    global.HTMLElement = window.HTMLElement;
+    global.Node = window.Node;
 
     // Execute the common.js code in the JSDOM context
     const scriptEl = window.document.createElement('script');
     scriptEl.textContent = commonJsCode;
     window.document.head.appendChild(scriptEl);
+    
+    // Manually trigger DOMContentLoaded if the script expects it
+    const event = new window.Event('DOMContentLoaded');
+    window.document.dispatchEvent(event);
   });
 
   describe('escHtml', () => {

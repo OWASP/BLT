@@ -41,6 +41,9 @@ class TestRunChat:
         long_history = [{"role": "user", "content": f"msg {i}"} for i in range(20)]
         result = await _run_chat(env, "Final message", long_history)
         assert "reply" in result  # Should succeed
+        called_model, called_options = env.AI.run.await_args.args
+        # system + last 10 history + current user message
+        assert len(called_options["messages"]) == 12
 
     @pytest.mark.asyncio
     async def test_ai_exception_returns_502(self):

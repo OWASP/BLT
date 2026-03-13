@@ -6,7 +6,7 @@
     "scripts": {
         "deploy": "wrangler deploy",
         "dev": "wrangler dev",
-        "start": "wrangler run dev",
+        "start": "wrangler dev",
         "test": "pytest && vitest run",
         "test:js": "vitest run"
     },
