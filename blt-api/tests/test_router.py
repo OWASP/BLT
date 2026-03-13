@@ -132,9 +132,9 @@ class TestRouter:
         params = router._parse_query_params("/bugs?status=&page=1")
         assert params == {"status": "", "page": "1"}
 
-        # Duplicate keys - last value wins
+        # Duplicate keys: first value wins (v[0] from parse_qs list)
         params = router._parse_query_params("/bugs?tag=xss&tag=sqli")
-        assert "tag" in params
+        assert params == {"tag": "xss"}
 
 
 class TestRouterDecorators:
