@@ -84,7 +84,7 @@ npx wrangler dev                 # local dev server
 npx wrangler deploy              # deploy to Cloudflare
 ```
 
-**Note:** The `public/` directory contains static assets (logo, HTML files) that are automatically served by Cloudflare Workers when the `[site]` bucket is configured in `wrangler.toml`.
+**Note:** The `public/` directory contains static assets (e.g., logo image) served by Cloudflare Workers via the `[assets]` binding in `wrangler.toml`. HTML page templates live in `templates/` and are compiled into `src/index_template.py` before deploying.
 
 Set secrets securely for production:
 ```bash
@@ -166,6 +166,8 @@ install it on their own GitHub organization.
 ├── .dev.vars.example             # Local dev environment variables template
 ├── test_worker.py                # pytest unit tests for pure-Python utilities
 ├── app.yml                       # GitHub App manifest
+├── public/                       # Static assets served via Workers Assets (logo, etc.)
+├── templates/                    # HTML source templates (compiled into src/index_template.py)
 └── LICENSE
 ```
 

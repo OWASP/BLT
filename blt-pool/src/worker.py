@@ -1,7 +1,12 @@
-"""BLT GitHub App — Python Cloudflare Worker.
+"""BLT-Pool — Mentor Matching & GitHub Automation Platform.
 
-Handles GitHub webhooks and serves a landing homepage.
-This is the Python / Cloudflare Workers port of the original Node.js Probot app.
+A dual-purpose platform that:
+1. Connects contributors with mentors through a shared mentor pool
+2. Automates GitHub workflows (issue assignment, leaderboard, webhooks)
+
+Homepage (/) displays the mentor grid with availability and assignments.
+GitHub App documentation and installation at /github-app
+(legacy alias: /github-app).
 
 Entry point: ``on_fetch(request, env)`` — called by the Cloudflare runtime for
 every incoming HTTP request.
@@ -22,12 +27,13 @@ import calendar
 import hashlib
 import hmac as _hmac
 import json
+import re
 import time
 from typing import Optional, Tuple
 from urllib.parse import quote, urlparse
 
 from js import Headers, Response, console, fetch  # Cloudflare Workers JS bindings
-from index_template import INDEX_HTML  # Landing page HTML template
+from index_template import GITHUB_PAGE_HTML  # Landing page HTML template
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -39,6 +45,25 @@ LEADERBOARD_COMMAND = "/leaderboard"
 MAX_ASSIGNEES = 1
 ASSIGNMENT_DURATION_HOURS = 8
 BUG_LABELS = {"bug", "vulnerability", "security"}
+
+# Mentor pool for BLT-Pool platform
+MENTORS = [
+    {"name": "Rinkit Adhana", "github_username": "rinkitadhana", "slack_username": "Rinkit Adhana", "project": "Project A", "mentee": None, "status": "available"},
+    {"name": "Raj Gupta", "github_username": "Rajgupta36", "slack_username": "raj", "project": "Project A", "mentee": None, "status": "available"},
+    {"name": "Shriyash Soni", "github_username": "shriyashsoni", "slack_username": "shriyash soni", "project": "", "mentee": None, "status": "available"},
+    {"name": "Mohammed Faiyaz Shaikh", "github_username": "Mohammedfaiyaz29", "slack_username": "faiyaz", "project": None, "mentee": None, "status": "available"},
+    {"name": "Manikandan Chandran", "github_username": "", "slack_username": "", "project": None, "mentee": None, "status": "available"},
+    {"name": "Shivam Kumar", "github_username": "", "slack_username": "", "project": None, "mentee": None, "status": "available"},
+    {"name": "Vinamra Vaswani", "github_username": "Vaswani2003", "slack_username": "@Vinamra", "project": None, "mentee": None, "status": "available"},
+    {"name": "Carla Voorhees", "github_username": "kittenbytes", "slack_username": "@Carla", "project": None, "mentee": None, "status": "available"},
+    {"name": "Akshay Behl", "github_username": "Captain-T2004", "slack_username": "@Akshay Behl", "project": None, "mentee": None, "status": "available"},
+    {"name": "Ahmed ElSheik", "github_username": "elsheik21", "slack_username": "Ahmed ElSheik", "project": None, "mentee": None, "status": "available"},
+    {"name": "Kunal Kashyap", "github_username": "Kunal1522", "slack_username": "Kunal", "project": None, "mentee": None, "status": "available"},
+    {"name": "Rudra Bhaskar", "github_username": "RudraBhaskar9439", "slack_username": "@Rudra9439", "project": None, "mentee": None, "status": "available"},
+    {"name": "Sanidhya Shishodia", "github_username": "dev-sanidhya", "slack_username": "@Sanidhya Shishodia", "project": None, "mentee": None, "status": "available"},
+    {"name": "Vedant Anand", "github_username": "VedantAnand17", "slack_username": "Vedant Anand", "project": None, "mentee": None, "status": "available"},
+    {"name": "Rishab Kumar Jha", "github_username": "Rishab87", "slack_username": "Rishab Kumar Jha", "project": None, "mentee": None, "status": "available"},
+]
 
 # DER OID sequence for rsaEncryption (used when wrapping PKCS#1 → PKCS#8)
 _RSA_OID_SEQ = bytes([
@@ -984,6 +1009,18 @@ async def _backfill_repo_month_if_needed(
 
     console.log(f"[Backfill] Starting backfill for {owner}/{repo_name} month={mk}")
 
+    # Load all PR numbers already tracked via webhooks for this repo to avoid
+    # double-counting PRs that were already processed by webhook event handlers.
+    tracked_rows = await _d1_all(
+        db,
+        "SELECT pr_number FROM leaderboard_pr_state WHERE org = ? AND repo = ?",
+        (owner, repo_name),
+    )
+    already_tracked = {int(row["pr_number"]) for row in (tracked_rows or [])}
+    console.log(f"[Backfill] {len(already_tracked)} PRs already tracked for {owner}/{repo_name}")
+
+    now_ts = int(time.time())
+
     # Open PRs snapshot for this repo.
     open_resp = await github_api(
         "GET",
@@ -998,9 +1035,25 @@ async def _backfill_repo_month_if_needed(
             if _is_bot(user):
                 continue
             login = user.get("login")
-            if login:
-                open_by_user[login] = open_by_user.get(login, 0) + 1
-        console.log(f"[Backfill] Found {len(open_prs)} open PRs, {len(open_by_user)} unique users")
+            pr_number = pr.get("number")
+            if not login or not pr_number:
+                continue
+            if pr_number in already_tracked:
+                console.log(f"[Backfill] Skipping open PR #{pr_number} (already tracked via webhook)")
+                continue
+            open_by_user[login] = open_by_user.get(login, 0) + 1
+            # Record in pr_state so webhook handlers can coordinate future state changes.
+            await _d1_run(
+                db,
+                """
+                INSERT INTO leaderboard_pr_state (org, repo, pr_number, author_login, state, merged, closed_at, updated_at)
+                VALUES (?, ?, ?, ?, 'open', 0, NULL, ?)
+                ON CONFLICT(org, repo, pr_number) DO NOTHING
+                """,
+                (owner, repo_name, pr_number, login, now_ts),
+            )
+            already_tracked.add(pr_number)
+        console.log(f"[Backfill] Found {len(open_prs)} open PRs, {len(open_by_user)} unique users (new)")
         for login, cnt in open_by_user.items():
             console.log(f"[Backfill] User {login}: {cnt} open PRs")
             await _d1_inc_open_pr(db, owner, login, cnt)
@@ -1008,39 +1061,161 @@ async def _backfill_repo_month_if_needed(
         console.error(f"[Backfill] Failed to fetch open PRs: status={open_resp.status}")
 
     # Closed/merged monthly stats for this repo.
-    closed_resp = await github_api(
-        "GET",
-        f"/repos/{owner}/{repo_name}/pulls?state=closed&per_page=100&sort=updated&direction=desc",
-        token,
-    )
-    if closed_resp.status == 200:
+    # Paginate up to 3 pages to catch repos with more than 100 closed PRs in the month.
+    merged_count = 0
+    closed_count = 0
+    closed_page = 1
+    # Collect merged PRs for review backfill (capped to limit extra API calls).
+    merged_prs_for_review = []
+    MAX_REVIEW_BACKFILL = 20
+    while closed_page <= 3:
+        closed_resp = await github_api(
+            "GET",
+            f"/repos/{owner}/{repo_name}/pulls?state=closed&per_page=100&sort=updated&direction=desc&page={closed_page}",
+            token,
+        )
+        if closed_resp.status != 200:
+            console.error(f"[Backfill] Failed to fetch closed PRs page {closed_page}: status={closed_resp.status}")
+            break
         closed_prs = json.loads(await closed_resp.text())
-        merged_count = 0
-        closed_count = 0
+        if not closed_prs:
+            break
         for pr in closed_prs:
             user = pr.get("user") or {}
             if _is_bot(user):
                 continue
             login = user.get("login")
-            if not login:
+            pr_number = pr.get("number")
+            if not login or not pr_number:
+                continue
+            if pr_number in already_tracked:
+                console.log(f"[Backfill] Skipping closed PR #{pr_number} (already tracked via webhook)")
                 continue
             merged_at = pr.get("merged_at")
             closed_at = pr.get("closed_at")
             if merged_at:
                 merged_ts = _parse_github_timestamp(merged_at)
                 if start_ts <= merged_ts <= end_ts:
-                    console.log(f"[Backfill] User {login}: merged PR (#{pr.get('number')})")
+                    console.log(f"[Backfill] User {login}: merged PR (#{pr_number})")
                     merged_count += 1
                     await _d1_inc_monthly(db, owner, mk, login, "merged_prs", 1)
+                    # Use closed_at for the stored timestamp to match the idempotency check
+                    # in _track_pr_closed_in_d1, falling back to merged_ts if absent.
+                    pr_closed_ts = _parse_github_timestamp(closed_at) if closed_at else merged_ts
+                    await _d1_run(
+                        db,
+                        """
+                        INSERT INTO leaderboard_pr_state (org, repo, pr_number, author_login, state, merged, closed_at, updated_at)
+                        VALUES (?, ?, ?, ?, 'closed', 1, ?, ?)
+                        ON CONFLICT(org, repo, pr_number) DO NOTHING
+                        """,
+                        (owner, repo_name, pr_number, login, pr_closed_ts, now_ts),
+                    )
+                    already_tracked.add(pr_number)
+                    if len(merged_prs_for_review) < MAX_REVIEW_BACKFILL:
+                        merged_prs_for_review.append((pr_number, login))
             elif closed_at:
-                closed_ts = _parse_github_timestamp(closed_at)
-                if start_ts <= closed_ts <= end_ts:
-                    console.log(f"[Backfill] User {login}: closed PR (#{pr.get('number')})")
+                closed_ts_val = _parse_github_timestamp(closed_at)
+                if start_ts <= closed_ts_val <= end_ts:
+                    console.log(f"[Backfill] User {login}: closed PR (#{pr_number})")
                     closed_count += 1
                     await _d1_inc_monthly(db, owner, mk, login, "closed_prs", 1)
-        console.log(f"[Backfill] Found {merged_count} merged, {closed_count} closed PRs in month range")
-    else:
-        console.error(f"[Backfill] Failed to fetch closed PRs: status={closed_resp.status}")
+                    await _d1_run(
+                        db,
+                        """
+                        INSERT INTO leaderboard_pr_state (org, repo, pr_number, author_login, state, merged, closed_at, updated_at)
+                        VALUES (?, ?, ?, ?, 'closed', 0, ?, ?)
+                        ON CONFLICT(org, repo, pr_number) DO NOTHING
+                        """,
+                        (owner, repo_name, pr_number, login, closed_ts_val, now_ts),
+                    )
+                    already_tracked.add(pr_number)
+        # Stop paginating if fewer than 100 results (last page).
+        if len(closed_prs) < 100:
+            break
+        closed_page += 1
+    console.log(f"[Backfill] Found {merged_count} merged, {closed_count} closed PRs in month range")
+
+    # Also include webhook-tracked merged PRs whose review webhooks may have been missed
+    # (e.g. during app downtime). The leaderboard_review_credits idempotency guard ensures
+    # no duplicate credits are awarded even if a PR is processed again.
+    if len(merged_prs_for_review) < MAX_REVIEW_BACKFILL:
+        tracked_merged_rows = await _d1_all(
+            db,
+            """
+            SELECT pr_number, author_login FROM leaderboard_pr_state
+            WHERE org = ? AND repo = ? AND merged = 1
+            """,
+            (owner, repo_name),
+        )
+        newly_added = {pr_num for pr_num, _ in merged_prs_for_review}
+        for row in (tracked_merged_rows or []):
+            if len(merged_prs_for_review) >= MAX_REVIEW_BACKFILL:
+                break
+            pr_num = row.get("pr_number")
+            author = row.get("author_login", "")
+            if pr_num and pr_num not in newly_added:
+                merged_prs_for_review.append((pr_num, author))
+                newly_added.add(pr_num)
+
+    # Backfill review credits for merged PRs in the window (up to MAX_REVIEW_BACKFILL).
+    # Mirrors the idempotency logic in _track_review_in_d1: only the first two unique
+    # non-bot, non-author reviewers per PR per month get credit.
+    if merged_prs_for_review:
+        console.log(f"[Backfill] Fetching reviews for {len(merged_prs_for_review)} merged PRs")
+    for pr_number, pr_author in merged_prs_for_review:
+        try:
+            reviews_resp = await github_api(
+                "GET",
+                f"/repos/{owner}/{repo_name}/pulls/{pr_number}/reviews?per_page=100",
+                token,
+            )
+            if reviews_resp.status == 429:
+                console.error(f"[Backfill] GitHub rate limit hit fetching reviews for PR #{pr_number}; skipping remaining review backfill")
+                break
+            if reviews_resp.status != 200:
+                console.error(f"[Backfill] Failed to fetch reviews for PR #{pr_number}: status={reviews_resp.status}")
+                continue
+            reviews = json.loads(await reviews_resp.text())
+            # Load all existing credits for this PR in one query to avoid N+1 SELECTs.
+            credit_rows = await _d1_all(
+                db,
+                """
+                SELECT reviewer_login FROM leaderboard_review_credits
+                WHERE org = ? AND repo = ? AND pr_number = ? AND month_key = ?
+                """,
+                (owner, repo_name, pr_number, mk),
+            )
+            already_credited_set = {row["reviewer_login"] for row in (credit_rows or [])}
+            seen_reviewers: set = set()
+            for review in reviews:
+                reviewer = review.get("user") or {}
+                if _is_bot(reviewer):
+                    continue
+                reviewer_login = reviewer.get("login", "")
+                if not reviewer_login or reviewer_login == pr_author:
+                    continue
+                if reviewer_login in seen_reviewers:
+                    continue
+                seen_reviewers.add(reviewer_login)
+                if reviewer_login in already_credited_set:
+                    continue
+                # Stop processing once 2 unique reviewers have been credited for this PR.
+                if len(already_credited_set) >= 2:
+                    break
+                await _d1_run(
+                    db,
+                    """
+                    INSERT INTO leaderboard_review_credits (org, repo, pr_number, month_key, reviewer_login, created_at)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                    """,
+                    (owner, repo_name, pr_number, mk, reviewer_login, now_ts),
+                )
+                await _d1_inc_monthly(db, owner, mk, reviewer_login, "reviews", 1)
+                already_credited_set.add(reviewer_login)
+                console.log(f"[Backfill] Review credit: {reviewer_login} reviewed PR #{pr_number}")
+        except Exception as e:
+            console.error(f"[Backfill] Error fetching reviews for PR #{pr_number}: {e}")
 
     try:
         await _d1_run(
@@ -1058,6 +1233,70 @@ async def _backfill_repo_month_if_needed(
     except Exception as e:
         console.error(f"[Backfill] Failed to mark repo as done: {e}")
         return False
+
+
+async def _reset_leaderboard_month(org: str, month_key: str, db) -> dict:
+    """Clear all leaderboard data for an org/month so a fresh backfill can re-populate it.
+
+    Deletes:
+    - leaderboard_monthly_stats       for org + month_key
+    - leaderboard_backfill_repo_done  for org + month_key  (allows re-backfill)
+    - leaderboard_review_credits      for org + month_key
+    - leaderboard_pr_state            for org where closed_at falls within the month window
+    - leaderboard_open_prs            for org              (open PR counts are recalculated
+                                                            fresh on next backfill)
+
+    Returns a dict summarising cleared tables.
+    """
+    await _ensure_leaderboard_schema(db)
+    deleted: dict = {}
+
+    for table, params in [
+        ("leaderboard_monthly_stats", (org, month_key)),
+        ("leaderboard_backfill_repo_done", (org, month_key)),
+        ("leaderboard_review_credits", (org, month_key)),
+    ]:
+        try:
+            await _d1_run(db, f"DELETE FROM {table} WHERE org = ? AND month_key = ?", params)
+            deleted[table] = "cleared"
+        except Exception as e:
+            console.error(f"[AdminReset] Error clearing {table}: {e}")
+            deleted[table] = f"error: {e}"
+
+    # Scope the pr_state delete to the target month's timestamp window so that
+    # rows for other months (e.g. the current active month) are not destroyed.
+    start_ts, end_ts = _month_window(month_key)
+    try:
+        # Two cases:
+        #   1. Closed/merged PRs: closed_at falls within the month window.
+        #   2. Open PRs recorded during this month: state='open', no closed_at,
+        #      updated_at falls within the month window.
+        await _d1_run(
+            db,
+            """
+            DELETE FROM leaderboard_pr_state
+            WHERE org = ?
+              AND (
+                closed_at BETWEEN ? AND ?
+                OR (state = 'open' AND closed_at IS NULL AND updated_at BETWEEN ? AND ?)
+              )
+            """,
+            (org, start_ts, end_ts, start_ts, end_ts),
+        )
+        deleted["leaderboard_pr_state"] = "cleared"
+    except Exception as e:
+        console.error(f"[AdminReset] Error clearing leaderboard_pr_state: {e}")
+        deleted["leaderboard_pr_state"] = f"error: {e}"
+
+    try:
+        await _d1_run(db, "DELETE FROM leaderboard_open_prs WHERE org = ?", (org,))
+        deleted["leaderboard_open_prs"] = "cleared"
+    except Exception as e:
+        console.error(f"[AdminReset] Error clearing leaderboard_open_prs: {e}")
+        deleted["leaderboard_open_prs"] = f"error: {e}"
+
+    console.log(f"[AdminReset] Cleared leaderboard data for org={org} month={month_key}")
+    return deleted
 
 
 async def _fetch_org_repos(org: str, token: str, limit: int = 10) -> list:
@@ -1852,20 +2091,6 @@ async def handle_pull_request_opened(payload: dict, token: str, env=None) -> Non
     # Track open PR counter in D1.
     await _track_pr_opened_in_d1(payload, env)
     
-    # Post welcome message
-    body = (
-        f"👋 Thanks for opening this pull request, @{author_login}!\n\n"
-        "**Before your PR is reviewed, please ensure:**\n"
-        "- [ ] Your code follows the project's coding style and guidelines.\n"
-        "- [ ] You have written or updated tests for your changes.\n"
-        "- [ ] The commit messages are clear and descriptive.\n"
-        "- [ ] You have linked any relevant issues (e.g., `Closes #123`).\n\n"
-        "🔍 Our team will review your PR shortly. "
-        "If you have questions, feel free to ask in the comments.\n\n"
-        "🚀 Keep up the great work! — [OWASP BLT](https://owaspblt.org)"
-    )
-    await create_comment(owner, repo, pr_number, body, token)
-    
     # Post leaderboard
     if env is None:
         await _post_or_update_leaderboard(owner, repo, pr_number, author_login, token)
@@ -1877,6 +2102,9 @@ async def handle_pull_request_opened(payload: dict, token: str, env=None) -> Non
         await check_unresolved_conversations(payload, token)
     except Exception as exc:
         console.error(f"[BLT] check_unresolved_conversations failed (best-effort, ignored): {exc}")
+
+    # Label PR with number of pending checks (queued/waiting/action_required)
+    await _try_label_pending_checks(owner, repo, pr, token)
 
 
 async def handle_pull_request_closed(payload: dict, token: str, env=None) -> None:
@@ -2033,6 +2261,161 @@ async def check_unresolved_conversations(payload, token):
         token,
         {"labels": [label]},
     )
+
+
+# ---------------------------------------------------------------------------
+# Workflow approval labels
+# ---------------------------------------------------------------------------
+
+
+# Pending checks labels
+# ---------------------------------------------------------------------------
+
+
+async def label_pending_checks(
+    owner: str, repo: str, pr_number: int, head_sha: str, token: str
+) -> None:
+    """Update the 'N checks pending' label on a PR.
+
+    Counts workflow runs for *head_sha* across the ``queued``, ``waiting``,
+    and ``action_required`` statuses (all mean "waiting to be run") and
+    applies a yellow label with the combined count.  Removes any pre-existing
+    ``"* checks pending"`` or legacy ``"* workflow* awaiting approval"`` labels
+    before adding the fresh one.  When all status queries fail the label is
+    left unchanged to avoid spurious removals during API outages.
+    """
+    pending_count = 0
+    any_succeeded = False
+    for status in ("queued", "waiting", "action_required"):
+        resp = await github_api(
+            "GET",
+            f"/repos/{owner}/{repo}/actions/runs?head_sha={head_sha}&status={status}&per_page=100",
+            token,
+        )
+        if resp.status == 200:
+            any_succeeded = True
+            data = json.loads(await resp.text())
+            pending_count += data.get("total_count", 0)
+
+    if not any_succeeded:
+        # Can't determine state; leave existing labels untouched.
+        return
+
+    # Remove any existing pending-checks labels (both new and legacy formats).
+    resp_labels = await github_api(
+        "GET",
+        f"/repos/{owner}/{repo}/issues/{pr_number}/labels",
+        token,
+    )
+    if resp_labels.status == 200:
+        current_labels = json.loads(await resp_labels.text())
+        for lb in current_labels:
+            name = lb.get("name", "")
+            is_pending = "check" in name and "pending" in name
+            is_legacy = "workflow" in name and "awaiting approval" in name
+            if is_pending or is_legacy:
+                await github_api(
+                    "DELETE",
+                    f"/repos/{owner}/{repo}/issues/{pr_number}/labels/{quote(name, safe='')}",
+                    token,
+                )
+
+    if pending_count > 0:
+        noun = "check" if pending_count == 1 else "checks"
+        label = f"{pending_count} {noun} pending"
+        await _ensure_label_exists(owner, repo, label, "e4c84b", token)
+        await github_api(
+            "POST",
+            f"/repos/{owner}/{repo}/issues/{pr_number}/labels",
+            token,
+            {"labels": [label]},
+        )
+
+
+# Keep old name as an alias so any external callers remain compatible.
+check_workflows_awaiting_approval = label_pending_checks
+
+
+async def _try_label_pending_checks(
+    owner: str, repo: str, pr: dict, token: str
+) -> None:
+    """Best-effort wrapper: extract the head SHA from *pr* and call
+    :func:`label_pending_checks`, logging any exception instead of raising.
+    """
+    head_sha = pr.get("head", {}).get("sha", "")
+    if not head_sha:
+        return
+    try:
+        await label_pending_checks(owner, repo, pr["number"], head_sha, token)
+    except Exception as exc:
+        console.error(f"[BLT] label_pending_checks failed (best-effort, ignored): {exc}")
+
+
+async def handle_workflow_run(payload: dict, token: str) -> None:
+    """Handle workflow_run events to update 'checks pending' labels on PRs.
+
+    Resolves the PR(s) associated with the workflow run and calls
+    :func:`label_pending_checks` for each one.  Falls back to searching open
+    PRs by head SHA when the payload's ``pull_requests`` array is empty
+    (e.g. fork PRs).
+    """
+    workflow_run = payload.get("workflow_run", {})
+    owner = payload["repository"]["owner"]["login"]
+    repo = payload["repository"]["name"]
+    head_sha = workflow_run.get("head_sha", "")
+
+    pr_numbers: set[int] = set()
+    for pr in workflow_run.get("pull_requests", []):
+        pr_numbers.add(pr["number"])
+
+    # For fork PRs the pull_requests array is empty; fall back to a lookup
+    if not pr_numbers and head_sha:
+        resp = await github_api(
+            "GET",
+            f"/repos/{owner}/{repo}/pulls?state=open&per_page=100",
+            token,
+        )
+        if resp.status == 200:
+            pulls = json.loads(await resp.text())
+            for pull in pulls:
+                if pull.get("head", {}).get("sha") == head_sha:
+                    pr_numbers.add(pull["number"])
+
+    for pr_number in pr_numbers:
+        await label_pending_checks(owner, repo, pr_number, head_sha, token)
+
+
+async def handle_check_run(payload: dict, token: str) -> None:
+    """Handle check_run events to keep 'N checks pending' labels accurate.
+
+    Called for ``check_run.created`` and ``check_run.completed`` actions.
+    Resolves the PR(s) linked to the check run's head SHA and updates the
+    pending-checks label for each one.
+    """
+    check_run = payload.get("check_run", {})
+    owner = payload["repository"]["owner"]["login"]
+    repo = payload["repository"]["name"]
+    head_sha = check_run.get("head_sha", "")
+
+    pr_numbers: set[int] = set()
+    for pr in check_run.get("pull_requests", []):
+        pr_numbers.add(pr["number"])
+
+    # For fork PRs the pull_requests array is empty; look up by head SHA.
+    if not pr_numbers and head_sha:
+        resp = await github_api(
+            "GET",
+            f"/repos/{owner}/{repo}/pulls?state=open&per_page=100",
+            token,
+        )
+        if resp.status == 200:
+            pulls = json.loads(await resp.text())
+            for pull in pulls:
+                if pull.get("head", {}).get("sha") == head_sha:
+                    pr_numbers.add(pull["number"])
+
+    for pr_number in pr_numbers:
+        await label_pending_checks(owner, repo, pr_number, head_sha, token)
 
 
 # ---------------------------------------------------------------------------
@@ -2236,6 +2619,9 @@ async def handle_pull_request_for_review(payload: dict, token: str) -> None:
     
     await check_peer_review_and_comment(owner, repo, pr["number"], pr_author, token)
 
+    # Label PR with number of pending checks (queued/waiting/action_required)
+    await _try_label_pending_checks(owner, repo, pr, token)
+
 
 # ---------------------------------------------------------------------------
 # Webhook dispatcher
@@ -2333,6 +2719,10 @@ async def handle_webhook(request, env) -> Response:
             await check_unresolved_conversations(payload, token)
         elif event == "pull_request_review_thread":
             await check_unresolved_conversations(payload, token)
+        elif event == "workflow_run":
+            await handle_workflow_run(payload, token)
+        elif event == "check_run" and action in ("created", "completed"):
+            await handle_check_run(payload, token)
 
     except Exception as exc:
         console.error(f"[BLT] Webhook handler error: {exc}")
@@ -2343,7 +2733,7 @@ async def handle_webhook(request, env) -> Response:
 
 # ---------------------------------------------------------------------------
 # Landing page HTML — separated into src/index_template.py for maintainability.
-# Edit public/index.html and regenerate src/index_template.py before deploying.
+# Edit templates/index.html and regenerate src/index_template.py before deploying.
 # ---------------------------------------------------------------------------
 
 _CALLBACK_HTML = """\
@@ -2389,17 +2779,17 @@ _CALLBACK_HTML = """\
 def _secret_vars_status_html(env) -> str:
     """Generate HTML rows showing whether each secret/config variable is set."""
     _SET_BADGE = (
-        '<span class="font-semibold flex items-center gap-1.5" style="color:#4ade80;">'
+        '<span class="inline-flex items-center gap-1.5 font-semibold text-emerald-700">'
         '<i class="fa-solid fa-circle-check" aria-hidden="true"></i> Set'
         "</span>"
     )
     _MISSING_BADGE = (
-        '<span class="font-semibold flex items-center gap-1.5" style="color:#f87171;">'
+        '<span class="inline-flex items-center gap-1.5 font-semibold text-red-700">'
         '<i class="fa-solid fa-circle-xmark" aria-hidden="true"></i> Not set'
         "</span>"
     )
     _OPTIONAL_BADGE = (
-        '<span class="font-semibold flex items-center gap-1.5" style="color:#9ca3af;">'
+        '<span class="inline-flex items-center gap-1.5 font-semibold text-gray-500">'
         '<i class="fa-solid fa-circle-minus" aria-hidden="true"></i> Not configured'
         "</span>"
     )
@@ -2408,31 +2798,31 @@ def _secret_vars_status_html(env) -> str:
     optional_vars = ["GITHUB_CLIENT_ID", "GITHUB_CLIENT_SECRET"]
 
     rows = [
-        '        <div style="border-top:1px solid #374151;margin-top:1rem;padding-top:0.5rem;">',
-        '          <p class="text-xs font-semibold uppercase tracking-wider mb-1" style="color:#6b7280;">Secret Variables</p>',
+        '        <div class="mt-4 border-t border-[#E5E5E5] pt-3">',
+        '          <p class="mb-1 text-xs font-semibold uppercase tracking-wider text-gray-500">Secret Variables</p>',
         "        </div>",
     ]
     for name in required_vars:
         is_set = bool(getattr(env, name, ""))
         badge = _SET_BADGE if is_set else _MISSING_BADGE
         rows.append(
-            f'        <div class="flex justify-between items-center py-3 text-sm" style="border-bottom:1px solid #374151;">'
-            f'<span style="color:#d1d5db;"><code style="font-size:0.75rem;">{name}</code></span>'
+            f'        <div class="flex items-center justify-between border-b border-[#E5E5E5] py-3 text-sm">'
+            f'<span class="text-gray-700"><code class="text-xs">{name}</code></span>'
             f"{badge}</div>"
         )
     for name in optional_vars:
         is_set = bool(getattr(env, name, ""))
         badge = _SET_BADGE if is_set else _OPTIONAL_BADGE
         rows.append(
-            f'        <div class="flex justify-between items-center py-3 text-sm" style="border-bottom:1px solid #374151;">'
-            f'<span style="color:#d1d5db;"><code style="font-size:0.75rem;">{name}</code>'
-            f' <span style="color:#6b7280;font-size:0.7rem;">(optional)</span></span>'
+            f'        <div class="flex items-center justify-between border-b border-[#E5E5E5] py-3 text-sm">'
+            f'<span class="text-gray-700"><code class="text-xs">{name}</code>'
+            f' <span class="text-[0.7rem] text-gray-500">(optional)</span></span>'
             f"{badge}</div>"
         )
     return "\n".join(rows)
 
 
-def _landing_html(app_slug: str, env=None) -> str:
+def _github_app_html(app_slug: str, env=None) -> str:
     install_url = (
         f"https://github.com/apps/{app_slug}/installations/new"
         if app_slug
@@ -2441,7 +2831,7 @@ def _landing_html(app_slug: str, env=None) -> str:
     year = time.gmtime().tm_year
     secret_vars_html = _secret_vars_status_html(env) if env is not None else ""
     return (
-        INDEX_HTML
+        GITHUB_PAGE_HTML
         .replace("{{INSTALL_URL}}", install_url)
         .replace("{{YEAR}}", str(year))
         .replace("{{SECRET_VARS_STATUS}}", secret_vars_html)
@@ -2450,6 +2840,263 @@ def _landing_html(app_slug: str, env=None) -> str:
 
 def _callback_html() -> str:
     return _CALLBACK_HTML
+
+
+def _generate_mentor_card(mentor: dict) -> str:
+    """Generate HTML for a single mentor card."""
+    name = mentor.get("name", "Unknown")
+    github = mentor.get("github_username", "")
+    slack = mentor.get("slack_username", "")
+    project = mentor.get("project")
+    mentee = mentor.get("mentee")
+    status = mentor.get("status", "available")
+
+    # Use GitHub avatar if username provided, otherwise default avatar.
+    avatar_url = f"https://github.com/{github}.png" if github else "https://api.dicebear.com/7.x/initials/svg?seed=" + quote(name)
+
+    if status == "available":
+        status_badge = '<span class="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700"><i class="fa-solid fa-circle text-[0.4rem]" aria-hidden="true"></i> Available</span>'
+    elif status == "assigned":
+        status_badge = '<span class="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700"><i class="fa-solid fa-circle text-[0.4rem]" aria-hidden="true"></i> Mentoring</span>'
+    else:
+        status_badge = '<span class="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs font-semibold text-gray-600"><i class="fa-solid fa-circle text-[0.4rem]" aria-hidden="true"></i> Unavailable</span>'
+
+    assignment_html = ""
+    if project and mentee:
+        assignment_html = f'''
+        <div class="mt-4 border-t border-[#E5E5E5] pt-3 text-xs text-gray-600">
+          <p class="mb-1"><span class="font-semibold text-gray-800">Project:</span> {project}</p>
+          <p><span class="font-semibold text-gray-800">Mentee:</span> {mentee}</p>
+        </div>
+        '''
+
+    github_link = f'<a href="https://github.com/{github}" target="_blank" rel="noopener" class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-[#E5E5E5] text-gray-600 transition hover:border-[#E10101] hover:text-[#E10101]" aria-label="{name} GitHub profile"><i class="fa-brands fa-github" aria-hidden="true"></i></a>' if github else '<span class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-[#E5E5E5] text-gray-400"><i class="fa-brands fa-github" aria-hidden="true"></i></span>'
+    slack_display = ""
+    if slack:
+        formatted_slack = slack if slack.startswith("@") else f"@{slack}"
+        slack_display = (
+            '<span class="inline-flex h-8 items-center gap-1.5 rounded-md border border-[#E10101]/20 bg-[#feeae9] px-2.5 text-xs font-medium text-[#E10101]">'
+            '<i class="fa-brands fa-slack" aria-hidden="true"></i>'
+            f'<span class="leading-none">{formatted_slack}</span>'
+            "</span>"
+        )
+    else:
+        slack_display = (
+            '<span class="inline-flex h-8 items-center gap-1.5 rounded-md border border-[#E5E5E5] px-2.5 text-xs text-gray-400">'
+            '<i class="fa-brands fa-slack" aria-hidden="true"></i>'
+            '<span class="leading-none">No Slack</span>'
+            "</span>"
+        )
+
+    return f'''
+    <article class="rounded-2xl border border-[#E5E5E5] bg-white p-6 transition hover:-translate-y-0.5 hover:shadow-md">
+      <div class="flex items-start gap-4">
+        <img src="{avatar_url}" alt="{name}" class="h-16 w-16 rounded-full border-2 border-[#E5E5E5] bg-white object-cover">
+        <div class="min-w-0 flex-1">
+          <h4 class="truncate text-lg font-bold text-[#111827]">{name}</h4>
+          <div class="mt-2">{status_badge}</div>
+        </div>
+      </div>
+      <div class="mt-4 flex flex-wrap items-center gap-2 text-sm">
+        {github_link}
+        {slack_display}
+      </div>
+
+      {assignment_html}
+    </article>
+    '''
+
+
+def _index_html() -> str:
+    """Generate the BLT-Pool mentor grid homepage."""
+    year = time.gmtime().tm_year
+    mentor_count = len(MENTORS)
+    available_count = len([m for m in MENTORS if m.get("status") == "available"])
+
+    mentor_cards_html = "\n".join(_generate_mentor_card(mentor) for mentor in MENTORS)
+
+    return f'''<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="BLT-Pool for OWASP BLT. Connect with mentors and install the BLT GitHub extension.">
+  <title>BLT-Pool | OWASP BLT Mentor Directory</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+  <script>
+    tailwind.config = {{
+      theme: {{
+        extend: {{
+          colors: {{
+            'blt-primary': '#E10101',
+            'blt-primary-hover': '#b91c1c',
+            'blt-border': '#E5E5E5'
+          }},
+          fontFamily: {{
+            sans: ['Plus Jakarta Sans', 'ui-sans-serif', 'system-ui', 'sans-serif']
+          }}
+        }}
+      }}
+    }}
+  </script>
+  <style>
+    body {{
+      background:
+        radial-gradient(circle at 0% 0%, rgba(225, 1, 1, 0.09), transparent 32%),
+        radial-gradient(circle at 95% 4%, rgba(225, 1, 1, 0.05), transparent 28%),
+        #f8fafc;
+    }}
+  </style>
+</head>
+<body class="min-h-screen font-sans text-gray-900 antialiased">
+
+  <header class="sticky top-0 z-40 border-b border-[#E5E5E5] bg-white/90 backdrop-blur">
+    <div class="mx-auto flex w-full max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+      <a href="/" class="flex items-center gap-3" aria-label="BLT-Pool home">
+        <img src="/logo-sm.png" alt="OWASP BLT logo" class="h-10 w-10 rounded-xl border border-[#E5E5E5] bg-white object-contain p-1">
+        <div>
+          <p class="text-sm font-semibold uppercase tracking-wide text-gray-500">OWASP BLT</p>
+          <h1 class="text-lg font-extrabold text-[#111827]">BLT-Pool</h1>
+        </div>
+      </a>
+      <nav class="hidden items-center gap-1 rounded-xl border border-[#E5E5E5] bg-white p-1 md:flex" aria-label="Primary">
+        <a href="/" class="rounded-lg bg-[#feeae9] px-3 py-2 text-sm font-semibold text-[#E10101]">Mentors</a>
+        <a href="/github-app" class="rounded-lg px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">GitHub App</a>
+        <a href="https://owaspblt.org" target="_blank" rel="noopener" class="rounded-lg px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">
+          OWASP BLT <i class="fa-solid fa-arrow-up-right-from-square text-xs" aria-hidden="true"></i>
+        </a>
+      </nav>
+      <span role="status" aria-label="Service status: Operational"
+            class="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+        <i class="fa-solid fa-circle text-[0.45rem]" aria-hidden="true"></i>
+        Operational
+      </span>
+    </div>
+  </header>
+
+  <main class="mx-auto flex-1 w-full max-w-7xl space-y-10 px-4 py-10 sm:px-6 lg:px-8">
+
+    <section class="overflow-hidden rounded-3xl border border-[#E5E5E5] bg-white p-7 shadow-[0_14px_40px_rgba(225,1,1,0.10)] sm:p-10">
+      <div class="grid gap-8 lg:grid-cols-2 lg:items-center">
+        <div>
+          <span class="mb-4 inline-flex items-center gap-2 rounded-full border border-[#E5E5E5] bg-gray-50 px-3 py-1 text-xs font-semibold text-gray-700">
+            <i class="fa-solid fa-users text-[#E10101]" aria-hidden="true"></i>
+            Mentor directory for BLT contributors
+          </span>
+          <h2 class="text-3xl font-extrabold leading-tight text-[#111827] sm:text-5xl">
+            Find your guide inside
+            <span class="text-[#E10101]">OWASP BLT-Pool</span>
+          </h2>
+          <p class="mt-4 max-w-2xl text-base leading-relaxed text-gray-600 sm:text-lg">
+            Connect with mentors, get support for your first pull request, and keep contribution quality high with a practical community workflow.
+          </p>
+          <div class="mt-7 flex flex-wrap gap-3">
+            <a href="https://owasp.slack.com/signup" target="_blank" rel="noopener"
+               class="inline-flex items-center gap-2 rounded-md bg-[#E10101] px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2">
+              <i class="fa-brands fa-slack" aria-hidden="true"></i>
+              Join OWASP Slack
+            </a>
+            <a href="/github-app"
+               class="inline-flex items-center gap-2 rounded-md border border-[#E10101] px-5 py-3 text-sm font-semibold text-[#E10101] transition hover:bg-[#E10101] hover:text-white focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2">
+              <i class="fa-brands fa-github" aria-hidden="true"></i>
+              Open GitHub App
+            </a>
+          </div>
+        </div>
+        <div class="grid gap-3 sm:grid-cols-2">
+          <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-4">
+            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Mentors</p>
+            <p class="mt-1 text-2xl font-extrabold text-[#111827]">{mentor_count}</p>
+          </article>
+          <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-4">
+            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Available Now</p>
+            <p class="mt-1 text-2xl font-extrabold text-[#111827]">{available_count}</p>
+          </article>
+          <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-4 sm:col-span-2">
+            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Why It Works</p>
+            <p class="mt-1 text-sm font-semibold text-gray-700">Round-robin assignment prevents overload and keeps responses timely.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="space-y-5">
+      <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <h3 class="text-2xl font-bold text-[#111827]">
+          Mentor Pool <span class="text-base font-medium text-gray-500">({mentor_count} total, {available_count} available)</span>
+        </h3>
+        <label for="mentor-search" class="relative block w-full sm:w-80">
+          <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+          </span>
+          <input id="mentor-search" type="search" placeholder="Search mentors (coming soon)"
+                 class="w-full rounded-md border border-gray-400 bg-white px-4 py-2 pl-10 text-sm text-gray-700 placeholder:text-gray-400 focus:border-red-600 focus:ring-1 focus:ring-red-600 focus:outline-none">
+        </label>
+      </div>
+
+      <div class="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+        {mentor_cards_html}
+      </div>
+    </section>
+
+    <section class="rounded-2xl border border-[#E5E5E5] bg-white p-7 sm:p-9">
+      <h3 class="text-2xl font-bold text-[#111827]">How Mentor Matching Works</h3>
+      <div class="mt-6 grid gap-5 md:grid-cols-3">
+        <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-5">
+          <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-[#feeae9] text-[#E10101]">
+            <i class="fa-solid fa-user-plus" aria-hidden="true"></i>
+          </div>
+          <h4 class="text-base font-bold text-[#111827]">1. Pick an issue</h4>
+          <p class="mt-2 text-sm text-gray-600">Start with an issue tagged for contribution or mentor support.</p>
+        </article>
+        <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-5">
+          <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-[#feeae9] text-[#E10101]">
+            <i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i>
+          </div>
+          <h4 class="text-base font-bold text-[#111827]">2. Get assigned</h4>
+          <p class="mt-2 text-sm text-gray-600">Mentors are matched with healthy load balancing to avoid bottlenecks.</p>
+        </article>
+        <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-5">
+          <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-[#feeae9] text-[#E10101]">
+            <i class="fa-solid fa-comments" aria-hidden="true"></i>
+          </div>
+          <h4 class="text-base font-bold text-[#111827]">3. Build and review</h4>
+          <p class="mt-2 text-sm text-gray-600">Work with your mentor on review quality, security checks, and merge confidence.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="rounded-2xl border border-[#E5E5E5] bg-white p-7 text-center sm:p-9">
+      <h3 class="text-2xl font-bold text-[#111827]">Want to become a mentor?</h3>
+      <p class="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-gray-600 sm:text-base">
+        Help newcomers ship quality contributions. Mentors guide issue triage, implementation, and review best practices.
+      </p>
+      <a href="https://owasp.slack.com/archives/C0DKR6LAW" target="_blank" rel="noopener"
+         class="mt-6 inline-flex items-center gap-2 rounded-md bg-[#E10101] px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2">
+        <i class="fa-regular fa-comments" aria-hidden="true"></i>
+        Reach out on Slack
+      </a>
+    </section>
+
+  </main>
+
+  <footer class="border-t border-[#E5E5E5] bg-white">
+    <div class="mx-auto max-w-7xl px-4 py-6 text-center text-sm text-gray-600 sm:px-6 lg:px-8">
+      Built by the <a href="https://owaspblt.org" target="_blank" rel="noopener" class="text-red-600 hover:underline">OWASP BLT community</a>
+      <span aria-hidden="true"> • </span>
+      <a href="/github-app" class="text-red-600 hover:underline">GitHub App</a>
+      <span aria-hidden="true"> • </span>
+      <a href="https://github.com/OWASP-BLT/BLT-Pool" target="_blank" rel="noopener" class="text-red-600 hover:underline">BLT-Pool Repo</a>
+      <p class="mt-2 text-xs text-gray-500">&copy; {year} OWASP Foundation. All rights reserved.</p>
+    </div>
+  </footer>
+
+</body>
+</html>'''
 
 
 # ---------------------------------------------------------------------------
@@ -2486,11 +3133,14 @@ async def on_fetch(request, env) -> Response:
     path = urlparse(str(request.url)).path.rstrip("/") or "/"
 
     if method == "GET" and path == "/":
+        return _html(_index_html())
+
+    if method == "GET" and path == "/github-app":
         app_slug = getattr(env, "GITHUB_APP_SLUG", "")
-        return _html(_landing_html(app_slug, env))
+        return _html(_github_app_html(app_slug, env))
 
     if method == "GET" and path == "/health":
-        return _json({"status": "ok", "service": "BLT GitHub App"})
+        return _json({"status": "ok", "service": "BLT-Pool"})
 
     if method == "POST" and path == "/api/github/webhooks":
         return await handle_webhook(request, env)
@@ -2498,6 +3148,37 @@ async def on_fetch(request, env) -> Response:
     # GitHub redirects here after a successful installation
     if method == "GET" and path == "/callback":
         return _html(_callback_html())
+
+    # Admin: reset corrupted leaderboard data for a given org/month so a fresh
+    # backfill can re-populate it.  Requires ADMIN_SECRET env variable.
+    if method == "POST" and path == "/admin/reset-leaderboard-month":
+        admin_secret = getattr(env, "ADMIN_SECRET", "")
+        if not admin_secret:
+            return _json({"error": "Admin endpoint not configured"}, 403)
+        auth_header = (request.headers.get("Authorization") or "").strip()
+        if auth_header != f"Bearer {admin_secret}":
+            return _json({"error": "Unauthorized"}, 401)
+        try:
+            body = json.loads(await request.text())
+        except Exception:
+            return _json({"error": "Invalid JSON body"}, 400)
+        org = (body.get("org") or "").strip()
+        if not org:
+            return _json({"error": "Missing required field: org"}, 400)
+        month_key = (body.get("month_key") or "").strip()
+        if not month_key:
+            return _json(
+                {"error": "Missing required field: month_key (e.g. '2026-03'). "
+                 "Provide an explicit month to prevent accidental resets."},
+                400,
+            )
+        if not re.fullmatch(r"\d{4}-\d{2}", month_key):
+            return _json({"error": "month_key must be in YYYY-MM format (e.g. '2026-03')"}, 400)
+        db = _d1_binding(env)
+        if not db:
+            return _json({"error": "No D1 binding available"}, 500)
+        deleted = await _reset_leaderboard_month(org, month_key, db)
+        return _json({"ok": True, "org": org, "month_key": month_key, "tables_cleared": deleted})
 
     return _json({"error": "Not found"}, 404)
 

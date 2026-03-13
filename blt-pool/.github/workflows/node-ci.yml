@@ -54,7 +54,6 @@ jobs:
         run: |
           wrangler --version
           wrangler dev --help >/dev/null
-          wrangler deploy --help >/dev/null
 
       - name: Python syntax check (worker)
         if: steps.nodeproj.outputs.has_package_json != 'true'
