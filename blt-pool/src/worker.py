@@ -4075,8 +4075,9 @@ def _index_html() -> str:
         <div>
           <h3 class="text-2xl font-bold text-[#111827]">Become a Mentor</h3>
           <p class="mt-1 text-sm leading-relaxed text-gray-600">
-            Fill in the form and click the button — it opens a pre-filled GitHub issue for review.
-            Once a maintainer approves your application, you join the pool automatically.
+            Fill in the form and click the button — it opens a pre-filled GitHub issue. Once the
+            <code class="rounded bg-gray-100 px-1 text-xs font-mono">mentor-application</code>
+            label is added to that issue, you are added to the pool automatically and the issue is closed.
           </p>
         </div>
       </div>
@@ -4151,7 +4152,7 @@ def _index_html() -> str:
               '- **Timezone**: ' + (tz || '_not specified_'),
               '',
               '---',
-              '_Submitted via the BLT-Pool mentor application form. A maintainer will review and merge the PR._'
+              '_Submitted via the BLT-Pool mentor application form. A maintainer will add the mentor-application label to trigger automatic onboarding._'
             ].join('\\n');
             var url = 'https://github.com/OWASP-BLT/BLT-Pool/issues/new'
               + '?title=' + encodeURIComponent('Mentor Application: @' + github)

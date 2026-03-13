@@ -1,16 +1,16 @@
 name: Add Mentor from Application Issue
 
 # Triggered when the "mentor-application" label is added to an issue.
-# The workflow parses the issue body, appends a new entry to .github/mentors.yml,
-# and opens a pull request for maintainer review.
+# The workflow parses the issue body, commits the new mentor entry directly to
+# the default branch, closes the issue, and posts a confirmation comment.
 
 on:
   issues:
     types: [labeled]
 
-# Serialize runs for the same issue to prevent duplicate-branch push conflicts
-# when the label is added more than once (e.g., removed and re-added).
-# cancel-in-progress: false ensures a second run waits instead of being killed.
+# Serialize runs for the same issue to prevent push conflicts when the label is
+# added more than once (e.g., removed and re-added by a maintainer).
+# cancel-in-progress: false ensures a second run queues rather than being killed.
 concurrency:
   group: add-mentor-issue-${{ github.event.issue.number }}
   cancel-in-progress: false
@@ -21,7 +21,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      pull-requests: write
       issues: write
 
     steps:
@@ -35,35 +34,33 @@ jobs:
           MENTORS_YML: .github/mentors.yml
         run: python3 .github/scripts/add_mentor.py
 
-      - name: Create pull request
+      - name: Commit mentor directly to main
         if: steps.update.outputs.github_username != ''
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_USERNAME: ${{ steps.update.outputs.github_username }}
-          MENTOR_NAME: ${{ steps.update.outputs.name }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
         run: |
-          BRANCH="add-mentor-${GITHUB_USERNAME}-${ISSUE_NUMBER}"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Idempotent: reuse the branch if it already exists (e.g. label re-added).
-          git checkout -b "$BRANCH" 2>/dev/null || git checkout "$BRANCH"
-
           git add .github/mentors.yml
-          # Nothing to commit means a previous run already did this — skip gracefully.
-          git diff --cached --quiet && echo "No changes to commit — branch already up to date." && exit 0
+          # If a previous run already committed this entry, exit gracefully.
+          if git diff --cached --quiet; then
+            echo "No changes to commit — mentor already present."
+            exit 0
+          fi
           git commit -m "Add mentor @${GITHUB_USERNAME} from issue #${ISSUE_NUMBER}"
 
           # Retry push up to 3 times with a rebase pull on conflict.
           PUSH_SUCCESS=false
           for attempt in 1 2 3; do
-            if git pull --rebase origin "$BRANCH" 2>/dev/null; then
+            if git pull --rebase origin "${DEFAULT_BRANCH}" 2>/dev/null; then
               echo "Rebase pull succeeded on attempt ${attempt}."
             else
-              echo "Rebase pull failed on attempt ${attempt} (branch may not exist remotely yet — continuing)."
+              echo "Rebase pull failed on attempt ${attempt} — continuing."
             fi
-            if git push origin "$BRANCH"; then
+            if git push origin "HEAD:${DEFAULT_BRANCH}"; then
               PUSH_SUCCESS=true
               break
             fi
@@ -71,27 +68,29 @@ jobs:
             sleep $((attempt * 2))
           done
           if [ "$PUSH_SUCCESS" != "true" ]; then
-            echo "::error::All 3 push attempts failed for branch ${BRANCH}."
+            echo "::error::All 3 push attempts failed for the mentor commit."
             exit 1
           fi
 
-          gh pr create \
-            --title "Add mentor: @${GITHUB_USERNAME}" \
-            --body "Automated PR to add **${MENTOR_NAME}** (\`@${GITHUB_USERNAME}\`) to the mentor pool.
-
-          Triggered by issue #${ISSUE_NUMBER}.
-
-          Once merged, \`@${GITHUB_USERNAME}\` will appear in the pool and receive new mentee assignments." \
-            --label "mentor-pool" \
-            --base main \
-            --head "$BRANCH" 2>/dev/null || echo "PR already exists for branch ${BRANCH} — skipping."
-
-      - name: Comment on issue
+      - name: Comment on issue and close it
         if: steps.update.outputs.github_username != ''
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_USERNAME: ${{ steps.update.outputs.github_username }}
+          MENTOR_NAME: ${{ steps.update.outputs.name }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: |
           gh issue comment "${ISSUE_NUMBER}" \
-            --body "✅ A pull request has been opened to add **@${GITHUB_USERNAME}** to the mentor pool. A maintainer will review and merge it. Thanks for volunteering! 🎉"
+            --body "✅ **@${GITHUB_USERNAME}** has been automatically added to the mentor pool! Welcome aboard, ${MENTOR_NAME} 🎉
+
+          You are now active in \`.github/mentors.yml\` and will start receiving mentee assignments shortly."
+          gh issue close "${ISSUE_NUMBER}" --reason "completed"
+
+      - name: Comment on parse failure
+        if: steps.update.outputs.github_username == ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh issue comment "${ISSUE_NUMBER}" \
+            --body "⚠️ The mentor application could not be parsed automatically. Please ensure the issue body follows the application template exactly (all required fields filled in). A maintainer will review this application manually."
