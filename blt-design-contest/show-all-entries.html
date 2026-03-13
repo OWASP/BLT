@@ -59,7 +59,7 @@
             <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> All Contests  
           </a>  
           <a href="show-all-entries.html"  
-             class="text-gray-600 dark:text-gray-300 hover:text-[`#E10101`] transition-colors inline-flex items-center gap-1.5"  
+             class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] transition-colors inline-flex items-center gap-1.5"  
              aria-current="page">  
             active
             <i class="fa-solid fa-images" aria-hidden="true"></i> All Entries  
@@ -268,7 +268,6 @@
 
       const safeTitle = escapeHtml(entry.title || 'Untitled submission');
       const safeContestName = escapeHtml(entry.contestName);
-      (entry.contestName)
       const safeContestPage = escapeHtml(entry.contestPage);
       const safeIssueUrl = escapeHtml(entry.issueUrl || '#');
       const safeSubmittedIso = escapeHtml(entry.submittedIso || '');

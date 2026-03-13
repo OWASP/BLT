@@ -1139,7 +1139,7 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
           <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-8">
             <h2 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">Recent Submissions</h2>
             <a href="show-all-entries.html"
-               class="inline-flex items-center gap-1.5 text-[`#E10101`] font-semibold text-sm
+              class="inline-flex items-center gap-1.5 text-[#E10101] font-semibold text-sm
                       self-start sm:self-auto whitespace-nowrap
                       hover:gap-2.5 transition-all duration-200">
               View Entries <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
