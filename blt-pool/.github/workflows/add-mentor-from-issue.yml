@@ -1,0 +1,65 @@
+name: Add Mentor from Application Issue
+
+# Triggered when the "mentor-application" label is added to an issue.
+# The workflow parses the issue body, appends a new entry to .github/mentors.yml,
+# and opens a pull request for maintainer review.
+
+on:
+  issues:
+    types: [labeled]
+
+jobs:
+  add-mentor:
+    if: github.event.label.name == 'mentor-application'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Parse application and update mentors.yml
+        id: update
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          MENTORS_YML: .github/mentors.yml
+        run: python3 .github/scripts/add_mentor.py
+
+      - name: Create pull request
+        if: steps.update.outputs.github_username != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_USERNAME: ${{ steps.update.outputs.github_username }}
+          MENTOR_NAME: ${{ steps.update.outputs.name }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          BRANCH="add-mentor-${GITHUB_USERNAME}-${ISSUE_NUMBER}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+          git add .github/mentors.yml
+          git commit -m "Add mentor @${GITHUB_USERNAME} from issue #${ISSUE_NUMBER}"
+          git push origin "$BRANCH"
+          gh pr create \
+            --title "Add mentor: @${GITHUB_USERNAME}" \
+            --body "Automated PR to add **${MENTOR_NAME}** (\`@${GITHUB_USERNAME}\`) to the mentor pool.
+
+          Triggered by issue #${ISSUE_NUMBER}.
+
+          Once merged, \`@${GITHUB_USERNAME}\` will appear in the pool and receive new mentee assignments." \
+            --label "mentor-pool" \
+            --base main \
+            --head "$BRANCH"
+
+      - name: Comment on issue
+        if: steps.update.outputs.github_username != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_USERNAME: ${{ steps.update.outputs.github_username }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh issue comment "${ISSUE_NUMBER}" \
+            --body "✅ A pull request has been opened to add **@${GITHUB_USERNAME}** to the mentor pool. A maintainer will review and merge it. Thanks for volunteering! 🎉"

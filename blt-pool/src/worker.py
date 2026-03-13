@@ -4030,16 +4030,125 @@ def _index_html() -> str:
       </div>
     </section>
 
-    <section class="rounded-2xl border border-[#E5E5E5] bg-white p-7 text-center sm:p-9">
-      <h3 class="text-2xl font-bold text-[#111827]">Want to become a mentor?</h3>
-      <p class="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-gray-600 sm:text-base">
-        Help newcomers ship quality contributions. Mentors guide issue triage, implementation, and review best practices.
+    <section id="mentor-commands" class="rounded-2xl border border-[#E5E5E5] bg-white p-7 sm:p-9">
+      <h3 class="text-2xl font-bold text-[#111827]">Mentor Slash Commands</h3>
+      <p class="mt-3 text-sm leading-relaxed text-gray-600">
+        Use these commands directly in GitHub issue comments to interact with the mentor system.
       </p>
-      <a href="https://owasp.slack.com/archives/C0DKR6LAW" target="_blank" rel="noopener"
-         class="mt-6 inline-flex items-center gap-2 rounded-md bg-[#E10101] px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2">
-        <i class="fa-regular fa-comments" aria-hidden="true"></i>
-        Reach out on Slack
-      </a>
+      <div class="mt-5 grid gap-4 sm:grid-cols-2">
+        <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-4">
+          <p class="font-mono text-sm font-bold text-[#E10101]">/mentor</p>
+          <p class="mt-2 text-sm text-gray-600">Request a mentor for this issue. The bot auto-assigns the best available mentor from the pool.</p>
+        </article>
+        <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-4">
+          <p class="font-mono text-sm font-bold text-[#E10101]">/mentor-pause</p>
+          <p class="mt-2 text-sm text-gray-600">Pause your mentor availability. Use this when you need a break from accepting new mentees.</p>
+        </article>
+        <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-4">
+          <p class="font-mono text-sm font-bold text-[#E10101]">/handoff</p>
+          <p class="mt-2 text-sm text-gray-600">Transfer this issue to another available mentor. The current mentor uses this to hand off cleanly.</p>
+        </article>
+        <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-4">
+          <p class="font-mono text-sm font-bold text-[#E10101]">/rematch</p>
+          <p class="mt-2 text-sm text-gray-600">Request a different mentor for this issue. The bot re-runs matching to find a fresh assignment.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="join-mentor" class="rounded-2xl border border-[#E5E5E5] bg-white p-7 sm:p-9">
+      <div class="mb-6 flex items-start gap-4">
+        <div class="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#feeae9] text-[#E10101]">
+          <i class="fa-solid fa-user-plus" aria-hidden="true"></i>
+        </div>
+        <div>
+          <h3 class="text-2xl font-bold text-[#111827]">Become a Mentor</h3>
+          <p class="mt-1 text-sm leading-relaxed text-gray-600">
+            Fill in the form and click the button — it opens a pre-filled GitHub issue for review.
+            Once a maintainer approves your application, you join the pool automatically.
+          </p>
+        </div>
+      </div>
+      <form id="mentor-form" class="grid gap-4 sm:grid-cols-2" novalidate>
+        <div>
+          <label for="mf-name" class="mb-1 block text-sm font-semibold text-gray-700">
+            Display Name <span class="text-[#E10101]">*</span>
+          </label>
+          <input id="mf-name" type="text" required autocomplete="name" placeholder="Jane Doe"
+                 class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#E10101] focus:ring-1 focus:ring-[#E10101] focus:outline-none">
+        </div>
+        <div>
+          <label for="mf-github" class="mb-1 block text-sm font-semibold text-gray-700">
+            GitHub Username <span class="text-[#E10101]">*</span>
+          </label>
+          <input id="mf-github" type="text" required autocomplete="username" placeholder="janedoe"
+                 class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#E10101] focus:ring-1 focus:ring-[#E10101] focus:outline-none">
+        </div>
+        <div class="sm:col-span-2">
+          <label for="mf-specialties" class="mb-1 block text-sm font-semibold text-gray-700">
+            Specialties <span class="text-xs font-normal text-gray-400">(optional — comma-separated)</span>
+          </label>
+          <input id="mf-specialties" type="text" placeholder="e.g. frontend, python, security, docs"
+                 class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#E10101] focus:ring-1 focus:ring-[#E10101] focus:outline-none">
+        </div>
+        <div>
+          <label for="mf-max" class="mb-1 block text-sm font-semibold text-gray-700">
+            Max concurrent mentees
+          </label>
+          <input id="mf-max" type="number" min="1" max="10" value="3"
+                 class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-[#E10101] focus:ring-1 focus:ring-[#E10101] focus:outline-none">
+        </div>
+        <div>
+          <label for="mf-tz" class="mb-1 block text-sm font-semibold text-gray-700">
+            Timezone <span class="text-xs font-normal text-gray-400">(optional)</span>
+          </label>
+          <input id="mf-tz" type="text" placeholder="e.g. UTC+5:30"
+                 class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#E10101] focus:ring-1 focus:ring-[#E10101] focus:outline-none">
+        </div>
+        <div id="mf-error" role="alert" class="hidden sm:col-span-2 text-sm font-semibold text-[#E10101]"></div>
+        <div class="sm:col-span-2">
+          <button type="submit"
+                  class="inline-flex items-center gap-2 rounded-md bg-[#E10101] px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2">
+            <i class="fa-brands fa-github" aria-hidden="true"></i>
+            Open Application on GitHub
+          </button>
+        </div>
+      </form>
+      <script>
+        (function () {{
+          document.getElementById('mentor-form').addEventListener('submit', function (e) {{
+            e.preventDefault();
+            var name   = document.getElementById('mf-name').value.trim();
+            var github = document.getElementById('mf-github').value.trim().replace(/^@/, '');
+            var specs  = document.getElementById('mf-specialties').value.trim();
+            var maxM   = document.getElementById('mf-max').value.trim() || '3';
+            var tz     = document.getElementById('mf-tz').value.trim();
+            var errEl  = document.getElementById('mf-error');
+            if (!name || !github) {{
+              errEl.textContent = 'Display name and GitHub username are required.';
+              errEl.classList.remove('hidden');
+              return;
+            }}
+            errEl.classList.add('hidden');
+            var body = [
+              '## Mentor Application',
+              '',
+              '- **Name**: ' + name,
+              '- **GitHub Username**: @' + github,
+              '- **Specialties**: ' + (specs || '_none_'),
+              '- **Max Mentees**: ' + maxM,
+              '- **Timezone**: ' + (tz || '_not specified_'),
+              '',
+              '---',
+              '_Submitted via the BLT-Pool mentor application form. A maintainer will review and merge the PR._'
+            ].join('\\n');
+            var url = 'https://github.com/OWASP-BLT/BLT-Pool/issues/new'
+              + '?title=' + encodeURIComponent('Mentor Application: @' + github)
+              + '&body='  + encodeURIComponent(body)
+              + '&labels=mentor-application';
+            window.open(url, '_blank', 'noopener');
+          }});
+        }}());
+      </script>
     </section>
 
   </main>
