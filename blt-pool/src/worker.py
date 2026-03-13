@@ -3734,17 +3734,17 @@ _CALLBACK_HTML = """\
 def _secret_vars_status_html(env) -> str:
     """Generate HTML rows showing whether each secret/config variable is set."""
     _SET_BADGE = (
-        '<span class="inline-flex items-center gap-1.5 font-semibold text-emerald-700">'
+        '<span class="inline-flex items-center gap-1.5 font-semibold" style="color:#4ade80">'
         '<i class="fa-solid fa-circle-check" aria-hidden="true"></i> Set'
         "</span>"
     )
     _MISSING_BADGE = (
-        '<span class="inline-flex items-center gap-1.5 font-semibold text-red-700">'
+        '<span class="inline-flex items-center gap-1.5 font-semibold" style="color:#f87171">'
         '<i class="fa-solid fa-circle-xmark" aria-hidden="true"></i> Not set'
         "</span>"
     )
     _OPTIONAL_BADGE = (
-        '<span class="inline-flex items-center gap-1.5 font-semibold text-gray-500">'
+        '<span class="inline-flex items-center gap-1.5 font-semibold" style="color:#9ca3af">'
         '<i class="fa-solid fa-circle-minus" aria-hidden="true"></i> Not configured'
         "</span>"
     )
@@ -3791,6 +3791,11 @@ def _github_app_html(app_slug: str, env=None) -> str:
         .replace("{{YEAR}}", str(year))
         .replace("{{SECRET_VARS_STATUS}}", secret_vars_html)
     )
+
+
+def _landing_html(app_slug: str, env=None) -> str:
+    """Alias for _github_app_html; renders the landing page with secret-var status."""
+    return _github_app_html(app_slug, env)
 
 
 def _callback_html() -> str:
