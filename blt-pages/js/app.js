@@ -98,12 +98,10 @@ function initAnonymousToggle() {
    Leaderboard
 ──────────────────────────────────────────────────────────── */
 function updateHeaderBugStats(total, open, closed) {
-  const headerTotal = document.getElementById("header-stat-total");
-  const headerOpen = document.getElementById("header-stat-open");
-  const headerClosed = document.getElementById("header-stat-closed");
-  if (headerTotal) headerTotal.textContent = formatNumber(total || 0);
-  if (headerOpen) headerOpen.textContent = formatNumber(open != null ? open : 0);
-  if (headerClosed) headerClosed.textContent = formatNumber(closed != null ? closed : 0);
+  const statOpen = document.getElementById("stat-open-bugs");
+  const statClosed = document.getElementById("stat-closed-bugs");
+  if (statOpen) statOpen.textContent = formatNumber(open != null ? open : 0);
+  if (statClosed) statClosed.textContent = formatNumber(closed != null ? closed : 0);
 }
 
 async function loadLeaderboard() {

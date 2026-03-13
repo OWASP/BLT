@@ -478,19 +478,14 @@ def patch_html(html, payload):
         html,
     )
 
-    # ── Header bug counts ─────────────────────────────────────────────────────
+    # ── Bug open/closed counts in stat card ──────────────────────────────────
     html = re.sub(
-        r'(<span id="header-stat-total"[^>]*>)[^<]*',
-        lambda m: m.group(1) + fmt(payload["total_bugs"]),
-        html,
-    )
-    html = re.sub(
-        r'(<span id="header-stat-open"[^>]*>)[^<]*',
+        r'(<span id="stat-open-bugs"[^>]*>)[^<]*',
         lambda m: m.group(1) + fmt(payload["open_bugs"]),
         html,
     )
     html = re.sub(
-        r'(<span id="header-stat-closed"[^>]*>)[^<]*',
+        r'(<span id="stat-closed-bugs"[^>]*>)[^<]*',
         lambda m: m.group(1) + fmt(payload["closed_bugs"]),
         html,
     )

@@ -274,24 +274,6 @@
           </a>
         </nav>
 
-        <div class="flex shrink-0 items-center gap-2 text-xs font-semibold xl:gap-3" aria-label="Bug statistics">
-          <span class="flex items-center gap-1 whitespace-nowrap rounded-full bg-gray-100 px-2.5 py-1 dark:bg-gray-700" title="Total bugs reported">
-            <svg class="fa-icon text-gray-500 dark:text-gray-400" aria-hidden="true"><use href="#fa-bug"></use></svg>
-            <span id="header-stat-total" class="text-gray-700 dark:text-gray-200">17</span>
-            <span class="hidden text-gray-500 dark:text-gray-400 xl:inline">total</span>
-          </span>
-          <span class="flex items-center gap-1 whitespace-nowrap rounded-full bg-green-50 px-2.5 py-1 dark:bg-green-900/30" title="Open bugs">
-            <span class="h-1.5 w-1.5 rounded-full bg-green-500" aria-hidden="true"></span>
-            <span id="header-stat-open" class="text-green-700 dark:text-green-400">4</span>
-            <span class="hidden text-green-600 dark:text-green-500 xl:inline">open</span>
-          </span>
-          <span class="flex items-center gap-1 whitespace-nowrap rounded-full bg-gray-100 px-2.5 py-1 dark:bg-gray-700" title="Closed bugs">
-            <span class="h-1.5 w-1.5 rounded-full bg-gray-400 dark:bg-gray-500" aria-hidden="true"></span>
-            <span id="header-stat-closed" class="text-gray-600 dark:text-gray-300">13</span>
-            <span class="hidden text-gray-500 dark:text-gray-400 xl:inline">closed</span>
-          </span>
-        </div>
-
         <a
           href="https://github.com/OWASP-BLT/BLT-Pages/issues/new?template=bug_report.yml" target="_blank" rel="noopener noreferrer"
           class="inline-flex shrink-0 items-center whitespace-nowrap rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white transition hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700 xl:px-4"
@@ -379,6 +361,18 @@
               <div>
                 <dd id="stat-total-bugs" class="text-2xl font-extrabold text-primary dark:text-red-400">17</dd>
                 <dt class="mt-1 text-xs font-medium text-gray-500 dark:text-gray-400">Bugs reported</dt>
+                <div class="mt-1.5 flex items-center gap-2 text-xs">
+                  <span class="flex items-center gap-1">
+                    <span class="h-1.5 w-1.5 rounded-full bg-green-500" aria-hidden="true"></span>
+                    <span id="stat-open-bugs" class="text-green-700 dark:text-green-400">4</span>
+                    <span class="text-gray-500 dark:text-gray-400">open</span>
+                  </span>
+                  <span class="flex items-center gap-1">
+                    <span class="h-1.5 w-1.5 rounded-full bg-gray-400 dark:bg-gray-500" aria-hidden="true"></span>
+                    <span id="stat-closed-bugs" class="text-gray-600 dark:text-gray-300">13</span>
+                    <span class="text-gray-500 dark:text-gray-400">closed</span>
+                  </span>
+                </div>
               </div>
               <div class="border-x border-neutral-border px-3 dark:border-gray-700">
                 <dd id="stat-domains" class="text-2xl font-extrabold text-primary dark:text-red-400">4</dd>
