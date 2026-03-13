@@ -8,8 +8,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // DARK MODE TOGGLE
     const toggle = document.getElementById("theme-toggle");
-    const icon = document.getElementById("theme-icon");
-
     if (toggle) {
         toggle.addEventListener("click", () => {
 
@@ -18,18 +16,8 @@ document.addEventListener('DOMContentLoaded', function() {
             if (document.documentElement.classList.contains("dark")) {
                 localStorage.setItem("theme", "dark");
 
-                if (icon) {
-                    icon.classList.remove("fa-moon");
-                    icon.classList.add("fa-sun");
-                }
-
             } else {
                 localStorage.setItem("theme", "light");
-
-                if (icon) {
-                    icon.classList.remove("fa-sun");
-                    icon.classList.add("fa-moon");
-                }
             }
 
         });
