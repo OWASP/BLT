@@ -39,9 +39,9 @@ register_scanner('penetration_test', VolunteerAgentManager)
 class ScannerCoordinator:
     """Coordinates all security scanning agents."""
 
-    def __init__(self, env):
+    def __init__(self):
         """Initialize coordinator from registry."""
-        self.env = env
+        # TODO: Accept env parameter when scanners need environment config
         self.scanner_map = {
             task_type: scanner_class()
             for task_type, scanner_class in _SCANNER_REGISTRY.items()

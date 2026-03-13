@@ -37,7 +37,7 @@ def make_task(task_type="crawler"):
 
 @pytest.mark.asyncio
 async def test_process_task_dispatches_to_scanner_by_task_type():
-    coordinator = ScannerCoordinator(env=SimpleNamespace())
+    coordinator = ScannerCoordinator()
     scanner = FakeScanner(scan_result={"scanner": "fake"})
     coordinator.scanner_map = {"crawler": scanner}
 
@@ -49,7 +49,7 @@ async def test_process_task_dispatches_to_scanner_by_task_type():
 
 @pytest.mark.asyncio
 async def test_process_task_returns_error_for_unknown_task_type():
-    coordinator = ScannerCoordinator(env=SimpleNamespace())
+    coordinator = ScannerCoordinator()
     coordinator.scanner_map = {}
 
     result = await coordinator.process_task(make_task("missing"))
@@ -60,7 +60,7 @@ async def test_process_task_returns_error_for_unknown_task_type():
 
 @pytest.mark.asyncio
 async def test_process_task_wraps_scanner_exception():
-    coordinator = ScannerCoordinator(env=SimpleNamespace())
+    coordinator = ScannerCoordinator()
     coordinator.scanner_map = {"crawler": FakeScanner(should_raise=True)}
 
     result = await coordinator.process_task(make_task("crawler"))
@@ -71,7 +71,7 @@ async def test_process_task_wraps_scanner_exception():
 
 @pytest.mark.asyncio
 async def test_get_all_scanner_status_aggregates_each_scanner():
-    coordinator = ScannerCoordinator(env=SimpleNamespace())
+    coordinator = ScannerCoordinator()
     scanner_a = FakeScanner()
     scanner_b = FakeScanner()
     coordinator.scanner_map = {
