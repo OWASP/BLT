@@ -7,11 +7,24 @@ from scanners.contract_scanner import ContractScanner
 from scanners.volunteer_agent import VolunteerAgentManager
 
 # Global scanner registry
-_SCANNER_REGISTRY = {}
+_SCANNER_REGISTRY: Dict[str, type] = {}
 
 
-def register_scanner(task_type, scanner_class):
+def register_scanner(task_type: str, scanner_class: type) -> None:
     """Register a scanner class for a given task type."""
+    if not task_type:
+        raise ValueError("task_type must be a non-empty string")
+    if task_type in _SCANNER_REGISTRY:
+        raise ValueError(
+            f"Scanner already registered for task type: '{task_type}'. "
+            f"Existing: {_SCANNER_REGISTRY[task_type].__name__}, "
+            f"New: {scanner_class.__name__}"
+        )
+    for required_method in ("scan", "get_status"):
+        if not hasattr(scanner_class, required_method):
+            raise TypeError(
+                f"{scanner_class.__name__} must define `{required_method}`"
+            )
     _SCANNER_REGISTRY[task_type] = scanner_class
 
 
