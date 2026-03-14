@@ -3481,7 +3481,7 @@ class TestHandleIssueLabeledNeedsMentor(unittest.TestCase):
                 with patch.object(
                     _worker,
                     "_fetch_mentors_config",
-                    new=AsyncMock(return_value=_worker.MENTORS),
+                    new=AsyncMock(return_value=[]),
                 ):
                     with patch.object(_worker, "report_bug_to_blt", new=mock_report):
                         await _worker.handle_issue_labeled(payload, "tok", "https://blt.example")
@@ -3535,7 +3535,7 @@ class TestHandleIssueCommentMentorCommands(unittest.TestCase):
 
         async def _inner():
             with patch.object(
-                _worker, "_fetch_mentors_config", new=AsyncMock(return_value=_worker.MENTORS)
+                _worker, "_fetch_mentors_config", new=AsyncMock(return_value=[])
             ):
                 with patch.object(
                     _worker,
@@ -4007,9 +4007,9 @@ class TestIndexHtml(unittest.TestCase):
         html = _worker._index_html([])
         self.assertIn("<!DOCTYPE html>", html)
 
-    def test_none_falls_back_to_builtin_mentors(self):
+    def test_none_defaults_to_empty_list(self):
         html = _worker._index_html(None)
-        # Should not raise; falls back to built-in MENTORS list.
+        # Should not raise; uses empty list when None is passed.
         self.assertIn("<!DOCTYPE html>", html)
 
     def test_mentor_name_appears_in_html(self):
