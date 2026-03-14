@@ -324,9 +324,10 @@ async def handle_organizations(
 
         return paginated_response(organizations, page=page, per_page=per_page, total=total)
 
-    except (OSError, TimeoutError) as e:
-        logger.error(f"Database error in organizations handler: {str(e)}")
-        return error_response("Database unavailable", status=503)
     except Exception as e:
+        error_name = type(e).__name__
+        if error_name in ("D1ClientError", "D1ApiError"):
+            logger.error(f"Database error in organizations handler: {str(e)}")
+            return error_response("Database unavailable", status=503)
         logger.error(f"Unexpected error in organizations handler: {str(e)}")
         return error_response("An internal error occurred", status=500)
