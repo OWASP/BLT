@@ -36,7 +36,6 @@ from urllib.parse import quote, urlparse
 
 from js import Headers, Response, console, fetch  # Cloudflare Workers JS bindings
 from index_template import GITHUB_PAGE_HTML  # Landing page HTML template
-from mentors_data import MENTORS_YAML as _MENTORS_YAML_BUNDLED  # Always-available YAML bundle
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -2116,46 +2115,44 @@ _MENTORS_YML_PATH = os.path.join(os.path.dirname(__file__), "mentors.yml")
 
 
 def _load_mentors_local(path: str = _MENTORS_YML_PATH) -> list:
-    """Load and parse the mentor list, trying multiple sources in order.
+    """Load and parse the mentor list from ``src/mentors.yml``.
 
-    When called with the **default path** (production use on Cloudflare):
+    ``src/mentors.yml`` is the single source of truth for the mentor pool.
 
-    1. **Bundled Python module** (``_MENTORS_YAML_BUNDLED``): imported at the
-       module level from ``mentors_data.py``.  Because it is a Python import it
-       is always available in the Cloudflare Workers bundle, even when
-       ``open()`` path resolution differs from local development.
-    2. **YAML file** at ``_MENTORS_YML_PATH``: used as a secondary source if
-       the bundled constant is somehow empty or invalid.
+    The function tries candidate paths in order to handle differences between
+    the local development filesystem and the Cloudflare Workers virtual
+    filesystem (where ``__file__`` may resolve to a root-level path):
 
-    When called with an **explicit path** (test overrides, ``test_worker.py``):
-    only the file at that path is consulted — the bundled module is bypassed so
-    that tests can exercise the file-reading codepath in isolation.
+    1. *path* as given (default: ``os.path.dirname(__file__) + /mentors.yml``)
+    2. ``"mentors.yml"`` — bare filename, effective when the Cloudflare Workers
+       runtime sets the working directory to the same root where files are
+       bundled (i.e. when ``os.path.dirname(__file__)`` is empty or ``"/"``).
 
-    Returns the parsed mentor list, or ``[]`` when all sources fail.
+    Returns the parsed mentor list, or ``[]`` when all candidates fail.
     """
-    using_default_path = path == _MENTORS_YML_PATH
+    candidates = [path]
+    # In the Cloudflare Workers runtime, __file__ may be "worker.py" (CWD) or
+    # "/worker.py" (FS root), so the dirname-based path and the bare filename
+    # can differ.  Add "mentors.yml" as a fallback to cover both cases.
+    bare = "mentors.yml"
+    if bare not in candidates:
+        candidates.append(bare)
 
-    if using_default_path:
-        # --- Primary: bundled Python module (always present in Cloudflare bundle) ---
+    for candidate in candidates:
         try:
-            parsed = _parse_mentors_yaml(_MENTORS_YAML_BUNDLED)
+            with open(candidate, "r", encoding="utf-8") as fh:
+                content = fh.read()
+            parsed = _parse_mentors_yaml(content)
             if parsed:
-                console.log(f"[MentorPool] Loaded {len(parsed)} mentors from bundled mentors_data module")
+                console.log(f"[MentorPool] Loaded {len(parsed)} mentors from {candidate}")
                 return parsed
+        except FileNotFoundError:
+            continue
         except Exception as exc:
-            console.error(f"[MentorPool] Error parsing bundled mentors_data: {exc}")
+            console.error(f"[MentorPool] Error reading {candidate}: {exc}")
+            continue
 
-    # --- File-system source (fallback for Cloudflare; primary for test overrides) ---
-    try:
-        with open(path, "r", encoding="utf-8") as fh:
-            content = fh.read()
-        parsed = _parse_mentors_yaml(content)
-        if parsed:
-            console.log(f"[MentorPool] Loaded {len(parsed)} mentors from {path}")
-            return parsed
-    except Exception as exc:
-        console.error(f"[MentorPool] Error reading {path}: {exc}")
-
+    console.error("[MentorPool] mentors.yml not found in any candidate paths")
     return []
 
 

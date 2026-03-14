@@ -9,6 +9,7 @@ These tests cover the logic that does NOT require the Cloudflare runtime
 
 import asyncio
 import base64
+import builtins
 import hashlib
 import hmac as _hmac
 import importlib
@@ -4288,46 +4289,42 @@ mentors:
         for mentor in result:
             self.assertIn("name", mentor)
 
-    def test_default_call_uses_bundled_module(self):
-        """_load_mentors_local() with no args returns data from the bundled module."""
+    def test_default_call_loads_mentors(self):
+        """_load_mentors_local() with no args returns mentors from src/mentors.yml."""
         with patch.object(
             _worker, "console",
             new=types.SimpleNamespace(error=lambda *a: None, log=lambda *a: None),
         ):
             result = _worker._load_mentors_local()
-        # The bundled module (mentors_data.MENTORS_YAML) must provide mentors.
         self.assertGreater(len(result), 0)
         for mentor in result:
             self.assertIn("name", mentor)
 
-    def test_bundled_module_used_even_when_file_missing(self):
-        """When the YAML file is absent, the bundled module still provides mentors."""
+    def test_fallback_to_bare_filename(self):
+        """When the primary path fails, the bare 'mentors.yml' candidate is tried."""
+        import tempfile, os as _os
+        # Write sample YAML to a temp file, then mock open() so that:
+        #   - the primary path raises FileNotFoundError
+        #   - the bare "mentors.yml" path returns our sample YAML
+        sample = self._SAMPLE_YAML
+        real_open = builtins.open
+
+        def _fake_open(path, *args, **kwargs):
+            if path == "mentors.yml":
+                import io
+                return io.StringIO(sample)
+            raise FileNotFoundError(f"No such file: {path}")
+
         with patch.object(
             _worker, "console",
             new=types.SimpleNamespace(error=lambda *a: None, log=lambda *a: None),
         ):
-            # Pass a nonexistent file for the default-path comparison to still trigger
-            # bundled-module lookup (because path == _MENTORS_YML_PATH).
-            result = _worker._load_mentors_local(_worker._MENTORS_YML_PATH)
-        self.assertGreater(len(result), 0)
+            with patch("builtins.open", side_effect=_fake_open):
+                result = _worker._load_mentors_local("/nonexistent/dir/mentors.yml")
 
-    def test_file_used_when_explicit_non_default_path_given(self):
-        """An explicit non-default path reads directly from that file (bypasses bundle)."""
-        import tempfile, os as _os
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as fh:
-            fh.write(self._SAMPLE_YAML)
-            tmp = fh.name
-        try:
-            with patch.object(
-                _worker, "console",
-                new=types.SimpleNamespace(error=lambda *a: None, log=lambda *a: None),
-            ):
-                result = _worker._load_mentors_local(tmp)
-            # Should read from the temp file (2 mentors), NOT the bundled 17+ mentors.
-            self.assertEqual(len(result), 2)
-            self.assertEqual(result[0]["github_username"], "alice")
-        finally:
-            _os.unlink(tmp)
+        # Should have fallen back to "mentors.yml" and parsed the 2 sample mentors
+        self.assertEqual(len(result), 2)
+        self.assertEqual(result[0]["github_username"], "alice")
 
 
 class TestOnFetchHomepage(unittest.TestCase):
