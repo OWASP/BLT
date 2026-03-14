@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BLT Contributor Start Page</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            blt: {
+              primary:   '#E10101',
+              hover:     '#b91c1c', /* red-700 */
+              sidebar:   '#feeae9',
+              border:    '#E5E5E5',
+              dark:      '#111827',
+              surface:   '#1F2937',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Font Awesome CDN -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    integrity="sha512-Avb2QiuDEEvB4bZJYdft2mNjVShBftLdPG8FJ0V7irTLQ8Uo0qcPxh4Plq7G5tGm0rU+1SPhVotteLpBERwTkw=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  />
+
+  <style>
+    /* Smooth transitions for interactive states */
+    a, button { transition: all 0.15s ease; }
+  </style>
+</head>
+
+<body class="bg-gray-50 dark:bg-blt-dark text-gray-800 dark:text-gray-100 font-sans antialiased">
+
+  <!-- ───────────────────────────── TOP NAV ───────────────────────────── -->
+  <header class="sticky top-0 z-50 bg-white dark:bg-blt-surface border-b border-blt-border dark:border-gray-700 shadow-sm">
+    <div class="max-w-screen-xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+
+      <!-- Logo + wordmark -->
+      <a href="#" class="flex items-center gap-2 shrink-0" aria-label="BLT Home">
+        <span class="inline-flex items-center justify-center w-9 h-9 rounded-full bg-blt-primary text-white text-sm font-extrabold tracking-tight select-none">
+          BLT
+        </span>
+        <span class="hidden sm:inline font-bold text-lg text-gray-900 dark:text-white">
+          Bug Logging Tool
+        </span>
+      </a>
+
+      <!-- Search -->
+      <div class="flex-1 max-w-md hidden md:block">
+        <div class="relative">
+          <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" aria-hidden="true"></i>
+          <input
+            type="search"
+            placeholder="Search docs, issues, PRs…"
+            class="w-full border border-gray-400 rounded-md pl-9 pr-4 py-2 text-sm
+                   focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600
+                   dark:bg-blt-surface dark:border-gray-600 dark:text-gray-100
+                   dark:placeholder-gray-400 dark:focus:border-red-500 dark:focus:ring-red-500"
+            aria-label="Search"
+          />
+        </div>
+      </div>
+
+      <!-- CTA buttons -->
+      <nav class="flex items-center gap-2 shrink-0" aria-label="Header actions">
+        <a
+          href="https://github.com/OWASP-BLT/BLT/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22"
+          target="_blank" rel="noopener noreferrer"
+          class="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-md
+                 border border-blt-primary text-blt-primary text-sm font-medium
+                 hover:bg-blt-primary hover:text-white"
+          aria-label="Browse good first issues on GitHub"
+        >
+          <i class="fa-solid fa-bug" aria-hidden="true"></i>
+          Good First Issues
+        </a>
+        <a
+          href="https://github.com/OWASP-BLT/BLT"
+          target="_blank" rel="noopener noreferrer"
+          class="inline-flex items-center gap-2 px-4 py-2 rounded-md
+                 bg-blt-primary text-white text-sm font-medium
+                 hover:bg-blt-hover"
+          aria-label="View BLT on GitHub"
+        >
+          <i class="fa-brands fa-github" aria-hidden="true"></i>
+          GitHub
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ──────────────────────── LAYOUT: SIDEBAR + MAIN ──────────────────── -->
+  <div class="max-w-screen-xl mx-auto px-4 sm:px-6 py-8 flex gap-8">
+
+    <!-- ─── SIDEBAR ─── -->
+    <aside class="hidden lg:block w-60 shrink-0" aria-label="Page navigation">
+      <nav class="sticky top-24 space-y-6">
+
+        <!-- Group: Getting Started -->
+        <div>
+          <p class="px-3 mb-1 text-xs font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+            Getting Started
+          </p>
+          <ul class="space-y-0.5">
+            <li>
+              <a href="#welcome" class="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium
+                 bg-blt-sidebar text-blt-primary" aria-current="page">
+                <i class="fa-solid fa-house w-4 text-center" aria-hidden="true"></i>
+                Welcome
+              </a>
+            </li>
+            <li>
+              <a href="#setup" class="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium
+                 text-gray-700 dark:text-gray-300 hover:bg-blt-sidebar hover:text-blt-primary dark:hover:bg-gray-700">
+                <i class="fa-solid fa-gear w-4 text-center" aria-hidden="true"></i>
+                Local Setup
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Group: Contributing -->
+        <div>
+          <p class="px-3 mb-1 text-xs font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+            Contributing
+          </p>
+          <ul class="space-y-0.5">
+            <li>
+              <a href="#good-first-issues" class="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium
+                 text-gray-700 dark:text-gray-300 hover:bg-blt-sidebar hover:text-blt-primary dark:hover:bg-gray-700">
+                <i class="fa-solid fa-star w-4 text-center" aria-hidden="true"></i>
+                Good First Issues
+              </a>
+            </li>
+            <li>
+              <a href="#creating-prs" class="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium
+                 text-gray-700 dark:text-gray-300 hover:bg-blt-sidebar hover:text-blt-primary dark:hover:bg-gray-700">
+                <i class="fa-solid fa-code-pull-request w-4 text-center" aria-hidden="true"></i>
+                Creating PRs
+              </a>
+            </li>
+            <li>
+              <a href="#code-review" class="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium
+                 text-gray-700 dark:text-gray-300 hover:bg-blt-sidebar hover:text-blt-primary dark:hover:bg-gray-700">
+                <i class="fa-solid fa-magnifying-glass-code w-4 text-center" aria-hidden="true"></i>
+                Code Review
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Group: Style Guide -->
+        <div>
+          <p class="px-3 mb-1 text-xs font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+            Style Guide
+          </p>
+          <ul class="space-y-0.5">
+            <li>
+              <a href="#buttons" class="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium
+                 text-gray-700 dark:text-gray-300 hover:bg-blt-sidebar hover:text-blt-primary dark:hover:bg-gray-700">
+                <i class="fa-solid fa-circle-dot w-4 text-center" aria-hidden="true"></i>
+                Buttons
+              </a>
+            </li>
+            <li>
+              <a href="#inputs" class="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium
+                 text-gray-700 dark:text-gray-300 hover:bg-blt-sidebar hover:text-blt-primary dark:hover:bg-gray-700">
+                <i class="fa-solid fa-keyboard w-4 text-center" aria-hidden="true"></i>
+                Inputs
+              </a>
+            </li>
+            <li>
+              <a href="#icons" class="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium
+                 text-gray-700 dark:text-gray-300 hover:bg-blt-sidebar hover:text-blt-primary dark:hover:bg-gray-700">
+                <i class="fa-solid fa-icons w-4 text-center" aria-hidden="true"></i>
+                Icons
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Group: Resources -->
+        <div>
+          <p class="px-3 mb-1 text-xs font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+            Resources
+          </p>
+          <ul class="space-y-0.5">
+            <li>
+              <a href="#mentors" class="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium
+                 text-gray-700 dark:text-gray-300 hover:bg-blt-sidebar hover:text-blt-primary dark:hover:bg-gray-700">
+                <i class="fa-solid fa-chalkboard-user w-4 text-center" aria-hidden="true"></i>
+                For Mentors
+              </a>
+            </li>
+            <li>
+              <a href="#links" class="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium
+                 text-gray-700 dark:text-gray-300 hover:bg-blt-sidebar hover:text-blt-primary dark:hover:bg-gray-700">
+                <i class="fa-solid fa-link w-4 text-center" aria-hidden="true"></i>
+                Useful Links
+              </a>
+            </li>
+          </ul>
+        </div>
+
+      </nav>
+    </aside>
+
+    <!-- ─── MAIN CONTENT ─── -->
+    <main class="flex-1 min-w-0 space-y-16">
+
+      <!-- ──── HERO / WELCOME ──── -->
+      <section id="welcome" aria-labelledby="welcome-heading">
+        <div class="rounded-xl border border-blt-border dark:border-gray-700 bg-white dark:bg-blt-surface p-8 shadow-sm">
+          <div class="flex flex-col sm:flex-row sm:items-center gap-4 mb-6">
+            <span class="inline-flex items-center justify-center w-14 h-14 rounded-full bg-red-50 dark:bg-red-900/20 text-blt-primary text-2xl shrink-0" aria-hidden="true">
+              <i class="fa-solid fa-flag"></i>
+            </span>
+            <div>
+              <h1 id="welcome-heading" class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white leading-tight">
+                Welcome to <span class="text-blt-primary">BLT</span>
+              </h1>
+              <p class="mt-1 text-gray-500 dark:text-gray-400 text-sm">
+                Bug Logging Tool — OWASP's open-source bug bounty &amp; reporting platform
+              </p>
+            </div>
+          </div>
+
+          <p class="text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
+            This page is your orientation hub. Whether you are a <strong>first-time contributor</strong>
+            looking for a place to start, or a <strong>mentor</strong> helping newcomers find good issues
+            and ship quality PRs — you are in the right place.
+          </p>
+
+          <div class="grid sm:grid-cols-3 gap-4">
+            <!-- Stat card -->
+            <div class="rounded-lg border border-blt-border dark:border-gray-700 p-4 text-center">
+              <i class="fa-brands fa-github text-2xl text-gray-400 dark:text-gray-500 mb-2" aria-hidden="true"></i>
+              <p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Repository</p>
+              <a href="https://github.com/OWASP-BLT/BLT" target="_blank" rel="noopener noreferrer"
+                 class="text-red-600 dark:text-red-400 hover:underline text-sm font-semibold">
+                OWASP-BLT/BLT
+              </a>
+            </div>
+            <div class="rounded-lg border border-blt-border dark:border-gray-700 p-4 text-center">
+              <i class="fa-solid fa-bug text-2xl text-gray-400 dark:text-gray-500 mb-2" aria-hidden="true"></i>
+              <p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Good First Issues</p>
+              <a href="https://github.com/OWASP-BLT/BLT/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22"
+                 target="_blank" rel="noopener noreferrer"
+                 class="text-red-600 dark:text-red-400 hover:underline text-sm font-semibold">
+                Browse on GitHub
+              </a>
+            </div>
+            <div class="rounded-lg border border-blt-border dark:border-gray-700 p-4 text-center">
+              <i class="fa-brands fa-slack text-2xl text-gray-400 dark:text-gray-500 mb-2" aria-hidden="true"></i>
+              <p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Community</p>
+              <a href="https://owasp.slack.com/archives/CBKGH8A5P" target="_blank" rel="noopener noreferrer"
+                 class="text-red-600 dark:text-red-400 hover:underline text-sm font-semibold">
+                #project-blt
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ──── LOCAL SETUP ──── -->
+      <section id="setup" aria-labelledby="setup-heading">
+        <h2 id="setup-heading" class="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+          <i class="fa-solid fa-gear text-blt-primary" aria-hidden="true"></i>
+          Local Setup
+        </h2>
+
+        <div class="rounded-xl border border-blt-border dark:border-gray-700 bg-white dark:bg-blt-surface shadow-sm divide-y divide-blt-border dark:divide-gray-700">
+
+          <!-- Step 1 -->
+          <div class="p-6 flex gap-4">
+            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blt-primary text-white text-sm font-bold shrink-0 mt-0.5">1</span>
+            <div class="space-y-2">
+              <p class="font-semibold text-gray-900 dark:text-white">Fork &amp; clone the repository</p>
+              <pre class="bg-gray-100 dark:bg-gray-800 rounded-md px-4 py-3 text-xs overflow-x-auto leading-relaxed"><code>git clone https://github.com/&lt;YOUR-USERNAME&gt;/BLT.git
+cd BLT</code></pre>
+            </div>
+          </div>
+
+          <!-- Step 2 -->
+          <div class="p-6 flex gap-4">
+            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blt-primary text-white text-sm font-bold shrink-0 mt-0.5">2</span>
+            <div class="space-y-2">
+              <p class="font-semibold text-gray-900 dark:text-white">Create a virtual environment &amp; install dependencies</p>
+              <pre class="bg-gray-100 dark:bg-gray-800 rounded-md px-4 py-3 text-xs overflow-x-auto leading-relaxed"><code>python -m venv venv
+source venv/bin/activate   # Windows: venv\Scripts\activate
+pip install -r requirements.txt</code></pre>
+            </div>
+          </div>
+
+          <!-- Step 3 -->
+          <div class="p-6 flex gap-4">
+            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blt-primary text-white text-sm font-bold shrink-0 mt-0.5">3</span>
+            <div class="space-y-2">
+              <p class="font-semibold text-gray-900 dark:text-white">Configure environment &amp; run migrations</p>
+              <pre class="bg-gray-100 dark:bg-gray-800 rounded-md px-4 py-3 text-xs overflow-x-auto leading-relaxed"><code>cp .env.example .env
+# Edit .env with your local values
+python manage.py migrate
+python manage.py runserver</code></pre>
+            </div>
+          </div>
+
+        </div>
+
+        <p class="mt-3 text-sm text-gray-500 dark:text-gray-400">
+          Full instructions are in the
+          <a href="https://github.com/OWASP-BLT/BLT/blob/main/README.md"
+             target="_blank" rel="noopener noreferrer"
+             class="text-red-600 dark:text-red-400 hover:underline font-medium">
+            project README
+          </a>.
+        </p>
+      </section>
+
+      <!-- ──── GOOD FIRST ISSUES ──── -->
+      <section id="good-first-issues" aria-labelledby="gfi-heading">
+        <h2 id="gfi-heading" class="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+          <i class="fa-solid fa-star text-blt-primary" aria-hidden="true"></i>
+          Good First Issues
+        </h2>
+
+        <div class="rounded-xl border border-blt-border dark:border-gray-700 bg-white dark:bg-blt-surface shadow-sm p-6 space-y-6">
+
+          <p class="text-gray-700 dark:text-gray-300 leading-relaxed">
+            Good first issues are deliberately small, well-scoped tasks. They let you learn the codebase,
+            the PR workflow, and the community norms without being overwhelming.
+          </p>
+
+          <!-- Checklist -->
+          <div>
+            <p class="font-semibold text-gray-900 dark:text-white mb-3">Before you pick an issue</p>
+            <ul class="space-y-2">
+              <li class="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
+                <i class="fa-regular fa-circle-check text-blt-primary mt-0.5 shrink-0" aria-hidden="true"></i>
+                Read the issue description <em>and</em> all comments — someone may have already started work.
+              </li>
+              <li class="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
+                <i class="fa-regular fa-circle-check text-blt-primary mt-0.5 shrink-0" aria-hidden="true"></i>
+                Check if the issue is already assigned; if so, comment to ask whether help is welcome.
+              </li>
+              <li class="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
+                <i class="fa-regular fa-circle-check text-blt-primary mt-0.5 shrink-0" aria-hidden="true"></i>
+                Ask clarifying questions in the issue before coding — this saves round-trips in review.
+              </li>
+              <li class="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
+                <i class="fa-regular fa-circle-check text-blt-primary mt-0.5 shrink-0" aria-hidden="true"></i>
+                Reproduce the bug (or understand the feature request) locally first.
+              </li>
+            </ul>
+          </div>
+
+          <!-- Labels reference -->
+          <div>
+            <p class="font-semibold text-gray-900 dark:text-white mb-3">Key issue labels</p>
+            <div class="flex flex-wrap gap-2">
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 text-xs font-semibold">
+                <i class="fa-solid fa-circle text-[8px]" aria-hidden="true"></i>
+                good first issue
+              </span>
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 text-xs font-semibold">
+                <i class="fa-solid fa-circle text-[8px]" aria-hidden="true"></i>
+                help wanted
+              </span>
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300 text-xs font-semibold">
+                <i class="fa-solid fa-circle text-[8px]" aria-hidden="true"></i>
+                enhancement
+              </span>
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 text-xs font-semibold">
+                <i class="fa-solid fa-circle text-[8px]" aria-hidden="true"></i>
+                bug
+              </span>
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300 text-xs font-semibold">
+                <i class="fa-solid fa-circle text-[8px]" aria-hidden="true"></i>
+                documentation
+              </span>
+            </div>
+          </div>
+
+          <a
+            href="https://github.com/OWASP-BLT/BLT/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22"
+            target="_blank" rel="noopener noreferrer"
+            class="inline-flex items-center gap-2 px-5 py-2.5 rounded-md
+                   bg-blt-primary text-white text-sm font-semibold
+                   hover:bg-blt-hover"
+          >
+            <i class="fa-brands fa-github" aria-hidden="true"></i>
+            Browse Good First Issues
+          </a>
+
+        </div>
+      </section>
+
+      <!-- ──── CREATING PRs ──── -->
+      <section id="creating-prs" aria-labelledby="pr-heading">
+        <h2 id="pr-heading" class="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+          <i class="fa-solid fa-code-pull-request text-blt-primary" aria-hidden="true"></i>
+          Creating a Pull Request
+        </h2>
+
+        <div class="rounded-xl border border-blt-border dark:border-gray-700 bg-white dark:bg-blt-surface shadow-sm divide-y divide-blt-border dark:divide-gray-700">
+
+          <div class="p-6 flex gap-4">
+            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blt-primary text-white text-sm font-bold shrink-0 mt-0.5">1</span>
+            <div>
+              <p class="font-semibold text-gray-900 dark:text-white mb-1">Create a feature branch</p>
+              <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">Never commit directly to <code class="bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-xs">main</code>.</p>
+              <pre class="bg-gray-100 dark:bg-gray-800 rounded-md px-4 py-3 text-xs overflow-x-auto"><code>git checkout -b fix/your-descriptive-branch-name</code></pre>
+            </div>
+          </div>
+
+          <div class="p-6 flex gap-4">
+            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blt-primary text-white text-sm font-bold shrink-0 mt-0.5">2</span>
+            <div>
+              <p class="font-semibold text-gray-900 dark:text-white mb-1">Write focused, small commits</p>
+              <p class="text-sm text-gray-600 dark:text-gray-400">
+                Each commit should do one thing. Use the conventional commits style:
+              </p>
+              <pre class="bg-gray-100 dark:bg-gray-800 rounded-md px-4 py-3 mt-2 text-xs overflow-x-auto"><code>git commit -m "fix: correct typo in login error message"
+git commit -m "feat: add dark-mode toggle to navbar"</code></pre>
+            </div>
+          </div>
+
+          <div class="p-6 flex gap-4">
+            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blt-primary text-white text-sm font-bold shrink-0 mt-0.5">3</span>
+            <div>
+              <p class="font-semibold text-gray-900 dark:text-white mb-1">Sync your fork before pushing</p>
+              <pre class="bg-gray-100 dark:bg-gray-800 rounded-md px-4 py-3 mt-2 text-xs overflow-x-auto"><code>git fetch upstream
+git rebase upstream/main</code></pre>
+            </div>
+          </div>
+
+          <div class="p-6 flex gap-4">
+            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blt-primary text-white text-sm font-bold shrink-0 mt-0.5">4</span>
+            <div>
+              <p class="font-semibold text-gray-900 dark:text-white mb-1">Open the Pull Request</p>
+              <ul class="mt-1 space-y-1.5 text-sm text-gray-600 dark:text-gray-400 list-none">
+                <li class="flex items-start gap-2">
+                  <i class="fa-solid fa-arrow-right text-blt-primary text-xs mt-1 shrink-0" aria-hidden="true"></i>
+                  Link the issue with <code class="bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-xs">Closes #&lt;issue-number&gt;</code> in the PR description.
+                </li>
+                <li class="flex items-start gap-2">
+                  <i class="fa-solid fa-arrow-right text-blt-primary text-xs mt-1 shrink-0" aria-hidden="true"></i>
+                  Add screenshots or a short screen recording for UI changes.
+                </li>
+                <li class="flex items-start gap-2">
+                  <i class="fa-solid fa-arrow-right text-blt-primary text-xs mt-1 shrink-0" aria-hidden="true"></i>
+                  Fill in the PR template completely — skip no sections.
+                </li>
+                <li class="flex items-start gap-2">
+                  <i class="fa-solid fa-arrow-right text-blt-primary text-xs mt-1 shrink-0" aria-hidden="true"></i>
+                  Pass all CI checks before requesting a review.
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="p-6 flex gap-4">
+            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blt-primary text-white text-sm font-bold shrink-0 mt-0.5">5</span>
+            <div>
+              <p class="font-semibold text-gray-900 dark:text-white mb-1">Respond to review feedback</p>
+              <p class="text-sm text-gray-600 dark:text-gray-400">
+                Address every comment, mark resolved conversations, and push updates to the same branch.
+                Do <strong>not</strong> open a new PR for review fixes.
+              </p>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ──── CODE REVIEW TIPS ──── -->
+      <section id="code-review" aria-labelledby="review-heading">
+        <h2 id="review-heading" class="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+          <i class="fa-solid fa-magnifying-glass-code text-blt-primary" aria-hidden="true"></i>
+          Code Review Expectations
+        </h2>
+
+        <div class="grid sm:grid-cols-2 gap-4">
+
+          <div class="rounded-xl border border-blt-border dark:border-gray-700 bg-white dark:bg-blt-surface shadow-sm p-6 space-y-3">
+            <h3 class="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+              <i class="fa-solid fa-person-chalkboard text-blt-primary" aria-hidden="true"></i>
+              As a Contributor
+            </h3>
+            <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+              <li class="flex items-start gap-2">
+                <i class="fa-solid fa-check text-green-500 mt-0.5 shrink-0" aria-hidden="true"></i>
+                Keep PRs small and focused on one concern.
+              </li>
+              <li class="flex items-start gap-2">
+                <i class="fa-solid fa-check text-green-500 mt-0.5 shrink-0" aria-hidden="true"></i>
+                Write or update tests for every change.
+              </li>
+              <li class="flex items-start gap-2">
+                <i class="fa-solid fa-check text-green-500 mt-0.5 shrink-0" aria-hidden="true"></i>
+                Self-review the diff before requesting a reviewer.
+              </li>
+              <li class="flex items-start gap-2">
+                <i class="fa-solid fa-check text-green-500 mt-0.5 shrink-0" aria-hidden="true"></i>
+                Be patient — reviewers are volunteers.
+              </li>
+            </ul>
+          </div>
+
+          <div class="rounded-xl border border-blt-border dark:border-gray-700 bg-white dark:bg-blt-surface shadow-sm p-6 space-y-3">
+            <h3 class="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+              <i class="fa-solid fa-chalkboard-user text-blt-primary" aria-hidden="true"></i>
+              As a Reviewer
+            </h3>
+            <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+              <li class="flex items-start gap-2">
+                <i class="fa-solid fa-check text-green-500 mt-0.5 shrink-0" aria-hidden="true"></i>
+                Leave kind, specific, actionable feedback.
+              </li>
+              <li class="flex items-start gap-2">
+                <i class="fa-solid fa-check text-green-500 mt-0.5 shrink-0" aria-hidden="true"></i>
+                Distinguish blocking issues from suggestions.
+              </li>
+              <li class="flex items-start gap-2">
+                <i class="fa-solid fa-check text-green-500 mt-0.5 shrink-0" aria-hidden="true"></i>
+                Approve promptly when changes are satisfactory.
+              </li>
+              <li class="flex items-start gap-2">
+                <i class="fa-solid fa-check text-green-500 mt-0.5 shrink-0" aria-hidden="true"></i>
+                Mentor first-timers — celebrate their wins.
+              </li>
+            </ul>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ──── STYLE GUIDE: BUTTONS ──── -->
+      <section id="buttons" aria-labelledby="buttons-heading">
+        <h2 id="buttons-heading" class="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+          <i class="fa-solid fa-circle-dot text-blt-primary" aria-hidden="true"></i>
+          Style Guide — Buttons
+        </h2>
+
+        <div class="rounded-xl border border-blt-border dark:border-gray-700 bg-white dark:bg-blt-surface shadow-sm p-6 space-y-6">
+
+          <p class="text-sm text-gray-600 dark:text-gray-400">
+            Two button variants must be used consistently across all BLT UI surfaces.
+          </p>
+
+          <!-- Live examples -->
+          <div class="flex flex-wrap gap-3 items-center">
+            <button type="button"
+              class="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-blt-primary text-white text-sm font-medium hover:bg-blt-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-600">
+              <i class="fa-solid fa-paper-plane" aria-hidden="true"></i>
+              Primary Button
+            </button>
+
+            <button type="button"
+              class="inline-flex items-center gap-2 px-4 py-2 rounded-md border border-blt-primary text-blt-primary text-sm font-medium hover:bg-blt-primary hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-600">
+              <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+              Outline Button
+            </button>
+
+            <button type="button" disabled
+              class="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 text-sm font-medium cursor-not-allowed" aria-disabled="true">
+              Disabled
+            </button>
+          </div>
+
+          <!-- Code snippet -->
+          <div>
+            <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Markup</p>
+            <pre class="bg-gray-100 dark:bg-gray-800 rounded-md px-4 py-3 text-xs overflow-x-auto leading-relaxed"><code>&lt;!-- Primary --&gt;
+&lt;button class="px-4 py-2 rounded-md bg-[#E10101] text-white text-sm font-medium
+               hover:bg-red-700 focus:ring-2 focus:ring-offset-2 focus:ring-red-600"&gt;
+  Primary Button
+&lt;/button&gt;
+
+&lt;!-- Outline --&gt;
+&lt;button class="px-4 py-2 rounded-md border border-[#E10101] text-[#E10101] text-sm font-medium
+               hover:bg-[#E10101] hover:text-white focus:ring-2 focus:ring-offset-2 focus:ring-red-600"&gt;
+  Outline Button
+&lt;/button&gt;</code></pre>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ──── STYLE GUIDE: INPUTS ──── -->
+      <section id="inputs" aria-labelledby="inputs-heading">
+        <h2 id="inputs-heading" class="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+          <i class="fa-solid fa-keyboard text-blt-primary" aria-hidden="true"></i>
+          Style Guide — Inputs
+        </h2>
+
+        <div class="rounded-xl border border-blt-border dark:border-gray-700 bg-white dark:bg-blt-surface shadow-sm p-6 space-y-6">
+
+          <!-- Text input -->
+          <div class="space-y-2 max-w-sm">
+            <label for="demo-text" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Text input
+            </label>
+            <input
+              id="demo-text"
+              type="text"
+              placeholder="e.g. Enter a value"
+              class="w-full border border-gray-400 rounded-md px-4 py-2 text-sm
+                     focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600
+                     dark:bg-blt-surface dark:border-gray-600 dark:text-gray-100
+                     dark:placeholder-gray-400 dark:focus:border-red-500 dark:focus:ring-red-500"
+            />
+          </div>
+
+          <!-- Search input -->
+          <div class="space-y-2 max-w-sm">
+            <label for="demo-search" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Search input
+            </label>
+            <div class="relative">
+              <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" aria-hidden="true"></i>
+              <input
+                id="demo-search"
+                type="search"
+                placeholder="Search…"
+                class="w-full border border-gray-400 rounded-md pl-9 pr-4 py-2 text-sm
+                       focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600
+                       dark:bg-blt-surface dark:border-gray-600 dark:text-gray-100
+                       dark:placeholder-gray-400 dark:focus:border-red-500 dark:focus:ring-red-500"
+              />
+            </div>
+          </div>
+
+          <!-- Code -->
+          <div>
+            <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Markup</p>
+            <pre class="bg-gray-100 dark:bg-gray-800 rounded-md px-4 py-3 text-xs overflow-x-auto leading-relaxed"><code>&lt;input type="text"
+  class="border border-gray-400 rounded-md px-4 py-2 text-sm
+         focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600
+         dark:bg-[#1F2937] dark:border-gray-600 dark:text-gray-100" /&gt;
+
+&lt;!-- Search with leading icon --&gt;
+&lt;div class="relative"&gt;
+  &lt;i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2
+             text-gray-400 text-sm" aria-hidden="true"&gt;&lt;/i&gt;
+  &lt;input type="search"
+    class="border border-gray-400 rounded-md pl-9 pr-4 py-2 text-sm
+           focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600" /&gt;
+&lt;/div&gt;</code></pre>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ──── STYLE GUIDE: ICONS ──── -->
+      <section id="icons" aria-labelledby="icons-heading">
+        <h2 id="icons-heading" class="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+          <i class="fa-solid fa-icons text-blt-primary" aria-hidden="true"></i>
+          Style Guide — Icons
+        </h2>
+
+        <div class="rounded-xl border border-blt-border dark:border-gray-700 bg-white dark:bg-blt-surface shadow-sm p-6 space-y-6">
+
+          <p class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+            BLT uses <strong>Font Awesome 6</strong>. Apply <code class="bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-xs">aria-hidden="true"</code>
+            to decorative icons. For standalone icons (buttons without text), provide an
+            <code class="bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-xs">aria-label</code> on the button.
+          </p>
+
+          <!-- Icon grid -->
+          <div class="flex flex-wrap gap-6">
+            <div class="flex flex-col items-center gap-1.5 text-center">
+              <i class="fa-solid fa-bug text-2xl text-gray-600 dark:text-gray-300" aria-hidden="true"></i>
+              <span class="text-xs text-gray-500 dark:text-gray-400">fa-bug</span>
+            </div>
+            <div class="flex flex-col items-center gap-1.5 text-center">
+              <i class="fa-solid fa-code-pull-request text-2xl text-gray-600 dark:text-gray-300" aria-hidden="true"></i>
+              <span class="text-xs text-gray-500 dark:text-gray-400">fa-code-pull-request</span>
+            </div>
+            <div class="flex flex-col items-center gap-1.5 text-center">
+              <i class="fa-brands fa-github text-2xl text-gray-600 dark:text-gray-300" aria-hidden="true"></i>
+              <span class="text-xs text-gray-500 dark:text-gray-400">fa-brands fa-github</span>
+            </div>
+            <div class="flex flex-col items-center gap-1.5 text-center">
+              <i class="fa-solid fa-star text-2xl text-gray-600 dark:text-gray-300" aria-hidden="true"></i>
+              <span class="text-xs text-gray-500 dark:text-gray-400">fa-star</span>
+            </div>
+            <div class="flex flex-col items-center gap-1.5 text-center">
+              <i class="fa-solid fa-shield-halved text-2xl text-gray-600 dark:text-gray-300" aria-hidden="true"></i>
+              <span class="text-xs text-gray-500 dark:text-gray-400">fa-shield-halved</span>
+            </div>
+            <div class="flex flex-col items-center gap-1.5 text-center">
+              <i class="fa-solid fa-lock text-2xl text-gray-600 dark:text-gray-300" aria-hidden="true"></i>
+              <span class="text-xs text-gray-500 dark:text-gray-400">fa-lock</span>
+            </div>
+            <div class="flex flex-col items-center gap-1.5 text-center">
+              <i class="fa-solid fa-circle-check text-2xl text-gray-600 dark:text-gray-300" aria-hidden="true"></i>
+              <span class="text-xs text-gray-500 dark:text-gray-400">fa-circle-check</span>
+            </div>
+            <div class="flex flex-col items-center gap-1.5 text-center">
+              <i class="fa-solid fa-triangle-exclamation text-2xl text-gray-600 dark:text-gray-300" aria-hidden="true"></i>
+              <span class="text-xs text-gray-500 dark:text-gray-400">fa-triangle-exclamation</span>
+            </div>
+          </div>
+
+          <!-- Accessibility code snippet -->
+          <div>
+            <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Accessibility usage</p>
+            <pre class="bg-gray-100 dark:bg-gray-800 rounded-md px-4 py-3 text-xs overflow-x-auto leading-relaxed"><code>&lt;!-- Decorative: hidden from assistive tech --&gt;
+&lt;i class="fa-solid fa-bug" aria-hidden="true"&gt;&lt;/i&gt;
+
+&lt;!-- Icon button: label on the button wrapper --&gt;
+&lt;button aria-label="Report a bug"&gt;
+  &lt;i class="fa-solid fa-bug" aria-hidden="true"&gt;&lt;/i&gt;
+&lt;/button&gt;
+
+&lt;!-- Icon + visible text: icon is decorative --&gt;
+&lt;button&gt;
+  &lt;i class="fa-solid fa-bug" aria-hidden="true"&gt;&lt;/i&gt;
+  Report Bug
+&lt;/button&gt;</code></pre>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ──── FOR MENTORS ──── -->
+      <section id="mentors" aria-labelledby="mentors-heading">
+        <h2 id="mentors-heading" class="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+          <i class="fa-solid fa-chalkboard-user text-blt-primary" aria-hidden="true"></i>
+          For Mentors
+        </h2>
+
+        <div class="rounded-xl border border-blt-border dark:border-gray-700 bg-white dark:bg-blt-surface shadow-sm p-6 space-y-5">
+
+          <p class="text-gray-700 dark:text-gray-300 leading-relaxed">
+            Mentors are vital to keeping BLT's contributor pipeline healthy. Here is how to set up
+            new contributors for success:
+          </p>
+
+          <div class="grid sm:grid-cols-2 gap-4">
+
+            <div class="rounded-lg border border-blt-border dark:border-gray-700 p-4 space-y-2">
+              <h3 class="font-semibold text-gray-900 dark:text-white text-sm flex items-center gap-2">
+                <i class="fa-solid fa-tag text-blt-primary" aria-hidden="true"></i>
+                Label issues well
+              </h3>
+              <p class="text-sm text-gray-600 dark:text-gray-400">
+                Apply <strong>good first issue</strong> and add a short comment describing the expected
+                outcome and files likely to change.
+              </p>
+            </div>
+
+            <div class="rounded-lg border border-blt-border dark:border-gray-700 p-4 space-y-2">
+              <h3 class="font-semibold text-gray-900 dark:text-white text-sm flex items-center gap-2">
+                <i class="fa-solid fa-comments text-blt-primary" aria-hidden="true"></i>
+                Set scope in comments
+              </h3>
+              <p class="text-sm text-gray-600 dark:text-gray-400">
+                Paste a short comment with: files to edit, acceptance criteria, and estimated effort.
+                Saves back-and-forth.
+              </p>
+            </div>
+
+            <div class="rounded-lg border border-blt-border dark:border-gray-700 p-4 space-y-2">
+              <h3 class="font-semibold text-gray-900 dark:text-white text-sm flex items-center gap-2">
+                <i class="fa-solid fa-clock text-blt-primary" aria-hidden="true"></i>
+                Respond within 48 hours
+              </h3>
+              <p class="text-sm text-gray-600 dark:text-gray-400">
+                Slow reviews discourage newcomers. Aim for at least an acknowledgement within
+                two business days.
+              </p>
+            </div>
+
+            <div class="rounded-lg border border-blt-border dark:border-gray-700 p-4 space-y-2">
+              <h3 class="font-semibold text-gray-900 dark:text-white text-sm flex items-center gap-2">
+                <i class="fa-solid fa-trophy text-blt-primary" aria-hidden="true"></i>
+                Celebrate merged PRs
+              </h3>
+              <p class="text-sm text-gray-600 dark:text-gray-400">
+                A short "great work!" comment or Slack message goes a long way in retaining contributors.
+              </p>
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ──── USEFUL LINKS ──── -->
+      <section id="links" aria-labelledby="links-heading">
+        <h2 id="links-heading" class="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+          <i class="fa-solid fa-link text-blt-primary" aria-hidden="true"></i>
+          Useful Links
+        </h2>
+
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+
+          <a href="https://github.com/OWASP-BLT/BLT" target="_blank" rel="noopener noreferrer"
+             class="group rounded-xl border border-blt-border dark:border-gray-700 bg-white dark:bg-blt-surface shadow-sm p-5 flex items-start gap-4 hover:border-blt-primary dark:hover:border-red-500 transition-colors">
+            <span class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 group-hover:bg-red-50 group-hover:text-blt-primary shrink-0 transition-colors">
+              <i class="fa-brands fa-github text-lg" aria-hidden="true"></i>
+            </span>
+            <div>
+              <p class="font-semibold text-gray-900 dark:text-white text-sm group-hover:text-blt-primary transition-colors">
+                BLT Repository
+              </p>
+              <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Main source code on GitHub</p>
+            </div>
+          </a>
+
+          <a href="https://github.com/OWASP-BLT/BLT/issues" target="_blank" rel="noopener noreferrer"
+             class="group rounded-xl border border-blt-border dark:border-gray-700 bg-white dark:bg-blt-surface shadow-sm p-5 flex items-start gap-4 hover:border-blt-primary dark:hover:border-red-500 transition-colors">
+            <span class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 group-hover:bg-red-50 group-hover:text-blt-primary shrink-0 transition-colors">
+              <i class="fa-solid fa-circle-dot text-lg" aria-hidden="true"></i>
+            </span>
+            <div>
+              <p class="font-semibold text-gray-900 dark:text-white text-sm group-hover:text-blt-primary transition-colors">
+                Issue Tracker
+              </p>
+              <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">All open issues and labels</p>
+            </div>
+          </a>
+
+          <a href="https://github.com/OWASP-BLT/BLT/pulls" target="_blank" rel="noopener noreferrer"
+             class="group rounded-xl border border-blt-border dark:border-gray-700 bg-white dark:bg-blt-surface shadow-sm p-5 flex items-start gap-4 hover:border-blt-primary dark:hover:border-red-500 transition-colors">
+            <span class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 group-hover:bg-red-50 group-hover:text-blt-primary shrink-0 transition-colors">
+              <i class="fa-solid fa-code-pull-request text-lg" aria-hidden="true"></i>
+            </span>
+            <div>
+              <p class="font-semibold text-gray-900 dark:text-white text-sm group-hover:text-blt-primary transition-colors">
+                Pull Requests
+              </p>
+              <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Open &amp; merged PRs</p>
+            </div>
+          </a>
+
+          <a href="https://owasp.org/www-project-bug-logging-tool/" target="_blank" rel="noopener noreferrer"
+             class="group rounded-xl border border-blt-border dark:border-gray-700 bg-white dark:bg-blt-surface shadow-sm p-5 flex items-start gap-4 hover:border-blt-primary dark:hover:border-red-500 transition-colors">
+            <span class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 group-hover:bg-red-50 group-hover:text-blt-primary shrink-0 transition-colors">
+              <i class="fa-solid fa-shield-halved text-lg" aria-hidden="true"></i>
+            </span>
+            <div>
+              <p class="font-semibold text-gray-900 dark:text-white text-sm group-hover:text-blt-primary transition-colors">
+                OWASP Project Page
+              </p>
+              <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Official OWASP listing</p>
+            </div>
+          </a>
+
+          <a href="https://owasp.slack.com/archives/CBKGH8A5P" target="_blank" rel="noopener noreferrer"
+             class="group rounded-xl border border-blt-border dark:border-gray-700 bg-white dark:bg-blt-surface shadow-sm p-5 flex items-start gap-4 hover:border-blt-primary dark:hover:border-red-500 transition-colors">
+            <span class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 group-hover:bg-red-50 group-hover:text-blt-primary shrink-0 transition-colors">
+              <i class="fa-brands fa-slack text-lg" aria-hidden="true"></i>
+            </span>
+            <div>
+              <p class="font-semibold text-gray-900 dark:text-white text-sm group-hover:text-blt-primary transition-colors">
+                Slack — #project-blt
+              </p>
+              <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Community discussions &amp; help</p>
+            </div>
+          </a>
+
+          <a href="https://www.bugheist.com" target="_blank" rel="noopener noreferrer"
+             class="group rounded-xl border border-blt-border dark:border-gray-700 bg-white dark:bg-blt-surface shadow-sm p-5 flex items-start gap-4 hover:border-blt-primary dark:hover:border-red-500 transition-colors">
+            <span class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 group-hover:bg-red-50 group-hover:text-blt-primary shrink-0 transition-colors">
+              <i class="fa-solid fa-globe text-lg" aria-hidden="true"></i>
+            </span>
+            <div>
+              <p class="font-semibold text-gray-900 dark:text-white text-sm group-hover:text-blt-primary transition-colors">
+                BugHeist (Live App)
+              </p>
+              <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Production instance of BLT</p>
+            </div>
+          </a>
+
+        </div>
+      </section>
+
+    </main>
+  </div><!-- end layout -->
+
+  <!-- ───────────────────────────── FOOTER ───────────────────────────── -->
+  <footer class="mt-16 border-t border-blt-border dark:border-gray-700 bg-white dark:bg-blt-surface">
+    <div class="max-w-screen-xl mx-auto px-4 sm:px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+
+      <p class="text-sm text-gray-500 dark:text-gray-400 text-center sm:text-left">
+        <span aria-label="Copyright">&copy;</span> <span id="year"></span>
+        <a href="https://owasp.org" target="_blank" rel="noopener noreferrer"
+           class="text-red-600 dark:text-red-400 hover:underline">OWASP Foundation</a>
+        — Bug Logging Tool is an open-source project.
+      </p>
+
+      <nav class="flex items-center gap-5" aria-label="Footer links">
+        <a href="https://github.com/OWASP-BLT/BLT" target="_blank" rel="noopener noreferrer"
+           class="text-gray-400 dark:text-gray-500 hover:text-blt-primary dark:hover:text-red-400 transition-colors"
+           aria-label="BLT on GitHub">
+          <i class="fa-brands fa-github text-xl" aria-hidden="true"></i>
+        </a>
+        <a href="https://owasp.slack.com/archives/CBKGH8A5P" target="_blank" rel="noopener noreferrer"
+           class="text-gray-400 dark:text-gray-500 hover:text-blt-primary dark:hover:text-red-400 transition-colors"
+           aria-label="BLT Slack channel">
+          <i class="fa-brands fa-slack text-xl" aria-hidden="true"></i>
+        </a>
+        <a href="https://owasp.org/www-project-bug-logging-tool/" target="_blank" rel="noopener noreferrer"
+           class="text-gray-400 dark:text-gray-500 hover:text-blt-primary dark:hover:text-red-400 transition-colors"
+           aria-label="OWASP BLT project page">
+          <i class="fa-solid fa-shield-halved text-xl" aria-hidden="true"></i>
+        </a>
+      </nav>
+    </div>
+  </footer>
+
+  <script>
+    // Set current year in footer
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Sidebar active-link highlighting on scroll
+    (function () {
+      const sections = document.querySelectorAll('section[id]');
+      const navLinks = document.querySelectorAll('aside nav a[href^="#"]');
+
+      const activeClasses   = ['bg-blt-sidebar', 'text-blt-primary'];
+      const inactiveClasses = ['text-gray-700', 'dark:text-gray-300',
+                               'hover:bg-blt-sidebar', 'hover:text-blt-primary',
+                               'dark:hover:bg-gray-700'];
+
+      function onScroll() {
+        let currentId = '';
+        sections.forEach(function (section) {
+          if (window.scrollY >= section.offsetTop - 100) {
+            currentId = section.id;
+          }
+        });
+
+        navLinks.forEach(function (link) {
+          const href = link.getAttribute('href').replace('#', '');
+          if (href === currentId) {
+            link.classList.add(...activeClasses);
+            link.classList.remove(...inactiveClasses);
+            link.setAttribute('aria-current', 'page');
+          } else {
+            link.classList.remove(...activeClasses);
+            link.classList.add(...inactiveClasses);
+            link.removeAttribute('aria-current');
+          }
+        });
+      }
+
+      window.addEventListener('scroll', onScroll, { passive: true });
+      onScroll(); // run on load
+    }());
+  </script>
+
+</body>
+</html>
