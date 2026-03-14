@@ -36,6 +36,7 @@ from urllib.parse import quote, urlparse
 
 from js import Headers, Response, console, fetch  # Cloudflare Workers JS bindings
 from index_template import GITHUB_PAGE_HTML  # Landing page HTML template
+from services.admin import AdminService, has_merged_pr_in_org
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -5130,7 +5131,11 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
             .then(function(result) {{
               btn.disabled = false;
               if (result.ok) {{
-                okEl.textContent = 'Welcome to the mentor pool, @' + github + '! Refresh the page to see your card.';
+                if (result.data && result.data.active) {{
+                  okEl.textContent = 'Welcome to the mentor pool, @' + github + '! Your mentor profile is now published.';
+                }} else {{
+                  okEl.textContent = 'Thanks, @' + github + '! Your mentor profile was saved and is waiting for admin publishing.';
+                }}
                 okEl.classList.remove('hidden');
                 document.getElementById('mentor-form').reset();
               }} else {{
@@ -5271,6 +5276,12 @@ async def _handle_add_mentor(request, env) -> "Response":
     if not db:
         return _json({"error": "Database not available"}, 500)
 
+    mentor_is_active = await has_merged_pr_in_org(
+        env,
+        github_username,
+        getattr(env, "GITHUB_ORG", "OWASP-BLT"),
+    )
+
     try:
         await _ensure_leaderboard_schema(db)
         await _d1_add_mentor(
@@ -5279,7 +5290,7 @@ async def _handle_add_mentor(request, env) -> "Response":
             name=name,
             specialties=specialties,
             max_mentees=max_mentees,
-            active=True,
+            active=mentor_is_active,
             timezone=timezone,
             referred_by=referred_by,
         )
@@ -5287,8 +5298,13 @@ async def _handle_add_mentor(request, env) -> "Response":
         console.error(f"[MentorPool] Failed to add mentor {github_username}: {exc}")
         return _json({"error": "Failed to save mentor"}, 500)
 
-    console.log(f"[MentorPool] Added mentor {github_username} via API")
-    return _json({"ok": True, "github_username": github_username}, 201)
+    console.log(
+        f"[MentorPool] Added mentor {github_username} via API active={mentor_is_active}"
+    )
+    return _json(
+        {"ok": True, "github_username": github_username, "active": mentor_is_active},
+        201,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -5323,6 +5339,10 @@ def _html(html: str, status: int = 200) -> Response:
 async def on_fetch(request, env) -> Response:
     method = request.method
     path = urlparse(str(request.url)).path.rstrip("/") or "/"
+
+    admin_response = await AdminService(env).handle(request)
+    if admin_response is not None:
+        return admin_response
 
     if method == "GET" and path == "/":
         # Load mentors from D1.
