@@ -32,7 +32,7 @@ register_scanner('crawler', Web2Crawler)
 register_scanner('web3_monitor', Web3Monitor)
 register_scanner('static_analysis', StaticAnalyzer)
 register_scanner('contract_audit', ContractScanner)
-register_scanner('vulnerability_scan', Web2Crawler)
+register_scanner('vulnerability_scan', Web2Crawler)  # intentionally reuses Web2Crawler
 register_scanner('penetration_test', VolunteerAgentManager)
 
 
@@ -47,10 +47,13 @@ class ScannerCoordinator:
             for task_type, scanner_class in _SCANNER_REGISTRY.items()
         }
 
-    async def process_job(self, job_id: str, tasks: List[Any]):
-        """Process all tasks in a job."""
+    async def process_job(self, job_id: str, tasks: List[Any]) -> List[Dict[str, Any]]:
+        """Process all tasks in a job and return results."""
+        results = []
         for task in tasks:
-            await self.process_task(task)
+            result = await self.process_task(task)
+            results.append(result)
+        return results
 
     async def process_task(self, task) -> Dict[str, Any]:
         """Process a single task by dispatching to appropriate scanner."""
