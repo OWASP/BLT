@@ -368,6 +368,26 @@ def _is_coderabbit_ping(body: str) -> bool:
     return "coderabbit" in lower or "@coderabbitai" in lower
 
 
+async def _is_maintainer(owner: str, repo: str, login: str, token: str) -> bool:
+    """Return True if ``login`` has admin or maintain permission in the repo.
+
+    Uses the GitHub collaborator permission endpoint.  Returns False on any
+    API error (fail-closed).
+    """
+    try:
+        resp = await github_api(
+            "GET",
+            f"/repos/{owner}/{repo}/collaborators/{login}/permission",
+            token,
+        )
+        if resp.status != 200:
+            return False
+        data = json.loads(await resp.text())
+        return data.get("permission", "") in ("admin", "maintain")
+    except Exception:
+        return False
+
+
 def _extract_command(body: str) -> Optional[str]:
     """Extract a supported slash command from comment body (case-insensitive)."""
     if not body:
@@ -930,14 +950,14 @@ async def _d1_get_mentor_loads(db, org: str) -> dict:
 async def _d1_get_active_assignments(db, org: str) -> list:
     """Return all active mentor assignments from D1 for the given org.
 
-    Returns a list of dicts with keys: mentor_login, issue_repo, issue_number, assigned_at.
+    Returns a list of dicts with keys: org, mentor_login, issue_repo, issue_number, assigned_at.
     Returns an empty list when D1 is unavailable or the query fails.
     """
     try:
         rows = await _d1_all(
             db,
             """
-            SELECT mentor_login, issue_repo, issue_number, assigned_at
+            SELECT org, mentor_login, issue_repo, issue_number, assigned_at
             FROM mentor_assignments
             WHERE org = ?
             ORDER BY assigned_at DESC
@@ -946,6 +966,7 @@ async def _d1_get_active_assignments(db, org: str) -> list:
         )
         return [
             {
+                "org": row.get("org", org),
                 "mentor_login": row.get("mentor_login", ""),
                 "issue_repo": row.get("issue_repo", ""),
                 "issue_number": int(row.get("issue_number") or 0),
@@ -2829,7 +2850,7 @@ async def _assign_mentor_to_issue(
         f"Use `/handoff` if you need to transfer mentorship.\n\n"
         f"{contributor_mention} — @{mentor_username} will help you through this. "
         "Feel free to ask questions here. Use `/rematch` if you need a different mentor.\n\n"
-        "Happy coding! 🚀 — [OWASP BLT](https://owaspblt.org)"
+        "Happy coding! 🚀 — [OWASP BLT-Pool](https://pool.owaspblt.org)"
     )
     await create_comment(owner, repo, issue_number, body, token)
     console.log(
@@ -2889,7 +2910,8 @@ async def handle_mentor_unassign(
     - Deleting the D1 assignment record.
     - Posting a confirmation comment.
 
-    Only the issue author or the currently assigned mentor may use this command.
+    The issue author, the currently assigned mentor, or any repo maintainer
+    (admin or maintain permission) may use this command.
     """
     issue_number = issue["number"]
     current_labels = {lb.get("name", "").lower() for lb in issue.get("labels", [])}
@@ -2909,20 +2931,27 @@ async def handle_mentor_unassign(
         owner, repo, issue_number, token
     )
 
-    # Permission check: allow the issue author or the assigned mentor to unmentor.
+    # Permission check: allow the issue author, the assigned mentor, or any
+    # repo maintainer (admin/maintain) to unmentor.  The maintainer check calls
+    # the GitHub API so we skip it when one of the cheaper conditions already
+    # grants access.
     issue_author = (issue.get("user") or {}).get("login", "")
     is_issue_author = login.lower() == issue_author.lower()
     is_assigned_mentor = current_mentor and login.lower() == current_mentor.lower()
     if not is_issue_author and not is_assigned_mentor:
-        await create_comment(
-            owner,
-            repo,
-            issue_number,
-            f"@{login} Only the issue author or the assigned mentor can remove a mentor assignment. "
-            "Use `/rematch` if you'd like a different mentor.",
-            token,
-        )
-        return
+        is_repo_maintainer = await _is_maintainer(owner, repo, login, token)
+        if not is_repo_maintainer:
+            await create_comment(
+                owner,
+                repo,
+                issue_number,
+                f"@{login} Only the issue author, the assigned mentor, or a repo maintainer "
+                "can remove a mentor assignment. "
+                "Use `/rematch` if you'd like a different mentor.\n\n"
+                "— [OWASP BLT-Pool](https://pool.owaspblt.org)",
+                token,
+            )
+            return
 
     # Remove the mentor-assigned label (best-effort).
     try:
@@ -2962,7 +2991,7 @@ async def handle_mentor_unassign(
         f"<!-- blt-mentor-unassigned -->\n"
         f"@{login} The mentor assignment has been cancelled. {mentor_mention}"
         "The issue is now open for mentorship again — use `/mentor` to request a new mentor.\n\n"
-        "— [OWASP BLT](https://owaspblt.org)",
+        "— [OWASP BLT-Pool](https://pool.owaspblt.org)",
         token,
     )
     console.log(
@@ -3241,7 +3270,7 @@ async def _check_stale_mentor_assignments(owner: str, repo: str, token: str) -> 
                     f"{mentor_mention}This issue has had no activity for {days_elapsed} days "
                     f"so the mentor assignment has been automatically released. "
                     "The issue remains open — use `/mentor` to request a new mentor when work resumes.\n\n"
-                    "— [OWASP BLT](https://owaspblt.org)",
+                    "— [OWASP BLT-Pool](https://pool.owaspblt.org)",
                     token,
                 )
                 console.log(
@@ -3318,17 +3347,6 @@ async def handle_issue_comment(payload: dict, token: str, env=None) -> None:
                 token,
             )
     elif command in (MENTOR_COMMAND, UNMENTOR_COMMAND, MENTOR_PAUSE_COMMAND, HANDOFF_COMMAND, REMATCH_COMMAND):
-        # Mentor slash commands only make sense on issues, not pull requests.
-        if issue.get("pull_request"):
-            await create_comment(
-                owner,
-                repo,
-                issue_number,
-                f"@{login} Mentor commands are only available on issues, not pull requests.",
-                token,
-            )
-            return
-
         if command == UNMENTOR_COMMAND:
             await handle_mentor_unassign(owner, repo, issue, login, token, env=env)
             return
@@ -3401,7 +3419,7 @@ async def _assign(
         f"(by {deadline}).\n\n"
         f"If you need more time or cannot complete the work, please comment "
         f"`{UNASSIGN_COMMAND}` so others can pick it up.\n\n"
-        "Happy coding! 🚀 — [OWASP BLT](https://owaspblt.org)",
+        "Happy coding! 🚀 — [OWASP BLT-Pool](https://pool.owaspblt.org)",
         token,
     )
 
@@ -3448,7 +3466,7 @@ async def handle_issue_opened(
         f"👋 Thanks for opening this issue, @{sender['login']}!\n\n"
         "Our team will review it shortly. In the meantime:\n"
         "- If you'd like to work on this issue, comment `/assign` to get assigned.\n"
-        "- Visit [OWASP BLT](https://owaspblt.org) for more information about "
+        "- Visit [OWASP BLT-Pool](https://pool.owaspblt.org) for more information about "
         "our bug bounty platform.\n"
     )
     if is_bug:
@@ -3461,7 +3479,7 @@ async def handle_issue_opened(
         if bug_data and bug_data.get("id"):
             msg += (
                 "\n🐛 This issue has been automatically reported to "
-                "[OWASP BLT](https://owaspblt.org) "
+                "[OWASP BLT-Pool](https://pool.owaspblt.org) "
                 f"(Bug ID: #{bug_data['id']}). "
                 "Thank you for helping improve security!\n"
             )
@@ -3512,7 +3530,7 @@ async def handle_issue_labeled(
     if bug_data and bug_data.get("id"):
         await create_comment(
             owner, repo, issue["number"],
-            f"🐛 This issue has been reported to [OWASP BLT](https://owaspblt.org) "
+            f"🐛 This issue has been reported to [OWASP BLT-Pool](https://pool.owaspblt.org) "
             f"(Bug ID: #{bug_data['id']}) after being labeled as "
             f"`{label.get('name', 'bug')}`.",
             token,
@@ -3732,7 +3750,7 @@ async def _post_merged_pr_combined_comment(
     thanks_section = (
         f"🎉 PR merged! Thanks for your contribution, @{author_login}!\n\n"
         "Your work is now part of the project. Keep contributing to "
-        "[OWASP BLT](https://owaspblt.org) and help make the web a safer place! 🛡️\n\n"
+        "[OWASP BLT-Pool](https://pool.owaspblt.org) and help make the web a safer place! 🛡️\n\n"
         "Visit [pool.owaspblt.org](https://pool.owaspblt.org) to explore the mentor pool and connect with contributors."
     )
 
@@ -4636,7 +4654,7 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
                             from D1, used to show activity stats on each mentor card.
                             When ``None`` or empty, stats columns are hidden.
         active_assignments: Optional list of active mentor-issue assignment dicts from D1.
-                            Each dict has keys: mentor_login, issue_repo, issue_number, assigned_at.
+                            Each dict has keys: org, mentor_login, issue_repo, issue_number, assigned_at.
                             When ``None`` or empty, the section is hidden.
     """
     if mentors is None:
@@ -4669,11 +4687,11 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
                   @{_html_mod.escape(a["mentor_login"])}
                 </a>
               </div>
-              <a href="https://github.com/{_html_mod.escape(a["issue_repo"])}/issues/{a["issue_number"]}"
+              <a href="https://github.com/{_html_mod.escape(a["org"])}/{_html_mod.escape(a["issue_repo"])}/issues/{_html_mod.escape(str(a["issue_number"]))}"
                  target="_blank" rel="noopener"
                  class="inline-flex items-center gap-1.5 rounded-full bg-[#feeae9] px-3 py-1 text-xs font-semibold text-[#E10101] hover:bg-red-100 transition shrink-0">
                 <i class="fa-brands fa-github text-xs" aria-hidden="true"></i>
-                {_html_mod.escape(a["issue_repo"])}#{a["issue_number"]}
+                {_html_mod.escape(a["org"])}/{_html_mod.escape(a["issue_repo"])}#{_html_mod.escape(str(a["issue_number"]))}
               </a>
             </li>'''
             for a in active_assignments
@@ -5463,7 +5481,7 @@ async def _check_stale_assignments(owner: str, repo: str, token: str):
                     f"the {ASSIGNMENT_DURATION_HOURS}-hour deadline has passed without a linked pull request.\n\n"
                     f"The issue is now available for others to claim. If you'd still like to work on this, "
                     f"please comment `{ASSIGN_COMMAND}` again.\n\n"
-                    "Thank you for your interest! 🙏 — [OWASP BLT](https://owaspblt.org)",
+                    "Thank you for your interest! 🙏 — [OWASP BLT-Pool](https://pool.owaspblt.org)",
                     token
                 )
     
