@@ -187,7 +187,14 @@ async def handle_signin(request: Any, env: Any, path_params: Dict[str, str], que
         password_hash = hashlib.pbkdf2_hmac('sha256', body["password"].encode('utf-8'), salt.encode('utf-8'), __HASHING_ITERATIONS).hex()
         if password_hash != stored_hash:
             return error_response("Invalid username or password", 401)
-        
+
+        # Check if account is active (email verified)
+        if not user.get("is_active"):
+            return error_response(
+                "Account not verified. Please check your email for the verification link.",
+                403
+            )
+
         # Create JWT token with 24 hour expiration
         token = create_access_token(
             {"user_id": user["id"]}, 
