@@ -43,6 +43,10 @@ from services.mentor_seed import INITIAL_MENTORS
 # Constants
 # ---------------------------------------------------------------------------
 
+# Backward-compatible alias kept for tests and older imports after mentor seed
+# data moved to ``services.mentor_seed``.
+_INITIAL_MENTORS = INITIAL_MENTORS
+
 ASSIGN_COMMAND = "/assign"
 UNASSIGN_COMMAND = "/unassign"
 LEADERBOARD_COMMAND = "/leaderboard"
