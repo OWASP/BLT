@@ -115,3 +115,14 @@ mentors:
     max_mentees: 3
     active: true
     timezone: "UTC+5:30 (India Standard Time)"
+
+  - github_username: "ramansh18"
+    name: "Ramansh Saxena"
+    specialties:
+      - frontend
+      - backend
+      - web3
+    max_mentees: 2
+    active: true
+    timezone: "+5:30"
+    referred_by: "ojaswa072"
