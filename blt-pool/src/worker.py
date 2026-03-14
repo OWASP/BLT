@@ -3750,7 +3750,7 @@ async def _post_merged_pr_combined_comment(
     thanks_section = (
         f"🎉 PR merged! Thanks for your contribution, @{author_login}!\n\n"
         "Your work is now part of the project. Keep contributing to "
-        "[OWASP BLT](https://owaspblt.org) and help make the web a safer place! 🛡️\n\n"
+        "[OWASP BLT-Pool](https://pool.owaspblt.org) and help make the web a safer place! 🛡️\n\n"
         "Visit [pool.owaspblt.org](https://pool.owaspblt.org) to explore the mentor pool and connect with contributors."
     )
 
@@ -3817,22 +3817,6 @@ async def handle_pull_request_closed(payload: dict, token: str, env=None) -> Non
 
     # Track close/merge counters in D1.
     await _track_pr_closed_in_d1(payload, env)
-    
-    # Post merge congratulations
-    body = (
-        f"🎉 PR merged! Thanks for your contribution, @{author_login}!\n\n"
-        "Your work is now part of the project. Keep contributing to "
-        "[OWASP BLT-Pool](https://pool.owaspblt.org) and help make the web a safer place! 🛡️"
-    )
-    await create_comment(owner, repo, pr_number, body, token)
-    
-    # Leaderboard display already shows accurate ranking
-    
-    # Post/update leaderboard
-    if env is None:
-        await _post_or_update_leaderboard(owner, repo, pr_number, author_login, token)
-    else:
-        await _post_or_update_leaderboard(owner, repo, pr_number, author_login, token, env)
 
     # Post a single combined comment: thanks + contributor leaderboard + reviewer leaderboard
     pr_reviewers = await get_valid_reviewers(owner, repo, pr_number, author_login, token)
@@ -4670,7 +4654,7 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
                             from D1, used to show activity stats on each mentor card.
                             When ``None`` or empty, stats columns are hidden.
         active_assignments: Optional list of active mentor-issue assignment dicts from D1.
-                            Each dict has keys: mentor_login, issue_repo, issue_number, assigned_at.
+                            Each dict has keys: org, mentor_login, issue_repo, issue_number, assigned_at.
                             When ``None`` or empty, the section is hidden.
     """
     if mentors is None:
