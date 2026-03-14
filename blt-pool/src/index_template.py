@@ -1,4 +1,4 @@
-"""HTML template for the BLT GitHub App landing page.
+"""HTML template for the BLT-Pool GitHub page.
 
 This is auto-generated from templates/index.html.
 Edit templates/index.html and regenerate this file before deploying.
@@ -260,5 +260,4 @@ GITHUB_PAGE_HTML = """\
 </body>
 </html>
 """
-
 
