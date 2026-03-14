@@ -35,8 +35,8 @@ async def handle_organizations(
     try:
         db = await get_db_safe(env)
     except Exception as e:
-        return error_response(str(e), status=503)
-
+        logger.error(f"Database connection error: {str(e)}")
+        return error_response("Database connection failed", status=503)
     try:
         # Get specific organization
         if "id" in path_params:
