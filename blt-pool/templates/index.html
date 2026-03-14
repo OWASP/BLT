@@ -47,7 +47,7 @@
 <body class="min-h-screen font-sans text-gray-900 antialiased">
 
   <header class="sticky top-0 z-40 border-b border-blt-border/90 bg-white/90 glass">
-    <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-y-2 px-4 py-3 sm:flex-nowrap sm:py-4 sm:px-6 lg:px-8">
       <a href="/" class="flex items-center gap-3" aria-label="BLT-Pool home">
         <img src="/logo-sm.png" alt="OWASP BLT logo" class="h-10 w-10 rounded-xl border border-blt-border bg-white object-contain p-1">
         <div>
@@ -55,14 +55,14 @@
           <h1 class="text-lg font-extrabold text-blt-dark-base">BLT-Pool Extension</h1>
         </div>
       </a>
-      <nav class="hidden items-center gap-2 rounded-xl border border-blt-border bg-white p-1 md:flex" aria-label="Main">
-        <a href="/" class="rounded-lg px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">Mentors</a>
-        <a href="/github-app" class="rounded-lg bg-[#feeae9] px-3 py-2 text-sm font-semibold text-blt-primary">GitHub App</a>
-      </nav>
-      <span role="status" aria-label="Service status: Operational" class="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+      <span role="status" aria-label="Service status: Operational" class="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 sm:order-last">
         <i class="fa-solid fa-circle text-[0.45rem]" aria-hidden="true"></i>
         Operational
       </span>
+      <nav class="order-last flex w-full items-center justify-center gap-0.5 rounded-xl border border-blt-border bg-white p-1 sm:order-none sm:w-auto sm:justify-start" aria-label="Main">
+        <a href="/" class="rounded-lg px-2 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 sm:px-3 sm:py-2 sm:text-sm">Mentors</a>
+        <a href="/github-app" class="rounded-lg bg-[#feeae9] px-2 py-1.5 text-xs font-semibold text-blt-primary sm:px-3 sm:py-2 sm:text-sm">GitHub App</a>
+      </nav>
     </div>
   </header>
 

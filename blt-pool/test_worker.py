@@ -9,6 +9,7 @@ These tests cover the logic that does NOT require the Cloudflare runtime
 
 import asyncio
 import base64
+import builtins
 import hashlib
 import hmac as _hmac
 import importlib
@@ -111,6 +112,7 @@ _is_bot = _worker._is_bot
 _is_coderabbit_ping = _worker._is_coderabbit_ping
 _parse_github_timestamp = _worker._parse_github_timestamp
 _format_leaderboard_comment = _worker._format_leaderboard_comment
+_format_reviewer_leaderboard_comment = _worker._format_reviewer_leaderboard_comment
 
 
 # ---------------------------------------------------------------------------
@@ -578,17 +580,20 @@ class TestHandlePullRequestClosed(unittest.TestCase):
         async def _inner():
             with patch.object(_worker, "create_comment", new=AsyncMock(side_effect=lambda o, r, n, b, t: comments.append(b))):
                 with patch.object(_worker, "_check_rank_improvement", new=AsyncMock()):
-                    with patch.object(_worker, "_post_or_update_leaderboard", new=AsyncMock()):
-                        await _worker.handle_pull_request_closed(payload, "tok")
+                    with patch.object(_worker, "get_valid_reviewers", new=AsyncMock(return_value=[])):
+                        with patch.object(_worker, "_post_merged_pr_combined_comment", new=AsyncMock()):
+                            await _worker.handle_pull_request_closed(payload, "tok")
         _run(_inner())
 
     def test_posts_congratulations_when_merged(self):
         payload = _make_pr_payload(merged=True)
-        comments = []
-        self._run_closed(payload, comments)
-        self.assertEqual(len(comments), 1)
-        self.assertIn("PR merged", comments[0])
-        self.assertIn("alice", comments[0])
+        called = []
+        async def _inner():
+            with patch.object(_worker, "get_valid_reviewers", new=AsyncMock(return_value=[])):
+                with patch.object(_worker, "_post_merged_pr_combined_comment", new=AsyncMock(side_effect=lambda *a, **k: called.append(True))):
+                    await _worker.handle_pull_request_closed(payload, "tok")
+        _run(_inner())
+        self.assertEqual(len(called), 1)
 
     def test_does_not_post_when_not_merged(self):
         payload = _make_pr_payload(merged=False)
@@ -927,6 +932,156 @@ class TestFormatLeaderboardComment(unittest.TestCase):
         self.assertNotIn("✨", result)
 
 
+class TestFormatReviewerLeaderboardComment(unittest.TestCase):
+    """Test reviewer leaderboard comment formatting"""
+
+    def _make_leaderboard_data(self):
+        return {
+            "sorted": [
+                {"login": "alice", "openPrs": 2, "mergedPrs": 5, "closedPrs": 0, "reviews": 10, "comments": 4, "total": 100},
+                {"login": "bob", "openPrs": 1, "mergedPrs": 3, "closedPrs": 0, "reviews": 7, "comments": 2, "total": 75},
+                {"login": "charlie", "openPrs": 1, "mergedPrs": 2, "closedPrs": 0, "reviews": 4, "comments": 1, "total": 45},
+                {"login": "dave", "openPrs": 0, "mergedPrs": 1, "closedPrs": 0, "reviews": 2, "comments": 0, "total": 20},
+                {"login": "eve", "openPrs": 1, "mergedPrs": 0, "closedPrs": 0, "reviews": 1, "comments": 0, "total": 6},
+            ],
+            "start_timestamp": 1704067200,  # 2024-01-01
+            "end_timestamp": 1706745599,
+        }
+
+    def test_contains_reviewer_leaderboard_marker(self):
+        result = _format_reviewer_leaderboard_comment(self._make_leaderboard_data(), "test-org")
+        self.assertIn("<!-- reviewer-leaderboard-bot -->", result)
+
+    def test_shows_reviewer_leaderboard_heading(self):
+        result = _format_reviewer_leaderboard_comment(self._make_leaderboard_data(), "test-org")
+        self.assertIn("Reviewer Leaderboard", result)
+
+    def test_shows_top_reviewers(self):
+        result = _format_reviewer_leaderboard_comment(self._make_leaderboard_data(), "test-org")
+        self.assertIn("alice", result)
+        self.assertIn("bob", result)
+        self.assertIn("charlie", result)
+
+    def test_shows_medals_for_top_reviewers(self):
+        result = _format_reviewer_leaderboard_comment(self._make_leaderboard_data(), "test-org")
+        self.assertIn("🥇", result)
+        self.assertIn("🥈", result)
+        self.assertIn("🥉", result)
+
+    def test_highlights_pr_reviewers(self):
+        result = _format_reviewer_leaderboard_comment(
+            self._make_leaderboard_data(), "test-org", pr_reviewers=["bob"]
+        )
+        # bob should be highlighted with a star
+        self.assertIn("**`@bob`** ⭐", result)
+        # alice should not be highlighted
+        self.assertNotIn("**`@alice`** ⭐", result)
+
+    def test_shows_no_activity_message_when_no_reviewers(self):
+        data = {
+            "sorted": [
+                {"login": "alice", "openPrs": 2, "mergedPrs": 5, "closedPrs": 0, "reviews": 0, "comments": 4, "total": 30},
+            ],
+            "start_timestamp": 1704067200,
+            "end_timestamp": 1706745599,
+        }
+        result = _format_reviewer_leaderboard_comment(data, "test-org")
+        self.assertIn("No review activity", result)
+
+    def test_excludes_users_with_zero_reviews(self):
+        data = {
+            "sorted": [
+                {"login": "alice", "openPrs": 2, "mergedPrs": 5, "closedPrs": 0, "reviews": 0, "comments": 4, "total": 30},
+                {"login": "bob", "openPrs": 1, "mergedPrs": 3, "closedPrs": 0, "reviews": 3, "comments": 2, "total": 45},
+            ],
+            "start_timestamp": 1704067200,
+            "end_timestamp": 1706745599,
+        }
+        result = _format_reviewer_leaderboard_comment(data, "test-org")
+        self.assertIn("bob", result)
+        # alice has 0 reviews — should not appear in reviewer leaderboard table
+        self.assertNotIn("`@alice`", result)
+
+    def test_shows_pr_reviewer_outside_top5(self):
+        """PR reviewer ranked outside top 5 should still appear."""
+        data = {
+            "sorted": [
+                {"login": f"user{i}", "openPrs": 0, "mergedPrs": 0, "closedPrs": 0, "reviews": 10 - i, "comments": 0, "total": 50 - i * 5}
+                for i in range(7)
+            ],
+            "start_timestamp": 1704067200,
+            "end_timestamp": 1706745599,
+        }
+        result = _format_reviewer_leaderboard_comment(data, "test-org", pr_reviewers=["user6"])
+        self.assertIn("user6", result)
+
+
+class TestPostReviewerLeaderboard(unittest.TestCase):
+    """Test _post_reviewer_leaderboard function"""
+
+    def _run_post(self, leaderboard_data, pr_reviewers, posted_comments, deleted_ids, existing_comments=None):
+        async def _inner():
+            async def _mock_d1(owner, env):
+                return leaderboard_data
+
+            async def _mock_api(method, path, token, body=None):
+                if method == "GET" and "/comments" in path:
+                    return types.SimpleNamespace(
+                        status=200,
+                        text=AsyncMock(return_value=json.dumps(existing_comments or []))
+                    )
+                if method == "DELETE":
+                    comment_id = path.split("/")[-1]
+                    deleted_ids.append(comment_id)
+                    return types.SimpleNamespace(status=204)
+                return types.SimpleNamespace(status=200)
+
+            with patch.object(_worker, "_calculate_leaderboard_stats_from_d1", new=_mock_d1):
+                with patch.object(_worker, "github_api", new=_mock_api):
+                    with patch.object(_worker, "create_comment", new=AsyncMock(side_effect=lambda o, r, n, b, t: posted_comments.append(b))):
+                        env = types.SimpleNamespace()
+                        await _worker._post_reviewer_leaderboard(
+                            "test-org", "test-repo", 42, "tok", env=env, pr_reviewers=pr_reviewers
+                        )
+        _run(_inner())
+
+    def _make_leaderboard_data(self):
+        return {
+            "sorted": [
+                {"login": "alice", "openPrs": 2, "mergedPrs": 5, "closedPrs": 0, "reviews": 10, "comments": 4, "total": 100},
+                {"login": "bob", "openPrs": 1, "mergedPrs": 3, "closedPrs": 0, "reviews": 7, "comments": 2, "total": 75},
+            ],
+            "start_timestamp": 1704067200,
+            "end_timestamp": 1706745599,
+        }
+
+    def test_posts_reviewer_leaderboard_comment(self):
+        posted, deleted = [], []
+        self._run_post(self._make_leaderboard_data(), ["bob"], posted, deleted)
+        self.assertEqual(len(posted), 1)
+        self.assertIn("<!-- reviewer-leaderboard-bot -->", posted[0])
+        self.assertIn("Reviewer Leaderboard", posted[0])
+
+    def test_deletes_old_reviewer_leaderboard_comment(self):
+        existing = [
+            {"id": 999, "body": "<!-- reviewer-leaderboard-bot -->\nold leaderboard"},
+        ]
+        posted, deleted = [], []
+        self._run_post(self._make_leaderboard_data(), [], posted, deleted, existing_comments=existing)
+        self.assertIn("999", deleted)
+
+    def test_skips_when_no_d1_data(self):
+        posted, deleted = [], []
+
+        async def _inner():
+            with patch.object(_worker, "_calculate_leaderboard_stats_from_d1", new=AsyncMock(return_value=None)):
+                with patch.object(_worker, "create_comment", new=AsyncMock(side_effect=lambda o, r, n, b, t: posted.append(b))):
+                    await _worker._post_reviewer_leaderboard("org", "repo", 1, "tok")
+        _run(_inner())
+
+        self.assertEqual(len(posted), 0)
+
+
 class TestHandleIssueCommentLeaderboard(unittest.TestCase):
     """Test /leaderboard command handling"""
 
@@ -1031,41 +1186,40 @@ class TestHandlePullRequestOpenedLeaderboard(unittest.TestCase):
 class TestHandlePullRequestClosedLeaderboard(unittest.TestCase):
     """Test leaderboard and rank improvement on PR merged"""
 
-    def _run_pr_closed(self, payload, leaderboard_calls, rank_calls, comment_calls):
+    def _run_pr_closed(self, payload, combined_calls, rank_calls, comment_calls, reviewer_leaderboard_calls=None):
         async def _inner():
-            async def _mock_leaderboard(owner, repo, number, login, token):
-                leaderboard_calls.append((owner, repo, number, login))
-            
+            async def _mock_combined(owner, repo, number, login, token, env=None, pr_reviewers=None):
+                combined_calls.append((owner, repo, number, login))
+
             async def _mock_rank(owner, repo, pr_number, author_login, token):
                 rank_calls.append((owner, repo, pr_number, author_login))
-            
-            with patch.object(_worker, "_post_or_update_leaderboard", new=_mock_leaderboard):
+
+            with patch.object(_worker, "_post_merged_pr_combined_comment", new=_mock_combined):
                 with patch.object(_worker, "_check_rank_improvement", new=_mock_rank):
-                    with patch.object(_worker, "create_comment", new=AsyncMock(side_effect=lambda o, r, n, b, t: comment_calls.append(b))):
-                        await _worker.handle_pull_request_closed(payload, "tok")
+                    with patch.object(_worker, "get_valid_reviewers", new=AsyncMock(return_value=[])):
+                        with patch.object(_worker, "create_comment", new=AsyncMock(side_effect=lambda o, r, n, b, t: comment_calls.append(b))):
+                            await _worker.handle_pull_request_closed(payload, "tok")
         _run(_inner())
 
     def test_posts_leaderboard_and_checks_rank_on_merge(self):
         payload = _make_pr_payload(merged=True)
-        leaderboard_calls, rank_calls, comments = [], [], []
-        self._run_pr_closed(payload, leaderboard_calls, rank_calls, comments)
-        
+        combined_calls, rank_calls, comments = [], [], []
+        self._run_pr_closed(payload, combined_calls, rank_calls, comments)
+
         # Rank improvement check has been disabled for accuracy
         # (now shown in leaderboard display instead)
         self.assertEqual(len(rank_calls), 0)
-        # Should post leaderboard
-        self.assertEqual(len(leaderboard_calls), 1)
-        # Should post merge congratulations
-        self.assertTrue(any("PR merged!" in c for c in comments))
+        # Should call combined merge comment (covers leaderboard + reviewer + thanks)
+        self.assertEqual(len(combined_calls), 1)
 
     def test_skips_unmerged_prs(self):
         payload = _make_pr_payload(merged=False)
-        leaderboard_calls, rank_calls, comments = [], [], []
-        self._run_pr_closed(payload, leaderboard_calls, rank_calls, comments)
-        
+        combined_calls, rank_calls, comments = [], [], []
+        self._run_pr_closed(payload, combined_calls, rank_calls, comments)
+
         # Should not process unmerged PRs
         self.assertEqual(len(rank_calls), 0)
-        self.assertEqual(len(leaderboard_calls), 0)
+        self.assertEqual(len(combined_calls), 0)
         self.assertEqual(len(comments), 0)
 
     def test_skips_bots(self):
@@ -1073,16 +1227,181 @@ class TestHandlePullRequestClosedLeaderboard(unittest.TestCase):
             merged=True,
             pr_user={"login": "renovate[bot]", "type": "Bot"}
         )
-        leaderboard_calls, rank_calls, comments = [], [], []
-        self._run_pr_closed(payload, leaderboard_calls, rank_calls, comments)
-        
+        combined_calls, rank_calls, comments = [], [], []
+        self._run_pr_closed(payload, combined_calls, rank_calls, comments)
+
         # Should not process bot PRs
         self.assertEqual(len(rank_calls), 0)
-        self.assertEqual(len(leaderboard_calls), 0)
+        self.assertEqual(len(combined_calls), 0)
         self.assertEqual(len(comments), 0)
 
 
-class TestCheckAndCloseExcessPrs(unittest.TestCase):
+class TestPostMergedPrCombinedComment(unittest.TestCase):
+    """Unit tests for _post_merged_pr_combined_comment"""
+
+    def _make_leaderboard_data(self):
+        return {
+            "sorted": [
+                {"login": "alice", "openPrs": 5, "mergedPrs": 10, "closedPrs": 1, "reviews": 3, "comments": 20, "total": 75},
+                {"login": "bob", "openPrs": 3, "mergedPrs": 8, "closedPrs": 0, "reviews": 5, "comments": 15, "total": 68},
+                {"login": "charlie", "openPrs": 2, "mergedPrs": 5, "closedPrs": 2, "reviews": 2, "comments": 10, "total": 40},
+            ],
+            "start_timestamp": 1704067200,
+            "end_timestamp": 1706745599,
+        }
+
+    def _run(self, leaderboard_data, author_login, pr_reviewers, posted_comments, deleted_ids,
+             existing_comments=None, fetch_leaderboard_return=None):
+        async def _inner():
+            async def _mock_api(method, path, token, body=None):
+                if method == "GET" and "/comments" in path:
+                    return types.SimpleNamespace(
+                        status=200,
+                        text=AsyncMock(return_value=json.dumps(existing_comments or []))
+                    )
+                if method == "DELETE":
+                    comment_id = path.split("/")[-1]
+                    deleted_ids.append(comment_id)
+                    return types.SimpleNamespace(status=204)
+                return types.SimpleNamespace(status=200)
+
+            ld = fetch_leaderboard_return if fetch_leaderboard_return is not None else leaderboard_data
+            with patch.object(_worker, "_fetch_leaderboard_data", new=AsyncMock(return_value=(ld, "", False))):
+                with patch.object(_worker, "github_api", new=_mock_api):
+                    with patch.object(_worker, "create_comment", new=AsyncMock(side_effect=lambda o, r, n, b, t: posted_comments.append(b))):
+                        await _worker._post_merged_pr_combined_comment(
+                            "test-org", "test-repo", 42, author_login, "tok",
+                            pr_reviewers=pr_reviewers
+                        )
+        _run(_inner())
+
+    def test_posts_single_combined_comment(self):
+        posted, deleted = [], []
+        self._run(self._make_leaderboard_data(), "alice", [], posted, deleted)
+        self.assertEqual(len(posted), 1)
+
+    def test_combined_comment_contains_merged_pr_marker(self):
+        posted, deleted = [], []
+        self._run(self._make_leaderboard_data(), "alice", [], posted, deleted)
+        self.assertIn("<!-- merged-pr-comment-bot -->", posted[0])
+
+    def test_combined_comment_contains_thanks_message(self):
+        posted, deleted = [], []
+        self._run(self._make_leaderboard_data(), "alice", [], posted, deleted)
+        self.assertIn("PR merged", posted[0])
+        self.assertIn("@alice", posted[0])
+
+    def test_combined_comment_contains_pool_link(self):
+        posted, deleted = [], []
+        self._run(self._make_leaderboard_data(), "alice", [], posted, deleted)
+        self.assertIn("pool.owaspblt.org", posted[0])
+
+    def test_combined_comment_contains_contributor_leaderboard(self):
+        posted, deleted = [], []
+        self._run(self._make_leaderboard_data(), "alice", [], posted, deleted)
+        self.assertIn("Monthly Leaderboard", posted[0])
+
+    def test_combined_comment_contains_reviewer_leaderboard(self):
+        posted, deleted = [], []
+        self._run(self._make_leaderboard_data(), "alice", [], posted, deleted)
+        self.assertIn("Reviewer Leaderboard", posted[0])
+
+    def test_rank_numbers_have_no_hash_prefix(self):
+        posted, deleted = [], []
+        self._run(self._make_leaderboard_data(), "unknown", [], posted, deleted)
+        # Should NOT contain #1, #2, #3 etc.
+        import re
+        self.assertNotIn("#1", posted[0])
+        self.assertNotIn("#2", posted[0])
+        self.assertNotIn("#3", posted[0])
+        # Should contain plain rank numbers (1, 2, 3) with medals
+        self.assertIn("🥇", posted[0])
+
+    def test_user_rows_contain_avatar_markdown(self):
+        posted, deleted = [], []
+        self._run(self._make_leaderboard_data(), "alice", [], posted, deleted)
+        # Avatars should be present as inline images
+        self.assertIn("https://github.com/alice.png", posted[0])
+
+    def test_shows_top_five_when_author_not_in_leaderboard(self):
+        data = {
+            "sorted": [
+                {"login": f"user{i}", "openPrs": 1, "mergedPrs": 10 - i, "closedPrs": 0, "reviews": 0, "comments": 0, "total": 100 - i * 10}
+                for i in range(6)
+            ],
+            "start_timestamp": 1704067200,
+            "end_timestamp": 1706745599,
+        }
+        posted, deleted = [], []
+        self._run(data, "unknown", [], posted, deleted)
+        # user0 through user4 should appear (top 5)
+        for i in range(5):
+            self.assertIn(f"user{i}", posted[0])
+        # user5 should not appear (rank 6, beyond top 5)
+        self.assertNotIn("user5", posted[0])
+
+    def test_deletes_old_combined_comment(self):
+        existing = [
+            {"id": 111, "body": "<!-- merged-pr-comment-bot -->\nold comment"},
+        ]
+        posted, deleted = [], []
+        self._run(self._make_leaderboard_data(), "alice", [], posted, deleted, existing_comments=existing)
+        self.assertIn("111", deleted)
+
+    def test_deletes_old_leaderboard_comment(self):
+        existing = [
+            {"id": 222, "body": "<!-- leaderboard-bot -->\nold leaderboard"},
+        ]
+        posted, deleted = [], []
+        self._run(self._make_leaderboard_data(), "alice", [], posted, deleted, existing_comments=existing)
+        self.assertIn("222", deleted)
+
+    def test_deletes_old_reviewer_leaderboard_comment(self):
+        existing = [
+            {"id": 333, "body": "<!-- reviewer-leaderboard-bot -->\nold reviewer leaderboard"},
+        ]
+        posted, deleted = [], []
+        self._run(self._make_leaderboard_data(), "alice", [], posted, deleted, existing_comments=existing)
+        self.assertIn("333", deleted)
+
+    def test_does_not_delete_unrelated_comments(self):
+        existing = [
+            {"id": 444, "body": "Some regular user comment with no marker"},
+        ]
+        posted, deleted = [], []
+        self._run(self._make_leaderboard_data(), "alice", [], posted, deleted, existing_comments=existing)
+        self.assertNotIn("444", deleted)
+
+    def test_delete_failure_is_logged_and_posting_continues(self):
+        """A failed DELETE should be logged but not prevent posting the new comment."""
+        existing = [
+            {"id": 555, "body": "<!-- merged-pr-comment-bot -->\nold"},
+        ]
+        posted = []
+
+        async def _inner():
+            async def _mock_api(method, path, token, body=None):
+                if method == "GET" and "/comments" in path:
+                    return types.SimpleNamespace(
+                        status=200,
+                        text=AsyncMock(return_value=json.dumps(existing))
+                    )
+                if method == "DELETE":
+                    return types.SimpleNamespace(status=403)
+                return types.SimpleNamespace(status=200)
+
+            with patch.object(_worker, "_fetch_leaderboard_data", new=AsyncMock(return_value=(self._make_leaderboard_data(), "", False))):
+                with patch.object(_worker, "github_api", new=_mock_api):
+                    with patch.object(_worker, "create_comment", new=AsyncMock(side_effect=lambda o, r, n, b, t: posted.append(b))):
+                        await _worker._post_merged_pr_combined_comment(
+                            "test-org", "test-repo", 42, "alice", "tok"
+                        )
+        _run(_inner())
+        # Despite delete failure, the new comment should still be posted
+        self.assertEqual(len(posted), 1)
+
+
+
     """Test auto-close for users with too many open PRs"""
 
     def _run_check(self, search_response, comment_calls, api_calls):
@@ -1539,14 +1858,162 @@ class TestTrackingOperations(unittest.TestCase):
 # ---------------------------------------------------------------------------
 
 
+class TestD1MentorAssignments(unittest.TestCase):
+    """Test D1 mentor assignment tracking helpers."""
+
+    def _make_mock_db(self):
+        mock_db = MagicMock()
+        stmt = AsyncMock()
+        stmt.bind = MagicMock(return_value=stmt)
+        stmt.run = AsyncMock(return_value={"results": []})
+        stmt.all = AsyncMock(return_value={"results": []})
+        mock_db.prepare = MagicMock(return_value=stmt)
+        return mock_db, stmt
+
+    def test_record_mentor_assignment_calls_d1(self):
+        """_d1_record_mentor_assignment upserts a row into mentor_assignments."""
+        mock_db, stmt = self._make_mock_db()
+
+        async def _inner():
+            with patch.object(
+                _worker, "console",
+                new=types.SimpleNamespace(log=lambda *a: None, error=lambda *a: None),
+            ):
+                await _worker._d1_record_mentor_assignment(mock_db, "org", "alice", "repo", 42)
+        _run(_inner())
+        mock_db.prepare.assert_called()
+
+    def test_remove_mentor_assignment_calls_d1(self):
+        """_d1_remove_mentor_assignment deletes the row from mentor_assignments."""
+        mock_db, stmt = self._make_mock_db()
+
+        async def _inner():
+            with patch.object(
+                _worker, "console",
+                new=types.SimpleNamespace(log=lambda *a: None, error=lambda *a: None),
+            ):
+                await _worker._d1_remove_mentor_assignment(mock_db, "org", "repo", 42)
+        _run(_inner())
+        mock_db.prepare.assert_called()
+
+    def test_get_mentor_loads_returns_dict(self):
+        """_d1_get_mentor_loads aggregates assignment counts per mentor."""
+        mock_db, stmt = self._make_mock_db()
+        stmt.all = AsyncMock(return_value={
+            "results": [
+                {"mentor_login": "alice", "cnt": 2},
+                {"mentor_login": "bob", "cnt": 1},
+            ]
+        })
+
+        async def _inner():
+            with patch.object(
+                _worker, "console",
+                new=types.SimpleNamespace(log=lambda *a: None, error=lambda *a: None),
+            ):
+                return await _worker._d1_get_mentor_loads(mock_db, "org")
+        result = _run(_inner())
+        self.assertEqual(result, {"alice": 2, "bob": 1})
+
+    def test_get_mentor_loads_empty_when_no_rows(self):
+        """_d1_get_mentor_loads returns {} when there are no assignments."""
+        mock_db, stmt = self._make_mock_db()
+        stmt.all = AsyncMock(return_value={"results": []})
+
+        async def _inner():
+            with patch.object(
+                _worker, "console",
+                new=types.SimpleNamespace(log=lambda *a: None, error=lambda *a: None),
+            ):
+                return await _worker._d1_get_mentor_loads(mock_db, "org")
+        result = _run(_inner())
+        self.assertEqual(result, {})
+
+    def test_fetch_mentor_stats_returns_dict(self):
+        """_fetch_mentor_stats_from_d1 aggregates PRs and reviews per mentor."""
+        mock_db, stmt = self._make_mock_db()
+        stmt.all = AsyncMock(return_value={
+            "results": [
+                {"user_login": "alice", "total_prs": 5, "total_reviews": 3},
+                {"user_login": "bob", "total_prs": 2, "total_reviews": 10},
+            ]
+        })
+        env = types.SimpleNamespace(LEADERBOARD_DB=mock_db)
+
+        async def _inner():
+            with patch.object(_worker, "_d1_binding", return_value=mock_db):
+                with patch.object(_worker, "_ensure_leaderboard_schema", return_value=None):
+                    with patch.object(
+                        _worker, "console",
+                        new=types.SimpleNamespace(log=lambda *a: None, error=lambda *a: None),
+                    ):
+                        return await _worker._fetch_mentor_stats_from_d1(env, "OWASP-BLT")
+        result = _run(_inner())
+        self.assertIn("alice", result)
+        self.assertEqual(result["alice"]["merged_prs"], 5)
+        self.assertEqual(result["alice"]["reviews"], 3)
+        self.assertEqual(result["bob"]["merged_prs"], 2)
+
+    def test_fetch_mentor_stats_returns_empty_when_no_d1(self):
+        """_fetch_mentor_stats_from_d1 returns {} when no D1 binding is configured."""
+        env = types.SimpleNamespace()  # no LEADERBOARD_DB
+
+        async def _inner():
+            with patch.object(
+                _worker, "console",
+                new=types.SimpleNamespace(log=lambda *a: None, error=lambda *a: None),
+            ):
+                return await _worker._fetch_mentor_stats_from_d1(env, "OWASP-BLT")
+        result = _run(_inner())
+        self.assertEqual(result, {})
+
+    def test_get_active_assignments_returns_list(self):
+        """_d1_get_active_assignments returns active assignment rows."""
+        mock_db, stmt = self._make_mock_db()
+        stmt.all = AsyncMock(return_value={
+            "results": [
+                {"org": "OWASP-BLT", "mentor_login": "alice", "issue_repo": "BLT", "issue_number": 42, "assigned_at": 1700000000},
+                {"org": "OWASP-BLT", "mentor_login": "bob", "issue_repo": "BLT", "issue_number": 99, "assigned_at": 1700001000},
+            ]
+        })
+
+        async def _inner():
+            with patch.object(
+                _worker, "console",
+                new=types.SimpleNamespace(log=lambda *a: None, error=lambda *a: None),
+            ):
+                return await _worker._d1_get_active_assignments(mock_db, "OWASP-BLT")
+        result = _run(_inner())
+        self.assertEqual(len(result), 2)
+        self.assertEqual(result[0]["mentor_login"], "alice")
+        self.assertEqual(result[0]["issue_number"], 42)
+        self.assertEqual(result[0]["org"], "OWASP-BLT")
+        self.assertEqual(result[1]["mentor_login"], "bob")
+
+    def test_get_active_assignments_empty_when_no_rows(self):
+        """_d1_get_active_assignments returns [] when there are no assignments."""
+        mock_db, stmt = self._make_mock_db()
+        stmt.all = AsyncMock(return_value={"results": []})
+
+        async def _inner():
+            with patch.object(
+                _worker, "console",
+                new=types.SimpleNamespace(log=lambda *a: None, error=lambda *a: None),
+            ):
+                return await _worker._d1_get_active_assignments(mock_db, "OWASP-BLT")
+        result = _run(_inner())
+        self.assertEqual(result, [])
+
+
 class TestBackfillRepoMonthIdempotency(unittest.TestCase):
     """Test that _backfill_repo_month_if_needed skips PRs already tracked via webhooks."""
 
-    def _make_mock_db(self, pr_state_rows=None, already_done=False):
+    def _make_mock_db(self, pr_state_rows=None, already_done=False, pr_state_with_state=None):
         """Create a mock D1 DB for backfill tests.
 
-        pr_state_rows: rows returned for 'SELECT pr_number FROM leaderboard_pr_state'
+        pr_state_rows: list of PR numbers to pre-track (state defaults to 'closed')
         already_done: whether the repo is already marked done in leaderboard_backfill_repo_done
+        pr_state_with_state: optional dict mapping pr_number -> state, overrides the default
         """
         mock_db = MagicMock()
 
@@ -1564,8 +2031,14 @@ class TestBackfillRepoMonthIdempotency(unittest.TestCase):
                 rows = [{"1": 1}] if already_done else []
                 stmt.all = AsyncMock(return_value={"results": rows})
             elif "leaderboard_pr_state" in sql and "SELECT pr_number" in sql:
-                # Return pre-tracked PRs
-                rows = [{"pr_number": r} for r in (pr_state_rows or [])]
+                # Return pre-tracked PRs with their states.  The default state is
+                # 'closed' so that existing idempotency tests keep passing; the
+                # pr_state_with_state dict allows tests to override per PR.
+                state_overrides = pr_state_with_state or {}
+                rows = [
+                    {"pr_number": r, "state": state_overrides.get(r, "closed")}
+                    for r in (pr_state_rows or [])
+                ]
                 stmt.all = AsyncMock(return_value={"results": rows})
             else:
                 stmt.all = AsyncMock(return_value={"results": []})
@@ -1755,10 +2228,178 @@ class TestBackfillRepoMonthIdempotency(unittest.TestCase):
         merged_inc_count = sum(1 for _, field in monthly_inc_calls if field == "merged_prs")
         self.assertEqual(merged_inc_count, 105)
 
+    def test_self_heal_open_pr_that_was_merged(self):
+        """A PR recorded as 'open' whose merge webhook was missed should be healed.
+
+        Expected behaviour:
+        - open_prs is decremented by 1 (the stale open count is removed)
+        - merged_prs is incremented by 1 (the merge is now counted)
+        - leaderboard_pr_state is updated via DO UPDATE SET
+        """
+        async def _inner():
+            env = types.SimpleNamespace(LEADERBOARD_DB=MagicMock())
+            start_ts, end_ts = _worker._month_window("2026-03")
+
+            # PR #5 was previously tracked as 'open' in the database.
+            tracked_state_data = [{"pr_number": 5, "state": "open"}]
+
+            open_pr_delta_calls = []
+            monthly_inc_calls = []
+            d1_run_sqls = []
+
+            async def _smart_d1_all(db, sql, params=()):
+                if "leaderboard_pr_state" in sql and "SELECT pr_number" in sql:
+                    return tracked_state_data
+                return []
+
+            async def _mock_api(method, path, token, body=None):
+                if "state=open" in path:
+                    return types.SimpleNamespace(status=200, text=AsyncMock(return_value=json.dumps([])))
+                if "state=closed" in path:
+                    return types.SimpleNamespace(status=200, text=AsyncMock(return_value=json.dumps([
+                        {
+                            "number": 5,
+                            "user": {"login": "alice", "type": "User"},
+                            "merged_at": "2026-03-10T12:00:00Z",
+                            "closed_at": "2026-03-10T12:00:00Z",
+                        }
+                    ])))
+                # reviews and any other call
+                return types.SimpleNamespace(status=200, text=AsyncMock(return_value=json.dumps([])))
+
+            with patch.object(_worker, "github_api", new=_mock_api):
+                with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
+                    with patch.object(_worker, "_d1_all", new=_smart_d1_all):
+                        with patch.object(_worker, "_d1_inc_open_pr", new=AsyncMock(
+                            side_effect=lambda db, org, login, cnt: open_pr_delta_calls.append((login, cnt))
+                        )):
+                            with patch.object(_worker, "_d1_inc_monthly", new=AsyncMock(
+                                side_effect=lambda db, org, mk, login, field, delta=1: monthly_inc_calls.append((login, field))
+                            )):
+                                with patch.object(_worker, "_d1_run", new=AsyncMock(
+                                    side_effect=lambda db, sql, params=(): d1_run_sqls.append(sql)
+                                )):
+                                    with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None)):
+                                        await _worker._backfill_repo_month_if_needed(
+                                            "OWASP-BLT", "test-repo", "tok", env,
+                                            month_key="2026-03", start_ts=start_ts, end_ts=end_ts,
+                                        )
+
+            # open_prs should have been decremented by 1 to undo the stale open count
+            open_deltas = [delta for login, delta in open_pr_delta_calls if login == "alice"]
+            self.assertIn(-1, open_deltas)
+
+            # merged_prs should have been incremented
+            merged_logins = [login for login, field in monthly_inc_calls if field == "merged_prs"]
+            self.assertIn("alice", merged_logins)
+
+            # pr_state should have been updated with DO UPDATE SET (not DO NOTHING)
+            update_sqls = [s for s in d1_run_sqls if "DO UPDATE SET" in s and "leaderboard_pr_state" in s]
+            self.assertTrue(len(update_sqls) > 0, "Expected an UPDATE to leaderboard_pr_state")
+
+        _run(_inner())
+
+    def test_self_heal_does_not_double_count_already_closed(self):
+        """A PR already recorded as 'closed' should never be counted again."""
+        async def _inner():
+            env = types.SimpleNamespace(LEADERBOARD_DB=MagicMock())
+            start_ts, end_ts = _worker._month_window("2026-03")
+
+            # PR #7 already properly tracked as closed via webhook.
+            tracked_state_data = [{"pr_number": 7, "state": "closed"}]
+
+            open_pr_delta_calls = []
+            monthly_inc_calls = []
+
+            async def _smart_d1_all(db, sql, params=()):
+                if "leaderboard_pr_state" in sql and "SELECT pr_number" in sql:
+                    return tracked_state_data
+                return []
+
+            async def _mock_api(method, path, token, body=None):
+                if "state=open" in path:
+                    return types.SimpleNamespace(status=200, text=AsyncMock(return_value=json.dumps([])))
+                if "state=closed" in path:
+                    return types.SimpleNamespace(status=200, text=AsyncMock(return_value=json.dumps([
+                        {
+                            "number": 7,
+                            "user": {"login": "bob", "type": "User"},
+                            "merged_at": "2026-03-10T12:00:00Z",
+                            "closed_at": "2026-03-10T12:00:00Z",
+                        }
+                    ])))
+                return types.SimpleNamespace(status=200, text=AsyncMock(return_value=json.dumps([])))
+
+            with patch.object(_worker, "github_api", new=_mock_api):
+                with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
+                    with patch.object(_worker, "_d1_all", new=_smart_d1_all):
+                        with patch.object(_worker, "_d1_inc_open_pr", new=AsyncMock(
+                            side_effect=lambda db, org, login, cnt: open_pr_delta_calls.append((login, cnt))
+                        )):
+                            with patch.object(_worker, "_d1_inc_monthly", new=AsyncMock(
+                                side_effect=lambda db, org, mk, login, field, delta=1: monthly_inc_calls.append((login, field))
+                            )):
+                                with patch.object(_worker, "_d1_run", new=AsyncMock(return_value={"success": True})):
+                                    with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None)):
+                                        await _worker._backfill_repo_month_if_needed(
+                                            "OWASP-BLT", "test-repo", "tok", env,
+                                            month_key="2026-03", start_ts=start_ts, end_ts=end_ts,
+                                        )
+
+            # merged_prs should NOT have been counted (PR was already properly closed)
+            merged_logins = [login for login, field in monthly_inc_calls if field == "merged_prs"]
+            self.assertNotIn("bob", merged_logins)
+            # open_prs should not have been decremented (was already closed, not open)
+            self.assertEqual(open_pr_delta_calls, [])
+
+        _run(_inner())
+
 
 # ---------------------------------------------------------------------------
-# Review backfill tests
+# Admin reset clears backfill state tests
 # ---------------------------------------------------------------------------
+
+
+class TestResetLeaderboardMonthClearsBackfillState(unittest.TestCase):
+    """Test that _reset_leaderboard_month also clears leaderboard_backfill_state."""
+
+    def test_reset_clears_backfill_state(self):
+        """After a reset, leaderboard_backfill_state must be deleted so backfill restarts."""
+        deleted_tables = []
+
+        async def _mock_d1_run(db, sql, params=()):
+            # Capture which table DELETE statements target.
+            if sql.strip().upper().startswith("DELETE FROM"):
+                table = sql.strip().split()[2]
+                deleted_tables.append(table)
+            return {"success": True}
+
+        mock_db = MagicMock()
+
+        async def _inner():
+            with patch.object(_worker, "_d1_run", new=_mock_d1_run):
+                with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
+                    with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None)):
+                        await _worker._reset_leaderboard_month("OWASP-BLT", "2026-03", mock_db)
+
+        _run(_inner())
+
+        self.assertIn("leaderboard_backfill_state", deleted_tables,
+                      "leaderboard_backfill_state should be cleared on reset so backfill can re-run")
+
+    def test_reset_returns_backfill_state_in_result(self):
+        """The reset result dict should include leaderboard_backfill_state."""
+        mock_db = MagicMock()
+
+        async def _inner():
+            with patch.object(_worker, "_d1_run", new=AsyncMock(return_value={"success": True})):
+                with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
+                    with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None)):
+                        return await _worker._reset_leaderboard_month("OWASP-BLT", "2026-03", mock_db)
+
+        result = _run(_inner())
+        self.assertIn("leaderboard_backfill_state", result,
+                      "reset result should report leaderboard_backfill_state table status")
 
 
 class TestBackfillReviewCredits(unittest.TestCase):
@@ -2725,7 +3366,7 @@ class TestHandleCheckRun(unittest.TestCase):
 
 
 class TestParseMentorsYaml(unittest.TestCase):
-    """_parse_mentors_yaml — minimal YAML parser for .github/mentors.yml"""
+    """_parse_mentors_yaml — minimal YAML parser for src/mentors.yml"""
 
     def test_parses_single_mentor(self):
         content = """\
@@ -2846,6 +3487,9 @@ class TestExtractCommandMentorCommands(unittest.TestCase):
 
     def test_mentor_command(self):
         self.assertEqual(_worker._extract_command("/mentor"), "/mentor")
+
+    def test_unmentor_command(self):
+        self.assertEqual(_worker._extract_command("/unmentor"), "/unmentor")
 
     def test_mentor_pause_command(self):
         self.assertEqual(_worker._extract_command("/mentor-pause"), "/mentor-pause")
@@ -3069,6 +3713,109 @@ class TestHandleMentorCommand(unittest.TestCase):
         self.assertTrue(any("already has a mentor" in c for c in comments))
 
 
+class TestHandleMentorUnassign(unittest.TestCase):
+    """handle_mentor_unassign — /unmentor slash command"""
+
+    def _run_unmentor(self, issue, login, current_mentor, api_calls, comments,
+                      is_maintainer=False):
+        async def _inner():
+            with patch.object(
+                _worker,
+                "_find_assigned_mentor_from_comments",
+                new=AsyncMock(return_value=current_mentor),
+            ):
+                with patch.object(
+                    _worker,
+                    "github_api",
+                    new=AsyncMock(side_effect=lambda *a, **kw: api_calls.append(a)),
+                ):
+                    with patch.object(
+                        _worker,
+                        "create_comment",
+                        new=AsyncMock(side_effect=lambda o, r, n, b, t: comments.append(b)),
+                    ):
+                        with patch.object(_worker, "_d1_binding", return_value=None):
+                            with patch.object(
+                                _worker,
+                                "_is_maintainer",
+                                new=AsyncMock(return_value=is_maintainer),
+                            ):
+                                await _worker.handle_mentor_unassign(
+                                    "OWASP-BLT", "TestRepo", issue, login, "tok"
+                                )
+
+        _run(_inner())
+
+    def test_no_assignment_posts_error(self):
+        issue = {
+            "number": 1,
+            "labels": [],
+            "assignees": [],
+            "user": {"login": "alice"},
+        }
+        api_calls, comments = [], []
+        self._run_unmentor(issue, "alice", None, api_calls, comments)
+        self.assertEqual(api_calls, [])
+        self.assertTrue(any("does not have a mentor" in c for c in comments))
+
+    def test_issue_author_can_unmentor(self):
+        issue = {
+            "number": 3,
+            "labels": [{"name": "mentor-assigned"}],
+            "assignees": [{"login": "bob"}],
+            "user": {"login": "alice"},
+        }
+        api_calls, comments = [], []
+        self._run_unmentor(issue, "alice", "bob", api_calls, comments)
+        # Verify label removal and assignee removal are both attempted
+        endpoints_called = [str(call) for call in api_calls]
+        self.assertTrue(any("labels/mentor-assigned" in e for e in endpoints_called))
+        self.assertTrue(any("assignees" in e for e in endpoints_called))
+        self.assertTrue(any("cancelled" in c.lower() for c in comments))
+
+    def test_assigned_mentor_can_unmentor(self):
+        issue = {
+            "number": 4,
+            "labels": [{"name": "mentor-assigned"}],
+            "assignees": [{"login": "bob"}],
+            "user": {"login": "alice"},
+        }
+        api_calls, comments = [], []
+        self._run_unmentor(issue, "bob", "bob", api_calls, comments)
+        endpoints_called = [str(call) for call in api_calls]
+        self.assertTrue(any("labels/mentor-assigned" in e for e in endpoints_called))
+        self.assertTrue(any("assignees" in e for e in endpoints_called))
+        self.assertTrue(any("cancelled" in c.lower() for c in comments))
+
+    def test_maintainer_can_unmentor(self):
+        issue = {
+            "number": 6,
+            "labels": [{"name": "mentor-assigned"}],
+            "assignees": [{"login": "bob"}],
+            "user": {"login": "alice"},
+        }
+        api_calls, comments = [], []
+        self._run_unmentor(issue, "charlie", "bob", api_calls, comments,
+                           is_maintainer=True)
+        endpoints_called = [str(call) for call in api_calls]
+        self.assertTrue(any("labels/mentor-assigned" in e for e in endpoints_called))
+        self.assertTrue(any("assignees" in e for e in endpoints_called))
+        self.assertTrue(any("cancelled" in c.lower() for c in comments))
+
+    def test_unrelated_user_cannot_unmentor(self):
+        issue = {
+            "number": 5,
+            "labels": [{"name": "mentor-assigned"}],
+            "assignees": [{"login": "bob"}],
+            "user": {"login": "alice"},
+        }
+        api_calls, comments = [], []
+        self._run_unmentor(issue, "charlie", "bob", api_calls, comments,
+                           is_maintainer=False)
+        self.assertEqual(api_calls, [])
+        self.assertTrue(any("Only the issue author" in c for c in comments))
+
+
 class TestHandleMentorPause(unittest.TestCase):
     """handle_mentor_pause — /mentor-pause slash command"""
 
@@ -3096,7 +3843,7 @@ class TestHandleMentorPause(unittest.TestCase):
         comments = []
         self._run_pause("alice", comments)
         self.assertTrue(any("pause" in c.lower() for c in comments))
-        self.assertTrue(any("mentors.yml" in c for c in comments))
+        self.assertTrue(any("paused" in c.lower() for c in comments))
 
     def test_rejects_non_mentor(self):
         comments = []
@@ -3306,7 +4053,7 @@ class TestHandleIssueLabeledNeedsMentor(unittest.TestCase):
                 with patch.object(
                     _worker,
                     "_fetch_mentors_config",
-                    new=AsyncMock(return_value=_worker.MENTORS),
+                    new=AsyncMock(return_value=[]),
                 ):
                     with patch.object(_worker, "report_bug_to_blt", new=mock_report):
                         await _worker.handle_issue_labeled(payload, "tok", "https://blt.example")
@@ -3360,7 +4107,7 @@ class TestHandleIssueCommentMentorCommands(unittest.TestCase):
 
         async def _inner():
             with patch.object(
-                _worker, "_fetch_mentors_config", new=AsyncMock(return_value=_worker.MENTORS)
+                _worker, "_fetch_mentors_config", new=AsyncMock(return_value=[])
             ):
                 with patch.object(
                     _worker,
@@ -3407,6 +4154,26 @@ class TestHandleIssueCommentMentorCommands(unittest.TestCase):
         mentor, pause, handoff, rematch = [], [], [], []
         self._run_comment("/rematch", mentor, pause, handoff, rematch)
         self.assertEqual(len(rematch), 1)
+
+    def test_routes_unmentor_command(self):
+        """handle_issue_comment routes /unmentor to handle_mentor_unassign"""
+        payload = _make_issue_payload(comment_body="/unmentor")
+        unmentor_calls = []
+
+        async def _inner():
+            with patch.object(
+                _worker, "_fetch_mentors_config", new=AsyncMock(return_value=[])
+            ):
+                with patch.object(
+                    _worker,
+                    "handle_mentor_unassign",
+                    new=AsyncMock(side_effect=lambda *a, **kw: unmentor_calls.append(a)),
+                ):
+                    with patch.object(_worker, "create_reaction", new=AsyncMock()):
+                        await _worker.handle_issue_comment(payload, "tok")
+
+        _run(_inner())
+        self.assertEqual(len(unmentor_calls), 1)
 
 
 class TestFindAssignedMentorFromComments(unittest.TestCase):
@@ -3560,10 +4327,10 @@ class TestRequestMentorReviewerForPr(unittest.TestCase):
 
 
 class TestMentorCommandPrGuard(unittest.TestCase):
-    """handle_issue_comment — mentor commands are rejected on pull requests."""
+    """handle_issue_comment — mentor commands are now available on pull requests."""
 
-    def test_mentor_command_rejected_on_pr(self):
-        """When the issue payload has a pull_request key, mentor commands post an error."""
+    def test_mentor_command_allowed_on_pr(self):
+        """When the issue payload has a pull_request key, mentor commands are no longer blocked."""
         pr_issue = {
             "number": 7,
             "pull_request": {"url": "https://api.github.com/repos/org/repo/pulls/7"},
@@ -3591,12 +4358,17 @@ class TestMentorCommandPrGuard(unittest.TestCase):
                     "create_comment",
                     new=AsyncMock(side_effect=lambda o, r, n, b, t: comments.append(b)),
                 ):
-                    await _worker.handle_issue_comment(payload, "tok")
+                    with patch.object(
+                        _worker,
+                        "_fetch_mentors_config",
+                        new=AsyncMock(return_value=[]),
+                    ):
+                        await _worker.handle_issue_comment(payload, "tok")
 
         _run(_inner())
-        self.assertTrue(
+        self.assertFalse(
             any("only available on issues" in c for c in comments),
-            f"Expected PR-guard error, got: {comments}",
+            f"PR-guard message should not be posted; got: {comments}",
         )
 
 
@@ -3820,6 +4592,29 @@ class TestGenerateMentorRow(unittest.TestCase):
         html = _worker._generate_mentor_row(self._make_mentor(specialties=[]))
         self.assertIn("—", html)
 
+    def test_stats_prs_shown_when_provided(self):
+        html = _worker._generate_mentor_row(
+            self._make_mentor(), stats={"merged_prs": 42, "reviews": 7}
+        )
+        self.assertIn("42", html)
+        self.assertIn("7", html)
+        self.assertIn("PRs", html)
+        self.assertIn("Reviews", html)
+
+    def test_stats_not_shown_when_none(self):
+        html = _worker._generate_mentor_row(self._make_mentor(), stats=None)
+        # Should not contain PR/review stat headings when stats are absent
+        self.assertNotIn("Reviews", html)
+        self.assertNotIn("PRs", html)
+
+    def test_stats_zero_values_shown(self):
+        html = _worker._generate_mentor_row(
+            self._make_mentor(), stats={"merged_prs": 0, "reviews": 0}
+        )
+        # Zero stats are still displayed when the stats dict is provided
+        self.assertIn("PRs", html)
+        self.assertIn("Reviews", html)
+
 
 class TestIndexHtml(unittest.TestCase):
     """_index_html — homepage HTML generation."""
@@ -3832,9 +4627,9 @@ class TestIndexHtml(unittest.TestCase):
         html = _worker._index_html([])
         self.assertIn("<!DOCTYPE html>", html)
 
-    def test_none_falls_back_to_builtin_mentors(self):
+    def test_none_defaults_to_empty_list(self):
         html = _worker._index_html(None)
-        # Should not raise; falls back to built-in MENTORS list.
+        # Should not raise; uses empty list when None is passed.
         self.assertIn("<!DOCTYPE html>", html)
 
     def test_mentor_name_appears_in_html(self):
@@ -3860,6 +4655,311 @@ class TestIndexHtml(unittest.TestCase):
         html = _worker._index_html([])
         self.assertIn("<!DOCTYPE html>", html)
         self.assertNotIn("None", html)
+
+    def test_mentor_stats_shown_when_provided(self):
+        mentors = [{"name": "Alice", "github_username": "alice", "active": True, "status": "available"}]
+        stats = {"alice": {"merged_prs": 8, "reviews": 15}}
+        html = _worker._index_html(mentors, mentor_stats=stats)
+        self.assertIn("8", html)
+        self.assertIn("15", html)
+
+    def test_mentor_stats_not_shown_when_empty(self):
+        mentors = [{"name": "Alice", "github_username": "alice", "active": True, "status": "available"}]
+        html = _worker._index_html(mentors, mentor_stats={})
+        # Stats headings should not appear when no stats are provided
+        self.assertNotIn("Reviews", html)
+
+    def test_active_assignments_section_shown(self):
+        """Active assignments section appears when assignments are provided."""
+        assignments = [
+            {"org": "OWASP-BLT", "mentor_login": "alice", "issue_repo": "BLT", "issue_number": 42, "assigned_at": 1700000000},
+        ]
+        html = _worker._index_html([], active_assignments=assignments)
+        self.assertIn("Active Mentor Assignments", html)
+        self.assertIn("@alice", html)
+        self.assertIn("OWASP-BLT/BLT#42", html)
+
+    def test_active_assignments_section_hidden_when_empty(self):
+        """Active assignments section is hidden when no assignments exist."""
+        html = _worker._index_html([], active_assignments=[])
+        self.assertNotIn("Active Mentor Assignments", html)
+
+    def test_active_assignments_xss_escaped(self):
+        """HTML special characters in mentor_login/issue_repo are escaped."""
+        assignments = [
+            {"org": "OWASP-BLT", "mentor_login": '<script>xss</script>', "issue_repo": "BLT", "issue_number": 1, "assigned_at": 0},
+        ]
+        html = _worker._index_html([], active_assignments=assignments)
+        self.assertNotIn("<script>xss</script>", html)
+        self.assertIn("&lt;script&gt;xss&lt;/script&gt;", html)
+
+    def test_unmentor_command_in_slash_commands_section(self):
+        """The /unmentor command is documented in the slash commands section."""
+        html = _worker._index_html([])
+        self.assertIn("/unmentor", html)
+
+
+class TestGhHeaders(unittest.TestCase):
+    """_gh_headers — Authorization header is conditional on token presence."""
+
+    def test_with_token_includes_auth_header(self):
+        headers = _worker._gh_headers("my-secret-token")
+        self.assertEqual(headers.get("Authorization"), "Bearer my-secret-token")
+
+    def test_empty_token_omits_auth_header(self):
+        headers = _worker._gh_headers("")
+        self.assertIsNone(headers.get("Authorization"))
+
+    def test_always_includes_accept_header(self):
+        for token in ("", "tok"):
+            headers = _worker._gh_headers(token)
+            self.assertEqual(headers.get("Accept"), "application/vnd.github+json")
+
+
+class TestLoadMentorsFromD1(unittest.TestCase):
+    """_load_mentors_from_d1 — loads mentors from the D1 mentors table."""
+
+    def test_returns_mentors_from_d1(self):
+        """Returns a list of mentor dicts when D1 rows are available."""
+        import json as _json
+        rows = [
+            {
+                "github_username": "alice",
+                "name": "Alice Smith",
+                "specialties": _json.dumps(["frontend"]),
+                "max_mentees": 3,
+                "active": 1,
+                "timezone": "UTC",
+                "referred_by": "",
+            },
+            {
+                "github_username": "bob",
+                "name": "Bob Jones",
+                "specialties": _json.dumps([]),
+                "max_mentees": 2,
+                "active": 1,
+                "timezone": "",
+                "referred_by": "",
+            },
+        ]
+
+        async def _inner():
+            mock_db = MagicMock()
+            with patch.object(
+                _worker, "_ensure_leaderboard_schema", new=AsyncMock()
+            ):
+                with patch.object(
+                    _worker, "_d1_all", new=AsyncMock(return_value=rows)
+                ):
+                    with patch.object(
+                        _worker, "console",
+                        new=types.SimpleNamespace(error=lambda *a: None, log=lambda *a: None),
+                    ):
+                        return await _worker._load_mentors_from_d1(mock_db)
+
+        result = _run(_inner())
+        self.assertEqual(len(result), 2)
+        self.assertEqual(result[0]["github_username"], "alice")
+        self.assertEqual(result[0]["specialties"], ["frontend"])
+        self.assertEqual(result[1]["name"], "Bob Jones")
+
+    def test_returns_empty_on_exception(self):
+        """Returns [] when D1 raises an exception."""
+        async def _inner():
+            mock_db = MagicMock()
+            with patch.object(
+                _worker, "_ensure_leaderboard_schema", new=AsyncMock(side_effect=RuntimeError("db error"))
+            ):
+                with patch.object(
+                    _worker, "console",
+                    new=types.SimpleNamespace(error=lambda *a: None, log=lambda *a: None),
+                ):
+                    return await _worker._load_mentors_from_d1(mock_db)
+
+        result = _run(_inner())
+        self.assertEqual(result, [])
+
+    def test_initial_mentors_list_has_entries(self):
+        """_INITIAL_MENTORS contains the expected seeded mentor data."""
+        self.assertGreater(len(_worker._INITIAL_MENTORS), 0)
+        for m in _worker._INITIAL_MENTORS:
+            self.assertIn("github_username", m)
+            self.assertIn("name", m)
+
+
+
+
+class TestOnFetchHomepage(unittest.TestCase):
+    """on_fetch GET / — homepage loads mentors from D1."""
+
+    def _make_get_request(self, path="/"):
+        req = types.SimpleNamespace(
+            method="GET",
+            url=f"http://localhost{path}",
+            headers=types.SimpleNamespace(get=lambda k, d=None: d),
+        )
+        return req
+
+    def test_homepage_shows_mentors_from_d1(self):
+        """Mentors from _load_mentors_local (D1) are rendered on the homepage."""
+        fake_mentors = [
+            {"name": "Alice", "github_username": "alice", "active": True},
+            {"name": "Bob", "github_username": "bob", "active": True},
+        ]
+
+        async def _inner():
+            env = types.SimpleNamespace()
+            req = self._make_get_request("/")
+            with patch.object(
+                _worker, "_load_mentors_local", new=AsyncMock(return_value=fake_mentors)
+            ):
+                with patch.object(
+                    _worker, "_fetch_mentor_stats_from_d1", return_value={}
+                ):
+                    with patch.object(
+                        _worker, "console",
+                        new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None),
+                    ):
+                        resp = await _worker.on_fetch(req, env)
+            self.assertIn("Alice", resp.body)
+            self.assertIn("Bob", resp.body)
+
+        _run(_inner())
+
+    def test_homepage_needs_no_token(self):
+        """Homepage renders without any GITHUB_TOKEN env variable."""
+        fake_mentors = [{"name": "Carol", "github_username": "carol", "active": True}]
+
+        async def _inner():
+            env = types.SimpleNamespace()
+            req = self._make_get_request("/")
+            with patch.object(
+                _worker, "_load_mentors_local", new=AsyncMock(return_value=fake_mentors)
+            ):
+                with patch.object(
+                    _worker, "_fetch_mentor_stats_from_d1", return_value={}
+                ):
+                    with patch.object(
+                        _worker, "console",
+                        new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None),
+                    ):
+                        resp = await _worker.on_fetch(req, env)
+            self.assertIn("Carol", resp.body)
+            self.assertEqual(resp.status, 200)
+
+        _run(_inner())
+
+    def test_homepage_renders_when_no_mentors(self):
+        """Homepage still renders (with no mentors) if _load_mentors_local returns []."""
+        async def _inner():
+            env = types.SimpleNamespace()
+            req = self._make_get_request("/")
+            with patch.object(
+                _worker, "_load_mentors_local", new=AsyncMock(return_value=[])
+            ):
+                with patch.object(
+                    _worker, "_fetch_mentor_stats_from_d1", return_value={}
+                ):
+                    with patch.object(
+                        _worker, "console",
+                        new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None),
+                    ):
+                        resp = await _worker.on_fetch(req, env)
+            self.assertIn("<!DOCTYPE html>", resp.body)
+            self.assertEqual(resp.status, 200)
+
+        _run(_inner())
+
+    def test_homepage_shows_stats_when_d1_available(self):
+        """Mentor cards display PRs/reviews when D1 stats are returned."""
+        fake_mentors = [{"name": "Dave", "github_username": "dave", "active": True}]
+        fake_stats = {"dave": {"merged_prs": 12, "reviews": 5}}
+
+        async def _inner():
+            env = types.SimpleNamespace()
+            req = self._make_get_request("/")
+            with patch.object(
+                _worker, "_load_mentors_local", new=AsyncMock(return_value=fake_mentors)
+            ):
+                with patch.object(
+                    _worker, "_fetch_mentor_stats_from_d1", return_value=fake_stats
+                ):
+                    with patch.object(
+                        _worker, "console",
+                        new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None),
+                    ):
+                        resp = await _worker.on_fetch(req, env)
+            self.assertIn("12", resp.body)
+            self.assertIn("5", resp.body)
+
+        _run(_inner())
+
+
+class TestHandleAddMentor(unittest.TestCase):
+    """POST /api/mentors — inserts a new mentor into D1."""
+
+    def _make_post_request(self, body: dict):
+        import json as _json
+        req = types.SimpleNamespace(
+            method="POST",
+            url="http://localhost/api/mentors",
+            headers=types.SimpleNamespace(get=lambda k, d=None: d),
+            text=AsyncMock(return_value=_json.dumps(body)),
+        )
+        return req
+
+    def _run_add(self, body: dict, db_raises=False):
+        req = self._make_post_request(body)
+        env = types.SimpleNamespace()
+        captured = {}
+
+        async def _inner():
+            mock_db = MagicMock()
+            with patch.object(_worker, "_d1_binding", return_value=mock_db):
+                with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
+                    if db_raises:
+                        with patch.object(_worker, "_d1_add_mentor", new=AsyncMock(side_effect=RuntimeError("db error"))):
+                            with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda *a: None, log=lambda *a: None)):
+                                resp = await _worker._handle_add_mentor(req, env)
+                    else:
+                        with patch.object(_worker, "_d1_add_mentor", new=AsyncMock()) as mock_add:
+                            with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda *a: None, log=lambda *a: None)):
+                                resp = await _worker._handle_add_mentor(req, env)
+                            captured["add_args"] = mock_add.call_args
+            return resp
+
+        return _run(_inner()), captured
+
+    def test_valid_submission_returns_201(self):
+        resp, _ = self._run_add({"name": "Jane Doe", "github_username": "janedoe", "specialties": ["frontend"], "max_mentees": 3})
+        self.assertEqual(resp.status, 201)
+        import json as _json
+        data = _json.loads(resp.body)
+        self.assertTrue(data["ok"])
+        self.assertEqual(data["github_username"], "janedoe")
+
+    def test_missing_name_returns_400(self):
+        resp, _ = self._run_add({"github_username": "janedoe"})
+        self.assertEqual(resp.status, 400)
+
+    def test_missing_github_username_returns_400(self):
+        resp, _ = self._run_add({"name": "Jane Doe"})
+        self.assertEqual(resp.status, 400)
+
+    def test_invalid_github_username_returns_400(self):
+        resp, _ = self._run_add({"name": "Jane Doe", "github_username": "invalid user!"})
+        self.assertEqual(resp.status, 400)
+
+    def test_db_error_returns_500(self):
+        resp, _ = self._run_add({"name": "Jane", "github_username": "jane"}, db_raises=True)
+        self.assertEqual(resp.status, 500)
+
+    def test_strips_at_prefix_from_username(self):
+        resp, captured = self._run_add({"name": "Jane Doe", "github_username": "@janedoe"})
+        self.assertEqual(resp.status, 201)
+        import json as _json
+        data = _json.loads(resp.body)
+        self.assertEqual(data["github_username"], "janedoe")
 
 
 if __name__ == "__main__":
