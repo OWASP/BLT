@@ -1,4 +1,4 @@
-"""Parse a mentor application issue body and append the new entry to .github/mentors.yml.
+"""Parse a mentor application issue body and append the new entry to src/mentors.yml.
 
 Expected issue body format (produced by the homepage form or the issue template):
 
@@ -12,7 +12,7 @@ Expected issue body format (produced by the homepage form or the issue template)
 
 Environment variables (set by the GitHub Actions workflow):
     ISSUE_BODY      - Raw issue body text.
-    MENTORS_YML     - Path to the mentors config file (default: .github/mentors.yml).
+    MENTORS_YML     - Path to the mentors config file (default: src/mentors.yml).
     GITHUB_OUTPUT   - Set automatically by the GitHub Actions runner; outputs are written here.
 """
 
@@ -161,7 +161,7 @@ def main() -> None:
         )
         sys.exit(1)
 
-    mentors_path = os.environ.get("MENTORS_YML", ".github/mentors.yml")
+    mentors_path = os.environ.get("MENTORS_YML", "src/mentors.yml")
 
     try:
         with open(mentors_path, "r", encoding="utf-8") as fh:
