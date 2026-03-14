@@ -240,6 +240,18 @@ MENTORS = [
         "max_mentees": 3,
         "active": True,
     },
+    {
+        "name": "Aryan Jain",
+        "github_username": "gitsofaryan",
+        "slack_username": "Aryan Jain",
+        "project": None,
+        "mentee": None,
+        "status": "available",
+        "specialties": ["fullstack", "web3", "distributed-systems", "ai-ml", "open-source", "devops", "realtime-systems"],
+        "max_mentees": 3,
+        "active": True,
+        "timezone": "UTC+5:30 (India Standard Time)",
+    },
 ]
 
 # DER OID sequence for rsaEncryption (used when wrapping PKCS#1 → PKCS#8)
