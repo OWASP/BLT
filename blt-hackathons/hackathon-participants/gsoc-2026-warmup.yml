@@ -1,4 +1,4 @@
-# GSOC 2026 Warmup — Approved Participants (Mentors)
+# GSOC 2026 Warmup — Approved Participants
 #
 # Only the GitHub usernames listed here will be counted in the contributors
 # (merged-PR) leaderboard for this hackathon.
@@ -6,20 +6,6 @@
 # The review leaderboard remains open to everyone — any reviewer counts
 # regardless of whether they appear in this list.
 #
-# Sourced from: https://github.com/OWASP-BLT/BLT-Pool (MENTORS list, active=True)
 # Add or remove usernames as needed. Usernames are case-insensitive.
 
-participants:
-  - rinkitadhana
-  - Rajgupta36
-  - shriyashsoni
-  - Mohammedfaiyaz29
-  - Vaswani2003
-  - kittenbytes
-  - Captain-T2004
-  - elsheik21
-  - Kunal1522
-  - RudraBhaskar9439
-  - dev-sanidhya
-  - VedantAnand17
-  - Rishab87
+participants: []
