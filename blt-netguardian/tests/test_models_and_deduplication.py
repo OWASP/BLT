@@ -26,7 +26,7 @@ class _FakeTask:
 
 
 # ===========================================================================
-# TaskDeduplicator – generate_task_hash
+# TaskDeduplicator - generate_task_hash
 # ===========================================================================
 
 class TestGenerateTaskHash:
@@ -62,7 +62,7 @@ class TestGenerateTaskHash:
 
 
 # ===========================================================================
-# TaskDeduplicator – is_duplicate (cache hit / miss logic)
+# TaskDeduplicator - is_duplicate (cache hit / miss logic)
 # ===========================================================================
 
 class TestIsDuplicate:
@@ -76,7 +76,7 @@ class TestIsDuplicate:
     async def test_second_call_with_same_task_is_duplicate(self):
         dedup = TaskDeduplicator()
         task = _FakeTask("t1", "crawler")
-        await dedup.is_duplicate(task, None)          # first call – caches hash
+        await dedup.is_duplicate(task, None)          # first call - caches hash
         assert await dedup.is_duplicate(task, None) is True
 
     @pytest.mark.asyncio
@@ -104,7 +104,7 @@ class TestIsDuplicate:
 
 
 # ===========================================================================
-# TaskDeduplicator – clear_cache
+# TaskDeduplicator - clear_cache
 # ===========================================================================
 
 class TestClearCache:
@@ -172,7 +172,7 @@ class TestTaskTypeEnum:
 
 
 # ===========================================================================
-# Task – to_dict / from_dict round-trips
+# Task - to_dict / from_dict round-trips
 # ===========================================================================
 
 def _make_task(**overrides) -> Task:
@@ -266,7 +266,7 @@ class TestVulnerabilityLevelEnum:
 
 
 # ===========================================================================
-# Vulnerability – to_dict
+# Vulnerability - to_dict
 # ===========================================================================
 
 def _make_vulnerability(**overrides) -> Vulnerability:
@@ -326,7 +326,7 @@ class TestVulnerabilityToDict:
 
 
 # ===========================================================================
-# ScanResult – to_dict / from_dict round-trips
+# ScanResult - to_dict / from_dict round-trips
 # ===========================================================================
 
 def _make_scan_result(**overrides) -> ScanResult:
@@ -411,7 +411,7 @@ class TestTargetTypeEnum:
 
 
 # ===========================================================================
-# Target – to_dict / from_dict round-trips
+# Target - to_dict / from_dict round-trips
 # ===========================================================================
 
 def _make_target(**overrides) -> Target:
