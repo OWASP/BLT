@@ -1,5 +1,5 @@
 {
-  "lastUpdated": "2026-03-14T05:25:33.650926+00:00",
+  "lastUpdated": "2026-03-14T06:04:08.443859+00:00",
   "repositories": 8,
   "hackathonName": "BLT Mentor Warmup Hackathon",
   "startTime": "2026-03-12T18:00:00Z",
@@ -14,6 +14,12 @@
     {
       "slug": "gsoc-2026-warmup",
       "name": "GSOC 2026 Warmup",
+      "startTime": "2025-11-01T00:00:00Z",
+      "endTime": "2026-05-09T23:59:59Z"
+    },
+    {
+      "slug": "blt-mentor-warmup",
+      "name": "BLT Mentor Warmup",
       "startTime": "2025-11-01T00:00:00Z",
       "endTime": "2026-05-09T23:59:59Z"
     },

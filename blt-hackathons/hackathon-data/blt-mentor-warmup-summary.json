@@ -1,27 +1,27 @@
 {
-  "participantCount": 51,
-  "totalPRs": 104,
-  "mergedPRs": 78,
-  "totalIssues": 25,
+  "participantCount": 22,
+  "totalPRs": 2326,
+  "mergedPRs": 1500,
+  "totalIssues": 353,
   "repositories": 53,
   "topContributors": [
     {
-      "username": "Pritz395",
-      "avatar": "https://avatars.githubusercontent.com/u/146115505?v=4",
-      "url": "https://github.com/Pritz395",
-      "mergedCount": 4
-    },
-    {
-      "username": "tejeshvenkat",
-      "avatar": "https://avatars.githubusercontent.com/u/210394948?v=4",
-      "url": "https://github.com/tejeshvenkat",
+      "username": "kittenbytes",
+      "avatar": "https://avatars.githubusercontent.com/u/171991749?v=4",
+      "url": "https://github.com/kittenbytes",
       "mergedCount": 3
     },
     {
-      "username": "dhruv7539",
-      "avatar": "https://avatars.githubusercontent.com/u/102348563?v=4",
-      "url": "https://github.com/dhruv7539",
-      "mergedCount": 3
+      "username": "Kunal1522",
+      "avatar": "https://avatars.githubusercontent.com/u/67000702?v=4",
+      "url": "https://github.com/Kunal1522",
+      "mergedCount": 2
+    },
+    {
+      "username": "Vaswani2003",
+      "avatar": "https://avatars.githubusercontent.com/u/100992956?v=4",
+      "url": "https://github.com/Vaswani2003",
+      "mergedCount": 2
     }
   ]
 }
