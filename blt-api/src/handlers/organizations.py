@@ -3,10 +3,14 @@ Organizations handler for the BLT API.
 """
 
 from typing import Any, Dict, List
+import logging
 from utils import convert_d1_results, error_response, paginated_response, parse_pagination_params, success_response
 from workers import Response
 from libs.db import get_db_safe
 from libs.data_protection import decrypt_sensitive
+
+logger = logging.getLogger(__name__)
+
 
 async def handle_organizations(
     request: Any,
@@ -321,4 +325,5 @@ async def handle_organizations(
         return paginated_response(organizations, page=page, per_page=per_page, total=total)
 
     except Exception as e:
+        logger.error(f"Database query failed: {str(e)}")
         return error_response(f"Database query failed: {str(e)}", status=503)
