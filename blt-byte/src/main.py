@@ -455,8 +455,19 @@ def _extract_ai_text(ai_response) -> str | None:
 
     return None
 
+def _has_js_json_bridge() -> bool:
+    return (
+        js is not None
+        and getattr(js, "JSON", None) is not None
+        and hasattr(js.JSON, "parse")
+        and hasattr(js.JSON, "stringify")
+    )
 
 async def _run_chat(env, message: str, history: list) -> dict:
+    if not _has_js_json_bridge():
+        return {
+            "reply": "Byte: (Local Dev Mode) AI bridge unavailable locally. Run remotely for live AI responses."
+        }
     if not message:
         return {"error": "'message' is required", "status": 400}
     if history is None:
@@ -536,7 +547,7 @@ async def _run_chat(env, message: str, history: list) -> dict:
             
         traceback.print_exc()
         return {
-            "error": f"AI service error: {ai_error}",
+            "error": "The AI service is temporarily unavailable. Please try again.",
             "status": 502,
         }
     
@@ -544,6 +555,13 @@ async def _run_chat(env, message: str, history: list) -> dict:
 
 
 async def _run_scan(env, url: str, scan_type: str = "quick") -> dict:
+    if not _has_js_json_bridge():
+        return {
+            "headers_to_check": [],
+            "vulnerabilities_to_test": [],
+            "blt_categories": [],
+            "notes": "Local Dev Mode: AI bridge unavailable locally. Run remotely for live scan output.",
+        }
     if not url:
         return {"error": "'url' is required", "status": 400}
     depth_note = (
@@ -722,4 +740,4 @@ class Default(WorkerEntrypoint):
         except Exception as e:
             print(f"[critical error] fetch crashed: {e}")
             traceback.print_exc()
-            return error_response(f"Internal Server Error: {e}", 500)
+            return error_response("Internal Server Error", 500)
