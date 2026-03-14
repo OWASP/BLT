@@ -163,6 +163,19 @@ class TaskQueueStore:
             f"UPDATE tasks SET {set_clause} WHERE task_id = ?"
         ).bind(*values).run()
 
+    async def count_completed_tasks_today(self) -> int:
+        """Count tasks completed during the current UTC date."""
+        if self.db is None:
+            return 0
+        row = await self.db.prepare(
+            """SELECT COUNT(*) AS count
+               FROM tasks
+               WHERE status = 'completed' AND date(completed_at) = date('now')"""
+        ).first()
+        if row is None:
+            return 0
+        return int(row['count']) if row['count'] is not None else 0
+
 
 class TargetRegistryStore:
     """Manages target registry storage using Cloudflare D1."""
