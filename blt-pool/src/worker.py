@@ -458,7 +458,6 @@ async def _d1_run(db, sql: str, params: tuple = ()):
         if params:
             stmt = stmt.bind(*params)
         result = await stmt.run()
-        console.log(f"[D1.run] Executed: {sql[:60]}...")
         return result
     except Exception as e:
         console.error(f"[D1.run] Error executing {sql[:60]}: {e}")
@@ -1275,13 +1274,6 @@ async def _calculate_leaderboard_stats_from_d1(owner: str, env) -> Optional[dict
     await _ensure_leaderboard_schema(db)
     mk = _month_key()
     start_timestamp, end_timestamp = _month_window(mk)
-
-    # DEBUG: Check if there's ANY data in the tables
-    all_monthly = await _d1_all(db, "SELECT COUNT(*) as cnt FROM leaderboard_monthly_stats", ())
-    all_open = await _d1_all(db, "SELECT COUNT(*) as cnt FROM leaderboard_open_prs", ())
-    total_monthly = all_monthly[0].get('cnt') if all_monthly else 0
-    total_open = all_open[0].get('cnt') if all_open else 0
-    console.log(f"[D1] DEBUG: Total rows in DB: monthly_stats={total_monthly}, open_prs={total_open}")
 
     monthly_rows = await _d1_all(
         db,
@@ -5037,6 +5029,7 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
             Display Name <span class="text-[#E10101]">*</span>
           </label>
           <input id="mf-name" type="text" required autocomplete="name" placeholder="Jane Doe"
+                 maxlength="100"
                  class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#E10101] focus:ring-1 focus:ring-[#E10101] focus:outline-none">
         </div>
         <div>
@@ -5044,6 +5037,7 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
             GitHub Username <span class="text-[#E10101]">*</span>
           </label>
           <input id="mf-github" type="text" required autocomplete="username" placeholder="janedoe"
+                 maxlength="39" pattern="[a-zA-Z0-9]([a-zA-Z0-9\\-]{{0,37}}[a-zA-Z0-9])?"
                  class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#E10101] focus:ring-1 focus:ring-[#E10101] focus:outline-none">
         </div>
         <div class="sm:col-span-2">
@@ -5051,6 +5045,7 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
             Specialties <span class="text-xs font-normal text-gray-400">(optional — comma-separated)</span>
           </label>
           <input id="mf-specialties" type="text" placeholder="e.g. frontend, python, security, docs"
+                 maxlength="300"
                  class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#E10101] focus:ring-1 focus:ring-[#E10101] focus:outline-none">
         </div>
         <div>
@@ -5065,6 +5060,7 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
             Timezone <span class="text-xs font-normal text-gray-400">(optional)</span>
           </label>
           <input id="mf-tz" type="text" placeholder="e.g. UTC+5:30"
+                 maxlength="60"
                  class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#E10101] focus:ring-1 focus:ring-[#E10101] focus:outline-none">
         </div>
         <div class="sm:col-span-2">
@@ -5072,6 +5068,7 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
             Referred By <span class="text-xs font-normal text-gray-400">(optional — GitHub username of who invited you)</span>
           </label>
           <input id="mf-referral" type="text" placeholder="e.g. janedoe"
+                 maxlength="39" pattern="[a-zA-Z0-9]([a-zA-Z0-9\\-]{{0,37}}[a-zA-Z0-9])?"
                  class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#E10101] focus:ring-1 focus:ring-[#E10101] focus:outline-none">
         </div>
         <div id="mf-error" role="alert" class="hidden sm:col-span-2 text-sm font-semibold text-[#E10101]"></div>
@@ -5086,12 +5083,28 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
       </form>
       <script>
         (function () {{
+          // Regex matching GitHub's username rules (identical to server-side _GH_USERNAME_RE).
+          var GH_USERNAME_RE = /^[a-zA-Z0-9](?:[a-zA-Z0-9\\-]{{0,37}}[a-zA-Z0-9])?$/;
+          // Regex matching each specialty tag (identical to server-side _SPECIALTY_RE).
+          var SPECIALTY_RE = /^[a-z0-9][a-z0-9+#.\\-]{{0,29}}$/;
+
+          /**
+           * Return true if the value contains HTML angle brackets, raw ampersands,
+           * double-quotes, or common scripting injection patterns.
+           */
+          function containsScripting(val) {{
+            if (/[<>"&]/.test(val)) return true;
+            if (/javascript\\s*:/i.test(val)) return true;
+            if (/on\\w+\\s*=/i.test(val)) return true;
+            return false;
+          }}
+
           document.getElementById('mentor-form').addEventListener('submit', function (e) {{
             e.preventDefault();
             var name     = document.getElementById('mf-name').value.trim();
             var github   = document.getElementById('mf-github').value.trim().replace(/^@/, '');
             var specs    = document.getElementById('mf-specialties').value.trim();
-            var maxM     = parseInt(document.getElementById('mf-max').value.trim(), 10) || 3;
+            var maxM     = parseInt(document.getElementById('mf-max').value.trim(), 10);
             var tz       = document.getElementById('mf-tz').value.trim();
             var referral = document.getElementById('mf-referral').value.trim().replace(/^@/, '');
             var errEl    = document.getElementById('mf-error');
@@ -5099,12 +5112,77 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
             var btn      = document.getElementById('mf-submit');
             errEl.classList.add('hidden');
             okEl.classList.add('hidden');
-            if (!name || !github) {{
-              errEl.textContent = 'Display name and GitHub username are required.';
+
+            // Required fields.
+            if (!name) {{
+              errEl.textContent = 'Display name is required.';
               errEl.classList.remove('hidden');
               return;
             }}
+            if (!github) {{
+              errEl.textContent = 'GitHub username is required.';
+              errEl.classList.remove('hidden');
+              return;
+            }}
+
+            // Length guards (mirrors maxlength attributes).
+            if (name.length > 100) {{
+              errEl.textContent = 'Display name must be 100 characters or fewer.';
+              errEl.classList.remove('hidden');
+              return;
+            }}
+            if (tz.length > 60) {{
+              errEl.textContent = 'Timezone must be 60 characters or fewer.';
+              errEl.classList.remove('hidden');
+              return;
+            }}
+
+            // Script / HTML injection checks on free-text fields.
+            if (containsScripting(name)) {{
+              errEl.textContent = 'Display name contains invalid characters. HTML and scripting are not allowed.';
+              errEl.classList.remove('hidden');
+              return;
+            }}
+            if (containsScripting(tz)) {{
+              errEl.textContent = 'Timezone contains invalid characters. HTML and scripting are not allowed.';
+              errEl.classList.remove('hidden');
+              return;
+            }}
+            if (containsScripting(specs)) {{
+              errEl.textContent = 'Specialties contain invalid characters. HTML and scripting are not allowed.';
+              errEl.classList.remove('hidden');
+              return;
+            }}
+
+            // GitHub username format validation.
+            if (!GH_USERNAME_RE.test(github)) {{
+              errEl.textContent = 'GitHub username may only contain letters, digits, and single hyphens, and cannot begin or end with a hyphen (max 39 characters).';
+              errEl.classList.remove('hidden');
+              return;
+            }}
+            if (referral && !GH_USERNAME_RE.test(referral)) {{
+              errEl.textContent = 'Referred-by username may only contain letters, digits, and single hyphens, and cannot begin or end with a hyphen (max 39 characters).';
+              errEl.classList.remove('hidden');
+              return;
+            }}
+
+            // Validate each specialty tag format.
             var specialties = specs ? specs.split(',').map(function(s) {{ return s.trim(); }}).filter(Boolean) : [];
+            for (var i = 0; i < specialties.length; i++) {{
+              if (!SPECIALTY_RE.test(specialties[i])) {{
+                errEl.textContent = 'Invalid specialty tag "' + specialties[i] + '". Tags must be 1-30 lowercase alphanumeric characters (also +, #, ., -).';
+                errEl.classList.remove('hidden');
+                return;
+              }}
+            }}
+
+            // max_mentees range guard.
+            if (isNaN(maxM) || maxM < 1 || maxM > 10) {{
+              errEl.textContent = 'Max concurrent mentees must be a number between 1 and 10.';
+              errEl.classList.remove('hidden');
+              return;
+            }}
+
             btn.disabled = true;
             fetch('/api/mentors', {{
               method: 'POST',
@@ -5167,9 +5245,30 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
 _GH_USERNAME_RE = re.compile(r"^[a-zA-Z0-9](?:[a-zA-Z0-9\-]{0,37}[a-zA-Z0-9])?$")
 # Specialty tag: 1-30 chars; lowercase letters, digits, +, #, dot, hyphen allowed.
 _SPECIALTY_RE = re.compile(r"^[a-z0-9][a-z0-9+#.\-]{0,29}$")
+# Display name: 1-100 printable characters, no HTML angle brackets, ampersands,
+# double quotes, or ASCII control characters (prevents script injection).
+_NAME_RE = re.compile(r"^[^<>&\"\x00-\x1f]{1,100}$")
+# Timezone: optional free-form label, same restrictions as name but max 60 chars.
+_TIMEZONE_RE = re.compile(r"^[^<>&\"\x00-\x1f]{1,60}$")
 # Bounds for the max_mentees field in the mentor form.
 _MENTOR_MIN_MENTEES_CAP = 1
 _MENTOR_MAX_MENTEES_CAP = 10
+
+
+async def _verify_gh_user_exists(username: str, env=None) -> bool:
+    """Return True if the GitHub username exists on GitHub.
+
+    Uses GITHUB_TOKEN from env if available (5,000 req/h); falls back to
+    unauthenticated requests (60 req/h per IP) when no token is set.
+    Returns True on network/API error so a transient outage does not block
+    legitimate submissions (fail-open policy).
+    """
+    token = getattr(env, "GITHUB_TOKEN", "") if env else ""
+    try:
+        resp = await github_api("GET", f"/users/{username}", token)
+        return resp.status == 200
+    except Exception:
+        return True  # Fail open: don't block when GitHub API is temporarily unavailable
 
 
 async def _handle_add_mentor(request, env) -> "Response":
@@ -5202,10 +5301,16 @@ async def _handle_add_mentor(request, env) -> "Response":
 
     if not name:
         return _json({"error": "Field 'name' is required"}, 400)
+    if not _NAME_RE.match(name):
+        return _json({"error": "Display name contains invalid characters (HTML and scripting are not allowed)"}, 400)
     if not github_username:
         return _json({"error": "Field 'github_username' is required"}, 400)
     if not _GH_USERNAME_RE.match(github_username):
-        return _json({"error": "Invalid GitHub username"}, 400)
+        return _json({"error": "Invalid GitHub username format"}, 400)
+
+    # Verify the GitHub username actually exists.
+    if not await _verify_gh_user_exists(github_username, env):
+        return _json({"error": f"GitHub username '{github_username}' was not found on GitHub"}, 400)
 
     # Normalise specialties — accept a list or a comma-separated string.
     if isinstance(specialties_raw, str):
@@ -5224,8 +5329,15 @@ async def _handle_add_mentor(request, env) -> "Response":
     except (TypeError, ValueError):
         max_mentees = 3
 
+    if timezone and not _TIMEZONE_RE.match(timezone):
+        return _json({"error": "Timezone contains invalid characters (HTML and scripting are not allowed)"}, 400)
+
     if referred_by and not _GH_USERNAME_RE.match(referred_by):
-        return _json({"error": "Invalid referred_by username"}, 400)
+        return _json({"error": "Invalid referred_by username format"}, 400)
+
+    # Verify the referrer's GitHub username exists (if provided).
+    if referred_by and not await _verify_gh_user_exists(referred_by, env):
+        return _json({"error": f"Referred-by username '{referred_by}' was not found on GitHub"}, 400)
 
     db = _d1_binding(env)
     if not db:
