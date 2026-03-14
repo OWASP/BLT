@@ -1,8 +1,8 @@
 {
   "participantCount": 168,
-  "totalPRs": 2310,
-  "mergedPRs": 1471,
-  "totalIssues": 692,
+  "totalPRs": 2318,
+  "mergedPRs": 1496,
+  "totalIssues": 348,
   "repositories": 53,
   "topContributors": [
     {
@@ -21,7 +21,7 @@
       "username": "Pritz395",
       "avatar": "https://avatars.githubusercontent.com/u/146115505?v=4",
       "url": "https://github.com/Pritz395",
-      "mergedCount": 38
+      "mergedCount": 39
     }
   ]
 }
