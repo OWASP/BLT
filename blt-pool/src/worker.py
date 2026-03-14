@@ -28,6 +28,7 @@ import hashlib
 import hmac as _hmac
 import html as _html_mod
 import json
+import os
 import re
 import time
 from typing import Optional, Tuple
@@ -1925,7 +1926,7 @@ def _parse_yaml_scalar(s: str):
 def _parse_mentors_yaml(content: str) -> list:
     """Parse a simple mentors YAML file into a list of mentor dicts.
 
-    Handles the specific format used in ``.github/mentors.yml``:
+    Handles the specific format used in ``src/mentors.yml``:
 
     .. code-block:: yaml
 
@@ -1982,22 +1983,22 @@ def _parse_mentors_yaml(content: str) -> list:
 
 
 async def _fetch_mentors_config(owner: str, repo: str, token: str) -> list:
-    """Fetch and parse ``.github/mentors.yml`` from the repository.
+    """Fetch and parse ``src/mentors.yml`` from the repository.
 
     Returns the parsed mentor list.  Returns an empty list when the file does
-    not exist or cannot be parsed so that ``.github/mentors.yml`` is the single
+    not exist or cannot be parsed so that ``src/mentors.yml`` is the single
     source of truth for the mentor pool.
     """
     resp = await github_api(
         "GET",
-        f"/repos/{owner}/{repo}/contents/.github/mentors.yml",
+        f"/repos/{owner}/{repo}/contents/src/mentors.yml",
         token,
     )
     if resp.status == 404:
-        console.error("[MentorPool] .github/mentors.yml not found (404)")
+        console.error("[MentorPool] src/mentors.yml not found (404)")
         return []
     if resp.status != 200:
-        console.error(f"[MentorPool] Failed to fetch .github/mentors.yml: {resp.status}")
+        console.error(f"[MentorPool] Failed to fetch src/mentors.yml: {resp.status}")
         return []
     try:
         data = json.loads(await resp.text())
@@ -2006,10 +2007,36 @@ async def _fetch_mentors_config(owner: str, repo: str, token: str) -> list:
         content_decoded = base64.b64decode(content_b64.replace("\n", "")).decode("utf-8")
         parsed = _parse_mentors_yaml(content_decoded)
         if parsed:
-            console.log(f"[MentorPool] Loaded {len(parsed)} mentors from .github/mentors.yml")
+            console.log(f"[MentorPool] Loaded {len(parsed)} mentors from src/mentors.yml")
             return parsed
     except Exception as exc:
-        console.error(f"[MentorPool] Error parsing .github/mentors.yml: {exc}")
+        console.error(f"[MentorPool] Error parsing src/mentors.yml: {exc}")
+    return []
+
+
+# Default path to the bundled mentors YAML file, resolved relative to this
+# module so it works both in local development and in the Cloudflare bundle.
+_MENTORS_YML_PATH = os.path.join(os.path.dirname(__file__), "mentors.yml")
+
+
+def _load_mentors_local(path: str = _MENTORS_YML_PATH) -> list:
+    """Load and parse the mentor list directly from the ``src/mentors.yml`` file.
+
+    ``src/mentors.yml`` is the single source of truth for the mentor pool.  It
+    is committed alongside the worker source and is therefore always available
+    in the Cloudflare Worker bundle without any network requests.
+
+    Returns the parsed mentor list, or ``[]`` on any failure.
+    """
+    try:
+        with open(path, "r", encoding="utf-8") as fh:
+            content = fh.read()
+        parsed = _parse_mentors_yaml(content)
+        if parsed:
+            console.log(f"[MentorPool] Loaded {len(parsed)} mentors from {path}")
+            return parsed
+    except Exception as exc:
+        console.error(f"[MentorPool] Error reading {path}: {exc}")
     return []
 
 
@@ -2328,7 +2355,7 @@ async def handle_mentor_pause(
 ) -> None:
     """Handle the ``/mentor-pause`` slash command (mentor opts out of new assignments).
 
-    Because mentor state is stored in ``.github/mentors.yml`` (version-controlled),
+    Because mentor state is stored in ``src/mentors.yml`` (version-controlled),
     this handler acknowledges the request and instructs the mentor to open a PR to
     set ``active: false`` for their entry.
     """
@@ -2354,7 +2381,7 @@ async def handle_mentor_pause(
         issue["number"],
         f"@{login} Your pause request has been noted. 🙏\n\n"
         "To formally pause your availability in the mentor pool, please open a PR that sets "
-        "`active: false` for your entry in `.github/mentors.yml`.\n\n"
+        "`active: false` for your entry in `src/mentors.yml`.\n\n"
         "Until that PR is merged the system may still select you for new assignments. "
         "Contact a maintainer if you need an immediate pause.",
         token,
@@ -3878,7 +3905,7 @@ def _index_html(mentors: list = None) -> str:
     """Generate the BLT-Pool mentor directory homepage.
 
     Args:
-        mentors: Mentor list loaded from ``.github/mentors.yml``.
+        mentors: Mentor list loaded from ``src/mentors.yml``.
                  Defaults to an empty list when omitted or ``None``.
     """
     if mentors is None:
@@ -4272,14 +4299,11 @@ async def on_fetch(request, env) -> Response:
     path = urlparse(str(request.url)).path.rstrip("/") or "/"
 
     if method == "GET" and path == "/":
-        # Populate the homepage from .github/mentors.yml.
-        # Use GITHUB_TOKEN if available (avoids the 60 req/h unauthenticated limit).
-        try:
-            gh_token = getattr(env, "GITHUB_TOKEN", "") or ""
-            mentors = await _fetch_mentors_config("OWASP-BLT", "BLT-Pool", gh_token)
-        except Exception:
-            mentors = []
-        return _html(_index_html(mentors))
+        # Load mentors directly from the bundled src/mentors.yml file.
+        # This avoids any network calls and API rate limits — the file is
+        # committed alongside the worker source and kept in sync by the
+        # add-mentor-from-issue workflow.
+        return _html(_index_html(_load_mentors_local()))
 
     if method == "GET" and path == "/github-app":
         app_slug = getattr(env, "GITHUB_APP_SLUG", "")

@@ -2900,7 +2900,7 @@ class TestHandleCheckRun(unittest.TestCase):
 
 
 class TestParseMentorsYaml(unittest.TestCase):
-    """_parse_mentors_yaml — minimal YAML parser for .github/mentors.yml"""
+    """_parse_mentors_yaml — minimal YAML parser for src/mentors.yml"""
 
     def test_parses_single_mentor(self):
         content = """\
@@ -4054,8 +4054,80 @@ class TestGhHeaders(unittest.TestCase):
             self.assertEqual(headers.get("Accept"), "application/vnd.github+json")
 
 
+class TestLoadMentorsLocal(unittest.TestCase):
+    """_load_mentors_local — reads mentors.yml from the local filesystem."""
+
+    _SAMPLE_YAML = """\
+mentors:
+  - github_username: alice
+    name: Alice Smith
+    max_mentees: 3
+    active: true
+  - github_username: bob
+    name: Bob Jones
+    max_mentees: 2
+    active: true
+"""
+
+    def test_returns_mentors_from_file(self):
+        """A valid YAML file returns the parsed mentor list."""
+        import tempfile, os
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as fh:
+            fh.write(self._SAMPLE_YAML)
+            tmp = fh.name
+        try:
+            with patch.object(
+                _worker, "console",
+                new=types.SimpleNamespace(error=lambda *a: None, log=lambda *a: None),
+            ):
+                result = _worker._load_mentors_local(tmp)
+            self.assertEqual(len(result), 2)
+            self.assertEqual(result[0]["github_username"], "alice")
+            self.assertEqual(result[1]["name"], "Bob Jones")
+        finally:
+            os.unlink(tmp)
+
+    def test_returns_empty_on_missing_file(self):
+        """A missing file returns an empty list without raising."""
+        with patch.object(
+            _worker, "console",
+            new=types.SimpleNamespace(error=lambda *a: None, log=lambda *a: None),
+        ):
+            result = _worker._load_mentors_local("/nonexistent/path/mentors.yml")
+        self.assertEqual(result, [])
+
+    def test_returns_empty_on_bad_yaml(self):
+        """Unparseable YAML returns an empty list."""
+        import tempfile, os
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as fh:
+            fh.write("not: valid: yaml: [][")
+            tmp = fh.name
+        try:
+            with patch.object(
+                _worker, "console",
+                new=types.SimpleNamespace(error=lambda *a: None, log=lambda *a: None),
+            ):
+                result = _worker._load_mentors_local(tmp)
+            # An empty/unparseable YAML gives [] — no exception raised
+            self.assertIsInstance(result, list)
+        finally:
+            os.unlink(tmp)
+
+    def test_reads_actual_mentors_yml(self):
+        """The bundled src/mentors.yml can be read using the default path."""
+        with patch.object(
+            _worker, "console",
+            new=types.SimpleNamespace(error=lambda *a: None, log=lambda *a: None),
+        ):
+            result = _worker._load_mentors_local(_worker._MENTORS_YML_PATH)
+        self.assertGreater(len(result), 0)
+        # Every entry has at least a name
+        for mentor in result:
+            self.assertIn("name", mentor)
+
+
 class TestOnFetchHomepage(unittest.TestCase):
-    """on_fetch GET / — homepage loads mentors from .github/mentors.yml."""
+    """on_fetch GET / — homepage loads mentors from the bundled mentors.yml file."""
 
     def _make_get_request(self, path="/"):
         req = types.SimpleNamespace(
@@ -4066,17 +4138,17 @@ class TestOnFetchHomepage(unittest.TestCase):
         return req
 
     def test_homepage_shows_mentors_from_yaml(self):
-        """Mentors from _fetch_mentors_config are rendered on the homepage."""
+        """Mentors from _load_mentors_local are rendered on the homepage."""
         fake_mentors = [
             {"name": "Alice", "github_username": "alice", "active": True},
             {"name": "Bob", "github_username": "bob", "active": True},
         ]
 
         async def _inner():
-            env = types.SimpleNamespace(GITHUB_TOKEN="test-token")
+            env = types.SimpleNamespace()
             req = self._make_get_request("/")
             with patch.object(
-                _worker, "_fetch_mentors_config", new=AsyncMock(return_value=fake_mentors)
+                _worker, "_load_mentors_local", return_value=fake_mentors
             ):
                 with patch.object(
                     _worker, "console",
@@ -4088,15 +4160,15 @@ class TestOnFetchHomepage(unittest.TestCase):
 
         _run(_inner())
 
-    def test_homepage_without_github_token_still_loads(self):
-        """Homepage renders (via unauthenticated fetch) when GITHUB_TOKEN is absent."""
+    def test_homepage_needs_no_token(self):
+        """Homepage renders without any GITHUB_TOKEN env variable."""
         fake_mentors = [{"name": "Carol", "github_username": "carol", "active": True}]
 
         async def _inner():
-            env = types.SimpleNamespace()  # No GITHUB_TOKEN attribute
+            env = types.SimpleNamespace()
             req = self._make_get_request("/")
             with patch.object(
-                _worker, "_fetch_mentors_config", new=AsyncMock(return_value=fake_mentors)
+                _worker, "_load_mentors_local", return_value=fake_mentors
             ):
                 with patch.object(
                     _worker, "console",
@@ -4108,13 +4180,13 @@ class TestOnFetchHomepage(unittest.TestCase):
 
         _run(_inner())
 
-    def test_homepage_empty_when_fetch_fails(self):
-        """Homepage still renders (with no mentors) if _fetch_mentors_config returns []."""
+    def test_homepage_renders_when_file_missing(self):
+        """Homepage still renders (with no mentors) if _load_mentors_local returns []."""
         async def _inner():
-            env = types.SimpleNamespace(GITHUB_TOKEN="")
+            env = types.SimpleNamespace()
             req = self._make_get_request("/")
             with patch.object(
-                _worker, "_fetch_mentors_config", new=AsyncMock(return_value=[])
+                _worker, "_load_mentors_local", return_value=[]
             ):
                 with patch.object(
                     _worker, "console",
