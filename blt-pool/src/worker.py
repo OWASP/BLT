@@ -5194,7 +5194,8 @@ _MENTOR_MAX_MENTEES_CAP = 10
 async def _verify_gh_user_exists(username: str, env=None) -> bool:
     """Return True if the GitHub username exists on GitHub.
 
-    Calls the public GitHub Users API (unauthenticated, 60 req/h per IP).
+    Uses GITHUB_TOKEN from env if available (5,000 req/h); falls back to
+    unauthenticated requests (60 req/h per IP) when no token is set.
     Returns True on network/API error so a transient outage does not block
     legitimate submissions (fail-open policy).
     """
