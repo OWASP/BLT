@@ -581,6 +581,77 @@ async def _ensure_leaderboard_schema(db) -> None:
         )
         """,
     )
+    await _d1_run(
+        db,
+        """
+        CREATE TABLE IF NOT EXISTS mentor_assignments (
+            org TEXT NOT NULL,
+            mentor_login TEXT NOT NULL,
+            issue_repo TEXT NOT NULL,
+            issue_number INTEGER NOT NULL,
+            assigned_at INTEGER NOT NULL,
+            PRIMARY KEY (org, issue_repo, issue_number)
+        )
+        """,
+    )
+
+
+async def _d1_record_mentor_assignment(
+    db, org: str, mentor_login: str, repo: str, issue_number: int
+) -> None:
+    """Upsert a mentor→issue assignment into D1 for load-map tracking."""
+    now = int(time.time())
+    try:
+        await _d1_run(
+            db,
+            """
+            INSERT INTO mentor_assignments (org, mentor_login, issue_repo, issue_number, assigned_at)
+            VALUES (?, ?, ?, ?, ?)
+            ON CONFLICT(org, issue_repo, issue_number) DO UPDATE SET
+                mentor_login = excluded.mentor_login,
+                assigned_at  = excluded.assigned_at
+            """,
+            (org, mentor_login, repo, issue_number, now),
+        )
+        console.log(f"[D1] Recorded mentor assignment: @{mentor_login} → {org}/{repo}#{issue_number}")
+    except Exception as exc:
+        console.error(f"[D1] Failed to record mentor assignment: {exc}")
+
+
+async def _d1_remove_mentor_assignment(db, org: str, repo: str, issue_number: int) -> None:
+    """Remove a mentor assignment record from D1 (used on handoff/issue close)."""
+    try:
+        await _d1_run(
+            db,
+            "DELETE FROM mentor_assignments WHERE org = ? AND issue_repo = ? AND issue_number = ?",
+            (org, repo, issue_number),
+        )
+        console.log(f"[D1] Removed mentor assignment: {org}/{repo}#{issue_number}")
+    except Exception as exc:
+        console.error(f"[D1] Failed to remove mentor assignment: {exc}")
+
+
+async def _d1_get_mentor_loads(db, org: str) -> dict:
+    """Return a mapping of mentor_login → active assignment count from D1."""
+    try:
+        rows = await _d1_all(
+            db,
+            """
+            SELECT mentor_login, COUNT(*) as cnt
+            FROM mentor_assignments
+            WHERE org = ?
+            GROUP BY mentor_login
+            """,
+            (org,),
+        )
+        return {
+            row["mentor_login"]: int(row.get("cnt") or 0)
+            for row in rows
+            if row.get("mentor_login")
+        }
+    except Exception as exc:
+        console.error(f"[D1] Failed to get mentor loads: {exc}")
+        return {}
 
 
 async def _d1_inc_open_pr(db, org: str, user_login: str, delta: int) -> None:
@@ -2156,12 +2227,66 @@ def _load_mentors_local(path: str = _MENTORS_YML_PATH) -> list:
     return []
 
 
-async def _get_mentor_load_map(owner: str, token: str) -> dict:
+async def _fetch_mentor_stats_from_d1(env, org: str) -> dict:
+    """Return per-mentor all-time PR/review totals from D1 for homepage display.
+
+    Aggregates ``leaderboard_monthly_stats`` across all months for each user.
+    Returns a mapping of ``github_username → {"merged_prs": int, "reviews": int}``.
+    Returns ``{}`` when D1 is unavailable or the query fails.
+    """
+    db = _d1_binding(env)
+    if not db:
+        console.log("[MentorPool] No D1 binding available for mentor stats; stats will be hidden")
+        return {}
+    try:
+        await _ensure_leaderboard_schema(db)
+        rows = await _d1_all(
+            db,
+            """
+            SELECT user_login,
+                   COALESCE(SUM(merged_prs), 0) AS total_prs,
+                   COALESCE(SUM(reviews),    0) AS total_reviews
+            FROM leaderboard_monthly_stats
+            WHERE org = ?
+            GROUP BY user_login
+            """,
+            (org,),
+        )
+        return {
+            row["user_login"]: {
+                "merged_prs": int(row.get("total_prs") or 0),
+                "reviews": int(row.get("total_reviews") or 0),
+            }
+            for row in rows
+            if row.get("user_login")
+        }
+    except Exception as exc:
+        console.error(f"[MentorPool] Failed to fetch mentor stats from D1: {exc}")
+        return {}
+
+
+async def _get_mentor_load_map(owner: str, token: str, env=None) -> dict:
     """Return a mapping of mentor_username → open mentored issue count.
 
-    Uses the GitHub search API (with pagination) to count all currently
-    open issues labelled ``mentor-assigned`` per assignee.
+    Tries D1 first (``mentor_assignments`` table) when a D1 binding is
+    available; falls back to the GitHub Search API for compatibility with
+    environments where D1 is not configured.
     """
+    db = _d1_binding(env)
+    if db:
+        try:
+            await _ensure_leaderboard_schema(db)
+            d1_loads = await _d1_get_mentor_loads(db, owner)
+            # d1_loads is a dict (possibly empty when no assignments exist); always use
+            # D1 when available — an empty dict is a valid state (no active assignments).
+            console.log(f"[MentorPool] Using D1 mentor loads for {owner}: {len(d1_loads)} entries")
+            return d1_loads
+        except Exception as exc:
+            console.error(f"[MentorPool] D1 mentor load lookup failed, falling back to GitHub API: {exc}")
+
+    # ---------------------------------------------------------------------------
+    # Fallback: query GitHub Search API (original behaviour).
+    # ---------------------------------------------------------------------------
     # Limit pagination to avoid excessive subrequests.
     max_pages = 5
     per_page = 100
@@ -2210,13 +2335,14 @@ async def _select_mentor(
     issue_labels: Optional[list] = None,
     mentors_config: Optional[list] = None,
     exclude: Optional[str] = None,
+    env=None,
 ) -> Optional[dict]:
     """Select the best available mentor using capacity-aware round-robin.
 
     The algorithm:
     1. Filter to active mentors with a GitHub username (optionally excluding one).
     2. If the issue has labels that match any mentor's specialties, prefer those mentors.
-    3. Fetch the current load map (single API call).
+    3. Fetch the current load map (D1 if available, GitHub Search API otherwise).
     4. Skip mentors who are at or over their ``max_mentees`` cap.
     5. Return the mentor with the fewest active issues; break ties alphabetically.
 
@@ -2242,7 +2368,7 @@ async def _select_mentor(
         if specialty_matched:
             active = specialty_matched
 
-    load_map = await _get_mentor_load_map(owner, token)
+    load_map = await _get_mentor_load_map(owner, token, env=env)
 
     # Normalize load_map keys to lowercase: GitHub usernames are case-insensitive
     # but config entries and API responses may differ in casing.
@@ -2352,17 +2478,19 @@ async def _assign_mentor_to_issue(
     token: str,
     mentors_config: Optional[list] = None,
     exclude: Optional[str] = None,
+    env=None,
 ) -> bool:
     """Assign a mentor from the pool to an issue.
 
     Steps:
     1. Reject security-sensitive issues.
     2. Skip if the issue already has the ``mentor-assigned`` label.
-    3. Select a mentor via capacity-aware round-robin.
+    3. Select a mentor via capacity-aware round-robin (D1 load map preferred).
     4. Ensure the ``needs-mentor`` and ``mentor-assigned`` labels exist, then apply
        ``mentor-assigned`` to the issue.
     5. Add the mentor as a GitHub assignee.
     6. Post a welcome comment with a hidden ``blt-mentor-assigned`` marker.
+    7. Record the assignment in D1 ``mentor_assignments`` table.
 
     Returns ``True`` on success, ``False`` otherwise.
     """
@@ -2383,7 +2511,7 @@ async def _assign_mentor_to_issue(
 
     issue_label_names = [lb.get("name", "") for lb in issue.get("labels", [])]
     mentor = await _select_mentor(
-        owner, token, issue_label_names, mentors_config, exclude=exclude
+        owner, token, issue_label_names, mentors_config, exclude=exclude, env=env
     )
 
     if mentor is None:
@@ -2434,6 +2562,16 @@ async def _assign_mentor_to_issue(
     console.log(
         f"[MentorPool] Assigned @{mentor_username} as mentor for {owner}/{repo}#{issue_number}"
     )
+
+    # Record assignment in D1 so _get_mentor_load_map can use D1 instead of GitHub API.
+    db = _d1_binding(env)
+    if db:
+        try:
+            await _ensure_leaderboard_schema(db)
+            await _d1_record_mentor_assignment(db, owner, mentor_username, repo, issue_number)
+        except Exception as exc:
+            console.error(f"[MentorPool] Failed to record assignment in D1 (best-effort): {exc}")
+
     return True
 
 
@@ -2444,6 +2582,7 @@ async def handle_mentor_command(
     login: str,
     token: str,
     mentors_config: Optional[list] = None,
+    env=None,
 ) -> None:
     """Handle the ``/mentor`` slash command (contributor requests mentorship)."""
     issue_number = issue["number"]
@@ -2458,7 +2597,7 @@ async def handle_mentor_command(
             token,
         )
         return
-    await _assign_mentor_to_issue(owner, repo, issue, login, token, mentors_config)
+    await _assign_mentor_to_issue(owner, repo, issue, login, token, mentors_config, env=env)
 
 
 async def handle_mentor_pause(
@@ -2468,6 +2607,7 @@ async def handle_mentor_pause(
     login: str,
     token: str,
     mentors_config: Optional[list] = None,
+    env=None,
 ) -> None:
     """Handle the ``/mentor-pause`` slash command (mentor opts out of new assignments).
 
@@ -2511,6 +2651,7 @@ async def handle_mentor_handoff(
     login: str,
     token: str,
     mentors_config: Optional[list] = None,
+    env=None,
 ) -> None:
     """Handle the ``/handoff`` slash command (mentor transfers mentorship to a new mentor)."""
     issue_number = issue["number"]
@@ -2581,7 +2722,7 @@ async def handle_mentor_handoff(
     # Select and assign the replacement mentor BEFORE removing current state so
     # that if no mentor is available the issue is not left in an unmentored state.
     assigned = await _assign_mentor_to_issue(
-        owner, repo, updated_issue, contributor or "", token, pool, exclude=login
+        owner, repo, updated_issue, contributor or "", token, pool, exclude=login, env=env
     )
     if not assigned:
         await create_comment(
@@ -2609,6 +2750,7 @@ async def handle_mentor_rematch(
     login: str,
     token: str,
     mentors_config: Optional[list] = None,
+    env=None,
 ) -> None:
     """Handle the ``/rematch`` slash command (contributor requests a different mentor)."""
     issue_number = issue["number"]
@@ -2649,6 +2791,7 @@ async def handle_mentor_rematch(
         token,
         pool,
         exclude=current_mentor,
+        env=env,
     )
     if not assigned:
         # _assign_mentor_to_issue already posted a "no mentor available" comment.
@@ -2825,13 +2968,13 @@ async def handle_issue_comment(payload: dict, token: str, env=None) -> None:
             mentors_config = []
 
         if command == MENTOR_COMMAND:
-            await handle_mentor_command(owner, repo, issue, login, token, mentors_config)
+            await handle_mentor_command(owner, repo, issue, login, token, mentors_config, env=env)
         elif command == MENTOR_PAUSE_COMMAND:
-            await handle_mentor_pause(owner, repo, issue, login, token, mentors_config)
+            await handle_mentor_pause(owner, repo, issue, login, token, mentors_config, env=env)
         elif command == HANDOFF_COMMAND:
-            await handle_mentor_handoff(owner, repo, issue, login, token, mentors_config)
+            await handle_mentor_handoff(owner, repo, issue, login, token, mentors_config, env=env)
         elif command == REMATCH_COMMAND:
-            await handle_mentor_rematch(owner, repo, issue, login, token, mentors_config)
+            await handle_mentor_rematch(owner, repo, issue, login, token, mentors_config, env=env)
 
 
 async def _assign(
@@ -2953,7 +3096,7 @@ async def handle_issue_opened(
 
 
 async def handle_issue_labeled(
-    payload: dict, token: str, blt_api_url: str
+    payload: dict, token: str, blt_api_url: str, env=None
 ) -> None:
     issue = payload["issue"]
     label = payload.get("label") or {}
@@ -2976,7 +3119,7 @@ async def handle_issue_labeled(
             console.error(f"[MentorPool] Failed to fetch mentors config on label event: {exc}")
             mentors_config = []
         await _assign_mentor_to_issue(
-            owner, repo, issue, contributor_login, token, mentors_config
+            owner, repo, issue, contributor_login, token, mentors_config, env=env
         )
         return
 
@@ -3791,7 +3934,7 @@ async def handle_webhook(request, env) -> Response:
             if action == "opened":
                 await handle_issue_opened(payload, token, blt_api_url)
             elif action == "labeled":
-                await handle_issue_labeled(payload, token, blt_api_url)
+                await handle_issue_labeled(payload, token, blt_api_url, env=env)
         elif event == "pull_request":
             if action == "opened":
                 await handle_pull_request_opened(payload, token, env)
@@ -3940,8 +4083,14 @@ def _callback_html() -> str:
     return _CALLBACK_HTML
 
 
-def _generate_mentor_row(mentor: dict) -> str:
-    """Generate HTML for a single mentor list row."""
+def _generate_mentor_row(mentor: dict, stats: Optional[dict] = None) -> str:
+    """Generate HTML for a single mentor list row.
+
+    Args:
+        mentor: Mentor entry from ``src/mentors.yml``.
+        stats:  Optional dict with ``merged_prs`` and ``reviews`` keys from D1.
+                When provided, totals are shown on the card.
+    """
     name = _html_mod.escape(mentor.get("name", "Unknown"))
     github = mentor.get("github_username", "")
     specialties = mentor.get("specialties", [])
@@ -3978,12 +4127,38 @@ def _generate_mentor_row(mentor: dict) -> str:
 
     tz_cell = f'<span class="text-xs text-gray-500">{_html_mod.escape(timezone)}</span>' if timezone else '<span class="text-xs text-gray-400">—</span>'
 
+    # Stats cells — shown when D1 data is available.
+    if stats:
+        merged_prs = int(stats.get("merged_prs") or 0)
+        reviews = int(stats.get("reviews") or 0)
+        stats_desktop = (
+            f'<div class="text-center">'
+            f'  <p class="text-xs text-gray-400 leading-none">PRs</p>'
+            f'  <p class="text-sm font-semibold text-gray-700">{merged_prs}</p>'
+            f'</div>'
+            f'<div class="text-center">'
+            f'  <p class="text-xs text-gray-400 leading-none">Reviews</p>'
+            f'  <p class="text-sm font-semibold text-gray-700">{reviews}</p>'
+            f'</div>'
+        )
+        stats_mobile = (
+            f'<span class="text-xs text-gray-500">'
+            f'<i class="fa-solid fa-code-pull-request text-gray-400" aria-hidden="true"></i> {merged_prs} PRs</span>'
+            f'<span class="text-xs text-gray-500">'
+            f'<i class="fa-solid fa-magnifying-glass-chart text-gray-400" aria-hidden="true"></i> {reviews} reviews</span>'
+        )
+        desktop_cols = "sm:grid-cols-[1fr_auto_auto_auto_auto_auto_auto]"
+    else:
+        stats_desktop = ""
+        stats_mobile = ""
+        desktop_cols = "sm:grid-cols-[1fr_auto_auto_auto_auto]"
+
     return f'''
     <li class="flex items-start gap-3 rounded-xl border border-[#E5E5E5] bg-white px-4 py-3 transition hover:shadow-sm sm:items-center sm:gap-4">
       <img src="{avatar_url}" alt="{name}" class="mt-0.5 h-9 w-9 shrink-0 rounded-full border border-[#E5E5E5] bg-white object-cover sm:mt-0 sm:h-10 sm:w-10">
       <div class="min-w-0 flex-1">
         <!-- Desktop: grid layout with separate columns -->
-        <div class="hidden sm:grid sm:grid-cols-[1fr_auto_auto_auto_auto] sm:items-center sm:gap-4">
+        <div class="hidden sm:grid {desktop_cols} sm:items-center sm:gap-4">
           <div class="min-w-0">
             <p class="truncate font-semibold text-[#111827] text-sm">{name}</p>
             <div class="mt-0.5 flex flex-wrap gap-1">{specialty_chips}</div>
@@ -3993,6 +4168,7 @@ def _generate_mentor_row(mentor: dict) -> str:
             <p class="text-xs text-gray-400 leading-none">Cap</p>
             <p class="text-sm font-semibold text-gray-700">{max_mentees}</p>
           </div>
+          {stats_desktop}
           <div>{tz_cell}</div>
           <div>{github_link}</div>
         </div>
@@ -4006,6 +4182,7 @@ def _generate_mentor_row(mentor: dict) -> str:
           <div class="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
             {status_badge}
             <span class="text-xs text-gray-500">Cap: {max_mentees}</span>
+            {stats_mobile}
             {tz_cell}
           </div>
         </div>
@@ -4024,20 +4201,30 @@ def _build_referral_leaderboard(mentors: list) -> list:
     return sorted(counts.items(), key=lambda x: x[1], reverse=True)
 
 
-def _index_html(mentors: list = None) -> str:
+def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None) -> str:
     """Generate the BLT-Pool mentor directory homepage.
 
     Args:
-        mentors: Mentor list loaded from ``src/mentors.yml``.
-                 Defaults to an empty list when omitted or ``None``.
+        mentors:      Mentor list loaded from ``src/mentors.yml``.
+                      Defaults to an empty list when omitted or ``None``.
+        mentor_stats: Optional mapping of ``github_username → {"merged_prs", "reviews"}``
+                      from D1, used to show activity stats on each mentor card.
+                      When ``None`` or empty, stats columns are hidden.
     """
     if mentors is None:
         mentors = []
+    if mentor_stats is None:
+        mentor_stats = {}
+    # Normalize mentor_stats keys to lowercase for case-insensitive lookup.
+    mentor_stats_lower = {k.lower(): v for k, v in mentor_stats.items()}
     year = time.gmtime().tm_year
     mentor_count = len(mentors)
     available_count = len([m for m in mentors if m.get("active", True) and m.get("status", "available") == "available"])
 
-    mentor_rows_html = "\n".join(_generate_mentor_row(m) for m in mentors)
+    mentor_rows_html = "\n".join(
+        _generate_mentor_row(m, mentor_stats_lower.get(m.get("github_username", "").lower()))
+        for m in mentors
+    )
 
     leaderboard_rows = _build_referral_leaderboard(mentors)
     if leaderboard_rows:
@@ -4426,7 +4613,15 @@ async def on_fetch(request, env) -> Response:
         # This avoids any network calls and API rate limits — the file is
         # committed alongside the worker source and kept in sync by the
         # add-mentor-from-issue workflow.
-        return _html(_index_html(_load_mentors_local()))
+        mentors = _load_mentors_local()
+        # Fetch per-mentor activity stats from D1 (best-effort; no stats if D1 unavailable).
+        org = getattr(env, "GITHUB_ORG", "OWASP-BLT")
+        mentor_stats: dict = {}
+        try:
+            mentor_stats = await _fetch_mentor_stats_from_d1(env, org)
+        except Exception as exc:
+            console.error(f"[MentorPool] Failed to fetch mentor stats for homepage: {exc}")
+        return _html(_index_html(mentors, mentor_stats))
 
     if method == "GET" and path == "/github-app":
         app_slug = getattr(env, "GITHUB_APP_SLUG", "")

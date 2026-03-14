@@ -1703,6 +1703,116 @@ class TestTrackingOperations(unittest.TestCase):
 # ---------------------------------------------------------------------------
 
 
+class TestD1MentorAssignments(unittest.TestCase):
+    """Test D1 mentor assignment tracking helpers."""
+
+    def _make_mock_db(self):
+        mock_db = MagicMock()
+        stmt = AsyncMock()
+        stmt.bind = MagicMock(return_value=stmt)
+        stmt.run = AsyncMock(return_value={"results": []})
+        stmt.all = AsyncMock(return_value={"results": []})
+        mock_db.prepare = MagicMock(return_value=stmt)
+        return mock_db, stmt
+
+    def test_record_mentor_assignment_calls_d1(self):
+        """_d1_record_mentor_assignment upserts a row into mentor_assignments."""
+        mock_db, stmt = self._make_mock_db()
+
+        async def _inner():
+            with patch.object(
+                _worker, "console",
+                new=types.SimpleNamespace(log=lambda *a: None, error=lambda *a: None),
+            ):
+                await _worker._d1_record_mentor_assignment(mock_db, "org", "alice", "repo", 42)
+        _run(_inner())
+        mock_db.prepare.assert_called()
+
+    def test_remove_mentor_assignment_calls_d1(self):
+        """_d1_remove_mentor_assignment deletes the row from mentor_assignments."""
+        mock_db, stmt = self._make_mock_db()
+
+        async def _inner():
+            with patch.object(
+                _worker, "console",
+                new=types.SimpleNamespace(log=lambda *a: None, error=lambda *a: None),
+            ):
+                await _worker._d1_remove_mentor_assignment(mock_db, "org", "repo", 42)
+        _run(_inner())
+        mock_db.prepare.assert_called()
+
+    def test_get_mentor_loads_returns_dict(self):
+        """_d1_get_mentor_loads aggregates assignment counts per mentor."""
+        mock_db, stmt = self._make_mock_db()
+        stmt.all = AsyncMock(return_value={
+            "results": [
+                {"mentor_login": "alice", "cnt": 2},
+                {"mentor_login": "bob", "cnt": 1},
+            ]
+        })
+
+        async def _inner():
+            with patch.object(
+                _worker, "console",
+                new=types.SimpleNamespace(log=lambda *a: None, error=lambda *a: None),
+            ):
+                return await _worker._d1_get_mentor_loads(mock_db, "org")
+        result = _run(_inner())
+        self.assertEqual(result, {"alice": 2, "bob": 1})
+
+    def test_get_mentor_loads_empty_when_no_rows(self):
+        """_d1_get_mentor_loads returns {} when there are no assignments."""
+        mock_db, stmt = self._make_mock_db()
+        stmt.all = AsyncMock(return_value={"results": []})
+
+        async def _inner():
+            with patch.object(
+                _worker, "console",
+                new=types.SimpleNamespace(log=lambda *a: None, error=lambda *a: None),
+            ):
+                return await _worker._d1_get_mentor_loads(mock_db, "org")
+        result = _run(_inner())
+        self.assertEqual(result, {})
+
+    def test_fetch_mentor_stats_returns_dict(self):
+        """_fetch_mentor_stats_from_d1 aggregates PRs and reviews per mentor."""
+        mock_db, stmt = self._make_mock_db()
+        stmt.all = AsyncMock(return_value={
+            "results": [
+                {"user_login": "alice", "total_prs": 5, "total_reviews": 3},
+                {"user_login": "bob", "total_prs": 2, "total_reviews": 10},
+            ]
+        })
+        env = types.SimpleNamespace(LEADERBOARD_DB=mock_db)
+
+        async def _inner():
+            with patch.object(_worker, "_d1_binding", return_value=mock_db):
+                with patch.object(_worker, "_ensure_leaderboard_schema", return_value=None):
+                    with patch.object(
+                        _worker, "console",
+                        new=types.SimpleNamespace(log=lambda *a: None, error=lambda *a: None),
+                    ):
+                        return await _worker._fetch_mentor_stats_from_d1(env, "OWASP-BLT")
+        result = _run(_inner())
+        self.assertIn("alice", result)
+        self.assertEqual(result["alice"]["merged_prs"], 5)
+        self.assertEqual(result["alice"]["reviews"], 3)
+        self.assertEqual(result["bob"]["merged_prs"], 2)
+
+    def test_fetch_mentor_stats_returns_empty_when_no_d1(self):
+        """_fetch_mentor_stats_from_d1 returns {} when no D1 binding is configured."""
+        env = types.SimpleNamespace()  # no LEADERBOARD_DB
+
+        async def _inner():
+            with patch.object(
+                _worker, "console",
+                new=types.SimpleNamespace(log=lambda *a: None, error=lambda *a: None),
+            ):
+                return await _worker._fetch_mentor_stats_from_d1(env, "OWASP-BLT")
+        result = _run(_inner())
+        self.assertEqual(result, {})
+
+
 class TestBackfillRepoMonthIdempotency(unittest.TestCase):
     """Test that _backfill_repo_month_if_needed skips PRs already tracked via webhooks."""
 
@@ -4159,6 +4269,29 @@ class TestGenerateMentorRow(unittest.TestCase):
         html = _worker._generate_mentor_row(self._make_mentor(specialties=[]))
         self.assertIn("—", html)
 
+    def test_stats_prs_shown_when_provided(self):
+        html = _worker._generate_mentor_row(
+            self._make_mentor(), stats={"merged_prs": 42, "reviews": 7}
+        )
+        self.assertIn("42", html)
+        self.assertIn("7", html)
+        self.assertIn("PRs", html)
+        self.assertIn("Reviews", html)
+
+    def test_stats_not_shown_when_none(self):
+        html = _worker._generate_mentor_row(self._make_mentor(), stats=None)
+        # Should not contain PR/review stat headings when stats are absent
+        self.assertNotIn("Reviews", html)
+        self.assertNotIn("PRs", html)
+
+    def test_stats_zero_values_shown(self):
+        html = _worker._generate_mentor_row(
+            self._make_mentor(), stats={"merged_prs": 0, "reviews": 0}
+        )
+        # Zero stats are still displayed when the stats dict is provided
+        self.assertIn("PRs", html)
+        self.assertIn("Reviews", html)
+
 
 class TestIndexHtml(unittest.TestCase):
     """_index_html — homepage HTML generation."""
@@ -4199,6 +4332,19 @@ class TestIndexHtml(unittest.TestCase):
         html = _worker._index_html([])
         self.assertIn("<!DOCTYPE html>", html)
         self.assertNotIn("None", html)
+
+    def test_mentor_stats_shown_when_provided(self):
+        mentors = [{"name": "Alice", "github_username": "alice", "active": True, "status": "available"}]
+        stats = {"alice": {"merged_prs": 8, "reviews": 15}}
+        html = _worker._index_html(mentors, mentor_stats=stats)
+        self.assertIn("8", html)
+        self.assertIn("15", html)
+
+    def test_mentor_stats_not_shown_when_empty(self):
+        mentors = [{"name": "Alice", "github_username": "alice", "active": True, "status": "available"}]
+        html = _worker._index_html(mentors, mentor_stats={})
+        # Stats headings should not appear when no stats are provided
+        self.assertNotIn("Reviews", html)
 
 
 class TestGhHeaders(unittest.TestCase):
@@ -4352,10 +4498,13 @@ class TestOnFetchHomepage(unittest.TestCase):
                 _worker, "_load_mentors_local", return_value=fake_mentors
             ):
                 with patch.object(
-                    _worker, "console",
-                    new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None),
+                    _worker, "_fetch_mentor_stats_from_d1", return_value={}
                 ):
-                    resp = await _worker.on_fetch(req, env)
+                    with patch.object(
+                        _worker, "console",
+                        new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None),
+                    ):
+                        resp = await _worker.on_fetch(req, env)
             self.assertIn("Alice", resp.body)
             self.assertIn("Bob", resp.body)
 
@@ -4372,10 +4521,13 @@ class TestOnFetchHomepage(unittest.TestCase):
                 _worker, "_load_mentors_local", return_value=fake_mentors
             ):
                 with patch.object(
-                    _worker, "console",
-                    new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None),
+                    _worker, "_fetch_mentor_stats_from_d1", return_value={}
                 ):
-                    resp = await _worker.on_fetch(req, env)
+                    with patch.object(
+                        _worker, "console",
+                        new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None),
+                    ):
+                        resp = await _worker.on_fetch(req, env)
             self.assertIn("Carol", resp.body)
             self.assertEqual(resp.status, 200)
 
@@ -4390,12 +4542,39 @@ class TestOnFetchHomepage(unittest.TestCase):
                 _worker, "_load_mentors_local", return_value=[]
             ):
                 with patch.object(
-                    _worker, "console",
-                    new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None),
+                    _worker, "_fetch_mentor_stats_from_d1", return_value={}
                 ):
-                    resp = await _worker.on_fetch(req, env)
+                    with patch.object(
+                        _worker, "console",
+                        new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None),
+                    ):
+                        resp = await _worker.on_fetch(req, env)
             self.assertIn("<!DOCTYPE html>", resp.body)
             self.assertEqual(resp.status, 200)
+
+        _run(_inner())
+
+    def test_homepage_shows_stats_when_d1_available(self):
+        """Mentor cards display PRs/reviews when D1 stats are returned."""
+        fake_mentors = [{"name": "Dave", "github_username": "dave", "active": True}]
+        fake_stats = {"dave": {"merged_prs": 12, "reviews": 5}}
+
+        async def _inner():
+            env = types.SimpleNamespace()
+            req = self._make_get_request("/")
+            with patch.object(
+                _worker, "_load_mentors_local", return_value=fake_mentors
+            ):
+                with patch.object(
+                    _worker, "_fetch_mentor_stats_from_d1", return_value=fake_stats
+                ):
+                    with patch.object(
+                        _worker, "console",
+                        new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None),
+                    ):
+                        resp = await _worker.on_fetch(req, env)
+            self.assertIn("12", resp.body)
+            self.assertIn("5", resp.body)
 
         _run(_inner())
 
