@@ -6,8 +6,8 @@
   <title>OWASP BLT – Bug Logging Tool</title>
   <meta name="description" content="Report bugs, secure the web, and win points with OWASP BLT – the community-driven bug logging tool." />
 
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Tailwind CSS CDN (pinned to v3.4.3) -->
+  <script src="https://cdn.tailwindcss.com/3.4.3"></script>
   <script>
     tailwind.config = {
       darkMode: 'class',
@@ -92,6 +92,7 @@
 
       <!-- Mobile menu toggle (accessible) -->
       <button id="mobile-menu-btn"
+              type="button"
               class="md:hidden p-2 rounded-md text-gray-600 hover:text-[#E10101] hover:bg-[#feeae9] transition-colors"
               aria-expanded="false" aria-controls="mobile-menu"
               aria-label="Toggle navigation">
@@ -393,20 +394,20 @@
                 <span class="text-white text-xs font-bold">Report a Bug</span>
               </div>
               <div class="space-y-2">
-                <label class="text-gray-400 text-[10px] font-medium uppercase tracking-wide">URL</label>
+                <p class="text-gray-400 text-[10px] font-medium uppercase tracking-wide">URL</p>
                 <div class="bg-[#111827] border border-gray-600 rounded px-2 py-1.5 flex items-center gap-1">
                   <i class="fa-solid fa-link text-gray-500 text-xs" aria-hidden="true"></i>
                   <span class="text-gray-400 text-xs">https://</span>
                 </div>
               </div>
               <div class="space-y-2">
-                <label class="text-gray-400 text-[10px] font-medium uppercase tracking-wide">Description</label>
+                <p class="text-gray-400 text-[10px] font-medium uppercase tracking-wide">Description</p>
                 <div class="bg-[#111827] border border-gray-600 rounded px-2 py-1.5 h-14">
                   <span class="text-gray-500 text-xs">Describe the bug…</span>
                 </div>
               </div>
               <div class="space-y-2">
-                <label class="text-gray-400 text-[10px] font-medium uppercase tracking-wide">Screenshot</label>
+                <p class="text-gray-400 text-[10px] font-medium uppercase tracking-wide">Screenshot</p>
                 <div class="bg-[#111827] border border-dashed border-gray-600 rounded flex items-center justify-center h-12">
                   <i class="fa-solid fa-camera text-gray-600 text-sm" aria-hidden="true"></i>
                 </div>
