@@ -2,7 +2,7 @@ name: Create Hackathon from Issue
 
 on:
   issues:
-    types: [opened, reopened]
+    types: [opened, reopened, labeled]
 
 permissions:
   contents: write
@@ -14,6 +14,28 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Add eyes reaction
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.reactions.createForIssue({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.issue.number,
+              content: 'eyes'
+            });
+
+      - name: Comment that hackathon is being added
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.issue.number,
+              body: '👀 Your hackathon request has been received and is being processed. We\'ll update this issue once it\'s been added to the platform.'
+            });
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
