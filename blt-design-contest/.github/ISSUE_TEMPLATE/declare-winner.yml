@@ -1,5 +1,5 @@
 name: "🏆 Declare Contest Winner"
-description: "Propose a winner for a design contest. Awaits /approve from a repository owner."
+description: "Propose a winner for a design contest. Awaits /approve from the contest creator."
 title: "[Winner] "
 labels: ["winner-announcement"]
 body:
@@ -9,8 +9,8 @@ body:
         ## 🏆 Declare a Contest Winner
 
         Fill in the details below to propose a winner for one of the BLT Design Contests.
-        Once this issue is submitted, a **repository owner** must comment `/approve` on it
-        to confirm the selection.
+        Once this issue is submitted, the **creator of that contest** must comment `/approve`
+        on it to confirm the selection.
 
         On approval the `winner` label will be applied to the winning submission and the
         showcase pages will be rebuilt automatically to highlight the design.
@@ -49,6 +49,6 @@ body:
     attributes:
       value: |
         ---
-        ⏳ **Awaiting Approval** — a repository owner must comment `/approve` on this
+        ⏳ **Awaiting Approval** — the creator of this contest must comment `/approve` on this
         issue to apply the `winner` label to the submission and trigger a rebuild of
         the showcase pages.

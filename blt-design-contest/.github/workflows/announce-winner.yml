@@ -1,8 +1,10 @@
 name: Announce Contest Winner
 
-# Triggered whenever someone comments on an issue.
-# The real work only runs when the comment is "/approve" on a winner-announcement issue.
+# Triggered when a winner-announcement issue is opened (to react + notify),
+# and when someone comments on an issue (to process /approve).
 on:
+  issues:
+    types: [opened]
   issue_comment:
     types: [created]
 
@@ -10,11 +12,75 @@ permissions:
   issues: write   # needed to add labels, post comments, and close issues
 
 jobs:
+  # ── Job 1: React with 👀 and post a note when a winner announcement is opened ──
+  greet-winner-announcement:
+    name: React and comment on new winner announcement
+    runs-on: ubuntu-latest
+    if: >
+      github.event_name == 'issues' &&
+      github.event.action == 'opened' &&
+      contains(github.event.issue.labels.*.name, 'winner-announcement')
+
+    steps:
+      - name: Add eyes reaction and post approval note
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const owner       = context.repo.owner;
+            const repo        = context.repo.repo;
+            const issueNumber = context.issue.number;
+
+            // ── Determine the authorized approver for this contest ─────────────
+            const contestApprovers = {
+              'blt-tshirt':   'DonnieBLT',
+              'blt-logo':     'DonnieBLT',
+              'blt-homepage': 'DonnieBLT',
+            };
+
+            const body = context.payload.issue.body || '';
+            function parseFormField(text, fieldName) {
+              const escaped = fieldName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+              const re = new RegExp(`### ${escaped}\\s*\\n+([\\s\\S]*?)(?=\\n###|$)`, 'i');
+              const m  = text.match(re);
+              return m ? m[1].trim() : null;
+            }
+
+            const contestField = parseFormField(body, 'Contest');
+            let approver = 'DonnieBLT'; // default fallback
+            if (contestField) {
+              for (const [slug, user] of Object.entries(contestApprovers)) {
+                if (contestField.toLowerCase().includes(slug)) {
+                  approver = user;
+                  break;
+                }
+              }
+            }
+
+            // ── Add 👀 reaction to the issue ──────────────────────────────────
+            await github.rest.reactions.createForIssue({
+              owner, repo, issue_number: issueNumber,
+              content: 'eyes',
+            });
+
+            // ── Post a note — this comment does NOT start with /approve ────────
+            await github.rest.issues.createComment({
+              owner, repo, issue_number: issueNumber,
+              body: [
+                `👀 This winner announcement is awaiting approval.`,
+                ``,
+                `@${approver} (creator of this contest) must comment \`/approve\` on this issue to confirm the winner.`,
+              ].join('\n'),
+            });
+
+            console.log(`Greeted winner announcement #${issueNumber}; approver: ${approver}`);
+
+  # ── Job 2: Process /approve command ───────────────────────────────────────────
   approve-winner:
     name: Process /approve command
     runs-on: ubuntu-latest
     # Skip pull-request comments — only handle issue comments
-    if: github.event.issue.pull_request == null
+    if: github.event_name == 'issue_comment' && github.event.issue.pull_request == null
 
     steps:
       - name: Process winner approval
@@ -41,17 +107,7 @@ jobs:
               return;
             }
 
-            // ── 3. Commenter must be the repository owner ─────────────────────
-            if (commenter !== owner) {
-              await github.rest.issues.createComment({
-                owner, repo, issue_number: issueNumber,
-                body: `❌ Only the repository owner (@${owner}) can approve a winner announcement.`,
-              });
-              console.log(`Rejected: ${commenter} is not the repo owner.`);
-              return;
-            }
-
-            // ── 4. Parse the structured issue body ────────────────────────────
+            // ── 3. Parse the structured issue body ────────────────────────────
             const body = context.payload.issue.body || '';
 
             function parseFormField(text, fieldName) {
@@ -65,6 +121,34 @@ jobs:
             const contestField     = parseFormField(body, 'Contest');
             const winnerUsername   = parseFormField(body, "Winner's GitHub Username");
             const winningIssueStr  = parseFormField(body, 'Winning Submission Issue Number');
+
+            // ── 4. Determine the authorized approver for this contest ──────────
+            // Each contest maps to the GitHub login of the person who created it.
+            const contestApprovers = {
+              'blt-tshirt':   'DonnieBLT',
+              'blt-logo':     'DonnieBLT',
+              'blt-homepage': 'DonnieBLT',
+            };
+
+            let authorizedApprover = 'DonnieBLT'; // default fallback
+            if (contestField) {
+              for (const [slug, user] of Object.entries(contestApprovers)) {
+                if (contestField.toLowerCase().includes(slug)) {
+                  authorizedApprover = user;
+                  break;
+                }
+              }
+            }
+
+            // ── 5. Commenter must be the authorized contest creator ────────────
+            if (commenter !== authorizedApprover) {
+              await github.rest.issues.createComment({
+                owner, repo, issue_number: issueNumber,
+                body: `❌ Only @${authorizedApprover} (the creator of this contest) can approve this winner announcement.`,
+              });
+              console.log(`Rejected: ${commenter} is not the authorized approver (${authorizedApprover}).`);
+              return;
+            }
 
             if (!contestField || !winnerUsername || !winningIssueStr) {
               await github.rest.issues.createComment({
@@ -83,7 +167,7 @@ jobs:
               return;
             }
 
-            // ── 5. Verify the winning submission issue exists ─────────────────
+            // ── 6. Verify the winning submission issue exists ─────────────────
             let winningIssue;
             try {
               const resp = await github.rest.issues.get({
@@ -98,7 +182,7 @@ jobs:
               return;
             }
 
-            // ── 6. Ensure the "winner" label exists in the repo ───────────────
+            // ── 7. Ensure the "winner" label exists in the repo ───────────────
             try {
               await github.rest.issues.getLabel({ owner, repo, name: 'winner' });
             } catch (e) {
@@ -115,7 +199,7 @@ jobs:
               }
             }
 
-            // ── 7. Apply the winner label to the winning submission ───────────
+            // ── 8. Apply the winner label to the winning submission ───────────
             await github.rest.issues.addLabels({
               owner, repo,
               issue_number: winningIssueNum,
@@ -123,7 +207,7 @@ jobs:
             });
             console.log(`Applied "winner" label to issue #${winningIssueNum}.`);
 
-            // ── 8. Post a success comment on the announcement issue ───────────
+            // ── 9. Post a success comment on the announcement issue ───────────
             await github.rest.issues.createComment({
               owner, repo, issue_number: issueNumber,
               body: [
@@ -136,7 +220,7 @@ jobs:
               ].join('\n'),
             });
 
-            // ── 9. Close the announcement issue as completed ──────────────────
+            // ── 10. Close the announcement issue as completed ─────────────────
             await github.rest.issues.update({
               owner, repo,
               issue_number: issueNumber,
