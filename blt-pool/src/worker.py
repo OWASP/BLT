@@ -2052,10 +2052,10 @@ def _parse_github_timestamp(ts_str: str) -> int:
 
 def _avatar_img_tag(login: str, size: int = 20) -> str:
     """Return a fixed-size GitHub avatar image tag safe for markdown tables."""
+    safe_login = quote(str(login), safe="")
     return (
-        f"<img src=\"https://github.com/{login}.png?size={size}\" "
-        f"width=\"{size}\" height=\"{size}\" alt=\"{login}\" "
-        "style=\"border-radius:50%;vertical-align:middle;\" />"
+        f"<img src=\"https://avatars.githubusercontent.com/{safe_login}?size={size}&v=4\" "
+        f"width=\"{size}\" height=\"{size}\" alt=\"{login}\" />"
     )
 
 

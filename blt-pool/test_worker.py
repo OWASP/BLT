@@ -966,7 +966,7 @@ class TestFormatLeaderboardComment(unittest.TestCase):
 
         result = _format_leaderboard_comment("alice", leaderboard_data, "test-org")
 
-        self.assertIn("<img src=\"https://github.com/alice.png?size=20\"", result)
+        self.assertIn("<img src=\"https://avatars.githubusercontent.com/alice?size=20&v=4\"", result)
         self.assertIn("width=\"20\"", result)
         self.assertIn("height=\"20\"", result)
 
@@ -1360,7 +1360,7 @@ class TestPostMergedPrCombinedComment(unittest.TestCase):
         posted, deleted = [], []
         self._run(self._make_leaderboard_data(), "alice", [], posted, deleted)
         # Avatars should be present as inline images
-        self.assertIn("https://github.com/alice.png", posted[0])
+        self.assertIn("https://avatars.githubusercontent.com/alice?size=20&v=4", posted[0])
 
     def test_shows_top_five_when_author_not_in_leaderboard(self):
         data = {
