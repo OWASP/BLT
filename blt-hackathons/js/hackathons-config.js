@@ -95,6 +95,69 @@ display: {
             bannerImage: "images/How-do-hackathons-work-1024x576.png"
         },
         {
+            // Unique identifier for URL (no spaces, lowercase recommended)
+            slug: "blt-mentor-warmup",
+            
+            // Basic Information
+            name: "BLT Mentor Warmup",
+            description: `BLT Mentor Warmup - A dedicated hackathon for OWASP BLT mentors to lead by example and contribute to the organization's projects.`,
+            organizer: "OWASP BLT",
+            
+            // Optional rules section
+            rules: `
+                1. All pull requests must be submitted during the hackathon period (Nov 01, 2025 - May 09, 2026)
+                2. PRs must be merged to count towards the leaderboard
+                3. All repositories in the BLT organization are eligible
+                4. Be respectful and follow each project's contribution guidelines
+                5. Have fun and lead by example!
+            `,
+            
+            // Hackathon Timeline (ISO 8601 format)
+            startTime: "2025-11-01T00:00:00Z",
+            endTime: "2026-05-09T23:59:59Z",
+            
+            // GitHub Configuration
+            github: {
+                token: "",
+                
+                // Organization field - all repos in this org will be tracked
+                organization: "OWASP-BLT",
+                // Fallback repositories in case organization fetch fails
+                repositories: [
+                    "OWASP-BLT/BLT",
+                    "OWASP-BLT/BLT-Extension",
+                    "OWASP-BLT/BLT-Rewards",
+                    "OWASP-BLT/BLT-Action",
+                    "OWASP-BLT/BLT-Flutter",
+                    "OWASP-BLT/BLT-Lettuce",
+                    "OWASP-BLT/BLT-Raven"
+                ]
+            },
+            
+            // Prizes Configuration
+            prizes: [],
+            
+            // Sponsors Configuration (optional)
+            sponsors: [],
+            
+            // Display Options
+            display: {
+                showRepoStats: true,
+                maxLeaderboardEntries: Infinity,
+                showPRsInLeaderboard: true,
+                showReviewsInLeaderboard: true
+            },
+            
+            // Optional: path to a YAML file listing allowed participants.
+            // When set, only the listed GitHub usernames are counted as
+            // contributors (merged PRs leaderboard).  The review leaderboard
+            // remains open to everyone.
+            participantsFile: "hackathon-participants/blt-mentor-warmup.yml",
+            
+            // Banner image (optional)
+            bannerImage: "images/How-do-hackathons-work-1024x576.png"
+        },
+        {
             slug: "may-2025-hackathon",
             name: "May Hackathon $100 prize",
             description: `This hackathon will focus on only issues with the $5 bounty on them. The prize is $100 to the person with the most merged PRs within the time period.`,

@@ -1,0 +1,16 @@
+# Hackathon Participants Allowlist
+#
+# When this file is referenced by a hackathon's `participantsFile` config option,
+# only the GitHub usernames listed here will be counted in the contributors
+# leaderboard (merged PRs).
+#
+# Reviewers are NOT filtered by this list — anyone can appear on the review
+# leaderboard regardless of whether they are listed here.
+#
+# Usage: set `participantsFile: "hackathon-participants/my-hackathon.yml"`
+# in the hackathon entry inside js/hackathons-config.js.
+
+participants:
+  - example-user-1
+  - example-user-2
+  - example-user-3

@@ -22,6 +22,8 @@ from datetime import date, datetime, timedelta, timezone
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
+import yaml
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
@@ -117,6 +119,49 @@ def fetch_all_pages(base_url, token=None, max_pages=100):
     return all_items
 
 
+def load_participants_allowlist(participants_file):
+    """Load an optional YAML allowlist of permitted participant usernames.
+
+    Returns a set of lowercase usernames, or None if no file is specified.
+    Only participants (PR contributors) are filtered; reviewers remain open.
+    """
+    if not participants_file:
+        return None
+    if not os.path.exists(participants_file):
+        logger.warning("Participants file not found: %s — no filtering applied", participants_file)
+        return None
+    try:
+        with open(participants_file, "r", encoding="utf-8") as f:
+            data = yaml.safe_load(f)
+        if not isinstance(data, dict):
+            logger.warning(
+                "Participants file %s is malformed (expected a YAML mapping, got %s) "
+                "— no filtering applied",
+                participants_file, type(data).__name__,
+            )
+            return None
+        usernames = data.get("participants")
+        if usernames is None:
+            logger.warning(
+                "Participants file %s is missing the 'participants' key — no filtering applied",
+                participants_file,
+            )
+            return None
+        if not isinstance(usernames, list):
+            logger.warning(
+                "Participants file %s: 'participants' must be a list, got %s "
+                "— no filtering applied",
+                participants_file, type(usernames).__name__,
+            )
+            return None
+        allowlist = {str(u).lower() for u in usernames if u}
+        logger.info("Loaded %d allowed participant(s) from %s", len(allowlist), participants_file)
+        return allowlist
+    except Exception as exc:
+        logger.error("Failed to load participants file %s: %s", participants_file, exc)
+        return None
+
+
 def fetch_org_repos(org, token=None):
     """Fetch all public repositories for a GitHub organization."""
     logger.info("Fetching repositories for organization: %s", org)
@@ -203,8 +248,16 @@ def fetch_repo_metadata(owner, repo, token=None):
     return None
 
 
-def process_hackathon_stats(prs, all_reviews, issues, start_dt, end_dt, repositories):
-    """Process fetched data and compute hackathon statistics."""
+def process_hackathon_stats(prs, all_reviews, issues, start_dt, end_dt, repositories,
+                            allowed_participants=None):
+    """Process fetched data and compute hackathon statistics.
+
+    Args:
+        allowed_participants: Optional set of lowercase usernames.  When
+            provided, only these users are counted in the contributors
+            (merged-PR) leaderboard.  The review leaderboard is never
+            filtered — any reviewer counts regardless of this list.
+    """
     # Build daily activity map for the full date range
     daily_activity = {}
     current_date = start_dt.date()
@@ -256,7 +309,10 @@ def process_hackathon_stats(prs, all_reviews, issues, start_dt, end_dt, reposito
             daily_merged_prs[merged_date] = daily_merged_prs.get(merged_date, 0) + 1
 
         # Track participants (skip bots and Copilot)
+        # When an allowlist is active, also skip users not on the list.
         if not is_bot and not is_copilot:
+            if allowed_participants is not None and username.lower() not in allowed_participants:
+                continue
             if username not in participants:
                 participants[username] = {
                     "username": username,
@@ -378,6 +434,11 @@ def process_hackathon(hackathon_config, token, org_repos_cache=None):
     github_config = hackathon_config.get("github", {})
     organization = github_config.get("organization")
     explicit_repos = list(github_config.get("repositories", []))
+
+    # Optional participants allowlist: limits who counts as a contributor.
+    # Reviewers are always open to everyone.
+    participants_file = hackathon_config.get("participantsFile")
+    allowed_participants = load_participants_allowlist(participants_file)
 
     start_dt = datetime.fromisoformat(start_time.replace("Z", "+00:00"))
     end_dt = datetime.fromisoformat(end_time.replace("Z", "+00:00"))
@@ -594,7 +655,8 @@ def process_hackathon(hackathon_config, token, org_repos_cache=None):
 
     # Compute stats
     stats = process_hackathon_stats(
-        all_prs, all_reviews, all_issues, start_dt, end_dt, repositories
+        all_prs, all_reviews, all_issues, start_dt, end_dt, repositories,
+        allowed_participants=allowed_participants,
     )
     stats["repoData"] = repo_data
 
