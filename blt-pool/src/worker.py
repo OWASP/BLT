@@ -3829,20 +3829,36 @@ def _generate_mentor_row(mentor: dict) -> str:
     tz_cell = f'<span class="text-xs text-gray-500">{_html_mod.escape(timezone)}</span>' if timezone else '<span class="text-xs text-gray-400">—</span>'
 
     return f'''
-    <li class="flex items-center gap-4 rounded-xl border border-[#E5E5E5] bg-white px-4 py-3 transition hover:shadow-sm">
-      <img src="{avatar_url}" alt="{name}" class="h-10 w-10 shrink-0 rounded-full border border-[#E5E5E5] bg-white object-cover">
-      <div class="min-w-0 flex-1 grid grid-cols-1 gap-1 sm:grid-cols-[1fr_auto_auto_auto_auto] sm:items-center sm:gap-4">
-        <div class="min-w-0">
-          <p class="truncate font-semibold text-[#111827] text-sm">{name}</p>
+    <li class="flex items-start gap-3 rounded-xl border border-[#E5E5E5] bg-white px-4 py-3 transition hover:shadow-sm sm:items-center sm:gap-4">
+      <img src="{avatar_url}" alt="{name}" class="mt-0.5 h-9 w-9 shrink-0 rounded-full border border-[#E5E5E5] bg-white object-cover sm:mt-0 sm:h-10 sm:w-10">
+      <div class="min-w-0 flex-1">
+        <!-- Desktop: grid layout with separate columns -->
+        <div class="hidden sm:grid sm:grid-cols-[1fr_auto_auto_auto_auto] sm:items-center sm:gap-4">
+          <div class="min-w-0">
+            <p class="truncate font-semibold text-[#111827] text-sm">{name}</p>
+            <div class="mt-0.5 flex flex-wrap gap-1">{specialty_chips}</div>
+          </div>
+          <div>{status_badge}</div>
+          <div class="text-center">
+            <p class="text-xs text-gray-400 leading-none">Cap</p>
+            <p class="text-sm font-semibold text-gray-700">{max_mentees}</p>
+          </div>
+          <div>{tz_cell}</div>
+          <div>{github_link}</div>
+        </div>
+        <!-- Mobile: compact card layout -->
+        <div class="sm:hidden">
+          <div class="flex items-start justify-between gap-2">
+            <p class="truncate font-semibold text-[#111827] text-sm">{name}</p>
+            <div class="shrink-0">{github_link}</div>
+          </div>
           <div class="mt-0.5 flex flex-wrap gap-1">{specialty_chips}</div>
+          <div class="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
+            {status_badge}
+            <span class="text-xs text-gray-500">Cap: {max_mentees}</span>
+            {tz_cell}
+          </div>
         </div>
-        <div class="hidden sm:block">{status_badge}</div>
-        <div class="hidden sm:block text-center">
-          <p class="text-xs text-gray-400 leading-none">Cap</p>
-          <p class="text-sm font-semibold text-gray-700">{max_mentees}</p>
-        </div>
-        <div class="hidden sm:block">{tz_cell}</div>
-        <div>{github_link}</div>
       </div>
     </li>
     '''
@@ -3951,7 +3967,7 @@ def _index_html(mentors: list = None) -> str:
 <body class="min-h-screen font-sans text-gray-900 antialiased">
 
   <header class="sticky top-0 z-40 border-b border-[#E5E5E5] bg-white/90 backdrop-blur">
-    <div class="mx-auto flex w-full max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+    <div class="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-y-2 px-4 py-3 sm:flex-nowrap sm:py-4 sm:px-6 lg:px-8">
       <a href="/" class="flex items-center gap-3" aria-label="BLT-Pool home">
         <img src="/logo-sm.png" alt="OWASP BLT logo" class="h-10 w-10 rounded-xl border border-[#E5E5E5] bg-white object-contain p-1">
         <div>
@@ -3959,18 +3975,18 @@ def _index_html(mentors: list = None) -> str:
           <h1 class="text-lg font-extrabold text-[#111827]">BLT-Pool</h1>
         </div>
       </a>
-      <nav class="hidden items-center gap-1 rounded-xl border border-[#E5E5E5] bg-white p-1 md:flex" aria-label="Primary">
-        <a href="/" class="rounded-lg bg-[#feeae9] px-3 py-2 text-sm font-semibold text-[#E10101]">Mentors</a>
-        <a href="/github-app" class="rounded-lg px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">GitHub App</a>
-        <a href="https://owaspblt.org" target="_blank" rel="noopener" class="rounded-lg px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">
-          OWASP BLT <i class="fa-solid fa-arrow-up-right-from-square text-xs" aria-hidden="true"></i>
-        </a>
-      </nav>
       <span role="status" aria-label="Service status: Operational"
-            class="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+            class="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 sm:order-last">
         <i class="fa-solid fa-circle text-[0.45rem]" aria-hidden="true"></i>
         Operational
       </span>
+      <nav class="order-last flex w-full items-center justify-center gap-0.5 rounded-xl border border-[#E5E5E5] bg-white p-1 sm:order-none sm:w-auto sm:justify-start" aria-label="Primary">
+        <a href="/" class="rounded-lg bg-[#feeae9] px-2 py-1.5 text-xs font-semibold text-[#E10101] sm:px-3 sm:py-2 sm:text-sm">Mentors</a>
+        <a href="/github-app" class="rounded-lg px-2 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 sm:px-3 sm:py-2 sm:text-sm">GitHub App</a>
+        <a href="https://owaspblt.org" target="_blank" rel="noopener" class="rounded-lg px-2 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 sm:px-3 sm:py-2 sm:text-sm">
+          OWASP BLT <i class="fa-solid fa-arrow-up-right-from-square text-xs" aria-hidden="true"></i>
+        </a>
+      </nav>
     </div>
   </header>
 
