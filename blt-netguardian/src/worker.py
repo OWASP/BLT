@@ -350,6 +350,12 @@ class BLTWorker:
             data = await request.json()
             task_id = data.get('task_id')
             agent_type = data.get('agent_type')
+
+            if 'results' not in data and any(key in data for key in ('findings', 'vulnerabilities', 'metadata')):
+                return self.json_response({
+                    'error': 'Legacy payload format is not supported; use results.{findings,vulnerabilities,metadata}'
+                }, status=400)
+
             results = data.get('results', {})
 
             if (
@@ -403,17 +409,15 @@ class BLTWorker:
                 })
 
             # Update task status
-            task = await self.task_queue.get_task(task_id)
-            if task:
-                await self.task_queue.update_task(task_id, {
-                    'status': TaskStatus.COMPLETED,
-                    'completed_at': datetime.now(timezone.utc).isoformat(),
-                    'result_id': result.result_id
-                })
-                
-                # Update job progress
-                job_id = task['job_id']
-                await self.job_store.update_job_progress(job_id)
+            completed_at = datetime.now(timezone.utc).isoformat()
+            await self.task_queue.update_task(task_id, {
+                'status': TaskStatus.COMPLETED,
+                'completed_at': completed_at,
+                'result_id': result.result_id
+            })
+
+            # Update job progress
+            await self.job_store.update_job_progress(task['job_id'])
 
             # Automatically contact stakeholders if vulnerabilities found
             contact_result = None
