@@ -1236,7 +1236,172 @@ class TestHandlePullRequestClosedLeaderboard(unittest.TestCase):
         self.assertEqual(len(comments), 0)
 
 
-class TestCheckAndCloseExcessPrs(unittest.TestCase):
+class TestPostMergedPrCombinedComment(unittest.TestCase):
+    """Unit tests for _post_merged_pr_combined_comment"""
+
+    def _make_leaderboard_data(self):
+        return {
+            "sorted": [
+                {"login": "alice", "openPrs": 5, "mergedPrs": 10, "closedPrs": 1, "reviews": 3, "comments": 20, "total": 75},
+                {"login": "bob", "openPrs": 3, "mergedPrs": 8, "closedPrs": 0, "reviews": 5, "comments": 15, "total": 68},
+                {"login": "charlie", "openPrs": 2, "mergedPrs": 5, "closedPrs": 2, "reviews": 2, "comments": 10, "total": 40},
+            ],
+            "start_timestamp": 1704067200,
+            "end_timestamp": 1706745599,
+        }
+
+    def _run(self, leaderboard_data, author_login, pr_reviewers, posted_comments, deleted_ids,
+             existing_comments=None, fetch_leaderboard_return=None):
+        async def _inner():
+            async def _mock_api(method, path, token, body=None):
+                if method == "GET" and "/comments" in path:
+                    return types.SimpleNamespace(
+                        status=200,
+                        text=AsyncMock(return_value=json.dumps(existing_comments or []))
+                    )
+                if method == "DELETE":
+                    comment_id = path.split("/")[-1]
+                    deleted_ids.append(comment_id)
+                    return types.SimpleNamespace(status=204)
+                return types.SimpleNamespace(status=200)
+
+            ld = fetch_leaderboard_return if fetch_leaderboard_return is not None else leaderboard_data
+            with patch.object(_worker, "_fetch_leaderboard_data", new=AsyncMock(return_value=(ld, "", False))):
+                with patch.object(_worker, "github_api", new=_mock_api):
+                    with patch.object(_worker, "create_comment", new=AsyncMock(side_effect=lambda o, r, n, b, t: posted_comments.append(b))):
+                        await _worker._post_merged_pr_combined_comment(
+                            "test-org", "test-repo", 42, author_login, "tok",
+                            pr_reviewers=pr_reviewers
+                        )
+        _run(_inner())
+
+    def test_posts_single_combined_comment(self):
+        posted, deleted = [], []
+        self._run(self._make_leaderboard_data(), "alice", [], posted, deleted)
+        self.assertEqual(len(posted), 1)
+
+    def test_combined_comment_contains_merged_pr_marker(self):
+        posted, deleted = [], []
+        self._run(self._make_leaderboard_data(), "alice", [], posted, deleted)
+        self.assertIn("<!-- merged-pr-comment-bot -->", posted[0])
+
+    def test_combined_comment_contains_thanks_message(self):
+        posted, deleted = [], []
+        self._run(self._make_leaderboard_data(), "alice", [], posted, deleted)
+        self.assertIn("PR merged", posted[0])
+        self.assertIn("@alice", posted[0])
+
+    def test_combined_comment_contains_pool_link(self):
+        posted, deleted = [], []
+        self._run(self._make_leaderboard_data(), "alice", [], posted, deleted)
+        self.assertIn("pool.owaspblt.org", posted[0])
+
+    def test_combined_comment_contains_contributor_leaderboard(self):
+        posted, deleted = [], []
+        self._run(self._make_leaderboard_data(), "alice", [], posted, deleted)
+        self.assertIn("Monthly Leaderboard", posted[0])
+
+    def test_combined_comment_contains_reviewer_leaderboard(self):
+        posted, deleted = [], []
+        self._run(self._make_leaderboard_data(), "alice", [], posted, deleted)
+        self.assertIn("Reviewer Leaderboard", posted[0])
+
+    def test_rank_numbers_have_no_hash_prefix(self):
+        posted, deleted = [], []
+        self._run(self._make_leaderboard_data(), "unknown", [], posted, deleted)
+        # Should NOT contain #1, #2, #3 etc.
+        import re
+        self.assertNotIn("#1", posted[0])
+        self.assertNotIn("#2", posted[0])
+        self.assertNotIn("#3", posted[0])
+        # Should contain plain rank numbers (1, 2, 3) with medals
+        self.assertIn("🥇", posted[0])
+
+    def test_user_rows_contain_avatar_markdown(self):
+        posted, deleted = [], []
+        self._run(self._make_leaderboard_data(), "alice", [], posted, deleted)
+        # Avatars should be present as inline images
+        self.assertIn("https://github.com/alice.png", posted[0])
+
+    def test_shows_top_five_when_author_not_in_leaderboard(self):
+        data = {
+            "sorted": [
+                {"login": f"user{i}", "openPrs": 1, "mergedPrs": 10 - i, "closedPrs": 0, "reviews": 0, "comments": 0, "total": 100 - i * 10}
+                for i in range(6)
+            ],
+            "start_timestamp": 1704067200,
+            "end_timestamp": 1706745599,
+        }
+        posted, deleted = [], []
+        self._run(data, "unknown", [], posted, deleted)
+        # user0 through user4 should appear (top 5)
+        for i in range(5):
+            self.assertIn(f"user{i}", posted[0])
+        # user5 should not appear (rank 6, beyond top 5)
+        self.assertNotIn("user5", posted[0])
+
+    def test_deletes_old_combined_comment(self):
+        existing = [
+            {"id": 111, "body": "<!-- merged-pr-comment-bot -->\nold comment"},
+        ]
+        posted, deleted = [], []
+        self._run(self._make_leaderboard_data(), "alice", [], posted, deleted, existing_comments=existing)
+        self.assertIn("111", deleted)
+
+    def test_deletes_old_leaderboard_comment(self):
+        existing = [
+            {"id": 222, "body": "<!-- leaderboard-bot -->\nold leaderboard"},
+        ]
+        posted, deleted = [], []
+        self._run(self._make_leaderboard_data(), "alice", [], posted, deleted, existing_comments=existing)
+        self.assertIn("222", deleted)
+
+    def test_deletes_old_reviewer_leaderboard_comment(self):
+        existing = [
+            {"id": 333, "body": "<!-- reviewer-leaderboard-bot -->\nold reviewer leaderboard"},
+        ]
+        posted, deleted = [], []
+        self._run(self._make_leaderboard_data(), "alice", [], posted, deleted, existing_comments=existing)
+        self.assertIn("333", deleted)
+
+    def test_does_not_delete_unrelated_comments(self):
+        existing = [
+            {"id": 444, "body": "Some regular user comment with no marker"},
+        ]
+        posted, deleted = [], []
+        self._run(self._make_leaderboard_data(), "alice", [], posted, deleted, existing_comments=existing)
+        self.assertNotIn("444", deleted)
+
+    def test_delete_failure_is_logged_and_posting_continues(self):
+        """A failed DELETE should be logged but not prevent posting the new comment."""
+        existing = [
+            {"id": 555, "body": "<!-- merged-pr-comment-bot -->\nold"},
+        ]
+        posted = []
+
+        async def _inner():
+            async def _mock_api(method, path, token, body=None):
+                if method == "GET" and "/comments" in path:
+                    return types.SimpleNamespace(
+                        status=200,
+                        text=AsyncMock(return_value=json.dumps(existing))
+                    )
+                if method == "DELETE":
+                    return types.SimpleNamespace(status=403)
+                return types.SimpleNamespace(status=200)
+
+            with patch.object(_worker, "_fetch_leaderboard_data", new=AsyncMock(return_value=(self._make_leaderboard_data(), "", False))):
+                with patch.object(_worker, "github_api", new=_mock_api):
+                    with patch.object(_worker, "create_comment", new=AsyncMock(side_effect=lambda o, r, n, b, t: posted.append(b))):
+                        await _worker._post_merged_pr_combined_comment(
+                            "test-org", "test-repo", 42, "alice", "tok"
+                        )
+        _run(_inner())
+        # Despite delete failure, the new comment should still be posted
+        self.assertEqual(len(posted), 1)
+
+
+
     """Test auto-close for users with too many open PRs"""
 
     def _run_check(self, search_response, comment_calls, api_calls):

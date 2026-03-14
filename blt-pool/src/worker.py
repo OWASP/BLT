@@ -2132,14 +2132,19 @@ async def _post_reviewer_leaderboard(owner: str, repo: str, pr_number: int, toke
     console.log(f"[ReviewerLeaderboard] Posted reviewer leaderboard for {owner}/{repo}#{pr_number}")
 
 
-async def _post_or_update_leaderboard(owner: str, repo: str, issue_number: int, author_login: str, token: str, env=None) -> None:
-    """Post or update a leaderboard comment on an issue/PR."""
-    leaderboard_note = ""
-    
-    console.log(f"[Leaderboard] Starting leaderboard post for {owner}/{repo}#{issue_number} by @{author_login}")
+async def _fetch_leaderboard_data(owner: str, repo: str, token: str, env=None) -> tuple:
+    """Fetch leaderboard data for *owner*, running D1 backfill when available.
 
+    Returns a ``(leaderboard_data, leaderboard_note, is_org)`` tuple where
+    ``leaderboard_data`` is the dict expected by ``_format_leaderboard_comment``
+    and ``leaderboard_note`` is an optional informational string about backfill
+    progress (may be empty).  ``is_org`` indicates whether *owner* is a GitHub
+    organisation (used by callers that need to choose comment wording).
+    """
+    leaderboard_note = ""
     owner_data = None
     is_org = False
+
     owner_resp = await github_api("GET", f"/users/{owner}", token)
     if owner_resp.status == 200:
         owner_data = json.loads(await owner_resp.text())
@@ -2196,27 +2201,36 @@ async def _post_or_update_leaderboard(owner: str, repo: str, issue_number: int, 
 
     # Fallback to API-based calculation when D1 is unavailable.
     if leaderboard_data is None:
-        # Determine if owner is an org or user only when fallback is needed.
         if owner_data is None:
             resp = await github_api("GET", f"/users/{owner}", token)
-            if resp.status != 200:
-                console.error(f"[Leaderboard] Failed to fetch owner info for {owner}: status={resp.status}")
-                await create_comment(
-                    owner,
-                    repo,
-                    issue_number,
-                    f"@{author_login} I couldn't load leaderboard data right now (owner lookup failed). Please try again shortly.",
-                    token,
-                )
-                return
-            owner_data = json.loads(await resp.text())
-            is_org = owner_data.get("type") == "Organization"
-
+            if resp.status == 200:
+                owner_data = json.loads(await resp.text())
+                is_org = owner_data.get("type") == "Organization"
         if is_org:
             repos = await _fetch_org_repos(owner, token)
         else:
             repos = [{"name": repo}]
         leaderboard_data = await _calculate_leaderboard_stats(owner, repos, token)
+
+    return leaderboard_data, leaderboard_note, is_org
+
+
+async def _post_or_update_leaderboard(owner: str, repo: str, issue_number: int, author_login: str, token: str, env=None) -> None:
+    """Post or update a leaderboard comment on an issue/PR."""
+    console.log(f"[Leaderboard] Starting leaderboard post for {owner}/{repo}#{issue_number} by @{author_login}")
+
+    leaderboard_data, leaderboard_note, is_org = await _fetch_leaderboard_data(owner, repo, token, env)
+
+    if leaderboard_data is None:
+        console.error(f"[Leaderboard] Owner lookup failed for {owner}; cannot post leaderboard")
+        await create_comment(
+            owner,
+            repo,
+            issue_number,
+            f"@{author_login} I couldn't load leaderboard data right now (owner lookup failed). Please try again shortly.",
+            token,
+        )
+        return
     
     # Format comment
     comment_body = _format_leaderboard_comment(author_login, leaderboard_data, owner, leaderboard_note)
@@ -3707,55 +3721,10 @@ async def _post_merged_pr_combined_comment(
     """Post a single combined comment on a merged PR containing thanks, contributor
     leaderboard, reviewer leaderboard, and a link to the BLT Pool website."""
 
-    leaderboard_note = ""
-
     # ---------------------------------------------------------------------------
-    # 1. Fetch leaderboard data (reuses same logic as _post_or_update_leaderboard)
+    # 1. Fetch leaderboard data via shared helper
     # ---------------------------------------------------------------------------
-    owner_data = None
-    is_org = False
-    owner_resp = await github_api("GET", f"/users/{owner}", token)
-    if owner_resp.status == 200:
-        owner_data = json.loads(await owner_resp.text())
-        is_org = owner_data.get("type") == "Organization"
-
-    leaderboard_data = await _calculate_leaderboard_stats_from_d1(owner, env)
-
-    if leaderboard_data is not None and is_org:
-        seeded_current = await _backfill_repo_month_if_needed(owner, repo, token, env)
-        if seeded_current:
-            leaderboard_data = await _calculate_leaderboard_stats_from_d1(owner, env) or leaderboard_data
-
-    if leaderboard_data is not None and is_org:
-        db = _d1_binding(env)
-        if db:
-            month_key = _month_key()
-            state = await _get_backfill_state(db, owner, month_key)
-            if not state.get("completed"):
-                backfill_result = await _run_incremental_backfill(owner, token, env)
-                if backfill_result:
-                    leaderboard_data = await _calculate_leaderboard_stats_from_d1(owner, env) or leaderboard_data
-                    if backfill_result.get("completed"):
-                        leaderboard_note = (
-                            f"Backfill completed in this request; seeded {backfill_result.get('processed', 0)} repos in the final chunk."
-                        )
-                    elif backfill_result.get("ran"):
-                        leaderboard_note = (
-                            f"Backfill in progress: seeded {backfill_result.get('processed', 0)} repos in this run. "
-                            "Run `/leaderboard` to continue filling historical data."
-                        )
-
-    if leaderboard_data is None:
-        if owner_data is None:
-            resp = await github_api("GET", f"/users/{owner}", token)
-            if resp.status == 200:
-                owner_data = json.loads(await resp.text())
-                is_org = owner_data.get("type") == "Organization"
-        if is_org:
-            repos = await _fetch_org_repos(owner, token)
-        else:
-            repos = [{"name": repo}]
-        leaderboard_data = await _calculate_leaderboard_stats(owner, repos, token)
+    leaderboard_data, leaderboard_note, _is_org = await _fetch_leaderboard_data(owner, repo, token, env)
 
     # ---------------------------------------------------------------------------
     # 2. Build the combined comment body
@@ -3795,7 +3764,17 @@ async def _post_merged_pr_combined_comment(
                 marker in body
                 for marker in (MERGED_PR_COMMENT_MARKER, LEADERBOARD_MARKER, REVIEWER_LEADERBOARD_MARKER)
             ):
-                await github_api("DELETE", f"/repos/{owner}/{repo}/issues/comments/{c['id']}", token)
+                delete_resp = await github_api("DELETE", f"/repos/{owner}/{repo}/issues/comments/{c['id']}", token)
+                if delete_resp.status not in (204, 200):
+                    console.error(
+                        f"[MergedPR] Failed to delete old comment {c['id']} "
+                        f"for {owner}/{repo}#{pr_number}: status={delete_resp.status}"
+                    )
+    else:
+        console.error(
+            f"[MergedPR] Failed to list comments for {owner}/{repo}#{pr_number}: "
+            f"status={resp.status}; posting new comment anyway"
+        )
 
     await create_comment(owner, repo, pr_number, combined_body, token)
     console.log(f"[MergedPR] Posted combined merge comment for {owner}/{repo}#{pr_number}")
