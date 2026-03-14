@@ -200,7 +200,7 @@ def _gh_headers(token: str) -> Headers:
     h = {
         "Accept": "application/vnd.github+json",
         "Content-Type": "application/json",
-        "User-Agent": "BLT-GitHub-App/1.0",
+        "User-Agent": "BLT-Pool/1.0",
         "X-GitHub-Api-Version": "2022-11-28",
     }
     if token:
@@ -229,7 +229,7 @@ async def get_installation_token(
             "Authorization": f"Bearer {jwt}",
             "Accept": "application/vnd.github+json",
             "Content-Type": "application/json",
-            "User-Agent": "BLT-GitHub-App/1.0",
+            "User-Agent": "BLT-Pool/1.0",
             "X-GitHub-Api-Version": "2022-11-28",
         }.items()),
     )
@@ -249,7 +249,7 @@ async def get_installation_access_token(installation_id: int, jwt_token: str) ->
             "Authorization": f"Bearer {jwt_token}",
             "Accept": "application/vnd.github+json",
             "Content-Type": "application/json",
-            "User-Agent": "BLT-GitHub-App/1.0",
+            "User-Agent": "BLT-Pool/1.0",
             "X-GitHub-Api-Version": "2022-11-28",
         }.items()),
     )
@@ -4421,7 +4421,7 @@ _CALLBACK_HTML = """\
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BLT GitHub App — Installed!</title>
+  <title>BLT-Pool GitHub App — Installed!</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link
     rel="stylesheet"
@@ -4437,8 +4437,8 @@ _CALLBACK_HTML = """\
     </div>
     <h1 class="text-2xl font-bold text-white mb-4">Installation complete!</h1>
     <p class="leading-relaxed mb-6" style="color:#9ca3af;">
-      BLT GitHub App has been successfully installed on your organization.<br />
-      Issues and pull requests will now be handled automatically.
+      The BLT-Pool GitHub App has been successfully installed on your organization.<br />
+      GitHub automation is now active inside BLT-Pool.
     </p>
     <a
       href="https://owaspblt.org"
