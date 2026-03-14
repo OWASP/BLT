@@ -1,7 +1,7 @@
 """Storage utilities for job states and vulnerabilities."""
 import json
 from typing import Dict, Any, List, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 class JobStateStore:
@@ -29,7 +29,7 @@ class JobStateStore:
             job_state.get('status', 'queued'),
             job_state.get('total_tasks', 0),
             job_state.get('completed_tasks', 0),
-            job_state.get('created_at', datetime.utcnow().isoformat()),
+            job_state.get('created_at', datetime.now(timezone.utc).isoformat()),
             job_state.get('updated_at'),
             task_ids_json,
             job_state.get('source')
@@ -65,7 +65,7 @@ class JobStateStore:
             completed = job_state.get('completed_tasks', 0) + 1
             total = job_state.get('total_tasks', 0)
             status = 'completed' if completed >= total else 'running'
-            updated_at = datetime.utcnow().isoformat()
+            updated_at = datetime.now(timezone.utc).isoformat()
             await self.db.prepare(
                 """UPDATE jobs SET completed_tasks = ?, status = ?, updated_at = ?
                    WHERE job_id = ?"""
@@ -119,7 +119,7 @@ class TaskQueueStore:
             task_dict.get('task_type'),
             task_dict.get('priority'),
             task_dict.get('status', 'queued'),
-            task_dict.get('created_at', datetime.utcnow().isoformat()),
+            task_dict.get('created_at', datetime.now(timezone.utc).isoformat()),
             task_dict.get('started_at'),
             task_dict.get('completed_at'),
             task_dict.get('result_id'),
@@ -187,7 +187,7 @@ class TargetRegistryStore:
             target_dict.get('target_url'),
             scan_types_json,
             target_dict.get('notes', ''),
-            target_dict.get('registered_at', datetime.utcnow().isoformat())
+            target_dict.get('registered_at', datetime.now(timezone.utc).isoformat())
         ).run()
 
     async def get_target(self, target_id: str) -> Optional[Dict[str, Any]]:
@@ -234,7 +234,7 @@ class VulnerabilityDatabase:
             vulnerability.get('type'),
             vulnerability.get('severity'),
             json.dumps(vulnerability),
-            vulnerability.get('discovered_at', datetime.utcnow().isoformat()),
+            vulnerability.get('discovered_at', datetime.now(timezone.utc).isoformat()),
             vulnerability.get('status', 'open')
         ).run()
 
@@ -271,7 +271,7 @@ class VulnerabilityDatabase:
         """Update vulnerability status (e.g., fixed, ignored, false_positive)."""
         if self.db is None:
             return
-        updated_at = datetime.utcnow().isoformat()
+        updated_at = datetime.now(timezone.utc).isoformat()
         vuln = await self.get_vulnerability(vuln_id)
         if vuln:
             vuln['status'] = status
