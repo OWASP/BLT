@@ -62,9 +62,17 @@ The development server runs on `http://localhost:8787` with hot reload enabled.
 
 ## Deployment
 
+Deploy to Cloudflare Workers:
+
 ```bash
-# Deploy to Cloudflare Workers
-npm run deploy (routing)
+npm run deploy
+```
+
+### Project Structure
+
+```
+src/
+  main.py           # Main application entry point
   libs/
     utils.py        # Utility functions (html_response, json_response, etc.)
   pages/            # HTML pages
@@ -88,19 +96,11 @@ package.json        # NPM scripts and dependencies
 ### URL Structure
 
 All pages use clean URLs without `.html` extensions:
+
 - `/` - Home page
 - `/video-chat` - Video chat interface
 - `/notes` - Secure notes
-- `/consent` - Consent management notes.html      # Notes interface
-    consent.html    # Consent management
-public/
-  css/              # Stylesheets
-  js/               # Client-side JavaScript
-    crypto.js       # Cryptography utilities
-    video.js        # WebRTC implementation
-    notes.js        # Notes functionality
-    consent.js      # Consent logic
-```
+- `/consent` - Consent management
 
 ## Security
 
