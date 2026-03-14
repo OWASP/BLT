@@ -48,6 +48,8 @@ def test_batch_annotations_invalid_size_raises():
         batch_annotations([{"path": "src/a.py"}], batch_size=0)
     with pytest.raises(ValueError):
         batch_annotations([{"path": "src/a.py"}], batch_size=-1)
+    with pytest.raises(ValueError):
+        batch_annotations([], batch_size=0)
 
 
 def test_build_create_check_run_payload_defaults():
@@ -74,6 +76,11 @@ def test_build_create_check_run_payload_optional_fields_and_status():
 def test_build_create_check_run_payload_invalid_status_raises():
     with pytest.raises(ValueError):
         build_create_check_run_payload(name="Security Scan", head_sha="abc123", status="done")
+
+
+def test_build_create_check_run_payload_completed_status_rejected():
+    with pytest.raises(ValueError, match="build_create_check_run_payload"):
+        build_create_check_run_payload(name="Security Scan", head_sha="abc123", status="completed")
 
 
 def test_build_update_check_run_payloads_completed_with_pagination():

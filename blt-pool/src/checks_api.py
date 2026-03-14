@@ -67,10 +67,10 @@ def batch_annotations(
     batch_size: int = MAX_ANNOTATIONS_PER_REQUEST,
 ) -> list[list[dict]]:
     """Split annotation payloads into GitHub-compatible chunks."""
-    if not annotations:
-        return []
     if batch_size <= 0:
         raise ValueError("batch_size must be greater than zero")
+    if not annotations:
+        return []
 
     return [annotations[i : i + batch_size] for i in range(0, len(annotations), batch_size)]
 
@@ -87,6 +87,11 @@ def build_create_check_run_payload(
     """Construct payload for POST /repos/{owner}/{repo}/check-runs."""
     if status not in _VALID_STATUSES:
         raise ValueError(f"invalid status: {status}")
+    if status == "completed":
+        raise ValueError(
+            "build_create_check_run_payload does not support status='completed'; "
+            "use build_update_check_run_payloads to set conclusion and complete the run"
+        )
 
     payload = {
         "name": name,
