@@ -325,5 +325,5 @@ async def handle_organizations(
         return paginated_response(organizations, page=page, per_page=per_page, total=total)
 
     except Exception as e:
-        logger.error(f"Database query failed: {str(e)}")
-        return error_response(f"Database query failed: {str(e)}", status=503)
+        logger.error(f"Error in organizations handler: {str(e)}")
+        return error_response("An internal error occurred", status=503)
