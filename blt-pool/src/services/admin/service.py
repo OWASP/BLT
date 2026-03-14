@@ -14,30 +14,12 @@ from typing import Optional
 from urllib.parse import parse_qs, quote_plus, urlparse
 
 from js import Headers, Response, console, fetch
+from services.mentor_seed import INITIAL_MENTORS
 
 
 _ADMIN_COOKIE = "blt_admin_session"
 _SESSION_TTL_SECONDS = 7 * 24 * 60 * 60
 _ADMIN_USERNAME_RE = r"^[A-Za-z0-9_.-]{3,32}$"
-_INITIAL_MENTORS = [
-    {"github_username": "rinkitadhana", "name": "Rinkit Adhana", "specialties": ["frontend", "javascript"], "max_mentees": 3, "active": True, "timezone": "UTC+5:30", "referred_by": ""},
-    {"github_username": "Rajgupta36", "name": "Raj Gupta", "specialties": ["backend", "python"], "max_mentees": 3, "active": True, "timezone": "UTC+5:30", "referred_by": ""},
-    {"github_username": "shriyashsoni", "name": "Shriyash Soni", "specialties": [], "max_mentees": 3, "active": True, "timezone": "", "referred_by": ""},
-    {"github_username": "Mohammedfaiyaz29", "name": "Mohammed Faiyaz Shaikh", "specialties": [], "max_mentees": 3, "active": True, "timezone": "", "referred_by": ""},
-    {"github_username": "Vaswani2003", "name": "Vinamra Vaswani", "specialties": [], "max_mentees": 3, "active": True, "timezone": "", "referred_by": ""},
-    {"github_username": "kittenbytes", "name": "Carla Voorhees", "specialties": [], "max_mentees": 3, "active": True, "timezone": "", "referred_by": ""},
-    {"github_username": "Captain-T2004", "name": "Akshay Behl", "specialties": [], "max_mentees": 3, "active": True, "timezone": "", "referred_by": ""},
-    {"github_username": "elsheik21", "name": "Ahmed ElSheik", "specialties": [], "max_mentees": 3, "active": True, "timezone": "", "referred_by": ""},
-    {"github_username": "Kunal1522", "name": "Kunal Kashyap", "specialties": [], "max_mentees": 3, "active": True, "timezone": "", "referred_by": ""},
-    {"github_username": "RudraBhaskar9439", "name": "Rudra Bhaskar", "specialties": [], "max_mentees": 3, "active": True, "timezone": "", "referred_by": ""},
-    {"github_username": "dev-sanidhya", "name": "Sanidhya Shishodia", "specialties": [], "max_mentees": 3, "active": True, "timezone": "", "referred_by": ""},
-    {"github_username": "VedantAnand17", "name": "Vedant Anand", "specialties": [], "max_mentees": 3, "active": True, "timezone": "", "referred_by": ""},
-    {"github_username": "Rishab87", "name": "Rishab Kumar Jha", "specialties": [], "max_mentees": 3, "active": True, "timezone": "", "referred_by": ""},
-    {"github_username": "gitsofaryan", "name": "Aryan Jain", "specialties": ["fullstack", "web3", "distributed-systems", "ai-ml", "open-source", "devops", "realtime-systems"], "max_mentees": 3, "active": True, "timezone": "UTC+5:30 (India Standard Time)", "referred_by": ""},
-    {"github_username": "ramansh18", "name": "Ramansh Saxena", "specialties": ["frontend", "backend", "web3"], "max_mentees": 2, "active": True, "timezone": "+5:30", "referred_by": "ojaswa072"},
-]
-
-
 def _escape(value: str) -> str:
     return _html.escape(value or "", quote=True)
 
@@ -253,7 +235,7 @@ class AdminService:
         await self._seed_mentors()
 
     async def _seed_mentors(self) -> None:
-        for mentor in _INITIAL_MENTORS:
+        for mentor in INITIAL_MENTORS:
             await self._d1_run(
                 """
                 INSERT OR IGNORE INTO mentors

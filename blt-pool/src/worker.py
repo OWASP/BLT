@@ -37,6 +37,7 @@ from urllib.parse import quote, urlparse
 from js import Headers, Response, console, fetch  # Cloudflare Workers JS bindings
 from index_template import GITHUB_PAGE_HTML  # Landing page HTML template
 from services.admin import AdminService, has_merged_pr_in_org
+from services.mentor_seed import INITIAL_MENTORS
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -638,164 +639,13 @@ async def _ensure_leaderboard_schema(db) -> None:
 # Mentor table helpers
 # ---------------------------------------------------------------------------
 
-# Initial mentor data — these INSERT OR IGNORE statements seed the mentors
-# table from what was previously stored in src/mentors.yml.  They are safe to
-# run repeatedly (idempotent) and can be removed once the live database has
-# been populated.
-_INITIAL_MENTORS = [
-    {
-        "github_username": "rinkitadhana",
-        "name": "Rinkit Adhana",
-        "specialties": ["frontend", "javascript"],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "UTC+5:30",
-        "referred_by": "",
-    },
-    {
-        "github_username": "Rajgupta36",
-        "name": "Raj Gupta",
-        "specialties": ["backend", "python"],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "UTC+5:30",
-        "referred_by": "",
-    },
-    {
-        "github_username": "shriyashsoni",
-        "name": "Shriyash Soni",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "",
-        "referred_by": "",
-    },
-    {
-        "github_username": "Mohammedfaiyaz29",
-        "name": "Mohammed Faiyaz Shaikh",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "",
-        "referred_by": "",
-    },
-    {
-        "github_username": "Vaswani2003",
-        "name": "Vinamra Vaswani",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "",
-        "referred_by": "",
-    },
-    {
-        "github_username": "kittenbytes",
-        "name": "Carla Voorhees",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "",
-        "referred_by": "",
-    },
-    {
-        "github_username": "Captain-T2004",
-        "name": "Akshay Behl",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "",
-        "referred_by": "",
-    },
-    {
-        "github_username": "elsheik21",
-        "name": "Ahmed ElSheik",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "",
-        "referred_by": "",
-    },
-    {
-        "github_username": "Kunal1522",
-        "name": "Kunal Kashyap",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "",
-        "referred_by": "",
-    },
-    {
-        "github_username": "RudraBhaskar9439",
-        "name": "Rudra Bhaskar",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "",
-        "referred_by": "",
-    },
-    {
-        "github_username": "dev-sanidhya",
-        "name": "Sanidhya Shishodia",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "",
-        "referred_by": "",
-    },
-    {
-        "github_username": "VedantAnand17",
-        "name": "Vedant Anand",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "",
-        "referred_by": "",
-    },
-    {
-        "github_username": "Rishab87",
-        "name": "Rishab Kumar Jha",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "",
-        "referred_by": "",
-    },
-    {
-        "github_username": "gitsofaryan",
-        "name": "Aryan Jain",
-        "specialties": [
-            "fullstack",
-            "web3",
-            "distributed-systems",
-            "ai-ml",
-            "open-source",
-            "devops",
-            "realtime-systems",
-        ],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "UTC+5:30 (India Standard Time)",
-        "referred_by": "",
-    },
-    {
-        "github_username": "ramansh18",
-        "name": "Ramansh Saxena",
-        "specialties": ["frontend", "backend", "web3"],
-        "max_mentees": 2,
-        "active": True,
-        "timezone": "+5:30",
-        "referred_by": "ojaswa072",
-    },
-]
-
-
 async def _populate_mentors_table(db) -> None:
     """Seed the mentors table with the initial mentor list (idempotent).
 
     Uses INSERT OR IGNORE so that existing rows are never overwritten; safe
     to call on every cold start.
     """
-    for m in _INITIAL_MENTORS:
+    for m in INITIAL_MENTORS:
         try:
             await _d1_run(
                 db,
