@@ -1,10 +1,16 @@
 {
   "participantCount": 47,
-  "totalPRs": 70,
-  "mergedPRs": 46,
-  "totalIssues": 20,
-  "repositories": 52,
+  "totalPRs": 77,
+  "mergedPRs": 51,
+  "totalIssues": 21,
+  "repositories": 53,
   "topContributors": [
+    {
+      "username": "tejeshvenkat",
+      "avatar": "https://avatars.githubusercontent.com/u/210394948?v=4",
+      "url": "https://github.com/tejeshvenkat",
+      "mergedCount": 3
+    },
     {
       "username": "Pritz395",
       "avatar": "https://avatars.githubusercontent.com/u/146115505?v=4",
@@ -15,12 +21,6 @@
       "username": "Jozz77",
       "avatar": "https://avatars.githubusercontent.com/u/104347137?v=4",
       "url": "https://github.com/Jozz77",
-      "mergedCount": 2
-    },
-    {
-      "username": "tejeshvenkat",
-      "avatar": "https://avatars.githubusercontent.com/u/210394948?v=4",
-      "url": "https://github.com/tejeshvenkat",
       "mergedCount": 2
     }
   ]
