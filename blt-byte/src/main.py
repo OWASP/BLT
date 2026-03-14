@@ -23,6 +23,7 @@ except ImportError:
 import time
 
 from workers import Response, WorkerEntrypoint
+from urllib.parse import urlparse
 
 # Security constants
 MAX_INPUT_LENGTH = 2000
@@ -678,7 +679,8 @@ class Default(WorkerEntrypoint):
             method = request.method.upper()
             # Parse path from full URL
             try:
-                path = "/" + "/".join(url_str.split("/")[3:]).split("?")[0].lstrip("/")
+                parsed = urlparse(url_str)
+                path = parsed.path or "/"
             except Exception as e:
                 print(f"[error] Path parsing failed for {url_str}: {e}")
                 path = "/"
