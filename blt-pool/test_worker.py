@@ -2900,7 +2900,7 @@ class TestHandleCheckRun(unittest.TestCase):
 
 
 class TestParseMentorsYaml(unittest.TestCase):
-    """_parse_mentors_yaml — minimal YAML parser for .github/mentors.yml"""
+    """_parse_mentors_yaml — minimal YAML parser for src/mentors.yml"""
 
     def test_parses_single_mentor(self):
         content = """\
