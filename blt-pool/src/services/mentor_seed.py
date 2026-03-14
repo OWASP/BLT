@@ -144,4 +144,13 @@ INITIAL_MENTORS = [
         "timezone": "+5:30",
         "referred_by": "ojaswa072",
     },
+    {    
+    "github_username" : "rahulnegi20", 
+    "name" : "Rahul Negi÷",
+    "specialties": ["backend", "databases", "cloud", "frontend"],
+    "max_mentees": 3,
+    "active": True,
+    "timezone": "UTC+5:30",
+    "referred_by": "",
+    },
 ]
