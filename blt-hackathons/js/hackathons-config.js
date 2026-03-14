@@ -8,6 +8,34 @@
 const HACKATHONS_CONFIG = {
     // List of all hackathons
     hackathons: [
+{
+slug: "blt-mentor-warmup",
+name: "BLT Mentor Warmup Hackathon",
+description: `
+                This is a Hackathon for mentors only to encourage participation in the project.  To register, please add yourself to the mentor pool and then do a PR to this repo with your github username you can then submit PRs to all of the repos in the org.
+            `,
+rules: `
+                
+            `,
+startTime: "2026-03-12T18:00:00Z",
+endTime: "2026-03-30T18:00:00Z",
+github: {
+    token: "",
+                // Organization field - all repos in this org will be tracked
+                organization: "OWASP-BLT",
+    repositories: [
+                    "_No response_"
+                ]
+},
+prizes: [],
+sponsors: [],
+display: {
+    showRepoStats: true,
+    maxLeaderboardEntries: 10,
+    showPRsInLeaderboard: true,
+    showReviewsInLeaderboard: true
+}
+},
         {
             // Unique identifier for URL (no spaces, lowercase recommended)
             slug: "gsoc-2026-warmup",
