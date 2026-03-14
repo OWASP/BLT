@@ -378,6 +378,106 @@ class AdminService:
       {content}
     </section>
   </main>
+  <div id="admin-confirm-overlay" class="fixed inset-0 z-50 hidden items-center justify-center bg-[#111827]/45 px-4 backdrop-blur-sm" aria-hidden="true">
+    <div class="w-full max-w-md overflow-hidden rounded-3xl border border-[#E5E5E5] bg-white shadow-[0_24px_80px_rgba(17,24,39,0.20)]">
+      <div class="border-b border-[#E5E5E5] bg-gradient-to-r from-[#fff5f5] via-white to-[#fff1f1] px-6 py-5">
+        <div class="flex items-start gap-4">
+          <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#feeae9] text-[#E10101]">
+            <i class="fa-solid fa-triangle-exclamation text-lg" aria-hidden="true"></i>
+          </div>
+          <div class="min-w-0">
+            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">Please confirm</p>
+            <h3 id="admin-confirm-title" class="mt-1 text-xl font-extrabold text-[#111827]">Confirm action</h3>
+          </div>
+        </div>
+      </div>
+      <div class="px-6 py-5">
+        <p id="admin-confirm-message" class="text-sm leading-relaxed text-gray-600">This action will update the mentor record.</p>
+      </div>
+      <div class="flex flex-col-reverse gap-3 border-t border-[#E5E5E5] bg-gray-50 px-6 py-4 sm:flex-row sm:justify-end">
+        <button id="admin-confirm-cancel" type="button" class="inline-flex items-center justify-center rounded-md border border-[#E5E5E5] px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-white">
+          Cancel
+        </button>
+        <button id="admin-confirm-submit" type="button" class="inline-flex items-center justify-center gap-2 rounded-md bg-[#E10101] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700">
+          <i class="fa-solid fa-check" aria-hidden="true"></i>
+          Continue
+        </button>
+      </div>
+    </div>
+  </div>
+  <script>
+    (() => {{
+      const overlay = document.getElementById('admin-confirm-overlay');
+      const titleEl = document.getElementById('admin-confirm-title');
+      const messageEl = document.getElementById('admin-confirm-message');
+      const cancelBtn = document.getElementById('admin-confirm-cancel');
+      const confirmBtn = document.getElementById('admin-confirm-submit');
+      let pendingForm = null;
+      let pendingButton = null;
+
+      if (!overlay || !titleEl || !messageEl || !cancelBtn || !confirmBtn) {{
+        return;
+      }}
+
+      const closeDialog = () => {{
+        overlay.classList.add('hidden');
+        overlay.classList.remove('flex');
+        overlay.setAttribute('aria-hidden', 'true');
+        pendingForm = null;
+        pendingButton = null;
+      }};
+
+      const openDialog = (button, form) => {{
+        pendingForm = form;
+        pendingButton = button;
+        titleEl.textContent = button.dataset.confirmTitle || 'Confirm action';
+        messageEl.textContent = button.dataset.confirmMessage || 'Please confirm this action.';
+        confirmBtn.innerHTML = button.dataset.confirmCta || '<i class="fa-solid fa-check" aria-hidden="true"></i>Continue';
+        overlay.classList.remove('hidden');
+        overlay.classList.add('flex');
+        overlay.setAttribute('aria-hidden', 'false');
+        confirmBtn.focus();
+      }};
+
+      document.addEventListener('click', (event) => {{
+        const button = event.target.closest('button[data-confirm-title]');
+        if (!button) {{
+          return;
+        }}
+        const form = button.closest('form');
+        if (!form || button.dataset.confirmed === 'true') {{
+          return;
+        }}
+        event.preventDefault();
+        openDialog(button, form);
+      }});
+
+      cancelBtn.addEventListener('click', closeDialog);
+
+      confirmBtn.addEventListener('click', () => {{
+        if (!pendingForm || !pendingButton) {{
+          closeDialog();
+          return;
+        }}
+        pendingButton.dataset.confirmed = 'true';
+        pendingButton.disabled = true;
+        pendingForm.requestSubmit(pendingButton);
+        closeDialog();
+      }});
+
+      overlay.addEventListener('click', (event) => {{
+        if (event.target === overlay) {{
+          closeDialog();
+        }}
+      }});
+
+      document.addEventListener('keydown', (event) => {{
+        if (event.key === 'Escape' && overlay.classList.contains('flex')) {{
+          closeDialog();
+        }}
+      }});
+    }})();
+  </script>
 </body>
 </html>"""
 
@@ -639,14 +739,24 @@ class AdminService:
               <form method="POST" action="/admin/mentors/action">
                 <input type="hidden" name="github_username" value="{_escape(username)}">
                 <input type="hidden" name="action" value="{primary_action}">
-                <button type="submit" class="inline-flex items-center gap-1 rounded-md border px-3 py-2 text-xs font-semibold transition {primary_class}">
+                <button
+                  type="submit"
+                  data-confirm-title="{('Block mentor?' if active else 'Publish mentor?')}"
+                  data-confirm-message="{('This will hide the mentor from the public mentor pool until you publish them again.' if active else 'This will make the mentor visible in the public mentor pool again.')}"
+                  data-confirm-cta="{('<i class=&quot;fa-solid fa-ban&quot; aria-hidden=&quot;true&quot;></i>Block mentor' if active else '<i class=&quot;fa-solid fa-bullhorn&quot; aria-hidden=&quot;true&quot;></i>Publish mentor')}"
+                  class="inline-flex items-center gap-1 rounded-md border px-3 py-2 text-xs font-semibold transition {primary_class}">
                   {primary_label}
                 </button>
               </form>
               <form method="POST" action="/admin/mentors/action">
                 <input type="hidden" name="github_username" value="{_escape(username)}">
                 <input type="hidden" name="action" value="delete">
-                <button type="submit" class="inline-flex items-center gap-1 rounded-md border border-red-200 px-3 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-50">
+                <button
+                  type="submit"
+                  data-confirm-title="Delete mentor?"
+                  data-confirm-message="This permanently removes the mentor record and clears related assignments from the admin panel."
+                  data-confirm-cta="<i class=&quot;fa-solid fa-trash&quot; aria-hidden=&quot;true&quot;></i>Delete mentor"
+                  class="inline-flex items-center gap-1 rounded-md border border-red-200 px-3 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-50">
                   Delete
                 </button>
               </form>
