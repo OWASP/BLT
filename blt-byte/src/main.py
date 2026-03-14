@@ -541,7 +541,7 @@ async def _run_chat(env, message: str, history: list) -> dict:
             
     except Exception as ai_error:
         print(f"AI call crash: {ai_error!s}")
-        if "remote" in str(ai_error).lower():
+        if getattr(env, "LOCAL_DEV_MODE", False) is True:
             print("[info] AI service requires remote run. Falling back to mock response for local testing.")
             return {"reply": "Byte: (Local Dev Mode) Hello! I see you're testing locally. The AI service requires a remote connection, but I'm here to help with your development tests!"}
             
@@ -673,6 +673,7 @@ def _get_onboarding_guide(role: str) -> dict:
 class Default(WorkerEntrypoint):
     async def on_fetch(self, request, env=None, ctx=None) -> Response:
         try:
+            runtime_env = env or getattr(self, "env", None)
             url_str = str(request.url)
             method = request.method.upper()
             # Parse path from full URL
@@ -699,15 +700,15 @@ class Default(WorkerEntrypoint):
 
             # Chat endpoint (API format)
             if path == "/api/chat" and method == "POST":
-                return await handle_chat(request, self.env)
+                return await handle_chat(request, runtime_env)
 
             # Security scan endpoint
             if path == "/api/scan" and method == "POST":
-                return await handle_scan(request, self.env)
+                return await handle_scan(request, runtime_env)
 
             # MCP server endpoint
             if path == "/api/mcp":
-                return await handle_mcp(request, self.env)
+                return await handle_mcp(request, runtime_env)
 
             # HTML serving routes (GET requests)
             if method == "GET":
@@ -719,12 +720,12 @@ class Default(WorkerEntrypoint):
                         if path == "/"
                         else str(request.url).split("?", 1)[0]
                     )
-                    return await self.env.ASSETS.fetch(request_url)
+                    return await runtime_env.ASSETS.fetch(request_url)
                 
                 # Chat page
                 if path in ("/chat", "/chat/"):
                     request_url = origin + "/chat.html"
-                    return await self.env.ASSETS.fetch(request_url)
+                    return await runtime_env.ASSETS.fetch(request_url)
             
             # 404 for unknown API paths
             if path.startswith("/api/"):
@@ -732,7 +733,7 @@ class Default(WorkerEntrypoint):
 
             # All other routes: let Assets binding serve static files (logo, etc.)
             try:
-                return await self.env.ASSETS.fetch(request)
+                return await runtime_env.ASSETS.fetch(request)
             except Exception as e:
                 print(f"[error] ASSETS fetch failed: {e}")
                 traceback.print_exc()
