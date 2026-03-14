@@ -95,3 +95,17 @@ mentors:
     name: Rishab Kumar Jha
     max_mentees: 3
     active: true
+
+  - github_username: "gitsofaryan"
+    name: "Aryan Jain"
+    specialties:
+      - fullstack
+      - web3
+      - distributed-systems
+      - ai-ml
+      - open-source
+      - devops
+      - realtime-systems
+    max_mentees: 3
+    active: true
+    timezone: "UTC+5:30 (India Standard Time)"
