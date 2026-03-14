@@ -19,7 +19,7 @@ const HACKATHONS_CONFIG = {
 
             // Optional rules section
             rules: `
-                1. All pull requests must be submitted during the hackathon period (Mar 12, 2026 - Mar 30, 2026)
+                1. All pull requests must be submitted during the hackathon period (Oct 31, 2025 - Mar 30, 2026)
                 2. PRs must be merged to count towards the leaderboard
                 3. All repositories in the BLT organization are eligible
                 4. Be respectful and follow each project's contribution guidelines
@@ -27,7 +27,7 @@ const HACKATHONS_CONFIG = {
             `,
 
             // Hackathon Timeline (ISO 8601 format)
-            startTime: "2026-03-12T18:00:00Z",
+            startTime: "2025-10-31T00:00:00Z",
             endTime: "2026-03-30T18:00:00Z",
 
             // GitHub Configuration
