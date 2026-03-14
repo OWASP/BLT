@@ -28,6 +28,7 @@ import hashlib
 import hmac as _hmac
 import html as _html_mod
 import json
+import os
 import re
 import time
 from typing import Optional, Tuple
@@ -2013,37 +2014,33 @@ async def _fetch_mentors_config(owner: str, repo: str, token: str) -> list:
     return []
 
 
-async def _fetch_mentors_raw(owner: str, repo: str, ref: str = "main") -> list:
-    """Fetch ``.github/mentors.yml`` directly from the raw GitHub content CDN.
+# Default path to the bundled mentors YAML file, resolved relative to this
+# module so it works both in local development and in the Cloudflare bundle.
+_MENTORS_YML_PATH = os.path.join(os.path.dirname(__file__), "mentors.yml")
 
-    Uses ``raw.githubusercontent.com`` instead of the GitHub REST API so that
-    the homepage can load the mentor list without an authentication token and
-    without hitting the 60 req/h unauthenticated API rate limit.  The raw
-    content CDN is served from GitHub's global edge network and supports a much
-    higher request volume for public repositories.
+
+def _load_mentors_local(path: str = _MENTORS_YML_PATH) -> list:
+    """Load and parse the mentor list directly from the bundled ``mentors.yml`` file.
+
+    ``src/mentors.yml`` is a copy of ``.github/mentors.yml`` that is committed
+    alongside the worker source and therefore always available in the Cloudflare
+    Worker bundle without any network requests.  This avoids API rate limits and
+    external dependencies entirely.
+
+    The ``add-mentor-from-issue.yml`` workflow keeps ``src/mentors.yml`` in sync
+    with ``.github/mentors.yml`` whenever a new mentor is added.
 
     Returns the parsed mentor list, or ``[]`` on any failure.
     """
-    url = f"https://raw.githubusercontent.com/{owner}/{repo}/{ref}/.github/mentors.yml"
     try:
-        resp = await fetch(url)
-    except Exception as exc:
-        console.error(f"[MentorPool] Failed to fetch mentors from raw URL: {exc}")
-        return []
-    if resp.status == 404:
-        console.error("[MentorPool] .github/mentors.yml not found at raw URL (404)")
-        return []
-    if resp.status != 200:
-        console.error(f"[MentorPool] Unexpected status fetching mentors raw content: {resp.status}")
-        return []
-    try:
-        content = await resp.text()
+        with open(path, "r", encoding="utf-8") as fh:
+            content = fh.read()
         parsed = _parse_mentors_yaml(content)
         if parsed:
-            console.log(f"[MentorPool] Loaded {len(parsed)} mentors from raw GitHub URL")
+            console.log(f"[MentorPool] Loaded {len(parsed)} mentors from {path}")
             return parsed
     except Exception as exc:
-        console.error(f"[MentorPool] Error parsing mentors raw content: {exc}")
+        console.error(f"[MentorPool] Error reading {path}: {exc}")
     return []
 
 
@@ -4306,15 +4303,11 @@ async def on_fetch(request, env) -> Response:
     path = urlparse(str(request.url)).path.rstrip("/") or "/"
 
     if method == "GET" and path == "/":
-        # Populate the homepage from .github/mentors.yml via the raw GitHub
-        # content CDN.  Using raw.githubusercontent.com avoids the 60 req/h
-        # unauthenticated rate limit of the GitHub REST API and works reliably
-        # for public repositories without needing any credentials.
-        try:
-            mentors = await _fetch_mentors_raw("OWASP-BLT", "BLT-Pool")
-        except Exception:
-            mentors = []
-        return _html(_index_html(mentors))
+        # Load mentors directly from the bundled src/mentors.yml file.
+        # This avoids any network calls and API rate limits — the file is
+        # committed alongside the worker source and kept in sync by the
+        # add-mentor-from-issue workflow.
+        return _html(_index_html(_load_mentors_local()))
 
     if method == "GET" and path == "/github-app":
         app_slug = getattr(env, "GITHUB_APP_SLUG", "")
