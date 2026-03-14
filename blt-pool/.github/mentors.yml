@@ -51,6 +51,12 @@ mentors:
     max_mentees: 3
     active: true
 
+  - name: Manikandan Chandran
+    active: false
+
+  - name: Shivam Kumar
+    active: false
+
   - github_username: Vaswani2003
     name: Vinamra Vaswani
     max_mentees: 3
