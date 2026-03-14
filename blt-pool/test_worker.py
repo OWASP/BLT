@@ -1817,8 +1817,8 @@ class TestD1MentorAssignments(unittest.TestCase):
         mock_db, stmt = self._make_mock_db()
         stmt.all = AsyncMock(return_value={
             "results": [
-                {"mentor_login": "alice", "issue_repo": "OWASP-BLT/BLT", "issue_number": 42, "assigned_at": 1700000000},
-                {"mentor_login": "bob", "issue_repo": "OWASP-BLT/BLT", "issue_number": 99, "assigned_at": 1700001000},
+                {"org": "OWASP-BLT", "mentor_login": "alice", "issue_repo": "BLT", "issue_number": 42, "assigned_at": 1700000000},
+                {"org": "OWASP-BLT", "mentor_login": "bob", "issue_repo": "BLT", "issue_number": 99, "assigned_at": 1700001000},
             ]
         })
 
@@ -1832,6 +1832,7 @@ class TestD1MentorAssignments(unittest.TestCase):
         self.assertEqual(len(result), 2)
         self.assertEqual(result[0]["mentor_login"], "alice")
         self.assertEqual(result[0]["issue_number"], 42)
+        self.assertEqual(result[0]["org"], "OWASP-BLT")
         self.assertEqual(result[1]["mentor_login"], "bob")
 
     def test_get_active_assignments_empty_when_no_rows(self):
@@ -3560,7 +3561,8 @@ class TestHandleMentorCommand(unittest.TestCase):
 class TestHandleMentorUnassign(unittest.TestCase):
     """handle_mentor_unassign — /unmentor slash command"""
 
-    def _run_unmentor(self, issue, login, current_mentor, api_calls, comments):
+    def _run_unmentor(self, issue, login, current_mentor, api_calls, comments,
+                      is_maintainer=False):
         async def _inner():
             with patch.object(
                 _worker,
@@ -3578,9 +3580,14 @@ class TestHandleMentorUnassign(unittest.TestCase):
                         new=AsyncMock(side_effect=lambda o, r, n, b, t: comments.append(b)),
                     ):
                         with patch.object(_worker, "_d1_binding", return_value=None):
-                            await _worker.handle_mentor_unassign(
-                                "OWASP-BLT", "TestRepo", issue, login, "tok"
-                            )
+                            with patch.object(
+                                _worker,
+                                "_is_maintainer",
+                                new=AsyncMock(return_value=is_maintainer),
+                            ):
+                                await _worker.handle_mentor_unassign(
+                                    "OWASP-BLT", "TestRepo", issue, login, "tok"
+                                )
 
         _run(_inner())
 
@@ -3625,6 +3632,21 @@ class TestHandleMentorUnassign(unittest.TestCase):
         self.assertTrue(any("assignees" in e for e in endpoints_called))
         self.assertTrue(any("cancelled" in c.lower() for c in comments))
 
+    def test_maintainer_can_unmentor(self):
+        issue = {
+            "number": 6,
+            "labels": [{"name": "mentor-assigned"}],
+            "assignees": [{"login": "bob"}],
+            "user": {"login": "alice"},
+        }
+        api_calls, comments = [], []
+        self._run_unmentor(issue, "charlie", "bob", api_calls, comments,
+                           is_maintainer=True)
+        endpoints_called = [str(call) for call in api_calls]
+        self.assertTrue(any("labels/mentor-assigned" in e for e in endpoints_called))
+        self.assertTrue(any("assignees" in e for e in endpoints_called))
+        self.assertTrue(any("cancelled" in c.lower() for c in comments))
+
     def test_unrelated_user_cannot_unmentor(self):
         issue = {
             "number": 5,
@@ -3633,7 +3655,8 @@ class TestHandleMentorUnassign(unittest.TestCase):
             "user": {"login": "alice"},
         }
         api_calls, comments = [], []
-        self._run_unmentor(issue, "charlie", "bob", api_calls, comments)
+        self._run_unmentor(issue, "charlie", "bob", api_calls, comments,
+                           is_maintainer=False)
         self.assertEqual(api_calls, [])
         self.assertTrue(any("Only the issue author" in c for c in comments))
 
@@ -4149,10 +4172,10 @@ class TestRequestMentorReviewerForPr(unittest.TestCase):
 
 
 class TestMentorCommandPrGuard(unittest.TestCase):
-    """handle_issue_comment — mentor commands are rejected on pull requests."""
+    """handle_issue_comment — mentor commands are now available on pull requests."""
 
-    def test_mentor_command_rejected_on_pr(self):
-        """When the issue payload has a pull_request key, mentor commands post an error."""
+    def test_mentor_command_allowed_on_pr(self):
+        """When the issue payload has a pull_request key, mentor commands are no longer blocked."""
         pr_issue = {
             "number": 7,
             "pull_request": {"url": "https://api.github.com/repos/org/repo/pulls/7"},
@@ -4180,12 +4203,17 @@ class TestMentorCommandPrGuard(unittest.TestCase):
                     "create_comment",
                     new=AsyncMock(side_effect=lambda o, r, n, b, t: comments.append(b)),
                 ):
-                    await _worker.handle_issue_comment(payload, "tok")
+                    with patch.object(
+                        _worker,
+                        "_fetch_mentors_config",
+                        new=AsyncMock(return_value=[]),
+                    ):
+                        await _worker.handle_issue_comment(payload, "tok")
 
         _run(_inner())
-        self.assertTrue(
+        self.assertFalse(
             any("only available on issues" in c for c in comments),
-            f"Expected PR-guard error, got: {comments}",
+            f"PR-guard message should not be posted; got: {comments}",
         )
 
 
@@ -4489,7 +4517,7 @@ class TestIndexHtml(unittest.TestCase):
     def test_active_assignments_section_shown(self):
         """Active assignments section appears when assignments are provided."""
         assignments = [
-            {"mentor_login": "alice", "issue_repo": "OWASP-BLT/BLT", "issue_number": 42, "assigned_at": 1700000000},
+            {"org": "OWASP-BLT", "mentor_login": "alice", "issue_repo": "BLT", "issue_number": 42, "assigned_at": 1700000000},
         ]
         html = _worker._index_html([], active_assignments=assignments)
         self.assertIn("Active Mentor Assignments", html)
@@ -4504,7 +4532,7 @@ class TestIndexHtml(unittest.TestCase):
     def test_active_assignments_xss_escaped(self):
         """HTML special characters in mentor_login/issue_repo are escaped."""
         assignments = [
-            {"mentor_login": '<script>xss</script>', "issue_repo": "OWASP-BLT/BLT", "issue_number": 1, "assigned_at": 0},
+            {"org": "OWASP-BLT", "mentor_login": '<script>xss</script>', "issue_repo": "BLT", "issue_number": 1, "assigned_at": 0},
         ]
         html = _worker._index_html([], active_assignments=assignments)
         self.assertNotIn("<script>xss</script>", html)
