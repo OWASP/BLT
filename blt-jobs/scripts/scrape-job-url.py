@@ -252,12 +252,17 @@ def parse_json_ld(ld: dict, url: str) -> tuple[dict, str]:
     if isinstance(addr, str):
         location = addr
     else:
+        def _addr_str(val):
+            if isinstance(val, dict):
+                return str(val.get("name") or val.get("@value") or "")
+            return str(val) if val else ""
+
         parts = [
-            addr.get("addressLocality", ""),
-            addr.get("addressRegion", ""),
-            addr.get("addressCountry", ""),
+            _addr_str(addr.get("addressLocality", "")),
+            _addr_str(addr.get("addressRegion", "")),
+            _addr_str(addr.get("addressCountry", "")),
         ]
-        location = ", ".join(p for p in parts if p).strip(", ")
+        location = ", ".join(p for p in parts if p)
     if not location and isinstance(loc_obj, dict):
         location = loc_obj.get("name") or ""
 
