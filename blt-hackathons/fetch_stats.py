@@ -133,7 +133,27 @@ def load_participants_allowlist(participants_file):
     try:
         with open(participants_file, "r", encoding="utf-8") as f:
             data = yaml.safe_load(f)
-        usernames = data.get("participants", []) if isinstance(data, dict) else []
+        if not isinstance(data, dict):
+            logger.warning(
+                "Participants file %s is malformed (expected a YAML mapping, got %s) "
+                "— no filtering applied",
+                participants_file, type(data).__name__,
+            )
+            return None
+        usernames = data.get("participants")
+        if usernames is None:
+            logger.warning(
+                "Participants file %s is missing the 'participants' key — no filtering applied",
+                participants_file,
+            )
+            return None
+        if not isinstance(usernames, list):
+            logger.warning(
+                "Participants file %s: 'participants' must be a list, got %s "
+                "— no filtering applied",
+                participants_file, type(usernames).__name__,
+            )
+            return None
         allowlist = {str(u).lower() for u in usernames if u}
         logger.info("Loaded %d allowed participant(s) from %s", len(allowlist), participants_file)
         return allowlist

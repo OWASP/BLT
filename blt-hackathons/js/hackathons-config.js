@@ -10,6 +10,64 @@ const HACKATHONS_CONFIG = {
     hackathons: [
         {
             // Unique identifier for URL (no spaces, lowercase recommended)
+            slug: "gsoc-2026-warmup",
+            
+            // Basic Information
+            name: "GSOC 2026 Warmup",
+            description: `GSOC 2026 Warmup - Preparation event for Google Summer of Code contributors in the OWASP BLT organization.`,
+            organizer: "OWASP BLT",
+            
+            // Optional rules section
+            rules: `
+                1. All pull requests must be submitted during the hackathon period (Nov 01, 2025 - May 09, 2026)
+                2. PRs must be merged to count towards the leaderboard
+                3. All repositories in the BLT organization are eligible
+                4. Be respectful and follow each project's contribution guidelines
+                5. Have fun and learn something new!
+            `,
+            
+            // Hackathon Timeline (ISO 8601 format)
+            startTime: "2025-11-01T00:00:00Z",
+            endTime: "2026-05-09T23:59:59Z",
+            
+            // GitHub Configuration
+            github: {
+                // Your GitHub personal access token (optional, but recommended to avoid rate limits)
+                token: "",
+                
+                // Organization field - all repos in this org will be tracked
+                organization: "OWASP-BLT",
+                // Fallback repositories in case organization fetch fails
+                repositories: [
+                    "OWASP-BLT/BLT",
+                    "OWASP-BLT/BLT-Extension",
+                    "OWASP-BLT/BLT-Rewards",
+                    "OWASP-BLT/BLT-Action",
+                    "OWASP-BLT/BLT-Flutter",
+                    "OWASP-BLT/BLT-Lettuce",
+                    "OWASP-BLT/BLT-Raven"
+                ]
+            },
+            
+            // Prizes Configuration
+            prizes: [],
+            
+            // Sponsors Configuration (optional)
+            sponsors: [],
+            
+            // Display Options
+            display: {
+                showRepoStats: true,
+                maxLeaderboardEntries: Infinity,
+                showPRsInLeaderboard: true,
+                showReviewsInLeaderboard: true
+            },
+            
+            // Banner image (optional)
+            bannerImage: "images/How-do-hackathons-work-1024x576.png"
+        },
+        {
+            // Unique identifier for URL (no spaces, lowercase recommended)
             slug: "blt-mentor-warmup",
             
             // Basic Information
@@ -67,64 +125,6 @@ const HACKATHONS_CONFIG = {
             // contributors (merged PRs leaderboard).  The review leaderboard
             // remains open to everyone.
             participantsFile: "hackathon-participants/blt-mentor-warmup.yml",
-            
-            // Banner image (optional)
-            bannerImage: "images/How-do-hackathons-work-1024x576.png"
-        },
-        {
-            // Unique identifier for URL (no spaces, lowercase recommended)
-            slug: "gsoc-2026-warmup",
-            
-            // Basic Information
-            name: "GSOC 2026 Warmup",
-            description: `GSOC 2026 Warmup - Preparation event for Google Summer of Code contributors in the OWASP BLT organization.`,
-            organizer: "OWASP BLT",
-            
-            // Optional rules section
-            rules: `
-                1. All pull requests must be submitted during the hackathon period (Nov 01, 2025 - May 09, 2026)
-                2. PRs must be merged to count towards the leaderboard
-                3. All repositories in the BLT organization are eligible
-                4. Be respectful and follow each project's contribution guidelines
-                5. Have fun and learn something new!
-            `,
-            
-            // Hackathon Timeline (ISO 8601 format)
-            startTime: "2025-11-01T00:00:00Z",
-            endTime: "2026-05-09T23:59:59Z",
-            
-            // GitHub Configuration
-            github: {
-                // Your GitHub personal access token (optional, but recommended to avoid rate limits)
-                token: "",
-                
-                // Organization field - all repos in this org will be tracked
-                organization: "OWASP-BLT",
-                // Fallback repositories in case organization fetch fails
-                repositories: [
-                    "OWASP-BLT/BLT",
-                    "OWASP-BLT/BLT-Extension",
-                    "OWASP-BLT/BLT-Rewards",
-                    "OWASP-BLT/BLT-Action",
-                    "OWASP-BLT/BLT-Flutter",
-                    "OWASP-BLT/BLT-Lettuce",
-                    "OWASP-BLT/BLT-Raven"
-                ]
-            },
-            
-            // Prizes Configuration
-            prizes: [],
-            
-            // Sponsors Configuration (optional)
-            sponsors: [],
-            
-            // Display Options
-            display: {
-                showRepoStats: true,
-                maxLeaderboardEntries: Infinity,
-                showPRsInLeaderboard: true,
-                showReviewsInLeaderboard: true
-            },
             
             // Banner image (optional)
             bannerImage: "images/How-do-hackathons-work-1024x576.png"
