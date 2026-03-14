@@ -4037,5 +4037,95 @@ class TestIndexHtml(unittest.TestCase):
         self.assertNotIn("None", html)
 
 
+class TestGhHeaders(unittest.TestCase):
+    """_gh_headers — Authorization header is conditional on token presence."""
+
+    def test_with_token_includes_auth_header(self):
+        headers = _worker._gh_headers("my-secret-token")
+        self.assertEqual(headers.get("Authorization"), "Bearer my-secret-token")
+
+    def test_empty_token_omits_auth_header(self):
+        headers = _worker._gh_headers("")
+        self.assertIsNone(headers.get("Authorization"))
+
+    def test_always_includes_accept_header(self):
+        for token in ("", "tok"):
+            headers = _worker._gh_headers(token)
+            self.assertEqual(headers.get("Accept"), "application/vnd.github+json")
+
+
+class TestOnFetchHomepage(unittest.TestCase):
+    """on_fetch GET / — homepage loads mentors from .github/mentors.yml."""
+
+    def _make_get_request(self, path="/"):
+        req = types.SimpleNamespace(
+            method="GET",
+            url=f"http://localhost{path}",
+            headers=types.SimpleNamespace(get=lambda k, d=None: d),
+        )
+        return req
+
+    def test_homepage_shows_mentors_from_yaml(self):
+        """Mentors from _fetch_mentors_config are rendered on the homepage."""
+        fake_mentors = [
+            {"name": "Alice", "github_username": "alice", "active": True},
+            {"name": "Bob", "github_username": "bob", "active": True},
+        ]
+
+        async def _inner():
+            env = types.SimpleNamespace(GITHUB_TOKEN="test-token")
+            req = self._make_get_request("/")
+            with patch.object(
+                _worker, "_fetch_mentors_config", new=AsyncMock(return_value=fake_mentors)
+            ):
+                with patch.object(
+                    _worker, "console",
+                    new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None),
+                ):
+                    resp = await _worker.on_fetch(req, env)
+            self.assertIn("Alice", resp.body)
+            self.assertIn("Bob", resp.body)
+
+        _run(_inner())
+
+    def test_homepage_without_github_token_still_loads(self):
+        """Homepage renders (via unauthenticated fetch) when GITHUB_TOKEN is absent."""
+        fake_mentors = [{"name": "Carol", "github_username": "carol", "active": True}]
+
+        async def _inner():
+            env = types.SimpleNamespace()  # No GITHUB_TOKEN attribute
+            req = self._make_get_request("/")
+            with patch.object(
+                _worker, "_fetch_mentors_config", new=AsyncMock(return_value=fake_mentors)
+            ):
+                with patch.object(
+                    _worker, "console",
+                    new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None),
+                ):
+                    resp = await _worker.on_fetch(req, env)
+            self.assertIn("Carol", resp.body)
+            self.assertEqual(resp.status, 200)
+
+        _run(_inner())
+
+    def test_homepage_empty_when_fetch_fails(self):
+        """Homepage still renders (with no mentors) if _fetch_mentors_config returns []."""
+        async def _inner():
+            env = types.SimpleNamespace(GITHUB_TOKEN="")
+            req = self._make_get_request("/")
+            with patch.object(
+                _worker, "_fetch_mentors_config", new=AsyncMock(return_value=[])
+            ):
+                with patch.object(
+                    _worker, "console",
+                    new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None),
+                ):
+                    resp = await _worker.on_fetch(req, env)
+            self.assertIn("<!DOCTYPE html>", resp.body)
+            self.assertEqual(resp.status, 200)
+
+        _run(_inner())
+
+
 if __name__ == "__main__":
     unittest.main()

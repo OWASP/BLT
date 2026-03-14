@@ -195,13 +195,15 @@ async def create_github_jwt(app_id: str, private_key_pem: str) -> str:
 
 
 def _gh_headers(token: str) -> Headers:
-    return Headers.new({
-        "Authorization": f"Bearer {token}",
+    h = {
         "Accept": "application/vnd.github+json",
         "Content-Type": "application/json",
         "User-Agent": "BLT-GitHub-App/1.0",
         "X-GitHub-Api-Version": "2022-11-28",
-    }.items())
+    }
+    if token:
+        h["Authorization"] = f"Bearer {token}"
+    return Headers.new(h.items())
 
 
 async def github_api(method: str, path: str, token: str, body=None):
