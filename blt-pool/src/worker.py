@@ -53,6 +53,7 @@ BUG_LABELS = {"bug", "vulnerability", "security"}
 # ---------------------------------------------------------------------------
 
 MENTOR_COMMAND = "/mentor"
+UNMENTOR_COMMAND = "/unmentor"
 MENTOR_PAUSE_COMMAND = "/mentor-pause"
 HANDOFF_COMMAND = "/handoff"
 REMATCH_COMMAND = "/rematch"
@@ -379,6 +380,7 @@ def _extract_command(body: str) -> Optional[str]:
         UNASSIGN_COMMAND,
         LEADERBOARD_COMMAND,
         MENTOR_COMMAND,
+        UNMENTOR_COMMAND,
         MENTOR_PAUSE_COMMAND,
         HANDOFF_COMMAND,
         REMATCH_COMMAND,
@@ -922,6 +924,38 @@ async def _d1_get_mentor_loads(db, org: str) -> dict:
     except Exception as exc:
         console.error(f"[D1] Failed to get mentor loads: {exc}")
         return {}
+
+
+async def _d1_get_active_assignments(db, org: str) -> list:
+    """Return all active mentor assignments from D1 for the given org.
+
+    Returns a list of dicts with keys: mentor_login, issue_repo, issue_number, assigned_at.
+    Returns an empty list when D1 is unavailable or the query fails.
+    """
+    try:
+        rows = await _d1_all(
+            db,
+            """
+            SELECT mentor_login, issue_repo, issue_number, assigned_at
+            FROM mentor_assignments
+            WHERE org = ?
+            ORDER BY assigned_at DESC
+            """,
+            (org,),
+        )
+        return [
+            {
+                "mentor_login": row.get("mentor_login", ""),
+                "issue_repo": row.get("issue_repo", ""),
+                "issue_number": int(row.get("issue_number") or 0),
+                "assigned_at": int(row.get("assigned_at") or 0),
+            }
+            for row in rows
+            if row.get("mentor_login") and row.get("issue_repo")
+        ]
+    except Exception as exc:
+        console.error(f"[D1] Failed to get active assignments: {exc}")
+        return []
 
 
 async def _d1_inc_open_pr(db, org: str, user_login: str, delta: int) -> None:
@@ -2821,6 +2855,103 @@ async def handle_mentor_command(
     await _assign_mentor_to_issue(owner, repo, issue, login, token, mentors_config, env=env)
 
 
+async def handle_mentor_unassign(
+    owner: str,
+    repo: str,
+    issue: dict,
+    login: str,
+    token: str,
+    env=None,
+) -> None:
+    """Handle the ``/unmentor`` slash command (undo an accidental /mentor request).
+
+    Removes the mentor assignment from the issue by:
+    - Removing the ``mentor-assigned`` label.
+    - Removing the mentor from GitHub assignees.
+    - Deleting the D1 assignment record.
+    - Posting a confirmation comment.
+
+    Only the issue author or the currently assigned mentor may use this command.
+    """
+    issue_number = issue["number"]
+    current_labels = {lb.get("name", "").lower() for lb in issue.get("labels", [])}
+    if MENTOR_ASSIGNED_LABEL.lower() not in current_labels:
+        await create_comment(
+            owner,
+            repo,
+            issue_number,
+            f"@{login} This issue does not have a mentor assigned. "
+            "Use `/mentor` to request one.",
+            token,
+        )
+        return
+
+    # Identify the currently assigned mentor from hidden comment marker.
+    current_mentor = await _find_assigned_mentor_from_comments(
+        owner, repo, issue_number, token
+    )
+
+    # Permission check: allow the issue author or the assigned mentor to unmentor.
+    issue_author = (issue.get("user") or {}).get("login", "")
+    is_issue_author = login.lower() == issue_author.lower()
+    is_assigned_mentor = current_mentor and login.lower() == current_mentor.lower()
+    if not is_issue_author and not is_assigned_mentor:
+        await create_comment(
+            owner,
+            repo,
+            issue_number,
+            f"@{login} Only the issue author or the assigned mentor can remove a mentor assignment. "
+            "Use `/rematch` if you'd like a different mentor.",
+            token,
+        )
+        return
+
+    # Remove the mentor-assigned label (best-effort).
+    try:
+        await github_api(
+            "DELETE",
+            f"/repos/{owner}/{repo}/issues/{issue_number}/labels/{MENTOR_ASSIGNED_LABEL}",
+            token,
+        )
+    except Exception as exc:
+        console.error(f"[MentorPool] Failed to remove mentor-assigned label (best-effort): {exc}")
+
+    # Remove the mentor from GitHub assignees (best-effort).
+    if current_mentor:
+        try:
+            await github_api(
+                "DELETE",
+                f"/repos/{owner}/{repo}/issues/{issue_number}/assignees",
+                token,
+                {"assignees": [current_mentor]},
+            )
+        except Exception as exc:
+            console.error(f"[MentorPool] Failed to remove mentor assignee (best-effort): {exc}")
+
+    # Remove D1 assignment record (best-effort).
+    db = _d1_binding(env)
+    if db:
+        try:
+            await _d1_remove_mentor_assignment(db, owner, repo, issue_number)
+        except Exception as exc:
+            console.error(f"[MentorPool] Failed to remove D1 assignment record (best-effort): {exc}")
+
+    mentor_mention = f"@{current_mentor} " if current_mentor else ""
+    await create_comment(
+        owner,
+        repo,
+        issue_number,
+        f"<!-- blt-mentor-unassigned -->\n"
+        f"@{login} The mentor assignment has been cancelled. {mentor_mention}"
+        "The issue is now open for mentorship again — use `/mentor` to request a new mentor.\n\n"
+        "— [OWASP BLT](https://owaspblt.org)",
+        token,
+    )
+    console.log(
+        f"[MentorPool] Mentor assignment cancelled by @{login} for {owner}/{repo}#{issue_number}"
+    )
+
+
 async def handle_mentor_pause(
     owner: str,
     repo: str,
@@ -3168,7 +3299,7 @@ async def handle_issue_comment(payload: dict, token: str, env=None) -> None:
                 f"@{login} I hit an error while generating the leaderboard. Please try again in a moment.",
                 token,
             )
-    elif command in (MENTOR_COMMAND, MENTOR_PAUSE_COMMAND, HANDOFF_COMMAND, REMATCH_COMMAND):
+    elif command in (MENTOR_COMMAND, UNMENTOR_COMMAND, MENTOR_PAUSE_COMMAND, HANDOFF_COMMAND, REMATCH_COMMAND):
         # Mentor slash commands only make sense on issues, not pull requests.
         if issue.get("pull_request"):
             await create_comment(
@@ -3179,6 +3310,11 @@ async def handle_issue_comment(payload: dict, token: str, env=None) -> None:
                 token,
             )
             return
+
+        if command == UNMENTOR_COMMAND:
+            await handle_mentor_unassign(owner, repo, issue, login, token, env=env)
+            return
+
         # Fetch mentors config once for all mentor-related commands.
         try:
             mentors_config = await _fetch_mentors_config(env=env)
@@ -4420,20 +4556,25 @@ def _build_referral_leaderboard(mentors: list) -> list:
     return sorted(counts.items(), key=lambda x: x[1], reverse=True)
 
 
-def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None) -> str:
+def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, active_assignments: Optional[list] = None) -> str:
     """Generate the BLT-Pool mentor directory homepage.
 
     Args:
-        mentors:      Mentor list loaded from D1.
-                      Defaults to an empty list when omitted or ``None``.
-        mentor_stats: Optional mapping of ``github_username → {"merged_prs", "reviews"}``
-                      from D1, used to show activity stats on each mentor card.
-                      When ``None`` or empty, stats columns are hidden.
+        mentors:            Mentor list loaded from D1.
+                            Defaults to an empty list when omitted or ``None``.
+        mentor_stats:       Optional mapping of ``github_username → {"merged_prs", "reviews"}``
+                            from D1, used to show activity stats on each mentor card.
+                            When ``None`` or empty, stats columns are hidden.
+        active_assignments: Optional list of active mentor-issue assignment dicts from D1.
+                            Each dict has keys: mentor_login, issue_repo, issue_number, assigned_at.
+                            When ``None`` or empty, the section is hidden.
     """
     if mentors is None:
         mentors = []
     if mentor_stats is None:
         mentor_stats = {}
+    if active_assignments is None:
+        active_assignments = []
     # Normalize mentor_stats keys to lowercase for case-insensitive lookup.
     mentor_stats_lower = {k.lower(): v for k, v in mentor_stats.items()}
     year = time.gmtime().tm_year
@@ -4444,6 +4585,46 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None) -> st
         _generate_mentor_row(m, mentor_stats_lower.get(m.get("github_username", "").lower()))
         for m in mentors
     )
+
+    # Build active assignments section HTML.
+    if active_assignments:
+        assignment_items = "\n".join(
+            f'''<li class="flex flex-col gap-1 rounded-xl border border-[#E5E5E5] bg-gray-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div class="flex items-center gap-3 min-w-0">
+                <img src="https://github.com/{_html_mod.escape(a["mentor_login"])}.png"
+                     alt="{_html_mod.escape(a["mentor_login"])}"
+                     class="h-8 w-8 shrink-0 rounded-full border border-[#E5E5E5]">
+                <a href="https://github.com/{_html_mod.escape(a["mentor_login"])}" target="_blank" rel="noopener"
+                   class="font-semibold text-sm text-[#111827] hover:text-[#E10101] truncate">
+                  @{_html_mod.escape(a["mentor_login"])}
+                </a>
+              </div>
+              <a href="https://github.com/{_html_mod.escape(a["issue_repo"])}/issues/{a["issue_number"]}"
+                 target="_blank" rel="noopener"
+                 class="inline-flex items-center gap-1.5 rounded-full bg-[#feeae9] px-3 py-1 text-xs font-semibold text-[#E10101] hover:bg-red-100 transition shrink-0">
+                <i class="fa-brands fa-github text-xs" aria-hidden="true"></i>
+                {_html_mod.escape(a["issue_repo"])}#{a["issue_number"]}
+              </a>
+            </li>'''
+            for a in active_assignments
+        )
+        active_assignments_html = f'''
+    <section id="active-assignments" class="rounded-2xl border border-[#E5E5E5] bg-white p-7 sm:p-9">
+      <div class="mb-5 flex items-center gap-3">
+        <div class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#feeae9] text-[#E10101]">
+          <i class="fa-solid fa-link" aria-hidden="true"></i>
+        </div>
+        <div>
+          <h3 class="text-2xl font-bold text-[#111827]">Active Mentor Assignments</h3>
+          <p class="mt-0.5 text-sm text-gray-500">{len(active_assignments)} active assignment{"s" if len(active_assignments) != 1 else ""}</p>
+        </div>
+      </div>
+      <ul class="space-y-3">
+        {assignment_items}
+      </ul>
+    </section>'''
+    else:
+        active_assignments_html = ""
 
     leaderboard_rows = _build_referral_leaderboard(mentors)
     if leaderboard_rows:
@@ -4620,6 +4801,8 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None) -> st
 
     </div>
 
+    {active_assignments_html}
+
     <section class="rounded-2xl border border-[#E5E5E5] bg-white p-7 sm:p-9">
       <h3 class="text-2xl font-bold text-[#111827]">How Mentor Matching Works</h3>
       <div class="mt-6 grid gap-5 md:grid-cols-3">
@@ -4656,6 +4839,10 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None) -> st
         <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-4">
           <p class="font-mono text-sm font-bold text-[#E10101]">/mentor</p>
           <p class="mt-2 text-sm text-gray-600">Request a mentor for this issue. The bot auto-assigns the best available mentor from the pool.</p>
+        </article>
+        <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-4">
+          <p class="font-mono text-sm font-bold text-[#E10101]">/unmentor</p>
+          <p class="mt-2 text-sm text-gray-600">Cancel a mentor assignment. Use this to undo an accidental <code class="font-mono">/mentor</code> request. Available to the issue author or the assigned mentor.</p>
         </article>
         <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-4">
           <p class="font-mono text-sm font-bold text-[#E10101]">/mentor-pause</p>
@@ -4951,7 +5138,16 @@ async def on_fetch(request, env) -> Response:
             mentor_stats = await _fetch_mentor_stats_from_d1(env, org)
         except Exception as exc:
             console.error(f"[MentorPool] Failed to fetch mentor stats for homepage: {exc}")
-        return _html(_index_html(mentors, mentor_stats))
+        # Fetch active mentor assignments from D1 (best-effort).
+        active_assignments: list = []
+        db = _d1_binding(env)
+        if db:
+            try:
+                await _ensure_leaderboard_schema(db)
+                active_assignments = await _d1_get_active_assignments(db, org)
+            except Exception as exc:
+                console.error(f"[MentorPool] Failed to fetch active assignments for homepage: {exc}")
+        return _html(_index_html(mentors, mentor_stats, active_assignments))
 
     if method == "GET" and path == "/github-app":
         app_slug = getattr(env, "GITHUB_APP_SLUG", "")

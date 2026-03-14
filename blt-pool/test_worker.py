@@ -1812,6 +1812,42 @@ class TestD1MentorAssignments(unittest.TestCase):
         result = _run(_inner())
         self.assertEqual(result, {})
 
+    def test_get_active_assignments_returns_list(self):
+        """_d1_get_active_assignments returns active assignment rows."""
+        mock_db, stmt = self._make_mock_db()
+        stmt.all = AsyncMock(return_value={
+            "results": [
+                {"mentor_login": "alice", "issue_repo": "OWASP-BLT/BLT", "issue_number": 42, "assigned_at": 1700000000},
+                {"mentor_login": "bob", "issue_repo": "OWASP-BLT/BLT", "issue_number": 99, "assigned_at": 1700001000},
+            ]
+        })
+
+        async def _inner():
+            with patch.object(
+                _worker, "console",
+                new=types.SimpleNamespace(log=lambda *a: None, error=lambda *a: None),
+            ):
+                return await _worker._d1_get_active_assignments(mock_db, "OWASP-BLT")
+        result = _run(_inner())
+        self.assertEqual(len(result), 2)
+        self.assertEqual(result[0]["mentor_login"], "alice")
+        self.assertEqual(result[0]["issue_number"], 42)
+        self.assertEqual(result[1]["mentor_login"], "bob")
+
+    def test_get_active_assignments_empty_when_no_rows(self):
+        """_d1_get_active_assignments returns [] when there are no assignments."""
+        mock_db, stmt = self._make_mock_db()
+        stmt.all = AsyncMock(return_value={"results": []})
+
+        async def _inner():
+            with patch.object(
+                _worker, "console",
+                new=types.SimpleNamespace(log=lambda *a: None, error=lambda *a: None),
+            ):
+                return await _worker._d1_get_active_assignments(mock_db, "OWASP-BLT")
+        result = _run(_inner())
+        self.assertEqual(result, [])
+
 
 class TestBackfillRepoMonthIdempotency(unittest.TestCase):
     """Test that _backfill_repo_month_if_needed skips PRs already tracked via webhooks."""
@@ -3296,6 +3332,9 @@ class TestExtractCommandMentorCommands(unittest.TestCase):
     def test_mentor_command(self):
         self.assertEqual(_worker._extract_command("/mentor"), "/mentor")
 
+    def test_unmentor_command(self):
+        self.assertEqual(_worker._extract_command("/unmentor"), "/unmentor")
+
     def test_mentor_pause_command(self):
         self.assertEqual(_worker._extract_command("/mentor-pause"), "/mentor-pause")
 
@@ -3516,6 +3555,87 @@ class TestHandleMentorCommand(unittest.TestCase):
         self._run_cmd(issue, assign_calls, comments)
         self.assertEqual(assign_calls, [])
         self.assertTrue(any("already has a mentor" in c for c in comments))
+
+
+class TestHandleMentorUnassign(unittest.TestCase):
+    """handle_mentor_unassign — /unmentor slash command"""
+
+    def _run_unmentor(self, issue, login, current_mentor, api_calls, comments):
+        async def _inner():
+            with patch.object(
+                _worker,
+                "_find_assigned_mentor_from_comments",
+                new=AsyncMock(return_value=current_mentor),
+            ):
+                with patch.object(
+                    _worker,
+                    "github_api",
+                    new=AsyncMock(side_effect=lambda *a, **kw: api_calls.append(a)),
+                ):
+                    with patch.object(
+                        _worker,
+                        "create_comment",
+                        new=AsyncMock(side_effect=lambda o, r, n, b, t: comments.append(b)),
+                    ):
+                        with patch.object(_worker, "_d1_binding", return_value=None):
+                            await _worker.handle_mentor_unassign(
+                                "OWASP-BLT", "TestRepo", issue, login, "tok"
+                            )
+
+        _run(_inner())
+
+    def test_no_assignment_posts_error(self):
+        issue = {
+            "number": 1,
+            "labels": [],
+            "assignees": [],
+            "user": {"login": "alice"},
+        }
+        api_calls, comments = [], []
+        self._run_unmentor(issue, "alice", None, api_calls, comments)
+        self.assertEqual(api_calls, [])
+        self.assertTrue(any("does not have a mentor" in c for c in comments))
+
+    def test_issue_author_can_unmentor(self):
+        issue = {
+            "number": 3,
+            "labels": [{"name": "mentor-assigned"}],
+            "assignees": [{"login": "bob"}],
+            "user": {"login": "alice"},
+        }
+        api_calls, comments = [], []
+        self._run_unmentor(issue, "alice", "bob", api_calls, comments)
+        # Verify label removal and assignee removal are both attempted
+        endpoints_called = [str(call) for call in api_calls]
+        self.assertTrue(any("labels/mentor-assigned" in e for e in endpoints_called))
+        self.assertTrue(any("assignees" in e for e in endpoints_called))
+        self.assertTrue(any("cancelled" in c.lower() for c in comments))
+
+    def test_assigned_mentor_can_unmentor(self):
+        issue = {
+            "number": 4,
+            "labels": [{"name": "mentor-assigned"}],
+            "assignees": [{"login": "bob"}],
+            "user": {"login": "alice"},
+        }
+        api_calls, comments = [], []
+        self._run_unmentor(issue, "bob", "bob", api_calls, comments)
+        endpoints_called = [str(call) for call in api_calls]
+        self.assertTrue(any("labels/mentor-assigned" in e for e in endpoints_called))
+        self.assertTrue(any("assignees" in e for e in endpoints_called))
+        self.assertTrue(any("cancelled" in c.lower() for c in comments))
+
+    def test_unrelated_user_cannot_unmentor(self):
+        issue = {
+            "number": 5,
+            "labels": [{"name": "mentor-assigned"}],
+            "assignees": [{"login": "bob"}],
+            "user": {"login": "alice"},
+        }
+        api_calls, comments = [], []
+        self._run_unmentor(issue, "charlie", "bob", api_calls, comments)
+        self.assertEqual(api_calls, [])
+        self.assertTrue(any("Only the issue author" in c for c in comments))
 
 
 class TestHandleMentorPause(unittest.TestCase):
@@ -3856,6 +3976,26 @@ class TestHandleIssueCommentMentorCommands(unittest.TestCase):
         mentor, pause, handoff, rematch = [], [], [], []
         self._run_comment("/rematch", mentor, pause, handoff, rematch)
         self.assertEqual(len(rematch), 1)
+
+    def test_routes_unmentor_command(self):
+        """handle_issue_comment routes /unmentor to handle_mentor_unassign"""
+        payload = _make_issue_payload(comment_body="/unmentor")
+        unmentor_calls = []
+
+        async def _inner():
+            with patch.object(
+                _worker, "_fetch_mentors_config", new=AsyncMock(return_value=[])
+            ):
+                with patch.object(
+                    _worker,
+                    "handle_mentor_unassign",
+                    new=AsyncMock(side_effect=lambda *a, **kw: unmentor_calls.append(a)),
+                ):
+                    with patch.object(_worker, "create_reaction", new=AsyncMock()):
+                        await _worker.handle_issue_comment(payload, "tok")
+
+        _run(_inner())
+        self.assertEqual(len(unmentor_calls), 1)
 
 
 class TestFindAssignedMentorFromComments(unittest.TestCase):
@@ -4345,6 +4485,35 @@ class TestIndexHtml(unittest.TestCase):
         html = _worker._index_html(mentors, mentor_stats={})
         # Stats headings should not appear when no stats are provided
         self.assertNotIn("Reviews", html)
+
+    def test_active_assignments_section_shown(self):
+        """Active assignments section appears when assignments are provided."""
+        assignments = [
+            {"mentor_login": "alice", "issue_repo": "OWASP-BLT/BLT", "issue_number": 42, "assigned_at": 1700000000},
+        ]
+        html = _worker._index_html([], active_assignments=assignments)
+        self.assertIn("Active Mentor Assignments", html)
+        self.assertIn("@alice", html)
+        self.assertIn("OWASP-BLT/BLT#42", html)
+
+    def test_active_assignments_section_hidden_when_empty(self):
+        """Active assignments section is hidden when no assignments exist."""
+        html = _worker._index_html([], active_assignments=[])
+        self.assertNotIn("Active Mentor Assignments", html)
+
+    def test_active_assignments_xss_escaped(self):
+        """HTML special characters in mentor_login/issue_repo are escaped."""
+        assignments = [
+            {"mentor_login": '<script>xss</script>', "issue_repo": "OWASP-BLT/BLT", "issue_number": 1, "assigned_at": 0},
+        ]
+        html = _worker._index_html([], active_assignments=assignments)
+        self.assertNotIn("<script>xss</script>", html)
+        self.assertIn("&lt;script&gt;xss&lt;/script&gt;", html)
+
+    def test_unmentor_command_in_slash_commands_section(self):
+        """The /unmentor command is documented in the slash commands section."""
+        html = _worker._index_html([])
+        self.assertIn("/unmentor", html)
 
 
 class TestGhHeaders(unittest.TestCase):
