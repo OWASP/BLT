@@ -4,7 +4,7 @@ AI-powered assistant for bug bounty hunting and security research on the BLT (Bu
 
 ## Overview
 
-BLT Byte provides intelligent assistance to security researchers working with the BugHeist platform. Built on Cloudflare Workers with Python runtime, it leverages Cloudflare Workers AI to deliver real-time guidance on vulnerability reporting, bug bounty methodologies, and responsible disclosure practices.
+BLT Byte provides intelligent assistance to security researchers working with the OWASP BLT platform. Built on Cloudflare Workers with Python runtime, it leverages Cloudflare Workers AI to deliver real-time guidance on vulnerability reporting, bug bounty methodologies, and responsible disclosure practices.
 
 Byte acts as:
 - **FAQ agent** – instant answers about OWASP BLT
@@ -54,7 +54,7 @@ npm run deploy
 
 ```json
 {
-  "message": "How do I report a bug on BugHeist?",
+  "message": "How do I report a bug on OWASP BLT?",
   "history": []
 }
 ```
@@ -86,7 +86,7 @@ Send a chat message to the AI assistant.
 **Request:**
 ```json
 {
-  "message": "How do I report a bug on BugHeist?"
+  "message": "How do I report a bug on OWASP BLT?"
 }
 ```
 
@@ -95,7 +95,7 @@ Send a chat message to the AI assistant.
 {
   "success": true,
   "message": "AI response",
-  "user_message": "How do I report a bug on BugHeist?"
+  "user_message": "How do I report a bug on OWASP BLT?"
 }
 ```
 

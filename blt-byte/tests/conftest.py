@@ -2,6 +2,7 @@
 pytest conftest – provide lightweight stubs for Cloudflare Workers runtime
 modules that are not available outside the CF Workers environment.
 """
+import json as _json
 import sys
 from types import ModuleType
 from unittest.mock import MagicMock
@@ -19,8 +20,7 @@ def _make_workers_stub():
 
         @staticmethod
         def json(data):
-            import json
-            return Response(json.dumps(data), 200, {"Content-Type": "application/json"})
+            return Response(_json.dumps(data), 200, {"Content-Type": "application/json"})
 
     class WorkerEntrypoint:
         pass
@@ -30,5 +30,31 @@ def _make_workers_stub():
     return mod
 
 
-# Inject before any test module imports src/entry.py
+def _make_pyodide_stub():
+    """Return a minimal stub of the 'pyodide' module."""
+    mod = ModuleType("pyodide")
+    mod.setDebug = lambda *a, **kw: None
+    return mod
+
+
+def _make_js_stub():
+    """Return a minimal stub of the 'js' module used in the Cloudflare Workers runtime."""
+    mod = ModuleType("js")
+
+    class _JSON:
+        @staticmethod
+        def parse(text):
+            return _json.loads(text)
+
+        @staticmethod
+        def stringify(obj):
+            return _json.dumps(obj)
+
+    mod.JSON = _JSON()
+    return mod
+
+
+# Inject before any test module imports src/main.py
 sys.modules.setdefault("workers", _make_workers_stub())
+sys.modules.setdefault("pyodide", _make_pyodide_stub())
+sys.modules.setdefault("js", _make_js_stub())
