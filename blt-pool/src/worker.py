@@ -600,7 +600,6 @@ async def _d1_run(db, sql: str, params: tuple = ()):
         if params:
             stmt = stmt.bind(*params)
         result = await stmt.run()
-        console.log(f"[D1.run] Executed: {sql[:60]}...")
         return result
     except Exception as e:
         console.error(f"[D1.run] Error executing {sql[:60]}: {e}")
@@ -984,13 +983,6 @@ async def _calculate_leaderboard_stats_from_d1(owner: str, env) -> Optional[dict
     await _ensure_leaderboard_schema(db)
     mk = _month_key()
     start_timestamp, end_timestamp = _month_window(mk)
-
-    # DEBUG: Check if there's ANY data in the tables
-    all_monthly = await _d1_all(db, "SELECT COUNT(*) as cnt FROM leaderboard_monthly_stats", ())
-    all_open = await _d1_all(db, "SELECT COUNT(*) as cnt FROM leaderboard_open_prs", ())
-    total_monthly = all_monthly[0].get('cnt') if all_monthly else 0
-    total_open = all_open[0].get('cnt') if all_open else 0
-    console.log(f"[D1] DEBUG: Total rows in DB: monthly_stats={total_monthly}, open_prs={total_open}")
 
     monthly_rows = await _d1_all(
         db,
