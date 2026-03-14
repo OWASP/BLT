@@ -36,6 +36,7 @@ from urllib.parse import quote, urlparse
 
 from js import Headers, Response, console, fetch  # Cloudflare Workers JS bindings
 from index_template import GITHUB_PAGE_HTML  # Landing page HTML template
+from mentors_data import MENTORS_YAML as _MENTORS_YAML_BUNDLED  # Always-available YAML bundle
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -2115,14 +2116,36 @@ _MENTORS_YML_PATH = os.path.join(os.path.dirname(__file__), "mentors.yml")
 
 
 def _load_mentors_local(path: str = _MENTORS_YML_PATH) -> list:
-    """Load and parse the mentor list directly from the ``src/mentors.yml`` file.
+    """Load and parse the mentor list, trying multiple sources in order.
 
-    ``src/mentors.yml`` is the single source of truth for the mentor pool.  It
-    is committed alongside the worker source and is therefore always available
-    in the Cloudflare Worker bundle without any network requests.
+    When called with the **default path** (production use on Cloudflare):
 
-    Returns the parsed mentor list, or ``[]`` on any failure.
+    1. **Bundled Python module** (``_MENTORS_YAML_BUNDLED``): imported at the
+       module level from ``mentors_data.py``.  Because it is a Python import it
+       is always available in the Cloudflare Workers bundle, even when
+       ``open()`` path resolution differs from local development.
+    2. **YAML file** at ``_MENTORS_YML_PATH``: used as a secondary source if
+       the bundled constant is somehow empty or invalid.
+
+    When called with an **explicit path** (test overrides, ``test_worker.py``):
+    only the file at that path is consulted — the bundled module is bypassed so
+    that tests can exercise the file-reading codepath in isolation.
+
+    Returns the parsed mentor list, or ``[]`` when all sources fail.
     """
+    using_default_path = path == _MENTORS_YML_PATH
+
+    if using_default_path:
+        # --- Primary: bundled Python module (always present in Cloudflare bundle) ---
+        try:
+            parsed = _parse_mentors_yaml(_MENTORS_YAML_BUNDLED)
+            if parsed:
+                console.log(f"[MentorPool] Loaded {len(parsed)} mentors from bundled mentors_data module")
+                return parsed
+        except Exception as exc:
+            console.error(f"[MentorPool] Error parsing bundled mentors_data: {exc}")
+
+    # --- File-system source (fallback for Cloudflare; primary for test overrides) ---
     try:
         with open(path, "r", encoding="utf-8") as fh:
             content = fh.read()
@@ -2132,6 +2155,7 @@ def _load_mentors_local(path: str = _MENTORS_YML_PATH) -> list:
             return parsed
     except Exception as exc:
         console.error(f"[MentorPool] Error reading {path}: {exc}")
+
     return []
 
 

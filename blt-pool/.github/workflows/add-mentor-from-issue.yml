@@ -48,7 +48,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          git add src/mentors.yml
+          git add src/mentors.yml src/mentors_data.py
           # If a previous run already committed this entry, exit gracefully.
           if git diff --cached --quiet; then
             echo "No changes to commit — mentor already present."

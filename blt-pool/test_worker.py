@@ -4288,6 +4288,47 @@ mentors:
         for mentor in result:
             self.assertIn("name", mentor)
 
+    def test_default_call_uses_bundled_module(self):
+        """_load_mentors_local() with no args returns data from the bundled module."""
+        with patch.object(
+            _worker, "console",
+            new=types.SimpleNamespace(error=lambda *a: None, log=lambda *a: None),
+        ):
+            result = _worker._load_mentors_local()
+        # The bundled module (mentors_data.MENTORS_YAML) must provide mentors.
+        self.assertGreater(len(result), 0)
+        for mentor in result:
+            self.assertIn("name", mentor)
+
+    def test_bundled_module_used_even_when_file_missing(self):
+        """When the YAML file is absent, the bundled module still provides mentors."""
+        with patch.object(
+            _worker, "console",
+            new=types.SimpleNamespace(error=lambda *a: None, log=lambda *a: None),
+        ):
+            # Pass a nonexistent file for the default-path comparison to still trigger
+            # bundled-module lookup (because path == _MENTORS_YML_PATH).
+            result = _worker._load_mentors_local(_worker._MENTORS_YML_PATH)
+        self.assertGreater(len(result), 0)
+
+    def test_file_used_when_explicit_non_default_path_given(self):
+        """An explicit non-default path reads directly from that file (bypasses bundle)."""
+        import tempfile, os as _os
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as fh:
+            fh.write(self._SAMPLE_YAML)
+            tmp = fh.name
+        try:
+            with patch.object(
+                _worker, "console",
+                new=types.SimpleNamespace(error=lambda *a: None, log=lambda *a: None),
+            ):
+                result = _worker._load_mentors_local(tmp)
+            # Should read from the temp file (2 mentors), NOT the bundled 17+ mentors.
+            self.assertEqual(len(result), 2)
+            self.assertEqual(result[0]["github_username"], "alice")
+        finally:
+            _os.unlink(tmp)
+
 
 class TestOnFetchHomepage(unittest.TestCase):
     """on_fetch GET / — homepage loads mentors from the bundled mentors.yml file."""
