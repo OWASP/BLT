@@ -2013,6 +2013,40 @@ async def _fetch_mentors_config(owner: str, repo: str, token: str) -> list:
     return []
 
 
+async def _fetch_mentors_raw(owner: str, repo: str, ref: str = "main") -> list:
+    """Fetch ``.github/mentors.yml`` directly from the raw GitHub content CDN.
+
+    Uses ``raw.githubusercontent.com`` instead of the GitHub REST API so that
+    the homepage can load the mentor list without an authentication token and
+    without hitting the 60 req/h unauthenticated API rate limit.  The raw
+    content CDN is served from GitHub's global edge network and supports a much
+    higher request volume for public repositories.
+
+    Returns the parsed mentor list, or ``[]`` on any failure.
+    """
+    url = f"https://raw.githubusercontent.com/{owner}/{repo}/{ref}/.github/mentors.yml"
+    try:
+        resp = await fetch(url)
+    except Exception as exc:
+        console.error(f"[MentorPool] Failed to fetch mentors from raw URL: {exc}")
+        return []
+    if resp.status == 404:
+        console.error("[MentorPool] .github/mentors.yml not found at raw URL (404)")
+        return []
+    if resp.status != 200:
+        console.error(f"[MentorPool] Unexpected status fetching mentors raw content: {resp.status}")
+        return []
+    try:
+        content = await resp.text()
+        parsed = _parse_mentors_yaml(content)
+        if parsed:
+            console.log(f"[MentorPool] Loaded {len(parsed)} mentors from raw GitHub URL")
+            return parsed
+    except Exception as exc:
+        console.error(f"[MentorPool] Error parsing mentors raw content: {exc}")
+    return []
+
+
 async def _get_mentor_load_map(owner: str, token: str) -> dict:
     """Return a mapping of mentor_username → open mentored issue count.
 
@@ -4272,11 +4306,12 @@ async def on_fetch(request, env) -> Response:
     path = urlparse(str(request.url)).path.rstrip("/") or "/"
 
     if method == "GET" and path == "/":
-        # Populate the homepage from .github/mentors.yml.
-        # Use GITHUB_TOKEN if available (avoids the 60 req/h unauthenticated limit).
+        # Populate the homepage from .github/mentors.yml via the raw GitHub
+        # content CDN.  Using raw.githubusercontent.com avoids the 60 req/h
+        # unauthenticated rate limit of the GitHub REST API and works reliably
+        # for public repositories without needing any credentials.
         try:
-            gh_token = getattr(env, "GITHUB_TOKEN", "") or ""
-            mentors = await _fetch_mentors_config("OWASP-BLT", "BLT-Pool", gh_token)
+            mentors = await _fetch_mentors_raw("OWASP-BLT", "BLT-Pool")
         except Exception:
             mentors = []
         return _html(_index_html(mentors))

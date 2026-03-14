@@ -4054,8 +4054,139 @@ class TestGhHeaders(unittest.TestCase):
             self.assertEqual(headers.get("Accept"), "application/vnd.github+json")
 
 
+class TestFetchMentorsRaw(unittest.TestCase):
+    """_fetch_mentors_raw — fetches mentors.yml from raw.githubusercontent.com."""
+
+    _SAMPLE_YAML = """\
+mentors:
+  - github_username: alice
+    name: Alice Smith
+    max_mentees: 3
+    active: true
+  - github_username: bob
+    name: Bob Jones
+    max_mentees: 2
+    active: true
+"""
+
+    def _make_raw_response(self, status: int, body: str = ""):
+        resp = _js_stub.Response.new(body=body, status=status)
+
+        async def _text():
+            return body
+
+        resp.text = _text
+        return resp
+
+    def test_returns_mentors_on_200(self):
+        """A 200 response with valid YAML returns the parsed mentor list."""
+        async def _inner():
+            with patch.object(
+                _worker, "fetch",
+                new=AsyncMock(return_value=self._make_raw_response(200, self._SAMPLE_YAML)),
+            ):
+                with patch.object(
+                    _worker, "console",
+                    new=types.SimpleNamespace(error=lambda *a: None, log=lambda *a: None),
+                ):
+                    result = await _worker._fetch_mentors_raw("OWASP-BLT", "BLT-Pool")
+            self.assertEqual(len(result), 2)
+            self.assertEqual(result[0]["github_username"], "alice")
+            self.assertEqual(result[1]["name"], "Bob Jones")
+
+        _run(_inner())
+
+    def test_returns_empty_on_404(self):
+        """A 404 response returns an empty list."""
+        async def _inner():
+            with patch.object(
+                _worker, "fetch",
+                new=AsyncMock(return_value=self._make_raw_response(404)),
+            ):
+                with patch.object(
+                    _worker, "console",
+                    new=types.SimpleNamespace(error=lambda *a: None, log=lambda *a: None),
+                ):
+                    result = await _worker._fetch_mentors_raw("OWASP-BLT", "BLT-Pool")
+            self.assertEqual(result, [])
+
+        _run(_inner())
+
+    def test_returns_empty_on_non_200(self):
+        """A non-200/non-404 response (e.g. 403, 500) returns an empty list."""
+        async def _inner():
+            with patch.object(
+                _worker, "fetch",
+                new=AsyncMock(return_value=self._make_raw_response(403)),
+            ):
+                with patch.object(
+                    _worker, "console",
+                    new=types.SimpleNamespace(error=lambda *a: None, log=lambda *a: None),
+                ):
+                    result = await _worker._fetch_mentors_raw("OWASP-BLT", "BLT-Pool")
+            self.assertEqual(result, [])
+
+        _run(_inner())
+
+    def test_returns_empty_on_fetch_exception(self):
+        """A network error (exception from fetch) returns an empty list."""
+        async def _inner():
+            with patch.object(
+                _worker, "fetch",
+                new=AsyncMock(side_effect=Exception("network error")),
+            ):
+                with patch.object(
+                    _worker, "console",
+                    new=types.SimpleNamespace(error=lambda *a: None, log=lambda *a: None),
+                ):
+                    result = await _worker._fetch_mentors_raw("OWASP-BLT", "BLT-Pool")
+            self.assertEqual(result, [])
+
+        _run(_inner())
+
+    def test_uses_raw_githubusercontent_url(self):
+        """The fetch call uses the raw.githubusercontent.com domain."""
+        called_url = []
+
+        async def _mock_fetch(url, **_kwargs):
+            called_url.append(url)
+            return self._make_raw_response(200, self._SAMPLE_YAML)
+
+        async def _inner():
+            with patch.object(_worker, "fetch", new=_mock_fetch):
+                with patch.object(
+                    _worker, "console",
+                    new=types.SimpleNamespace(error=lambda *a: None, log=lambda *a: None),
+                ):
+                    await _worker._fetch_mentors_raw("OWASP-BLT", "BLT-Pool")
+            self.assertTrue(called_url[0].startswith("https://raw.githubusercontent.com/"))
+            self.assertIn("OWASP-BLT/BLT-Pool", called_url[0])
+            self.assertIn(".github/mentors.yml", called_url[0])
+
+        _run(_inner())
+
+    def test_custom_ref_is_used(self):
+        """A custom ref is included in the URL."""
+        called_url = []
+
+        async def _mock_fetch(url, **_kwargs):
+            called_url.append(url)
+            return self._make_raw_response(200, self._SAMPLE_YAML)
+
+        async def _inner():
+            with patch.object(_worker, "fetch", new=_mock_fetch):
+                with patch.object(
+                    _worker, "console",
+                    new=types.SimpleNamespace(error=lambda *a: None, log=lambda *a: None),
+                ):
+                    await _worker._fetch_mentors_raw("OWASP-BLT", "BLT-Pool", ref="develop")
+            self.assertIn("/develop/", called_url[0])
+
+        _run(_inner())
+
+
 class TestOnFetchHomepage(unittest.TestCase):
-    """on_fetch GET / — homepage loads mentors from .github/mentors.yml."""
+    """on_fetch GET / — homepage loads mentors from .github/mentors.yml via raw CDN."""
 
     def _make_get_request(self, path="/"):
         req = types.SimpleNamespace(
@@ -4066,17 +4197,17 @@ class TestOnFetchHomepage(unittest.TestCase):
         return req
 
     def test_homepage_shows_mentors_from_yaml(self):
-        """Mentors from _fetch_mentors_config are rendered on the homepage."""
+        """Mentors from _fetch_mentors_raw are rendered on the homepage."""
         fake_mentors = [
             {"name": "Alice", "github_username": "alice", "active": True},
             {"name": "Bob", "github_username": "bob", "active": True},
         ]
 
         async def _inner():
-            env = types.SimpleNamespace(GITHUB_TOKEN="test-token")
+            env = types.SimpleNamespace()
             req = self._make_get_request("/")
             with patch.object(
-                _worker, "_fetch_mentors_config", new=AsyncMock(return_value=fake_mentors)
+                _worker, "_fetch_mentors_raw", new=AsyncMock(return_value=fake_mentors)
             ):
                 with patch.object(
                     _worker, "console",
@@ -4088,15 +4219,15 @@ class TestOnFetchHomepage(unittest.TestCase):
 
         _run(_inner())
 
-    def test_homepage_without_github_token_still_loads(self):
-        """Homepage renders (via unauthenticated fetch) when GITHUB_TOKEN is absent."""
+    def test_homepage_loads_without_github_token(self):
+        """Homepage renders without requiring a GITHUB_TOKEN env variable."""
         fake_mentors = [{"name": "Carol", "github_username": "carol", "active": True}]
 
         async def _inner():
             env = types.SimpleNamespace()  # No GITHUB_TOKEN attribute
             req = self._make_get_request("/")
             with patch.object(
-                _worker, "_fetch_mentors_config", new=AsyncMock(return_value=fake_mentors)
+                _worker, "_fetch_mentors_raw", new=AsyncMock(return_value=fake_mentors)
             ):
                 with patch.object(
                     _worker, "console",
@@ -4109,12 +4240,12 @@ class TestOnFetchHomepage(unittest.TestCase):
         _run(_inner())
 
     def test_homepage_empty_when_fetch_fails(self):
-        """Homepage still renders (with no mentors) if _fetch_mentors_config returns []."""
+        """Homepage still renders (with no mentors) if _fetch_mentors_raw returns []."""
         async def _inner():
-            env = types.SimpleNamespace(GITHUB_TOKEN="")
+            env = types.SimpleNamespace()
             req = self._make_get_request("/")
             with patch.object(
-                _worker, "_fetch_mentors_config", new=AsyncMock(return_value=[])
+                _worker, "_fetch_mentors_raw", new=AsyncMock(return_value=[])
             ):
                 with patch.object(
                     _worker, "console",
