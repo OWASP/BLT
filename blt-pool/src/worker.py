@@ -1,7 +1,12 @@
-"""BLT GitHub App — Python Cloudflare Worker.
+"""BLT-Pool — Mentor Matching & GitHub Automation Platform.
 
-Handles GitHub webhooks and serves a landing homepage.
-This is the Python / Cloudflare Workers port of the original Node.js Probot app.
+A dual-purpose platform that:
+1. Connects contributors with mentors through a shared mentor pool
+2. Automates GitHub workflows (issue assignment, leaderboard, webhooks)
+
+Homepage (/) displays the mentor grid with availability and assignments.
+GitHub App documentation and installation at /github-app
+(legacy alias: /github-app).
 
 Entry point: ``on_fetch(request, env)`` — called by the Cloudflare runtime for
 every incoming HTTP request.
@@ -21,6 +26,7 @@ import base64
 import calendar
 import hashlib
 import hmac as _hmac
+import html as _html_mod
 import json
 import re
 import time
@@ -28,7 +34,7 @@ from typing import Optional, Tuple
 from urllib.parse import quote, urlparse
 
 from js import Headers, Response, console, fetch  # Cloudflare Workers JS bindings
-from index_template import INDEX_HTML  # Landing page HTML template
+from index_template import GITHUB_PAGE_HTML  # Landing page HTML template
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -40,6 +46,32 @@ LEADERBOARD_COMMAND = "/leaderboard"
 MAX_ASSIGNEES = 1
 ASSIGNMENT_DURATION_HOURS = 8
 BUG_LABELS = {"bug", "vulnerability", "security"}
+
+# ---------------------------------------------------------------------------
+# Mentor pool — slash commands and label names
+# ---------------------------------------------------------------------------
+
+MENTOR_COMMAND = "/mentor"
+MENTOR_PAUSE_COMMAND = "/mentor-pause"
+HANDOFF_COMMAND = "/handoff"
+REMATCH_COMMAND = "/rematch"
+NEEDS_MENTOR_LABEL = "needs-mentor"
+MENTOR_ASSIGNED_LABEL = "mentor-assigned"
+MENTOR_MAX_MENTEES = 3
+MENTOR_STALE_DAYS = 14
+MENTOR_LABEL_COLOR = "7057ff"
+MENTOR_ASSIGNED_LABEL_COLOR = "0075ca"
+# Issues with these labels bypass mentor auto-assignment (go to core maintainers).
+SECURITY_BYPASS_LABELS = {"security", "vulnerability", "security-sensitive", "private-security"}
+# Seconds in a day — used for stale-assignment threshold calculations.
+_SECONDS_PER_DAY = 86400
+# When True, one active mentor is auto-requested as a reviewer on every newly
+# opened PR using a deterministic round-robin order (PR number mod pool size).
+# Set to False (default) to keep the existing behaviour of only requesting the
+# mentor when the PR explicitly closes a mentored issue.
+# This default can also be overridden at runtime by setting the Cloudflare
+# Worker environment variable ``MENTOR_AUTO_PR_REVIEWER_ENABLED=true``.
+MENTOR_AUTO_PR_REVIEWER_ENABLED = False
 
 # DER OID sequence for rsaEncryption (used when wrapping PKCS#1 → PKCS#8)
 _RSA_OID_SEQ = bytes([
@@ -163,13 +195,15 @@ async def create_github_jwt(app_id: str, private_key_pem: str) -> str:
 
 
 def _gh_headers(token: str) -> Headers:
-    return Headers.new({
-        "Authorization": f"Bearer {token}",
+    h = {
         "Accept": "application/vnd.github+json",
         "Content-Type": "application/json",
         "User-Agent": "BLT-GitHub-App/1.0",
         "X-GitHub-Api-Version": "2022-11-28",
-    }.items())
+    }
+    if token:
+        h["Authorization"] = f"Bearer {token}"
+    return Headers.new(h.items())
 
 
 async def github_api(method: str, path: str, token: str, body=None):
@@ -339,7 +373,15 @@ def _extract_command(body: str) -> Optional[str]:
     tokens = body.strip().split()
     if not tokens:
         return None
-    supported = {ASSIGN_COMMAND, UNASSIGN_COMMAND, LEADERBOARD_COMMAND}
+    supported = {
+        ASSIGN_COMMAND,
+        UNASSIGN_COMMAND,
+        LEADERBOARD_COMMAND,
+        MENTOR_COMMAND,
+        MENTOR_PAUSE_COMMAND,
+        HANDOFF_COMMAND,
+        REMATCH_COMMAND,
+    }
     for t in tokens:
         tok = t.strip().lower().rstrip(".,!?:;")
         if tok in supported:
@@ -988,12 +1030,15 @@ async def _backfill_repo_month_if_needed(
 
     # Load all PR numbers already tracked via webhooks for this repo to avoid
     # double-counting PRs that were already processed by webhook event handlers.
+    # Also load the recorded state so we can self-heal PRs that were tracked as
+    # 'open' but whose close/merge webhook was missed.
     tracked_rows = await _d1_all(
         db,
-        "SELECT pr_number FROM leaderboard_pr_state WHERE org = ? AND repo = ?",
+        "SELECT pr_number, state FROM leaderboard_pr_state WHERE org = ? AND repo = ?",
         (owner, repo_name),
     )
-    already_tracked = {int(row["pr_number"]) for row in (tracked_rows or [])}
+    already_tracked_state = {int(row["pr_number"]): row.get("state", "") for row in (tracked_rows or [])}
+    already_tracked = set(already_tracked_state.keys())
     console.log(f"[Backfill] {len(already_tracked)} PRs already tracked for {owner}/{repo_name}")
 
     now_ts = int(time.time())
@@ -1030,6 +1075,7 @@ async def _backfill_repo_month_if_needed(
                 (owner, repo_name, pr_number, login, now_ts),
             )
             already_tracked.add(pr_number)
+            already_tracked_state[pr_number] = "open"
         console.log(f"[Backfill] Found {len(open_prs)} open PRs, {len(open_by_user)} unique users (new)")
         for login, cnt in open_by_user.items():
             console.log(f"[Backfill] User {login}: {cnt} open PRs")
@@ -1065,9 +1111,18 @@ async def _backfill_repo_month_if_needed(
             pr_number = pr.get("number")
             if not login or not pr_number:
                 continue
-            if pr_number in already_tracked:
+            tracked_state = already_tracked_state.get(pr_number)
+            if tracked_state == "closed":
+                # Already properly tracked as closed — skip to avoid double-counting.
                 console.log(f"[Backfill] Skipping closed PR #{pr_number} (already tracked via webhook)")
                 continue
+            # Self-heal: PR was recorded as 'open' in the database but GitHub now shows it
+            # as closed/merged, meaning the close/merge webhook was missed.  Undo the open
+            # count that was previously recorded and fall through to count it correctly.
+            is_self_heal = tracked_state == "open"
+            if is_self_heal:
+                console.log(f"[Backfill] Self-healing PR #{pr_number} for {login}: was 'open', now closed")
+                await _d1_inc_open_pr(db, owner, login, -1)
             merged_at = pr.get("merged_at")
             closed_at = pr.get("closed_at")
             if merged_at:
@@ -1084,11 +1139,16 @@ async def _backfill_repo_month_if_needed(
                         """
                         INSERT INTO leaderboard_pr_state (org, repo, pr_number, author_login, state, merged, closed_at, updated_at)
                         VALUES (?, ?, ?, ?, 'closed', 1, ?, ?)
-                        ON CONFLICT(org, repo, pr_number) DO NOTHING
+                        ON CONFLICT(org, repo, pr_number) DO UPDATE SET
+                            state = 'closed',
+                            merged = 1,
+                            closed_at = excluded.closed_at,
+                            updated_at = excluded.updated_at
                         """,
                         (owner, repo_name, pr_number, login, pr_closed_ts, now_ts),
                     )
                     already_tracked.add(pr_number)
+                    already_tracked_state[pr_number] = "closed"
                     if len(merged_prs_for_review) < MAX_REVIEW_BACKFILL:
                         merged_prs_for_review.append((pr_number, login))
             elif closed_at:
@@ -1102,11 +1162,16 @@ async def _backfill_repo_month_if_needed(
                         """
                         INSERT INTO leaderboard_pr_state (org, repo, pr_number, author_login, state, merged, closed_at, updated_at)
                         VALUES (?, ?, ?, ?, 'closed', 0, ?, ?)
-                        ON CONFLICT(org, repo, pr_number) DO NOTHING
+                        ON CONFLICT(org, repo, pr_number) DO UPDATE SET
+                            state = 'closed',
+                            merged = 0,
+                            closed_at = excluded.closed_at,
+                            updated_at = excluded.updated_at
                         """,
                         (owner, repo_name, pr_number, login, closed_ts_val, now_ts),
                     )
                     already_tracked.add(pr_number)
+                    already_tracked_state[pr_number] = "closed"
         # Stop paginating if fewer than 100 results (last page).
         if len(closed_prs) < 100:
             break
@@ -1219,6 +1284,7 @@ async def _reset_leaderboard_month(org: str, month_key: str, db) -> dict:
     - leaderboard_monthly_stats       for org + month_key
     - leaderboard_backfill_repo_done  for org + month_key  (allows re-backfill)
     - leaderboard_review_credits      for org + month_key
+    - leaderboard_backfill_state      for org + month_key  (allows backfill to restart)
     - leaderboard_pr_state            for org where closed_at falls within the month window
     - leaderboard_open_prs            for org              (open PR counts are recalculated
                                                             fresh on next backfill)
@@ -1232,6 +1298,7 @@ async def _reset_leaderboard_month(org: str, month_key: str, db) -> dict:
         ("leaderboard_monthly_stats", (org, month_key)),
         ("leaderboard_backfill_repo_done", (org, month_key)),
         ("leaderboard_review_credits", (org, month_key)),
+        ("leaderboard_backfill_state", (org, month_key)),
     ]:
         try:
             await _d1_run(db, f"DELETE FROM {table} WHERE org = ? AND month_key = ?", params)
@@ -1929,6 +1996,708 @@ async def _check_rank_improvement(owner: str, repo: str, pr_number: int, author_
 
 
 # ---------------------------------------------------------------------------
+# Mentor Pool — Configuration, Selection, and Command Handlers
+# ---------------------------------------------------------------------------
+
+
+def _parse_yaml_scalar(s: str):
+    """Convert a YAML scalar string to an appropriate Python value."""
+    if s.lower() in ("true", "yes", "on"):
+        return True
+    if s.lower() in ("false", "no", "off"):
+        return False
+    if s.lower() in ("null", "~", ""):
+        return None
+    try:
+        return int(s)
+    except ValueError:
+        pass
+    if (s.startswith('"') and s.endswith('"')) or (s.startswith("'") and s.endswith("'")):
+        return s[1:-1]
+    return s
+
+
+def _parse_mentors_yaml(content: str) -> list:
+    """Parse a simple mentors YAML file into a list of mentor dicts.
+
+    Handles the specific format used in ``.github/mentors.yml``:
+
+    .. code-block:: yaml
+
+        mentors:
+          - github_username: alice
+            name: Alice Smith
+            specialties:
+              - frontend
+            max_mentees: 3
+            active: true
+    """
+    mentors: list = []
+    current: Optional[dict] = None
+    current_list_key: Optional[str] = None
+
+    for raw_line in content.splitlines():
+        line = raw_line.rstrip()
+        if not line.strip() or line.strip().startswith("#"):
+            continue
+        indent = len(line) - len(line.lstrip())
+        stripped = line.strip()
+
+        if stripped == "mentors:":
+            continue
+
+        if stripped.startswith("- ") and indent == 2:
+            # New mentor entry
+            if current is not None:
+                mentors.append(current)
+            current = {}
+            current_list_key = None
+            kv = stripped[2:]
+            if ":" in kv:
+                k, _, v = kv.partition(":")
+                current[k.strip()] = _parse_yaml_scalar(v.strip())
+        elif stripped.startswith("- ") and indent >= 6 and current is not None and current_list_key:
+            # List item (e.g. a specialty entry)
+            current[current_list_key].append(stripped[2:].strip())
+        elif ":" in stripped and not stripped.startswith("-") and current is not None:
+            k, _, v = stripped.partition(":")
+            k = k.strip()
+            v = v.strip()
+            if v == "":
+                current_list_key = k
+                current[k] = []
+            else:
+                current_list_key = None
+                current[k] = _parse_yaml_scalar(v)
+
+    if current is not None:
+        mentors.append(current)
+
+    return mentors
+
+
+async def _fetch_mentors_config(owner: str, repo: str, token: str) -> list:
+    """Fetch and parse ``.github/mentors.yml`` from the repository.
+
+    Returns the parsed mentor list.  Returns an empty list when the file does
+    not exist or cannot be parsed so that ``.github/mentors.yml`` is the single
+    source of truth for the mentor pool.
+    """
+    resp = await github_api(
+        "GET",
+        f"/repos/{owner}/{repo}/contents/.github/mentors.yml",
+        token,
+    )
+    if resp.status == 404:
+        console.error("[MentorPool] .github/mentors.yml not found (404)")
+        return []
+    if resp.status != 200:
+        console.error(f"[MentorPool] Failed to fetch .github/mentors.yml: {resp.status}")
+        return []
+    try:
+        data = json.loads(await resp.text())
+        content_b64 = data.get("content", "")
+        # GitHub wraps base64 content with newlines; strip before decoding.
+        content_decoded = base64.b64decode(content_b64.replace("\n", "")).decode("utf-8")
+        parsed = _parse_mentors_yaml(content_decoded)
+        if parsed:
+            console.log(f"[MentorPool] Loaded {len(parsed)} mentors from .github/mentors.yml")
+            return parsed
+    except Exception as exc:
+        console.error(f"[MentorPool] Error parsing .github/mentors.yml: {exc}")
+    return []
+
+
+async def _get_mentor_load_map(owner: str, token: str) -> dict:
+    """Return a mapping of mentor_username → open mentored issue count.
+
+    Uses the GitHub search API (with pagination) to count all currently
+    open issues labelled ``mentor-assigned`` per assignee.
+    """
+    # Limit pagination to avoid excessive subrequests.
+    max_pages = 5
+    per_page = 100
+    load_map: dict = {}
+
+    for page in range(1, max_pages + 1):
+        resp = await github_api(
+            "GET",
+            f"/search/issues?q=org:{owner}+is:issue+is:open+label:{MENTOR_ASSIGNED_LABEL}"
+            f"&per_page={per_page}&page={page}",
+            token,
+        )
+        if resp.status != 200:
+            if page == 1:
+                console.log(
+                    f"[MentorPool] _get_mentor_load_map: GitHub search API returned {resp.status} "
+                    f"on page {page} — returning empty load map (all mentors appear at zero load)."
+                )
+                return {}
+            console.log(
+                f"[MentorPool] _get_mentor_load_map: GitHub search API returned {resp.status} "
+                f"on page {page} — using load counts collected so far."
+            )
+            break
+
+        data = json.loads(await resp.text())
+        items = data.get("items", [])
+        if not items:
+            break
+
+        for item in items:
+            for assignee in item.get("assignees", []):
+                login = assignee.get("login", "")
+                if login:
+                    load_map[login] = load_map.get(login, 0) + 1
+
+        if len(items) < per_page:
+            break
+
+    return load_map
+
+
+async def _select_mentor(
+    owner: str,
+    token: str,
+    issue_labels: Optional[list] = None,
+    mentors_config: Optional[list] = None,
+    exclude: Optional[str] = None,
+) -> Optional[dict]:
+    """Select the best available mentor using capacity-aware round-robin.
+
+    The algorithm:
+    1. Filter to active mentors with a GitHub username (optionally excluding one).
+    2. If the issue has labels that match any mentor's specialties, prefer those mentors.
+    3. Fetch the current load map (single API call).
+    4. Skip mentors who are at or over their ``max_mentees`` cap.
+    5. Return the mentor with the fewest active issues; break ties alphabetically.
+
+    Returns ``None`` when no mentor is available.
+    """
+    pool = mentors_config if mentors_config is not None else []
+    active = [
+        m for m in pool
+        if m.get("active", True)
+        and m.get("github_username")
+        and (exclude is None or m["github_username"].lower() != exclude.lower())
+    ]
+    if not active:
+        return None
+
+    # Specialty matching: narrow to mentors who match the issue's labels.
+    if issue_labels:
+        label_set = {lb.lower() for lb in issue_labels}
+        specialty_matched = [
+            m for m in active
+            if any(s.lower() in label_set for s in m.get("specialties", []))
+        ]
+        if specialty_matched:
+            active = specialty_matched
+
+    load_map = await _get_mentor_load_map(owner, token)
+
+    # Normalize load_map keys to lowercase: GitHub usernames are case-insensitive
+    # but config entries and API responses may differ in casing.
+    normalized_load = {k.lower(): v for k, v in load_map.items()}
+
+    # Build candidates filtered by capacity.
+    candidates = []
+    for m in active:
+        username = m["github_username"]
+        load = normalized_load.get(username.lower(), 0)
+        cap = m.get("max_mentees", MENTOR_MAX_MENTEES)
+        if load < cap:
+            candidates.append((m, load))
+
+    if not candidates:
+        return None
+
+    # Pick mentor with fewest active issues; break ties alphabetically.
+    candidates.sort(key=lambda x: (x[1], x[0]["github_username"].lower()))
+    return candidates[0][0]
+
+
+async def _find_assigned_mentor_from_comments(
+    owner: str, repo: str, issue_number: int, token: str
+) -> Optional[str]:
+    """Scan issue comments for the ``blt-mentor-assigned`` hidden marker.
+
+    Paginates through all comments (100 per page) so the marker is found even
+    on issues with many comments.  Returns the mentor's GitHub username from the
+    most recent marker found, or ``None`` if no marker exists.
+    """
+    marker = "<!-- blt-mentor-assigned:"
+    per_page = 100
+    page = 1
+    last_mentor: Optional[str] = None
+    while True:
+        resp = await github_api(
+            "GET",
+            f"/repos/{owner}/{repo}/issues/{issue_number}/comments"
+            f"?per_page={per_page}&page={page}",
+            token,
+        )
+        if resp.status != 200:
+            return None
+        comments = json.loads(await resp.text())
+        if not comments:
+            break
+        # Iterate in forward order, tracking the last match so the most recent
+        # assignment marker wins without needing to reverse the full list.
+        for comment in comments:
+            body = comment.get("body", "")
+            if marker in body:
+                start = body.find(marker) + len(marker)
+                end = body.find("-->", start)
+                if end > start:
+                    last_mentor = body[start:end].strip().lstrip("@")
+        if len(comments) < per_page:
+            break
+        page += 1
+    return last_mentor
+
+
+async def _get_last_human_activity_ts(
+    owner: str, repo: str, issue_number: int, issue: dict, token: str
+) -> float:
+    """Return the timestamp (epoch seconds) of the most recent non-bot activity.
+
+    Fetches the most recently created page of issue comments and returns the
+    timestamp of the latest comment posted by a non-bot human.  If no human
+    comments are found the issue's ``created_at`` value is used as a fallback so
+    that newly opened issues without any comments are still eligible for stale
+    checks after ``MENTOR_STALE_DAYS`` days.
+    """
+    fallback = _parse_github_timestamp(issue.get("created_at", "")) or 0.0
+
+    resp = await github_api(
+        "GET",
+        f"/repos/{owner}/{repo}/issues/{issue_number}/comments"
+        f"?sort=created&direction=desc&per_page=100",
+        token,
+    )
+    if resp.status != 200:
+        return fallback
+
+    comments = json.loads(await resp.text())
+    for comment in comments:
+        user = comment.get("user") or {}
+        if _is_human(user) and not _is_bot(user):
+            ts = _parse_github_timestamp(comment.get("created_at", ""))
+            if ts:
+                return ts
+
+    return fallback
+
+
+def _is_security_issue(issue: dict) -> bool:
+    """Return ``True`` if the issue carries any security-sensitive label."""
+    labels = {lb.get("name", "").lower() for lb in issue.get("labels", [])}
+    return bool(labels & SECURITY_BYPASS_LABELS)
+
+
+async def _assign_mentor_to_issue(
+    owner: str,
+    repo: str,
+    issue: dict,
+    contributor_login: str,
+    token: str,
+    mentors_config: Optional[list] = None,
+    exclude: Optional[str] = None,
+) -> bool:
+    """Assign a mentor from the pool to an issue.
+
+    Steps:
+    1. Reject security-sensitive issues.
+    2. Skip if the issue already has the ``mentor-assigned`` label.
+    3. Select a mentor via capacity-aware round-robin.
+    4. Ensure the ``needs-mentor`` and ``mentor-assigned`` labels exist, then apply
+       ``mentor-assigned`` to the issue.
+    5. Add the mentor as a GitHub assignee.
+    6. Post a welcome comment with a hidden ``blt-mentor-assigned`` marker.
+
+    Returns ``True`` on success, ``False`` otherwise.
+    """
+    issue_number = issue["number"]
+
+    if _is_security_issue(issue):
+        console.log(
+            f"[MentorPool] Skipping security issue {owner}/{repo}#{issue_number}"
+        )
+        return False
+
+    current_labels = {lb.get("name", "").lower() for lb in issue.get("labels", [])}
+    if MENTOR_ASSIGNED_LABEL.lower() in current_labels:
+        console.log(
+            f"[MentorPool] Mentor already assigned to {owner}/{repo}#{issue_number}"
+        )
+        return False
+
+    issue_label_names = [lb.get("name", "") for lb in issue.get("labels", [])]
+    mentor = await _select_mentor(
+        owner, token, issue_label_names, mentors_config, exclude=exclude
+    )
+
+    if mentor is None:
+        await create_comment(
+            owner,
+            repo,
+            issue_number,
+            "👋 A mentor was requested for this issue, but all mentors are currently "
+            "at capacity. Please check back soon or ask for guidance in the "
+            "[OWASP Slack](https://owasp.slack.com/archives/C0DKR6LAW).",
+            token,
+        )
+        return False
+
+    mentor_username = mentor["github_username"]
+
+    # Ensure labels exist in the repo before applying them.
+    await _ensure_label_exists(owner, repo, NEEDS_MENTOR_LABEL, MENTOR_LABEL_COLOR, token)
+    await _ensure_label_exists(
+        owner, repo, MENTOR_ASSIGNED_LABEL, MENTOR_ASSIGNED_LABEL_COLOR, token
+    )
+
+    # Apply mentor-assigned label.
+    await github_api(
+        "POST",
+        f"/repos/{owner}/{repo}/issues/{issue_number}/labels",
+        token,
+        {"labels": [MENTOR_ASSIGNED_LABEL]},
+    )
+
+    specialties_info = ""
+    if mentor.get("specialties"):
+        specialties_info = f" (specialties: {', '.join(mentor['specialties'])})"
+
+    contributor_mention = f"@{contributor_login}" if contributor_login else "the contributor"
+    body = (
+        f"<!-- blt-mentor-assigned: @{mentor_username} -->\n"
+        f"🎓 A mentor has been assigned to this issue!\n\n"
+        f"**Mentor:** @{mentor_username}{specialties_info}\n"
+        f"**Contributor:** {contributor_mention}\n\n"
+        f"@{mentor_username} — please provide guidance and support. "
+        f"Use `/handoff` if you need to transfer mentorship.\n\n"
+        f"{contributor_mention} — @{mentor_username} will help you through this. "
+        "Feel free to ask questions here. Use `/rematch` if you need a different mentor.\n\n"
+        "Happy coding! 🚀 — [OWASP BLT](https://owaspblt.org)"
+    )
+    await create_comment(owner, repo, issue_number, body, token)
+    console.log(
+        f"[MentorPool] Assigned @{mentor_username} as mentor for {owner}/{repo}#{issue_number}"
+    )
+    return True
+
+
+async def handle_mentor_command(
+    owner: str,
+    repo: str,
+    issue: dict,
+    login: str,
+    token: str,
+    mentors_config: Optional[list] = None,
+) -> None:
+    """Handle the ``/mentor`` slash command (contributor requests mentorship)."""
+    issue_number = issue["number"]
+    current_labels = {lb.get("name", "").lower() for lb in issue.get("labels", [])}
+    if MENTOR_ASSIGNED_LABEL.lower() in current_labels:
+        await create_comment(
+            owner,
+            repo,
+            issue_number,
+            f"@{login} This issue already has a mentor assigned. "
+            "Use `/rematch` if you'd like a different mentor.",
+            token,
+        )
+        return
+    await _assign_mentor_to_issue(owner, repo, issue, login, token, mentors_config)
+
+
+async def handle_mentor_pause(
+    owner: str,
+    repo: str,
+    issue: dict,
+    login: str,
+    token: str,
+    mentors_config: Optional[list] = None,
+) -> None:
+    """Handle the ``/mentor-pause`` slash command (mentor opts out of new assignments).
+
+    Because mentor state is stored in ``.github/mentors.yml`` (version-controlled),
+    this handler acknowledges the request and instructs the mentor to open a PR to
+    set ``active: false`` for their entry.
+    """
+    pool = mentors_config if mentors_config is not None else []
+    # Only active mentors can pause; inactive ones already aren't receiving assignments.
+    mentor_usernames = {
+        m.get("github_username", "").lower()
+        for m in pool
+        if m.get("github_username") and m.get("active", True)
+    }
+    if login.lower() not in mentor_usernames:
+        await create_comment(
+            owner,
+            repo,
+            issue["number"],
+            f"@{login} The `/mentor-pause` command is only available to active mentors.",
+            token,
+        )
+        return
+    await create_comment(
+        owner,
+        repo,
+        issue["number"],
+        f"@{login} Your pause request has been noted. 🙏\n\n"
+        "To formally pause your availability in the mentor pool, please open a PR that sets "
+        "`active: false` for your entry in `.github/mentors.yml`.\n\n"
+        "Until that PR is merged the system may still select you for new assignments. "
+        "Contact a maintainer if you need an immediate pause.",
+        token,
+    )
+
+
+async def handle_mentor_handoff(
+    owner: str,
+    repo: str,
+    issue: dict,
+    login: str,
+    token: str,
+    mentors_config: Optional[list] = None,
+) -> None:
+    """Handle the ``/handoff`` slash command (mentor transfers mentorship to a new mentor)."""
+    issue_number = issue["number"]
+    pool = mentors_config if mentors_config is not None else []
+    mentor_usernames = {
+        m.get("github_username", "").lower()
+        for m in pool
+        if m.get("github_username")
+    }
+    # First gate: check that the commenter is in the mentor pool at all (any entry).
+    # The second gate below verifies they are specifically the *assigned* mentor for
+    # this issue.  Having two separate gates gives a clearer error message to
+    # non-mentor users vs. mentor-pool members who are not assigned here.
+    if login.lower() not in mentor_usernames:
+        await create_comment(
+            owner,
+            repo,
+            issue_number,
+            f"@{login} The `/handoff` command is only available to assigned mentors.",
+            token,
+        )
+        return
+
+    current_mentor = await _find_assigned_mentor_from_comments(
+        owner, repo, issue_number, token
+    )
+    # Require a confirmed current mentor before proceeding; if the marker is missing
+    # (API failure or marker never posted) we cannot safely authorize the handoff.
+    if not current_mentor:
+        await create_comment(
+            owner,
+            repo,
+            issue_number,
+            f"@{login} Unable to confirm the currently assigned mentor for this issue. "
+            "Please contact a maintainer for assistance with the handoff.",
+            token,
+        )
+        return
+    if current_mentor.lower() != login.lower():
+        await create_comment(
+            owner,
+            repo,
+            issue_number,
+            f"@{login} You are not the currently assigned mentor for this issue "
+            f"(@{current_mentor} is). Only the assigned mentor can use `/handoff`.",
+            token,
+        )
+        return
+
+    # Determine contributor login from existing assignees (skip mentor usernames).
+    contributor = None
+    for assignee in issue.get("assignees", []):
+        a_login = assignee.get("login", "")
+        if a_login.lower() not in mentor_usernames and a_login.lower() != login.lower():
+            contributor = a_login
+            break
+
+    # Build a temporary issue view with the mentor-assigned label stripped so the
+    # assignment check inside _assign_mentor_to_issue does not abort early.
+    updated_issue = {
+        **issue,
+        "labels": [
+            lb for lb in issue.get("labels", [])
+            if lb.get("name", "").lower() != MENTOR_ASSIGNED_LABEL.lower()
+        ],
+    }
+
+    # Select and assign the replacement mentor BEFORE removing current state so
+    # that if no mentor is available the issue is not left in an unmentored state.
+    assigned = await _assign_mentor_to_issue(
+        owner, repo, updated_issue, contributor or "", token, pool, exclude=login
+    )
+    if not assigned:
+        await create_comment(
+            owner,
+            repo,
+            issue_number,
+            f"@{login} Handoff request noted, but no other mentor is currently available. "
+            "Please reach out on [OWASP Slack](https://owasp.slack.com/archives/C0DKR6LAW) "
+            "for assistance.",
+            token,
+        )
+        return
+
+    # Replacement assigned successfully — the outgoing mentor's label was already
+    # replaced by _assign_mentor_to_issue; no assignee record to clean up.
+    console.log(
+        f"[MentorPool] Handoff from @{login} completed for {owner}/{repo}#{issue_number}"
+    )
+
+
+async def handle_mentor_rematch(
+    owner: str,
+    repo: str,
+    issue: dict,
+    login: str,
+    token: str,
+    mentors_config: Optional[list] = None,
+) -> None:
+    """Handle the ``/rematch`` slash command (contributor requests a different mentor)."""
+    issue_number = issue["number"]
+    pool = mentors_config if mentors_config is not None else []
+    current_labels = {lb.get("name", "").lower() for lb in issue.get("labels", [])}
+    if MENTOR_ASSIGNED_LABEL.lower() not in current_labels:
+        await create_comment(
+            owner,
+            repo,
+            issue_number,
+            f"@{login} This issue does not have a mentor assigned yet. "
+            "Use `/mentor` to request one.",
+            token,
+        )
+        return
+
+    current_mentor = await _find_assigned_mentor_from_comments(
+        owner, repo, issue_number, token
+    )
+
+    # Build a temporary issue view with the mentor-assigned label stripped so the
+    # assignment check inside _assign_mentor_to_issue does not abort early.
+    updated_issue = {
+        **issue,
+        "labels": [
+            lb for lb in issue.get("labels", [])
+            if lb.get("name", "").lower() != MENTOR_ASSIGNED_LABEL.lower()
+        ],
+    }
+
+    # Attempt to assign a replacement mentor BEFORE removing old state so that
+    # if no mentor is available the issue stays in a mentored state.
+    assigned = await _assign_mentor_to_issue(
+        owner,
+        repo,
+        updated_issue,
+        login,
+        token,
+        pool,
+        exclude=current_mentor,
+    )
+    if not assigned:
+        # _assign_mentor_to_issue already posted a "no mentor available" comment.
+        console.log(
+            f"[MentorPool] Rematch for @{login} on {owner}/{repo}#{issue_number} "
+            "aborted: no replacement mentor available"
+        )
+        return
+
+    # Replacement assigned — _assign_mentor_to_issue already applied the label
+    # and posted the assignment comment.  No old assignee or label to clean up.
+    console.log(
+        f"[MentorPool] Rematch completed for @{login} on {owner}/{repo}#{issue_number}"
+    )
+
+
+async def _check_stale_mentor_assignments(owner: str, repo: str, token: str) -> None:
+    """Unassign mentors from issues that have been inactive for MENTOR_STALE_DAYS days.
+
+    Iterates over open issues that carry the ``mentor-assigned`` label.  When the
+    issue's ``updated_at`` timestamp is older than the stale threshold the mentor is
+    unassigned, the ``mentor-assigned`` label is removed, and an explanatory comment
+    is posted.
+    """
+    try:
+        stale_threshold = MENTOR_STALE_DAYS * _SECONDS_PER_DAY
+        current_time = time.time()
+        per_page = 100
+        max_pages = 10  # Conservative limit to avoid excessive subrequests.
+        page = 1
+
+        while page <= max_pages:
+            resp = await github_api(
+                "GET",
+                f"/repos/{owner}/{repo}/issues"
+                f"?state=open&labels={MENTOR_ASSIGNED_LABEL}&per_page={per_page}&page={page}",
+                token,
+            )
+            if resp.status != 200:
+                break
+
+            issues = json.loads(await resp.text())
+            if not issues:
+                break
+
+            for issue in issues:
+                if "pull_request" in issue:
+                    continue
+                issue_number = issue["number"]
+                # Use the last human (non-bot) comment timestamp as the activity
+                # signal so that bot-posted comments (e.g. mentor assignment
+                # notices) don't reset the stale clock.
+                last_human_ts = await _get_last_human_activity_ts(
+                    owner, repo, issue_number, issue, token
+                )
+                if not last_human_ts:
+                    continue
+                if current_time - last_human_ts <= stale_threshold:
+                    continue
+
+                # Issue is stale — identify the mentor from the hidden comment marker.
+                current_mentor = await _find_assigned_mentor_from_comments(
+                    owner, repo, issue_number, token
+                )
+
+                # Remove the mentor-assigned label.
+                await github_api(
+                    "DELETE",
+                    f"/repos/{owner}/{repo}/issues/{issue_number}/labels/{MENTOR_ASSIGNED_LABEL}",
+                    token,
+                )
+
+                days_elapsed = int((current_time - last_human_ts) / _SECONDS_PER_DAY)
+                mentor_mention = f"@{current_mentor} " if current_mentor else ""
+                await create_comment(
+                    owner,
+                    repo,
+                    issue_number,
+                    f"{mentor_mention}This issue has had no activity for {days_elapsed} days "
+                    f"so the mentor assignment has been automatically released. "
+                    "The issue remains open — use `/mentor` to request a new mentor when work resumes.\n\n"
+                    "— [OWASP BLT](https://owaspblt.org)",
+                    token,
+                )
+                console.log(
+                    f"[MentorPool] Released stale mentor assignment on {owner}/{repo}#{issue_number}"
+                )
+
+            if len(issues) < per_page:
+                break
+
+            page += 1
+    except Exception as exc:
+        console.error(f"[MentorPool] Error checking stale mentors in {owner}/{repo}: {exc}")
+
+
+# ---------------------------------------------------------------------------
 # Event handlers — mirror the Node.js handler logic exactly
 # ---------------------------------------------------------------------------
 
@@ -1952,11 +2721,11 @@ async def handle_issue_comment(payload: dict, token: str, env=None) -> None:
     login = comment["user"]["login"]
     issue_number = issue["number"]
     comment_id = comment.get("id")
-    
+
     # Add eyes reaction immediately to acknowledge command receipt
     if comment_id and command:
         await create_reaction(owner, repo, comment_id, "eyes", token)
-    
+
     if command == ASSIGN_COMMAND:
         await _assign(owner, repo, issue, login, token)
     elif command == UNASSIGN_COMMAND:
@@ -1989,6 +2758,32 @@ async def handle_issue_comment(payload: dict, token: str, env=None) -> None:
                 f"@{login} I hit an error while generating the leaderboard. Please try again in a moment.",
                 token,
             )
+    elif command in (MENTOR_COMMAND, MENTOR_PAUSE_COMMAND, HANDOFF_COMMAND, REMATCH_COMMAND):
+        # Mentor slash commands only make sense on issues, not pull requests.
+        if issue.get("pull_request"):
+            await create_comment(
+                owner,
+                repo,
+                issue_number,
+                f"@{login} Mentor commands are only available on issues, not pull requests.",
+                token,
+            )
+            return
+        # Fetch mentors config once for all mentor-related commands.
+        try:
+            mentors_config = await _fetch_mentors_config(owner, repo, token)
+        except Exception as exc:
+            console.error(f"[MentorPool] Failed to fetch mentors config: {exc}")
+            mentors_config = []
+
+        if command == MENTOR_COMMAND:
+            await handle_mentor_command(owner, repo, issue, login, token, mentors_config)
+        elif command == MENTOR_PAUSE_COMMAND:
+            await handle_mentor_pause(owner, repo, issue, login, token, mentors_config)
+        elif command == HANDOFF_COMMAND:
+            await handle_mentor_handoff(owner, repo, issue, login, token, mentors_config)
+        elif command == REMATCH_COMMAND:
+            await handle_mentor_rematch(owner, repo, issue, login, token, mentors_config)
 
 
 async def _assign(
@@ -2115,14 +2910,35 @@ async def handle_issue_labeled(
     issue = payload["issue"]
     label = payload.get("label") or {}
     label_name = label.get("name", "").lower()
+    owner = payload["repository"]["owner"]["login"]
+    repo = payload["repository"]["name"]
+
+    # --- needs-mentor label: trigger mentor pool assignment ---
+    if label_name == NEEDS_MENTOR_LABEL:
+        # The contributor is the first assignee if set, otherwise the issue author.
+        # Avoid using payload['sender'] because for labeled events the sender is the
+        # labeler (often a maintainer or bot), not the person working on the issue.
+        assignees = issue.get("assignees", [])
+        contributor_login = (
+            assignees[0]["login"] if assignees else (issue.get("user") or {}).get("login", "")
+        )
+        try:
+            mentors_config = await _fetch_mentors_config(owner, repo, token)
+        except Exception as exc:
+            console.error(f"[MentorPool] Failed to fetch mentors config on label event: {exc}")
+            mentors_config = []
+        await _assign_mentor_to_issue(
+            owner, repo, issue, contributor_login, token, mentors_config
+        )
+        return
+
+    # --- Bug labels: report to BLT ---
     if label_name not in BUG_LABELS:
         return
     all_labels = [lb["name"].lower() for lb in issue.get("labels", [])]
     # Only report the first time a bug label is added (avoid duplicates)
     if any(lb in BUG_LABELS for lb in all_labels if lb != label_name):
         return
-    owner = payload["repository"]["owner"]["login"]
-    repo = payload["repository"]["name"]
     bug_data = await report_bug_to_blt(blt_api_url, {
         "url": issue["html_url"],
         "description": issue["title"],
@@ -2144,16 +2960,16 @@ async def handle_pull_request_opened(payload: dict, token: str, env=None) -> Non
     sender = payload["sender"]
     if not _is_human(sender):
         return
-    
+
     # Skip bots more thoroughly
     if _is_bot(sender):
         return
-    
+
     owner = payload["repository"]["owner"]["login"]
     repo = payload["repository"]["name"]
     pr_number = pr["number"]
     author_login = sender["login"]
-    
+
     # Check for too many open PRs and auto-close if needed
     was_closed = await _check_and_close_excess_prs(owner, repo, pr_number, author_login, token)
     if was_closed:
@@ -2161,18 +2977,172 @@ async def handle_pull_request_opened(payload: dict, token: str, env=None) -> Non
 
     # Track open PR counter in D1.
     await _track_pr_opened_in_d1(payload, env)
-    
+
     # Post leaderboard
     if env is None:
         await _post_or_update_leaderboard(owner, repo, pr_number, author_login, token)
     else:
         await _post_or_update_leaderboard(owner, repo, pr_number, author_login, token, env)
 
+    # If this PR is linked to a mentored issue, request the mentor as a reviewer.
+    try:
+        await _request_mentor_reviewer_for_pr(owner, repo, pr, token)
+    except Exception as exc:
+        console.error(f"[MentorPool] Mentor reviewer request failed (best-effort): {exc}")
+
+    # When MENTOR_AUTO_PR_REVIEWER_ENABLED is True (either via the module
+    # constant or the env var), also request a round-robin mentor as a reviewer
+    # for every newly opened PR regardless of linked issues.
+    auto_reviewer_enabled = MENTOR_AUTO_PR_REVIEWER_ENABLED or (
+        env is not None
+        and getattr(env, "MENTOR_AUTO_PR_REVIEWER_ENABLED", "").lower() == "true"
+    )
+    if auto_reviewer_enabled:
+        try:
+            mentors_config = await _fetch_mentors_config(owner, repo, token)
+        except Exception:
+            mentors_config = []
+        try:
+            await _assign_round_robin_mentor_reviewer(owner, repo, pr, mentors_config, token)
+        except Exception as exc:
+            console.error(f"[MentorPool] Round-robin reviewer failed (best-effort): {exc}")
+
     # Check for unresolved review conversations
     try:
         await check_unresolved_conversations(payload, token)
     except Exception as exc:
         console.error(f"[BLT] check_unresolved_conversations failed (best-effort, ignored): {exc}")
+
+    # Label PR with number of pending checks (queued/waiting/action_required)
+    await _try_label_pending_checks(owner, repo, pr, token)
+
+
+async def _request_mentor_reviewer_for_pr(
+    owner: str, repo: str, pr: dict, token: str
+) -> None:
+    """Request the assigned mentor as a reviewer if the PR is linked to a mentored issue.
+
+    Parses the PR body for "Closes/Fixes/Resolves #N" references, fetches each linked
+    issue, and — when the issue carries the ``mentor-assigned`` label — adds the mentor
+    as a requested reviewer on the PR.
+    """
+    pr_number = pr["number"]
+    pr_body = pr.get("body") or ""
+    pr_author = (pr.get("user") or {}).get("login", "")
+
+    # Extract issue numbers from common closing keywords.
+    linked_issues = re.findall(
+        r"(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)\s*#(\d+)",
+        pr_body,
+        re.IGNORECASE,
+    )
+    if not linked_issues:
+        return
+
+    already_requested: set = set()
+    for issue_num_str in linked_issues:
+        issue_number = int(issue_num_str)
+        resp = await github_api(
+            "GET",
+            f"/repos/{owner}/{repo}/issues/{issue_number}",
+            token,
+        )
+        if resp.status != 200:
+            continue
+        issue = json.loads(await resp.text())
+        labels = {lb.get("name", "").lower() for lb in issue.get("labels", [])}
+        if MENTOR_ASSIGNED_LABEL.lower() not in labels:
+            continue
+
+        # Find the mentor from issue comments.
+        mentor_username = await _find_assigned_mentor_from_comments(
+            owner, repo, issue_number, token
+        )
+        if not mentor_username or mentor_username.lower() == pr_author.lower():
+            continue
+        # Skip if this mentor was already requested for this PR (multiple linked issues
+        # may reference the same mentor; avoid duplicate reviewer-request API calls).
+        if mentor_username.lower() in already_requested:
+            continue
+        already_requested.add(mentor_username.lower())
+
+        # Request the mentor as a reviewer on the PR.
+        review_resp = await github_api(
+            "POST",
+            f"/repos/{owner}/{repo}/pulls/{pr_number}/requested_reviewers",
+            token,
+            {"reviewers": [mentor_username]},
+        )
+        if review_resp.status in (200, 201):
+            console.log(
+                f"[MentorPool] Requested @{mentor_username} as reviewer "
+                f"for PR {owner}/{repo}#{pr_number} (linked issue #{issue_number})"
+            )
+        else:
+            console.error(
+                f"[MentorPool] Failed to request reviewer @{mentor_username} "
+                f"for PR #{pr_number}: status={review_resp.status}"
+            )
+
+
+async def _assign_round_robin_mentor_reviewer(
+    owner: str,
+    repo: str,
+    pr: dict,
+    mentors_config: Optional[list],
+    token: str,
+) -> None:
+    """Auto-request one mentor as a reviewer on a newly opened PR (round-robin).
+
+    Enabled only when ``MENTOR_AUTO_PR_REVIEWER_ENABLED`` is ``True``.
+    Picks one active mentor using ``(pr_number - 1) mod pool_size`` so the
+    assignment cycles predictably across consecutive PRs.  The PR author is
+    never chosen as their own reviewer.
+    """
+    if not MENTOR_AUTO_PR_REVIEWER_ENABLED:
+        return
+
+    pool = mentors_config if mentors_config is not None else []
+    active = [
+        m for m in pool
+        if m.get("active", True) and m.get("github_username")
+    ]
+    if not active:
+        return
+
+    pr_number = pr["number"]
+    pr_author = (pr.get("user") or {}).get("login", "").lower()
+
+    # Sort by username for a stable, deterministic order.
+    active.sort(key=lambda m: m["github_username"].lower())
+
+    # Try each slot in order starting at the round-robin position until we find
+    # a mentor who is not the PR author.
+    for offset in range(len(active)):
+        index = (pr_number - 1 + offset) % len(active)
+        mentor = active[index]
+        username = mentor["github_username"]
+        if username.lower() == pr_author:
+            continue
+        # Candidate found — request this mentor and stop regardless of outcome
+        # so only one reviewer is assigned per PR.
+        resp = await github_api(
+            "POST",
+            f"/repos/{owner}/{repo}/pulls/{pr_number}/requested_reviewers",
+            token,
+            {"reviewers": [username]},
+        )
+        if resp.status in (200, 201):
+            console.log(
+                f"[MentorPool] Auto round-robin reviewer: requested @{username} "
+                f"for {owner}/{repo}#{pr_number}"
+            )
+        else:
+            console.error(
+                f"[MentorPool] Auto round-robin reviewer: failed to request @{username} "
+                f"for PR #{pr_number}: status={resp.status}"
+            )
+        break  # Only assign one reviewer per PR.
 
 
 async def handle_pull_request_closed(payload: dict, token: str, env=None) -> None:
@@ -2343,28 +3313,40 @@ async def check_unresolved_conversations(payload, token):
 # ---------------------------------------------------------------------------
 
 
-async def check_workflows_awaiting_approval(
+# Pending checks labels
+# ---------------------------------------------------------------------------
+
+
+async def label_pending_checks(
     owner: str, repo: str, pr_number: int, head_sha: str, token: str
 ) -> None:
-    """Update the 'X workflows awaiting approval' label on a PR.
+    """Update the 'N checks pending' label on a PR.
 
-    Queries GitHub for workflow runs on *head_sha* that are in
-    ``action_required`` status (i.e. awaiting a maintainer's approval).
-    Adds a red label with the count when any are pending; removes all
-    such labels when none remain.
+    Counts workflow runs for *head_sha* across the ``queued``, ``waiting``,
+    and ``action_required`` statuses (all mean "waiting to be run") and
+    applies a yellow label with the combined count.  Removes any pre-existing
+    ``"* checks pending"`` or legacy ``"* workflow* awaiting approval"`` labels
+    before adding the fresh one.  When all status queries fail the label is
+    left unchanged to avoid spurious removals during API outages.
     """
-    resp = await github_api(
-        "GET",
-        f"/repos/{owner}/{repo}/actions/runs?head_sha={head_sha}&status=action_required",
-        token,
-    )
+    pending_count = 0
+    any_succeeded = False
+    for status in ("queued", "waiting", "action_required"):
+        resp = await github_api(
+            "GET",
+            f"/repos/{owner}/{repo}/actions/runs?head_sha={head_sha}&status={status}&per_page=100",
+            token,
+        )
+        if resp.status == 200:
+            any_succeeded = True
+            data = json.loads(await resp.text())
+            pending_count += data.get("total_count", 0)
 
-    waiting_count = 0
-    if resp.status == 200:
-        data = json.loads(await resp.text())
-        waiting_count = data.get("total_count", 0)
+    if not any_succeeded:
+        # Can't determine state; leave existing labels untouched.
+        return
 
-    # Remove any existing "workflows awaiting approval" labels
+    # Remove any existing pending-checks labels (both new and legacy formats).
     resp_labels = await github_api(
         "GET",
         f"/repos/{owner}/{repo}/issues/{pr_number}/labels",
@@ -2373,17 +3355,20 @@ async def check_workflows_awaiting_approval(
     if resp_labels.status == 200:
         current_labels = json.loads(await resp_labels.text())
         for lb in current_labels:
-            if "workflow" in lb["name"] and "awaiting approval" in lb["name"]:
+            name = lb.get("name", "")
+            is_pending = "check" in name and "pending" in name
+            is_legacy = "workflow" in name and "awaiting approval" in name
+            if is_pending or is_legacy:
                 await github_api(
                     "DELETE",
-                    f"/repos/{owner}/{repo}/issues/{pr_number}/labels/{quote(lb['name'], safe='')}",
+                    f"/repos/{owner}/{repo}/issues/{pr_number}/labels/{quote(name, safe='')}",
                     token,
                 )
 
-    if waiting_count > 0:
-        noun = "workflow" if waiting_count == 1 else "workflows"
-        label = f"{waiting_count} {noun} awaiting approval"
-        await _ensure_label_exists(owner, repo, label, "e74c3c", token)
+    if pending_count > 0:
+        noun = "check" if pending_count == 1 else "checks"
+        label = f"{pending_count} {noun} pending"
+        await _ensure_label_exists(owner, repo, label, "e4c84b", token)
         await github_api(
             "POST",
             f"/repos/{owner}/{repo}/issues/{pr_number}/labels",
@@ -2392,13 +3377,32 @@ async def check_workflows_awaiting_approval(
         )
 
 
+# Keep old name as an alias so any external callers remain compatible.
+check_workflows_awaiting_approval = label_pending_checks
+
+
+async def _try_label_pending_checks(
+    owner: str, repo: str, pr: dict, token: str
+) -> None:
+    """Best-effort wrapper: extract the head SHA from *pr* and call
+    :func:`label_pending_checks`, logging any exception instead of raising.
+    """
+    head_sha = pr.get("head", {}).get("sha", "")
+    if not head_sha:
+        return
+    try:
+        await label_pending_checks(owner, repo, pr["number"], head_sha, token)
+    except Exception as exc:
+        console.error(f"[BLT] label_pending_checks failed (best-effort, ignored): {exc}")
+
+
 async def handle_workflow_run(payload: dict, token: str) -> None:
-    """Handle workflow_run events to update 'awaiting approval' labels on PRs.
+    """Handle workflow_run events to update 'checks pending' labels on PRs.
 
     Resolves the PR(s) associated with the workflow run and calls
-    ``check_workflows_awaiting_approval`` for each one.  Falls back to
-    searching open PRs by head SHA when the payload's ``pull_requests``
-    array is empty (e.g. fork PRs).
+    :func:`label_pending_checks` for each one.  Falls back to searching open
+    PRs by head SHA when the payload's ``pull_requests`` array is empty
+    (e.g. fork PRs).
     """
     workflow_run = payload.get("workflow_run", {})
     owner = payload["repository"]["owner"]["login"]
@@ -2423,7 +3427,40 @@ async def handle_workflow_run(payload: dict, token: str) -> None:
                     pr_numbers.add(pull["number"])
 
     for pr_number in pr_numbers:
-        await check_workflows_awaiting_approval(owner, repo, pr_number, head_sha, token)
+        await label_pending_checks(owner, repo, pr_number, head_sha, token)
+
+
+async def handle_check_run(payload: dict, token: str) -> None:
+    """Handle check_run events to keep 'N checks pending' labels accurate.
+
+    Called for ``check_run.created`` and ``check_run.completed`` actions.
+    Resolves the PR(s) linked to the check run's head SHA and updates the
+    pending-checks label for each one.
+    """
+    check_run = payload.get("check_run", {})
+    owner = payload["repository"]["owner"]["login"]
+    repo = payload["repository"]["name"]
+    head_sha = check_run.get("head_sha", "")
+
+    pr_numbers: set[int] = set()
+    for pr in check_run.get("pull_requests", []):
+        pr_numbers.add(pr["number"])
+
+    # For fork PRs the pull_requests array is empty; look up by head SHA.
+    if not pr_numbers and head_sha:
+        resp = await github_api(
+            "GET",
+            f"/repos/{owner}/{repo}/pulls?state=open&per_page=100",
+            token,
+        )
+        if resp.status == 200:
+            pulls = json.loads(await resp.text())
+            for pull in pulls:
+                if pull.get("head", {}).get("sha") == head_sha:
+                    pr_numbers.add(pull["number"])
+
+    for pr_number in pr_numbers:
+        await label_pending_checks(owner, repo, pr_number, head_sha, token)
 
 
 # ---------------------------------------------------------------------------
@@ -2627,6 +3664,9 @@ async def handle_pull_request_for_review(payload: dict, token: str) -> None:
     
     await check_peer_review_and_comment(owner, repo, pr["number"], pr_author, token)
 
+    # Label PR with number of pending checks (queued/waiting/action_required)
+    await _try_label_pending_checks(owner, repo, pr, token)
+
 
 # ---------------------------------------------------------------------------
 # Webhook dispatcher
@@ -2726,6 +3766,8 @@ async def handle_webhook(request, env) -> Response:
             await check_unresolved_conversations(payload, token)
         elif event == "workflow_run":
             await handle_workflow_run(payload, token)
+        elif event == "check_run" and action in ("created", "completed"):
+            await handle_check_run(payload, token)
 
     except Exception as exc:
         console.error(f"[BLT] Webhook handler error: {exc}")
@@ -2782,17 +3824,17 @@ _CALLBACK_HTML = """\
 def _secret_vars_status_html(env) -> str:
     """Generate HTML rows showing whether each secret/config variable is set."""
     _SET_BADGE = (
-        '<span class="font-semibold flex items-center gap-1.5" style="color:#4ade80;">'
+        '<span class="inline-flex items-center gap-1.5 font-semibold" style="color:#4ade80">'
         '<i class="fa-solid fa-circle-check" aria-hidden="true"></i> Set'
         "</span>"
     )
     _MISSING_BADGE = (
-        '<span class="font-semibold flex items-center gap-1.5" style="color:#f87171;">'
+        '<span class="inline-flex items-center gap-1.5 font-semibold" style="color:#f87171">'
         '<i class="fa-solid fa-circle-xmark" aria-hidden="true"></i> Not set'
         "</span>"
     )
     _OPTIONAL_BADGE = (
-        '<span class="font-semibold flex items-center gap-1.5" style="color:#9ca3af;">'
+        '<span class="inline-flex items-center gap-1.5 font-semibold" style="color:#9ca3af">'
         '<i class="fa-solid fa-circle-minus" aria-hidden="true"></i> Not configured'
         "</span>"
     )
@@ -2801,31 +3843,31 @@ def _secret_vars_status_html(env) -> str:
     optional_vars = ["GITHUB_CLIENT_ID", "GITHUB_CLIENT_SECRET"]
 
     rows = [
-        '        <div style="border-top:1px solid #374151;margin-top:1rem;padding-top:0.5rem;">',
-        '          <p class="text-xs font-semibold uppercase tracking-wider mb-1" style="color:#6b7280;">Secret Variables</p>',
+        '        <div class="mt-4 border-t border-[#E5E5E5] pt-3">',
+        '          <p class="mb-1 text-xs font-semibold uppercase tracking-wider text-gray-500">Secret Variables</p>',
         "        </div>",
     ]
     for name in required_vars:
         is_set = bool(getattr(env, name, ""))
         badge = _SET_BADGE if is_set else _MISSING_BADGE
         rows.append(
-            f'        <div class="flex justify-between items-center py-3 text-sm" style="border-bottom:1px solid #374151;">'
-            f'<span style="color:#d1d5db;"><code style="font-size:0.75rem;">{name}</code></span>'
+            f'        <div class="flex items-center justify-between border-b border-[#E5E5E5] py-3 text-sm">'
+            f'<span class="text-gray-700"><code class="text-xs">{name}</code></span>'
             f"{badge}</div>"
         )
     for name in optional_vars:
         is_set = bool(getattr(env, name, ""))
         badge = _SET_BADGE if is_set else _OPTIONAL_BADGE
         rows.append(
-            f'        <div class="flex justify-between items-center py-3 text-sm" style="border-bottom:1px solid #374151;">'
-            f'<span style="color:#d1d5db;"><code style="font-size:0.75rem;">{name}</code>'
-            f' <span style="color:#6b7280;font-size:0.7rem;">(optional)</span></span>'
+            f'        <div class="flex items-center justify-between border-b border-[#E5E5E5] py-3 text-sm">'
+            f'<span class="text-gray-700"><code class="text-xs">{name}</code>'
+            f' <span class="text-[0.7rem] text-gray-500">(optional)</span></span>'
             f"{badge}</div>"
         )
     return "\n".join(rows)
 
 
-def _landing_html(app_slug: str, env=None) -> str:
+def _github_app_html(app_slug: str, env=None) -> str:
     install_url = (
         f"https://github.com/apps/{app_slug}/installations/new"
         if app_slug
@@ -2834,15 +3876,468 @@ def _landing_html(app_slug: str, env=None) -> str:
     year = time.gmtime().tm_year
     secret_vars_html = _secret_vars_status_html(env) if env is not None else ""
     return (
-        INDEX_HTML
+        GITHUB_PAGE_HTML
         .replace("{{INSTALL_URL}}", install_url)
         .replace("{{YEAR}}", str(year))
         .replace("{{SECRET_VARS_STATUS}}", secret_vars_html)
     )
 
 
+def _landing_html(app_slug: str, env=None) -> str:
+    """Alias for _github_app_html; renders the landing page with secret-var status."""
+    return _github_app_html(app_slug, env)
+
+
 def _callback_html() -> str:
     return _CALLBACK_HTML
+
+
+def _generate_mentor_row(mentor: dict) -> str:
+    """Generate HTML for a single mentor list row."""
+    name = _html_mod.escape(mentor.get("name", "Unknown"))
+    github = mentor.get("github_username", "")
+    specialties = mentor.get("specialties", [])
+    max_mentees = mentor.get("max_mentees", 3)
+    timezone = mentor.get("timezone", "")
+    status = mentor.get("status", "available")
+    active = mentor.get("active", True)
+
+    avatar_url = (
+        f"https://github.com/{github}.png"
+        if github
+        else "https://api.dicebear.com/7.x/initials/svg?seed=" + quote(name)
+    )
+
+    if not active or status == "inactive":
+        status_badge = '<span class="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-xs font-semibold text-gray-500">Inactive</span>'
+    elif status == "assigned":
+        status_badge = '<span class="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700">Mentoring</span>'
+    else:
+        status_badge = '<span class="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700">Available</span>'
+
+    specialty_chips = " ".join(
+        f'<span class="rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-600">{s}</span>'
+        for s in specialties
+    ) if specialties else '<span class="text-xs text-gray-400">—</span>'
+
+    github_link = (
+        f'<a href="https://github.com/{github}" target="_blank" rel="noopener" '
+        f'class="text-gray-500 hover:text-[#E10101]" aria-label="{name} GitHub profile">'
+        '<i class="fa-brands fa-github" aria-hidden="true"></i></a>'
+        if github
+        else '<span class="text-gray-300"><i class="fa-brands fa-github" aria-hidden="true"></i></span>'
+    )
+
+    tz_cell = f'<span class="text-xs text-gray-500">{_html_mod.escape(timezone)}</span>' if timezone else '<span class="text-xs text-gray-400">—</span>'
+
+    return f'''
+    <li class="flex items-start gap-3 rounded-xl border border-[#E5E5E5] bg-white px-4 py-3 transition hover:shadow-sm sm:items-center sm:gap-4">
+      <img src="{avatar_url}" alt="{name}" class="mt-0.5 h-9 w-9 shrink-0 rounded-full border border-[#E5E5E5] bg-white object-cover sm:mt-0 sm:h-10 sm:w-10">
+      <div class="min-w-0 flex-1">
+        <!-- Desktop: grid layout with separate columns -->
+        <div class="hidden sm:grid sm:grid-cols-[1fr_auto_auto_auto_auto] sm:items-center sm:gap-4">
+          <div class="min-w-0">
+            <p class="truncate font-semibold text-[#111827] text-sm">{name}</p>
+            <div class="mt-0.5 flex flex-wrap gap-1">{specialty_chips}</div>
+          </div>
+          <div>{status_badge}</div>
+          <div class="text-center">
+            <p class="text-xs text-gray-400 leading-none">Cap</p>
+            <p class="text-sm font-semibold text-gray-700">{max_mentees}</p>
+          </div>
+          <div>{tz_cell}</div>
+          <div>{github_link}</div>
+        </div>
+        <!-- Mobile: compact card layout -->
+        <div class="sm:hidden">
+          <div class="flex items-start justify-between gap-2">
+            <p class="truncate font-semibold text-[#111827] text-sm">{name}</p>
+            <div class="shrink-0">{github_link}</div>
+          </div>
+          <div class="mt-0.5 flex flex-wrap gap-1">{specialty_chips}</div>
+          <div class="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
+            {status_badge}
+            <span class="text-xs text-gray-500">Cap: {max_mentees}</span>
+            {tz_cell}
+          </div>
+        </div>
+      </div>
+    </li>
+    '''
+
+
+def _build_referral_leaderboard(mentors: list) -> list:
+    """Return a sorted list of (referrer_username, count) tuples."""
+    counts: dict = {}
+    for m in mentors:
+        ref = m.get("referred_by", "").strip()
+        if ref:
+            counts[ref] = counts.get(ref, 0) + 1
+    return sorted(counts.items(), key=lambda x: x[1], reverse=True)
+
+
+def _index_html(mentors: list = None) -> str:
+    """Generate the BLT-Pool mentor directory homepage.
+
+    Args:
+        mentors: Mentor list loaded from ``.github/mentors.yml``.
+                 Defaults to an empty list when omitted or ``None``.
+    """
+    if mentors is None:
+        mentors = []
+    year = time.gmtime().tm_year
+    mentor_count = len(mentors)
+    available_count = len([m for m in mentors if m.get("active", True) and m.get("status", "available") == "available"])
+
+    mentor_rows_html = "\n".join(_generate_mentor_row(m) for m in mentors)
+
+    leaderboard_rows = _build_referral_leaderboard(mentors)
+    if leaderboard_rows:
+        lb_items = "\n".join(
+            f'''<li class="flex items-center justify-between gap-2 py-1.5 border-b border-[#E5E5E5] last:border-0">
+              <a href="https://github.com/{ref}" target="_blank" rel="noopener"
+                 class="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-[#E10101] truncate">
+                <img src="https://github.com/{ref}.png" alt="{ref}" class="h-6 w-6 rounded-full border border-[#E5E5E5]">
+                @{ref}
+              </a>
+              <span class="shrink-0 rounded-full bg-[#feeae9] px-2 py-0.5 text-xs font-bold text-[#E10101]">{cnt}</span>
+            </li>'''
+            for ref, cnt in leaderboard_rows[:10]
+        )
+        leaderboard_html = f'''
+        <section class="rounded-2xl border border-[#E5E5E5] bg-white p-6 h-fit sticky top-24">
+          <div class="mb-4 flex items-center gap-2">
+            <div class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[#feeae9] text-[#E10101]">
+              <i class="fa-solid fa-trophy text-sm" aria-hidden="true"></i>
+            </div>
+            <h3 class="text-lg font-bold text-[#111827]">Referral Leaderboard</h3>
+          </div>
+          <p class="mb-4 text-xs text-gray-500">GitHub users who have referred the most mentors to the pool.</p>
+          <ol class="space-y-0">
+            {lb_items}
+          </ol>
+        </section>'''
+    else:
+        leaderboard_html = '''
+        <section class="rounded-2xl border border-[#E5E5E5] bg-white p-6 h-fit sticky top-24">
+          <div class="mb-4 flex items-center gap-2">
+            <div class="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[#feeae9] text-[#E10101]">
+              <i class="fa-solid fa-trophy text-sm" aria-hidden="true"></i>
+            </div>
+            <h3 class="text-lg font-bold text-[#111827]">Referral Leaderboard</h3>
+          </div>
+          <p class="text-sm text-gray-500">No referrals yet — be the first to invite a mentor!</p>
+        </section>'''
+
+    return f'''<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="BLT-Pool for OWASP BLT. Connect with mentors and install the BLT GitHub extension.">
+  <title>BLT-Pool | OWASP BLT Mentor Directory</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+  <script>
+    tailwind.config = {{
+      theme: {{
+        extend: {{
+          colors: {{
+            'blt-primary': '#E10101',
+            'blt-primary-hover': '#b91c1c',
+            'blt-border': '#E5E5E5'
+          }},
+          fontFamily: {{
+            sans: ['Plus Jakarta Sans', 'ui-sans-serif', 'system-ui', 'sans-serif']
+          }}
+        }}
+      }}
+    }}
+  </script>
+  <style>
+    body {{
+      background:
+        radial-gradient(circle at 0% 0%, rgba(225, 1, 1, 0.09), transparent 32%),
+        radial-gradient(circle at 95% 4%, rgba(225, 1, 1, 0.05), transparent 28%),
+        #f8fafc;
+    }}
+  </style>
+</head>
+<body class="min-h-screen font-sans text-gray-900 antialiased">
+
+  <header class="sticky top-0 z-40 border-b border-[#E5E5E5] bg-white/90 backdrop-blur">
+    <div class="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-y-2 px-4 py-3 sm:flex-nowrap sm:py-4 sm:px-6 lg:px-8">
+      <a href="/" class="flex items-center gap-3" aria-label="BLT-Pool home">
+        <img src="/logo-sm.png" alt="OWASP BLT logo" class="h-10 w-10 rounded-xl border border-[#E5E5E5] bg-white object-contain p-1">
+        <div>
+          <p class="text-sm font-semibold uppercase tracking-wide text-gray-500">OWASP BLT</p>
+          <h1 class="text-lg font-extrabold text-[#111827]">BLT-Pool</h1>
+        </div>
+      </a>
+      <span role="status" aria-label="Service status: Operational"
+            class="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 sm:order-last">
+        <i class="fa-solid fa-circle text-[0.45rem]" aria-hidden="true"></i>
+        Operational
+      </span>
+      <nav class="order-last flex w-full items-center justify-center gap-0.5 rounded-xl border border-[#E5E5E5] bg-white p-1 sm:order-none sm:w-auto sm:justify-start" aria-label="Primary">
+        <a href="/" class="rounded-lg bg-[#feeae9] px-2 py-1.5 text-xs font-semibold text-[#E10101] sm:px-3 sm:py-2 sm:text-sm">Mentors</a>
+        <a href="/github-app" class="rounded-lg px-2 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 sm:px-3 sm:py-2 sm:text-sm">GitHub App</a>
+        <a href="https://owaspblt.org" target="_blank" rel="noopener" class="rounded-lg px-2 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 sm:px-3 sm:py-2 sm:text-sm">
+          OWASP BLT <i class="fa-solid fa-arrow-up-right-from-square text-xs" aria-hidden="true"></i>
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="mx-auto flex-1 w-full max-w-7xl space-y-10 px-4 py-10 sm:px-6 lg:px-8">
+
+    <section class="overflow-hidden rounded-3xl border border-[#E5E5E5] bg-white p-7 shadow-[0_14px_40px_rgba(225,1,1,0.10)] sm:p-10">
+      <div class="grid gap-8 lg:grid-cols-2 lg:items-center">
+        <div>
+          <span class="mb-4 inline-flex items-center gap-2 rounded-full border border-[#E5E5E5] bg-gray-50 px-3 py-1 text-xs font-semibold text-gray-700">
+            <i class="fa-solid fa-users text-[#E10101]" aria-hidden="true"></i>
+            Mentor directory for BLT contributors
+          </span>
+          <h2 class="text-3xl font-extrabold leading-tight text-[#111827] sm:text-5xl">
+            Find your guide inside
+            <span class="text-[#E10101]">OWASP BLT-Pool</span>
+          </h2>
+          <p class="mt-4 max-w-2xl text-base leading-relaxed text-gray-600 sm:text-lg">
+            Connect with mentors, get support for your first pull request, and keep contribution quality high with a practical community workflow.
+          </p>
+          <div class="mt-7 flex flex-wrap gap-3">
+            <a href="https://owasp.slack.com/signup" target="_blank" rel="noopener"
+               class="inline-flex items-center gap-2 rounded-md bg-[#E10101] px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2">
+              <i class="fa-brands fa-slack" aria-hidden="true"></i>
+              Join OWASP Slack
+            </a>
+            <a href="/github-app"
+               class="inline-flex items-center gap-2 rounded-md border border-[#E10101] px-5 py-3 text-sm font-semibold text-[#E10101] transition hover:bg-[#E10101] hover:text-white focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2">
+              <i class="fa-brands fa-github" aria-hidden="true"></i>
+              Open GitHub App
+            </a>
+          </div>
+        </div>
+        <div class="grid gap-3 sm:grid-cols-2">
+          <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-4">
+            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Mentors</p>
+            <p class="mt-1 text-2xl font-extrabold text-[#111827]">{mentor_count}</p>
+          </article>
+          <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-4">
+            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Available Now</p>
+            <p class="mt-1 text-2xl font-extrabold text-[#111827]">{available_count}</p>
+          </article>
+          <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-4 sm:col-span-2">
+            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Why It Works</p>
+            <p class="mt-1 text-sm font-semibold text-gray-700">Round-robin assignment prevents overload and keeps responses timely.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Two-column layout: mentor list (2/3) + referral leaderboard (1/3) -->
+    <div class="grid grid-cols-1 gap-8 lg:grid-cols-[2fr_1fr] lg:items-start">
+
+      <!-- Mentor list -->
+      <section class="space-y-4">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <h3 class="text-2xl font-bold text-[#111827]">
+            Mentor Pool <span class="text-base font-medium text-gray-500">({mentor_count} total, {available_count} available)</span>
+          </h3>
+        </div>
+        <ul class="space-y-2" aria-label="Mentor list">
+          <!-- Header row (desktop) -->
+          <li class="hidden sm:grid sm:grid-cols-[1fr_auto_auto_auto_auto] sm:items-center sm:gap-4 sm:px-4 sm:py-1 text-xs font-semibold uppercase tracking-wide text-gray-400">
+            <span>Mentor</span>
+            <span>Status</span>
+            <span class="text-center">Cap</span>
+            <span>Timezone</span>
+            <span>Link</span>
+          </li>
+          {mentor_rows_html}
+        </ul>
+      </section>
+
+      <!-- Referral leaderboard -->
+      {leaderboard_html}
+
+    </div>
+
+    <section class="rounded-2xl border border-[#E5E5E5] bg-white p-7 sm:p-9">
+      <h3 class="text-2xl font-bold text-[#111827]">How Mentor Matching Works</h3>
+      <div class="mt-6 grid gap-5 md:grid-cols-3">
+        <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-5">
+          <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-[#feeae9] text-[#E10101]">
+            <i class="fa-solid fa-user-plus" aria-hidden="true"></i>
+          </div>
+          <h4 class="text-base font-bold text-[#111827]">1. Pick an issue</h4>
+          <p class="mt-2 text-sm text-gray-600">Start with an issue tagged for contribution or mentor support.</p>
+        </article>
+        <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-5">
+          <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-[#feeae9] text-[#E10101]">
+            <i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i>
+          </div>
+          <h4 class="text-base font-bold text-[#111827]">2. Get assigned</h4>
+          <p class="mt-2 text-sm text-gray-600">Mentors are matched with healthy load balancing to avoid bottlenecks.</p>
+        </article>
+        <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-5">
+          <div class="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-[#feeae9] text-[#E10101]">
+            <i class="fa-solid fa-comments" aria-hidden="true"></i>
+          </div>
+          <h4 class="text-base font-bold text-[#111827]">3. Build and review</h4>
+          <p class="mt-2 text-sm text-gray-600">Work with your mentor on review quality, security checks, and merge confidence.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="mentor-commands" class="rounded-2xl border border-[#E5E5E5] bg-white p-7 sm:p-9">
+      <h3 class="text-2xl font-bold text-[#111827]">Mentor Slash Commands</h3>
+      <p class="mt-3 text-sm leading-relaxed text-gray-600">
+        Use these commands directly in GitHub issue comments to interact with the mentor system.
+      </p>
+      <div class="mt-5 grid gap-4 sm:grid-cols-2">
+        <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-4">
+          <p class="font-mono text-sm font-bold text-[#E10101]">/mentor</p>
+          <p class="mt-2 text-sm text-gray-600">Request a mentor for this issue. The bot auto-assigns the best available mentor from the pool.</p>
+        </article>
+        <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-4">
+          <p class="font-mono text-sm font-bold text-[#E10101]">/mentor-pause</p>
+          <p class="mt-2 text-sm text-gray-600">Pause your mentor availability. Use this when you need a break from accepting new mentees.</p>
+        </article>
+        <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-4">
+          <p class="font-mono text-sm font-bold text-[#E10101]">/handoff</p>
+          <p class="mt-2 text-sm text-gray-600">Transfer this issue to another available mentor. The current mentor uses this to hand off cleanly.</p>
+        </article>
+        <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-4">
+          <p class="font-mono text-sm font-bold text-[#E10101]">/rematch</p>
+          <p class="mt-2 text-sm text-gray-600">Request a different mentor for this issue. The bot re-runs matching to find a fresh assignment.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="join-mentor" class="rounded-2xl border border-[#E5E5E5] bg-white p-7 sm:p-9">
+      <div class="mb-6 flex items-start gap-4">
+        <div class="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#feeae9] text-[#E10101]">
+          <i class="fa-solid fa-user-plus" aria-hidden="true"></i>
+        </div>
+        <div>
+          <h3 class="text-2xl font-bold text-[#111827]">Become a Mentor</h3>
+          <p class="mt-1 text-sm leading-relaxed text-gray-600">
+            Fill in the form and click the button — it opens a pre-filled GitHub issue.
+            You are added to the mentor pool automatically when the issue is created.
+          </p>
+        </div>
+      </div>
+      <form id="mentor-form" class="grid gap-4 sm:grid-cols-2" novalidate>
+        <div>
+          <label for="mf-name" class="mb-1 block text-sm font-semibold text-gray-700">
+            Display Name <span class="text-[#E10101]">*</span>
+          </label>
+          <input id="mf-name" type="text" required autocomplete="name" placeholder="Jane Doe"
+                 class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#E10101] focus:ring-1 focus:ring-[#E10101] focus:outline-none">
+        </div>
+        <div>
+          <label for="mf-github" class="mb-1 block text-sm font-semibold text-gray-700">
+            GitHub Username <span class="text-[#E10101]">*</span>
+          </label>
+          <input id="mf-github" type="text" required autocomplete="username" placeholder="janedoe"
+                 class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#E10101] focus:ring-1 focus:ring-[#E10101] focus:outline-none">
+        </div>
+        <div class="sm:col-span-2">
+          <label for="mf-specialties" class="mb-1 block text-sm font-semibold text-gray-700">
+            Specialties <span class="text-xs font-normal text-gray-400">(optional — comma-separated)</span>
+          </label>
+          <input id="mf-specialties" type="text" placeholder="e.g. frontend, python, security, docs"
+                 class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#E10101] focus:ring-1 focus:ring-[#E10101] focus:outline-none">
+        </div>
+        <div>
+          <label for="mf-max" class="mb-1 block text-sm font-semibold text-gray-700">
+            Max concurrent mentees
+          </label>
+          <input id="mf-max" type="number" min="1" max="10" value="3"
+                 class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-[#E10101] focus:ring-1 focus:ring-[#E10101] focus:outline-none">
+        </div>
+        <div>
+          <label for="mf-tz" class="mb-1 block text-sm font-semibold text-gray-700">
+            Timezone <span class="text-xs font-normal text-gray-400">(optional)</span>
+          </label>
+          <input id="mf-tz" type="text" placeholder="e.g. UTC+5:30"
+                 class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#E10101] focus:ring-1 focus:ring-[#E10101] focus:outline-none">
+        </div>
+        <div class="sm:col-span-2">
+          <label for="mf-referral" class="mb-1 block text-sm font-semibold text-gray-700">
+            Referred By <span class="text-xs font-normal text-gray-400">(optional — GitHub username of who invited you)</span>
+          </label>
+          <input id="mf-referral" type="text" placeholder="e.g. janedoe"
+                 class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#E10101] focus:ring-1 focus:ring-[#E10101] focus:outline-none">
+        </div>
+        <div id="mf-error" role="alert" class="hidden sm:col-span-2 text-sm font-semibold text-[#E10101]"></div>
+        <div class="sm:col-span-2">
+          <button type="submit"
+                  class="inline-flex items-center gap-2 rounded-md bg-[#E10101] px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2">
+            <i class="fa-brands fa-github" aria-hidden="true"></i>
+            Open Application on GitHub
+          </button>
+        </div>
+      </form>
+      <script>
+        (function () {{
+          document.getElementById('mentor-form').addEventListener('submit', function (e) {{
+            e.preventDefault();
+            var name     = document.getElementById('mf-name').value.trim();
+            var github   = document.getElementById('mf-github').value.trim().replace(/^@/, '');
+            var specs    = document.getElementById('mf-specialties').value.trim();
+            var maxM     = document.getElementById('mf-max').value.trim() || '3';
+            var tz       = document.getElementById('mf-tz').value.trim();
+            var referral = document.getElementById('mf-referral').value.trim().replace(/^@/, '');
+            var errEl    = document.getElementById('mf-error');
+            if (!name || !github) {{
+              errEl.textContent = 'Display name and GitHub username are required.';
+              errEl.classList.remove('hidden');
+              return;
+            }}
+            errEl.classList.add('hidden');
+            var body = [
+              '## Mentor Application',
+              '',
+              '- **Name**: ' + name,
+              '- **GitHub Username**: @' + github,
+              '- **Specialties**: ' + (specs || '_none_'),
+              '- **Max Mentees**: ' + maxM,
+              '- **Timezone**: ' + (tz || '_not specified_'),
+              '- **Referred By**: ' + (referral ? '@' + referral : '_not specified_'),
+              '',
+              '---',
+              '_Submitted via the BLT-Pool mentor application form. The bot adds you automatically when this issue is created._'
+            ].join('\\n');
+            var url = 'https://github.com/OWASP-BLT/BLT-Pool/issues/new'
+              + '?title=' + encodeURIComponent('Mentor Application: @' + github)
+              + '&body='  + encodeURIComponent(body)
+              + '&labels=mentor-application';
+            window.open(url, '_blank', 'noopener');
+          }});
+        }}());
+      </script>
+    </section>
+
+  </main>
+
+  <footer class="border-t border-[#E5E5E5] bg-white">
+    <div class="mx-auto max-w-7xl px-4 py-6 text-center text-sm text-gray-600 sm:px-6 lg:px-8">
+      Built by the <a href="https://owaspblt.org" target="_blank" rel="noopener" class="text-red-600 hover:underline">OWASP BLT community</a>
+      <span aria-hidden="true"> • </span>
+      <a href="/github-app" class="text-red-600 hover:underline">GitHub App</a>
+      <span aria-hidden="true"> • </span>
+      <a href="https://github.com/OWASP-BLT/BLT-Pool" target="_blank" rel="noopener" class="text-red-600 hover:underline">BLT-Pool Repo</a>
+      <p class="mt-2 text-xs text-gray-500">&copy; {year} OWASP Foundation. All rights reserved.</p>
+    </div>
+  </footer>
+
+</body>
+</html>'''
 
 
 # ---------------------------------------------------------------------------
@@ -2879,11 +4374,21 @@ async def on_fetch(request, env) -> Response:
     path = urlparse(str(request.url)).path.rstrip("/") or "/"
 
     if method == "GET" and path == "/":
+        # Populate the homepage from .github/mentors.yml.
+        # Use GITHUB_TOKEN if available (avoids the 60 req/h unauthenticated limit).
+        try:
+            gh_token = getattr(env, "GITHUB_TOKEN", "") or ""
+            mentors = await _fetch_mentors_config("OWASP-BLT", "BLT-Pool", gh_token)
+        except Exception:
+            mentors = []
+        return _html(_index_html(mentors))
+
+    if method == "GET" and path == "/github-app":
         app_slug = getattr(env, "GITHUB_APP_SLUG", "")
-        return _html(_landing_html(app_slug, env))
+        return _html(_github_app_html(app_slug, env))
 
     if method == "GET" and path == "/health":
-        return _json({"status": "ok", "service": "BLT GitHub App"})
+        return _json({"status": "ok", "service": "BLT-Pool"})
 
     if method == "POST" and path == "/api/github/webhooks":
         return await handle_webhook(request, env)
@@ -2996,6 +4501,7 @@ async def _run_scheduled(env):
                 owner = repo_data["owner"]["login"]
                 
                 await _check_stale_assignments(owner, repo_name, token)
+                await _check_stale_mentor_assignments(owner, repo_name, token)
         
         console.log("[CRON] Stale assignment check complete")
         

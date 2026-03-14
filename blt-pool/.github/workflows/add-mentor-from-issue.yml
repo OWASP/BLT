@@ -1,0 +1,100 @@
+name: Add Mentor from Application Issue
+
+# Triggered when a new mentor-application issue is opened.
+# The workflow detects the issue body format, parses the application,
+# commits the new mentor entry directly to the default branch, closes
+# the issue, and posts a confirmation comment.
+
+on:
+  issues:
+    types: [opened]
+
+concurrency:
+  # Serialise runs for the same issue to prevent duplicate entries from webhook
+  # retries or a race on the initial issue-opened event.
+  group: add-mentor-issue-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  add-mentor:
+    # Only process issues whose title starts with "Mentor Application:" or
+    # whose body contains the "## Mentor Application" section heading.
+    if: >
+      startsWith(github.event.issue.title, 'Mentor Application:') ||
+      contains(github.event.issue.body, '## Mentor Application')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Parse application and update mentors.yml
+        id: update
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          MENTORS_YML: .github/mentors.yml
+        run: python3 .github/scripts/add_mentor.py
+
+      - name: Commit mentor directly to main
+        if: steps.update.outputs.github_username != ''
+        env:
+          GITHUB_USERNAME: ${{ steps.update.outputs.github_username }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add .github/mentors.yml
+          # If a previous run already committed this entry, exit gracefully.
+          if git diff --cached --quiet; then
+            echo "No changes to commit — mentor already present."
+            exit 0
+          fi
+          git commit -m "Add mentor @${GITHUB_USERNAME} from issue #${ISSUE_NUMBER}"
+
+          # Retry push up to 3 times with a rebase pull on conflict.
+          PUSH_SUCCESS=false
+          for attempt in 1 2 3; do
+            if git pull --rebase origin "${DEFAULT_BRANCH}" 2>/dev/null; then
+              echo "Rebase pull succeeded on attempt ${attempt}."
+            else
+              echo "Rebase pull failed on attempt ${attempt} — continuing."
+            fi
+            if git push origin "HEAD:${DEFAULT_BRANCH}"; then
+              PUSH_SUCCESS=true
+              break
+            fi
+            echo "Push attempt ${attempt} failed, retrying in $((attempt * 2))s..."
+            sleep $((attempt * 2))
+          done
+          if [ "$PUSH_SUCCESS" != "true" ]; then
+            echo "::error::All 3 push attempts failed for the mentor commit."
+            exit 1
+          fi
+
+      - name: Comment on issue and close it
+        if: steps.update.outputs.github_username != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_USERNAME: ${{ steps.update.outputs.github_username }}
+          MENTOR_NAME: ${{ steps.update.outputs.name }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh issue comment "${ISSUE_NUMBER}" \
+            --body "✅ **@${GITHUB_USERNAME}** has been automatically added to the mentor pool! Welcome aboard, ${MENTOR_NAME} 🎉
+
+          You are now active in \`.github/mentors.yml\` and will start receiving mentee assignments shortly."
+          gh issue close "${ISSUE_NUMBER}" --reason "completed"
+
+      - name: Comment on parse failure
+        if: steps.update.outputs.github_username == ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh issue comment "${ISSUE_NUMBER}" \
+            --body "⚠️ The mentor application could not be parsed automatically. Please ensure the issue body follows the application template exactly (all required fields filled in). A maintainer will review this application manually."
