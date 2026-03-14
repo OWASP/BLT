@@ -136,3 +136,10 @@ GitHub.sublime-settings
 !.vscode/launch.json
 !.vscode/extensions.json
 .history
+
+# Cloudflare Workers #
+.wrangler/
+wrangler.toml.bak
+worker-configuration.d.ts
+node_modules/
+package-lock.json

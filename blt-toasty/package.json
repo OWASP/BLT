@@ -1,0 +1,28 @@
+{
+  "name": "toasty-cloudflare-worker",
+  "version": "1.0.0",
+  "description": "Cloudflare Worker backend for Toasty AI Code Reviewer",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "deploy:dev": "wrangler deploy --env development",
+    "deploy:staging": "wrangler deploy --env staging",
+    "deploy:prod": "wrangler deploy --env production",
+    "tail": "wrangler tail",
+    "tail:prod": "wrangler tail --env production"
+  },
+  "keywords": [
+    "cloudflare",
+    "workers",
+    "python",
+    "toasty",
+    "code-review",
+    "ai"
+  ],
+  "author": "OWASP BLT",
+  "license": "MIT",
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  }
+}

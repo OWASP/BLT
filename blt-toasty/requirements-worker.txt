@@ -1,0 +1,18 @@
+# Python dependencies for Cloudflare Worker
+# Note: Cloudflare Workers Python runtime has built-in support for many standard libraries
+# Additional packages may need to be bundled or have specific compatibility requirements
+
+# Core dependencies (if needed beyond built-in libraries)
+# Most standard library modules are available in Cloudflare Workers Python runtime
+
+# For future integration with AI services
+# google-genai>=1.52.0
+# langchain>=1.0.8
+
+# For security scanning integration
+# bandit>=1.9.1
+
+# Note: When deploying to Cloudflare Workers, dependencies should be:
+# 1. Compatible with the Python Workers runtime
+# 2. Bundled appropriately using wrangler
+# 3. Tested for compatibility with the edge runtime environment
