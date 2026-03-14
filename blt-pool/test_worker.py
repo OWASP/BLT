@@ -3545,7 +3545,7 @@ class TestHandleMentorPause(unittest.TestCase):
         comments = []
         self._run_pause("alice", comments)
         self.assertTrue(any("pause" in c.lower() for c in comments))
-        self.assertTrue(any("mentors.yml" in c for c in comments))
+        self.assertTrue(any("paused" in c.lower() for c in comments))
 
     def test_rejects_non_mentor(self):
         comments = []
@@ -4364,117 +4364,81 @@ class TestGhHeaders(unittest.TestCase):
             self.assertEqual(headers.get("Accept"), "application/vnd.github+json")
 
 
-class TestLoadMentorsLocal(unittest.TestCase):
-    """_load_mentors_local — reads mentors.yml from the local filesystem."""
+class TestLoadMentorsFromD1(unittest.TestCase):
+    """_load_mentors_from_d1 — loads mentors from the D1 mentors table."""
 
-    _SAMPLE_YAML = """\
-mentors:
-  - github_username: alice
-    name: Alice Smith
-    max_mentees: 3
-    active: true
-  - github_username: bob
-    name: Bob Jones
-    max_mentees: 2
-    active: true
-"""
+    def test_returns_mentors_from_d1(self):
+        """Returns a list of mentor dicts when D1 rows are available."""
+        import json as _json
+        rows = [
+            {
+                "github_username": "alice",
+                "name": "Alice Smith",
+                "specialties": _json.dumps(["frontend"]),
+                "max_mentees": 3,
+                "active": 1,
+                "timezone": "UTC",
+                "referred_by": "",
+            },
+            {
+                "github_username": "bob",
+                "name": "Bob Jones",
+                "specialties": _json.dumps([]),
+                "max_mentees": 2,
+                "active": 1,
+                "timezone": "",
+                "referred_by": "",
+            },
+        ]
 
-    def test_returns_mentors_from_file(self):
-        """A valid YAML file returns the parsed mentor list."""
-        import tempfile, os
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as fh:
-            fh.write(self._SAMPLE_YAML)
-            tmp = fh.name
-        try:
+        async def _inner():
+            mock_db = MagicMock()
             with patch.object(
-                _worker, "console",
-                new=types.SimpleNamespace(error=lambda *a: None, log=lambda *a: None),
+                _worker, "_ensure_leaderboard_schema", new=AsyncMock()
             ):
-                result = _worker._load_mentors_local(tmp)
-            self.assertEqual(len(result), 2)
-            self.assertEqual(result[0]["github_username"], "alice")
-            self.assertEqual(result[1]["name"], "Bob Jones")
-        finally:
-            os.unlink(tmp)
+                with patch.object(
+                    _worker, "_d1_all", new=AsyncMock(return_value=rows)
+                ):
+                    with patch.object(
+                        _worker, "console",
+                        new=types.SimpleNamespace(error=lambda *a: None, log=lambda *a: None),
+                    ):
+                        return await _worker._load_mentors_from_d1(mock_db)
 
-    def test_returns_empty_on_missing_file(self):
-        """A missing file returns an empty list without raising."""
-        with patch.object(
-            _worker, "console",
-            new=types.SimpleNamespace(error=lambda *a: None, log=lambda *a: None),
-        ):
-            result = _worker._load_mentors_local("/nonexistent/path/mentors.yml")
-        self.assertEqual(result, [])
-
-    def test_returns_empty_on_bad_yaml(self):
-        """Unparseable YAML returns an empty list."""
-        import tempfile, os
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as fh:
-            fh.write("not: valid: yaml: [][")
-            tmp = fh.name
-        try:
-            with patch.object(
-                _worker, "console",
-                new=types.SimpleNamespace(error=lambda *a: None, log=lambda *a: None),
-            ):
-                result = _worker._load_mentors_local(tmp)
-            # An empty/unparseable YAML gives [] — no exception raised
-            self.assertIsInstance(result, list)
-        finally:
-            os.unlink(tmp)
-
-    def test_reads_actual_mentors_yml(self):
-        """The bundled src/mentors.yml can be read using the default path."""
-        with patch.object(
-            _worker, "console",
-            new=types.SimpleNamespace(error=lambda *a: None, log=lambda *a: None),
-        ):
-            result = _worker._load_mentors_local(_worker._MENTORS_YML_PATH)
-        self.assertGreater(len(result), 0)
-        # Every entry has at least a name
-        for mentor in result:
-            self.assertIn("name", mentor)
-
-    def test_default_call_loads_mentors(self):
-        """_load_mentors_local() with no args returns mentors from src/mentors.yml."""
-        with patch.object(
-            _worker, "console",
-            new=types.SimpleNamespace(error=lambda *a: None, log=lambda *a: None),
-        ):
-            result = _worker._load_mentors_local()
-        self.assertGreater(len(result), 0)
-        for mentor in result:
-            self.assertIn("name", mentor)
-
-    def test_fallback_to_bare_filename(self):
-        """When the primary path fails, the bare 'mentors.yml' candidate is tried."""
-        import tempfile, os as _os
-        # Write sample YAML to a temp file, then mock open() so that:
-        #   - the primary path raises FileNotFoundError
-        #   - the bare "mentors.yml" path returns our sample YAML
-        sample = self._SAMPLE_YAML
-        real_open = builtins.open
-
-        def _fake_open(path, *args, **kwargs):
-            if path == "mentors.yml":
-                import io
-                return io.StringIO(sample)
-            raise FileNotFoundError(f"No such file: {path}")
-
-        with patch.object(
-            _worker, "console",
-            new=types.SimpleNamespace(error=lambda *a: None, log=lambda *a: None),
-        ):
-            with patch("builtins.open", side_effect=_fake_open):
-                result = _worker._load_mentors_local("/nonexistent/dir/mentors.yml")
-
-        # Should have fallen back to "mentors.yml" and parsed the 2 sample mentors
+        result = _run(_inner())
         self.assertEqual(len(result), 2)
         self.assertEqual(result[0]["github_username"], "alice")
+        self.assertEqual(result[0]["specialties"], ["frontend"])
+        self.assertEqual(result[1]["name"], "Bob Jones")
+
+    def test_returns_empty_on_exception(self):
+        """Returns [] when D1 raises an exception."""
+        async def _inner():
+            mock_db = MagicMock()
+            with patch.object(
+                _worker, "_ensure_leaderboard_schema", new=AsyncMock(side_effect=RuntimeError("db error"))
+            ):
+                with patch.object(
+                    _worker, "console",
+                    new=types.SimpleNamespace(error=lambda *a: None, log=lambda *a: None),
+                ):
+                    return await _worker._load_mentors_from_d1(mock_db)
+
+        result = _run(_inner())
+        self.assertEqual(result, [])
+
+    def test_initial_mentors_list_has_entries(self):
+        """_INITIAL_MENTORS contains the expected seeded mentor data."""
+        self.assertGreater(len(_worker._INITIAL_MENTORS), 0)
+        for m in _worker._INITIAL_MENTORS:
+            self.assertIn("github_username", m)
+            self.assertIn("name", m)
+
+
 
 
 class TestOnFetchHomepage(unittest.TestCase):
-    """on_fetch GET / — homepage loads mentors from the bundled mentors.yml file."""
+    """on_fetch GET / — homepage loads mentors from D1."""
 
     def _make_get_request(self, path="/"):
         req = types.SimpleNamespace(
@@ -4484,8 +4448,8 @@ class TestOnFetchHomepage(unittest.TestCase):
         )
         return req
 
-    def test_homepage_shows_mentors_from_yaml(self):
-        """Mentors from _load_mentors_local are rendered on the homepage."""
+    def test_homepage_shows_mentors_from_d1(self):
+        """Mentors from _load_mentors_local (D1) are rendered on the homepage."""
         fake_mentors = [
             {"name": "Alice", "github_username": "alice", "active": True},
             {"name": "Bob", "github_username": "bob", "active": True},
@@ -4495,7 +4459,7 @@ class TestOnFetchHomepage(unittest.TestCase):
             env = types.SimpleNamespace()
             req = self._make_get_request("/")
             with patch.object(
-                _worker, "_load_mentors_local", return_value=fake_mentors
+                _worker, "_load_mentors_local", new=AsyncMock(return_value=fake_mentors)
             ):
                 with patch.object(
                     _worker, "_fetch_mentor_stats_from_d1", return_value={}
@@ -4518,7 +4482,7 @@ class TestOnFetchHomepage(unittest.TestCase):
             env = types.SimpleNamespace()
             req = self._make_get_request("/")
             with patch.object(
-                _worker, "_load_mentors_local", return_value=fake_mentors
+                _worker, "_load_mentors_local", new=AsyncMock(return_value=fake_mentors)
             ):
                 with patch.object(
                     _worker, "_fetch_mentor_stats_from_d1", return_value={}
@@ -4533,13 +4497,13 @@ class TestOnFetchHomepage(unittest.TestCase):
 
         _run(_inner())
 
-    def test_homepage_renders_when_file_missing(self):
+    def test_homepage_renders_when_no_mentors(self):
         """Homepage still renders (with no mentors) if _load_mentors_local returns []."""
         async def _inner():
             env = types.SimpleNamespace()
             req = self._make_get_request("/")
             with patch.object(
-                _worker, "_load_mentors_local", return_value=[]
+                _worker, "_load_mentors_local", new=AsyncMock(return_value=[])
             ):
                 with patch.object(
                     _worker, "_fetch_mentor_stats_from_d1", return_value={}
@@ -4563,7 +4527,7 @@ class TestOnFetchHomepage(unittest.TestCase):
             env = types.SimpleNamespace()
             req = self._make_get_request("/")
             with patch.object(
-                _worker, "_load_mentors_local", return_value=fake_mentors
+                _worker, "_load_mentors_local", new=AsyncMock(return_value=fake_mentors)
             ):
                 with patch.object(
                     _worker, "_fetch_mentor_stats_from_d1", return_value=fake_stats
@@ -4577,6 +4541,73 @@ class TestOnFetchHomepage(unittest.TestCase):
             self.assertIn("5", resp.body)
 
         _run(_inner())
+
+
+class TestHandleAddMentor(unittest.TestCase):
+    """POST /api/mentors — inserts a new mentor into D1."""
+
+    def _make_post_request(self, body: dict):
+        import json as _json
+        req = types.SimpleNamespace(
+            method="POST",
+            url="http://localhost/api/mentors",
+            headers=types.SimpleNamespace(get=lambda k, d=None: d),
+            text=AsyncMock(return_value=_json.dumps(body)),
+        )
+        return req
+
+    def _run_add(self, body: dict, db_raises=False):
+        req = self._make_post_request(body)
+        env = types.SimpleNamespace()
+        captured = {}
+
+        async def _inner():
+            mock_db = MagicMock()
+            with patch.object(_worker, "_d1_binding", return_value=mock_db):
+                with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
+                    if db_raises:
+                        with patch.object(_worker, "_d1_add_mentor", new=AsyncMock(side_effect=RuntimeError("db error"))):
+                            with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda *a: None, log=lambda *a: None)):
+                                resp = await _worker._handle_add_mentor(req, env)
+                    else:
+                        with patch.object(_worker, "_d1_add_mentor", new=AsyncMock()) as mock_add:
+                            with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda *a: None, log=lambda *a: None)):
+                                resp = await _worker._handle_add_mentor(req, env)
+                            captured["add_args"] = mock_add.call_args
+            return resp
+
+        return _run(_inner()), captured
+
+    def test_valid_submission_returns_201(self):
+        resp, _ = self._run_add({"name": "Jane Doe", "github_username": "janedoe", "specialties": ["frontend"], "max_mentees": 3})
+        self.assertEqual(resp.status, 201)
+        import json as _json
+        data = _json.loads(resp.body)
+        self.assertTrue(data["ok"])
+        self.assertEqual(data["github_username"], "janedoe")
+
+    def test_missing_name_returns_400(self):
+        resp, _ = self._run_add({"github_username": "janedoe"})
+        self.assertEqual(resp.status, 400)
+
+    def test_missing_github_username_returns_400(self):
+        resp, _ = self._run_add({"name": "Jane Doe"})
+        self.assertEqual(resp.status, 400)
+
+    def test_invalid_github_username_returns_400(self):
+        resp, _ = self._run_add({"name": "Jane Doe", "github_username": "invalid user!"})
+        self.assertEqual(resp.status, 400)
+
+    def test_db_error_returns_500(self):
+        resp, _ = self._run_add({"name": "Jane", "github_username": "jane"}, db_raises=True)
+        self.assertEqual(resp.status, 500)
+
+    def test_strips_at_prefix_from_username(self):
+        resp, captured = self._run_add({"name": "Jane Doe", "github_username": "@janedoe"})
+        self.assertEqual(resp.status, 201)
+        import json as _json
+        data = _json.loads(resp.body)
+        self.assertEqual(data["github_username"], "janedoe")
 
 
 if __name__ == "__main__":
