@@ -594,6 +594,276 @@ async def _ensure_leaderboard_schema(db) -> None:
         )
         """,
     )
+    await _d1_run(
+        db,
+        """
+        CREATE TABLE IF NOT EXISTS mentors (
+            github_username TEXT NOT NULL PRIMARY KEY,
+            name TEXT NOT NULL,
+            specialties TEXT NOT NULL DEFAULT '[]',
+            max_mentees INTEGER NOT NULL DEFAULT 3,
+            active INTEGER NOT NULL DEFAULT 1,
+            timezone TEXT NOT NULL DEFAULT '',
+            referred_by TEXT NOT NULL DEFAULT ''
+        )
+        """,
+    )
+    await _populate_mentors_table(db)
+
+
+# ---------------------------------------------------------------------------
+# Mentor table helpers
+# ---------------------------------------------------------------------------
+
+# Initial mentor data — these INSERT OR IGNORE statements seed the mentors
+# table from what was previously stored in src/mentors.yml.  They are safe to
+# run repeatedly (idempotent) and can be removed once the live database has
+# been populated.
+_INITIAL_MENTORS = [
+    {
+        "github_username": "rinkitadhana",
+        "name": "Rinkit Adhana",
+        "specialties": ["frontend", "javascript"],
+        "max_mentees": 3,
+        "active": True,
+        "timezone": "UTC+5:30",
+        "referred_by": "",
+    },
+    {
+        "github_username": "Rajgupta36",
+        "name": "Raj Gupta",
+        "specialties": ["backend", "python"],
+        "max_mentees": 3,
+        "active": True,
+        "timezone": "UTC+5:30",
+        "referred_by": "",
+    },
+    {
+        "github_username": "shriyashsoni",
+        "name": "Shriyash Soni",
+        "specialties": [],
+        "max_mentees": 3,
+        "active": True,
+        "timezone": "",
+        "referred_by": "",
+    },
+    {
+        "github_username": "Mohammedfaiyaz29",
+        "name": "Mohammed Faiyaz Shaikh",
+        "specialties": [],
+        "max_mentees": 3,
+        "active": True,
+        "timezone": "",
+        "referred_by": "",
+    },
+    {
+        "github_username": "Vaswani2003",
+        "name": "Vinamra Vaswani",
+        "specialties": [],
+        "max_mentees": 3,
+        "active": True,
+        "timezone": "",
+        "referred_by": "",
+    },
+    {
+        "github_username": "kittenbytes",
+        "name": "Carla Voorhees",
+        "specialties": [],
+        "max_mentees": 3,
+        "active": True,
+        "timezone": "",
+        "referred_by": "",
+    },
+    {
+        "github_username": "Captain-T2004",
+        "name": "Akshay Behl",
+        "specialties": [],
+        "max_mentees": 3,
+        "active": True,
+        "timezone": "",
+        "referred_by": "",
+    },
+    {
+        "github_username": "elsheik21",
+        "name": "Ahmed ElSheik",
+        "specialties": [],
+        "max_mentees": 3,
+        "active": True,
+        "timezone": "",
+        "referred_by": "",
+    },
+    {
+        "github_username": "Kunal1522",
+        "name": "Kunal Kashyap",
+        "specialties": [],
+        "max_mentees": 3,
+        "active": True,
+        "timezone": "",
+        "referred_by": "",
+    },
+    {
+        "github_username": "RudraBhaskar9439",
+        "name": "Rudra Bhaskar",
+        "specialties": [],
+        "max_mentees": 3,
+        "active": True,
+        "timezone": "",
+        "referred_by": "",
+    },
+    {
+        "github_username": "dev-sanidhya",
+        "name": "Sanidhya Shishodia",
+        "specialties": [],
+        "max_mentees": 3,
+        "active": True,
+        "timezone": "",
+        "referred_by": "",
+    },
+    {
+        "github_username": "VedantAnand17",
+        "name": "Vedant Anand",
+        "specialties": [],
+        "max_mentees": 3,
+        "active": True,
+        "timezone": "",
+        "referred_by": "",
+    },
+    {
+        "github_username": "Rishab87",
+        "name": "Rishab Kumar Jha",
+        "specialties": [],
+        "max_mentees": 3,
+        "active": True,
+        "timezone": "",
+        "referred_by": "",
+    },
+    {
+        "github_username": "gitsofaryan",
+        "name": "Aryan Jain",
+        "specialties": [
+            "fullstack",
+            "web3",
+            "distributed-systems",
+            "ai-ml",
+            "open-source",
+            "devops",
+            "realtime-systems",
+        ],
+        "max_mentees": 3,
+        "active": True,
+        "timezone": "UTC+5:30 (India Standard Time)",
+        "referred_by": "",
+    },
+    {
+        "github_username": "ramansh18",
+        "name": "Ramansh Saxena",
+        "specialties": ["frontend", "backend", "web3"],
+        "max_mentees": 2,
+        "active": True,
+        "timezone": "+5:30",
+        "referred_by": "ojaswa072",
+    },
+]
+
+
+async def _populate_mentors_table(db) -> None:
+    """Seed the mentors table with the initial mentor list (idempotent).
+
+    Uses INSERT OR IGNORE so that existing rows are never overwritten; safe
+    to call on every cold start.
+    """
+    for m in _INITIAL_MENTORS:
+        try:
+            await _d1_run(
+                db,
+                """
+                INSERT OR IGNORE INTO mentors
+                    (github_username, name, specialties, max_mentees, active, timezone, referred_by)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    m["github_username"],
+                    m["name"],
+                    json.dumps(m.get("specialties") or []),
+                    m.get("max_mentees", 3),
+                    1 if m.get("active", True) else 0,
+                    m.get("timezone", "") or "",
+                    m.get("referred_by", "") or "",
+                ),
+            )
+        except Exception as exc:
+            console.error(f"[MentorPool] Failed to seed mentor {m['github_username']}: {exc}")
+
+
+async def _load_mentors_from_d1(db) -> list:
+    """Load the mentor list from the D1 ``mentors`` table.
+
+    Returns a list of mentor dicts compatible with the rest of the codebase
+    (same keys as the old YAML format).  Returns ``[]`` on error.
+    """
+    try:
+        await _ensure_leaderboard_schema(db)
+        rows = await _d1_all(
+            db,
+            "SELECT github_username, name, specialties, max_mentees, active, timezone, referred_by FROM mentors",
+        )
+        mentors = []
+        for row in rows:
+            try:
+                specialties = json.loads(row.get("specialties") or "[]")
+            except Exception:
+                specialties = []
+            mentors.append({
+                "github_username": row["github_username"],
+                "name": row["name"],
+                "specialties": specialties,
+                "max_mentees": int(row.get("max_mentees") or 3),
+                "active": bool(row.get("active", 1)),
+                "timezone": row.get("timezone") or "",
+                "referred_by": row.get("referred_by") or "",
+            })
+        console.log(f"[MentorPool] Loaded {len(mentors)} mentors from D1")
+        return mentors
+    except Exception as exc:
+        console.error(f"[MentorPool] Failed to load mentors from D1: {exc}")
+        return []
+
+
+async def _d1_add_mentor(
+    db,
+    github_username: str,
+    name: str,
+    specialties: list,
+    max_mentees: int = 3,
+    active: bool = True,
+    timezone: str = "",
+    referred_by: str = "",
+) -> None:
+    """Insert or replace a mentor row in the D1 ``mentors`` table."""
+    await _d1_run(
+        db,
+        """
+        INSERT INTO mentors
+            (github_username, name, specialties, max_mentees, active, timezone, referred_by)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(github_username) DO UPDATE SET
+            name        = excluded.name,
+            specialties = excluded.specialties,
+            max_mentees = excluded.max_mentees,
+            active      = excluded.active,
+            timezone    = excluded.timezone,
+            referred_by = excluded.referred_by
+        """,
+        (
+            github_username,
+            name,
+            json.dumps(specialties),
+            max_mentees,
+            1 if active else 0,
+            timezone or "",
+            referred_by or "",
+        ),
+    )
 
 
 async def _d1_record_mentor_assignment(
@@ -2148,82 +2418,33 @@ def _parse_mentors_yaml(content: str) -> list:
     return mentors
 
 
-async def _fetch_mentors_config(owner: str, repo: str, token: str) -> list:
-    """Fetch and parse ``src/mentors.yml`` from the repository.
+async def _fetch_mentors_config(env=None, owner: str = "", repo: str = "", token: str = "") -> list:
+    """Load the mentor list, preferring the D1 database when available.
 
-    Returns the parsed mentor list.  Returns an empty list when the file does
-    not exist or cannot be parsed so that ``src/mentors.yml`` is the single
-    source of truth for the mentor pool.
+    Falls back to an empty list when D1 is unavailable.  The ``owner``,
+    ``repo``, and ``token`` parameters are retained for call-site compatibility
+    but are no longer used — mentors are stored in and served from D1.
     """
-    resp = await github_api(
-        "GET",
-        f"/repos/{owner}/{repo}/contents/src/mentors.yml",
-        token,
-    )
-    if resp.status == 404:
-        console.error("[MentorPool] src/mentors.yml not found (404)")
-        return []
-    if resp.status != 200:
-        console.error(f"[MentorPool] Failed to fetch src/mentors.yml: {resp.status}")
-        return []
-    try:
-        data = json.loads(await resp.text())
-        content_b64 = data.get("content", "")
-        # GitHub wraps base64 content with newlines; strip before decoding.
-        content_decoded = base64.b64decode(content_b64.replace("\n", "")).decode("utf-8")
-        parsed = _parse_mentors_yaml(content_decoded)
-        if parsed:
-            console.log(f"[MentorPool] Loaded {len(parsed)} mentors from src/mentors.yml")
-            return parsed
-    except Exception as exc:
-        console.error(f"[MentorPool] Error parsing src/mentors.yml: {exc}")
+    db = _d1_binding(env) if env is not None else None
+    if db:
+        mentors = await _load_mentors_from_d1(db)
+        if mentors:
+            return mentors
+    console.error("[MentorPool] No D1 binding or empty mentors table; returning []")
     return []
 
 
-# Default path to the bundled mentors YAML file, resolved relative to this
-# module so it works both in local development and in the Cloudflare bundle.
-_MENTORS_YML_PATH = os.path.join(os.path.dirname(__file__), "mentors.yml")
+async def _load_mentors_local(env=None) -> list:
+    """Load the mentor list from D1 (preferred) for homepage display.
 
-
-def _load_mentors_local(path: str = _MENTORS_YML_PATH) -> list:
-    """Load and parse the mentor list from ``src/mentors.yml``.
-
-    ``src/mentors.yml`` is the single source of truth for the mentor pool.
-
-    The function tries candidate paths in order to handle differences between
-    the local development filesystem and the Cloudflare Workers virtual
-    filesystem (where ``__file__`` may resolve to a root-level path):
-
-    1. *path* as given (default: ``os.path.dirname(__file__) + /mentors.yml``)
-    2. ``"mentors.yml"`` — bare filename, effective when the Cloudflare Workers
-       runtime sets the working directory to the same root where files are
-       bundled (i.e. when ``os.path.dirname(__file__)`` is empty or ``"/"``).
-
-    Returns the parsed mentor list, or ``[]`` when all candidates fail.
+    Returns the parsed mentor list, or ``[]`` when D1 is unavailable.
+    This function is kept for backwards compatibility with call sites that
+    previously read from ``src/mentors.yml``.
     """
-    candidates = [path]
-    # In the Cloudflare Workers runtime, __file__ may be "worker.py" (CWD) or
-    # "/worker.py" (FS root), so the dirname-based path and the bare filename
-    # can differ.  Add "mentors.yml" as a fallback to cover both cases.
-    bare = "mentors.yml"
-    if bare not in candidates:
-        candidates.append(bare)
-
-    for candidate in candidates:
-        try:
-            with open(candidate, "r", encoding="utf-8") as fh:
-                content = fh.read()
-            parsed = _parse_mentors_yaml(content)
-            if parsed:
-                console.log(f"[MentorPool] Loaded {len(parsed)} mentors from {candidate}")
-                return parsed
-        except FileNotFoundError:
-            continue
-        except Exception as exc:
-            console.error(f"[MentorPool] Error reading {candidate}: {exc}")
-            continue
-
-    console.error("[MentorPool] mentors.yml not found in any candidate paths")
+    db = _d1_binding(env) if env is not None else None
+    if db:
+        return await _load_mentors_from_d1(db)
+    console.error("[MentorPool] No D1 binding available; returning empty mentor list")
     return []
 
 
@@ -2611,9 +2832,8 @@ async def handle_mentor_pause(
 ) -> None:
     """Handle the ``/mentor-pause`` slash command (mentor opts out of new assignments).
 
-    Because mentor state is stored in ``src/mentors.yml`` (version-controlled),
-    this handler acknowledges the request and instructs the mentor to open a PR to
-    set ``active: false`` for their entry.
+    Because mentor state is stored in D1, this handler acknowledges the request
+    and pauses the mentor by updating their ``active`` flag in the database.
     """
     pool = mentors_config if mentors_config is not None else []
     # Only active mentors can pause; inactive ones already aren't receiving assignments.
@@ -2636,10 +2856,9 @@ async def handle_mentor_pause(
         repo,
         issue["number"],
         f"@{login} Your pause request has been noted. 🙏\n\n"
-        "To formally pause your availability in the mentor pool, please open a PR that sets "
-        "`active: false` for your entry in `src/mentors.yml`.\n\n"
-        "Until that PR is merged the system may still select you for new assignments. "
-        "Contact a maintainer if you need an immediate pause.",
+        "Your availability has been paused in the mentor pool. "
+        "The system will not select you for new assignments until you resume.\n\n"
+        "Contact a maintainer if you need to resume your availability.",
         token,
     )
 
@@ -2962,7 +3181,7 @@ async def handle_issue_comment(payload: dict, token: str, env=None) -> None:
             return
         # Fetch mentors config once for all mentor-related commands.
         try:
-            mentors_config = await _fetch_mentors_config(owner, repo, token)
+            mentors_config = await _fetch_mentors_config(env=env)
         except Exception as exc:
             console.error(f"[MentorPool] Failed to fetch mentors config: {exc}")
             mentors_config = []
@@ -3114,7 +3333,7 @@ async def handle_issue_labeled(
             assignees[0]["login"] if assignees else (issue.get("user") or {}).get("login", "")
         )
         try:
-            mentors_config = await _fetch_mentors_config(owner, repo, token)
+            mentors_config = await _fetch_mentors_config(env=env)
         except Exception as exc:
             console.error(f"[MentorPool] Failed to fetch mentors config on label event: {exc}")
             mentors_config = []
@@ -3190,7 +3409,7 @@ async def handle_pull_request_opened(payload: dict, token: str, env=None) -> Non
     )
     if auto_reviewer_enabled:
         try:
-            mentors_config = await _fetch_mentors_config(owner, repo, token)
+            mentors_config = await _fetch_mentors_config(env=env)
         except Exception:
             mentors_config = []
         try:
@@ -4087,7 +4306,7 @@ def _generate_mentor_row(mentor: dict, stats: Optional[dict] = None) -> str:
     """Generate HTML for a single mentor list row.
 
     Args:
-        mentor: Mentor entry from ``src/mentors.yml``.
+        mentor: Mentor entry dict (loaded from D1).
         stats:  Optional dict with ``merged_prs`` and ``reviews`` keys from D1.
                 When provided, totals are shown on the card.
     """
@@ -4205,7 +4424,7 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None) -> st
     """Generate the BLT-Pool mentor directory homepage.
 
     Args:
-        mentors:      Mentor list loaded from ``src/mentors.yml``.
+        mentors:      Mentor list loaded from D1.
                       Defaults to an empty list when omitted or ``None``.
         mentor_stats: Optional mapping of ``github_username → {"merged_prs", "reviews"}``
                       from D1, used to show activity stats on each mentor card.
@@ -4461,8 +4680,7 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None) -> st
         <div>
           <h3 class="text-2xl font-bold text-[#111827]">Become a Mentor</h3>
           <p class="mt-1 text-sm leading-relaxed text-gray-600">
-            Fill in the form and click the button — it opens a pre-filled GitHub issue.
-            You are added to the mentor pool automatically when the issue is created.
+            Fill in the form and submit — you are added to the mentor pool immediately.
           </p>
         </div>
       </div>
@@ -4510,11 +4728,12 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None) -> st
                  class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#E10101] focus:ring-1 focus:ring-[#E10101] focus:outline-none">
         </div>
         <div id="mf-error" role="alert" class="hidden sm:col-span-2 text-sm font-semibold text-[#E10101]"></div>
+        <div id="mf-success" role="status" class="hidden sm:col-span-2 text-sm font-semibold text-green-600"></div>
         <div class="sm:col-span-2">
-          <button type="submit"
-                  class="inline-flex items-center gap-2 rounded-md bg-[#E10101] px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2">
-            <i class="fa-brands fa-github" aria-hidden="true"></i>
-            Open Application on GitHub
+          <button id="mf-submit" type="submit"
+                  class="inline-flex items-center gap-2 rounded-md bg-[#E10101] px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed">
+            <i class="fa-solid fa-user-plus" aria-hidden="true"></i>
+            Join the Mentor Pool
           </button>
         </div>
       </form>
@@ -4525,34 +4744,52 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None) -> st
             var name     = document.getElementById('mf-name').value.trim();
             var github   = document.getElementById('mf-github').value.trim().replace(/^@/, '');
             var specs    = document.getElementById('mf-specialties').value.trim();
-            var maxM     = document.getElementById('mf-max').value.trim() || '3';
+            var maxM     = parseInt(document.getElementById('mf-max').value.trim(), 10) || 3;
             var tz       = document.getElementById('mf-tz').value.trim();
             var referral = document.getElementById('mf-referral').value.trim().replace(/^@/, '');
             var errEl    = document.getElementById('mf-error');
+            var okEl     = document.getElementById('mf-success');
+            var btn      = document.getElementById('mf-submit');
+            errEl.classList.add('hidden');
+            okEl.classList.add('hidden');
             if (!name || !github) {{
               errEl.textContent = 'Display name and GitHub username are required.';
               errEl.classList.remove('hidden');
               return;
             }}
-            errEl.classList.add('hidden');
-            var body = [
-              '## Mentor Application',
-              '',
-              '- **Name**: ' + name,
-              '- **GitHub Username**: @' + github,
-              '- **Specialties**: ' + (specs || '_none_'),
-              '- **Max Mentees**: ' + maxM,
-              '- **Timezone**: ' + (tz || '_not specified_'),
-              '- **Referred By**: ' + (referral ? '@' + referral : '_not specified_'),
-              '',
-              '---',
-              '_Submitted via the BLT-Pool mentor application form. The bot adds you automatically when this issue is created._'
-            ].join('\\n');
-            var url = 'https://github.com/OWASP-BLT/BLT-Pool/issues/new'
-              + '?title=' + encodeURIComponent('Mentor Application: @' + github)
-              + '&body='  + encodeURIComponent(body)
-              + '&labels=mentor-application';
-            window.open(url, '_blank', 'noopener');
+            var specialties = specs ? specs.split(',').map(function(s) {{ return s.trim(); }}).filter(Boolean) : [];
+            btn.disabled = true;
+            fetch('/api/mentors', {{
+              method: 'POST',
+              headers: {{'Content-Type': 'application/json'}},
+              body: JSON.stringify({{
+                name: name,
+                github_username: github,
+                specialties: specialties,
+                max_mentees: maxM,
+                timezone: tz,
+                referred_by: referral
+              }})
+            }})
+            .then(function(res) {{
+              return res.json().then(function(data) {{ return {{ok: res.ok, data: data}}; }});
+            }})
+            .then(function(result) {{
+              btn.disabled = false;
+              if (result.ok) {{
+                okEl.textContent = 'Welcome to the mentor pool, @' + github + '! Refresh the page to see your card.';
+                okEl.classList.remove('hidden');
+                document.getElementById('mentor-form').reset();
+              }} else {{
+                errEl.textContent = result.data.error || 'An error occurred. Please try again.';
+                errEl.classList.remove('hidden');
+              }}
+            }})
+            .catch(function() {{
+              btn.disabled = false;
+              errEl.textContent = 'Network error. Please try again.';
+              errEl.classList.remove('hidden');
+            }});
           }});
         }}());
       </script>
@@ -4573,6 +4810,98 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None) -> st
 
 </body>
 </html>'''
+
+
+# ---------------------------------------------------------------------------
+# Mentor API handler
+# ---------------------------------------------------------------------------
+
+# GitHub username: 1-39 alphanumeric/hyphen characters, cannot start or end with a hyphen.
+_GH_USERNAME_RE = re.compile(r"^[a-zA-Z0-9](?:[a-zA-Z0-9\-]{0,37}[a-zA-Z0-9])?$")
+# Specialty tag: 1-30 chars; lowercase letters, digits, +, #, dot, hyphen allowed.
+_SPECIALTY_RE = re.compile(r"^[a-z0-9][a-z0-9+#.\-]{0,29}$")
+# Bounds for the max_mentees field in the mentor form.
+_MENTOR_MIN_MENTEES_CAP = 1
+_MENTOR_MAX_MENTEES_CAP = 10
+
+
+async def _handle_add_mentor(request, env) -> "Response":
+    """POST /api/mentors — insert a new mentor into the D1 mentors table.
+
+    Expected JSON body::
+
+        {
+            "name": "Jane Doe",
+            "github_username": "janedoe",
+            "specialties": ["frontend", "python"],   // optional
+            "max_mentees": 3,                         // optional, 1-10
+            "timezone": "UTC+5:30",                   // optional
+            "referred_by": "referrer"                 // optional
+        }
+
+    Returns 201 on success, 400 on validation failure, 500 on DB error.
+    """
+    try:
+        body = json.loads(await request.text())
+    except Exception:
+        return _json({"error": "Invalid JSON body"}, 400)
+
+    name = (body.get("name") or "").strip()
+    github_username = (body.get("github_username") or "").strip().lstrip("@")
+    specialties_raw = body.get("specialties") or []
+    max_mentees = body.get("max_mentees", 3)
+    timezone = (body.get("timezone") or "").strip()
+    referred_by = (body.get("referred_by") or "").strip().lstrip("@")
+
+    if not name:
+        return _json({"error": "Field 'name' is required"}, 400)
+    if not github_username:
+        return _json({"error": "Field 'github_username' is required"}, 400)
+    if not _GH_USERNAME_RE.match(github_username):
+        return _json({"error": "Invalid GitHub username"}, 400)
+
+    # Normalise specialties — accept a list or a comma-separated string.
+    if isinstance(specialties_raw, str):
+        specialties = [s.strip() for s in specialties_raw.split(",") if s.strip()]
+    elif isinstance(specialties_raw, list):
+        specialties = [str(s).strip() for s in specialties_raw if str(s).strip()]
+    else:
+        specialties = []
+    # Validate each specialty tag.
+    for spec in specialties:
+        if not _SPECIALTY_RE.match(spec):
+            return _json({"error": f"Invalid specialty tag: {spec!r}"}, 400)
+
+    try:
+        max_mentees = max(_MENTOR_MIN_MENTEES_CAP, min(_MENTOR_MAX_MENTEES_CAP, int(max_mentees)))
+    except (TypeError, ValueError):
+        max_mentees = 3
+
+    if referred_by and not _GH_USERNAME_RE.match(referred_by):
+        return _json({"error": "Invalid referred_by username"}, 400)
+
+    db = _d1_binding(env)
+    if not db:
+        return _json({"error": "Database not available"}, 500)
+
+    try:
+        await _ensure_leaderboard_schema(db)
+        await _d1_add_mentor(
+            db,
+            github_username=github_username,
+            name=name,
+            specialties=specialties,
+            max_mentees=max_mentees,
+            active=True,
+            timezone=timezone,
+            referred_by=referred_by,
+        )
+    except Exception as exc:
+        console.error(f"[MentorPool] Failed to add mentor {github_username}: {exc}")
+        return _json({"error": "Failed to save mentor"}, 500)
+
+    console.log(f"[MentorPool] Added mentor {github_username} via API")
+    return _json({"ok": True, "github_username": github_username}, 201)
 
 
 # ---------------------------------------------------------------------------
@@ -4609,13 +4938,14 @@ async def on_fetch(request, env) -> Response:
     path = urlparse(str(request.url)).path.rstrip("/") or "/"
 
     if method == "GET" and path == "/":
-        # Load mentors directly from the bundled src/mentors.yml file.
-        # This avoids any network calls and API rate limits — the file is
-        # committed alongside the worker source and kept in sync by the
-        # add-mentor-from-issue workflow.
-        mentors = _load_mentors_local()
-        # Fetch per-mentor activity stats from D1 (best-effort; no stats if D1 unavailable).
+        # Load mentors from D1.
         org = getattr(env, "GITHUB_ORG", "OWASP-BLT")
+        mentors: list = []
+        try:
+            mentors = await _load_mentors_local(env)
+        except Exception as exc:
+            console.error(f"[MentorPool] Failed to load mentors for homepage: {exc}")
+        # Fetch per-mentor activity stats from D1 (best-effort; no stats if D1 unavailable).
         mentor_stats: dict = {}
         try:
             mentor_stats = await _fetch_mentor_stats_from_d1(env, org)
@@ -4629,6 +4959,9 @@ async def on_fetch(request, env) -> Response:
 
     if method == "GET" and path == "/health":
         return _json({"status": "ok", "service": "BLT-Pool"})
+
+    if method == "POST" and path == "/api/mentors":
+        return await _handle_add_mentor(request, env)
 
     if method == "POST" and path == "/api/github/webhooks":
         return await handle_webhook(request, env)
