@@ -9,6 +9,12 @@ on:
   issues:
     types: [opened]
 
+concurrency:
+  # Serialise runs for the same issue to prevent duplicate entries from webhook
+  # retries or a race on the initial issue-opened event.
+  group: add-mentor-issue-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
 jobs:
   add-mentor:
     # Only process issues whose title starts with "Mentor Application:" or

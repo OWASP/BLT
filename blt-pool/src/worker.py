@@ -69,6 +69,8 @@ _SECONDS_PER_DAY = 86400
 # opened PR using a deterministic round-robin order (PR number mod pool size).
 # Set to False (default) to keep the existing behaviour of only requesting the
 # mentor when the PR explicitly closes a mentored issue.
+# This default can also be overridden at runtime by setting the Cloudflare
+# Worker environment variable ``MENTOR_AUTO_PR_REVIEWER_ENABLED=true``.
 MENTOR_AUTO_PR_REVIEWER_ENABLED = False
 
 # Mentor pool for BLT-Pool platform
@@ -3033,9 +3035,14 @@ async def handle_pull_request_opened(payload: dict, token: str, env=None) -> Non
     except Exception as exc:
         console.error(f"[MentorPool] Mentor reviewer request failed (best-effort): {exc}")
 
-    # When MENTOR_AUTO_PR_REVIEWER_ENABLED is True, also request a round-robin
-    # mentor as a reviewer for every newly opened PR regardless of linked issues.
-    if MENTOR_AUTO_PR_REVIEWER_ENABLED:
+    # When MENTOR_AUTO_PR_REVIEWER_ENABLED is True (either via the module
+    # constant or the env var), also request a round-robin mentor as a reviewer
+    # for every newly opened PR regardless of linked issues.
+    auto_reviewer_enabled = MENTOR_AUTO_PR_REVIEWER_ENABLED or (
+        env is not None
+        and getattr(env, "MENTOR_AUTO_PR_REVIEWER_ENABLED", "").lower() == "true"
+    )
+    if auto_reviewer_enabled:
         try:
             mentors_config = await _fetch_mentors_config(owner, repo, token)
         except Exception:
@@ -4389,9 +4396,11 @@ async def on_fetch(request, env) -> Response:
     path = urlparse(str(request.url)).path.rstrip("/") or "/"
 
     if method == "GET" and path == "/":
-        # Populate the homepage from .github/mentors.yml (public repo, unauthenticated).
+        # Populate the homepage from .github/mentors.yml.
+        # Use GITHUB_TOKEN if available (avoids the 60 req/h unauthenticated limit).
         try:
-            mentors = await _fetch_mentors_config("OWASP-BLT", "BLT-Pool", "")
+            gh_token = getattr(env, "GITHUB_TOKEN", "") or ""
+            mentors = await _fetch_mentors_config("OWASP-BLT", "BLT-Pool", gh_token)
         except Exception:
             mentors = MENTORS
         return _html(_index_html(mentors))

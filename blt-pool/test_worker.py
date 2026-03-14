@@ -3721,5 +3721,146 @@ class TestGetLastHumanActivityTs(unittest.TestCase):
         self.assertAlmostEqual(ts, expected, delta=1)
 
 
+class TestBuildReferralLeaderboard(unittest.TestCase):
+    """_build_referral_leaderboard — tallies referred_by across mentors."""
+
+    def test_empty_list(self):
+        self.assertEqual(_worker._build_referral_leaderboard([]), [])
+
+    def test_no_referrals(self):
+        mentors = [
+            {"name": "Alice", "github_username": "alice"},
+            {"name": "Bob", "github_username": "bob"},
+        ]
+        self.assertEqual(_worker._build_referral_leaderboard(mentors), [])
+
+    def test_single_referral(self):
+        mentors = [
+            {"name": "Alice", "github_username": "alice", "referred_by": "charlie"},
+        ]
+        result = _worker._build_referral_leaderboard(mentors)
+        self.assertEqual(result, [("charlie", 1)])
+
+    def test_multiple_referrals_sorted_descending(self):
+        mentors = [
+            {"name": "Alice", "github_username": "alice", "referred_by": "charlie"},
+            {"name": "Bob", "github_username": "bob", "referred_by": "charlie"},
+            {"name": "Carol", "github_username": "carol", "referred_by": "dave"},
+        ]
+        result = _worker._build_referral_leaderboard(mentors)
+        self.assertEqual(result[0], ("charlie", 2))
+        self.assertEqual(result[1], ("dave", 1))
+
+    def test_blank_referred_by_ignored(self):
+        mentors = [
+            {"name": "Alice", "github_username": "alice", "referred_by": ""},
+            {"name": "Bob", "github_username": "bob", "referred_by": "   "},
+        ]
+        self.assertEqual(_worker._build_referral_leaderboard(mentors), [])
+
+    def test_missing_referred_by_key_ignored(self):
+        mentors = [
+            {"name": "Alice", "github_username": "alice"},
+        ]
+        self.assertEqual(_worker._build_referral_leaderboard(mentors), [])
+
+
+class TestGenerateMentorRow(unittest.TestCase):
+    """_generate_mentor_row — generates safe HTML for a mentor entry."""
+
+    def _make_mentor(self, **kwargs):
+        base = {
+            "name": "Alice",
+            "github_username": "alice",
+            "specialties": ["python"],
+            "max_mentees": 3,
+            "timezone": "UTC",
+            "status": "available",
+            "active": True,
+        }
+        base.update(kwargs)
+        return base
+
+    def test_contains_name(self):
+        html = _worker._generate_mentor_row(self._make_mentor(name="Alice Smith"))
+        self.assertIn("Alice Smith", html)
+
+    def test_xss_in_name_escaped(self):
+        # Verify that HTML special characters in name are escaped to prevent XSS.
+        html = _worker._generate_mentor_row(self._make_mentor(name='<script>xss</script>'))
+        self.assertNotIn("<script>", html)
+        self.assertIn("&lt;script&gt;", html)
+
+    def test_active_mentor_shows_available_badge(self):
+        html = _worker._generate_mentor_row(self._make_mentor(status="available", active=True))
+        self.assertIn("Available", html)
+
+    def test_inactive_mentor_shows_inactive_badge(self):
+        html = _worker._generate_mentor_row(self._make_mentor(active=False))
+        self.assertIn("Inactive", html)
+
+    def test_assigned_mentor_shows_mentoring_badge(self):
+        html = _worker._generate_mentor_row(self._make_mentor(status="assigned", active=True))
+        self.assertIn("Mentoring", html)
+
+    def test_github_link_present_when_username_set(self):
+        html = _worker._generate_mentor_row(self._make_mentor(github_username="alice"))
+        self.assertIn("https://github.com/alice", html)
+
+    def test_no_github_link_when_username_empty(self):
+        html = _worker._generate_mentor_row(self._make_mentor(github_username=""))
+        self.assertNotIn("https://github.com/", html)
+
+    def test_timezone_escaped(self):
+        html = _worker._generate_mentor_row(self._make_mentor(timezone='US/Eastern <b>zone</b>'))
+        self.assertNotIn("<b>", html)
+        self.assertIn("US/Eastern", html)
+
+    def test_no_specialties_shows_dash(self):
+        html = _worker._generate_mentor_row(self._make_mentor(specialties=[]))
+        self.assertIn("—", html)
+
+
+class TestIndexHtml(unittest.TestCase):
+    """_index_html — homepage HTML generation."""
+
+    def test_returns_string(self):
+        html = _worker._index_html([])
+        self.assertIsInstance(html, str)
+
+    def test_contains_doctype(self):
+        html = _worker._index_html([])
+        self.assertIn("<!DOCTYPE html>", html)
+
+    def test_none_falls_back_to_builtin_mentors(self):
+        html = _worker._index_html(None)
+        # Should not raise; falls back to built-in MENTORS list.
+        self.assertIn("<!DOCTYPE html>", html)
+
+    def test_mentor_name_appears_in_html(self):
+        mentors = [{"name": "Bob Smith", "github_username": "bobsmith", "active": True, "status": "available"}]
+        html = _worker._index_html(mentors)
+        self.assertIn("Bob Smith", html)
+
+    def test_referral_leaderboard_shown_when_referrals_exist(self):
+        mentors = [
+            {"name": "Alice", "github_username": "alice", "active": True, "status": "available", "referred_by": "charlie"},
+        ]
+        html = _worker._index_html(mentors)
+        self.assertIn("Referral Leaderboard", html)
+        self.assertIn("@charlie", html)
+
+    def test_referral_leaderboard_placeholder_when_no_referrals(self):
+        mentors = [{"name": "Alice", "github_username": "alice", "active": True, "status": "available"}]
+        html = _worker._index_html(mentors)
+        self.assertIn("Referral Leaderboard", html)
+        self.assertIn("No referrals yet", html)
+
+    def test_empty_mentors_list(self):
+        html = _worker._index_html([])
+        self.assertIn("<!DOCTYPE html>", html)
+        self.assertNotIn("None", html)
+
+
 if __name__ == "__main__":
     unittest.main()
