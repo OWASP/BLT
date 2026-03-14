@@ -111,6 +111,7 @@ _is_bot = _worker._is_bot
 _is_coderabbit_ping = _worker._is_coderabbit_ping
 _parse_github_timestamp = _worker._parse_github_timestamp
 _format_leaderboard_comment = _worker._format_leaderboard_comment
+_format_reviewer_leaderboard_comment = _worker._format_reviewer_leaderboard_comment
 
 
 # ---------------------------------------------------------------------------
@@ -579,7 +580,9 @@ class TestHandlePullRequestClosed(unittest.TestCase):
             with patch.object(_worker, "create_comment", new=AsyncMock(side_effect=lambda o, r, n, b, t: comments.append(b))):
                 with patch.object(_worker, "_check_rank_improvement", new=AsyncMock()):
                     with patch.object(_worker, "_post_or_update_leaderboard", new=AsyncMock()):
-                        await _worker.handle_pull_request_closed(payload, "tok")
+                        with patch.object(_worker, "get_valid_reviewers", new=AsyncMock(return_value=[])):
+                            with patch.object(_worker, "_post_reviewer_leaderboard", new=AsyncMock()):
+                                await _worker.handle_pull_request_closed(payload, "tok")
         _run(_inner())
 
     def test_posts_congratulations_when_merged(self):
@@ -927,6 +930,156 @@ class TestFormatLeaderboardComment(unittest.TestCase):
         self.assertNotIn("✨", result)
 
 
+class TestFormatReviewerLeaderboardComment(unittest.TestCase):
+    """Test reviewer leaderboard comment formatting"""
+
+    def _make_leaderboard_data(self):
+        return {
+            "sorted": [
+                {"login": "alice", "openPrs": 2, "mergedPrs": 5, "closedPrs": 0, "reviews": 10, "comments": 4, "total": 100},
+                {"login": "bob", "openPrs": 1, "mergedPrs": 3, "closedPrs": 0, "reviews": 7, "comments": 2, "total": 75},
+                {"login": "charlie", "openPrs": 1, "mergedPrs": 2, "closedPrs": 0, "reviews": 4, "comments": 1, "total": 45},
+                {"login": "dave", "openPrs": 0, "mergedPrs": 1, "closedPrs": 0, "reviews": 2, "comments": 0, "total": 20},
+                {"login": "eve", "openPrs": 1, "mergedPrs": 0, "closedPrs": 0, "reviews": 1, "comments": 0, "total": 6},
+            ],
+            "start_timestamp": 1704067200,  # 2024-01-01
+            "end_timestamp": 1706745599,
+        }
+
+    def test_contains_reviewer_leaderboard_marker(self):
+        result = _format_reviewer_leaderboard_comment(self._make_leaderboard_data(), "test-org")
+        self.assertIn("<!-- reviewer-leaderboard-bot -->", result)
+
+    def test_shows_reviewer_leaderboard_heading(self):
+        result = _format_reviewer_leaderboard_comment(self._make_leaderboard_data(), "test-org")
+        self.assertIn("Reviewer Leaderboard", result)
+
+    def test_shows_top_reviewers(self):
+        result = _format_reviewer_leaderboard_comment(self._make_leaderboard_data(), "test-org")
+        self.assertIn("alice", result)
+        self.assertIn("bob", result)
+        self.assertIn("charlie", result)
+
+    def test_shows_medals_for_top_reviewers(self):
+        result = _format_reviewer_leaderboard_comment(self._make_leaderboard_data(), "test-org")
+        self.assertIn("🥇", result)
+        self.assertIn("🥈", result)
+        self.assertIn("🥉", result)
+
+    def test_highlights_pr_reviewers(self):
+        result = _format_reviewer_leaderboard_comment(
+            self._make_leaderboard_data(), "test-org", pr_reviewers=["bob"]
+        )
+        # bob should be highlighted with a star
+        self.assertIn("**`@bob`** ⭐", result)
+        # alice should not be highlighted
+        self.assertNotIn("**`@alice`** ⭐", result)
+
+    def test_shows_no_activity_message_when_no_reviewers(self):
+        data = {
+            "sorted": [
+                {"login": "alice", "openPrs": 2, "mergedPrs": 5, "closedPrs": 0, "reviews": 0, "comments": 4, "total": 30},
+            ],
+            "start_timestamp": 1704067200,
+            "end_timestamp": 1706745599,
+        }
+        result = _format_reviewer_leaderboard_comment(data, "test-org")
+        self.assertIn("No review activity", result)
+
+    def test_excludes_users_with_zero_reviews(self):
+        data = {
+            "sorted": [
+                {"login": "alice", "openPrs": 2, "mergedPrs": 5, "closedPrs": 0, "reviews": 0, "comments": 4, "total": 30},
+                {"login": "bob", "openPrs": 1, "mergedPrs": 3, "closedPrs": 0, "reviews": 3, "comments": 2, "total": 45},
+            ],
+            "start_timestamp": 1704067200,
+            "end_timestamp": 1706745599,
+        }
+        result = _format_reviewer_leaderboard_comment(data, "test-org")
+        self.assertIn("bob", result)
+        # alice has 0 reviews — should not appear in reviewer leaderboard table
+        self.assertNotIn("`@alice`", result)
+
+    def test_shows_pr_reviewer_outside_top5(self):
+        """PR reviewer ranked outside top 5 should still appear."""
+        data = {
+            "sorted": [
+                {"login": f"user{i}", "openPrs": 0, "mergedPrs": 0, "closedPrs": 0, "reviews": 10 - i, "comments": 0, "total": 50 - i * 5}
+                for i in range(7)
+            ],
+            "start_timestamp": 1704067200,
+            "end_timestamp": 1706745599,
+        }
+        result = _format_reviewer_leaderboard_comment(data, "test-org", pr_reviewers=["user6"])
+        self.assertIn("user6", result)
+
+
+class TestPostReviewerLeaderboard(unittest.TestCase):
+    """Test _post_reviewer_leaderboard function"""
+
+    def _run_post(self, leaderboard_data, pr_reviewers, posted_comments, deleted_ids, existing_comments=None):
+        async def _inner():
+            async def _mock_d1(owner, env):
+                return leaderboard_data
+
+            async def _mock_api(method, path, token, body=None):
+                if method == "GET" and "/comments" in path:
+                    return types.SimpleNamespace(
+                        status=200,
+                        text=AsyncMock(return_value=json.dumps(existing_comments or []))
+                    )
+                if method == "DELETE":
+                    comment_id = path.split("/")[-1]
+                    deleted_ids.append(comment_id)
+                    return types.SimpleNamespace(status=204)
+                return types.SimpleNamespace(status=200)
+
+            with patch.object(_worker, "_calculate_leaderboard_stats_from_d1", new=_mock_d1):
+                with patch.object(_worker, "github_api", new=_mock_api):
+                    with patch.object(_worker, "create_comment", new=AsyncMock(side_effect=lambda o, r, n, b, t: posted_comments.append(b))):
+                        env = types.SimpleNamespace()
+                        await _worker._post_reviewer_leaderboard(
+                            "test-org", "test-repo", 42, "tok", env=env, pr_reviewers=pr_reviewers
+                        )
+        _run(_inner())
+
+    def _make_leaderboard_data(self):
+        return {
+            "sorted": [
+                {"login": "alice", "openPrs": 2, "mergedPrs": 5, "closedPrs": 0, "reviews": 10, "comments": 4, "total": 100},
+                {"login": "bob", "openPrs": 1, "mergedPrs": 3, "closedPrs": 0, "reviews": 7, "comments": 2, "total": 75},
+            ],
+            "start_timestamp": 1704067200,
+            "end_timestamp": 1706745599,
+        }
+
+    def test_posts_reviewer_leaderboard_comment(self):
+        posted, deleted = [], []
+        self._run_post(self._make_leaderboard_data(), ["bob"], posted, deleted)
+        self.assertEqual(len(posted), 1)
+        self.assertIn("<!-- reviewer-leaderboard-bot -->", posted[0])
+        self.assertIn("Reviewer Leaderboard", posted[0])
+
+    def test_deletes_old_reviewer_leaderboard_comment(self):
+        existing = [
+            {"id": 999, "body": "<!-- reviewer-leaderboard-bot -->\nold leaderboard"},
+        ]
+        posted, deleted = [], []
+        self._run_post(self._make_leaderboard_data(), [], posted, deleted, existing_comments=existing)
+        self.assertIn("999", deleted)
+
+    def test_skips_when_no_d1_data(self):
+        posted, deleted = [], []
+
+        async def _inner():
+            with patch.object(_worker, "_calculate_leaderboard_stats_from_d1", new=AsyncMock(return_value=None)):
+                with patch.object(_worker, "create_comment", new=AsyncMock(side_effect=lambda o, r, n, b, t: posted.append(b))):
+                    await _worker._post_reviewer_leaderboard("org", "repo", 1, "tok")
+        _run(_inner())
+
+        self.assertEqual(len(posted), 0)
+
+
 class TestHandleIssueCommentLeaderboard(unittest.TestCase):
     """Test /leaderboard command handling"""
 
@@ -1031,41 +1184,50 @@ class TestHandlePullRequestOpenedLeaderboard(unittest.TestCase):
 class TestHandlePullRequestClosedLeaderboard(unittest.TestCase):
     """Test leaderboard and rank improvement on PR merged"""
 
-    def _run_pr_closed(self, payload, leaderboard_calls, rank_calls, comment_calls):
+    def _run_pr_closed(self, payload, leaderboard_calls, rank_calls, comment_calls, reviewer_leaderboard_calls=None):
         async def _inner():
             async def _mock_leaderboard(owner, repo, number, login, token):
                 leaderboard_calls.append((owner, repo, number, login))
             
             async def _mock_rank(owner, repo, pr_number, author_login, token):
                 rank_calls.append((owner, repo, pr_number, author_login))
+
+            async def _mock_reviewer_leaderboard(owner, repo, pr_number, token, env=None, pr_reviewers=None):
+                if reviewer_leaderboard_calls is not None:
+                    reviewer_leaderboard_calls.append((owner, repo, pr_number))
             
             with patch.object(_worker, "_post_or_update_leaderboard", new=_mock_leaderboard):
                 with patch.object(_worker, "_check_rank_improvement", new=_mock_rank):
-                    with patch.object(_worker, "create_comment", new=AsyncMock(side_effect=lambda o, r, n, b, t: comment_calls.append(b))):
-                        await _worker.handle_pull_request_closed(payload, "tok")
+                    with patch.object(_worker, "_post_reviewer_leaderboard", new=_mock_reviewer_leaderboard):
+                        with patch.object(_worker, "get_valid_reviewers", new=AsyncMock(return_value=[])):
+                            with patch.object(_worker, "create_comment", new=AsyncMock(side_effect=lambda o, r, n, b, t: comment_calls.append(b))):
+                                await _worker.handle_pull_request_closed(payload, "tok")
         _run(_inner())
 
     def test_posts_leaderboard_and_checks_rank_on_merge(self):
         payload = _make_pr_payload(merged=True)
-        leaderboard_calls, rank_calls, comments = [], [], []
-        self._run_pr_closed(payload, leaderboard_calls, rank_calls, comments)
+        leaderboard_calls, rank_calls, comments, reviewer_leaderboard_calls = [], [], [], []
+        self._run_pr_closed(payload, leaderboard_calls, rank_calls, comments, reviewer_leaderboard_calls)
         
         # Rank improvement check has been disabled for accuracy
         # (now shown in leaderboard display instead)
         self.assertEqual(len(rank_calls), 0)
         # Should post leaderboard
         self.assertEqual(len(leaderboard_calls), 1)
+        # Should post reviewer leaderboard
+        self.assertEqual(len(reviewer_leaderboard_calls), 1)
         # Should post merge congratulations
         self.assertTrue(any("PR merged!" in c for c in comments))
 
     def test_skips_unmerged_prs(self):
         payload = _make_pr_payload(merged=False)
-        leaderboard_calls, rank_calls, comments = [], [], []
-        self._run_pr_closed(payload, leaderboard_calls, rank_calls, comments)
+        leaderboard_calls, rank_calls, comments, reviewer_leaderboard_calls = [], [], [], []
+        self._run_pr_closed(payload, leaderboard_calls, rank_calls, comments, reviewer_leaderboard_calls)
         
         # Should not process unmerged PRs
         self.assertEqual(len(rank_calls), 0)
         self.assertEqual(len(leaderboard_calls), 0)
+        self.assertEqual(len(reviewer_leaderboard_calls), 0)
         self.assertEqual(len(comments), 0)
 
     def test_skips_bots(self):
@@ -1073,12 +1235,13 @@ class TestHandlePullRequestClosedLeaderboard(unittest.TestCase):
             merged=True,
             pr_user={"login": "renovate[bot]", "type": "Bot"}
         )
-        leaderboard_calls, rank_calls, comments = [], [], []
-        self._run_pr_closed(payload, leaderboard_calls, rank_calls, comments)
+        leaderboard_calls, rank_calls, comments, reviewer_leaderboard_calls = [], [], [], []
+        self._run_pr_closed(payload, leaderboard_calls, rank_calls, comments, reviewer_leaderboard_calls)
         
         # Should not process bot PRs
         self.assertEqual(len(rank_calls), 0)
         self.assertEqual(len(leaderboard_calls), 0)
+        self.assertEqual(len(reviewer_leaderboard_calls), 0)
         self.assertEqual(len(comments), 0)
 
 
