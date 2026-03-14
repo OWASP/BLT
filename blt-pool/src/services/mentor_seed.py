@@ -146,7 +146,7 @@ INITIAL_MENTORS = [
     },
     {    
     "github_username" : "rahulnegi20", 
-    "name" : "Rahul Negi÷",
+    "name" : "Rahul Negi",
     "specialties": ["backend", "databases", "cloud", "frontend"],
     "max_mentees": 3,
     "active": True,
