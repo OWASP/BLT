@@ -1,0 +1,54 @@
+name: "🏆 Declare Contest Winner"
+description: "Propose a winner for a design contest. Awaits /approve from a repository owner."
+title: "[Winner] "
+labels: ["winner-announcement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🏆 Declare a Contest Winner
+
+        Fill in the details below to propose a winner for one of the BLT Design Contests.
+        Once this issue is submitted, a **repository owner** must comment `/approve` on it
+        to confirm the selection.
+
+        On approval the `winner` label will be applied to the winning submission and the
+        showcase pages will be rebuilt automatically to highlight the design.
+
+  - type: dropdown
+    id: contest
+    attributes:
+      label: Contest
+      description: Which contest is this winner for?
+      options:
+        - "BLT T-Shirt Design Contest (blt-tshirt)"
+        - "BLT Logo Contest (blt-logo)"
+        - "BLT Homepage Design (blt-homepage)"
+    validations:
+      required: true
+
+  - type: input
+    id: winner_username
+    attributes:
+      label: Winner's GitHub Username
+      description: The GitHub username of the winning designer (without the @ symbol).
+      placeholder: "e.g. octocat"
+    validations:
+      required: true
+
+  - type: input
+    id: winning_issue
+    attributes:
+      label: Winning Submission Issue Number
+      description: The issue number of the winning design submission.
+      placeholder: "e.g. 42"
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        ⏳ **Awaiting Approval** — a repository owner must comment `/approve` on this
+        issue to apply the `winner` label to the submission and trigger a rebuild of
+        the showcase pages.
