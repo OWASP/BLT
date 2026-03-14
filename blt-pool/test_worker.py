@@ -3802,6 +3802,21 @@ class TestHandleMentorUnassign(unittest.TestCase):
         self.assertTrue(any("assignees" in e for e in endpoints_called))
         self.assertTrue(any("cancelled" in c.lower() for c in comments))
 
+    def test_current_assignee_can_unmentor(self):
+        issue = {
+            "number": 7,
+            "labels": [{"name": "mentor-assigned"}],
+            "assignees": [{"login": "dave"}],
+            "user": {"login": "alice"},
+        }
+        api_calls, comments = [], []
+        # dave is an assignee but not the author or the mentor
+        self._run_unmentor(issue, "dave", "bob", api_calls, comments)
+        endpoints_called = [str(call) for call in api_calls]
+        self.assertTrue(any("labels/mentor-assigned" in e for e in endpoints_called))
+        self.assertTrue(any("assignees" in e for e in endpoints_called))
+        self.assertTrue(any("cancelled" in c.lower() for c in comments))
+
     def test_unrelated_user_cannot_unmentor(self):
         issue = {
             "number": 5,

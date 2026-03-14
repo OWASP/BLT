@@ -2910,8 +2910,9 @@ async def handle_mentor_unassign(
     - Deleting the D1 assignment record.
     - Posting a confirmation comment.
 
-    The issue author, the currently assigned mentor, or any repo maintainer
-    (admin or maintain permission) may use this command.
+    The issue author, the current issue assignee, the currently assigned
+    mentor, or any repo maintainer (admin or maintain permission) may use
+    this command.
     """
     issue_number = issue["number"]
     current_labels = {lb.get("name", "").lower() for lb in issue.get("labels", [])}
@@ -2931,22 +2932,26 @@ async def handle_mentor_unassign(
         owner, repo, issue_number, token
     )
 
-    # Permission check: allow the issue author, the assigned mentor, or any
-    # repo maintainer (admin/maintain) to unmentor.  The maintainer check calls
-    # the GitHub API so we skip it when one of the cheaper conditions already
-    # grants access.
+    # Permission check: allow the issue author, any current issue assignee,
+    # the assigned mentor, or any repo maintainer (admin/maintain) to unmentor.
+    # The maintainer check calls the GitHub API so we skip it when one of the
+    # cheaper conditions already grants access.
     issue_author = (issue.get("user") or {}).get("login", "")
     is_issue_author = login.lower() == issue_author.lower()
     is_assigned_mentor = current_mentor and login.lower() == current_mentor.lower()
-    if not is_issue_author and not is_assigned_mentor:
+    issue_assignee_logins = {
+        (a.get("login") or "").lower() for a in (issue.get("assignees") or [])
+    }
+    is_current_assignee = login.lower() in issue_assignee_logins
+    if not is_issue_author and not is_assigned_mentor and not is_current_assignee:
         is_repo_maintainer = await _is_maintainer(owner, repo, login, token)
         if not is_repo_maintainer:
             await create_comment(
                 owner,
                 repo,
                 issue_number,
-                f"@{login} Only the issue author, the assigned mentor, or a repo maintainer "
-                "can remove a mentor assignment. "
+                f"@{login} Only the issue author, the current assignee, the assigned mentor, "
+                "or a repo maintainer can remove a mentor assignment. "
                 "Use `/rematch` if you'd like a different mentor.\n\n"
                 "— [OWASP BLT-Pool](https://pool.owaspblt.org)",
                 token,
