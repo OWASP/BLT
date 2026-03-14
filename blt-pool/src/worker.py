@@ -4816,8 +4816,13 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None) -> st
 # Mentor API handler
 # ---------------------------------------------------------------------------
 
+# GitHub username: 1-39 alphanumeric/hyphen characters, cannot start or end with a hyphen.
 _GH_USERNAME_RE = re.compile(r"^[a-zA-Z0-9](?:[a-zA-Z0-9\-]{0,37}[a-zA-Z0-9])?$")
+# Specialty tag: 1-30 chars; lowercase letters, digits, +, #, dot, hyphen allowed.
 _SPECIALTY_RE = re.compile(r"^[a-z0-9][a-z0-9+#.\-]{0,29}$")
+# Bounds for the max_mentees field in the mentor form.
+_MENTOR_MIN_MENTEES_CAP = 1
+_MENTOR_MAX_MENTEES_CAP = 10
 
 
 async def _handle_add_mentor(request, env) -> "Response":
@@ -4868,7 +4873,7 @@ async def _handle_add_mentor(request, env) -> "Response":
             return _json({"error": f"Invalid specialty tag: {spec!r}"}, 400)
 
     try:
-        max_mentees = max(1, min(10, int(max_mentees)))
+        max_mentees = max(_MENTOR_MIN_MENTEES_CAP, min(_MENTOR_MAX_MENTEES_CAP, int(max_mentees)))
     except (TypeError, ValueError):
         max_mentees = 3
 
