@@ -8,34 +8,69 @@
 const HACKATHONS_CONFIG = {
     // List of all hackathons
     hackathons: [
-{
-slug: "blt-mentor-warmup",
-name: "BLT Mentor Warmup Hackathon",
-description: `
-                This is a Hackathon for mentors only to encourage participation in the project.  To register, please add yourself to the mentor pool and then do a PR to this repo with your github username you can then submit PRs to all of the repos in the org.
+        {
+            // Unique identifier for URL (no spaces, lowercase recommended)
+            slug: "blt-mentor-warmup",
+
+            // Basic Information
+            name: "BLT Mentor Warmup Hackathon",
+            description: `BLT Mentor Warmup - A dedicated hackathon for OWASP BLT mentors to lead by example and contribute to the organization's projects. To register, please add yourself to the mentor pool and then do a PR to this repo with your GitHub username — you can then submit PRs to all of the repos in the org.`,
+            organizer: "OWASP BLT",
+
+            // Optional rules section
+            rules: `
+                1. All pull requests must be submitted during the hackathon period (Mar 12, 2026 - Mar 30, 2026)
+                2. PRs must be merged to count towards the leaderboard
+                3. All repositories in the BLT organization are eligible
+                4. Be respectful and follow each project's contribution guidelines
+                5. Have fun and lead by example!
             `,
-rules: `
-                
-            `,
-startTime: "2026-03-12T18:00:00Z",
-endTime: "2026-03-30T18:00:00Z",
-github: {
-    token: "",
+
+            // Hackathon Timeline (ISO 8601 format)
+            startTime: "2026-03-12T18:00:00Z",
+            endTime: "2026-03-30T18:00:00Z",
+
+            // GitHub Configuration
+            github: {
+                token: "",
+
                 // Organization field - all repos in this org will be tracked
                 organization: "OWASP-BLT",
-    repositories: [
-                    "_No response_"
+                // Fallback repositories in case organization fetch fails
+                repositories: [
+                    "OWASP-BLT/BLT",
+                    "OWASP-BLT/BLT-Extension",
+                    "OWASP-BLT/BLT-Rewards",
+                    "OWASP-BLT/BLT-Action",
+                    "OWASP-BLT/BLT-Flutter",
+                    "OWASP-BLT/BLT-Lettuce",
+                    "OWASP-BLT/BLT-Raven"
                 ]
-},
-prizes: [],
-sponsors: [],
-display: {
-    showRepoStats: true,
-    maxLeaderboardEntries: 10,
-    showPRsInLeaderboard: true,
-    showReviewsInLeaderboard: true
-}
-},
+            },
+
+            // Prizes Configuration
+            prizes: [],
+
+            // Sponsors Configuration (optional)
+            sponsors: [],
+
+            // Display Options
+            display: {
+                showRepoStats: true,
+                maxLeaderboardEntries: Infinity,
+                showPRsInLeaderboard: true,
+                showReviewsInLeaderboard: true
+            },
+
+            // Optional: path to a YAML file listing allowed participants.
+            // When set, only the listed GitHub usernames are counted as
+            // contributors (merged PRs leaderboard) AND reviewers
+            // (review leaderboard).
+            participantsFile: "hackathon-participants/blt-mentor-warmup.yml",
+
+            // Banner image (optional)
+            bannerImage: "images/How-do-hackathons-work-1024x576.png"
+        },
         {
             // Unique identifier for URL (no spaces, lowercase recommended)
             slug: "gsoc-2026-warmup",
@@ -90,69 +125,6 @@ display: {
                 showPRsInLeaderboard: true,
                 showReviewsInLeaderboard: true
             },
-            
-            // Banner image (optional)
-            bannerImage: "images/How-do-hackathons-work-1024x576.png"
-        },
-        {
-            // Unique identifier for URL (no spaces, lowercase recommended)
-            slug: "blt-mentor-warmup",
-            
-            // Basic Information
-            name: "BLT Mentor Warmup",
-            description: `BLT Mentor Warmup - A dedicated hackathon for OWASP BLT mentors to lead by example and contribute to the organization's projects.`,
-            organizer: "OWASP BLT",
-            
-            // Optional rules section
-            rules: `
-                1. All pull requests must be submitted during the hackathon period (Nov 01, 2025 - May 09, 2026)
-                2. PRs must be merged to count towards the leaderboard
-                3. All repositories in the BLT organization are eligible
-                4. Be respectful and follow each project's contribution guidelines
-                5. Have fun and lead by example!
-            `,
-            
-            // Hackathon Timeline (ISO 8601 format)
-            startTime: "2025-11-01T00:00:00Z",
-            endTime: "2026-05-09T23:59:59Z",
-            
-            // GitHub Configuration
-            github: {
-                token: "",
-                
-                // Organization field - all repos in this org will be tracked
-                organization: "OWASP-BLT",
-                // Fallback repositories in case organization fetch fails
-                repositories: [
-                    "OWASP-BLT/BLT",
-                    "OWASP-BLT/BLT-Extension",
-                    "OWASP-BLT/BLT-Rewards",
-                    "OWASP-BLT/BLT-Action",
-                    "OWASP-BLT/BLT-Flutter",
-                    "OWASP-BLT/BLT-Lettuce",
-                    "OWASP-BLT/BLT-Raven"
-                ]
-            },
-            
-            // Prizes Configuration
-            prizes: [],
-            
-            // Sponsors Configuration (optional)
-            sponsors: [],
-            
-            // Display Options
-            display: {
-                showRepoStats: true,
-                maxLeaderboardEntries: Infinity,
-                showPRsInLeaderboard: true,
-                showReviewsInLeaderboard: true
-            },
-            
-            // Optional: path to a YAML file listing allowed participants.
-            // When set, only the listed GitHub usernames are counted as
-            // contributors (merged PRs leaderboard).  The review leaderboard
-            // remains open to everyone.
-            participantsFile: "hackathon-participants/blt-mentor-warmup.yml",
             
             // Banner image (optional)
             bannerImage: "images/How-do-hackathons-work-1024x576.png"

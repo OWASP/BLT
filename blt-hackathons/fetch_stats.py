@@ -123,7 +123,7 @@ def load_participants_allowlist(participants_file):
     """Load an optional YAML allowlist of permitted participant usernames.
 
     Returns a set of lowercase usernames, or None if no file is specified.
-    Only participants (PR contributors) are filtered; reviewers remain open.
+    Both contributors (merged PRs) and reviewers are filtered by this list.
     """
     if not participants_file:
         return None
@@ -254,9 +254,8 @@ def process_hackathon_stats(prs, all_reviews, issues, start_dt, end_dt, reposito
 
     Args:
         allowed_participants: Optional set of lowercase usernames.  When
-            provided, only these users are counted in the contributors
-            (merged-PR) leaderboard.  The review leaderboard is never
-            filtered — any reviewer counts regardless of this list.
+            provided, only these users are counted in both the contributors
+            (merged-PR) leaderboard and the review leaderboard.
     """
     # Build daily activity map for the full date range
     daily_activity = {}
@@ -340,6 +339,10 @@ def process_hackathon_stats(prs, all_reviews, issues, start_dt, end_dt, reposito
         state = review.get("state", "")
 
         if is_bot or is_copilot or state == "DISMISSED":
+            continue
+
+        # When an allowlist is active, skip reviewers not on the list.
+        if allowed_participants is not None and username.lower() not in allowed_participants:
             continue
 
         submitted_at_str = review.get("submitted_at")
@@ -435,8 +438,8 @@ def process_hackathon(hackathon_config, token, org_repos_cache=None):
     organization = github_config.get("organization")
     explicit_repos = list(github_config.get("repositories", []))
 
-    # Optional participants allowlist: limits who counts as a contributor.
-    # Reviewers are always open to everyone.
+    # Optional participants allowlist: limits who counts as a contributor
+    # and who appears in the review leaderboard.
     participants_file = hackathon_config.get("participantsFile")
     allowed_participants = load_participants_allowlist(participants_file)
 
