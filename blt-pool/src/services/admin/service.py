@@ -14,7 +14,6 @@ from typing import Optional
 from urllib.parse import parse_qs, quote_plus, urlparse
 
 from js import Headers, Response, console, fetch
-from services.mentor_seed import INITIAL_MENTORS
 
 
 _ADMIN_COOKIE = "blt_admin_session"
@@ -232,26 +231,7 @@ class AdminService:
             "DELETE FROM admin_sessions WHERE expires_at <= ?",
             (int(time.time()),),
         )
-        await self._seed_mentors()
 
-    async def _seed_mentors(self) -> None:
-        for mentor in INITIAL_MENTORS:
-            await self._d1_run(
-                """
-                INSERT OR IGNORE INTO mentors
-                    (github_username, name, specialties, max_mentees, active, timezone, referred_by)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-                """,
-                (
-                    mentor["github_username"],
-                    mentor["name"],
-                    json.dumps(mentor.get("specialties") or []),
-                    mentor.get("max_mentees", 3),
-                    1 if mentor.get("active", True) else 0,
-                    mentor.get("timezone", ""),
-                    mentor.get("referred_by", ""),
-                ),
-            )
 
     async def _has_admin(self) -> bool:
         row = await self._d1_first("SELECT username FROM admin_users WHERE id = 1")
