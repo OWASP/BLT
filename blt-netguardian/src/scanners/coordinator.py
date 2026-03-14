@@ -1,4 +1,5 @@
 """Scanner coordinator that manages all scanning agents."""
+import inspect
 from typing import List, Dict, Any
 from scanners.web2_crawler import Web2Crawler
 from scanners.web3_monitor import Web3Monitor
@@ -12,8 +13,10 @@ _SCANNER_REGISTRY: Dict[str, type] = {}
 
 def register_scanner(task_type: str, scanner_class: type) -> None:
     """Register a scanner class for a given task type."""
-    if not task_type:
+    if not isinstance(task_type, str) or not task_type.strip():
         raise ValueError("task_type must be a non-empty string")
+    if not isinstance(scanner_class, type):
+        raise TypeError("scanner_class must be a class")
     if task_type in _SCANNER_REGISTRY:
         raise ValueError(
             f"Scanner already registered for task type: '{task_type}'. "
@@ -21,10 +24,22 @@ def register_scanner(task_type: str, scanner_class: type) -> None:
             f"New: {scanner_class.__name__}"
         )
     for required_method in ("scan", "get_status"):
-        if not hasattr(scanner_class, required_method):
+        method = getattr(scanner_class, required_method, None)
+        if not callable(method):
             raise TypeError(
                 f"{scanner_class.__name__} must define `{required_method}`"
             )
+    init_sig = inspect.signature(scanner_class.__init__)
+    required_ctor_params = [
+        p for name, p in init_sig.parameters.items()
+        if name != "self"
+        and p.kind in (p.POSITIONAL_ONLY, p.POSITIONAL_OR_KEYWORD, p.KEYWORD_ONLY)
+        and p.default is inspect.Parameter.empty
+    ]
+    if required_ctor_params:
+        raise TypeError(
+            f"{scanner_class.__name__} must be instantiable without required constructor args"
+        )
     _SCANNER_REGISTRY[task_type] = scanner_class
 
 
