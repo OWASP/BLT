@@ -73,187 +73,6 @@ _SECONDS_PER_DAY = 86400
 # Worker environment variable ``MENTOR_AUTO_PR_REVIEWER_ENABLED=true``.
 MENTOR_AUTO_PR_REVIEWER_ENABLED = False
 
-# Mentor pool for BLT-Pool platform
-MENTORS = [
-    {
-        "name": "Rinkit Adhana",
-        "github_username": "rinkitadhana",
-        "slack_username": "Rinkit Adhana",
-        "project": "Project A",
-        "mentee": None,
-        "status": "available",
-        "specialties": ["frontend", "javascript"],
-        "max_mentees": 3,
-        "active": True,
-    },
-    {
-        "name": "Raj Gupta",
-        "github_username": "Rajgupta36",
-        "slack_username": "raj",
-        "project": "Project A",
-        "mentee": None,
-        "status": "available",
-        "specialties": ["backend", "python"],
-        "max_mentees": 3,
-        "active": True,
-    },
-    {
-        "name": "Shriyash Soni",
-        "github_username": "shriyashsoni",
-        "slack_username": "shriyash soni",
-        "project": "",
-        "mentee": None,
-        "status": "available",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": True,
-    },
-    {
-        "name": "Mohammed Faiyaz Shaikh",
-        "github_username": "Mohammedfaiyaz29",
-        "slack_username": "faiyaz",
-        "project": None,
-        "mentee": None,
-        "status": "available",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": True,
-    },
-    {
-        "name": "Manikandan Chandran",
-        "github_username": "",
-        "slack_username": "",
-        "project": None,
-        "mentee": None,
-        "status": "inactive",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": False,
-    },
-    {
-        "name": "Shivam Kumar",
-        "github_username": "",
-        "slack_username": "",
-        "project": None,
-        "mentee": None,
-        "status": "inactive",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": False,
-    },
-    {
-        "name": "Vinamra Vaswani",
-        "github_username": "Vaswani2003",
-        "slack_username": "@Vinamra",
-        "project": None,
-        "mentee": None,
-        "status": "available",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": True,
-    },
-    {
-        "name": "Carla Voorhees",
-        "github_username": "kittenbytes",
-        "slack_username": "@Carla",
-        "project": None,
-        "mentee": None,
-        "status": "available",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": True,
-    },
-    {
-        "name": "Akshay Behl",
-        "github_username": "Captain-T2004",
-        "slack_username": "@Akshay Behl",
-        "project": None,
-        "mentee": None,
-        "status": "available",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": True,
-    },
-    {
-        "name": "Ahmed ElSheik",
-        "github_username": "elsheik21",
-        "slack_username": "Ahmed ElSheik",
-        "project": None,
-        "mentee": None,
-        "status": "available",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": True,
-    },
-    {
-        "name": "Kunal Kashyap",
-        "github_username": "Kunal1522",
-        "slack_username": "Kunal",
-        "project": None,
-        "mentee": None,
-        "status": "available",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": True,
-    },
-    {
-        "name": "Rudra Bhaskar",
-        "github_username": "RudraBhaskar9439",
-        "slack_username": "@Rudra9439",
-        "project": None,
-        "mentee": None,
-        "status": "available",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": True,
-    },
-    {
-        "name": "Sanidhya Shishodia",
-        "github_username": "dev-sanidhya",
-        "slack_username": "@Sanidhya Shishodia",
-        "project": None,
-        "mentee": None,
-        "status": "available",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": True,
-    },
-    {
-        "name": "Vedant Anand",
-        "github_username": "VedantAnand17",
-        "slack_username": "Vedant Anand",
-        "project": None,
-        "mentee": None,
-        "status": "available",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": True,
-    },
-    {
-        "name": "Rishab Kumar Jha",
-        "github_username": "Rishab87",
-        "slack_username": "Rishab Kumar Jha",
-        "project": None,
-        "mentee": None,
-        "status": "available",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": True,
-    },
-    {
-        "name": "Aryan Jain",
-        "github_username": "gitsofaryan",
-        "slack_username": "Aryan Jain",
-        "project": None,
-        "mentee": None,
-        "status": "available",
-        "specialties": ["fullstack", "web3", "distributed-systems", "ai-ml", "open-source", "devops", "realtime-systems"],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "UTC+5:30 (India Standard Time)",
-    },
-]
-
 # DER OID sequence for rsaEncryption (used when wrapping PKCS#1 → PKCS#8)
 _RSA_OID_SEQ = bytes([
     0x30, 0x0D,
@@ -376,13 +195,15 @@ async def create_github_jwt(app_id: str, private_key_pem: str) -> str:
 
 
 def _gh_headers(token: str) -> Headers:
-    return Headers.new({
-        "Authorization": f"Bearer {token}",
+    h = {
         "Accept": "application/vnd.github+json",
         "Content-Type": "application/json",
         "User-Agent": "BLT-GitHub-App/1.0",
         "X-GitHub-Api-Version": "2022-11-28",
-    }.items())
+    }
+    if token:
+        h["Authorization"] = f"Bearer {token}"
+    return Headers.new(h.items())
 
 
 async def github_api(method: str, path: str, token: str, body=None):
@@ -2163,8 +1984,9 @@ def _parse_mentors_yaml(content: str) -> list:
 async def _fetch_mentors_config(owner: str, repo: str, token: str) -> list:
     """Fetch and parse ``.github/mentors.yml`` from the repository.
 
-    Returns the parsed mentor list, or falls back to the built-in :data:`MENTORS`
-    list when the file does not exist or cannot be parsed.
+    Returns the parsed mentor list.  Returns an empty list when the file does
+    not exist or cannot be parsed so that ``.github/mentors.yml`` is the single
+    source of truth for the mentor pool.
     """
     resp = await github_api(
         "GET",
@@ -2172,10 +1994,11 @@ async def _fetch_mentors_config(owner: str, repo: str, token: str) -> list:
         token,
     )
     if resp.status == 404:
-        return MENTORS
+        console.error("[MentorPool] .github/mentors.yml not found (404)")
+        return []
     if resp.status != 200:
         console.error(f"[MentorPool] Failed to fetch .github/mentors.yml: {resp.status}")
-        return MENTORS
+        return []
     try:
         data = json.loads(await resp.text())
         content_b64 = data.get("content", "")
@@ -2187,7 +2010,7 @@ async def _fetch_mentors_config(owner: str, repo: str, token: str) -> list:
             return parsed
     except Exception as exc:
         console.error(f"[MentorPool] Error parsing .github/mentors.yml: {exc}")
-    return MENTORS
+    return []
 
 
 async def _get_mentor_load_map(owner: str, token: str) -> dict:
@@ -2256,7 +2079,7 @@ async def _select_mentor(
 
     Returns ``None`` when no mentor is available.
     """
-    pool = mentors_config if mentors_config is not None else MENTORS
+    pool = mentors_config if mentors_config is not None else []
     active = [
         m for m in pool
         if m.get("active", True)
@@ -2509,7 +2332,7 @@ async def handle_mentor_pause(
     this handler acknowledges the request and instructs the mentor to open a PR to
     set ``active: false`` for their entry.
     """
-    pool = mentors_config if mentors_config is not None else MENTORS
+    pool = mentors_config if mentors_config is not None else []
     # Only active mentors can pause; inactive ones already aren't receiving assignments.
     mentor_usernames = {
         m.get("github_username", "").lower()
@@ -2548,7 +2371,7 @@ async def handle_mentor_handoff(
 ) -> None:
     """Handle the ``/handoff`` slash command (mentor transfers mentorship to a new mentor)."""
     issue_number = issue["number"]
-    pool = mentors_config if mentors_config is not None else MENTORS
+    pool = mentors_config if mentors_config is not None else []
     mentor_usernames = {
         m.get("github_username", "").lower()
         for m in pool
@@ -2646,7 +2469,7 @@ async def handle_mentor_rematch(
 ) -> None:
     """Handle the ``/rematch`` slash command (contributor requests a different mentor)."""
     issue_number = issue["number"]
-    pool = mentors_config if mentors_config is not None else MENTORS
+    pool = mentors_config if mentors_config is not None else []
     current_labels = {lb.get("name", "").lower() for lb in issue.get("labels", [])}
     if MENTOR_ASSIGNED_LABEL.lower() not in current_labels:
         await create_comment(
@@ -2856,7 +2679,7 @@ async def handle_issue_comment(payload: dict, token: str, env=None) -> None:
             mentors_config = await _fetch_mentors_config(owner, repo, token)
         except Exception as exc:
             console.error(f"[MentorPool] Failed to fetch mentors config: {exc}")
-            mentors_config = MENTORS
+            mentors_config = []
 
         if command == MENTOR_COMMAND:
             await handle_mentor_command(owner, repo, issue, login, token, mentors_config)
@@ -3008,7 +2831,7 @@ async def handle_issue_labeled(
             mentors_config = await _fetch_mentors_config(owner, repo, token)
         except Exception as exc:
             console.error(f"[MentorPool] Failed to fetch mentors config on label event: {exc}")
-            mentors_config = MENTORS
+            mentors_config = []
         await _assign_mentor_to_issue(
             owner, repo, issue, contributor_login, token, mentors_config
         )
@@ -3083,7 +2906,7 @@ async def handle_pull_request_opened(payload: dict, token: str, env=None) -> Non
         try:
             mentors_config = await _fetch_mentors_config(owner, repo, token)
         except Exception:
-            mentors_config = MENTORS
+            mentors_config = []
         try:
             await _assign_round_robin_mentor_reviewer(owner, repo, pr, mentors_config, token)
         except Exception as exc:
@@ -3184,7 +3007,7 @@ async def _assign_round_robin_mentor_reviewer(
     if not MENTOR_AUTO_PR_REVIEWER_ENABLED:
         return
 
-    pool = mentors_config if mentors_config is not None else MENTORS
+    pool = mentors_config if mentors_config is not None else []
     active = [
         m for m in pool
         if m.get("active", True) and m.get("github_username")
@@ -4039,11 +3862,11 @@ def _index_html(mentors: list = None) -> str:
     """Generate the BLT-Pool mentor directory homepage.
 
     Args:
-        mentors: Optional mentor list loaded from ``.github/mentors.yml``.
-                 Falls back to the built-in :data:`MENTORS` constant if omitted.
+        mentors: Mentor list loaded from ``.github/mentors.yml``.
+                 Defaults to an empty list when omitted or ``None``.
     """
     if mentors is None:
-        mentors = MENTORS
+        mentors = []
     year = time.gmtime().tm_year
     mentor_count = len(mentors)
     available_count = len([m for m in mentors if m.get("active", True) and m.get("status", "available") == "available"])
@@ -4439,7 +4262,7 @@ async def on_fetch(request, env) -> Response:
             gh_token = getattr(env, "GITHUB_TOKEN", "") or ""
             mentors = await _fetch_mentors_config("OWASP-BLT", "BLT-Pool", gh_token)
         except Exception:
-            mentors = MENTORS
+            mentors = []
         return _html(_index_html(mentors))
 
     if method == "GET" and path == "/github-app":
