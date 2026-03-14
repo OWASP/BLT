@@ -10,6 +10,7 @@ HTTP client. It focuses on:
 from __future__ import annotations
 
 from datetime import datetime, timezone
+import warnings
 
 MAX_ANNOTATIONS_PER_REQUEST = 50
 
@@ -53,6 +54,11 @@ def normalize_conclusion(value: str | None, default: str = "neutral") -> str:
     normalized = _CONCLUSION_ALIASES.get(normalized, normalized)
     if normalized in _VALID_CONCLUSIONS:
         return normalized
+    warnings.warn(
+        f"Unknown conclusion {value!r}, defaulting to {default!r}",
+        UserWarning,
+        stacklevel=2,
+    )
     return default
 
 
@@ -73,15 +79,19 @@ def build_create_check_run_payload(
     *,
     name: str,
     head_sha: str,
+    status: str = "in_progress",
     details_url: str | None = None,
     external_id: str | None = None,
     started_at: str | None = None,
 ) -> dict:
     """Construct payload for POST /repos/{owner}/{repo}/check-runs."""
+    if status not in _VALID_STATUSES:
+        raise ValueError(f"invalid status: {status}")
+
     payload = {
         "name": name,
         "head_sha": head_sha,
-        "status": "in_progress",
+        "status": status,
         "started_at": started_at or _utc_now_iso(),
     }
     if details_url:
@@ -93,7 +103,6 @@ def build_create_check_run_payload(
 
 def build_update_check_run_payloads(
     *,
-    check_run_id: int,
     status: str,
     title: str,
     summary: str,
@@ -112,6 +121,8 @@ def build_update_check_run_payloads(
 
     normalized_conclusion = None
     if status == "completed":
+        if conclusion is None:
+            raise ValueError("conclusion is required when status is 'completed'")
         normalized_conclusion = normalize_conclusion(conclusion)
 
     annotation_batches = batch_annotations(annotations)
@@ -121,7 +132,6 @@ def build_update_check_run_payloads(
     payloads: list[dict] = []
     for index, chunk in enumerate(annotation_batches):
         payload = {
-            "check_run_id": check_run_id,
             "status": status,
             "output": {
                 "title": title,

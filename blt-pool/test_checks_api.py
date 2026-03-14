@@ -2,6 +2,7 @@
 
 import pathlib
 import sys
+import warnings
 
 import pytest
 
@@ -21,8 +22,16 @@ def test_normalize_conclusion_aliases_and_default():
     assert normalize_conclusion("pass") == "success"
     assert normalize_conclusion("warning") == "neutral"
     assert normalize_conclusion("timeout") == "timed_out"
-    assert normalize_conclusion("unknown-value") == "neutral"
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        assert normalize_conclusion("unknown-value") == "neutral"
+        assert len(caught) == 1
     assert normalize_conclusion(None) == "neutral"
+
+
+def test_normalize_conclusion_valid_passthrough_and_custom_default():
+    assert normalize_conclusion("success") == "success"
+    assert normalize_conclusion("", default="failure") == "failure"
 
 
 def test_batch_annotations_chunks_by_limit():
@@ -37,6 +46,8 @@ def test_batch_annotations_chunks_by_limit():
 def test_batch_annotations_invalid_size_raises():
     with pytest.raises(ValueError):
         batch_annotations([{"path": "src/a.py"}], batch_size=0)
+    with pytest.raises(ValueError):
+        batch_annotations([{"path": "src/a.py"}], batch_size=-1)
 
 
 def test_build_create_check_run_payload_defaults():
@@ -45,6 +56,24 @@ def test_build_create_check_run_payload_defaults():
     assert payload["head_sha"] == "abc123"
     assert payload["status"] == "in_progress"
     assert payload["started_at"].endswith("Z")
+
+
+def test_build_create_check_run_payload_optional_fields_and_status():
+    payload = build_create_check_run_payload(
+        name="Security Scan",
+        head_sha="abc123",
+        status="queued",
+        details_url="https://example.com/details",
+        external_id="scan-1",
+    )
+    assert payload["status"] == "queued"
+    assert payload["details_url"] == "https://example.com/details"
+    assert payload["external_id"] == "scan-1"
+
+
+def test_build_create_check_run_payload_invalid_status_raises():
+    with pytest.raises(ValueError):
+        build_create_check_run_payload(name="Security Scan", head_sha="abc123", status="done")
 
 
 def test_build_update_check_run_payloads_completed_with_pagination():
@@ -60,7 +89,6 @@ def test_build_update_check_run_payloads_completed_with_pagination():
     ]
 
     payloads = build_update_check_run_payloads(
-        check_run_id=42,
         status="completed",
         conclusion="failed",
         title="Security Results",
@@ -69,7 +97,7 @@ def test_build_update_check_run_payloads_completed_with_pagination():
     )
 
     assert len(payloads) == 2
-    assert payloads[0]["check_run_id"] == 42
+    assert "check_run_id" not in payloads[0]
     assert payloads[0]["status"] == "completed"
     assert payloads[0]["conclusion"] == "failure"
     assert len(payloads[0]["output"]["annotations"]) == 50
@@ -81,8 +109,58 @@ def test_build_update_check_run_payloads_completed_with_pagination():
 def test_build_update_check_run_payloads_invalid_status_raises():
     with pytest.raises(ValueError):
         build_update_check_run_payloads(
-            check_run_id=1,
             status="done",
             title="t",
             summary="s",
         )
+
+
+def test_build_update_check_run_payloads_in_progress_with_text():
+    payloads = build_update_check_run_payloads(
+        status="in_progress",
+        title="Scan Running",
+        summary="still processing",
+        text="step 2/4",
+        annotations=[{"path": "src/a.py", "start_line": 1, "end_line": 1}],
+    )
+    assert len(payloads) == 1
+    assert payloads[0]["status"] == "in_progress"
+    assert "conclusion" not in payloads[0]
+    assert payloads[0]["output"]["text"] == "step 2/4"
+
+
+def test_build_update_check_run_payloads_completed_requires_conclusion():
+    with pytest.raises(ValueError):
+        build_update_check_run_payloads(
+            status="completed",
+            title="Done",
+            summary="finished",
+        )
+
+
+def test_build_update_check_run_payloads_none_and_empty_annotations_match():
+    payload_none = build_update_check_run_payloads(
+        status="in_progress",
+        title="No Ann",
+        summary="none",
+        annotations=None,
+    )
+    payload_empty = build_update_check_run_payloads(
+        status="in_progress",
+        title="No Ann",
+        summary="none",
+        annotations=[],
+    )
+    assert payload_none == payload_empty
+    assert payload_none[0]["output"]["annotations"] == []
+
+
+def test_build_update_check_run_payloads_explicit_completed_at():
+    payloads = build_update_check_run_payloads(
+        status="completed",
+        title="Done",
+        summary="finished",
+        conclusion="success",
+        completed_at="2026-03-14T00:00:00Z",
+    )
+    assert payloads[0]["completed_at"] == "2026-03-14T00:00:00Z"
