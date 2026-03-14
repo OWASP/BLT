@@ -580,19 +580,20 @@ class TestHandlePullRequestClosed(unittest.TestCase):
         async def _inner():
             with patch.object(_worker, "create_comment", new=AsyncMock(side_effect=lambda o, r, n, b, t: comments.append(b))):
                 with patch.object(_worker, "_check_rank_improvement", new=AsyncMock()):
-                    with patch.object(_worker, "_post_or_update_leaderboard", new=AsyncMock()):
-                        with patch.object(_worker, "get_valid_reviewers", new=AsyncMock(return_value=[])):
-                            with patch.object(_worker, "_post_reviewer_leaderboard", new=AsyncMock()):
-                                await _worker.handle_pull_request_closed(payload, "tok")
+                    with patch.object(_worker, "get_valid_reviewers", new=AsyncMock(return_value=[])):
+                        with patch.object(_worker, "_post_merged_pr_combined_comment", new=AsyncMock()):
+                            await _worker.handle_pull_request_closed(payload, "tok")
         _run(_inner())
 
     def test_posts_congratulations_when_merged(self):
         payload = _make_pr_payload(merged=True)
-        comments = []
-        self._run_closed(payload, comments)
-        self.assertEqual(len(comments), 1)
-        self.assertIn("PR merged", comments[0])
-        self.assertIn("alice", comments[0])
+        called = []
+        async def _inner():
+            with patch.object(_worker, "get_valid_reviewers", new=AsyncMock(return_value=[])):
+                with patch.object(_worker, "_post_merged_pr_combined_comment", new=AsyncMock(side_effect=lambda *a, **k: called.append(True))):
+                    await _worker.handle_pull_request_closed(payload, "tok")
+        _run(_inner())
+        self.assertEqual(len(called), 1)
 
     def test_does_not_post_when_not_merged(self):
         payload = _make_pr_payload(merged=False)
@@ -1185,50 +1186,40 @@ class TestHandlePullRequestOpenedLeaderboard(unittest.TestCase):
 class TestHandlePullRequestClosedLeaderboard(unittest.TestCase):
     """Test leaderboard and rank improvement on PR merged"""
 
-    def _run_pr_closed(self, payload, leaderboard_calls, rank_calls, comment_calls, reviewer_leaderboard_calls=None):
+    def _run_pr_closed(self, payload, combined_calls, rank_calls, comment_calls, reviewer_leaderboard_calls=None):
         async def _inner():
-            async def _mock_leaderboard(owner, repo, number, login, token):
-                leaderboard_calls.append((owner, repo, number, login))
-            
+            async def _mock_combined(owner, repo, number, login, token, env=None, pr_reviewers=None):
+                combined_calls.append((owner, repo, number, login))
+
             async def _mock_rank(owner, repo, pr_number, author_login, token):
                 rank_calls.append((owner, repo, pr_number, author_login))
 
-            async def _mock_reviewer_leaderboard(owner, repo, pr_number, token, env=None, pr_reviewers=None):
-                if reviewer_leaderboard_calls is not None:
-                    reviewer_leaderboard_calls.append((owner, repo, pr_number))
-            
-            with patch.object(_worker, "_post_or_update_leaderboard", new=_mock_leaderboard):
+            with patch.object(_worker, "_post_merged_pr_combined_comment", new=_mock_combined):
                 with patch.object(_worker, "_check_rank_improvement", new=_mock_rank):
-                    with patch.object(_worker, "_post_reviewer_leaderboard", new=_mock_reviewer_leaderboard):
-                        with patch.object(_worker, "get_valid_reviewers", new=AsyncMock(return_value=[])):
-                            with patch.object(_worker, "create_comment", new=AsyncMock(side_effect=lambda o, r, n, b, t: comment_calls.append(b))):
-                                await _worker.handle_pull_request_closed(payload, "tok")
+                    with patch.object(_worker, "get_valid_reviewers", new=AsyncMock(return_value=[])):
+                        with patch.object(_worker, "create_comment", new=AsyncMock(side_effect=lambda o, r, n, b, t: comment_calls.append(b))):
+                            await _worker.handle_pull_request_closed(payload, "tok")
         _run(_inner())
 
     def test_posts_leaderboard_and_checks_rank_on_merge(self):
         payload = _make_pr_payload(merged=True)
-        leaderboard_calls, rank_calls, comments, reviewer_leaderboard_calls = [], [], [], []
-        self._run_pr_closed(payload, leaderboard_calls, rank_calls, comments, reviewer_leaderboard_calls)
-        
+        combined_calls, rank_calls, comments = [], [], []
+        self._run_pr_closed(payload, combined_calls, rank_calls, comments)
+
         # Rank improvement check has been disabled for accuracy
         # (now shown in leaderboard display instead)
         self.assertEqual(len(rank_calls), 0)
-        # Should post leaderboard
-        self.assertEqual(len(leaderboard_calls), 1)
-        # Should post reviewer leaderboard
-        self.assertEqual(len(reviewer_leaderboard_calls), 1)
-        # Should post merge congratulations
-        self.assertTrue(any("PR merged!" in c for c in comments))
+        # Should call combined merge comment (covers leaderboard + reviewer + thanks)
+        self.assertEqual(len(combined_calls), 1)
 
     def test_skips_unmerged_prs(self):
         payload = _make_pr_payload(merged=False)
-        leaderboard_calls, rank_calls, comments, reviewer_leaderboard_calls = [], [], [], []
-        self._run_pr_closed(payload, leaderboard_calls, rank_calls, comments, reviewer_leaderboard_calls)
-        
+        combined_calls, rank_calls, comments = [], [], []
+        self._run_pr_closed(payload, combined_calls, rank_calls, comments)
+
         # Should not process unmerged PRs
         self.assertEqual(len(rank_calls), 0)
-        self.assertEqual(len(leaderboard_calls), 0)
-        self.assertEqual(len(reviewer_leaderboard_calls), 0)
+        self.assertEqual(len(combined_calls), 0)
         self.assertEqual(len(comments), 0)
 
     def test_skips_bots(self):
@@ -1236,13 +1227,12 @@ class TestHandlePullRequestClosedLeaderboard(unittest.TestCase):
             merged=True,
             pr_user={"login": "renovate[bot]", "type": "Bot"}
         )
-        leaderboard_calls, rank_calls, comments, reviewer_leaderboard_calls = [], [], [], []
-        self._run_pr_closed(payload, leaderboard_calls, rank_calls, comments, reviewer_leaderboard_calls)
-        
+        combined_calls, rank_calls, comments = [], [], []
+        self._run_pr_closed(payload, combined_calls, rank_calls, comments)
+
         # Should not process bot PRs
         self.assertEqual(len(rank_calls), 0)
-        self.assertEqual(len(leaderboard_calls), 0)
-        self.assertEqual(len(reviewer_leaderboard_calls), 0)
+        self.assertEqual(len(combined_calls), 0)
         self.assertEqual(len(comments), 0)
 
 

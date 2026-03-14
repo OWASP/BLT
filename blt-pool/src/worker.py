@@ -399,6 +399,7 @@ def _extract_command(body: str) -> Optional[str]:
 # Leaderboard configuration constants
 LEADERBOARD_MARKER = "<!-- leaderboard-bot -->"
 REVIEWER_LEADERBOARD_MARKER = "<!-- reviewer-leaderboard-bot -->"
+MERGED_PR_COMMENT_MARKER = "<!-- merged-pr-comment-bot -->"
 MAX_OPEN_PRS_PER_AUTHOR = 50
 LEADERBOARD_COMMENT_MARKER = LEADERBOARD_MARKER
 
@@ -1995,19 +1996,21 @@ def _format_leaderboard_comment(author_login: str, leaderboard_data: dict, owner
     comment += "| --- | --- | --- | --- | --- | --- | --- | --- |\n"
     
     def row_for(rank: int, u: dict, bold: bool = False, medal: str = "") -> str:
-        user_cell = f"**`@{u['login']}`** ✨" if bold else f"`@{u['login']}`"
-        rank_cell = f"{medal} #{rank}" if medal else f"#{rank}"
+        avatar = f"![{u['login']}](https://github.com/{u['login']}.png?size=20)"
+        user_cell = f"{avatar} **`@{u['login']}`** ✨" if bold else f"{avatar} `@{u['login']}`"
+        rank_cell = f"{medal} {rank}" if medal else f"{rank}"
         return (f"| {rank_cell} | {user_cell} | {u['openPrs']} | {u['mergedPrs']} | "
                 f"{u['closedPrs']} | {u['reviews']} | {u['comments']} | **{u['total']}** |")
     
     # Show context rows around the author
     if not sorted_users:
         # No data yet: show the requesting user with zeroes so the comment is still useful.
-        comment += f"| - | **`@{author_login}`** ✨ | 0 | 0 | 0 | 0 | 0 | **0** |\n"
+        avatar = f"![{author_login}](https://github.com/{author_login}.png?size=20)"
+        comment += f"| - | {avatar} **`@{author_login}`** ✨ | 0 | 0 | 0 | 0 | 0 | **0** |\n"
         comment += "\n_No leaderboard activity has been recorded for this month yet._\n"
     elif author_index == -1:
-        # Author not in leaderboard, show top 3
-        for i in range(min(3, len(sorted_users))):
+        # Author not in leaderboard, show top 5
+        for i in range(min(5, len(sorted_users))):
             medal = ["🥇", "🥈", "🥉"][i] if i < 3 else ""
             comment += row_for(i + 1, sorted_users[i], False, medal) + "\n"
     else:
@@ -2057,8 +2060,9 @@ def _format_reviewer_leaderboard_comment(leaderboard_data: dict, owner: str, pr_
 
     def row_for(rank: int, u: dict, highlight: bool = False) -> str:
         medal = medals[rank - 1] if rank <= 3 else ""
-        rank_cell = f"{medal} #{rank}" if medal else f"#{rank}"
-        user_cell = f"**`@{u['login']}`** ⭐" if highlight else f"`@{u['login']}`"
+        rank_cell = f"{medal} {rank}" if medal else f"{rank}"
+        avatar = f"![{u['login']}](https://github.com/{u['login']}.png?size=20)"
+        user_cell = f"{avatar} **`@{u['login']}`** ⭐" if highlight else f"{avatar} `@{u['login']}`"
         return f"| {rank_cell} | {user_cell} | {u['reviews']} |"
 
     comment += "| Rank | Reviewer | Reviews this month |\n"
@@ -3691,6 +3695,112 @@ async def _assign_round_robin_mentor_reviewer(
         break  # Only assign one reviewer per PR.
 
 
+async def _post_merged_pr_combined_comment(
+    owner: str,
+    repo: str,
+    pr_number: int,
+    author_login: str,
+    token: str,
+    env=None,
+    pr_reviewers: list = None,
+) -> None:
+    """Post a single combined comment on a merged PR containing thanks, contributor
+    leaderboard, reviewer leaderboard, and a link to the BLT Pool website."""
+
+    leaderboard_note = ""
+
+    # ---------------------------------------------------------------------------
+    # 1. Fetch leaderboard data (reuses same logic as _post_or_update_leaderboard)
+    # ---------------------------------------------------------------------------
+    owner_data = None
+    is_org = False
+    owner_resp = await github_api("GET", f"/users/{owner}", token)
+    if owner_resp.status == 200:
+        owner_data = json.loads(await owner_resp.text())
+        is_org = owner_data.get("type") == "Organization"
+
+    leaderboard_data = await _calculate_leaderboard_stats_from_d1(owner, env)
+
+    if leaderboard_data is not None and is_org:
+        seeded_current = await _backfill_repo_month_if_needed(owner, repo, token, env)
+        if seeded_current:
+            leaderboard_data = await _calculate_leaderboard_stats_from_d1(owner, env) or leaderboard_data
+
+    if leaderboard_data is not None and is_org:
+        db = _d1_binding(env)
+        if db:
+            month_key = _month_key()
+            state = await _get_backfill_state(db, owner, month_key)
+            if not state.get("completed"):
+                backfill_result = await _run_incremental_backfill(owner, token, env)
+                if backfill_result:
+                    leaderboard_data = await _calculate_leaderboard_stats_from_d1(owner, env) or leaderboard_data
+                    if backfill_result.get("completed"):
+                        leaderboard_note = (
+                            f"Backfill completed in this request; seeded {backfill_result.get('processed', 0)} repos in the final chunk."
+                        )
+                    elif backfill_result.get("ran"):
+                        leaderboard_note = (
+                            f"Backfill in progress: seeded {backfill_result.get('processed', 0)} repos in this run. "
+                            "Run `/leaderboard` to continue filling historical data."
+                        )
+
+    if leaderboard_data is None:
+        if owner_data is None:
+            resp = await github_api("GET", f"/users/{owner}", token)
+            if resp.status == 200:
+                owner_data = json.loads(await resp.text())
+                is_org = owner_data.get("type") == "Organization"
+        if is_org:
+            repos = await _fetch_org_repos(owner, token)
+        else:
+            repos = [{"name": repo}]
+        leaderboard_data = await _calculate_leaderboard_stats(owner, repos, token)
+
+    # ---------------------------------------------------------------------------
+    # 2. Build the combined comment body
+    # ---------------------------------------------------------------------------
+    thanks_section = (
+        f"🎉 PR merged! Thanks for your contribution, @{author_login}!\n\n"
+        "Your work is now part of the project. Keep contributing to "
+        "[OWASP BLT](https://owaspblt.org) and help make the web a safer place! 🛡️\n\n"
+        "Visit [pool.owaspblt.org](https://pool.owaspblt.org) to explore the mentor pool and connect with contributors."
+    )
+
+    contributor_section = _format_leaderboard_comment(author_login, leaderboard_data, owner, leaderboard_note)
+    # Strip the marker from the inner section — the combined comment has its own marker.
+    contributor_section = contributor_section.replace(LEADERBOARD_MARKER + "\n", "")
+
+    reviewer_section = _format_reviewer_leaderboard_comment(leaderboard_data, owner, pr_reviewers or [])
+    reviewer_section = reviewer_section.replace(REVIEWER_LEADERBOARD_MARKER + "\n", "")
+
+    combined_body = (
+        MERGED_PR_COMMENT_MARKER + "\n"
+        + thanks_section + "\n\n"
+        + "---\n\n"
+        + contributor_section + "\n\n"
+        + "---\n\n"
+        + reviewer_section
+    )
+
+    # ---------------------------------------------------------------------------
+    # 3. Delete any old separate or combined comment(s), then post the new one
+    # ---------------------------------------------------------------------------
+    resp = await github_api("GET", f"/repos/{owner}/{repo}/issues/{pr_number}/comments?per_page=100", token)
+    if resp.status == 200:
+        old_comments = json.loads(await resp.text())
+        for c in old_comments:
+            body = c.get("body") or ""
+            if any(
+                marker in body
+                for marker in (MERGED_PR_COMMENT_MARKER, LEADERBOARD_MARKER, REVIEWER_LEADERBOARD_MARKER)
+            ):
+                await github_api("DELETE", f"/repos/{owner}/{repo}/issues/comments/{c['id']}", token)
+
+    await create_comment(owner, repo, pr_number, combined_body, token)
+    console.log(f"[MergedPR] Posted combined merge comment for {owner}/{repo}#{pr_number}")
+
+
 async def handle_pull_request_closed(payload: dict, token: str, env=None) -> None:
     pr = payload["pull_request"]
     sender = payload["sender"]
@@ -3710,29 +3820,10 @@ async def handle_pull_request_closed(payload: dict, token: str, env=None) -> Non
 
     # Track close/merge counters in D1.
     await _track_pr_closed_in_d1(payload, env)
-    
-    # Post merge congratulations
-    body = (
-        f"🎉 PR merged! Thanks for your contribution, @{author_login}!\n\n"
-        "Your work is now part of the project. Keep contributing to "
-        "[OWASP BLT](https://owaspblt.org) and help make the web a safer place! 🛡️"
-    )
-    await create_comment(owner, repo, pr_number, body, token)
-    
-    # Leaderboard display already shows accurate ranking
-    
-    # Post/update leaderboard
-    if env is None:
-        await _post_or_update_leaderboard(owner, repo, pr_number, author_login, token)
-    else:
-        await _post_or_update_leaderboard(owner, repo, pr_number, author_login, token, env)
 
-    # Post reviewer leaderboard to celebrate reviewers on merge
+    # Post a single combined comment: thanks + contributor leaderboard + reviewer leaderboard
     pr_reviewers = await get_valid_reviewers(owner, repo, pr_number, author_login, token)
-    if env is not None:
-        await _post_reviewer_leaderboard(owner, repo, pr_number, token, env, pr_reviewers)
-    else:
-        await _post_reviewer_leaderboard(owner, repo, pr_number, token, pr_reviewers=pr_reviewers)
+    await _post_merged_pr_combined_comment(owner, repo, pr_number, author_login, token, env, pr_reviewers)
 
 
 async def handle_pull_request_review_submitted(payload: dict, env=None) -> None:
