@@ -411,7 +411,16 @@ class QuerySet:
         return (await self.count()) > 0
 
     async def update(self, **kwargs: Any) -> None:
-        """Update all matching rows with the supplied field=value pairs."""
+        """Update all matching rows with the supplied field=value pairs.
+
+        Raises ``ValueError`` if the QuerySet has active JOINs, as UPDATE
+        with JOIN is not supported by this ORM.
+        """
+        if self._joins:
+            raise ValueError(
+                "update() is not supported on QuerySets with active JOINs. "
+                "Remove .join() calls before calling .update()."
+            )
         if not kwargs:
             return
         table = self._model.table_name
@@ -429,7 +438,16 @@ class QuerySet:
         await self._db.prepare(sql).bind(*set_params, *where_params).run()
 
     async def delete(self) -> None:
-        """Delete all matching rows."""
+        """Delete all matching rows.
+
+        Raises ``ValueError`` if the QuerySet has active JOINs, as DELETE
+        with JOIN is not supported by this ORM.
+        """
+        if self._joins:
+            raise ValueError(
+                "delete() is not supported on QuerySets with active JOINs. "
+                "Remove .join() calls before calling .delete()."
+            )
         table = self._model.table_name
         where, params = self._build_where_clause()
         sql = f"DELETE FROM {table}"
