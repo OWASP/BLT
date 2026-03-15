@@ -618,10 +618,19 @@ async def _ensure_leaderboard_schema(db) -> None:
             issue_repo TEXT NOT NULL,
             issue_number INTEGER NOT NULL,
             assigned_at INTEGER NOT NULL,
+            mentee_login TEXT NOT NULL DEFAULT '',
             PRIMARY KEY (org, issue_repo, issue_number)
         )
         """,
     )
+    # Migration: add mentee_login column to existing tables that pre-date this field.
+    try:
+        await _d1_run(
+            db,
+            "ALTER TABLE mentor_assignments ADD COLUMN mentee_login TEXT NOT NULL DEFAULT ''",
+        )
+    except Exception:
+        pass  # Column already exists — ignore the error.
     await _d1_run(
         db,
         """
@@ -744,7 +753,7 @@ async def _d1_add_mentor(
 
 
 async def _d1_record_mentor_assignment(
-    db, org: str, mentor_login: str, repo: str, issue_number: int
+    db, org: str, mentor_login: str, repo: str, issue_number: int, mentee_login: str = ""
 ) -> None:
     """Upsert a mentor→issue assignment into D1 for load-map tracking."""
     now = int(time.time())
@@ -752,13 +761,14 @@ async def _d1_record_mentor_assignment(
         await _d1_run(
             db,
             """
-            INSERT INTO mentor_assignments (org, mentor_login, issue_repo, issue_number, assigned_at)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO mentor_assignments (org, mentor_login, issue_repo, issue_number, assigned_at, mentee_login)
+            VALUES (?, ?, ?, ?, ?, ?)
             ON CONFLICT(org, issue_repo, issue_number) DO UPDATE SET
                 mentor_login = excluded.mentor_login,
+                mentee_login = excluded.mentee_login,
                 assigned_at  = excluded.assigned_at
             """,
-            (org, mentor_login, repo, issue_number, now),
+            (org, mentor_login, repo, issue_number, now, mentee_login),
         )
         console.log(f"[D1] Recorded mentor assignment: @{mentor_login} → {org}/{repo}#{issue_number}")
     except Exception as exc:
@@ -804,14 +814,14 @@ async def _d1_get_mentor_loads(db, org: str) -> dict:
 async def _d1_get_active_assignments(db, org: str) -> list:
     """Return all active mentor assignments from D1 for the given org.
 
-    Returns a list of dicts with keys: org, mentor_login, issue_repo, issue_number, assigned_at.
+    Returns a list of dicts with keys: org, mentor_login, mentee_login, issue_repo, issue_number, assigned_at.
     Returns an empty list when D1 is unavailable or the query fails.
     """
     try:
         rows = await _d1_all(
             db,
             """
-            SELECT org, mentor_login, issue_repo, issue_number, assigned_at
+            SELECT org, mentor_login, mentee_login, issue_repo, issue_number, assigned_at
             FROM mentor_assignments
             WHERE org = ?
             ORDER BY assigned_at DESC
@@ -822,6 +832,7 @@ async def _d1_get_active_assignments(db, org: str) -> list:
             {
                 "org": row.get("org", org),
                 "mentor_login": row.get("mentor_login", ""),
+                "mentee_login": row.get("mentee_login", ""),
                 "issue_repo": row.get("issue_repo", ""),
                 "issue_number": int(row.get("issue_number") or 0),
                 "assigned_at": int(row.get("assigned_at") or 0),
@@ -832,6 +843,61 @@ async def _d1_get_active_assignments(db, org: str) -> list:
     except Exception as exc:
         console.error(f"[D1] Failed to get active assignments: {exc}")
         return []
+
+
+def _time_ago(ts: int) -> str:
+    """Return a human-readable 'X time ago' string for a Unix timestamp."""
+    diff = int(time.time()) - ts
+    if diff < 60:
+        return "just now"
+    if diff < 3600:
+        m = diff // 60
+        return f"{m} minute{'s' if m != 1 else ''} ago"
+    if diff < 86400:
+        h = diff // 3600
+        return f"{h} hour{'s' if h != 1 else ''} ago"
+    if diff < 86400 * 30:
+        d = diff // 86400
+        return f"{d} day{'s' if d != 1 else ''} ago"
+    if diff < 86400 * 365:
+        mo = diff // (86400 * 30)
+        return f"{mo} month{'s' if mo != 1 else ''} ago"
+    y = diff // (86400 * 365)
+    return f"{y} year{'s' if y != 1 else ''} ago"
+
+
+async def _d1_get_user_comment_totals(db, org: str, logins: list) -> dict:
+    """Return total all-time comment counts per user from leaderboard_monthly_stats.
+
+    Args:
+        db:     D1 database binding.
+        org:    GitHub organisation name.
+        logins: List of GitHub usernames to look up.
+
+    Returns a ``{login: total_comments}`` mapping.  Missing users default to 0.
+    """
+    if not logins:
+        return {}
+    try:
+        placeholders = ",".join("?" for _ in logins)
+        rows = await _d1_all(
+            db,
+            f"""
+            SELECT user_login, COALESCE(SUM(comments), 0) AS total_comments
+            FROM leaderboard_monthly_stats
+            WHERE org = ? AND user_login IN ({placeholders})
+            GROUP BY user_login
+            """,
+            (org, *logins),
+        )
+        return {
+            row["user_login"]: int(row.get("total_comments") or 0)
+            for row in rows
+            if row.get("user_login")
+        }
+    except Exception as exc:
+        console.error(f"[D1] Failed to get user comment totals: {exc}")
+        return {}
 
 
 async def _d1_inc_open_pr(db, org: str, user_login: str, delta: int) -> None:
@@ -2709,7 +2775,7 @@ async def _assign_mentor_to_issue(
     if db:
         try:
             await _ensure_leaderboard_schema(db)
-            await _d1_record_mentor_assignment(db, owner, mentor_username, repo, issue_number)
+            await _d1_record_mentor_assignment(db, owner, mentor_username, repo, issue_number, mentee_login=contributor_login or "")
         except Exception as exc:
             console.error(f"[MentorPool] Failed to record assignment in D1 (best-effort): {exc}")
 
@@ -4491,18 +4557,21 @@ def _build_referral_leaderboard(mentors: list) -> list:
     return sorted(counts.items(), key=lambda x: x[1], reverse=True)
 
 
-def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, active_assignments: Optional[list] = None) -> str:
+def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, active_assignments: Optional[list] = None, assignment_comment_stats: Optional[dict] = None) -> str:
     """Generate the BLT-Pool mentor directory homepage.
 
     Args:
-        mentors:            Mentor list loaded from D1.
-                            Defaults to an empty list when omitted or ``None``.
-        mentor_stats:       Optional mapping of ``github_username → {"merged_prs", "reviews"}``
-                            from D1, used to show activity stats on each mentor card.
-                            When ``None`` or empty, stats columns are hidden.
-        active_assignments: Optional list of active mentor-issue assignment dicts from D1.
-                            Each dict has keys: org, mentor_login, issue_repo, issue_number, assigned_at.
-                            When ``None`` or empty, the section is hidden.
+        mentors:                  Mentor list loaded from D1.
+                                  Defaults to an empty list when omitted or ``None``.
+        mentor_stats:             Optional mapping of ``github_username → {"merged_prs", "reviews"}``
+                                  from D1, used to show activity stats on each mentor card.
+                                  When ``None`` or empty, stats columns are hidden.
+        active_assignments:       Optional list of active mentor-issue assignment dicts from D1.
+                                  Each dict has keys: org, mentor_login, mentee_login, issue_repo,
+                                  issue_number, assigned_at.
+                                  When ``None`` or empty, the section is hidden.
+        assignment_comment_stats: Optional mapping of ``github_username → total_comments`` used to
+                                  show comment-point badges on each assignment card.
     """
     if mentors is None:
         mentors = []
@@ -4510,6 +4579,8 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
         mentor_stats = {}
     if active_assignments is None:
         active_assignments = []
+    if assignment_comment_stats is None:
+        assignment_comment_stats = {}
     # Normalize mentor_stats keys to lowercase for case-insensitive lookup.
     mentor_stats_lower = {k.lower(): v for k, v in mentor_stats.items()}
     year = time.gmtime().tm_year
@@ -4523,26 +4594,63 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
 
     # Build active assignments section HTML.
     if active_assignments:
-        assignment_items = "\n".join(
-            f'''<li class="flex flex-col gap-1 rounded-xl border border-[#E5E5E5] bg-gray-50 p-4 sm:flex-row sm:items-center sm:justify-between">
-              <div class="flex items-center gap-3 min-w-0">
-                <img src="https://github.com/{_html_mod.escape(a["mentor_login"])}.png"
-                     alt="{_html_mod.escape(a["mentor_login"])}"
-                     class="h-8 w-8 shrink-0 rounded-full border border-[#E5E5E5]">
-                <a href="https://github.com/{_html_mod.escape(a["mentor_login"])}" target="_blank" rel="noopener"
-                   class="font-semibold text-sm text-[#111827] hover:text-[#E10101] truncate">
-                  @{_html_mod.escape(a["mentor_login"])}
+        def _assignment_item(a: dict) -> str:
+            mentor = _html_mod.escape(a["mentor_login"])
+            mentee_raw = a.get("mentee_login", "")
+            mentee = _html_mod.escape(mentee_raw)
+            org = _html_mod.escape(a["org"])
+            repo = _html_mod.escape(a["issue_repo"])
+            number = _html_mod.escape(str(a["issue_number"]))
+            time_ago = _html_mod.escape(_time_ago(a["assigned_at"]))
+            mentor_comments = assignment_comment_stats.get(a["mentor_login"], 0)
+            mentee_comments = assignment_comment_stats.get(mentee_raw, 0) if mentee_raw else 0
+
+            mentee_html = ""
+            if mentee:
+                mentee_html = f'''
+              <div class="flex items-center gap-2 min-w-0">
+                <img src="https://github.com/{mentee}.png"
+                     alt="{mentee}"
+                     class="h-7 w-7 shrink-0 rounded-full border border-[#E5E5E5]">
+                <div class="min-w-0">
+                  <p class="text-xs text-gray-400 leading-none">Mentee</p>
+                  <a href="https://github.com/{mentee}" target="_blank" rel="noopener"
+                     class="text-sm font-semibold text-[#111827] hover:text-[#E10101] truncate block">
+                    @{mentee}
+                  </a>
+                </div>
+                <span class="shrink-0 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-600" title="Total comments">{mentee_comments} pts</span>
+              </div>'''
+
+            return f'''<li class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-4">
+              <div class="flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center gap-2 min-w-0">
+                  <img src="https://github.com/{mentor}.png"
+                       alt="{mentor}"
+                       class="h-7 w-7 shrink-0 rounded-full border border-[#E5E5E5]">
+                  <div class="min-w-0">
+                    <p class="text-xs text-gray-400 leading-none">Mentor</p>
+                    <a href="https://github.com/{mentor}" target="_blank" rel="noopener"
+                       class="text-sm font-semibold text-[#111827] hover:text-[#E10101] truncate block">
+                      @{mentor}
+                    </a>
+                  </div>
+                  <span class="shrink-0 rounded-full bg-[#feeae9] px-2 py-0.5 text-xs font-semibold text-[#E10101]" title="Total comments">{mentor_comments} pts</span>
+                </div>
+                {mentee_html}
+                <a href="https://github.com/{org}/{repo}/issues/{number}"
+                   target="_blank" rel="noopener"
+                   class="inline-flex items-center gap-1.5 rounded-full bg-[#feeae9] px-3 py-1 text-xs font-semibold text-[#E10101] hover:bg-red-100 transition shrink-0">
+                  <i class="fa-brands fa-github text-xs" aria-hidden="true"></i>
+                  {org}/{repo}#{number}
                 </a>
               </div>
-              <a href="https://github.com/{_html_mod.escape(a["org"])}/{_html_mod.escape(a["issue_repo"])}/issues/{_html_mod.escape(str(a["issue_number"]))}"
-                 target="_blank" rel="noopener"
-                 class="inline-flex items-center gap-1.5 rounded-full bg-[#feeae9] px-3 py-1 text-xs font-semibold text-[#E10101] hover:bg-red-100 transition shrink-0">
-                <i class="fa-brands fa-github text-xs" aria-hidden="true"></i>
-                {_html_mod.escape(a["org"])}/{_html_mod.escape(a["issue_repo"])}#{_html_mod.escape(str(a["issue_number"]))}
-              </a>
+              <p class="mt-2 text-xs text-gray-400">
+                <i class="fa-regular fa-clock mr-1" aria-hidden="true"></i>Assigned {time_ago}
+              </p>
             </li>'''
-            for a in active_assignments
-        )
+
+        assignment_items = "\n".join(_assignment_item(a) for a in active_assignments)
         active_assignments_html = f'''
     <section id="active-assignments" class="rounded-2xl border border-[#E5E5E5] bg-white p-7 sm:p-9">
       <div class="mb-5 flex items-center gap-3">
@@ -5221,6 +5329,7 @@ async def on_fetch(request, env) -> Response:
             console.error(f"[MentorPool] Failed to fetch mentor stats for homepage: {exc}")
         # Fetch active mentor assignments from D1 (best-effort).
         active_assignments: list = []
+        assignment_comment_stats: dict = {}
         db = _d1_binding(env)
         if db:
             try:
@@ -5228,7 +5337,18 @@ async def on_fetch(request, env) -> Response:
                 active_assignments = await _d1_get_active_assignments(db, org)
             except Exception as exc:
                 console.error(f"[MentorPool] Failed to fetch active assignments for homepage: {exc}")
-        return _html(_index_html(mentors, mentor_stats, active_assignments))
+            if active_assignments:
+                try:
+                    all_logins = list({
+                        login
+                        for a in active_assignments
+                        for login in (a["mentor_login"], a.get("mentee_login", ""))
+                        if login
+                    })
+                    assignment_comment_stats = await _d1_get_user_comment_totals(db, org, all_logins)
+                except Exception as exc:
+                    console.error(f"[MentorPool] Failed to fetch assignment comment stats: {exc}")
+        return _html(_index_html(mentors, mentor_stats, active_assignments, assignment_comment_stats))
 
     if method == "GET" and path == "/github-app":
         app_slug = getattr(env, "GITHUB_APP_SLUG", "")
