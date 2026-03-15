@@ -946,7 +946,7 @@ async def _d1_inc_monthly(db, org: str, month_key: str, user_login: str, field: 
             db,
             f"""
             INSERT INTO leaderboard_monthly_stats (org, month_key, user_login, {field}, updated_at)
-            VALUES (?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, CASE WHEN ? < 0 THEN 0 ELSE ? END, ?)
             ON CONFLICT(org, month_key, user_login) DO UPDATE SET
                 {field} = CASE
                     WHEN leaderboard_monthly_stats.{field} + excluded.{field} < 0 THEN 0
@@ -954,7 +954,7 @@ async def _d1_inc_monthly(db, org: str, month_key: str, user_login: str, field: 
                 END,
                 updated_at = excluded.updated_at
             """,
-            (org, month_key, user_login, delta, now),
+            (org, month_key, user_login, delta, delta, now),
         )
         console.log(f"[D1] Updated {field} org={org} month={month_key} user={user_login} +{delta}")
     except Exception as e:
