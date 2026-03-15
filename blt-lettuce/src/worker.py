@@ -1371,19 +1371,33 @@ async def db_get_or_create_user(
         )
         if existing:
             print("[db_get_or_create_user] User exists, updating...")
+            # Preserve existing name when the caller provides no name (e.g. identity
+            # fetch failed), so we never overwrite a real display name with an empty
+            # string or the raw Slack user ID.
+            # Fallback precedence: new name → existing DB name → slack_user_id
+            existing_name = existing.get("name") or ""
+            effective_name = name or existing_name or slack_user_id
             result = await (
                 env.DB.prepare(
                     "UPDATE users SET name=?, email=?, access_token=?, avatar_url=?, team_id=?, updated_at=? "
                     "WHERE slack_user_id=?"
                 )
                 .bind(
-                    name, email, access_token, avatar_url, team_id, now, slack_user_id
+                    effective_name,
+                    email,
+                    access_token,
+                    avatar_url,
+                    team_id,
+                    now,
+                    slack_user_id,
                 )
                 .run()
             )
             print(f"[db_get_or_create_user] Update result: {result}")
         else:
             print("[db_get_or_create_user] Creating new user...")
+            # For new users, fall back to slack_user_id when no display name is available.
+            insert_name = name or slack_user_id
             result = await (
                 env.DB.prepare(
                     "INSERT INTO users "
@@ -1393,7 +1407,7 @@ async def db_get_or_create_user(
                 .bind(
                     slack_user_id,
                     team_id,
-                    name,
+                    insert_name,
                     email,
                     access_token,
                     avatar_url,
@@ -1986,7 +2000,7 @@ async def db_get_events(env, workspace_id, limit=20):
     try:
         return _rows(
             await env.DB.prepare(
-                "SELECT e.*, u.name AS user_name "
+                "SELECT e.*, COALESCE(NULLIF(u.name, ''), e.user_slack_id) AS user_name "
                 "FROM events e "
                 "LEFT JOIN users u ON u.slack_user_id = e.user_slack_id "
                 "WHERE e.workspace_id = ? "
