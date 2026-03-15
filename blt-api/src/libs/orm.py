@@ -215,6 +215,8 @@ class QuerySet:
         :param table: The table name to join (validated).
         :param on: The ON condition, e.g. ``"bugs.domain_id = domains.id"``.
                    Both sides are validated as safe identifiers.
+                   Only a single equality condition is supported;
+                   compound conditions (e.g. ``AND``) are not allowed.
         :param join_type: ``"INNER"``, ``"LEFT"``, ``"RIGHT"`` or ``"FULL"``.
                           Defaults to ``"INNER"``.
 
