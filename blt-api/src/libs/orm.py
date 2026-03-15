@@ -336,6 +336,13 @@ class QuerySet:
     # Full query builder
     # ------------------------------------------------------------------
 
+    def _build_join_clause(self) -> str:
+        """Return the JOIN clause string for all active joins."""
+        return " ".join(
+            f"{join_type} JOIN {join_table} ON {on_clause}"
+            for join_type, join_table, on_clause in self._joins
+        )
+
     def _build_select_sql(self) -> Tuple[str, List[Any]]:
         """Build the full ``SELECT`` SQL and its parameter list."""
         table = self._model.table_name
@@ -344,8 +351,9 @@ class QuerySet:
         where, params = self._build_where_clause()
         sql = f"SELECT {select} FROM {table}"
 
-        for join_type, join_table, on_clause in self._joins:
-            sql += f" {join_type} JOIN {join_table} ON {on_clause}"
+        join_clause = self._build_join_clause()
+        if join_clause:
+            sql += f" {join_clause}"
 
         if where:
             sql += f" {where}"
@@ -400,8 +408,9 @@ class QuerySet:
         table = self._model.table_name
         where, params = self._build_where_clause()
         sql = f"SELECT COUNT(*) AS total FROM {table}"
-        for join_type, join_table, on_clause in self._joins:
-            sql += f" {join_type} JOIN {join_table} ON {on_clause}"
+        join_clause = self._build_join_clause()
+        if join_clause:
+            sql += f" {join_clause}"
         if where:
             sql += f" {where}"
         result = await self._db.prepare(sql).bind(*params).first()
