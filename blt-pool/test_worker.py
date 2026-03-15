@@ -4672,12 +4672,44 @@ class TestIndexHtml(unittest.TestCase):
     def test_active_assignments_section_shown(self):
         """Active assignments section appears when assignments are provided."""
         assignments = [
-            {"org": "OWASP-BLT", "mentor_login": "alice", "issue_repo": "BLT", "issue_number": 42, "assigned_at": 1700000000},
+            {"org": "OWASP-BLT", "mentor_login": "alice", "mentee_login": "bob", "issue_repo": "BLT", "issue_number": 42, "assigned_at": 1700000000},
         ]
         html = _worker._index_html([], active_assignments=assignments)
         self.assertIn("Active Mentor Assignments", html)
         self.assertIn("@alice", html)
+        self.assertIn("@bob", html)
         self.assertIn("OWASP-BLT/BLT#42", html)
+
+    def test_active_assignments_shows_time_ago(self):
+        """Active assignments card shows a 'Assigned X time ago' line."""
+        import time as _time
+        ts = int(_time.time()) - 3600  # 1 hour ago
+        assignments = [
+            {"org": "OWASP-BLT", "mentor_login": "alice", "mentee_login": "", "issue_repo": "BLT", "issue_number": 1, "assigned_at": ts},
+        ]
+        html = _worker._index_html([], active_assignments=assignments)
+        self.assertIn("Assigned", html)
+        self.assertIn("hour", html)
+
+    def test_active_assignments_shows_comment_points(self):
+        """Comment points badge is rendered for mentor and mentee."""
+        assignments = [
+            {"org": "OWASP-BLT", "mentor_login": "alice", "mentee_login": "bob", "issue_repo": "BLT", "issue_number": 1, "assigned_at": 1700000000},
+        ]
+        comment_stats = {"alice": 12, "bob": 5}
+        html = _worker._index_html([], active_assignments=assignments, assignment_comment_stats=comment_stats)
+        self.assertIn("12 pts", html)
+        self.assertIn("5 pts", html)
+
+    def test_active_assignments_no_mentee_hides_mentee_block(self):
+        """When mentee_login is empty no mentee section is rendered."""
+        assignments = [
+            {"org": "OWASP-BLT", "mentor_login": "alice", "mentee_login": "", "issue_repo": "BLT", "issue_number": 1, "assigned_at": 1700000000},
+        ]
+        html = _worker._index_html([], active_assignments=assignments)
+        self.assertIn("@alice", html)
+        # No second avatar/link for a mentee username
+        self.assertNotIn("Mentee", html)
 
     def test_active_assignments_section_hidden_when_empty(self):
         """Active assignments section is hidden when no assignments exist."""
@@ -4687,7 +4719,7 @@ class TestIndexHtml(unittest.TestCase):
     def test_active_assignments_xss_escaped(self):
         """HTML special characters in mentor_login/issue_repo are escaped."""
         assignments = [
-            {"org": "OWASP-BLT", "mentor_login": '<script>xss</script>', "issue_repo": "BLT", "issue_number": 1, "assigned_at": 0},
+            {"org": "OWASP-BLT", "mentor_login": '<script>xss</script>', "mentee_login": "", "issue_repo": "BLT", "issue_number": 1, "assigned_at": 0},
         ]
         html = _worker._index_html([], active_assignments=assignments)
         self.assertNotIn("<script>xss</script>", html)
@@ -5048,6 +5080,41 @@ class TestHandleAddMentor(unittest.TestCase):
     def test_invalid_referred_by_format_returns_400(self):
         resp, _ = self._run_add({"name": "Jane Doe", "github_username": "janedoe", "referred_by": "bad user!"})
         self.assertEqual(resp.status, 400)
+
+
+class TestTimeAgo(unittest.TestCase):
+    """Tests for _time_ago helper function."""
+
+    def _ago(self, seconds):
+        import time as _time
+        return _worker._time_ago(int(_time.time()) - seconds)
+
+    def test_just_now(self):
+        self.assertEqual(self._ago(0), "just now")
+
+    def test_minutes(self):
+        result = self._ago(120)
+        self.assertIn("2 minute", result)
+
+    def test_one_minute(self):
+        result = self._ago(90)
+        self.assertIn("1 minute", result)
+
+    def test_hours(self):
+        result = self._ago(7200)
+        self.assertIn("2 hour", result)
+
+    def test_days(self):
+        result = self._ago(172800)
+        self.assertIn("2 day", result)
+
+    def test_months(self):
+        result = self._ago(86400 * 60)
+        self.assertIn("month", result)
+
+    def test_years(self):
+        result = self._ago(86400 * 400)
+        self.assertIn("year", result)
 
 
 if __name__ == "__main__":
