@@ -132,6 +132,8 @@ class QuerySet:
         self._offset_val: int = 0
         self._order_by_fields: List[str] = []
         self._select_fields: List[str] = []
+        # Each entry: (join_type, table, on_clause)
+        self._joins: List[Tuple[str, str, str]] = []
 
     # ------------------------------------------------------------------
     # Cloning
@@ -145,6 +147,7 @@ class QuerySet:
         qs._offset_val = self._offset_val
         qs._order_by_fields = list(self._order_by_fields)
         qs._select_fields = list(self._select_fields)
+        qs._joins = list(self._joins)
         return qs
 
     # ------------------------------------------------------------------
@@ -199,6 +202,49 @@ class QuerySet:
         """Select only the specified columns (validated identifiers)."""
         qs = self._clone()
         qs._select_fields = [_validate_identifier(f) for f in fields]
+        return qs
+
+    def join(
+        self,
+        table: str,
+        on: str,
+        join_type: str = "INNER",
+    ) -> "QuerySet":
+        """Add a JOIN clause to the query.
+
+        :param table: The table name to join (validated).
+        :param on: The ON condition, e.g. ``"bugs.domain_id = domains.id"``.
+                   Both sides are validated as safe identifiers.
+        :param join_type: ``"INNER"``, ``"LEFT"``, ``"RIGHT"`` or ``"FULL"``.
+                          Defaults to ``"INNER"``.
+
+        Example::
+
+            Bug.objects(db)\
+                .join("domains", on="bugs.domain_id = domains.id", join_type="LEFT")\
+                .filter(status="open")\
+                .values("bugs.id", "bugs.title", "domains.name")\
+                .all()
+        """
+        join_type = join_type.upper()
+        if join_type not in {"INNER", "LEFT", "RIGHT", "FULL"}:
+            raise ValueError(
+                f"Unsupported join_type {join_type!r}. "
+                "Use INNER, LEFT, RIGHT or FULL."
+            )
+        _validate_identifier(table)
+        # Validate each side of the ON clause (format: "a.b = c.d")
+        on_stripped = on.replace(" ", "")
+        if "=" not in on_stripped:
+            raise ValueError(
+                f"Invalid ON clause {on!r}. Expected format: 'table1.col = table2.col'."
+            )
+        lhs, rhs = on_stripped.split("=", 1)
+        _validate_identifier(lhs)
+        _validate_identifier(rhs)
+
+        qs = self._clone()
+        qs._joins.append((join_type, table, on))
         return qs
 
     def paginate(self, page: int = 1, per_page: int = 20) -> "QuerySet":
@@ -295,6 +341,10 @@ class QuerySet:
 
         where, params = self._build_where_clause()
         sql = f"SELECT {select} FROM {table}"
+
+        for join_type, join_table, on_clause in self._joins:
+            sql += f" {join_type} JOIN {join_table} ON {on_clause}"
+
         if where:
             sql += f" {where}"
 
