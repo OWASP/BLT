@@ -386,10 +386,20 @@ class QuerySet:
         return await self.filter(**kwargs).first()
 
     async def count(self) -> int:
-        """Return the number of rows matching the current filters."""
+        """Return the number of rows matching the current filters.
+
+        JOIN clauses (if any) are included so that filters on joined
+        columns produce consistent results with ``all()`` and ``first()``.
+
+        Note: The ON clause only supports simple equality conditions of the
+        form ``table1.col = table2.col``. Compound ON conditions are not
+        currently supported.
+        """
         table = self._model.table_name
         where, params = self._build_where_clause()
         sql = f"SELECT COUNT(*) AS total FROM {table}"
+        for join_type, join_table, on_clause in self._joins:
+            sql += f" {join_type} JOIN {join_table} ON {on_clause}"
         if where:
             sql += f" {where}"
         result = await self._db.prepare(sql).bind(*params).first()
