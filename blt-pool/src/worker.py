@@ -1,4 +1,4 @@
-﻿"""BLT-Pool — Mentor Matching & GitHub Automation Platform.
+"""BLT-Pool — Mentor Matching & GitHub Automation Platform.
 
 A dual-purpose platform that:
 1. Connects contributors with mentors through a shared mentor pool
