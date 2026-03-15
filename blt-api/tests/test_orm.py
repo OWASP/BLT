@@ -576,14 +576,14 @@ class TestUpdateDeleteJoinGuards:
 
     @pytest.mark.asyncio
     async def test_update_with_join_raises(self):
-        with pytest.raises(ValueError, match="update\(\) is not supported"):
+        with pytest.raises(ValueError, match=r"update() is not supported"):
             await self.qs.join(
                 "domains", on="bugs.domain_id = domains.id"
             ).update(status="open")
 
     @pytest.mark.asyncio
     async def test_delete_with_join_raises(self):
-        with pytest.raises(ValueError, match="delete\(\) is not supported"):
+        with pytest.raises(ValueError, match=r"delete() is not supported"):
             await self.qs.join(
                 "domains", on="bugs.domain_id = domains.id"
             ).delete()
