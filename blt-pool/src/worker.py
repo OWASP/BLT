@@ -36,10 +36,16 @@ from urllib.parse import quote, urlparse
 
 from js import Headers, Response, console, fetch  # Cloudflare Workers JS bindings
 from index_template import GITHUB_PAGE_HTML  # Landing page HTML template
+from services.admin import AdminService, has_merged_pr_in_org
+from services.mentor_seed import INITIAL_MENTORS
 
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
+
+# Backward-compatible alias kept for tests and older imports after mentor seed
+# data moved to ``services.mentor_seed``.
+_INITIAL_MENTORS = INITIAL_MENTORS
 
 ASSIGN_COMMAND = "/assign"
 UNASSIGN_COMMAND = "/unassign"
@@ -200,7 +206,7 @@ def _gh_headers(token: str) -> Headers:
     h = {
         "Accept": "application/vnd.github+json",
         "Content-Type": "application/json",
-        "User-Agent": "BLT-GitHub-App/1.0",
+        "User-Agent": "BLT-Pool/1.0",
         "X-GitHub-Api-Version": "2022-11-28",
     }
     if token:
@@ -229,7 +235,7 @@ async def get_installation_token(
             "Authorization": f"Bearer {jwt}",
             "Accept": "application/vnd.github+json",
             "Content-Type": "application/json",
-            "User-Agent": "BLT-GitHub-App/1.0",
+            "User-Agent": "BLT-Pool/1.0",
             "X-GitHub-Api-Version": "2022-11-28",
         }.items()),
     )
@@ -249,7 +255,7 @@ async def get_installation_access_token(installation_id: int, jwt_token: str) ->
             "Authorization": f"Bearer {jwt_token}",
             "Accept": "application/vnd.github+json",
             "Content-Type": "application/json",
-            "User-Agent": "BLT-GitHub-App/1.0",
+            "User-Agent": "BLT-Pool/1.0",
             "X-GitHub-Api-Version": "2022-11-28",
         }.items()),
     )
@@ -646,164 +652,13 @@ async def _ensure_leaderboard_schema(db) -> None:
 # Mentor table helpers
 # ---------------------------------------------------------------------------
 
-# Initial mentor data — these INSERT OR IGNORE statements seed the mentors
-# table from what was previously stored in src/mentors.yml.  They are safe to
-# run repeatedly (idempotent) and can be removed once the live database has
-# been populated.
-_INITIAL_MENTORS = [
-    {
-        "github_username": "rinkitadhana",
-        "name": "Rinkit Adhana",
-        "specialties": ["frontend", "javascript"],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "UTC+5:30",
-        "referred_by": "",
-    },
-    {
-        "github_username": "Rajgupta36",
-        "name": "Raj Gupta",
-        "specialties": ["backend", "python"],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "UTC+5:30",
-        "referred_by": "",
-    },
-    {
-        "github_username": "shriyashsoni",
-        "name": "Shriyash Soni",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "",
-        "referred_by": "",
-    },
-    {
-        "github_username": "Mohammedfaiyaz29",
-        "name": "Mohammed Faiyaz Shaikh",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "",
-        "referred_by": "",
-    },
-    {
-        "github_username": "Vaswani2003",
-        "name": "Vinamra Vaswani",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "",
-        "referred_by": "",
-    },
-    {
-        "github_username": "kittenbytes",
-        "name": "Carla Voorhees",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "",
-        "referred_by": "",
-    },
-    {
-        "github_username": "Captain-T2004",
-        "name": "Akshay Behl",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "",
-        "referred_by": "",
-    },
-    {
-        "github_username": "elsheik21",
-        "name": "Ahmed ElSheik",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "",
-        "referred_by": "",
-    },
-    {
-        "github_username": "Kunal1522",
-        "name": "Kunal Kashyap",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "",
-        "referred_by": "",
-    },
-    {
-        "github_username": "RudraBhaskar9439",
-        "name": "Rudra Bhaskar",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "",
-        "referred_by": "",
-    },
-    {
-        "github_username": "dev-sanidhya",
-        "name": "Sanidhya Shishodia",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "",
-        "referred_by": "",
-    },
-    {
-        "github_username": "VedantAnand17",
-        "name": "Vedant Anand",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "",
-        "referred_by": "",
-    },
-    {
-        "github_username": "Rishab87",
-        "name": "Rishab Kumar Jha",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "",
-        "referred_by": "",
-    },
-    {
-        "github_username": "gitsofaryan",
-        "name": "Aryan Jain",
-        "specialties": [
-            "fullstack",
-            "web3",
-            "distributed-systems",
-            "ai-ml",
-            "open-source",
-            "devops",
-            "realtime-systems",
-        ],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "UTC+5:30 (India Standard Time)",
-        "referred_by": "",
-    },
-    {
-        "github_username": "ramansh18",
-        "name": "Ramansh Saxena",
-        "specialties": ["frontend", "backend", "web3"],
-        "max_mentees": 2,
-        "active": True,
-        "timezone": "+5:30",
-        "referred_by": "ojaswa072",
-    },
-]
-
-
 async def _populate_mentors_table(db) -> None:
     """Seed the mentors table with the initial mentor list (idempotent).
 
     Uses INSERT OR IGNORE so that existing rows are never overwritten; safe
     to call on every cold start.
     """
-    for m in _INITIAL_MENTORS:
+    for m in INITIAL_MENTORS:
         try:
             await _d1_run(
                 db,
@@ -4479,7 +4334,7 @@ _CALLBACK_HTML = """\
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BLT GitHub App — Installed!</title>
+  <title>BLT-Pool GitHub App — Installed!</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link
     rel="stylesheet"
@@ -4495,8 +4350,8 @@ _CALLBACK_HTML = """\
     </div>
     <h1 class="text-2xl font-bold text-white mb-4">Installation complete!</h1>
     <p class="leading-relaxed mb-6" style="color:#9ca3af;">
-      BLT GitHub App has been successfully installed on your organization.<br />
-      Issues and pull requests will now be handled automatically.
+      The BLT-Pool GitHub App has been successfully installed on your organization.<br />
+      GitHub automation is now active inside BLT-Pool.
     </p>
     <a
       href="https://owaspblt.org"
@@ -4892,7 +4747,7 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
 <body class="min-h-screen font-sans text-gray-900 antialiased">
 
   <header class="sticky top-0 z-40 border-b border-[#E5E5E5] bg-white/90 backdrop-blur">
-    <div class="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-y-2 px-4 py-3 sm:flex-nowrap sm:py-4 sm:px-6 lg:px-8">
+    <div class="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
       <a href="/" class="flex items-center gap-3" aria-label="BLT-Pool home">
         <img src="/logo-sm.png" alt="OWASP BLT logo" class="h-10 w-10 rounded-xl border border-[#E5E5E5] bg-white object-contain p-1">
         <div>
@@ -4900,18 +4755,25 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
           <h1 class="text-lg font-extrabold text-[#111827]">BLT-Pool</h1>
         </div>
       </a>
-      <span role="status" aria-label="Service status: Operational"
-            class="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 sm:order-last">
-        <i class="fa-solid fa-circle text-[0.45rem]" aria-hidden="true"></i>
-        Operational
-      </span>
-      <nav class="order-last flex w-full items-center justify-center gap-0.5 rounded-xl border border-[#E5E5E5] bg-white p-1 sm:order-none sm:w-auto sm:justify-start" aria-label="Primary">
+     <nav class="order-3 flex w-full items-center justify-center gap-0.5 rounded-xl border border-[#E5E5E5] bg-white p-1 sm:order-none sm:w-auto sm:justify-start" aria-label="Primary">
         <a href="/" class="rounded-lg bg-[#feeae9] px-2 py-1.5 text-xs font-semibold text-[#E10101] sm:px-3 sm:py-2 sm:text-sm">Mentors</a>
         <a href="/github-app" class="rounded-lg px-2 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 sm:px-3 sm:py-2 sm:text-sm">GitHub App</a>
         <a href="https://owaspblt.org" target="_blank" rel="noopener" class="rounded-lg px-2 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 sm:px-3 sm:py-2 sm:text-sm">
           OWASP BLT <i class="fa-solid fa-arrow-up-right-from-square text-xs" aria-hidden="true"></i>
         </a>
       </nav>
+      <div class="order-2 flex items-center gap-2 sm:order-none">
+        <span role="status" aria-label="Service status: Operational"
+              class="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
+          <i class="fa-solid fa-circle text-[0.4rem]" aria-hidden="true"></i>
+          Live
+        </span>
+        <a href="/admin/login"
+           class="inline-flex items-center gap-1.5 rounded-md border border-[#E5E5E5] px-3 py-2 text-xs font-semibold text-gray-700 transition hover:border-[#E10101] hover:bg-[#feeae9] hover:text-[#E10101] focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2">
+          <i class="fa-solid fa-shield-halved text-[#E10101]" aria-hidden="true"></i>
+          Admin
+        </a>
+      </div>
     </div>
   </header>
 
@@ -5238,7 +5100,11 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
             .then(function(result) {{
               btn.disabled = false;
               if (result.ok) {{
-                okEl.textContent = 'Welcome to the mentor pool, @' + github + '! Refresh the page to see your card.';
+                if (result.data && result.data.active) {{
+                  okEl.textContent = 'Welcome to the mentor pool, @' + github + '! Your mentor profile is now published.';
+                }} else {{
+                  okEl.textContent = 'Thanks, @' + github + '! Your mentor profile was saved and is waiting for admin publishing.';
+                }}
                 okEl.classList.remove('hidden');
                 document.getElementById('mentor-form').reset();
               }} else {{
@@ -5379,6 +5245,12 @@ async def _handle_add_mentor(request, env) -> "Response":
     if not db:
         return _json({"error": "Database not available"}, 500)
 
+    mentor_is_active = await has_merged_pr_in_org(
+        env,
+        github_username,
+        getattr(env, "GITHUB_ORG", "OWASP-BLT"),
+    )
+
     try:
         await _ensure_leaderboard_schema(db)
         await _d1_add_mentor(
@@ -5387,7 +5259,7 @@ async def _handle_add_mentor(request, env) -> "Response":
             name=name,
             specialties=specialties,
             max_mentees=max_mentees,
-            active=True,
+            active=mentor_is_active,
             timezone=timezone,
             referred_by=referred_by,
         )
@@ -5395,8 +5267,13 @@ async def _handle_add_mentor(request, env) -> "Response":
         console.error(f"[MentorPool] Failed to add mentor {github_username}: {exc}")
         return _json({"error": "Failed to save mentor"}, 500)
 
-    console.log(f"[MentorPool] Added mentor {github_username} via API")
-    return _json({"ok": True, "github_username": github_username}, 201)
+    console.log(
+        f"[MentorPool] Added mentor {github_username} via API active={mentor_is_active}"
+    )
+    return _json(
+        {"ok": True, "github_username": github_username, "active": mentor_is_active},
+        201,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -5431,6 +5308,10 @@ def _html(html: str, status: int = 200) -> Response:
 async def on_fetch(request, env) -> Response:
     method = request.method
     path = urlparse(str(request.url)).path.rstrip("/") or "/"
+
+    admin_response = await AdminService(env).handle(request)
+    if admin_response is not None:
+        return admin_response
 
     if method == "GET" and path == "/":
         # Load mentors from D1.

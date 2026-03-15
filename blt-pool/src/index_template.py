@@ -1,4 +1,4 @@
-"""HTML template for the BLT GitHub App landing page.
+"""HTML template for the BLT-Pool GitHub page.
 
 This is auto-generated from templates/index.html.
 Edit templates/index.html and regenerate this file before deploying.
@@ -57,20 +57,15 @@ GITHUB_PAGE_HTML = """\
   </style>
 </head>
 <body class="min-h-screen font-sans text-gray-900 antialiased">
-
-  <header class="sticky top-0 z-40 border-b border-blt-border/90 bg-white/90 glass">
-    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-y-2 px-4 py-3 sm:flex-nowrap sm:py-4 sm:px-6 lg:px-8">
+    <header class="sticky top-0 z-40 border-b border-[#E5E5E5] bg-white/90 backdrop-blur">
+    <div class="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
       <a href="/" class="flex items-center gap-3" aria-label="BLT-Pool home">
-        <img src="/logo-sm.png" alt="OWASP BLT logo" class="h-10 w-10 rounded-xl border border-blt-border bg-white object-contain p-1">
+        <img src="/logo-sm.png" alt="OWASP BLT logo" class="h-10 w-10 rounded-xl border border-[#E5E5E5] bg-white object-contain p-1">
         <div>
           <p class="text-sm font-semibold uppercase tracking-wide text-gray-500">OWASP BLT</p>
-          <h1 class="text-lg font-extrabold text-blt-dark-base">BLT-Pool</h1>
+          <h1 class="text-lg font-extrabold text-[#111827]">BLT-Pool</h1>
         </div>
       </a>
-      <span role="status" aria-label="Service status: Operational" class="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 sm:order-last">
-        <i class="fa-solid fa-circle text-[0.45rem]" aria-hidden="true"></i>
-        Operational
-      </span>
       <nav class="order-last flex w-full items-center justify-center gap-0.5 rounded-xl border border-blt-border bg-white p-1 sm:order-none sm:w-auto sm:justify-start" aria-label="Main">
         <a href="/" class="rounded-lg px-2 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 sm:px-3 sm:py-2 sm:text-sm">Mentors</a>
         <a href="/github-app" class="rounded-lg bg-[#feeae9] px-2 py-1.5 text-xs font-semibold text-blt-primary sm:px-3 sm:py-2 sm:text-sm">GitHub App</a>
@@ -78,6 +73,18 @@ GITHUB_PAGE_HTML = """\
           OWASP BLT <i class="fa-solid fa-arrow-up-right-from-square text-xs" aria-hidden="true"></i>
         </a>
       </nav>
+      <div class="order-2 flex items-center gap-2 sm:order-none">
+        <span role="status" aria-label="Service status: Operational"
+              class="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
+          <i class="fa-solid fa-circle text-[0.4rem]" aria-hidden="true"></i>
+          Live
+        </span>
+        <a href="/admin/login"
+           class="inline-flex items-center gap-1.5 rounded-md border border-[#E5E5E5] px-3 py-2 text-xs font-semibold text-gray-700 transition hover:border-[#E10101] hover:bg-[#feeae9] hover:text-[#E10101] focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2">
+          <i class="fa-solid fa-shield-halved text-[#E10101]" aria-hidden="true"></i>
+          Admin
+        </a>
+      </div>
     </div>
   </header>
 
@@ -260,5 +267,4 @@ GITHUB_PAGE_HTML = """\
 </body>
 </html>
 """
-
 
