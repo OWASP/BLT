@@ -56,5 +56,32 @@ def _make_js_stub():
 
 # Inject before any test module imports src/main.py
 sys.modules.setdefault("workers", _make_workers_stub())
-sys.modules.setdefault("pyodide", _make_pyodide_stub())
+
+
+def _make_js_stub():
+    """Return a minimal stub of the 'js' module."""
+    import json as _json
+    mod = ModuleType("js")
+
+    class JSON:
+        @staticmethod
+        def parse(s):
+            return _json.loads(s)
+
+        @staticmethod
+        def stringify(obj):
+            return _json.dumps(obj)
+
+    mod.JSON = JSON
+    return mod
+
+
+def _make_pyodide_stub():
+    """Return a minimal stub of the 'pyodide' module."""
+    mod = ModuleType("pyodide")
+    mod.ffi = MagicMock()
+    return mod
+
+
 sys.modules.setdefault("js", _make_js_stub())
+sys.modules.setdefault("pyodide", _make_pyodide_stub())
