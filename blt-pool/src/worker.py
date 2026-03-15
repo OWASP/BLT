@@ -73,6 +73,8 @@ MENTOR_ASSIGNED_LABEL_COLOR = "0075ca"
 SECURITY_BYPASS_LABELS = {"security", "vulnerability", "security-sensitive", "private-security"}
 # Seconds in a day — used for stale-assignment threshold calculations.
 _SECONDS_PER_DAY = 86400
+# TTL for cached GitHub-sourced all-time mentor stats in D1 (24 hours).
+_MENTOR_STATS_CACHE_TTL = 86400
 # When True, one active mentor is auto-requested as a reviewer on every newly
 # opened PR using a deterministic round-robin order (PR number mod pool size).
 # Set to False (default) to keep the existing behaviour of only requesting the
@@ -642,6 +644,19 @@ async def _ensure_leaderboard_schema(db) -> None:
             active INTEGER NOT NULL DEFAULT 1,
             timezone TEXT NOT NULL DEFAULT '',
             referred_by TEXT NOT NULL DEFAULT ''
+        )
+        """,
+    )
+    await _d1_run(
+        db,
+        """
+        CREATE TABLE IF NOT EXISTS mentor_stats_cache (
+            org TEXT NOT NULL,
+            github_username TEXT NOT NULL,
+            merged_prs INTEGER NOT NULL DEFAULT 0,
+            reviews INTEGER NOT NULL DEFAULT 0,
+            fetched_at INTEGER NOT NULL,
+            PRIMARY KEY (org, github_username)
         )
         """,
     )
@@ -2434,14 +2449,113 @@ async def _load_mentors_local(env=None) -> list:
     return []
 
 
-async def _fetch_mentor_stats_from_d1(env, org: str) -> dict:
-    """Return per-mentor all-time PR/review totals from D1 for homepage display.
+async def _fetch_mentor_stats_from_d1(env, org: str, mentors: Optional[list] = None, token: str = "") -> dict:
+    """Return per-mentor all-time PR/review totals for homepage display.
 
-    Aggregates ``leaderboard_monthly_stats`` across all months for each user.
+    When ``mentors`` and ``token`` are provided, fetches accurate all-time
+    counts directly from the GitHub Search API (using ``total_count``), caching
+    results in the ``mentor_stats_cache`` D1 table with a 24-hour TTL.  This
+    reflects the full lifespan of the organisation rather than only the period
+    since the webhook was first deployed.
+
+    Falls back to aggregating ``leaderboard_monthly_stats`` across all months
+    when no GitHub token is available or D1 is not configured.
+
     Returns a mapping of ``github_username → {"merged_prs": int, "reviews": int}``.
-    Returns ``{}`` when D1 is unavailable or the query fails.
+    Returns ``{}`` when D1 is unavailable and the GitHub API path is not used.
     """
     db = _d1_binding(env)
+
+    # ------------------------------------------------------------------
+    # Path A: GitHub Search API with D1 cache (accurate all-time counts).
+    # ------------------------------------------------------------------
+    if mentors and token and db:
+        try:
+            await _ensure_leaderboard_schema(db)
+            now_ts = int(time.time())
+            fresh_cutoff = now_ts - _MENTOR_STATS_CACHE_TTL
+
+            # Load all cached stats for this org in one query.
+            cached_rows = await _d1_all(
+                db,
+                "SELECT github_username, merged_prs, reviews, fetched_at FROM mentor_stats_cache WHERE org = ?",
+                (org,),
+            )
+            cache = {
+                row["github_username"]: row
+                for row in (cached_rows or [])
+                if row.get("github_username")
+            }
+
+            stats: dict = {}
+            for mentor in mentors:
+                username = mentor.get("github_username", "")
+                if not username:
+                    continue
+                cached = cache.get(username)
+                if cached and int(cached.get("fetched_at") or 0) >= fresh_cutoff:
+                    # Cache hit — return stored values directly.
+                    stats[username] = {
+                        "merged_prs": int(cached.get("merged_prs") or 0),
+                        "reviews": int(cached.get("reviews") or 0),
+                    }
+                    continue
+
+                # Cache miss or stale — fetch from GitHub Search API.
+                merged_prs = 0
+                reviews = 0
+                safe_org = quote(org, safe="")
+                safe_user = quote(username, safe="")
+                try:
+                    pr_resp = await github_api(
+                        "GET",
+                        f"/search/issues?q=is:pr+is:merged+org:{safe_org}+author:{safe_user}&per_page=1",
+                        token,
+                    )
+                    if pr_resp.status == 200:
+                        pr_data = json.loads(await pr_resp.text())
+                        merged_prs = int(pr_data.get("total_count") or 0)
+                except Exception as exc:
+                    console.error(f"[MentorPool] GitHub PR count failed for {username}: {exc}")
+                try:
+                    rev_resp = await github_api(
+                        "GET",
+                        f"/search/issues?q=is:pr+org:{safe_org}+reviewed-by:{safe_user}+-author:{safe_user}&per_page=1",
+                        token,
+                    )
+                    if rev_resp.status == 200:
+                        rev_data = json.loads(await rev_resp.text())
+                        reviews = int(rev_data.get("total_count") or 0)
+                except Exception as exc:
+                    console.error(f"[MentorPool] GitHub review count failed for {username}: {exc}")
+
+                stats[username] = {"merged_prs": merged_prs, "reviews": reviews}
+
+                # Persist into cache for future requests.
+                try:
+                    await _d1_run(
+                        db,
+                        """
+                        INSERT INTO mentor_stats_cache (org, github_username, merged_prs, reviews, fetched_at)
+                        VALUES (?, ?, ?, ?, ?)
+                        ON CONFLICT(org, github_username) DO UPDATE SET
+                            merged_prs = excluded.merged_prs,
+                            reviews    = excluded.reviews,
+                            fetched_at = excluded.fetched_at
+                        """,
+                        (org, username, merged_prs, reviews, now_ts),
+                    )
+                except Exception as exc:
+                    console.error(f"[MentorPool] Failed to cache mentor stats for {username}: {exc}")
+
+            return stats
+        except Exception as exc:
+            console.error(f"[MentorPool] Failed to fetch mentor stats from GitHub: {exc}")
+            # Fall through to the D1 monthly-aggregation path below.
+
+    # ------------------------------------------------------------------
+    # Path B: Aggregate from D1 monthly stats (fallback / no token).
+    # ------------------------------------------------------------------
     if not db:
         console.log("[MentorPool] No D1 binding available for mentor stats; stats will be hidden")
         return {}
@@ -5324,7 +5438,8 @@ async def on_fetch(request, env) -> Response:
         # Fetch per-mentor activity stats from D1 (best-effort; no stats if D1 unavailable).
         mentor_stats: dict = {}
         try:
-            mentor_stats = await _fetch_mentor_stats_from_d1(env, org)
+            token = getattr(env, "GITHUB_TOKEN", "")
+            mentor_stats = await _fetch_mentor_stats_from_d1(env, org, mentors=mentors, token=token)
         except Exception as exc:
             console.error(f"[MentorPool] Failed to fetch mentor stats for homepage: {exc}")
         # Fetch active mentor assignments from D1 (best-effort).
