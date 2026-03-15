@@ -32,7 +32,8 @@ FAQ_CONTEXT = """
 You are Byte, the AI assistant for OWASP BLT (Bug Logging Tool), a gamified QA and vulnerability disclosure platform.
 
 Key Information:
-- Websites: https://www.bugheist.com, https://owasp.org/www-project-bug-logging-tool/
+- Website: https://blt.owasp.org
+- OWASP Project Page: https://owasp.org/www-project-bug-logging-tool/
 - GitHub: https://github.com/OWASP-BLT/BLT
 - Features: Bug reporting, gamification (points, leaderboards), SIZZLE tokens, Bacon currency.
 - Tech: Python/Django backend, Cloudflare Workers AI.
@@ -45,13 +46,33 @@ Contributor Onboarding:
 4. Claim a 'good-first-issue' and submit a PR.
 
 Bug Hunter Onboarding:
-1. Register at https://www.bugheist.com.
+1. Register at https://blt.owasp.org.
 2. Select a target, find bugs, and submit reports with screenshots.
 3. Earn points and climb the leaderboard.
 
 Capabilities:
 - /api/scan: Header analysis, SSL/TLS checks, redirect detection, sensitive file checks.
 - /api/mcp: search_bugs, submit_bug, get_leaderboard, scan_url.
+
+Google Summer of Code (GSoC) and OWASP:
+- OWASP has been a Google Summer of Code mentor organisation since 2006.
+- OWASP BLT regularly participates in GSoC, offering student projects focused on security tooling and open source development.
+- GSoC Timeline (typical): Applications open in March; community bonding period in May; coding runs June–August; final evaluations in September.
+- Eligibility: Applicants must be 18 years or older and enrolled in (or recently graduated from) an accredited educational institution.
+- Stipend: Google provides stipends scaled to the contributor's country (based on Purchasing Power Parity). Medium-length (~175 hr) projects range from roughly $1,500–$3,300 USD; large (~350 hr) projects are proportionally higher.
+- Rules & Expectations:
+  * All code produced during GSoC must be open source and contributed back to the OWASP BLT repository under its existing licence (AGPL-3.0).
+  * Contributors must communicate regularly with their assigned OWASP mentor(s).
+  * Midterm and final evaluations are mandatory; failing either results in project termination.
+  * Contributors may not be employed full-time by Google or the mentoring organisation during the programme.
+  * Projects must align with the OWASP mission: improving the security of software through open source tools and education.
+  * Contributors must adhere to the OWASP Code of Conduct: https://owasp.org/www-policy/operational/code-of-conduct
+- How to apply for OWASP BLT GSoC:
+  1. Explore open project ideas at https://owasp.org/www-project-bug-logging-tool/ or the BLT GitHub issues.
+  2. Join the OWASP Slack (#project-blt) and introduce yourself to the community.
+  3. Make at least one meaningful contribution (bug fix or feature) before the application period.
+  4. Submit a detailed project proposal through the official Google GSoC portal at https://summerofcode.withgoogle.com/.
+- More information: https://owasp.org/www-community/initiatives/gsoc/ and https://summerofcode.withgoogle.com/
 
 Be concise, friendly, and security-focused. **DO NOT include any internal monologue, thought process, or "We should respond as..." meta-commentary. Respond only as Byte speaking to the user.**
 """
@@ -537,7 +558,7 @@ def _get_onboarding_guide(role: str) -> dict:
             "role": "bug_hunter",
             "title": "Getting Started as a Bug Hunter",
             "steps": [
-                "Register a free account at https://www.bugheist.com.",
+                "Register a free account at https://blt.owasp.org.",
                 "Browse the Domains or Projects section to find a target.",
                 "Read the scope and rules for the target before testing.",
                 "Find a bug and capture a clear screenshot or screen recording.",
@@ -546,15 +567,15 @@ def _get_onboarding_guide(role: str) -> dict:
                 "Climb the leaderboard and unlock new bounty opportunities.",
             ],
             "resources": {
-                "platform": "https://www.bugheist.com",
-                "leaderboard": "https://www.bugheist.com/leaderboard/",
+                "platform": "https://blt.owasp.org",
+                "leaderboard": "https://blt.owasp.org/leaderboard/",
             },
         },
         "organisation": {
             "role": "organisation",
             "title": "Registering Your Organisation on BLT",
             "steps": [
-                "Create an account at https://www.bugheist.com.",
+                "Create an account at https://blt.owasp.org.",
                 "Navigate to 'Add Organisation' in your dashboard.",
                 "Provide your domain, logo, and bug-bounty scope details.",
                 "Set reward amounts (points, Bacon, or SIZZLE tokens).",
@@ -562,7 +583,7 @@ def _get_onboarding_guide(role: str) -> dict:
                 "Publish fixed issues to build community trust.",
             ],
             "resources": {
-                "platform": "https://www.bugheist.com",
+                "platform": "https://blt.owasp.org",
                 "docs": "https://github.com/OWASP-BLT/BLT/wiki",
             },
         },
@@ -578,6 +599,14 @@ def _get_onboarding_guide(role: str) -> dict:
 # ---------------------------------------------------------------------------
 class Default(WorkerEntrypoint):
     async def fetch(self, request) -> Response:
+        try:
+            return await self._handle(request)
+        except Exception as exc:
+            print(f"Unhandled Worker error: {exc!s}")
+            traceback.print_exc()
+            return error_response("Internal server error", 500)
+
+    async def _handle(self, request) -> Response:
         url = request.url
         # Parse path from full URL
         try:

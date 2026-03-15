@@ -41,6 +41,8 @@
           class="text-sm font-semibold text-gray-600 dark:text-gray-400 hover:text-blt-red transition">How It Works</a>
         <a href="#api"
           class="text-sm font-semibold text-gray-600 dark:text-gray-400 hover:text-blt-red transition">API</a>
+        <a href="#gsoc"
+          class="text-sm font-semibold text-gray-600 dark:text-gray-400 hover:text-blt-red transition">GSoC</a>
       </div>
       <div class="flex items-center gap-4">
         <button id="dark-toggle"
@@ -352,14 +354,95 @@
     </div>
   </section>
 
+  <!-- GSoC Section -->
+  <section class="py-20 max-w-6xl mx-auto px-4 sm:px-6" id="gsoc">
+    <div class="text-center mb-12">
+      <h2 class="text-3xl font-extrabold mb-4">Google Summer of Code &amp; OWASP</h2>
+      <p class="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto font-medium">
+        OWASP BLT participates in Google Summer of Code (GSoC). Here's everything you need to know.
+      </p>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+      <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
+        <h3 class="text-lg font-bold mb-4 text-blt-red">What is GSoC?</h3>
+        <p class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+          Google Summer of Code is a global programme that brings student developers into open source development.
+          OWASP has been a GSoC mentor organisation since 2006, and OWASP BLT regularly offers
+          student projects focused on security tooling and open source development.
+        </p>
+      </div>
+      <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
+        <h3 class="text-lg font-bold mb-4 text-blt-red">Eligibility</h3>
+        <ul class="text-sm text-gray-600 dark:text-gray-400 space-y-2 leading-relaxed">
+          <li>• Must be 18 years of age or older.</li>
+          <li>• Must be enrolled in (or a recent graduate of) an accredited educational institution.</li>
+          <li>• Must not be a full-time employee of Google or the mentoring organisation during the programme.</li>
+          <li>• Open to applicants worldwide.</li>
+        </ul>
+      </div>
+      <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
+        <h3 class="text-lg font-bold mb-4 text-blt-red">Typical Timeline</h3>
+        <ul class="text-sm text-gray-600 dark:text-gray-400 space-y-2 leading-relaxed">
+          <li>• <strong class="text-gray-700 dark:text-gray-300">February–March:</strong> Organisation applications &amp; accepted orgs announced.</li>
+          <li>• <strong class="text-gray-700 dark:text-gray-300">March–April:</strong> Contributor application period.</li>
+          <li>• <strong class="text-gray-700 dark:text-gray-300">May:</strong> Community bonding period with mentors.</li>
+          <li>• <strong class="text-gray-700 dark:text-gray-300">June–August:</strong> Active coding period.</li>
+          <li>• <strong class="text-gray-700 dark:text-gray-300">September:</strong> Final evaluations &amp; results.</li>
+        </ul>
+      </div>
+      <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
+        <h3 class="text-lg font-bold mb-4 text-blt-red">Stipends</h3>
+        <p class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+          Google provides stipends scaled to the contributor's country based on Purchasing Power Parity (PPP).
+          Medium-length projects (~175 hours) range from roughly <strong class="text-gray-700 dark:text-gray-300">$1,500–$3,300 USD</strong>;
+          large projects (~350 hours) are proportionally higher. Exact amounts are published each year on the
+          official GSoC website.
+        </p>
+      </div>
+    </div>
+    <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm mb-8">
+      <h3 class="text-lg font-bold mb-4 text-blt-red">Rules &amp; Expectations</h3>
+      <ul class="text-sm text-gray-600 dark:text-gray-400 space-y-2 leading-relaxed grid grid-cols-1 md:grid-cols-2 gap-x-8">
+        <li>• All code must be open source and contributed back to OWASP BLT under AGPL-3.0.</li>
+        <li>• Regular communication with your assigned OWASP mentor(s) is required.</li>
+        <li>• Midterm and final evaluations are mandatory; failing either ends the project.</li>
+        <li>• Projects must align with the OWASP mission: improving software security through open source tools and education.</li>
+        <li>• Contributors must adhere to the <a href="https://owasp.org/www-policy/operational/code-of-conduct" target="_blank" rel="noopener noreferrer" class="text-blt-red hover:underline">OWASP Code of Conduct</a>.</li>
+      </ul>
+    </div>
+    <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm mb-8">
+      <h3 class="text-lg font-bold mb-4 text-blt-red">How to Apply for OWASP BLT GSoC</h3>
+      <ol class="text-sm text-gray-600 dark:text-gray-400 space-y-3 leading-relaxed list-none">
+        <li class="flex gap-3"><span class="w-6 h-6 bg-red-50 dark:bg-red-950/30 text-blt-red font-bold rounded flex-shrink-0 flex items-center justify-center text-xs">1</span>Explore project ideas at the <a href="https://owasp.org/www-project-bug-logging-tool/" target="_blank" rel="noopener noreferrer" class="text-blt-red hover:underline">OWASP BLT project page</a> or browse <a href="https://github.com/OWASP-BLT/BLT/issues" target="_blank" rel="noopener noreferrer" class="text-blt-red hover:underline">GitHub issues</a>.</li>
+        <li class="flex gap-3"><span class="w-6 h-6 bg-red-50 dark:bg-red-950/30 text-blt-red font-bold rounded flex-shrink-0 flex items-center justify-center text-xs">2</span>Join the OWASP Slack (<a href="https://owasp.org/slack/invite" target="_blank" rel="noopener noreferrer" class="text-blt-red hover:underline">#project-blt</a>) and introduce yourself to the community.</li>
+        <li class="flex gap-3"><span class="w-6 h-6 bg-red-50 dark:bg-red-950/30 text-blt-red font-bold rounded flex-shrink-0 flex items-center justify-center text-xs">3</span>Make at least one meaningful contribution (bug fix or feature PR) before the application deadline.</li>
+        <li class="flex gap-3"><span class="w-6 h-6 bg-red-50 dark:bg-red-950/30 text-blt-red font-bold rounded flex-shrink-0 flex items-center justify-center text-xs">4</span>Write a detailed project proposal and submit it through the official <a href="https://summerofcode.withgoogle.com/" target="_blank" rel="noopener noreferrer" class="text-blt-red hover:underline">Google GSoC portal</a>.</li>
+      </ol>
+    </div>
+    <div class="flex flex-wrap gap-4 justify-center">
+      <a href="https://summerofcode.withgoogle.com/" target="_blank" rel="noopener noreferrer"
+        class="px-6 py-3 bg-blt-red text-white font-bold rounded-xl hover:bg-red-700 transition shadow-lg shadow-red-200 dark:shadow-red-950 text-sm">
+        Google GSoC Portal
+      </a>
+      <a href="https://owasp.org/www-community/initiatives/gsoc/" target="_blank" rel="noopener noreferrer"
+        class="px-6 py-3 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 font-bold rounded-xl hover:border-blt-red hover:text-blt-red transition text-sm">
+        OWASP GSoC Info
+      </a>
+      <a href="https://github.com/OWASP-BLT/BLT" target="_blank" rel="noopener noreferrer"
+        class="px-6 py-3 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 font-bold rounded-xl hover:border-blt-red hover:text-blt-red transition text-sm">
+        BLT on GitHub
+      </a>
+    </div>
+  </section>
+
   <!-- Footer -->
   <footer class="py-12 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col items-center">
       <div class="flex gap-6 mb-8 text-sm font-bold text-gray-500 dark:text-gray-400">
         <a href="https://owasp.org" target="_blank" rel="noopener noreferrer"
           class="hover:text-blt-red transition">OWASP Org</a>
-        <a href="https://bugheist.com" target="_blank" rel="noopener noreferrer"
-          class="hover:text-blt-red transition">BugHeist</a>
+        <a href="https://blt.owasp.org" target="_blank" rel="noopener noreferrer"
+          class="hover:text-blt-red transition">OWASP BLT</a>
         <a href="https://owasp.org/slack/invite" target="_blank" rel="noopener noreferrer"
           class="hover:text-blt-red transition">Slack</a>
       </div>
@@ -370,6 +453,8 @@
   </footer>
 
   <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+
     const messagesContainer = document.getElementById('chat-messages');
     const chatForm = document.getElementById('chat-form');
     const chatInput = document.getElementById('chat-input');
