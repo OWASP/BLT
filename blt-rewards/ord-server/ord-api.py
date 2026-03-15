@@ -32,13 +32,21 @@ def verify_webhook_signature(req):
         return False
 
     expected_sig = signature_header[len("sha256="):]
+    # Require a 64-character hex-encoded SHA-256 digest to keep comparison timing-safe.
+    if len(expected_sig) != 64:
+        return False
+    try:
+        expected_sig_bytes = bytes.fromhex(expected_sig)
+    except ValueError:
+        return False
+
     computed_sig = hmac.new(
         secret.encode("utf-8"),
         req.get_data(),
         hashlib.sha256,
-    ).hexdigest()
+    ).digest()
 
-    return hmac.compare_digest(expected_sig, computed_sig)
+    return hmac.compare_digest(expected_sig_bytes, computed_sig)
 
 # Environment Variables
 ORD_PATH = os.getenv("ORD_PATH", "/usr/local/bin/ord")
