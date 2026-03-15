@@ -69,7 +69,7 @@ async def handle_signup(
     method = str(request.method).upper()
     logger = logging.getLogger(__name__)
     if method != "POST":
-        return error_response( "Method Not Allowed", 404)
+        return error_response( "Method Not Allowed", 405)
     try: 
         body = await parse_json_body(request)
         if not body:
@@ -161,7 +161,7 @@ async def handle_signin(request: Any, env: Any, path_params: Dict[str, str], que
             return error_response("JWT secret not configured, please configure it using `wrangler secret put JWT_SECRET`", 500)
         method = str(request.method).upper()
         if method != "POST":
-            return error_response("Method Not Allowed", 404)
+            return error_response("Method Not Allowed", 405)
         body = await parse_json_body(request)
         if not body:
             return error_response("Invalid JSON body", 400) 
@@ -237,7 +237,7 @@ async def handle_verify_email(request: Any, env: Any, path_params: Dict[str, str
 
         method = str(request.method).upper()
         if method != "GET":
-            return error_response("Method Not Allowed", 404)
+            return error_response("Method Not Allowed", 405)
         
         # Get token from query parameters (e.g., ?token=xxx)
         token = query_params.get("token")
