@@ -598,7 +598,7 @@ def _get_onboarding_guide(role: str) -> dict:
 # Main Worker entrypoint
 # ---------------------------------------------------------------------------
 class Default(WorkerEntrypoint):
-    async def fetch(self, request) -> Response:
+    async def on_fetch(self, request) -> Response:
         try:
             return await self._handle(request)
         except Exception as exc:
