@@ -56,7 +56,7 @@ class TestGetOnboardingGuide:
         assert isinstance(guide["steps"], list)
         # Must mention the platform URL
         all_text = " ".join(guide["steps"])
-        assert "bugheist" in all_text.lower()
+        assert "blt.owasp.org" in all_text.lower()
 
     def test_organisation_guide(self):
         guide = _get_onboarding_guide("organisation")
@@ -117,6 +117,16 @@ class TestPromptContent:
     def test_faq_context_mentions_onboarding(self):
         lower = FAQ_CONTEXT.lower()
         assert "onboarding" in lower or "contributing" in lower or "fork" in lower
+
+    def test_faq_context_mentions_gsoc(self):
+        lower = FAQ_CONTEXT.lower()
+        assert "gsoc" in lower or "google summer of code" in lower
+
+    def test_faq_context_mentions_owasp_blt_url(self):
+        assert "blt.owasp.org" in FAQ_CONTEXT
+
+    def test_faq_context_no_bugheist(self):
+        assert "bugheist" not in FAQ_CONTEXT.lower()
 
     def test_scan_prompt_mentions_owasp(self):
         assert "OWASP" in SCAN_SYSTEM_PROMPT or "security" in SCAN_SYSTEM_PROMPT.lower()

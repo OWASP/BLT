@@ -41,6 +41,8 @@
           class="text-sm font-semibold text-gray-600 dark:text-gray-400 hover:text-blt-red transition">How It Works</a>
         <a href="#api"
           class="text-sm font-semibold text-gray-600 dark:text-gray-400 hover:text-blt-red transition">API</a>
+        <a href="#gsoc"
+          class="text-sm font-semibold text-gray-600 dark:text-gray-400 hover:text-blt-red transition">GSoC</a>
       </div>
       <div class="flex items-center gap-4">
         <button id="dark-toggle"
@@ -265,94 +267,171 @@
   <section class="py-20 max-w-6xl mx-auto px-4 sm:px-6" id="how-it-works">
     <h2 class="text-3xl font-extrabold text-center mb-16">How It Works</h2>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-      <div class="relative group">
-        <div
-          class="text-4xl font-black text-gray-100 dark:text-gray-800 absolute -top-10 -left-2 z-0 scale-150 group-hover:text-red-50 dark:group-hover:text-red-950/20 transition">
-          01</div>
-        <div
-          class="relative z-10 bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm h-full">
-          <h3 class="font-bold mb-2">Ask Byte</h3>
-          <p class="text-sm text-gray-600 dark:text-gray-400">Type a question or use a quick prompt in the chat widget
-            above.</p>
+      <!-- Card 01 -->
+      <div class="group relative rounded-xl p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300">
+        <span aria-hidden="true" class="absolute top-3 right-4 text-7xl font-bold text-gray-200 dark:text-gray-700 group-hover:text-gray-300 dark:group-hover:text-gray-600 transition-all duration-300 select-none leading-none">
+          01
+        </span>
+        <div class="relative z-10">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Ask Byte</h3>
+          <p class="text-sm text-gray-600 dark:text-gray-400">Type a question or use a quick prompt in the chat widget above.</p>
         </div>
       </div>
-      <div class="relative group">
-        <div
-          class="text-4xl font-black text-gray-100 dark:text-gray-800 absolute -top-10 -left-2 z-0 scale-150 group-hover:text-red-50 dark:group-hover:text-red-950/20 transition">
-          02</div>
-        <div
-          class="relative z-10 bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm h-full">
-          <h3 class="font-bold mb-2">Cloudflare Routing</h3>
-          <p class="text-sm text-gray-600 dark:text-gray-400">Request hits the network edge node closest to you for
-            minimum latency.</p>
+      <!-- Card 02 -->
+      <div class="group relative rounded-xl p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300">
+        <span aria-hidden="true" class="absolute top-3 right-4 text-7xl font-bold text-gray-200 dark:text-gray-700 group-hover:text-gray-300 dark:group-hover:text-gray-600 transition-all duration-300 select-none leading-none">
+          02
+        </span>
+        <div class="relative z-10">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Cloudflare Routing</h3>
+          <p class="text-sm text-gray-600 dark:text-gray-400">Request hits the network edge node closest to you for minimum latency.</p>
         </div>
       </div>
-      <div class="relative group">
-        <div
-          class="text-4xl font-black text-gray-100 dark:text-gray-800 absolute -top-10 -left-2 z-0 scale-150 group-hover:text-red-50 dark:group-hover:text-red-950/20 transition">
-          03</div>
-        <div
-          class="relative z-10 bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm h-full">
-          <h3 class="font-bold mb-2">LLM Orchestration</h3>
-          <p class="text-sm text-gray-600 dark:text-gray-400">Cloudflare Workers AI processes the prompt with BLT-tuned
-            context.</p>
+      <!-- Card 03 -->
+      <div class="group relative rounded-xl p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300">
+        <span aria-hidden="true" class="absolute top-3 right-4 text-7xl font-bold text-gray-200 dark:text-gray-700 group-hover:text-gray-300 dark:group-hover:text-gray-600 transition-all duration-300 select-none leading-none">
+          03
+        </span>
+        <div class="relative z-10">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">LLM Orchestration</h3>
+          <p class="text-sm text-gray-600 dark:text-gray-400">Cloudflare Workers AI processes the prompt with BLT-tuned context.</p>
         </div>
       </div>
-      <div class="relative group">
-        <div
-          class="text-4xl font-black text-gray-100 dark:text-gray-800 absolute -top-10 -left-2 z-0 scale-150 group-hover:text-red-50 dark:group-hover:text-red-950/20 transition">
-          04</div>
-        <div
-          class="relative z-10 bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm h-full">
-          <h3 class="font-bold mb-2">Instant Answer</h3>
-          <p class="text-sm text-gray-600 dark:text-gray-400">Structured, secure response is returned and rendered
-            instantly.</p>
+      <!-- Card 04 -->
+      <div class="group relative rounded-xl p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300">
+        <span aria-hidden="true" class="absolute top-3 right-4 text-7xl font-bold text-gray-200 dark:text-gray-700 group-hover:text-gray-300 dark:group-hover:text-gray-600 transition-all duration-300 select-none leading-none">
+          04
+        </span>
+        <div class="relative z-10">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Instant Answer</h3>
+          <p class="text-sm text-gray-600 dark:text-gray-400">Structured, secure response is returned and rendered instantly.</p>
         </div>
       </div>
     </div>
   </section>
 
   <!-- API Reference -->
-  <section class="py-20 bg-gray-900 text-gray-400" id="api">
+  <section class="py-20 bg-gray-50 dark:bg-gray-900 text-gray-600 dark:text-gray-400" id="api">
     <div class="max-w-6xl mx-auto px-4 sm:px-6">
-      <h2 class="text-3xl font-extrabold text-white text-center mb-16">API Reference</h2>
-      <div class="overflow-x-auto rounded-2xl border border-gray-800 shadow-2xl">
+      <h2 class="text-3xl font-extrabold text-gray-900 dark:text-white text-center mb-16">API Reference</h2>
+      <div class="overflow-x-auto rounded-2xl border border-gray-200 dark:border-gray-800 shadow-2xl">
         <table class="w-full text-left text-sm">
           <thead>
-            <tr class="bg-gray-800/50 text-gray-300 font-bold border-b border-gray-800">
+            <tr class="bg-gray-100 dark:bg-gray-800/50 text-gray-700 dark:text-gray-300 font-bold border-b border-gray-200 dark:border-gray-800">
               <th class="px-6 py-4">Method</th>
               <th class="px-6 py-4">Endpoint</th>
               <th class="px-6 py-4">Description</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-800">
-            <tr class="hover:bg-gray-800/30 transition">
+          <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
+            <tr class="hover:bg-gray-100 dark:hover:bg-gray-800/30 transition">
               <td class="px-6 py-4"><span
                   class="px-2 py-1 bg-green-500/20 text-green-500 rounded font-mono text-xs">GET</span></td>
-              <td class="px-6 py-4"><code class="text-gray-300">/api/health</code></td>
+              <td class="px-6 py-4"><code class="text-gray-600 dark:text-gray-300">/api/health</code></td>
               <td class="px-6 py-4">Check service availability</td>
             </tr>
-            <tr class="hover:bg-gray-800/30 transition">
+            <tr class="hover:bg-gray-100 dark:hover:bg-gray-800/30 transition">
               <td class="px-6 py-4"><span
                   class="px-2 py-1 bg-blt-red/20 text-blt-red rounded font-mono text-xs">POST</span></td>
-              <td class="px-6 py-4"><code class="text-gray-300">/api/chat</code></td>
+              <td class="px-6 py-4"><code class="text-gray-600 dark:text-gray-300">/api/chat</code></td>
               <td class="px-6 py-4">Chat endpoint supporting history</td>
             </tr>
-            <tr class="hover:bg-gray-800/30 transition">
+            <tr class="hover:bg-gray-100 dark:hover:bg-gray-800/30 transition">
               <td class="px-6 py-4"><span
                   class="px-2 py-1 bg-blt-red/20 text-blt-red rounded font-mono text-xs">POST</span></td>
-              <td class="px-6 py-4"><code class="text-gray-300">/api/scan</code></td>
+              <td class="px-6 py-4"><code class="text-gray-600 dark:text-gray-300">/api/scan</code></td>
               <td class="px-6 py-4">Request a security scan summary</td>
             </tr>
-            <tr class="hover:bg-gray-800/30 transition">
+            <tr class="hover:bg-gray-100 dark:hover:bg-gray-800/30 transition">
               <td class="px-6 py-4"><span
                   class="px-2 py-1 bg-green-500/20 text-green-500 rounded font-mono text-xs">GET</span></td>
-              <td class="px-6 py-4"><code class="text-gray-300">/api/mcp</code></td>
+              <td class="px-6 py-4"><code class="text-gray-600 dark:text-gray-300">/api/mcp</code></td>
               <td class="px-6 py-4">Retrieve MCP tool manifest</td>
             </tr>
           </tbody>
         </table>
       </div>
+    </div>
+  </section>
+
+  <!-- GSoC Section -->
+  <section class="py-20 max-w-6xl mx-auto px-4 sm:px-6" id="gsoc">
+    <div class="text-center mb-12">
+      <h2 class="text-3xl font-extrabold mb-4">Google Summer of Code &amp; OWASP</h2>
+      <p class="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto font-medium">
+        OWASP BLT participates in Google Summer of Code (GSoC). Here's everything you need to know.
+      </p>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+      <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
+        <h3 class="text-lg font-bold mb-4 text-blt-red">What is GSoC?</h3>
+        <p class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+          Google Summer of Code is a global programme that brings student developers into open source development.
+          OWASP has been a GSoC mentor organisation since 2006, and OWASP BLT regularly offers
+          student projects focused on security tooling and open source development.
+        </p>
+      </div>
+      <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
+        <h3 class="text-lg font-bold mb-4 text-blt-red">Eligibility</h3>
+        <ul class="text-sm text-gray-600 dark:text-gray-400 space-y-2 leading-relaxed">
+          <li>• Must be 18 years of age or older.</li>
+          <li>• Must be enrolled in (or a recent graduate of) an accredited educational institution.</li>
+          <li>• Must not be a full-time employee of Google or the mentoring organisation during the programme.</li>
+          <li>• Open to applicants worldwide.</li>
+        </ul>
+      </div>
+      <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
+        <h3 class="text-lg font-bold mb-4 text-blt-red">Typical Timeline</h3>
+        <ul class="text-sm text-gray-600 dark:text-gray-400 space-y-2 leading-relaxed">
+          <li>• <strong class="text-gray-700 dark:text-gray-300">February–March:</strong> Organisation applications &amp; accepted orgs announced.</li>
+          <li>• <strong class="text-gray-700 dark:text-gray-300">March–April:</strong> Contributor application period.</li>
+          <li>• <strong class="text-gray-700 dark:text-gray-300">May:</strong> Community bonding period with mentors.</li>
+          <li>• <strong class="text-gray-700 dark:text-gray-300">June–August:</strong> Active coding period.</li>
+          <li>• <strong class="text-gray-700 dark:text-gray-300">September:</strong> Final evaluations &amp; results.</li>
+        </ul>
+      </div>
+      <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
+        <h3 class="text-lg font-bold mb-4 text-blt-red">Stipends</h3>
+        <p class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+          Google provides stipends scaled to the contributor's country based on Purchasing Power Parity (PPP).
+          Medium-length projects (~175 hours) range from roughly <strong class="text-gray-700 dark:text-gray-300">$1,500–$3,300 USD</strong>;
+          large projects (~350 hours) are proportionally higher. Exact amounts are published each year on the
+          official GSoC website.
+        </p>
+      </div>
+    </div>
+    <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm mb-8">
+      <h3 class="text-lg font-bold mb-4 text-blt-red">Rules &amp; Expectations</h3>
+      <ul class="text-sm text-gray-600 dark:text-gray-400 space-y-2 leading-relaxed grid grid-cols-1 md:grid-cols-2 gap-x-8">
+        <li>• All code must be open source and contributed back to OWASP BLT under AGPL-3.0.</li>
+        <li>• Regular communication with your assigned OWASP mentor(s) is required.</li>
+        <li>• Midterm and final evaluations are mandatory; failing either ends the project.</li>
+        <li>• Projects must align with the OWASP mission: improving software security through open source tools and education.</li>
+        <li>• Contributors must adhere to the <a href="https://owasp.org/www-policy/operational/code-of-conduct" target="_blank" rel="noopener noreferrer" class="text-blt-red hover:underline">OWASP Code of Conduct</a>.</li>
+      </ul>
+    </div>
+    <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm mb-8">
+      <h3 class="text-lg font-bold mb-4 text-blt-red">How to Apply for OWASP BLT GSoC</h3>
+      <ol class="text-sm text-gray-600 dark:text-gray-400 space-y-3 leading-relaxed list-none">
+        <li class="flex gap-3"><span class="w-6 h-6 bg-red-50 dark:bg-red-950/30 text-blt-red font-bold rounded flex-shrink-0 flex items-center justify-center text-xs">1</span>Explore project ideas at the <a href="https://owasp.org/www-project-bug-logging-tool/" target="_blank" rel="noopener noreferrer" class="text-blt-red hover:underline">OWASP BLT project page</a> or browse <a href="https://github.com/OWASP-BLT/BLT/issues" target="_blank" rel="noopener noreferrer" class="text-blt-red hover:underline">GitHub issues</a>.</li>
+        <li class="flex gap-3"><span class="w-6 h-6 bg-red-50 dark:bg-red-950/30 text-blt-red font-bold rounded flex-shrink-0 flex items-center justify-center text-xs">2</span>Join the OWASP Slack (<a href="https://owasp.org/slack/invite" target="_blank" rel="noopener noreferrer" class="text-blt-red hover:underline">#project-blt</a>) and introduce yourself to the community.</li>
+        <li class="flex gap-3"><span class="w-6 h-6 bg-red-50 dark:bg-red-950/30 text-blt-red font-bold rounded flex-shrink-0 flex items-center justify-center text-xs">3</span>Make at least one meaningful contribution (bug fix or feature PR) before the application deadline.</li>
+        <li class="flex gap-3"><span class="w-6 h-6 bg-red-50 dark:bg-red-950/30 text-blt-red font-bold rounded flex-shrink-0 flex items-center justify-center text-xs">4</span>Write a detailed project proposal and submit it through the official <a href="https://summerofcode.withgoogle.com/" target="_blank" rel="noopener noreferrer" class="text-blt-red hover:underline">Google GSoC portal</a>.</li>
+      </ol>
+    </div>
+    <div class="flex flex-wrap gap-4 justify-center">
+      <a href="https://summerofcode.withgoogle.com/" target="_blank" rel="noopener noreferrer"
+        class="px-6 py-3 bg-blt-red text-white font-bold rounded-xl hover:bg-red-700 transition shadow-lg shadow-red-200 dark:shadow-red-950 text-sm">
+        Google GSoC Portal
+      </a>
+      <a href="https://owasp.org/www-community/initiatives/gsoc/" target="_blank" rel="noopener noreferrer"
+        class="px-6 py-3 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 font-bold rounded-xl hover:border-blt-red hover:text-blt-red transition text-sm">
+        OWASP GSoC Info
+      </a>
+      <a href="https://github.com/OWASP-BLT/BLT" target="_blank" rel="noopener noreferrer"
+        class="px-6 py-3 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 font-bold rounded-xl hover:border-blt-red hover:text-blt-red transition text-sm">
+        BLT on GitHub
+      </a>
     </div>
   </section>
 
@@ -362,8 +441,8 @@
       <div class="flex gap-6 mb-8 text-sm font-bold text-gray-500 dark:text-gray-400">
         <a href="https://owasp.org" target="_blank" rel="noopener noreferrer"
           class="hover:text-blt-red transition">OWASP Org</a>
-        <a href="https://bugheist.com" target="_blank" rel="noopener noreferrer"
-          class="hover:text-blt-red transition">BugHeist</a>
+        <a href="https://blt.owasp.org" target="_blank" rel="noopener noreferrer"
+          class="hover:text-blt-red transition">OWASP BLT</a>
         <a href="https://owasp.org/slack/invite" target="_blank" rel="noopener noreferrer"
           class="hover:text-blt-red transition">Slack</a>
       </div>
@@ -374,6 +453,8 @@
   </footer>
 
   <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+
     const messagesContainer = document.getElementById('chat-messages');
     const chatForm = document.getElementById('chat-form');
     const chatInput = document.getElementById('chat-input');
