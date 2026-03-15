@@ -540,7 +540,7 @@ class TestJoin:
             "domains",
             on="bugs.domain_id = domains.id"
         )
-        _, join_table, on_clause = qs._joins[0]
+        _, _, on_clause = qs._joins[0]
         assert on_clause == "bugs.domain_id = domains.id"
         assert "  " not in on_clause
 
