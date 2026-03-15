@@ -36,10 +36,16 @@ from urllib.parse import quote, urlparse
 
 from js import Headers, Response, console, fetch  # Cloudflare Workers JS bindings
 from index_template import GITHUB_PAGE_HTML  # Landing page HTML template
+from services.admin import AdminService, has_merged_pr_in_org
+from services.mentor_seed import INITIAL_MENTORS
 
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
+
+# Backward-compatible alias kept for tests and older imports after mentor seed
+# data moved to ``services.mentor_seed``.
+_INITIAL_MENTORS = INITIAL_MENTORS
 
 ASSIGN_COMMAND = "/assign"
 UNASSIGN_COMMAND = "/unassign"
@@ -67,6 +73,8 @@ MENTOR_ASSIGNED_LABEL_COLOR = "0075ca"
 SECURITY_BYPASS_LABELS = {"security", "vulnerability", "security-sensitive", "private-security"}
 # Seconds in a day — used for stale-assignment threshold calculations.
 _SECONDS_PER_DAY = 86400
+# TTL for cached GitHub-sourced all-time mentor stats in D1 (24 hours).
+_MENTOR_STATS_CACHE_TTL = 86400
 # When True, one active mentor is auto-requested as a reviewer on every newly
 # opened PR using a deterministic round-robin order (PR number mod pool size).
 # Set to False (default) to keep the existing behaviour of only requesting the
@@ -200,7 +208,7 @@ def _gh_headers(token: str) -> Headers:
     h = {
         "Accept": "application/vnd.github+json",
         "Content-Type": "application/json",
-        "User-Agent": "BLT-GitHub-App/1.0",
+        "User-Agent": "BLT-Pool/1.0",
         "X-GitHub-Api-Version": "2022-11-28",
     }
     if token:
@@ -229,7 +237,7 @@ async def get_installation_token(
             "Authorization": f"Bearer {jwt}",
             "Accept": "application/vnd.github+json",
             "Content-Type": "application/json",
-            "User-Agent": "BLT-GitHub-App/1.0",
+            "User-Agent": "BLT-Pool/1.0",
             "X-GitHub-Api-Version": "2022-11-28",
         }.items()),
     )
@@ -249,7 +257,7 @@ async def get_installation_access_token(installation_id: int, jwt_token: str) ->
             "Authorization": f"Bearer {jwt_token}",
             "Accept": "application/vnd.github+json",
             "Content-Type": "application/json",
-            "User-Agent": "BLT-GitHub-App/1.0",
+            "User-Agent": "BLT-Pool/1.0",
             "X-GitHub-Api-Version": "2022-11-28",
         }.items()),
     )
@@ -612,10 +620,19 @@ async def _ensure_leaderboard_schema(db) -> None:
             issue_repo TEXT NOT NULL,
             issue_number INTEGER NOT NULL,
             assigned_at INTEGER NOT NULL,
+            mentee_login TEXT NOT NULL DEFAULT '',
             PRIMARY KEY (org, issue_repo, issue_number)
         )
         """,
     )
+    # Migration: add mentee_login column to existing tables that pre-date this field.
+    try:
+        await _d1_run(
+            db,
+            "ALTER TABLE mentor_assignments ADD COLUMN mentee_login TEXT NOT NULL DEFAULT ''",
+        )
+    except Exception:
+        pass  # Column already exists — ignore the error.
     await _d1_run(
         db,
         """
@@ -630,6 +647,19 @@ async def _ensure_leaderboard_schema(db) -> None:
         )
         """,
     )
+    await _d1_run(
+        db,
+        """
+        CREATE TABLE IF NOT EXISTS mentor_stats_cache (
+            org TEXT NOT NULL,
+            github_username TEXT NOT NULL,
+            merged_prs INTEGER NOT NULL DEFAULT 0,
+            reviews INTEGER NOT NULL DEFAULT 0,
+            fetched_at INTEGER NOT NULL,
+            PRIMARY KEY (org, github_username)
+        )
+        """,
+    )
     await _populate_mentors_table(db)
 
 
@@ -637,164 +667,13 @@ async def _ensure_leaderboard_schema(db) -> None:
 # Mentor table helpers
 # ---------------------------------------------------------------------------
 
-# Initial mentor data — these INSERT OR IGNORE statements seed the mentors
-# table from what was previously stored in src/mentors.yml.  They are safe to
-# run repeatedly (idempotent) and can be removed once the live database has
-# been populated.
-_INITIAL_MENTORS = [
-    {
-        "github_username": "rinkitadhana",
-        "name": "Rinkit Adhana",
-        "specialties": ["frontend", "javascript"],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "UTC+5:30",
-        "referred_by": "",
-    },
-    {
-        "github_username": "Rajgupta36",
-        "name": "Raj Gupta",
-        "specialties": ["backend", "python"],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "UTC+5:30",
-        "referred_by": "",
-    },
-    {
-        "github_username": "shriyashsoni",
-        "name": "Shriyash Soni",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "",
-        "referred_by": "",
-    },
-    {
-        "github_username": "Mohammedfaiyaz29",
-        "name": "Mohammed Faiyaz Shaikh",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "",
-        "referred_by": "",
-    },
-    {
-        "github_username": "Vaswani2003",
-        "name": "Vinamra Vaswani",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "",
-        "referred_by": "",
-    },
-    {
-        "github_username": "kittenbytes",
-        "name": "Carla Voorhees",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "",
-        "referred_by": "",
-    },
-    {
-        "github_username": "Captain-T2004",
-        "name": "Akshay Behl",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "",
-        "referred_by": "",
-    },
-    {
-        "github_username": "elsheik21",
-        "name": "Ahmed ElSheik",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "",
-        "referred_by": "",
-    },
-    {
-        "github_username": "Kunal1522",
-        "name": "Kunal Kashyap",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "",
-        "referred_by": "",
-    },
-    {
-        "github_username": "RudraBhaskar9439",
-        "name": "Rudra Bhaskar",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "",
-        "referred_by": "",
-    },
-    {
-        "github_username": "dev-sanidhya",
-        "name": "Sanidhya Shishodia",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "",
-        "referred_by": "",
-    },
-    {
-        "github_username": "VedantAnand17",
-        "name": "Vedant Anand",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "",
-        "referred_by": "",
-    },
-    {
-        "github_username": "Rishab87",
-        "name": "Rishab Kumar Jha",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "",
-        "referred_by": "",
-    },
-    {
-        "github_username": "gitsofaryan",
-        "name": "Aryan Jain",
-        "specialties": [
-            "fullstack",
-            "web3",
-            "distributed-systems",
-            "ai-ml",
-            "open-source",
-            "devops",
-            "realtime-systems",
-        ],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "UTC+5:30 (India Standard Time)",
-        "referred_by": "",
-    },
-    {
-        "github_username": "ramansh18",
-        "name": "Ramansh Saxena",
-        "specialties": ["frontend", "backend", "web3"],
-        "max_mentees": 2,
-        "active": True,
-        "timezone": "+5:30",
-        "referred_by": "ojaswa072",
-    },
-]
-
-
 async def _populate_mentors_table(db) -> None:
     """Seed the mentors table with the initial mentor list (idempotent).
 
     Uses INSERT OR IGNORE so that existing rows are never overwritten; safe
     to call on every cold start.
     """
-    for m in _INITIAL_MENTORS:
+    for m in INITIAL_MENTORS:
         try:
             await _d1_run(
                 db,
@@ -889,7 +768,7 @@ async def _d1_add_mentor(
 
 
 async def _d1_record_mentor_assignment(
-    db, org: str, mentor_login: str, repo: str, issue_number: int
+    db, org: str, mentor_login: str, repo: str, issue_number: int, mentee_login: str = ""
 ) -> None:
     """Upsert a mentor→issue assignment into D1 for load-map tracking."""
     now = int(time.time())
@@ -897,13 +776,14 @@ async def _d1_record_mentor_assignment(
         await _d1_run(
             db,
             """
-            INSERT INTO mentor_assignments (org, mentor_login, issue_repo, issue_number, assigned_at)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO mentor_assignments (org, mentor_login, issue_repo, issue_number, assigned_at, mentee_login)
+            VALUES (?, ?, ?, ?, ?, ?)
             ON CONFLICT(org, issue_repo, issue_number) DO UPDATE SET
                 mentor_login = excluded.mentor_login,
+                mentee_login = excluded.mentee_login,
                 assigned_at  = excluded.assigned_at
             """,
-            (org, mentor_login, repo, issue_number, now),
+            (org, mentor_login, repo, issue_number, now, mentee_login),
         )
         console.log(f"[D1] Recorded mentor assignment: @{mentor_login} → {org}/{repo}#{issue_number}")
     except Exception as exc:
@@ -949,14 +829,14 @@ async def _d1_get_mentor_loads(db, org: str) -> dict:
 async def _d1_get_active_assignments(db, org: str) -> list:
     """Return all active mentor assignments from D1 for the given org.
 
-    Returns a list of dicts with keys: org, mentor_login, issue_repo, issue_number, assigned_at.
+    Returns a list of dicts with keys: org, mentor_login, mentee_login, issue_repo, issue_number, assigned_at.
     Returns an empty list when D1 is unavailable or the query fails.
     """
     try:
         rows = await _d1_all(
             db,
             """
-            SELECT org, mentor_login, issue_repo, issue_number, assigned_at
+            SELECT org, mentor_login, mentee_login, issue_repo, issue_number, assigned_at
             FROM mentor_assignments
             WHERE org = ?
             ORDER BY assigned_at DESC
@@ -967,6 +847,7 @@ async def _d1_get_active_assignments(db, org: str) -> list:
             {
                 "org": row.get("org", org),
                 "mentor_login": row.get("mentor_login", ""),
+                "mentee_login": row.get("mentee_login", ""),
                 "issue_repo": row.get("issue_repo", ""),
                 "issue_number": int(row.get("issue_number") or 0),
                 "assigned_at": int(row.get("assigned_at") or 0),
@@ -977,6 +858,61 @@ async def _d1_get_active_assignments(db, org: str) -> list:
     except Exception as exc:
         console.error(f"[D1] Failed to get active assignments: {exc}")
         return []
+
+
+def _time_ago(ts: int) -> str:
+    """Return a human-readable 'X time ago' string for a Unix timestamp."""
+    diff = int(time.time()) - ts
+    if diff < 60:
+        return "just now"
+    if diff < 3600:
+        m = diff // 60
+        return f"{m} minute{'s' if m != 1 else ''} ago"
+    if diff < 86400:
+        h = diff // 3600
+        return f"{h} hour{'s' if h != 1 else ''} ago"
+    if diff < 86400 * 30:
+        d = diff // 86400
+        return f"{d} day{'s' if d != 1 else ''} ago"
+    if diff < 86400 * 365:
+        mo = diff // (86400 * 30)
+        return f"{mo} month{'s' if mo != 1 else ''} ago"
+    y = diff // (86400 * 365)
+    return f"{y} year{'s' if y != 1 else ''} ago"
+
+
+async def _d1_get_user_comment_totals(db, org: str, logins: list) -> dict:
+    """Return total all-time comment counts per user from leaderboard_monthly_stats.
+
+    Args:
+        db:     D1 database binding.
+        org:    GitHub organisation name.
+        logins: List of GitHub usernames to look up.
+
+    Returns a ``{login: total_comments}`` mapping.  Missing users default to 0.
+    """
+    if not logins:
+        return {}
+    try:
+        placeholders = ",".join("?" for _ in logins)
+        rows = await _d1_all(
+            db,
+            f"""
+            SELECT user_login, COALESCE(SUM(comments), 0) AS total_comments
+            FROM leaderboard_monthly_stats
+            WHERE org = ? AND user_login IN ({placeholders})
+            GROUP BY user_login
+            """,
+            (org, *logins),
+        )
+        return {
+            row["user_login"]: int(row.get("total_comments") or 0)
+            for row in rows
+            if row.get("user_login")
+        }
+    except Exception as exc:
+        console.error(f"[D1] Failed to get user comment totals: {exc}")
+        return {}
 
 
 async def _d1_inc_open_pr(db, org: str, user_login: str, delta: int) -> None:
@@ -2581,14 +2517,113 @@ async def _load_mentors_local(env=None) -> list:
     return []
 
 
-async def _fetch_mentor_stats_from_d1(env, org: str) -> dict:
-    """Return per-mentor all-time PR/review totals from D1 for homepage display.
+async def _fetch_mentor_stats_from_d1(env, org: str, mentors: Optional[list] = None, token: str = "") -> dict:
+    """Return per-mentor all-time PR/review totals for homepage display.
 
-    Aggregates ``leaderboard_monthly_stats`` across all months for each user.
+    When ``mentors`` and ``token`` are provided, fetches accurate all-time
+    counts directly from the GitHub Search API (using ``total_count``), caching
+    results in the ``mentor_stats_cache`` D1 table with a 24-hour TTL.  This
+    reflects the full lifespan of the organisation rather than only the period
+    since the webhook was first deployed.
+
+    Falls back to aggregating ``leaderboard_monthly_stats`` across all months
+    when no GitHub token is available or D1 is not configured.
+
     Returns a mapping of ``github_username → {"merged_prs": int, "reviews": int}``.
-    Returns ``{}`` when D1 is unavailable or the query fails.
+    Returns ``{}`` when D1 is unavailable and the GitHub API path is not used.
     """
     db = _d1_binding(env)
+
+    # ------------------------------------------------------------------
+    # Path A: GitHub Search API with D1 cache (accurate all-time counts).
+    # ------------------------------------------------------------------
+    if mentors and token and db:
+        try:
+            await _ensure_leaderboard_schema(db)
+            now_ts = int(time.time())
+            fresh_cutoff = now_ts - _MENTOR_STATS_CACHE_TTL
+
+            # Load all cached stats for this org in one query.
+            cached_rows = await _d1_all(
+                db,
+                "SELECT github_username, merged_prs, reviews, fetched_at FROM mentor_stats_cache WHERE org = ?",
+                (org,),
+            )
+            cache = {
+                row["github_username"]: row
+                for row in (cached_rows or [])
+                if row.get("github_username")
+            }
+
+            stats: dict = {}
+            for mentor in mentors:
+                username = mentor.get("github_username", "")
+                if not username:
+                    continue
+                cached = cache.get(username)
+                if cached and int(cached.get("fetched_at") or 0) >= fresh_cutoff:
+                    # Cache hit — return stored values directly.
+                    stats[username] = {
+                        "merged_prs": int(cached.get("merged_prs") or 0),
+                        "reviews": int(cached.get("reviews") or 0),
+                    }
+                    continue
+
+                # Cache miss or stale — fetch from GitHub Search API.
+                merged_prs = 0
+                reviews = 0
+                safe_org = quote(org, safe="")
+                safe_user = quote(username, safe="")
+                try:
+                    pr_resp = await github_api(
+                        "GET",
+                        f"/search/issues?q=is:pr+is:merged+org:{safe_org}+author:{safe_user}&per_page=1",
+                        token,
+                    )
+                    if pr_resp.status == 200:
+                        pr_data = json.loads(await pr_resp.text())
+                        merged_prs = int(pr_data.get("total_count") or 0)
+                except Exception as exc:
+                    console.error(f"[MentorPool] GitHub PR count failed for {username}: {exc}")
+                try:
+                    rev_resp = await github_api(
+                        "GET",
+                        f"/search/issues?q=is:pr+org:{safe_org}+reviewed-by:{safe_user}+-author:{safe_user}&per_page=1",
+                        token,
+                    )
+                    if rev_resp.status == 200:
+                        rev_data = json.loads(await rev_resp.text())
+                        reviews = int(rev_data.get("total_count") or 0)
+                except Exception as exc:
+                    console.error(f"[MentorPool] GitHub review count failed for {username}: {exc}")
+
+                stats[username] = {"merged_prs": merged_prs, "reviews": reviews}
+
+                # Persist into cache for future requests.
+                try:
+                    await _d1_run(
+                        db,
+                        """
+                        INSERT INTO mentor_stats_cache (org, github_username, merged_prs, reviews, fetched_at)
+                        VALUES (?, ?, ?, ?, ?)
+                        ON CONFLICT(org, github_username) DO UPDATE SET
+                            merged_prs = excluded.merged_prs,
+                            reviews    = excluded.reviews,
+                            fetched_at = excluded.fetched_at
+                        """,
+                        (org, username, merged_prs, reviews, now_ts),
+                    )
+                except Exception as exc:
+                    console.error(f"[MentorPool] Failed to cache mentor stats for {username}: {exc}")
+
+            return stats
+        except Exception as exc:
+            console.error(f"[MentorPool] Failed to fetch mentor stats from GitHub: {exc}")
+            # Fall through to the D1 monthly-aggregation path below.
+
+    # ------------------------------------------------------------------
+    # Path B: Aggregate from D1 monthly stats (fallback / no token).
+    # ------------------------------------------------------------------
     if not db:
         console.log("[MentorPool] No D1 binding available for mentor stats; stats will be hidden")
         return {}
@@ -2922,7 +2957,7 @@ async def _assign_mentor_to_issue(
     if db:
         try:
             await _ensure_leaderboard_schema(db)
-            await _d1_record_mentor_assignment(db, owner, mentor_username, repo, issue_number)
+            await _d1_record_mentor_assignment(db, owner, mentor_username, repo, issue_number, mentee_login=contributor_login or "")
         except Exception as exc:
             console.error(f"[MentorPool] Failed to record assignment in D1 (best-effort): {exc}")
 
@@ -4485,7 +4520,7 @@ _CALLBACK_HTML = """\
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BLT GitHub App — Installed!</title>
+  <title>BLT-Pool GitHub App — Installed!</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link
     rel="stylesheet"
@@ -4501,8 +4536,8 @@ _CALLBACK_HTML = """\
     </div>
     <h1 class="text-2xl font-bold text-white mb-4">Installation complete!</h1>
     <p class="leading-relaxed mb-6" style="color:#9ca3af;">
-      BLT GitHub App has been successfully installed on your organization.<br />
-      Issues and pull requests will now be handled automatically.
+      The BLT-Pool GitHub App has been successfully installed on your organization.<br />
+      GitHub automation is now active inside BLT-Pool.
     </p>
     <a
       href="https://owaspblt.org"
@@ -4708,18 +4743,21 @@ def _build_referral_leaderboard(mentors: list) -> list:
     return sorted(counts.items(), key=lambda x: x[1], reverse=True)
 
 
-def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, active_assignments: Optional[list] = None) -> str:
+def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, active_assignments: Optional[list] = None, assignment_comment_stats: Optional[dict] = None) -> str:
     """Generate the BLT-Pool mentor directory homepage.
 
     Args:
-        mentors:            Mentor list loaded from D1.
-                            Defaults to an empty list when omitted or ``None``.
-        mentor_stats:       Optional mapping of ``github_username → {"merged_prs", "reviews"}``
-                            from D1, used to show activity stats on each mentor card.
-                            When ``None`` or empty, stats columns are hidden.
-        active_assignments: Optional list of active mentor-issue assignment dicts from D1.
-                            Each dict has keys: org, mentor_login, issue_repo, issue_number, assigned_at.
-                            When ``None`` or empty, the section is hidden.
+        mentors:                  Mentor list loaded from D1.
+                                  Defaults to an empty list when omitted or ``None``.
+        mentor_stats:             Optional mapping of ``github_username → {"merged_prs", "reviews"}``
+                                  from D1, used to show activity stats on each mentor card.
+                                  When ``None`` or empty, stats columns are hidden.
+        active_assignments:       Optional list of active mentor-issue assignment dicts from D1.
+                                  Each dict has keys: org, mentor_login, mentee_login, issue_repo,
+                                  issue_number, assigned_at.
+                                  When ``None`` or empty, the section is hidden.
+        assignment_comment_stats: Optional mapping of ``github_username → total_comments`` used to
+                                  show comment-point badges on each assignment card.
     """
     if mentors is None:
         mentors = []
@@ -4727,6 +4765,8 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
         mentor_stats = {}
     if active_assignments is None:
         active_assignments = []
+    if assignment_comment_stats is None:
+        assignment_comment_stats = {}
     # Normalize mentor_stats keys to lowercase for case-insensitive lookup.
     mentor_stats_lower = {k.lower(): v for k, v in mentor_stats.items()}
     year = time.gmtime().tm_year
@@ -4740,26 +4780,63 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
 
     # Build active assignments section HTML.
     if active_assignments:
-        assignment_items = "\n".join(
-            f'''<li class="flex flex-col gap-1 rounded-xl border border-[#E5E5E5] bg-gray-50 p-4 sm:flex-row sm:items-center sm:justify-between">
-              <div class="flex items-center gap-3 min-w-0">
-                <img src="https://github.com/{_html_mod.escape(a["mentor_login"])}.png"
-                     alt="{_html_mod.escape(a["mentor_login"])}"
-                     class="h-8 w-8 shrink-0 rounded-full border border-[#E5E5E5]">
-                <a href="https://github.com/{_html_mod.escape(a["mentor_login"])}" target="_blank" rel="noopener"
-                   class="font-semibold text-sm text-[#111827] hover:text-[#E10101] truncate">
-                  @{_html_mod.escape(a["mentor_login"])}
+        def _assignment_item(a: dict) -> str:
+            mentor = _html_mod.escape(a["mentor_login"])
+            mentee_raw = a.get("mentee_login", "")
+            mentee = _html_mod.escape(mentee_raw)
+            org = _html_mod.escape(a["org"])
+            repo = _html_mod.escape(a["issue_repo"])
+            number = _html_mod.escape(str(a["issue_number"]))
+            time_ago = _html_mod.escape(_time_ago(a["assigned_at"]))
+            mentor_comments = assignment_comment_stats.get(a["mentor_login"], 0)
+            mentee_comments = assignment_comment_stats.get(mentee_raw, 0) if mentee_raw else 0
+
+            mentee_html = ""
+            if mentee:
+                mentee_html = f'''
+              <div class="flex items-center gap-2 min-w-0">
+                <img src="https://github.com/{mentee}.png"
+                     alt="{mentee}"
+                     class="h-7 w-7 shrink-0 rounded-full border border-[#E5E5E5]">
+                <div class="min-w-0">
+                  <p class="text-xs text-gray-400 leading-none">Mentee</p>
+                  <a href="https://github.com/{mentee}" target="_blank" rel="noopener"
+                     class="text-sm font-semibold text-[#111827] hover:text-[#E10101] truncate block">
+                    @{mentee}
+                  </a>
+                </div>
+                <span class="shrink-0 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-600" title="Total comments">{mentee_comments} pts</span>
+              </div>'''
+
+            return f'''<li class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-4">
+              <div class="flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center gap-2 min-w-0">
+                  <img src="https://github.com/{mentor}.png"
+                       alt="{mentor}"
+                       class="h-7 w-7 shrink-0 rounded-full border border-[#E5E5E5]">
+                  <div class="min-w-0">
+                    <p class="text-xs text-gray-400 leading-none">Mentor</p>
+                    <a href="https://github.com/{mentor}" target="_blank" rel="noopener"
+                       class="text-sm font-semibold text-[#111827] hover:text-[#E10101] truncate block">
+                      @{mentor}
+                    </a>
+                  </div>
+                  <span class="shrink-0 rounded-full bg-[#feeae9] px-2 py-0.5 text-xs font-semibold text-[#E10101]" title="Total comments">{mentor_comments} pts</span>
+                </div>
+                {mentee_html}
+                <a href="https://github.com/{org}/{repo}/issues/{number}"
+                   target="_blank" rel="noopener"
+                   class="inline-flex items-center gap-1.5 rounded-full bg-[#feeae9] px-3 py-1 text-xs font-semibold text-[#E10101] hover:bg-red-100 transition shrink-0">
+                  <i class="fa-brands fa-github text-xs" aria-hidden="true"></i>
+                  {org}/{repo}#{number}
                 </a>
               </div>
-              <a href="https://github.com/{_html_mod.escape(a["org"])}/{_html_mod.escape(a["issue_repo"])}/issues/{_html_mod.escape(str(a["issue_number"]))}"
-                 target="_blank" rel="noopener"
-                 class="inline-flex items-center gap-1.5 rounded-full bg-[#feeae9] px-3 py-1 text-xs font-semibold text-[#E10101] hover:bg-red-100 transition shrink-0">
-                <i class="fa-brands fa-github text-xs" aria-hidden="true"></i>
-                {_html_mod.escape(a["org"])}/{_html_mod.escape(a["issue_repo"])}#{_html_mod.escape(str(a["issue_number"]))}
-              </a>
+              <p class="mt-2 text-xs text-gray-400">
+                <i class="fa-regular fa-clock mr-1" aria-hidden="true"></i>Assigned {time_ago}
+              </p>
             </li>'''
-            for a in active_assignments
-        )
+
+        assignment_items = "\n".join(_assignment_item(a) for a in active_assignments)
         active_assignments_html = f'''
     <section id="active-assignments" class="rounded-2xl border border-[#E5E5E5] bg-white p-7 sm:p-9">
       <div class="mb-5 flex items-center gap-3">
@@ -4856,7 +4933,7 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
 <body class="min-h-screen font-sans text-gray-900 antialiased">
 
   <header class="sticky top-0 z-40 border-b border-[#E5E5E5] bg-white/90 backdrop-blur">
-    <div class="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-y-2 px-4 py-3 sm:flex-nowrap sm:py-4 sm:px-6 lg:px-8">
+    <div class="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
       <a href="/" class="flex items-center gap-3" aria-label="BLT-Pool home">
         <img src="/logo-sm.png" alt="OWASP BLT logo" class="h-10 w-10 rounded-xl border border-[#E5E5E5] bg-white object-contain p-1">
         <div>
@@ -4864,18 +4941,25 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
           <h1 class="text-lg font-extrabold text-[#111827]">BLT-Pool</h1>
         </div>
       </a>
-      <span role="status" aria-label="Service status: Operational"
-            class="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 sm:order-last">
-        <i class="fa-solid fa-circle text-[0.45rem]" aria-hidden="true"></i>
-        Operational
-      </span>
-      <nav class="order-last flex w-full items-center justify-center gap-0.5 rounded-xl border border-[#E5E5E5] bg-white p-1 sm:order-none sm:w-auto sm:justify-start" aria-label="Primary">
+     <nav class="order-3 flex w-full items-center justify-center gap-0.5 rounded-xl border border-[#E5E5E5] bg-white p-1 sm:order-none sm:w-auto sm:justify-start" aria-label="Primary">
         <a href="/" class="rounded-lg bg-[#feeae9] px-2 py-1.5 text-xs font-semibold text-[#E10101] sm:px-3 sm:py-2 sm:text-sm">Mentors</a>
         <a href="/github-app" class="rounded-lg px-2 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 sm:px-3 sm:py-2 sm:text-sm">GitHub App</a>
         <a href="https://owaspblt.org" target="_blank" rel="noopener" class="rounded-lg px-2 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 sm:px-3 sm:py-2 sm:text-sm">
           OWASP BLT <i class="fa-solid fa-arrow-up-right-from-square text-xs" aria-hidden="true"></i>
         </a>
       </nav>
+      <div class="order-2 flex items-center gap-2 sm:order-none">
+        <span role="status" aria-label="Service status: Operational"
+              class="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
+          <i class="fa-solid fa-circle text-[0.4rem]" aria-hidden="true"></i>
+          Live
+        </span>
+        <a href="/admin/login"
+           class="inline-flex items-center gap-1.5 rounded-md border border-[#E5E5E5] px-3 py-2 text-xs font-semibold text-gray-700 transition hover:border-[#E10101] hover:bg-[#feeae9] hover:text-[#E10101] focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2">
+          <i class="fa-solid fa-shield-halved text-[#E10101]" aria-hidden="true"></i>
+          Admin
+        </a>
+      </div>
     </div>
   </header>
 
@@ -5202,7 +5286,11 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
             .then(function(result) {{
               btn.disabled = false;
               if (result.ok) {{
-                okEl.textContent = 'Welcome to the mentor pool, @' + github + '! Refresh the page to see your card.';
+                if (result.data && result.data.active) {{
+                  okEl.textContent = 'Welcome to the mentor pool, @' + github + '! Your mentor profile is now published.';
+                }} else {{
+                  okEl.textContent = 'Thanks, @' + github + '! Your mentor profile was saved and is waiting for admin publishing.';
+                }}
                 okEl.classList.remove('hidden');
                 document.getElementById('mentor-form').reset();
               }} else {{
@@ -5343,6 +5431,12 @@ async def _handle_add_mentor(request, env) -> "Response":
     if not db:
         return _json({"error": "Database not available"}, 500)
 
+    mentor_is_active = await has_merged_pr_in_org(
+        env,
+        github_username,
+        getattr(env, "GITHUB_ORG", "OWASP-BLT"),
+    )
+
     try:
         await _ensure_leaderboard_schema(db)
         await _d1_add_mentor(
@@ -5351,7 +5445,7 @@ async def _handle_add_mentor(request, env) -> "Response":
             name=name,
             specialties=specialties,
             max_mentees=max_mentees,
-            active=True,
+            active=mentor_is_active,
             timezone=timezone,
             referred_by=referred_by,
         )
@@ -5359,8 +5453,13 @@ async def _handle_add_mentor(request, env) -> "Response":
         console.error(f"[MentorPool] Failed to add mentor {github_username}: {exc}")
         return _json({"error": "Failed to save mentor"}, 500)
 
-    console.log(f"[MentorPool] Added mentor {github_username} via API")
-    return _json({"ok": True, "github_username": github_username}, 201)
+    console.log(
+        f"[MentorPool] Added mentor {github_username} via API active={mentor_is_active}"
+    )
+    return _json(
+        {"ok": True, "github_username": github_username, "active": mentor_is_active},
+        201,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -5396,6 +5495,10 @@ async def on_fetch(request, env) -> Response:
     method = request.method
     path = urlparse(str(request.url)).path.rstrip("/") or "/"
 
+    admin_response = await AdminService(env).handle(request)
+    if admin_response is not None:
+        return admin_response
+
     if method == "GET" and path == "/":
         # Load mentors from D1.
         org = getattr(env, "GITHUB_ORG", "OWASP-BLT")
@@ -5407,11 +5510,13 @@ async def on_fetch(request, env) -> Response:
         # Fetch per-mentor activity stats from D1 (best-effort; no stats if D1 unavailable).
         mentor_stats: dict = {}
         try:
-            mentor_stats = await _fetch_mentor_stats_from_d1(env, org)
+            token = getattr(env, "GITHUB_TOKEN", "")
+            mentor_stats = await _fetch_mentor_stats_from_d1(env, org, mentors=mentors, token=token)
         except Exception as exc:
             console.error(f"[MentorPool] Failed to fetch mentor stats for homepage: {exc}")
         # Fetch active mentor assignments from D1 (best-effort).
         active_assignments: list = []
+        assignment_comment_stats: dict = {}
         db = _d1_binding(env)
         if db:
             try:
@@ -5419,7 +5524,18 @@ async def on_fetch(request, env) -> Response:
                 active_assignments = await _d1_get_active_assignments(db, org)
             except Exception as exc:
                 console.error(f"[MentorPool] Failed to fetch active assignments for homepage: {exc}")
-        return _html(_index_html(mentors, mentor_stats, active_assignments))
+            if active_assignments:
+                try:
+                    all_logins = list({
+                        login
+                        for a in active_assignments
+                        for login in (a["mentor_login"], a.get("mentee_login", ""))
+                        if login
+                    })
+                    assignment_comment_stats = await _d1_get_user_comment_totals(db, org, all_logins)
+                except Exception as exc:
+                    console.error(f"[MentorPool] Failed to fetch assignment comment stats: {exc}")
+        return _html(_index_html(mentors, mentor_stats, active_assignments, assignment_comment_stats))
 
     if method == "GET" and path == "/github-app":
         app_slug = getattr(env, "GITHUB_APP_SLUG", "")
