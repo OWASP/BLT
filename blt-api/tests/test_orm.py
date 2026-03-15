@@ -527,6 +527,13 @@ class TestJoin:
                 on="bugs.domain_id; DROP TABLE bugs-- = domains.id"
             )
 
+    def test_join_unsafe_on_rhs_raises(self):
+        with pytest.raises(ValueError):
+            self.qs.join(
+                "domains",
+                on="bugs.domain_id = domains.id; DROP TABLE bugs--"
+            )
+
     def test_join_on_clause_without_equals_raises(self):
         with pytest.raises(ValueError):
             self.qs.join("domains", on="bugs.domain_id")

@@ -336,24 +336,24 @@ class QuerySet:
     # Full query builder
     # ------------------------------------------------------------------
 
-    def _build_join_clause(self) -> str:
-        """Return the JOIN clause string for all active joins."""
-        return " ".join(
-            f"{join_type} JOIN {join_table} ON {on_clause}"
-            for join_type, join_table, on_clause in self._joins
-        )
+    def _build_from_with_joins_sql(self) -> str:
+        """Return the FROM clause with all JOIN clauses appended.
+
+        Used by both ``_build_select_sql()`` and ``count()`` to avoid
+        duplicating FROM+JOIN assembly logic.
+        """
+        table = self._model.table_name
+        sql = f"FROM {table}"
+        for join_type, join_table, on_clause in self._joins:
+            sql += f" {join_type} JOIN {join_table} ON {on_clause}"
+        return sql
 
     def _build_select_sql(self) -> Tuple[str, List[Any]]:
         """Build the full ``SELECT`` SQL and its parameter list."""
-        table = self._model.table_name
         select = ", ".join(self._select_fields) if self._select_fields else "*"
 
         where, params = self._build_where_clause()
-        sql = f"SELECT {select} FROM {table}"
-
-        join_clause = self._build_join_clause()
-        if join_clause:
-            sql += f" {join_clause}"
+        sql = f"SELECT {select} {self._build_from_with_joins_sql()}"
 
         if where:
             sql += f" {where}"
@@ -405,12 +405,8 @@ class QuerySet:
         form ``table1.col = table2.col``. Compound ON conditions are not
         currently supported.
         """
-        table = self._model.table_name
         where, params = self._build_where_clause()
-        sql = f"SELECT COUNT(*) AS total FROM {table}"
-        join_clause = self._build_join_clause()
-        if join_clause:
-            sql += f" {join_clause}"
+        sql = f"SELECT COUNT(*) AS total {self._build_from_with_joins_sql()}"
         if where:
             sql += f" {where}"
         result = await self._db.prepare(sql).bind(*params).first()
