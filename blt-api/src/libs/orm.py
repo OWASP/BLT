@@ -236,6 +236,8 @@ class QuerySet:
             )
         _validate_identifier(table)
         # Validate each side of the ON clause (format: "a.b = c.d")
+        # Strip spaces for parsing, but validate the stripped parts
+        # and reconstruct a canonical form to prevent whitespace-folding bypasses
         on_stripped = on.replace(" ", "")
         if "=" not in on_stripped:
             raise ValueError(
@@ -244,9 +246,11 @@ class QuerySet:
         lhs, rhs = on_stripped.split("=", 1)
         _validate_identifier(lhs)
         _validate_identifier(rhs)
+        # Store canonical form (no spaces) to prevent whitespace-folding bypasses
+        canonical_on = f"{lhs} = {rhs}"
 
         qs = self._clone()
-        qs._joins.append((join_type, table, on))
+        qs._joins.append((join_type, table, canonical_on))
         return qs
 
     def paginate(self, page: int = 1, per_page: int = 20) -> "QuerySet":

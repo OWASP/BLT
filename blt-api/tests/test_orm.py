@@ -534,6 +534,24 @@ class TestJoin:
                 on="bugs.domain_id = domains.id; DROP TABLE bugs--"
             )
 
+    def test_join_on_clause_canonical_form_stored(self):
+        """Whitespace-folding bypass prevention — canonical ON clause is stored."""
+        qs = self.qs.join(
+            "domains",
+            on="bugs.domain_id = domains.id"
+        )
+        _, join_table, on_clause = qs._joins[0]
+        assert on_clause == "bugs.domain_id = domains.id"
+        assert "  " not in on_clause
+
+    def test_join_on_clause_whitespace_folding_bypass_rejected(self):
+        """Extra whitespace cannot be used to smuggle unsafe expressions."""
+        with pytest.raises(ValueError):
+            self.qs.join(
+                "domains",
+                on="bugs.domain_id = domains.id OR 1"
+            )
+
     def test_join_on_clause_without_equals_raises(self):
         with pytest.raises(ValueError):
             self.qs.join("domains", on="bugs.domain_id")
