@@ -4672,12 +4672,44 @@ class TestIndexHtml(unittest.TestCase):
     def test_active_assignments_section_shown(self):
         """Active assignments section appears when assignments are provided."""
         assignments = [
-            {"org": "OWASP-BLT", "mentor_login": "alice", "issue_repo": "BLT", "issue_number": 42, "assigned_at": 1700000000},
+            {"org": "OWASP-BLT", "mentor_login": "alice", "mentee_login": "bob", "issue_repo": "BLT", "issue_number": 42, "assigned_at": 1700000000},
         ]
         html = _worker._index_html([], active_assignments=assignments)
         self.assertIn("Active Mentor Assignments", html)
         self.assertIn("@alice", html)
+        self.assertIn("@bob", html)
         self.assertIn("OWASP-BLT/BLT#42", html)
+
+    def test_active_assignments_shows_time_ago(self):
+        """Active assignments card shows a 'Assigned X time ago' line."""
+        import time as _time
+        ts = int(_time.time()) - 3600  # 1 hour ago
+        assignments = [
+            {"org": "OWASP-BLT", "mentor_login": "alice", "mentee_login": "", "issue_repo": "BLT", "issue_number": 1, "assigned_at": ts},
+        ]
+        html = _worker._index_html([], active_assignments=assignments)
+        self.assertIn("Assigned", html)
+        self.assertIn("hour", html)
+
+    def test_active_assignments_shows_comment_points(self):
+        """Comment points badge is rendered for mentor and mentee."""
+        assignments = [
+            {"org": "OWASP-BLT", "mentor_login": "alice", "mentee_login": "bob", "issue_repo": "BLT", "issue_number": 1, "assigned_at": 1700000000},
+        ]
+        comment_stats = {"alice": 12, "bob": 5}
+        html = _worker._index_html([], active_assignments=assignments, assignment_comment_stats=comment_stats)
+        self.assertIn("12 pts", html)
+        self.assertIn("5 pts", html)
+
+    def test_active_assignments_no_mentee_hides_mentee_block(self):
+        """When mentee_login is empty no mentee section is rendered."""
+        assignments = [
+            {"org": "OWASP-BLT", "mentor_login": "alice", "mentee_login": "", "issue_repo": "BLT", "issue_number": 1, "assigned_at": 1700000000},
+        ]
+        html = _worker._index_html([], active_assignments=assignments)
+        self.assertIn("@alice", html)
+        # No second avatar/link for a mentee username
+        self.assertNotIn("Mentee", html)
 
     def test_active_assignments_section_hidden_when_empty(self):
         """Active assignments section is hidden when no assignments exist."""
@@ -4687,7 +4719,7 @@ class TestIndexHtml(unittest.TestCase):
     def test_active_assignments_xss_escaped(self):
         """HTML special characters in mentor_login/issue_repo are escaped."""
         assignments = [
-            {"org": "OWASP-BLT", "mentor_login": '<script>xss</script>', "issue_repo": "BLT", "issue_number": 1, "assigned_at": 0},
+            {"org": "OWASP-BLT", "mentor_login": '<script>xss</script>', "mentee_login": "", "issue_repo": "BLT", "issue_number": 1, "assigned_at": 0},
         ]
         html = _worker._index_html([], active_assignments=assignments)
         self.assertNotIn("<script>xss</script>", html)
@@ -4908,24 +4940,25 @@ class TestHandleAddMentor(unittest.TestCase):
         )
         return req
 
-    def _run_add(self, body: dict, db_raises=False):
+    def _run_add(self, body: dict, db_raises=False, gh_user_exists=True):
         req = self._make_post_request(body)
         env = types.SimpleNamespace()
         captured = {}
 
         async def _inner():
             mock_db = MagicMock()
-            with patch.object(_worker, "_d1_binding", return_value=mock_db):
-                with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
-                    if db_raises:
-                        with patch.object(_worker, "_d1_add_mentor", new=AsyncMock(side_effect=RuntimeError("db error"))):
-                            with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda *a: None, log=lambda *a: None)):
-                                resp = await _worker._handle_add_mentor(req, env)
-                    else:
-                        with patch.object(_worker, "_d1_add_mentor", new=AsyncMock()) as mock_add:
-                            with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda *a: None, log=lambda *a: None)):
-                                resp = await _worker._handle_add_mentor(req, env)
-                            captured["add_args"] = mock_add.call_args
+            with patch.object(_worker, "_verify_gh_user_exists", new=AsyncMock(return_value=gh_user_exists)):
+                with patch.object(_worker, "_d1_binding", return_value=mock_db):
+                    with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
+                        if db_raises:
+                            with patch.object(_worker, "_d1_add_mentor", new=AsyncMock(side_effect=RuntimeError("db error"))):
+                                with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda *a: None, log=lambda *a: None)):
+                                    resp = await _worker._handle_add_mentor(req, env)
+                        else:
+                            with patch.object(_worker, "_d1_add_mentor", new=AsyncMock()) as mock_add:
+                                with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda *a: None, log=lambda *a: None)):
+                                    resp = await _worker._handle_add_mentor(req, env)
+                                captured["add_args"] = mock_add.call_args
             return resp
 
         return _run(_inner()), captured
@@ -4960,6 +4993,128 @@ class TestHandleAddMentor(unittest.TestCase):
         import json as _json
         data = _json.loads(resp.body)
         self.assertEqual(data["github_username"], "janedoe")
+
+    # --- New strict-validation tests ---
+
+    def test_name_with_html_tag_returns_400(self):
+        """Display names containing HTML angle brackets must be rejected."""
+        resp, _ = self._run_add({"name": "<script>alert(1)</script>", "github_username": "janedoe"})
+        self.assertEqual(resp.status, 400)
+        import json as _json
+        data = _json.loads(resp.body)
+        self.assertIn("invalid characters", data["error"].lower())
+
+    def test_name_with_lt_char_returns_400(self):
+        resp, _ = self._run_add({"name": "Jane<Doe", "github_username": "janedoe"})
+        self.assertEqual(resp.status, 400)
+
+    def test_name_with_gt_char_returns_400(self):
+        resp, _ = self._run_add({"name": "Jane>Doe", "github_username": "janedoe"})
+        self.assertEqual(resp.status, 400)
+
+    def test_name_with_ampersand_returns_400(self):
+        resp, _ = self._run_add({"name": "Jane & Doe", "github_username": "janedoe"})
+        self.assertEqual(resp.status, 400)
+
+    def test_name_with_double_quote_returns_400(self):
+        resp, _ = self._run_add({"name": 'Jane "Doe"', "github_username": "janedoe"})
+        self.assertEqual(resp.status, 400)
+
+    def test_name_too_long_returns_400(self):
+        resp, _ = self._run_add({"name": "A" * 101, "github_username": "janedoe"})
+        self.assertEqual(resp.status, 400)
+
+    def test_name_exactly_100_chars_accepted(self):
+        resp, _ = self._run_add({"name": "A" * 100, "github_username": "janedoe"})
+        self.assertEqual(resp.status, 201)
+
+    def test_github_user_not_found_returns_400(self):
+        """Usernames that do not exist on GitHub must be rejected."""
+        resp, _ = self._run_add(
+            {"name": "Jane Doe", "github_username": "janedoe"},
+            gh_user_exists=False,
+        )
+        self.assertEqual(resp.status, 400)
+        import json as _json
+        data = _json.loads(resp.body)
+        self.assertIn("not found", data["error"].lower())
+
+    def test_timezone_with_html_returns_400(self):
+        resp, _ = self._run_add({"name": "Jane Doe", "github_username": "janedoe", "timezone": "<bad>"})
+        self.assertEqual(resp.status, 400)
+        import json as _json
+        data = _json.loads(resp.body)
+        self.assertIn("invalid characters", data["error"].lower())
+
+    def test_timezone_too_long_returns_400(self):
+        resp, _ = self._run_add({"name": "Jane Doe", "github_username": "janedoe", "timezone": "A" * 61})
+        self.assertEqual(resp.status, 400)
+
+    def test_valid_timezone_accepted(self):
+        resp, _ = self._run_add({"name": "Jane Doe", "github_username": "janedoe", "timezone": "UTC+5:30"})
+        self.assertEqual(resp.status, 201)
+
+    def test_referred_by_not_found_returns_400(self):
+        """A referred_by username that does not exist on GitHub must be rejected."""
+        req = self._make_post_request({"name": "Jane Doe", "github_username": "janedoe", "referred_by": "ghostuser"})
+        env = types.SimpleNamespace()
+
+        async def _inner():
+            mock_db = MagicMock()
+            # github_username exists but referrer does not.
+            async def _fake_verify(username, env=None):
+                return username == "janedoe"
+            with patch.object(_worker, "_verify_gh_user_exists", new=_fake_verify):
+                with patch.object(_worker, "_d1_binding", return_value=mock_db):
+                    with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
+                        with patch.object(_worker, "_d1_add_mentor", new=AsyncMock()):
+                            with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda *a: None, log=lambda *a: None)):
+                                return await _worker._handle_add_mentor(req, env)
+
+        resp = _run(_inner())
+        self.assertEqual(resp.status, 400)
+        import json as _json
+        data = _json.loads(resp.body)
+        self.assertIn("not found", data["error"].lower())
+
+    def test_invalid_referred_by_format_returns_400(self):
+        resp, _ = self._run_add({"name": "Jane Doe", "github_username": "janedoe", "referred_by": "bad user!"})
+        self.assertEqual(resp.status, 400)
+
+
+class TestTimeAgo(unittest.TestCase):
+    """Tests for _time_ago helper function."""
+
+    def _ago(self, seconds):
+        import time as _time
+        return _worker._time_ago(int(_time.time()) - seconds)
+
+    def test_just_now(self):
+        self.assertEqual(self._ago(0), "just now")
+
+    def test_minutes(self):
+        result = self._ago(120)
+        self.assertIn("2 minute", result)
+
+    def test_one_minute(self):
+        result = self._ago(90)
+        self.assertIn("1 minute", result)
+
+    def test_hours(self):
+        result = self._ago(7200)
+        self.assertIn("2 hour", result)
+
+    def test_days(self):
+        result = self._ago(172800)
+        self.assertIn("2 day", result)
+
+    def test_months(self):
+        result = self._ago(86400 * 60)
+        self.assertIn("month", result)
+
+    def test_years(self):
+        result = self._ago(86400 * 400)
+        self.assertIn("year", result)
 
 
 if __name__ == "__main__":
