@@ -4360,7 +4360,7 @@ async def handle_webhook(request, env) -> Response:
     item_number = issue_number or pr_number or ""
 
     signature = request.headers.get("X-Hub-Signature-256") or ""
-    secret = getattr(env, "WEBHOOK_SECRET", "")
+    secret = (getattr(env, "WEBHOOK_SECRET", "") or "").strip()
     if not secret:
         console.error(
             "[BLT][webhook] "
@@ -4574,9 +4574,9 @@ def _webhook_security_status(env) -> dict:
     Webhook processing is secure-ready only when all auth-related secrets are
     present: ``APP_ID``, ``PRIVATE_KEY``, and ``WEBHOOK_SECRET``.
     """
-    app_id_set = bool(getattr(env, "APP_ID", "")) if env else False
-    private_key_set = bool(getattr(env, "PRIVATE_KEY", "")) if env else False
-    webhook_secret_set = bool(getattr(env, "WEBHOOK_SECRET", "")) if env else False
+    app_id_set = bool((getattr(env, "APP_ID", "") or "").strip()) if env else False
+    private_key_set = bool((getattr(env, "PRIVATE_KEY", "") or "").strip()) if env else False
+    webhook_secret_set = bool((getattr(env, "WEBHOOK_SECRET", "") or "").strip()) if env else False
 
     missing = []
     if not app_id_set:
