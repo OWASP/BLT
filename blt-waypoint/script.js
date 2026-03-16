@@ -40,7 +40,7 @@ let currentFilter = 'all';
 let currentLang   = '';
 let currentSearch = '';
 let currentLabel  = '';
-let currentView   = localStorage.getItem('blt-view') || (window.innerWidth < 768 ? 'card' : 'table');
+let currentView   = (window.innerWidth < 640) ? 'card' : (localStorage.getItem('blt-view') || 'table');
 let tableSortCol  = localStorage.getItem('blt-table-sort-col') || 'updated_at';
 let tableSortDir  = localStorage.getItem('blt-table-sort-dir') || 'desc';
 let allLabels     = [];
@@ -1169,6 +1169,33 @@ on('clear-label-btn', 'click', () => {
 });
 
 /* ------------------------------------------------------------------ */
-/*  BOOT                                                                */
+/*  RESIZING LOGIC                                                      */
 /* ------------------------------------------------------------------ */
+window.addEventListener('resize', () => {
+  const isMobile = window.innerWidth < 640;
+  const targetView = isMobile ? 'card' : 'table';
+
+  // Only auto-switch if the user hasn't explicitly set a preference in localStorage
+  // OR if we are moving into mobile and still in table view.
+  const savedView = localStorage.getItem('blt-view');
+  
+  if (!savedView) {
+    if (currentView !== targetView) {
+      currentView = targetView;
+      updateViewButtons();
+      applyFilters();
+    }
+  } else if (isMobile && currentView === 'table') {
+    // Force card on mobile even if they chose table on desktop (as per user request)
+    currentView = 'card';
+    updateViewButtons();
+    applyFilters();
+  } else if (!isMobile && savedView === 'table' && currentView === 'card') {
+    // Restore table on desktop if that was their preference
+    currentView = 'table';
+    updateViewButtons();
+    applyFilters();
+  }
+});
+
 loadRepos();
