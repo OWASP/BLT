@@ -19,7 +19,7 @@
 | displaytext | 2 |
 | headerimage | 3 |
 | lang | 1 |
-| layout | 1082 |
+| layout | 1083 |
 | leaders | 1 |
 | level | 692 |
 | maintenance | 2 |
@@ -43,7 +43,7 @@
 | tabtext | 1 |
 | tag | 1 |
 | tags | 1021 |
-| title | 1082 |
+| title | 1083 |
 | type | 423 |
 | url | 4 |
 | video1 | 1 |
