@@ -2865,6 +2865,83 @@ class TestBackfillReviewCredits(unittest.TestCase):
 # ---------------------------------------------------------------------------
 
 
+class TestWebhookSecurityGuards(unittest.TestCase):
+    """Webhook auth fail-closed and health guard tests."""
+
+    def _make_webhook_request(self, body="{}", headers=None):
+        req_headers = _HeadersStub(headers or {})
+        return types.SimpleNamespace(
+            method="POST",
+            url="https://example.com/api/github/webhooks",
+            headers=req_headers,
+            text=AsyncMock(return_value=body),
+        )
+
+    def _make_health_request(self):
+        return types.SimpleNamespace(
+            method="GET",
+            url="https://example.com/health",
+            headers=_HeadersStub({}),
+            text=AsyncMock(return_value=""),
+        )
+
+    def test_webhook_rejects_when_secret_missing(self):
+        """Webhook endpoint should fail closed when WEBHOOK_SECRET is not configured."""
+        async def _inner():
+            req = self._make_webhook_request(
+                body=json.dumps({"action": "opened", "repository": {"full_name": "OWASP-BLT/BLT-GitHub-App"}}),
+                headers={
+                    "X-GitHub-Event": "issues",
+                    "X-GitHub-Delivery": "delivery-1",
+                },
+            )
+            env = types.SimpleNamespace(APP_ID="123", PRIVATE_KEY="pem")
+
+            with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None)):
+                resp = await _worker.handle_webhook(req, env)
+
+            self.assertEqual(resp.status, 503)
+            payload = json.loads(resp.body)
+            self.assertEqual(payload.get("code"), "webhook_secret_missing")
+
+        _run(_inner())
+
+    def test_health_reports_degraded_when_webhook_secret_missing(self):
+        """/health should expose degraded status when webhook security config is incomplete."""
+        async def _inner():
+            req = self._make_health_request()
+            env = types.SimpleNamespace(APP_ID="123", PRIVATE_KEY="pem")
+
+            with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None)):
+                resp = await _worker.on_fetch(req, env)
+
+            self.assertEqual(resp.status, 200)
+            payload = json.loads(resp.body)
+            self.assertEqual(payload.get("status"), "degraded")
+            checks = payload.get("checks", {}).get("webhook_security", {}).get("checks", {})
+            self.assertTrue(checks.get("app_id_configured"))
+            self.assertTrue(checks.get("private_key_configured"))
+            self.assertFalse(checks.get("webhook_secret_configured"))
+
+        _run(_inner())
+
+    def test_health_reports_ok_when_webhook_security_ready(self):
+        """/health should report ok when webhook security config is fully present."""
+        async def _inner():
+            req = self._make_health_request()
+            env = types.SimpleNamespace(APP_ID="123", PRIVATE_KEY="pem", WEBHOOK_SECRET="secret")
+
+            with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None)):
+                resp = await _worker.on_fetch(req, env)
+
+            self.assertEqual(resp.status, 200)
+            payload = json.loads(resp.body)
+            self.assertEqual(payload.get("status"), "ok")
+            self.assertTrue(payload.get("checks", {}).get("webhook_security", {}).get("ready"))
+
+        _run(_inner())
+
+
 class TestAdminResetLeaderboard(unittest.TestCase):
     """Test the POST /admin/reset-leaderboard-month endpoint."""
 

@@ -4361,7 +4361,22 @@ async def handle_webhook(request, env) -> Response:
 
     signature = request.headers.get("X-Hub-Signature-256") or ""
     secret = getattr(env, "WEBHOOK_SECRET", "")
-    if secret and not verify_signature(payload_bytes, signature, secret):
+    if not secret:
+        console.error(
+            "[BLT][webhook] "
+            f"delivery={delivery_id or '-'} event={event or '-'} action={action or '-'} "
+            f"repo={repo_full_name or '-'} sender={sender_login or '-'} item={item_number or '-'} "
+            f"installation={installation_id or '-'} method={request.method} "
+            "status=rejected_missing_webhook_secret"
+        )
+        return _json(
+            {
+                "error": "Webhook authentication is not configured (missing WEBHOOK_SECRET)",
+                "code": "webhook_secret_missing",
+            },
+            503,
+        )
+    if not verify_signature(payload_bytes, signature, secret):
         console.log(
             "[BLT][webhook] "
             f"delivery={delivery_id or '-'} event={event or '-'} action={action or '-'} "
@@ -4551,6 +4566,35 @@ def _landing_html(app_slug: str, env=None) -> str:
 
 def _callback_html() -> str:
     return _CALLBACK_HTML
+
+
+def _webhook_security_status(env) -> dict:
+    """Return webhook security readiness and per-secret config checks.
+
+    Webhook processing is secure-ready only when all auth-related secrets are
+    present: ``APP_ID``, ``PRIVATE_KEY``, and ``WEBHOOK_SECRET``.
+    """
+    app_id_set = bool(getattr(env, "APP_ID", "")) if env else False
+    private_key_set = bool(getattr(env, "PRIVATE_KEY", "")) if env else False
+    webhook_secret_set = bool(getattr(env, "WEBHOOK_SECRET", "")) if env else False
+
+    missing = []
+    if not app_id_set:
+        missing.append("APP_ID")
+    if not private_key_set:
+        missing.append("PRIVATE_KEY")
+    if not webhook_secret_set:
+        missing.append("WEBHOOK_SECRET")
+
+    return {
+        "ready": app_id_set and private_key_set and webhook_secret_set,
+        "checks": {
+            "app_id_configured": app_id_set,
+            "private_key_configured": private_key_set,
+            "webhook_secret_configured": webhook_secret_set,
+        },
+        "missing": missing,
+    }
 
 
 def _generate_mentor_row(mentor: dict, stats: Optional[dict] = None) -> str:
@@ -5482,7 +5526,16 @@ async def on_fetch(request, env) -> Response:
         return _html(_github_app_html(app_slug, env))
 
     if method == "GET" and path == "/health":
-        return _json({"status": "ok", "service": "BLT-Pool"})
+        webhook_security = _webhook_security_status(env)
+        return _json(
+            {
+                "status": "ok" if webhook_security["ready"] else "degraded",
+                "service": "BLT-Pool",
+                "checks": {
+                    "webhook_security": webhook_security,
+                },
+            }
+        )
 
     if method == "POST" and path == "/api/mentors":
         return await _handle_add_mentor(request, env)
