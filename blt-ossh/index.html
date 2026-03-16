@@ -221,6 +221,12 @@
           </button>
         </form>
 
+        <!-- Loading indicator: shown while GitHub API data (repos, events) is being fetched. Hidden by default. -->
+        <div id="loading" style="display: none;" class="mt-6 p-4 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-center">
+          <div class="loading-spinner mx-auto mb-3"></div>
+          <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Loading repositories...</p>
+        </div>
+
         <!-- Error Message -->
         <div id="error-message" class="hidden mt-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl">
           <div class="flex items-start">
@@ -256,6 +262,16 @@
                   <span id="user-following" class="font-semibold">0</span> following
                 </div>
               </div>
+              <a
+                id="github-profile-link"
+                href="#"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-flex items-center gap-2 mt-4 text-red-600 dark:text-red-400 font-semibold hover:underline"
+              >
+                <i class="fab fa-github"></i>
+                <span>View GitHub profile</span>
+              </a>
               <div id="user-languages" class="flex flex-wrap gap-2 mt-4"></div>
             </div>
           </div>
@@ -461,6 +477,7 @@
     const submitBtn = document.getElementById('submit-btn');
     const btnText = document.getElementById('btn-text');
     const loadingSpinner = document.getElementById('loading-spinner');
+    const loadingIndicator = document.getElementById('loading');
     const errorMessage = document.getElementById('error-message');
     const errorText = document.getElementById('error-text');
     const usernameInput = document.getElementById('github-username');
@@ -488,6 +505,7 @@
       submitBtn.disabled = true;
       btnText.textContent = 'Analyzing...';
       loadingSpinner.classList.remove('hidden');
+      if (loadingIndicator) loadingIndicator.style.display = 'block';
 
       try {
         // Fetch user profile from GitHub API
@@ -527,6 +545,7 @@
         submitBtn.disabled = false;
         btnText.textContent = 'Find My Projects';
         loadingSpinner.classList.add('hidden');
+        if (loadingIndicator) loadingIndicator.style.display = 'none';
       }
     });
 
@@ -749,8 +768,17 @@
         channelsContainer.appendChild(channelCard);
       });
 
-      // Update GitHub profile link
-      document.getElementById('view-github-profile').href = `https://github.com/${encodeURIComponent(githubStats.username)}`;
+      // Update GitHub profile links
+      const profileLink = document.getElementById('github-profile-link');
+      if (profileLink) {
+        profileLink.href = `https://github.com/${encodeURIComponent(githubStats.username)}`;
+        const span = profileLink.querySelector('span');
+        if (span) span.textContent = `View ${githubStats.username}'s GitHub profile`;
+      }
+      const viewProfileBtn = document.getElementById('view-github-profile');
+      if (viewProfileBtn) {
+        viewProfileBtn.href = `https://github.com/${encodeURIComponent(githubStats.username)}`;
+      }
 
       // Setup create profile button
       setupCreateProfileButton(data);

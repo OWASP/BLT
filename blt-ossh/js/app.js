@@ -43,10 +43,12 @@ form.addEventListener('submit', async (e) => {
     // Reset error state
     hideError();
 
-    // Show loading state
+    // Show loading state: disables form and displays "Loading repositories..." while fetching.
     submitBtn.disabled = true;
     btnText.textContent = 'Analyzing...';
     loadingSpinner.classList.remove('hidden');
+    const loadingEl = document.getElementById('loading');
+    if (loadingEl) loadingEl.style.display = 'block';
 
     try {
         // Fetch user profile from GitHub API
@@ -76,18 +78,17 @@ form.addEventListener('submit', async (e) => {
 
         // Build and display results
         const data = buildRecommendations(userData, reposData);
-        console.log("user recommendation ", data);
-
         displayResults(data);
 
     } catch (error) {
         console.error('Error:', error);
         showError(error.message || 'Failed to analyze GitHub profile. Please try again.');
     } finally {
-        // Reset button state
+        // Reset button state and hide loading indicator (on success or error)
         submitBtn.disabled = false;
         btnText.textContent = 'Find My Projects';
         loadingSpinner.classList.add('hidden');
+        if (loadingEl) loadingEl.style.display = 'none';
     }
 });
 
@@ -200,8 +201,6 @@ function hideError() {
 }
 
 function displayResults(data) {
-    console.log("result", JSON.stringify(data));
-
     const resultsSection = document.getElementById('results-section');
     const githubStats = data.github_stats;
 
@@ -312,8 +311,19 @@ function displayResults(data) {
         channelsContainer.appendChild(channelCard);
     });
 
-    // Update GitHub profile link
-    document.getElementById('view-github-profile').href = `https://github.com/${encodeURIComponent(githubStats.username)}`;
+    // Update GitHub profile link (in stats area)
+    const profileLink = document.getElementById('github-profile-link');
+    if (profileLink) {
+        profileLink.href = `https://github.com/${encodeURIComponent(githubStats.username)}`;
+        const span = profileLink.querySelector('span');
+        if (span) span.textContent = `View ${githubStats.username}'s GitHub profile`;
+    }
+
+    // Update GitHub profile link (in button row)
+    const viewProfileBtn = document.getElementById('view-github-profile');
+    if (viewProfileBtn) {
+        viewProfileBtn.href = `https://github.com/${encodeURIComponent(githubStats.username)}`;
+    }
 
     // Show results section and scroll to it
     resultsSection.classList.remove('hidden');
