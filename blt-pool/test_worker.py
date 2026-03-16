@@ -5230,7 +5230,7 @@ class TestHandleAddMentor(unittest.TestCase):
         )
         return req
 
-    def _run_add(self, body: dict, db_raises=False, gh_user_exists=True):
+    def _run_add(self, body: dict, db_raises=False, gh_user_exists=True, existing_mentor=False):
         req = self._make_post_request(body)
         env = types.SimpleNamespace()
         captured = {}
@@ -5240,15 +5240,16 @@ class TestHandleAddMentor(unittest.TestCase):
             with patch.object(_worker, "_verify_gh_user_exists", new=AsyncMock(return_value=gh_user_exists)):
                 with patch.object(_worker, "_d1_binding", return_value=mock_db):
                     with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
-                        if db_raises:
-                            with patch.object(_worker, "_d1_add_mentor", new=AsyncMock(side_effect=RuntimeError("db error"))):
-                                with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda *a: None, log=lambda *a: None)):
-                                    resp = await _worker._handle_add_mentor(req, env)
-                        else:
-                            with patch.object(_worker, "_d1_add_mentor", new=AsyncMock()) as mock_add:
-                                with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda *a: None, log=lambda *a: None)):
-                                    resp = await _worker._handle_add_mentor(req, env)
-                                captured["add_args"] = mock_add.call_args
+                        with patch.object(_worker, "_d1_all", new=AsyncMock(return_value=[{"github_username": body.get("github_username")}] if existing_mentor else [])):
+                            if db_raises:
+                                with patch.object(_worker, "_d1_add_mentor", new=AsyncMock(side_effect=RuntimeError("db error"))):
+                                    with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda *a: None, log=lambda *a: None)):
+                                        resp = await _worker._handle_add_mentor(req, env)
+                            else:
+                                with patch.object(_worker, "_d1_add_mentor", new=AsyncMock()) as mock_add:
+                                    with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda *a: None, log=lambda *a: None)):
+                                        resp = await _worker._handle_add_mentor(req, env)
+                                    captured["add_args"] = mock_add.call_args
             return resp
 
         return _run(_inner()), captured
@@ -5276,6 +5277,13 @@ class TestHandleAddMentor(unittest.TestCase):
     def test_db_error_returns_500(self):
         resp, _ = self._run_add({"name": "Jane", "github_username": "jane"}, db_raises=True)
         self.assertEqual(resp.status, 500)
+
+    def test_duplicate_mentor_returns_409(self):
+        resp, _ = self._run_add({"name": "Jane", "github_username": "jane"}, existing_mentor=True)
+        self.assertEqual(resp.status, 409)
+        import json as _json
+        data = _json.loads(resp.body)
+        self.assertIn("already in the mentor pool", data["error"])
 
     def test_strips_at_prefix_from_username(self):
         resp, captured = self._run_add({"name": "Jane Doe", "github_username": "@janedoe"})

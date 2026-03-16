@@ -5438,6 +5438,18 @@ async def _handle_add_mentor(request, env) -> "Response":
     )
 
     try:
+        existing = await _d1_all(
+            db,
+            "SELECT github_username FROM mentors WHERE github_username = ?",
+            (github_username,),
+        )
+        if existing:
+            return _json({"error": f"GitHub user '{github_username}' is already in the mentor pool"}, 409)
+    except Exception as exc:
+        console.error(f"[MentorPool] Failed to check duplicate mentor {github_username}: {exc}")
+        return _json({"error": "Failed to validate mentor. Please try again later."}, 500)
+
+    try:
         await _ensure_leaderboard_schema(db)
         await _d1_add_mentor(
             db,
