@@ -725,10 +725,10 @@
       };
 
       // Key change: recommendations come from curated catalog, not the user's own repos
-      const recommended_repos = recommendGeneric(catalog.repos, userTags, languageWeights, { topN: 12, usesLanguage: true });
-      const recommended_communities = recommendGeneric(catalog.communities, userTags, languageWeights, { topN: 12, usesLanguage: true });
-      const recommended_discussion_channels = recommendGeneric(catalog.discussion_channels, userTags, languageWeights, { topN: 24, usesLanguage: false });
-      const recommended_articles = recommendGeneric(catalog.articles, userTags, languageWeights, { topN: 12, usesLanguage: false });
+      const recommended_repos = recommendGeneric(catalog.repos, userTags, languageWeights, { topN: 6, usesLanguage: true });
+      const recommended_communities = recommendGeneric(catalog.communities, userTags, languageWeights, { topN: 6, usesLanguage: true });
+      const recommended_discussion_channels = recommendGeneric(catalog.discussion_channels, userTags, languageWeights, { topN: 6, usesLanguage: false });
+      const recommended_articles = recommendGeneric(catalog.articles, userTags, languageWeights, { topN: 8, usesLanguage: false });
 
       return {
         github_stats,
