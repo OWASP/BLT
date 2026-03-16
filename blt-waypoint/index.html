@@ -289,6 +289,22 @@
         <!-- Set initial view immediately to avoid skeleton flash -->
         <script>
           (function () {
+            /*
+             * INTENTIONAL DUPLICATION: This view-determination logic mirrors
+             * the initialisation in script.js (currentView variable).
+             *
+             * It runs inline, before script.js is loaded, so the correct
+             * skeleton (grid vs table) is shown immediately — preventing a
+             * visible flash of the wrong layout.
+             *
+             * Key identifiers kept in sync with script.js:
+             *   localStorage key : 'blt-view'
+             *   DOM IDs          : 'repo-grid', 'repo-table',
+             *                      'main-sidebar', 'main-layout'
+             *   Header selector  : document.querySelector('header')
+             *
+             * If you change the view logic in script.js, update this block too.
+             */
             const isMobile = window.innerWidth < 640;
             const savedView = localStorage.getItem('blt-view');
             // On mobile, always default to card — ignore any desktop-saved table preference

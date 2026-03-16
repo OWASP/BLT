@@ -1171,31 +1171,35 @@ on('clear-label-btn', 'click', () => {
 /* ------------------------------------------------------------------ */
 /*  RESIZING LOGIC                                                      */
 /* ------------------------------------------------------------------ */
+let resizeTimeout;
 window.addEventListener('resize', () => {
-  const isMobile = window.innerWidth < 640;
-  const targetView = isMobile ? 'card' : 'table';
+  clearTimeout(resizeTimeout);
+  resizeTimeout = setTimeout(() => {
+    const isMobile = window.innerWidth < 640;
+    const targetView = isMobile ? 'card' : 'table';
 
-  // Only auto-switch if the user hasn't explicitly set a preference in localStorage
-  // OR if we are moving into mobile and still in table view.
-  const savedView = localStorage.getItem('blt-view');
-  
-  if (!savedView) {
-    if (currentView !== targetView) {
-      currentView = targetView;
+    // Only auto-switch if the user hasn't explicitly set a preference in localStorage
+    // OR if we are moving into mobile and still in table view.
+    const savedView = localStorage.getItem('blt-view');
+    
+    if (!savedView) {
+      if (currentView !== targetView) {
+        currentView = targetView;
+        updateViewButtons();
+        applyFilters();
+      }
+    } else if (isMobile && currentView === 'table') {
+      // Force card on mobile even if they chose table on desktop (as per user request)
+      currentView = 'card';
+      updateViewButtons();
+      applyFilters();
+    } else if (!isMobile && savedView === 'table' && currentView === 'card') {
+      // Restore table on desktop if that was their preference
+      currentView = 'table';
       updateViewButtons();
       applyFilters();
     }
-  } else if (isMobile && currentView === 'table') {
-    // Force card on mobile even if they chose table on desktop (as per user request)
-    currentView = 'card';
-    updateViewButtons();
-    applyFilters();
-  } else if (!isMobile && savedView === 'table' && currentView === 'card') {
-    // Restore table on desktop if that was their preference
-    currentView = 'table';
-    updateViewButtons();
-    applyFilters();
-  }
+  }, 150);
 });
 
 loadRepos();
