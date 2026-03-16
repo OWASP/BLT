@@ -581,7 +581,7 @@
 
     async function loadCatalog() {
       if (_catalogCache) return _catalogCache;
-      const resp = await fetch(CATALOG_URL, { cache: "no-store" });
+      const resp = await fetch(CATALOG_URL);
       if (!resp.ok) throw new Error(`Failed to load catalog (${resp.status})`);
       _catalogCache = await resp.json();
       return _catalogCache;
@@ -933,16 +933,12 @@
     (data.recommended_discussion_channels || []).forEach(row => {
       const channel = row?.item ? row.item : row;
 
-      // Update GitHub profile links
+      // Update GitHub profile links (once, outside the loop)
       const profileLink = document.getElementById('github-profile-link');
       if (profileLink) {
         profileLink.href = `https://github.com/${encodeURIComponent(githubStats.username)}`;
         const span = profileLink.querySelector('span');
         if (span) span.textContent = `View ${githubStats.username}'s GitHub profile`;
-      }
-      const viewProfileBtn = document.getElementById('view-github-profile');
-      if (viewProfileBtn) {
-        viewProfileBtn.href = `https://github.com/${encodeURIComponent(githubStats.username)}`;
       }
 
       // Setup create profile button
@@ -1024,22 +1020,22 @@
 
       // Build looking_for text based on recommendations
       const topLanguages = githubStats.languages.slice(0, 3).join(', ');
-      const lookingFor = `Looking to contribute to open source projects in ${topLanguages}. Interested in ${data.recommended_communities.map(c => c.name).join(', ')}.`;
+      const lookingFor = `Looking to contribute to open source projects in ${topLanguages}. Interested in ${data.recommended_communities.map(c => (c.item || c).name).join(', ')}.`;
 
       // Build recommended projects list
       const recommendedProjects = data.recommended_repos
         .slice(0, 5)
-        .map(r => `- [${r.name}](${r.url}) ⭐ ${r.stars} - ${r.description}`)
+        .map(r => { const repo = r.item || r; return `- [${repo.name}](${repo.url}) ⭐ ${repo.stars} - ${repo.description}`; })
         .join('\n');
 
       // Build recommended communities list
       const recommendedCommunities = data.recommended_communities
-        .map(c => `- [${c.name}](${c.url}) - ${c.description} (${c.members} members)`)
+        .map(c => { const comm = c.item || c; return `- [${comm.name}](${comm.url}) - ${comm.description} (${comm.members} members)`; })
         .join('\n');
 
       // Build recommended articles list
       const recommendedArticles = data.recommended_articles
-        .map(a => `- [${a.title}](${a.url}) - ${a.category}`)
+        .map(a => { const art = a.item || a; return `- [${art.title}](${art.url}) - ${art.category}`; })
         .join('\n');
 
       // Build issue body content with full analysis
