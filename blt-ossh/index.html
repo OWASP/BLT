@@ -932,17 +932,6 @@
 
     (data.recommended_discussion_channels || []).forEach(row => {
       const channel = row?.item ? row.item : row;
-
-      // Update GitHub profile links (once, outside the loop)
-      const profileLink = document.getElementById('github-profile-link');
-      if (profileLink) {
-        profileLink.href = `https://github.com/${encodeURIComponent(githubStats.username)}`;
-        const span = profileLink.querySelector('span');
-        if (span) span.textContent = `View ${githubStats.username}'s GitHub profile`;
-      }
-
-      // Setup create profile button
-      setupCreateProfileButton(data);
       const chName = channel.name || '';
       const chDesc = channel.description || '';
       const chSource = channel.source || channel.platform || '—';
@@ -971,6 +960,16 @@
       `;
       channelsContainer.appendChild(channelCard);
     });
+    // Update GitHub profile links (once, outside the loop)
+    const profileLink = document.getElementById('github-profile-link');
+    if (profileLink) {
+      profileLink.href = `https://github.com/${encodeURIComponent(githubStats.username)}`;
+      const span = profileLink.querySelector('span');
+      if (span) span.textContent = `View ${githubStats.username}'s GitHub profile`;
+    }
+
+    // Setup create profile button
+    setupCreateProfileButton(data);
 
     // Update GitHub profile link
     document.getElementById('view-github-profile').href =
