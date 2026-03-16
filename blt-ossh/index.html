@@ -649,7 +649,7 @@
       const topN = opts?.topN ?? 12;
       const usesLanguage = !!opts?.usesLanguage;
 
-      const out = [];
+      const out = new Map();
       for (const item of items || []) {
         const itemTags = (item.tags || []).map(normalizeTag);
         const tagScore = itemTags.reduce((sum, t) => sum + (tagWeight[t] || 0), 0);
@@ -672,16 +672,22 @@
         if (matchingTags.length) reasons.push(`Matching tags: ${matchingTags.join(", ")}`);
         if (matchingLanguages.length) reasons.push(`Matching language: ${matchingLanguages.join(", ")}`);
 
-        out.push({
+        const scored = {
           item,
           relevance_score: relevance,
           reasoning: reasons.join(" | ") || "No specific reason",
           matching_tags: matchingTags,
-        });
+        };
+        const key = item.html_url || item.url || item.invite_url || item.full_name || item.name;
+        const existing = out.get(key);
+        if (!existing || existing.relevance_score < scored.relevance_score) {
+          out.set(key, scored);
+        }
       }
 
-      out.sort((a, b) => b.relevance_score - a.relevance_score);
-      return out.slice(0, topN);
+      return [...out.values()]
+        .sort((a, b) => b.relevance_score - a.relevance_score)
+        .slice(0, topN);
     }
 
     async function buildRecommendations(userData, repos) {
@@ -721,7 +727,10 @@
         public_repos: userData.public_repos,
         followers: userData.followers,
         following: userData.following,
-        languages: Object.keys(languageWeights).slice(0, 10),
+        languages: Object.entries(languageWeights)
+          .sort(([, a], [, b]) => b - a)
+          .map(([lang]) => lang)
+          .slice(0, 10),
       };
 
       // Key change: recommendations come from curated catalog, not the user's own repos
@@ -818,6 +827,15 @@
     const reposContainer = document.getElementById('recommended-repos');
     reposContainer.innerHTML = '';
 
+    function sanitizeExternalUrl(rawUrl) {
+      try {
+        const url = new URL(rawUrl, window.location.origin);
+        return ['http:', 'https:'].includes(url.protocol) ? url.toString() : '#';
+      } catch {
+        return '#';
+      }
+    }
+
     (data.recommended_repos || []).forEach(row => {
       const repo = row?.item ? row.item : row; // support both shapes
 
@@ -840,7 +858,7 @@
         ${renderTagChips(repo.tags || row?.matching_tags)}
         ${renderScoreReason(row?.item ? row : null)}
 
-        <a href="${escapeHtml(repoUrl)}" target="_blank" rel="noopener noreferrer"
+        <a href="${escapeHtml(sanitizeExternalUrl(repoUrl))}" target="_blank" rel="noopener noreferrer"
           class="inline-flex items-center gap-2 text-red-600 dark:text-red-400 font-semibold text-sm hover:underline mt-4">
           <i class="fab fa-github"></i> View Repository
         </a>
