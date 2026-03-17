@@ -1968,7 +1968,7 @@ class TestTrackingOperations(unittest.TestCase):
         with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
             # Existing row says this PR was closed-unmerged, so new merged state
             # must remove old closed_prs credit and add merged_prs credit.
-            with patch.object(_worker, "_d1_first", new=AsyncMock(return_value={"state": "closed", "merged": 0, "closed_at": 1709596800})):
+            with patch.object(_worker, "_d1_first", new=AsyncMock(return_value={"author_login": "bob", "state": "closed", "merged": 0, "closed_at": 1709596800})):
                 with patch.object(_worker, "_d1_inc_monthly", new=AsyncMock()) as monthly_mock:
                     with patch.object(_worker, "_d1_inc_open_pr", new=AsyncMock()):
                         with patch.object(_worker, "_d1_run", new=AsyncMock()):
@@ -1981,6 +1981,8 @@ class TestTrackingOperations(unittest.TestCase):
         expected_new_mk = _worker._month_key(_worker._parse_github_timestamp("2026-03-10T10:00:00Z"))
         self.assertEqual(first[2], expected_prev_mk)
         self.assertEqual(second[2], expected_new_mk)
+        self.assertEqual(first[3], "bob")
+        self.assertEqual(second[3], "alice")
         self.assertEqual(first[4], "closed_prs")
         self.assertEqual(first[5], -1)
         self.assertEqual(second[4], "merged_prs")
@@ -2173,7 +2175,8 @@ class TestFetchLeaderboardDataReconciliation(unittest.TestCase):
                 stack.enter_context(patch.object(_worker, "_d1_all", new=AsyncMock(return_value=[])))
                 stack.enter_context(patch.object(_worker, "_d1_run", new=_capture_d1_run))
                 stack.enter_context(patch.object(_worker, "_month_key", new=MagicMock(return_value="2026-03")))
-                stack.enter_context(patch.object(_worker, "_month_window", new=MagicMock(return_value=(1709251200, 1711929599))))
+                # 2026-03-01T00:00:00Z .. 2026-03-31T23:59:59Z
+                stack.enter_context(patch.object(_worker, "_month_window", new=MagicMock(return_value=(1772323200, 1775001599))))
                 stack.enter_context(
                     patch.object(
                         _worker,
@@ -2195,7 +2198,7 @@ class TestFetchLeaderboardDataReconciliation(unittest.TestCase):
             self.assertIn("AND (", sql)
             self.assertIn("state = 'open'", sql)
             self.assertIn("closed_at BETWEEN", sql)
-            self.assertEqual(params, ("OWASP-BLT", 1709251200, 1711929599))
+            self.assertEqual(params, ("OWASP-BLT", 1772323200, 1775001599))
 
         _run(_inner())
 

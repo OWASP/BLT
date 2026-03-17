@@ -24,7 +24,6 @@ Environment variables / secrets (configure via ``wrangler.toml`` or
 
 import base64
 import calendar
-import asyncio
 import hashlib
 import hmac as _hmac
 import html as _html_mod
@@ -431,13 +430,25 @@ REVIEWER_LEADERBOARD_MARKER = "<!-- reviewer-leaderboard-bot -->"
 MERGED_PR_COMMENT_MARKER = "<!-- merged-pr-comment-bot -->"
 MAX_OPEN_PRS_PER_AUTHOR = 50
 LEADERBOARD_COMMENT_MARKER = LEADERBOARD_MARKER
-_RECONCILE_REPOS_PER_PAGE = 100
-_RECONCILE_PRS_PER_PAGE = 100
-_RECONCILE_MAX_CLOSED_PAGES_PER_REPO = 20
-_RECONCILE_MAX_OPEN_PAGES_PER_REPO = 20
 
-# In-process per-org lock to prevent overlapping reconcile runs in the same worker.
-_RECONCILE_ORG_LOCKS = {}
+
+def _env_int(name: str, default: int) -> int:
+    raw = os.getenv(name, str(default))
+    try:
+        value = int(raw)
+        if value <= 0:
+            return default
+        return value
+    except Exception:
+        return default
+
+
+_RECONCILE_REPOS_PER_PAGE = _env_int("RECONCILE_REPOS_PER_PAGE", 100)
+_RECONCILE_PRS_PER_PAGE = _env_int("RECONCILE_PRS_PER_PAGE", 100)
+_RECONCILE_MAX_CLOSED_PAGES_PER_REPO = _env_int("RECONCILE_MAX_CLOSED_PAGES_PER_REPO", 20)
+_RECONCILE_MAX_OPEN_PAGES_PER_REPO = _env_int("RECONCILE_MAX_OPEN_PAGES_PER_REPO", 20)
+_RECONCILE_LOCK_LEASE_SECONDS = _env_int("RECONCILE_LOCK_LEASE_SECONDS", 120)
+_RECONCILE_CONFIG_LOGGED = False
 
 
 def _month_key(ts: Optional[int] = None) -> str:
@@ -616,6 +627,17 @@ async def _ensure_leaderboard_schema(db) -> None:
             repo TEXT NOT NULL,
             updated_at INTEGER NOT NULL,
             PRIMARY KEY (org, month_key, repo)
+        )
+        """,
+    )
+    await _d1_run(
+        db,
+        """
+        CREATE TABLE IF NOT EXISTS leaderboard_reconcile_locks (
+            org TEXT NOT NULL PRIMARY KEY,
+            holder TEXT NOT NULL,
+            lock_until INTEGER NOT NULL,
+            updated_at INTEGER NOT NULL
         )
         """,
     )
@@ -1032,7 +1054,7 @@ async def _track_pr_closed_in_d1(payload: dict, env) -> None:
     await _ensure_leaderboard_schema(db)
     existing = await _d1_first(
         db,
-        "SELECT state, merged, closed_at FROM leaderboard_pr_state WHERE org = ? AND repo = ? AND pr_number = ?",
+        "SELECT author_login, state, merged, closed_at FROM leaderboard_pr_state WHERE org = ? AND repo = ? AND pr_number = ?",
         (org, repo, pr_number),
     )
 
@@ -1045,11 +1067,12 @@ async def _track_pr_closed_in_d1(payload: dict, env) -> None:
     # If this PR is already tracked as closed but with a different state/timestamp,
     # reverse the previous monthly credit before applying the new one.
     if existing and existing.get("state") == "closed":
+        existing_author_login = existing.get("author_login") or author_login
         prev_merged = int(existing.get("merged") or 0)
         prev_closed_at = int(existing.get("closed_at") or 0)
         prev_mk = _month_key(prev_closed_at) if prev_closed_at else _month_key()
         prev_field = "merged_prs" if prev_merged else "closed_prs"
-        await _d1_inc_monthly(db, org, prev_mk, author_login, prev_field, -1)
+        await _d1_inc_monthly(db, org, prev_mk, existing_author_login, prev_field, -1)
 
     if existing and existing.get("state") == "open":
         await _d1_inc_open_pr(db, org, author_login, -1)
@@ -1302,12 +1325,65 @@ def _is_ts_in_month(ts: int, start_ts: int, end_ts: int) -> bool:
     return bool(ts and start_ts <= ts <= end_ts)
 
 
-def _get_reconcile_lock(org: str):
-    lock = _RECONCILE_ORG_LOCKS.get(org)
-    if lock is None:
-        lock = asyncio.Lock()
-        _RECONCILE_ORG_LOCKS[org] = lock
-    return lock
+def _reconcile_lock_holder(org: str) -> str:
+    return f"{org}:{int(time.time() * 1000)}:{id(org)}"
+
+
+def _log_reconcile_config_once() -> None:
+    global _RECONCILE_CONFIG_LOGGED
+    if _RECONCILE_CONFIG_LOGGED:
+        return
+    _RECONCILE_CONFIG_LOGGED = True
+    console.log(
+        "[LeaderboardReconcile] Config "
+        f"repos_per_page={_RECONCILE_REPOS_PER_PAGE} "
+        f"prs_per_page={_RECONCILE_PRS_PER_PAGE} "
+        f"max_closed_pages={_RECONCILE_MAX_CLOSED_PAGES_PER_REPO} "
+        f"max_open_pages={_RECONCILE_MAX_OPEN_PAGES_PER_REPO} "
+        f"lock_lease_s={_RECONCILE_LOCK_LEASE_SECONDS}"
+    )
+
+
+async def _acquire_reconcile_lock(db, org: str, holder: str, lease_seconds: int) -> bool:
+    now_ts = int(time.time())
+    lock_until = now_ts + max(1, lease_seconds)
+    try:
+        result = await _d1_run(
+            db,
+            """
+            INSERT INTO leaderboard_reconcile_locks (org, holder, lock_until, updated_at)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(org) DO UPDATE SET
+                holder = excluded.holder,
+                lock_until = excluded.lock_until,
+                updated_at = excluded.updated_at
+            WHERE leaderboard_reconcile_locks.lock_until < ?
+               OR leaderboard_reconcile_locks.holder = ?
+            """,
+            (org, holder, lock_until, now_ts, now_ts, holder),
+        )
+        meta = (result or {}).get("meta") if isinstance(result, dict) else None
+        if isinstance(meta, dict):
+            changes = int(meta.get("changes") or 0)
+            if changes <= 0:
+                return False
+        elif result is None:
+            return False
+        return True
+    except Exception as exc:
+        console.error(f"[LeaderboardReconcile] Failed to acquire lock for {org}: {exc}")
+        return False
+
+
+async def _release_reconcile_lock(db, org: str, holder: str) -> None:
+    try:
+        await _d1_run(
+            db,
+            "DELETE FROM leaderboard_reconcile_locks WHERE org = ? AND holder = ?",
+            (org, holder),
+        )
+    except Exception as exc:
+        console.error(f"[LeaderboardReconcile] Failed to release lock for {org}: {exc}")
 
 
 async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env) -> bool:
@@ -1322,9 +1398,16 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env) ->
     if not db:
         return False
 
-    lock = _get_reconcile_lock(owner)
-    async with lock:
-        await _ensure_leaderboard_schema(db)
+    _log_reconcile_config_once()
+    holder = _reconcile_lock_holder(owner)
+
+    await _ensure_leaderboard_schema(db)
+    acquired = await _acquire_reconcile_lock(db, owner, holder, _RECONCILE_LOCK_LEASE_SECONDS)
+    if not acquired:
+        console.log(f"[LeaderboardReconcile] Lock busy for org={owner}; skipping reconcile")
+        return False
+
+    try:
         month_key = _month_key()
         start_ts, end_ts = _month_window(month_key)
         now_ts = int(time.time())
@@ -1588,6 +1671,8 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env) ->
             f"[LeaderboardReconcile] Completed org={owner} month={month_key} users={len(all_logins)} repos_scanned_page_end={repo_page}"
         )
         return True
+    finally:
+        await _release_reconcile_lock(db, owner, holder)
 
 
 async def _get_backfill_state(db, owner: str, month_key: str) -> dict:
