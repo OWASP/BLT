@@ -3,6 +3,8 @@ import os
 import hmac
 import hashlib
 import yaml
+import hmac
+import hashlib
 from flask import Flask, jsonify, request
 from dotenv import load_dotenv
 
@@ -12,15 +14,19 @@ load_dotenv()
 app = Flask(__name__)
 
 
-# ── Webhook signature verification ───────────────────────────────────────────
-
 def verify_webhook_signature(req):
     """Verify the HMAC-SHA256 webhook signature from the X-Signature-256 header.
+
+    The caller must send:
+        X-Signature-256: sha256=<hex_digest>
+
+    where hex_digest = HMAC-SHA256(WEBHOOK_SECRET, raw_request_body).
 
     Returns True if the signature is valid, False otherwise.
     """
     secret = os.getenv("WEBHOOK_SECRET")
     if not secret:
+        # If no secret is configured, reject all requests for safety.
         return False
 
     signature_header = req.headers.get("X-Signature-256", "")
@@ -28,6 +34,7 @@ def verify_webhook_signature(req):
         return False
 
     expected_sig = signature_header[len("sha256="):]
+    # Require a 64-character hex-encoded SHA-256 digest to keep comparison timing-safe.
     if len(expected_sig) != 64:
         return False
     try:
@@ -43,8 +50,7 @@ def verify_webhook_signature(req):
 
     return hmac.compare_digest(expected_sig_bytes, computed_sig)
 
-
-# ── Environment variables ─────────────────────────────────────────────────────
+# Environment Variables
 ORD_PATH = os.getenv("ORD_PATH", "/usr/local/bin/ord")
 YAML_FILE_PATH = os.getenv("YAML_FILE_PATH", "/blockchain/ord-flask-server/tmp-batch.yaml")
 
