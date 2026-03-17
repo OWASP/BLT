@@ -2059,6 +2059,107 @@ class TestFetchLeaderboardDataReconciliation(unittest.TestCase):
 
         _run(_inner())
 
+    def test_reconcile_fails_when_closed_page_cap_reached_in_window(self):
+        """Reconcile should fail (not silently undercount) when closed page cap is hit in-window."""
+
+        async def _inner():
+            env = types.SimpleNamespace(LEADERBOARD_DB=object())
+            max_pages = _worker._RECONCILE_MAX_CLOSED_PAGES_PER_REPO
+            per_page = _worker._RECONCILE_PRS_PER_PAGE
+
+            async def _mock_api(method, path, token, body=None):
+                if path.startswith("/orgs/OWASP-BLT/repos"):
+                    if "page=1" in path:
+                        return types.SimpleNamespace(
+                            status=200,
+                            text=AsyncMock(return_value=json.dumps([{"name": "BLT-Pool"}])),
+                        )
+                    return types.SimpleNamespace(status=200, text=AsyncMock(return_value="[]"))
+
+                if "/pulls?state=open" in path:
+                    return types.SimpleNamespace(status=200, text=AsyncMock(return_value="[]"))
+
+                if "/pulls?state=closed" in path:
+                    # Return full pages with updated_at in-window so pagination would
+                    # need to continue beyond cap, which must now fail safely.
+                    payload = [
+                        {
+                            "number": i + 1,
+                            "user": {"login": "alice", "type": "User"},
+                            "merged_at": None,
+                            "closed_at": None,
+                            "updated_at": "2026-03-15T12:00:00Z",
+                        }
+                        for i in range(per_page)
+                    ]
+                    return types.SimpleNamespace(
+                        status=200,
+                        text=AsyncMock(return_value=json.dumps(payload)),
+                    )
+
+                return types.SimpleNamespace(status=404, text=AsyncMock(return_value="{}"))
+
+            with patch.object(_worker, "github_api", new=_mock_api):
+                with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
+                    with patch.object(_worker, "_d1_all", new=AsyncMock(return_value=[])):
+                        with patch.object(_worker, "_d1_run", new=AsyncMock()):
+                            with patch.object(_worker, "_month_key", new=MagicMock(return_value="2026-03")):
+                                with patch.object(_worker, "_month_window", new=MagicMock(return_value=(1709251200, 1711929599))):
+                                    with patch.object(_worker, "console", new=types.SimpleNamespace(log=lambda *a: None, error=lambda *a: None)):
+                                        result = await _worker._reconcile_org_leaderboard_from_github("OWASP-BLT", "tok", env)
+
+            self.assertFalse(result)
+
+        _run(_inner())
+
+    def test_reconcile_scopes_pr_state_delete_to_open_and_current_month(self):
+        """Reconcile should not delete historical closed PR rows outside current month."""
+
+        async def _inner():
+            env = types.SimpleNamespace(LEADERBOARD_DB=object())
+            captured = []
+
+            async def _mock_api(method, path, token, body=None):
+                if path.startswith("/orgs/OWASP-BLT/repos"):
+                    if "page=1" in path:
+                        return types.SimpleNamespace(
+                            status=200,
+                            text=AsyncMock(return_value=json.dumps([{"name": "BLT-Pool"}])),
+                        )
+                    return types.SimpleNamespace(status=200, text=AsyncMock(return_value="[]"))
+                if "/pulls?state=open" in path:
+                    return types.SimpleNamespace(status=200, text=AsyncMock(return_value="[]"))
+                if "/pulls?state=closed" in path:
+                    return types.SimpleNamespace(status=200, text=AsyncMock(return_value="[]"))
+                return types.SimpleNamespace(status=404, text=AsyncMock(return_value="{}"))
+
+            async def _capture_d1_run(db, sql, params=()):
+                captured.append((sql, params))
+                return {"success": True}
+
+            with patch.object(_worker, "github_api", new=_mock_api):
+                with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
+                    with patch.object(_worker, "_d1_all", new=AsyncMock(return_value=[])):
+                        with patch.object(_worker, "_d1_run", new=_capture_d1_run):
+                            with patch.object(_worker, "_month_key", new=MagicMock(return_value="2026-03")):
+                                with patch.object(_worker, "_month_window", new=MagicMock(return_value=(1709251200, 1711929599))):
+                                    with patch.object(_worker, "console", new=types.SimpleNamespace(log=lambda *a: None, error=lambda *a: None)):
+                                        ok = await _worker._reconcile_org_leaderboard_from_github("OWASP-BLT", "tok", env)
+
+            self.assertTrue(ok)
+            delete_calls = [
+                (sql, params)
+                for sql, params in captured
+                if "DELETE FROM leaderboard_pr_state" in sql
+            ]
+            self.assertTrue(delete_calls)
+            sql, params = delete_calls[0]
+            self.assertIn("state = 'open'", sql)
+            self.assertIn("closed_at BETWEEN", sql)
+            self.assertEqual(params, ("OWASP-BLT", 1709251200, 1711929599))
+
+        _run(_inner())
+
 
 # ---------------------------------------------------------------------------
 # Backfill double-counting prevention tests

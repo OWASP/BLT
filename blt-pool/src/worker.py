@@ -1437,6 +1437,16 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env) ->
                 updated_ts = _parse_github_timestamp(last_pr.get("updated_at")) if last_pr.get("updated_at") else 0
                 if updated_ts and updated_ts < start_ts:
                     break
+                if (
+                    closed_page >= _RECONCILE_MAX_CLOSED_PAGES_PER_REPO
+                    and updated_ts
+                    and updated_ts >= start_ts
+                ):
+                    console.error(
+                        f"[LeaderboardReconcile] Closed PR pagination cap reached for {owner}/{repo_name}; "
+                        "aborting reconcile to avoid partial month undercount"
+                    )
+                    return False
                 closed_page += 1
 
         if len(repos) < _RECONCILE_REPOS_PER_PAGE:
@@ -1447,8 +1457,15 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env) ->
     await _d1_run(db, "DELETE FROM leaderboard_open_prs WHERE org = ?", (owner,))
     await _d1_run(
         db,
-        "DELETE FROM leaderboard_pr_state WHERE org = ?",
-        (owner,),
+                """
+                DELETE FROM leaderboard_pr_state
+                WHERE org = ?
+                    AND (
+                                state = 'open'
+                                OR (state = 'closed' AND closed_at BETWEEN ? AND ?)
+                            )
+                """,
+                (owner, start_ts, end_ts),
     )
     # Keep monthly history and review-credit history intact; only reset the
     # PR-derived counters for the current month and then write fresh values.
@@ -1493,6 +1510,12 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env) ->
             """
             INSERT INTO leaderboard_pr_state (org, repo, pr_number, author_login, state, merged, closed_at, updated_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(org, repo, pr_number) DO UPDATE SET
+                author_login = excluded.author_login,
+                state = excluded.state,
+                merged = excluded.merged,
+                closed_at = excluded.closed_at,
+                updated_at = excluded.updated_at
             """,
             row,
         )
