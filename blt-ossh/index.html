@@ -447,8 +447,8 @@
           <a href="https://github.com/OWASP-BLT" target="_blank" rel="noopener noreferrer" class="text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 transition">
             <i class="fa-brands fa-github text-xl" aria-hidden="true"></i>
           </a>
-          <a href="https://twitter.com/owasp_blt" target="_blank" rel="noopener noreferrer" class="text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 transition">
-            <i class="fa-brands fa-twitter text-xl" aria-hidden="true"></i>
+          <a href="https://x.com/owasp_blt" target="_blank" rel="noopener noreferrer" class="text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 transition">
+            <i class="fa-brands fa-x-twitter text-xl" aria-hidden="true"></i>
           </a>
         </div>
       </div>
@@ -534,7 +534,7 @@
         const reposData = reposResponse.ok ? await reposResponse.json() : [];
 
         // Build and display results
-        const data = buildRecommendations(userData, reposData);
+        const data = await buildRecommendations(userData, reposData);
         displayResults(data);
 
       } catch (error) {
@@ -549,17 +549,175 @@
       }
     });
 
-    function buildRecommendations(userData, repos) {
-      // Extract languages from repos (weighted by frequency)
-      const languageCounts = {};
-      repos.forEach(repo => {
+    const CATALOG_URL = "data/ossh_catalog.json";
+    let _catalogCache = null;
+
+    // Small, practical normalizer (you can expand)
+    const TAG_NORMALIZATION = {
+      js: "javascript",
+      node: "nodejs",
+      "c++": "cpp",
+      csharp: "c#",
+      golang: "go",
+      py: "python",
+    };
+
+    function normalizeTag(tag) {
+      if (!tag) return "";
+      const t = String(tag).trim().toLowerCase();
+      return TAG_NORMALIZATION[t] || t;
+    }
+
+    function tokenize(text) {
+      if (!text) return [];
+      // split camelCase + symbols -> words
+      let s = String(text).replace(/([a-z])([A-Z])/g, "$1 $2");
+      s = s.replace(/[^a-zA-Z0-9\s]/g, " ");
+      return s
+        .split(/\s+/)
+        .map((w) => normalizeTag(w))
+        .filter(Boolean);
+    }
+
+    async function loadCatalog() {
+      if (_catalogCache) return _catalogCache;
+      const resp = await fetch(CATALOG_URL);
+      if (!resp.ok) throw new Error(`Failed to load catalog (${resp.status})`);
+      _catalogCache = await resp.json();
+      return _catalogCache;
+    }
+
+    function buildAllowedTagSet(catalog) {
+      const s = new Set();
+      const addTags = (arr) => {
+        (arr || []).forEach((t) => s.add(normalizeTag(t)));
+      };
+
+      (catalog.repos || []).forEach((r) => addTags(r.tags));
+      (catalog.communities || []).forEach((c) => addTags(c.tags));
+      (catalog.discussion_channels || []).forEach((c) => addTags(c.tags));
+      (catalog.articles || []).forEach((a) => addTags(a.tags));
+
+      // also allow languages directly
+      (catalog.repos || []).forEach((r) => r.primary_language && s.add(normalizeTag(r.primary_language)));
+      (catalog.communities || []).forEach((c) => c.primary_language && s.add(normalizeTag(c.primary_language)));
+
+      return s;
+    }
+
+    function preprocessUser(repos, allowedTags) {
+      const tagCounts = new Map();
+      const langCounts = new Map();
+
+      const bump = (k, n = 1) => tagCounts.set(k, (tagCounts.get(k) || 0) + n);
+
+      for (const repo of repos || []) {
+        // dominant language (cheap + 1 call total)
         if (repo.language) {
-          languageCounts[repo.language] = (languageCounts[repo.language] || 0) + 1;
+          const lang = normalizeTag(repo.language);
+          langCounts.set(lang, (langCounts.get(lang) || 0) + 1);
+          if (allowedTags.has(lang)) bump(lang, 2);
         }
-      });
-      const languages = Object.keys(languageCounts)
-        .sort((a, b) => languageCounts[b] - languageCounts[a])
-        .slice(0, 10);
+
+        // description words -> tags (filtered by catalog tags)
+        for (const w of tokenize(repo.description || "")) {
+          if (allowedTags.has(w)) bump(w, 1);
+        }
+
+        // topics if present on API response (best-effort)
+        for (const topic of (repo.topics || [])) {
+          const t = normalizeTag(topic);
+          if (allowedTags.has(t)) bump(t, 3);
+        }
+      }
+
+      const userTags = [...tagCounts.entries()].sort((a, b) => b[1] - a[1]);
+
+      // language weights as percent of repo-count (static-friendly)
+      const total = [...langCounts.values()].reduce((a, b) => a + b, 0) || 1;
+      const languageWeights = {};
+      for (const [lang, count] of langCounts.entries()) {
+        const pct = (count / total) * 100;
+        if (pct >= 5) languageWeights[lang] = pct;
+      }
+
+      return { userTags, languageWeights };
+    }
+
+    function recommendGeneric(items, userTags, languageWeights, opts) {
+      const tagWeight = Object.fromEntries(userTags); // tag -> score
+      const topN = opts?.topN ?? 12;
+      const usesLanguage = !!opts?.usesLanguage;
+
+      const out = new Map();
+      for (const item of items || []) {
+        const itemTags = (item.tags || []).map(normalizeTag);
+        const tagScore = itemTags.reduce((sum, t) => sum + (tagWeight[t] || 0), 0);
+
+        let langScore = 0;
+        let matchingLanguages = [];
+        if (usesLanguage && item.primary_language) {
+          const l = normalizeTag(item.primary_language);
+          if (languageWeights[l]) {
+            langScore = languageWeights[l];
+            matchingLanguages = [item.primary_language];
+          }
+        }
+
+        const relevance = tagScore + langScore;
+        if (relevance <= 0) continue;
+
+        const matchingTags = itemTags.filter((t) => tagWeight[t]).slice(0, 12);
+        const reasons = [];
+        if (matchingTags.length) reasons.push(`Matching tags: ${matchingTags.join(", ")}`);
+        if (matchingLanguages.length) reasons.push(`Matching language: ${matchingLanguages.join(", ")}`);
+
+        const scored = {
+          item,
+          relevance_score: relevance,
+          reasoning: reasons.join(" | ") || "No specific reason",
+          matching_tags: matchingTags,
+        };
+        const key = item.html_url || item.url || item.invite_url || item.full_name || item.name;
+        const existing = out.get(key);
+        if (!existing || existing.relevance_score < scored.relevance_score) {
+          out.set(key, scored);
+        }
+      }
+
+      return [...out.values()]
+        .sort((a, b) => b.relevance_score - a.relevance_score)
+        .slice(0, topN);
+    }
+
+    async function buildRecommendations(userData, repos) {
+      // fallback behavior if catalog missing
+      let catalog;
+      try {
+        catalog = await loadCatalog();
+      } catch (e) {
+        console.warn(e);
+        // fallback to your old minimal behavior
+        return {
+          github_stats: {
+            username: userData.login,
+            name: userData.name || userData.login,
+            avatar_url: userData.avatar_url,
+            bio: userData.bio,
+            public_repos: userData.public_repos,
+            followers: userData.followers,
+            following: userData.following,
+            languages: [],
+          },
+          recommended_repos: [],
+          recommended_communities: [],
+          recommended_articles: [],
+          recommended_discussion_channels: [],
+        };
+      }
+
+      const allowedTags = buildAllowedTagSet(catalog);
+      const { userTags, languageWeights } = preprocessUser(repos, allowedTags);
 
       const github_stats = {
         username: userData.login,
@@ -569,85 +727,26 @@
         public_repos: userData.public_repos,
         followers: userData.followers,
         following: userData.following,
-        languages
+        languages: Object.entries(languageWeights)
+          .sort(([, a], [, b]) => b - a)
+          .map(([lang]) => lang)
+          .slice(0, 10),
       };
 
-      // Top non-fork repos sorted by stars
-      const recommended_repos = repos
-        .filter(r => !r.fork && r.description)
-        .sort((a, b) => b.stargazers_count - a.stargazers_count)
-        .slice(0, 6)
-        .map(r => ({
-          name: r.full_name,
-          description: r.description,
-          stars: r.stargazers_count,
-          url: r.html_url
-        }));
-
-      const recommended_communities = [
-        {
-          name: 'OWASP BLT',
-          description: 'Bug Logging Tool — an open source security platform',
-          members: '1,000+',
-          url: 'https://github.com/OWASP-BLT/BLT'
-        },
-        {
-          name: 'OWASP Foundation',
-          description: 'The Open Web Application Security Project',
-          members: '50,000+',
-          url: 'https://owasp.org/'
-        }
-      ];
-
-      const recommended_articles = [
-        {
-          title: 'How to Contribute to Open Source',
-          category: 'Open Source',
-          url: 'https://opensource.guide/how-to-contribute/'
-        },
-        {
-          title: 'GitHub Skills',
-          category: 'GitHub',
-          url: 'https://skills.github.com/'
-        }
-      ];
-
-      const recommended_discussion_channels = [
-        {
-          name: 'BLT Discussions',
-          platform: 'GitHub',
-          icon: 'fa-brands fa-github',
-          url: 'https://github.com/OWASP-BLT/BLT/discussions'
-        },
-        {
-          name: 'OWASP Slack',
-          platform: 'Slack',
-          icon: 'fa-brands fa-slack',
-          url: 'https://owasp.org/slack/invite'
-        },
-        {
-          name: 'Dev Community',
-          platform: 'DEV.to',
-          icon: 'fa-brands fa-dev',
-          url: 'https://dev.to/'
-        },
-        {
-          name: 'Stack Overflow',
-          platform: 'Stack Overflow',
-          icon: 'fa-brands fa-stack-overflow',
-          url: 'https://stackoverflow.com/'
-        }
-      ];
+      // Key change: recommendations come from curated catalog, not the user's own repos
+      const recommended_repos = recommendGeneric(catalog.repos, userTags, languageWeights, { topN: 6, usesLanguage: true });
+      const recommended_communities = recommendGeneric(catalog.communities, userTags, languageWeights, { topN: 6, usesLanguage: true });
+      const recommended_discussion_channels = recommendGeneric(catalog.discussion_channels, userTags, languageWeights, { topN: 6, usesLanguage: false });
+      const recommended_articles = recommendGeneric(catalog.articles, userTags, languageWeights, { topN: 8, usesLanguage: false });
 
       return {
         github_stats,
         recommended_repos,
         recommended_communities,
         recommended_articles,
-        recommended_discussion_channels
+        recommended_discussion_channels,
       };
     }
-
     function showError(message) {
       errorText.textContent = message;
       errorMessage.classList.remove('hidden');
@@ -658,139 +757,250 @@
     }
 
     function displayResults(data) {
-      const resultsSection = document.getElementById('results-section');
-      const githubStats = data.github_stats;
+    const resultsSection = document.getElementById('results-section');
+    const githubStats = data.github_stats;
 
-      // Store data globally for profile creation
-      window.currentUserData = data;
+    // Populate GitHub Stats
+    document.getElementById('user-avatar').src = githubStats.avatar_url || 'static/logo.png';
+    document.getElementById('user-name').textContent = githubStats.name || githubStats.username;
+    document.getElementById('user-bio').textContent = githubStats.bio || 'No bio available';
+    document.getElementById('user-repos').textContent = githubStats.public_repos || 0;
+    document.getElementById('user-followers').textContent = githubStats.followers || 0;
+    document.getElementById('user-following').textContent = githubStats.following || 0;
 
-      // Populate GitHub Stats
-      document.getElementById('user-avatar').src = githubStats.avatar_url || 'static/logo.png';
-      document.getElementById('user-name').textContent = githubStats.name || githubStats.username;
-      document.getElementById('user-bio').textContent = githubStats.bio || 'No bio available';
-      document.getElementById('user-repos').textContent = githubStats.public_repos || 0;
-      document.getElementById('user-followers').textContent = githubStats.followers || 0;
-      document.getElementById('user-following').textContent = githubStats.following || 0;
+    // Display languages
+    const languagesContainer = document.getElementById('user-languages');
+    languagesContainer.innerHTML = '';
+    (githubStats.languages || []).forEach(lang => {
+      const badge = document.createElement('span');
+      badge.className = 'px-3 py-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full text-xs font-semibold';
+      badge.textContent = lang;
+      languagesContainer.appendChild(badge);
+    });
 
-      // Display languages
-      const languagesContainer = document.getElementById('user-languages');
-      languagesContainer.innerHTML = '';
-      (githubStats.languages || []).forEach(lang => {
-        const badge = document.createElement('span');
-        badge.className = 'px-3 py-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full text-xs font-semibold';
-        badge.textContent = lang;
-        languagesContainer.appendChild(badge);
-      });
+    // Helper: render tags as chips
+    function renderTagChips(tags, limit = 12) {
+      const safe = (tags || []).slice(0, limit);
+      if (!safe.length) return '';
+      return `
+        <div class="flex flex-wrap gap-2 mt-3">
+          ${safe.map(t =>
+            `<span class="px-3 py-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full text-xs font-semibold">
+              ${escapeHtml(t)}
+            </span>`
+          ).join('')}
+        </div>
+      `;
+    }
 
-      // Display recommended repositories
-      const reposContainer = document.getElementById('recommended-repos');
-      reposContainer.innerHTML = '';
-      (data.recommended_repos || []).forEach(repo => {
-        const repoCard = document.createElement('div');
-        repoCard.className = 'surface-card rounded-xl p-5 hover:shadow-lg transition';
-        repoCard.innerHTML = `
-          <div class="flex items-start justify-between mb-3">
-            <h4 class="font-bold text-gray-900 dark:text-white text-lg">${escapeHtml(repo.name)}</h4>
-            <span class="text-xs bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 px-2 py-1 rounded-full">
-              <i class="fas fa-star"></i> ${repo.stars}
-            </span>
-          </div>
-          <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">${escapeHtml(repo.description)}</p>
-          <a href="${escapeHtml(repo.url)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 text-red-600 dark:text-red-400 font-semibold text-sm hover:underline">
-            <i class="fab fa-github"></i> View Repository
+    // Helper: render score + reason (like original)
+    function renderScoreReason(row) {
+      if (!row || typeof row !== 'object') return '';
+      const score = row.relevance_score;
+      const reason = row.reasoning;
+      const hasScore = typeof score === 'number' && isFinite(score);
+      const hasReason = typeof reason === 'string' && reason.trim().length > 0;
+
+      if (!hasScore && !hasReason) return '';
+
+      return `
+        <div class="mt-3 space-y-1">
+          ${hasScore ? `<div class="text-sm text-gray-700 dark:text-gray-300">
+            <span class="text-gray-500 dark:text-gray-400">Relevance Score:</span>
+            <span class="font-semibold text-green-600 dark:text-green-400">${escapeHtml(String(Math.round(score * 100) / 100))}</span>
+          </div>` : ''}
+          ${hasReason ? `<div class="text-sm text-gray-700 dark:text-gray-300">
+            <span class="text-gray-500 dark:text-gray-400">Reason:</span>
+            ${escapeHtml(reason)}
+          </div>` : ''}
+        </div>
+      `;
+    }
+
+    // -----------------------------
+    // Recommended repositories
+    // data.recommended_repos can be either:
+    //  (A) old format: [{name, description, stars, url}]
+    //  (B) new scored format: [{ item: {...}, relevance_score, reasoning, matching_tags }]
+    // This renderer supports BOTH.
+    // -----------------------------
+    const reposContainer = document.getElementById('recommended-repos');
+    reposContainer.innerHTML = '';
+
+    function sanitizeExternalUrl(rawUrl) {
+      try {
+        const url = new URL(rawUrl, window.location.origin);
+        return ['http:', 'https:'].includes(url.protocol) ? url.toString() : '#';
+      } catch {
+        return '#';
+      }
+    }
+
+    (data.recommended_repos || []).forEach(row => {
+      const repo = row?.item ? row.item : row; // support both shapes
+
+      const repoName = repo.full_name || repo.name || '';
+      const repoDesc = repo.description || '';
+      const repoStars = (repo.stars != null) ? repo.stars : (repo.stargazers_count != null ? repo.stargazers_count : 0);
+      const repoUrl = repo.url || repo.html_url || '#';
+
+      const repoCard = document.createElement('div');
+      repoCard.className = 'surface-card rounded-xl p-5 hover:shadow-lg transition';
+      repoCard.innerHTML = `
+        <div class="flex items-start justify-between mb-3 gap-3">
+          <h4 class="font-bold text-gray-900 dark:text-white text-lg break-words">${escapeHtml(repoName)}</h4>
+          <span class="text-xs bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 px-2 py-1 rounded-full whitespace-nowrap">
+            <i class="fas fa-star"></i> ${escapeHtml(String(repoStars))}
+          </span>
+        </div>
+        <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">${escapeHtml(repoDesc)}</p>
+
+        ${renderTagChips(repo.tags || row?.matching_tags)}
+        ${renderScoreReason(row?.item ? row : null)}
+
+        <a href="${escapeHtml(sanitizeExternalUrl(repoUrl))}" target="_blank" rel="noopener noreferrer"
+          class="inline-flex items-center gap-2 text-red-600 dark:text-red-400 font-semibold text-sm hover:underline mt-4">
+          <i class="fab fa-github"></i> View Repository
+        </a>
+      `;
+      reposContainer.appendChild(repoCard);
+    });
+
+    // -----------------------------
+    // Recommended communities
+    // -----------------------------
+    const communitiesContainer = document.getElementById('recommended-communities');
+    communitiesContainer.innerHTML = '';
+
+    (data.recommended_communities || []).forEach(row => {
+      const community = row?.item ? row.item : row;
+
+      const cName = community.name || '';
+      const cDesc = community.description || '';
+      const cMembers = community.members || (community.member_count != null ? String(community.member_count) : '');
+      const cUrl = community.url || community.invite_url || '#';
+
+      const communityCard = document.createElement('div');
+      communityCard.className = 'surface-card rounded-xl p-5 hover:shadow-lg transition';
+      communityCard.innerHTML = `
+        <h4 class="font-bold text-gray-900 dark:text-white mb-2">${escapeHtml(cName)}</h4>
+        <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">${escapeHtml(cDesc)}</p>
+
+        <div class="flex justify-between items-center">
+          <span class="text-xs text-gray-500 dark:text-gray-400">
+            <i class="fas fa-users"></i> ${escapeHtml(String(cMembers || '—'))}
+          </span>
+          <a href="${escapeHtml(cUrl)}" target="_blank" rel="noopener noreferrer"
+            class="text-red-600 dark:text-red-400 font-semibold text-sm hover:underline">
+            Visit <i class="fas fa-external-link-alt ml-1"></i>
           </a>
-        `;
-        reposContainer.appendChild(repoCard);
-      });
+        </div>
 
-      // Display recommended communities
-      const communitiesContainer = document.getElementById('recommended-communities');
-      communitiesContainer.innerHTML = '';
-      (data.recommended_communities || []).forEach(community => {
-        const communityCard = document.createElement('div');
-        communityCard.className = 'surface-card rounded-xl p-5 hover:shadow-lg transition';
-        communityCard.innerHTML = `
-          <h4 class="font-bold text-gray-900 dark:text-white mb-2">${escapeHtml(community.name)}</h4>
-          <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">${escapeHtml(community.description)}</p>
-          <div class="flex justify-between items-center">
-            <span class="text-xs text-gray-500 dark:text-gray-400">
-              <i class="fas fa-users"></i> ${escapeHtml(community.members)}
+        ${renderTagChips(community.tags || row?.matching_tags)}
+        ${renderScoreReason(row?.item ? row : null)}
+      `;
+      communitiesContainer.appendChild(communityCard);
+    });
+
+    // -----------------------------
+    // Recommended articles
+    // -----------------------------
+    const articlesContainer = document.getElementById('recommended-articles');
+    articlesContainer.innerHTML = '';
+
+    (data.recommended_articles || []).forEach(row => {
+      const article = row?.item ? row.item : row;
+
+      const aTitle = article.title || '';
+      const aCategory = article.category || '';
+      const aUrl = article.url || '#';
+
+      const articleCard = document.createElement('div');
+      articleCard.className = 'surface-card rounded-xl p-5 hover:shadow-lg transition';
+      articleCard.innerHTML = `
+        <div class="flex items-start gap-3">
+          <div class="flex-shrink-0 w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center">
+            <i class="fas fa-file-alt text-red-600 dark:text-red-400"></i>
+          </div>
+          <div class="flex-1">
+            <h4 class="font-semibold text-gray-900 dark:text-white mb-1">${escapeHtml(aTitle)}</h4>
+            <span class="text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 px-2 py-1 rounded">
+              ${escapeHtml(aCategory)}
             </span>
-            <a href="${escapeHtml(community.url)}" target="_blank" rel="noopener noreferrer" class="text-red-600 dark:text-red-400 font-semibold text-sm hover:underline">
-              Visit <i class="fas fa-external-link-alt ml-1"></i>
+
+            ${renderTagChips(article.tags || row?.matching_tags)}
+            ${renderScoreReason(row?.item ? row : null)}
+
+            <a href="${escapeHtml(aUrl)}" target="_blank" rel="noopener noreferrer"
+              class="block mt-3 text-red-600 dark:text-red-400 font-semibold text-sm hover:underline">
+              Read More <i class="fas fa-arrow-right ml-1"></i>
             </a>
           </div>
-        `;
-        communitiesContainer.appendChild(communityCard);
-      });
+        </div>
+      `;
+      articlesContainer.appendChild(articleCard);
+    });
 
-      // Display recommended articles
-      const articlesContainer = document.getElementById('recommended-articles');
-      articlesContainer.innerHTML = '';
-      (data.recommended_articles || []).forEach(article => {
-        const articleCard = document.createElement('div');
-        articleCard.className = 'surface-card rounded-xl p-5 hover:shadow-lg transition';
-        articleCard.innerHTML = `
-          <div class="flex items-start gap-3">
-            <div class="flex-shrink-0 w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center">
-              <i class="fas fa-file-alt text-red-600 dark:text-red-400"></i>
-            </div>
-            <div class="flex-1">
-              <h4 class="font-semibold text-gray-900 dark:text-white mb-1">${escapeHtml(article.title)}</h4>
-              <span class="text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 px-2 py-1 rounded">
-                ${escapeHtml(article.category)}
-              </span>
-              <a href="${escapeHtml(article.url)}" target="_blank" rel="noopener noreferrer" class="block mt-2 text-red-600 dark:text-red-400 font-semibold text-sm hover:underline">
-                Read More <i class="fas fa-arrow-right ml-1"></i>
-              </a>
-            </div>
-          </div>
-        `;
-        articlesContainer.appendChild(articleCard);
-      });
+    // -----------------------------
+    // Discussion channels
+    // (make it match the original: source, members, tags, score, reason)
+    // -----------------------------
+    const channelsContainer = document.getElementById('discussion-channels');
+    channelsContainer.innerHTML = '';
 
-      // Display discussion channels
-      const channelsContainer = document.getElementById('discussion-channels');
-      channelsContainer.innerHTML = '';
-      (data.recommended_discussion_channels || []).forEach(channel => {
-        const channelCard = document.createElement('div');
-        channelCard.className = 'surface-card rounded-xl p-5 text-center hover:shadow-lg transition';
-        channelCard.innerHTML = `
-          <div class="text-3xl mb-3">
-            <i class="${escapeHtml(channel.icon)} text-red-600 dark:text-red-400"></i>
-          </div>
-          <h4 class="font-semibold text-gray-900 dark:text-white text-sm mb-1">${escapeHtml(channel.name)}</h4>
-          <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">${escapeHtml(channel.platform)}</p>
-          <a href="${escapeHtml(channel.url)}" target="_blank" rel="noopener noreferrer" class="text-red-600 dark:text-red-400 font-semibold text-xs hover:underline">
-            Join <i class="fas fa-arrow-right ml-1"></i>
-          </a>
-        `;
-        channelsContainer.appendChild(channelCard);
-      });
+    (data.recommended_discussion_channels || []).forEach(row => {
+      const channel = row?.item ? row.item : row;
+      const chName = channel.name || '';
+      const chDesc = channel.description || '';
+      const chSource = channel.source || channel.platform || '—';
+      const chMembers = (channel.member_count != null) ? channel.member_count : (channel.members != null ? channel.members : '—');
+      const chUrl = channel.invite_url || channel.url || '#';
+      const chTags = channel.tags || row?.matching_tags || [];
 
-      // Update GitHub profile links
-      const profileLink = document.getElementById('github-profile-link');
-      if (profileLink) {
-        profileLink.href = `https://github.com/${encodeURIComponent(githubStats.username)}`;
-        const span = profileLink.querySelector('span');
-        if (span) span.textContent = `View ${githubStats.username}'s GitHub profile`;
-      }
-      const viewProfileBtn = document.getElementById('view-github-profile');
-      if (viewProfileBtn) {
-        viewProfileBtn.href = `https://github.com/${encodeURIComponent(githubStats.username)}`;
-      }
+      const channelCard = document.createElement('div');
+      channelCard.className = 'surface-card rounded-xl p-5 hover:shadow-lg transition';
+      channelCard.innerHTML = `
+        <h4 class="font-bold text-gray-900 dark:text-white mb-2">${escapeHtml(chName)}</h4>
+        <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">${escapeHtml(chDesc)}</p>
 
-      // Setup create profile button
-      setupCreateProfileButton(data);
+        <div class="text-xs text-gray-500 dark:text-gray-400 mb-2">
+          <span class="font-semibold">Source:</span> ${escapeHtml(String(chSource))} &nbsp; • &nbsp;
+          <span class="font-semibold">Members:</span> ${escapeHtml(String(chMembers))}
+        </div>
 
-      // Show results section and scroll to it
-      resultsSection.classList.remove('hidden');
-      resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        ${renderTagChips(chTags)}
+        ${renderScoreReason(row?.item ? row : null)}
 
-      // Hide features section
-      document.querySelector('.grid.gap-6.md\\:grid-cols-3.mb-12').classList.add('hidden');
-      document.querySelector('.surface-card.rounded-2xl.p-8.sm\\:p-10').classList.add('hidden');
+        <a href="${escapeHtml(chUrl)}" target="_blank" rel="noopener noreferrer"
+          class="inline-flex items-center gap-2 text-red-600 dark:text-red-400 font-semibold text-sm hover:underline mt-4">
+          Join <i class="fas fa-arrow-right ml-1"></i>
+        </a>
+      `;
+      channelsContainer.appendChild(channelCard);
+    });
+    // Update GitHub profile links (once, outside the loop)
+    const profileLink = document.getElementById('github-profile-link');
+    if (profileLink) {
+      profileLink.href = `https://github.com/${encodeURIComponent(githubStats.username)}`;
+      const span = profileLink.querySelector('span');
+      if (span) span.textContent = `View ${githubStats.username}'s GitHub profile`;
     }
+
+    // Setup create profile button
+    setupCreateProfileButton(data);
+
+    // Update GitHub profile link
+    document.getElementById('view-github-profile').href =
+      `https://github.com/${encodeURIComponent(githubStats.username)}`;
+
+    // Show results section and scroll to it
+    resultsSection.classList.remove('hidden');
+    resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    // Hide features section
+    document.querySelector('.grid.gap-6.md\\:grid-cols-3.mb-12')?.classList.add('hidden');
+    document.querySelector('.surface-card.rounded-2xl.p-8.sm\\:p-10')?.classList.add('hidden');
+  }
 
     function escapeHtml(str) {
       if (str == null) return '';
@@ -827,22 +1037,22 @@
 
       // Build looking_for text based on recommendations
       const topLanguages = githubStats.languages.slice(0, 3).join(', ');
-      const lookingFor = `Looking to contribute to open source projects in ${topLanguages}. Interested in ${data.recommended_communities.map(c => c.name).join(', ')}.`;
+      const lookingFor = `Looking to contribute to open source projects in ${topLanguages}. Interested in ${data.recommended_communities.map(c => (c.item || c).name).join(', ')}.`;
 
       // Build recommended projects list
       const recommendedProjects = data.recommended_repos
         .slice(0, 5)
-        .map(r => `- [${r.name}](${r.url}) ⭐ ${r.stars} - ${r.description}`)
+        .map(r => { const repo = r.item || r; return `- [${repo.name}](${repo.url}) ⭐ ${repo.stars} - ${repo.description}`; })
         .join('\n');
 
       // Build recommended communities list
       const recommendedCommunities = data.recommended_communities
-        .map(c => `- [${c.name}](${c.url}) - ${c.description} (${c.members} members)`)
+        .map(c => { const comm = c.item || c; return `- [${comm.name}](${comm.url}) - ${comm.description} (${comm.members} members)`; })
         .join('\n');
 
       // Build recommended articles list
       const recommendedArticles = data.recommended_articles
-        .map(a => `- [${a.title}](${a.url}) - ${a.category}`)
+        .map(a => { const art = a.item || a; return `- [${art.title}](${art.url}) - ${art.category}`; })
         .join('\n');
 
       // Build issue body content with full analysis
