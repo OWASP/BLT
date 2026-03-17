@@ -117,13 +117,12 @@ class Router:
         """Return metadata for all registered routes.
 
         Returns:
-            List of dicts with method, path, and handler name for each route.
+            List of dicts with method and path for each route.
         """
         return [
             {
                 "method": route.method,
                 "path": route.pattern,
-                "handler": route.handler.__name__,
             }
             for route in self.routes
         ]
