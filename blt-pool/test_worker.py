@@ -2030,11 +2030,18 @@ class TestFetchLeaderboardDataReconciliation(unittest.TestCase):
                     )
                 return types.SimpleNamespace(status=404, text=AsyncMock(return_value="{}"))
 
-            with patch.object(_worker, "github_api", new=_mock_api):
-                with patch.object(_worker, "_reconcile_org_leaderboard_from_github", new=AsyncMock(return_value=True)) as reconcile_mock:
-                    with patch.object(_worker, "_calculate_leaderboard_stats_from_d1", new=AsyncMock(return_value=self._dummy_leaderboard())):
-                        with patch.object(_worker, "console", new=types.SimpleNamespace(log=lambda *a: None, error=lambda *a: None)):
-                            data, note, is_org = await _worker._fetch_leaderboard_data("OWASP-BLT", "BLT-GitHub-App", "tok", env)
+            with ExitStack() as stack:
+                stack.enter_context(patch.object(_worker, "github_api", new=_mock_api))
+                reconcile_mock = stack.enter_context(
+                    patch.object(_worker, "_reconcile_org_leaderboard_from_github", new=AsyncMock(return_value=True))
+                )
+                stack.enter_context(
+                    patch.object(_worker, "_calculate_leaderboard_stats_from_d1", new=AsyncMock(return_value=self._dummy_leaderboard()))
+                )
+                stack.enter_context(
+                    patch.object(_worker, "console", new=types.SimpleNamespace(log=lambda *a: None, error=lambda *a: None))
+                )
+                data, note, is_org = await _worker._fetch_leaderboard_data("OWASP-BLT", "BLT-GitHub-App", "tok", env)
 
             self.assertTrue(is_org)
             self.assertEqual(note, "")
@@ -2055,11 +2062,18 @@ class TestFetchLeaderboardDataReconciliation(unittest.TestCase):
                     )
                 return types.SimpleNamespace(status=404, text=AsyncMock(return_value="{}"))
 
-            with patch.object(_worker, "github_api", new=_mock_api):
-                with patch.object(_worker, "_reconcile_org_leaderboard_from_github", new=AsyncMock(return_value=False)):
-                    with patch.object(_worker, "_calculate_leaderboard_stats_from_d1", new=AsyncMock(return_value=self._dummy_leaderboard())):
-                        with patch.object(_worker, "console", new=types.SimpleNamespace(log=lambda *a: None, error=lambda *a: None)):
-                            leaderboard_data, note, is_org = await _worker._fetch_leaderboard_data("OWASP-BLT", "BLT-GitHub-App", "tok", env)
+            with ExitStack() as stack:
+                stack.enter_context(patch.object(_worker, "github_api", new=_mock_api))
+                stack.enter_context(
+                    patch.object(_worker, "_reconcile_org_leaderboard_from_github", new=AsyncMock(return_value=False))
+                )
+                stack.enter_context(
+                    patch.object(_worker, "_calculate_leaderboard_stats_from_d1", new=AsyncMock(return_value=self._dummy_leaderboard()))
+                )
+                stack.enter_context(
+                    patch.object(_worker, "console", new=types.SimpleNamespace(log=lambda *a: None, error=lambda *a: None))
+                )
+                leaderboard_data, note, is_org = await _worker._fetch_leaderboard_data("OWASP-BLT", "BLT-GitHub-App", "tok", env)
 
             self.assertTrue(is_org)
             self.assertIsNotNone(leaderboard_data)
@@ -2079,13 +2093,21 @@ class TestFetchLeaderboardDataReconciliation(unittest.TestCase):
                     )
                 return types.SimpleNamespace(status=404, text=AsyncMock(return_value="{}"))
 
-            with patch.object(_worker, "github_api", new=_mock_api):
-                with patch.object(_worker, "_reconcile_org_leaderboard_from_github", new=AsyncMock(side_effect=RuntimeError("boom"))):
-                    with patch.object(_worker, "_calculate_leaderboard_stats_from_d1", new=AsyncMock(return_value=self._dummy_leaderboard())):
-                        with patch.object(_worker, "console", new=types.SimpleNamespace(log=lambda *a: None, error=lambda *a: None)):
-                            _, note, is_org = await _worker._fetch_leaderboard_data("OWASP-BLT", "BLT-GitHub-App", "tok", env)
+            with ExitStack() as stack:
+                stack.enter_context(patch.object(_worker, "github_api", new=_mock_api))
+                stack.enter_context(
+                    patch.object(_worker, "_reconcile_org_leaderboard_from_github", new=AsyncMock(side_effect=RuntimeError("boom")))
+                )
+                stack.enter_context(
+                    patch.object(_worker, "_calculate_leaderboard_stats_from_d1", new=AsyncMock(return_value=self._dummy_leaderboard()))
+                )
+                stack.enter_context(
+                    patch.object(_worker, "console", new=types.SimpleNamespace(log=lambda *a: None, error=lambda *a: None))
+                )
+                leaderboard_data, note, is_org = await _worker._fetch_leaderboard_data("OWASP-BLT", "BLT-GitHub-App", "tok", env)
 
             self.assertTrue(is_org)
+            self.assertIsNotNone(leaderboard_data)
             self.assertIn("Live reconciliation is temporarily unavailable", note)
 
         _run(_inner())
