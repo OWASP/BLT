@@ -1950,6 +1950,37 @@ class TestTrackingOperations(unittest.TestCase):
         self.assertEqual(monthly_mock.await_count, 0)
         self.assertEqual(open_mock.await_count, 0)
 
+    async def _test_track_pr_closed_reverses_previous_closed_credit(self):
+        """A changed closed state should reverse old credit before applying the new one."""
+        payload = {
+            "repository": {"owner": {"login": "OWASP-BLT"}, "name": "test-repo"},
+            "pull_request": {
+                "number": 42,
+                "user": {"login": "alice", "type": "User"},
+                "merged": True,
+                "closed_at": "2026-03-10T10:00:00Z",
+                "merged_at": "2026-03-10T10:00:00Z",
+            },
+        }
+        env = types.SimpleNamespace(LEADERBOARD_DB=object())
+
+        with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
+            # Existing row says this PR was closed-unmerged, so new merged state
+            # must remove old closed_prs credit and add merged_prs credit.
+            with patch.object(_worker, "_d1_first", new=AsyncMock(return_value={"state": "closed", "merged": 0, "closed_at": 1709596800})):
+                with patch.object(_worker, "_d1_inc_monthly", new=AsyncMock()) as monthly_mock:
+                    with patch.object(_worker, "_d1_inc_open_pr", new=AsyncMock()):
+                        with patch.object(_worker, "_d1_run", new=AsyncMock()):
+                            await _worker._track_pr_closed_in_d1(payload, env)
+
+        self.assertEqual(monthly_mock.await_count, 2)
+        first = monthly_mock.await_args_list[0].args
+        second = monthly_mock.await_args_list[1].args
+        self.assertEqual(first[4], "closed_prs")
+        self.assertEqual(first[5], -1)
+        self.assertEqual(second[4], "merged_prs")
+        self.assertEqual(second[5], 1)
+
     def test_track_pr_opened(self):
         _run(self._test_track_pr_opened())
 
@@ -1964,6 +1995,69 @@ class TestTrackingOperations(unittest.TestCase):
 
     def test_track_pr_reopened_idempotent_when_already_open(self):
         _run(self._test_track_pr_reopened_idempotent_when_already_open())
+
+    def test_track_pr_closed_reverses_previous_closed_credit(self):
+        _run(self._test_track_pr_closed_reverses_previous_closed_credit())
+
+
+class TestFetchLeaderboardDataReconciliation(unittest.TestCase):
+    """Test that /leaderboard data fetch always attempts live org reconciliation."""
+
+    def _dummy_leaderboard(self):
+        return {
+            "users": {},
+            "sorted": [],
+            "start_timestamp": 1709251200,
+            "end_timestamp": 1711929599,
+        }
+
+    def test_org_request_runs_live_reconciliation(self):
+        async def _inner():
+            env = types.SimpleNamespace(LEADERBOARD_DB=object())
+
+            async def _mock_api(method, path, token, body=None):
+                if path == "/users/OWASP-BLT":
+                    return types.SimpleNamespace(
+                        status=200,
+                        text=AsyncMock(return_value=json.dumps({"type": "Organization"})),
+                    )
+                return types.SimpleNamespace(status=404, text=AsyncMock(return_value="{}"))
+
+            with patch.object(_worker, "github_api", new=_mock_api):
+                with patch.object(_worker, "_reconcile_org_leaderboard_from_github", new=AsyncMock(return_value=True)) as reconcile_mock:
+                    with patch.object(_worker, "_calculate_leaderboard_stats_from_d1", new=AsyncMock(return_value=self._dummy_leaderboard())):
+                        with patch.object(_worker, "console", new=types.SimpleNamespace(log=lambda *a: None, error=lambda *a: None)):
+                            data, note, is_org = await _worker._fetch_leaderboard_data("OWASP-BLT", "BLT-GitHub-App", "tok", env)
+
+            self.assertTrue(is_org)
+            self.assertEqual(note, "")
+            self.assertEqual(data["sorted"], [])
+            reconcile_mock.assert_awaited_once()
+
+        _run(_inner())
+
+    def test_org_request_surfaces_reconciliation_fallback_note(self):
+        async def _inner():
+            env = types.SimpleNamespace(LEADERBOARD_DB=object())
+
+            async def _mock_api(method, path, token, body=None):
+                if path == "/users/OWASP-BLT":
+                    return types.SimpleNamespace(
+                        status=200,
+                        text=AsyncMock(return_value=json.dumps({"type": "Organization"})),
+                    )
+                return types.SimpleNamespace(status=404, text=AsyncMock(return_value="{}"))
+
+            with patch.object(_worker, "github_api", new=_mock_api):
+                with patch.object(_worker, "_reconcile_org_leaderboard_from_github", new=AsyncMock(return_value=False)):
+                    with patch.object(_worker, "_calculate_leaderboard_stats_from_d1", new=AsyncMock(return_value=self._dummy_leaderboard())):
+                        with patch.object(_worker, "console", new=types.SimpleNamespace(log=lambda *a: None, error=lambda *a: None)):
+                            _, note, is_org = await _worker._fetch_leaderboard_data("OWASP-BLT", "BLT-GitHub-App", "tok", env)
+
+            self.assertTrue(is_org)
+            self.assertIn("Live reconciliation is temporarily unavailable", note)
+
+        _run(_inner())
 
 
 # ---------------------------------------------------------------------------

@@ -430,6 +430,9 @@ REVIEWER_LEADERBOARD_MARKER = "<!-- reviewer-leaderboard-bot -->"
 MERGED_PR_COMMENT_MARKER = "<!-- merged-pr-comment-bot -->"
 MAX_OPEN_PRS_PER_AUTHOR = 50
 LEADERBOARD_COMMENT_MARKER = LEADERBOARD_MARKER
+_RECONCILE_REPOS_PER_PAGE = 100
+_RECONCILE_PRS_PER_PAGE = 100
+_RECONCILE_MAX_CLOSED_PAGES_PER_REPO = 20
 
 
 def _month_key(ts: Optional[int] = None) -> str:
@@ -1034,6 +1037,15 @@ async def _track_pr_closed_in_d1(payload: dict, env) -> None:
         if existing_closed_at == int(closed_ts or 0):
             return
 
+    # If this PR is already tracked as closed but with a different state/timestamp,
+    # reverse the previous monthly credit before applying the new one.
+    if existing and existing.get("state") == "closed":
+        prev_merged = int(existing.get("merged") or 0)
+        prev_closed_at = int(existing.get("closed_at") or 0)
+        prev_mk = _month_key(prev_closed_at) if prev_closed_at else _month_key()
+        prev_field = "merged_prs" if prev_merged else "closed_prs"
+        await _d1_inc_monthly(db, org, prev_mk, author_login, prev_field, -1)
+
     if existing and existing.get("state") == "open":
         await _d1_inc_open_pr(db, org, author_login, -1)
 
@@ -1279,6 +1291,239 @@ async def _calculate_leaderboard_stats_from_d1(owner: str, env) -> Optional[dict
         "start_timestamp": start_timestamp,
         "end_timestamp": end_timestamp,
     }
+
+
+def _is_ts_in_month(ts: int, start_ts: int, end_ts: int) -> bool:
+    return bool(ts and start_ts <= ts <= end_ts)
+
+
+async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env) -> bool:
+    """Rebuild current-month leaderboard PR stats from live GitHub state.
+
+    This is the anti-drift path for /leaderboard:
+    - Always recomputes org-wide open/merged/closed PR counts from GitHub.
+    - Replaces D1 snapshot rows for the current month.
+    - Clears stale historical/backfill artifacts for this org.
+    """
+    db = _d1_binding(env)
+    if not db:
+        return False
+
+    await _ensure_leaderboard_schema(db)
+    month_key = _month_key()
+    start_ts, end_ts = _month_window(month_key)
+    now_ts = int(time.time())
+
+    existing_rows = await _d1_all(
+        db,
+        """
+        SELECT user_login, reviews, comments
+        FROM leaderboard_monthly_stats
+        WHERE org = ? AND month_key = ?
+        """,
+        (owner, month_key),
+    )
+    preserved_reviews_comments = {
+        row.get("user_login"): {
+            "reviews": int(row.get("reviews") or 0),
+            "comments": int(row.get("comments") or 0),
+        }
+        for row in (existing_rows or [])
+        if row.get("user_login")
+    }
+
+    open_by_user = {}
+    merged_by_user = {}
+    closed_by_user = {}
+    pr_state_rows = []
+
+    repo_page = 1
+    while True:
+        repos_resp = await github_api(
+            "GET",
+            f"/orgs/{owner}/repos?sort=full_name&direction=asc&per_page={_RECONCILE_REPOS_PER_PAGE}&page={repo_page}",
+            token,
+        )
+        if repos_resp.status != 200:
+            console.error(
+                f"[LeaderboardReconcile] Failed to list repos for {owner}: status={repos_resp.status} page={repo_page}"
+            )
+            return False
+        repos = json.loads(await repos_resp.text())
+        if not repos:
+            break
+
+        for repo_obj in repos:
+            repo_name = repo_obj.get("name")
+            if not repo_name:
+                continue
+
+            # Snapshot all open PRs in this repo.
+            open_page = 1
+            while True:
+                open_resp = await github_api(
+                    "GET",
+                    f"/repos/{owner}/{repo_name}/pulls?state=open&per_page={_RECONCILE_PRS_PER_PAGE}&page={open_page}",
+                    token,
+                )
+                if open_resp.status != 200:
+                    console.error(
+                        f"[LeaderboardReconcile] Failed open PR fetch {owner}/{repo_name}: status={open_resp.status} page={open_page}"
+                    )
+                    return False
+                open_prs = json.loads(await open_resp.text())
+                if not open_prs:
+                    break
+
+                for pr in open_prs:
+                    user = pr.get("user") or {}
+                    if _is_bot(user):
+                        continue
+                    login = user.get("login")
+                    pr_number = pr.get("number")
+                    if not (login and pr_number):
+                        continue
+                    open_by_user[login] = open_by_user.get(login, 0) + 1
+                    pr_state_rows.append((owner, repo_name, pr_number, login, "open", 0, None, now_ts))
+
+                if len(open_prs) < _RECONCILE_PRS_PER_PAGE:
+                    break
+                open_page += 1
+
+            # Snapshot current-month closed/merged PR outcomes in this repo.
+            closed_page = 1
+            while closed_page <= _RECONCILE_MAX_CLOSED_PAGES_PER_REPO:
+                closed_resp = await github_api(
+                    "GET",
+                    f"/repos/{owner}/{repo_name}/pulls?state=closed&sort=updated&direction=desc&per_page={_RECONCILE_PRS_PER_PAGE}&page={closed_page}",
+                    token,
+                )
+                if closed_resp.status != 200:
+                    console.error(
+                        f"[LeaderboardReconcile] Failed closed PR fetch {owner}/{repo_name}: status={closed_resp.status} page={closed_page}"
+                    )
+                    return False
+                closed_prs = json.loads(await closed_resp.text())
+                if not closed_prs:
+                    break
+
+                page_has_month_data = False
+                for pr in closed_prs:
+                    user = pr.get("user") or {}
+                    if _is_bot(user):
+                        continue
+                    login = user.get("login")
+                    pr_number = pr.get("number")
+                    if not (login and pr_number):
+                        continue
+
+                    merged_at = pr.get("merged_at")
+                    closed_at = pr.get("closed_at")
+                    merged_ts = _parse_github_timestamp(merged_at) if merged_at else 0
+                    closed_ts = _parse_github_timestamp(closed_at) if closed_at else 0
+
+                    if _is_ts_in_month(merged_ts, start_ts, end_ts):
+                        page_has_month_data = True
+                        merged_by_user[login] = merged_by_user.get(login, 0) + 1
+                        pr_state_rows.append((owner, repo_name, pr_number, login, "closed", 1, closed_ts or merged_ts, now_ts))
+                    elif _is_ts_in_month(closed_ts, start_ts, end_ts):
+                        page_has_month_data = True
+                        closed_by_user[login] = closed_by_user.get(login, 0) + 1
+                        pr_state_rows.append((owner, repo_name, pr_number, login, "closed", 0, closed_ts, now_ts))
+
+                if len(closed_prs) < _RECONCILE_PRS_PER_PAGE:
+                    break
+                if not page_has_month_data:
+                    # Results are sorted by updated desc, so once a page has no current-month
+                    # closures/merges we can stop scanning deeper pages for this repo.
+                    break
+                closed_page += 1
+
+        if len(repos) < _RECONCILE_REPOS_PER_PAGE:
+            break
+        repo_page += 1
+
+    # Reset org leaderboard state to the fresh snapshot.
+    await _d1_run(db, "DELETE FROM leaderboard_open_prs WHERE org = ?", (owner,))
+    await _d1_run(
+        db,
+        "DELETE FROM leaderboard_pr_state WHERE org = ?",
+        (owner,),
+    )
+    await _d1_run(
+        db,
+        "DELETE FROM leaderboard_monthly_stats WHERE org = ? AND month_key = ?",
+        (owner, month_key),
+    )
+
+    # Remove old historical and one-time backfill records for this org.
+    await _d1_run(
+        db,
+        "DELETE FROM leaderboard_monthly_stats WHERE org = ? AND month_key <> ?",
+        (owner, month_key),
+    )
+    await _d1_run(
+        db,
+        "DELETE FROM leaderboard_review_credits WHERE org = ? AND month_key <> ?",
+        (owner, month_key),
+    )
+    await _d1_run(
+        db,
+        "DELETE FROM leaderboard_backfill_state WHERE org = ?",
+        (owner,),
+    )
+    await _d1_run(
+        db,
+        "DELETE FROM leaderboard_backfill_repo_done WHERE org = ?",
+        (owner,),
+    )
+
+    for login, count in open_by_user.items():
+        await _d1_run(
+            db,
+            """
+            INSERT INTO leaderboard_open_prs (org, user_login, open_prs, updated_at)
+            VALUES (?, ?, ?, ?)
+            """,
+            (owner, login, count, now_ts),
+        )
+
+    for row in pr_state_rows:
+        await _d1_run(
+            db,
+            """
+            INSERT INTO leaderboard_pr_state (org, repo, pr_number, author_login, state, merged, closed_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            row,
+        )
+
+    all_logins = set(open_by_user.keys()) | set(merged_by_user.keys()) | set(closed_by_user.keys()) | set(preserved_reviews_comments.keys())
+    for login in all_logins:
+        preserved = preserved_reviews_comments.get(login, {})
+        await _d1_run(
+            db,
+            """
+            INSERT INTO leaderboard_monthly_stats
+                (org, month_key, user_login, merged_prs, closed_prs, reviews, comments, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                owner,
+                month_key,
+                login,
+                merged_by_user.get(login, 0),
+                closed_by_user.get(login, 0),
+                int(preserved.get("reviews") or 0),
+                int(preserved.get("comments") or 0),
+                now_ts,
+            ),
+        )
+
+    console.log(
+        f"[LeaderboardReconcile] Completed org={owner} month={month_key} users={len(all_logins)} repos_scanned_page_end={repo_page}"
+    )
+    return True
 
 
 async def _get_backfill_state(db, owner: str, month_key: str) -> dict:
@@ -2170,51 +2415,15 @@ async def _fetch_leaderboard_data(owner: str, repo: str, token: str, env=None) -
     else:
         console.error(f"[Leaderboard] Owner lookup failed for {owner}: status={owner_resp.status}")
 
-    # Prefer D1-backed stats for accurate and scalable org-wide leaderboard.
+    # For org leaderboard requests, always reconcile from GitHub first so stale
+    # webhook deltas cannot drift permanently.
+    if is_org and _d1_binding(env):
+        reconciled = await _reconcile_org_leaderboard_from_github(owner, token, env)
+        leaderboard_note = "" if reconciled else "Live reconciliation is temporarily unavailable; showing last known snapshot."
+
+    # Prefer D1-backed stats after reconciliation.
     leaderboard_data = await _calculate_leaderboard_stats_from_d1(owner, env)
-    console.log(f"[Leaderboard] Initial D1 data: {bool(leaderboard_data)}, has_users={bool(leaderboard_data and leaderboard_data.get('sorted')) if leaderboard_data else False}")
-
-    # Always prioritize seeding the current repo so requester sees their repo's activity immediately.
-    if leaderboard_data is not None and is_org:
-        console.log(f"[Leaderboard] D1 is available, attempting to seed current repo {owner}/{repo}")
-        seeded_current = await _backfill_repo_month_if_needed(owner, repo, token, env)
-        console.log(f"[Leaderboard] Current repo backfill result: seeded_current={seeded_current}")
-        if seeded_current:
-            console.log(f"[Leaderboard] Seeded current repo {owner}/{repo} for immediate leaderboard accuracy")
-            leaderboard_data = await _calculate_leaderboard_stats_from_d1(owner, env) or leaderboard_data
-            console.log(f"[Leaderboard] After current repo seed, data has {len(leaderboard_data.get('sorted', []))} users")
-    else:
-        console.log(f"[Leaderboard] Skipped current repo backfill: leaderboard_data={bool(leaderboard_data)}, is_org={is_org}")
-
-    # Continue backfill until completed, not just when data is empty.
-    if leaderboard_data is not None and is_org:
-        db = _d1_binding(env)
-        if db:
-            month_key = _month_key()
-            state = await _get_backfill_state(db, owner, month_key)
-            if not state.get("completed"):
-                console.log(
-                    f"[Leaderboard] Running incremental backfill for {owner} "
-                    f"month={month_key} page={state.get('next_page')}"
-                )
-                backfill_result = await _run_incremental_backfill(owner, token, env)
-                if backfill_result:
-                    leaderboard_data = await _calculate_leaderboard_stats_from_d1(owner, env) or leaderboard_data
-                    console.log(f"[Leaderboard] After incremental backfill, data has {len(leaderboard_data.get('sorted', []))} users")
-                    if backfill_result.get("completed"):
-                        leaderboard_note = (
-                            f"Backfill completed in this request; seeded {backfill_result.get('processed', 0)} repos in the final chunk."
-                        )
-                    elif backfill_result.get("ran"):
-                        leaderboard_note = (
-                            f"Backfill in progress: seeded {backfill_result.get('processed', 0)} repos in this run; "
-                            f"next page {backfill_result.get('next_page', '?')}. "
-                            "Run `/leaderboard` again to continue filling historical data."
-                        )
-                    else:
-                        leaderboard_note = "Backfill did not progress this run; leaderboard still updates from new webhook events."
-                else:
-                    leaderboard_note = "Backfill state unavailable; leaderboard still updates from new webhook events."
+    console.log(f"[Leaderboard] D1 data ready: {bool(leaderboard_data)}, has_users={bool(leaderboard_data and leaderboard_data.get('sorted')) if leaderboard_data else False}")
 
     # Fallback to API-based calculation when D1 is unavailable.
     if leaderboard_data is None:
@@ -3645,7 +3854,7 @@ async def handle_pull_request_opened(payload: dict, token: str, env=None) -> Non
     owner = payload["repository"]["owner"]["login"]
     repo = payload["repository"]["name"]
     pr_number = pr["number"]
-    author_login = sender["login"]
+    author_login = (pr.get("user") or {}).get("login") or sender["login"]
 
     # Check for too many open PRs and auto-close if needed
     was_closed = await _check_and_close_excess_prs(owner, repo, pr_number, author_login, token)
