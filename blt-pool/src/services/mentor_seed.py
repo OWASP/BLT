@@ -158,7 +158,7 @@ INITIAL_MENTORS = [
         "name": "Nipun Negi",
         "specialties": ["backend", "api-design", "databases"],
         "max_mentees": 3,
-        "active": true,
+        "active": True,
         "timezone": "UTC+5:30",
         "referred_by": ""
     },
@@ -167,7 +167,7 @@ INITIAL_MENTORS = [
         "name": "Altafur Rahman",
         "specialties": ["frontend", "react", "ui-ux"],
         "max_mentees": 3,
-        "active": true,
+        "active": True,
         "timezone": "UTC+5:30",
         "referred_by": ""
     },
@@ -176,7 +176,7 @@ INITIAL_MENTORS = [
         "name": "Shivam Kumar",
         "specialties": ["backend", "nodejs", "cloud"],
         "max_mentees": 3,
-        "active": true,
+        "active": True,
         "timezone": "UTC+5:30",
         "referred_by": ""
     }
