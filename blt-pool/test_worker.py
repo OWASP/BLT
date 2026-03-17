@@ -10,6 +10,7 @@ These tests cover the logic that does NOT require the Cloudflare runtime
 import asyncio
 import base64
 import builtins
+from contextlib import ExitStack
 import hashlib
 import hmac as _hmac
 import importlib
@@ -2056,9 +2057,10 @@ class TestFetchLeaderboardDataReconciliation(unittest.TestCase):
                 with patch.object(_worker, "_reconcile_org_leaderboard_from_github", new=AsyncMock(return_value=False)):
                     with patch.object(_worker, "_calculate_leaderboard_stats_from_d1", new=AsyncMock(return_value=self._dummy_leaderboard())):
                         with patch.object(_worker, "console", new=types.SimpleNamespace(log=lambda *a: None, error=lambda *a: None)):
-                            _, note, is_org = await _worker._fetch_leaderboard_data("OWASP-BLT", "BLT-GitHub-App", "tok", env)
+                            leaderboard_data, note, is_org = await _worker._fetch_leaderboard_data("OWASP-BLT", "BLT-GitHub-App", "tok", env)
 
             self.assertTrue(is_org)
+            self.assertIsNotNone(leaderboard_data)
             self.assertIn("Live reconciliation is temporarily unavailable", note)
 
         _run(_inner())
@@ -2165,14 +2167,21 @@ class TestFetchLeaderboardDataReconciliation(unittest.TestCase):
                 captured.append((sql, params))
                 return {"success": True}
 
-            with patch.object(_worker, "github_api", new=_mock_api):
-                with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
-                    with patch.object(_worker, "_d1_all", new=AsyncMock(return_value=[])):
-                        with patch.object(_worker, "_d1_run", new=_capture_d1_run):
-                            with patch.object(_worker, "_month_key", new=MagicMock(return_value="2026-03")):
-                                with patch.object(_worker, "_month_window", new=MagicMock(return_value=(1709251200, 1711929599))):
-                                    with patch.object(_worker, "console", new=types.SimpleNamespace(log=lambda *a: None, error=lambda *a: None)):
-                                        ok = await _worker._reconcile_org_leaderboard_from_github("OWASP-BLT", "tok", env)
+            with ExitStack() as stack:
+                stack.enter_context(patch.object(_worker, "github_api", new=_mock_api))
+                stack.enter_context(patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()))
+                stack.enter_context(patch.object(_worker, "_d1_all", new=AsyncMock(return_value=[])))
+                stack.enter_context(patch.object(_worker, "_d1_run", new=_capture_d1_run))
+                stack.enter_context(patch.object(_worker, "_month_key", new=MagicMock(return_value="2026-03")))
+                stack.enter_context(patch.object(_worker, "_month_window", new=MagicMock(return_value=(1709251200, 1711929599))))
+                stack.enter_context(
+                    patch.object(
+                        _worker,
+                        "console",
+                        new=types.SimpleNamespace(log=lambda *a: None, error=lambda *a: None),
+                    )
+                )
+                ok = await _worker._reconcile_org_leaderboard_from_github("OWASP-BLT", "tok", env)
 
             self.assertTrue(ok)
             delete_calls = [
@@ -2182,6 +2191,8 @@ class TestFetchLeaderboardDataReconciliation(unittest.TestCase):
             ]
             self.assertTrue(delete_calls)
             sql, params = delete_calls[0]
+            self.assertIn("WHERE org = ?", sql)
+            self.assertIn("AND (", sql)
             self.assertIn("state = 'open'", sql)
             self.assertIn("closed_at BETWEEN", sql)
             self.assertEqual(params, ("OWASP-BLT", 1709251200, 1711929599))
