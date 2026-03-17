@@ -946,12 +946,15 @@ async def _d1_inc_monthly(db, org: str, month_key: str, user_login: str, field: 
             db,
             f"""
             INSERT INTO leaderboard_monthly_stats (org, month_key, user_login, {field}, updated_at)
-            VALUES (?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, CASE WHEN ? < 0 THEN 0 ELSE ? END, ?)
             ON CONFLICT(org, month_key, user_login) DO UPDATE SET
-                {field} = leaderboard_monthly_stats.{field} + excluded.{field},
+                {field} = CASE
+                    WHEN leaderboard_monthly_stats.{field} + ? < 0 THEN 0
+                    ELSE leaderboard_monthly_stats.{field} + ?
+                END,
                 updated_at = excluded.updated_at
             """,
-            (org, month_key, user_login, delta, now),
+            (org, month_key, user_login, delta, delta, now, delta, delta),
         )
         console.log(f"[D1] Updated {field} org={org} month={month_key} user={user_login} +{delta}")
     except Exception as e:
@@ -1058,6 +1061,59 @@ async def _track_pr_closed_in_d1(payload: dict, env) -> None:
     )
 
 
+async def _track_pr_reopened_in_d1(payload: dict, env) -> None:
+    db = _d1_binding(env)
+    if not db:
+        return
+
+    pr = payload.get("pull_request") or {}
+    author = pr.get("user") or {}
+    if _is_bot(author):
+        return
+
+    org = (payload.get("repository") or {}).get("owner", {}).get("login", "")
+    repo = (payload.get("repository") or {}).get("name", "")
+    pr_number = pr.get("number")
+    author_login = author.get("login", "")
+    if not (org and repo and pr_number and author_login):
+        return
+
+    await _ensure_leaderboard_schema(db)
+    existing = await _d1_first(
+        db,
+        "SELECT state, merged, closed_at FROM leaderboard_pr_state WHERE org = ? AND repo = ? AND pr_number = ?",
+        (org, repo, pr_number),
+    )
+
+    # Reopening should reverse the previous close/merge credit so the final
+    # state remains accurate when the PR is closed again later.
+    if existing and existing.get("state") == "closed":
+        prev_merged = int(existing.get("merged") or 0)
+        prev_closed_at = int(existing.get("closed_at") or 0)
+        prev_mk = _month_key(prev_closed_at) if prev_closed_at else _month_key()
+        field = "merged_prs" if prev_merged else "closed_prs"
+        await _d1_inc_monthly(db, org, prev_mk, author_login, field, -1)
+
+    if not existing or existing.get("state") != "open":
+        await _d1_inc_open_pr(db, org, author_login, 1)
+
+    now = int(time.time())
+    await _d1_run(
+        db,
+        """
+        INSERT INTO leaderboard_pr_state (org, repo, pr_number, author_login, state, merged, closed_at, updated_at)
+        VALUES (?, ?, ?, ?, 'open', 0, NULL, ?)
+        ON CONFLICT(org, repo, pr_number) DO UPDATE SET
+            author_login = excluded.author_login,
+            state = 'open',
+            merged = 0,
+            closed_at = NULL,
+            updated_at = excluded.updated_at
+        """,
+        (org, repo, pr_number, author_login, now),
+    )
+
+
 async def _track_comment_in_d1(payload: dict, env) -> None:
     db = _d1_binding(env)
     if not db:
@@ -1068,6 +1124,9 @@ async def _track_comment_in_d1(payload: dict, env) -> None:
         return
     body = comment.get("body", "")
     if _is_coderabbit_ping(body):
+        return
+    # Ignore slash commands so bot commands do not inflate leaderboard comments.
+    if _extract_command(body):
         return
     org = (payload.get("repository") or {}).get("owner", {}).get("login", "")
     login = user.get("login", "")
@@ -1919,6 +1978,15 @@ def _parse_github_timestamp(ts_str: str) -> int:
     return 0
 
 
+def _avatar_img_tag(login: str, size: int = 20) -> str:
+    """Return a fixed-size GitHub avatar image tag safe for markdown tables."""
+    safe_login = quote(str(login), safe="")
+    return (
+        f"<img src=\"https://avatars.githubusercontent.com/{safe_login}?size={size}&v=4\" "
+        f"width=\"{size}\" height=\"{size}\" alt=\"{login}\" />"
+    )
+
+
 def _format_leaderboard_comment(author_login: str, leaderboard_data: dict, owner: str, note: str = "") -> str:
     """Format a leaderboard comment for a specific user."""
     sorted_users = leaderboard_data["sorted"]
@@ -1945,7 +2013,7 @@ def _format_leaderboard_comment(author_login: str, leaderboard_data: dict, owner
     comment += "| --- | --- | --- | --- | --- | --- | --- | --- |\n"
     
     def row_for(rank: int, u: dict, bold: bool = False, medal: str = "") -> str:
-        avatar = f"![{u['login']}](https://github.com/{u['login']}.png?size=20)"
+        avatar = _avatar_img_tag(u["login"])
         user_cell = f"{avatar} **`@{u['login']}`** ✨" if bold else f"{avatar} `@{u['login']}`"
         rank_cell = f"{medal} {rank}" if medal else f"{rank}"
         return (f"| {rank_cell} | {user_cell} | {u['openPrs']} | {u['mergedPrs']} | "
@@ -1954,7 +2022,7 @@ def _format_leaderboard_comment(author_login: str, leaderboard_data: dict, owner
     # Show context rows around the author
     if not sorted_users:
         # No data yet: show the requesting user with zeroes so the comment is still useful.
-        avatar = f"![{author_login}](https://github.com/{author_login}.png?size=20)"
+        avatar = _avatar_img_tag(author_login)
         comment += f"| - | {avatar} **`@{author_login}`** ✨ | 0 | 0 | 0 | 0 | 0 | **0** |\n"
         comment += "\n_No leaderboard activity has been recorded for this month yet._\n"
     elif author_index == -1:
@@ -2010,7 +2078,7 @@ def _format_reviewer_leaderboard_comment(leaderboard_data: dict, owner: str, pr_
     def row_for(rank: int, u: dict, highlight: bool = False) -> str:
         medal = medals[rank - 1] if rank <= 3 else ""
         rank_cell = f"{medal} {rank}" if medal else f"{rank}"
-        avatar = f"![{u['login']}](https://github.com/{u['login']}.png?size=20)"
+        avatar = _avatar_img_tag(u["login"])
         user_cell = f"{avatar} **`@{u['login']}`** ⭐" if highlight else f"{avatar} `@{u['login']}`"
         return f"| {rank_cell} | {user_cell} | {u['reviews']} |"
 
@@ -3827,23 +3895,24 @@ async def _post_merged_pr_combined_comment(
 
 async def handle_pull_request_closed(payload: dict, token: str, env=None) -> None:
     pr = payload["pull_request"]
-    sender = payload["sender"]
+    author = pr.get("user", {})
+    if _is_bot(author):
+        return
+
+    # Track close/merge counters for both merged and unmerged PRs.
+    await _track_pr_closed_in_d1(payload, env)
+
     if not pr.get("merged"):
         return
-    if not _is_human(sender):
+
+    sender = payload["sender"]
+    if not _is_human(sender) or _is_bot(sender):
         return
-    
-    # Skip bots more thoroughly
-    if _is_bot(pr.get("user", {})):
-        return
-    
+
     owner = payload["repository"]["owner"]["login"]
     repo = payload["repository"]["name"]
     pr_number = pr["number"]
     author_login = pr["user"]["login"]
-
-    # Track close/merge counters in D1.
-    await _track_pr_closed_in_d1(payload, env)
 
     # Post a single combined comment: thanks + contributor leaderboard + reviewer leaderboard
     pr_reviewers = await get_valid_reviewers(owner, repo, pr_number, author_login, token)
@@ -4409,7 +4478,10 @@ async def handle_webhook(request, env) -> Response:
             if action == "opened":
                 await handle_pull_request_opened(payload, token, env)
                 await handle_pull_request_for_review(payload, token)
-            elif action == "synchronize" or action == "reopened":
+            elif action == "synchronize":
+                await handle_pull_request_for_review(payload, token)
+            elif action == "reopened":
+                await _track_pr_reopened_in_d1(payload, env)
                 await handle_pull_request_for_review(payload, token)
             elif action == "closed":
                 await handle_pull_request_closed(payload, token, env)

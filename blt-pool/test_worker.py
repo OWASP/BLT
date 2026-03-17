@@ -601,11 +601,35 @@ class TestHandlePullRequestClosed(unittest.TestCase):
         self._run_closed(payload, comments)
         self.assertEqual(comments, [])
 
+    def test_tracks_stats_when_not_merged(self):
+        payload = _make_pr_payload(merged=False)
+
+        async def _inner():
+            with patch.object(_worker, "_track_pr_closed_in_d1", new=AsyncMock()) as track_mock:
+                with patch.object(_worker, "_post_merged_pr_combined_comment", new=AsyncMock()) as post_mock:
+                    await _worker.handle_pull_request_closed(payload, "tok", env=types.SimpleNamespace())
+            self.assertEqual(track_mock.await_count, 1)
+            self.assertEqual(post_mock.await_count, 0)
+
+        _run(_inner())
+
     def test_ignores_bot_merges(self):
         payload = _make_pr_payload(merged=True, sender={"login": "bot", "type": "Bot"})
         comments = []
         self._run_closed(payload, comments)
         self.assertEqual(comments, [])
+
+    def test_tracks_stats_even_when_sender_is_bot(self):
+        payload = _make_pr_payload(merged=True, sender={"login": "bot", "type": "Bot"})
+
+        async def _inner():
+            with patch.object(_worker, "_track_pr_closed_in_d1", new=AsyncMock()) as track_mock:
+                with patch.object(_worker, "_post_merged_pr_combined_comment", new=AsyncMock()) as post_mock:
+                    await _worker.handle_pull_request_closed(payload, "tok", env=types.SimpleNamespace())
+            self.assertEqual(track_mock.await_count, 1)
+            self.assertEqual(post_mock.await_count, 0)
+
+        _run(_inner())
 
 
 class TestSecretVarsStatusHtml(unittest.TestCase):
@@ -930,6 +954,21 @@ class TestFormatLeaderboardComment(unittest.TestCase):
         self.assertIn("charlie", result)
         # Should not highlight anyone
         self.assertNotIn("✨", result)
+
+    def test_uses_fixed_size_avatar_img_tag(self):
+        leaderboard_data = {
+            "sorted": [
+                {"login": "alice", "openPrs": 1, "mergedPrs": 2, "closedPrs": 0, "reviews": 0, "comments": 0, "total": 21},
+            ],
+            "start_timestamp": 1704067200,
+            "end_timestamp": 1706745599,
+        }
+
+        result = _format_leaderboard_comment("alice", leaderboard_data, "test-org")
+
+        self.assertIn("<img src=\"https://avatars.githubusercontent.com/alice?size=20&v=4\"", result)
+        self.assertIn("width=\"20\"", result)
+        self.assertIn("height=\"20\"", result)
 
 
 class TestFormatReviewerLeaderboardComment(unittest.TestCase):
@@ -1321,7 +1360,7 @@ class TestPostMergedPrCombinedComment(unittest.TestCase):
         posted, deleted = [], []
         self._run(self._make_leaderboard_data(), "alice", [], posted, deleted)
         # Avatars should be present as inline images
-        self.assertIn("https://github.com/alice.png", posted[0])
+        self.assertIn("https://avatars.githubusercontent.com/alice?size=20&v=4", posted[0])
 
     def test_shows_top_five_when_author_not_in_leaderboard(self):
         data = {
@@ -1846,11 +1885,85 @@ class TestTrackingOperations(unittest.TestCase):
         # Should have called prepare for monthly increment
         self.assertGreater(mock_db.prepare.call_count, 0)
 
+    async def _test_track_comment_ignores_commands(self):
+        """Slash commands should not be counted as comment leaderboard activity."""
+        mock_db = MagicMock()
+        env = types.SimpleNamespace(LEADERBOARD_DB=mock_db)
+        payload = {
+            "repository": {"owner": {"login": "OWASP-BLT"}},
+            "comment": {
+                "user": {"login": "alice", "type": "User"},
+                "body": "/leaderboard",
+                "created_at": "2024-03-05T12:00:00Z",
+            },
+        }
+
+        with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None)):
+            await _worker._track_comment_in_d1(payload, env)
+
+        self.assertEqual(mock_db.prepare.call_count, 0)
+
+    async def _test_track_pr_reopened_reverts_previous_close_credit(self):
+        """Reopening should remove prior close penalty and restore open PR count once."""
+        payload = {
+            "repository": {"owner": {"login": "OWASP-BLT"}, "name": "test-repo"},
+            "pull_request": {
+                "number": 42,
+                "user": {"login": "alice", "type": "User"},
+            },
+        }
+        env = types.SimpleNamespace(LEADERBOARD_DB=object())
+
+        with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
+            with patch.object(_worker, "_d1_first", new=AsyncMock(return_value={"state": "closed", "merged": 0, "closed_at": 1709596800})):
+                with patch.object(_worker, "_d1_inc_monthly", new=AsyncMock()) as monthly_mock:
+                    with patch.object(_worker, "_d1_inc_open_pr", new=AsyncMock()) as open_mock:
+                        with patch.object(_worker, "_d1_run", new=AsyncMock()):
+                            await _worker._track_pr_reopened_in_d1(payload, env)
+
+        self.assertEqual(monthly_mock.await_count, 1)
+        monthly_args = monthly_mock.await_args.args
+        self.assertEqual(monthly_args[3], "alice")
+        self.assertEqual(monthly_args[4], "closed_prs")
+        self.assertEqual(monthly_args[5], -1)
+        self.assertEqual(open_mock.await_count, 1)
+        self.assertEqual(open_mock.await_args.args[3], 1)
+
+    async def _test_track_pr_reopened_idempotent_when_already_open(self):
+        """Duplicate reopened deliveries should not re-increment counters."""
+        payload = {
+            "repository": {"owner": {"login": "OWASP-BLT"}, "name": "test-repo"},
+            "pull_request": {
+                "number": 42,
+                "user": {"login": "alice", "type": "User"},
+            },
+        }
+        env = types.SimpleNamespace(LEADERBOARD_DB=object())
+
+        with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
+            with patch.object(_worker, "_d1_first", new=AsyncMock(return_value={"state": "open", "merged": 0, "closed_at": None})):
+                with patch.object(_worker, "_d1_inc_monthly", new=AsyncMock()) as monthly_mock:
+                    with patch.object(_worker, "_d1_inc_open_pr", new=AsyncMock()) as open_mock:
+                        with patch.object(_worker, "_d1_run", new=AsyncMock()):
+                            await _worker._track_pr_reopened_in_d1(payload, env)
+
+        self.assertEqual(monthly_mock.await_count, 0)
+        self.assertEqual(open_mock.await_count, 0)
+
     def test_track_pr_opened(self):
         _run(self._test_track_pr_opened())
 
     def test_track_comment(self):
         _run(self._test_track_comment())
+
+    def test_track_comment_ignores_commands(self):
+        _run(self._test_track_comment_ignores_commands())
+
+    def test_track_pr_reopened_reverts_previous_close_credit(self):
+        _run(self._test_track_pr_reopened_reverts_previous_close_credit())
+
+    def test_track_pr_reopened_idempotent_when_already_open(self):
+        _run(self._test_track_pr_reopened_idempotent_when_already_open())
 
 
 # ---------------------------------------------------------------------------
