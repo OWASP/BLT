@@ -1915,12 +1915,15 @@ class TestTrackingOperations(unittest.TestCase):
         }
         env = types.SimpleNamespace(LEADERBOARD_DB=object())
 
-        with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
-            with patch.object(_worker, "_d1_first", new=AsyncMock(return_value={"state": "closed", "merged": 0, "closed_at": 1709596800})):
-                with patch.object(_worker, "_d1_inc_monthly", new=AsyncMock()) as monthly_mock:
-                    with patch.object(_worker, "_d1_inc_open_pr", new=AsyncMock()) as open_mock:
-                        with patch.object(_worker, "_d1_run", new=AsyncMock()):
-                            await _worker._track_pr_reopened_in_d1(payload, env)
+        with ExitStack() as stack:
+            stack.enter_context(patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()))
+            stack.enter_context(
+                patch.object(_worker, "_d1_first", new=AsyncMock(return_value={"state": "closed", "merged": 0, "closed_at": 1709596800}))
+            )
+            monthly_mock = stack.enter_context(patch.object(_worker, "_d1_inc_monthly", new=AsyncMock()))
+            open_mock = stack.enter_context(patch.object(_worker, "_d1_inc_open_pr", new=AsyncMock()))
+            stack.enter_context(patch.object(_worker, "_d1_run", new=AsyncMock()))
+            await _worker._track_pr_reopened_in_d1(payload, env)
 
         self.assertEqual(monthly_mock.await_count, 1)
         monthly_args = monthly_mock.await_args.args
@@ -1941,12 +1944,15 @@ class TestTrackingOperations(unittest.TestCase):
         }
         env = types.SimpleNamespace(LEADERBOARD_DB=object())
 
-        with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
-            with patch.object(_worker, "_d1_first", new=AsyncMock(return_value={"state": "open", "merged": 0, "closed_at": None})):
-                with patch.object(_worker, "_d1_inc_monthly", new=AsyncMock()) as monthly_mock:
-                    with patch.object(_worker, "_d1_inc_open_pr", new=AsyncMock()) as open_mock:
-                        with patch.object(_worker, "_d1_run", new=AsyncMock()):
-                            await _worker._track_pr_reopened_in_d1(payload, env)
+        with ExitStack() as stack:
+            stack.enter_context(patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()))
+            stack.enter_context(
+                patch.object(_worker, "_d1_first", new=AsyncMock(return_value={"state": "open", "merged": 0, "closed_at": None}))
+            )
+            monthly_mock = stack.enter_context(patch.object(_worker, "_d1_inc_monthly", new=AsyncMock()))
+            open_mock = stack.enter_context(patch.object(_worker, "_d1_inc_open_pr", new=AsyncMock()))
+            stack.enter_context(patch.object(_worker, "_d1_run", new=AsyncMock()))
+            await _worker._track_pr_reopened_in_d1(payload, env)
 
         self.assertEqual(monthly_mock.await_count, 0)
         self.assertEqual(open_mock.await_count, 0)
@@ -1965,14 +1971,21 @@ class TestTrackingOperations(unittest.TestCase):
         }
         env = types.SimpleNamespace(LEADERBOARD_DB=object())
 
-        with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
+        with ExitStack() as stack:
+            stack.enter_context(patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()))
             # Existing row says this PR was closed-unmerged, so new merged state
             # must remove old closed_prs credit and add merged_prs credit.
-            with patch.object(_worker, "_d1_first", new=AsyncMock(return_value={"author_login": "bob", "state": "closed", "merged": 0, "closed_at": 1709596800})):
-                with patch.object(_worker, "_d1_inc_monthly", new=AsyncMock()) as monthly_mock:
-                    with patch.object(_worker, "_d1_inc_open_pr", new=AsyncMock()):
-                        with patch.object(_worker, "_d1_run", new=AsyncMock()):
-                            await _worker._track_pr_closed_in_d1(payload, env)
+            stack.enter_context(
+                patch.object(
+                    _worker,
+                    "_d1_first",
+                    new=AsyncMock(return_value={"author_login": "bob", "state": "closed", "merged": 0, "closed_at": 1709596800}),
+                )
+            )
+            monthly_mock = stack.enter_context(patch.object(_worker, "_d1_inc_monthly", new=AsyncMock()))
+            stack.enter_context(patch.object(_worker, "_d1_inc_open_pr", new=AsyncMock()))
+            stack.enter_context(patch.object(_worker, "_d1_run", new=AsyncMock()))
+            await _worker._track_pr_closed_in_d1(payload, env)
 
         self.assertEqual(monthly_mock.await_count, 2)
         first = monthly_mock.await_args_list[0].args
@@ -2152,15 +2165,18 @@ class TestFetchLeaderboardDataReconciliation(unittest.TestCase):
 
                 return types.SimpleNamespace(status=404, text=AsyncMock(return_value="{}"))
 
-            with patch.object(_worker, "github_api", new=_mock_api):
-                with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
-                    with patch.object(_worker, "_d1_all", new=AsyncMock(return_value=[])):
-                        with patch.object(_worker, "_d1_run", new=AsyncMock()):
-                            with patch.object(_worker, "_month_key", new=MagicMock(return_value="2026-03")):
-                                # 2026-03-01T00:00:00Z .. 2026-03-31T23:59:59Z
-                                with patch.object(_worker, "_month_window", new=MagicMock(return_value=(1772323200, 1775001599))):
-                                    with patch.object(_worker, "console", new=types.SimpleNamespace(log=lambda *a: None, error=lambda *a: None)):
-                                        result = await _worker._reconcile_org_leaderboard_from_github("OWASP-BLT", "tok", env)
+            with ExitStack() as stack:
+                stack.enter_context(patch.object(_worker, "github_api", new=_mock_api))
+                stack.enter_context(patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()))
+                stack.enter_context(patch.object(_worker, "_d1_all", new=AsyncMock(return_value=[])))
+                stack.enter_context(patch.object(_worker, "_d1_run", new=AsyncMock()))
+                stack.enter_context(patch.object(_worker, "_month_key", new=MagicMock(return_value="2026-03")))
+                # 2026-03-01T00:00:00Z .. 2026-03-31T23:59:59Z
+                stack.enter_context(patch.object(_worker, "_month_window", new=MagicMock(return_value=(1772323200, 1775001599))))
+                stack.enter_context(
+                    patch.object(_worker, "console", new=types.SimpleNamespace(log=lambda *a: None, error=lambda *a: None))
+                )
+                result = await _worker._reconcile_org_leaderboard_from_github("OWASP-BLT", "tok", env)
 
             self.assertFalse(result)
 
