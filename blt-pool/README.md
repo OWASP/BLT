@@ -1,183 +1,253 @@
-# BLT-GitHub-App
+# BLT-Pool
 
-A GitHub App that integrates [OWASP BLT](https://owaspblt.org) services into GitHub repositories.
+BLT-Pool is the main product for the OWASP BLT contributor experience.
 
-## Features
+This repository now serves two connected surfaces:
 
-- **`/assign` command** — Comment `/assign` on any issue to be automatically assigned to it. Assignments expire after 8 hours if no linked PR is submitted.
-- **`/unassign` command** — Comment `/unassign` to release an issue assignment so others can pick it up.
-- **Automatic unassignment** — A cron task runs every 2 hours to automatically unassign issues where the 8-hour deadline has passed without a linked pull request.
-- **`/leaderboard` command** — Comment `/leaderboard` on any issue or PR to see your rank in the monthly leaderboard.
-- **Monthly leaderboard** — Uses D1-backed event counters for accurate, scalable org-wide ranking (no per-request repo scanning). Automatically posted on PRs (when opened or merged) showing contributor rankings based on:
-  - Open PRs (+1 each)
-  - Merged PRs (+10)
-  - Closed PRs without merge (−2)
-  - PR Reviews (+5; sampled from recent merged PRs)
-- **Auto-close excess PRs** — PRs are automatically closed if the author has 50+ open PRs in the repository.
-- **Rank improvement congratulations** — When a PR is merged and the author's rank improves on the 6-month leaderboard, they receive a congratulatory message.
-- **BLT bug reporting** — When an issue is labeled as `bug`, `vulnerability`, or `security`, it is automatically reported to the [BLT API](https://github.com/OWASP-BLT/BLT-API).
-- **Welcome messages** — New issues and pull requests receive helpful onboarding messages with contribution tips.
-- **Merge congratulations** — Merged PRs receive an acknowledgement message celebrating the contributor's work.
+- `BLT-Pool` as the primary experience, including the mentor directory and contributor onboarding pages.
+- The `GitHub App` as a submodule of BLT-Pool, handling issue assignment, leaderboard scoring, review signals, and webhook automation.
+
+## What BLT-Pool Includes
+
+### 1. Mentor Directory
+
+The homepage at `/` is the BLT-Pool mentor directory. It is not a static page anymore: the worker loads mentor data from D1, shows current active mentor assignments, and renders a referral leaderboard based on who invited mentors into the pool.
+
+Mentor-side features currently exposed on the homepage:
+
+- A live mentor list loaded from the D1 `mentors` table
+- Per-mentor stats pulled from D1 for homepage display
+- An active assignment section backed by the D1 `mentor_assignments` table
+- A referral leaderboard built from each mentor's `referred_by` field
+- A `Become a Mentor` form that submits directly to `POST /api/mentors`
+- A mentor command guide for `/mentor`, `/unmentor`, `/mentor-pause`, `/handoff`, and `/rematch`
+
+### 2. GitHub App Submodule
+
+The GitHub App lives under `/github-app` and powers repository automation for OWASP BLT projects.
+
+Core GitHub automation features:
+
+- `/assign` assigns an issue to the commenter for 8 hours.
+- `/unassign` releases the assignment.
+- `/leaderboard` shows the contributor's monthly ranking.
+- Stale assignments are removed automatically on a cron schedule.
+- Bug/security labels are reported to BLT.
+- Peer review, workflow approval, and unresolved conversation labels are maintained automatically.
+- PR volume protection closes excessive open PRs from the same author.
+
+## Architecture
+
+The app runs as a Python Cloudflare Worker. D1 is used for both the leaderboard system and the mentor pool system.
+
+- `GET /` renders the BLT-Pool mentor directory.
+- `GET /github-app` renders the GitHub App landing page.
+- `POST /api/mentors` adds a mentor to the D1-backed mentor pool.
+- `POST /api/github/webhooks` receives GitHub webhook events.
+- `GET /health` returns a health check response.
+- `GET /callback` shows the post-installation success page.
+
+### D1 Data Model
+
+The worker creates and uses several D1 tables at runtime:
+
+- `mentors` stores mentor profile records such as name, GitHub username, specialties, timezone, max mentees, and referral source.
+- `mentor_assignments` stores active mentor-to-issue assignments so the homepage can show current load.
+- `leaderboard_monthly_stats`, `leaderboard_open_prs`, `leaderboard_pr_state`, `leaderboard_review_credits`, and related backfill tables power the GitHub leaderboard.
+
+The mentor pool is seeded on startup with an initial list of mentors using idempotent `INSERT OR IGNORE` statements, so first deploys still show data before new mentors are added through the form.
+
+### Leaderboard Model
+
+Leaderboard scoring is event-driven and stored in D1 for scalability.
+
+- PR opened: open PR count `+1`
+- PR merged: merged PR count `+1`, open PR count `-1`
+- PR closed unmerged: closed PR count `+1`, open PR count `-1`
+- Review submitted: review credit `+1` for the first two unique reviewers per PR/month
+- Comment created: comment credit `+1` excluding bots and CodeRabbit pings
+
+### Mentor Pool Flow
+
+The mentor pool is also automated in the worker:
+
+- Mentors are loaded from D1 for homepage display and for runtime assignment logic.
+- `POST /api/mentors` validates and inserts mentors directly into D1.
+- The homepage form accepts `name`, `github_username`, `specialties`, `max_mentees`, `timezone`, and `referred_by`.
+- Slash commands such as `/mentor` and `/unmentor` drive mentor assignment workflows in GitHub.
+- Mentor assignment state is stored in D1 so the homepage can reflect active pairings.
 
 ## Setup
 
 ### Prerequisites
 
-- [Cloudflare Workers](https://workers.cloudflare.com/) account
-- A GitHub App
+- [Cloudflare Workers](https://workers.cloudflare.com/)
+- A GitHub App installation
+- Python for tests
 
-### Configuration
-
-Copy `.dev.vars.example` to `.dev.vars` and fill in your credentials:
+### Local Configuration
 
 ```bash
 cp .dev.vars.example .dev.vars
 ```
-## Architecture Notes
 
-### Leaderboard Scalability
+Fill in:
 
-The leaderboard uses an **event-driven D1 model**:
-- Webhook events increment persistent counters in D1.
-- `/leaderboard` reads precomputed counters from D1.
-- This avoids per-request org scans and scales to very large orgs.
-
-**Tracked by webhook events:**
-- `pull_request` opened: open PR counter (+1)
-- `pull_request` closed merged: merged PRs (+1), open PR counter (-1)
-- `pull_request` closed unmerged: closed PRs (+1), open PR counter (-1)
-- `pull_request_review` submitted: reviews (+1, first two unique reviewers per PR/month)
-- `issue_comment` created: comments (+1, excludes bots and CodeRabbit pings)
+| Variable | Description |
+|---|---|
+| `APP_ID` | GitHub App numeric ID |
+| `PRIVATE_KEY` | GitHub App private key |
+| `WEBHOOK_SECRET` | GitHub App webhook secret |
+| `GITHUB_APP_SLUG` | Current GitHub App slug |
+| `BLT_API_URL` | BLT API base URL |
+| `GITHUB_CLIENT_ID` | Optional OAuth client ID |
+| `GITHUB_CLIENT_SECRET` | Optional OAuth client secret |
+| `GITHUB_ORG` | Optional org used for homepage mentor stats, defaults to `OWASP-BLT` |
 
 ### D1 Setup
-
-1. Create database:
 
 ```bash
 npx wrangler d1 create blt-leaderboard
 ```
 
-2. Copy returned `database_id` into `wrangler.toml` under `[[d1_databases]]`.
+Copy the returned `database_id` into `wrangler.toml` under `[[d1_databases]]`.
 
-3. Deploy worker:
+The same D1 binding is used for both:
+
+- GitHub leaderboard/event tracking
+- Mentor pool storage and mentor assignment state
+
+### Run Locally
+
+```bash
+npx wrangler dev
+```
+
+### Deploy
 
 ```bash
 npx wrangler deploy
 ```
 
+### Production Secrets
 
-| Variable | Description |
-|---|---|
-| `APP_ID` | GitHub App numeric ID |
-| `PRIVATE_KEY` | GitHub App private key (PEM, PKCS#1 or PKCS#8) |
-| `WEBHOOK_SECRET` | GitHub App webhook secret |
-| `GITHUB_APP_SLUG` | GitHub App URL slug (e.g. `blt-github-app`) |
-| `BLT_API_URL` | BLT API base URL (default: `https://blt-api.owasp-blt.workers.dev`) |
-| `GITHUB_CLIENT_ID` | OAuth client ID (optional) |
-| `GITHUB_CLIENT_SECRET` | OAuth client secret (optional) |
-
-### Running
-
-```bash
-cp .dev.vars.example .dev.vars   # fill in your credentials
-npx wrangler dev                 # local dev server
-npx wrangler deploy              # deploy to Cloudflare
-```
-
-**Note:** The `public/` directory contains static assets (e.g., logo image) served by Cloudflare Workers via the `[assets]` binding in `wrangler.toml`. HTML page templates live in `templates/` and are compiled into `src/index_template.py` before deploying.
-
-Set secrets securely for production:
 ```bash
 npx wrangler secret put APP_ID
 npx wrangler secret put PRIVATE_KEY
 npx wrangler secret put WEBHOOK_SECRET
 ```
 
-Bulk upload from `.env.production` with Worker verification:
+Bulk upload is supported with:
+
 ```bash
 chmod +x scripts/upload-production-vars.sh
 ./scripts/upload-production-vars.sh
 ```
 
-The script verifies `CLOUDFLARE_WORKER_NAME` in `.env.production` matches
-`name` in `wrangler.toml` before uploading any secrets.
-
-### Testing
+## Testing
 
 ```bash
 pip install pytest
 pytest test_worker.py -v
 ```
 
+## Current Naming Note
+
+The product name is now `BLT-Pool`, but some deployment identifiers still use legacy GitHub App naming for continuity.
+
+Examples:
+
+- `wrangler.toml` worker name
+- `GITHUB_APP_SLUG`
+
+Those can be migrated separately when production deployment and GitHub App settings are ready.
+
 ## GitHub App Permissions
 
-The app requires the following repository permissions:
+Required permissions:
 
 | Permission | Access |
 |---|---|
 | Issues | Read & Write |
 | Pull Requests | Read & Write |
 | Metadata | Read |
+| Checks | Read |
+| Actions | Read |
 
-And listens for these webhook events: `issue_comment`, `issues`, `pull_request`, `pull_request_review`.
+Webhook events currently handled:
 
-## Usage
+- `issue_comment`
+- `issues`
+- `pull_request`
+- `pull_request_review`
+- `check_run`
+- `workflow_run`
 
-### Issue Assignment
+## Mentor API
 
-In any issue, comment:
+The mentor signup form on `/` submits to `POST /api/mentors`.
 
-```
-/assign
-```
+Accepted payload fields:
 
-You will be assigned to the issue with an 8-hour deadline to submit a pull request.
+- `name` required
+- `github_username` required
+- `specialties` optional list or comma-separated string
+- `max_mentees` optional, clamped to `1..10`
+- `timezone` optional
+- `referred_by` optional GitHub username
 
-To release an issue:
+Validation implemented in `worker.py`:
 
-```
-/unassign
-```
+- GitHub usernames must match GitHub's normal username shape
+- Specialty tags are validated before insert
+- Invalid payloads return `400`
+- Successful inserts return `201`
 
-### Bug Reporting
+## Seeded Mentors
 
-When an issue is labeled with `bug`, `vulnerability`, or `security`, the app automatically creates a corresponding entry in the BLT platform and posts the Bug ID as a comment.
+The worker currently seeds an initial mentor pool in code so the homepage is populated on first run. This seeded list includes mentors such as:
 
-## Cloudflare Worker
-
-This app runs as a [Cloudflare Workers](https://workers.cloudflare.com/) Python Worker
-and includes a **landing homepage** where users can view the app status and
-install it on their own GitHub organization.
-
-### Endpoints
-
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/` | Landing page |
-| `GET` | `/health` | JSON health check |
-| `POST` | `/api/github/webhooks` | GitHub webhook receiver |
-| `GET` | `/callback` | Post-installation success page |
+- Rinkit Adhana
+- Raj Gupta
+- Shriyash Soni
+- Mohammed Faiyaz Shaikh
+- Vinamra Vaswani
+- Carla Voorhees
+- Akshay Behl
+- Ahmed ElSheik
+- Kunal Kashyap
+- Rudra Bhaskar
+- Sanidhya Shishodia
+- Vedant Anand
+- Rishab Kumar Jha
+- Aryan Jain
+- Ramansh Saxena
 
 ## Project Structure
 
-```
-├── worker.py                     # Python Cloudflare Worker (all handlers + landing page)
-├── wrangler.toml                 # Cloudflare Worker configuration
-├── .dev.vars.example             # Local dev environment variables template
-├── test_worker.py                # pytest unit tests for pure-Python utilities
-├── app.yml                       # GitHub App manifest
-├── public/                       # Static assets served via Workers Assets (logo, etc.)
-├── templates/                    # HTML source templates (compiled into src/index_template.py)
-└── LICENSE
+```text
+.
+├── README.md
+├── app.yml
+├── wrangler.toml
+├── .dev.vars.example
+├── public/
+├── scripts/
+├── src/
+│   ├── worker.py
+│   └── index_template.py
+├── templates/
+│   ├── index.html
+│   └── callback.html
+└── test_worker.py
 ```
 
 ## Related Projects
 
-- [OWASP BLT](https://github.com/OWASP-BLT/BLT) — Main bug logging platform
-- [BLT-Action](https://github.com/OWASP-BLT/BLT-Action) — GitHub Action for issue assignment
-- [BLT-API](https://github.com/OWASP-BLT/BLT-API) — REST API for BLT
+- [OWASP BLT](https://github.com/OWASP-BLT/BLT)
+- [BLT-API](https://github.com/OWASP-BLT/BLT-API)
+- [BLT-Action](https://github.com/OWASP-BLT/BLT-Action)
 
 ## License
 
 [AGPL-3.0](LICENSE)
-
