@@ -24,6 +24,7 @@ Environment variables / secrets (configure via ``wrangler.toml`` or
 
 import base64
 import calendar
+import asyncio
 import hashlib
 import hmac as _hmac
 import html as _html_mod
@@ -1075,7 +1076,8 @@ async def _track_pr_closed_in_d1(payload: dict, env) -> None:
         await _d1_inc_monthly(db, org, prev_mk, existing_author_login, prev_field, -1)
 
     if existing and existing.get("state") == "open":
-        await _d1_inc_open_pr(db, org, author_login, -1)
+        open_author_login = existing.get("author_login") or author_login
+        await _d1_inc_open_pr(db, org, open_author_login, -1)
 
     event_ts = _parse_github_timestamp(merged_at) if merged and merged_at else closed_ts
     mk = _month_key(event_ts)
@@ -1386,6 +1388,28 @@ async def _release_reconcile_lock(db, org: str, holder: str) -> None:
         console.error(f"[LeaderboardReconcile] Failed to release lock for {org}: {exc}")
 
 
+async def _refresh_reconcile_lock(db, org: str, holder: str, lease_seconds: int) -> bool:
+    now_ts = int(time.time())
+    lock_until = now_ts + max(1, lease_seconds)
+    try:
+        result = await _d1_run(
+            db,
+            """
+            UPDATE leaderboard_reconcile_locks
+            SET lock_until = ?, updated_at = ?
+            WHERE org = ? AND holder = ? AND lock_until >= ?
+            """,
+            (lock_until, now_ts, org, holder, now_ts),
+        )
+        meta = (result or {}).get("meta") if isinstance(result, dict) else None
+        if isinstance(meta, dict):
+            return int(meta.get("changes") or 0) > 0
+        return result is not None
+    except Exception as exc:
+        console.error(f"[LeaderboardReconcile] Failed to refresh lock for {org}: {exc}")
+        return False
+
+
 async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env) -> bool:
     """Rebuild current-month leaderboard PR stats from live GitHub state.
 
@@ -1406,6 +1430,25 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env) ->
     if not acquired:
         console.log(f"[LeaderboardReconcile] Lock busy for org={owner}; skipping reconcile")
         return False
+
+    renewal_state = {"active": True}
+    renewal_stop = asyncio.Event()
+
+    async def _renewal_loop():
+        interval = max(1, _RECONCILE_LOCK_LEASE_SECONDS // 3)
+        while not renewal_stop.is_set():
+            try:
+                await asyncio.wait_for(renewal_stop.wait(), timeout=interval)
+                break
+            except TimeoutError:
+                pass
+            ok = await _refresh_reconcile_lock(db, owner, holder, _RECONCILE_LOCK_LEASE_SECONDS)
+            if not ok:
+                renewal_state["active"] = False
+                console.error(f"[LeaderboardReconcile] Lock renewal failed for org={owner}; aborting reconcile")
+                break
+
+    renewal_task = asyncio.create_task(_renewal_loop())
 
     try:
         month_key = _month_key()
@@ -1438,6 +1481,8 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env) ->
 
         repo_page = 1
         while True:
+            if not renewal_state["active"]:
+                return False
             repos_resp = await github_api(
                 "GET",
                 f"/orgs/{owner}/repos?sort=full_name&direction=asc&per_page={_RECONCILE_REPOS_PER_PAGE}&page={repo_page}",
@@ -1460,6 +1505,8 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env) ->
                 # Snapshot all open PRs in this repo.
                 open_page = 1
                 while True:
+                    if not renewal_state["active"]:
+                        return False
                     open_resp = await github_api(
                         "GET",
                         f"/repos/{owner}/{repo_name}/pulls?state=open&per_page={_RECONCILE_PRS_PER_PAGE}&page={open_page}",
@@ -1502,6 +1549,8 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env) ->
                 # Snapshot current-month closed/merged PR outcomes in this repo.
                 closed_page = 1
                 while closed_page <= _RECONCILE_MAX_CLOSED_PAGES_PER_REPO:
+                    if not renewal_state["active"]:
+                        return False
                     closed_resp = await github_api(
                         "GET",
                         f"/repos/{owner}/{repo_name}/pulls?state=closed&sort=updated&direction=desc&per_page={_RECONCILE_PRS_PER_PAGE}&page={closed_page}",
@@ -1574,104 +1623,121 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env) ->
                 break
             repo_page += 1
 
-        # Reset org leaderboard state to the fresh snapshot.
-        await _d1_run(db, "DELETE FROM leaderboard_open_prs WHERE org = ?", (owner,))
-        await _d1_run(
-            db,
-            """
-            DELETE FROM leaderboard_pr_state
-            WHERE org = ?
-              AND (
-                    state = 'open'
-                    OR (state = 'closed' AND closed_at BETWEEN ? AND ?)
-                  )
-            """,
-            (owner, start_ts, end_ts),
-        )
-        # Keep monthly history and review-credit history intact; only reset the
-        # PR-derived counters for the current month and then write fresh values.
-        await _d1_run(
-            db,
-            """
-            UPDATE leaderboard_monthly_stats
-            SET merged_prs = 0,
-                closed_prs = 0,
-                updated_at = ?
-            WHERE org = ? AND month_key = ?
-            """,
-            (now_ts, owner, month_key),
-        )
+        try:
+            await _d1_run(db, "BEGIN IMMEDIATE")
 
-        # Clear one-time backfill gates so live reconciliation remains the source
-        # of truth without permanent stop conditions.
-        await _d1_run(
-            db,
-            "DELETE FROM leaderboard_backfill_state WHERE org = ?",
-            (owner,),
-        )
-        await _d1_run(
-            db,
-            "DELETE FROM leaderboard_backfill_repo_done WHERE org = ?",
-            (owner,),
-        )
-
-        for login, count in open_by_user.items():
+            # Reset org leaderboard state to the fresh snapshot.
+            await _d1_run(db, "DELETE FROM leaderboard_open_prs WHERE org = ?", (owner,))
             await _d1_run(
                 db,
                 """
-                INSERT INTO leaderboard_open_prs (org, user_login, open_prs, updated_at)
-                VALUES (?, ?, ?, ?)
+                DELETE FROM leaderboard_pr_state
+                WHERE org = ?
+                  AND (
+                        state = 'open'
+                        OR (state = 'closed' AND closed_at BETWEEN ? AND ?)
+                      )
                 """,
-                (owner, login, count, now_ts),
+                (owner, start_ts, end_ts),
             )
-
-        for row in pr_state_map.values():
+            # Keep monthly history and review-credit history intact; only reset the
+            # PR-derived counters for the current month and then write fresh values.
             await _d1_run(
                 db,
                 """
-                INSERT INTO leaderboard_pr_state (org, repo, pr_number, author_login, state, merged, closed_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                ON CONFLICT(org, repo, pr_number) DO UPDATE SET
-                    author_login = excluded.author_login,
-                    state = excluded.state,
-                    merged = excluded.merged,
-                    closed_at = excluded.closed_at,
-                    updated_at = excluded.updated_at
+                UPDATE leaderboard_monthly_stats
+                SET merged_prs = 0,
+                    closed_prs = 0,
+                    updated_at = ?
+                WHERE org = ? AND month_key = ?
                 """,
-                row,
+                (now_ts, owner, month_key),
             )
 
-        all_logins = set(open_by_user.keys()) | set(merged_by_user.keys()) | set(closed_by_user.keys()) | set(preserved_reviews_comments.keys())
-        for login in all_logins:
-            preserved = preserved_reviews_comments.get(login, {})
+            # Clear one-time backfill gates so live reconciliation remains the source
+            # of truth without permanent stop conditions.
             await _d1_run(
                 db,
-                """
-                INSERT INTO leaderboard_monthly_stats
-                    (org, month_key, user_login, merged_prs, closed_prs, reviews, comments, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                ON CONFLICT(org, month_key, user_login) DO UPDATE SET
-                    merged_prs = excluded.merged_prs,
-                    closed_prs = excluded.closed_prs,
-                    updated_at = excluded.updated_at
-                """,
-                (
-                    owner,
-                    month_key,
-                    login,
-                    merged_by_user.get(login, 0),
-                    closed_by_user.get(login, 0),
-                    int(preserved.get("reviews") or 0),
-                    int(preserved.get("comments") or 0),
-                    now_ts,
-                ),
+                "DELETE FROM leaderboard_backfill_state WHERE org = ?",
+                (owner,),
             )
+            await _d1_run(
+                db,
+                "DELETE FROM leaderboard_backfill_repo_done WHERE org = ?",
+                (owner,),
+            )
+
+            for login, count in open_by_user.items():
+                await _d1_run(
+                    db,
+                    """
+                    INSERT INTO leaderboard_open_prs (org, user_login, open_prs, updated_at)
+                    VALUES (?, ?, ?, ?)
+                    """,
+                    (owner, login, count, now_ts),
+                )
+
+            for row in pr_state_map.values():
+                await _d1_run(
+                    db,
+                    """
+                    INSERT INTO leaderboard_pr_state (org, repo, pr_number, author_login, state, merged, closed_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(org, repo, pr_number) DO UPDATE SET
+                        author_login = excluded.author_login,
+                        state = excluded.state,
+                        merged = excluded.merged,
+                        closed_at = excluded.closed_at,
+                        updated_at = excluded.updated_at
+                    """,
+                    row,
+                )
+
+            all_logins = set(open_by_user.keys()) | set(merged_by_user.keys()) | set(closed_by_user.keys()) | set(preserved_reviews_comments.keys())
+            for login in all_logins:
+                preserved = preserved_reviews_comments.get(login, {})
+                await _d1_run(
+                    db,
+                    """
+                    INSERT INTO leaderboard_monthly_stats
+                        (org, month_key, user_login, merged_prs, closed_prs, reviews, comments, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(org, month_key, user_login) DO UPDATE SET
+                        merged_prs = excluded.merged_prs,
+                        closed_prs = excluded.closed_prs,
+                        updated_at = excluded.updated_at
+                    """,
+                    (
+                        owner,
+                        month_key,
+                        login,
+                        merged_by_user.get(login, 0),
+                        closed_by_user.get(login, 0),
+                        int(preserved.get("reviews") or 0),
+                        int(preserved.get("comments") or 0),
+                        now_ts,
+                    ),
+                )
+
+            await _d1_run(db, "COMMIT")
+        except Exception as exc:
+            try:
+                await _d1_run(db, "ROLLBACK")
+            except Exception as rollback_exc:
+                console.error(f"[LeaderboardReconcile] Rollback failed for {owner}: {rollback_exc}")
+            console.error(f"[LeaderboardReconcile] Transaction failed for {owner}: {exc}")
+            return False
 
         console.log(
             f"[LeaderboardReconcile] Completed org={owner} month={month_key} users={len(all_logins)} repos_scanned_page_end={repo_page}"
         )
         return True
     finally:
+        renewal_stop.set()
+        try:
+            await renewal_task
+        except Exception:
+            pass
         await _release_reconcile_lock(db, owner, holder)
 
 
