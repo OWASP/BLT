@@ -26,8 +26,8 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install dependencies
-        run: pip install pytest
+      - name: Install development dependencies
+        run: pip install -r requirements-dev.txt
 
-      - name: Run Python worker tests
-        run: pytest test_worker.py -v
+      - name: Run Python test suite
+        run: pytest -v
