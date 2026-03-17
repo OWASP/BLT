@@ -1010,11 +1010,21 @@ async def _track_pr_opened_in_d1(payload: dict, env) -> None:
     await _ensure_leaderboard_schema(db)
     existing = await _d1_first(
         db,
-        "SELECT state FROM leaderboard_pr_state WHERE org = ? AND repo = ? AND pr_number = ?",
+        "SELECT author_login, state, merged, closed_at FROM leaderboard_pr_state WHERE org = ? AND repo = ? AND pr_number = ?",
         (org, repo, pr_number),
     )
     if not existing or existing.get("state") != "open":
         await _d1_inc_open_pr(db, org, author_login, 1)
+
+    # If a previously closed PR is observed as opened again, reverse the old
+    # monthly close/merge credit for the original author to keep totals stable.
+    if existing and existing.get("state") == "closed":
+        existing_author = existing.get("author_login") or author_login
+        prev_merged = int(existing.get("merged") or 0)
+        prev_closed_at = int(existing.get("closed_at") or 0)
+        prev_mk = _month_key(prev_closed_at) if prev_closed_at else _month_key()
+        prev_field = "merged_prs" if prev_merged else "closed_prs"
+        await _d1_inc_monthly(db, org, prev_mk, existing_author, prev_field, -1)
 
     now = int(time.time())
     await _d1_run(

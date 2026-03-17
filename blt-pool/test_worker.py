@@ -1862,6 +1862,40 @@ class TestTrackingOperations(unittest.TestCase):
         # Should have called prepare multiple times (ensure schema, check existing, insert)
         self.assertGreater(mock_db.prepare.call_count, 0)
 
+    async def _test_track_pr_opened_reverses_previous_closed_credit(self):
+        """Opening a previously closed PR should reverse prior monthly credit using stored author."""
+        payload = {
+            "repository": {"owner": {"login": "OWASP-BLT"}, "name": "test-repo"},
+            "pull_request": {
+                "number": 42,
+                "user": {"login": "alice", "type": "User"},
+            },
+        }
+        env = types.SimpleNamespace(LEADERBOARD_DB=object())
+
+        with ExitStack() as stack:
+            stack.enter_context(patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()))
+            stack.enter_context(
+                patch.object(
+                    _worker,
+                    "_d1_first",
+                    new=AsyncMock(return_value={"author_login": "bob", "state": "closed", "merged": 1, "closed_at": 1709596800}),
+                )
+            )
+            monthly_mock = stack.enter_context(patch.object(_worker, "_d1_inc_monthly", new=AsyncMock()))
+            open_mock = stack.enter_context(patch.object(_worker, "_d1_inc_open_pr", new=AsyncMock()))
+            stack.enter_context(patch.object(_worker, "_d1_run", new=AsyncMock()))
+            await _worker._track_pr_opened_in_d1(payload, env)
+
+        self.assertEqual(open_mock.await_count, 1)
+        self.assertEqual(open_mock.await_args.args[2], "alice")
+        self.assertEqual(open_mock.await_args.args[3], 1)
+        self.assertEqual(monthly_mock.await_count, 1)
+        monthly_args = monthly_mock.await_args.args
+        self.assertEqual(monthly_args[3], "bob")
+        self.assertEqual(monthly_args[4], "merged_prs")
+        self.assertEqual(monthly_args[5], -1)
+
     async def _test_track_comment(self):
         """Test comment tracking via D1"""
         mock_db = MagicMock()
@@ -2003,6 +2037,9 @@ class TestTrackingOperations(unittest.TestCase):
 
     def test_track_pr_opened(self):
         _run(self._test_track_pr_opened())
+
+    def test_track_pr_opened_reverses_previous_closed_credit(self):
+        _run(self._test_track_pr_opened_reverses_previous_closed_credit())
 
     def test_track_comment(self):
         _run(self._test_track_comment())
