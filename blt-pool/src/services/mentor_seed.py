@@ -153,4 +153,31 @@ INITIAL_MENTORS = [
     "timezone": "UTC+5:30",
     "referred_by": "",
     },
+    {
+        "github_username": "nipunnegi2",
+        "name": "Nipun Negi",
+        "specialties": ["backend", "api-design", "databases"],
+        "max_mentees": 3,
+        "active": True,
+        "timezone": "UTC+5:30",
+        "referred_by": ""
+    },
+    {
+        "github_username": "JisanAR03",
+        "name": "Altafur Rahman",
+        "specialties": ["frontend", "react", "ui-ux"],
+        "max_mentees": 3,
+        "active": True,
+        "timezone": "UTC+5:30",
+        "referred_by": ""
+    },
+    {
+        "github_username": "btwshivam",
+        "name": "Shivam Kumar",
+        "specialties": ["backend", "nodejs", "cloud"],
+        "max_mentees": 3,
+        "active": True,
+        "timezone": "UTC+5:30",
+        "referred_by": ""
+    }
 ]
