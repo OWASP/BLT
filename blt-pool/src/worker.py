@@ -1317,7 +1317,7 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env) ->
     existing_rows = await _d1_all(
         db,
         """
-        SELECT user_login, reviews, comments
+        SELECT user_login, merged_prs, closed_prs, reviews, comments
         FROM leaderboard_monthly_stats
         WHERE org = ? AND month_key = ?
         """,
@@ -1407,7 +1407,6 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env) ->
                 if not closed_prs:
                     break
 
-                page_has_month_data = False
                 for pr in closed_prs:
                     user = pr.get("user") or {}
                     if _is_bot(user):
@@ -1423,19 +1422,20 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env) ->
                     closed_ts = _parse_github_timestamp(closed_at) if closed_at else 0
 
                     if _is_ts_in_month(merged_ts, start_ts, end_ts):
-                        page_has_month_data = True
                         merged_by_user[login] = merged_by_user.get(login, 0) + 1
                         pr_state_rows.append((owner, repo_name, pr_number, login, "closed", 1, closed_ts or merged_ts, now_ts))
                     elif _is_ts_in_month(closed_ts, start_ts, end_ts):
-                        page_has_month_data = True
                         closed_by_user[login] = closed_by_user.get(login, 0) + 1
                         pr_state_rows.append((owner, repo_name, pr_number, login, "closed", 0, closed_ts, now_ts))
 
                 if len(closed_prs) < _RECONCILE_PRS_PER_PAGE:
                     break
-                if not page_has_month_data:
-                    # Results are sorted by updated desc, so once a page has no current-month
-                    # closures/merges we can stop scanning deeper pages for this repo.
+                # Results are sorted by updated desc. If the least recently updated
+                # PR on this page is older than the month window start, deeper pages
+                # cannot contain in-window PR updates.
+                last_pr = closed_prs[-1]
+                updated_ts = _parse_github_timestamp(last_pr.get("updated_at")) if last_pr.get("updated_at") else 0
+                if updated_ts and updated_ts < start_ts:
                     break
                 closed_page += 1
 
@@ -1450,23 +1450,22 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env) ->
         "DELETE FROM leaderboard_pr_state WHERE org = ?",
         (owner,),
     )
+    # Keep monthly history and review-credit history intact; only reset the
+    # PR-derived counters for the current month and then write fresh values.
     await _d1_run(
         db,
-        "DELETE FROM leaderboard_monthly_stats WHERE org = ? AND month_key = ?",
-        (owner, month_key),
+        """
+        UPDATE leaderboard_monthly_stats
+        SET merged_prs = 0,
+            closed_prs = 0,
+            updated_at = ?
+        WHERE org = ? AND month_key = ?
+        """,
+        (now_ts, owner, month_key),
     )
 
-    # Remove old historical and one-time backfill records for this org.
-    await _d1_run(
-        db,
-        "DELETE FROM leaderboard_monthly_stats WHERE org = ? AND month_key <> ?",
-        (owner, month_key),
-    )
-    await _d1_run(
-        db,
-        "DELETE FROM leaderboard_review_credits WHERE org = ? AND month_key <> ?",
-        (owner, month_key),
-    )
+    # Clear one-time backfill gates so live reconciliation remains the source
+    # of truth without permanent stop conditions.
     await _d1_run(
         db,
         "DELETE FROM leaderboard_backfill_state WHERE org = ?",
@@ -1507,6 +1506,10 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env) ->
             INSERT INTO leaderboard_monthly_stats
                 (org, month_key, user_login, merged_prs, closed_prs, reviews, comments, updated_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(org, month_key, user_login) DO UPDATE SET
+                merged_prs = excluded.merged_prs,
+                closed_prs = excluded.closed_prs,
+                updated_at = excluded.updated_at
             """,
             (
                 owner,
