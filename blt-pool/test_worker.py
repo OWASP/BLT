@@ -1976,6 +1976,10 @@ class TestTrackingOperations(unittest.TestCase):
         self.assertEqual(monthly_mock.await_count, 2)
         first = monthly_mock.await_args_list[0].args
         second = monthly_mock.await_args_list[1].args
+        expected_prev_mk = _worker._month_key(1709596800)
+        expected_new_mk = _worker._month_key(_worker._parse_github_timestamp("2026-03-10T10:00:00Z"))
+        self.assertEqual(first[2], expected_prev_mk)
+        self.assertEqual(second[2], expected_new_mk)
         self.assertEqual(first[4], "closed_prs")
         self.assertEqual(first[5], -1)
         self.assertEqual(second[4], "merged_prs")
@@ -2059,6 +2063,29 @@ class TestFetchLeaderboardDataReconciliation(unittest.TestCase):
 
         _run(_inner())
 
+    def test_org_request_handles_reconciliation_exception(self):
+        async def _inner():
+            env = types.SimpleNamespace(LEADERBOARD_DB=object())
+
+            async def _mock_api(method, path, token, body=None):
+                if path == "/users/OWASP-BLT":
+                    return types.SimpleNamespace(
+                        status=200,
+                        text=AsyncMock(return_value=json.dumps({"type": "Organization"})),
+                    )
+                return types.SimpleNamespace(status=404, text=AsyncMock(return_value="{}"))
+
+            with patch.object(_worker, "github_api", new=_mock_api):
+                with patch.object(_worker, "_reconcile_org_leaderboard_from_github", new=AsyncMock(side_effect=RuntimeError("boom"))):
+                    with patch.object(_worker, "_calculate_leaderboard_stats_from_d1", new=AsyncMock(return_value=self._dummy_leaderboard())):
+                        with patch.object(_worker, "console", new=types.SimpleNamespace(log=lambda *a: None, error=lambda *a: None)):
+                            _, note, is_org = await _worker._fetch_leaderboard_data("OWASP-BLT", "BLT-GitHub-App", "tok", env)
+
+            self.assertTrue(is_org)
+            self.assertIn("Live reconciliation is temporarily unavailable", note)
+
+        _run(_inner())
+
     def test_reconcile_fails_when_closed_page_cap_reached_in_window(self):
         """Reconcile should fail (not silently undercount) when closed page cap is hit in-window."""
 
@@ -2104,7 +2131,8 @@ class TestFetchLeaderboardDataReconciliation(unittest.TestCase):
                     with patch.object(_worker, "_d1_all", new=AsyncMock(return_value=[])):
                         with patch.object(_worker, "_d1_run", new=AsyncMock()):
                             with patch.object(_worker, "_month_key", new=MagicMock(return_value="2026-03")):
-                                with patch.object(_worker, "_month_window", new=MagicMock(return_value=(1709251200, 1711929599))):
+                                # 2026-03-01T00:00:00Z .. 2026-03-31T23:59:59Z
+                                with patch.object(_worker, "_month_window", new=MagicMock(return_value=(1772323200, 1775001599))):
                                     with patch.object(_worker, "console", new=types.SimpleNamespace(log=lambda *a: None, error=lambda *a: None)):
                                         result = await _worker._reconcile_org_leaderboard_from_github("OWASP-BLT", "tok", env)
 
