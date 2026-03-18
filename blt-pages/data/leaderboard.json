@@ -1,10 +1,10 @@
 {
-  "updated_at": "2026-03-18T07:32:06.047805Z",
-  "commit_sha": "fc5165745216362b1f8fc35036669d2d7273f3d6",
-  "total_bugs": 18,
-  "open_bugs": 5,
+  "updated_at": "2026-03-18T20:06:56.915002Z",
+  "commit_sha": "022035426ff0f7bce0b0303608d9beac8bac4d39",
+  "total_bugs": 17,
+  "open_bugs": 4,
   "closed_bugs": 13,
-  "total_domains": 5,
+  "total_domains": 4,
   "total_orgs": 0,
   "leaderboard": [
     {
@@ -23,27 +23,20 @@
     },
     {
       "rank": 3,
-      "login": "kaviya-encipher",
-      "count": 1,
-      "avatar_url": "https://avatars.githubusercontent.com/u/220843684?v=4",
-      "profile_url": "https://github.com/kaviya-encipher"
-    },
-    {
-      "rank": 4,
       "login": "Nachiket-Roy",
       "count": 1,
       "avatar_url": "https://avatars.githubusercontent.com/u/204239697?v=4",
       "profile_url": "https://github.com/Nachiket-Roy"
     },
     {
-      "rank": 5,
+      "rank": 4,
       "login": "kittenbytes",
       "count": 1,
       "avatar_url": "https://avatars.githubusercontent.com/u/171991749?v=4",
       "profile_url": "https://github.com/kittenbytes"
     },
     {
-      "rank": 6,
+      "rank": 5,
       "login": "sidd190",
       "count": 1,
       "avatar_url": "https://avatars.githubusercontent.com/u/73955358?v=4",
@@ -182,43 +175,11 @@
     },
     {
       "rank": 4,
-      "domain": "example",
-      "count": 1
-    },
-    {
-      "rank": 5,
       "domain": "www.owaspblt.org",
       "count": 1
     }
   ],
   "recent_bugs": [
-    {
-      "number": 92,
-      "title": "bug",
-      "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/92",
-      "created_at": "2026-03-18T07:31:50Z",
-      "comment_count": 1,
-      "user": {
-        "login": "kaviya-encipher",
-        "avatar_url": "https://avatars.githubusercontent.com/u/220843684?v=4",
-        "profile_url": "https://github.com/kaviya-encipher"
-      },
-      "image_url": null,
-      "domain": "example",
-      "reactions": {
-        "eyes": 1
-      },
-      "latest_comment": {
-        "body": "👋 Thanks for opening this issue, @kaviya-encipher!\n\nOur team will review it shortly. In the meantime:\n- If you'd like to work on this issue, comment `/assign` to get assigned.\n- Visit [OWASP BLT-Pool](https://pool.owaspblt.org) for more information about our bug bounty platform.\n",
-        "created_at": "2026-03-18T07:31:53Z",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/92#issuecomment-4080326490",
-        "user": {
-          "login": "owasp-blt[bot]",
-          "avatar_url": "https://avatars.githubusercontent.com/in/1159228?v=4",
-          "profile_url": "https://github.com/apps/owasp-blt"
-        }
-      }
-    },
     {
       "number": 87,
       "title": "[BUG] open / closed count is not showing correct open counts",
@@ -266,6 +227,34 @@
         "body": "@tiggachris This issue already has the maximum number of assignees (1). Please work on a different issue.",
         "created_at": "2026-03-11T06:13:06Z",
         "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/81#issuecomment-4036768843",
+        "user": {
+          "login": "owasp-blt[bot]",
+          "avatar_url": "https://avatars.githubusercontent.com/in/1159228?v=4",
+          "profile_url": "https://github.com/apps/owasp-blt"
+        }
+      }
+    },
+    {
+      "number": 17,
+      "title": "[BUG] video bugs are not showing up",
+      "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/17",
+      "created_at": "2026-03-02T20:50:49Z",
+      "comment_count": 4,
+      "user": {
+        "login": "DonnieBLT",
+        "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
+        "profile_url": "https://github.com/DonnieBLT"
+      },
+      "image_url": "https://github.com/user-attachments/assets/6c188f2b-5aab-4aad-94f3-d7c540518d45",
+      "domain": "owaspblt.org",
+      "reactions": {
+        "+1": 1,
+        "eyes": 1
+      },
+      "latest_comment": {
+        "body": "@Sub-allllllllllll This issue already has the maximum number of assignees (1). Please work on a different issue.",
+        "created_at": "2026-03-11T13:44:40Z",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/17#issuecomment-4039326491",
         "user": {
           "login": "owasp-blt[bot]",
           "avatar_url": "https://avatars.githubusercontent.com/in/1159228?v=4",
