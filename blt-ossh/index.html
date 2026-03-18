@@ -248,9 +248,10 @@
             <div class="flex-1">
               <div class="flex flex-wrap items-center gap-3 mb-2">
                 <h2 class="text-2xl font-bold text-gray-900 dark:text-white" id="user-name"></h2>
-                <div id="house-badge" class="hidden inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-bold border" title="">
+                <div id="house-badge" class="hidden inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-bold border" role="img">
                   <span id="house-icon"></span>
                   <span id="house-name"></span>
+                  <span id="house-desc" class="sr-only"></span>
                 </div>
               </div>
               <p class="text-gray-600 dark:text-gray-400 mb-4" id="user-bio"></p>
@@ -819,11 +820,13 @@
     if (houseBadge && data.house) {
       houseBadge.className = `inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-bold border ${data.house.color}`;
       houseBadge.title = data.house.desc;
-      houseBadge.setAttribute('aria-label', `${data.house.name}: ${data.house.desc}`);
+      houseBadge.setAttribute('aria-describedby', 'house-desc');
       const houseIcon = document.getElementById('house-icon');
       const houseName = document.getElementById('house-name');
+      const houseDesc = document.getElementById('house-desc');
       if (houseIcon) houseIcon.textContent = data.house.icon;
       if (houseName) houseName.textContent = data.house.name;
+      if (houseDesc) houseDesc.textContent = data.house.desc;
       houseBadge.classList.remove('hidden');
     } else if (houseBadge) {
       houseBadge.classList.add('hidden');
