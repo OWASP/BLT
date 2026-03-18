@@ -1,13 +1,14 @@
 ﻿name: Update Leaderboard and Deploy
 
 on:
-  # Regenerate whenever a bug-labelled issue is opened or closed
+  # Regenerate whenever a bug-labelled issue is opened, closed, or deleted
   issues:
     types:
       - opened
       - labeled
       - closed
       - reopened
+      - deleted
 
   # Deploy when code is pushed to main
   push:
