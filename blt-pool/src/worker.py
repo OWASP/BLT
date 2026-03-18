@@ -3517,6 +3517,15 @@ async def _assign(
             token,
         )
         return
+    label_names = {lb.get("name", "").lower() for lb in issue.get("labels", [])}
+    if "help wanted" not in label_names:
+        await create_comment(
+            owner, repo, num,
+            f"@{login} This issue must first be reviewed by @donnieblt before it can be assigned. "
+            "They will be reviewing it soon.",
+            token,
+        )
+        return
     await github_api(
         "POST",
         f"/repos/{owner}/{repo}/issues/{num}/assignees",

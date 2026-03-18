@@ -345,7 +345,7 @@ class TestHandleAssign(unittest.TestCase):
         _run(_inner())
 
     def test_assigns_user_to_open_issue(self):
-        payload = _make_issue_payload()
+        payload = _make_issue_payload(labels=[{"name": "help wanted"}])
         comments, calls = [], []
         self._run_assign(payload, comments, calls)
         # Expect a POST to the assignees endpoint
@@ -354,6 +354,15 @@ class TestHandleAssign(unittest.TestCase):
             for method, path, *_ in calls
         ))
         self.assertTrue(any("assigned to this issue" in c for c in comments))
+
+    def test_does_not_assign_without_help_wanted_label(self):
+        payload = _make_issue_payload(labels=[])
+        comments, calls = [], []
+        self._run_assign(payload, comments, calls)
+        # No GitHub API call (no assignment) should occur
+        self.assertEqual(calls, [])
+        # Comment must mention the requester and @donnieblt
+        self.assertTrue(any("@alice" in c and "@donnieblt" in c for c in comments))
 
     def test_does_not_assign_closed_issue(self):
         payload = _make_issue_payload(state="closed")
