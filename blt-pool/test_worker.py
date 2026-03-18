@@ -1043,7 +1043,7 @@ class TestFormatReviewerLeaderboardComment(unittest.TestCase):
         self.assertNotIn("`@alice`", result)
 
     def test_shows_pr_reviewer_outside_top5(self):
-        """PR reviewer ranked outside top 5 should still appear."""
+        """PR reviewer ranked outside top 5 should still appear centred in window."""
         data = {
             "sorted": [
                 {"login": f"user{i}", "openPrs": 0, "mergedPrs": 0, "closedPrs": 0, "reviews": 10 - i, "comments": 0, "total": 50 - i * 5}
@@ -1054,6 +1054,66 @@ class TestFormatReviewerLeaderboardComment(unittest.TestCase):
         }
         result = _format_reviewer_leaderboard_comment(data, "test-org", pr_reviewers=["user6"])
         self.assertIn("user6", result)
+        # Only 5 rows shown; user0/user1 (top) should NOT appear since window is centred on user6
+        self.assertNotIn("`@user0`", result)
+        self.assertNotIn("`@user1`", result)
+
+    def test_reviewer_centred_window_shows_two_above_two_below(self):
+        """Reviewer in the middle of a large list: exactly 2 above and 2 below visible."""
+        logins = [f"u{i}" for i in range(10)]
+        data = {
+            "sorted": [
+                {"login": l, "openPrs": 0, "mergedPrs": 0, "closedPrs": 0, "reviews": 10 - i, "comments": 0, "total": 50 - i * 5}
+                for i, l in enumerate(logins)
+            ],
+            "start_timestamp": 1704067200,
+            "end_timestamp": 1706745599,
+        }
+        # Reviewer is u5 (index 5): window should be u3, u4, u5, u6, u7
+        result = _format_reviewer_leaderboard_comment(data, "test-org", pr_reviewers=["u5"])
+        self.assertIn("`@u3`", result)
+        self.assertIn("`@u4`", result)
+        self.assertIn("**`@u5`** ⭐", result)
+        self.assertIn("`@u6`", result)
+        self.assertIn("`@u7`", result)
+        # Rows outside the window should not appear
+        self.assertNotIn("`@u0`", result)
+        self.assertNotIn("`@u8`", result)
+        # Ellipsis rows should be shown above and below the window
+        self.assertIn("| … | … | … |", result)
+
+    def test_reviewer_at_top_shows_first_five(self):
+        """Reviewer ranked #1: window is top 5 with reviewer highlighted."""
+        logins = [f"u{i}" for i in range(10)]
+        data = {
+            "sorted": [
+                {"login": l, "openPrs": 0, "mergedPrs": 0, "closedPrs": 0, "reviews": 10 - i, "comments": 0, "total": 50 - i * 5}
+                for i, l in enumerate(logins)
+            ],
+            "start_timestamp": 1704067200,
+            "end_timestamp": 1706745599,
+        }
+        result = _format_reviewer_leaderboard_comment(data, "test-org", pr_reviewers=["u0"])
+        for i in range(5):
+            self.assertIn(f"u{i}", result)
+        self.assertNotIn("`@u5`", result)
+
+    def test_no_pr_reviewer_shows_top5(self):
+        """Without pr_reviewers, the top 5 are shown and nothing else."""
+        logins = [f"u{i}" for i in range(8)]
+        data = {
+            "sorted": [
+                {"login": l, "openPrs": 0, "mergedPrs": 0, "closedPrs": 0, "reviews": 8 - i, "comments": 0, "total": 40 - i * 5}
+                for i, l in enumerate(logins)
+            ],
+            "start_timestamp": 1704067200,
+            "end_timestamp": 1706745599,
+        }
+        result = _format_reviewer_leaderboard_comment(data, "test-org")
+        for i in range(5):
+            self.assertIn(f"u{i}", result)
+        self.assertNotIn("`@u5`", result)
+        self.assertNotIn("`@u6`", result)
 
 
 class TestPostReviewerLeaderboard(unittest.TestCase):
