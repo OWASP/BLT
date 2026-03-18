@@ -1,8 +1,8 @@
 {
   "participantCount": 15,
   "totalPRs": 2443,
-  "mergedPRs": 1567,
-  "totalIssues": 736,
+  "mergedPRs": 1568,
+  "totalIssues": 737,
   "repositories": 55,
   "topContributors": [
     {
@@ -12,15 +12,15 @@
       "mergedCount": 3
     },
     {
-      "username": "JisanAR03",
-      "avatar": "https://avatars.githubusercontent.com/u/97744811?v=4",
-      "url": "https://github.com/JisanAR03",
+      "username": "btwshivam",
+      "avatar": "https://avatars.githubusercontent.com/u/127589548?v=4",
+      "url": "https://github.com/btwshivam",
       "mergedCount": 2
     },
     {
-      "username": "Kunal1522",
-      "avatar": "https://avatars.githubusercontent.com/u/67000702?v=4",
-      "url": "https://github.com/Kunal1522",
+      "username": "JisanAR03",
+      "avatar": "https://avatars.githubusercontent.com/u/97744811?v=4",
+      "url": "https://github.com/JisanAR03",
       "mergedCount": 2
     }
   ]
