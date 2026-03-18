@@ -559,25 +559,26 @@
     const CATALOG_URL = "data/ossh_catalog.json";
     let _catalogCache = null;
 
+    const HOUSES = {
+      buggleton: { name: 'Buggleton', icon: '🐛', desc: 'Bug hunters & QA champions',
+        color: 'bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-700',
+        languages: ['Python', 'JavaScript', 'TypeScript', 'Java'],
+        keywords: ['bug', 'test', 'qa', 'selenium', 'cypress', 'jest', 'pytest', 'mocha', 'testing', 'quality'] },
+      cybermoose: { name: 'Cybermoose', icon: '🛡️', desc: 'Security & cybersecurity experts',
+        color: 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700',
+        languages: ['Python', 'C', 'Go', 'Rust', 'JavaScript'],
+        keywords: ['security', 'pentest', 'exploit', 'vuln', 'owasp', 'hack', 'crypto', 'encrypt', 'auth', 'xss', 'sqli'] },
+      bufferbit: { name: 'Bufferbit', icon: '⚙️', desc: 'Infrastructure & DevOps builders',
+        color: 'bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 border-blue-300 dark:border-blue-700',
+        languages: ['Shell', 'Python', 'Go', 'HCL', 'YAML', 'Dockerfile'],
+        keywords: ['docker', 'kubernetes', 'terraform', 'ansible', 'ci', 'devops', 'infra', 'deploy', 'pipeline', 'cloud'] },
+      darkram: { name: 'Darkram', icon: '⚡', desc: 'Backend & systems engineers',
+        color: 'bg-violet-100 dark:bg-violet-900/40 text-violet-800 dark:text-violet-300 border-violet-300 dark:border-violet-700',
+        languages: ['C', 'C++', 'Rust', 'Go', 'Python', 'Java'],
+        keywords: ['backend', 'system', 'kernel', 'embedded', 'compiler', 'database', 'api', 'server', 'performance'] }
+    };
+
     function assignHouse(userData, repos, languages) {
-      const HOUSES = {
-        buggleton: { name: 'Buggleton', icon: '🐛', desc: 'Bug hunters & QA champions',
-          color: 'bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-700',
-          languages: ['Python', 'JavaScript', 'TypeScript', 'Java'],
-          keywords: ['bug', 'test', 'qa', 'selenium', 'cypress', 'jest', 'pytest', 'mocha', 'testing', 'quality'] },
-        cybermoose: { name: 'Cybermoose', icon: '🛡️', desc: 'Security & cybersecurity experts',
-          color: 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700',
-          languages: ['Python', 'C', 'Go', 'Rust', 'JavaScript'],
-          keywords: ['security', 'pentest', 'exploit', 'vuln', 'owasp', 'hack', 'crypto', 'encrypt', 'auth', 'xss', 'sqli'] },
-        bufferbit: { name: 'Bufferbit', icon: '⚙️', desc: 'Infrastructure & DevOps builders',
-          color: 'bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 border-blue-300 dark:border-blue-700',
-          languages: ['Shell', 'Python', 'Go', 'HCL', 'YAML', 'Dockerfile'],
-          keywords: ['docker', 'kubernetes', 'terraform', 'ansible', 'ci', 'devops', 'infra', 'deploy', 'pipeline', 'cloud'] },
-        darkram: { name: 'Darkram', icon: '⚡', desc: 'Backend & systems engineers',
-          color: 'bg-violet-100 dark:bg-violet-900/40 text-violet-800 dark:text-violet-300 border-violet-300 dark:border-violet-700',
-          languages: ['C', 'C++', 'Rust', 'Go', 'Python', 'Java'],
-          keywords: ['backend', 'system', 'kernel', 'embedded', 'compiler', 'database', 'api', 'server', 'performance'] }
-      };
       const scores = { buggleton: 0, cybermoose: 0, bufferbit: 0, darkram: 0 };
       const text = [(userData.bio || '').toLowerCase(), ...repos.map(r => [r.name, r.description, r.full_name].filter(Boolean).join(' ').toLowerCase())].join(' ');
       Object.keys(HOUSES).forEach(houseId => {
@@ -1114,7 +1115,7 @@
       // Build recommended projects list
       const recommendedProjects = (data.recommended_repos || [])
         .slice(0, 5)
-        .map(r => { const repo = r.item || r; return `- [${repo.full_name || repo.name}](${repo.url || repo.html_url || '#'}) ⭐ ${repo.stars != null ? repo.stars : (repo.stargazers_count || 0)} - ${repo.description || ''}`; })
+        .map(r => { const repo = r.item || r; return `- [${repo.full_name || repo.name}](${repo.html_url || repo.url || '#'}) ⭐ ${repo.stars != null ? repo.stars : (repo.stargazers_count || 0)} - ${repo.description || ''}`; })
         .join('\n');
 
       // Build recommended communities list
@@ -1163,7 +1164,7 @@ ${(data.recommended_discussion_channels || []).map(ch => { const c = ch.item || 
       // Build recommended projects list for display
       const recommendedProjectsDisplay = (data.recommended_repos || [])
         .slice(0, 6)
-        .map(r => { const repo = r.item || r; return `**${repo.full_name || repo.name}** ⭐ ${repo.stars != null ? repo.stars : (repo.stargazers_count || 0)}\n${repo.description || ''}\n🔗 [View](${repo.url || repo.html_url || '#'})`; })
+        .map(r => { const repo = r.item || r; return `**${repo.full_name || repo.name}** ⭐ ${repo.stars != null ? repo.stars : (repo.stargazers_count || 0)}\n${repo.description || ''}\n🔗 [View](${repo.html_url || repo.url || '#'})`; })
         .join('\n\n');
 
       // Build recommended communities list for display
