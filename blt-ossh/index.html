@@ -592,6 +592,7 @@
         return a[0].localeCompare(b[0]);
       });
       const winner = sorted[0];
+      if (!winner || winner[1] === 0) return null;
       const house = HOUSES[winner[0]];
       return { id: winner[0], ...house, score: winner[1] };
     }
@@ -818,6 +819,7 @@
     if (houseBadge && data.house) {
       houseBadge.className = `inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-bold border ${data.house.color}`;
       houseBadge.title = data.house.desc;
+      houseBadge.setAttribute('aria-label', `${data.house.name}: ${data.house.desc}`);
       const houseIcon = document.getElementById('house-icon');
       const houseName = document.getElementById('house-name');
       if (houseIcon) houseIcon.textContent = data.house.icon;
@@ -1100,7 +1102,11 @@
 
       // Build looking_for text based on recommendations
       const topLanguages = (githubStats.languages || []).slice(0, 3).join(', ');
-      const lookingFor = `Looking to contribute to open source projects in ${topLanguages || 'open source'}. Interested in ${(data.recommended_communities || []).map(c => (c.item || c).name).join(', ') || 'open source'}.`;
+      const communityNames = (data.recommended_communities || []).map(c => (c.item || c).name).filter(Boolean).join(', ');
+      const lookingFor = [
+        topLanguages ? `Looking to contribute to open source projects in ${topLanguages}.` : 'Looking to contribute to open source projects.',
+        `Interested in ${communityNames || 'open source'}.`,
+      ].join(' ');
 
       // Build recommended projects list
       const recommendedProjects = (data.recommended_repos || [])
