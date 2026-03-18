@@ -2560,22 +2560,42 @@ def _format_reviewer_leaderboard_comment(leaderboard_data: dict, owner: str, pr_
     if not reviewer_sorted:
         comment += "| - | _No review activity recorded yet_ | 0 |\n"
     else:
-        top_n = reviewer_sorted[:5]
-        shown_logins = {u["login"] for u in top_n}
-        for i, u in enumerate(top_n):
-            highlight = u["login"] in pr_reviewer_set
-            comment += row_for(i + 1, u, highlight) + "\n"
+        total = len(reviewer_sorted)
 
-        # Show any PR reviewers not already in the top 5
-        extra_reviewers = [
-            u for u in reviewer_sorted
-            if u["login"] in pr_reviewer_set and u["login"] not in shown_logins
-        ]
-        if extra_reviewers:
-            comment += "| … | … | … |\n"
-            for u in extra_reviewers:
-                rank = reviewer_sorted.index(u) + 1
-                comment += row_for(rank, u, highlight=True) + "\n"
+        # Find the highest-ranked PR reviewer to centre the window on.
+        center_idx = None
+        if pr_reviewer_set:
+            for i, u in enumerate(reviewer_sorted):
+                if u["login"] in pr_reviewer_set:
+                    center_idx = i
+                    break
+
+        if center_idx is not None:
+            # Build a window of up to 5 entries with the reviewer in the middle.
+            start_idx = center_idx - 2
+            end_idx = center_idx + 2
+            # Clamp and expand to keep window size = 5 when possible.
+            if start_idx < 0:
+                end_idx -= start_idx  # shift right
+                start_idx = 0
+            if end_idx >= total:
+                shift = end_idx - total + 1
+                start_idx = max(0, start_idx - shift)
+                end_idx = total - 1
+
+            if start_idx > 0:
+                comment += "| … | … | … |\n"
+            for i in range(start_idx, end_idx + 1):
+                u = reviewer_sorted[i]
+                highlight = u["login"] in pr_reviewer_set
+                comment += row_for(i + 1, u, highlight) + "\n"
+            if end_idx < total - 1:
+                comment += "| … | … | … |\n"
+        else:
+            # No PR reviewer identified – show top 5.
+            for i, u in enumerate(reviewer_sorted[:5]):
+                highlight = u["login"] in pr_reviewer_set
+                comment += row_for(i + 1, u, highlight) + "\n"
 
     comment += "\n---\n"
     comment += (
