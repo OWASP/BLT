@@ -246,7 +246,13 @@
           <div class="flex items-start gap-6">
             <img id="user-avatar" src="" alt="User Avatar" class="w-24 h-24 rounded-full border-4 border-red-100 dark:border-red-900/30" />
             <div class="flex-1">
-              <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2" id="user-name"></h2>
+              <div class="flex flex-wrap items-center gap-3 mb-2">
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white" id="user-name"></h2>
+                <div id="house-badge" class="hidden inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-bold border" title="">
+                  <span id="house-icon"></span>
+                  <span id="house-name"></span>
+                </div>
+              </div>
               <p class="text-gray-600 dark:text-gray-400 mb-4" id="user-bio"></p>
               <div class="flex flex-wrap gap-4 text-sm">
                 <div class="flex items-center gap-2">
@@ -552,6 +558,44 @@
     const CATALOG_URL = "data/ossh_catalog.json";
     let _catalogCache = null;
 
+    function assignHouse(userData, repos, languages) {
+      const HOUSES = {
+        buggleton: { name: 'Buggleton', icon: '🐛', desc: 'Bug hunters & QA champions',
+          color: 'bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-700',
+          languages: ['Python', 'JavaScript', 'TypeScript', 'Java'],
+          keywords: ['bug', 'test', 'qa', 'selenium', 'cypress', 'jest', 'pytest', 'mocha', 'testing', 'quality'] },
+        cybermoose: { name: 'Cybermoose', icon: '🛡️', desc: 'Security & cybersecurity experts',
+          color: 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700',
+          languages: ['Python', 'C', 'Go', 'Rust', 'JavaScript'],
+          keywords: ['security', 'pentest', 'exploit', 'vuln', 'owasp', 'hack', 'crypto', 'encrypt', 'auth', 'xss', 'sqli'] },
+        bufferbit: { name: 'Bufferbit', icon: '⚙️', desc: 'Infrastructure & DevOps builders',
+          color: 'bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 border-blue-300 dark:border-blue-700',
+          languages: ['Shell', 'Python', 'Go', 'HCL', 'YAML', 'Dockerfile'],
+          keywords: ['docker', 'kubernetes', 'terraform', 'ansible', 'ci', 'devops', 'infra', 'deploy', 'pipeline', 'cloud'] },
+        darkram: { name: 'Darkram', icon: '⚡', desc: 'Backend & systems engineers',
+          color: 'bg-violet-100 dark:bg-violet-900/40 text-violet-800 dark:text-violet-300 border-violet-300 dark:border-violet-700',
+          languages: ['C', 'C++', 'Rust', 'Go', 'Python', 'Java'],
+          keywords: ['backend', 'system', 'kernel', 'embedded', 'compiler', 'database', 'api', 'server', 'performance'] }
+      };
+      const scores = { buggleton: 0, cybermoose: 0, bufferbit: 0, darkram: 0 };
+      const text = [(userData.bio || '').toLowerCase(), ...repos.map(r => [r.name, r.description, r.full_name].filter(Boolean).join(' ').toLowerCase())].join(' ');
+      Object.keys(HOUSES).forEach(houseId => {
+        const house = HOUSES[houseId];
+        house.languages.forEach(lang => { if (languages.includes(lang)) scores[houseId] += 3; });
+        house.keywords.forEach(kw => {
+          const regex = new RegExp(`\\b${kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+          if (regex.test(text)) scores[houseId] += 2;
+        });
+      });
+      const sorted = Object.entries(scores).sort((a, b) => {
+        if (b[1] !== a[1]) return b[1] - a[1];
+        return a[0].localeCompare(b[0]);
+      });
+      const winner = sorted[0];
+      const house = HOUSES[winner[0]];
+      return { id: winner[0], ...house, score: winner[1] };
+    }
+
     // Small, practical normalizer (you can expand)
     const TAG_NORMALIZATION = {
       js: "javascript",
@@ -691,13 +735,18 @@
     }
 
     async function buildRecommendations(userData, repos) {
-      // fallback behavior if catalog missing
+      const languageCounts = {};
+      (repos || []).forEach(repo => {
+        if (repo.language) languageCounts[repo.language] = (languageCounts[repo.language] || 0) + 1;
+      });
+      const languages = Object.keys(languageCounts).sort((a, b) => languageCounts[b] - languageCounts[a]).slice(0, 10);
+      const house = assignHouse(userData, repos || [], languages);
+
       let catalog;
       try {
         catalog = await loadCatalog();
       } catch (e) {
         console.warn(e);
-        // fallback to your old minimal behavior
         return {
           github_stats: {
             username: userData.login,
@@ -709,6 +758,7 @@
             following: userData.following,
             languages: [],
           },
+          house,
           recommended_repos: [],
           recommended_communities: [],
           recommended_articles: [],
@@ -741,6 +791,7 @@
 
       return {
         github_stats,
+        house,
         recommended_repos,
         recommended_communities,
         recommended_articles,
@@ -763,6 +814,18 @@
     // Populate GitHub Stats
     document.getElementById('user-avatar').src = githubStats.avatar_url || 'static/logo.png';
     document.getElementById('user-name').textContent = githubStats.name || githubStats.username;
+    const houseBadge = document.getElementById('house-badge');
+    if (houseBadge && data.house) {
+      houseBadge.className = `inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-bold border ${data.house.color}`;
+      houseBadge.title = data.house.desc;
+      const houseIcon = document.getElementById('house-icon');
+      const houseName = document.getElementById('house-name');
+      if (houseIcon) houseIcon.textContent = data.house.icon;
+      if (houseName) houseName.textContent = data.house.name;
+      houseBadge.classList.remove('hidden');
+    } else if (houseBadge) {
+      houseBadge.classList.add('hidden');
+    }
     document.getElementById('user-bio').textContent = githubStats.bio || 'No bio available';
     document.getElementById('user-repos').textContent = githubStats.public_repos || 0;
     document.getElementById('user-followers').textContent = githubStats.followers || 0;
@@ -1033,26 +1096,26 @@
       const baseUrl = 'https://github.com/OWASP-BLT/BLT-OSSH/issues/new';
       
       // Build skills list from languages
-      const skills = githubStats.languages.slice(0, 10).join(', ');
+      const skills = (githubStats.languages || []).slice(0, 10).join(', ');
 
       // Build looking_for text based on recommendations
-      const topLanguages = githubStats.languages.slice(0, 3).join(', ');
-      const lookingFor = `Looking to contribute to open source projects in ${topLanguages}. Interested in ${data.recommended_communities.map(c => (c.item || c).name).join(', ')}.`;
+      const topLanguages = (githubStats.languages || []).slice(0, 3).join(', ');
+      const lookingFor = `Looking to contribute to open source projects in ${topLanguages || 'open source'}. Interested in ${(data.recommended_communities || []).map(c => (c.item || c).name).join(', ') || 'open source'}.`;
 
       // Build recommended projects list
-      const recommendedProjects = data.recommended_repos
+      const recommendedProjects = (data.recommended_repos || [])
         .slice(0, 5)
-        .map(r => { const repo = r.item || r; return `- [${repo.name}](${repo.url}) ⭐ ${repo.stars} - ${repo.description}`; })
+        .map(r => { const repo = r.item || r; return `- [${repo.full_name || repo.name}](${repo.url || repo.html_url || '#'}) ⭐ ${repo.stars != null ? repo.stars : (repo.stargazers_count || 0)} - ${repo.description || ''}`; })
         .join('\n');
 
       // Build recommended communities list
-      const recommendedCommunities = data.recommended_communities
-        .map(c => { const comm = c.item || c; return `- [${comm.name}](${comm.url}) - ${comm.description} (${comm.members} members)`; })
+      const recommendedCommunities = (data.recommended_communities || [])
+        .map(c => { const comm = c.item || c; return `- [${comm.name}](${comm.url || comm.invite_url || '#'}) - ${comm.description || ''} (${comm.members || comm.member_count || '—'} members)`; })
         .join('\n');
 
       // Build recommended articles list
-      const recommendedArticles = data.recommended_articles
-        .map(a => { const art = a.item || a; return `- [${art.title}](${art.url}) - ${art.category}`; })
+      const recommendedArticles = (data.recommended_articles || [])
+        .map(a => { const art = a.item || a; return `- [${art.title}](${art.url || '#'}) - ${art.category || ''}`; })
         .join('\n');
 
       // Build issue body content with full analysis
@@ -1061,13 +1124,14 @@
 > **Profile analyzed on:** ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
 
 ## 📊 GitHub Stats
+- **Your House:** ${data.house ? `${data.house.icon} ${data.house.name} — ${data.house.desc}` : '—'}
 - **Username:** [@${githubStats.username}](https://github.com/${githubStats.username})
 - **Name:** ${githubStats.name || githubStats.username}
 - **Bio:** ${githubStats.bio || 'No bio provided'}
 - **Repositories:** ${githubStats.public_repos}
 - **Followers:** ${githubStats.followers}
 - **Following:** ${githubStats.following}
-- **Top Languages:** ${githubStats.languages.slice(0, 5).join(', ')}
+- **Top Languages:** ${(githubStats.languages || []).slice(0, 5).join(', ')}
 
 ## 🌟 Your Top Recommended Projects
 ${recommendedProjects}
@@ -1079,7 +1143,7 @@ ${recommendedCommunities}
 ${recommendedArticles}
 
 ## 💬 Discussion Channels
-${data.recommended_discussion_channels.map(ch => `- [${ch.name}](${ch.url}) - ${ch.platform}`).join('\n')}
+${(data.recommended_discussion_channels || []).map(ch => { const c = ch.item || ch; return `- [${c.name}](${c.invite_url || c.url || '#'}) - ${c.platform || c.source || '—'}`; }).join('\n')}
 
 ---
 
@@ -1088,19 +1152,19 @@ ${data.recommended_discussion_channels.map(ch => `- [${ch.name}](${ch.url}) - ${
 **✏️ Note:** The information above has been automatically populated based on your GitHub profile analysis. Please review and edit the profile fields below before submitting. You can modify your bio, add interests, specify what you're looking for, and fill in optional fields like location and social links.`;
 
       // Build recommended projects list for display
-      const recommendedProjectsDisplay = data.recommended_repos
+      const recommendedProjectsDisplay = (data.recommended_repos || [])
         .slice(0, 6)
-        .map(r => `**${r.name}** ⭐ ${r.stars}\n${r.description}\n🔗 [View](${r.url})`)
+        .map(r => { const repo = r.item || r; return `**${repo.full_name || repo.name}** ⭐ ${repo.stars != null ? repo.stars : (repo.stargazers_count || 0)}\n${repo.description || ''}\n🔗 [View](${repo.url || repo.html_url || '#'})`; })
         .join('\n\n');
 
       // Build recommended communities list for display
-      const recommendedCommunitiesDisplay = data.recommended_communities
-        .map(c => `**${c.name}** (${c.members} members)\n${c.description}\n🔗 [Visit](${c.url})`)
+      const recommendedCommunitiesDisplay = (data.recommended_communities || [])
+        .map(c => { const comm = c.item || c; return `**${comm.name}** (${comm.members || comm.member_count || '—'} members)\n${comm.description || ''}\n🔗 [Visit](${comm.url || comm.invite_url || '#'})`; })
         .join('\n\n');
 
       // Build recommended articles list for display
-      const recommendedArticlesDisplay = data.recommended_articles
-        .map(a => `**${a.title}** - ${a.category}\n🔗 [Read](${a.url})`)
+      const recommendedArticlesDisplay = (data.recommended_articles || [])
+        .map(a => { const art = a.item || a; return `**${art.title}** - ${art.category || ''}\n🔗 [Read](${art.url || '#'})`; })
         .join('\n\n');
 
       // Construct query parameters for the issue template
