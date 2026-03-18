@@ -24,6 +24,7 @@ Environment variables / secrets (configure via ``wrangler.toml`` or
 
 import base64
 import calendar
+import asyncio
 import hashlib
 import hmac as _hmac
 import html as _html_mod
@@ -36,10 +37,16 @@ from urllib.parse import quote, urlparse
 
 from js import Headers, Response, console, fetch  # Cloudflare Workers JS bindings
 from index_template import GITHUB_PAGE_HTML  # Landing page HTML template
+from services.admin import AdminService, has_merged_pr_in_org
+from services.mentor_seed import INITIAL_MENTORS
 
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
+
+# Backward-compatible alias kept for tests and older imports after mentor seed
+# data moved to ``services.mentor_seed``.
+_INITIAL_MENTORS = INITIAL_MENTORS
 
 ASSIGN_COMMAND = "/assign"
 UNASSIGN_COMMAND = "/unassign"
@@ -67,6 +74,8 @@ MENTOR_ASSIGNED_LABEL_COLOR = "0075ca"
 SECURITY_BYPASS_LABELS = {"security", "vulnerability", "security-sensitive", "private-security"}
 # Seconds in a day — used for stale-assignment threshold calculations.
 _SECONDS_PER_DAY = 86400
+# TTL for cached GitHub-sourced all-time mentor stats in D1 (24 hours).
+_MENTOR_STATS_CACHE_TTL = 86400
 # When True, one active mentor is auto-requested as a reviewer on every newly
 # opened PR using a deterministic round-robin order (PR number mod pool size).
 # Set to False (default) to keep the existing behaviour of only requesting the
@@ -200,7 +209,7 @@ def _gh_headers(token: str) -> Headers:
     h = {
         "Accept": "application/vnd.github+json",
         "Content-Type": "application/json",
-        "User-Agent": "BLT-GitHub-App/1.0",
+        "User-Agent": "BLT-Pool/1.0",
         "X-GitHub-Api-Version": "2022-11-28",
     }
     if token:
@@ -229,7 +238,7 @@ async def get_installation_token(
             "Authorization": f"Bearer {jwt}",
             "Accept": "application/vnd.github+json",
             "Content-Type": "application/json",
-            "User-Agent": "BLT-GitHub-App/1.0",
+            "User-Agent": "BLT-Pool/1.0",
             "X-GitHub-Api-Version": "2022-11-28",
         }.items()),
     )
@@ -249,7 +258,7 @@ async def get_installation_access_token(installation_id: int, jwt_token: str) ->
             "Authorization": f"Bearer {jwt_token}",
             "Accept": "application/vnd.github+json",
             "Content-Type": "application/json",
-            "User-Agent": "BLT-GitHub-App/1.0",
+            "User-Agent": "BLT-Pool/1.0",
             "X-GitHub-Api-Version": "2022-11-28",
         }.items()),
     )
@@ -424,6 +433,25 @@ MAX_OPEN_PRS_PER_AUTHOR = 50
 LEADERBOARD_COMMENT_MARKER = LEADERBOARD_MARKER
 
 
+def _env_int(name: str, default: int) -> int:
+    raw = os.getenv(name, str(default))
+    try:
+        value = int(raw)
+        if value <= 0:
+            return default
+        return value
+    except Exception:
+        return default
+
+
+_RECONCILE_REPOS_PER_PAGE = _env_int("RECONCILE_REPOS_PER_PAGE", 100)
+_RECONCILE_PRS_PER_PAGE = _env_int("RECONCILE_PRS_PER_PAGE", 100)
+_RECONCILE_MAX_CLOSED_PAGES_PER_REPO = _env_int("RECONCILE_MAX_CLOSED_PAGES_PER_REPO", 20)
+_RECONCILE_MAX_OPEN_PAGES_PER_REPO = _env_int("RECONCILE_MAX_OPEN_PAGES_PER_REPO", 20)
+_RECONCILE_LOCK_LEASE_SECONDS = _env_int("RECONCILE_LOCK_LEASE_SECONDS", 120)
+_RECONCILE_CONFIG_LOGGED = False
+
+
 def _month_key(ts: Optional[int] = None) -> str:
     """Return YYYY-MM month key for UTC timestamp (or now)."""
     if ts is None:
@@ -458,7 +486,6 @@ async def _d1_run(db, sql: str, params: tuple = ()):
         if params:
             stmt = stmt.bind(*params)
         result = await stmt.run()
-        console.log(f"[D1.run] Executed: {sql[:60]}...")
         return result
     except Exception as e:
         console.error(f"[D1.run] Error executing {sql[:60]}: {e}")
@@ -607,16 +634,36 @@ async def _ensure_leaderboard_schema(db) -> None:
     await _d1_run(
         db,
         """
+        CREATE TABLE IF NOT EXISTS leaderboard_reconcile_locks (
+            org TEXT NOT NULL PRIMARY KEY,
+            holder TEXT NOT NULL,
+            lock_until INTEGER NOT NULL,
+            updated_at INTEGER NOT NULL
+        )
+        """,
+    )
+    await _d1_run(
+        db,
+        """
         CREATE TABLE IF NOT EXISTS mentor_assignments (
             org TEXT NOT NULL,
             mentor_login TEXT NOT NULL,
             issue_repo TEXT NOT NULL,
             issue_number INTEGER NOT NULL,
             assigned_at INTEGER NOT NULL,
+            mentee_login TEXT NOT NULL DEFAULT '',
             PRIMARY KEY (org, issue_repo, issue_number)
         )
         """,
     )
+    # Migration: add mentee_login column to existing tables that pre-date this field.
+    try:
+        await _d1_run(
+            db,
+            "ALTER TABLE mentor_assignments ADD COLUMN mentee_login TEXT NOT NULL DEFAULT ''",
+        )
+    except Exception:
+        pass  # Column already exists — ignore the error.
     await _d1_run(
         db,
         """
@@ -631,6 +678,19 @@ async def _ensure_leaderboard_schema(db) -> None:
         )
         """,
     )
+    await _d1_run(
+        db,
+        """
+        CREATE TABLE IF NOT EXISTS mentor_stats_cache (
+            org TEXT NOT NULL,
+            github_username TEXT NOT NULL,
+            merged_prs INTEGER NOT NULL DEFAULT 0,
+            reviews INTEGER NOT NULL DEFAULT 0,
+            fetched_at INTEGER NOT NULL,
+            PRIMARY KEY (org, github_username)
+        )
+        """,
+    )
     await _populate_mentors_table(db)
 
 
@@ -638,164 +698,13 @@ async def _ensure_leaderboard_schema(db) -> None:
 # Mentor table helpers
 # ---------------------------------------------------------------------------
 
-# Initial mentor data — these INSERT OR IGNORE statements seed the mentors
-# table from what was previously stored in src/mentors.yml.  They are safe to
-# run repeatedly (idempotent) and can be removed once the live database has
-# been populated.
-_INITIAL_MENTORS = [
-    {
-        "github_username": "rinkitadhana",
-        "name": "Rinkit Adhana",
-        "specialties": ["frontend", "javascript"],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "UTC+5:30",
-        "referred_by": "",
-    },
-    {
-        "github_username": "Rajgupta36",
-        "name": "Raj Gupta",
-        "specialties": ["backend", "python"],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "UTC+5:30",
-        "referred_by": "",
-    },
-    {
-        "github_username": "shriyashsoni",
-        "name": "Shriyash Soni",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "",
-        "referred_by": "",
-    },
-    {
-        "github_username": "Mohammedfaiyaz29",
-        "name": "Mohammed Faiyaz Shaikh",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "",
-        "referred_by": "",
-    },
-    {
-        "github_username": "Vaswani2003",
-        "name": "Vinamra Vaswani",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "",
-        "referred_by": "",
-    },
-    {
-        "github_username": "kittenbytes",
-        "name": "Carla Voorhees",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "",
-        "referred_by": "",
-    },
-    {
-        "github_username": "Captain-T2004",
-        "name": "Akshay Behl",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "",
-        "referred_by": "",
-    },
-    {
-        "github_username": "elsheik21",
-        "name": "Ahmed ElSheik",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "",
-        "referred_by": "",
-    },
-    {
-        "github_username": "Kunal1522",
-        "name": "Kunal Kashyap",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "",
-        "referred_by": "",
-    },
-    {
-        "github_username": "RudraBhaskar9439",
-        "name": "Rudra Bhaskar",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "",
-        "referred_by": "",
-    },
-    {
-        "github_username": "dev-sanidhya",
-        "name": "Sanidhya Shishodia",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "",
-        "referred_by": "",
-    },
-    {
-        "github_username": "VedantAnand17",
-        "name": "Vedant Anand",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "",
-        "referred_by": "",
-    },
-    {
-        "github_username": "Rishab87",
-        "name": "Rishab Kumar Jha",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "",
-        "referred_by": "",
-    },
-    {
-        "github_username": "gitsofaryan",
-        "name": "Aryan Jain",
-        "specialties": [
-            "fullstack",
-            "web3",
-            "distributed-systems",
-            "ai-ml",
-            "open-source",
-            "devops",
-            "realtime-systems",
-        ],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "UTC+5:30 (India Standard Time)",
-        "referred_by": "",
-    },
-    {
-        "github_username": "ramansh18",
-        "name": "Ramansh Saxena",
-        "specialties": ["frontend", "backend", "web3"],
-        "max_mentees": 2,
-        "active": True,
-        "timezone": "+5:30",
-        "referred_by": "ojaswa072",
-    },
-]
-
-
 async def _populate_mentors_table(db) -> None:
     """Seed the mentors table with the initial mentor list (idempotent).
 
     Uses INSERT OR IGNORE so that existing rows are never overwritten; safe
     to call on every cold start.
     """
-    for m in _INITIAL_MENTORS:
+    for m in INITIAL_MENTORS:
         try:
             await _d1_run(
                 db,
@@ -890,7 +799,7 @@ async def _d1_add_mentor(
 
 
 async def _d1_record_mentor_assignment(
-    db, org: str, mentor_login: str, repo: str, issue_number: int
+    db, org: str, mentor_login: str, repo: str, issue_number: int, mentee_login: str = ""
 ) -> None:
     """Upsert a mentor→issue assignment into D1 for load-map tracking."""
     now = int(time.time())
@@ -898,13 +807,14 @@ async def _d1_record_mentor_assignment(
         await _d1_run(
             db,
             """
-            INSERT INTO mentor_assignments (org, mentor_login, issue_repo, issue_number, assigned_at)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO mentor_assignments (org, mentor_login, issue_repo, issue_number, assigned_at, mentee_login)
+            VALUES (?, ?, ?, ?, ?, ?)
             ON CONFLICT(org, issue_repo, issue_number) DO UPDATE SET
                 mentor_login = excluded.mentor_login,
+                mentee_login = excluded.mentee_login,
                 assigned_at  = excluded.assigned_at
             """,
-            (org, mentor_login, repo, issue_number, now),
+            (org, mentor_login, repo, issue_number, now, mentee_login),
         )
         console.log(f"[D1] Recorded mentor assignment: @{mentor_login} → {org}/{repo}#{issue_number}")
     except Exception as exc:
@@ -950,14 +860,14 @@ async def _d1_get_mentor_loads(db, org: str) -> dict:
 async def _d1_get_active_assignments(db, org: str) -> list:
     """Return all active mentor assignments from D1 for the given org.
 
-    Returns a list of dicts with keys: org, mentor_login, issue_repo, issue_number, assigned_at.
+    Returns a list of dicts with keys: org, mentor_login, mentee_login, issue_repo, issue_number, assigned_at.
     Returns an empty list when D1 is unavailable or the query fails.
     """
     try:
         rows = await _d1_all(
             db,
             """
-            SELECT org, mentor_login, issue_repo, issue_number, assigned_at
+            SELECT org, mentor_login, mentee_login, issue_repo, issue_number, assigned_at
             FROM mentor_assignments
             WHERE org = ?
             ORDER BY assigned_at DESC
@@ -968,6 +878,7 @@ async def _d1_get_active_assignments(db, org: str) -> list:
             {
                 "org": row.get("org", org),
                 "mentor_login": row.get("mentor_login", ""),
+                "mentee_login": row.get("mentee_login", ""),
                 "issue_repo": row.get("issue_repo", ""),
                 "issue_number": int(row.get("issue_number") or 0),
                 "assigned_at": int(row.get("assigned_at") or 0),
@@ -978,6 +889,61 @@ async def _d1_get_active_assignments(db, org: str) -> list:
     except Exception as exc:
         console.error(f"[D1] Failed to get active assignments: {exc}")
         return []
+
+
+def _time_ago(ts: int) -> str:
+    """Return a human-readable 'X time ago' string for a Unix timestamp."""
+    diff = int(time.time()) - ts
+    if diff < 60:
+        return "just now"
+    if diff < 3600:
+        m = diff // 60
+        return f"{m} minute{'s' if m != 1 else ''} ago"
+    if diff < 86400:
+        h = diff // 3600
+        return f"{h} hour{'s' if h != 1 else ''} ago"
+    if diff < 86400 * 30:
+        d = diff // 86400
+        return f"{d} day{'s' if d != 1 else ''} ago"
+    if diff < 86400 * 365:
+        mo = diff // (86400 * 30)
+        return f"{mo} month{'s' if mo != 1 else ''} ago"
+    y = diff // (86400 * 365)
+    return f"{y} year{'s' if y != 1 else ''} ago"
+
+
+async def _d1_get_user_comment_totals(db, org: str, logins: list) -> dict:
+    """Return total all-time comment counts per user from leaderboard_monthly_stats.
+
+    Args:
+        db:     D1 database binding.
+        org:    GitHub organisation name.
+        logins: List of GitHub usernames to look up.
+
+    Returns a ``{login: total_comments}`` mapping.  Missing users default to 0.
+    """
+    if not logins:
+        return {}
+    try:
+        placeholders = ",".join("?" for _ in logins)
+        rows = await _d1_all(
+            db,
+            f"""
+            SELECT user_login, COALESCE(SUM(comments), 0) AS total_comments
+            FROM leaderboard_monthly_stats
+            WHERE org = ? AND user_login IN ({placeholders})
+            GROUP BY user_login
+            """,
+            (org, *logins),
+        )
+        return {
+            row["user_login"]: int(row.get("total_comments") or 0)
+            for row in rows
+            if row.get("user_login")
+        }
+    except Exception as exc:
+        console.error(f"[D1] Failed to get user comment totals: {exc}")
+        return {}
 
 
 async def _d1_inc_open_pr(db, org: str, user_login: str, delta: int) -> None:
@@ -1011,12 +977,15 @@ async def _d1_inc_monthly(db, org: str, month_key: str, user_login: str, field: 
             db,
             f"""
             INSERT INTO leaderboard_monthly_stats (org, month_key, user_login, {field}, updated_at)
-            VALUES (?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, CASE WHEN ? < 0 THEN 0 ELSE ? END, ?)
             ON CONFLICT(org, month_key, user_login) DO UPDATE SET
-                {field} = leaderboard_monthly_stats.{field} + excluded.{field},
+                {field} = CASE
+                    WHEN leaderboard_monthly_stats.{field} + ? < 0 THEN 0
+                    ELSE leaderboard_monthly_stats.{field} + ?
+                END,
                 updated_at = excluded.updated_at
             """,
-            (org, month_key, user_login, delta, now),
+            (org, month_key, user_login, delta, delta, now, delta, delta),
         )
         console.log(f"[D1] Updated {field} org={org} month={month_key} user={user_login} +{delta}")
     except Exception as e:
@@ -1041,11 +1010,21 @@ async def _track_pr_opened_in_d1(payload: dict, env) -> None:
     await _ensure_leaderboard_schema(db)
     existing = await _d1_first(
         db,
-        "SELECT state FROM leaderboard_pr_state WHERE org = ? AND repo = ? AND pr_number = ?",
+        "SELECT author_login, state, merged, closed_at FROM leaderboard_pr_state WHERE org = ? AND repo = ? AND pr_number = ?",
         (org, repo, pr_number),
     )
     if not existing or existing.get("state") != "open":
         await _d1_inc_open_pr(db, org, author_login, 1)
+
+    # If a previously closed PR is observed as opened again, reverse the old
+    # monthly close/merge credit for the original author to keep totals stable.
+    if existing and existing.get("state") == "closed":
+        existing_author = existing.get("author_login") or author_login
+        prev_merged = int(existing.get("merged") or 0)
+        prev_closed_at = int(existing.get("closed_at") or 0)
+        prev_mk = _month_key(prev_closed_at) if prev_closed_at else _month_key()
+        prev_field = "merged_prs" if prev_merged else "closed_prs"
+        await _d1_inc_monthly(db, org, prev_mk, existing_author, prev_field, -1)
 
     now = int(time.time())
     await _d1_run(
@@ -1086,7 +1065,7 @@ async def _track_pr_closed_in_d1(payload: dict, env) -> None:
     await _ensure_leaderboard_schema(db)
     existing = await _d1_first(
         db,
-        "SELECT state, merged, closed_at FROM leaderboard_pr_state WHERE org = ? AND repo = ? AND pr_number = ?",
+        "SELECT author_login, state, merged, closed_at FROM leaderboard_pr_state WHERE org = ? AND repo = ? AND pr_number = ?",
         (org, repo, pr_number),
     )
 
@@ -1096,8 +1075,19 @@ async def _track_pr_closed_in_d1(payload: dict, env) -> None:
         if existing_closed_at == int(closed_ts or 0):
             return
 
+    # If this PR is already tracked as closed but with a different state/timestamp,
+    # reverse the previous monthly credit before applying the new one.
+    if existing and existing.get("state") == "closed":
+        existing_author_login = existing.get("author_login") or author_login
+        prev_merged = int(existing.get("merged") or 0)
+        prev_closed_at = int(existing.get("closed_at") or 0)
+        prev_mk = _month_key(prev_closed_at) if prev_closed_at else _month_key()
+        prev_field = "merged_prs" if prev_merged else "closed_prs"
+        await _d1_inc_monthly(db, org, prev_mk, existing_author_login, prev_field, -1)
+
     if existing and existing.get("state") == "open":
-        await _d1_inc_open_pr(db, org, author_login, -1)
+        open_author_login = existing.get("author_login") or author_login
+        await _d1_inc_open_pr(db, org, open_author_login, -1)
 
     event_ts = _parse_github_timestamp(merged_at) if merged and merged_at else closed_ts
     mk = _month_key(event_ts)
@@ -1123,6 +1113,59 @@ async def _track_pr_closed_in_d1(payload: dict, env) -> None:
     )
 
 
+async def _track_pr_reopened_in_d1(payload: dict, env) -> None:
+    db = _d1_binding(env)
+    if not db:
+        return
+
+    pr = payload.get("pull_request") or {}
+    author = pr.get("user") or {}
+    if _is_bot(author):
+        return
+
+    org = (payload.get("repository") or {}).get("owner", {}).get("login", "")
+    repo = (payload.get("repository") or {}).get("name", "")
+    pr_number = pr.get("number")
+    author_login = author.get("login", "")
+    if not (org and repo and pr_number and author_login):
+        return
+
+    await _ensure_leaderboard_schema(db)
+    existing = await _d1_first(
+        db,
+        "SELECT state, merged, closed_at FROM leaderboard_pr_state WHERE org = ? AND repo = ? AND pr_number = ?",
+        (org, repo, pr_number),
+    )
+
+    # Reopening should reverse the previous close/merge credit so the final
+    # state remains accurate when the PR is closed again later.
+    if existing and existing.get("state") == "closed":
+        prev_merged = int(existing.get("merged") or 0)
+        prev_closed_at = int(existing.get("closed_at") or 0)
+        prev_mk = _month_key(prev_closed_at) if prev_closed_at else _month_key()
+        field = "merged_prs" if prev_merged else "closed_prs"
+        await _d1_inc_monthly(db, org, prev_mk, author_login, field, -1)
+
+    if not existing or existing.get("state") != "open":
+        await _d1_inc_open_pr(db, org, author_login, 1)
+
+    now = int(time.time())
+    await _d1_run(
+        db,
+        """
+        INSERT INTO leaderboard_pr_state (org, repo, pr_number, author_login, state, merged, closed_at, updated_at)
+        VALUES (?, ?, ?, ?, 'open', 0, NULL, ?)
+        ON CONFLICT(org, repo, pr_number) DO UPDATE SET
+            author_login = excluded.author_login,
+            state = 'open',
+            merged = 0,
+            closed_at = NULL,
+            updated_at = excluded.updated_at
+        """,
+        (org, repo, pr_number, author_login, now),
+    )
+
+
 async def _track_comment_in_d1(payload: dict, env) -> None:
     db = _d1_binding(env)
     if not db:
@@ -1133,6 +1176,9 @@ async def _track_comment_in_d1(payload: dict, env) -> None:
         return
     body = comment.get("body", "")
     if _is_coderabbit_ping(body):
+        return
+    # Ignore slash commands so bot commands do not inflate leaderboard comments.
+    if _extract_command(body):
         return
     org = (payload.get("repository") or {}).get("owner", {}).get("login", "")
     login = user.get("login", "")
@@ -1217,13 +1263,6 @@ async def _calculate_leaderboard_stats_from_d1(owner: str, env) -> Optional[dict
     mk = _month_key()
     start_timestamp, end_timestamp = _month_window(mk)
 
-    # DEBUG: Check if there's ANY data in the tables
-    all_monthly = await _d1_all(db, "SELECT COUNT(*) as cnt FROM leaderboard_monthly_stats", ())
-    all_open = await _d1_all(db, "SELECT COUNT(*) as cnt FROM leaderboard_open_prs", ())
-    total_monthly = all_monthly[0].get('cnt') if all_monthly else 0
-    total_open = all_open[0].get('cnt') if all_open else 0
-    console.log(f"[D1] DEBUG: Total rows in DB: monthly_stats={total_monthly}, open_prs={total_open}")
-
     monthly_rows = await _d1_all(
         db,
         """
@@ -1292,6 +1331,424 @@ async def _calculate_leaderboard_stats_from_d1(owner: str, env) -> Optional[dict
         "start_timestamp": start_timestamp,
         "end_timestamp": end_timestamp,
     }
+
+
+def _is_ts_in_month(ts: int, start_ts: int, end_ts: int) -> bool:
+    return bool(ts and start_ts <= ts <= end_ts)
+
+
+def _reconcile_lock_holder(org: str) -> str:
+    return f"{org}:{int(time.time() * 1000)}:{id(org)}"
+
+
+def _log_reconcile_config_once() -> None:
+    global _RECONCILE_CONFIG_LOGGED
+    if _RECONCILE_CONFIG_LOGGED:
+        return
+    _RECONCILE_CONFIG_LOGGED = True
+    console.log(
+        "[LeaderboardReconcile] Config "
+        f"repos_per_page={_RECONCILE_REPOS_PER_PAGE} "
+        f"prs_per_page={_RECONCILE_PRS_PER_PAGE} "
+        f"max_closed_pages={_RECONCILE_MAX_CLOSED_PAGES_PER_REPO} "
+        f"max_open_pages={_RECONCILE_MAX_OPEN_PAGES_PER_REPO} "
+        f"lock_lease_s={_RECONCILE_LOCK_LEASE_SECONDS}"
+    )
+
+
+async def _acquire_reconcile_lock(db, org: str, holder: str, lease_seconds: int) -> bool:
+    now_ts = int(time.time())
+    lock_until = now_ts + max(1, lease_seconds)
+    try:
+        result = await _d1_run(
+            db,
+            """
+            INSERT INTO leaderboard_reconcile_locks (org, holder, lock_until, updated_at)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(org) DO UPDATE SET
+                holder = excluded.holder,
+                lock_until = excluded.lock_until,
+                updated_at = excluded.updated_at
+            WHERE leaderboard_reconcile_locks.lock_until < ?
+               OR leaderboard_reconcile_locks.holder = ?
+            """,
+            (org, holder, lock_until, now_ts, now_ts, holder),
+        )
+        meta = (result or {}).get("meta") if isinstance(result, dict) else None
+        if isinstance(meta, dict):
+            changes = int(meta.get("changes") or 0)
+            if changes <= 0:
+                return False
+        elif result is None:
+            return False
+        return True
+    except Exception as exc:
+        console.error(f"[LeaderboardReconcile] Failed to acquire lock for {org}: {exc}")
+        return False
+
+
+async def _release_reconcile_lock(db, org: str, holder: str) -> None:
+    try:
+        await _d1_run(
+            db,
+            "DELETE FROM leaderboard_reconcile_locks WHERE org = ? AND holder = ?",
+            (org, holder),
+        )
+    except Exception as exc:
+        console.error(f"[LeaderboardReconcile] Failed to release lock for {org}: {exc}")
+
+
+async def _refresh_reconcile_lock(db, org: str, holder: str, lease_seconds: int) -> bool:
+    now_ts = int(time.time())
+    lock_until = now_ts + max(1, lease_seconds)
+    try:
+        result = await _d1_run(
+            db,
+            """
+            UPDATE leaderboard_reconcile_locks
+            SET lock_until = ?, updated_at = ?
+            WHERE org = ? AND holder = ? AND lock_until >= ?
+            """,
+            (lock_until, now_ts, org, holder, now_ts),
+        )
+        meta = (result or {}).get("meta") if isinstance(result, dict) else None
+        if isinstance(meta, dict):
+            return int(meta.get("changes") or 0) > 0
+        return result is not None
+    except Exception as exc:
+        console.error(f"[LeaderboardReconcile] Failed to refresh lock for {org}: {exc}")
+        return False
+
+
+async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env) -> bool:
+    """Rebuild current-month leaderboard PR stats from live GitHub state.
+
+    This is the anti-drift path for /leaderboard:
+    - Always recomputes org-wide open/merged/closed PR counts from GitHub.
+    - Replaces D1 snapshot rows for the current month.
+    - Clears stale historical/backfill artifacts for this org.
+    """
+    db = _d1_binding(env)
+    if not db:
+        return False
+
+    _log_reconcile_config_once()
+    holder = _reconcile_lock_holder(owner)
+
+    await _ensure_leaderboard_schema(db)
+    acquired = await _acquire_reconcile_lock(db, owner, holder, _RECONCILE_LOCK_LEASE_SECONDS)
+    if not acquired:
+        console.log(f"[LeaderboardReconcile] Lock busy for org={owner}; skipping reconcile")
+        return False
+
+    renewal_state = {"active": True}
+    renewal_stop = asyncio.Event()
+
+    async def _renewal_loop():
+        interval = max(1, _RECONCILE_LOCK_LEASE_SECONDS // 3)
+        while not renewal_stop.is_set():
+            try:
+                await asyncio.wait_for(renewal_stop.wait(), timeout=interval)
+                break
+            except TimeoutError:
+                pass
+            ok = await _refresh_reconcile_lock(db, owner, holder, _RECONCILE_LOCK_LEASE_SECONDS)
+            if not ok:
+                renewal_state["active"] = False
+                console.error(f"[LeaderboardReconcile] Lock renewal failed for org={owner}; aborting reconcile")
+                break
+
+    renewal_task = asyncio.create_task(_renewal_loop())
+
+    try:
+        month_key = _month_key()
+        start_ts, end_ts = _month_window(month_key)
+        now_ts = int(time.time())
+
+        existing_rows = await _d1_all(
+            db,
+            """
+            SELECT user_login, merged_prs, closed_prs, reviews, comments
+            FROM leaderboard_monthly_stats
+            WHERE org = ? AND month_key = ?
+            """,
+            (owner, month_key),
+        )
+        preserved_reviews_comments = {
+            row.get("user_login"): {
+                "reviews": int(row.get("reviews") or 0),
+                "comments": int(row.get("comments") or 0),
+            }
+            for row in (existing_rows or [])
+            if row.get("user_login")
+        }
+
+        open_by_user = {}
+        merged_by_user = {}
+        closed_by_user = {}
+        pr_state_map = {}
+        seen_open_prs = {}
+
+        repo_page = 1
+        while True:
+            if not renewal_state["active"]:
+                return False
+            repos_resp = await github_api(
+                "GET",
+                f"/orgs/{owner}/repos?sort=full_name&direction=asc&per_page={_RECONCILE_REPOS_PER_PAGE}&page={repo_page}",
+                token,
+            )
+            if repos_resp.status != 200:
+                console.error(
+                    f"[LeaderboardReconcile] Failed to list repos for {owner}: status={repos_resp.status} page={repo_page}"
+                )
+                return False
+            repos = json.loads(await repos_resp.text())
+            if not repos:
+                break
+
+            for repo_obj in repos:
+                repo_name = repo_obj.get("name")
+                if not repo_name:
+                    continue
+
+                # Snapshot all open PRs in this repo.
+                open_page = 1
+                while True:
+                    if not renewal_state["active"]:
+                        return False
+                    open_resp = await github_api(
+                        "GET",
+                        f"/repos/{owner}/{repo_name}/pulls?state=open&per_page={_RECONCILE_PRS_PER_PAGE}&page={open_page}",
+                        token,
+                    )
+                    if open_resp.status != 200:
+                        console.error(
+                            f"[LeaderboardReconcile] Failed open PR fetch {owner}/{repo_name}: status={open_resp.status} page={open_page}"
+                        )
+                        return False
+                    open_prs = json.loads(await open_resp.text())
+                    if not open_prs:
+                        break
+
+                    for pr in open_prs:
+                        user = pr.get("user") or {}
+                        if _is_bot(user):
+                            continue
+                        login = user.get("login")
+                        pr_number = pr.get("number")
+                        if not (login and pr_number):
+                            continue
+                        key = (repo_name, pr_number)
+                        if key in seen_open_prs:
+                            continue
+                        seen_open_prs[key] = login
+                        open_by_user[login] = open_by_user.get(login, 0) + 1
+                        pr_state_map[key] = (owner, repo_name, pr_number, login, "open", 0, None, now_ts)
+
+                    if len(open_prs) < _RECONCILE_PRS_PER_PAGE:
+                        break
+                    if open_page >= _RECONCILE_MAX_OPEN_PAGES_PER_REPO:
+                        console.error(
+                            f"[LeaderboardReconcile] Open PR pagination cap reached for {owner}/{repo_name} at page={open_page}; "
+                            "continuing with capped open snapshot"
+                        )
+                        break
+                    open_page += 1
+
+                # Snapshot current-month closed/merged PR outcomes in this repo.
+                closed_page = 1
+                while closed_page <= _RECONCILE_MAX_CLOSED_PAGES_PER_REPO:
+                    if not renewal_state["active"]:
+                        return False
+                    closed_resp = await github_api(
+                        "GET",
+                        f"/repos/{owner}/{repo_name}/pulls?state=closed&sort=updated&direction=desc&per_page={_RECONCILE_PRS_PER_PAGE}&page={closed_page}",
+                        token,
+                    )
+                    if closed_resp.status != 200:
+                        console.error(
+                            f"[LeaderboardReconcile] Failed closed PR fetch {owner}/{repo_name}: status={closed_resp.status} page={closed_page}"
+                        )
+                        return False
+                    closed_prs = json.loads(await closed_resp.text())
+                    if not closed_prs:
+                        break
+
+                    for pr in closed_prs:
+                        user = pr.get("user") or {}
+                        if _is_bot(user):
+                            continue
+                        login = user.get("login")
+                        pr_number = pr.get("number")
+                        if not (login and pr_number):
+                            continue
+                        key = (repo_name, pr_number)
+
+                        # If this PR was seen open earlier in this reconcile pass, undo
+                        # that open snapshot before recording its closed/merged state.
+                        open_login = seen_open_prs.pop(key, None)
+                        if open_login:
+                            open_by_user[open_login] = max(0, open_by_user.get(open_login, 0) - 1)
+                            if open_by_user[open_login] == 0:
+                                open_by_user.pop(open_login, None)
+                            existing_open = pr_state_map.get(key)
+                            if existing_open and existing_open[4] == "open":
+                                pr_state_map.pop(key, None)
+
+                        merged_at = pr.get("merged_at")
+                        closed_at = pr.get("closed_at")
+                        merged_ts = _parse_github_timestamp(merged_at) if merged_at else 0
+                        closed_ts = _parse_github_timestamp(closed_at) if closed_at else 0
+
+                        if _is_ts_in_month(merged_ts, start_ts, end_ts):
+                            merged_by_user[login] = merged_by_user.get(login, 0) + 1
+                            pr_state_map[key] = (owner, repo_name, pr_number, login, "closed", 1, closed_ts or merged_ts, now_ts)
+                        elif _is_ts_in_month(closed_ts, start_ts, end_ts):
+                            closed_by_user[login] = closed_by_user.get(login, 0) + 1
+                            pr_state_map[key] = (owner, repo_name, pr_number, login, "closed", 0, closed_ts, now_ts)
+
+                    if len(closed_prs) < _RECONCILE_PRS_PER_PAGE:
+                        break
+                    # Results are sorted by updated desc. If the least recently updated
+                    # PR on this page is older than the month window start, deeper pages
+                    # cannot contain in-window PR updates.
+                    last_pr = closed_prs[-1]
+                    updated_ts = _parse_github_timestamp(last_pr.get("updated_at")) if last_pr.get("updated_at") else 0
+                    if updated_ts and updated_ts < start_ts:
+                        break
+                    if (
+                        closed_page >= _RECONCILE_MAX_CLOSED_PAGES_PER_REPO
+                        and updated_ts
+                        and updated_ts >= start_ts
+                    ):
+                        console.error(
+                            f"[LeaderboardReconcile] Closed PR pagination cap reached for {owner}/{repo_name}; "
+                            "aborting reconcile to avoid partial month undercount"
+                        )
+                        return False
+                    closed_page += 1
+
+            if len(repos) < _RECONCILE_REPOS_PER_PAGE:
+                break
+            repo_page += 1
+
+        try:
+            await _d1_run(db, "BEGIN IMMEDIATE")
+
+            # Reset org leaderboard state to the fresh snapshot.
+            await _d1_run(db, "DELETE FROM leaderboard_open_prs WHERE org = ?", (owner,))
+            await _d1_run(
+                db,
+                """
+                DELETE FROM leaderboard_pr_state
+                WHERE org = ?
+                  AND (
+                        state = 'open'
+                        OR (state = 'closed' AND closed_at BETWEEN ? AND ?)
+                      )
+                """,
+                (owner, start_ts, end_ts),
+            )
+            # Keep monthly history and review-credit history intact; only reset the
+            # PR-derived counters for the current month and then write fresh values.
+            await _d1_run(
+                db,
+                """
+                UPDATE leaderboard_monthly_stats
+                SET merged_prs = 0,
+                    closed_prs = 0,
+                    updated_at = ?
+                WHERE org = ? AND month_key = ?
+                """,
+                (now_ts, owner, month_key),
+            )
+
+            # Clear one-time backfill gates so live reconciliation remains the source
+            # of truth without permanent stop conditions.
+            await _d1_run(
+                db,
+                "DELETE FROM leaderboard_backfill_state WHERE org = ?",
+                (owner,),
+            )
+            await _d1_run(
+                db,
+                "DELETE FROM leaderboard_backfill_repo_done WHERE org = ?",
+                (owner,),
+            )
+
+            for login, count in open_by_user.items():
+                await _d1_run(
+                    db,
+                    """
+                    INSERT INTO leaderboard_open_prs (org, user_login, open_prs, updated_at)
+                    VALUES (?, ?, ?, ?)
+                    """,
+                    (owner, login, count, now_ts),
+                )
+
+            for row in pr_state_map.values():
+                await _d1_run(
+                    db,
+                    """
+                    INSERT INTO leaderboard_pr_state (org, repo, pr_number, author_login, state, merged, closed_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(org, repo, pr_number) DO UPDATE SET
+                        author_login = excluded.author_login,
+                        state = excluded.state,
+                        merged = excluded.merged,
+                        closed_at = excluded.closed_at,
+                        updated_at = excluded.updated_at
+                    """,
+                    row,
+                )
+
+            all_logins = set(open_by_user.keys()) | set(merged_by_user.keys()) | set(closed_by_user.keys()) | set(preserved_reviews_comments.keys())
+            for login in all_logins:
+                preserved = preserved_reviews_comments.get(login, {})
+                await _d1_run(
+                    db,
+                    """
+                    INSERT INTO leaderboard_monthly_stats
+                        (org, month_key, user_login, merged_prs, closed_prs, reviews, comments, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(org, month_key, user_login) DO UPDATE SET
+                        merged_prs = excluded.merged_prs,
+                        closed_prs = excluded.closed_prs,
+                        updated_at = excluded.updated_at
+                    """,
+                    (
+                        owner,
+                        month_key,
+                        login,
+                        merged_by_user.get(login, 0),
+                        closed_by_user.get(login, 0),
+                        int(preserved.get("reviews") or 0),
+                        int(preserved.get("comments") or 0),
+                        now_ts,
+                    ),
+                )
+
+            await _d1_run(db, "COMMIT")
+        except Exception as exc:
+            try:
+                await _d1_run(db, "ROLLBACK")
+            except Exception as rollback_exc:
+                console.error(f"[LeaderboardReconcile] Rollback failed for {owner}: {rollback_exc}")
+            console.error(f"[LeaderboardReconcile] Transaction failed for {owner}: {exc}")
+            return False
+
+        console.log(
+            f"[LeaderboardReconcile] Completed org={owner} month={month_key} users={len(all_logins)} repos_scanned_page_end={repo_page}"
+        )
+        return True
+    finally:
+        renewal_stop.set()
+        try:
+            await renewal_task
+        except Exception:
+            pass
+        await _release_reconcile_lock(db, owner, holder)
 
 
 async def _get_backfill_state(db, owner: str, month_key: str) -> dict:
@@ -1991,6 +2448,15 @@ def _parse_github_timestamp(ts_str: str) -> int:
     return 0
 
 
+def _avatar_img_tag(login: str, size: int = 20) -> str:
+    """Return a fixed-size GitHub avatar image tag safe for markdown tables."""
+    safe_login = quote(str(login), safe="")
+    return (
+        f"<img src=\"https://avatars.githubusercontent.com/{safe_login}?size={size}&v=4\" "
+        f"width=\"{size}\" height=\"{size}\" alt=\"{login}\" />"
+    )
+
+
 def _format_leaderboard_comment(author_login: str, leaderboard_data: dict, owner: str, note: str = "") -> str:
     """Format a leaderboard comment for a specific user."""
     sorted_users = leaderboard_data["sorted"]
@@ -2017,7 +2483,7 @@ def _format_leaderboard_comment(author_login: str, leaderboard_data: dict, owner
     comment += "| --- | --- | --- | --- | --- | --- | --- | --- |\n"
     
     def row_for(rank: int, u: dict, bold: bool = False, medal: str = "") -> str:
-        avatar = f"![{u['login']}](https://github.com/{u['login']}.png?size=20)"
+        avatar = _avatar_img_tag(u["login"])
         user_cell = f"{avatar} **`@{u['login']}`** ✨" if bold else f"{avatar} `@{u['login']}`"
         rank_cell = f"{medal} {rank}" if medal else f"{rank}"
         return (f"| {rank_cell} | {user_cell} | {u['openPrs']} | {u['mergedPrs']} | "
@@ -2026,7 +2492,7 @@ def _format_leaderboard_comment(author_login: str, leaderboard_data: dict, owner
     # Show context rows around the author
     if not sorted_users:
         # No data yet: show the requesting user with zeroes so the comment is still useful.
-        avatar = f"![{author_login}](https://github.com/{author_login}.png?size=20)"
+        avatar = _avatar_img_tag(author_login)
         comment += f"| - | {avatar} **`@{author_login}`** ✨ | 0 | 0 | 0 | 0 | 0 | **0** |\n"
         comment += "\n_No leaderboard activity has been recorded for this month yet._\n"
     elif author_index == -1:
@@ -2082,7 +2548,7 @@ def _format_reviewer_leaderboard_comment(leaderboard_data: dict, owner: str, pr_
     def row_for(rank: int, u: dict, highlight: bool = False) -> str:
         medal = medals[rank - 1] if rank <= 3 else ""
         rank_cell = f"{medal} {rank}" if medal else f"{rank}"
-        avatar = f"![{u['login']}](https://github.com/{u['login']}.png?size=20)"
+        avatar = _avatar_img_tag(u["login"])
         user_cell = f"{avatar} **`@{u['login']}`** ⭐" if highlight else f"{avatar} `@{u['login']}`"
         return f"| {rank_cell} | {user_cell} | {u['reviews']} |"
 
@@ -2094,22 +2560,42 @@ def _format_reviewer_leaderboard_comment(leaderboard_data: dict, owner: str, pr_
     if not reviewer_sorted:
         comment += "| - | _No review activity recorded yet_ | 0 |\n"
     else:
-        top_n = reviewer_sorted[:5]
-        shown_logins = {u["login"] for u in top_n}
-        for i, u in enumerate(top_n):
-            highlight = u["login"] in pr_reviewer_set
-            comment += row_for(i + 1, u, highlight) + "\n"
+        total = len(reviewer_sorted)
 
-        # Show any PR reviewers not already in the top 5
-        extra_reviewers = [
-            u for u in reviewer_sorted
-            if u["login"] in pr_reviewer_set and u["login"] not in shown_logins
-        ]
-        if extra_reviewers:
-            comment += "| … | … | … |\n"
-            for u in extra_reviewers:
-                rank = reviewer_sorted.index(u) + 1
-                comment += row_for(rank, u, highlight=True) + "\n"
+        # Find the highest-ranked PR reviewer to centre the window on.
+        center_idx = None
+        if pr_reviewer_set:
+            for i, u in enumerate(reviewer_sorted):
+                if u["login"] in pr_reviewer_set:
+                    center_idx = i
+                    break
+
+        if center_idx is not None:
+            # Build a window of up to 5 entries with the reviewer in the middle.
+            start_idx = center_idx - 2
+            end_idx = center_idx + 2
+            # Clamp and expand to keep window size = 5 when possible.
+            if start_idx < 0:
+                end_idx -= start_idx  # shift right
+                start_idx = 0
+            if end_idx >= total:
+                shift = end_idx - total + 1
+                start_idx = max(0, start_idx - shift)
+                end_idx = total - 1
+
+            if start_idx > 0:
+                comment += "| … | … | … |\n"
+            for i in range(start_idx, end_idx + 1):
+                u = reviewer_sorted[i]
+                highlight = u["login"] in pr_reviewer_set
+                comment += row_for(i + 1, u, highlight) + "\n"
+            if end_idx < total - 1:
+                comment += "| … | … | … |\n"
+        else:
+            # No PR reviewer identified – show top 5.
+            for i, u in enumerate(reviewer_sorted[:5]):
+                highlight = u["login"] in pr_reviewer_set
+                comment += row_for(i + 1, u, highlight) + "\n"
 
     comment += "\n---\n"
     comment += (
@@ -2174,51 +2660,21 @@ async def _fetch_leaderboard_data(owner: str, repo: str, token: str, env=None) -
     else:
         console.error(f"[Leaderboard] Owner lookup failed for {owner}: status={owner_resp.status}")
 
-    # Prefer D1-backed stats for accurate and scalable org-wide leaderboard.
+    # For org leaderboard requests, always reconcile from GitHub first so stale
+    # webhook deltas cannot drift permanently.
+    if is_org and _d1_binding(env):
+        try:
+            reconciled = await _reconcile_org_leaderboard_from_github(owner, token, env)
+        except (KeyboardInterrupt, SystemExit):
+            raise
+        except Exception as exc:
+            console.error(f"[Leaderboard] Live reconciliation failed for {owner}: {exc}")
+            reconciled = False
+        leaderboard_note = "" if reconciled else "Live reconciliation is temporarily unavailable; showing last known snapshot."
+
+    # Prefer D1-backed stats after reconciliation.
     leaderboard_data = await _calculate_leaderboard_stats_from_d1(owner, env)
-    console.log(f"[Leaderboard] Initial D1 data: {bool(leaderboard_data)}, has_users={bool(leaderboard_data and leaderboard_data.get('sorted')) if leaderboard_data else False}")
-
-    # Always prioritize seeding the current repo so requester sees their repo's activity immediately.
-    if leaderboard_data is not None and is_org:
-        console.log(f"[Leaderboard] D1 is available, attempting to seed current repo {owner}/{repo}")
-        seeded_current = await _backfill_repo_month_if_needed(owner, repo, token, env)
-        console.log(f"[Leaderboard] Current repo backfill result: seeded_current={seeded_current}")
-        if seeded_current:
-            console.log(f"[Leaderboard] Seeded current repo {owner}/{repo} for immediate leaderboard accuracy")
-            leaderboard_data = await _calculate_leaderboard_stats_from_d1(owner, env) or leaderboard_data
-            console.log(f"[Leaderboard] After current repo seed, data has {len(leaderboard_data.get('sorted', []))} users")
-    else:
-        console.log(f"[Leaderboard] Skipped current repo backfill: leaderboard_data={bool(leaderboard_data)}, is_org={is_org}")
-
-    # Continue backfill until completed, not just when data is empty.
-    if leaderboard_data is not None and is_org:
-        db = _d1_binding(env)
-        if db:
-            month_key = _month_key()
-            state = await _get_backfill_state(db, owner, month_key)
-            if not state.get("completed"):
-                console.log(
-                    f"[Leaderboard] Running incremental backfill for {owner} "
-                    f"month={month_key} page={state.get('next_page')}"
-                )
-                backfill_result = await _run_incremental_backfill(owner, token, env)
-                if backfill_result:
-                    leaderboard_data = await _calculate_leaderboard_stats_from_d1(owner, env) or leaderboard_data
-                    console.log(f"[Leaderboard] After incremental backfill, data has {len(leaderboard_data.get('sorted', []))} users")
-                    if backfill_result.get("completed"):
-                        leaderboard_note = (
-                            f"Backfill completed in this request; seeded {backfill_result.get('processed', 0)} repos in the final chunk."
-                        )
-                    elif backfill_result.get("ran"):
-                        leaderboard_note = (
-                            f"Backfill in progress: seeded {backfill_result.get('processed', 0)} repos in this run; "
-                            f"next page {backfill_result.get('next_page', '?')}. "
-                            "Run `/leaderboard` again to continue filling historical data."
-                        )
-                    else:
-                        leaderboard_note = "Backfill did not progress this run; leaderboard still updates from new webhook events."
-                else:
-                    leaderboard_note = "Backfill state unavailable; leaderboard still updates from new webhook events."
+    console.log(f"[Leaderboard] D1 data ready: {bool(leaderboard_data)}, has_users={bool(leaderboard_data and leaderboard_data.get('sorted')) if leaderboard_data else False}")
 
     # Fallback to API-based calculation when D1 is unavailable.
     if leaderboard_data is None:
@@ -2521,14 +2977,113 @@ async def _load_mentors_local(env=None) -> list:
     return []
 
 
-async def _fetch_mentor_stats_from_d1(env, org: str) -> dict:
-    """Return per-mentor all-time PR/review totals from D1 for homepage display.
+async def _fetch_mentor_stats_from_d1(env, org: str, mentors: Optional[list] = None, token: str = "") -> dict:
+    """Return per-mentor all-time PR/review totals for homepage display.
 
-    Aggregates ``leaderboard_monthly_stats`` across all months for each user.
+    When ``mentors`` and ``token`` are provided, fetches accurate all-time
+    counts directly from the GitHub Search API (using ``total_count``), caching
+    results in the ``mentor_stats_cache`` D1 table with a 24-hour TTL.  This
+    reflects the full lifespan of the organisation rather than only the period
+    since the webhook was first deployed.
+
+    Falls back to aggregating ``leaderboard_monthly_stats`` across all months
+    when no GitHub token is available or D1 is not configured.
+
     Returns a mapping of ``github_username → {"merged_prs": int, "reviews": int}``.
-    Returns ``{}`` when D1 is unavailable or the query fails.
+    Returns ``{}`` when D1 is unavailable and the GitHub API path is not used.
     """
     db = _d1_binding(env)
+
+    # ------------------------------------------------------------------
+    # Path A: GitHub Search API with D1 cache (accurate all-time counts).
+    # ------------------------------------------------------------------
+    if mentors and token and db:
+        try:
+            await _ensure_leaderboard_schema(db)
+            now_ts = int(time.time())
+            fresh_cutoff = now_ts - _MENTOR_STATS_CACHE_TTL
+
+            # Load all cached stats for this org in one query.
+            cached_rows = await _d1_all(
+                db,
+                "SELECT github_username, merged_prs, reviews, fetched_at FROM mentor_stats_cache WHERE org = ?",
+                (org,),
+            )
+            cache = {
+                row["github_username"]: row
+                for row in (cached_rows or [])
+                if row.get("github_username")
+            }
+
+            stats: dict = {}
+            for mentor in mentors:
+                username = mentor.get("github_username", "")
+                if not username:
+                    continue
+                cached = cache.get(username)
+                if cached and int(cached.get("fetched_at") or 0) >= fresh_cutoff:
+                    # Cache hit — return stored values directly.
+                    stats[username] = {
+                        "merged_prs": int(cached.get("merged_prs") or 0),
+                        "reviews": int(cached.get("reviews") or 0),
+                    }
+                    continue
+
+                # Cache miss or stale — fetch from GitHub Search API.
+                merged_prs = 0
+                reviews = 0
+                safe_org = quote(org, safe="")
+                safe_user = quote(username, safe="")
+                try:
+                    pr_resp = await github_api(
+                        "GET",
+                        f"/search/issues?q=is:pr+is:merged+org:{safe_org}+author:{safe_user}&per_page=1",
+                        token,
+                    )
+                    if pr_resp.status == 200:
+                        pr_data = json.loads(await pr_resp.text())
+                        merged_prs = int(pr_data.get("total_count") or 0)
+                except Exception as exc:
+                    console.error(f"[MentorPool] GitHub PR count failed for {username}: {exc}")
+                try:
+                    rev_resp = await github_api(
+                        "GET",
+                        f"/search/issues?q=is:pr+org:{safe_org}+reviewed-by:{safe_user}+-author:{safe_user}&per_page=1",
+                        token,
+                    )
+                    if rev_resp.status == 200:
+                        rev_data = json.loads(await rev_resp.text())
+                        reviews = int(rev_data.get("total_count") or 0)
+                except Exception as exc:
+                    console.error(f"[MentorPool] GitHub review count failed for {username}: {exc}")
+
+                stats[username] = {"merged_prs": merged_prs, "reviews": reviews}
+
+                # Persist into cache for future requests.
+                try:
+                    await _d1_run(
+                        db,
+                        """
+                        INSERT INTO mentor_stats_cache (org, github_username, merged_prs, reviews, fetched_at)
+                        VALUES (?, ?, ?, ?, ?)
+                        ON CONFLICT(org, github_username) DO UPDATE SET
+                            merged_prs = excluded.merged_prs,
+                            reviews    = excluded.reviews,
+                            fetched_at = excluded.fetched_at
+                        """,
+                        (org, username, merged_prs, reviews, now_ts),
+                    )
+                except Exception as exc:
+                    console.error(f"[MentorPool] Failed to cache mentor stats for {username}: {exc}")
+
+            return stats
+        except Exception as exc:
+            console.error(f"[MentorPool] Failed to fetch mentor stats from GitHub: {exc}")
+            # Fall through to the D1 monthly-aggregation path below.
+
+    # ------------------------------------------------------------------
+    # Path B: Aggregate from D1 monthly stats (fallback / no token).
+    # ------------------------------------------------------------------
     if not db:
         console.log("[MentorPool] No D1 binding available for mentor stats; stats will be hidden")
         return {}
@@ -2862,7 +3417,7 @@ async def _assign_mentor_to_issue(
     if db:
         try:
             await _ensure_leaderboard_schema(db)
-            await _d1_record_mentor_assignment(db, owner, mentor_username, repo, issue_number)
+            await _d1_record_mentor_assignment(db, owner, mentor_username, repo, issue_number, mentee_login=contributor_login or "")
         except Exception as exc:
             console.error(f"[MentorPool] Failed to record assignment in D1 (best-effort): {exc}")
 
@@ -3555,7 +4110,7 @@ async def handle_pull_request_opened(payload: dict, token: str, env=None) -> Non
     owner = payload["repository"]["owner"]["login"]
     repo = payload["repository"]["name"]
     pr_number = pr["number"]
-    author_login = sender["login"]
+    author_login = (pr.get("user") or {}).get("login") or sender["login"]
 
     # Check for too many open PRs and auto-close if needed
     was_closed = await _check_and_close_excess_prs(owner, repo, pr_number, author_login, token)
@@ -3805,23 +4360,24 @@ async def _post_merged_pr_combined_comment(
 
 async def handle_pull_request_closed(payload: dict, token: str, env=None) -> None:
     pr = payload["pull_request"]
-    sender = payload["sender"]
+    author = pr.get("user", {})
+    if _is_bot(author):
+        return
+
+    # Track close/merge counters for both merged and unmerged PRs.
+    await _track_pr_closed_in_d1(payload, env)
+
     if not pr.get("merged"):
         return
-    if not _is_human(sender):
+
+    sender = payload["sender"]
+    if not _is_human(sender) or _is_bot(sender):
         return
-    
-    # Skip bots more thoroughly
-    if _is_bot(pr.get("user", {})):
-        return
-    
+
     owner = payload["repository"]["owner"]["login"]
     repo = payload["repository"]["name"]
     pr_number = pr["number"]
     author_login = pr["user"]["login"]
-
-    # Track close/merge counters in D1.
-    await _track_pr_closed_in_d1(payload, env)
 
     # Post a single combined comment: thanks + contributor leaderboard + reviewer leaderboard
     pr_reviewers = await get_valid_reviewers(owner, repo, pr_number, author_login, token)
@@ -4338,8 +4894,23 @@ async def handle_webhook(request, env) -> Response:
     item_number = issue_number or pr_number or ""
 
     signature = request.headers.get("X-Hub-Signature-256") or ""
-    secret = getattr(env, "WEBHOOK_SECRET", "")
-    if secret and not verify_signature(payload_bytes, signature, secret):
+    secret = (getattr(env, "WEBHOOK_SECRET", "") or "").strip()
+    if not secret:
+        console.error(
+            "[BLT][webhook] "
+            f"delivery={delivery_id or '-'} event={event or '-'} action={action or '-'} "
+            f"repo={repo_full_name or '-'} sender={sender_login or '-'} item={item_number or '-'} "
+            f"installation={installation_id or '-'} method={request.method} "
+            "status=rejected_missing_webhook_secret"
+        )
+        return _json(
+            {
+                "error": "Webhook authentication is not configured (missing WEBHOOK_SECRET)",
+                "code": "webhook_secret_missing",
+            },
+            503,
+        )
+    if not verify_signature(payload_bytes, signature, secret):
         console.log(
             "[BLT][webhook] "
             f"delivery={delivery_id or '-'} event={event or '-'} action={action or '-'} "
@@ -4387,7 +4958,10 @@ async def handle_webhook(request, env) -> Response:
             if action == "opened":
                 await handle_pull_request_opened(payload, token, env)
                 await handle_pull_request_for_review(payload, token)
-            elif action == "synchronize" or action == "reopened":
+            elif action == "synchronize":
+                await handle_pull_request_for_review(payload, token)
+            elif action == "reopened":
+                await _track_pr_reopened_in_d1(payload, env)
                 await handle_pull_request_for_review(payload, token)
             elif action == "closed":
                 await handle_pull_request_closed(payload, token, env)
@@ -4426,7 +5000,7 @@ _CALLBACK_HTML = """\
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BLT GitHub App — Installed!</title>
+  <title>BLT-Pool GitHub App — Installed!</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link
     rel="stylesheet"
@@ -4442,8 +5016,8 @@ _CALLBACK_HTML = """\
     </div>
     <h1 class="text-2xl font-bold text-white mb-4">Installation complete!</h1>
     <p class="leading-relaxed mb-6" style="color:#9ca3af;">
-      BLT GitHub App has been successfully installed on your organization.<br />
-      Issues and pull requests will now be handled automatically.
+      The BLT-Pool GitHub App has been successfully installed on your organization.<br />
+      GitHub automation is now active inside BLT-Pool.
     </p>
     <a
       href="https://owaspblt.org"
@@ -4529,6 +5103,35 @@ def _landing_html(app_slug: str, env=None) -> str:
 
 def _callback_html() -> str:
     return _CALLBACK_HTML
+
+
+def _webhook_security_status(env) -> dict:
+    """Return webhook security readiness and per-secret config checks.
+
+    Webhook processing is secure-ready only when all auth-related secrets are
+    present: ``APP_ID``, ``PRIVATE_KEY``, and ``WEBHOOK_SECRET``.
+    """
+    app_id_set = bool((getattr(env, "APP_ID", "") or "").strip()) if env else False
+    private_key_set = bool((getattr(env, "PRIVATE_KEY", "") or "").strip()) if env else False
+    webhook_secret_set = bool((getattr(env, "WEBHOOK_SECRET", "") or "").strip()) if env else False
+
+    missing = []
+    if not app_id_set:
+        missing.append("APP_ID")
+    if not private_key_set:
+        missing.append("PRIVATE_KEY")
+    if not webhook_secret_set:
+        missing.append("WEBHOOK_SECRET")
+
+    return {
+        "ready": app_id_set and private_key_set and webhook_secret_set,
+        "checks": {
+            "app_id_configured": app_id_set,
+            "private_key_configured": private_key_set,
+            "webhook_secret_configured": webhook_secret_set,
+        },
+        "missing": missing,
+    }
 
 
 def _generate_mentor_row(mentor: dict, stats: Optional[dict] = None) -> str:
@@ -4649,18 +5252,21 @@ def _build_referral_leaderboard(mentors: list) -> list:
     return sorted(counts.items(), key=lambda x: x[1], reverse=True)
 
 
-def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, active_assignments: Optional[list] = None) -> str:
+def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, active_assignments: Optional[list] = None, assignment_comment_stats: Optional[dict] = None) -> str:
     """Generate the BLT-Pool mentor directory homepage.
 
     Args:
-        mentors:            Mentor list loaded from D1.
-                            Defaults to an empty list when omitted or ``None``.
-        mentor_stats:       Optional mapping of ``github_username → {"merged_prs", "reviews"}``
-                            from D1, used to show activity stats on each mentor card.
-                            When ``None`` or empty, stats columns are hidden.
-        active_assignments: Optional list of active mentor-issue assignment dicts from D1.
-                            Each dict has keys: org, mentor_login, issue_repo, issue_number, assigned_at.
-                            When ``None`` or empty, the section is hidden.
+        mentors:                  Mentor list loaded from D1.
+                                  Defaults to an empty list when omitted or ``None``.
+        mentor_stats:             Optional mapping of ``github_username → {"merged_prs", "reviews"}``
+                                  from D1, used to show activity stats on each mentor card.
+                                  When ``None`` or empty, stats columns are hidden.
+        active_assignments:       Optional list of active mentor-issue assignment dicts from D1.
+                                  Each dict has keys: org, mentor_login, mentee_login, issue_repo,
+                                  issue_number, assigned_at.
+                                  When ``None`` or empty, the section is hidden.
+        assignment_comment_stats: Optional mapping of ``github_username → total_comments`` used to
+                                  show comment-point badges on each assignment card.
     """
     if mentors is None:
         mentors = []
@@ -4668,6 +5274,8 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
         mentor_stats = {}
     if active_assignments is None:
         active_assignments = []
+    if assignment_comment_stats is None:
+        assignment_comment_stats = {}
     # Normalize mentor_stats keys to lowercase for case-insensitive lookup.
     mentor_stats_lower = {k.lower(): v for k, v in mentor_stats.items()}
     year = time.gmtime().tm_year
@@ -4681,26 +5289,63 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
 
     # Build active assignments section HTML.
     if active_assignments:
-        assignment_items = "\n".join(
-            f'''<li class="flex flex-col gap-1 rounded-xl border border-[#E5E5E5] bg-gray-50 p-4 sm:flex-row sm:items-center sm:justify-between">
-              <div class="flex items-center gap-3 min-w-0">
-                <img src="https://github.com/{_html_mod.escape(a["mentor_login"])}.png"
-                     alt="{_html_mod.escape(a["mentor_login"])}"
-                     class="h-8 w-8 shrink-0 rounded-full border border-[#E5E5E5]">
-                <a href="https://github.com/{_html_mod.escape(a["mentor_login"])}" target="_blank" rel="noopener"
-                   class="font-semibold text-sm text-[#111827] hover:text-[#E10101] truncate">
-                  @{_html_mod.escape(a["mentor_login"])}
+        def _assignment_item(a: dict) -> str:
+            mentor = _html_mod.escape(a["mentor_login"])
+            mentee_raw = a.get("mentee_login", "")
+            mentee = _html_mod.escape(mentee_raw)
+            org = _html_mod.escape(a["org"])
+            repo = _html_mod.escape(a["issue_repo"])
+            number = _html_mod.escape(str(a["issue_number"]))
+            time_ago = _html_mod.escape(_time_ago(a["assigned_at"]))
+            mentor_comments = assignment_comment_stats.get(a["mentor_login"], 0)
+            mentee_comments = assignment_comment_stats.get(mentee_raw, 0) if mentee_raw else 0
+
+            mentee_html = ""
+            if mentee:
+                mentee_html = f'''
+              <div class="flex items-center gap-2 min-w-0">
+                <img src="https://github.com/{mentee}.png"
+                     alt="{mentee}"
+                     class="h-7 w-7 shrink-0 rounded-full border border-[#E5E5E5]">
+                <div class="min-w-0">
+                  <p class="text-xs text-gray-400 leading-none">Mentee</p>
+                  <a href="https://github.com/{mentee}" target="_blank" rel="noopener"
+                     class="text-sm font-semibold text-[#111827] hover:text-[#E10101] truncate block">
+                    @{mentee}
+                  </a>
+                </div>
+                <span class="shrink-0 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-semibold text-gray-600" title="Total comments">{mentee_comments} pts</span>
+              </div>'''
+
+            return f'''<li class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-4">
+              <div class="flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center gap-2 min-w-0">
+                  <img src="https://github.com/{mentor}.png"
+                       alt="{mentor}"
+                       class="h-7 w-7 shrink-0 rounded-full border border-[#E5E5E5]">
+                  <div class="min-w-0">
+                    <p class="text-xs text-gray-400 leading-none">Mentor</p>
+                    <a href="https://github.com/{mentor}" target="_blank" rel="noopener"
+                       class="text-sm font-semibold text-[#111827] hover:text-[#E10101] truncate block">
+                      @{mentor}
+                    </a>
+                  </div>
+                  <span class="shrink-0 rounded-full bg-[#feeae9] px-2 py-0.5 text-xs font-semibold text-[#E10101]" title="Total comments">{mentor_comments} pts</span>
+                </div>
+                {mentee_html}
+                <a href="https://github.com/{org}/{repo}/issues/{number}"
+                   target="_blank" rel="noopener"
+                   class="inline-flex items-center gap-1.5 rounded-full bg-[#feeae9] px-3 py-1 text-xs font-semibold text-[#E10101] hover:bg-red-100 transition shrink-0">
+                  <i class="fa-brands fa-github text-xs" aria-hidden="true"></i>
+                  {org}/{repo}#{number}
                 </a>
               </div>
-              <a href="https://github.com/{_html_mod.escape(a["org"])}/{_html_mod.escape(a["issue_repo"])}/issues/{_html_mod.escape(str(a["issue_number"]))}"
-                 target="_blank" rel="noopener"
-                 class="inline-flex items-center gap-1.5 rounded-full bg-[#feeae9] px-3 py-1 text-xs font-semibold text-[#E10101] hover:bg-red-100 transition shrink-0">
-                <i class="fa-brands fa-github text-xs" aria-hidden="true"></i>
-                {_html_mod.escape(a["org"])}/{_html_mod.escape(a["issue_repo"])}#{_html_mod.escape(str(a["issue_number"]))}
-              </a>
+              <p class="mt-2 text-xs text-gray-400">
+                <i class="fa-regular fa-clock mr-1" aria-hidden="true"></i>Assigned {time_ago}
+              </p>
             </li>'''
-            for a in active_assignments
-        )
+
+        assignment_items = "\n".join(_assignment_item(a) for a in active_assignments)
         active_assignments_html = f'''
     <section id="active-assignments" class="rounded-2xl border border-[#E5E5E5] bg-white p-7 sm:p-9">
       <div class="mb-5 flex items-center gap-3">
@@ -4797,7 +5442,7 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
 <body class="min-h-screen font-sans text-gray-900 antialiased">
 
   <header class="sticky top-0 z-40 border-b border-[#E5E5E5] bg-white/90 backdrop-blur">
-    <div class="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-y-2 px-4 py-3 sm:flex-nowrap sm:py-4 sm:px-6 lg:px-8">
+    <div class="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
       <a href="/" class="flex items-center gap-3" aria-label="BLT-Pool home">
         <img src="/logo-sm.png" alt="OWASP BLT logo" class="h-10 w-10 rounded-xl border border-[#E5E5E5] bg-white object-contain p-1">
         <div>
@@ -4805,18 +5450,25 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
           <h1 class="text-lg font-extrabold text-[#111827]">BLT-Pool</h1>
         </div>
       </a>
-      <span role="status" aria-label="Service status: Operational"
-            class="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 sm:order-last">
-        <i class="fa-solid fa-circle text-[0.45rem]" aria-hidden="true"></i>
-        Operational
-      </span>
-      <nav class="order-last flex w-full items-center justify-center gap-0.5 rounded-xl border border-[#E5E5E5] bg-white p-1 sm:order-none sm:w-auto sm:justify-start" aria-label="Primary">
+     <nav class="order-3 flex w-full items-center justify-center gap-0.5 rounded-xl border border-[#E5E5E5] bg-white p-1 sm:order-none sm:w-auto sm:justify-start" aria-label="Primary">
         <a href="/" class="rounded-lg bg-[#feeae9] px-2 py-1.5 text-xs font-semibold text-[#E10101] sm:px-3 sm:py-2 sm:text-sm">Mentors</a>
         <a href="/github-app" class="rounded-lg px-2 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 sm:px-3 sm:py-2 sm:text-sm">GitHub App</a>
         <a href="https://owaspblt.org" target="_blank" rel="noopener" class="rounded-lg px-2 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 sm:px-3 sm:py-2 sm:text-sm">
           OWASP BLT <i class="fa-solid fa-arrow-up-right-from-square text-xs" aria-hidden="true"></i>
         </a>
       </nav>
+      <div class="order-2 flex items-center gap-2 sm:order-none">
+        <span role="status" aria-label="Service status: Operational"
+              class="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
+          <i class="fa-solid fa-circle text-[0.4rem]" aria-hidden="true"></i>
+          Live
+        </span>
+        <a href="/admin/login"
+           class="inline-flex items-center gap-1.5 rounded-md border border-[#E5E5E5] px-3 py-2 text-xs font-semibold text-gray-700 transition hover:border-[#E10101] hover:bg-[#feeae9] hover:text-[#E10101] focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2">
+          <i class="fa-solid fa-shield-halved text-[#E10101]" aria-hidden="true"></i>
+          Admin
+        </a>
+      </div>
     </div>
   </header>
 
@@ -4970,6 +5622,7 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
             Display Name <span class="text-[#E10101]">*</span>
           </label>
           <input id="mf-name" type="text" required autocomplete="name" placeholder="Jane Doe"
+                 maxlength="100"
                  class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#E10101] focus:ring-1 focus:ring-[#E10101] focus:outline-none">
         </div>
         <div>
@@ -4977,6 +5630,7 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
             GitHub Username <span class="text-[#E10101]">*</span>
           </label>
           <input id="mf-github" type="text" required autocomplete="username" placeholder="janedoe"
+                 maxlength="39" pattern="[a-zA-Z0-9]([a-zA-Z0-9\\-]{{0,37}}[a-zA-Z0-9])?"
                  class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#E10101] focus:ring-1 focus:ring-[#E10101] focus:outline-none">
         </div>
         <div class="sm:col-span-2">
@@ -4984,6 +5638,7 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
             Specialties <span class="text-xs font-normal text-gray-400">(optional — comma-separated)</span>
           </label>
           <input id="mf-specialties" type="text" placeholder="e.g. frontend, python, security, docs"
+                 maxlength="300"
                  class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#E10101] focus:ring-1 focus:ring-[#E10101] focus:outline-none">
         </div>
         <div>
@@ -4998,6 +5653,7 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
             Timezone <span class="text-xs font-normal text-gray-400">(optional)</span>
           </label>
           <input id="mf-tz" type="text" placeholder="e.g. UTC+5:30"
+                 maxlength="60"
                  class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#E10101] focus:ring-1 focus:ring-[#E10101] focus:outline-none">
         </div>
         <div class="sm:col-span-2">
@@ -5005,6 +5661,7 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
             Referred By <span class="text-xs font-normal text-gray-400">(optional — GitHub username of who invited you)</span>
           </label>
           <input id="mf-referral" type="text" placeholder="e.g. janedoe"
+                 maxlength="39" pattern="[a-zA-Z0-9]([a-zA-Z0-9\\-]{{0,37}}[a-zA-Z0-9])?"
                  class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#E10101] focus:ring-1 focus:ring-[#E10101] focus:outline-none">
         </div>
         <div id="mf-error" role="alert" class="hidden sm:col-span-2 text-sm font-semibold text-[#E10101]"></div>
@@ -5019,12 +5676,28 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
       </form>
       <script>
         (function () {{
+          // Regex matching GitHub's username rules (identical to server-side _GH_USERNAME_RE).
+          var GH_USERNAME_RE = /^[a-zA-Z0-9](?:[a-zA-Z0-9\\-]{{0,37}}[a-zA-Z0-9])?$/;
+          // Regex matching each specialty tag (identical to server-side _SPECIALTY_RE).
+          var SPECIALTY_RE = /^[a-z0-9][a-z0-9+#.\\-]{{0,29}}$/;
+
+          /**
+           * Return true if the value contains HTML angle brackets, raw ampersands,
+           * double-quotes, or common scripting injection patterns.
+           */
+          function containsScripting(val) {{
+            if (/[<>"&]/.test(val)) return true;
+            if (/javascript\\s*:/i.test(val)) return true;
+            if (/on\\w+\\s*=/i.test(val)) return true;
+            return false;
+          }}
+
           document.getElementById('mentor-form').addEventListener('submit', function (e) {{
             e.preventDefault();
             var name     = document.getElementById('mf-name').value.trim();
             var github   = document.getElementById('mf-github').value.trim().replace(/^@/, '');
             var specs    = document.getElementById('mf-specialties').value.trim();
-            var maxM     = parseInt(document.getElementById('mf-max').value.trim(), 10) || 3;
+            var maxM     = parseInt(document.getElementById('mf-max').value.trim(), 10);
             var tz       = document.getElementById('mf-tz').value.trim();
             var referral = document.getElementById('mf-referral').value.trim().replace(/^@/, '');
             var errEl    = document.getElementById('mf-error');
@@ -5032,12 +5705,77 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
             var btn      = document.getElementById('mf-submit');
             errEl.classList.add('hidden');
             okEl.classList.add('hidden');
-            if (!name || !github) {{
-              errEl.textContent = 'Display name and GitHub username are required.';
+
+            // Required fields.
+            if (!name) {{
+              errEl.textContent = 'Display name is required.';
               errEl.classList.remove('hidden');
               return;
             }}
+            if (!github) {{
+              errEl.textContent = 'GitHub username is required.';
+              errEl.classList.remove('hidden');
+              return;
+            }}
+
+            // Length guards (mirrors maxlength attributes).
+            if (name.length > 100) {{
+              errEl.textContent = 'Display name must be 100 characters or fewer.';
+              errEl.classList.remove('hidden');
+              return;
+            }}
+            if (tz.length > 60) {{
+              errEl.textContent = 'Timezone must be 60 characters or fewer.';
+              errEl.classList.remove('hidden');
+              return;
+            }}
+
+            // Script / HTML injection checks on free-text fields.
+            if (containsScripting(name)) {{
+              errEl.textContent = 'Display name contains invalid characters. HTML and scripting are not allowed.';
+              errEl.classList.remove('hidden');
+              return;
+            }}
+            if (containsScripting(tz)) {{
+              errEl.textContent = 'Timezone contains invalid characters. HTML and scripting are not allowed.';
+              errEl.classList.remove('hidden');
+              return;
+            }}
+            if (containsScripting(specs)) {{
+              errEl.textContent = 'Specialties contain invalid characters. HTML and scripting are not allowed.';
+              errEl.classList.remove('hidden');
+              return;
+            }}
+
+            // GitHub username format validation.
+            if (!GH_USERNAME_RE.test(github)) {{
+              errEl.textContent = 'GitHub username may only contain letters, digits, and single hyphens, and cannot begin or end with a hyphen (max 39 characters).';
+              errEl.classList.remove('hidden');
+              return;
+            }}
+            if (referral && !GH_USERNAME_RE.test(referral)) {{
+              errEl.textContent = 'Referred-by username may only contain letters, digits, and single hyphens, and cannot begin or end with a hyphen (max 39 characters).';
+              errEl.classList.remove('hidden');
+              return;
+            }}
+
+            // Validate each specialty tag format.
             var specialties = specs ? specs.split(',').map(function(s) {{ return s.trim(); }}).filter(Boolean) : [];
+            for (var i = 0; i < specialties.length; i++) {{
+              if (!SPECIALTY_RE.test(specialties[i])) {{
+                errEl.textContent = 'Invalid specialty tag "' + specialties[i] + '". Tags must be 1-30 lowercase alphanumeric characters (also +, #, ., -).';
+                errEl.classList.remove('hidden');
+                return;
+              }}
+            }}
+
+            // max_mentees range guard.
+            if (isNaN(maxM) || maxM < 1 || maxM > 10) {{
+              errEl.textContent = 'Max concurrent mentees must be a number between 1 and 10.';
+              errEl.classList.remove('hidden');
+              return;
+            }}
+
             btn.disabled = true;
             fetch('/api/mentors', {{
               method: 'POST',
@@ -5057,7 +5795,11 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
             .then(function(result) {{
               btn.disabled = false;
               if (result.ok) {{
-                okEl.textContent = 'Welcome to the mentor pool, @' + github + '! Refresh the page to see your card.';
+                if (result.data && result.data.active) {{
+                  okEl.textContent = 'Welcome to the mentor pool, @' + github + '! Your mentor profile is now published.';
+                }} else {{
+                  okEl.textContent = 'Thanks, @' + github + '! Your mentor profile was saved and is waiting for admin publishing.';
+                }}
                 okEl.classList.remove('hidden');
                 document.getElementById('mentor-form').reset();
               }} else {{
@@ -5100,9 +5842,30 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
 _GH_USERNAME_RE = re.compile(r"^[a-zA-Z0-9](?:[a-zA-Z0-9\-]{0,37}[a-zA-Z0-9])?$")
 # Specialty tag: 1-30 chars; lowercase letters, digits, +, #, dot, hyphen allowed.
 _SPECIALTY_RE = re.compile(r"^[a-z0-9][a-z0-9+#.\-]{0,29}$")
+# Display name: 1-100 printable characters, no HTML angle brackets, ampersands,
+# double quotes, or ASCII control characters (prevents script injection).
+_NAME_RE = re.compile(r"^[^<>&\"\x00-\x1f]{1,100}$")
+# Timezone: optional free-form label, same restrictions as name but max 60 chars.
+_TIMEZONE_RE = re.compile(r"^[^<>&\"\x00-\x1f]{1,60}$")
 # Bounds for the max_mentees field in the mentor form.
 _MENTOR_MIN_MENTEES_CAP = 1
 _MENTOR_MAX_MENTEES_CAP = 10
+
+
+async def _verify_gh_user_exists(username: str, env=None) -> bool:
+    """Return True if the GitHub username exists on GitHub.
+
+    Uses GITHUB_TOKEN from env if available (5,000 req/h); falls back to
+    unauthenticated requests (60 req/h per IP) when no token is set.
+    Returns True on network/API error so a transient outage does not block
+    legitimate submissions (fail-open policy).
+    """
+    token = getattr(env, "GITHUB_TOKEN", "") if env else ""
+    try:
+        resp = await github_api("GET", f"/users/{username}", token)
+        return resp.status == 200
+    except Exception:
+        return True  # Fail open: don't block when GitHub API is temporarily unavailable
 
 
 async def _handle_add_mentor(request, env) -> "Response":
@@ -5135,10 +5898,16 @@ async def _handle_add_mentor(request, env) -> "Response":
 
     if not name:
         return _json({"error": "Field 'name' is required"}, 400)
+    if not _NAME_RE.match(name):
+        return _json({"error": "Display name contains invalid characters (HTML and scripting are not allowed)"}, 400)
     if not github_username:
         return _json({"error": "Field 'github_username' is required"}, 400)
     if not _GH_USERNAME_RE.match(github_username):
-        return _json({"error": "Invalid GitHub username"}, 400)
+        return _json({"error": "Invalid GitHub username format"}, 400)
+
+    # Verify the GitHub username actually exists.
+    if not await _verify_gh_user_exists(github_username, env):
+        return _json({"error": f"GitHub username '{github_username}' was not found on GitHub"}, 400)
 
     # Normalise specialties — accept a list or a comma-separated string.
     if isinstance(specialties_raw, str):
@@ -5157,12 +5926,37 @@ async def _handle_add_mentor(request, env) -> "Response":
     except (TypeError, ValueError):
         max_mentees = 3
 
+    if timezone and not _TIMEZONE_RE.match(timezone):
+        return _json({"error": "Timezone contains invalid characters (HTML and scripting are not allowed)"}, 400)
+
     if referred_by and not _GH_USERNAME_RE.match(referred_by):
-        return _json({"error": "Invalid referred_by username"}, 400)
+        return _json({"error": "Invalid referred_by username format"}, 400)
+
+    # Verify the referrer's GitHub username exists (if provided).
+    if referred_by and not await _verify_gh_user_exists(referred_by, env):
+        return _json({"error": f"Referred-by username '{referred_by}' was not found on GitHub"}, 400)
 
     db = _d1_binding(env)
     if not db:
         return _json({"error": "Database not available"}, 500)
+
+    mentor_is_active = await has_merged_pr_in_org(
+        env,
+        github_username,
+        getattr(env, "GITHUB_ORG", "OWASP-BLT"),
+    )
+
+    try:
+        existing = await _d1_all(
+            db,
+            "SELECT github_username FROM mentors WHERE github_username = ?",
+            (github_username,),
+        )
+        if existing:
+            return _json({"error": f"GitHub user '{github_username}' is already in the mentor pool"}, 409)
+    except Exception as exc:
+        console.error(f"[MentorPool] Failed to check duplicate mentor {github_username}: {exc}")
+        return _json({"error": "Failed to validate mentor. Please try again later."}, 500)
 
     try:
         await _ensure_leaderboard_schema(db)
@@ -5172,7 +5966,7 @@ async def _handle_add_mentor(request, env) -> "Response":
             name=name,
             specialties=specialties,
             max_mentees=max_mentees,
-            active=True,
+            active=mentor_is_active,
             timezone=timezone,
             referred_by=referred_by,
         )
@@ -5180,8 +5974,13 @@ async def _handle_add_mentor(request, env) -> "Response":
         console.error(f"[MentorPool] Failed to add mentor {github_username}: {exc}")
         return _json({"error": "Failed to save mentor"}, 500)
 
-    console.log(f"[MentorPool] Added mentor {github_username} via API")
-    return _json({"ok": True, "github_username": github_username}, 201)
+    console.log(
+        f"[MentorPool] Added mentor {github_username} via API active={mentor_is_active}"
+    )
+    return _json(
+        {"ok": True, "github_username": github_username, "active": mentor_is_active},
+        201,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -5217,6 +6016,10 @@ async def on_fetch(request, env) -> Response:
     method = request.method
     path = urlparse(str(request.url)).path.rstrip("/") or "/"
 
+    admin_response = await AdminService(env).handle(request)
+    if admin_response is not None:
+        return admin_response
+
     if method == "GET" and path == "/":
         # Load mentors from D1.
         org = getattr(env, "GITHUB_ORG", "OWASP-BLT")
@@ -5228,11 +6031,13 @@ async def on_fetch(request, env) -> Response:
         # Fetch per-mentor activity stats from D1 (best-effort; no stats if D1 unavailable).
         mentor_stats: dict = {}
         try:
-            mentor_stats = await _fetch_mentor_stats_from_d1(env, org)
+            token = getattr(env, "GITHUB_TOKEN", "")
+            mentor_stats = await _fetch_mentor_stats_from_d1(env, org, mentors=mentors, token=token)
         except Exception as exc:
             console.error(f"[MentorPool] Failed to fetch mentor stats for homepage: {exc}")
         # Fetch active mentor assignments from D1 (best-effort).
         active_assignments: list = []
+        assignment_comment_stats: dict = {}
         db = _d1_binding(env)
         if db:
             try:
@@ -5240,14 +6045,34 @@ async def on_fetch(request, env) -> Response:
                 active_assignments = await _d1_get_active_assignments(db, org)
             except Exception as exc:
                 console.error(f"[MentorPool] Failed to fetch active assignments for homepage: {exc}")
-        return _html(_index_html(mentors, mentor_stats, active_assignments))
+            if active_assignments:
+                try:
+                    all_logins = list({
+                        login
+                        for a in active_assignments
+                        for login in (a["mentor_login"], a.get("mentee_login", ""))
+                        if login
+                    })
+                    assignment_comment_stats = await _d1_get_user_comment_totals(db, org, all_logins)
+                except Exception as exc:
+                    console.error(f"[MentorPool] Failed to fetch assignment comment stats: {exc}")
+        return _html(_index_html(mentors, mentor_stats, active_assignments, assignment_comment_stats))
 
     if method == "GET" and path == "/github-app":
         app_slug = getattr(env, "GITHUB_APP_SLUG", "")
         return _html(_github_app_html(app_slug, env))
 
     if method == "GET" and path == "/health":
-        return _json({"status": "ok", "service": "BLT-Pool"})
+        webhook_security = _webhook_security_status(env)
+        return _json(
+            {
+                "status": "ok" if webhook_security["ready"] else "degraded",
+                "service": "BLT-Pool",
+                "checks": {
+                    "webhook_security": webhook_security,
+                },
+            }
+        )
 
     if method == "POST" and path == "/api/mentors":
         return await _handle_add_mentor(request, env)

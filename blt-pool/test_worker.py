@@ -10,6 +10,7 @@ These tests cover the logic that does NOT require the Cloudflare runtime
 import asyncio
 import base64
 import builtins
+from contextlib import ExitStack
 import hashlib
 import hmac as _hmac
 import importlib
@@ -601,11 +602,35 @@ class TestHandlePullRequestClosed(unittest.TestCase):
         self._run_closed(payload, comments)
         self.assertEqual(comments, [])
 
+    def test_tracks_stats_when_not_merged(self):
+        payload = _make_pr_payload(merged=False)
+
+        async def _inner():
+            with patch.object(_worker, "_track_pr_closed_in_d1", new=AsyncMock()) as track_mock:
+                with patch.object(_worker, "_post_merged_pr_combined_comment", new=AsyncMock()) as post_mock:
+                    await _worker.handle_pull_request_closed(payload, "tok", env=types.SimpleNamespace())
+            self.assertEqual(track_mock.await_count, 1)
+            self.assertEqual(post_mock.await_count, 0)
+
+        _run(_inner())
+
     def test_ignores_bot_merges(self):
         payload = _make_pr_payload(merged=True, sender={"login": "bot", "type": "Bot"})
         comments = []
         self._run_closed(payload, comments)
         self.assertEqual(comments, [])
+
+    def test_tracks_stats_even_when_sender_is_bot(self):
+        payload = _make_pr_payload(merged=True, sender={"login": "bot", "type": "Bot"})
+
+        async def _inner():
+            with patch.object(_worker, "_track_pr_closed_in_d1", new=AsyncMock()) as track_mock:
+                with patch.object(_worker, "_post_merged_pr_combined_comment", new=AsyncMock()) as post_mock:
+                    await _worker.handle_pull_request_closed(payload, "tok", env=types.SimpleNamespace())
+            self.assertEqual(track_mock.await_count, 1)
+            self.assertEqual(post_mock.await_count, 0)
+
+        _run(_inner())
 
 
 class TestSecretVarsStatusHtml(unittest.TestCase):
@@ -931,6 +956,21 @@ class TestFormatLeaderboardComment(unittest.TestCase):
         # Should not highlight anyone
         self.assertNotIn("✨", result)
 
+    def test_uses_fixed_size_avatar_img_tag(self):
+        leaderboard_data = {
+            "sorted": [
+                {"login": "alice", "openPrs": 1, "mergedPrs": 2, "closedPrs": 0, "reviews": 0, "comments": 0, "total": 21},
+            ],
+            "start_timestamp": 1704067200,
+            "end_timestamp": 1706745599,
+        }
+
+        result = _format_leaderboard_comment("alice", leaderboard_data, "test-org")
+
+        self.assertIn("<img src=\"https://avatars.githubusercontent.com/alice?size=20&v=4\"", result)
+        self.assertIn("width=\"20\"", result)
+        self.assertIn("height=\"20\"", result)
+
 
 class TestFormatReviewerLeaderboardComment(unittest.TestCase):
     """Test reviewer leaderboard comment formatting"""
@@ -1003,7 +1043,7 @@ class TestFormatReviewerLeaderboardComment(unittest.TestCase):
         self.assertNotIn("`@alice`", result)
 
     def test_shows_pr_reviewer_outside_top5(self):
-        """PR reviewer ranked outside top 5 should still appear."""
+        """PR reviewer ranked outside top 5 should still appear centred in window."""
         data = {
             "sorted": [
                 {"login": f"user{i}", "openPrs": 0, "mergedPrs": 0, "closedPrs": 0, "reviews": 10 - i, "comments": 0, "total": 50 - i * 5}
@@ -1014,6 +1054,66 @@ class TestFormatReviewerLeaderboardComment(unittest.TestCase):
         }
         result = _format_reviewer_leaderboard_comment(data, "test-org", pr_reviewers=["user6"])
         self.assertIn("user6", result)
+        # Only 5 rows shown; user0/user1 (top) should NOT appear since window is centred on user6
+        self.assertNotIn("`@user0`", result)
+        self.assertNotIn("`@user1`", result)
+
+    def test_reviewer_centred_window_shows_two_above_two_below(self):
+        """Reviewer in the middle of a large list: exactly 2 above and 2 below visible."""
+        logins = [f"u{i}" for i in range(10)]
+        data = {
+            "sorted": [
+                {"login": l, "openPrs": 0, "mergedPrs": 0, "closedPrs": 0, "reviews": 10 - i, "comments": 0, "total": 50 - i * 5}
+                for i, l in enumerate(logins)
+            ],
+            "start_timestamp": 1704067200,
+            "end_timestamp": 1706745599,
+        }
+        # Reviewer is u5 (index 5): window should be u3, u4, u5, u6, u7
+        result = _format_reviewer_leaderboard_comment(data, "test-org", pr_reviewers=["u5"])
+        self.assertIn("`@u3`", result)
+        self.assertIn("`@u4`", result)
+        self.assertIn("**`@u5`** ⭐", result)
+        self.assertIn("`@u6`", result)
+        self.assertIn("`@u7`", result)
+        # Rows outside the window should not appear
+        self.assertNotIn("`@u0`", result)
+        self.assertNotIn("`@u8`", result)
+        # Ellipsis rows should be shown above and below the window
+        self.assertIn("| … | … | … |", result)
+
+    def test_reviewer_at_top_shows_first_five(self):
+        """Reviewer ranked #1: window is top 5 with reviewer highlighted."""
+        logins = [f"u{i}" for i in range(10)]
+        data = {
+            "sorted": [
+                {"login": l, "openPrs": 0, "mergedPrs": 0, "closedPrs": 0, "reviews": 10 - i, "comments": 0, "total": 50 - i * 5}
+                for i, l in enumerate(logins)
+            ],
+            "start_timestamp": 1704067200,
+            "end_timestamp": 1706745599,
+        }
+        result = _format_reviewer_leaderboard_comment(data, "test-org", pr_reviewers=["u0"])
+        for i in range(5):
+            self.assertIn(f"u{i}", result)
+        self.assertNotIn("`@u5`", result)
+
+    def test_no_pr_reviewer_shows_top5(self):
+        """Without pr_reviewers, the top 5 are shown and nothing else."""
+        logins = [f"u{i}" for i in range(8)]
+        data = {
+            "sorted": [
+                {"login": l, "openPrs": 0, "mergedPrs": 0, "closedPrs": 0, "reviews": 8 - i, "comments": 0, "total": 40 - i * 5}
+                for i, l in enumerate(logins)
+            ],
+            "start_timestamp": 1704067200,
+            "end_timestamp": 1706745599,
+        }
+        result = _format_reviewer_leaderboard_comment(data, "test-org")
+        for i in range(5):
+            self.assertIn(f"u{i}", result)
+        self.assertNotIn("`@u5`", result)
+        self.assertNotIn("`@u6`", result)
 
 
 class TestPostReviewerLeaderboard(unittest.TestCase):
@@ -1321,7 +1421,7 @@ class TestPostMergedPrCombinedComment(unittest.TestCase):
         posted, deleted = [], []
         self._run(self._make_leaderboard_data(), "alice", [], posted, deleted)
         # Avatars should be present as inline images
-        self.assertIn("https://github.com/alice.png", posted[0])
+        self.assertIn("https://avatars.githubusercontent.com/alice?size=20&v=4", posted[0])
 
     def test_shows_top_five_when_author_not_in_leaderboard(self):
         data = {
@@ -1822,6 +1922,40 @@ class TestTrackingOperations(unittest.TestCase):
         # Should have called prepare multiple times (ensure schema, check existing, insert)
         self.assertGreater(mock_db.prepare.call_count, 0)
 
+    async def _test_track_pr_opened_reverses_previous_closed_credit(self):
+        """Opening a previously closed PR should reverse prior monthly credit using stored author."""
+        payload = {
+            "repository": {"owner": {"login": "OWASP-BLT"}, "name": "test-repo"},
+            "pull_request": {
+                "number": 42,
+                "user": {"login": "alice", "type": "User"},
+            },
+        }
+        env = types.SimpleNamespace(LEADERBOARD_DB=object())
+
+        with ExitStack() as stack:
+            stack.enter_context(patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()))
+            stack.enter_context(
+                patch.object(
+                    _worker,
+                    "_d1_first",
+                    new=AsyncMock(return_value={"author_login": "bob", "state": "closed", "merged": 1, "closed_at": 1709596800}),
+                )
+            )
+            monthly_mock = stack.enter_context(patch.object(_worker, "_d1_inc_monthly", new=AsyncMock()))
+            open_mock = stack.enter_context(patch.object(_worker, "_d1_inc_open_pr", new=AsyncMock()))
+            stack.enter_context(patch.object(_worker, "_d1_run", new=AsyncMock()))
+            await _worker._track_pr_opened_in_d1(payload, env)
+
+        self.assertEqual(open_mock.await_count, 1)
+        self.assertEqual(open_mock.await_args.args[2], "alice")
+        self.assertEqual(open_mock.await_args.args[3], 1)
+        self.assertEqual(monthly_mock.await_count, 1)
+        monthly_args = monthly_mock.await_args.args
+        self.assertEqual(monthly_args[3], "bob")
+        self.assertEqual(monthly_args[4], "merged_prs")
+        self.assertEqual(monthly_args[5], -1)
+
     async def _test_track_comment(self):
         """Test comment tracking via D1"""
         mock_db = MagicMock()
@@ -1846,11 +1980,362 @@ class TestTrackingOperations(unittest.TestCase):
         # Should have called prepare for monthly increment
         self.assertGreater(mock_db.prepare.call_count, 0)
 
+    async def _test_track_comment_ignores_commands(self):
+        """Slash commands should not be counted as comment leaderboard activity."""
+        mock_db = MagicMock()
+        env = types.SimpleNamespace(LEADERBOARD_DB=mock_db)
+        payload = {
+            "repository": {"owner": {"login": "OWASP-BLT"}},
+            "comment": {
+                "user": {"login": "alice", "type": "User"},
+                "body": "/leaderboard",
+                "created_at": "2024-03-05T12:00:00Z",
+            },
+        }
+
+        with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None)):
+            await _worker._track_comment_in_d1(payload, env)
+
+        self.assertEqual(mock_db.prepare.call_count, 0)
+
+    async def _test_track_pr_reopened_reverts_previous_close_credit(self):
+        """Reopening should remove prior close penalty and restore open PR count once."""
+        payload = {
+            "repository": {"owner": {"login": "OWASP-BLT"}, "name": "test-repo"},
+            "pull_request": {
+                "number": 42,
+                "user": {"login": "alice", "type": "User"},
+            },
+        }
+        env = types.SimpleNamespace(LEADERBOARD_DB=object())
+
+        with ExitStack() as stack:
+            stack.enter_context(patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()))
+            stack.enter_context(
+                patch.object(_worker, "_d1_first", new=AsyncMock(return_value={"state": "closed", "merged": 0, "closed_at": 1709596800}))
+            )
+            monthly_mock = stack.enter_context(patch.object(_worker, "_d1_inc_monthly", new=AsyncMock()))
+            open_mock = stack.enter_context(patch.object(_worker, "_d1_inc_open_pr", new=AsyncMock()))
+            stack.enter_context(patch.object(_worker, "_d1_run", new=AsyncMock()))
+            await _worker._track_pr_reopened_in_d1(payload, env)
+
+        self.assertEqual(monthly_mock.await_count, 1)
+        monthly_args = monthly_mock.await_args.args
+        self.assertEqual(monthly_args[3], "alice")
+        self.assertEqual(monthly_args[4], "closed_prs")
+        self.assertEqual(monthly_args[5], -1)
+        self.assertEqual(open_mock.await_count, 1)
+        self.assertEqual(open_mock.await_args.args[3], 1)
+
+    async def _test_track_pr_reopened_idempotent_when_already_open(self):
+        """Duplicate reopened deliveries should not re-increment counters."""
+        payload = {
+            "repository": {"owner": {"login": "OWASP-BLT"}, "name": "test-repo"},
+            "pull_request": {
+                "number": 42,
+                "user": {"login": "alice", "type": "User"},
+            },
+        }
+        env = types.SimpleNamespace(LEADERBOARD_DB=object())
+
+        with ExitStack() as stack:
+            stack.enter_context(patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()))
+            stack.enter_context(
+                patch.object(_worker, "_d1_first", new=AsyncMock(return_value={"state": "open", "merged": 0, "closed_at": None}))
+            )
+            monthly_mock = stack.enter_context(patch.object(_worker, "_d1_inc_monthly", new=AsyncMock()))
+            open_mock = stack.enter_context(patch.object(_worker, "_d1_inc_open_pr", new=AsyncMock()))
+            stack.enter_context(patch.object(_worker, "_d1_run", new=AsyncMock()))
+            await _worker._track_pr_reopened_in_d1(payload, env)
+
+        self.assertEqual(monthly_mock.await_count, 0)
+        self.assertEqual(open_mock.await_count, 0)
+
+    async def _test_track_pr_closed_reverses_previous_closed_credit(self):
+        """A changed closed state should reverse old credit before applying the new one."""
+        payload = {
+            "repository": {"owner": {"login": "OWASP-BLT"}, "name": "test-repo"},
+            "pull_request": {
+                "number": 42,
+                "user": {"login": "alice", "type": "User"},
+                "merged": True,
+                "closed_at": "2026-03-10T10:00:00Z",
+                "merged_at": "2026-03-10T10:00:00Z",
+            },
+        }
+        env = types.SimpleNamespace(LEADERBOARD_DB=object())
+
+        with ExitStack() as stack:
+            stack.enter_context(patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()))
+            # Existing row says this PR was closed-unmerged, so new merged state
+            # must remove old closed_prs credit and add merged_prs credit.
+            stack.enter_context(
+                patch.object(
+                    _worker,
+                    "_d1_first",
+                    new=AsyncMock(return_value={"author_login": "bob", "state": "closed", "merged": 0, "closed_at": 1709596800}),
+                )
+            )
+            monthly_mock = stack.enter_context(patch.object(_worker, "_d1_inc_monthly", new=AsyncMock()))
+            stack.enter_context(patch.object(_worker, "_d1_inc_open_pr", new=AsyncMock()))
+            stack.enter_context(patch.object(_worker, "_d1_run", new=AsyncMock()))
+            await _worker._track_pr_closed_in_d1(payload, env)
+
+        self.assertEqual(monthly_mock.await_count, 2)
+        first = monthly_mock.await_args_list[0].args
+        second = monthly_mock.await_args_list[1].args
+        expected_prev_mk = _worker._month_key(1709596800)
+        expected_new_mk = _worker._month_key(_worker._parse_github_timestamp("2026-03-10T10:00:00Z"))
+        self.assertEqual(first[2], expected_prev_mk)
+        self.assertEqual(second[2], expected_new_mk)
+        self.assertEqual(first[3], "bob")
+        self.assertEqual(second[3], "alice")
+        self.assertEqual(first[4], "closed_prs")
+        self.assertEqual(first[5], -1)
+        self.assertEqual(second[4], "merged_prs")
+        self.assertEqual(second[5], 1)
+
     def test_track_pr_opened(self):
         _run(self._test_track_pr_opened())
 
+    def test_track_pr_opened_reverses_previous_closed_credit(self):
+        _run(self._test_track_pr_opened_reverses_previous_closed_credit())
+
     def test_track_comment(self):
         _run(self._test_track_comment())
+
+    def test_track_comment_ignores_commands(self):
+        _run(self._test_track_comment_ignores_commands())
+
+    def test_track_pr_reopened_reverts_previous_close_credit(self):
+        _run(self._test_track_pr_reopened_reverts_previous_close_credit())
+
+    def test_track_pr_reopened_idempotent_when_already_open(self):
+        _run(self._test_track_pr_reopened_idempotent_when_already_open())
+
+    def test_track_pr_closed_reverses_previous_closed_credit(self):
+        _run(self._test_track_pr_closed_reverses_previous_closed_credit())
+
+
+class TestFetchLeaderboardDataReconciliation(unittest.TestCase):
+    """Test that /leaderboard data fetch always attempts live org reconciliation."""
+
+    def _dummy_leaderboard(self):
+        return {
+            "users": {},
+            "sorted": [],
+            "start_timestamp": 1709251200,
+            "end_timestamp": 1711929599,
+        }
+
+    def test_org_request_runs_live_reconciliation(self):
+        async def _inner():
+            env = types.SimpleNamespace(LEADERBOARD_DB=object())
+
+            async def _mock_api(method, path, token, body=None):
+                if path == "/users/OWASP-BLT":
+                    return types.SimpleNamespace(
+                        status=200,
+                        text=AsyncMock(return_value=json.dumps({"type": "Organization"})),
+                    )
+                return types.SimpleNamespace(status=404, text=AsyncMock(return_value="{}"))
+
+            with ExitStack() as stack:
+                stack.enter_context(patch.object(_worker, "github_api", new=_mock_api))
+                reconcile_mock = stack.enter_context(
+                    patch.object(_worker, "_reconcile_org_leaderboard_from_github", new=AsyncMock(return_value=True))
+                )
+                stack.enter_context(
+                    patch.object(_worker, "_calculate_leaderboard_stats_from_d1", new=AsyncMock(return_value=self._dummy_leaderboard()))
+                )
+                stack.enter_context(
+                    patch.object(_worker, "console", new=types.SimpleNamespace(log=lambda *a: None, error=lambda *a: None))
+                )
+                data, note, is_org = await _worker._fetch_leaderboard_data("OWASP-BLT", "BLT-GitHub-App", "tok", env)
+
+            self.assertTrue(is_org)
+            self.assertEqual(note, "")
+            self.assertEqual(data["sorted"], [])
+            reconcile_mock.assert_awaited_once()
+
+        _run(_inner())
+
+    def test_org_request_surfaces_reconciliation_fallback_note(self):
+        async def _inner():
+            env = types.SimpleNamespace(LEADERBOARD_DB=object())
+
+            async def _mock_api(method, path, token, body=None):
+                if path == "/users/OWASP-BLT":
+                    return types.SimpleNamespace(
+                        status=200,
+                        text=AsyncMock(return_value=json.dumps({"type": "Organization"})),
+                    )
+                return types.SimpleNamespace(status=404, text=AsyncMock(return_value="{}"))
+
+            with ExitStack() as stack:
+                stack.enter_context(patch.object(_worker, "github_api", new=_mock_api))
+                stack.enter_context(
+                    patch.object(_worker, "_reconcile_org_leaderboard_from_github", new=AsyncMock(return_value=False))
+                )
+                stack.enter_context(
+                    patch.object(_worker, "_calculate_leaderboard_stats_from_d1", new=AsyncMock(return_value=self._dummy_leaderboard()))
+                )
+                stack.enter_context(
+                    patch.object(_worker, "console", new=types.SimpleNamespace(log=lambda *a: None, error=lambda *a: None))
+                )
+                leaderboard_data, note, is_org = await _worker._fetch_leaderboard_data("OWASP-BLT", "BLT-GitHub-App", "tok", env)
+
+            self.assertTrue(is_org)
+            self.assertIsNotNone(leaderboard_data)
+            self.assertIn("Live reconciliation is temporarily unavailable", note)
+
+        _run(_inner())
+
+    def test_org_request_handles_reconciliation_exception(self):
+        async def _inner():
+            env = types.SimpleNamespace(LEADERBOARD_DB=object())
+
+            async def _mock_api(method, path, token, body=None):
+                if path == "/users/OWASP-BLT":
+                    return types.SimpleNamespace(
+                        status=200,
+                        text=AsyncMock(return_value=json.dumps({"type": "Organization"})),
+                    )
+                return types.SimpleNamespace(status=404, text=AsyncMock(return_value="{}"))
+
+            with ExitStack() as stack:
+                stack.enter_context(patch.object(_worker, "github_api", new=_mock_api))
+                stack.enter_context(
+                    patch.object(_worker, "_reconcile_org_leaderboard_from_github", new=AsyncMock(side_effect=RuntimeError("boom")))
+                )
+                stack.enter_context(
+                    patch.object(_worker, "_calculate_leaderboard_stats_from_d1", new=AsyncMock(return_value=self._dummy_leaderboard()))
+                )
+                stack.enter_context(
+                    patch.object(_worker, "console", new=types.SimpleNamespace(log=lambda *a: None, error=lambda *a: None))
+                )
+                leaderboard_data, note, is_org = await _worker._fetch_leaderboard_data("OWASP-BLT", "BLT-GitHub-App", "tok", env)
+
+            self.assertTrue(is_org)
+            self.assertIsNotNone(leaderboard_data)
+            self.assertIn("Live reconciliation is temporarily unavailable", note)
+
+        _run(_inner())
+
+    def test_reconcile_fails_when_closed_page_cap_reached_in_window(self):
+        """Reconcile should fail (not silently undercount) when closed page cap is hit in-window."""
+
+        async def _inner():
+            env = types.SimpleNamespace(LEADERBOARD_DB=object())
+            max_pages = _worker._RECONCILE_MAX_CLOSED_PAGES_PER_REPO
+            per_page = _worker._RECONCILE_PRS_PER_PAGE
+
+            async def _mock_api(method, path, token, body=None):
+                if path.startswith("/orgs/OWASP-BLT/repos"):
+                    if "page=1" in path:
+                        return types.SimpleNamespace(
+                            status=200,
+                            text=AsyncMock(return_value=json.dumps([{"name": "BLT-Pool"}])),
+                        )
+                    return types.SimpleNamespace(status=200, text=AsyncMock(return_value="[]"))
+
+                if "/pulls?state=open" in path:
+                    return types.SimpleNamespace(status=200, text=AsyncMock(return_value="[]"))
+
+                if "/pulls?state=closed" in path:
+                    # Return full pages with updated_at in-window so pagination would
+                    # need to continue beyond cap, which must now fail safely.
+                    payload = [
+                        {
+                            "number": i + 1,
+                            "user": {"login": "alice", "type": "User"},
+                            "merged_at": None,
+                            "closed_at": None,
+                            "updated_at": "2026-03-15T12:00:00Z",
+                        }
+                        for i in range(per_page)
+                    ]
+                    return types.SimpleNamespace(
+                        status=200,
+                        text=AsyncMock(return_value=json.dumps(payload)),
+                    )
+
+                return types.SimpleNamespace(status=404, text=AsyncMock(return_value="{}"))
+
+            with ExitStack() as stack:
+                stack.enter_context(patch.object(_worker, "github_api", new=_mock_api))
+                stack.enter_context(patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()))
+                stack.enter_context(patch.object(_worker, "_d1_all", new=AsyncMock(return_value=[])))
+                stack.enter_context(patch.object(_worker, "_d1_run", new=AsyncMock()))
+                stack.enter_context(patch.object(_worker, "_month_key", new=MagicMock(return_value="2026-03")))
+                # 2026-03-01T00:00:00Z .. 2026-03-31T23:59:59Z
+                stack.enter_context(patch.object(_worker, "_month_window", new=MagicMock(return_value=(1772323200, 1775001599))))
+                stack.enter_context(
+                    patch.object(_worker, "console", new=types.SimpleNamespace(log=lambda *a: None, error=lambda *a: None))
+                )
+                result = await _worker._reconcile_org_leaderboard_from_github("OWASP-BLT", "tok", env)
+
+            self.assertFalse(result)
+
+        _run(_inner())
+
+    def test_reconcile_scopes_pr_state_delete_to_open_and_current_month(self):
+        """Reconcile should not delete historical closed PR rows outside current month."""
+
+        async def _inner():
+            env = types.SimpleNamespace(LEADERBOARD_DB=object())
+            captured = []
+
+            async def _mock_api(method, path, token, body=None):
+                if path.startswith("/orgs/OWASP-BLT/repos"):
+                    if "page=1" in path:
+                        return types.SimpleNamespace(
+                            status=200,
+                            text=AsyncMock(return_value=json.dumps([{"name": "BLT-Pool"}])),
+                        )
+                    return types.SimpleNamespace(status=200, text=AsyncMock(return_value="[]"))
+                if "/pulls?state=open" in path:
+                    return types.SimpleNamespace(status=200, text=AsyncMock(return_value="[]"))
+                if "/pulls?state=closed" in path:
+                    return types.SimpleNamespace(status=200, text=AsyncMock(return_value="[]"))
+                return types.SimpleNamespace(status=404, text=AsyncMock(return_value="{}"))
+
+            async def _capture_d1_run(db, sql, params=()):
+                captured.append((sql, params))
+                return {"success": True}
+
+            with ExitStack() as stack:
+                stack.enter_context(patch.object(_worker, "github_api", new=_mock_api))
+                stack.enter_context(patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()))
+                stack.enter_context(patch.object(_worker, "_d1_all", new=AsyncMock(return_value=[])))
+                stack.enter_context(patch.object(_worker, "_d1_run", new=_capture_d1_run))
+                stack.enter_context(patch.object(_worker, "_month_key", new=MagicMock(return_value="2026-03")))
+                # 2026-03-01T00:00:00Z .. 2026-03-31T23:59:59Z
+                stack.enter_context(patch.object(_worker, "_month_window", new=MagicMock(return_value=(1772323200, 1775001599))))
+                stack.enter_context(
+                    patch.object(
+                        _worker,
+                        "console",
+                        new=types.SimpleNamespace(log=lambda *a: None, error=lambda *a: None),
+                    )
+                )
+                ok = await _worker._reconcile_org_leaderboard_from_github("OWASP-BLT", "tok", env)
+
+            self.assertTrue(ok)
+            delete_calls = [
+                (sql, params)
+                for sql, params in captured
+                if "DELETE FROM leaderboard_pr_state" in sql
+            ]
+            self.assertTrue(delete_calls)
+            sql, params = delete_calls[0]
+            self.assertIn("WHERE org = ?", sql)
+            self.assertIn("AND (", sql)
+            self.assertIn("state = 'open'", sql)
+            self.assertIn("closed_at BETWEEN", sql)
+            self.assertEqual(params, ("OWASP-BLT", 1772323200, 1775001599))
+
+        _run(_inner())
 
 
 # ---------------------------------------------------------------------------
@@ -1966,6 +2451,183 @@ class TestD1MentorAssignments(unittest.TestCase):
                 return await _worker._fetch_mentor_stats_from_d1(env, "OWASP-BLT")
         result = _run(_inner())
         self.assertEqual(result, {})
+
+    def test_fetch_mentor_stats_uses_github_api_when_token_provided(self):
+        """_fetch_mentor_stats_from_d1 fetches all-time counts from GitHub when token given."""
+        mock_db, stmt = self._make_mock_db()
+        # No cached rows — cache miss for all mentors.
+        stmt.all = AsyncMock(return_value={"results": []})
+        env = types.SimpleNamespace(LEADERBOARD_DB=mock_db)
+        mentors = [{"github_username": "alice"}, {"github_username": "bob"}]
+
+        # GitHub API responses: merged PRs then reviews for each mentor.
+        pr_alice = MagicMock()
+        pr_alice.status = 200
+        pr_alice.text = AsyncMock(return_value=json.dumps({"total_count": 42}))
+        rev_alice = MagicMock()
+        rev_alice.status = 200
+        rev_alice.text = AsyncMock(return_value=json.dumps({"total_count": 7}))
+        pr_bob = MagicMock()
+        pr_bob.status = 200
+        pr_bob.text = AsyncMock(return_value=json.dumps({"total_count": 15}))
+        rev_bob = MagicMock()
+        rev_bob.status = 200
+        rev_bob.text = AsyncMock(return_value=json.dumps({"total_count": 3}))
+
+        api_responses = [pr_alice, rev_alice, pr_bob, rev_bob]
+        call_index = {"i": 0}
+
+        async def _fake_github_api(method, path, token, body=None):
+            resp = api_responses[call_index["i"]]
+            call_index["i"] += 1
+            return resp
+
+        async def _inner():
+            with patch.object(_worker, "_d1_binding", return_value=mock_db):
+                with patch.object(_worker, "_ensure_leaderboard_schema", return_value=None):
+                    with patch.object(_worker, "github_api", side_effect=_fake_github_api):
+                        with patch.object(
+                            _worker, "console",
+                            new=types.SimpleNamespace(log=lambda *a: None, error=lambda *a: None),
+                        ):
+                            return await _worker._fetch_mentor_stats_from_d1(
+                                env, "OWASP-BLT", mentors=mentors, token="fake-token"
+                            )
+
+        result = _run(_inner())
+        self.assertEqual(result["alice"]["merged_prs"], 42)
+        self.assertEqual(result["alice"]["reviews"], 7)
+        self.assertEqual(result["bob"]["merged_prs"], 15)
+        self.assertEqual(result["bob"]["reviews"], 3)
+
+    def test_fetch_mentor_stats_uses_cache_when_fresh(self):
+        """_fetch_mentor_stats_from_d1 returns cached values when they are still fresh."""
+        import time as _time
+        mock_db, stmt = self._make_mock_db()
+        now_ts = int(_time.time())
+        # Cache row is fresh (fetched 1 hour ago).
+        stmt.all = AsyncMock(return_value={
+            "results": [
+                {
+                    "github_username": "alice",
+                    "merged_prs": 99,
+                    "reviews": 11,
+                    "fetched_at": now_ts - 3600,
+                },
+            ]
+        })
+        env = types.SimpleNamespace(LEADERBOARD_DB=mock_db)
+        mentors = [{"github_username": "alice"}]
+
+        api_called = {"called": False}
+
+        async def _fake_github_api(method, path, token, body=None):
+            api_called["called"] = True
+            raise AssertionError("GitHub API should not be called when cache is fresh")
+
+        async def _inner():
+            with patch.object(_worker, "_d1_binding", return_value=mock_db):
+                with patch.object(_worker, "_ensure_leaderboard_schema", return_value=None):
+                    with patch.object(_worker, "github_api", side_effect=_fake_github_api):
+                        with patch.object(
+                            _worker, "console",
+                            new=types.SimpleNamespace(log=lambda *a: None, error=lambda *a: None),
+                        ):
+                            return await _worker._fetch_mentor_stats_from_d1(
+                                env, "OWASP-BLT", mentors=mentors, token="fake-token"
+                            )
+
+        result = _run(_inner())
+        self.assertFalse(api_called["called"])
+        self.assertEqual(result["alice"]["merged_prs"], 99)
+        self.assertEqual(result["alice"]["reviews"], 11)
+
+    def test_fetch_mentor_stats_refetches_when_cache_stale(self):
+        """_fetch_mentor_stats_from_d1 re-fetches from GitHub when the cache is expired."""
+        import time as _time
+        mock_db, stmt = self._make_mock_db()
+        now_ts = int(_time.time())
+        # Cache row is stale (fetched 25 hours ago, TTL is 24 hours).
+        stmt.all = AsyncMock(return_value={
+            "results": [
+                {
+                    "github_username": "carol",
+                    "merged_prs": 1,
+                    "reviews": 0,
+                    "fetched_at": now_ts - 90000,
+                },
+            ]
+        })
+        env = types.SimpleNamespace(LEADERBOARD_DB=mock_db)
+        mentors = [{"github_username": "carol"}]
+
+        pr_resp = MagicMock()
+        pr_resp.status = 200
+        pr_resp.text = AsyncMock(return_value=json.dumps({"total_count": 20}))
+        rev_resp = MagicMock()
+        rev_resp.status = 200
+        rev_resp.text = AsyncMock(return_value=json.dumps({"total_count": 5}))
+
+        api_responses = [pr_resp, rev_resp]
+        call_index = {"i": 0}
+
+        async def _fake_github_api(method, path, token, body=None):
+            resp = api_responses[call_index["i"]]
+            call_index["i"] += 1
+            return resp
+
+        async def _inner():
+            with patch.object(_worker, "_d1_binding", return_value=mock_db):
+                with patch.object(_worker, "_ensure_leaderboard_schema", return_value=None):
+                    with patch.object(_worker, "github_api", side_effect=_fake_github_api):
+                        with patch.object(
+                            _worker, "console",
+                            new=types.SimpleNamespace(log=lambda *a: None, error=lambda *a: None),
+                        ):
+                            return await _worker._fetch_mentor_stats_from_d1(
+                                env, "OWASP-BLT", mentors=mentors, token="fake-token"
+                            )
+
+        result = _run(_inner())
+        # Stale cache was bypassed — fresh GitHub values returned.
+        self.assertEqual(result["carol"]["merged_prs"], 20)
+        self.assertEqual(result["carol"]["reviews"], 5)
+
+    def test_fetch_mentor_stats_falls_back_to_d1_when_no_token(self):
+        """_fetch_mentor_stats_from_d1 falls back to D1 monthly aggregation with no token."""
+        mock_db, stmt = self._make_mock_db()
+        stmt.all = AsyncMock(return_value={
+            "results": [
+                {"user_login": "dave", "total_prs": 8, "total_reviews": 2},
+            ]
+        })
+        env = types.SimpleNamespace(LEADERBOARD_DB=mock_db)
+        mentors = [{"github_username": "dave"}]
+
+        api_called = {"called": False}
+
+        async def _fake_github_api(method, path, token, body=None):
+            api_called["called"] = True
+            raise AssertionError("GitHub API should not be called without a token")
+
+        async def _inner():
+            with patch.object(_worker, "_d1_binding", return_value=mock_db):
+                with patch.object(_worker, "_ensure_leaderboard_schema", return_value=None):
+                    with patch.object(_worker, "github_api", side_effect=_fake_github_api):
+                        with patch.object(
+                            _worker, "console",
+                            new=types.SimpleNamespace(log=lambda *a: None, error=lambda *a: None),
+                        ):
+                            # No token provided — should skip GitHub API path.
+                            return await _worker._fetch_mentor_stats_from_d1(
+                                env, "OWASP-BLT", mentors=mentors, token=""
+                            )
+
+        result = _run(_inner())
+        self.assertFalse(api_called["called"])
+        self.assertIn("dave", result)
+        self.assertEqual(result["dave"]["merged_prs"], 8)
+        self.assertEqual(result["dave"]["reviews"], 2)
 
     def test_get_active_assignments_returns_list(self):
         """_d1_get_active_assignments returns active assignment rows."""
@@ -2686,6 +3348,133 @@ class TestBackfillReviewCredits(unittest.TestCase):
 # ---------------------------------------------------------------------------
 # Admin reset endpoint tests
 # ---------------------------------------------------------------------------
+
+
+class TestWebhookSecurityGuards(unittest.TestCase):
+    """Webhook auth fail-closed and health guard tests."""
+
+    def _make_webhook_request(self, body="{}", headers=None):
+        """Build a minimal webhook request object for worker route tests."""
+        req_headers = _HeadersStub(headers or {})
+        return types.SimpleNamespace(
+            method="POST",
+            url="https://example.com/api/github/webhooks",
+            headers=req_headers,
+            text=AsyncMock(return_value=body),
+        )
+
+    def _make_health_request(self):
+        """Build a minimal GET /health request object."""
+        return types.SimpleNamespace(
+            method="GET",
+            url="https://example.com/health",
+            headers=_HeadersStub({}),
+            text=AsyncMock(return_value=""),
+        )
+
+    def test_webhook_rejects_when_secret_missing(self):
+        """Webhook endpoint should fail closed when WEBHOOK_SECRET is not configured."""
+        async def _inner():
+            """Execute missing-secret webhook rejection assertions."""
+            req = self._make_webhook_request(
+                body=json.dumps({"action": "opened", "repository": {"full_name": "OWASP-BLT/BLT-GitHub-App"}}),
+                headers={
+                    "X-GitHub-Event": "issues",
+                    "X-GitHub-Delivery": "delivery-1",
+                },
+            )
+            env = types.SimpleNamespace(APP_ID="123", PRIVATE_KEY="pem")
+
+            with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None)):
+                resp = await _worker.handle_webhook(req, env)
+
+            self.assertEqual(resp.status, 503)
+            payload = json.loads(resp.body)
+            self.assertEqual(payload.get("code"), "webhook_secret_missing")
+
+        _run(_inner())
+
+    def test_health_reports_degraded_when_webhook_secret_missing(self):
+        """/health should expose degraded status when webhook security config is incomplete."""
+        async def _inner():
+            """Execute health assertions for missing webhook secret."""
+            req = self._make_health_request()
+            env = types.SimpleNamespace(APP_ID="123", PRIVATE_KEY="pem")
+
+            with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None)):
+                resp = await _worker.on_fetch(req, env)
+
+            self.assertEqual(resp.status, 200)
+            payload = json.loads(resp.body)
+            self.assertEqual(payload.get("status"), "degraded")
+            checks = payload.get("checks", {}).get("webhook_security", {}).get("checks", {})
+            self.assertTrue(checks.get("app_id_configured"))
+            self.assertTrue(checks.get("private_key_configured"))
+            self.assertFalse(checks.get("webhook_secret_configured"))
+
+        _run(_inner())
+
+    def test_health_reports_ok_when_webhook_security_ready(self):
+        """/health should report ok with real secret and degraded for whitespace-only secret."""
+        async def _inner():
+            """Execute ready and whitespace-secret health assertions."""
+            req = self._make_health_request()
+            env = types.SimpleNamespace(APP_ID="123", PRIVATE_KEY="pem", WEBHOOK_SECRET="secret")
+
+            with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None)):
+                resp = await _worker.on_fetch(req, env)
+
+            self.assertEqual(resp.status, 200)
+            payload = json.loads(resp.body)
+            self.assertEqual(payload.get("status"), "ok")
+            self.assertTrue(payload.get("checks", {}).get("webhook_security", {}).get("ready"))
+
+            blank_env = types.SimpleNamespace(APP_ID="123", PRIVATE_KEY="pem", WEBHOOK_SECRET="   ")
+            with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None)):
+                blank_resp = await _worker.on_fetch(req, blank_env)
+
+            self.assertEqual(blank_resp.status, 200)
+            blank_payload = json.loads(blank_resp.body)
+            self.assertEqual(blank_payload.get("status"), "degraded")
+            self.assertFalse(blank_payload.get("checks", {}).get("webhook_security", {}).get("ready"))
+
+        _run(_inner())
+
+    def test_health_reports_degraded_when_webhook_secret_blank(self):
+        """Blank WEBHOOK_SECRET should be treated as missing and emit structured rejection logs."""
+        async def _inner():
+            """Execute blank-secret health and webhook structured-log assertions."""
+            req = self._make_health_request()
+            env = types.SimpleNamespace(APP_ID="123", PRIVATE_KEY="pem", WEBHOOK_SECRET="  ")
+            logs = []
+
+            console_stub = types.SimpleNamespace(
+                error=lambda x: logs.append(str(x)),
+                log=lambda x: logs.append(str(x)),
+            )
+            with patch.object(_worker, "console", new=console_stub):
+                resp = await _worker.on_fetch(req, env)
+
+            self.assertEqual(resp.status, 200)
+            payload = json.loads(resp.body)
+            self.assertEqual(payload.get("status"), "degraded")
+            checks = payload.get("checks", {}).get("webhook_security", {}).get("checks", {})
+            self.assertFalse(checks.get("webhook_secret_configured"))
+
+            webhook_req = self._make_webhook_request(
+                body=json.dumps({"action": "opened", "repository": {"full_name": "OWASP-BLT/BLT-GitHub-App"}}),
+                headers={
+                    "X-GitHub-Event": "issues",
+                    "X-GitHub-Delivery": "delivery-blank-secret",
+                },
+            )
+            with patch.object(_worker, "console", new=console_stub):
+                webhook_resp = await _worker.on_fetch(webhook_req, env)
+
+            self.assertEqual(webhook_resp.status, 503)
+            self.assertTrue(any("rejected_missing_webhook_secret" in msg for msg in logs))
+
+        _run(_inner())
 
 
 class TestAdminResetLeaderboard(unittest.TestCase):
@@ -4687,12 +5476,44 @@ class TestIndexHtml(unittest.TestCase):
     def test_active_assignments_section_shown(self):
         """Active assignments section appears when assignments are provided."""
         assignments = [
-            {"org": "OWASP-BLT", "mentor_login": "alice", "issue_repo": "BLT", "issue_number": 42, "assigned_at": 1700000000},
+            {"org": "OWASP-BLT", "mentor_login": "alice", "mentee_login": "bob", "issue_repo": "BLT", "issue_number": 42, "assigned_at": 1700000000},
         ]
         html = _worker._index_html([], active_assignments=assignments)
         self.assertIn("Active Mentor Assignments", html)
         self.assertIn("@alice", html)
+        self.assertIn("@bob", html)
         self.assertIn("OWASP-BLT/BLT#42", html)
+
+    def test_active_assignments_shows_time_ago(self):
+        """Active assignments card shows a 'Assigned X time ago' line."""
+        import time as _time
+        ts = int(_time.time()) - 3600  # 1 hour ago
+        assignments = [
+            {"org": "OWASP-BLT", "mentor_login": "alice", "mentee_login": "", "issue_repo": "BLT", "issue_number": 1, "assigned_at": ts},
+        ]
+        html = _worker._index_html([], active_assignments=assignments)
+        self.assertIn("Assigned", html)
+        self.assertIn("hour", html)
+
+    def test_active_assignments_shows_comment_points(self):
+        """Comment points badge is rendered for mentor and mentee."""
+        assignments = [
+            {"org": "OWASP-BLT", "mentor_login": "alice", "mentee_login": "bob", "issue_repo": "BLT", "issue_number": 1, "assigned_at": 1700000000},
+        ]
+        comment_stats = {"alice": 12, "bob": 5}
+        html = _worker._index_html([], active_assignments=assignments, assignment_comment_stats=comment_stats)
+        self.assertIn("12 pts", html)
+        self.assertIn("5 pts", html)
+
+    def test_active_assignments_no_mentee_hides_mentee_block(self):
+        """When mentee_login is empty no mentee section is rendered."""
+        assignments = [
+            {"org": "OWASP-BLT", "mentor_login": "alice", "mentee_login": "", "issue_repo": "BLT", "issue_number": 1, "assigned_at": 1700000000},
+        ]
+        html = _worker._index_html([], active_assignments=assignments)
+        self.assertIn("@alice", html)
+        # No second avatar/link for a mentee username
+        self.assertNotIn("Mentee", html)
 
     def test_active_assignments_section_hidden_when_empty(self):
         """Active assignments section is hidden when no assignments exist."""
@@ -4702,7 +5523,7 @@ class TestIndexHtml(unittest.TestCase):
     def test_active_assignments_xss_escaped(self):
         """HTML special characters in mentor_login/issue_repo are escaped."""
         assignments = [
-            {"org": "OWASP-BLT", "mentor_login": '<script>xss</script>', "issue_repo": "BLT", "issue_number": 1, "assigned_at": 0},
+            {"org": "OWASP-BLT", "mentor_login": '<script>xss</script>', "mentee_login": "", "issue_repo": "BLT", "issue_number": 1, "assigned_at": 0},
         ]
         html = _worker._index_html([], active_assignments=assignments)
         self.assertNotIn("<script>xss</script>", html)
@@ -4923,24 +5744,26 @@ class TestHandleAddMentor(unittest.TestCase):
         )
         return req
 
-    def _run_add(self, body: dict, db_raises=False):
+    def _run_add(self, body: dict, db_raises=False, gh_user_exists=True, existing_mentor=False):
         req = self._make_post_request(body)
         env = types.SimpleNamespace()
         captured = {}
 
         async def _inner():
             mock_db = MagicMock()
-            with patch.object(_worker, "_d1_binding", return_value=mock_db):
-                with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
-                    if db_raises:
-                        with patch.object(_worker, "_d1_add_mentor", new=AsyncMock(side_effect=RuntimeError("db error"))):
-                            with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda *a: None, log=lambda *a: None)):
-                                resp = await _worker._handle_add_mentor(req, env)
-                    else:
-                        with patch.object(_worker, "_d1_add_mentor", new=AsyncMock()) as mock_add:
-                            with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda *a: None, log=lambda *a: None)):
-                                resp = await _worker._handle_add_mentor(req, env)
-                            captured["add_args"] = mock_add.call_args
+            with patch.object(_worker, "_verify_gh_user_exists", new=AsyncMock(return_value=gh_user_exists)):
+                with patch.object(_worker, "_d1_binding", return_value=mock_db):
+                    with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
+                        with patch.object(_worker, "_d1_all", new=AsyncMock(return_value=[{"github_username": body.get("github_username")}] if existing_mentor else [])):
+                            if db_raises:
+                                with patch.object(_worker, "_d1_add_mentor", new=AsyncMock(side_effect=RuntimeError("db error"))):
+                                    with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda *a: None, log=lambda *a: None)):
+                                        resp = await _worker._handle_add_mentor(req, env)
+                            else:
+                                with patch.object(_worker, "_d1_add_mentor", new=AsyncMock()) as mock_add:
+                                    with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda *a: None, log=lambda *a: None)):
+                                        resp = await _worker._handle_add_mentor(req, env)
+                                    captured["add_args"] = mock_add.call_args
             return resp
 
         return _run(_inner()), captured
@@ -4969,12 +5792,141 @@ class TestHandleAddMentor(unittest.TestCase):
         resp, _ = self._run_add({"name": "Jane", "github_username": "jane"}, db_raises=True)
         self.assertEqual(resp.status, 500)
 
+    def test_duplicate_mentor_returns_409(self):
+        resp, _ = self._run_add({"name": "Jane", "github_username": "jane"}, existing_mentor=True)
+        self.assertEqual(resp.status, 409)
+        import json as _json
+        data = _json.loads(resp.body)
+        self.assertIn("already in the mentor pool", data["error"])
+
     def test_strips_at_prefix_from_username(self):
         resp, captured = self._run_add({"name": "Jane Doe", "github_username": "@janedoe"})
         self.assertEqual(resp.status, 201)
         import json as _json
         data = _json.loads(resp.body)
         self.assertEqual(data["github_username"], "janedoe")
+
+    # --- New strict-validation tests ---
+
+    def test_name_with_html_tag_returns_400(self):
+        """Display names containing HTML angle brackets must be rejected."""
+        resp, _ = self._run_add({"name": "<script>alert(1)</script>", "github_username": "janedoe"})
+        self.assertEqual(resp.status, 400)
+        import json as _json
+        data = _json.loads(resp.body)
+        self.assertIn("invalid characters", data["error"].lower())
+
+    def test_name_with_lt_char_returns_400(self):
+        resp, _ = self._run_add({"name": "Jane<Doe", "github_username": "janedoe"})
+        self.assertEqual(resp.status, 400)
+
+    def test_name_with_gt_char_returns_400(self):
+        resp, _ = self._run_add({"name": "Jane>Doe", "github_username": "janedoe"})
+        self.assertEqual(resp.status, 400)
+
+    def test_name_with_ampersand_returns_400(self):
+        resp, _ = self._run_add({"name": "Jane & Doe", "github_username": "janedoe"})
+        self.assertEqual(resp.status, 400)
+
+    def test_name_with_double_quote_returns_400(self):
+        resp, _ = self._run_add({"name": 'Jane "Doe"', "github_username": "janedoe"})
+        self.assertEqual(resp.status, 400)
+
+    def test_name_too_long_returns_400(self):
+        resp, _ = self._run_add({"name": "A" * 101, "github_username": "janedoe"})
+        self.assertEqual(resp.status, 400)
+
+    def test_name_exactly_100_chars_accepted(self):
+        resp, _ = self._run_add({"name": "A" * 100, "github_username": "janedoe"})
+        self.assertEqual(resp.status, 201)
+
+    def test_github_user_not_found_returns_400(self):
+        """Usernames that do not exist on GitHub must be rejected."""
+        resp, _ = self._run_add(
+            {"name": "Jane Doe", "github_username": "janedoe"},
+            gh_user_exists=False,
+        )
+        self.assertEqual(resp.status, 400)
+        import json as _json
+        data = _json.loads(resp.body)
+        self.assertIn("not found", data["error"].lower())
+
+    def test_timezone_with_html_returns_400(self):
+        resp, _ = self._run_add({"name": "Jane Doe", "github_username": "janedoe", "timezone": "<bad>"})
+        self.assertEqual(resp.status, 400)
+        import json as _json
+        data = _json.loads(resp.body)
+        self.assertIn("invalid characters", data["error"].lower())
+
+    def test_timezone_too_long_returns_400(self):
+        resp, _ = self._run_add({"name": "Jane Doe", "github_username": "janedoe", "timezone": "A" * 61})
+        self.assertEqual(resp.status, 400)
+
+    def test_valid_timezone_accepted(self):
+        resp, _ = self._run_add({"name": "Jane Doe", "github_username": "janedoe", "timezone": "UTC+5:30"})
+        self.assertEqual(resp.status, 201)
+
+    def test_referred_by_not_found_returns_400(self):
+        """A referred_by username that does not exist on GitHub must be rejected."""
+        req = self._make_post_request({"name": "Jane Doe", "github_username": "janedoe", "referred_by": "ghostuser"})
+        env = types.SimpleNamespace()
+
+        async def _inner():
+            mock_db = MagicMock()
+            # github_username exists but referrer does not.
+            async def _fake_verify(username, env=None):
+                return username == "janedoe"
+            with patch.object(_worker, "_verify_gh_user_exists", new=_fake_verify):
+                with patch.object(_worker, "_d1_binding", return_value=mock_db):
+                    with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
+                        with patch.object(_worker, "_d1_add_mentor", new=AsyncMock()):
+                            with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda *a: None, log=lambda *a: None)):
+                                return await _worker._handle_add_mentor(req, env)
+
+        resp = _run(_inner())
+        self.assertEqual(resp.status, 400)
+        import json as _json
+        data = _json.loads(resp.body)
+        self.assertIn("not found", data["error"].lower())
+
+    def test_invalid_referred_by_format_returns_400(self):
+        resp, _ = self._run_add({"name": "Jane Doe", "github_username": "janedoe", "referred_by": "bad user!"})
+        self.assertEqual(resp.status, 400)
+
+
+class TestTimeAgo(unittest.TestCase):
+    """Tests for _time_ago helper function."""
+
+    def _ago(self, seconds):
+        import time as _time
+        return _worker._time_ago(int(_time.time()) - seconds)
+
+    def test_just_now(self):
+        self.assertEqual(self._ago(0), "just now")
+
+    def test_minutes(self):
+        result = self._ago(120)
+        self.assertIn("2 minute", result)
+
+    def test_one_minute(self):
+        result = self._ago(90)
+        self.assertIn("1 minute", result)
+
+    def test_hours(self):
+        result = self._ago(7200)
+        self.assertIn("2 hour", result)
+
+    def test_days(self):
+        result = self._ago(172800)
+        self.assertIn("2 day", result)
+
+    def test_months(self):
+        result = self._ago(86400 * 60)
+        self.assertIn("month", result)
+
+    def test_years(self):
+        result = self._ago(86400 * 400)
+        self.assertIn("year", result)
 
 
 if __name__ == "__main__":
