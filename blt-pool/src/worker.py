@@ -547,8 +547,8 @@ def _d1_result_to_dict(raw_result):
         parsed = json.loads(str(js_json))
         if isinstance(parsed, dict):
             return parsed
-    except Exception:
-        pass
+    except Exception as e:
+        console.log(f"[D1.run] Result conversion failed; falling back ({e})")
 
     converted = _to_py(raw_result)
     if isinstance(converted, dict):
@@ -1515,8 +1515,7 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, de
     try:
         month_key = _month_key()
         start_ts, end_ts = _month_window(month_key)
-        reconcile_started_ts = int(time.time())
-        now_ts = int(time.time())
+        reconcile_ts = int(time.time())
 
         existing_rows = await _d1_all(
             db,
@@ -1597,7 +1596,7 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, de
                             continue
                         seen_open_prs[key] = login
                         open_by_user[login] = open_by_user.get(login, 0) + 1
-                        pr_state_map[key] = (owner, repo_name, pr_number, login, "open", 0, None, now_ts)
+                        pr_state_map[key] = (owner, repo_name, pr_number, login, "open", 0, None, reconcile_ts)
 
                     if len(open_prs) < settings["prs_per_page"]:
                         break
@@ -1656,10 +1655,10 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, de
 
                         if _is_ts_in_month(merged_ts, start_ts, end_ts):
                             merged_by_user[login] = merged_by_user.get(login, 0) + 1
-                            pr_state_map[key] = (owner, repo_name, pr_number, login, "closed", 1, closed_ts or merged_ts, now_ts)
+                            pr_state_map[key] = (owner, repo_name, pr_number, login, "closed", 1, closed_ts or merged_ts, reconcile_ts)
                         elif _is_ts_in_month(closed_ts, start_ts, end_ts):
                             closed_by_user[login] = closed_by_user.get(login, 0) + 1
-                            pr_state_map[key] = (owner, repo_name, pr_number, login, "closed", 0, closed_ts, now_ts)
+                            pr_state_map[key] = (owner, repo_name, pr_number, login, "closed", 0, closed_ts, reconcile_ts)
 
                     if len(closed_prs) < settings["prs_per_page"]:
                         break
@@ -1689,7 +1688,7 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, de
         try:
             all_logins = set(open_by_user.keys()) | set(merged_by_user.keys()) | set(closed_by_user.keys()) | set(preserved_reviews_comments.keys())
             batch_stmts = [
-                ("DELETE FROM leaderboard_open_prs WHERE org = ? AND updated_at <= ?", (owner, reconcile_started_ts)),
+                ("DELETE FROM leaderboard_open_prs WHERE org = ? AND updated_at <= ?", (owner, reconcile_ts)),
                 (
                     """
                     DELETE FROM leaderboard_pr_state
@@ -1700,7 +1699,7 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, de
                             OR (state = 'closed' AND closed_at BETWEEN ? AND ?)
                           )
                     """,
-                    (owner, reconcile_started_ts, start_ts, end_ts),
+                    (owner, reconcile_ts, start_ts, end_ts),
                 ),
                 (
                     """
@@ -1710,7 +1709,7 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, de
                         updated_at = ?
                     WHERE org = ? AND month_key = ? AND updated_at <= ?
                     """,
-                    (now_ts, owner, month_key, reconcile_started_ts),
+                    (reconcile_ts, owner, month_key, reconcile_ts),
                 ),
                 ("DELETE FROM leaderboard_backfill_state WHERE org = ?", (owner,)),
                 ("DELETE FROM leaderboard_backfill_repo_done WHERE org = ?", (owner,)),
@@ -1727,7 +1726,7 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, de
                             updated_at = excluded.updated_at
                         WHERE leaderboard_open_prs.updated_at <= ?
                         """,
-                        (owner, login, count, now_ts, reconcile_started_ts),
+                        (owner, login, count, reconcile_ts, reconcile_ts),
                     )
                 )
 
@@ -1745,7 +1744,7 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, de
                             updated_at = excluded.updated_at
                         WHERE leaderboard_pr_state.updated_at <= ?
                         """,
-                        row + (reconcile_started_ts,),
+                        row + (reconcile_ts,),
                     )
                 )
 
@@ -1771,8 +1770,8 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, de
                             closed_by_user.get(login, 0),
                             int(preserved.get("reviews") or 0),
                             int(preserved.get("comments") or 0),
-                            now_ts,
-                            reconcile_started_ts,
+                            reconcile_ts,
+                            reconcile_ts,
                         ),
                     )
                 )
