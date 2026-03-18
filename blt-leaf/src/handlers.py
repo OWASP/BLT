@@ -23,6 +23,7 @@ from github_api import (
     fetch_pr_data, fetch_pr_timeline_data, fetch_paginated_data,
     verify_github_signature, fetch_multiple_prs_batch, fetch_org_repos
 )
+from auth import resolve_github_token, clear_session_cookie
 from slack_notifier import notify_slack_exception, notify_slack_error
 
 # SQL expression for computed field: issues_count
@@ -32,6 +33,22 @@ ISSUES_COUNT_SQL_EXPR = '(COALESCE(json_array_length(blockers), 0) + COALESCE(js
 
 # Maximum PRs to import/discover per bulk operation to prevent timeouts on large orgs
 _MAX_PRS_PER_BULK_OP = 1000
+
+
+def _is_caller_scoped_token(token_info):
+    """Return True when the request uses a caller-provided token."""
+    token_source = (token_info or {}).get('token_source')
+    return token_source in ('user_oauth', 'header_token')
+
+
+def _private_repo_rejected_response():
+    """Reject writes from caller-scoped tokens for private repositories."""
+    return Response.new(
+        json.dumps({
+            'error': 'Private repository data cannot be stored with caller-scoped credentials in this shared deployment. Use a shared GitHub token or import only public repositories.'
+        }),
+        {'status': 403, 'headers': {'Content-Type': 'application/json'}}
+    )
 
 
 async def handle_add_pr(request, env):
@@ -55,8 +72,9 @@ async def handle_add_pr(request, env):
         
         pr_url = data.get('pr_url')
         add_all = data.get('add_all', False)
-        # Capture token from header - fall back to env secret for GraphQL API
-        user_token = request.headers.get('x-github-token') or getattr(env, 'GITHUB_TOKEN', None)
+        token_info = await resolve_github_token(request, env)
+        user_token = token_info['token']
+        caller_scoped_token = _is_caller_scoped_token(token_info)
         
         # Type validation for pr_url
         if not pr_url or not isinstance(pr_url, str):
@@ -75,6 +93,7 @@ async def handle_add_pr(request, env):
                 add_all = True
         
         if add_all:
+            org_owner = ''
             # Try parsing as a repo URL first (e.g. https://github.com/owner/repo)
             parsed = parse_repo_url(pr_url)
             if parsed:
@@ -156,6 +175,15 @@ async def handle_add_pr(request, env):
                 
                 if not prs_list:
                     continue
+
+                if caller_scoped_token:
+                    private_repo_seen = any(
+                        bool(item.get('base', {}).get('repo', {}).get('private', False))
+                        for item in prs_list
+                    )
+                    if private_repo_seen:
+                        print(f"Security: Rejected caller-scoped bulk import for private repo {owner}/{repo}")
+                        return _private_repo_rejected_response()
                 
                 repos_imported += 1
                 
@@ -222,6 +250,10 @@ async def handle_add_pr(request, env):
                 # If null returned
                 return Response.new(json.dumps({'error': 'Failed to fetch PR data (Rate Limit or Not Found)'}), 
                                   {'status': 403, 'headers': {'Content-Type': 'application/json'}})
+
+            if caller_scoped_token and pr_data.get('repo_private'):
+                print(f"Security: Rejected caller-scoped import for private PR URL: {pr_url}")
+                return _private_repo_rejected_response()
             
             if pr_data['is_merged'] or pr_data['state'] == 'closed':
                 return Response.new(json.dumps({'error': 'Cannot add merged/closed PRs'}), 
@@ -490,7 +522,8 @@ async def handle_refresh_pr(request, env):
             quick_refresh = raw_quick_refresh.strip().lower() in ('true', '1', 'yes', 'on')
         else:
             quick_refresh = bool(raw_quick_refresh)
-        user_token = request.headers.get('x-github-token') or getattr(env, 'GITHUB_TOKEN', None)
+        token_info = await resolve_github_token(request, env)
+        user_token = token_info['token']
         
         if not pr_id:
             return Response.new(json.dumps({'error': 'PR ID is required'}), 
@@ -616,7 +649,8 @@ async def handle_batch_refresh_prs(request, env):
     try:
         data = (await request.json()).to_py()
         pr_ids = data.get('pr_ids', [])
-        user_token = request.headers.get('x-github-token') or getattr(env, 'GITHUB_TOKEN', None)
+        token_info = await resolve_github_token(request, env)
+        user_token = token_info['token']
         
         if not pr_ids or not isinstance(pr_ids, list):
             return Response.new(json.dumps({'error': 'pr_ids array is required'}), 
@@ -707,45 +741,36 @@ async def handle_batch_refresh_prs(request, env):
         await notify_slack_exception(getattr(env, 'SLACK_ERROR_WEBHOOK', ''), e, context={'handler': 'handle_batch_refresh_prs'})
         return Response.new(json.dumps({'error': f"{type(e).__name__}: {str(e)}"}),
                           {'status': 500, 'headers': {'Content-Type': 'application/json'}})
-        
+
+
 async def handle_refresh_org(request, env):
-    """
-    Discover and import new repositories and PRs for an organization.
-
-    POST /api/refresh-org
-    Body: { "org": "org-name" }
-
-    Fetches all repos for the org, scans each for open PRs, and upserts
-    any found PRs into the database. This allows new repos and newly-opened
-    PRs to be picked up without a full re-import.
-    """
+    """Discover and upsert open PRs for an organization's public repositories."""
     try:
         data = (await request.json()).to_py()
         org = (data.get('org') or '').strip()
-        user_token = request.headers.get('x-github-token') or getattr(env, 'GITHUB_TOKEN', None)
+        token_info = await resolve_github_token(request, env)
+        user_token = token_info['token']
 
         if not org:
-            return Response.new(json.dumps({'error': 'org parameter is required'}),
-                              {'status': 400, 'headers': {'Content-Type': 'application/json'}})
+            return Response.new(
+                json.dumps({'error': 'Organization is required'}),
+                {'status': 400, 'headers': {'Content-Type': 'application/json'}}
+            )
 
-        # Fetch all repos for the org/user
-        try:
-            org_repos = await fetch_org_repos(org, token=user_token)
-        except Exception as e:
-            error_msg = str(e)
-            if 'status=403' in error_msg:
-                return Response.new(json.dumps({'error': 'Rate Limit Exceeded'}),
-                                  {'status': 403, 'headers': {'Content-Type': 'application/json'}})
-            return Response.new(json.dumps({'error': f'Failed to fetch organization repos: {error_msg}'}),
-                              {'status': 400, 'headers': {'Content-Type': 'application/json'}})
+        if not re.match(r'^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})$', org):
+            return Response.new(
+                json.dumps({'error': 'Invalid organization name'}),
+                {'status': 400, 'headers': {'Content-Type': 'application/json'}}
+            )
 
-        if not org_repos:
-            return Response.new(json.dumps({'error': f'No public repositories found for {org}'}),
-                              {'status': 404, 'headers': {'Content-Type': 'application/json'}})
+        repos_to_import = await fetch_org_repos(org, token=user_token)
+        if not repos_to_import:
+            return Response.new(
+                json.dumps({'success': True, 'imported_count': 0, 'repos_scanned': 0, 'truncated': False}),
+                {'headers': {'Content-Type': 'application/json'}}
+            )
 
         db = get_db(env)
-
-        # Prepare headers for paginated fetching
         headers_dict = {
             'User-Agent': 'PR-Tracker/1.0',
             'Accept': 'application/vnd.github+json',
@@ -753,31 +778,24 @@ async def handle_refresh_org(request, env):
         }
         if user_token:
             headers_dict['Authorization'] = f'Bearer {user_token}'
-
         headers = Headers.new(to_js(headers_dict, dict_converter=Object.fromEntries))
 
-        MAX_PRS_PER_REFRESH = _MAX_PRS_PER_BULK_OP
-        imported_count = 0
-        repos_attempted = 0
+        MAX_PRS_PER_IMPORT = _MAX_PRS_PER_BULK_OP
+        added_count = 0
         truncated = False
+        repos_scanned = 0
         ts = datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
 
-        for repo_info in org_repos:
+        for repo_info in repos_to_import:
             owner = repo_info['owner']
-            repo_name = repo_info['name']
+            repo = repo_info['name']
 
-            remaining = MAX_PRS_PER_REFRESH - imported_count
+            remaining = MAX_PRS_PER_IMPORT - added_count
             if remaining <= 0:
                 truncated = True
                 break
 
-            repos_attempted += 1
-
-            list_url = (
-                f"https://api.github.com/repos/{owner}/{repo_name}"
-                f"/pulls?state=open&sort=created&direction=desc&per_page=100"
-            )
-
+            list_url = f"https://api.github.com/repos/{owner}/{repo}/pulls?state=open&sort=created&direction=desc&per_page=100"
             try:
                 result = await fetch_paginated_data(list_url, headers, max_items=remaining, return_metadata=True)
                 prs_list = result['items']
@@ -788,9 +806,10 @@ async def handle_refresh_org(request, env):
                 if 'status=403' in error_msg:
                     truncated = True
                     break
-                print(f"Skipping repo {owner}/{repo_name}: {error_msg}")
+                print(f"Skipping repo {owner}/{repo}: {error_msg}")
                 continue
 
+            repos_scanned += 1
             if not prs_list:
                 continue
 
@@ -815,24 +834,26 @@ async def handle_refresh_org(request, env):
                     'is_draft': 1 if item.get('draft') else 0,
                     'reviewers_json': '[]'
                 }
-                await upsert_pr(db, item['html_url'], owner, repo_name, item['number'], pr_data)
-                imported_count += 1
+                await upsert_pr(db, item['html_url'], owner, repo, item['number'], pr_data)
+                added_count += 1
 
-        return Response.new(json.dumps({
-            'success': True,
-            'imported_count': imported_count,
-            'repos_scanned': repos_attempted,
-            'repos_total': len(org_repos),
-            'truncated': truncated
-        }), {'headers': {'Content-Type': 'application/json'}})
-
+        return Response.new(
+            json.dumps({
+                'success': True,
+                'imported_count': added_count,
+                'repos_scanned': repos_scanned,
+                'truncated': truncated
+            }),
+            {'headers': {'Content-Type': 'application/json'}}
+        )
     except Exception as e:
         await notify_slack_exception(getattr(env, 'SLACK_ERROR_WEBHOOK', ''), e, context={'handler': 'handle_refresh_org'})
-        return Response.new(json.dumps({'error': f"{type(e).__name__}: {str(e)}"}),
-                          {'status': 500, 'headers': {'Content-Type': 'application/json'}})
-
-
-async def handle_rate_limit(env):
+        return Response.new(
+            json.dumps({'error': f"{type(e).__name__}: {str(e)}"}),
+            {'status': 500, 'headers': {'Content-Type': 'application/json'}}
+        )
+        
+async def handle_rate_limit(request, env):
     """
     GET /api/rate-limit
     Returns the most recent GitHub API rate limit data captured locally.
@@ -841,29 +862,62 @@ async def handle_rate_limit(env):
     try:
         # Pull the latest state from the cache module
         rate_data = get_rate_limit_cache()
-        token_configured = bool(getattr(env, 'GITHUB_TOKEN', None))
+        token_info = await resolve_github_token(request, env)
+        token_configured = bool(token_info.get('token'))
+        shared_token_configured = bool(getattr(env, 'GITHUB_TOKEN', None))
         
         # If no calls have been made yet, provide a friendly initial state
         if not rate_data or not rate_data.get('limit'):
-            return Response.new(
+            response = Response.new(
                 json.dumps({
                     'limit': 5000, 
                     'remaining': 5000, 
                     'reset': 0, 
                     'used': 0,
                     'status': 'waiting_for_first_request',
-                    'token_configured': token_configured
+                    'token_configured': token_configured,
+                    'shared_token_configured': shared_token_configured,
+                    'token_source': token_info.get('token_source', 'unauthenticated'),
+                    'oauth_authenticated': bool(token_info.get('oauth_authenticated')),
+                    'auth_reason': (
+                        'invalid_session_cookie'
+                        if token_info.get('invalid_oauth_cookie')
+                        else token_info.get('token_source', 'unauthenticated')
+                    )
                 }), 
-                {'headers': {'Content-Type': 'application/json'}}
+                {'headers': {
+                    'Content-Type': 'application/json',
+                    'Cache-Control': 'no-store, private',
+                    'Vary': 'Cookie',
+                }}
             )
-        
-        return Response.new(
-            json.dumps({**rate_data, 'token_configured': token_configured}), 
+            if token_info.get('invalid_oauth_cookie'):
+                response.headers.append('Set-Cookie', clear_session_cookie())
+            return response
+
+        response_payload = {
+            **rate_data,
+            'token_configured': token_configured,
+            'shared_token_configured': shared_token_configured,
+            'token_source': token_info.get('token_source', 'unauthenticated'),
+            'oauth_authenticated': bool(token_info.get('oauth_authenticated')),
+            'auth_reason': (
+                'invalid_session_cookie'
+                if token_info.get('invalid_oauth_cookie')
+                else token_info.get('token_source', 'unauthenticated')
+            ),
+        }
+        response = Response.new(
+            json.dumps(response_payload),
             {'headers': {
                 'Content-Type': 'application/json',
-                'Cache-Control': 'no-cache'
+                'Cache-Control': 'no-store, private',
+                'Vary': 'Cookie',
             }}
         )
+        if token_info.get('invalid_oauth_cookie'):
+            response.headers.append('Set-Cookie', clear_session_cookie())
+        return response
     except Exception as e:
         print(f"Error in handle_rate_limit: {str(e)}")
         await notify_slack_exception(getattr(env, 'SLACK_ERROR_WEBHOOK', ''), e, context={'handler': 'handle_rate_limit'})
@@ -1389,7 +1443,8 @@ async def handle_pr_timeline(request, env, path):
         pr = result.to_py()
         
         # Fetch timeline data from GitHub
-        github_token = request.headers.get('x-github-token') or getattr(env, 'GITHUB_TOKEN', None)
+        token_info = await resolve_github_token(request, env)
+        github_token = token_info['token']
 
         timeline_data = await fetch_pr_timeline_data(
             env,
@@ -1483,7 +1538,8 @@ async def handle_pr_review_analysis(request, env, path):
         pr = result.to_py()
         
         # Fetch timeline data from GitHub
-        github_token = request.headers.get('x-github-token') or getattr(env, 'GITHUB_TOKEN', None)
+        token_info = await resolve_github_token(request, env)
+        github_token = token_info['token']
 
         timeline_data = await fetch_pr_timeline_data(env, 
             pr['repo_owner'],
@@ -1680,7 +1736,8 @@ async def handle_pr_readiness(request, env, path):
         pr = result.to_py()
         
         # Fetch timeline data from GitHub
-        github_token = request.headers.get('x-github-token') or getattr(env, 'GITHUB_TOKEN', None)
+        token_info = await resolve_github_token(request, env)
+        github_token = token_info['token']
         
         # Run readiness analysis
         response_data = await _run_readiness_analysis(env, pr, pr_id, github_token)
