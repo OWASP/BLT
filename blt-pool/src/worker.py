@@ -28,7 +28,6 @@ import hashlib
 import hmac as _hmac
 import html as _html_mod
 import json
-import os
 import re
 import time
 from typing import Optional, Tuple
@@ -270,7 +269,7 @@ async def get_installation_access_token(installation_id: int, jwt_token: str) ->
 
 async def create_comment(
     owner: str, repo: str, number: int, body: str, token: str
-) -> None:
+) -> bool:
     """Post a comment on a GitHub issue or pull request."""
     resp = await github_api(
         "POST",
@@ -287,6 +286,8 @@ async def create_comment(
             f"[GitHub] Failed to create comment on {owner}/{repo}#{number}: "
             f"status={resp.status} body={err_text[:300]}"
         )
+        return False
+    return True
 
 
 async def create_reaction(
@@ -432,8 +433,15 @@ MAX_OPEN_PRS_PER_AUTHOR = 50
 LEADERBOARD_COMMENT_MARKER = LEADERBOARD_MARKER
 
 
-def _env_int(name: str, default: int) -> int:
-    raw = os.getenv(name, str(default))
+def _env_int(env, name: str, default: int) -> int:
+    raw = None
+    if env is not None:
+        if isinstance(env, dict):
+            raw = env.get(name)
+        else:
+            raw = getattr(env, name, None)
+    if raw is None:
+        return default
     try:
         value = int(raw)
         if value <= 0:
@@ -443,13 +451,18 @@ def _env_int(name: str, default: int) -> int:
         return default
 
 
-_RECONCILE_REPOS_PER_PAGE = _env_int("RECONCILE_REPOS_PER_PAGE", 100)
-_RECONCILE_PRS_PER_PAGE = _env_int("RECONCILE_PRS_PER_PAGE", 100)
-_RECONCILE_MAX_CLOSED_PAGES_PER_REPO = _env_int("RECONCILE_MAX_CLOSED_PAGES_PER_REPO", 20)
-_RECONCILE_MAX_OPEN_PAGES_PER_REPO = _env_int("RECONCILE_MAX_OPEN_PAGES_PER_REPO", 20)
-_RECONCILE_LOCK_LEASE_SECONDS = _env_int("RECONCILE_LOCK_LEASE_SECONDS", 120)
-_RECONCILE_TIMEOUT_SECONDS = _env_int("RECONCILE_TIMEOUT_SECONDS", 20)
 _RECONCILE_CONFIG_LOGGED = False
+
+
+def _reconcile_settings(env) -> dict:
+    return {
+        "repos_per_page": _env_int(env, "RECONCILE_REPOS_PER_PAGE", 100),
+        "prs_per_page": _env_int(env, "RECONCILE_PRS_PER_PAGE", 100),
+        "max_closed_pages": _env_int(env, "RECONCILE_MAX_CLOSED_PAGES_PER_REPO", 20),
+        "max_open_pages": _env_int(env, "RECONCILE_MAX_OPEN_PAGES_PER_REPO", 20),
+        "lock_lease_seconds": _env_int(env, "RECONCILE_LOCK_LEASE_SECONDS", 120),
+        "timeout_seconds": _env_int(env, "RECONCILE_TIMEOUT_SECONDS", 20),
+    }
 
 
 def _month_key(ts: Optional[int] = None) -> str:
@@ -524,6 +537,26 @@ def _to_py(value):
         return to_py(value)
     except Exception:
         return value
+
+
+def _d1_result_to_dict(raw_result):
+    """Best-effort conversion for D1 run() result to a Python dict."""
+    try:
+        from js import JSON as JS_JSON  # noqa: PLC0415 - runtime import
+        js_json = JS_JSON.stringify(raw_result)
+        parsed = json.loads(str(js_json))
+        if isinstance(parsed, dict):
+            return parsed
+    except Exception:
+        pass
+
+    converted = _to_py(raw_result)
+    if isinstance(converted, dict):
+        return converted
+    try:
+        return dict(converted)
+    except Exception:
+        return None
 
 
 async def _d1_all(db, sql: str, params: tuple = ()) -> list:
@@ -1038,18 +1071,13 @@ async def _track_pr_opened_in_d1(payload: dict, env) -> None:
         "SELECT author_login, state, merged, closed_at FROM leaderboard_pr_state WHERE org = ? AND repo = ? AND pr_number = ?",
         (org, repo, pr_number),
     )
+    if existing and existing.get("state") == "closed":
+        # Ignore stale opened deliveries for PRs already known as closed.
+        # True reopens are handled by _track_pr_reopened_in_d1.
+        return
+
     if not existing or existing.get("state") != "open":
         await _d1_inc_open_pr(db, org, author_login, 1)
-
-    # If a previously closed PR is observed as opened again, reverse the old
-    # monthly close/merge credit for the original author to keep totals stable.
-    if existing and existing.get("state") == "closed":
-        existing_author = existing.get("author_login") or author_login
-        prev_merged = int(existing.get("merged") or 0)
-        prev_closed_at = int(existing.get("closed_at") or 0)
-        prev_mk = _month_key(prev_closed_at) if prev_closed_at else _month_key()
-        prev_field = "merged_prs" if prev_merged else "closed_prs"
-        await _d1_inc_monthly(db, org, prev_mk, existing_author, prev_field, -1)
 
     now = int(time.time())
     await _d1_run(
@@ -1366,19 +1394,19 @@ def _reconcile_lock_holder(org: str) -> str:
     return f"{org}:{int(time.time() * 1000)}:{id(org)}"
 
 
-def _log_reconcile_config_once() -> None:
+def _log_reconcile_config_once(settings: dict) -> None:
     global _RECONCILE_CONFIG_LOGGED
     if _RECONCILE_CONFIG_LOGGED:
         return
     _RECONCILE_CONFIG_LOGGED = True
     console.log(
         "[LeaderboardReconcile] Config "
-        f"repos_per_page={_RECONCILE_REPOS_PER_PAGE} "
-        f"prs_per_page={_RECONCILE_PRS_PER_PAGE} "
-        f"max_closed_pages={_RECONCILE_MAX_CLOSED_PAGES_PER_REPO} "
-        f"max_open_pages={_RECONCILE_MAX_OPEN_PAGES_PER_REPO} "
-        f"lock_lease_s={_RECONCILE_LOCK_LEASE_SECONDS} "
-        f"timeout_s={_RECONCILE_TIMEOUT_SECONDS}"
+        f"repos_per_page={settings['repos_per_page']} "
+        f"prs_per_page={settings['prs_per_page']} "
+        f"max_closed_pages={settings['max_closed_pages']} "
+        f"max_open_pages={settings['max_open_pages']} "
+        f"lock_lease_s={settings['lock_lease_seconds']} "
+        f"timeout_s={settings['timeout_seconds']}"
     )
 
 
@@ -1400,15 +1428,10 @@ async def _acquire_reconcile_lock(db, org: str, holder: str, lease_seconds: int)
             """,
             (org, holder, lock_until, now_ts, now_ts, holder),
         )
-        result_py = _to_py(result)
-        meta = (result_py or {}).get("meta") if isinstance(result_py, dict) else None
-        if isinstance(meta, dict):
-            changes = int(meta.get("changes") or 0)
-            if changes <= 0:
-                return False
-        elif result_py is None:
-            return False
-        return True
+        parsed = _d1_result_to_dict(result)
+        meta = parsed.get("meta") if isinstance(parsed, dict) else None
+        changes = int(meta.get("changes") or 0) if isinstance(meta, dict) else 0
+        return changes > 0
     except Exception as exc:
         console.error(f"[LeaderboardReconcile] Failed to acquire lock for {org}: {exc}")
         return False
@@ -1438,11 +1461,10 @@ async def _refresh_reconcile_lock(db, org: str, holder: str, lease_seconds: int)
             """,
             (lock_until, now_ts, org, holder, now_ts),
         )
-        result_py = _to_py(result)
-        meta = (result_py or {}).get("meta") if isinstance(result_py, dict) else None
-        if isinstance(meta, dict):
-            return int(meta.get("changes") or 0) > 0
-        return result_py is not None
+        parsed = _d1_result_to_dict(result)
+        meta = parsed.get("meta") if isinstance(parsed, dict) else None
+        changes = int(meta.get("changes") or 0) if isinstance(meta, dict) else 0
+        return changes > 0
     except Exception as exc:
         console.error(f"[LeaderboardReconcile] Failed to refresh lock for {org}: {exc}")
         return False
@@ -1460,16 +1482,17 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, de
     if not db:
         return False
 
-    _log_reconcile_config_once()
+    settings = _reconcile_settings(env)
+    _log_reconcile_config_once(settings)
     holder = _reconcile_lock_holder(owner)
 
     await _ensure_leaderboard_schema(db)
-    acquired = await _acquire_reconcile_lock(db, owner, holder, _RECONCILE_LOCK_LEASE_SECONDS)
+    acquired = await _acquire_reconcile_lock(db, owner, holder, settings["lock_lease_seconds"])
     if not acquired:
         console.log(f"[LeaderboardReconcile] Lock busy for org={owner}; skipping reconcile")
         return False
 
-    lease_refresh_interval = max(1, _RECONCILE_LOCK_LEASE_SECONDS // 3)
+    lease_refresh_interval = max(1, settings["lock_lease_seconds"] // 3)
     next_lease_refresh_ts = time.time() + lease_refresh_interval
 
     def _deadline_exceeded() -> bool:
@@ -1482,7 +1505,7 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, de
             return False
         now = time.time()
         if now >= next_lease_refresh_ts:
-            ok = await _refresh_reconcile_lock(db, owner, holder, _RECONCILE_LOCK_LEASE_SECONDS)
+            ok = await _refresh_reconcile_lock(db, owner, holder, settings["lock_lease_seconds"])
             if not ok:
                 console.error(f"[LeaderboardReconcile] Lock renewal failed for org={owner}; aborting reconcile")
                 return False
@@ -1492,6 +1515,7 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, de
     try:
         month_key = _month_key()
         start_ts, end_ts = _month_window(month_key)
+        reconcile_started_ts = int(time.time())
         now_ts = int(time.time())
 
         existing_rows = await _d1_all(
@@ -1524,7 +1548,7 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, de
                 return False
             repos_resp = await github_api(
                 "GET",
-                f"/orgs/{owner}/repos?sort=full_name&direction=asc&per_page={_RECONCILE_REPOS_PER_PAGE}&page={repo_page}",
+                f"/orgs/{owner}/repos?sort=full_name&direction=asc&per_page={settings['repos_per_page']}&page={repo_page}",
                 token,
             )
             if repos_resp.status != 200:
@@ -1548,7 +1572,7 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, de
                         return False
                     open_resp = await github_api(
                         "GET",
-                        f"/repos/{owner}/{repo_name}/pulls?state=open&per_page={_RECONCILE_PRS_PER_PAGE}&page={open_page}",
+                        f"/repos/{owner}/{repo_name}/pulls?state=open&per_page={settings['prs_per_page']}&page={open_page}",
                         token,
                     )
                     if open_resp.status != 200:
@@ -1575,9 +1599,9 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, de
                         open_by_user[login] = open_by_user.get(login, 0) + 1
                         pr_state_map[key] = (owner, repo_name, pr_number, login, "open", 0, None, now_ts)
 
-                    if len(open_prs) < _RECONCILE_PRS_PER_PAGE:
+                    if len(open_prs) < settings["prs_per_page"]:
                         break
-                    if open_page >= _RECONCILE_MAX_OPEN_PAGES_PER_REPO:
+                    if open_page >= settings["max_open_pages"]:
                         console.error(
                             f"[LeaderboardReconcile] Open PR pagination cap reached for {owner}/{repo_name} at page={open_page}; "
                             "continuing with capped open snapshot"
@@ -1587,12 +1611,12 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, de
 
                 # Snapshot current-month closed/merged PR outcomes in this repo.
                 closed_page = 1
-                while closed_page <= _RECONCILE_MAX_CLOSED_PAGES_PER_REPO:
+                while closed_page <= settings["max_closed_pages"]:
                     if not await _continue_or_abort():
                         return False
                     closed_resp = await github_api(
                         "GET",
-                        f"/repos/{owner}/{repo_name}/pulls?state=closed&sort=updated&direction=desc&per_page={_RECONCILE_PRS_PER_PAGE}&page={closed_page}",
+                        f"/repos/{owner}/{repo_name}/pulls?state=closed&sort=updated&direction=desc&per_page={settings['prs_per_page']}&page={closed_page}",
                         token,
                     )
                     if closed_resp.status != 200:
@@ -1637,7 +1661,7 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, de
                             closed_by_user[login] = closed_by_user.get(login, 0) + 1
                             pr_state_map[key] = (owner, repo_name, pr_number, login, "closed", 0, closed_ts, now_ts)
 
-                    if len(closed_prs) < _RECONCILE_PRS_PER_PAGE:
+                    if len(closed_prs) < settings["prs_per_page"]:
                         break
                     # Results are sorted by updated desc. If the least recently updated
                     # PR on this page is older than the month window start, deeper pages
@@ -1647,7 +1671,7 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, de
                     if updated_ts and updated_ts < start_ts:
                         break
                     if (
-                        closed_page >= _RECONCILE_MAX_CLOSED_PAGES_PER_REPO
+                        closed_page >= settings["max_closed_pages"]
                         and updated_ts
                         and updated_ts >= start_ts
                     ):
@@ -1658,24 +1682,25 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, de
                         return False
                     closed_page += 1
 
-            if len(repos) < _RECONCILE_REPOS_PER_PAGE:
+            if len(repos) < settings["repos_per_page"]:
                 break
             repo_page += 1
 
         try:
             all_logins = set(open_by_user.keys()) | set(merged_by_user.keys()) | set(closed_by_user.keys()) | set(preserved_reviews_comments.keys())
             batch_stmts = [
-                ("DELETE FROM leaderboard_open_prs WHERE org = ?", (owner,)),
+                ("DELETE FROM leaderboard_open_prs WHERE org = ? AND updated_at <= ?", (owner, reconcile_started_ts)),
                 (
                     """
                     DELETE FROM leaderboard_pr_state
                     WHERE org = ?
+                      AND updated_at <= ?
                       AND (
                             state = 'open'
                             OR (state = 'closed' AND closed_at BETWEEN ? AND ?)
                           )
                     """,
-                    (owner, start_ts, end_ts),
+                    (owner, reconcile_started_ts, start_ts, end_ts),
                 ),
                 (
                     """
@@ -1683,9 +1708,9 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, de
                     SET merged_prs = 0,
                         closed_prs = 0,
                         updated_at = ?
-                    WHERE org = ? AND month_key = ?
+                    WHERE org = ? AND month_key = ? AND updated_at <= ?
                     """,
-                    (now_ts, owner, month_key),
+                    (now_ts, owner, month_key, reconcile_started_ts),
                 ),
                 ("DELETE FROM leaderboard_backfill_state WHERE org = ?", (owner,)),
                 ("DELETE FROM leaderboard_backfill_repo_done WHERE org = ?", (owner,)),
@@ -1700,8 +1725,9 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, de
                         ON CONFLICT(org, user_login) DO UPDATE SET
                             open_prs = excluded.open_prs,
                             updated_at = excluded.updated_at
+                        WHERE leaderboard_open_prs.updated_at <= ?
                         """,
-                        (owner, login, count, now_ts),
+                        (owner, login, count, now_ts, reconcile_started_ts),
                     )
                 )
 
@@ -1717,8 +1743,9 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, de
                             merged = excluded.merged,
                             closed_at = excluded.closed_at,
                             updated_at = excluded.updated_at
+                        WHERE leaderboard_pr_state.updated_at <= ?
                         """,
-                        row,
+                        row + (reconcile_started_ts,),
                     )
                 )
 
@@ -1734,6 +1761,7 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, de
                             merged_prs = excluded.merged_prs,
                             closed_prs = excluded.closed_prs,
                             updated_at = excluded.updated_at
+                        WHERE leaderboard_monthly_stats.updated_at <= ?
                         """,
                         (
                             owner,
@@ -1744,6 +1772,7 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, de
                             int(preserved.get("reviews") or 0),
                             int(preserved.get("comments") or 0),
                             now_ts,
+                            reconcile_started_ts,
                         ),
                     )
                 )
@@ -2664,6 +2693,7 @@ async def _fetch_leaderboard_data(owner: str, repo: str, token: str, env=None) -
     owner_data = None
     is_org = False
     reconciled = True
+    settings = _reconcile_settings(env)
 
     owner_resp = await github_api("GET", f"/users/{owner}", token)
     if owner_resp.status == 200:
@@ -2681,7 +2711,7 @@ async def _fetch_leaderboard_data(owner: str, repo: str, token: str, env=None) -
                 owner,
                 token,
                 env,
-                deadline_ts=time.time() + _RECONCILE_TIMEOUT_SECONDS,
+                deadline_ts=time.time() + settings["timeout_seconds"],
             )
         except (KeyboardInterrupt, SystemExit):
             raise
@@ -2773,6 +2803,13 @@ async def _post_or_update_leaderboard(owner: str, repo: str, issue_number: int, 
             break
         comment_page += 1
 
+    created = await create_comment(owner, repo, issue_number, comment_body, token)
+    if not created:
+        console.error(
+            f"[Leaderboard] New leaderboard comment failed for {owner}/{repo}#{issue_number}; skipping cleanup deletes"
+        )
+        return
+
     if comments:
         for c in comments:
             body = c.get("body") or ""
@@ -2792,7 +2829,6 @@ async def _post_or_update_leaderboard(owner: str, repo: str, issue_number: int, 
     elif not list_failed:
         console.log(f"[Leaderboard] No existing comments found for cleanup on {owner}/{repo}#{issue_number}")
 
-    await create_comment(owner, repo, issue_number, comment_body, token)
     console.log(f"[Leaderboard] Posted leaderboard comment for {owner}/{repo}#{issue_number} (requested by @{author_login})")
 
 
