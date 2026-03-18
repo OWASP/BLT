@@ -323,6 +323,7 @@
                     </a>
                     
                     <div class="flex items-center gap-1.5">
+                        <div id="authControlsMobile" class="flex items-center gap-1.5"></div>
                         <button id="autoRefreshToggle"
                             class="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700"
                             title="Toggle auto-refresh">
@@ -420,6 +421,7 @@
                 </div>
 
                 <div class="flex shrink-0 items-center gap-3">
+                    <div id="authControlsDesktop" class="flex items-center gap-2"></div>
                     <button id="autoRefreshToggle"
                         class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-200 dark:text-slate-400 dark:hover:bg-slate-700 dark:focus:ring-slate-600 transition-colors"
                         title="Toggle auto-refresh">
@@ -621,6 +623,12 @@
         let allPrs = [];
         let repos = [];
         let allAuthors = []; // All unique authors from the database (including bots)
+        let authState = {
+            authenticated: false,
+            oauth_enabled: false,
+            token_source: 'unauthenticated',
+            user: null
+        };
         let repoSortByPrs = localStorage.getItem('repoSortByPrs') !== 'false';
         // Support unlimited sort columns
         // Each entry in sortColumns array has: {column: 'column_name', direction: 'asc'|'desc'}
@@ -845,7 +853,10 @@
                 const MINUTES_PER_HOUR = 60;
 
                 const url = bypassCache ? `/api/rate-limit?_=${Date.now()}` : '/api/rate-limit';
-                const response = await fetch(url);
+                const response = await fetch(url, {
+                    cache: 'no-store',
+                    credentials: 'same-origin'
+                });
                 const textEl = document.getElementById('rateLimitText');
                 const fillEl = document.getElementById('rateLimitFill');
                 const usedEl = document.getElementById('rateLimitUsed');
@@ -856,16 +867,27 @@
 
                 const data = await response.json();
 
-                // Show token indicator regardless of rate limit status
+                // Show token source indicator regardless of rate limit status
                 if (tokenEl) {
-                    if (data.token_configured) {
+                    const tokenSource = data.token_source || (data.token_configured ? 'shared_token' : 'unauthenticated');
+                    if (tokenSource === 'user_oauth') {
+                        tokenEl.textContent = '👤';
+                        tokenEl.title = 'Using your GitHub OAuth token';
+                        tokenEl.setAttribute('aria-label', 'Using your GitHub OAuth token');
+                        tokenEl.classList.remove('hidden');
+                    } else if (tokenSource === 'shared_token') {
                         tokenEl.textContent = '🔑';
-                        tokenEl.title = 'GitHub token configured (higher rate limits)';
-                        tokenEl.setAttribute('aria-label', 'GitHub token configured');
+                        tokenEl.title = 'Using shared GitHub token fallback';
+                        tokenEl.setAttribute('aria-label', 'Using shared GitHub token fallback');
+                        tokenEl.classList.remove('hidden');
+                    } else if (tokenSource === 'header_token') {
+                        tokenEl.textContent = '🧪';
+                        tokenEl.title = 'Using request header token';
+                        tokenEl.setAttribute('aria-label', 'Using request header token');
                         tokenEl.classList.remove('hidden');
                     } else {
                         tokenEl.textContent = '⚠';
-                        tokenEl.title = 'No GitHub token configured (lower rate limits)';
+                        tokenEl.title = 'No GitHub token configured (low rate limits)';
                         tokenEl.setAttribute('aria-label', 'No GitHub token configured');
                         tokenEl.classList.remove('hidden');
                     }
@@ -943,6 +965,123 @@
                 if (resetEl) resetEl.textContent = '';
                 if (tokenEl) tokenEl.classList.add('hidden');
             }
+        }
+
+        function getSafeAuthAvatarUrl(user) {
+            const avatar = user?.avatar_url || '';
+            if (avatar.startsWith('https://avatars.githubusercontent.com/') || avatar.startsWith('https://github.com/')) {
+                return escapeHtml(avatar);
+            }
+            return 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2220%22 height=%2220%22%3E%3Crect width=%2220%22 height=%2220%22 fill=%22%23E2E8F0%22/%3E%3C/svg%3E';
+        }
+
+        function renderAuthControls() {
+            const mobileEl = document.getElementById('authControlsMobile');
+            const desktopEl = document.getElementById('authControlsDesktop');
+            if (!mobileEl || !desktopEl) return;
+
+            if (authState.authenticated && authState.user?.login) {
+                const safeLogin = escapeHtml(authState.user.login);
+                const safeAvatar = getSafeAuthAvatarUrl(authState.user);
+
+                mobileEl.innerHTML = `
+                    <img src="${safeAvatar}" alt="${safeLogin}" title="${safeLogin}" class="h-6 w-6 rounded-full border border-slate-300 dark:border-slate-600">
+                    <button type="button" data-auth-action="logout"
+                        class="rounded-lg bg-slate-600 px-2 py-1.5 text-[10px] font-semibold text-white hover:bg-slate-700">
+                        Sign Out
+                    </button>
+                `;
+
+                desktopEl.innerHTML = `
+                    <div class="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-2 py-1.5 dark:border-slate-700 dark:bg-slate-800">
+                        <img src="${safeAvatar}" alt="${safeLogin}" title="${safeLogin}" class="h-6 w-6 rounded-full border border-slate-300 dark:border-slate-600">
+                        <span class="text-xs font-medium text-slate-700 dark:text-slate-300">${safeLogin}</span>
+                    </div>
+                    <button type="button" data-auth-action="logout"
+                        class="rounded-lg bg-slate-600 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-700">
+                        Sign Out
+                    </button>
+                `;
+            } else if (authState.oauth_enabled) {
+                mobileEl.innerHTML = `
+                    <a href="/api/auth/login"
+                        class="rounded-lg bg-slate-600 px-2 py-1.5 text-[10px] font-semibold text-white hover:bg-slate-700">
+                        Sign In
+                    </a>
+                `;
+
+                desktopEl.innerHTML = `
+                    <a href="/api/auth/login"
+                        class="rounded-lg bg-slate-600 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-700">
+                        Sign In
+                    </a>
+                `;
+            } else {
+                mobileEl.innerHTML = `
+                    <span class="rounded-lg border border-slate-300 px-2 py-1 text-[10px] text-slate-500 dark:border-slate-600 dark:text-slate-400" title="OAuth not configured">
+                        OAuth Off
+                    </span>
+                `;
+
+                desktopEl.innerHTML = `
+                    <span class="rounded-lg border border-slate-300 px-2 py-1 text-xs text-slate-500 dark:border-slate-600 dark:text-slate-400" title="OAuth not configured">
+                        OAuth Off
+                    </span>
+                `;
+            }
+
+            document.querySelectorAll('[data-auth-action=\"logout\"]').forEach((button) => {
+                button.addEventListener('click', async () => {
+                    try {
+                        await fetch('/api/auth/logout', {
+                            method: 'POST',
+                            cache: 'no-store',
+                            credentials: 'same-origin'
+                        });
+                    } catch (error) {
+                        console.error('Error logging out:', error);
+                    }
+                    await loadAuthState();
+                    await loadRateLimit(true);
+                });
+            });
+        }
+
+        async function loadAuthState() {
+            try {
+                const response = await fetch('/api/auth/user', {
+                    cache: 'no-store',
+                    credentials: 'same-origin'
+                });
+                if (!response.ok) {
+                    authState = {
+                        authenticated: false,
+                        oauth_enabled: false,
+                        token_source: 'unauthenticated',
+                        user: null
+                    };
+                    renderAuthControls();
+                    return;
+                }
+
+                const data = await response.json();
+                authState = {
+                    authenticated: Boolean(data.authenticated),
+                    oauth_enabled: Boolean(data.oauth_enabled),
+                    token_source: data.token_source || 'unauthenticated',
+                    user: data.user || null
+                };
+            } catch (error) {
+                console.error('Error loading auth user state:', error);
+                authState = {
+                    authenticated: false,
+                    oauth_enabled: false,
+                    token_source: 'unauthenticated',
+                    user: null
+                };
+            }
+
+            renderAuthControls();
         }
 
         async function loadLatestRelease() {
@@ -3551,6 +3690,7 @@
         }
 
         initTheme();
+        loadAuthState();
         loadRateLimit();
         loadLatestRelease();
 

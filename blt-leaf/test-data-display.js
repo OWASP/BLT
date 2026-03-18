@@ -7,6 +7,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { spawn } = require('child_process');
 
 // ANSI color codes for output
 const colors = {
@@ -36,6 +37,71 @@ function testResult(testName, passed, message = '') {
   }
 }
 
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function getSetCookieHeader(response) {
+  if (response?.headers?.getSetCookie) {
+    return response.headers.getSetCookie().join('\n');
+  }
+  return response?.headers?.get('set-cookie') || '';
+}
+
+async function waitForEndpoint(url, timeoutMs = 25000) {
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    try {
+      const resp = await fetch(url, { redirect: 'manual' });
+      if (resp && resp.status) {
+        return true;
+      }
+    } catch (_) {
+      // keep waiting for wrangler dev to become ready
+    }
+    await sleep(500);
+  }
+  return false;
+}
+
+async function startRuntimeServer() {
+  const port = 8788;
+  const baseUrl = `http://127.0.0.1:${port}`;
+  const cmd = process.platform === 'win32' ? 'npx.cmd' : 'npx';
+  const args = ['wrangler', 'dev', '--local', '--ip', '127.0.0.1', '--port', String(port), '--log-level', 'error'];
+
+  const child = spawn(cmd, args, {
+    cwd: __dirname,
+    env: { ...process.env, BROWSER: 'none' },
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+
+  let output = '';
+  child.stdout.on('data', (chunk) => {
+    output += chunk.toString();
+  });
+  child.stderr.on('data', (chunk) => {
+    output += chunk.toString();
+  });
+
+  const ready = await waitForEndpoint(`${baseUrl}/api/auth/user`);
+  if (!ready) {
+    child.kill('SIGTERM');
+    throw new Error(`wrangler dev did not become ready within timeout. Output:\n${output}`);
+  }
+
+  return { child, baseUrl };
+}
+
+async function stopRuntimeServer(runtime) {
+  if (!runtime || !runtime.child || runtime.child.killed) return;
+  runtime.child.kill('SIGTERM');
+  await sleep(800);
+  if (!runtime.child.killed) {
+    runtime.child.kill('SIGKILL');
+  }
+}
+
 // Test 1: Verify HTML file exists and contains required elements
 function testHTMLStructure() {
   log('\n=== Testing HTML Structure ===\n', colors.blue);
@@ -55,6 +121,9 @@ function testHTMLStructure() {
       { pattern: /fetch\(['"`]\/api\/prs/, name: 'API fetch for PRs' },
       { pattern: /fetch\(['"`]\/api\/repos/, name: 'API fetch for repos' },
       { pattern: /fetch\(['"`]\/api\/authors/, name: 'API fetch for authors' },
+      { pattern: /fetch\(['"`]\/api\/auth\/user/, name: 'API fetch for auth user state' },
+      { pattern: /id=["']authControlsDesktop["']/, name: 'Desktop auth controls container' },
+      { pattern: /id=["']authControlsMobile["']/, name: 'Mobile auth controls container' },
       { pattern: /<table/, name: 'Table element for data display' },
     ];
 
@@ -114,6 +183,7 @@ function testPythonHandlers() {
       { pattern: /def\s+handle_list_authors/, name: 'handle_list_authors function' },
       { pattern: /def\s+handle_add_pr/, name: 'handle_add_pr function' },
       { pattern: /def\s+handle_refresh_pr/, name: 'handle_refresh_pr function' },
+      { pattern: /resolve_github_token/, name: 'centralized token resolver usage' },
     ];
 
     requiredHandlers.forEach(({ pattern, name }) => {
@@ -312,6 +382,17 @@ function testAPIRouting() {
       testResult(name, found, found ? 'Route configured' : 'Route missing');
     });
 
+    const authRoutes = [
+      { pattern: /\/api\/auth\/login/, name: '/api/auth/login endpoint' },
+      { pattern: /\/api\/auth\/callback/, name: '/api/auth/callback endpoint' },
+      { pattern: /\/api\/auth\/user/, name: '/api/auth/user endpoint' },
+      { pattern: /\/api\/auth\/logout/, name: '/api/auth/logout endpoint' },
+    ];
+    authRoutes.forEach(({ pattern, name }) => {
+      const found = pattern.test(indexContent);
+      testResult(name, found, found ? 'Auth route configured' : 'Auth route missing');
+    });
+
     // Test for CORS headers (important for data display)
     testResult(
       'CORS headers configuration',
@@ -331,8 +412,293 @@ function testAPIRouting() {
   }
 }
 
+// Test 7: Verify OAuth authentication implementation and security controls
+function testAuthenticationImplementation() {
+  log('\n=== Testing Authentication Implementation ===\n', colors.blue);
+
+  const authPath = path.join(__dirname, 'src', 'auth.py');
+  const authHandlersPath = path.join(__dirname, 'src', 'auth_handlers.py');
+  const handlersPath = path.join(__dirname, 'src', 'handlers.py');
+  const swPath = path.join(__dirname, 'public', 'sw.js');
+  const htmlPath = path.join(__dirname, 'public', 'index.html');
+
+  try {
+    const authContent = fs.readFileSync(authPath, 'utf8');
+    const authHandlersContent = fs.readFileSync(authHandlersPath, 'utf8');
+    const handlersContent = fs.readFileSync(handlersPath, 'utf8');
+    const swContent = fs.readFileSync(swPath, 'utf8');
+    const htmlContent = fs.readFileSync(htmlPath, 'utf8');
+
+    testResult('auth.py exists', true, 'src/auth.py found');
+    testResult('auth_handlers.py exists', true, 'src/auth_handlers.py found');
+
+    // Cookie/session security expectations
+    testResult(
+      'OAuth session/state cookie constants defined',
+      /SESSION_COOKIE_NAME\s*=\s*['"]blt_oauth_session['"]/.test(authContent) &&
+      /STATE_COOKIE_NAME\s*=\s*['"]blt_oauth_state['"]/.test(authContent),
+      'Cookie names are defined'
+    );
+    testResult(
+      'Session and state TTL constants configured',
+      /SESSION_MAX_AGE\s*=\s*60\s*\*\s*60\s*\*\s*24\s*\*\s*30/.test(authContent) &&
+      /STATE_MAX_AGE\s*=\s*60\s*\*\s*10/.test(authContent),
+      '30d session and 10m state TTL are configured'
+    );
+    testResult(
+      'Cookie security flags enforced',
+      /SameSite=\{same_site\}/.test(authContent) &&
+      /parts\.append\('Secure'\)/.test(authContent) &&
+      /parts\.append\('HttpOnly'\)/.test(authContent),
+      'SameSite, Secure, and HttpOnly are set'
+    );
+
+    // Encryption expectations
+    testResult(
+      'OAuth session encryption uses AES-GCM',
+      /'AES-GCM'/.test(authContent) &&
+      /async\s+def\s+encrypt_session/.test(authContent) &&
+      /async\s+def\s+decrypt_session/.test(authContent),
+      'AES-GCM encrypt/decrypt helpers found'
+    );
+    testResult(
+      'Encryption key validation enforced',
+      /ENCRYPTION_KEY is required/.test(authContent) &&
+      /must decode to exactly 32 bytes/.test(authContent),
+      'ENCRYPTION_KEY validation found'
+    );
+
+    // Token resolution and precedence expectations
+    const idxUser = authContent.indexOf("'token_source': 'user_oauth'");
+    const idxHeader = authContent.indexOf("'token_source': 'header_token'");
+    const idxShared = authContent.indexOf("'token_source': 'shared_token'");
+    const idxUnauth = authContent.indexOf("'token_source': 'unauthenticated'");
+
+    testResult(
+      'Token sources are explicitly defined',
+      idxUser >= 0 && idxHeader >= 0 && idxShared >= 0 && idxUnauth >= 0,
+      'user_oauth/header_token/shared_token/unauthenticated present'
+    );
+    testResult(
+      'Token resolution precedence is correct',
+      idxUser < idxHeader && idxHeader < idxShared && idxShared < idxUnauth,
+      'Precedence: user_oauth -> header_token -> shared_token -> unauthenticated'
+    );
+
+    // OAuth flow expectations
+    testResult(
+      'OAuth login handler sets state and redirects to GitHub authorize',
+      /async\s+def\s+handle_auth_login/.test(authHandlersContent) &&
+      /generate_oauth_state/.test(authHandlersContent) &&
+      /build_state_cookie/.test(authHandlersContent) &&
+      /github\.com\/login\/oauth\/authorize/.test(authHandlersContent),
+      'Login flow wiring found'
+    );
+
+    const idxStateValidation = authHandlersContent.indexOf('validate_oauth_state');
+    const idxTokenExchange = authHandlersContent.indexOf('_exchange_code_for_token');
+    testResult(
+      'OAuth callback validates state before token exchange',
+      idxStateValidation >= 0 && idxTokenExchange >= 0 && idxStateValidation < idxTokenExchange,
+      'State validation appears before code exchange in callback flow'
+    );
+
+    testResult(
+      'OAuth callback performs server-side code exchange and user fetch',
+      /login\/oauth\/access_token/.test(authHandlersContent) &&
+      /https:\/\/api\.github\.com\/user/.test(authHandlersContent),
+      'Token exchange and user profile fetch found'
+    );
+
+    testResult(
+      'OAuth callback persists encrypted session cookie',
+      /encrypt_session/.test(authHandlersContent) &&
+      /build_session_cookie/.test(authHandlersContent),
+      'Encrypted session cookie write found'
+    );
+
+    testResult(
+      'Auth user/logout handlers implemented',
+      /async\s+def\s+handle_auth_user/.test(authHandlersContent) &&
+      /async\s+def\s+handle_auth_logout/.test(authHandlersContent) &&
+      /clear_session_cookie/.test(authHandlersContent) &&
+      /clear_state_cookie/.test(authHandlersContent),
+      'Auth user and logout handlers found'
+    );
+
+    // Handler integration expectations
+    const functionsRequiringTokenResolution = [
+      'handle_add_pr',
+      'handle_refresh_pr',
+      'handle_batch_refresh_prs',
+      'handle_pr_timeline',
+      'handle_pr_review_analysis',
+      'handle_pr_readiness',
+      'handle_rate_limit',
+    ];
+    const getAsyncFunctionBlock = (content, fnName) => {
+      const escaped = fnName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const re = new RegExp(`async\\s+def\\s+${escaped}\\([\\s\\S]*?(?=\\nasync\\s+def\\s+|\\n$)`, 'm');
+      const match = content.match(re);
+      return match ? match[0] : '';
+    };
+    const missingResolverFns = functionsRequiringTokenResolution.filter((fnName) => {
+      const fnBlock = getAsyncFunctionBlock(handlersContent, fnName);
+      return !fnBlock || !/resolve_github_token/.test(fnBlock);
+    });
+    testResult(
+      'Token resolver is used in all auth-sensitive handlers',
+      missingResolverFns.length === 0,
+      missingResolverFns.length === 0
+        ? 'All targeted handlers call resolve_github_token'
+        : `Missing in: ${missingResolverFns.join(', ')}`
+    );
+
+    testResult(
+      'Legacy direct header token reads removed from handlers',
+      !/request\.headers\.get\('x-github-token'\)/.test(handlersContent),
+      'No direct x-github-token reads in handlers.py'
+    );
+
+    // Frontend and caching expectations
+    testResult(
+      'Frontend auth UX uses OAuth endpoints',
+      /fetch\(['"`]\/api\/auth\/user/.test(htmlContent) &&
+      /href=["']\/api\/auth\/login["']/.test(htmlContent) &&
+      /fetch\(['"`]\/api\/auth\/logout/.test(htmlContent),
+      'Frontend sign-in/sign-out and auth state calls found'
+    );
+
+    testResult(
+      'No PAT prompt text present in frontend',
+      !/(personal access token|\bPAT\b)/i.test(htmlContent),
+      'No PAT prompt detected in public/index.html'
+    );
+
+    testResult(
+      'Service worker bypasses auth and rate-limit token-dependent routes',
+      /pathname\.startsWith\('\/api\/auth\/'\)/.test(swContent) &&
+      /pathname\s*===\s*'\/api\/rate-limit'/.test(swContent),
+      'SW bypass rules for auth/rate-limit found'
+    );
+  } catch (error) {
+    testResult('Authentication test files readable', false, error.message);
+  }
+}
+
+// Test 8: Verify OAuth runtime behavior with real HTTP responses
+async function testAuthenticationRuntimeBehavior() {
+  log('\n=== Testing Authentication Runtime Behavior ===\n', colors.blue);
+
+  let runtime;
+  try {
+    runtime = await startRuntimeServer();
+
+    // Callback error path should redirect and clear state cookie
+    const callbackErrorResp = await fetch(`${runtime.baseUrl}/api/auth/callback?error=access_denied`, {
+      redirect: 'manual',
+    });
+    const callbackErrorLocation = callbackErrorResp.headers.get('Location') || callbackErrorResp.headers.get('location') || '';
+    const callbackErrorCookies = getSetCookieHeader(callbackErrorResp);
+
+    testResult(
+      'Runtime callback error returns auth error redirect',
+      callbackErrorLocation.includes('?auth=error'),
+      callbackErrorLocation ? `Location: ${callbackErrorLocation}` : 'Missing Location header'
+    );
+    testResult(
+      'Runtime callback error clears OAuth state cookie',
+      callbackErrorCookies.includes('blt_oauth_state=') && callbackErrorCookies.includes('Max-Age=0'),
+      callbackErrorCookies ? 'Found state cookie clear header' : 'Missing Set-Cookie header'
+    );
+
+    // Missing code should redirect and clear state cookie
+    const missingCodeResp = await fetch(`${runtime.baseUrl}/api/auth/callback?state=abc123`, {
+      redirect: 'manual',
+      headers: { Cookie: 'blt_oauth_state=abc123' },
+    });
+    const missingCodeLocation = missingCodeResp.headers.get('Location') || missingCodeResp.headers.get('location') || '';
+    const missingCodeCookies = getSetCookieHeader(missingCodeResp);
+
+    testResult(
+      'Runtime callback missing code redirects to auth error',
+      missingCodeLocation.includes('?auth=error'),
+      missingCodeLocation ? `Location: ${missingCodeLocation}` : 'Missing Location header'
+    );
+    testResult(
+      'Runtime callback missing code clears state cookie',
+      missingCodeCookies.includes('blt_oauth_state=') && missingCodeCookies.includes('Max-Age=0'),
+      missingCodeCookies ? 'Found state cookie clear header' : 'Missing Set-Cookie header'
+    );
+
+    // Invalid state should redirect and clear state cookie
+    const invalidStateResp = await fetch(`${runtime.baseUrl}/api/auth/callback?code=fake-code&state=bad-state`, {
+      redirect: 'manual',
+      headers: { Cookie: 'blt_oauth_state=good-state' },
+    });
+    const invalidStateLocation = invalidStateResp.headers.get('Location') || invalidStateResp.headers.get('location') || '';
+    const invalidStateCookies = getSetCookieHeader(invalidStateResp);
+
+    testResult(
+      'Runtime callback invalid state redirects to auth error',
+      invalidStateLocation.includes('?auth=error'),
+      invalidStateLocation ? `Location: ${invalidStateLocation}` : 'Missing Location header'
+    );
+    testResult(
+      'Runtime callback invalid state clears state cookie',
+      invalidStateCookies.includes('blt_oauth_state=') && invalidStateCookies.includes('Max-Age=0'),
+      invalidStateCookies ? 'Found state cookie clear header' : 'Missing Set-Cookie header'
+    );
+
+    // User endpoint should invalidate malformed session cookie
+    const userResp = await fetch(`${runtime.baseUrl}/api/auth/user`, {
+      headers: { Cookie: 'blt_oauth_session=invalid.session.payload' },
+    });
+    const userData = await userResp.json();
+    const userCookies = getSetCookieHeader(userResp);
+
+    testResult(
+      'Runtime auth user reports invalid session cookie',
+      userData && userData.auth_reason === 'invalid_session_cookie' && userData.authenticated === false,
+      `auth_reason=${userData?.auth_reason}, authenticated=${userData?.authenticated}`
+    );
+    testResult(
+      'Runtime auth user clears invalid session cookie',
+      userCookies.includes('blt_oauth_session=') && userCookies.includes('Max-Age=0'),
+      userCookies ? 'Found session cookie clear header' : 'Missing Set-Cookie header'
+    );
+
+    // Logout should clear both session and state cookies
+    const logoutResp = await fetch(`${runtime.baseUrl}/api/auth/logout`, {
+      method: 'POST',
+    });
+    const logoutData = await logoutResp.json();
+    const logoutCookies = getSetCookieHeader(logoutResp);
+
+    testResult(
+      'Runtime logout returns success payload',
+      logoutData && logoutData.success === true && logoutData.authenticated === false,
+      JSON.stringify(logoutData)
+    );
+    testResult(
+      'Runtime logout clears session cookie',
+      logoutCookies.includes('blt_oauth_session=') && logoutCookies.includes('Max-Age=0'),
+      logoutCookies ? 'Found session clear cookie header' : 'Missing Set-Cookie header'
+    );
+    testResult(
+      'Runtime logout clears state cookie',
+      logoutCookies.includes('blt_oauth_state=') && logoutCookies.includes('Max-Age=0'),
+      logoutCookies ? 'Found state clear cookie header' : 'Missing Set-Cookie header'
+    );
+  } catch (error) {
+    testResult('Authentication runtime behavior test setup', false, error.message);
+  } finally {
+    await stopRuntimeServer(runtime);
+  }
+}
+
 // Main test runner
-function runTests() {
+async function runTests() {
   log('\n' + '='.repeat(60), colors.blue);
   log('  BLT-Leaf Data Display Test Suite', colors.blue);
   log('='.repeat(60) + '\n', colors.blue);
@@ -343,6 +709,8 @@ function runTests() {
   testWranglerConfig();
   testPackageJson();
   testAPIRouting();
+  testAuthenticationImplementation();
+  await testAuthenticationRuntimeBehavior();
 
   // Summary
   log('\n' + '='.repeat(60), colors.blue);

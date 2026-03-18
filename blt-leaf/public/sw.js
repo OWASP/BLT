@@ -1,6 +1,6 @@
 // Service Worker - caches static assets, API responses, and HTML pages for faster loads.
 
-const CACHE_VERSION = 'blt-leaf-v2';
+const CACHE_VERSION = 'blt-leaf-v3';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const API_CACHE = `${CACHE_VERSION}-api`;
 const CDN_CACHE = `${CACHE_VERSION}-cdn`;
@@ -24,7 +24,6 @@ const CDN_ORIGINS = [
 const CACHEABLE_API_PATHS = [
     '/api/prs',
     '/api/repos',
-    '/api/rate-limit',
     '/api/status'
 ];
 
@@ -63,6 +62,19 @@ self.addEventListener('fetch', (event) => {
 
     // Only handle GET requests
     if (request.method !== 'GET') return;
+
+    // Auth endpoints must bypass service-worker caching/interception because
+    // OAuth relies on network redirects and Set-Cookie propagation.
+    if (url.origin === self.location.origin && url.pathname.startsWith('/api/auth/')) {
+        // Do not intercept auth flows at all; let browser perform normal
+        // navigation so redirects and cookies are handled natively.
+        return;
+    }
+
+    // Rate-limit response is token/cookie-dependent and must always be fresh.
+    if (url.origin === self.location.origin && url.pathname === '/api/rate-limit') {
+        return;
+    }
 
     // CDN resources
     if (CDN_ORIGINS.some((origin) => request.url.startsWith(origin))) {
