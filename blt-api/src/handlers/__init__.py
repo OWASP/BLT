@@ -18,7 +18,7 @@ from .repos import handle_repos
 from .health import handle_health
 from .homepage import handle_homepage
 from .auth import handle_signup, handle_signin, handle_verify_email
-from .routes import handle_routes
+from .routes import make_routes_handler
 
 __all__ = [
     "handle_bugs",
@@ -36,5 +36,5 @@ __all__ = [
     "handle_signup",
     "handle_signin",
     "handle_verify_email",
-    "handle_routes",
+    "make_routes_handler",
 ]

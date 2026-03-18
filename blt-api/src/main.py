@@ -32,7 +32,7 @@ from handlers import (
     handle_signup,
     handle_signin,
     handle_verify_email,
-    handle_routes
+    make_routes_handler
 )
 from utils import json_response, error_response, cors_headers
 from libs.db import get_db_safe 
@@ -109,8 +109,8 @@ router.add_route("GET", "/contributors/{id}", handle_contributors)
 router.add_route("GET", "/repos", handle_repos)
 router.add_route("GET", "/repos/{id}", handle_repos)
 
-# API Discoverability
-router.add_route("GET", "/routes", handle_routes)
+# API Discoverability - uses factory pattern to avoid circular imports
+router.add_route("GET", "/routes", make_routes_handler(router))
 
 class Default(WorkerEntrypoint):
     async def on_fetch(self, request):

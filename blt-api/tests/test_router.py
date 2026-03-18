@@ -280,5 +280,70 @@ class TestRouteRegistrationOrder:
         assert matched_route.match(method, path) == {}
 
 
+class TestRouterGetRouteList:
+    """Tests for Router.get_route_list() method."""
+    
+    def test_get_route_list_empty(self):
+        """Test get_route_list returns empty list for router with no routes."""
+        router = Router()
+        assert router.get_route_list() == []
+    
+    def test_get_route_list_single_route(self):
+        """Test get_route_list with a single registered route."""
+        router = Router()
+        router.add_route("GET", "/users", lambda: None)
+        
+        result = router.get_route_list()
+        assert len(result) == 1
+        assert result[0] == {"method": "GET", "path": "/users"}
+    
+    def test_get_route_list_multiple_routes(self):
+        """Test get_route_list with multiple routes."""
+        router = Router()
+        router.add_route("GET", "/users", lambda: None)
+        router.add_route("POST", "/bugs", lambda: None)
+        router.add_route("GET", "/domains/{id}", lambda: None)
+        
+        result = router.get_route_list()
+        assert len(result) == 3
+        assert result == [
+            {"method": "GET", "path": "/users"},
+            {"method": "POST", "path": "/bugs"},
+            {"method": "GET", "path": "/domains/{id}"},
+        ]
+    
+    def test_get_route_list_no_handler_exposed(self):
+        """Test that handler names are not included in route list."""
+        router = Router()
+        
+        def my_handler():
+            pass
+        
+        router.add_route("GET", "/test", my_handler)
+        
+        result = router.get_route_list()
+        assert len(result) == 1
+        assert "handler" not in result[0]
+        assert result[0].keys() == {"method", "path"}
+    
+    def test_get_route_list_preserves_method_case(self):
+        """Test that HTTP methods are stored in uppercase."""
+        router = Router()
+        router.add_route("get", "/test", lambda: None)
+        router.add_route("post", "/test", lambda: None)
+        
+        result = router.get_route_list()
+        assert result[0]["method"] == "GET"
+        assert result[1]["method"] == "POST"
+    
+    def test_get_route_list_includes_path_params(self):
+        """Test that path parameters are preserved in route list."""
+        router = Router()
+        router.add_route("GET", "/users/{id}/posts/{post_id}", lambda: None)
+        
+        result = router.get_route_list()
+        assert result[0]["path"] == "/users/{id}/posts/{post_id}"
+
+
 
 
