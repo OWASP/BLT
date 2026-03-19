@@ -246,8 +246,19 @@
       btn.addEventListener('click', function () {
         const isDark = root.classList.toggle('dark');
         localStorage.setItem('blt-theme', isDark ? 'dark' : 'light');
+        if (typeof bltCapture === 'function') {
+          bltCapture('dark_mode_toggled', { to_dark: isDark, page: '404' });
+        }
       });
     })();
+  </script>
+  <script src="js/config.js"></script>
+  <script src="js/analytics.js"></script>
+  <!-- These synchronous scripts execute in order, so bltCapture is available here.
+       The dark_mode_toggled call above is inside a click handler so it also only
+       runs after analytics.js has been parsed and executed. -->
+  <script>
+    bltCapture('page_not_found', { path: window.location.pathname });
   </script>
 </body>
 </html>
