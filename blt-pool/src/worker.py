@@ -254,6 +254,45 @@ def _retry_after_seconds(resp) -> int:
         return 1
 
 
+def _response_header(resp, name: str) -> Optional[str]:
+    try:
+        headers = getattr(resp, "headers", None)
+        if headers is None:
+            return None
+        value = headers.get(name)
+        if value is None:
+            value = headers.get(name.lower())
+        return str(value) if value is not None else None
+    except Exception:
+        return None
+
+
+def _rate_limit_reset_wait_seconds(resp) -> Optional[int]:
+    """Return wait time derived from X-RateLimit-Reset header if available."""
+    raw = _response_header(resp, "X-RateLimit-Reset")
+    if not raw:
+        return None
+    try:
+        reset_ts = int(raw)
+        wait_s = max(1, reset_ts - int(time.time()))
+        return wait_s
+    except Exception:
+        return None
+
+
+def _is_rate_limited_response(resp) -> bool:
+    """Detect GitHub rate limiting across 429 and 403 variants."""
+    status = int(getattr(resp, "status", 0) or 0)
+    if status == 429:
+        return True
+    if status != 403:
+        return False
+    retry_after = _response_header(resp, "Retry-After")
+    remaining = _response_header(resp, "X-RateLimit-Remaining")
+    reset = _response_header(resp, "X-RateLimit-Reset")
+    return bool(retry_after or (remaining == "0" and reset))
+
+
 async def _github_search_issues_paged(owner: str, token: str, query: str, max_pages: int = 3) -> list:
     """Fetch paginated GitHub Search issues results for an org query."""
     items = []
@@ -741,6 +780,7 @@ async def _ensure_leaderboard_schema(db) -> None:
             reviews INTEGER NOT NULL DEFAULT 0,
             comments INTEGER NOT NULL DEFAULT 0,
             pr_updated_at INTEGER NOT NULL DEFAULT 0,
+            review_updated_at INTEGER NOT NULL DEFAULT 0,
             updated_at INTEGER NOT NULL,
             PRIMARY KEY (org, month_key, user_login)
         )
@@ -870,6 +910,22 @@ async def _ensure_leaderboard_schema(db) -> None:
             console.error(
                 "[D1.migration] Failed SQL: ALTER TABLE leaderboard_monthly_stats "
                 f"ADD COLUMN pr_updated_at INTEGER NOT NULL DEFAULT 0; error={e}"
+            )
+            raise
+    # Migration: add review-specific fence column for review-count reconciliation.
+    try:
+        await _d1_run(
+            db,
+            "ALTER TABLE leaderboard_monthly_stats ADD COLUMN review_updated_at INTEGER NOT NULL DEFAULT 0",
+        )
+    except Exception as e:
+        msg = str(e).lower()
+        if "duplicate column" in msg or "already exists" in msg:
+            pass
+        else:
+            console.error(
+                "[D1.migration] Failed SQL: ALTER TABLE leaderboard_monthly_stats "
+                f"ADD COLUMN review_updated_at INTEGER NOT NULL DEFAULT 0; error={e}"
             )
             raise
     await _d1_run(
@@ -1181,6 +1237,7 @@ async def _d1_inc_monthly(db, org: str, month_key: str, user_login: str, field: 
     if field not in {"merged_prs", "closed_prs", "reviews", "comments"}:
         return
     is_pr_field = field in {"merged_prs", "closed_prs"}
+    is_review_field = field == "reviews"
     try:
         if is_pr_field:
             result = await _d1_run(
@@ -1195,6 +1252,22 @@ async def _d1_inc_monthly(db, org: str, month_key: str, user_login: str, field: 
                     END,
                     updated_at = excluded.updated_at,
                     pr_updated_at = excluded.pr_updated_at
+                """,
+                (org, month_key, user_login, delta, delta, now, now, delta, delta),
+            )
+        elif is_review_field:
+            result = await _d1_run(
+                db,
+                f"""
+                INSERT INTO leaderboard_monthly_stats (org, month_key, user_login, {field}, updated_at, review_updated_at)
+                VALUES (?, ?, ?, CASE WHEN ? < 0 THEN 0 ELSE ? END, ?, ?)
+                ON CONFLICT(org, month_key, user_login) DO UPDATE SET
+                    {field} = CASE
+                        WHEN leaderboard_monthly_stats.{field} + ? < 0 THEN 0
+                        ELSE leaderboard_monthly_stats.{field} + ?
+                    END,
+                    updated_at = excluded.updated_at,
+                    review_updated_at = excluded.review_updated_at
                 """,
                 (org, month_key, user_login, delta, delta, now, now, delta, delta),
             )
@@ -1638,11 +1711,18 @@ async def _reconcile_github_api(
             raise TimeoutError(f"request timeout for {path}") from exc
         status = int(getattr(resp, "status", 0) or 0)
 
-        retryable = status == 429 or status in (500, 502, 503, 504)
+        is_rate_limited = _is_rate_limited_response(resp)
+        retryable = is_rate_limited or status in (500, 502, 503, 504)
         if not retryable or attempt >= max_retries:
             return resp
 
-        retry_after = _retry_after_seconds(resp) if status == 429 else (attempt + 1)
+        if is_rate_limited:
+            retry_after = _retry_after_seconds(resp)
+            reset_wait = _rate_limit_reset_wait_seconds(resp)
+            if reset_wait is not None:
+                retry_after = max(retry_after, reset_wait)
+        else:
+            retry_after = attempt + 1
         remaining = deadline_ts - time.time()
         if remaining <= 0:
             return resp
@@ -1660,14 +1740,32 @@ async def _reconcile_github_api(
 
 async def _d1_batch_chunked(db, statements: list, chunk_size: int, continue_or_abort=None) -> bool:
     """Execute D1 batches in chunks to avoid oversized batch payloads."""
+    if not statements:
+        return True
     size = max(1, int(chunk_size or 1))
-    for i in range(0, len(statements), size):
-        if continue_or_abort is not None:
-            ok = await continue_or_abort()
-            if not ok:
-                return False
-        await _d1_batch(db, statements[i : i + size])
-    return True
+    tx_started = False
+    try:
+        await _d1_run(db, "BEGIN")
+        tx_started = True
+        for i in range(0, len(statements), size):
+            if continue_or_abort is not None:
+                ok = await continue_or_abort()
+                if not ok:
+                    await _d1_run(db, "ROLLBACK")
+                    tx_started = False
+                    return False
+            await _d1_batch(db, statements[i : i + size])
+        await _d1_run(db, "COMMIT")
+        tx_started = False
+        return True
+    except Exception as exc:
+        if tx_started:
+            try:
+                await _d1_run(db, "ROLLBACK")
+            except Exception as rollback_exc:
+                console.error(f"[D1.batch] Rollback failed after chunked batch error: {rollback_exc}")
+        console.error(f"[D1.batch] Chunked transactional batch failed: {exc}")
+        return False
 
 
 async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, deadline_ts: Optional[float] = None) -> bool:
@@ -1987,13 +2085,36 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, de
                     (
                         """
                         INSERT INTO leaderboard_monthly_stats
-                            (org, month_key, user_login, merged_prs, closed_prs, reviews, comments, updated_at, pr_updated_at)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                            (org, month_key, user_login, merged_prs, closed_prs, reviews, comments, updated_at, pr_updated_at, review_updated_at)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                         ON CONFLICT(org, month_key, user_login) DO UPDATE SET
-                            merged_prs = excluded.merged_prs,
-                            closed_prs = excluded.closed_prs,
-                            pr_updated_at = excluded.pr_updated_at
+                            merged_prs = CASE
+                                WHEN leaderboard_monthly_stats.pr_updated_at <= excluded.pr_updated_at
+                                THEN excluded.merged_prs
+                                ELSE leaderboard_monthly_stats.merged_prs
+                            END,
+                            closed_prs = CASE
+                                WHEN leaderboard_monthly_stats.pr_updated_at <= excluded.pr_updated_at
+                                THEN excluded.closed_prs
+                                ELSE leaderboard_monthly_stats.closed_prs
+                            END,
+                            pr_updated_at = CASE
+                                WHEN leaderboard_monthly_stats.pr_updated_at <= excluded.pr_updated_at
+                                THEN excluded.pr_updated_at
+                                ELSE leaderboard_monthly_stats.pr_updated_at
+                            END,
+                            reviews = CASE
+                                WHEN leaderboard_monthly_stats.review_updated_at <= excluded.review_updated_at
+                                THEN excluded.reviews
+                                ELSE leaderboard_monthly_stats.reviews
+                            END,
+                            review_updated_at = CASE
+                                WHEN leaderboard_monthly_stats.review_updated_at <= excluded.review_updated_at
+                                THEN excluded.review_updated_at
+                                ELSE leaderboard_monthly_stats.review_updated_at
+                            END
                         WHERE leaderboard_monthly_stats.pr_updated_at <= ?
+                           OR leaderboard_monthly_stats.review_updated_at <= ?
                         """,
                         (
                             owner,
@@ -2005,6 +2126,8 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, de
                             int(preserved_comments.get(login) or 0),
                             reconcile_ts + 1,
                             reconcile_ts + 1,
+                            reconcile_ts + 1,
+                            reconcile_ts,
                             reconcile_ts,
                         ),
                     )
