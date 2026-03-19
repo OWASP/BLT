@@ -29,6 +29,7 @@ import hmac as _hmac
 import html as _html_mod
 import json
 import re
+import secrets
 import time
 from typing import Optional, Tuple
 from urllib.parse import quote, urlparse
@@ -722,6 +723,7 @@ async def _ensure_leaderboard_schema(db) -> None:
             closed_prs INTEGER NOT NULL DEFAULT 0,
             reviews INTEGER NOT NULL DEFAULT 0,
             comments INTEGER NOT NULL DEFAULT 0,
+            pr_updated_at INTEGER NOT NULL DEFAULT 0,
             updated_at INTEGER NOT NULL,
             PRIMARY KEY (org, month_key, user_login)
         )
@@ -824,6 +826,14 @@ async def _ensure_leaderboard_schema(db) -> None:
         await _d1_run(
             db,
             "ALTER TABLE mentor_assignments ADD COLUMN mentee_login TEXT NOT NULL DEFAULT ''",
+        )
+    except Exception:
+        pass  # Column already exists — ignore the error.
+    # Migration: add PR-specific fence column for merged/closed reconciliation.
+    try:
+        await _d1_run(
+            db,
+            "ALTER TABLE leaderboard_monthly_stats ADD COLUMN pr_updated_at INTEGER NOT NULL DEFAULT 0",
         )
     except Exception:
         pass  # Column already exists — ignore the error.
@@ -1135,21 +1145,39 @@ async def _d1_inc_monthly(db, org: str, month_key: str, user_login: str, field: 
     now = int(time.time())
     if field not in {"merged_prs", "closed_prs", "reviews", "comments"}:
         return
+    is_pr_field = field in {"merged_prs", "closed_prs"}
     try:
-        result = await _d1_run(
-            db,
-            f"""
-            INSERT INTO leaderboard_monthly_stats (org, month_key, user_login, {field}, updated_at)
-            VALUES (?, ?, ?, CASE WHEN ? < 0 THEN 0 ELSE ? END, ?)
-            ON CONFLICT(org, month_key, user_login) DO UPDATE SET
-                {field} = CASE
-                    WHEN leaderboard_monthly_stats.{field} + ? < 0 THEN 0
-                    ELSE leaderboard_monthly_stats.{field} + ?
-                END,
-                updated_at = excluded.updated_at
-            """,
-            (org, month_key, user_login, delta, delta, now, delta, delta),
-        )
+        if is_pr_field:
+            result = await _d1_run(
+                db,
+                f"""
+                INSERT INTO leaderboard_monthly_stats (org, month_key, user_login, {field}, updated_at, pr_updated_at)
+                VALUES (?, ?, ?, CASE WHEN ? < 0 THEN 0 ELSE ? END, ?, ?)
+                ON CONFLICT(org, month_key, user_login) DO UPDATE SET
+                    {field} = CASE
+                        WHEN leaderboard_monthly_stats.{field} + ? < 0 THEN 0
+                        ELSE leaderboard_monthly_stats.{field} + ?
+                    END,
+                    updated_at = excluded.updated_at,
+                    pr_updated_at = excluded.pr_updated_at
+                """,
+                (org, month_key, user_login, delta, delta, now, now, delta, delta),
+            )
+        else:
+            result = await _d1_run(
+                db,
+                f"""
+                INSERT INTO leaderboard_monthly_stats (org, month_key, user_login, {field}, updated_at)
+                VALUES (?, ?, ?, CASE WHEN ? < 0 THEN 0 ELSE ? END, ?)
+                ON CONFLICT(org, month_key, user_login) DO UPDATE SET
+                    {field} = CASE
+                        WHEN leaderboard_monthly_stats.{field} + ? < 0 THEN 0
+                        ELSE leaderboard_monthly_stats.{field} + ?
+                    END,
+                    updated_at = excluded.updated_at
+                """,
+                (org, month_key, user_login, delta, delta, now, delta, delta),
+            )
         console.log(f"[D1] Updated {field} org={org} month={month_key} user={user_login} +{delta}")
     except Exception as e:
         console.error(f"[D1] Failed to update {field} org={org} month={month_key} user={user_login}: {e}")
@@ -1449,7 +1477,7 @@ def _is_ts_in_month(ts: int, start_ts: int, end_ts: int) -> bool:
 
 
 def _reconcile_lock_holder(org: str) -> str:
-    return f"{org}:{int(time.time() * 1000)}:{id(org)}"
+    return f"{org}:{int(time.time() * 1000)}:{secrets.token_hex(8)}"
 
 
 def _log_reconcile_config_once(settings: dict) -> None:
@@ -1565,11 +1593,16 @@ async def _reconcile_github_api(
         attempt += 1
 
 
-async def _d1_batch_chunked(db, statements: list, chunk_size: int) -> None:
+async def _d1_batch_chunked(db, statements: list, chunk_size: int, continue_or_abort=None) -> bool:
     """Execute D1 batches in chunks to avoid oversized batch payloads."""
     size = max(1, int(chunk_size or 1))
     for i in range(0, len(statements), size):
+        if continue_or_abort is not None:
+            ok = await continue_or_abort()
+            if not ok:
+                return False
         await _d1_batch(db, statements[i : i + size])
+    return True
 
 
 async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, deadline_ts: Optional[float] = None) -> bool:
@@ -1829,8 +1862,8 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, de
                     UPDATE leaderboard_monthly_stats
                     SET merged_prs = 0,
                         closed_prs = 0,
-                        updated_at = ?
-                    WHERE org = ? AND month_key = ? AND updated_at <= ?
+                        pr_updated_at = ?
+                    WHERE org = ? AND month_key = ? AND pr_updated_at <= ?
                     """,
                     (reconcile_ts, owner, month_key, reconcile_ts),
                 ),
@@ -1877,13 +1910,13 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, de
                     (
                         """
                         INSERT INTO leaderboard_monthly_stats
-                            (org, month_key, user_login, merged_prs, closed_prs, reviews, comments, updated_at)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                            (org, month_key, user_login, merged_prs, closed_prs, reviews, comments, updated_at, pr_updated_at)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                         ON CONFLICT(org, month_key, user_login) DO UPDATE SET
                             merged_prs = excluded.merged_prs,
                             closed_prs = excluded.closed_prs,
-                            updated_at = excluded.updated_at
-                        WHERE leaderboard_monthly_stats.updated_at <= ?
+                            pr_updated_at = excluded.pr_updated_at
+                        WHERE leaderboard_monthly_stats.pr_updated_at <= ?
                         """,
                         (
                             owner,
@@ -1895,13 +1928,15 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, de
                             int(preserved.get("comments") or 0),
                             reconcile_ts,
                             reconcile_ts,
+                            reconcile_ts,
                         ),
                     )
                 )
 
             if not await _continue_or_abort():
                 return False
-            await _d1_batch_chunked(db, batch_stmts, max_batch_statements)
+            if not await _d1_batch_chunked(db, batch_stmts, max_batch_statements, _continue_or_abort):
+                return False
         except Exception as exc:
             console.error(f"[LeaderboardReconcile] Batch write failed for {owner}: {exc}")
             return False
@@ -2722,28 +2757,34 @@ async def _post_reviewer_leaderboard(owner: str, repo: str, pr_number: int, toke
 
     comment_body = _format_reviewer_leaderboard_comment(leaderboard_data, owner, pr_reviewers)
 
-    # Delete any existing reviewer leaderboard comment then post a fresh one.
+    created = await create_comment(owner, repo, pr_number, comment_body, token)
+    if created is False:
+        console.error(f"[ReviewerLeaderboard] Failed to post reviewer leaderboard for {owner}/{repo}#{pr_number}")
+        return
+
+    # Delete older reviewer leaderboard comments after posting a fresh one.
     existing_comments, list_failed = await _fetch_issue_comments_paged(owner, repo, pr_number, token)
     if list_failed:
         console.error(
-            f"[ReviewerLeaderboard] Failed to list comments for {owner}/{repo}#{pr_number}; posting new comment anyway"
+            f"[ReviewerLeaderboard] Failed to list comments for {owner}/{repo}#{pr_number}; leaving potential duplicates"
         )
     else:
-        for c in existing_comments:
-            body = c.get("body") or ""
-            if REVIEWER_LEADERBOARD_MARKER in body:
-                delete_resp = await github_api(
-                    "DELETE",
-                    f"/repos/{owner}/{repo}/issues/comments/{c['id']}",
-                    token,
+        marker_comments = [c for c in existing_comments if REVIEWER_LEADERBOARD_MARKER in (c.get("body") or "")]
+        for c in marker_comments:
+            comment_id = int(c.get("id") or 0)
+            if comment_id <= 0:
+                continue
+            delete_resp = await github_api(
+                "DELETE",
+                f"/repos/{owner}/{repo}/issues/comments/{comment_id}",
+                token,
+            )
+            if delete_resp.status not in (204, 200):
+                console.error(
+                    f"[ReviewerLeaderboard] Failed to delete old reviewer leaderboard comment {comment_id} "
+                    f"for {owner}/{repo}#{pr_number}: status={delete_resp.status}"
                 )
-                if delete_resp.status not in (204, 200):
-                    console.error(
-                        f"[ReviewerLeaderboard] Failed to delete old reviewer leaderboard comment {c['id']} "
-                        f"for {owner}/{repo}#{pr_number}: status={delete_resp.status}"
-                    )
 
-    await create_comment(owner, repo, pr_number, comment_body, token)
     console.log(f"[ReviewerLeaderboard] Posted reviewer leaderboard for {owner}/{repo}#{pr_number}")
 
 
@@ -4448,30 +4489,40 @@ async def _post_merged_pr_combined_comment(
         + reviewer_section
     )
 
+    created = await create_comment(owner, repo, pr_number, combined_body, token)
+    if created is False:
+        console.error(f"[MergedPR] Failed to post combined merge comment for {owner}/{repo}#{pr_number}")
+        return
+
     # ---------------------------------------------------------------------------
-    # 3. Delete any old separate or combined comment(s), then post the new one
+    # 3. Delete any old separate or combined comment(s) after posting a new one
     # ---------------------------------------------------------------------------
     old_comments, list_failed = await _fetch_issue_comments_paged(owner, repo, pr_number, token)
     if list_failed:
         console.error(
             f"[MergedPR] Failed to list comments for {owner}/{repo}#{pr_number}: "
-            "status=unknown; posting new comment anyway"
+            "status=unknown; leaving potential duplicates"
         )
     else:
-        for c in old_comments:
-            body = c.get("body") or ""
+        marker_comments = [
+            c
+            for c in old_comments
             if any(
-                marker in body
+                marker in (c.get("body") or "")
                 for marker in (MERGED_PR_COMMENT_MARKER, LEADERBOARD_MARKER, REVIEWER_LEADERBOARD_MARKER)
-            ):
-                delete_resp = await github_api("DELETE", f"/repos/{owner}/{repo}/issues/comments/{c['id']}", token)
-                if delete_resp.status not in (204, 200):
-                    console.error(
-                        f"[MergedPR] Failed to delete old comment {c['id']} "
-                        f"for {owner}/{repo}#{pr_number}: status={delete_resp.status}"
-                    )
+            )
+        ]
+        for c in marker_comments:
+            comment_id = int(c.get("id") or 0)
+            if comment_id <= 0:
+                continue
+            delete_resp = await github_api("DELETE", f"/repos/{owner}/{repo}/issues/comments/{comment_id}", token)
+            if delete_resp.status not in (204, 200):
+                console.error(
+                    f"[MergedPR] Failed to delete old comment {comment_id} "
+                    f"for {owner}/{repo}#{pr_number}: status={delete_resp.status}"
+                )
 
-    await create_comment(owner, repo, pr_number, combined_body, token)
     console.log(f"[MergedPR] Posted combined merge comment for {owner}/{repo}#{pr_number}")
 
 
