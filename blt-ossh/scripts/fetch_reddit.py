@@ -72,6 +72,7 @@ def fetch_communities():
 
     for topic in BASE_TOPICS:
         try:
+            sleep(1)
             subreddits = search_subreddits(topic)
             for subreddit in subreddits:
                 if len(communities) >= MAX_COMMUNITIES:
@@ -95,7 +96,6 @@ def fetch_communities():
                     "tags": extract_tags(data),
                 })
                 logger.info("Added r/%s (%d subscribers)", name, data.get("subscribers", 0))
-                sleep(1)
 
         except Exception as e:
             logger.error("Failed processing topic '%s': %s", topic, e)

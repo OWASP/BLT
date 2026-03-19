@@ -4,6 +4,7 @@ import json
 import logging
 import os
 from pathlib import Path
+from time import sleep
 
 import requests
 
@@ -89,6 +90,7 @@ def fetch_discord_servers():
 
     for term in SEARCH_TERMS:
         try:
+            sleep(1)
             response = requests.get(
                 DISCORD_API_URL,
                 headers=headers,
@@ -107,12 +109,15 @@ def fetch_discord_servers():
                 icon = server.get("icon")
                 logo_url = f"https://cdn.discordapp.com/icons/{server_id}/{icon}.png" if icon else ""
 
+                vanity_code = server.get("vanity_url_code")
+                invite_url = f"https://discord.gg/{vanity_code}" if vanity_code else ""
+
                 channels.append({
                     "name": server.get("name", "Unknown"),
                     "description": server.get("description", ""),
                     "source": "Discord",
                     "member_count": server.get("approximate_member_count", 0),
-                    "invite_url": f"https://discord.gg/{server.get('vanity_url_code', server_id)}",
+                    "invite_url": invite_url,
                     "logo_url": logo_url,
                     "tags": server.get("keywords", []),
                 })

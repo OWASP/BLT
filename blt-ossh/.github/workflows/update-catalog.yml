@@ -31,7 +31,7 @@ jobs:
         run: python scripts/fetch_articles.py
 
       - name: Fetch Discord servers
-        if: env.DISCORD_BOT_TOKEN != ''
+        if: ${{ secrets.DISCORD_BOT_TOKEN != '' }}
         env:
           DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
         run: python scripts/fetch_discord.py
