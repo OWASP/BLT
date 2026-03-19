@@ -23,7 +23,6 @@ Environment variables / secrets (configure via ``wrangler.toml`` or
 """
 
 import base64
-import asyncio
 import calendar
 import hashlib
 import hmac as _hmac
@@ -223,25 +222,22 @@ async def github_api(method: str, path: str, token: str, body=None, timeout_seco
     kwargs = {"method": method, "headers": _gh_headers(token)}
     if body is not None:
         kwargs["body"] = json.dumps(body)
-
-    try:
-        if timeout_seconds is not None and float(timeout_seconds) > 0:
+    if timeout_seconds is not None and float(timeout_seconds) > 0:
+        try:
             from js import AbortController, setTimeout, clearTimeout  # noqa: PLC0415 - runtime import
+        except Exception:
+            return await fetch(url, **kwargs)
 
-            controller = AbortController.new()
-            kwargs["signal"] = controller.signal
-            timeout_ms = max(1, int(float(timeout_seconds) * 1000))
-            timer_id = setTimeout(lambda: controller.abort(), timeout_ms)
-            try:
-                return await fetch(url, **kwargs)
-            finally:
-                clearTimeout(timer_id)
+        controller = AbortController.new()
+        kwargs["signal"] = controller.signal
+        timeout_ms = max(1, int(float(timeout_seconds) * 1000))
+        timer_id = setTimeout(lambda: controller.abort(), timeout_ms)
+        try:
+            return await fetch(url, **kwargs)
+        finally:
+            clearTimeout(timer_id)
 
-        return await fetch(url, **kwargs)
-    except Exception:
-        # Fallback for local tests/runtime where AbortController is unavailable.
-        kwargs.pop("signal", None)
-        return await fetch(url, **kwargs)
+    return await fetch(url, **kwargs)
 
 
 async def _sleep_seconds(seconds: float) -> None:
@@ -1731,17 +1727,17 @@ async def _reconcile_github_api(
         try:
             timeout_s = max(0.05, float(remaining))
             try:
-                resp = await asyncio.wait_for(
-                    github_api(method, path, token, timeout_seconds=timeout_s),
-                    timeout=timeout_s,
-                )
+                resp = await github_api(method, path, token, timeout_seconds=timeout_s)
             except TypeError as exc:
                 if "timeout_seconds" in str(exc):
-                    resp = await asyncio.wait_for(github_api(method, path, token), timeout=timeout_s)
+                    resp = await github_api(method, path, token)
                 else:
                     raise
-        except asyncio.TimeoutError as exc:
-            raise TimeoutError(f"request timeout for {path}") from exc
+        except Exception as exc:
+            msg = str(exc).lower()
+            if "abort" in msg or "timeout" in msg:
+                raise TimeoutError(f"request timeout for {path}") from exc
+            raise
         status = int(getattr(resp, "status", 0) or 0)
 
         is_rate_limited = _is_rate_limited_response(resp)
