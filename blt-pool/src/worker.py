@@ -3521,8 +3521,9 @@ async def _assign(
     if "help wanted" not in label_names:
         await create_comment(
             owner, repo, num,
-            f"@{login} This issue must first be reviewed by @donnieblt before it can be assigned. "
-            "They will be reviewing it soon.",
+            f"@{login} This issue is not yet ready for assignment. "
+            "A maintainer (such as @donnieblt) must first review it and add the "
+            '"help wanted" label before `/assign` can be used.',
             token,
         )
         return
