@@ -456,7 +456,13 @@ async def create_comment(
 
 async def _create_comment_best_effort(owner: str, repo: str, number: int, body: str, token: str) -> bool:
     """Post a comment in best-effort mode and retain explicit success/failure semantics."""
-    return await create_comment(owner, repo, number, body, token)
+    try:
+        return await create_comment(owner, repo, number, body, token)
+    except Exception as exc:
+        console.error(
+            f"[GitHub] Best-effort comment failed for {owner}/{repo}#{number}: {exc}"
+        )
+        return False
 
 
 async def _create_comment_strict(owner: str, repo: str, number: int, body: str, token: str) -> bool:
@@ -699,7 +705,11 @@ async def _d1_batch(db, statements: list):
                 if params:
                     stmt = stmt.bind(*params)
                 prepared.append(stmt)
-            return await batch_fn(prepared)
+            try:
+                from pyodide.ffi import to_js  # noqa: PLC0415 - runtime import
+                return await batch_fn(to_js(prepared))
+            except Exception:
+                return await batch_fn(prepared)
 
         # Local-test fallback for mock DBs that do not implement batch.
         results = []
@@ -1771,29 +1781,33 @@ async def _d1_batch_chunked(db, statements: list, chunk_size: int, continue_or_a
     """Execute D1 batches in chunks to avoid oversized batch payloads."""
     if not statements:
         return True
+
+    # Prefer a single db.batch call when supported, because D1 guarantees
+    # atomicity at the individual batch invocation boundary.
+    batch_fn = getattr(db, "batch", None)
+    if callable(batch_fn):
+        if continue_or_abort is not None:
+            ok = await continue_or_abort()
+            if not ok:
+                return False
+        try:
+            await _d1_batch(db, statements)
+            return True
+        except Exception as exc:
+            console.error(f"[D1.batch] Transactional batch failed: {exc}")
+            return False
+
     size = max(1, int(chunk_size or 1))
-    tx_started = False
     try:
-        await _d1_run(db, "BEGIN")
-        tx_started = True
         for i in range(0, len(statements), size):
             if continue_or_abort is not None:
                 ok = await continue_or_abort()
                 if not ok:
-                    await _d1_run(db, "ROLLBACK")
-                    tx_started = False
                     return False
             await _d1_batch(db, statements[i : i + size])
-        await _d1_run(db, "COMMIT")
-        tx_started = False
         return True
     except Exception as exc:
-        if tx_started:
-            try:
-                await _d1_run(db, "ROLLBACK")
-            except Exception as rollback_exc:
-                console.error(f"[D1.batch] Rollback failed after chunked batch error: {rollback_exc}")
-        console.error(f"[D1.batch] Chunked transactional batch failed: {exc}")
+        console.error(f"[D1.batch] Chunked fallback batch failed: {exc}")
         return False
 
 
@@ -2032,13 +2046,11 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, de
                 break
             repo_page += 1
 
-        # Recompute review credits from live PR reviews for all in-month closed
-        # PRs discovered in this reconcile pass so stale D1 review rows self-heal.
+        # Recompute review credits from live PR reviews for all discovered PRs
+        # so credits on still-open PRs are preserved and stale rows self-heal.
         for row in pr_state_map.values():
             if not await _continue_or_abort():
                 return False
-            if row[4] != "closed":
-                continue
 
             repo_name = row[1]
             pr_number = row[2]
