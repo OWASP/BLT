@@ -835,8 +835,16 @@ async def _ensure_leaderboard_schema(db) -> None:
             db,
             "ALTER TABLE leaderboard_monthly_stats ADD COLUMN pr_updated_at INTEGER NOT NULL DEFAULT 0",
         )
-    except Exception:
-        pass  # Column already exists — ignore the error.
+    except Exception as e:
+        msg = str(e).lower()
+        if "duplicate column" in msg or "already exists" in msg:
+            pass  # Column already exists — ignore the known migration race.
+        else:
+            console.error(
+                "[D1.migration] Failed SQL: ALTER TABLE leaderboard_monthly_stats "
+                f"ADD COLUMN pr_updated_at INTEGER NOT NULL DEFAULT 0; error={e}"
+            )
+            raise
     await _d1_run(
         db,
         """
@@ -2757,33 +2765,39 @@ async def _post_reviewer_leaderboard(owner: str, repo: str, pr_number: int, toke
 
     comment_body = _format_reviewer_leaderboard_comment(leaderboard_data, owner, pr_reviewers)
 
+    # Snapshot existing marker comments before posting so cleanup never removes
+    # the freshly created comment.
+    existing_comments, list_failed = await _fetch_issue_comments_paged(owner, repo, pr_number, token)
+    snapshot_ids = []
+    if list_failed:
+        console.error(
+            f"[ReviewerLeaderboard] Failed to list comments for {owner}/{repo}#{pr_number}; skipping cleanup snapshot"
+        )
+    else:
+        for c in existing_comments:
+            if REVIEWER_LEADERBOARD_MARKER not in (c.get("body") or ""):
+                continue
+            comment_id = int(c.get("id") or 0)
+            if comment_id > 0:
+                snapshot_ids.append(comment_id)
+
     created = await create_comment(owner, repo, pr_number, comment_body, token)
     if created is False:
         console.error(f"[ReviewerLeaderboard] Failed to post reviewer leaderboard for {owner}/{repo}#{pr_number}")
         return
 
-    # Delete older reviewer leaderboard comments after posting a fresh one.
-    existing_comments, list_failed = await _fetch_issue_comments_paged(owner, repo, pr_number, token)
-    if list_failed:
-        console.error(
-            f"[ReviewerLeaderboard] Failed to list comments for {owner}/{repo}#{pr_number}; leaving potential duplicates"
+    # Delete only snapshot comments so the newly posted one is preserved.
+    for comment_id in snapshot_ids:
+        delete_resp = await github_api(
+            "DELETE",
+            f"/repos/{owner}/{repo}/issues/comments/{comment_id}",
+            token,
         )
-    else:
-        marker_comments = [c for c in existing_comments if REVIEWER_LEADERBOARD_MARKER in (c.get("body") or "")]
-        for c in marker_comments:
-            comment_id = int(c.get("id") or 0)
-            if comment_id <= 0:
-                continue
-            delete_resp = await github_api(
-                "DELETE",
-                f"/repos/{owner}/{repo}/issues/comments/{comment_id}",
-                token,
+        if delete_resp.status not in (204, 200):
+            console.error(
+                f"[ReviewerLeaderboard] Failed to delete old reviewer leaderboard comment {comment_id} "
+                f"for {owner}/{repo}#{pr_number}: status={delete_resp.status}"
             )
-            if delete_resp.status not in (204, 200):
-                console.error(
-                    f"[ReviewerLeaderboard] Failed to delete old reviewer leaderboard comment {comment_id} "
-                    f"for {owner}/{repo}#{pr_number}: status={delete_resp.status}"
-                )
 
     console.log(f"[ReviewerLeaderboard] Posted reviewer leaderboard for {owner}/{repo}#{pr_number}")
 
