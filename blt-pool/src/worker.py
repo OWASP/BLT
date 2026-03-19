@@ -375,7 +375,7 @@ async def get_installation_access_token(installation_id: int, jwt_token: str) ->
 
 
 async def create_comment(
-    owner: str, repo: str, number: int, body: str, token: str
+    owner: str, repo: str, number: int, body: str, token: str, raise_on_error: bool = False
 ) -> bool:
     """Post a comment on a GitHub issue or pull request."""
     resp = await github_api(
@@ -393,10 +393,27 @@ async def create_comment(
             f"[GitHub] Failed to create comment on {owner}/{repo}#{number}: "
             f"status={resp.status} body={err_text[:300]}"
         )
-        raise RuntimeError(
-            f"create_comment failed for {owner}/{repo}#{number} status={resp.status}"
-        )
+        if raise_on_error:
+            raise RuntimeError(
+                f"create_comment failed for {owner}/{repo}#{number} status={resp.status}"
+            )
+        return False
     return True
+
+
+async def _create_comment_strict(owner: str, repo: str, number: int, body: str, token: str) -> bool:
+    """Create a comment and raise on failure, with test-double compatibility."""
+    try:
+        return await create_comment(owner, repo, number, body, token, raise_on_error=True)
+    except TypeError as exc:
+        # Some tests patch create_comment with a 5-arg lambda. Retry without the
+        # optional kwarg so strict call-sites remain compatible with those doubles.
+        if "raise_on_error" in str(exc):
+            result = await create_comment(owner, repo, number, body, token)
+            if result is False:
+                raise RuntimeError(f"create_comment failed for {owner}/{repo}#{number}")
+            return True
+        raise
 
 
 async def create_reaction(
@@ -1303,18 +1320,19 @@ async def _track_pr_reopened_in_d1(payload: dict, env) -> None:
     await _ensure_leaderboard_schema(db)
     existing = await _d1_first(
         db,
-        "SELECT state, merged, closed_at FROM leaderboard_pr_state WHERE org = ? AND repo = ? AND pr_number = ?",
+        "SELECT author_login, state, merged, closed_at FROM leaderboard_pr_state WHERE org = ? AND repo = ? AND pr_number = ?",
         (org, repo, pr_number),
     )
 
     # Reopening should reverse the previous close/merge credit so the final
     # state remains accurate when the PR is closed again later.
     if existing and existing.get("state") == "closed":
+        existing_author_login = existing.get("author_login") or author_login
         prev_merged = int(existing.get("merged") or 0)
         prev_closed_at = int(existing.get("closed_at") or 0)
         prev_mk = _month_key(prev_closed_at) if prev_closed_at else _month_key()
         field = "merged_prs" if prev_merged else "closed_prs"
-        await _d1_inc_monthly(db, org, prev_mk, author_login, field, -1)
+        await _d1_inc_monthly(db, org, prev_mk, existing_author_login, field, -1)
 
     if not existing or existing.get("state") != "open":
         await _d1_inc_open_pr(db, org, author_login, 1)
@@ -1902,7 +1920,7 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, de
 
         try:
             all_logins = set(open_by_user.keys()) | set(merged_by_user.keys()) | set(closed_by_user.keys()) | set(review_counts.keys()) | set(preserved_comments.keys())
-            batch_stmts = [
+            destructive_stmts = [
                 ("DELETE FROM leaderboard_open_prs WHERE org = ? AND updated_at <= ?", (owner, reconcile_ts)),
                 (
                     """
@@ -1929,6 +1947,7 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, de
                 ("DELETE FROM leaderboard_backfill_state WHERE org = ?", (owner,)),
                 ("DELETE FROM leaderboard_backfill_repo_done WHERE org = ?", (owner,)),
             ]
+            batch_stmts = []
 
             for login, count in open_by_user.items():
                 batch_stmts.append(
@@ -1941,7 +1960,7 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, de
                             updated_at = excluded.updated_at
                         WHERE leaderboard_open_prs.updated_at <= ?
                         """,
-                        (owner, login, count, reconcile_ts, reconcile_ts),
+                        (owner, login, count, reconcile_ts + 1, reconcile_ts),
                     )
                 )
 
@@ -1959,7 +1978,7 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, de
                             updated_at = excluded.updated_at
                         WHERE leaderboard_pr_state.updated_at <= ?
                         """,
-                        row + (reconcile_ts,),
+                        (row[0], row[1], row[2], row[3], row[4], row[5], row[6], reconcile_ts + 1, reconcile_ts),
                     )
                 )
 
@@ -1984,8 +2003,8 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, de
                             closed_by_user.get(login, 0),
                             int(review_counts.get(login) or 0),
                             int(preserved_comments.get(login) or 0),
-                            reconcile_ts,
-                            reconcile_ts,
+                            reconcile_ts + 1,
+                            reconcile_ts + 1,
                             reconcile_ts,
                         ),
                     )
@@ -1994,6 +2013,10 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, de
             if not await _continue_or_abort():
                 return False
             if not await _d1_batch_chunked(db, batch_stmts, max_batch_statements, _continue_or_abort):
+                return False
+            if not await _continue_or_abort():
+                return False
+            if not await _d1_batch_chunked(db, destructive_stmts, max_batch_statements, _continue_or_abort):
                 return False
         except Exception as exc:
             console.error(f"[LeaderboardReconcile] Batch write failed for {owner}: {exc}")
@@ -2831,7 +2854,7 @@ async def _post_reviewer_leaderboard(owner: str, repo: str, pr_number: int, toke
             if comment_id > 0:
                 snapshot_ids.append(comment_id)
 
-    created = await create_comment(owner, repo, pr_number, comment_body, token)
+    created = await _create_comment_strict(owner, repo, pr_number, comment_body, token)
     if created is False:
         console.error(f"[ReviewerLeaderboard] Failed to post reviewer leaderboard for {owner}/{repo}#{pr_number}")
         return
@@ -2952,7 +2975,7 @@ async def _post_or_update_leaderboard(owner: str, repo: str, issue_number: int, 
             f"[Leaderboard] Failed to list comments for {owner}/{repo}#{issue_number}; posting new leaderboard anyway"
         )
 
-    created = await create_comment(owner, repo, issue_number, comment_body, token)
+    created = await _create_comment_strict(owner, repo, issue_number, comment_body, token)
     if not created:
         console.error(
             f"[Leaderboard] New leaderboard comment failed for {owner}/{repo}#{issue_number}; skipping cleanup deletes"
@@ -4368,7 +4391,7 @@ async def handle_pull_request_opened(payload: dict, token: str, env=None) -> Non
         except Exception:
             mentors_config = []
         try:
-            await _assign_round_robin_mentor_reviewer(owner, repo, pr, mentors_config, token)
+            await _assign_round_robin_mentor_reviewer(owner, repo, pr, mentors_config, token, enabled=auto_reviewer_enabled)
         except Exception as exc:
             console.error(f"[MentorPool] Round-robin reviewer failed (best-effort): {exc}")
 
@@ -4456,15 +4479,16 @@ async def _assign_round_robin_mentor_reviewer(
     pr: dict,
     mentors_config: Optional[list],
     token: str,
+    enabled: bool = False,
 ) -> None:
     """Auto-request one mentor as a reviewer on a newly opened PR (round-robin).
 
-    Enabled only when ``MENTOR_AUTO_PR_REVIEWER_ENABLED`` is ``True``.
+    Enabled when caller passes ``enabled=True``.
     Picks one active mentor using ``(pr_number - 1) mod pool_size`` so the
     assignment cycles predictably across consecutive PRs.  The PR author is
     never chosen as their own reviewer.
     """
-    if not MENTOR_AUTO_PR_REVIEWER_ENABLED:
+    if not enabled:
         return
 
     pool = mentors_config if mentors_config is not None else []
@@ -4553,7 +4577,27 @@ async def _post_merged_pr_combined_comment(
         + reviewer_section
     )
 
-    created = await create_comment(owner, repo, pr_number, combined_body, token)
+    # Snapshot existing marker comments before posting to avoid deleting the
+    # newly-created combined comment during cleanup.
+    old_comments, list_failed = await _fetch_issue_comments_paged(owner, repo, pr_number, token)
+    snapshot_marker_ids = []
+    if list_failed:
+        console.error(
+            f"[MergedPR] Failed to list comments for {owner}/{repo}#{pr_number}: "
+            "status=unknown; skipping duplicate cleanup snapshot"
+        )
+    else:
+        snapshot_marker_ids = [
+            int(c.get("id") or 0)
+            for c in old_comments
+            if any(
+                marker in (c.get("body") or "")
+                for marker in (MERGED_PR_COMMENT_MARKER, LEADERBOARD_MARKER, REVIEWER_LEADERBOARD_MARKER)
+            )
+            and int(c.get("id") or 0) > 0
+        ]
+
+    created = await _create_comment_strict(owner, repo, pr_number, combined_body, token)
     if created is False:
         console.error(f"[MergedPR] Failed to post combined merge comment for {owner}/{repo}#{pr_number}")
         return
@@ -4561,31 +4605,13 @@ async def _post_merged_pr_combined_comment(
     # ---------------------------------------------------------------------------
     # 3. Delete any old separate or combined comment(s) after posting a new one
     # ---------------------------------------------------------------------------
-    old_comments, list_failed = await _fetch_issue_comments_paged(owner, repo, pr_number, token)
-    if list_failed:
-        console.error(
-            f"[MergedPR] Failed to list comments for {owner}/{repo}#{pr_number}: "
-            "status=unknown; leaving potential duplicates"
-        )
-    else:
-        marker_comments = [
-            c
-            for c in old_comments
-            if any(
-                marker in (c.get("body") or "")
-                for marker in (MERGED_PR_COMMENT_MARKER, LEADERBOARD_MARKER, REVIEWER_LEADERBOARD_MARKER)
+    for comment_id in snapshot_marker_ids:
+        delete_resp = await github_api("DELETE", f"/repos/{owner}/{repo}/issues/comments/{comment_id}", token)
+        if delete_resp.status not in (204, 200):
+            console.error(
+                f"[MergedPR] Failed to delete old comment {comment_id} "
+                f"for {owner}/{repo}#{pr_number}: status={delete_resp.status}"
             )
-        ]
-        for c in marker_comments:
-            comment_id = int(c.get("id") or 0)
-            if comment_id <= 0:
-                continue
-            delete_resp = await github_api("DELETE", f"/repos/{owner}/{repo}/issues/comments/{comment_id}", token)
-            if delete_resp.status not in (204, 200):
-                console.error(
-                    f"[MergedPR] Failed to delete old comment {comment_id} "
-                    f"for {owner}/{repo}#{pr_number}: status={delete_resp.status}"
-                )
 
     console.log(f"[MergedPR] Posted combined merge comment for {owner}/{repo}#{pr_number}")
 

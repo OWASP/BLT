@@ -4862,18 +4862,17 @@ class TestRoundRobinMentorReviewer(unittest.TestCase):
         pr = {"number": pr_number, "user": {"login": author}}
 
         async def _inner():
-            with patch.object(_worker, "MENTOR_AUTO_PR_REVIEWER_ENABLED", True):
-                with patch.object(
-                    _worker,
-                    "github_api",
-                    new=AsyncMock(side_effect=lambda m, p, t, b=None: (
-                        reviewer_calls.append(b) or
-                        types.SimpleNamespace(status=201, text=AsyncMock(return_value="{}"))
-                    )),
-                ):
-                    await _worker._assign_round_robin_mentor_reviewer(
-                        "OWASP-BLT", "TestRepo", pr, self._POOL, "tok"
-                    )
+            with patch.object(
+                _worker,
+                "github_api",
+                new=AsyncMock(side_effect=lambda m, p, t, b=None: (
+                    reviewer_calls.append(b) or
+                    types.SimpleNamespace(status=201, text=AsyncMock(return_value="{}"))
+                )),
+            ):
+                await _worker._assign_round_robin_mentor_reviewer(
+                    "OWASP-BLT", "TestRepo", pr, self._POOL, "tok", enabled=True
+                )
 
         _run(_inner())
 
