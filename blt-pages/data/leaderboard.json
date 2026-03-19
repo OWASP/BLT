@@ -1,16 +1,16 @@
 {
-  "updated_at": "2026-03-19T04:01:20.510153Z",
-  "commit_sha": "6b1b677e5571d03be7719569eb8f6c50e9c3c702",
-  "total_bugs": 17,
-  "open_bugs": 4,
+  "updated_at": "2026-03-19T15:53:59.529748Z",
+  "commit_sha": "a03039cb8a5e1908c7bc4516b74d294f1f882b3d",
+  "total_bugs": 18,
+  "open_bugs": 5,
   "closed_bugs": 13,
-  "total_domains": 4,
+  "total_domains": 5,
   "total_orgs": 0,
   "leaderboard": [
     {
       "rank": 1,
       "login": "DonnieBLT",
-      "count": 11,
+      "count": 12,
       "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
       "profile_url": "https://github.com/DonnieBLT"
     },
@@ -175,11 +175,41 @@
     },
     {
       "rank": 4,
+      "domain": "owasp.org",
+      "count": 1
+    },
+    {
+      "rank": 5,
       "domain": "www.owaspblt.org",
       "count": 1
     }
   ],
   "recent_bugs": [
+    {
+      "number": 95,
+      "title": "[BUG] tabs are overlapping",
+      "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/95",
+      "created_at": "2026-03-19T15:53:45Z",
+      "comment_count": 1,
+      "user": {
+        "login": "DonnieBLT",
+        "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
+        "profile_url": "https://github.com/DonnieBLT"
+      },
+      "image_url": "https://github.com/user-attachments/assets/9592f5eb-0bb9-4f09-86bd-7389335eb0d4",
+      "domain": "owasp.org",
+      "reactions": {},
+      "latest_comment": {
+        "body": "👋 Thanks for opening this issue, @DonnieBLT!\n\nOur team will review it shortly. In the meantime:\n- If you'd like to work on this issue, comment `/assign` to get assigned.\n- Visit [OWASP BLT-Pool](https://pool.owaspblt.org) for more information about our bug bounty platform.\n",
+        "created_at": "2026-03-19T15:53:48Z",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/95#issuecomment-4091203993",
+        "user": {
+          "login": "owasp-blt[bot]",
+          "avatar_url": "https://avatars.githubusercontent.com/in/1159228?v=4",
+          "profile_url": "https://github.com/apps/owasp-blt"
+        }
+      }
+    },
     {
       "number": 87,
       "title": "[BUG] open / closed count is not showing correct open counts",
@@ -227,34 +257,6 @@
         "body": "@tiggachris This issue already has the maximum number of assignees (1). Please work on a different issue.",
         "created_at": "2026-03-11T06:13:06Z",
         "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/81#issuecomment-4036768843",
-        "user": {
-          "login": "owasp-blt[bot]",
-          "avatar_url": "https://avatars.githubusercontent.com/in/1159228?v=4",
-          "profile_url": "https://github.com/apps/owasp-blt"
-        }
-      }
-    },
-    {
-      "number": 17,
-      "title": "[BUG] video bugs are not showing up",
-      "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/17",
-      "created_at": "2026-03-02T20:50:49Z",
-      "comment_count": 4,
-      "user": {
-        "login": "DonnieBLT",
-        "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
-        "profile_url": "https://github.com/DonnieBLT"
-      },
-      "image_url": "https://github.com/user-attachments/assets/6c188f2b-5aab-4aad-94f3-d7c540518d45",
-      "domain": "owaspblt.org",
-      "reactions": {
-        "+1": 1,
-        "eyes": 1
-      },
-      "latest_comment": {
-        "body": "@Sub-allllllllllll This issue already has the maximum number of assignees (1). Please work on a different issue.",
-        "created_at": "2026-03-11T13:44:40Z",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/17#issuecomment-4039326491",
         "user": {
           "login": "owasp-blt[bot]",
           "avatar_url": "https://avatars.githubusercontent.com/in/1159228?v=4",
