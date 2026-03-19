@@ -36,6 +36,10 @@ from urllib.parse import quote, urlparse
 
 from js import Headers, Response, console, fetch  # Cloudflare Workers JS bindings
 from index_template import GITHUB_PAGE_HTML  # Landing page HTML template
+from services.check_orchestrator import (
+    dispatch_check_orchestrator_event,
+    should_dispatch_check_orchestrator_event,
+)
 from services.admin import AdminService, has_merged_pr_in_org
 from services.mentor_seed import INITIAL_MENTORS
 
@@ -4502,6 +4506,9 @@ async def handle_webhook(request, env) -> Response:
     blt_api_url = getattr(env, "BLT_API_URL", "https://blt-api.owasp-blt.workers.dev")
 
     try:
+        if should_dispatch_check_orchestrator_event(event, action):
+            await dispatch_check_orchestrator_event(event, action, payload, token, github_api)
+
         if event == "issue_comment" and action == "created":
             await handle_issue_comment(payload, token, env)
         elif event == "issues":
