@@ -809,7 +809,15 @@
     function hideError() {
       errorMessage.classList.add('hidden');
     }
-
+    
+    function sanitizeExternalUrl(rawUrl) {
+      try {
+        const url = new URL(rawUrl, window.location.origin);
+        return ['http:', 'https:'].includes(url.protocol) ? url.toString() : '#';
+      } catch {
+        return '#';
+      }
+    }
     function displayResults(data) {
     const resultsSection = document.getElementById('results-section');
     const githubStats = data.github_stats;
@@ -895,16 +903,7 @@
     // -----------------------------
     const reposContainer = document.getElementById('recommended-repos');
     reposContainer.innerHTML = '';
-
-    function sanitizeExternalUrl(rawUrl) {
-      try {
-        const url = new URL(rawUrl, window.location.origin);
-        return ['http:', 'https:'].includes(url.protocol) ? url.toString() : '#';
-      } catch {
-        return '#';
-      }
-    }
-
+    
     (data.recommended_repos || []).forEach(row => {
       const repo = row?.item ? row.item : row; // support both shapes
 
