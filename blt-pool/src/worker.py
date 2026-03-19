@@ -23,6 +23,7 @@ Environment variables / secrets (configure via ``wrangler.toml`` or
 """
 
 import base64
+import asyncio
 import calendar
 import hashlib
 import hmac as _hmac
@@ -392,7 +393,9 @@ async def create_comment(
             f"[GitHub] Failed to create comment on {owner}/{repo}#{number}: "
             f"status={resp.status} body={err_text[:300]}"
         )
-        return False
+        raise RuntimeError(
+            f"create_comment failed for {owner}/{repo}#{number} status={resp.status}"
+        )
     return True
 
 
@@ -555,9 +558,6 @@ def _env_int(env, name: str, default: int) -> int:
         return value
     except Exception:
         return default
-
-
-_RECONCILE_CONFIG_LOGGED = False
 
 
 def _reconcile_settings(env) -> dict:
@@ -803,6 +803,16 @@ async def _ensure_leaderboard_schema(db) -> None:
             org TEXT NOT NULL PRIMARY KEY,
             holder TEXT NOT NULL,
             lock_until INTEGER NOT NULL,
+            updated_at INTEGER NOT NULL
+        )
+        """,
+    )
+    await _d1_run(
+        db,
+        """
+        CREATE TABLE IF NOT EXISTS leaderboard_runtime_meta (
+            key TEXT NOT NULL PRIMARY KEY,
+            value TEXT NOT NULL,
             updated_at INTEGER NOT NULL
         )
         """,
@@ -1488,20 +1498,43 @@ def _reconcile_lock_holder(org: str) -> str:
     return f"{org}:{int(time.time() * 1000)}:{secrets.token_hex(8)}"
 
 
-def _log_reconcile_config_once(settings: dict) -> None:
-    global _RECONCILE_CONFIG_LOGGED
-    if _RECONCILE_CONFIG_LOGGED:
-        return
-    _RECONCILE_CONFIG_LOGGED = True
-    console.log(
-        "[LeaderboardReconcile] Config "
-        f"repos_per_page={settings['repos_per_page']} "
-        f"prs_per_page={settings['prs_per_page']} "
-        f"max_closed_pages={settings['max_closed_pages']} "
-        f"max_open_pages={settings['max_open_pages']} "
-        f"lock_lease_s={settings['lock_lease_seconds']} "
-        f"timeout_s={settings['timeout_seconds']}"
-    )
+async def _log_reconcile_config_if_needed(db, settings: dict) -> None:
+    """Log reconcile config when changed or stale, deduped across isolates via D1."""
+    try:
+        cfg_value = json.dumps(settings, sort_keys=True)
+        now_ts = int(time.time())
+        row = await _d1_first(
+            db,
+            "SELECT value, updated_at FROM leaderboard_runtime_meta WHERE key = ?",
+            ("reconcile_config",),
+        )
+        last_value = (row or {}).get("value") if isinstance(row, dict) else None
+        last_updated = int((row or {}).get("updated_at") or 0) if isinstance(row, dict) else 0
+        if last_value == cfg_value and (now_ts - last_updated) < 86400:
+            return
+
+        await _d1_run(
+            db,
+            """
+            INSERT INTO leaderboard_runtime_meta (key, value, updated_at)
+            VALUES (?, ?, ?)
+            ON CONFLICT(key) DO UPDATE SET
+                value = excluded.value,
+                updated_at = excluded.updated_at
+            """,
+            ("reconcile_config", cfg_value, now_ts),
+        )
+        console.log(
+            "[LeaderboardReconcile] Config "
+            f"repos_per_page={settings['repos_per_page']} "
+            f"prs_per_page={settings['prs_per_page']} "
+            f"max_closed_pages={settings['max_closed_pages']} "
+            f"max_open_pages={settings['max_open_pages']} "
+            f"lock_lease_s={settings['lock_lease_seconds']} "
+            f"timeout_s={settings['timeout_seconds']}"
+        )
+    except Exception as exc:
+        console.error(f"[LeaderboardReconcile] Failed config log dedupe check: {exc}")
 
 
 async def _acquire_reconcile_lock(db, org: str, holder: str, lease_seconds: int) -> bool:
@@ -1578,7 +1611,13 @@ async def _reconcile_github_api(
         if time.time() >= deadline_ts:
             raise TimeoutError(f"deadline exceeded before request {path}")
 
-        resp = await github_api(method, path, token)
+        remaining = deadline_ts - time.time()
+        if remaining <= 0:
+            raise TimeoutError(f"deadline exceeded before request {path}")
+        try:
+            resp = await asyncio.wait_for(github_api(method, path, token), timeout=max(0.05, float(remaining)))
+        except asyncio.TimeoutError as exc:
+            raise TimeoutError(f"request timeout for {path}") from exc
         status = int(getattr(resp, "status", 0) or 0)
 
         retryable = status == 429 or status in (500, 502, 503, 504)
@@ -1628,10 +1667,10 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, de
     settings = _reconcile_settings(env)
     if deadline_ts is None:
         deadline_ts = time.time() + settings["timeout_seconds"]
-    _log_reconcile_config_once(settings)
     holder = _reconcile_lock_holder(owner)
 
     await _ensure_leaderboard_schema(db)
+    await _log_reconcile_config_if_needed(db, settings)
     acquired = await _acquire_reconcile_lock(db, owner, holder, settings["lock_lease_seconds"])
     if not acquired:
         console.log(f"[LeaderboardReconcile] Lock busy for org={owner}; skipping reconcile")
@@ -1667,17 +1706,29 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, de
         existing_rows = await _d1_all(
             db,
             """
-            SELECT user_login, merged_prs, closed_prs, reviews, comments
+            SELECT user_login, comments
             FROM leaderboard_monthly_stats
             WHERE org = ? AND month_key = ?
             """,
             (owner, month_key),
         )
-        preserved_reviews_comments = {
-            row.get("user_login"): {
-                "reviews": int(row.get("reviews") or 0),
-                "comments": int(row.get("comments") or 0),
-            }
+        review_credit_rows = await _d1_all(
+            db,
+            """
+            SELECT reviewer_login AS user_login, COUNT(*) AS reviews
+            FROM leaderboard_review_credits
+            WHERE org = ? AND month_key = ?
+            GROUP BY reviewer_login
+            """,
+            (owner, month_key),
+        )
+        review_counts = {
+            row.get("user_login"): int(row.get("reviews") or 0)
+            for row in (review_credit_rows or [])
+            if row.get("user_login")
+        }
+        preserved_comments = {
+            row.get("user_login"): int(row.get("comments") or 0)
             for row in (existing_rows or [])
             if row.get("user_login")
         }
@@ -1850,7 +1901,7 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, de
             repo_page += 1
 
         try:
-            all_logins = set(open_by_user.keys()) | set(merged_by_user.keys()) | set(closed_by_user.keys()) | set(preserved_reviews_comments.keys())
+            all_logins = set(open_by_user.keys()) | set(merged_by_user.keys()) | set(closed_by_user.keys()) | set(review_counts.keys()) | set(preserved_comments.keys())
             batch_stmts = [
                 ("DELETE FROM leaderboard_open_prs WHERE org = ? AND updated_at <= ?", (owner, reconcile_ts)),
                 (
@@ -1913,7 +1964,6 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, de
                 )
 
             for login in all_logins:
-                preserved = preserved_reviews_comments.get(login, {})
                 batch_stmts.append(
                     (
                         """
@@ -1932,8 +1982,8 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, de
                             login,
                             merged_by_user.get(login, 0),
                             closed_by_user.get(login, 0),
-                            int(preserved.get("reviews") or 0),
-                            int(preserved.get("comments") or 0),
+                            int(review_counts.get(login) or 0),
+                            int(preserved_comments.get(login) or 0),
                             reconcile_ts,
                             reconcile_ts,
                             reconcile_ts,
