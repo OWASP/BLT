@@ -217,13 +217,31 @@ def _gh_headers(token: str) -> Headers:
     return Headers.new(h.items())
 
 
-async def github_api(method: str, path: str, token: str, body=None):
+async def github_api(method: str, path: str, token: str, body=None, timeout_seconds: Optional[float] = None):
     """Make an authenticated request to the GitHub REST API."""
     url = f"https://api.github.com{path}"
     kwargs = {"method": method, "headers": _gh_headers(token)}
     if body is not None:
         kwargs["body"] = json.dumps(body)
-    return await fetch(url, **kwargs)
+
+    try:
+        if timeout_seconds is not None and float(timeout_seconds) > 0:
+            from js import AbortController, setTimeout, clearTimeout  # noqa: PLC0415 - runtime import
+
+            controller = AbortController.new()
+            kwargs["signal"] = controller.signal
+            timeout_ms = max(1, int(float(timeout_seconds) * 1000))
+            timer_id = setTimeout(lambda: controller.abort(), timeout_ms)
+            try:
+                return await fetch(url, **kwargs)
+            finally:
+                clearTimeout(timer_id)
+
+        return await fetch(url, **kwargs)
+    except Exception:
+        # Fallback for local tests/runtime where AbortController is unavailable.
+        kwargs.pop("signal", None)
+        return await fetch(url, **kwargs)
 
 
 async def _sleep_seconds(seconds: float) -> None:
@@ -438,6 +456,11 @@ async def create_comment(
             )
         return False
     return True
+
+
+async def _create_comment_best_effort(owner: str, repo: str, number: int, body: str, token: str) -> bool:
+    """Post a comment in best-effort mode and retain explicit success/failure semantics."""
+    return await create_comment(owner, repo, number, body, token)
 
 
 async def _create_comment_strict(owner: str, repo: str, number: int, body: str, token: str) -> bool:
@@ -1706,7 +1729,17 @@ async def _reconcile_github_api(
         if remaining <= 0:
             raise TimeoutError(f"deadline exceeded before request {path}")
         try:
-            resp = await asyncio.wait_for(github_api(method, path, token), timeout=max(0.05, float(remaining)))
+            timeout_s = max(0.05, float(remaining))
+            try:
+                resp = await asyncio.wait_for(
+                    github_api(method, path, token, timeout_seconds=timeout_s),
+                    timeout=timeout_s,
+                )
+            except TypeError as exc:
+                if "timeout_seconds" in str(exc):
+                    resp = await asyncio.wait_for(github_api(method, path, token), timeout=timeout_s)
+                else:
+                    raise
         except asyncio.TimeoutError as exc:
             raise TimeoutError(f"request timeout for {path}") from exc
         status = int(getattr(resp, "status", 0) or 0)
@@ -1828,21 +1861,8 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, de
             """,
             (owner, month_key),
         )
-        review_credit_rows = await _d1_all(
-            db,
-            """
-            SELECT reviewer_login AS user_login, COUNT(*) AS reviews
-            FROM leaderboard_review_credits
-            WHERE org = ? AND month_key = ?
-            GROUP BY reviewer_login
-            """,
-            (owner, month_key),
-        )
-        review_counts = {
-            row.get("user_login"): int(row.get("reviews") or 0)
-            for row in (review_credit_rows or [])
-            if row.get("user_login")
-        }
+        review_counts = {}
+        review_credit_rows = []
         preserved_comments = {
             row.get("user_login"): int(row.get("comments") or 0)
             for row in (existing_rows or [])
@@ -2016,6 +2036,52 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, de
                 break
             repo_page += 1
 
+        # Recompute review credits from live PR reviews for all in-month closed
+        # PRs discovered in this reconcile pass so stale D1 review rows self-heal.
+        for row in pr_state_map.values():
+            if not await _continue_or_abort():
+                return False
+            if row[4] != "closed":
+                continue
+
+            repo_name = row[1]
+            pr_number = row[2]
+            reviews_resp = await _reconcile_github_api(
+                "GET",
+                f"/repos/{owner}/{repo_name}/pulls/{pr_number}/reviews?per_page=100",
+                token,
+                deadline_ts,
+            )
+            if reviews_resp.status != 200:
+                console.error(
+                    f"[LeaderboardReconcile] Failed review fetch {owner}/{repo_name}#{pr_number}: "
+                    f"status={reviews_resp.status}"
+                )
+                return False
+
+            reviews = json.loads(await reviews_resp.text())
+            first_review_ts_by_user = {}
+            for review in reviews:
+                reviewer = review.get("user") or {}
+                if _is_bot(reviewer):
+                    continue
+                reviewer_login = reviewer.get("login")
+                submitted_at = review.get("submitted_at")
+                submitted_ts = _parse_github_timestamp(submitted_at) if submitted_at else 0
+                if not reviewer_login or not _is_ts_in_month(submitted_ts, start_ts, end_ts):
+                    continue
+
+                prev_ts = first_review_ts_by_user.get(reviewer_login)
+                if prev_ts is None or submitted_ts < prev_ts:
+                    first_review_ts_by_user[reviewer_login] = submitted_ts
+
+            first_two = sorted(first_review_ts_by_user.items(), key=lambda item: item[1])[:2]
+            for reviewer_login, _submitted_ts in first_two:
+                review_counts[reviewer_login] = review_counts.get(reviewer_login, 0) + 1
+                review_credit_rows.append(
+                    (owner, repo_name, pr_number, month_key, reviewer_login, reconcile_ts + 1, reconcile_ts)
+                )
+
         try:
             all_logins = set(open_by_user.keys()) | set(merged_by_user.keys()) | set(closed_by_user.keys()) | set(review_counts.keys()) | set(preserved_comments.keys())
             destructive_stmts = [
@@ -2042,10 +2108,28 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, de
                     """,
                     (reconcile_ts, owner, month_key, reconcile_ts),
                 ),
+                (
+                    "DELETE FROM leaderboard_review_credits WHERE org = ? AND month_key = ? AND created_at <= ?",
+                    (owner, month_key, reconcile_ts),
+                ),
                 ("DELETE FROM leaderboard_backfill_state WHERE org = ?", (owner,)),
                 ("DELETE FROM leaderboard_backfill_repo_done WHERE org = ?", (owner,)),
             ]
             batch_stmts = []
+
+            for rc_row in review_credit_rows:
+                batch_stmts.append(
+                    (
+                        """
+                        INSERT INTO leaderboard_review_credits (org, repo, pr_number, month_key, reviewer_login, created_at)
+                        VALUES (?, ?, ?, ?, ?, ?)
+                        ON CONFLICT(org, repo, pr_number, month_key, reviewer_login) DO UPDATE SET
+                            created_at = excluded.created_at
+                        WHERE leaderboard_review_credits.created_at <= ?
+                        """,
+                        rc_row,
+                    )
+                )
 
             for login, count in open_by_user.items():
                 batch_stmts.append(
@@ -3078,7 +3162,7 @@ async def _post_or_update_leaderboard(owner: str, repo: str, issue_number: int, 
 
     if leaderboard_data is None:
         console.error(f"[Leaderboard] Owner lookup failed for {owner}; cannot post leaderboard")
-        await create_comment(
+        await _create_comment_best_effort(
             owner,
             repo,
             issue_number,
@@ -3159,7 +3243,7 @@ async def _check_and_close_excess_prs(owner: str, repo: str, pr_number: int, aut
             "If you believe this was closed in error, please contact the maintainers."
         )
         
-        await create_comment(owner, repo, pr_number, msg, token)
+        await _create_comment_best_effort(owner, repo, pr_number, msg, token)
         
         await github_api(
             "PATCH",
@@ -3249,7 +3333,7 @@ async def _check_rank_improvement(owner: str, repo: str, pr_number: int, author_
             f"(up from #{old_rank})! Keep up the great work! 🚀"
         )
     
-    await create_comment(owner, repo, pr_number, msg, token)
+    await _create_comment_best_effort(owner, repo, pr_number, msg, token)
 
 
 # ---------------------------------------------------------------------------
@@ -3750,7 +3834,7 @@ async def _assign_mentor_to_issue(
     )
 
     if mentor is None:
-        await create_comment(
+        await _create_comment_best_effort(
             owner,
             repo,
             issue_number,
@@ -3793,7 +3877,7 @@ async def _assign_mentor_to_issue(
         "Feel free to ask questions here. Use `/rematch` if you need a different mentor.\n\n"
         "Happy coding! 🚀 — [OWASP BLT-Pool](https://pool.owaspblt.org)"
     )
-    await create_comment(owner, repo, issue_number, body, token)
+    await _create_comment_best_effort(owner, repo, issue_number, body, token)
     console.log(
         f"[MentorPool] Assigned @{mentor_username} as mentor for {owner}/{repo}#{issue_number}"
     )
@@ -3823,7 +3907,7 @@ async def handle_mentor_command(
     issue_number = issue["number"]
     current_labels = {lb.get("name", "").lower() for lb in issue.get("labels", [])}
     if MENTOR_ASSIGNED_LABEL.lower() in current_labels:
-        await create_comment(
+        await _create_comment_best_effort(
             owner,
             repo,
             issue_number,
@@ -3857,7 +3941,7 @@ async def handle_mentor_unassign(
     issue_number = issue["number"]
     current_labels = {lb.get("name", "").lower() for lb in issue.get("labels", [])}
     if MENTOR_ASSIGNED_LABEL.lower() not in current_labels:
-        await create_comment(
+        await _create_comment_best_effort(
             owner,
             repo,
             issue_number,
@@ -3882,7 +3966,7 @@ async def handle_mentor_unassign(
     if not is_issue_author and not is_assigned_mentor:
         is_repo_maintainer = await _is_maintainer(owner, repo, login, token)
         if not is_repo_maintainer:
-            await create_comment(
+            await _create_comment_best_effort(
                 owner,
                 repo,
                 issue_number,
@@ -3925,7 +4009,7 @@ async def handle_mentor_unassign(
             console.error(f"[MentorPool] Failed to remove D1 assignment record (best-effort): {exc}")
 
     mentor_mention = f"@{current_mentor} " if current_mentor else ""
-    await create_comment(
+    await _create_comment_best_effort(
         owner,
         repo,
         issue_number,
@@ -3962,7 +4046,7 @@ async def handle_mentor_pause(
         if m.get("github_username") and m.get("active", True)
     }
     if login.lower() not in mentor_usernames:
-        await create_comment(
+        await _create_comment_best_effort(
             owner,
             repo,
             issue["number"],
@@ -3970,7 +4054,7 @@ async def handle_mentor_pause(
             token,
         )
         return
-    await create_comment(
+    await _create_comment_best_effort(
         owner,
         repo,
         issue["number"],
@@ -4004,7 +4088,7 @@ async def handle_mentor_handoff(
     # this issue.  Having two separate gates gives a clearer error message to
     # non-mentor users vs. mentor-pool members who are not assigned here.
     if login.lower() not in mentor_usernames:
-        await create_comment(
+        await _create_comment_best_effort(
             owner,
             repo,
             issue_number,
@@ -4019,7 +4103,7 @@ async def handle_mentor_handoff(
     # Require a confirmed current mentor before proceeding; if the marker is missing
     # (API failure or marker never posted) we cannot safely authorize the handoff.
     if not current_mentor:
-        await create_comment(
+        await _create_comment_best_effort(
             owner,
             repo,
             issue_number,
@@ -4029,7 +4113,7 @@ async def handle_mentor_handoff(
         )
         return
     if current_mentor.lower() != login.lower():
-        await create_comment(
+        await _create_comment_best_effort(
             owner,
             repo,
             issue_number,
@@ -4063,7 +4147,7 @@ async def handle_mentor_handoff(
         owner, repo, updated_issue, contributor or "", token, pool, exclude=login, env=env
     )
     if not assigned:
-        await create_comment(
+        await _create_comment_best_effort(
             owner,
             repo,
             issue_number,
@@ -4095,7 +4179,7 @@ async def handle_mentor_rematch(
     pool = mentors_config if mentors_config is not None else []
     current_labels = {lb.get("name", "").lower() for lb in issue.get("labels", [])}
     if MENTOR_ASSIGNED_LABEL.lower() not in current_labels:
-        await create_comment(
+        await _create_comment_best_effort(
             owner,
             repo,
             issue_number,
@@ -4204,7 +4288,7 @@ async def _check_stale_mentor_assignments(owner: str, repo: str, token: str) -> 
 
                 days_elapsed = int((current_time - last_human_ts) / _SECONDS_PER_DAY)
                 mentor_mention = f"@{current_mentor} " if current_mentor else ""
-                await create_comment(
+                await _create_comment_best_effort(
                     owner,
                     repo,
                     issue_number,
@@ -4268,7 +4352,7 @@ async def handle_issue_comment(payload: dict, token: str, env=None) -> None:
                 await _post_or_update_leaderboard(owner, repo, issue_number, login, token, env)
         except Exception as exc:
             console.error(f"[Leaderboard] Command failed for {owner}/{repo}#{issue_number}: {exc}")
-            await create_comment(
+            await _create_comment_best_effort(
                 owner,
                 repo,
                 issue_number,
@@ -4302,14 +4386,14 @@ async def _assign(
 ) -> None:
     num = issue["number"]
     if issue.get("pull_request"):
-        await create_comment(
+        await _create_comment_best_effort(
             owner, repo, num,
             f"@{login} This command only works on issues, not pull requests.",
             token,
         )
         return
     if issue["state"] == "closed":
-        await create_comment(
+        await _create_comment_best_effort(
             owner, repo, num,
             f"@{login} This issue is already closed and cannot be assigned.",
             token,
@@ -4317,14 +4401,14 @@ async def _assign(
         return
     assignees = [a["login"] for a in issue.get("assignees", [])]
     if login in assignees:
-        await create_comment(
+        await _create_comment_best_effort(
             owner, repo, num,
             f"@{login} You are already assigned to this issue.",
             token,
         )
         return
     if len(assignees) >= MAX_ASSIGNEES:
-        await create_comment(
+        await _create_comment_best_effort(
             owner, repo, num,
             f"@{login} This issue already has the maximum number of assignees "
             f"({MAX_ASSIGNEES}). Please work on a different issue.",
@@ -4341,7 +4425,7 @@ async def _assign(
         "%a, %d %b %Y %H:%M:%S UTC",
         time.gmtime(time.time() + ASSIGNMENT_DURATION_HOURS * 3600),
     )
-    await create_comment(
+    await _create_comment_best_effort(
         owner, repo, num,
         f"@{login} You have been assigned to this issue! 🎉\n\n"
         f"Please submit a pull request within **{ASSIGNMENT_DURATION_HOURS} hours** "
@@ -4359,7 +4443,7 @@ async def _unassign(
     num = issue["number"]
     assignees = [a["login"] for a in issue.get("assignees", [])]
     if login not in assignees:
-        await create_comment(
+        await _create_comment_best_effort(
             owner, repo, num,
             f"@{login} You are not currently assigned to this issue.",
             token,
@@ -4371,7 +4455,7 @@ async def _unassign(
         token,
         {"assignees": [login]},
     )
-    await create_comment(
+    await _create_comment_best_effort(
         owner, repo, num,
         f"@{login} You have been unassigned from this issue. "
         "Thanks for letting us know! 👍\n\n"
@@ -4412,7 +4496,7 @@ async def handle_issue_opened(
                 f"(Bug ID: #{bug_data['id']}). "
                 "Thank you for helping improve security!\n"
             )
-    await create_comment(owner, repo, issue["number"], msg, token)
+    await _create_comment_best_effort(owner, repo, issue["number"], msg, token)
 
 
 async def handle_issue_labeled(
@@ -4457,7 +4541,7 @@ async def handle_issue_labeled(
         "label": label.get("name", "bug"),
     })
     if bug_data and bug_data.get("id"):
-        await create_comment(
+        await _create_comment_best_effort(
             owner, repo, issue["number"],
             f"🐛 This issue has been reported to [OWASP BLT-Pool](https://pool.owaspblt.org) "
             f"(Bug ID: #{bug_data['id']}) after being labeled as "
@@ -5214,7 +5298,7 @@ This pull request needs a peer review before it can be merged. Please request a 
 Once a valid peer review is submitted, this check will pass automatically. Thank you!
 
 > ⚠️ Peer review enforcement is active."""
-            await create_comment(owner, repo, pr_number, body, token)
+            await _create_comment_best_effort(owner, repo, pr_number, body, token)
 
 
 async def handle_pull_request_review(payload: dict, token: str) -> None:
@@ -6686,7 +6770,7 @@ async def _check_stale_assignments(owner: str, repo: str, token: str):
                 
                 # Post a comment explaining the unassignment
                 assignee_mentions = ", ".join(f"@{login}" for login in assignee_logins)
-                await create_comment(
+                await _create_comment_best_effort(
                     owner, repo, issue_number,
                     f"{assignee_mentions} This issue has been automatically unassigned because "
                     f"the {ASSIGNMENT_DURATION_HOURS}-hour deadline has passed without a linked pull request.\n\n"
@@ -6698,3 +6782,4 @@ async def _check_stale_assignments(owner: str, repo: str, token: str):
     
     except Exception as e:
         console.error(f"[CRON] Error checking {owner}/{repo}: {e}")
+
