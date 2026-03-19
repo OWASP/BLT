@@ -4507,7 +4507,15 @@ async def handle_webhook(request, env) -> Response:
 
     try:
         if should_dispatch_check_orchestrator_event(event, action):
-            await dispatch_check_orchestrator_event(event, action, payload, token, github_api)
+            try:
+                await dispatch_check_orchestrator_event(event, action, payload, token, github_api)
+            except Exception as exc:
+                console.error(
+                    "[BLT][checks-dispatch] best-effort dispatch failed: "
+                    f"event={event} action={action} "
+                    f"repo={repo_full_name or '-'} installation={installation_id or '-'} "
+                    f"token_present={bool(token)} error={exc}"
+                )
 
         if event == "issue_comment" and action == "created":
             await handle_issue_comment(payload, token, env)

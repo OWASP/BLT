@@ -129,3 +129,75 @@ def test_dispatch_check_orchestrator_event_skips_when_suite_not_linked_to_prs():
     )
 
     assert dispatched == 0
+
+
+def test_dispatch_check_orchestrator_event_create_non_201_skips_patch_and_counts_zero():
+    payload = {
+        "repository": {"owner": {"login": "OWASP-BLT"}, "name": "BLT-GitHub-App"},
+        "pull_request": {
+            "number": 101,
+            "html_url": "https://github.com/OWASP-BLT/BLT-GitHub-App/pull/101",
+            "head": {"sha": "abc123"},
+        },
+    }
+    calls = []
+
+    async def fake_github_api(method, path, token, body=None):
+        calls.append((method, path, token, body))
+        if method == "POST":
+            return _Resp(503, {"message": "service unavailable"})
+        raise AssertionError("PATCH should not be attempted when create check-run fails")
+
+    dispatched = _run(
+        dispatch_check_orchestrator_event(
+            "pull_request",
+            "opened",
+            payload,
+            "tok",
+            fake_github_api,
+        )
+    )
+
+    assert dispatched == 0
+    assert len(calls) == 1
+    assert calls[0][0] == "POST"
+
+
+def test_dispatch_check_orchestrator_event_patch_error_triggers_corrective_update():
+    payload = {
+        "repository": {"owner": {"login": "OWASP-BLT"}, "name": "BLT-GitHub-App"},
+        "pull_request": {
+            "number": 101,
+            "html_url": "https://github.com/OWASP-BLT/BLT-GitHub-App/pull/101",
+            "head": {"sha": "abc123"},
+        },
+    }
+    calls = []
+
+    async def fake_github_api(method, path, token, body=None):
+        calls.append((method, path, token, body))
+        if method == "POST":
+            return _Resp(201, {"id": 9001})
+        if method == "PATCH" and "check-runs/9001" in path and body.get("conclusion") == "neutral":
+            return _Resp(500, {"message": "patch failed"})
+        if method == "PATCH" and "check-runs/9001" in path and body.get("conclusion") == "failure":
+            return _Resp(200, {"id": 9001})
+        raise AssertionError("Unexpected github_api call")
+
+    dispatched = _run(
+        dispatch_check_orchestrator_event(
+            "pull_request",
+            "opened",
+            payload,
+            "tok",
+            fake_github_api,
+        )
+    )
+
+    assert dispatched == 0
+    assert len(calls) == 3
+    assert calls[0][0] == "POST"
+    assert calls[1][0] == "PATCH"
+    assert calls[1][3]["conclusion"] == "neutral"
+    assert calls[2][0] == "PATCH"
+    assert calls[2][3]["conclusion"] == "failure"

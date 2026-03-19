@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import json
+import logging
 
 from checks_api import build_create_check_run_payload, build_update_check_run_payloads
 
 CHECK_ORCHESTRATOR_NAME = "BLT Check Orchestrator"
 _PR_DISPATCH_ACTIONS = {"opened", "synchronize", "reopened"}
+_logger = logging.getLogger(__name__)
 
 
 def should_dispatch_check_orchestrator_event(event: str, action: str) -> bool:
@@ -81,9 +83,10 @@ async def dispatch_check_orchestrator_event(
 ) -> int:
     """Create and complete orchestrator check-runs for each dispatch request.
 
-    Returns the number of dispatch requests attempted.
+    Returns the number of dispatch requests successfully completed.
     """
     dispatch_requests = build_check_dispatch_requests(event, action, payload)
+    successful_dispatches = 0
 
     for request in dispatch_requests:
         owner = request["owner"]
@@ -108,7 +111,20 @@ async def dispatch_check_orchestrator_event(
         if create_resp.status not in (200, 201):
             continue
 
-        create_data = json.loads(await create_resp.text())
+        create_data = {}
+        try:
+            create_data = json.loads(await create_resp.text())
+        except (json.JSONDecodeError, ValueError) as exc:
+            _logger.error(
+                "check-orchestrator: failed to parse create check-run response "
+                "for %s/%s pr=%s status=%s error=%s",
+                owner,
+                repo_name,
+                pr_number,
+                create_resp.status,
+                exc,
+            )
+
         check_run_id = create_data.get("id")
         if not check_run_id:
             continue
@@ -125,11 +141,61 @@ async def dispatch_check_orchestrator_event(
             conclusion="neutral",
         )[0]
 
-        await github_api(
-            "PATCH",
-            f"/repos/{owner}/{repo_name}/check-runs/{check_run_id}",
-            token,
-            update_payload,
-        )
+        patch_path = f"/repos/{owner}/{repo_name}/check-runs/{check_run_id}"
+        try:
+            patch_resp = await github_api(
+                "PATCH",
+                patch_path,
+                token,
+                update_payload,
+            )
+        except Exception as exc:
+            _logger.error(
+                "check-orchestrator: patch request failed for %s/%s check_run_id=%s payload=%s error=%s",
+                owner,
+                repo_name,
+                check_run_id,
+                update_payload,
+                exc,
+            )
+            patch_resp = None
 
-    return len(dispatch_requests)
+        if not patch_resp or patch_resp.status not in (200, 201):
+            _logger.error(
+                "check-orchestrator: patch response failed for %s/%s check_run_id=%s status=%s payload=%s",
+                owner,
+                repo_name,
+                check_run_id,
+                getattr(patch_resp, "status", "<exception>"),
+                update_payload,
+            )
+            corrective_payload = build_update_check_run_payloads(
+                status="completed",
+                title="Checks Dispatch Entrypoint",
+                summary=(
+                    f"Dispatch encountered an internal error while finalizing check run "
+                    f"for `{event}.{action}` on PR #{pr_number}."
+                ),
+                conclusion="failure",
+            )[0]
+            try:
+                await github_api(
+                    "PATCH",
+                    patch_path,
+                    token,
+                    corrective_payload,
+                )
+            except Exception as exc:
+                _logger.error(
+                    "check-orchestrator: corrective patch failed for %s/%s check_run_id=%s payload=%s error=%s",
+                    owner,
+                    repo_name,
+                    check_run_id,
+                    corrective_payload,
+                    exc,
+                )
+            continue
+
+        successful_dispatches += 1
+
+    return successful_dispatches
