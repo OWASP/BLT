@@ -94,6 +94,18 @@ function timeAgo(dateStr) {
   return Math.floor(secs / 31536000) + 'y ago';
 }
 
+function debounce(func, wait) {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+}
+
 function escapeHtml(str) {
   if (!str) return '';
   return str
@@ -200,6 +212,13 @@ async function loadRepos() {
       buildLabelFilter(allRepos);
       const searchInput = document.getElementById('search-input');
       if (searchInput) searchInput.placeholder = `Search ${allRepos.length} repositories…`;
+      
+      // Pre-calculate expensive metrics
+      allRepos.forEach(r => {
+        r._maturityScore = maturityScore(r);
+        r._maturityMeta = maturityMeta(r._maturityScore);
+      });
+
       applyFilters();
       const generatedAt = payload.generated_at
         ? new Date(payload.generated_at).toLocaleString()
@@ -233,6 +252,13 @@ async function loadRepos() {
     buildLabelFilter(repos);
     const searchInput = document.getElementById('search-input');
     if (searchInput) searchInput.placeholder = `Search ${allRepos.length} repositories…`;
+    
+    // Pre-calculate expensive metrics
+    allRepos.forEach(r => {
+      r._maturityScore = maturityScore(r);
+      r._maturityMeta = maturityMeta(r._maturityScore);
+    });
+
     applyFilters();
     const footerTs = document.getElementById('footer-ts');
     if (footerTs) {
@@ -427,7 +453,7 @@ function applyFilters() {
       if (currentSort === 'name') return a.name.localeCompare(b.name);
       if (currentSort === 'updated_at' || currentSort === 'created_at')
         return new Date(b[currentSort]) - new Date(a[currentSort]);
-      if (currentSort === 'maturity') return maturityScore(b) - maturityScore(a);
+      if (currentSort === 'maturity') return (b._maturityScore || 0) - (a._maturityScore || 0);
       return (b[currentSort] || 0) - (a[currentSort] || 0);
     });
   }
@@ -474,7 +500,17 @@ function renderRepos(repos) {
     if (sidebar) sidebar.classList.remove('force-hidden');
     if (layout) layout.classList.remove('table-view');
     if (header) header.classList.remove('table-view-header');
-    grid.innerHTML = repos.map(repo => repoCardHTML(repo)).join('');
+    
+    // Use DocumentFragment for more efficient DOM insertion
+    const fragment = document.createDocumentFragment();
+    repos.forEach(repo => {
+      const temp = document.createElement('div');
+      temp.innerHTML = repoCardHTML(repo);
+      fragment.appendChild(temp.firstElementChild);
+    });
+    grid.innerHTML = '';
+    grid.appendChild(fragment);
+
     // Attach error handlers for screenshot images to show placeholder on load failure
     grid.querySelectorAll('img[data-screenshot-placeholder]').forEach(img => {
       img.addEventListener('error', function() {
@@ -528,9 +564,9 @@ function repoCardHTML(r) {
   // Star history sparkline
   const starSparkline = sparklineSVG(r.star_history, 80, 20, 'text-yellow-400 opacity-80');
 
-  // Maturity score badge
-  const score = maturityScore(r);
-  const { label: matLabel, color: matColor, bg: matBg } = maturityMeta(score);
+  // Maturity score badge (using pre-calculated values)
+  const score = r._maturityScore || 0;
+  const { label: matLabel, color: matColor, bg: matBg } = r._maturityMeta || maturityMeta(0);
   const maturityBadge = `<span class="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${matBg} ${matColor}" title="Maturity score: ${score}/100"><i class="fa-solid fa-rocket" aria-hidden="true"></i>${matLabel} ${score}</span>`;
 
   // Cloud icon for repos with wrangler.toml
@@ -781,8 +817,14 @@ function renderTableView(repos, container) {
   const sorted = [...repos].sort((a, b) => {
     let v;
     if (tableSortCol === 'name')       v = a.name.localeCompare(b.name);
-    else if (tableSortCol === 'updated_at') v = new Date(a.updated_at) - new Date(b.updated_at);
-    else if (tableSortCol === 'maturity')   v = maturityScore(a) - maturityScore(b);
+    else if (tableSortCol === 'maturity') {
+      v = (a._maturityScore || 0) - (b._maturityScore || 0);
+    }
+    else if (tableSortCol === 'updated_at' || tableSortCol === 'created_at' || tableSortCol === 'pushed_at') {
+      const ta = new Date(a[tableSortCol]);
+      const tb = new Date(b[tableSortCol]);
+      v = ta - tb;
+    }
     else if (tableSortCol === 'open_issues_count') v = repoIssueCount(a) - repoIssueCount(b);
     else if (tableSortCol === 'topics') v = (a.topics || []).length - (b.topics || []).length;
     else if (tableSortCol === 'latest_release') {
@@ -845,8 +887,8 @@ function renderTableView(repos, container) {
   // Build rows
   const rows = sorted.map((r, i) => {
     const langColor = LANG_COLORS[r.language] || '#8b949e';
-    const score = maturityScore(r);
-    const { label: matLabel, color: matColor, bg: matBg } = maturityMeta(score);
+    const score = r._maturityScore || 0;
+    const { label: matLabel, color: matColor, bg: matBg } = r._maturityMeta || maturityMeta(0);
     const rowBg = i % 2 === 0
       ? 'bg-white dark:bg-gray-900'
       : 'bg-gray-50/60 dark:bg-gray-800/60';
@@ -1056,14 +1098,11 @@ if (sortSelect) sortSelect.value = currentSort;
 if (sortSelectMobile) sortSelectMobile.value = currentSort;
 document.querySelectorAll('.sort-btn').forEach(b => b.classList.toggle('nav-active', b.dataset.sort === currentSort));
 
-// Search (debounced)
-let searchTimer;
+// Search (using the new robust debounce utility)
+const debouncedApplyFilters = debounce(applyFilters, 300);
 on('search-input', 'input', e => {
-  clearTimeout(searchTimer);
-  searchTimer = setTimeout(() => {
-    currentSearch = e.target.value.trim();
-    applyFilters();
-  }, 250);
+  currentSearch = e.target.value.trim();
+  debouncedApplyFilters();
 });
 
 // Sort (header select)
@@ -1203,3 +1242,4 @@ window.addEventListener('resize', () => {
 });
 
 loadRepos();
+
