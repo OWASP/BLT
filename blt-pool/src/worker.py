@@ -224,6 +224,111 @@ async def github_api(method: str, path: str, token: str, body=None):
     return await fetch(url, **kwargs)
 
 
+async def _sleep_seconds(seconds: float) -> None:
+    """Async sleep helper that works in Workers runtime and local tests."""
+    delay = max(0.0, float(seconds or 0.0))
+    if delay <= 0:
+        return
+    try:
+        from js import Promise, setTimeout  # noqa: PLC0415 - runtime import
+        await Promise.new(lambda resolve, reject: setTimeout(resolve, int(delay * 1000)))
+    except Exception:
+        # Local-test fallback.
+        time.sleep(delay)
+
+
+def _retry_after_seconds(resp) -> int:
+    """Parse Retry-After from a GitHub response, defaulting to 1s."""
+    try:
+        raw = None
+        headers = getattr(resp, "headers", None)
+        if headers is not None:
+            raw = headers.get("Retry-After")
+            if raw is None:
+                raw = headers.get("retry-after")
+        value = int(raw) if raw is not None else 1
+        return max(1, value)
+    except Exception:
+        return 1
+
+
+async def _github_search_issues_paged(owner: str, token: str, query: str, max_pages: int = 3) -> list:
+    """Fetch paginated GitHub Search issues results for an org query."""
+    items = []
+    page = 1
+    while page <= max_pages:
+        resp = await github_api(
+            "GET",
+            f"/search/issues?q={query}+org:{owner}&per_page=100&page={page}",
+            token,
+        )
+        if resp.status != 200:
+            break
+        data = json.loads(await resp.text())
+        page_items = data.get("items", [])
+        if not page_items:
+            break
+        items.extend(page_items)
+        if len(page_items) < 100:
+            break
+        page += 1
+    return items
+
+
+async def _fetch_issue_comments_paged(owner: str, repo: str, issue_number: int, token: str, sort_query: str = "") -> tuple[list, bool]:
+    """Fetch all issue comments with pagination; returns (comments, list_failed)."""
+    comments = []
+    page = 1
+    list_failed = False
+    while True:
+        sep = "&" if sort_query else ""
+        resp = await github_api(
+            "GET",
+            f"/repos/{owner}/{repo}/issues/{issue_number}/comments?per_page=100{sep}{sort_query}&page={page}",
+            token,
+        )
+        if resp.status != 200:
+            list_failed = True
+            break
+        page_comments = json.loads(await resp.text())
+        comments.extend(page_comments)
+        if len(page_comments) < 100:
+            break
+        page += 1
+    return comments, list_failed
+
+
+def _pr_state_upsert_sql() -> str:
+    return """
+        INSERT INTO leaderboard_pr_state (org, repo, pr_number, author_login, state, merged, closed_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(org, repo, pr_number) DO UPDATE SET
+            author_login = excluded.author_login,
+            state = excluded.state,
+            merged = excluded.merged,
+            closed_at = excluded.closed_at,
+            updated_at = excluded.updated_at
+    """
+
+
+async def _d1_upsert_pr_state(
+    db,
+    org: str,
+    repo: str,
+    pr_number: int,
+    author_login: str,
+    state: str,
+    merged: int,
+    closed_at: Optional[int],
+    updated_at: int,
+) -> None:
+    await _d1_run(
+        db,
+        _pr_state_upsert_sql(),
+        (org, repo, pr_number, author_login, state, int(merged), closed_at, updated_at),
+    )
+
+
 async def get_installation_token(
     installation_id: int, app_id: str, private_key: str
 ) -> Optional[str]:
@@ -1050,19 +1155,26 @@ async def _d1_inc_monthly(db, org: str, month_key: str, user_login: str, field: 
         console.error(f"[D1] Failed to update {field} org={org} month={month_key} user={user_login}: {e}")
 
 
-async def _track_pr_opened_in_d1(payload: dict, env) -> None:
-    db = _d1_binding(env)
-    if not db:
-        return
+def _extract_pr_tracking_context(payload: dict) -> tuple:
     pr = payload.get("pull_request") or {}
     author = pr.get("user") or {}
     if _is_bot(author):
-        return
+        return None, None, None, None, None, None
     org = (payload.get("repository") or {}).get("owner", {}).get("login", "")
     repo = (payload.get("repository") or {}).get("name", "")
     pr_number = pr.get("number")
     author_login = author.get("login", "")
     if not (org and repo and pr_number and author_login):
+        return None, None, None, None, None, None
+    return pr, author, org, repo, pr_number, author_login
+
+
+async def _track_pr_opened_in_d1(payload: dict, env) -> None:
+    db = _d1_binding(env)
+    if not db:
+        return
+    pr, author, org, repo, pr_number, author_login = _extract_pr_tracking_context(payload)
+    if not org:
         return
 
     await _ensure_leaderboard_schema(db)
@@ -1080,40 +1192,20 @@ async def _track_pr_opened_in_d1(payload: dict, env) -> None:
         await _d1_inc_open_pr(db, org, author_login, 1)
 
     now = int(time.time())
-    await _d1_run(
-        db,
-        """
-        INSERT INTO leaderboard_pr_state (org, repo, pr_number, author_login, state, merged, closed_at, updated_at)
-        VALUES (?, ?, ?, ?, 'open', 0, NULL, ?)
-        ON CONFLICT(org, repo, pr_number) DO UPDATE SET
-            author_login = excluded.author_login,
-            state = 'open',
-            merged = 0,
-            closed_at = NULL,
-            updated_at = excluded.updated_at
-        """,
-        (org, repo, pr_number, author_login, now),
-    )
+    await _d1_upsert_pr_state(db, org, repo, pr_number, author_login, "open", 0, None, now)
 
 
 async def _track_pr_closed_in_d1(payload: dict, env) -> None:
     db = _d1_binding(env)
     if not db:
         return
-    pr = payload.get("pull_request") or {}
-    author = pr.get("user") or {}
-    if _is_bot(author):
+    pr, author, org, repo, pr_number, author_login = _extract_pr_tracking_context(payload)
+    if not org:
         return
-    org = (payload.get("repository") or {}).get("owner", {}).get("login", "")
-    repo = (payload.get("repository") or {}).get("name", "")
-    pr_number = pr.get("number")
-    author_login = author.get("login", "")
     closed_at = pr.get("closed_at")
     merged_at = pr.get("merged_at")
     merged = bool(pr.get("merged"))
     closed_ts = _parse_github_timestamp(closed_at) if closed_at else int(time.time())
-    if not (org and repo and pr_number and author_login):
-        return
 
     await _ensure_leaderboard_schema(db)
     existing = await _d1_first(
@@ -1150,20 +1242,7 @@ async def _track_pr_closed_in_d1(payload: dict, env) -> None:
         await _d1_inc_monthly(db, org, mk, author_login, "closed_prs", 1)
 
     now = int(time.time())
-    await _d1_run(
-        db,
-        """
-        INSERT INTO leaderboard_pr_state (org, repo, pr_number, author_login, state, merged, closed_at, updated_at)
-        VALUES (?, ?, ?, ?, 'closed', ?, ?, ?)
-        ON CONFLICT(org, repo, pr_number) DO UPDATE SET
-            author_login = excluded.author_login,
-            state = 'closed',
-            merged = excluded.merged,
-            closed_at = excluded.closed_at,
-            updated_at = excluded.updated_at
-        """,
-        (org, repo, pr_number, author_login, 1 if merged else 0, closed_ts, now),
-    )
+    await _d1_upsert_pr_state(db, org, repo, pr_number, author_login, "closed", 1 if merged else 0, closed_ts, now)
 
 
 async def _track_pr_reopened_in_d1(payload: dict, env) -> None:
@@ -1171,16 +1250,8 @@ async def _track_pr_reopened_in_d1(payload: dict, env) -> None:
     if not db:
         return
 
-    pr = payload.get("pull_request") or {}
-    author = pr.get("user") or {}
-    if _is_bot(author):
-        return
-
-    org = (payload.get("repository") or {}).get("owner", {}).get("login", "")
-    repo = (payload.get("repository") or {}).get("name", "")
-    pr_number = pr.get("number")
-    author_login = author.get("login", "")
-    if not (org and repo and pr_number and author_login):
+    pr, author, org, repo, pr_number, author_login = _extract_pr_tracking_context(payload)
+    if not org:
         return
 
     await _ensure_leaderboard_schema(db)
@@ -1203,20 +1274,7 @@ async def _track_pr_reopened_in_d1(payload: dict, env) -> None:
         await _d1_inc_open_pr(db, org, author_login, 1)
 
     now = int(time.time())
-    await _d1_run(
-        db,
-        """
-        INSERT INTO leaderboard_pr_state (org, repo, pr_number, author_login, state, merged, closed_at, updated_at)
-        VALUES (?, ?, ?, ?, 'open', 0, NULL, ?)
-        ON CONFLICT(org, repo, pr_number) DO UPDATE SET
-            author_login = excluded.author_login,
-            state = 'open',
-            merged = 0,
-            closed_at = NULL,
-            updated_at = excluded.updated_at
-        """,
-        (org, repo, pr_number, author_login, now),
-    )
+    await _d1_upsert_pr_state(db, org, repo, pr_number, author_login, "open", 0, None, now)
 
 
 async def _track_comment_in_d1(payload: dict, env) -> None:
@@ -1470,6 +1528,50 @@ async def _refresh_reconcile_lock(db, org: str, holder: str, lease_seconds: int)
         return False
 
 
+async def _reconcile_github_api(
+    method: str,
+    path: str,
+    token: str,
+    deadline_ts: float,
+    *,
+    max_retries: int = 2,
+):
+    """GitHub API call with bounded retries for 429/5xx under a reconcile deadline."""
+    attempt = 0
+    while True:
+        if time.time() >= deadline_ts:
+            raise TimeoutError(f"deadline exceeded before request {path}")
+
+        resp = await github_api(method, path, token)
+        status = int(getattr(resp, "status", 0) or 0)
+
+        retryable = status == 429 or status in (500, 502, 503, 504)
+        if not retryable or attempt >= max_retries:
+            return resp
+
+        retry_after = _retry_after_seconds(resp) if status == 429 else (attempt + 1)
+        remaining = deadline_ts - time.time()
+        if remaining <= 0:
+            return resp
+        wait_s = min(float(retry_after), max(0.0, remaining - 0.05))
+        if wait_s <= 0:
+            return resp
+
+        console.error(
+            f"[LeaderboardReconcile] Retryable GitHub response status={status} path={path} "
+            f"attempt={attempt + 1}/{max_retries}; waiting {wait_s:.2f}s"
+        )
+        await _sleep_seconds(wait_s)
+        attempt += 1
+
+
+async def _d1_batch_chunked(db, statements: list, chunk_size: int) -> None:
+    """Execute D1 batches in chunks to avoid oversized batch payloads."""
+    size = max(1, int(chunk_size or 1))
+    for i in range(0, len(statements), size):
+        await _d1_batch(db, statements[i : i + size])
+
+
 async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, deadline_ts: Optional[float] = None) -> bool:
     """Rebuild current-month leaderboard PR stats from live GitHub state.
 
@@ -1483,6 +1585,8 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, de
         return False
 
     settings = _reconcile_settings(env)
+    if deadline_ts is None:
+        deadline_ts = time.time() + settings["timeout_seconds"]
     _log_reconcile_config_once(settings)
     holder = _reconcile_lock_holder(owner)
 
@@ -1516,6 +1620,8 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, de
         month_key = _month_key()
         start_ts, end_ts = _month_window(month_key)
         reconcile_ts = int(time.time())
+        max_tracked_pr_entries = _env_int(env, "RECONCILE_MAX_TRACKED_PRS", 120000)
+        max_batch_statements = _env_int(env, "RECONCILE_MAX_BATCH_STATEMENTS", 900)
 
         existing_rows = await _d1_all(
             db,
@@ -1545,10 +1651,11 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, de
         while True:
             if not await _continue_or_abort():
                 return False
-            repos_resp = await github_api(
+            repos_resp = await _reconcile_github_api(
                 "GET",
                 f"/orgs/{owner}/repos?sort=full_name&direction=asc&per_page={settings['repos_per_page']}&page={repo_page}",
                 token,
+                deadline_ts,
             )
             if repos_resp.status != 200:
                 console.error(
@@ -1569,10 +1676,11 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, de
                 while True:
                     if not await _continue_or_abort():
                         return False
-                    open_resp = await github_api(
+                    open_resp = await _reconcile_github_api(
                         "GET",
                         f"/repos/{owner}/{repo_name}/pulls?state=open&per_page={settings['prs_per_page']}&page={open_page}",
                         token,
+                        deadline_ts,
                     )
                     if open_resp.status != 200:
                         console.error(
@@ -1584,6 +1692,8 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, de
                         break
 
                     for pr in open_prs:
+                        if not await _continue_or_abort():
+                            return False
                         user = pr.get("user") or {}
                         if _is_bot(user):
                             continue
@@ -1594,6 +1704,11 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, de
                         key = (repo_name, pr_number)
                         if key in seen_open_prs:
                             continue
+                        if len(seen_open_prs) >= max_tracked_pr_entries:
+                            console.error(
+                                f"[LeaderboardReconcile] Tracked PR cap reached for org={owner} while scanning open PRs; aborting"
+                            )
+                            return False
                         seen_open_prs[key] = login
                         open_by_user[login] = open_by_user.get(login, 0) + 1
                         pr_state_map[key] = (owner, repo_name, pr_number, login, "open", 0, None, reconcile_ts)
@@ -1603,9 +1718,9 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, de
                     if open_page >= settings["max_open_pages"]:
                         console.error(
                             f"[LeaderboardReconcile] Open PR pagination cap reached for {owner}/{repo_name} at page={open_page}; "
-                            "continuing with capped open snapshot"
+                            "aborting reconcile to avoid open PR undercount"
                         )
-                        break
+                        return False
                     open_page += 1
 
                 # Snapshot current-month closed/merged PR outcomes in this repo.
@@ -1613,10 +1728,11 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, de
                 while closed_page <= settings["max_closed_pages"]:
                     if not await _continue_or_abort():
                         return False
-                    closed_resp = await github_api(
+                    closed_resp = await _reconcile_github_api(
                         "GET",
                         f"/repos/{owner}/{repo_name}/pulls?state=closed&sort=updated&direction=desc&per_page={settings['prs_per_page']}&page={closed_page}",
                         token,
+                        deadline_ts,
                     )
                     if closed_resp.status != 200:
                         console.error(
@@ -1628,6 +1744,8 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, de
                         break
 
                     for pr in closed_prs:
+                        if not await _continue_or_abort():
+                            return False
                         user = pr.get("user") or {}
                         if _is_bot(user):
                             continue
@@ -1636,6 +1754,11 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, de
                         if not (login and pr_number):
                             continue
                         key = (repo_name, pr_number)
+                        if len(pr_state_map) >= max_tracked_pr_entries and key not in pr_state_map:
+                            console.error(
+                                f"[LeaderboardReconcile] Tracked PR cap reached for org={owner} while scanning closed PRs; aborting"
+                            )
+                            return False
 
                         # If this PR was seen open earlier in this reconcile pass, undo
                         # that open snapshot before recording its closed/merged state.
@@ -1778,7 +1901,7 @@ async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, de
 
             if not await _continue_or_abort():
                 return False
-            await _d1_batch(db, batch_stmts)
+            await _d1_batch_chunked(db, batch_stmts, max_batch_statements)
         except Exception as exc:
             console.error(f"[LeaderboardReconcile] Batch write failed for {owner}: {exc}")
             return False
@@ -2269,22 +2392,8 @@ async def _calculate_leaderboard_stats(owner: str, repos: list, token: str, wind
     Returns:
         Dictionary with user stats and sorted leaderboard
     """
-    now_seconds = int(time.time())
-    now = time.gmtime(now_seconds)
-    
-    # Calculate time window
-    start_of_month = time.struct_time((now.tm_year, now.tm_mon, 1, 0, 0, 0, 0, 0, 0))
-    start_timestamp = int(time.mktime(start_of_month))
-    
-    # End of month calculation
-    if now.tm_mon == 12:
-        end_month = 1
-        end_year = now.tm_year + 1
-    else:
-        end_month = now.tm_mon + 1
-        end_year = now.tm_year
-    end_of_month = time.struct_time((end_year, end_month, 1, 0, 0, 0, 0, 0, 0))
-    end_timestamp = int(time.mktime(end_of_month)) - 1
+    month_key = _month_key()
+    start_timestamp, end_timestamp = _month_window(month_key)
     
     # Format date range for search API
     start_date = time.strftime("%Y-%m-%d", time.gmtime(start_timestamp))
@@ -2306,80 +2415,36 @@ async def _calculate_leaderboard_stats(owner: str, repos: list, token: str, wind
     # Use GitHub Search API to query across ALL repos efficiently
     # This dramatically reduces API calls: ~6 calls total vs 150+ with per-repo approach
     
-    # 1. Count open PRs (current state across all repos) - 1-2 calls
-    page = 1
-    while page <= 3:  # Max 3 pages = 300 PRs
-        resp = await github_api(
-            "GET",
-            f"/search/issues?q=is:pr+is:open+org:{owner}&per_page=100&page={page}",
-            token
-        )
-        if resp.status != 200:
-            break
-        data = json.loads(await resp.text())
-        items = data.get("items", [])
-        if not items:
-            break
-        
-        for pr in items:
-            if pr.get("user") and not _is_bot(pr["user"]):
-                login = pr["user"]["login"]
-                ensure_user(login)
-                user_stats[login]["openPrs"] += 1
-        
-        if len(items) < 100:
-            break
-        page += 1
+    # 1. Count open PRs (current state across all repos)
+    for pr in await _github_search_issues_paged(owner, token, "is:pr+is:open", max_pages=3):
+        if pr.get("user") and not _is_bot(pr["user"]):
+            login = pr["user"]["login"]
+            ensure_user(login)
+            user_stats[login]["openPrs"] += 1
     
-    # 2. Fetch merged PRs from this month - 1-2 calls
-    page = 1
-    while page <= 3:
-        resp = await github_api(
-            "GET",
-            f"/search/issues?q=is:pr+is:merged+org:{owner}+merged:{start_date}..{end_date}&per_page=100&page={page}",
-            token
-        )
-        if resp.status != 200:
-            break
-        data = json.loads(await resp.text())
-        items = data.get("items", [])
-        if not items:
-            break
-        
-        for pr in items:
-            if pr.get("user") and not _is_bot(pr["user"]):
-                login = pr["user"]["login"]
-                ensure_user(login)
-                user_stats[login]["mergedPrs"] += 1
-        
-        if len(items) < 100:
-            break
-        page += 1
+    # 2. Fetch merged PRs from this month
+    for pr in await _github_search_issues_paged(
+        owner,
+        token,
+        f"is:pr+is:merged+merged:{start_date}..{end_date}",
+        max_pages=3,
+    ):
+        if pr.get("user") and not _is_bot(pr["user"]):
+            login = pr["user"]["login"]
+            ensure_user(login)
+            user_stats[login]["mergedPrs"] += 1
     
-    # 3. Fetch closed (not merged) PRs from this month - 1-2 calls
-    page = 1
-    while page <= 3:
-        resp = await github_api(
-            "GET",
-            f"/search/issues?q=is:pr+is:closed+is:unmerged+org:{owner}+closed:{start_date}..{end_date}&per_page=100&page={page}",
-            token
-        )
-        if resp.status != 200:
-            break
-        data = json.loads(await resp.text())
-        items = data.get("items", [])
-        if not items:
-            break
-        
-        for pr in items:
-            if pr.get("user") and not _is_bot(pr["user"]):
-                login = pr["user"]["login"]
-                ensure_user(login)
-                user_stats[login]["closedPrs"] += 1
-        
-        if len(items) < 100:
-            break
-        page += 1
+    # 3. Fetch closed (not merged) PRs from this month
+    for pr in await _github_search_issues_paged(
+        owner,
+        token,
+        f"is:pr+is:closed+is:unmerged+closed:{start_date}..{end_date}",
+        max_pages=3,
+    ):
+        if pr.get("user") and not _is_bot(pr["user"]):
+            login = pr["user"]["login"]
+            ensure_user(login)
+            user_stats[login]["closedPrs"] += 1
     
     # 4. Search for comments in this month across org (optional, budget permitting)
     # Limit to 2 pages to stay under budget
@@ -2657,10 +2722,13 @@ async def _post_reviewer_leaderboard(owner: str, repo: str, pr_number: int, toke
 
     comment_body = _format_reviewer_leaderboard_comment(leaderboard_data, owner, pr_reviewers)
 
-    # Delete any existing reviewer leaderboard comment then post a fresh one
-    resp = await github_api("GET", f"/repos/{owner}/{repo}/issues/{pr_number}/comments?per_page=100", token)
-    if resp.status == 200:
-        existing_comments = json.loads(await resp.text())
+    # Delete any existing reviewer leaderboard comment then post a fresh one.
+    existing_comments, list_failed = await _fetch_issue_comments_paged(owner, repo, pr_number, token)
+    if list_failed:
+        console.error(
+            f"[ReviewerLeaderboard] Failed to list comments for {owner}/{repo}#{pr_number}; posting new comment anyway"
+        )
+    else:
         for c in existing_comments:
             body = c.get("body") or ""
             if REVIEWER_LEADERBOARD_MARKER in body:
@@ -2773,34 +2841,11 @@ async def _post_or_update_leaderboard(owner: str, repo: str, issue_number: int, 
     
     # Delete existing leaderboard comment(s) and old /leaderboard command comments,
     # then create a fresh leaderboard comment.
-    comments = []
-    comment_page = 1
-    list_failed = False
-    while True:
-        resp = await github_api(
-            "GET",
-            f"/repos/{owner}/{repo}/issues/{issue_number}/comments?per_page=100&page={comment_page}",
-            token,
+    comments, list_failed = await _fetch_issue_comments_paged(owner, repo, issue_number, token)
+    if list_failed:
+        console.error(
+            f"[Leaderboard] Failed to list comments for {owner}/{repo}#{issue_number}; posting new leaderboard anyway"
         )
-        if resp.status != 200:
-            if comment_page == 1:
-                console.error(
-                    f"[Leaderboard] Failed to list comments for {owner}/{repo}#{issue_number}: "
-                    f"status={resp.status}; posting new leaderboard anyway"
-                )
-            else:
-                console.error(
-                    f"[Leaderboard] Comment pagination stopped early for {owner}/{repo}#{issue_number} "
-                    f"at page={comment_page}: status={resp.status}"
-                )
-            list_failed = True
-            break
-
-        page_comments = json.loads(await resp.text())
-        comments.extend(page_comments)
-        if len(page_comments) < 100:
-            break
-        comment_page += 1
 
     created = await create_comment(owner, repo, issue_number, comment_body, token)
     if not created:
@@ -4406,9 +4451,13 @@ async def _post_merged_pr_combined_comment(
     # ---------------------------------------------------------------------------
     # 3. Delete any old separate or combined comment(s), then post the new one
     # ---------------------------------------------------------------------------
-    resp = await github_api("GET", f"/repos/{owner}/{repo}/issues/{pr_number}/comments?per_page=100", token)
-    if resp.status == 200:
-        old_comments = json.loads(await resp.text())
+    old_comments, list_failed = await _fetch_issue_comments_paged(owner, repo, pr_number, token)
+    if list_failed:
+        console.error(
+            f"[MergedPR] Failed to list comments for {owner}/{repo}#{pr_number}: "
+            "status=unknown; posting new comment anyway"
+        )
+    else:
         for c in old_comments:
             body = c.get("body") or ""
             if any(
@@ -4421,11 +4470,6 @@ async def _post_merged_pr_combined_comment(
                         f"[MergedPR] Failed to delete old comment {c['id']} "
                         f"for {owner}/{repo}#{pr_number}: status={delete_resp.status}"
                     )
-    else:
-        console.error(
-            f"[MergedPR] Failed to list comments for {owner}/{repo}#{pr_number}: "
-            f"status={resp.status}; posting new comment anyway"
-        )
 
     await create_comment(owner, repo, pr_number, combined_body, token)
     console.log(f"[MergedPR] Posted combined merge comment for {owner}/{repo}#{pr_number}")
