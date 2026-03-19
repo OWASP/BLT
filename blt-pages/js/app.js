@@ -11,11 +11,11 @@ document.addEventListener("DOMContentLoaded", () => {
   initDarkMode();
   initMobileMenu();
   initAnonymousToggle();
-  initPricing();
   loadLeaderboard();
   loadRecentBugs();
   initSmoothScroll();
   bltCapture("page_viewed", { page: "homepage" });
+  initLeaderboardFilters();
 });
 
 /* ────────────────────────────────────────────────────────────
@@ -47,10 +47,24 @@ function initMobileMenu() {
   const menu = document.getElementById("mobile-menu");
   if (!toggle || !menu) return;
 
+  const desktopBreakpoint = window.matchMedia("(min-width: 1024px)");
+  const syncMenuState = () => {
+    if (desktopBreakpoint.matches) {
+      menu.classList.add("hidden");
+      toggle.setAttribute("aria-expanded", "false");
+    }
+  };
+
   toggle.addEventListener("click", () => {
     const open = menu.classList.toggle("hidden");
     toggle.setAttribute("aria-expanded", String(!open));
   });
+
+  if (typeof desktopBreakpoint.addEventListener === "function") {
+    desktopBreakpoint.addEventListener("change", syncMenuState);
+  } else {
+    desktopBreakpoint.addListener(syncMenuState);
+  }
 
   // Close when a nav link is clicked
   menu.querySelectorAll("a").forEach((link) => {
@@ -59,6 +73,8 @@ function initMobileMenu() {
       toggle.setAttribute("aria-expanded", "false");
     });
   });
+
+  syncMenuState();
 }
 
 /* ────────────────────────────────────────────────────────────
@@ -86,116 +102,13 @@ function initAnonymousToggle() {
 }
 
 /* ────────────────────────────────────────────────────────────
-   Pricing Section
-──────────────────────────────────────────────────────────── */
-function initPricing() {
-  const section = document.getElementById("pricing");
-  const navLink = document.getElementById("pricing-nav-link");
-  const navLinkMobile = document.getElementById("pricing-nav-link-mobile");
-
-  if (!section) return;
-
-  if (!BLT_CONFIG.SHOW_PRICING) {
-    section.classList.add("hidden");
-    section.style.display = "none";
-    if (navLink) { navLink.classList.add("hidden"); navLink.style.display = "none"; }
-    if (navLinkMobile) { navLinkMobile.classList.add("hidden"); navLinkMobile.style.display = "none"; }
-    return;
-  }
-
-  section.classList.remove("hidden");
-  section.style.display = "";
-  if (navLink) { navLink.classList.remove("hidden"); navLink.style.display = ""; }
-  if (navLinkMobile) { navLinkMobile.classList.remove("hidden"); navLinkMobile.style.display = ""; }
-
-  // If the page was loaded with #pricing in the URL, scroll to the
-  // now-visible pricing section so deep links keep working.
-  if (location.hash === "#pricing") {
-    section.scrollIntoView();
-  }
-
-  // Render pricing plans dynamically
-  const grid = document.getElementById("pricing-grid");
-  if (!grid) return;
-
-  BLT_CONFIG.PRICING_PLANS.forEach((plan) => {
-    const priceText =
-      plan.price === null
-        ? "Custom"
-        : plan.price === 0
-          ? "Free"
-          : `$${plan.price}`;
-
-    const featuresHtml = plan.features
-      .map(
-        (f) =>
-          `<li class="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400">
-             <svg class="fa-icon text-primary mt-0.5 flex-shrink-0" aria-hidden="true"><use href="#fa-check"></use></svg>
-             <span>${f}</span>
-           </li>`
-      )
-      .join("");
-
-    const highlightClasses = plan.highlighted
-      ? "border-primary shadow-lg ring-2 ring-primary"
-      : "border-neutral-border dark:border-gray-700";
-
-    const badgeHtml = plan.highlighted
-      ? `<span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-white text-xs font-bold px-3 py-1 rounded-full">Most Popular</span>`
-      : "";
-
-    const ctaClasses = plan.highlighted
-      ? "bg-primary hover:bg-primary-hover text-white"
-      : "border-2 border-primary text-primary hover:bg-primary hover:text-white";
-
-    const shareHtml =
-      plan.id === "pro"
-        ? `<p class="text-xs text-center text-gray-500 dark:text-gray-400 mt-3">
-             <svg class="fa-icon text-primary mr-1" aria-hidden="true"><use href="#fa-hand-holding-dollar"></use></svg>
-             Reporters earn <strong class="text-primary">${BLT_CONFIG.REVENUE_SHARE_PERCENT}%</strong> of your subscription
-           </p>`
-        : "";
-
-    grid.insertAdjacentHTML(
-      "beforeend",
-      `<div class="relative bg-white dark:bg-dark-surface border ${highlightClasses} rounded-2xl p-8">
-         ${badgeHtml}
-         <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-1">${plan.name}</h3>
-         <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">${plan.description}</p>
-         <div class="mb-6">
-           <span class="text-4xl font-bold text-gray-900 dark:text-white">${priceText}</span>
-           <span class="text-sm text-gray-500 dark:text-gray-400 ml-1">${plan.period}</span>
-         </div>
-         <ul class="space-y-3 mb-8">${featuresHtml}</ul>
-         <a href="${plan.cta_href}" data-plan-id="${plan.id}" data-plan-name="${plan.name}" class="flex items-center justify-center w-full font-semibold px-6 py-3 rounded-xl transition-colors ${ctaClasses}">
-           ${plan.cta}
-         </a>
-         ${shareHtml}
-       </div>`
-    );
-  });
-
-  grid.addEventListener("click", (e) => {
-    const cta = e.target.closest("[data-plan-id]");
-    if (cta) {
-      bltCapture("pricing_plan_cta_clicked", {
-        plan: cta.dataset.planId,
-        plan_name: cta.dataset.planName,
-      });
-    }
-  });
-}
-
-/* ────────────────────────────────────────────────────────────
    Leaderboard
 ──────────────────────────────────────────────────────────── */
 function updateHeaderBugStats(total, open, closed) {
-  const headerTotal = document.getElementById("header-stat-total");
-  const headerOpen = document.getElementById("header-stat-open");
-  const headerClosed = document.getElementById("header-stat-closed");
-  if (headerTotal) headerTotal.textContent = formatNumber(total || 0);
-  if (headerOpen) headerOpen.textContent = formatNumber(open != null ? open : 0);
-  if (headerClosed) headerClosed.textContent = formatNumber(closed != null ? closed : 0);
+  const statOpen = document.getElementById("stat-open-bugs");
+  const statClosed = document.getElementById("stat-closed-bugs");
+  if (statOpen) statOpen.textContent = formatNumber(open != null ? open : 0);
+  if (statClosed) statClosed.textContent = formatNumber(closed != null ? closed : 0);
 }
 
 async function loadLeaderboard() {
@@ -206,13 +119,21 @@ async function loadLeaderboard() {
 
   if (!container) return;
 
+  const isHomepage = !!document.getElementById("homepage-leaderboard-limit");
+  const limit = isHomepage ? 5 : 0; // 0 means no limit
+
   // Skip re-render when content has already been server-side rendered into the HTML,
   // but still update the relative timestamps from the embedded inline data.
   if (container.dataset.preRendered === "true") {
-    const inlineData = window.__BLT_LEADERBOARD__;
+    const inlineData = getLeaderboardData();
     if (inlineData) {
       updateTimestamps(inlineData);
       updateHeaderBugStats(inlineData.total_bugs, inlineData.open_bugs, inlineData.closed_bugs);
+      if (isHomepage) {
+        renderLeaderboard(container, inlineData, limit);
+        renderTopCommenters(document.getElementById("commenters-rows"), inlineData, limit);
+        renderTopDomains(document.getElementById("domains-rows"), inlineData, limit);
+      }
     }
     bltCapture("leaderboard_loaded", { source: "pre_rendered", entries: container.childElementCount });
     return;
@@ -220,11 +141,12 @@ async function loadLeaderboard() {
 
   try {
     // Use inline data embedded by GitHub Action if available
-    const inlineData = window.__BLT_LEADERBOARD__;
+    const inlineData = getLeaderboardData();
     if (inlineData && inlineData.leaderboard) {
-      renderLeaderboard(container, inlineData);
-      renderTopCommenters(document.getElementById("commenters-rows"), inlineData);
-      renderTopDomains(document.getElementById("domains-rows"), inlineData);
+      currentLeaderboardData = inlineData;
+      renderLeaderboard(container, inlineData, limit);
+      renderTopCommenters(document.getElementById("commenters-rows"), inlineData, isHomepage ? 5 : 0);
+      renderTopDomains(document.getElementById("domains-rows"), inlineData, isHomepage ? 5 : 0);
       if (statBugs) statBugs.textContent = formatNumber(inlineData.total_bugs || 0);
       if (statReporters) statReporters.textContent = formatNumber(inlineData.leaderboard.length || 0);
       if (statDomains) statDomains.textContent = inlineData.total_domains != null ? formatNumber(inlineData.total_domains) : "-";
@@ -236,9 +158,10 @@ async function loadLeaderboard() {
     const res = await fetch("data/leaderboard.json");
     if (!res.ok) throw new Error("No static data");
     const data = await res.json();
-    renderLeaderboard(container, data);
-    renderTopCommenters(document.getElementById("commenters-rows"), data);
-    renderTopDomains(document.getElementById("domains-rows"), data);
+    currentLeaderboardData = data;
+    renderLeaderboard(container, data, limit);
+    renderTopCommenters(document.getElementById("commenters-rows"), data, isHomepage ? 5 : 0);
+    renderTopDomains(document.getElementById("domains-rows"), data, isHomepage ? 5 : 0);
     if (statBugs) statBugs.textContent = formatNumber(data.total_bugs || 0);
     if (statReporters) statReporters.textContent = formatNumber(data.leaderboard?.length || 0);
     if (statDomains) statDomains.textContent = data.total_domains != null ? formatNumber(data.total_domains) : "-";
@@ -247,8 +170,9 @@ async function loadLeaderboard() {
   } catch {
     // Fall back to GitHub API (subject to rate limits for unauthenticated calls)
     try {
-      await loadLeaderboardFromAPI(container, statBugs, statDomains, statReporters);
-    } catch (err) {
+      await loadLeaderboardFromAPI(container, statBugs, statDomains, statReporters, limit);
+    } catch (err2) {
+      console.error("API Fallback failed:", { context: "loadLeaderboardFromAPI", error: err2 });
       container.innerHTML = `<tr><td colspan="4" class="text-center py-8 text-gray-500 dark:text-gray-400">
         <svg class="fa-icon text-primary mr-2" aria-hidden="true"><use href="#fa-circle-exclamation"></use></svg>
         Could not load leaderboard. <a href="https://github.com/${BLT_CONFIG.REPO_OWNER}/${BLT_CONFIG.REPO_NAME}/issues" class="text-primary underline" target="_blank" rel="noopener noreferrer">View on GitHub</a>
@@ -257,7 +181,17 @@ async function loadLeaderboard() {
   }
 }
 
-async function loadLeaderboardFromAPI(container, statBugs, statDomains, statReporters) {
+/**
+ * Centralized data access helper for leaderboard information.
+ * Returns either the server-side rendered (SSR) inline data or the latest fetched state.
+ */
+function getLeaderboardData() {
+  return window.__BLT_LEADERBOARD__ || currentLeaderboardData;
+}
+
+let currentLeaderboardData = null;
+
+async function loadLeaderboardFromAPI(container, statBugs, statDomains, statReporters, limit = 0) {
   const url = `https://api.github.com/repos/${BLT_CONFIG.REPO_OWNER}/${BLT_CONFIG.REPO_NAME}/issues?state=all&labels=bug&per_page=100`;
   const res = await fetch(url, { headers: { Accept: "application/vnd.github+json" } });
   if (!res.ok) throw new Error(`GitHub API error ${res.status}`);
@@ -316,9 +250,10 @@ async function loadLeaderboardFromAPI(container, statBugs, statDomains, statRepo
     updated_at: new Date().toISOString(),
   };
 
-  renderLeaderboard(container, data);
-  renderTopCommenters(document.getElementById("commenters-rows"), data);
-  renderTopDomains(document.getElementById("domains-rows"), data);
+  currentLeaderboardData = data;
+  renderLeaderboard(container, data, limit);
+  renderTopCommenters(document.getElementById("commenters-rows"), data, limit);
+  renderTopDomains(document.getElementById("domains-rows"), data, limit);
   if (statBugs) statBugs.textContent = formatNumber(data.total_bugs);
   if (statDomains) statDomains.textContent = data.total_domains != null ? formatNumber(data.total_domains) : "-";
   if (statReporters) statReporters.textContent = formatNumber(leaderboard.length);
@@ -326,7 +261,19 @@ async function loadLeaderboardFromAPI(container, statBugs, statDomains, statRepo
   bltCapture("leaderboard_loaded", { source: "github_api", entries: leaderboard.length });
 }
 
-function renderLeaderboard(container, data) {
+function renderLeaderboard(container, data, limit = 0, filter = "") {
+  if (!container || !data) return;
+  const query = filter.trim().toLowerCase();
+  let leaderboard = data.leaderboard || [];
+
+  if (query) {
+    leaderboard = leaderboard.filter((e) => e.login.toLowerCase().includes(query));
+  }
+
+  if (limit > 0) {
+    leaderboard = leaderboard.slice(0, limit);
+  }
+
   if (!data.leaderboard || data.leaderboard.length === 0) {
     container.innerHTML = `<tr><td colspan="4" class="text-center py-12 text-gray-500 dark:text-gray-400">
       <svg class="fa-icon text-4xl text-gray-300 dark:text-gray-600 block mb-3" aria-hidden="true"><use href="#fa-trophy"></use></svg>
@@ -335,10 +282,17 @@ function renderLeaderboard(container, data) {
     return;
   }
 
-  const rankIcons = ["🥇", "🥈", "🥉"];
-  const maxCount = data.leaderboard[0]?.count || 1;
+  if (leaderboard.length === 0) {
+    container.innerHTML = `<tr><td colspan="4" class="text-center py-12 text-gray-500 dark:text-gray-400">
+      No collaborators matched "${escapeHtml(filter)}".
+    </td></tr>`;
+    return;
+  }
 
-  container.innerHTML = data.leaderboard
+  const rankIcons = ["🥇", "🥈", "🥉"];
+  const maxCount = leaderboard[0]?.count || 1;
+
+  container.innerHTML = leaderboard
     .map((entry) => {
       const rankDisplay =
         entry.rank <= 3
@@ -351,44 +305,51 @@ function renderLeaderboard(container, data) {
           : "hover:bg-gray-50 dark:hover:bg-gray-800/50";
 
       const activityPct = Math.min(100, (entry.count / maxCount) * 100);
+      const isCompact = limit > 0;
+
       return `<tr class="${rowClass} transition-colors">
-        <td class="px-4 py-3 text-center w-12">${rankDisplay}</td>
-        <td class="px-4 py-3">
+        <td class="px-3 py-2 text-center w-10">${rankDisplay}</td>
+        <td class="px-3 py-2">
           <a href="${entry.profile_url || `https://github.com/${entry.login}`}"
              target="_blank" rel="noopener noreferrer"
-             class="flex items-center gap-3 group min-w-0">
+             class="flex items-center gap-2 group min-w-0">
             <img src="${entry.avatar_url || `https://github.com/${entry.login}.png`}"
                  alt="${escapeHtml(entry.login)}'s avatar"
-                 class="w-8 h-8 rounded-full border border-neutral-border dark:border-gray-700 flex-shrink-0"
+                 class="w-6 h-6 rounded-full border border-neutral-border dark:border-gray-700 flex-shrink-0"
                  loading="lazy"
                  onerror="this.src='https://github.com/identicons/${escapeHtml(entry.login)}.png'" />
-            <span class="font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors truncate min-w-0 flex-1">
+            <span class="font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors truncate min-w-0 flex-1 text-sm">
               ${escapeHtml(entry.login)}
             </span>
           </a>
-          <div class="flex sm:hidden items-center gap-2 mt-1 pl-11">
+          ${isCompact ? '' : `
+          <div class="flex sm:hidden items-center gap-2 mt-1 pl-8">
             <span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white text-xs">
               <svg class="fa-icon text-primary text-xs" aria-hidden="true"><use href="#fa-bug"></use></svg>
               ${formatNumber(entry.count)}
             </span>
-            <div class="bg-gray-100 dark:bg-gray-700 rounded-full h-1.5 flex-1 overflow-hidden">
-              <div class="bg-primary h-1.5 rounded-full" style="width:${activityPct}%"></div>
+            <div class="bg-gray-100 dark:bg-gray-700 rounded-full h-1 flex-1 overflow-hidden">
+              <div class="bg-primary h-1 rounded-full" style="width:${activityPct}%"></div>
             </div>
-          </div>
+          </div>`}
         </td>
+        ${isCompact ? `
+        <td class="px-3 py-2 text-right">
+          <span class="font-bold text-gray-900 dark:text-white text-sm">${formatNumber(entry.count)}</span>
+        </td>` : `
         <td class="hidden px-4 py-3 text-right sm:table-cell">
           <span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white">
             <svg class="fa-icon text-primary text-xs" aria-hidden="true"><use href="#fa-bug"></use></svg>
             ${formatNumber(entry.count)}
           </span>
         </td>
-        <td class="px-4 py-3 hidden sm:table-cell">
+        <td class="px-4 py-3 hidden sm:table-cell" title="Impact Score: Based on total contributions">
           <div class="flex justify-end">
-            <div class="bg-gray-100 dark:bg-gray-700 rounded-full h-2 w-24 overflow-hidden">
-              <div class="bg-primary h-2 rounded-full" style="width:${activityPct}%"></div>
+            <div class="flex gap-0.5 items-end h-4 w-24">
+              ${renderActivitySparkline(entry.count, maxCount, 12)}
             </div>
           </div>
-        </td>
+        </td>`}
       </tr>`;
     })
     .join("");
@@ -431,9 +392,10 @@ async function loadRecentBugs() {
   // In the non-SSR path, first try the API to fetch reactions
   try {
     await loadRecentBugsFromAPI(grid);
-  } catch {
+  } catch (err) {
+    console.warn("Recent bugs API failed, falling back to inline data:", err);
     // Fall back to inline data if available (no reactions, but no extra request)
-    const inlineData = window.__BLT_LEADERBOARD__;
+    const inlineData = getLeaderboardData();
     if (inlineData && inlineData.recent_bugs && inlineData.recent_bugs.length > 0) {
       renderRecentBugs(inlineData.recent_bugs);
       bltCapture("recent_bugs_loaded", { source: "inline_data", count: inlineData.recent_bugs.length });
@@ -500,7 +462,7 @@ async function loadRecentBugsFromAPI(grid) {
         if (issue.comments > 0) {
           try {
             const commentsRes = await fetch(
-              `${baseUrl}/issues/${issue.number}/comments?per_page=1&sort=created&direction=desc`,
+              `${baseUrl}/issues/${issue.number}/comments?per_page=1&page=${issue.comments}`,
               { headers: { Accept: "application/vnd.github+json" } }
             );
 
@@ -706,11 +668,21 @@ function renderRecentBugs(bugs) {
 /* ────────────────────────────────────────────────────────────
    Top Commenters
 ──────────────────────────────────────────────────────────── */
-function renderTopCommenters(container, data) {
-  if (!container) return;
+function renderTopCommenters(container, data, limit = 0, filter = "") {
+  if (!container || !data) return;
 
-  const commenters = data.top_commenters || [];
-  if (commenters.length === 0) {
+  const query = filter.trim().toLowerCase();
+  let commenters = data.top_commenters || [];
+
+  if (query) {
+    commenters = commenters.filter((e) => e.login.toLowerCase().includes(query));
+  }
+
+  if (limit > 0) {
+    commenters = commenters.slice(0, limit);
+  }
+
+  if (!data.top_commenters || data.top_commenters.length === 0) {
     container.innerHTML = `<tr><td colspan="4" class="text-center py-12 text-gray-500 dark:text-gray-400">
       <svg class="fa-icon text-4xl text-gray-300 dark:text-gray-600 block mb-3" aria-hidden="true"><use href="#fa-comment"></use></svg>
       No comments yet. Start a conversation on a <a href="https://github.com/${BLT_CONFIG.REPO_OWNER}/${BLT_CONFIG.REPO_NAME}/issues" class="text-primary underline hover:no-underline" target="_blank" rel="noopener noreferrer">bug report</a>!
@@ -718,8 +690,17 @@ function renderTopCommenters(container, data) {
     return;
   }
 
+  if (commenters.length === 0) {
+    container.innerHTML = `<tr><td colspan="4" class="text-center py-12 text-gray-500 dark:text-gray-400">
+      No collaborators matched "${escapeHtml(filter)}".
+    </td></tr>`;
+    return;
+  }
+
   const rankIcons = ["🥇", "🥈", "🥉"];
   const maxCount = commenters[0]?.count || 1;
+
+  const isCompact = limit > 0;
 
   container.innerHTML = commenters
     .map((entry) => {
@@ -734,44 +715,47 @@ function renderTopCommenters(container, data) {
           : "hover:bg-gray-50 dark:hover:bg-gray-800/50";
 
       const activityPct = Math.min(100, (entry.count / maxCount) * 100);
+
       return `<tr class="${rowClass} transition-colors">
-        <td class="px-4 py-3 text-center w-12">${rankDisplay}</td>
-        <td class="px-4 py-3">
+        <td class="px-3 py-2 text-center w-10">${rankDisplay}</td>
+        <td class="px-3 py-2">
           <a href="${entry.profile_url || `https://github.com/${entry.login}`}"
              target="_blank" rel="noopener noreferrer"
-             class="flex items-center gap-3 group min-w-0">
+             class="flex items-center gap-2 group min-w-0">
             <img src="${entry.avatar_url || `https://github.com/${entry.login}.png`}"
                  alt="${escapeHtml(entry.login)}'s avatar"
-                 class="w-8 h-8 rounded-full border border-neutral-border dark:border-gray-700 flex-shrink-0"
+                 class="w-6 h-6 rounded-full border border-neutral-border dark:border-gray-700 flex-shrink-0"
                  loading="lazy"
                  onerror="this.src='https://github.com/identicons/${escapeHtml(entry.login)}.png'" />
-            <span class="font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors truncate min-w-0 flex-1">
+            <span class="font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors truncate min-w-0 flex-1 text-sm">
               ${escapeHtml(entry.login)}
             </span>
           </a>
-          <div class="flex sm:hidden items-center gap-2 mt-1 pl-11">
+          ${isCompact ? '' : `
+          <div class="flex sm:hidden items-center gap-2 mt-1 pl-8">
             <span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white text-xs">
               <svg class="fa-icon text-primary text-xs" aria-hidden="true"><use href="#fa-comment"></use></svg>
               ${formatNumber(entry.count)}
             </span>
-            <div class="bg-gray-100 dark:bg-gray-700 rounded-full h-1.5 flex-1 overflow-hidden">
-              <div class="bg-primary h-1.5 rounded-full" style="width:${activityPct}%"></div>
+            <div class="bg-gray-100 dark:bg-gray-700 rounded-full h-1 flex-1 overflow-hidden">
+              <div class="bg-primary h-1 rounded-full" style="width:${activityPct}%"></div>
             </div>
-          </div>
+          </div>`}
         </td>
-        <td class="hidden px-4 py-3 text-right sm:table-cell">
-          <span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white">
-            <svg class="fa-icon text-primary text-xs" aria-hidden="true"><use href="#fa-comment"></use></svg>
+        <td class="${isCompact ? 'px-3 py-2' : 'hidden px-4 py-3 sm:table-cell'} text-right">
+          <span class="font-bold text-gray-900 dark:text-white ${isCompact ? 'text-sm' : ''}">
+            ${isCompact ? '' : `<svg class="fa-icon text-primary text-xs mr-1" aria-hidden="true"><use href="#fa-comment"></use></svg>`}
             ${formatNumber(entry.count)}
           </span>
         </td>
-        <td class="px-4 py-3 hidden sm:table-cell">
+        ${isCompact ? '' : `
+        <td class="px-4 py-3 hidden sm:table-cell" title="Impact Score: Based on total contributions">
           <div class="flex justify-end">
-            <div class="bg-gray-100 dark:bg-gray-700 rounded-full h-2 w-24 overflow-hidden">
-              <div class="bg-primary h-2 rounded-full" style="width:${activityPct}%"></div>
+            <div class="flex gap-0.5 items-end h-4 w-24">
+              ${renderActivitySparkline(entry.count, maxCount, 12)}
             </div>
           </div>
-        </td>
+        </td>`}
       </tr>`;
     })
     .join("");
@@ -780,11 +764,21 @@ function renderTopCommenters(container, data) {
 /* ────────────────────────────────────────────────────────────
    Top Domains
 ──────────────────────────────────────────────────────────── */
-function renderTopDomains(container, data) {
-  if (!container) return;
+function renderTopDomains(container, data, limit = 0, filter = "") {
+  if (!container || !data) return;
 
-  const domains = data.top_domains || [];
-  if (domains.length === 0) {
+  const query = filter.trim().toLowerCase();
+  let domains = data.top_domains || [];
+
+  if (query) {
+    domains = domains.filter((e) => e.domain.toLowerCase().includes(query));
+  }
+
+  if (limit > 0) {
+    domains = domains.slice(0, limit);
+  }
+
+  if (!data.top_domains || data.top_domains.length === 0) {
     container.innerHTML = `<tr><td colspan="4" class="text-center py-12 text-gray-500 dark:text-gray-400">
       <svg class="fa-icon text-4xl text-gray-300 dark:text-gray-600 block mb-3" aria-hidden="true"><use href="#fa-globe"></use></svg>
       No domain data yet. <a href="https://github.com/${BLT_CONFIG.REPO_OWNER}/${BLT_CONFIG.REPO_NAME}/issues/new?template=bug_report.yml" class="text-primary underline hover:no-underline">Be the first to report a bug!</a>
@@ -792,8 +786,17 @@ function renderTopDomains(container, data) {
     return;
   }
 
+  if (domains.length === 0) {
+    container.innerHTML = `<tr><td colspan="4" class="text-center py-12 text-gray-500 dark:text-gray-400">
+      No domains matched "${escapeHtml(filter)}".
+    </td></tr>`;
+    return;
+  }
+
   const rankIcons = ["🥇", "🥈", "🥉"];
   const maxCount = domains[0]?.count || 1;
+
+  const isCompact = limit > 0;
 
   container.innerHTML = domains
     .map((entry) => {
@@ -811,46 +814,57 @@ function renderTopDomains(container, data) {
       const activityPct = Math.min(100, (entry.count / maxCount) * 100);
 
       return `<tr class="${rowClass} transition-colors">
-        <td class="px-4 py-3 text-center w-12">${rankDisplay}</td>
-        <td class="px-4 py-3">
-          <a href="https://${escapeHtml(entry.domain)}"
+        <td class="px-3 py-2 text-center w-10">${rankDisplay}</td>
+        <td class="px-3 py-2">
+        <a href="https://github.com/${BLT_CONFIG.REPO_OWNER}/${BLT_CONFIG.REPO_NAME}/issues?q=is:issue+label:%22domain:%20${encodeURIComponent(entry.domain)}%22"
              target="_blank" rel="noopener noreferrer"
-             class="flex items-center gap-3 group min-w-0">
+             class="flex items-center gap-2 group min-w-0">
             <img src="${faviconUrl}"
                  alt="${escapeHtml(entry.domain)} favicon"
                  class="w-5 h-5 rounded flex-shrink-0"
                  loading="lazy"
                  onerror="this.outerHTML='<svg class=\'fa-icon text-gray-400 w-5 h-5 flex-shrink-0\' aria-hidden=\'true\'><use href=\'#fa-globe\'></use></svg>'" />
-            <span class="font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors truncate min-w-0 flex-1">
+            <span class="font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors truncate min-w-0 flex-1 text-sm">
               ${escapeHtml(entry.domain)}
             </span>
           </a>
-          <div class="flex sm:hidden items-center gap-2 mt-1 pl-8">
-            <span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white text-xs">
-              <svg class="fa-icon text-primary text-xs" aria-hidden="true"><use href="#fa-bug"></use></svg>
-              ${formatNumber(entry.count)}
-            </span>
-            <div class="bg-gray-100 dark:bg-gray-700 rounded-full h-1.5 flex-1 overflow-hidden">
-              <div class="bg-primary h-1.5 rounded-full" style="width:${activityPct}%"></div>
-            </div>
-          </div>
         </td>
-        <td class="hidden px-4 py-3 text-right sm:table-cell">
-          <span class="inline-flex items-center gap-1 font-bold text-gray-900 dark:text-white">
-            <svg class="fa-icon text-primary text-xs" aria-hidden="true"><use href="#fa-bug"></use></svg>
-            ${formatNumber(entry.count)}
-          </span>
+        <td class="px-3 py-2 text-right">
+          <span class="font-bold text-gray-900 dark:text-white text-sm">${formatNumber(entry.count)}</span>
         </td>
-        <td class="px-4 py-3 hidden sm:table-cell">
+        ${isCompact ? '' : `
+        <td class="px-4 py-3 hidden sm:table-cell" title="Impact Score: Based on total contributions">
           <div class="flex justify-end">
-            <div class="bg-gray-100 dark:bg-gray-700 rounded-full h-2 w-24 overflow-hidden">
-              <div class="bg-primary h-2 rounded-full" style="width:${activityPct}%"></div>
+            <div class="flex gap-0.5 items-end h-4 w-24">
+              ${renderActivitySparkline(entry.count, maxCount, 12)}
             </div>
           </div>
-        </td>
+        </td>`}
       </tr>`;
     })
     .join("");
+}
+
+/* ────────────────────────────────────────────────────────────
+   Leaderboard Filters
+──────────────────────────────────────────────────────────── */
+function initLeaderboardFilters() {
+  const searchInput = document.getElementById("leaderboard-search");
+  if (!searchInput) return;
+
+  let debounceTimer;
+  searchInput.addEventListener("input", (e) => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+      const data = getLeaderboardData();
+      if (!data) return;
+
+      const query = e.target.value;
+      renderLeaderboard(document.getElementById("leaderboard-rows"), data, 0, query);
+      renderTopCommenters(document.getElementById("commenters-rows"), data, 0, query);
+      renderTopDomains(document.getElementById("domains-rows"), data, 0, query);
+    }, 150);
+  });
 }
 
 /* ────────────────────────────────────────────────────────────
@@ -871,6 +885,29 @@ function initSmoothScroll() {
 /* ────────────────────────────────────────────────────────────
    Helpers
 ──────────────────────────────────────────────────────────── */
+/**
+ * Renders a stable, deterministic activity sparkline based on contribution count.
+ */
+function renderActivitySparkline(count, maxCount, totalBars = 12) {
+  // Calculate how many bars should be "active" (colored) based on the score relative to the leader
+  const activeBars = Math.max(1, Math.min(totalBars, Math.ceil((count / maxCount) * totalBars)));
+
+  return Array.from({ length: totalBars }).map((_, i) => {
+    const isActive = i < activeBars;
+
+    // Math: Predefined professional "growth" pattern for the bars.
+    // baseHeight (25%) provides a minimum visibility for even low counts.
+    // growthFactor (0-40%) adds an upward slope from left to right.
+    // last term (0-20%) adjusts the overall height based on the user's relative score to maxCount.
+    const baseHeight = 25;
+    const growthFactor = (i / totalBars) * 40;
+    const finalHeight = isActive ? Math.min(100, baseHeight + growthFactor + ((count / maxCount) * 20)) : 10;
+
+    const colorClass = isActive ? 'bg-primary' : 'bg-gray-200 dark:bg-gray-700';
+    return `<div class="w-full rounded-t-sm ${colorClass} transition-all duration-500" style="height: ${finalHeight}%"></div>`;
+  }).join('');
+}
+
 function formatNumber(n) {
   if (n >= 1000) return (n / 1000).toFixed(1) + "k";
   return String(n);
