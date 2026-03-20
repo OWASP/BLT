@@ -73,7 +73,10 @@ form.addEventListener('submit', async (e) => {
       `https://api.github.com/users/${encodeURIComponent(username)}/repos?sort=updated&per_page=100`,
       { headers: { Accept: 'application/vnd.github+json' } }
     );
-    const reposData = reposResponse.ok ? await reposResponse.json() : [];
+    if (!reposResponse.ok) {
+      throw new Error(`Failed to load repositories (${reposResponse.status}). Please try again later.`);
+    }
+    const reposData = await reposResponse.json();
 
     // Build and display results
     const data = await buildRecommendations(userData, reposData);
@@ -152,7 +155,7 @@ function normalizeTag(tag) {
 function tokenize(text) {
   if (!text) return [];
   let s = String(text).replace(/([a-z])([A-Z])/g, "$1 $2");
-  s = s.replace(/[^a-zA-Z0-9\s]/g, " ");
+  s = s.replace(/[^a-zA-Z0-9\s#+.]/g, " ");
   return s
     .split(/\s+/)
     .map((w) => normalizeTag(w))
@@ -277,24 +280,8 @@ async function buildRecommendations(userData, repos) {
   try {
     catalog = await loadCatalog();
   } catch (e) {
-    console.warn(e);
-    return {
-      github_stats: {
-        username: userData.login,
-        name: userData.name || userData.login,
-        avatar_url: userData.avatar_url,
-        bio: userData.bio,
-        public_repos: userData.public_repos,
-        followers: userData.followers,
-        following: userData.following,
-        languages: [],
-      },
-      house,
-      recommended_repos: [],
-      recommended_communities: [],
-      recommended_articles: [],
-      recommended_discussion_channels: [],
-    };
+    console.error('Catalog load failed:', e);
+    throw new Error('Failed to load recommendation catalog. Recommendations are temporarily unavailable.');
   }
 
   const allowedTags = buildAllowedTagSet(catalog);
@@ -471,7 +458,7 @@ function displayResults(data) {
     const cName = community.name || '';
     const cDesc = community.description || '';
     const cMembers = community.members || (community.member_count != null ? String(community.member_count) : '');
-    const cUrl = community.url || community.invite_url || '#';
+    const cUrl = sanitizeExternalUrl(community.url || community.invite_url || '#');
 
     const communityCard = document.createElement('div');
     communityCard.className = 'surface-card rounded-xl p-5 hover:shadow-lg transition';
@@ -500,8 +487,8 @@ function displayResults(data) {
   (data.recommended_articles || []).forEach(row => {
     const article = row?.item ? row.item : row;
     const aTitle = article.title || '';
-    const aCategory = article.category || '';
-    const aUrl = article.url || '#';
+    const aSource = article.source || article.category || '';
+    const aUrl = sanitizeExternalUrl(article.url || '#');
 
     const articleCard = document.createElement('div');
     articleCard.className = 'surface-card rounded-xl p-5 hover:shadow-lg transition';
@@ -513,7 +500,7 @@ function displayResults(data) {
         <div class="flex-1">
           <h4 class="font-semibold text-gray-900 dark:text-white mb-1">${escapeHtml(aTitle)}</h4>
           <span class="text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 px-2 py-1 rounded">
-            ${escapeHtml(aCategory)}
+            ${escapeHtml(aSource)}
           </span>
           ${renderTagChips(article.tags || row?.matching_tags)}
           ${renderScoreReason(row?.item ? row : null)}
@@ -537,7 +524,7 @@ function displayResults(data) {
     const chDesc = channel.description || '';
     const chSource = channel.source || channel.platform || '\u2014';
     const chMembers = (channel.member_count != null) ? channel.member_count : (channel.members != null ? channel.members : '\u2014');
-    const chUrl = channel.invite_url || channel.url || '#';
+    const chUrl = sanitizeExternalUrl(channel.invite_url || channel.url || '#');
     const chTags = channel.tags || row?.matching_tags || [];
 
     const channelCard = document.createElement('div');
