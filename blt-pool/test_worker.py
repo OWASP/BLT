@@ -14,7 +14,9 @@ import hashlib
 import hmac as _hmac
 import importlib
 import json
+import os
 import sys
+import tempfile
 import types
 import unittest
 import urllib.parse
@@ -512,6 +514,52 @@ class TestHandleIssueOpened(unittest.TestCase):
         comments, bugs = [], []
         self._run_opened(payload, comments, bugs)
         self.assertEqual(comments, [])
+
+    def test_skips_welcome_for_excluded_repo(self):
+        payload = _make_issue_payload(repo="BLT-Design-Contest")
+        comments, bugs = [], []
+        with patch.object(_worker, "_load_no_welcome_repos", return_value=["BLT-Design-Contest"]):
+            self._run_opened(payload, comments, bugs)
+        self.assertEqual(comments, [])
+        self.assertEqual(bugs, [])
+
+    def test_posts_welcome_for_non_excluded_repo(self):
+        payload = _make_issue_payload(repo="SomeOtherRepo")
+        comments, bugs = [], []
+        with patch.object(_worker, "_load_no_welcome_repos", return_value=["BLT-Design-Contest"]):
+            self._run_opened(payload, comments, bugs)
+        self.assertEqual(len(comments), 1)
+        self.assertIn("Thanks for opening this issue", comments[0])
+
+
+class TestLoadNoWelcomeRepos(unittest.TestCase):
+    """Tests for _load_no_welcome_repos YAML parser."""
+
+    def test_parses_repos_list(self):
+        content = "repos:\n  - BLT-Design-Contest\n  - AnotherRepo\n"
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
+            f.write(content)
+            tmp_path = f.name
+        try:
+            result = _worker._load_no_welcome_repos(tmp_path)
+            self.assertEqual(result, ["BLT-Design-Contest", "AnotherRepo"])
+        finally:
+            os.unlink(tmp_path)
+
+    def test_returns_empty_list_when_file_missing(self):
+        result = _worker._load_no_welcome_repos("/nonexistent/path/repos.yml")
+        self.assertEqual(result, [])
+
+    def test_ignores_comments_and_blank_lines(self):
+        content = "# comment\n\nrepos:\n  # another comment\n  - BLT-Design-Contest\n"
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
+            f.write(content)
+            tmp_path = f.name
+        try:
+            result = _worker._load_no_welcome_repos(tmp_path)
+            self.assertEqual(result, ["BLT-Design-Contest"])
+        finally:
+            os.unlink(tmp_path)
 
 
 class TestHandleIssueLabeled(unittest.TestCase):

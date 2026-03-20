@@ -1,0 +1,4 @@
+# Repositories that should NOT receive the automatic new issue welcome message.
+# Add a repository name (without the owner prefix) on a new "- name" line to exclude it.
+repos:
+  - BLT-Design-Contest
