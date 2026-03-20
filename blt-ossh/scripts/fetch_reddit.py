@@ -48,7 +48,7 @@ def slugify(text):
 
 
 def extract_tags(data):
-    tags = {slugify(data["display_name"])}
+    tags = {slugify(data.get("display_name", ""))}
     for keyword in TECH_KEYWORDS:
         if keyword in (data.get("description", "") or "").lower():
             tags.add(keyword)
