@@ -295,10 +295,7 @@ async function buildRecommendations(userData, repos) {
     public_repos: userData.public_repos,
     followers: userData.followers,
     following: userData.following,
-    languages: Object.entries(languageWeights)
-      .sort(([, a], [, b]) => b - a)
-      .map(([lang]) => lang)
-      .slice(0, 10),
+    languages,
   };
 
   const recommended_repos = recommendGeneric(catalog.repos, userTags, languageWeights, { topN: 6, usesLanguage: true });
@@ -336,8 +333,9 @@ function escapeHtml(str) {
 }
 
 function sanitizeExternalUrl(rawUrl) {
+  if (!rawUrl || rawUrl === '#') return '#';
   try {
-    const url = new URL(rawUrl, window.location.origin);
+    const url = new URL(rawUrl);
     return ['http:', 'https:'].includes(url.protocol) ? url.toString() : '#';
   } catch {
     return '#';
