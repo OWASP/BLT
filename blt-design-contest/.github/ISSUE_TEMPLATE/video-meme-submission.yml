@@ -1,6 +1,6 @@
 name: BLT Video Meme Submission
 description: Submit your video meme entry for the BLT Video Meme contest
-title: "[Video Meme] "
+title: "[Video Meme]"
 labels: ["video-meme-submission"]
 body:
   - type: markdown
