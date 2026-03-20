@@ -3634,7 +3634,8 @@ async def handle_issue_opened(
         return
     owner = payload["repository"]["owner"]["login"]
     repo = payload["repository"]["name"]
-    if repo in _load_no_welcome_repos():
+    no_welcome_repos = {r.lower() for r in _load_no_welcome_repos()}
+    if repo.lower() in no_welcome_repos:
         return
     labels = [lb["name"].lower() for lb in issue.get("labels", [])]
     is_bug = any(lb in BUG_LABELS for lb in labels)
