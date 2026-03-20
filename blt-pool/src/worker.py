@@ -3613,6 +3613,11 @@ def _load_no_welcome_repos(path: str = _NO_WELCOME_REPOS_YML_PATH) -> list:
         if stripped == "repos:":
             in_repos_section = True
             continue
+        # If we hit another top-level key (non-indented line ending with ":"),
+        # we are no longer in the "repos" section.
+        if not line.startswith(" ") and stripped.endswith(":"):
+            in_repos_section = False
+            continue
         if in_repos_section and stripped.startswith("- "):
             repos.append(stripped[2:].strip())
     if path == _NO_WELCOME_REPOS_YML_PATH:
