@@ -28,8 +28,8 @@ import hashlib
 import hmac as _hmac
 import html as _html_mod
 import json
-import os
 import re
+import secrets
 import time
 from typing import Optional, Tuple
 from urllib.parse import quote, urlparse
@@ -218,13 +218,172 @@ def _gh_headers(token: str) -> Headers:
     return Headers.new(h.items())
 
 
-async def github_api(method: str, path: str, token: str, body=None):
+async def github_api(method: str, path: str, token: str, body=None, timeout_seconds: Optional[float] = None):
     """Make an authenticated request to the GitHub REST API."""
     url = f"https://api.github.com{path}"
     kwargs = {"method": method, "headers": _gh_headers(token)}
     if body is not None:
         kwargs["body"] = json.dumps(body)
+    if timeout_seconds is not None and float(timeout_seconds) > 0:
+        try:
+            from js import AbortController, setTimeout, clearTimeout  # noqa: PLC0415 - runtime import
+        except Exception:
+            return await fetch(url, **kwargs)
+
+        controller = AbortController.new()
+        kwargs["signal"] = controller.signal
+        timeout_ms = max(1, int(float(timeout_seconds) * 1000))
+        timer_id = setTimeout(lambda: controller.abort(), timeout_ms)
+        try:
+            return await fetch(url, **kwargs)
+        finally:
+            clearTimeout(timer_id)
+
     return await fetch(url, **kwargs)
+
+
+async def _sleep_seconds(seconds: float) -> None:
+    """Async sleep helper that works in Workers runtime and local tests."""
+    delay = max(0.0, float(seconds or 0.0))
+    if delay <= 0:
+        return
+    try:
+        from js import Promise, setTimeout  # noqa: PLC0415 - runtime import
+        await Promise.new(lambda resolve, reject: setTimeout(resolve, int(delay * 1000)))
+    except Exception:
+        # Local-test fallback.
+        time.sleep(delay)
+
+
+def _retry_after_seconds(resp) -> int:
+    """Parse Retry-After from a GitHub response, defaulting to 1s."""
+    try:
+        raw = None
+        headers = getattr(resp, "headers", None)
+        if headers is not None:
+            raw = headers.get("Retry-After")
+            if raw is None:
+                raw = headers.get("retry-after")
+        value = int(raw) if raw is not None else 1
+        return max(1, value)
+    except Exception:
+        return 1
+
+
+def _response_header(resp, name: str) -> Optional[str]:
+    try:
+        headers = getattr(resp, "headers", None)
+        if headers is None:
+            return None
+        value = headers.get(name)
+        if value is None:
+            value = headers.get(name.lower())
+        return str(value) if value is not None else None
+    except Exception:
+        return None
+
+
+def _rate_limit_reset_wait_seconds(resp) -> Optional[int]:
+    """Return wait time derived from X-RateLimit-Reset header if available."""
+    raw = _response_header(resp, "X-RateLimit-Reset")
+    if not raw:
+        return None
+    try:
+        reset_ts = int(raw)
+        wait_s = max(1, reset_ts - int(time.time()))
+        return wait_s
+    except Exception:
+        return None
+
+
+def _is_rate_limited_response(resp) -> bool:
+    """Detect GitHub rate limiting across 429 and 403 variants."""
+    status = int(getattr(resp, "status", 0) or 0)
+    if status == 429:
+        return True
+    if status != 403:
+        return False
+    retry_after = _response_header(resp, "Retry-After")
+    remaining = _response_header(resp, "X-RateLimit-Remaining")
+    reset = _response_header(resp, "X-RateLimit-Reset")
+    return bool(retry_after or (remaining == "0" and reset))
+
+
+async def _github_search_issues_paged(owner: str, token: str, query: str, max_pages: int = 3) -> list:
+    """Fetch paginated GitHub Search issues results for an org query."""
+    items = []
+    page = 1
+    while page <= max_pages:
+        resp = await github_api(
+            "GET",
+            f"/search/issues?q={query}+org:{owner}&per_page=100&page={page}",
+            token,
+        )
+        if resp.status != 200:
+            break
+        data = json.loads(await resp.text())
+        page_items = data.get("items", [])
+        if not page_items:
+            break
+        items.extend(page_items)
+        if len(page_items) < 100:
+            break
+        page += 1
+    return items
+
+
+async def _fetch_issue_comments_paged(owner: str, repo: str, issue_number: int, token: str, sort_query: str = "") -> tuple[list, bool]:
+    """Fetch all issue comments with pagination; returns (comments, list_failed)."""
+    comments = []
+    page = 1
+    list_failed = False
+    while True:
+        sep = "&" if sort_query else ""
+        resp = await github_api(
+            "GET",
+            f"/repos/{owner}/{repo}/issues/{issue_number}/comments?per_page=100{sep}{sort_query}&page={page}",
+            token,
+        )
+        if resp.status != 200:
+            list_failed = True
+            break
+        page_comments = json.loads(await resp.text())
+        comments.extend(page_comments)
+        if len(page_comments) < 100:
+            break
+        page += 1
+    return comments, list_failed
+
+
+def _pr_state_upsert_sql() -> str:
+    return """
+        INSERT INTO leaderboard_pr_state (org, repo, pr_number, author_login, state, merged, closed_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(org, repo, pr_number) DO UPDATE SET
+            author_login = excluded.author_login,
+            state = excluded.state,
+            merged = excluded.merged,
+            closed_at = excluded.closed_at,
+            updated_at = excluded.updated_at
+    """
+
+
+async def _d1_upsert_pr_state(
+    db,
+    org: str,
+    repo: str,
+    pr_number: int,
+    author_login: str,
+    state: str,
+    merged: int,
+    closed_at: Optional[int],
+    updated_at: int,
+) -> None:
+    await _d1_run(
+        db,
+        _pr_state_upsert_sql(),
+        (org, repo, pr_number, author_login, state, int(merged), closed_at, updated_at),
+    )
 
 
 async def get_installation_token(
@@ -271,8 +430,8 @@ async def get_installation_access_token(installation_id: int, jwt_token: str) ->
 
 
 async def create_comment(
-    owner: str, repo: str, number: int, body: str, token: str
-) -> None:
+    owner: str, repo: str, number: int, body: str, token: str, raise_on_error: bool = False
+) -> bool:
     """Post a comment on a GitHub issue or pull request."""
     resp = await github_api(
         "POST",
@@ -289,6 +448,38 @@ async def create_comment(
             f"[GitHub] Failed to create comment on {owner}/{repo}#{number}: "
             f"status={resp.status} body={err_text[:300]}"
         )
+        if raise_on_error:
+            raise RuntimeError(
+                f"create_comment failed for {owner}/{repo}#{number} status={resp.status}"
+            )
+        return False
+    return True
+
+
+async def _create_comment_best_effort(owner: str, repo: str, number: int, body: str, token: str) -> bool:
+    """Post a comment in best-effort mode and retain explicit success/failure semantics."""
+    try:
+        return await create_comment(owner, repo, number, body, token)
+    except Exception as exc:
+        console.error(
+            f"[GitHub] Best-effort comment failed for {owner}/{repo}#{number}: {exc}"
+        )
+        return False
+
+
+async def _create_comment_strict(owner: str, repo: str, number: int, body: str, token: str) -> bool:
+    """Create a comment and raise on failure, with test-double compatibility."""
+    try:
+        return await create_comment(owner, repo, number, body, token, raise_on_error=True)
+    except TypeError as exc:
+        # Some tests patch create_comment with a 5-arg lambda. Retry without the
+        # optional kwarg so strict call-sites remain compatible with those doubles.
+        if "raise_on_error" in str(exc):
+            result = await create_comment(owner, repo, number, body, token)
+            if result is False:
+                raise RuntimeError(f"create_comment failed for {owner}/{repo}#{number}")
+            return True
+        raise
 
 
 async def create_reaction(
@@ -434,6 +625,35 @@ MAX_OPEN_PRS_PER_AUTHOR = 50
 LEADERBOARD_COMMENT_MARKER = LEADERBOARD_MARKER
 
 
+def _env_int(env, name: str, default: int) -> int:
+    raw = None
+    if env is not None:
+        if isinstance(env, dict):
+            raw = env.get(name)
+        else:
+            raw = getattr(env, name, None)
+    if raw is None:
+        return default
+    try:
+        value = int(raw)
+        if value <= 0:
+            return default
+        return value
+    except Exception:
+        return default
+
+
+def _reconcile_settings(env) -> dict:
+    return {
+        "repos_per_page": _env_int(env, "RECONCILE_REPOS_PER_PAGE", 100),
+        "prs_per_page": _env_int(env, "RECONCILE_PRS_PER_PAGE", 100),
+        "max_closed_pages": _env_int(env, "RECONCILE_MAX_CLOSED_PAGES_PER_REPO", 20),
+        "max_open_pages": _env_int(env, "RECONCILE_MAX_OPEN_PAGES_PER_REPO", 20),
+        "lock_lease_seconds": _env_int(env, "RECONCILE_LOCK_LEASE_SECONDS", 120),
+        "timeout_seconds": _env_int(env, "RECONCILE_TIMEOUT_SECONDS", 20),
+    }
+
+
 def _month_key(ts: Optional[int] = None) -> str:
     """Return YYYY-MM month key for UTC timestamp (or now)."""
     if ts is None:
@@ -474,6 +694,35 @@ async def _d1_run(db, sql: str, params: tuple = ()):
         raise
 
 
+async def _d1_batch(db, statements: list):
+    """Execute a list of (sql, params) tuples as a D1 batch when supported."""
+    if not statements:
+        return []
+    try:
+        batch_fn = getattr(db, "batch", None)
+        if callable(batch_fn):
+            prepared = []
+            for sql, params in statements:
+                stmt = db.prepare(sql)
+                if params:
+                    stmt = stmt.bind(*params)
+                prepared.append(stmt)
+            try:
+                from pyodide.ffi import to_js  # noqa: PLC0415 - runtime import
+                return await batch_fn(to_js(prepared))
+            except Exception:
+                return await batch_fn(prepared)
+
+        # Local-test fallback for mock DBs that do not implement batch.
+        results = []
+        for sql, params in statements:
+            results.append(await _d1_run(db, sql, params or ()))
+        return results
+    except Exception as e:
+        console.error(f"[D1.batch] Error executing batch ({len(statements)} statements): {e}")
+        raise
+
+
 def _to_py(value):
     """Best-effort conversion for JS proxy values returned by Workers runtime."""
     try:
@@ -481,6 +730,26 @@ def _to_py(value):
         return to_py(value)
     except Exception:
         return value
+
+
+def _d1_result_to_dict(raw_result):
+    """Best-effort conversion for D1 run() result to a Python dict."""
+    try:
+        from js import JSON as JS_JSON  # noqa: PLC0415 - runtime import
+        js_json = JS_JSON.stringify(raw_result)
+        parsed = json.loads(str(js_json))
+        if isinstance(parsed, dict):
+            return parsed
+    except Exception as e:
+        console.log(f"[D1.run] Result conversion failed; falling back ({e})")
+
+    converted = _to_py(raw_result)
+    if isinstance(converted, dict):
+        return converted
+    try:
+        return dict(converted)
+    except Exception:
+        return None
 
 
 async def _d1_all(db, sql: str, params: tuple = ()) -> list:
@@ -541,6 +810,8 @@ async def _ensure_leaderboard_schema(db) -> None:
             closed_prs INTEGER NOT NULL DEFAULT 0,
             reviews INTEGER NOT NULL DEFAULT 0,
             comments INTEGER NOT NULL DEFAULT 0,
+            pr_updated_at INTEGER NOT NULL DEFAULT 0,
+            review_updated_at INTEGER NOT NULL DEFAULT 0,
             updated_at INTEGER NOT NULL,
             PRIMARY KEY (org, month_key, user_login)
         )
@@ -616,6 +887,27 @@ async def _ensure_leaderboard_schema(db) -> None:
     await _d1_run(
         db,
         """
+        CREATE TABLE IF NOT EXISTS leaderboard_reconcile_locks (
+            org TEXT NOT NULL PRIMARY KEY,
+            holder TEXT NOT NULL,
+            lock_until INTEGER NOT NULL,
+            updated_at INTEGER NOT NULL
+        )
+        """,
+    )
+    await _d1_run(
+        db,
+        """
+        CREATE TABLE IF NOT EXISTS leaderboard_runtime_meta (
+            key TEXT NOT NULL PRIMARY KEY,
+            value TEXT NOT NULL,
+            updated_at INTEGER NOT NULL
+        )
+        """,
+    )
+    await _d1_run(
+        db,
+        """
         CREATE TABLE IF NOT EXISTS mentor_assignments (
             org TEXT NOT NULL,
             mentor_login TEXT NOT NULL,
@@ -635,6 +927,38 @@ async def _ensure_leaderboard_schema(db) -> None:
         )
     except Exception:
         pass  # Column already exists — ignore the error.
+    # Migration: add PR-specific fence column for merged/closed reconciliation.
+    try:
+        await _d1_run(
+            db,
+            "ALTER TABLE leaderboard_monthly_stats ADD COLUMN pr_updated_at INTEGER NOT NULL DEFAULT 0",
+        )
+    except Exception as e:
+        msg = str(e).lower()
+        if "duplicate column" in msg or "already exists" in msg:
+            pass  # Column already exists — ignore the known migration race.
+        else:
+            console.error(
+                "[D1.migration] Failed SQL: ALTER TABLE leaderboard_monthly_stats "
+                f"ADD COLUMN pr_updated_at INTEGER NOT NULL DEFAULT 0; error={e}"
+            )
+            raise
+    # Migration: add review-specific fence column for review-count reconciliation.
+    try:
+        await _d1_run(
+            db,
+            "ALTER TABLE leaderboard_monthly_stats ADD COLUMN review_updated_at INTEGER NOT NULL DEFAULT 0",
+        )
+    except Exception as e:
+        msg = str(e).lower()
+        if "duplicate column" in msg or "already exists" in msg:
+            pass
+        else:
+            console.error(
+                "[D1.migration] Failed SQL: ALTER TABLE leaderboard_monthly_stats "
+                f"ADD COLUMN review_updated_at INTEGER NOT NULL DEFAULT 0; error={e}"
+            )
+            raise
     await _d1_run(
         db,
         """
@@ -943,90 +1267,117 @@ async def _d1_inc_monthly(db, org: str, month_key: str, user_login: str, field: 
     now = int(time.time())
     if field not in {"merged_prs", "closed_prs", "reviews", "comments"}:
         return
+    is_pr_field = field in {"merged_prs", "closed_prs"}
+    is_review_field = field == "reviews"
     try:
-        result = await _d1_run(
-            db,
-            f"""
-            INSERT INTO leaderboard_monthly_stats (org, month_key, user_login, {field}, updated_at)
-            VALUES (?, ?, ?, CASE WHEN ? < 0 THEN 0 ELSE ? END, ?)
-            ON CONFLICT(org, month_key, user_login) DO UPDATE SET
-                {field} = CASE
-                    WHEN leaderboard_monthly_stats.{field} + ? < 0 THEN 0
-                    ELSE leaderboard_monthly_stats.{field} + ?
-                END,
-                updated_at = excluded.updated_at
-            """,
-            (org, month_key, user_login, delta, delta, now, delta, delta),
-        )
+        if is_pr_field:
+            result = await _d1_run(
+                db,
+                f"""
+                INSERT INTO leaderboard_monthly_stats (org, month_key, user_login, {field}, updated_at, pr_updated_at)
+                VALUES (?, ?, ?, CASE WHEN ? < 0 THEN 0 ELSE ? END, ?, ?)
+                ON CONFLICT(org, month_key, user_login) DO UPDATE SET
+                    {field} = CASE
+                        WHEN leaderboard_monthly_stats.{field} + ? < 0 THEN 0
+                        ELSE leaderboard_monthly_stats.{field} + ?
+                    END,
+                    updated_at = excluded.updated_at,
+                    pr_updated_at = excluded.pr_updated_at
+                """,
+                (org, month_key, user_login, delta, delta, now, now, delta, delta),
+            )
+        elif is_review_field:
+            result = await _d1_run(
+                db,
+                f"""
+                INSERT INTO leaderboard_monthly_stats (org, month_key, user_login, {field}, updated_at, review_updated_at)
+                VALUES (?, ?, ?, CASE WHEN ? < 0 THEN 0 ELSE ? END, ?, ?)
+                ON CONFLICT(org, month_key, user_login) DO UPDATE SET
+                    {field} = CASE
+                        WHEN leaderboard_monthly_stats.{field} + ? < 0 THEN 0
+                        ELSE leaderboard_monthly_stats.{field} + ?
+                    END,
+                    updated_at = excluded.updated_at,
+                    review_updated_at = excluded.review_updated_at
+                """,
+                (org, month_key, user_login, delta, delta, now, now, delta, delta),
+            )
+        else:
+            result = await _d1_run(
+                db,
+                f"""
+                INSERT INTO leaderboard_monthly_stats (org, month_key, user_login, {field}, updated_at)
+                VALUES (?, ?, ?, CASE WHEN ? < 0 THEN 0 ELSE ? END, ?)
+                ON CONFLICT(org, month_key, user_login) DO UPDATE SET
+                    {field} = CASE
+                        WHEN leaderboard_monthly_stats.{field} + ? < 0 THEN 0
+                        ELSE leaderboard_monthly_stats.{field} + ?
+                    END,
+                    updated_at = excluded.updated_at
+                """,
+                (org, month_key, user_login, delta, delta, now, delta, delta),
+            )
         console.log(f"[D1] Updated {field} org={org} month={month_key} user={user_login} +{delta}")
     except Exception as e:
         console.error(f"[D1] Failed to update {field} org={org} month={month_key} user={user_login}: {e}")
+
+
+def _extract_pr_tracking_context(payload: dict) -> tuple:
+    pr = payload.get("pull_request") or {}
+    author = pr.get("user") or {}
+    if _is_bot(author):
+        return None, None, None, None, None, None
+    org = (payload.get("repository") or {}).get("owner", {}).get("login", "")
+    repo = (payload.get("repository") or {}).get("name", "")
+    pr_number = pr.get("number")
+    author_login = author.get("login", "")
+    if not (org and repo and pr_number and author_login):
+        return None, None, None, None, None, None
+    return pr, author, org, repo, pr_number, author_login
 
 
 async def _track_pr_opened_in_d1(payload: dict, env) -> None:
     db = _d1_binding(env)
     if not db:
         return
-    pr = payload.get("pull_request") or {}
-    author = pr.get("user") or {}
-    if _is_bot(author):
-        return
-    org = (payload.get("repository") or {}).get("owner", {}).get("login", "")
-    repo = (payload.get("repository") or {}).get("name", "")
-    pr_number = pr.get("number")
-    author_login = author.get("login", "")
-    if not (org and repo and pr_number and author_login):
+    pr, author, org, repo, pr_number, author_login = _extract_pr_tracking_context(payload)
+    if not org:
         return
 
     await _ensure_leaderboard_schema(db)
     existing = await _d1_first(
         db,
-        "SELECT state FROM leaderboard_pr_state WHERE org = ? AND repo = ? AND pr_number = ?",
+        "SELECT author_login, state, merged, closed_at FROM leaderboard_pr_state WHERE org = ? AND repo = ? AND pr_number = ?",
         (org, repo, pr_number),
     )
+    if existing and existing.get("state") == "closed":
+        # Ignore stale opened deliveries for PRs already known as closed.
+        # True reopens are handled by _track_pr_reopened_in_d1.
+        return
+
     if not existing or existing.get("state") != "open":
         await _d1_inc_open_pr(db, org, author_login, 1)
 
     now = int(time.time())
-    await _d1_run(
-        db,
-        """
-        INSERT INTO leaderboard_pr_state (org, repo, pr_number, author_login, state, merged, closed_at, updated_at)
-        VALUES (?, ?, ?, ?, 'open', 0, NULL, ?)
-        ON CONFLICT(org, repo, pr_number) DO UPDATE SET
-            author_login = excluded.author_login,
-            state = 'open',
-            merged = 0,
-            closed_at = NULL,
-            updated_at = excluded.updated_at
-        """,
-        (org, repo, pr_number, author_login, now),
-    )
+    await _d1_upsert_pr_state(db, org, repo, pr_number, author_login, "open", 0, None, now)
 
 
 async def _track_pr_closed_in_d1(payload: dict, env) -> None:
     db = _d1_binding(env)
     if not db:
         return
-    pr = payload.get("pull_request") or {}
-    author = pr.get("user") or {}
-    if _is_bot(author):
+    pr, author, org, repo, pr_number, author_login = _extract_pr_tracking_context(payload)
+    if not org:
         return
-    org = (payload.get("repository") or {}).get("owner", {}).get("login", "")
-    repo = (payload.get("repository") or {}).get("name", "")
-    pr_number = pr.get("number")
-    author_login = author.get("login", "")
     closed_at = pr.get("closed_at")
     merged_at = pr.get("merged_at")
     merged = bool(pr.get("merged"))
     closed_ts = _parse_github_timestamp(closed_at) if closed_at else int(time.time())
-    if not (org and repo and pr_number and author_login):
-        return
 
     await _ensure_leaderboard_schema(db)
     existing = await _d1_first(
         db,
-        "SELECT state, merged, closed_at FROM leaderboard_pr_state WHERE org = ? AND repo = ? AND pr_number = ?",
+        "SELECT author_login, state, merged, closed_at FROM leaderboard_pr_state WHERE org = ? AND repo = ? AND pr_number = ?",
         (org, repo, pr_number),
     )
 
@@ -1036,8 +1387,19 @@ async def _track_pr_closed_in_d1(payload: dict, env) -> None:
         if existing_closed_at == int(closed_ts or 0):
             return
 
+    # If this PR is already tracked as closed but with a different state/timestamp,
+    # reverse the previous monthly credit before applying the new one.
+    if existing and existing.get("state") == "closed":
+        existing_author_login = existing.get("author_login") or author_login
+        prev_merged = int(existing.get("merged") or 0)
+        prev_closed_at = int(existing.get("closed_at") or 0)
+        prev_mk = _month_key(prev_closed_at) if prev_closed_at else _month_key()
+        prev_field = "merged_prs" if prev_merged else "closed_prs"
+        await _d1_inc_monthly(db, org, prev_mk, existing_author_login, prev_field, -1)
+
     if existing and existing.get("state") == "open":
-        await _d1_inc_open_pr(db, org, author_login, -1)
+        open_author_login = existing.get("author_login") or author_login
+        await _d1_inc_open_pr(db, org, open_author_login, -1)
 
     event_ts = _parse_github_timestamp(merged_at) if merged and merged_at else closed_ts
     mk = _month_key(event_ts)
@@ -1047,20 +1409,7 @@ async def _track_pr_closed_in_d1(payload: dict, env) -> None:
         await _d1_inc_monthly(db, org, mk, author_login, "closed_prs", 1)
 
     now = int(time.time())
-    await _d1_run(
-        db,
-        """
-        INSERT INTO leaderboard_pr_state (org, repo, pr_number, author_login, state, merged, closed_at, updated_at)
-        VALUES (?, ?, ?, ?, 'closed', ?, ?, ?)
-        ON CONFLICT(org, repo, pr_number) DO UPDATE SET
-            author_login = excluded.author_login,
-            state = 'closed',
-            merged = excluded.merged,
-            closed_at = excluded.closed_at,
-            updated_at = excluded.updated_at
-        """,
-        (org, repo, pr_number, author_login, 1 if merged else 0, closed_ts, now),
-    )
+    await _d1_upsert_pr_state(db, org, repo, pr_number, author_login, "closed", 1 if merged else 0, closed_ts, now)
 
 
 async def _track_pr_reopened_in_d1(payload: dict, env) -> None:
@@ -1068,52 +1417,32 @@ async def _track_pr_reopened_in_d1(payload: dict, env) -> None:
     if not db:
         return
 
-    pr = payload.get("pull_request") or {}
-    author = pr.get("user") or {}
-    if _is_bot(author):
-        return
-
-    org = (payload.get("repository") or {}).get("owner", {}).get("login", "")
-    repo = (payload.get("repository") or {}).get("name", "")
-    pr_number = pr.get("number")
-    author_login = author.get("login", "")
-    if not (org and repo and pr_number and author_login):
+    pr, author, org, repo, pr_number, author_login = _extract_pr_tracking_context(payload)
+    if not org:
         return
 
     await _ensure_leaderboard_schema(db)
     existing = await _d1_first(
         db,
-        "SELECT state, merged, closed_at FROM leaderboard_pr_state WHERE org = ? AND repo = ? AND pr_number = ?",
+        "SELECT author_login, state, merged, closed_at FROM leaderboard_pr_state WHERE org = ? AND repo = ? AND pr_number = ?",
         (org, repo, pr_number),
     )
 
     # Reopening should reverse the previous close/merge credit so the final
     # state remains accurate when the PR is closed again later.
     if existing and existing.get("state") == "closed":
+        existing_author_login = existing.get("author_login") or author_login
         prev_merged = int(existing.get("merged") or 0)
         prev_closed_at = int(existing.get("closed_at") or 0)
         prev_mk = _month_key(prev_closed_at) if prev_closed_at else _month_key()
         field = "merged_prs" if prev_merged else "closed_prs"
-        await _d1_inc_monthly(db, org, prev_mk, author_login, field, -1)
+        await _d1_inc_monthly(db, org, prev_mk, existing_author_login, field, -1)
 
     if not existing or existing.get("state") != "open":
         await _d1_inc_open_pr(db, org, author_login, 1)
 
     now = int(time.time())
-    await _d1_run(
-        db,
-        """
-        INSERT INTO leaderboard_pr_state (org, repo, pr_number, author_login, state, merged, closed_at, updated_at)
-        VALUES (?, ?, ?, ?, 'open', 0, NULL, ?)
-        ON CONFLICT(org, repo, pr_number) DO UPDATE SET
-            author_login = excluded.author_login,
-            state = 'open',
-            merged = 0,
-            closed_at = NULL,
-            updated_at = excluded.updated_at
-        """,
-        (org, repo, pr_number, author_login, now),
-    )
+    await _d1_upsert_pr_state(db, org, repo, pr_number, author_login, "open", 0, None, now)
 
 
 async def _track_comment_in_d1(payload: dict, env) -> None:
@@ -1281,6 +1610,641 @@ async def _calculate_leaderboard_stats_from_d1(owner: str, env) -> Optional[dict
         "start_timestamp": start_timestamp,
         "end_timestamp": end_timestamp,
     }
+
+
+def _is_ts_in_month(ts: int, start_ts: int, end_ts: int) -> bool:
+    return bool(ts and start_ts <= ts <= end_ts)
+
+
+def _reconcile_lock_holder(org: str) -> str:
+    return f"{org}:{int(time.time() * 1000)}:{secrets.token_hex(8)}"
+
+
+async def _log_reconcile_config_if_needed(db, settings: dict) -> None:
+    """Log reconcile config when changed or stale, deduped across isolates via D1."""
+    try:
+        cfg_value = json.dumps(settings, sort_keys=True)
+        now_ts = int(time.time())
+        row = await _d1_first(
+            db,
+            "SELECT value, updated_at FROM leaderboard_runtime_meta WHERE key = ?",
+            ("reconcile_config",),
+        )
+        last_value = (row or {}).get("value") if isinstance(row, dict) else None
+        last_updated = int((row or {}).get("updated_at") or 0) if isinstance(row, dict) else 0
+        if last_value == cfg_value and (now_ts - last_updated) < 86400:
+            return
+
+        await _d1_run(
+            db,
+            """
+            INSERT INTO leaderboard_runtime_meta (key, value, updated_at)
+            VALUES (?, ?, ?)
+            ON CONFLICT(key) DO UPDATE SET
+                value = excluded.value,
+                updated_at = excluded.updated_at
+            """,
+            ("reconcile_config", cfg_value, now_ts),
+        )
+        console.log(
+            "[LeaderboardReconcile] Config "
+            f"repos_per_page={settings['repos_per_page']} "
+            f"prs_per_page={settings['prs_per_page']} "
+            f"max_closed_pages={settings['max_closed_pages']} "
+            f"max_open_pages={settings['max_open_pages']} "
+            f"lock_lease_s={settings['lock_lease_seconds']} "
+            f"timeout_s={settings['timeout_seconds']}"
+        )
+    except Exception as exc:
+        console.error(f"[LeaderboardReconcile] Failed config log dedupe check: {exc}")
+
+
+async def _acquire_reconcile_lock(db, org: str, holder: str, lease_seconds: int) -> bool:
+    now_ts = int(time.time())
+    lock_until = now_ts + max(1, lease_seconds)
+    try:
+        result = await _d1_run(
+            db,
+            """
+            INSERT INTO leaderboard_reconcile_locks (org, holder, lock_until, updated_at)
+            VALUES (?, ?, ?, ?)
+            ON CONFLICT(org) DO UPDATE SET
+                holder = excluded.holder,
+                lock_until = excluded.lock_until,
+                updated_at = excluded.updated_at
+            WHERE leaderboard_reconcile_locks.lock_until < ?
+               OR leaderboard_reconcile_locks.holder = ?
+            """,
+            (org, holder, lock_until, now_ts, now_ts, holder),
+        )
+        parsed = _d1_result_to_dict(result)
+        meta = parsed.get("meta") if isinstance(parsed, dict) else None
+        changes = int(meta.get("changes") or 0) if isinstance(meta, dict) else 0
+        return changes > 0
+    except Exception as exc:
+        console.error(f"[LeaderboardReconcile] Failed to acquire lock for {org}: {exc}")
+        return False
+
+
+async def _release_reconcile_lock(db, org: str, holder: str) -> None:
+    try:
+        await _d1_run(
+            db,
+            "DELETE FROM leaderboard_reconcile_locks WHERE org = ? AND holder = ?",
+            (org, holder),
+        )
+    except Exception as exc:
+        console.error(f"[LeaderboardReconcile] Failed to release lock for {org}: {exc}")
+
+
+async def _refresh_reconcile_lock(db, org: str, holder: str, lease_seconds: int) -> bool:
+    now_ts = int(time.time())
+    lock_until = now_ts + max(1, lease_seconds)
+    try:
+        result = await _d1_run(
+            db,
+            """
+            UPDATE leaderboard_reconcile_locks
+            SET lock_until = ?, updated_at = ?
+            WHERE org = ? AND holder = ? AND lock_until >= ?
+            """,
+            (lock_until, now_ts, org, holder, now_ts),
+        )
+        parsed = _d1_result_to_dict(result)
+        meta = parsed.get("meta") if isinstance(parsed, dict) else None
+        changes = int(meta.get("changes") or 0) if isinstance(meta, dict) else 0
+        return changes > 0
+    except Exception as exc:
+        console.error(f"[LeaderboardReconcile] Failed to refresh lock for {org}: {exc}")
+        return False
+
+
+async def _reconcile_github_api(
+    method: str,
+    path: str,
+    token: str,
+    deadline_ts: float,
+    *,
+    max_retries: int = 2,
+):
+    """GitHub API call with bounded retries for 429/5xx under a reconcile deadline."""
+    attempt = 0
+    while True:
+        if time.time() >= deadline_ts:
+            raise TimeoutError(f"deadline exceeded before request {path}")
+
+        remaining = deadline_ts - time.time()
+        if remaining <= 0:
+            raise TimeoutError(f"deadline exceeded before request {path}")
+        try:
+            timeout_s = max(0.05, float(remaining))
+            try:
+                resp = await github_api(method, path, token, timeout_seconds=timeout_s)
+            except TypeError as exc:
+                if "timeout_seconds" in str(exc):
+                    resp = await github_api(method, path, token)
+                else:
+                    raise
+        except Exception as exc:
+            msg = str(exc).lower()
+            if "abort" in msg or "timeout" in msg:
+                raise TimeoutError(f"request timeout for {path}") from exc
+            raise
+        status = int(getattr(resp, "status", 0) or 0)
+
+        is_rate_limited = _is_rate_limited_response(resp)
+        retryable = is_rate_limited or status in (500, 502, 503, 504)
+        if not retryable or attempt >= max_retries:
+            return resp
+
+        if is_rate_limited:
+            retry_after = _retry_after_seconds(resp)
+            reset_wait = _rate_limit_reset_wait_seconds(resp)
+            if reset_wait is not None:
+                retry_after = max(retry_after, reset_wait)
+        else:
+            retry_after = attempt + 1
+        remaining = deadline_ts - time.time()
+        if remaining <= 0:
+            return resp
+        wait_s = min(float(retry_after), max(0.0, remaining - 0.05))
+        if wait_s <= 0:
+            return resp
+
+        console.error(
+            f"[LeaderboardReconcile] Retryable GitHub response status={status} path={path} "
+            f"attempt={attempt + 1}/{max_retries}; waiting {wait_s:.2f}s"
+        )
+        await _sleep_seconds(wait_s)
+        attempt += 1
+
+
+async def _d1_batch_chunked(db, statements: list, chunk_size: int, continue_or_abort=None) -> bool:
+    """Execute D1 batches in chunks to avoid oversized batch payloads."""
+    if not statements:
+        return True
+
+    # Prefer a single db.batch call when supported, because D1 guarantees
+    # atomicity at the individual batch invocation boundary.
+    batch_fn = getattr(db, "batch", None)
+    if callable(batch_fn):
+        if continue_or_abort is not None:
+            ok = await continue_or_abort()
+            if not ok:
+                return False
+        try:
+            await _d1_batch(db, statements)
+            return True
+        except Exception as exc:
+            console.error(f"[D1.batch] Transactional batch failed: {exc}")
+            return False
+
+    size = max(1, int(chunk_size or 1))
+    try:
+        for i in range(0, len(statements), size):
+            if continue_or_abort is not None:
+                ok = await continue_or_abort()
+                if not ok:
+                    return False
+            await _d1_batch(db, statements[i : i + size])
+        return True
+    except Exception as exc:
+        console.error(f"[D1.batch] Chunked fallback batch failed: {exc}")
+        return False
+
+
+async def _reconcile_org_leaderboard_from_github(owner: str, token: str, env, deadline_ts: Optional[float] = None) -> bool:
+    """Rebuild current-month leaderboard PR stats from live GitHub state.
+
+    This is the anti-drift path for /leaderboard:
+    - Always recomputes org-wide open/merged/closed PR counts from GitHub.
+    - Replaces D1 snapshot rows for the current month.
+    - Clears stale historical/backfill artifacts for this org.
+    """
+    db = _d1_binding(env)
+    if not db:
+        return False
+
+    settings = _reconcile_settings(env)
+    if deadline_ts is None:
+        deadline_ts = time.time() + settings["timeout_seconds"]
+    holder = _reconcile_lock_holder(owner)
+
+    await _ensure_leaderboard_schema(db)
+    await _log_reconcile_config_if_needed(db, settings)
+    acquired = await _acquire_reconcile_lock(db, owner, holder, settings["lock_lease_seconds"])
+    if not acquired:
+        console.log(f"[LeaderboardReconcile] Lock busy for org={owner}; skipping reconcile")
+        return False
+
+    lease_refresh_interval = max(1, settings["lock_lease_seconds"] // 3)
+    next_lease_refresh_ts = time.time() + lease_refresh_interval
+
+    def _deadline_exceeded() -> bool:
+        return deadline_ts is not None and time.time() >= deadline_ts
+
+    async def _continue_or_abort() -> bool:
+        nonlocal next_lease_refresh_ts
+        if _deadline_exceeded():
+            console.error(f"[LeaderboardReconcile] Reconcile timeout reached for org={owner}; aborting")
+            return False
+        now = time.time()
+        if now >= next_lease_refresh_ts:
+            ok = await _refresh_reconcile_lock(db, owner, holder, settings["lock_lease_seconds"])
+            if not ok:
+                console.error(f"[LeaderboardReconcile] Lock renewal failed for org={owner}; aborting reconcile")
+                return False
+            next_lease_refresh_ts = now + lease_refresh_interval
+        return True
+
+    try:
+        month_key = _month_key()
+        start_ts, end_ts = _month_window(month_key)
+        reconcile_ts = int(time.time())
+        max_tracked_pr_entries = _env_int(env, "RECONCILE_MAX_TRACKED_PRS", 120000)
+        max_batch_statements = _env_int(env, "RECONCILE_MAX_BATCH_STATEMENTS", 900)
+
+        existing_rows = await _d1_all(
+            db,
+            """
+            SELECT user_login, comments
+            FROM leaderboard_monthly_stats
+            WHERE org = ? AND month_key = ?
+            """,
+            (owner, month_key),
+        )
+        review_counts = {}
+        review_credit_rows = []
+        preserved_comments = {
+            row.get("user_login"): int(row.get("comments") or 0)
+            for row in (existing_rows or [])
+            if row.get("user_login")
+        }
+
+        open_by_user = {}
+        merged_by_user = {}
+        closed_by_user = {}
+        pr_state_map = {}
+        seen_open_prs = {}
+
+        repo_page = 1
+        while True:
+            if not await _continue_or_abort():
+                return False
+            repos_resp = await _reconcile_github_api(
+                "GET",
+                f"/orgs/{owner}/repos?sort=full_name&direction=asc&per_page={settings['repos_per_page']}&page={repo_page}",
+                token,
+                deadline_ts,
+            )
+            if repos_resp.status != 200:
+                console.error(
+                    f"[LeaderboardReconcile] Failed to list repos for {owner}: status={repos_resp.status} page={repo_page}"
+                )
+                return False
+            repos = json.loads(await repos_resp.text())
+            if not repos:
+                break
+
+            for repo_obj in repos:
+                repo_name = repo_obj.get("name")
+                if not repo_name:
+                    continue
+
+                # Snapshot all open PRs in this repo.
+                open_page = 1
+                while True:
+                    if not await _continue_or_abort():
+                        return False
+                    open_resp = await _reconcile_github_api(
+                        "GET",
+                        f"/repos/{owner}/{repo_name}/pulls?state=open&per_page={settings['prs_per_page']}&page={open_page}",
+                        token,
+                        deadline_ts,
+                    )
+                    if open_resp.status != 200:
+                        console.error(
+                            f"[LeaderboardReconcile] Failed open PR fetch {owner}/{repo_name}: status={open_resp.status} page={open_page}"
+                        )
+                        return False
+                    open_prs = json.loads(await open_resp.text())
+                    if not open_prs:
+                        break
+
+                    for pr in open_prs:
+                        if not await _continue_or_abort():
+                            return False
+                        user = pr.get("user") or {}
+                        if _is_bot(user):
+                            continue
+                        login = user.get("login")
+                        pr_number = pr.get("number")
+                        if not (login and pr_number):
+                            continue
+                        key = (repo_name, pr_number)
+                        if key in seen_open_prs:
+                            continue
+                        if len(seen_open_prs) >= max_tracked_pr_entries:
+                            console.error(
+                                f"[LeaderboardReconcile] Tracked PR cap reached for org={owner} while scanning open PRs; aborting"
+                            )
+                            return False
+                        seen_open_prs[key] = login
+                        open_by_user[login] = open_by_user.get(login, 0) + 1
+                        pr_state_map[key] = (owner, repo_name, pr_number, login, "open", 0, None, reconcile_ts)
+
+                    if len(open_prs) < settings["prs_per_page"]:
+                        break
+                    if open_page >= settings["max_open_pages"]:
+                        console.error(
+                            f"[LeaderboardReconcile] Open PR pagination cap reached for {owner}/{repo_name} at page={open_page}; "
+                            "aborting reconcile to avoid open PR undercount"
+                        )
+                        return False
+                    open_page += 1
+
+                # Snapshot current-month closed/merged PR outcomes in this repo.
+                closed_page = 1
+                while closed_page <= settings["max_closed_pages"]:
+                    if not await _continue_or_abort():
+                        return False
+                    closed_resp = await _reconcile_github_api(
+                        "GET",
+                        f"/repos/{owner}/{repo_name}/pulls?state=closed&sort=updated&direction=desc&per_page={settings['prs_per_page']}&page={closed_page}",
+                        token,
+                        deadline_ts,
+                    )
+                    if closed_resp.status != 200:
+                        console.error(
+                            f"[LeaderboardReconcile] Failed closed PR fetch {owner}/{repo_name}: status={closed_resp.status} page={closed_page}"
+                        )
+                        return False
+                    closed_prs = json.loads(await closed_resp.text())
+                    if not closed_prs:
+                        break
+
+                    for pr in closed_prs:
+                        if not await _continue_or_abort():
+                            return False
+                        user = pr.get("user") or {}
+                        if _is_bot(user):
+                            continue
+                        login = user.get("login")
+                        pr_number = pr.get("number")
+                        if not (login and pr_number):
+                            continue
+                        key = (repo_name, pr_number)
+                        if len(pr_state_map) >= max_tracked_pr_entries and key not in pr_state_map:
+                            console.error(
+                                f"[LeaderboardReconcile] Tracked PR cap reached for org={owner} while scanning closed PRs; aborting"
+                            )
+                            return False
+
+                        # If this PR was seen open earlier in this reconcile pass, undo
+                        # that open snapshot before recording its closed/merged state.
+                        open_login = seen_open_prs.pop(key, None)
+                        if open_login:
+                            open_by_user[open_login] = max(0, open_by_user.get(open_login, 0) - 1)
+                            if open_by_user[open_login] == 0:
+                                open_by_user.pop(open_login, None)
+                            existing_open = pr_state_map.get(key)
+                            if existing_open and existing_open[4] == "open":
+                                pr_state_map.pop(key, None)
+
+                        merged_at = pr.get("merged_at")
+                        closed_at = pr.get("closed_at")
+                        merged_ts = _parse_github_timestamp(merged_at) if merged_at else 0
+                        closed_ts = _parse_github_timestamp(closed_at) if closed_at else 0
+
+                        if _is_ts_in_month(merged_ts, start_ts, end_ts):
+                            merged_by_user[login] = merged_by_user.get(login, 0) + 1
+                            pr_state_map[key] = (owner, repo_name, pr_number, login, "closed", 1, closed_ts or merged_ts, reconcile_ts)
+                        elif _is_ts_in_month(closed_ts, start_ts, end_ts):
+                            closed_by_user[login] = closed_by_user.get(login, 0) + 1
+                            pr_state_map[key] = (owner, repo_name, pr_number, login, "closed", 0, closed_ts, reconcile_ts)
+
+                    if len(closed_prs) < settings["prs_per_page"]:
+                        break
+                    # Results are sorted by updated desc. If the least recently updated
+                    # PR on this page is older than the month window start, deeper pages
+                    # cannot contain in-window PR updates.
+                    last_pr = closed_prs[-1]
+                    updated_ts = _parse_github_timestamp(last_pr.get("updated_at")) if last_pr.get("updated_at") else 0
+                    if updated_ts and updated_ts < start_ts:
+                        break
+                    if (
+                        closed_page >= settings["max_closed_pages"]
+                        and updated_ts
+                        and updated_ts >= start_ts
+                    ):
+                        console.error(
+                            f"[LeaderboardReconcile] Closed PR pagination cap reached for {owner}/{repo_name}; "
+                            "aborting reconcile to avoid partial month undercount"
+                        )
+                        return False
+                    closed_page += 1
+
+            if len(repos) < settings["repos_per_page"]:
+                break
+            repo_page += 1
+
+        # Recompute review credits from live PR reviews for all discovered PRs
+        # so credits on still-open PRs are preserved and stale rows self-heal.
+        for row in pr_state_map.values():
+            if not await _continue_or_abort():
+                return False
+
+            repo_name = row[1]
+            pr_number = row[2]
+            reviews_resp = await _reconcile_github_api(
+                "GET",
+                f"/repos/{owner}/{repo_name}/pulls/{pr_number}/reviews?per_page=100",
+                token,
+                deadline_ts,
+            )
+            if reviews_resp.status != 200:
+                console.error(
+                    f"[LeaderboardReconcile] Failed review fetch {owner}/{repo_name}#{pr_number}: "
+                    f"status={reviews_resp.status}"
+                )
+                return False
+
+            reviews = json.loads(await reviews_resp.text())
+            first_review_ts_by_user = {}
+            for review in reviews:
+                reviewer = review.get("user") or {}
+                if _is_bot(reviewer):
+                    continue
+                reviewer_login = reviewer.get("login")
+                submitted_at = review.get("submitted_at")
+                submitted_ts = _parse_github_timestamp(submitted_at) if submitted_at else 0
+                if not reviewer_login or not _is_ts_in_month(submitted_ts, start_ts, end_ts):
+                    continue
+
+                prev_ts = first_review_ts_by_user.get(reviewer_login)
+                if prev_ts is None or submitted_ts < prev_ts:
+                    first_review_ts_by_user[reviewer_login] = submitted_ts
+
+            first_two = sorted(first_review_ts_by_user.items(), key=lambda item: item[1])[:2]
+            for reviewer_login, _submitted_ts in first_two:
+                review_counts[reviewer_login] = review_counts.get(reviewer_login, 0) + 1
+                review_credit_rows.append(
+                    (owner, repo_name, pr_number, month_key, reviewer_login, reconcile_ts + 1, reconcile_ts)
+                )
+
+        try:
+            all_logins = set(open_by_user.keys()) | set(merged_by_user.keys()) | set(closed_by_user.keys()) | set(review_counts.keys()) | set(preserved_comments.keys())
+            destructive_stmts = [
+                ("DELETE FROM leaderboard_open_prs WHERE org = ? AND updated_at <= ?", (owner, reconcile_ts)),
+                (
+                    """
+                    DELETE FROM leaderboard_pr_state
+                    WHERE org = ?
+                      AND updated_at <= ?
+                      AND (
+                            state = 'open'
+                            OR (state = 'closed' AND closed_at BETWEEN ? AND ?)
+                          )
+                    """,
+                    (owner, reconcile_ts, start_ts, end_ts),
+                ),
+                (
+                    """
+                    UPDATE leaderboard_monthly_stats
+                    SET merged_prs = 0,
+                        closed_prs = 0,
+                        pr_updated_at = ?
+                    WHERE org = ? AND month_key = ? AND pr_updated_at <= ?
+                    """,
+                    (reconcile_ts, owner, month_key, reconcile_ts),
+                ),
+                (
+                    "DELETE FROM leaderboard_review_credits WHERE org = ? AND month_key = ? AND created_at <= ?",
+                    (owner, month_key, reconcile_ts),
+                ),
+                ("DELETE FROM leaderboard_backfill_state WHERE org = ?", (owner,)),
+                ("DELETE FROM leaderboard_backfill_repo_done WHERE org = ?", (owner,)),
+            ]
+            batch_stmts = []
+
+            for rc_row in review_credit_rows:
+                batch_stmts.append(
+                    (
+                        """
+                        INSERT INTO leaderboard_review_credits (org, repo, pr_number, month_key, reviewer_login, created_at)
+                        VALUES (?, ?, ?, ?, ?, ?)
+                        ON CONFLICT(org, repo, pr_number, month_key, reviewer_login) DO UPDATE SET
+                            created_at = excluded.created_at
+                        WHERE leaderboard_review_credits.created_at <= ?
+                        """,
+                        rc_row,
+                    )
+                )
+
+            for login, count in open_by_user.items():
+                batch_stmts.append(
+                    (
+                        """
+                        INSERT INTO leaderboard_open_prs (org, user_login, open_prs, updated_at)
+                        VALUES (?, ?, ?, ?)
+                        ON CONFLICT(org, user_login) DO UPDATE SET
+                            open_prs = excluded.open_prs,
+                            updated_at = excluded.updated_at
+                        WHERE leaderboard_open_prs.updated_at <= ?
+                        """,
+                        (owner, login, count, reconcile_ts + 1, reconcile_ts),
+                    )
+                )
+
+            for row in pr_state_map.values():
+                batch_stmts.append(
+                    (
+                        """
+                        INSERT INTO leaderboard_pr_state (org, repo, pr_number, author_login, state, merged, closed_at, updated_at)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                        ON CONFLICT(org, repo, pr_number) DO UPDATE SET
+                            author_login = excluded.author_login,
+                            state = excluded.state,
+                            merged = excluded.merged,
+                            closed_at = excluded.closed_at,
+                            updated_at = excluded.updated_at
+                        WHERE leaderboard_pr_state.updated_at <= ?
+                        """,
+                        (row[0], row[1], row[2], row[3], row[4], row[5], row[6], reconcile_ts + 1, reconcile_ts),
+                    )
+                )
+
+            for login in all_logins:
+                batch_stmts.append(
+                    (
+                        """
+                        INSERT INTO leaderboard_monthly_stats
+                            (org, month_key, user_login, merged_prs, closed_prs, reviews, comments, updated_at, pr_updated_at, review_updated_at)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        ON CONFLICT(org, month_key, user_login) DO UPDATE SET
+                            merged_prs = CASE
+                                WHEN leaderboard_monthly_stats.pr_updated_at <= excluded.pr_updated_at
+                                THEN excluded.merged_prs
+                                ELSE leaderboard_monthly_stats.merged_prs
+                            END,
+                            closed_prs = CASE
+                                WHEN leaderboard_monthly_stats.pr_updated_at <= excluded.pr_updated_at
+                                THEN excluded.closed_prs
+                                ELSE leaderboard_monthly_stats.closed_prs
+                            END,
+                            pr_updated_at = CASE
+                                WHEN leaderboard_monthly_stats.pr_updated_at <= excluded.pr_updated_at
+                                THEN excluded.pr_updated_at
+                                ELSE leaderboard_monthly_stats.pr_updated_at
+                            END,
+                            reviews = CASE
+                                WHEN leaderboard_monthly_stats.review_updated_at <= excluded.review_updated_at
+                                THEN excluded.reviews
+                                ELSE leaderboard_monthly_stats.reviews
+                            END,
+                            review_updated_at = CASE
+                                WHEN leaderboard_monthly_stats.review_updated_at <= excluded.review_updated_at
+                                THEN excluded.review_updated_at
+                                ELSE leaderboard_monthly_stats.review_updated_at
+                            END
+                        WHERE leaderboard_monthly_stats.pr_updated_at <= ?
+                           OR leaderboard_monthly_stats.review_updated_at <= ?
+                        """,
+                        (
+                            owner,
+                            month_key,
+                            login,
+                            merged_by_user.get(login, 0),
+                            closed_by_user.get(login, 0),
+                            int(review_counts.get(login) or 0),
+                            int(preserved_comments.get(login) or 0),
+                            reconcile_ts + 1,
+                            reconcile_ts + 1,
+                            reconcile_ts + 1,
+                            reconcile_ts,
+                            reconcile_ts,
+                        ),
+                    )
+                )
+
+            if not await _continue_or_abort():
+                return False
+            if not await _d1_batch_chunked(db, batch_stmts, max_batch_statements, _continue_or_abort):
+                return False
+            if not await _continue_or_abort():
+                return False
+            if not await _d1_batch_chunked(db, destructive_stmts, max_batch_statements, _continue_or_abort):
+                return False
+        except Exception as exc:
+            console.error(f"[LeaderboardReconcile] Batch write failed for {owner}: {exc}")
+            return False
+
+        console.log(
+            f"[LeaderboardReconcile] Completed org={owner} month={month_key} users={len(all_logins)} repos_scanned_page_end={repo_page}"
+        )
+        return True
+    finally:
+        await _release_reconcile_lock(db, owner, holder)
 
 
 async def _get_backfill_state(db, owner: str, month_key: str) -> dict:
@@ -1761,22 +2725,8 @@ async def _calculate_leaderboard_stats(owner: str, repos: list, token: str, wind
     Returns:
         Dictionary with user stats and sorted leaderboard
     """
-    now_seconds = int(time.time())
-    now = time.gmtime(now_seconds)
-    
-    # Calculate time window
-    start_of_month = time.struct_time((now.tm_year, now.tm_mon, 1, 0, 0, 0, 0, 0, 0))
-    start_timestamp = int(time.mktime(start_of_month))
-    
-    # End of month calculation
-    if now.tm_mon == 12:
-        end_month = 1
-        end_year = now.tm_year + 1
-    else:
-        end_month = now.tm_mon + 1
-        end_year = now.tm_year
-    end_of_month = time.struct_time((end_year, end_month, 1, 0, 0, 0, 0, 0, 0))
-    end_timestamp = int(time.mktime(end_of_month)) - 1
+    month_key = _month_key()
+    start_timestamp, end_timestamp = _month_window(month_key)
     
     # Format date range for search API
     start_date = time.strftime("%Y-%m-%d", time.gmtime(start_timestamp))
@@ -1798,80 +2748,36 @@ async def _calculate_leaderboard_stats(owner: str, repos: list, token: str, wind
     # Use GitHub Search API to query across ALL repos efficiently
     # This dramatically reduces API calls: ~6 calls total vs 150+ with per-repo approach
     
-    # 1. Count open PRs (current state across all repos) - 1-2 calls
-    page = 1
-    while page <= 3:  # Max 3 pages = 300 PRs
-        resp = await github_api(
-            "GET",
-            f"/search/issues?q=is:pr+is:open+org:{owner}&per_page=100&page={page}",
-            token
-        )
-        if resp.status != 200:
-            break
-        data = json.loads(await resp.text())
-        items = data.get("items", [])
-        if not items:
-            break
-        
-        for pr in items:
-            if pr.get("user") and not _is_bot(pr["user"]):
-                login = pr["user"]["login"]
-                ensure_user(login)
-                user_stats[login]["openPrs"] += 1
-        
-        if len(items) < 100:
-            break
-        page += 1
+    # 1. Count open PRs (current state across all repos)
+    for pr in await _github_search_issues_paged(owner, token, "is:pr+is:open", max_pages=3):
+        if pr.get("user") and not _is_bot(pr["user"]):
+            login = pr["user"]["login"]
+            ensure_user(login)
+            user_stats[login]["openPrs"] += 1
     
-    # 2. Fetch merged PRs from this month - 1-2 calls
-    page = 1
-    while page <= 3:
-        resp = await github_api(
-            "GET",
-            f"/search/issues?q=is:pr+is:merged+org:{owner}+merged:{start_date}..{end_date}&per_page=100&page={page}",
-            token
-        )
-        if resp.status != 200:
-            break
-        data = json.loads(await resp.text())
-        items = data.get("items", [])
-        if not items:
-            break
-        
-        for pr in items:
-            if pr.get("user") and not _is_bot(pr["user"]):
-                login = pr["user"]["login"]
-                ensure_user(login)
-                user_stats[login]["mergedPrs"] += 1
-        
-        if len(items) < 100:
-            break
-        page += 1
+    # 2. Fetch merged PRs from this month
+    for pr in await _github_search_issues_paged(
+        owner,
+        token,
+        f"is:pr+is:merged+merged:{start_date}..{end_date}",
+        max_pages=3,
+    ):
+        if pr.get("user") and not _is_bot(pr["user"]):
+            login = pr["user"]["login"]
+            ensure_user(login)
+            user_stats[login]["mergedPrs"] += 1
     
-    # 3. Fetch closed (not merged) PRs from this month - 1-2 calls
-    page = 1
-    while page <= 3:
-        resp = await github_api(
-            "GET",
-            f"/search/issues?q=is:pr+is:closed+is:unmerged+org:{owner}+closed:{start_date}..{end_date}&per_page=100&page={page}",
-            token
-        )
-        if resp.status != 200:
-            break
-        data = json.loads(await resp.text())
-        items = data.get("items", [])
-        if not items:
-            break
-        
-        for pr in items:
-            if pr.get("user") and not _is_bot(pr["user"]):
-                login = pr["user"]["login"]
-                ensure_user(login)
-                user_stats[login]["closedPrs"] += 1
-        
-        if len(items) < 100:
-            break
-        page += 1
+    # 3. Fetch closed (not merged) PRs from this month
+    for pr in await _github_search_issues_paged(
+        owner,
+        token,
+        f"is:pr+is:closed+is:unmerged+closed:{start_date}..{end_date}",
+        max_pages=3,
+    ):
+        if pr.get("user") and not _is_bot(pr["user"]):
+            login = pr["user"]["login"]
+            ensure_user(login)
+            user_stats[login]["closedPrs"] += 1
     
     # 4. Search for comments in this month across org (optional, budget permitting)
     # Limit to 2 pages to stay under budget
@@ -2124,7 +3030,7 @@ def _format_reviewer_leaderboard_comment(leaderboard_data: dict, owner: str, pr_
             if end_idx < total - 1:
                 comment += "| … | … | … |\n"
         else:
-            # No PR reviewer identified – show top 5.
+            # No PR reviewer identified - show top 5.
             for i, u in enumerate(reviewer_sorted[:5]):
                 highlight = u["login"] in pr_reviewer_set
                 comment += row_for(i + 1, u, highlight) + "\n"
@@ -2149,25 +3055,40 @@ async def _post_reviewer_leaderboard(owner: str, repo: str, pr_number: int, toke
 
     comment_body = _format_reviewer_leaderboard_comment(leaderboard_data, owner, pr_reviewers)
 
-    # Delete any existing reviewer leaderboard comment then post a fresh one
-    resp = await github_api("GET", f"/repos/{owner}/{repo}/issues/{pr_number}/comments?per_page=100", token)
-    if resp.status == 200:
-        existing_comments = json.loads(await resp.text())
+    # Snapshot existing marker comments before posting so cleanup never removes
+    # the freshly created comment.
+    existing_comments, list_failed = await _fetch_issue_comments_paged(owner, repo, pr_number, token)
+    snapshot_ids = []
+    if list_failed:
+        console.error(
+            f"[ReviewerLeaderboard] Failed to list comments for {owner}/{repo}#{pr_number}; skipping cleanup snapshot"
+        )
+    else:
         for c in existing_comments:
-            body = c.get("body") or ""
-            if REVIEWER_LEADERBOARD_MARKER in body:
-                delete_resp = await github_api(
-                    "DELETE",
-                    f"/repos/{owner}/{repo}/issues/comments/{c['id']}",
-                    token,
-                )
-                if delete_resp.status not in (204, 200):
-                    console.error(
-                        f"[ReviewerLeaderboard] Failed to delete old reviewer leaderboard comment {c['id']} "
-                        f"for {owner}/{repo}#{pr_number}: status={delete_resp.status}"
-                    )
+            if REVIEWER_LEADERBOARD_MARKER not in (c.get("body") or ""):
+                continue
+            comment_id = int(c.get("id") or 0)
+            if comment_id > 0:
+                snapshot_ids.append(comment_id)
 
-    await create_comment(owner, repo, pr_number, comment_body, token)
+    created = await _create_comment_strict(owner, repo, pr_number, comment_body, token)
+    if created is False:
+        console.error(f"[ReviewerLeaderboard] Failed to post reviewer leaderboard for {owner}/{repo}#{pr_number}")
+        return
+
+    # Delete only snapshot comments so the newly posted one is preserved.
+    for comment_id in snapshot_ids:
+        delete_resp = await github_api(
+            "DELETE",
+            f"/repos/{owner}/{repo}/issues/comments/{comment_id}",
+            token,
+        )
+        if delete_resp.status not in (204, 200):
+            console.error(
+                f"[ReviewerLeaderboard] Failed to delete old reviewer leaderboard comment {comment_id} "
+                f"for {owner}/{repo}#{pr_number}: status={delete_resp.status}"
+            )
+
     console.log(f"[ReviewerLeaderboard] Posted reviewer leaderboard for {owner}/{repo}#{pr_number}")
 
 
@@ -2183,6 +3104,8 @@ async def _fetch_leaderboard_data(owner: str, repo: str, token: str, env=None) -
     leaderboard_note = ""
     owner_data = None
     is_org = False
+    reconciled = True
+    settings = _reconcile_settings(env)
 
     owner_resp = await github_api("GET", f"/users/{owner}", token)
     if owner_resp.status == 200:
@@ -2192,51 +3115,38 @@ async def _fetch_leaderboard_data(owner: str, repo: str, token: str, env=None) -
     else:
         console.error(f"[Leaderboard] Owner lookup failed for {owner}: status={owner_resp.status}")
 
-    # Prefer D1-backed stats for accurate and scalable org-wide leaderboard.
+    # For org leaderboard requests, always reconcile from GitHub first so stale
+    # webhook deltas cannot drift permanently.
+    if is_org and _d1_binding(env):
+        try:
+            reconciled = await _reconcile_org_leaderboard_from_github(
+                owner,
+                token,
+                env,
+                deadline_ts=time.time() + settings["timeout_seconds"],
+            )
+        except (KeyboardInterrupt, SystemExit):
+            raise
+        except Exception as exc:
+            console.error(f"[Leaderboard] Live reconciliation failed for {owner}: {exc}")
+            reconciled = False
+        leaderboard_note = "" if reconciled else "Live reconciliation is temporarily unavailable; showing last known snapshot."
+
+    # Prefer D1-backed stats after reconciliation.
     leaderboard_data = await _calculate_leaderboard_stats_from_d1(owner, env)
-    console.log(f"[Leaderboard] Initial D1 data: {bool(leaderboard_data)}, has_users={bool(leaderboard_data and leaderboard_data.get('sorted')) if leaderboard_data else False}")
+    console.log(f"[Leaderboard] D1 data ready: {bool(leaderboard_data)}, has_users={bool(leaderboard_data and leaderboard_data.get('sorted')) if leaderboard_data else False}")
 
-    # Always prioritize seeding the current repo so requester sees their repo's activity immediately.
-    if leaderboard_data is not None and is_org:
-        console.log(f"[Leaderboard] D1 is available, attempting to seed current repo {owner}/{repo}")
-        seeded_current = await _backfill_repo_month_if_needed(owner, repo, token, env)
-        console.log(f"[Leaderboard] Current repo backfill result: seeded_current={seeded_current}")
-        if seeded_current:
-            console.log(f"[Leaderboard] Seeded current repo {owner}/{repo} for immediate leaderboard accuracy")
-            leaderboard_data = await _calculate_leaderboard_stats_from_d1(owner, env) or leaderboard_data
-            console.log(f"[Leaderboard] After current repo seed, data has {len(leaderboard_data.get('sorted', []))} users")
-    else:
-        console.log(f"[Leaderboard] Skipped current repo backfill: leaderboard_data={bool(leaderboard_data)}, is_org={is_org}")
-
-    # Continue backfill until completed, not just when data is empty.
-    if leaderboard_data is not None and is_org:
-        db = _d1_binding(env)
-        if db:
-            month_key = _month_key()
-            state = await _get_backfill_state(db, owner, month_key)
-            if not state.get("completed"):
-                console.log(
-                    f"[Leaderboard] Running incremental backfill for {owner} "
-                    f"month={month_key} page={state.get('next_page')}"
-                )
-                backfill_result = await _run_incremental_backfill(owner, token, env)
-                if backfill_result:
-                    leaderboard_data = await _calculate_leaderboard_stats_from_d1(owner, env) or leaderboard_data
-                    console.log(f"[Leaderboard] After incremental backfill, data has {len(leaderboard_data.get('sorted', []))} users")
-                    if backfill_result.get("completed"):
-                        leaderboard_note = (
-                            f"Backfill completed in this request; seeded {backfill_result.get('processed', 0)} repos in the final chunk."
-                        )
-                    elif backfill_result.get("ran"):
-                        leaderboard_note = (
-                            f"Backfill in progress: seeded {backfill_result.get('processed', 0)} repos in this run; "
-                            f"next page {backfill_result.get('next_page', '?')}. "
-                            "Run `/leaderboard` again to continue filling historical data."
-                        )
-                    else:
-                        leaderboard_note = "Backfill did not progress this run; leaderboard still updates from new webhook events."
-                else:
-                    leaderboard_note = "Backfill state unavailable; leaderboard still updates from new webhook events."
+    # If reconciliation failed and D1 has no users yet, trigger API fallback below
+    # so /leaderboard never appears empty after deleting the command comment.
+    if (
+        leaderboard_data is not None
+        and not leaderboard_data.get("sorted")
+        and is_org
+        and _d1_binding(env)
+        and not reconciled
+    ):
+        console.log(f"[Leaderboard] D1 snapshot empty after failed reconcile for {owner}; falling back to API stats")
+        leaderboard_data = None
 
     # Fallback to API-based calculation when D1 is unavailable.
     if leaderboard_data is None:
@@ -2262,7 +3172,7 @@ async def _post_or_update_leaderboard(owner: str, repo: str, issue_number: int, 
 
     if leaderboard_data is None:
         console.error(f"[Leaderboard] Owner lookup failed for {owner}; cannot post leaderboard")
-        await create_comment(
+        await _create_comment_best_effort(
             owner,
             repo,
             issue_number,
@@ -2274,10 +3184,22 @@ async def _post_or_update_leaderboard(owner: str, repo: str, issue_number: int, 
     # Format comment
     comment_body = _format_leaderboard_comment(author_login, leaderboard_data, owner, leaderboard_note)
     
-    # Delete existing leaderboard comment(s) and old /leaderboard command comments, then create a fresh leaderboard comment.
-    resp = await github_api("GET", f"/repos/{owner}/{repo}/issues/{issue_number}/comments?per_page=100", token)
-    if resp.status == 200:
-        comments = json.loads(await resp.text())
+    # Delete existing leaderboard comment(s) and old /leaderboard command comments,
+    # then create a fresh leaderboard comment.
+    comments, list_failed = await _fetch_issue_comments_paged(owner, repo, issue_number, token)
+    if list_failed:
+        console.error(
+            f"[Leaderboard] Failed to list comments for {owner}/{repo}#{issue_number}; posting new leaderboard anyway"
+        )
+
+    created = await _create_comment_strict(owner, repo, issue_number, comment_body, token)
+    if not created:
+        console.error(
+            f"[Leaderboard] New leaderboard comment failed for {owner}/{repo}#{issue_number}; skipping cleanup deletes"
+        )
+        return
+
+    if comments:
         for c in comments:
             body = c.get("body") or ""
             is_old_board = LEADERBOARD_MARKER in body
@@ -2293,13 +3215,9 @@ async def _post_or_update_leaderboard(owner: str, repo: str, issue_number: int, 
                         f"[Leaderboard] Failed to delete old leaderboard/command comment {c['id']} "
                         f"for {owner}/{repo}#{issue_number}: status={delete_resp.status}"
                     )
-    else:
-        console.error(
-            f"[Leaderboard] Failed to list comments for {owner}/{repo}#{issue_number}: "
-            f"status={resp.status}; posting new leaderboard anyway"
-        )
+    elif not list_failed:
+        console.log(f"[Leaderboard] No existing comments found for cleanup on {owner}/{repo}#{issue_number}")
 
-    await create_comment(owner, repo, issue_number, comment_body, token)
     console.log(f"[Leaderboard] Posted leaderboard comment for {owner}/{repo}#{issue_number} (requested by @{author_login})")
 
 
@@ -2335,7 +3253,7 @@ async def _check_and_close_excess_prs(owner: str, repo: str, pr_number: int, aut
             "If you believe this was closed in error, please contact the maintainers."
         )
         
-        await create_comment(owner, repo, pr_number, msg, token)
+        await _create_comment_best_effort(owner, repo, pr_number, msg, token)
         
         await github_api(
             "PATCH",
@@ -2425,7 +3343,7 @@ async def _check_rank_improvement(owner: str, repo: str, pr_number: int, author_
             f"(up from #{old_rank})! Keep up the great work! 🚀"
         )
     
-    await create_comment(owner, repo, pr_number, msg, token)
+    await _create_comment_best_effort(owner, repo, pr_number, msg, token)
 
 
 # ---------------------------------------------------------------------------
@@ -2926,7 +3844,7 @@ async def _assign_mentor_to_issue(
     )
 
     if mentor is None:
-        await create_comment(
+        await _create_comment_best_effort(
             owner,
             repo,
             issue_number,
@@ -2969,7 +3887,7 @@ async def _assign_mentor_to_issue(
         "Feel free to ask questions here. Use `/rematch` if you need a different mentor.\n\n"
         "Happy coding! 🚀 — [OWASP BLT-Pool](https://pool.owaspblt.org)"
     )
-    await create_comment(owner, repo, issue_number, body, token)
+    await _create_comment_best_effort(owner, repo, issue_number, body, token)
     console.log(
         f"[MentorPool] Assigned @{mentor_username} as mentor for {owner}/{repo}#{issue_number}"
     )
@@ -2999,7 +3917,7 @@ async def handle_mentor_command(
     issue_number = issue["number"]
     current_labels = {lb.get("name", "").lower() for lb in issue.get("labels", [])}
     if MENTOR_ASSIGNED_LABEL.lower() in current_labels:
-        await create_comment(
+        await _create_comment_best_effort(
             owner,
             repo,
             issue_number,
@@ -3033,7 +3951,7 @@ async def handle_mentor_unassign(
     issue_number = issue["number"]
     current_labels = {lb.get("name", "").lower() for lb in issue.get("labels", [])}
     if MENTOR_ASSIGNED_LABEL.lower() not in current_labels:
-        await create_comment(
+        await _create_comment_best_effort(
             owner,
             repo,
             issue_number,
@@ -3058,7 +3976,7 @@ async def handle_mentor_unassign(
     if not is_issue_author and not is_assigned_mentor:
         is_repo_maintainer = await _is_maintainer(owner, repo, login, token)
         if not is_repo_maintainer:
-            await create_comment(
+            await _create_comment_best_effort(
                 owner,
                 repo,
                 issue_number,
@@ -3101,7 +4019,7 @@ async def handle_mentor_unassign(
             console.error(f"[MentorPool] Failed to remove D1 assignment record (best-effort): {exc}")
 
     mentor_mention = f"@{current_mentor} " if current_mentor else ""
-    await create_comment(
+    await _create_comment_best_effort(
         owner,
         repo,
         issue_number,
@@ -3138,7 +4056,7 @@ async def handle_mentor_pause(
         if m.get("github_username") and m.get("active", True)
     }
     if login.lower() not in mentor_usernames:
-        await create_comment(
+        await _create_comment_best_effort(
             owner,
             repo,
             issue["number"],
@@ -3146,7 +4064,7 @@ async def handle_mentor_pause(
             token,
         )
         return
-    await create_comment(
+    await _create_comment_best_effort(
         owner,
         repo,
         issue["number"],
@@ -3180,7 +4098,7 @@ async def handle_mentor_handoff(
     # this issue.  Having two separate gates gives a clearer error message to
     # non-mentor users vs. mentor-pool members who are not assigned here.
     if login.lower() not in mentor_usernames:
-        await create_comment(
+        await _create_comment_best_effort(
             owner,
             repo,
             issue_number,
@@ -3195,7 +4113,7 @@ async def handle_mentor_handoff(
     # Require a confirmed current mentor before proceeding; if the marker is missing
     # (API failure or marker never posted) we cannot safely authorize the handoff.
     if not current_mentor:
-        await create_comment(
+        await _create_comment_best_effort(
             owner,
             repo,
             issue_number,
@@ -3205,7 +4123,7 @@ async def handle_mentor_handoff(
         )
         return
     if current_mentor.lower() != login.lower():
-        await create_comment(
+        await _create_comment_best_effort(
             owner,
             repo,
             issue_number,
@@ -3239,7 +4157,7 @@ async def handle_mentor_handoff(
         owner, repo, updated_issue, contributor or "", token, pool, exclude=login, env=env
     )
     if not assigned:
-        await create_comment(
+        await _create_comment_best_effort(
             owner,
             repo,
             issue_number,
@@ -3271,7 +4189,7 @@ async def handle_mentor_rematch(
     pool = mentors_config if mentors_config is not None else []
     current_labels = {lb.get("name", "").lower() for lb in issue.get("labels", [])}
     if MENTOR_ASSIGNED_LABEL.lower() not in current_labels:
-        await create_comment(
+        await _create_comment_best_effort(
             owner,
             repo,
             issue_number,
@@ -3380,7 +4298,7 @@ async def _check_stale_mentor_assignments(owner: str, repo: str, token: str) -> 
 
                 days_elapsed = int((current_time - last_human_ts) / _SECONDS_PER_DAY)
                 mentor_mention = f"@{current_mentor} " if current_mentor else ""
-                await create_comment(
+                await _create_comment_best_effort(
                     owner,
                     repo,
                     issue_number,
@@ -3437,18 +4355,6 @@ async def handle_issue_comment(payload: dict, token: str, env=None) -> None:
         await _unassign(owner, repo, issue, login, token)
     elif command == LEADERBOARD_COMMAND:
         console.log(f"[Leaderboard] Command received for {owner}/{repo}#{issue_number} by @{login}")
-        # Best effort: remove the triggering command comment to keep threads clean.
-        if env is not None and comment_id:
-            delete_cmd_resp = await github_api(
-                "DELETE",
-                f"/repos/{owner}/{repo}/issues/comments/{comment_id}",
-                token,
-            )
-            if delete_cmd_resp.status not in (204, 200):
-                console.error(
-                    f"[Leaderboard] Failed to delete triggering command comment {comment_id} "
-                    f"for {owner}/{repo}#{issue_number}: status={delete_cmd_resp.status}"
-                )
         try:
             if env is None:
                 await _post_or_update_leaderboard(owner, repo, issue_number, login, token)
@@ -3456,7 +4362,7 @@ async def handle_issue_comment(payload: dict, token: str, env=None) -> None:
                 await _post_or_update_leaderboard(owner, repo, issue_number, login, token, env)
         except Exception as exc:
             console.error(f"[Leaderboard] Command failed for {owner}/{repo}#{issue_number}: {exc}")
-            await create_comment(
+            await _create_comment_best_effort(
                 owner,
                 repo,
                 issue_number,
@@ -3490,14 +4396,14 @@ async def _assign(
 ) -> None:
     num = issue["number"]
     if issue.get("pull_request"):
-        await create_comment(
+        await _create_comment_best_effort(
             owner, repo, num,
             f"@{login} This command only works on issues, not pull requests.",
             token,
         )
         return
     if issue["state"] == "closed":
-        await create_comment(
+        await _create_comment_best_effort(
             owner, repo, num,
             f"@{login} This issue is already closed and cannot be assigned.",
             token,
@@ -3505,14 +4411,14 @@ async def _assign(
         return
     assignees = [a["login"] for a in issue.get("assignees", [])]
     if login in assignees:
-        await create_comment(
+        await _create_comment_best_effort(
             owner, repo, num,
             f"@{login} You are already assigned to this issue.",
             token,
         )
         return
     if len(assignees) >= MAX_ASSIGNEES:
-        await create_comment(
+        await _create_comment_best_effort(
             owner, repo, num,
             f"@{login} This issue already has the maximum number of assignees "
             f"({MAX_ASSIGNEES}). Please work on a different issue.",
@@ -3539,7 +4445,7 @@ async def _assign(
         "%a, %d %b %Y %H:%M:%S UTC",
         time.gmtime(time.time() + ASSIGNMENT_DURATION_HOURS * 3600),
     )
-    await create_comment(
+    await _create_comment_best_effort(
         owner, repo, num,
         f"@{login} You have been assigned to this issue! 🎉\n\n"
         f"Please submit a pull request within **{ASSIGNMENT_DURATION_HOURS} hours** "
@@ -3557,7 +4463,7 @@ async def _unassign(
     num = issue["number"]
     assignees = [a["login"] for a in issue.get("assignees", [])]
     if login not in assignees:
-        await create_comment(
+        await _create_comment_best_effort(
             owner, repo, num,
             f"@{login} You are not currently assigned to this issue.",
             token,
@@ -3569,7 +4475,7 @@ async def _unassign(
         token,
         {"assignees": [login]},
     )
-    await create_comment(
+    await _create_comment_best_effort(
         owner, repo, num,
         f"@{login} You have been unassigned from this issue. "
         "Thanks for letting us know! 👍\n\n"
@@ -3610,7 +4516,7 @@ async def handle_issue_opened(
                 f"(Bug ID: #{bug_data['id']}). "
                 "Thank you for helping improve security!\n"
             )
-    await create_comment(owner, repo, issue["number"], msg, token)
+    await _create_comment_best_effort(owner, repo, issue["number"], msg, token)
 
 
 async def handle_issue_labeled(
@@ -3655,7 +4561,7 @@ async def handle_issue_labeled(
         "label": label.get("name", "bug"),
     })
     if bug_data and bug_data.get("id"):
-        await create_comment(
+        await _create_comment_best_effort(
             owner, repo, issue["number"],
             f"🐛 This issue has been reported to [OWASP BLT-Pool](https://pool.owaspblt.org) "
             f"(Bug ID: #{bug_data['id']}) after being labeled as "
@@ -3677,7 +4583,7 @@ async def handle_pull_request_opened(payload: dict, token: str, env=None) -> Non
     owner = payload["repository"]["owner"]["login"]
     repo = payload["repository"]["name"]
     pr_number = pr["number"]
-    author_login = sender["login"]
+    author_login = (pr.get("user") or {}).get("login") or sender["login"]
 
     # Check for too many open PRs and auto-close if needed
     was_closed = await _check_and_close_excess_prs(owner, repo, pr_number, author_login, token)
@@ -3712,7 +4618,7 @@ async def handle_pull_request_opened(payload: dict, token: str, env=None) -> Non
         except Exception:
             mentors_config = []
         try:
-            await _assign_round_robin_mentor_reviewer(owner, repo, pr, mentors_config, token)
+            await _assign_round_robin_mentor_reviewer(owner, repo, pr, mentors_config, token, enabled=auto_reviewer_enabled)
         except Exception as exc:
             console.error(f"[MentorPool] Round-robin reviewer failed (best-effort): {exc}")
 
@@ -3800,15 +4706,16 @@ async def _assign_round_robin_mentor_reviewer(
     pr: dict,
     mentors_config: Optional[list],
     token: str,
+    enabled: bool = False,
 ) -> None:
     """Auto-request one mentor as a reviewer on a newly opened PR (round-robin).
 
-    Enabled only when ``MENTOR_AUTO_PR_REVIEWER_ENABLED`` is ``True``.
+    Enabled when caller passes ``enabled=True``.
     Picks one active mentor using ``(pr_number - 1) mod pool_size`` so the
     assignment cycles predictably across consecutive PRs.  The PR author is
     never chosen as their own reviewer.
     """
-    if not MENTOR_AUTO_PR_REVIEWER_ENABLED:
+    if not enabled:
         return
 
     pool = mentors_config if mentors_config is not None else []
@@ -3897,31 +4804,42 @@ async def _post_merged_pr_combined_comment(
         + reviewer_section
     )
 
-    # ---------------------------------------------------------------------------
-    # 3. Delete any old separate or combined comment(s), then post the new one
-    # ---------------------------------------------------------------------------
-    resp = await github_api("GET", f"/repos/{owner}/{repo}/issues/{pr_number}/comments?per_page=100", token)
-    if resp.status == 200:
-        old_comments = json.loads(await resp.text())
-        for c in old_comments:
-            body = c.get("body") or ""
-            if any(
-                marker in body
-                for marker in (MERGED_PR_COMMENT_MARKER, LEADERBOARD_MARKER, REVIEWER_LEADERBOARD_MARKER)
-            ):
-                delete_resp = await github_api("DELETE", f"/repos/{owner}/{repo}/issues/comments/{c['id']}", token)
-                if delete_resp.status not in (204, 200):
-                    console.error(
-                        f"[MergedPR] Failed to delete old comment {c['id']} "
-                        f"for {owner}/{repo}#{pr_number}: status={delete_resp.status}"
-                    )
-    else:
+    # Snapshot existing marker comments before posting to avoid deleting the
+    # newly-created combined comment during cleanup.
+    old_comments, list_failed = await _fetch_issue_comments_paged(owner, repo, pr_number, token)
+    snapshot_marker_ids = []
+    if list_failed:
         console.error(
             f"[MergedPR] Failed to list comments for {owner}/{repo}#{pr_number}: "
-            f"status={resp.status}; posting new comment anyway"
+            "status=unknown; skipping duplicate cleanup snapshot"
         )
+    else:
+        snapshot_marker_ids = [
+            int(c.get("id") or 0)
+            for c in old_comments
+            if any(
+                marker in (c.get("body") or "")
+                for marker in (MERGED_PR_COMMENT_MARKER, LEADERBOARD_MARKER, REVIEWER_LEADERBOARD_MARKER)
+            )
+            and int(c.get("id") or 0) > 0
+        ]
 
-    await create_comment(owner, repo, pr_number, combined_body, token)
+    created = await _create_comment_strict(owner, repo, pr_number, combined_body, token)
+    if created is False:
+        console.error(f"[MergedPR] Failed to post combined merge comment for {owner}/{repo}#{pr_number}")
+        return
+
+    # ---------------------------------------------------------------------------
+    # 3. Delete any old separate or combined comment(s) after posting a new one
+    # ---------------------------------------------------------------------------
+    for comment_id in snapshot_marker_ids:
+        delete_resp = await github_api("DELETE", f"/repos/{owner}/{repo}/issues/comments/{comment_id}", token)
+        if delete_resp.status not in (204, 200):
+            console.error(
+                f"[MergedPR] Failed to delete old comment {comment_id} "
+                f"for {owner}/{repo}#{pr_number}: status={delete_resp.status}"
+            )
+
     console.log(f"[MergedPR] Posted combined merge comment for {owner}/{repo}#{pr_number}")
 
 
@@ -4400,7 +5318,7 @@ This pull request needs a peer review before it can be merged. Please request a 
 Once a valid peer review is submitted, this check will pass automatically. Thank you!
 
 > ⚠️ Peer review enforcement is active."""
-            await create_comment(owner, repo, pr_number, body, token)
+            await _create_comment_best_effort(owner, repo, pr_number, body, token)
 
 
 async def handle_pull_request_review(payload: dict, token: str) -> None:
@@ -5872,7 +6790,7 @@ async def _check_stale_assignments(owner: str, repo: str, token: str):
                 
                 # Post a comment explaining the unassignment
                 assignee_mentions = ", ".join(f"@{login}" for login in assignee_logins)
-                await create_comment(
+                await _create_comment_best_effort(
                     owner, repo, issue_number,
                     f"{assignee_mentions} This issue has been automatically unassigned because "
                     f"the {ASSIGNMENT_DURATION_HOURS}-hour deadline has passed without a linked pull request.\n\n"
@@ -5884,3 +6802,4 @@ async def _check_stale_assignments(owner: str, repo: str, token: str):
     
     except Exception as e:
         console.error(f"[CRON] Error checking {owner}/{repo}: {e}")
+
