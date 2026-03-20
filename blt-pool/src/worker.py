@@ -3600,6 +3600,8 @@ def _load_no_welcome_repos(path: str = _NO_WELCOME_REPOS_YML_PATH) -> list:
         with open(path, "r", encoding="utf-8") as fh:
             content = fh.read()
     except OSError:
+        if path == _NO_WELCOME_REPOS_YML_PATH:
+            _NO_WELCOME_REPOS_CACHE = []
         return []
     repos: list = []
     in_repos_section = False
