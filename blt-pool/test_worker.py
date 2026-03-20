@@ -361,8 +361,8 @@ class TestHandleAssign(unittest.TestCase):
         self._run_assign(payload, comments, calls)
         # No GitHub API call (no assignment) should occur
         self.assertEqual(calls, [])
-        # Comment must mention the requester and @donnieblt
-        self.assertTrue(any("@alice" in c and "@donnieblt" in c for c in comments))
+        # Comment must mention the requester, @donnieblt, and the "help wanted" label
+        self.assertTrue(any("@alice" in c and "@donnieblt" in c and "help wanted" in c for c in comments))
 
     def test_does_not_assign_closed_issue(self):
         payload = _make_issue_payload(state="closed")

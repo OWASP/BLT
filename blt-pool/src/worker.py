@@ -53,6 +53,8 @@ LEADERBOARD_COMMAND = "/leaderboard"
 MAX_ASSIGNEES = 1
 ASSIGNMENT_DURATION_HOURS = 8
 BUG_LABELS = {"bug", "vulnerability", "security"}
+HELP_WANTED_LABEL = "help wanted"
+TRIAGE_REVIEWER = "donnieblt"
 
 # ---------------------------------------------------------------------------
 # Mentor pool — slash commands and label names
@@ -3518,12 +3520,12 @@ async def _assign(
         )
         return
     label_names = {lb.get("name", "").lower() for lb in issue.get("labels", [])}
-    if "help wanted" not in label_names:
+    if HELP_WANTED_LABEL not in label_names:
         await create_comment(
             owner, repo, num,
             f"@{login} This issue is not yet ready for assignment. "
-            "A maintainer (such as @donnieblt) must first review it and add the "
-            '"help wanted" label before `/assign` can be used.',
+            f"A maintainer (such as @{TRIAGE_REVIEWER}) must first review it and add the "
+            f'"{HELP_WANTED_LABEL}" label before `/assign` can be used.',
             token,
         )
         return
