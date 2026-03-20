@@ -160,19 +160,29 @@ def fetch_branch_count(repo_full_name: str) -> int:
         return 0
 
 
-def fetch_pr_counts(repo_full_name: str) -> tuple[int, int]:
-    """Return (open_pr_count, agent_pr_count) for a repo.
+def fetch_pr_counts(repo_full_name: str) -> tuple[int, int, list]:
+    """Return (open_pr_count, agent_pr_count, open_prs) for a repo.
 
     agent_pr_count is the number of open PRs authored by GitHub bots/agents.
+    open_prs is a list of open PR objects with number, title, html_url, and body.
     """
     try:
         prs = fetch_all_pages(f"/repos/{repo_full_name}/pulls?state=open")
         total = len(prs)
         agent = sum(1 for pr in prs if pr.get("user", {}).get("type") == "Bot")
-        return total, agent
+        slim_prs = [
+            {
+                "number": pr.get("number"),
+                "title": pr.get("title", ""),
+                "html_url": pr.get("html_url", ""),
+                "body": (pr.get("body") or "")[:2000],
+            }
+            for pr in prs
+        ]
+        return total, agent, slim_prs
     except (urllib.error.HTTPError, urllib.error.URLError) as exc:
         print(f"  Warning: could not fetch PR counts for {repo_full_name}: {exc}", file=sys.stderr)
-        return 0, 0
+        return 0, 0, []
 
 
 def fetch_latest_issue(repo_full_name: str) -> dict | None:
@@ -195,6 +205,85 @@ def fetch_latest_issue(repo_full_name: str) -> dict | None:
     except (urllib.error.HTTPError, urllib.error.URLError) as exc:
         print(f"  Warning: could not fetch latest issue for {repo_full_name}: {exc}", file=sys.stderr)
         return None
+
+
+def fetch_all_open_issues(repo_full_name: str, repo_name: str, repo_html_url: str,
+                          open_prs: list | None = None) -> list:
+    """Return all open issues for a repo with labels, assignees, linked PRs, and created_at.
+
+    open_prs is a list of open PR dicts (number, title, html_url, body) for this repo.
+    A PR is considered linked to an issue when the issue number appears in the PR body
+    or title with common keywords (closes, fixes, resolves) or plain #N references.
+    """
+    import re
+
+    # Build a mapping: issue_number -> list of linked PR dicts
+    linked_prs_map: dict[int, list] = {}
+    if open_prs:
+        # Pattern matches: closes/fixes/resolves #N or just #N anywhere
+        ref_pattern = re.compile(
+            r"(?:closes|fixes|resolves|close|fix|resolve)?\s*#(\d+)",
+            re.IGNORECASE,
+        )
+        for pr in open_prs:
+            text = f"{pr.get('title', '')} {pr.get('body', '')}"
+            for m in ref_pattern.finditer(text):
+                issue_num = int(m.group(1))
+                linked_prs_map.setdefault(issue_num, [])
+                if not any(p["number"] == pr["number"] for p in linked_prs_map[issue_num]):
+                    linked_prs_map[issue_num].append({
+                        "number": pr["number"],
+                        "title": pr["title"],
+                        "html_url": pr["html_url"],
+                    })
+
+    try:
+        all_issues = []
+        page = 1
+        while True:
+            data = make_request(
+                f"{API_BASE}/repos/{repo_full_name}/issues?state=open&sort=created&direction=desc"
+                f"&per_page={PER_PAGE}&page={page}"
+            )
+            if not isinstance(data, list) or not data:
+                break
+            for issue in data:
+                # Skip pull requests (the issues endpoint returns both)
+                if issue.get("pull_request"):
+                    continue
+                labels = [
+                    {"name": lbl.get("name", ""), "color": lbl.get("color", "cccccc")}
+                    for lbl in (issue.get("labels") or [])
+                ]
+                assignees = [
+                    {
+                        "login": u.get("login", ""),
+                        "avatar_url": u.get("avatar_url", ""),
+                        "html_url": u.get("html_url", ""),
+                    }
+                    for u in (issue.get("assignees") or [])
+                ]
+                issue_num = issue.get("number")
+                all_issues.append({
+                    "number": issue_num,
+                    "title": issue.get("title", ""),
+                    "html_url": issue.get("html_url", ""),
+                    "created_at": issue.get("created_at", ""),
+                    "updated_at": issue.get("updated_at", ""),
+                    "labels": labels,
+                    "assignees": assignees,
+                    "linked_prs": linked_prs_map.get(issue_num, []),
+                    "repo_name": repo_name,
+                    "repo_html_url": repo_html_url,
+                })
+            if len(data) < PER_PAGE:
+                break
+            page += 1
+            time.sleep(0.1)
+        return all_issues
+    except (urllib.error.HTTPError, urllib.error.URLError) as exc:
+        print(f"  Warning: could not fetch open issues for {repo_full_name}: {exc}", file=sys.stderr)
+        return []
 
 
 def fetch_weekly_commits(repo_full_name: str, weeks: int = 26) -> list:
@@ -450,29 +539,52 @@ def main() -> None:
     print("Fetching open PR counts…", flush=True)
     open_pr_count_map: dict[str, int] = {}
     agent_pr_count_map: dict[str, int] = {}
+    open_prs_map: dict[str, list] = {}
     for i, repo in enumerate(repos):
         if repo.get("archived"):
             open_pr_count_map[repo["full_name"]] = 0
             agent_pr_count_map[repo["full_name"]] = 0
+            open_prs_map[repo["full_name"]] = []
         else:
-            total_prs, agent_prs = fetch_pr_counts(repo["full_name"])
+            total_prs, agent_prs, repo_open_prs = fetch_pr_counts(repo["full_name"])
             open_pr_count_map[repo["full_name"]] = total_prs
             agent_pr_count_map[repo["full_name"]] = agent_prs
+            open_prs_map[repo["full_name"]] = repo_open_prs
             time.sleep(0.1)
         if (i + 1) % 10 == 0:
             print(f"  {i + 1}/{len(repos)} done", flush=True)
 
-    # Fetch the most recent open issue for each non-archived repo
-    print("Fetching latest issues…", flush=True)
+    # Fetch the most recent open issue for each non-archived repo, and all open
+    # issues (with labels/assignees) for the cross-repo issues panel.
+    print("Fetching latest issues and all open issues…", flush=True)
     latest_issue_map: dict[str, dict | None] = {}
+    all_open_issues: list[dict] = []
     for i, repo in enumerate(repos):
         if repo.get("archived"):
             latest_issue_map[repo["full_name"]] = None
         else:
-            latest_issue_map[repo["full_name"]] = fetch_latest_issue(repo["full_name"])
+            repo_open_prs = open_prs_map.get(repo["full_name"], [])
+            repo_issues = fetch_all_open_issues(
+                repo["full_name"], repo["name"], repo.get("html_url", ""),
+                repo_open_prs
+            )
+            all_open_issues.extend(repo_issues)
+            # Keep the most recent issue: issues are fetched with sort=created&direction=desc
+            # so index 0 is the most recently created; explicitly verify before assigning.
+            open_non_pr_issues = [iss for iss in repo_issues
+                                   if iss.get("created_at")]
+            open_non_pr_issues_sorted = sorted(
+                open_non_pr_issues,
+                key=lambda x: x.get("created_at", ""),
+                reverse=True,
+            )
+            latest_issue_map[repo["full_name"]] = open_non_pr_issues_sorted[0] if open_non_pr_issues_sorted else None
             time.sleep(0.1)
         if (i + 1) % 10 == 0:
             print(f"  {i + 1}/{len(repos)} done", flush=True)
+
+    # Sort all open issues newest first
+    all_open_issues.sort(key=lambda x: x.get("created_at", ""), reverse=True)
 
     # Fetch per-week star counts for each non-archived repo
     print("Fetching star history…", flush=True)
@@ -608,6 +720,7 @@ def main() -> None:
             ),
         },
         "repos": slim_repos,
+        "open_issues": all_open_issues,
     }
 
     with open(OUT_FILE, "w", encoding="utf-8") as fh:
