@@ -75,6 +75,18 @@ CONTESTS = [
         "deadline_display": "April 15, 2026",
         "icon": "fa-solid fa-house",
     },
+    {
+        "id": "blt-video-meme",
+        "name": "BLT Video Meme",
+        "label": "video-meme-submission",
+        "title_prefix": "[Video Meme]",
+        "template": "video-meme-submission.yml",
+        "description": "Design a meme video for OWASP BLT.",
+        "prize": "$10",
+        "deadline": "2026-04-15T00:00:00Z",
+        "deadline_display": "April 15, 2026",
+        "icon": "fa-solid fa-circle-play",
+    },
 ]
 
 # Backward-compatible aliases (used by helpers that pre-date multi-contest support)

@@ -24,6 +24,7 @@ body:
         - "BLT T-Shirt Design Contest (blt-tshirt)"
         - "BLT Logo Contest (blt-logo)"
         - "BLT Homepage Design (blt-homepage)"
+        - "BLT Video Meme (blt-video-meme)"
     validations:
       required: true
 
