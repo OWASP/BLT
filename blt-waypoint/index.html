@@ -75,6 +75,7 @@
           <option value="readme_chars">README Size</option>
           <option value="maturity">Maturity Score</option>
           <option value="agent_pr_count">Bot PRs</option>
+          <option value="latest_pr">Latest PR</option>
         </select>
 
         <!-- View toggle -->
@@ -199,6 +200,9 @@
           <li><button data-sort="agent_pr_count"
               class="sort-btn w-full text-left px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"><i
                 class="fa-solid fa-robot w-4 mr-2" aria-hidden="true"></i>Bot PRs</button></li>
+          <li><button data-sort="latest_pr"
+              class="sort-btn w-full text-left px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"><i
+                class="fa-solid fa-code-pull-request w-4 mr-2" aria-hidden="true"></i>Latest PR</button></li>
         </ul>
       </nav>
 
@@ -228,6 +232,7 @@
             <option value="readme_chars">README Size</option>
             <option value="maturity">Maturity Score</option>
             <option value="agent_pr_count">Bot PRs</option>
+            <option value="latest_pr">Latest PR</option>
           </select>
           <select id="filter-select-mobile" aria-label="Filter repositories"
             class="text-sm border border-gray-400 rounded-md px-3 py-2 bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-gray-100 focus-brand flex-1">

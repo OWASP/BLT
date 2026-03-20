@@ -454,6 +454,14 @@ function applyFilters() {
       if (currentSort === 'updated_at' || currentSort === 'created_at')
         return new Date(b[currentSort]) - new Date(a[currentSort]);
       if (currentSort === 'maturity') return (b._maturityScore || 0) - (a._maturityScore || 0);
+      if (currentSort === 'latest_pr') {
+        const ta = (a.latest_pr && a.latest_pr.updated_at) ? new Date(a.latest_pr.updated_at) : null;
+        const tb = (b.latest_pr && b.latest_pr.updated_at) ? new Date(b.latest_pr.updated_at) : null;
+        if (!ta && !tb) return 0;
+        if (!ta) return 1;
+        if (!tb) return -1;
+        return tb - ta;
+      }
       return (b[currentSort] || 0) - (a[currentSort] || 0);
     });
   }
