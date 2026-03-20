@@ -91,7 +91,7 @@ def fetch_communities():
                     "description": (data.get("description", "") or "")[:500],
                     "url": f"https://reddit.com/r/{name}",
                     "source": "Reddit",
-                    "member_count": data.get("subscribers", 0),
+                    "members": data.get("subscribers", 0),
                     "primary_language": None,
                     "tags": extract_tags(data),
                 })
@@ -107,11 +107,17 @@ def main():
     catalog = json.loads(CATALOG_PATH.read_text(encoding="utf-8"))
     communities = fetch_communities()
 
-    if communities:
+    existing_count = len(catalog.get("communities", []))
+    if not communities:
+        logger.warning("No communities fetched, keeping existing data")
+    elif existing_count > 0 and len(communities) < existing_count * 0.5:
+        logger.warning(
+            "Fetched significantly fewer communities (%d vs %d), keeping existing data",
+            len(communities), existing_count,
+        )
+    else:
         catalog["communities"] = communities
         logger.info("Updated catalog with %d communities", len(communities))
-    else:
-        logger.warning("No communities fetched, keeping existing data")
 
     CATALOG_PATH.write_text(json.dumps(catalog, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 

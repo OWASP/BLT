@@ -14,6 +14,8 @@ jobs:
   update-catalog:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
 
     steps:
       - name: Checkout repository
@@ -31,9 +33,7 @@ jobs:
         run: python scripts/fetch_articles.py
 
       - name: Fetch Discord servers
-        if: ${{ secrets.DISCORD_BOT_TOKEN != '' }}
-        env:
-          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+        if: env.DISCORD_BOT_TOKEN != ''
         run: python scripts/fetch_discord.py
 
       - name: Fetch Reddit communities

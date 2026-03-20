@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 
 CATALOG_PATH = Path(__file__).resolve().parent.parent / "data" / "ossh_catalog.json"
 DISCORD_API_URL = "https://discord.com/api/v10/discovery/search"
+MAX_CHANNELS = 200
 
 SEARCH_TERMS = [
     "programming",
@@ -89,6 +90,10 @@ def fetch_discord_servers():
     channels = []
 
     for term in SEARCH_TERMS:
+        if len(channels) >= MAX_CHANNELS:
+            logger.info("Reached max channels limit (%d)", MAX_CHANNELS)
+            break
+
         try:
             sleep(1)
             response = requests.get(
@@ -101,6 +106,9 @@ def fetch_discord_servers():
             servers = response.json().get("hits", [])
 
             for server in servers:
+                if len(channels) >= MAX_CHANNELS:
+                    break
+
                 server_id = server.get("id")
                 if not server_id or server_id in seen_ids:
                     continue
@@ -116,7 +124,7 @@ def fetch_discord_servers():
                     "name": server.get("name", "Unknown"),
                     "description": server.get("description", ""),
                     "source": "Discord",
-                    "member_count": server.get("approximate_member_count", 0),
+                    "members": server.get("approximate_member_count", 0),
                     "invite_url": invite_url,
                     "logo_url": logo_url,
                     "tags": server.get("keywords", []),
@@ -136,11 +144,17 @@ def main():
     catalog = json.loads(CATALOG_PATH.read_text(encoding="utf-8"))
     channels = fetch_discord_servers()
 
-    if channels:
+    existing_count = len(catalog.get("discussion_channels", []))
+    if not channels:
+        logger.warning("No channels fetched, keeping existing data")
+    elif existing_count > 0 and len(channels) < existing_count * 0.5:
+        logger.warning(
+            "Fetched significantly fewer channels (%d vs %d), keeping existing data",
+            len(channels), existing_count,
+        )
+    else:
         catalog["discussion_channels"] = channels
         logger.info("Updated catalog with %d discussion channels", len(channels))
-    else:
-        logger.warning("No channels fetched, keeping existing data")
 
     CATALOG_PATH.write_text(json.dumps(catalog, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 

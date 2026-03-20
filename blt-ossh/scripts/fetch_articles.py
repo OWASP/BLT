@@ -57,11 +57,17 @@ def main():
     catalog = json.loads(CATALOG_PATH.read_text(encoding="utf-8"))
     articles = fetch_articles()
 
-    if articles:
+    existing_count = len(catalog.get("articles", []))
+    if not articles:
+        logger.warning("No articles fetched, keeping existing data")
+    elif existing_count > 0 and len(articles) < existing_count * 0.5:
+        logger.warning(
+            "Fetched significantly fewer articles (%d vs %d), keeping existing data",
+            len(articles), existing_count,
+        )
+    else:
         catalog["articles"] = articles
         logger.info("Updated catalog with %d articles", len(articles))
-    else:
-        logger.warning("No articles fetched, keeping existing data")
 
     CATALOG_PATH.write_text(json.dumps(catalog, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
