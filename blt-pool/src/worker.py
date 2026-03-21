@@ -3603,6 +3603,9 @@ async def _approve(
             token,
         )
         return
+    # Do not process /approve on pull requests or closed issues.
+    if issue.get("pull_request") or issue.get("state") == "closed":
+        return
     # Add the "help wanted" label — this is the prerequisite checked by the
     # /assign command; without it users cannot self-assign via /assign.
     await github_api(
