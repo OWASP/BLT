@@ -247,6 +247,16 @@ const VideoChat = (() => {
       updateStatus("Ready — share your Room ID", "secondary");
       setDotStatus("online");
       showToast("Connected to signaling server", "success");
+      // Auto-connect if a room ID was passed in the URL
+      const params = new URLSearchParams(window.location.search);
+      const joinId = params.get("room");
+      if (joinId && joinId !== state.peerId) {
+        const remoteInput = $("remote-id");
+        if (remoteInput) {
+          remoteInput.value = joinId;
+        }
+        callPeer(joinId);
+      }
     });
 
     peer.on("call", async (incomingCall) => {
@@ -571,6 +581,16 @@ const VideoChat = (() => {
     });
   }
 
+  /* ── Share link ── */
+  function copyRoomLink() {
+    if (!state.peerId) {
+      showToast("Room not ready yet — please wait", "warning");
+      return;
+    }
+    const url = `${window.location.origin}${window.location.pathname}?room=${encodeURIComponent(state.peerId)}`;
+    copyToClipboard(url, "Room link");
+  }
+
   /* ── Screen share ── */
   async function shareScreen() {
     try {
@@ -633,6 +653,7 @@ const VideoChat = (() => {
     toggleNoiseSuppression,
     shareScreen,
     stopScreenShare,
+    copyRoomLink,
     state,
   };
 })();
