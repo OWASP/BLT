@@ -3578,6 +3578,53 @@ async def _unassign(
     )
 
 
+_NO_WELCOME_REPOS_YML_PATH = os.path.join(os.path.dirname(__file__), "no_welcome_repos.yml")
+_NO_WELCOME_REPOS_CACHE: Optional[list] = None
+
+
+def _load_no_welcome_repos(path: str = _NO_WELCOME_REPOS_YML_PATH) -> list:
+    """Return the list of repository names that should not receive the new-issue welcome message.
+
+    Reads ``src/no_welcome_repos.yml`` which has the format::
+
+        repos:
+          - RepoName
+          - AnotherRepo
+
+    The result is cached in memory after the first read.
+    """
+    global _NO_WELCOME_REPOS_CACHE
+    if path == _NO_WELCOME_REPOS_YML_PATH and _NO_WELCOME_REPOS_CACHE is not None:
+        return _NO_WELCOME_REPOS_CACHE
+    try:
+        with open(path, "r", encoding="utf-8") as fh:
+            content = fh.read()
+    except OSError:
+        if path == _NO_WELCOME_REPOS_YML_PATH:
+            _NO_WELCOME_REPOS_CACHE = []
+        return []
+    repos: list = []
+    in_repos_section = False
+    for raw_line in content.splitlines():
+        line = raw_line.rstrip()
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        if stripped == "repos:":
+            in_repos_section = True
+            continue
+        # If we hit another top-level key (non-indented line ending with ":"),
+        # we are no longer in the "repos" section.
+        if not line.startswith(" ") and stripped.endswith(":"):
+            in_repos_section = False
+            continue
+        if in_repos_section and stripped.startswith("- "):
+            repos.append(stripped[2:].strip())
+    if path == _NO_WELCOME_REPOS_YML_PATH:
+        _NO_WELCOME_REPOS_CACHE = repos
+    return repos
+
+
 async def handle_issue_opened(
     payload: dict, token: str, blt_api_url: str
 ) -> None:
@@ -3587,6 +3634,9 @@ async def handle_issue_opened(
         return
     owner = payload["repository"]["owner"]["login"]
     repo = payload["repository"]["name"]
+    no_welcome_repos = {r.lower() for r in _load_no_welcome_repos()}
+    if repo.lower() in no_welcome_repos:
+        return
     labels = [lb["name"].lower() for lb in issue.get("labels", [])]
     is_bug = any(lb in BUG_LABELS for lb in labels)
     msg = (
