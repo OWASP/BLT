@@ -203,7 +203,10 @@ function escapeHtml(str) {
 }
 
 function timeAgo(dateStr) {
-  const diff = Date.now() - new Date(dateStr).getTime();
+  if (!dateStr) return '';
+  const time = new Date(dateStr).getTime();
+  if (!Number.isFinite(time)) return '';
+  const diff = Date.now() - time;
   const secs = Math.floor(diff / 1000);
   if (secs < 60)      return 'just now';
   if (secs < 3600)    return Math.floor(secs / 60) + 'm ago';
@@ -215,7 +218,9 @@ function timeAgo(dateStr) {
 
 function daysOpen(dateStr) {
   if (!dateStr) return null;
-  return Math.max(0, Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000));
+  const time = new Date(dateStr).getTime();
+  if (!Number.isFinite(time)) return null;
+  return Math.max(0, Math.floor((Date.now() - time) / 86400000));
 }
 
 const DEFAULT_LABEL_COLOR = 'cccccc';
@@ -227,9 +232,9 @@ function labelBadgeHTML(label) {
   const b = parseInt(rawColor.slice(4, 6), 16);
   const lum = 0.299 * r + 0.587 * g + 0.114 * b;
   const textColor = lum > 128 ? '#1f2937' : '#ffffff';
-  return `<span class="inline-block text-[10px] px-1.5 py-0.5 rounded-full font-medium whitespace-nowrap cursor-pointer label-chip"
+  return `<button type="button" class="inline-block text-[10px] px-1.5 py-0.5 rounded-full font-medium whitespace-nowrap cursor-pointer label-chip"
     style="background:${escapeHtml(bg)};color:${textColor}"
-    data-label="${escapeHtml(label.name)}">${escapeHtml(label.name)}</span>`;
+    data-label="${escapeHtml(label.name)}">${escapeHtml(label.name)}</button>`;
 }
 
 /* ------------------------------------------------------------------ */
@@ -277,6 +282,10 @@ function populateFilters(issues) {
   const repoSel  = document.getElementById('issue-repo-filter');
   const labelSel = document.getElementById('issue-label-filter');
   if (!repoSel || !labelSel) return;
+
+  // Clear back to the default "All …" option before repopulating (handles retry)
+  repoSel.length  = 1;
+  labelSel.length = 1;
 
   const repos  = [...new Set(issues.map(i => i.repo_name))].sort();
   const labels = [...new Set(issues.flatMap(i => (i.labels || []).map(l => l.name)))].sort();
@@ -361,10 +370,18 @@ function renderIssues() {
   const parts = [];
   let lastRepo = null;
 
+  // Precompute per-repo counts once (O(n)) to avoid O(n²) inside the loop
+  const repoCounts = new Map();
+  if (sortKey === 'repo') {
+    for (const issue of issues) {
+      repoCounts.set(issue.repo_name, (repoCounts.get(issue.repo_name) || 0) + 1);
+    }
+  }
+
   for (const issue of issues) {
     if (sortKey === 'repo' && issue.repo_name !== lastRepo) {
       lastRepo = issue.repo_name;
-      const repoCount = issues.filter(i => i.repo_name === lastRepo).length;
+      const repoCount = repoCounts.get(lastRepo) || 0;
       const repoUrl = escapeHtml(issue.repo_html_url);
       parts.push(`
         <div class="sticky top-14 z-10 flex items-center gap-2 px-3 py-1.5
@@ -441,18 +458,18 @@ function renderIssues() {
   }
 
   listEl.innerHTML = `<div>${parts.join('')}</div>`;
-
-  // Click on label chips to filter by that label
-  listEl.querySelectorAll('.label-chip').forEach(chip => {
-    chip.addEventListener('click', () => {
-      const name = chip.dataset.label;
-      const sel = document.getElementById('issue-label-filter');
-      if (sel) { sel.value = name; }
-      labelFilter = name;
-      renderIssues();
-    });
-  });
 }
+
+// Single delegated listener for label chip clicks (set up once)
+document.getElementById('issue-list').addEventListener('click', e => {
+  const chip = e.target.closest('.label-chip');
+  if (!chip) return;
+  const name = chip.dataset.label;
+  const sel = document.getElementById('issue-label-filter');
+  if (sel) sel.value = name;
+  labelFilter = name;
+  renderIssues();
+});
 
 /* ------------------------------------------------------------------ */
 /*  DATA LOADING                                                        */
@@ -481,7 +498,9 @@ async function loadData() {
     }
   } catch (err) {
     console.error('Failed to load issues:', err);
-    if (listEl) listEl.innerHTML = '';
+    const emptyEl = document.getElementById('empty-state');
+    if (listEl) { listEl.innerHTML = ''; listEl.classList.add('hidden'); }
+    if (emptyEl) emptyEl.classList.add('hidden');
     if (errEl) {
       errEl.classList.remove('hidden');
       const msg = document.getElementById('error-msg');
