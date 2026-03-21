@@ -49,6 +49,8 @@ _INITIAL_MENTORS = INITIAL_MENTORS
 
 ASSIGN_COMMAND = "/assign"
 UNASSIGN_COMMAND = "/unassign"
+APPROVE_COMMAND = "/approve"
+DENY_COMMAND = "/deny"
 LEADERBOARD_COMMAND = "/leaderboard"
 MAX_ASSIGNEES = 1
 ASSIGNMENT_DURATION_HOURS = 8
@@ -408,6 +410,8 @@ def _extract_command(body: str) -> Optional[str]:
     supported = {
         ASSIGN_COMMAND,
         UNASSIGN_COMMAND,
+        APPROVE_COMMAND,
+        DENY_COMMAND,
         LEADERBOARD_COMMAND,
         MENTOR_COMMAND,
         UNMENTOR_COMMAND,
@@ -3435,6 +3439,10 @@ async def handle_issue_comment(payload: dict, token: str, env=None) -> None:
         await _assign(owner, repo, issue, login, token)
     elif command == UNASSIGN_COMMAND:
         await _unassign(owner, repo, issue, login, token)
+    elif command == APPROVE_COMMAND:
+        await _approve(owner, repo, issue, login, token)
+    elif command == DENY_COMMAND:
+        await _deny(owner, repo, issue, login, token)
     elif command == LEADERBOARD_COMMAND:
         console.log(f"[Leaderboard] Command received for {owner}/{repo}#{issue_number} by @{login}")
         # Best effort: remove the triggering command comment to keep threads clean.
@@ -3575,6 +3583,132 @@ async def _unassign(
         "Thanks for letting us know! 👍\n\n"
         "The issue is now open for others to pick up.",
         token,
+    )
+
+
+async def _approve(
+    owner: str, repo: str, issue: dict, login: str, token: str
+) -> None:
+    """Handle the ``/approve`` command (triage reviewer approves an issue for assignment).
+
+    Only :data:`TRIAGE_REVIEWER` is authorised to use this command.  When
+    approved the ``help wanted`` label is added and the issue opener is
+    assigned so they can start work immediately.
+    """
+    num = issue["number"]
+    if login.lower() != TRIAGE_REVIEWER.lower():
+        await create_comment(
+            owner, repo, num,
+            f"@{login} Only @{TRIAGE_REVIEWER} can approve issues.",
+            token,
+        )
+        return
+    # Do not process /approve on pull requests or closed issues.
+    if issue.get("pull_request") or issue.get("state") == "closed":
+        return
+    # Add the "help wanted" label — this is the prerequisite checked by the
+    # /assign command; without it users cannot self-assign via /assign.
+    await github_api(
+        "POST",
+        f"/repos/{owner}/{repo}/issues/{num}/labels",
+        token,
+        {"labels": [HELP_WANTED_LABEL]},
+    )
+    # Assign the issue to the person who opened it, respecting existing assignees
+    # and the global MAX_ASSIGNEES limit enforced by the /assign workflow.
+    opener = issue.get("user", {}).get("login", "")
+    opener_assigned = False
+    assignment_note = ""
+    if opener:
+        assignees = issue.get("assignees") or []
+        assignee_logins = {
+            a.get("login")
+            for a in assignees
+            if isinstance(a, dict) and a.get("login")
+        }
+        # If the opener is already assigned, we don't need to call the API again.
+        if opener in assignee_logins:
+            opener_assigned = True
+        # If we've reached the maximum number of assignees, do not add another.
+        elif len(assignee_logins) >= MAX_ASSIGNEES:
+            assignment_note = (
+                "However, this issue already has the maximum number of assignees, "
+                "so the opener was not additionally assigned."
+            )
+        # If someone else has already claimed the issue, avoid assigning the opener.
+        elif assignee_logins:
+            assignment_note = (
+                "Note: this issue already has an assignee, so the opener was not "
+                "automatically assigned."
+            )
+        else:
+            await github_api(
+                "POST",
+                f"/repos/{owner}/{repo}/issues/{num}/assignees",
+                token,
+                {"assignees": [opener]},
+            )
+            opener_assigned = True
+    if opener and opener_assigned:
+        assignment_text = f"@{opener} You have been assigned — good luck! 🚀\n\n"
+    elif assignment_note:
+        assignment_text = assignment_note + "\n\n"
+    else:
+        assignment_text = ""
+    await create_comment(
+        owner, repo, num,
+        f"✅ This issue has been approved by @{login}!\n\n"
+        + assignment_text
+        + f'The `"{HELP_WANTED_LABEL}"` label has been added so others can also use '
+        f"`/assign` to claim this issue.",
+        token,
+    )
+
+
+async def _deny(
+    owner: str, repo: str, issue: dict, login: str, token: str
+) -> None:
+    """Handle the ``/deny`` command (triage reviewer rejects an issue).
+
+    Only :data:`TRIAGE_REVIEWER` is authorised to use this command.  When
+    denied the issue is closed with an explanatory comment.
+    """
+    num = issue["number"]
+    if login.lower() != TRIAGE_REVIEWER.lower():
+        await create_comment(
+            owner, repo, num,
+            f"@{login} Only @{TRIAGE_REVIEWER} can deny issues.",
+            token,
+        )
+        return
+    # /deny should only operate on issues, not pull requests.
+    if issue.get("pull_request"):
+        await create_comment(
+            owner,
+            repo,
+            num,
+            f"@{login} The `/deny` command only works on issues, not pull requests.",
+            token,
+        )
+        return
+    if issue["state"] == "closed":
+        await create_comment(
+            owner, repo, num,
+            f"@{login} This issue is already closed.",
+            token,
+        )
+        return
+    await create_comment(
+        owner, repo, num,
+        f"❌ This issue has been denied by @{login} and will be closed.\n\n"
+        "If you believe this was a mistake, please open a new issue with more details.",
+        token,
+    )
+    await github_api(
+        "PATCH",
+        f"/repos/{owner}/{repo}/issues/{num}",
+        token,
+        {"state": "closed"},
     )
 
 

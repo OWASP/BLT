@@ -280,6 +280,7 @@ def _make_issue_payload(
     comment_user=None,
     sender=None,
     label=None,
+    issue_user=None,
 ):
     if assignees is None:
         assignees = []
@@ -289,6 +290,8 @@ def _make_issue_payload(
         comment_user = {"login": "alice", "type": "User"}
     if sender is None:
         sender = {"login": "alice", "type": "User"}
+    if issue_user is None:
+        issue_user = {"login": "alice", "type": "User"}
     issue = {
         "number": number,
         "state": state,
@@ -296,6 +299,7 @@ def _make_issue_payload(
         "labels": labels,
         "html_url": html_url,
         "title": title,
+        "user": issue_user,
     }
     if is_pr:
         issue["pull_request"] = {"url": "https://api.github.com/repos/test/test/pulls/1"}
@@ -432,14 +436,172 @@ class TestHandleUnassign(unittest.TestCase):
         self.assertTrue(any("not currently assigned" in c for c in comments))
 
 
-class TestHandleIssueComment(unittest.TestCase):
-    """handle_issue_comment — routes /assign and /unassign commands"""
+class TestHandleApprove(unittest.TestCase):
+    """_approve — triage reviewer approves an issue for assignment"""
 
-    def _run_comment(self, payload, assign_calls, unassign_calls):
+    def _run_approve(self, payload, comments, github_calls, *, commenter="donnieblt"):
+        async def _inner():
+            with patch.object(_worker, "create_comment", new=AsyncMock(side_effect=lambda o, r, n, b, t: comments.append(b))):
+                with patch.object(_worker, "github_api", new=AsyncMock(side_effect=lambda *a, **kw: github_calls.append(a))):
+                    await _worker._approve(
+                        payload["repository"]["owner"]["login"],
+                        payload["repository"]["name"],
+                        payload["issue"],
+                        commenter,
+                        "tok",
+                    )
+        _run(_inner())
+
+    def test_approve_adds_help_wanted_label_and_assigns_opener(self):
+        payload = _make_issue_payload(issue_user={"login": "alice", "type": "User"})
+        comments, calls = [], []
+        self._run_approve(payload, comments, calls)
+        # Expect a POST to labels
+        self.assertTrue(any(
+            method == "POST" and "labels" in path
+            for method, path, *_ in calls
+        ))
+        # Expect a POST to assignees
+        self.assertTrue(any(
+            method == "POST" and "assignees" in path
+            for method, path, *_ in calls
+        ))
+        self.assertTrue(any("approved" in c for c in comments))
+
+    def test_approve_rejected_for_non_reviewer(self):
+        payload = _make_issue_payload()
+        comments, calls = [], []
+        self._run_approve(payload, comments, calls, commenter="randomuser")
+        self.assertEqual(calls, [])
+        self.assertTrue(any("Only @donnieblt can approve" in c for c in comments))
+
+    def test_approve_is_case_insensitive_for_reviewer(self):
+        payload = _make_issue_payload()
+        comments, calls = [], []
+        self._run_approve(payload, comments, calls, commenter="DonnieBLT")
+        self.assertTrue(any(
+            method == "POST" and "labels" in path
+            for method, path, *_ in calls
+        ))
+
+    def test_approve_skips_assignment_when_no_opener(self):
+        payload = _make_issue_payload(issue_user={})
+        comments, calls = [], []
+        self._run_approve(payload, comments, calls)
+        # Label should still be added
+        self.assertTrue(any(
+            method == "POST" and "labels" in path
+            for method, path, *_ in calls
+        ))
+        # No assignees POST since opener is unknown
+        self.assertFalse(any(
+            method == "POST" and "assignees" in path
+            for method, path, *_ in calls
+        ))
+
+    def test_approve_does_not_assign_for_pull_request_comment(self):
+        # Simulate a PR thread by adding a pull_request key to the issue payload
+        payload = _make_issue_payload(issue_user={"login": "alice", "type": "User"})
+        payload["issue"]["pull_request"] = {"html_url": "https://example.com/pr/1"}
+        comments, calls = [], []
+        self._run_approve(payload, comments, calls)
+        # No assignees POST should occur for PR comments
+        self.assertFalse(any(
+            method == "POST" and "assignees" in path
+            for method, path, *_ in calls
+        ))
+
+    def test_approve_does_not_assign_closed_issue(self):
+        payload = _make_issue_payload(
+            issue_user={"login": "alice", "type": "User"},
+            state="closed",
+        )
+        comments, calls = [], []
+        self._run_approve(payload, comments, calls)
+        # Guardrail: closed issues should not be assigned
+        self.assertFalse(any(
+            method == "POST" and "assignees" in path
+            for method, path, *_ in calls
+        ))
+
+    def test_approve_respects_max_assignees_guardrail(self):
+        # Pre-populate the issue with several assignees to hit the max-assignees guardrail
+        payload = _make_issue_payload(issue_user={"login": "alice", "type": "User"})
+        payload["issue"]["assignees"] = [
+            {"login": "assignee1"},
+            {"login": "assignee2"},
+            {"login": "assignee3"},
+        ]
+        comments, calls = [], []
+        self._run_approve(payload, comments, calls)
+        # Since the issue already has multiple assignees, _approve should not add more
+        self.assertFalse(any(
+            method == "POST" and "assignees" in path
+            for method, path, *_ in calls
+        ))
+class TestHandleDeny(unittest.TestCase):
+    """_deny — triage reviewer closes (denies) an issue"""
+
+    def _run_deny(self, payload, comments, github_calls, *, commenter="donnieblt"):
+        async def _inner():
+            with patch.object(_worker, "create_comment", new=AsyncMock(side_effect=lambda o, r, n, b, t: comments.append(b))):
+                with patch.object(_worker, "github_api", new=AsyncMock(side_effect=lambda *a, **kw: github_calls.append(a))):
+                    await _worker._deny(
+                        payload["repository"]["owner"]["login"],
+                        payload["repository"]["name"],
+                        payload["issue"],
+                        commenter,
+                        "tok",
+                    )
+        _run(_inner())
+
+    def test_deny_closes_open_issue(self):
+        payload = _make_issue_payload()
+        comments, calls = [], []
+        self._run_deny(payload, comments, calls)
+        self.assertTrue(any(
+            method == "PATCH" and f"/issues/{payload['issue']['number']}" in path
+            for method, path, *_ in calls
+        ))
+        self.assertTrue(any("denied" in c for c in comments))
+
+    def test_deny_rejected_for_non_reviewer(self):
+        payload = _make_issue_payload()
+        comments, calls = [], []
+        self._run_deny(payload, comments, calls, commenter="someuser")
+        self.assertEqual(calls, [])
+        self.assertTrue(any("Only @donnieblt can deny" in c for c in comments))
+
+    def test_deny_skips_already_closed_issue(self):
+        payload = _make_issue_payload(state="closed")
+        comments, calls = [], []
+        self._run_deny(payload, comments, calls)
+        self.assertFalse(any(method == "PATCH" for method, *_ in calls))
+        self.assertTrue(any("already closed" in c for c in comments))
+
+    def test_deny_is_case_insensitive_for_reviewer(self):
+        payload = _make_issue_payload()
+        comments, calls = [], []
+        self._run_deny(payload, comments, calls, commenter="DONNIEBLT")
+        self.assertTrue(any(method == "PATCH" for method, *_ in calls))
+
+
+class TestHandleIssueComment(unittest.TestCase):
+    """handle_issue_comment — routes /assign, /unassign, /approve, /deny commands"""
+
+    def _run_comment(self, payload, assign_calls, unassign_calls,
+                     approve_calls=None, deny_calls=None):
+        if approve_calls is None:
+            approve_calls = []
+        if deny_calls is None:
+            deny_calls = []
+
         async def _inner():
             with patch.object(_worker, "_assign", new=AsyncMock(side_effect=lambda *a: assign_calls.append(a))):
                 with patch.object(_worker, "_unassign", new=AsyncMock(side_effect=lambda *a: unassign_calls.append(a))):
-                    await _worker.handle_issue_comment(payload, "tok")
+                    with patch.object(_worker, "_approve", new=AsyncMock(side_effect=lambda *a: approve_calls.append(a))):
+                        with patch.object(_worker, "_deny", new=AsyncMock(side_effect=lambda *a: deny_calls.append(a))):
+                            await _worker.handle_issue_comment(payload, "tok")
         _run(_inner())
 
     def test_routes_assign_command(self):
@@ -472,6 +634,20 @@ class TestHandleIssueComment(unittest.TestCase):
         self._run_comment(payload, assigns, unassigns)
         self.assertEqual(assigns, [])
         self.assertEqual(unassigns, [])
+
+    def test_routes_approve_command(self):
+        payload = _make_issue_payload(comment_body="/approve")
+        assigns, unassigns, approves, denies = [], [], [], []
+        self._run_comment(payload, assigns, unassigns, approves, denies)
+        self.assertEqual(len(approves), 1)
+        self.assertEqual(len(denies), 0)
+
+    def test_routes_deny_command(self):
+        payload = _make_issue_payload(comment_body="/deny")
+        assigns, unassigns, approves, denies = [], [], [], []
+        self._run_comment(payload, assigns, unassigns, approves, denies)
+        self.assertEqual(len(approves), 0)
+        self.assertEqual(len(denies), 1)
 
 
 class TestHandleIssueOpened(unittest.TestCase):
