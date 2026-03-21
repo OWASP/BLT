@@ -7,6 +7,7 @@ const VideoChat = (() => {
   let peer = null;
   let localStream = null;
   const activeCalls = new Map(); // peerId -> MediaConnection
+  const activeDataConns = new Map(); // peerId -> DataConnection
   let audioContext = null;
   let analyser = null;
   let voiceAnimFrame = null;
@@ -275,6 +276,11 @@ const VideoChat = (() => {
       updateParticipantsList();
       incomingCall.answer(localStream);
       handleCallStream(incomingCall);
+      sendPeerListTo(incomingCall.peer);
+    });
+
+    peer.on("connection", (conn) => {
+      setupDataConn(conn);
     });
 
     peer.on("error", (err) => {
@@ -411,6 +417,37 @@ const VideoChat = (() => {
     });
   }
 
+  /* ── Full-mesh helpers ── */
+  function setupDataConn(conn) {
+    activeDataConns.set(conn.peer, conn);
+    conn.on("data", (data) => {
+      if (data && data.type === "peers" && Array.isArray(data.ids)) {
+        data.ids.forEach((id) => {
+          if (id !== state.peerId && !activeCalls.has(id)) {
+            callPeer(id);
+          }
+        });
+      }
+    });
+    conn.on("close", () => activeDataConns.delete(conn.peer));
+    conn.on("error", () => activeDataConns.delete(conn.peer));
+  }
+
+  function sendPeerListTo(remotePeerId) {
+    const peerList = Array.from(activeCalls.keys()).filter((id) => id !== remotePeerId);
+    if (peerList.length === 0) return;
+    if (activeDataConns.has(remotePeerId)) {
+      const existing = activeDataConns.get(remotePeerId);
+      if (existing.open) {
+        existing.send({ type: "peers", ids: peerList });
+        return;
+      }
+    }
+    const conn = peer.connect(remotePeerId);
+    setupDataConn(conn);
+    conn.on("open", () => conn.send({ type: "peers", ids: peerList }));
+  }
+
   async function callPeer(remotePeerId) {
     if (!peer) {
       showToast("Not connected to server", "error");
@@ -483,6 +520,8 @@ const VideoChat = (() => {
   function endCall() {
     activeCalls.forEach((call) => call.close());
     activeCalls.clear();
+    activeDataConns.forEach((conn) => conn.close());
+    activeDataConns.clear();
     state.connected = false;
     updateStatus("Call ended", "muted");
     setDotStatus("offline");
