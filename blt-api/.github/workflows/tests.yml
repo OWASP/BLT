@@ -28,4 +28,4 @@ jobs:
       - name: Run tests
         env:
           PYTEST_DISABLE_PLUGIN_AUTOLOAD: "1"
-        run: uv run pytest -q -p pytest_asyncio
+        run: uv run pytest -q -p pytest_asyncio.plugin
