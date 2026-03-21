@@ -60,6 +60,7 @@ layout: default
             {% endif %}
 
             {% assign instructor_courses = site.courses | where: "instructor", page.title %}
+            <!-- htmlhint-disable-next-line spec-char-escape -->
             {% if instructor_courses.size > 0 %}
             <div class="bg-white dark:bg-gray-900 p-8 rounded-[2.5rem] shadow-soft border border-gray-100 dark:border-gray-800 transition-colors">
                 <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">

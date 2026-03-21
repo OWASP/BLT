@@ -142,6 +142,7 @@ title: Home
     </div>
 </section>
 
+{% if site.courses.size > 0 %}
 <section class="py-24 bg-white dark:bg-gray-900 border-y border-gray-100 dark:border-gray-800">
     <div class="max-w-7xl mx-auto px-6">
         <div class="flex justify-between items-end mb-12">
@@ -154,9 +155,10 @@ title: Home
             </a>
         </div>
         
+        {% assign featured = site.courses | where: "featured", true %}
+        {% if featured.size > 0 %}
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {% assign featured = site.courses | where: "featured", true | limit: 3 %}
-        {% for course in featured %}
+        {% for course in featured limit: 3 %}
             <a href="{{ course.url | relative_url }}" class="group bg-white dark:bg-gray-800 rounded-3xl shadow-soft hover:shadow-float border border-gray-100 dark:border-gray-700 overflow-hidden flex flex-col transition-all duration-300 hover:-translate-y-1">
                 <div class="h-48 bg-gray-900 relative overflow-hidden">
                     <div class="absolute inset-0 bg-gradient-to-t from-gray-900/80 to-transparent z-10"></div>
@@ -179,8 +181,21 @@ title: Home
             </a>
         {% endfor %}
         </div>
+        {% else %}
+        <div class="py-20 text-center bg-gray-50 rounded-[2rem] border-2 border-dashed border-gray-100">
+            <div aria-hidden="true" class="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-gray-300 mx-auto mb-6 shadow-sm">
+                <i class="ph-bold ph-monitor-play text-3xl"></i>
+            </div>
+            <h3 class="text-lg font-bold text-gray-900 mb-2">No featured courses yet</h3>
+            <p class="text-gray-500 text-sm max-w-xs mx-auto mb-8">We're currently updating our curriculum. Check out our full catalog to see all available modules.</p>
+            <a href="{{ '/courses/' | relative_url }}" class="inline-flex items-center gap-2 px-6 py-3 bg-white text-gray-700 font-bold border border-gray-200 rounded-xl hover:bg-gray-50 transition-all text-sm">
+                Browse Catalog <i class="ph-bold ph-arrow-right"></i>
+            </a>
+        </div>
+        {% endif %}
     </div>
 </section>
+{% endif %}
 
 <section class="py-24 bg-[#fafafa] dark:bg-[#111827]">
     <div class="max-w-5xl mx-auto px-6">
