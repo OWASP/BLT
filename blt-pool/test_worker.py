@@ -364,11 +364,21 @@ class TestHandleAssign(unittest.TestCase):
     def test_does_not_assign_without_help_wanted_label(self):
         payload = _make_issue_payload(labels=[])
         comments, calls = [], []
-        self._run_assign(payload, comments, calls)
-        # No GitHub API call (no assignment) should occur
-        self.assertEqual(calls, [])
+        mock_ensure = AsyncMock()
+        with patch.object(_worker, "_ensure_label_exists", new=mock_ensure):
+            self._run_assign(payload, comments, calls)
         # Comment must mention the requester, @donnieblt, and the "help wanted" label
         self.assertTrue(any("@alice" in c and "@donnieblt" in c and "help wanted" in c for c in comments))
+        # _ensure_label_exists must be called for the "needs-approval" label
+        mock_ensure.assert_called_once_with(
+            "OWASP-BLT", "TestRepo",
+            _worker.NEEDS_APPROVAL_LABEL, _worker.NEEDS_APPROVAL_LABEL_COLOR, "tok",
+        )
+        # The "needs-approval" label must be added to the issue via POST
+        self.assertTrue(any(
+            method == "POST" and "labels" in path and body == {"labels": ["needs-approval"]}
+            for method, path, _tok, body in calls
+        ))
 
     def test_does_not_assign_closed_issue(self):
         payload = _make_issue_payload(state="closed")
