@@ -62,22 +62,16 @@ async def handle_homepage(
         "Access-Control-Allow-Headers": "Content-Type",
     }
     
-    # Build headers in a runtime-compatible way (Workers runtime and test shims differ).
-    try:
-        js_headers = Headers.new(headers)
-    except TypeError:
+    if _WORKERS_RUNTIME:
+        # Cloudflare Workers expects Headers.new(...) input to be a Sequence.
         js_headers = Headers.new(list(headers.items()))
-
-    # Response.new signatures differ between environments:
-    # - Workers runtime typically supports keyword args (status=..., headers=...)
-    # - Test shims use Response.new(body, init_dict)
-    try:
         return Response.new(html_content, status=200, headers=js_headers)
-    except TypeError:
-        return Response.new(
-            html_content,
-            {
-                "status": 200,
-                "headers": js_headers,
-            },
-        )
+
+    # Local/test shim path.
+    return Response.new(
+        html_content,
+        {
+            "status": 200,
+            "headers": headers,
+        },
+    )
