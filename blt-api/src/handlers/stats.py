@@ -16,6 +16,27 @@ _STATS_CACHE: Dict[str, Any] = {
 }
 _DEFAULT_STATS_CACHE_TTL_SECONDS = 60
 
+_TABLES_TO_COUNT = [
+    "bugs",
+    "bug_screenshots",
+    "bug_tags",
+    "bug_team_members",
+    "domains",
+    "domain_tags",
+    "organization",
+    "organization_integrations",
+    "organization_managers",
+    "organization_tags",
+    "tags",
+    "user_bug_flags",
+    "user_bug_saves",
+    "user_bug_upvotes",
+    "user_follows",
+    "users",
+    "d1_migrations",
+    "hunts",
+]
+
 
 async def handle_stats(
     request: Any,
@@ -57,40 +78,26 @@ async def handle_stats(
         return error_response(f"Database connection error: {str(e)}", status=500)
 
     try:
-        bugs_result = await db.prepare('SELECT COUNT(*) as count FROM bugs').first()
-        bugs_count = (await convert_single_d1_result(bugs_result)).get('count', 0)
+        counts: Dict[str, int] = {}
+        descriptions: Dict[str, str] = {}
 
-        users_result = await db.prepare('SELECT COUNT(*) as count FROM users WHERE is_active = 1').first()
-        users_count = (await convert_single_d1_result(users_result)).get('count', 0)
-
-        domains_result = await db.prepare('SELECT COUNT(*) as count FROM domains WHERE is_active = 1').first()
-        domains_count = (await convert_single_d1_result(domains_result)).get('count', 0)
-
-        try:
-            hunts_result = await db.prepare('SELECT COUNT(*) as count FROM hunts').first()
-            hunts_count = (await convert_single_d1_result(hunts_result)).get('count', 0)
-        except Exception as e:
-            # Some environments may not have the hunts table yet.
-            if 'no such table: hunts' in str(e).lower():
-                hunts_count = 0
-                logger.warning("Hunts table not found while fetching stats; defaulting hunts count to 0")
-            else:
-                raise
+        for table_name in _TABLES_TO_COUNT:
+            try:
+                result = await db.prepare(f"SELECT COUNT(*) as count FROM {table_name}").first()
+                row = await convert_single_d1_result(result)
+                counts[table_name] = int(row.get("count", 0))
+            except Exception as e:
+                if "no such table" in str(e).lower():
+                    counts[table_name] = 0
+                    logger.warning("Table not found while fetching stats: %s", table_name)
+                else:
+                    raise
+            descriptions[table_name] = f"Row count for {table_name.replace('_', ' ')}"
 
         payload = {
             "success": True,
-            "data": {
-                "bugs": bugs_count,
-                "users": users_count,
-                "domains": domains_count,
-                "hunts": hunts_count,
-            },
-            "description": {
-                "bugs": "Total number of bugs reported",
-                "users": "Total number of registered users",
-                "domains": "Total number of tracked domains",
-                "hunts": "Total number of bug hunts",
-            }
+            "data": counts,
+            "description": descriptions,
         }
 
         _STATS_CACHE["data"] = payload

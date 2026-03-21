@@ -112,43 +112,8 @@
 
             <div class="mt-8 pt-6 border-t border-gray-100">
                 <h3 class="text-xl font-semibold text-gray-900 mb-4 text-center">Model Stats</h3>
-                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div class="bg-red-50 border border-red-100 rounded-xl px-4 py-3 flex items-center gap-3">
-                        <div class="w-10 h-10 bg-red-100 text-red-600 rounded-lg flex items-center justify-center shrink-0">
-                            <i class="fas fa-bug"></i>
-                        </div>
-                        <div>
-                            <p class="text-xs uppercase tracking-wide text-red-700 font-semibold">Bugs</p>
-                            <p id="count-bugs" class="text-xl font-bold text-gray-900">--</p>
-                        </div>
-                    </div>
-                    <div class="bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 flex items-center gap-3">
-                        <div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center shrink-0">
-                            <i class="fas fa-users"></i>
-                        </div>
-                        <div>
-                            <p class="text-xs uppercase tracking-wide text-blue-700 font-semibold">Users</p>
-                            <p id="count-users" class="text-xl font-bold text-gray-900">--</p>
-                        </div>
-                    </div>
-                    <div class="bg-emerald-50 border border-emerald-100 rounded-xl px-4 py-3 flex items-center gap-3">
-                        <div class="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-lg flex items-center justify-center shrink-0">
-                            <i class="fas fa-globe"></i>
-                        </div>
-                        <div>
-                            <p class="text-xs uppercase tracking-wide text-emerald-700 font-semibold">Domains</p>
-                            <p id="count-domains" class="text-xl font-bold text-gray-900">--</p>
-                        </div>
-                    </div>
-                    <div class="bg-amber-50 border border-amber-100 rounded-xl px-4 py-3 flex items-center gap-3">
-                        <div class="w-10 h-10 bg-amber-100 text-amber-700 rounded-lg flex items-center justify-center shrink-0">
-                            <i class="fas fa-crosshairs"></i>
-                        </div>
-                        <div>
-                            <p class="text-xs uppercase tracking-wide text-amber-700 font-semibold">Hunts</p>
-                            <p id="count-hunts" class="text-xl font-bold text-gray-900">--</p>
-                        </div>
-                    </div>
+                <div id="model-stats-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+                    <div class="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-500">Loading stats...</div>
                 </div>
             </div>
         </section>
@@ -877,31 +842,78 @@
         });
 
         // Load section counts from /stats endpoint
+        function titleizeStatKey(key) {
+            return key.replace(/_/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase());
+        }
+
+        function statCardMeta(key) {
+            const map = {
+                bugs: { icon: 'fa-bug', tone: 'red' },
+                users: { icon: 'fa-users', tone: 'blue' },
+                domains: { icon: 'fa-globe', tone: 'emerald' },
+                hunts: { icon: 'fa-crosshairs', tone: 'amber' },
+                tags: { icon: 'fa-tags', tone: 'orange' },
+                organization: { icon: 'fa-building', tone: 'sky' },
+                organization_managers: { icon: 'fa-user-tie', tone: 'cyan' },
+                organization_tags: { icon: 'fa-hashtag', tone: 'violet' },
+                organization_integrations: { icon: 'fa-plug', tone: 'indigo' },
+                user_follows: { icon: 'fa-user-group', tone: 'teal' },
+                user_bug_upvotes: { icon: 'fa-thumbs-up', tone: 'green' },
+                user_bug_saves: { icon: 'fa-bookmark', tone: 'yellow' },
+                user_bug_flags: { icon: 'fa-flag', tone: 'rose' },
+                bug_tags: { icon: 'fa-tags', tone: 'orange' },
+                bug_screenshots: { icon: 'fa-image', tone: 'pink' },
+                bug_team_members: { icon: 'fa-people-group', tone: 'lime' },
+                domain_tags: { icon: 'fa-link', tone: 'purple' },
+                d1_migrations: { icon: 'fa-database', tone: 'slate' }
+            };
+            return map[key] || { icon: 'fa-table', tone: 'gray' };
+        }
+
+        function renderStatCards(statsData) {
+            const container = document.getElementById('model-stats-grid');
+            if (!container) return;
+
+            const entries = Object.entries(statsData || {})
+                .filter(([, value]) => !Number.isNaN(Number(value)))
+                .sort(([a], [b]) => a.localeCompare(b));
+
+            if (!entries.length) {
+                container.innerHTML = '<div class="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-500">No stats available</div>';
+                return;
+            }
+
+            container.innerHTML = entries.map(([key, value]) => {
+                const meta = statCardMeta(key);
+                const count = Number(value).toLocaleString();
+                const label = titleizeStatKey(key);
+                return `
+                    <div class="bg-${meta.tone}-50 border border-${meta.tone}-100 rounded-lg px-3 py-2 flex items-center gap-2 min-w-0">
+                        <div class="w-7 h-7 bg-${meta.tone}-100 text-${meta.tone}-600 rounded-md flex items-center justify-center shrink-0">
+                            <i class="fas ${meta.icon} text-[11px]"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-[10px] uppercase tracking-wide text-${meta.tone}-700 font-semibold truncate">${label}</p>
+                            <p class="text-sm font-bold text-gray-900">${count}</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
         async function loadSectionCounts() {
             try {
                 const response = await fetch(baseUrl + '/stats');
                 if (!response.ok) throw new Error();
                 const data = await response.json();
                 if (data && data.data) {
-                    const counts = {
-                        'count-bugs': data.data.bugs,
-                        'count-users': data.data.users,
-                        'count-domains': data.data.domains,
-                        'count-hunts': data.data.hunts
-                    };
-                    for (const [id, count] of Object.entries(counts)) {
-                        const num = Number(count);
-                        if (!isNaN(num)) {
-                            const el = document.getElementById(id);
-                            if (el) {
-                                el.textContent = num.toLocaleString();
-                                el.classList.remove('hidden');
-                            }
-                        }
-                    }
+                    renderStatCards(data.data);
                 }
             } catch (e) {
-                // Silently fail - counts are optional enhancements
+                const container = document.getElementById('model-stats-grid');
+                if (container) {
+                    container.innerHTML = '<div class="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-500">Stats unavailable</div>';
+                }
             }
         }
         loadSectionCounts();
