@@ -97,15 +97,20 @@ const VideoChat = (() => {
   }
 
   /* ── Media ── */
+  async function attachStream(stream) {
+    const localVideo = $("local-video");
+    if (localVideo) {
+      localVideo.srcObject = stream;
+      localVideo.muted = true;
+    }
+    startVoiceMeter(stream);
+  }
+
   async function startLocalMedia() {
+    // 1. Try full video + audio
     try {
       localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-      const localVideo = $("local-video");
-      if (localVideo) {
-        localVideo.srcObject = localStream;
-        localVideo.muted = true;
-      }
-      startVoiceMeter(localStream);
+      await attachStream(localStream);
       return true;
     } catch (err) {
       if (
@@ -114,11 +119,80 @@ const VideoChat = (() => {
         err.name === "SecurityError"
       ) {
         showCameraDenied();
-      } else {
-        showToast("Camera/mic access denied: " + err.message, "error");
+        return false;
       }
-      return false;
+
+      if (err.name === "NotReadableError" || err.name === "TrackStartError") {
+        showToast(
+          "Camera or microphone is already in use by another application. Please close it and reload.",
+          "error"
+        );
+        return false;
+      }
+
+      // For NotFoundError / DevicesNotFoundError try partial fallbacks below.
+      // For any other unexpected error fall through to the generic handler at the end.
+      if (err.name !== "NotFoundError" && err.name !== "DevicesNotFoundError") {
+        showToast("Could not access camera/microphone: " + err.message, "error");
+        return false;
+      }
     }
+
+    // 2. No combined device found — try audio-only
+    try {
+      localStream = await navigator.mediaDevices.getUserMedia({ video: false, audio: true });
+      await attachStream(localStream);
+      showToast("No camera found — joining with audio only", "warning");
+      return true;
+    } catch (audioErr) {
+      if (
+        audioErr.name === "NotAllowedError" ||
+        audioErr.name === "PermissionDeniedError" ||
+        audioErr.name === "SecurityError"
+      ) {
+        showCameraDenied();
+        return false;
+      }
+      if (audioErr.name !== "NotFoundError" && audioErr.name !== "DevicesNotFoundError") {
+        showToast("Could not access microphone: " + audioErr.message, "error");
+        return false;
+      }
+    }
+
+    // 3. No microphone either — try video-only
+    try {
+      localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+      await attachStream(localStream);
+      showToast("No microphone found — joining with video only", "warning");
+      return true;
+    } catch (videoErr) {
+      if (
+        videoErr.name === "NotAllowedError" ||
+        videoErr.name === "PermissionDeniedError" ||
+        videoErr.name === "SecurityError"
+      ) {
+        showCameraDenied();
+        return false;
+      }
+      if (videoErr.name === "NotReadableError" || videoErr.name === "TrackStartError") {
+        showToast(
+          "Camera is already in use by another application. Please close it and reload.",
+          "error"
+        );
+        return false;
+      }
+      if (videoErr.name !== "NotFoundError" && videoErr.name !== "DevicesNotFoundError") {
+        showToast("Could not access camera: " + videoErr.message, "error");
+        return false;
+      }
+    }
+
+    // 4. No devices at all
+    showToast(
+      "No camera or microphone found. Please connect a device and try reloading the page.",
+      "error"
+    );
+    return false;
   }
 
   function startVoiceMeter(stream) {
