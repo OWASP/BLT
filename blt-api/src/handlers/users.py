@@ -18,8 +18,9 @@ import logging
 _USERNAME_PATTERN = re.compile(r'^[a-zA-Z0-9_.-]{3,30}$')
 _EMAIL_PATTERN = re.compile(r'^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$')
 _USER_CREATE_RATE_LIMIT: Dict[str, list] = {}
+# Sliding-window burst guard: 2 attempts per minute per IP (fast check before DB)
 _RATE_LIMIT_WINDOW_SECONDS = 60
-_RATE_LIMIT_MAX_REQUESTS = 5
+_RATE_LIMIT_MAX_REQUESTS = 2
 
 
 def _get_header(request: Any, name: str) -> str:
@@ -31,15 +32,22 @@ def _get_header(request: Any, name: str) -> str:
     return ""
 
 
+def _get_client_ip(request: Any) -> str:
+    """Extract the real client IP from Cloudflare/proxy headers."""
+    ip = _get_header(request, "CF-Connecting-IP").strip()
+    if not ip:
+        xff = _get_header(request, "X-Forwarded-For")
+        ip = xff.split(",")[0].strip() if xff else ""
+    return ip or "unknown"
+
+
 def _get_client_identifier(request: Any) -> str:
-    """Build a stable client identifier for rate limiting."""
-    ip = _get_header(request, "CF-Connecting-IP") or _get_header(request, "X-Forwarded-For")
-    ua = _get_header(request, "User-Agent")
-    return f"{ip}|{ua}".strip("|") or "unknown-client"
+    """Build a stable client identifier for in-memory rate limiting (IP only)."""
+    return _get_client_ip(request)
 
 
 def _is_rate_limited(client_key: str) -> bool:
-    """Basic in-memory rate limiter for user creation."""
+    """Sliding-window in-memory rate limiter (burst guard, resets on worker restart)."""
     now = time.time()
     window_start = now - _RATE_LIMIT_WINDOW_SECONDS
 
@@ -72,7 +80,10 @@ def _is_strong_password(password: str) -> bool:
 
 async def create_user(db: Any, request: Any, env: Any, logger: Any) -> Any:
     """Create a new user with layered input and abuse protections."""
-    if _is_rate_limited(_get_client_identifier(request)):
+    client_ip = _get_client_ip(request)
+    client_ua = _get_header(request, "User-Agent")[:512]
+
+    if _is_rate_limited(client_ip):
         return error_response("Too many requests. Please try again later.", status=429)
 
     content_type = _get_header(request, "Content-Type").lower()
@@ -116,13 +127,25 @@ async def create_user(db: Any, request: Any, env: Any, logger: Any) -> Any:
         return error_response("Description must be 500 characters or less", status=400)
 
     email_hash = blind_index(email, env, "users.email")
+    username_hash = blind_index(username, env, "users.username")
 
     # Prevent account enumeration and duplicate account creation.
-    existing_user = await User.objects(db).filter(username=username).first()
+    existing_user = await User.objects(db).filter(username_hash=username_hash).first()
     if not existing_user:
         existing_user = await User.objects(db).filter(email_hash=email_hash).first()
     if existing_user:
         return error_response("Username or email already exists", status=409)
+
+    # One account per IP address – persistent DB-backed check.
+    ip_hash: str = ""
+    if client_ip and client_ip != "unknown":
+        ip_hash = blind_index(client_ip, env, "users.signup_ip")
+        existing_ip = await User.objects(db).filter(signup_ip_hash=ip_hash).first()
+        if existing_ip:
+            logger.warning("Account creation blocked: IP already has a registered account")
+            return error_response(
+                "An account has already been created from this network address.", status=429
+            )
 
     salt = secrets.token_hex(16)
     password_hash = hashlib.pbkdf2_hmac(
@@ -134,7 +157,8 @@ async def create_user(db: Any, request: Any, env: Any, logger: Any) -> Any:
     hashed_password = f"{salt}${password_hash.hex()}"
 
     user_data = {
-        "username": username,
+        "username_encrypted": encrypt_sensitive(username, env),
+        "username_hash": username_hash,
         "email_encrypted": encrypt_sensitive(email, env),
         "email_hash": email_hash,
         "password": hashed_password,
@@ -142,11 +166,16 @@ async def create_user(db: Any, request: Any, env: Any, logger: Any) -> Any:
     }
     if description:
         user_data["description_encrypted"] = encrypt_sensitive(description, env)
+    if ip_hash:
+        user_data["signup_ip_hash"] = ip_hash
+        user_data["signup_ip_encrypted"] = encrypt_sensitive(client_ip, env)
+    if client_ua:
+        user_data["signup_ua_encrypted"] = encrypt_sensitive(client_ua, env)
 
     try:
         created_user = await User.create(db, **user_data)
     except Exception as e:
-        if "email_encrypted" in str(e) or "email_hash" in str(e):
+        if "email_encrypted" in str(e) or "email_hash" in str(e) or "username_encrypted" in str(e):
             return error_response(
                 "Encrypted user schema not ready. Run migrations to add encrypted user columns.",
                 status=503,
@@ -225,9 +254,9 @@ async def handle_users(
             elif path.endswith("/domains"):
                 return await get_user_domains(db, user_id, query_params)
             elif path.endswith("/followers"):
-                return await get_user_followers(db, user_id, query_params)
+                return await get_user_followers(db, env, user_id, query_params)
             elif path.endswith("/following"):
-                return await get_user_following(db, user_id, query_params)
+                return await get_user_following(db, env, user_id, query_params)
             else:
                 # Get basic user info
                 return await get_user(db, env, user_id)
@@ -240,7 +269,7 @@ async def handle_users(
             await User.objects(db)
             .filter(is_active=1)
             .values(
-                "id", "username", "total_score",
+                "id", "username_encrypted", "total_score",
                 "winnings", "date_joined", "is_active",
                 "user_avatar_encrypted", "description_encrypted"
             )
@@ -250,6 +279,10 @@ async def handle_users(
         )
 
         for user in users:
+            if user.get("username_encrypted"):
+                user["username"] = decrypt_sensitive(user.pop("username_encrypted"), env)
+            else:
+                user.pop("username_encrypted", None)
             if user.get("user_avatar_encrypted"):
                 user["user_avatar"] = decrypt_sensitive(user.get("user_avatar_encrypted"), env)
             if user.get("description_encrypted"):
@@ -296,7 +329,12 @@ async def get_user(db: Any, env: Any, user_id: str) -> Any:
         user.pop('email', None)
         user.pop('email_encrypted', None)
         user.pop('email_hash', None)
+        user.pop('username_hash', None)
 
+        if user.get('username_encrypted'):
+            user['username'] = decrypt_sensitive(user.pop('username_encrypted'), env)
+        else:
+            user.pop('username_encrypted', None)
         if user.get('user_avatar_encrypted'):
             user['user_avatar'] = decrypt_sensitive(user.get('user_avatar_encrypted'), env)
         if user.get('description_encrypted'):
@@ -338,7 +376,12 @@ async def get_user_profile(db: Any, env: Any, user_id: str) -> Any:
         user.pop('email', None)
         user.pop('email_encrypted', None)
         user.pop('email_hash', None)
+        user.pop('username_hash', None)
 
+        if user.get('username_encrypted'):
+            user['username'] = decrypt_sensitive(user.pop('username_encrypted'), env)
+        else:
+            user.pop('username_encrypted', None)
         if user.get('user_avatar_encrypted'):
             user['user_avatar'] = decrypt_sensitive(user.get('user_avatar_encrypted'), env)
         if user.get('description_encrypted'):
@@ -461,7 +504,7 @@ async def get_user_domains(db: Any, user_id: str, query_params: Dict[str, str]) 
         return error_response(f"Error fetching user domains: {str(e)}", status=500)
 
 
-async def get_user_followers(db: Any, user_id: str, query_params: Dict[str, str]) -> Any:
+async def get_user_followers(db: Any, env: Any, user_id: str, query_params: Dict[str, str]) -> Any:
     """
     Retrieve paginated list of users who follow the specified user.
     
@@ -485,7 +528,7 @@ async def get_user_followers(db: Any, user_id: str, query_params: Dict[str, str]
 
         # JOIN query – kept as raw parameterized SQL (ORM does not support JOINs).
         result = await db.prepare('''
-            SELECT u.id, u.username, u.user_avatar, u.total_score
+            SELECT u.id, u.username_encrypted, u.user_avatar_encrypted, u.total_score
             FROM users u
             INNER JOIN user_follows uf ON u.id = uf.follower_id
             WHERE uf.following_id = ?
@@ -494,6 +537,15 @@ async def get_user_followers(db: Any, user_id: str, query_params: Dict[str, str]
         ''').bind(int(user_id), per_page, (page - 1) * per_page).all()
 
         followers = convert_d1_results(result.results if hasattr(result, 'results') else [])
+        for f in followers:
+            if f.get("username_encrypted"):
+                f["username"] = decrypt_sensitive(f.pop("username_encrypted"), env)
+            else:
+                f.pop("username_encrypted", None)
+            if f.get("user_avatar_encrypted"):
+                f["user_avatar"] = decrypt_sensitive(f.pop("user_avatar_encrypted"), env)
+            else:
+                f.pop("user_avatar_encrypted", None)
 
         return Response.json({
             "success": True,
@@ -509,7 +561,7 @@ async def get_user_followers(db: Any, user_id: str, query_params: Dict[str, str]
         logger.error(f"Error fetching user followers: {str(e)}")
         return error_response(f"Error fetching user followers: {str(e)}", status=500)
 
-async def get_user_following(db: Any, user_id: str, query_params: Dict[str, str]) -> Any:
+async def get_user_following(db: Any, env: Any, user_id: str, query_params: Dict[str, str]) -> Any:
     """
     Retrieve paginated list of users that the specified user is following.
     
@@ -532,7 +584,7 @@ async def get_user_following(db: Any, user_id: str, query_params: Dict[str, str]
 
         # JOIN query – kept as raw parameterized SQL (ORM does not support JOINs).
         result = await db.prepare('''
-            SELECT u.id, u.username, u.user_avatar, u.total_score
+            SELECT u.id, u.username_encrypted, u.user_avatar_encrypted, u.total_score
             FROM users u
             INNER JOIN user_follows uf ON u.id = uf.following_id
             WHERE uf.follower_id = ?
@@ -541,6 +593,15 @@ async def get_user_following(db: Any, user_id: str, query_params: Dict[str, str]
         ''').bind(int(user_id), per_page, (page - 1) * per_page).all()
 
         following = convert_d1_results(result.results if hasattr(result, 'results') else [])
+        for f in following:
+            if f.get("username_encrypted"):
+                f["username"] = decrypt_sensitive(f.pop("username_encrypted"), env)
+            else:
+                f.pop("username_encrypted", None)
+            if f.get("user_avatar_encrypted"):
+                f["user_avatar"] = decrypt_sensitive(f.pop("user_avatar_encrypted"), env)
+            else:
+                f.pop("user_avatar_encrypted", None)
 
         return Response.json({
             "success": True,

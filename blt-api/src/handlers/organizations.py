@@ -101,7 +101,7 @@ async def handle_organizations(
         # Get organization managers
         if path.endswith("/managers"):
             result = await db.prepare('''
-                SELECT u.id, u.username, u.total_score,
+                SELECT u.id, u.username_encrypted, u.total_score,
                        u.email_encrypted, u.user_avatar_encrypted,
                        om.created as joined_as_manager
                 FROM organization_managers om
@@ -113,6 +113,10 @@ async def handle_organizations(
             managers = convert_d1_results(result.results if hasattr(result, 'results') else [])
 
             for manager in managers:
+                if manager.get("username_encrypted"):
+                    manager["username"] = decrypt_sensitive(manager.pop("username_encrypted"), env)
+                else:
+                    manager.pop("username_encrypted", None)
                 if manager.get("email_encrypted"):
                     manager["email"] = decrypt_sensitive(manager.get("email_encrypted"), env)
                 if manager.get("user_avatar_encrypted"):
@@ -208,7 +212,7 @@ async def handle_organizations(
         
         # Get organization details with related data
         org_result = await db.prepare('''
-            SELECT o.*, u.username as admin_username, u.email_encrypted as admin_email_encrypted
+            SELECT o.*, u.username_encrypted as admin_username_encrypted, u.email_encrypted as admin_email_encrypted
             FROM organization o
             LEFT JOIN users u ON o.admin = u.id
             WHERE o.id = ?
@@ -218,6 +222,10 @@ async def handle_organizations(
             return error_response("Organization not found", status=404)
         
         org = org_result.to_py() if hasattr(org_result, 'to_py') else dict(org_result)
+        if org.get("admin_username_encrypted"):
+            org["admin_username"] = decrypt_sensitive(org.pop("admin_username_encrypted"), env)
+        else:
+            org.pop("admin_username_encrypted", None)
         if org.get("admin_email_encrypted"):
             org["admin_email"] = decrypt_sensitive(org.get("admin_email_encrypted"), env)
         org.pop("admin_email_encrypted", None)
@@ -227,13 +235,17 @@ async def handle_organizations(
         
         if "managers" in include_related:
             managers_result = await db.prepare('''
-                SELECT u.id, u.username, u.user_avatar_encrypted
+                SELECT u.id, u.username_encrypted, u.user_avatar_encrypted
                 FROM organization_managers om
                 JOIN users u ON om.user_id = u.id
                 WHERE om.organization_id = ?
             ''').bind(org_id_int).all()
             managers = convert_d1_results(managers_result.results if hasattr(managers_result, 'results') else [])
             for manager in managers:
+                if manager.get("username_encrypted"):
+                    manager["username"] = decrypt_sensitive(manager.pop("username_encrypted"), env)
+                else:
+                    manager.pop("username_encrypted", None)
                 if manager.get("user_avatar_encrypted"):
                     manager["user_avatar"] = decrypt_sensitive(manager.get("user_avatar_encrypted"), env)
                 manager.pop("user_avatar_encrypted", None)
@@ -289,7 +301,7 @@ async def handle_organizations(
     query = f'''
         SELECT o.id, o.name, o.slug, o.description, o.logo, o.url, 
                o.type, o.is_active, o.team_points, o.created, o.tagline,
-               u.username as admin_username
+               u.username_encrypted as admin_username_encrypted
         FROM organization o
         LEFT JOIN users u ON o.admin = u.id
         WHERE {where_sql}
@@ -301,7 +313,13 @@ async def handle_organizations(
     
     result = await db.prepare(query).bind(*bind_params).all()
     organizations = convert_d1_results(result.results if hasattr(result, 'results') else [])
-    
+
+    for org in organizations:
+        if org.get("admin_username_encrypted"):
+            org["admin_username"] = decrypt_sensitive(org.pop("admin_username_encrypted"), env)
+        else:
+            org.pop("admin_username_encrypted", None)
+
     # Get total count
     count_query = f'''
         SELECT COUNT(*) as total FROM organization o WHERE {where_sql}
