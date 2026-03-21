@@ -499,7 +499,46 @@ class TestHandleApprove(unittest.TestCase):
             for method, path, *_ in calls
         ))
 
+    def test_approve_does_not_assign_for_pull_request_comment(self):
+        # Simulate a PR thread by adding a pull_request key to the issue payload
+        payload = _make_issue_payload(issue_user={"login": "alice", "type": "User"})
+        payload["issue"]["pull_request"] = {"html_url": "https://example.com/pr/1"}
+        comments, calls = [], []
+        self._run_approve(payload, comments, calls)
+        # No assignees POST should occur for PR comments
+        self.assertFalse(any(
+            method == "POST" and "assignees" in path
+            for method, path, *_ in calls
+        ))
 
+    def test_approve_does_not_assign_closed_issue(self):
+        payload = _make_issue_payload(
+            issue_user={"login": "alice", "type": "User"},
+            state="closed",
+        )
+        comments, calls = [], []
+        self._run_approve(payload, comments, calls)
+        # Guardrail: closed issues should not be assigned
+        self.assertFalse(any(
+            method == "POST" and "assignees" in path
+            for method, path, *_ in calls
+        ))
+
+    def test_approve_respects_max_assignees_guardrail(self):
+        # Pre-populate the issue with several assignees to hit the max-assignees guardrail
+        payload = _make_issue_payload(issue_user={"login": "alice", "type": "User"})
+        payload["issue"]["assignees"] = [
+            {"login": "assignee1"},
+            {"login": "assignee2"},
+            {"login": "assignee3"},
+        ]
+        comments, calls = [], []
+        self._run_approve(payload, comments, calls)
+        # Since the issue already has multiple assignees, _approve should not add more
+        self.assertFalse(any(
+            method == "POST" and "assignees" in path
+            for method, path, *_ in calls
+        ))
 class TestHandleDeny(unittest.TestCase):
     """_deny — triage reviewer closes (denies) an issue"""
 
