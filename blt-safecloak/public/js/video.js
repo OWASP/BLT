@@ -6,7 +6,7 @@
 const VideoChat = (() => {
   let peer = null;
   let localStream = null;
-  let currentCall = null;
+  const activeCalls = new Map(); // peerId -> MediaConnection
   let audioContext = null;
   let analyser = null;
   let voiceAnimFrame = null;
@@ -176,6 +176,10 @@ const VideoChat = (() => {
     });
 
     peer.on("call", async (incomingCall) => {
+      if (activeCalls.has(incomingCall.peer)) {
+        incomingCall.close();
+        return;
+      }
       if (!consentGiven) {
         const ok = await askConsent(incomingCall.peer);
         if (!ok) {
@@ -183,7 +187,8 @@ const VideoChat = (() => {
           return;
         }
       }
-      currentCall = incomingCall;
+      activeCalls.set(incomingCall.peer, incomingCall);
+      updateParticipantsList();
       incomingCall.answer(localStream);
       handleCallStream(incomingCall);
     });
@@ -200,24 +205,121 @@ const VideoChat = (() => {
     });
   }
 
+  function updateParticipantsList() {
+    const listEl = $("participants-list");
+    const countEl = $("participant-count");
+    if (countEl) {
+      countEl.textContent = `${activeCalls.size} connected`;
+    }
+    if (!listEl) return;
+    listEl.innerHTML = "";
+    if (activeCalls.size === 0) {
+      const empty = document.createElement("p");
+      empty.className = "text-sm text-gray-500 text-center py-2";
+      empty.textContent = "No participants connected";
+      listEl.appendChild(empty);
+      return;
+    }
+    activeCalls.forEach((_call, peerId) => {
+      const item = document.createElement("div");
+      item.className = "flex items-center justify-between py-1 text-sm";
+
+      const nameSpan = document.createElement("span");
+      nameSpan.className = "flex items-center gap-2";
+
+      const dot = document.createElement("span");
+      dot.className = "status-dot online";
+      dot.setAttribute("aria-hidden", "true");
+
+      const idLabel = document.createElement("span");
+      idLabel.className = "font-mono font-bold truncate max-w-[120px]";
+      idLabel.title = peerId;
+      idLabel.textContent = peerId;
+
+      nameSpan.appendChild(dot);
+      nameSpan.appendChild(idLabel);
+
+      const disconnectBtn = document.createElement("button");
+      disconnectBtn.className = "control-btn";
+      disconnectBtn.style.cssText = "width:32px;height:32px;font-size:0.75rem";
+      disconnectBtn.title = `Disconnect ${peerId}`;
+      disconnectBtn.setAttribute("aria-label", `Disconnect ${peerId}`);
+      disconnectBtn.innerHTML = '<i class="fa-solid fa-phone-slash" aria-hidden="true"></i>';
+      disconnectBtn.addEventListener("click", () => VideoChat.disconnectPeer(peerId));
+
+      item.appendChild(nameSpan);
+      item.appendChild(disconnectBtn);
+      listEl.appendChild(item);
+    });
+  }
+
   function handleCallStream(call) {
+    const remotePeerId = call.peer;
+
+    const videoWrapper = document.createElement("div");
+    videoWrapper.className = "video-wrapper bg-gray-900";
+    videoWrapper.id = `wrapper-${remotePeerId}`;
+
+    const videoEl = document.createElement("video");
+    videoEl.autoplay = true;
+    videoEl.playsInline = true;
+    videoEl.setAttribute("aria-label", `Participant ${remotePeerId} video`);
+
+    const label = document.createElement("div");
+    label.className = "video-label";
+    label.id = `label-${remotePeerId}`;
+
+    const labelDot = document.createElement("span");
+    labelDot.className = "status-dot connecting";
+    labelDot.setAttribute("aria-hidden", "true");
+    labelDot.id = `dot-${remotePeerId}`;
+
+    const labelText = document.createElement("span");
+    labelText.className = "font-mono font-bold";
+    labelText.title = remotePeerId;
+    labelText.textContent = remotePeerId;
+
+    label.appendChild(labelDot);
+    label.appendChild(labelText);
+
+    videoWrapper.appendChild(videoEl);
+    videoWrapper.appendChild(label);
+
+    const videoGrid = $("video-grid");
+    if (videoGrid) videoGrid.appendChild(videoWrapper);
+
     call.on("stream", (remoteStream) => {
-      const remoteVideo = $("remote-video");
-      if (remoteVideo) {
-        remoteVideo.srcObject = remoteStream;
-      }
+      videoEl.srcObject = remoteStream;
+      const dot = $(`dot-${remotePeerId}`);
+      if (dot) dot.className = "status-dot online";
       state.connected = true;
-      updateStatus("🔒 Encrypted call active", "success");
+      const count = activeCalls.size;
+      updateStatus(
+        `🔒 Encrypted call active (${count} participant${count !== 1 ? "s" : ""})`,
+        "success"
+      );
       setDotStatus("online");
       $("call-controls") && $("call-controls").classList.remove("hidden");
+      updateParticipantsList();
     });
 
     call.on("close", () => {
-      state.connected = false;
-      updateStatus("Call ended", "muted");
-      setDotStatus("offline");
-      const remoteVideo = $("remote-video");
-      if (remoteVideo) remoteVideo.srcObject = null;
+      activeCalls.delete(remotePeerId);
+      const wrapper = $(`wrapper-${remotePeerId}`);
+      if (wrapper) wrapper.remove();
+      if (activeCalls.size === 0) {
+        state.connected = false;
+        updateStatus("Call ended", "muted");
+        setDotStatus("offline");
+        $("call-controls") && $("call-controls").classList.add("hidden");
+      } else {
+        const count = activeCalls.size;
+        updateStatus(
+          `🔒 Encrypted call active (${count} participant${count !== 1 ? "s" : ""})`,
+          "success"
+        );
+      }
+      updateParticipantsList();
     });
 
     call.on("error", (err) => {
@@ -238,6 +340,14 @@ const VideoChat = (() => {
       showToast("Enter a Room ID to call", "warning");
       return;
     }
+    if (remotePeerId === state.peerId) {
+      showToast("You cannot call yourself", "warning");
+      return;
+    }
+    if (activeCalls.has(remotePeerId)) {
+      showToast("Already connected to this participant", "warning");
+      return;
+    }
 
     if (!consentGiven) {
       const ok = await askConsent("the remote participant");
@@ -247,7 +357,8 @@ const VideoChat = (() => {
     updateStatus("Calling…", "warning");
     setDotStatus("connecting");
     const call = peer.call(remotePeerId, localStream);
-    currentCall = call;
+    activeCalls.set(remotePeerId, call);
+    updateParticipantsList();
     handleCallStream(call);
   }
 
@@ -278,16 +389,25 @@ const VideoChat = (() => {
     showToast(camOff ? "Camera disabled" : "Camera enabled", "info");
   }
 
-  function endCall() {
-    if (currentCall) {
-      currentCall.close();
-      currentCall = null;
+  function disconnectPeer(peerId) {
+    const call = activeCalls.get(peerId);
+    if (call) {
+      call.close();
     }
+  }
+
+  function endCall() {
+    activeCalls.forEach((call) => call.close());
+    activeCalls.clear();
     state.connected = false;
     updateStatus("Call ended", "muted");
     setDotStatus("offline");
-    const remoteVideo = $("remote-video");
-    if (remoteVideo) remoteVideo.srcObject = null;
+    const videoGrid = $("video-grid");
+    if (videoGrid) {
+      videoGrid.querySelectorAll(".video-wrapper:not(:first-child)").forEach((w) => w.remove());
+    }
+    $("call-controls") && $("call-controls").classList.add("hidden");
+    updateParticipantsList();
     showToast("Call ended", "info");
     // Record consent end
     ConsentManager &&
@@ -382,11 +502,13 @@ const VideoChat = (() => {
     try {
       const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
       const screenTrack = screenStream.getVideoTracks()[0];
-      if (currentCall && currentCall.peerConnection) {
-        const sender = currentCall.peerConnection
-          .getSenders()
-          .find((s) => s.track && s.track.kind === "video");
-        if (sender) await sender.replaceTrack(screenTrack);
+      for (const call of activeCalls.values()) {
+        if (call.peerConnection) {
+          const sender = call.peerConnection
+            .getSenders()
+            .find((s) => s.track && s.track.kind === "video");
+          if (sender) await sender.replaceTrack(screenTrack);
+        }
       }
       const localVideo = $("local-video");
       if (localVideo) localVideo.srcObject = screenStream;
@@ -402,13 +524,15 @@ const VideoChat = (() => {
   }
 
   function stopScreenShare() {
-    if (!localStream || !currentCall) return;
+    if (!localStream || activeCalls.size === 0) return;
     const videoTrack = localStream.getVideoTracks()[0];
     if (!videoTrack) return;
-    const sender =
-      currentCall.peerConnection &&
-      currentCall.peerConnection.getSenders().find((s) => s.track && s.track.kind === "video");
-    if (sender) sender.replaceTrack(videoTrack);
+    for (const call of activeCalls.values()) {
+      const sender =
+        call.peerConnection &&
+        call.peerConnection.getSenders().find((s) => s.track && s.track.kind === "video");
+      if (sender) sender.replaceTrack(videoTrack);
+    }
     const localVideo = $("local-video");
     if (localVideo) {
       localVideo.srcObject = localStream;
@@ -427,6 +551,7 @@ const VideoChat = (() => {
   return {
     init,
     callPeer,
+    disconnectPeer,
     toggleMic,
     toggleCamera,
     endCall,

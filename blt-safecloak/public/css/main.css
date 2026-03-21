@@ -149,6 +149,13 @@ body {
   }
 }
 
+/* === Video Grid (multi-participant) === */
+.video-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
 /* === Video Components === */
 .video-wrapper {
   position: relative;
