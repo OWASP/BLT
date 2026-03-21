@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OWASP BLT – Open Issues</title>
+  <meta name="description" content="All open issues across OWASP-BLT GitHub repositories – searchable, filterable, and sortable." />
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="./imgs/logo.png" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              DEFAULT: '#E10101',
+              hover:   '#b91c1c',
+            },
+          },
+        },
+      },
+    };
+  </script>
+
+  <!-- Font Awesome CDN -->
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <!-- Custom styles -->
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body class="bg-gray-50 text-gray-800 dark:bg-gray-900 dark:text-gray-100 min-h-screen font-sans">
+
+<!-- ===== TOP NAV ===== -->
+<header class="sticky top-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm">
+  <div class="max-w-screen-xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
+
+    <!-- Logo -->
+    <a href="https://blt.owasp.org" target="_blank" rel="noopener noreferrer" class="flex items-center shrink-0">
+      <img src="./imgs/logo.png" alt="OWASP BLT" class="block sm:hidden h-7 w-7 rounded" />
+      <img src="./imgs/owasp-blt-logo.svg" alt="OWASP BLT" class="hidden sm:block h-7" />
+    </a>
+
+    <!-- Page title -->
+    <h1 class="text-sm font-semibold flex items-center gap-1.5 text-gray-700 dark:text-gray-200 truncate">
+      <i class="fa-solid fa-circle-dot text-brand" aria-hidden="true"></i>
+      Open Issues
+      <span id="nav-count" class="text-xs font-normal text-gray-400 dark:text-gray-500"></span>
+    </h1>
+
+    <!-- Nav links -->
+    <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+      <a href="./index.html"
+        class="text-xs sm:text-sm font-medium px-2 sm:px-3 py-1.5 sm:py-2 rounded-md border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+        <i class="fa-solid fa-table-list mr-1" aria-hidden="true"></i><span class="hidden sm:inline">Dashboard</span>
+      </a>
+
+      <!-- Dark mode toggle -->
+      <button id="dark-toggle" aria-label="Toggle dark mode"
+        class="w-8 h-8 flex items-center justify-center rounded-md border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+        <i id="dark-icon" class="fa-solid fa-moon text-sm" aria-hidden="true"></i>
+      </button>
+
+      <!-- GitHub link -->
+      <a href="https://github.com/OWASP-BLT/owasp-blt.github.io" target="_blank" rel="noopener noreferrer"
+        aria-label="OWASP-BLT dashboard repository on GitHub"
+        class="w-8 h-8 flex items-center justify-center rounded-md border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+        <i class="fa-brands fa-github text-base" aria-hidden="true"></i>
+      </a>
+    </div>
+  </div>
+</header>
+
+<!-- ===== MAIN CONTENT ===== -->
+<main class="max-w-screen-xl mx-auto px-3 sm:px-4 py-5">
+
+  <!-- Stats bar -->
+  <div id="stats-bar" class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
+    <div class="skeleton h-14 rounded-lg"></div>
+    <div class="skeleton h-14 rounded-lg"></div>
+    <div class="skeleton h-14 rounded-lg hidden sm:block"></div>
+    <div class="skeleton h-14 rounded-lg hidden sm:block"></div>
+  </div>
+
+  <!-- Controls -->
+  <div class="flex flex-wrap items-center gap-2 mb-3">
+    <div class="relative flex-1 min-w-[140px] max-w-xs">
+      <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs" aria-hidden="true"></i>
+      <input id="issue-search" type="search" placeholder="Search issues…" aria-label="Search issues"
+        class="w-full pl-7 pr-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md text-xs bg-white dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-400 focus-brand" />
+    </div>
+
+    <select id="issue-sort" aria-label="Sort issues"
+      class="text-xs border border-gray-300 dark:border-gray-600 rounded-md px-2 py-1.5 bg-white dark:bg-gray-800 dark:text-gray-100 focus-brand">
+      <option value="repo">By repo</option>
+      <option value="newest">Newest</option>
+      <option value="oldest">Oldest</option>
+      <option value="updated">Recently updated</option>
+      <option value="title">Title A–Z</option>
+    </select>
+
+    <select id="issue-repo-filter" aria-label="Filter by repository"
+      class="text-xs border border-gray-300 dark:border-gray-600 rounded-md px-2 py-1.5 bg-white dark:bg-gray-800 dark:text-gray-100 focus-brand max-w-[160px] truncate">
+      <option value="">All repos</option>
+    </select>
+
+    <select id="issue-label-filter" aria-label="Filter by label"
+      class="text-xs border border-gray-300 dark:border-gray-600 rounded-md px-2 py-1.5 bg-white dark:bg-gray-800 dark:text-gray-100 focus-brand max-w-[160px] truncate">
+      <option value="">All labels</option>
+    </select>
+
+    <select id="issue-assignee-filter" aria-label="Filter by assignment"
+      class="text-xs border border-gray-300 dark:border-gray-600 rounded-md px-2 py-1.5 bg-white dark:bg-gray-800 dark:text-gray-100 focus-brand">
+      <option value="">Any assignee</option>
+      <option value="unassigned">Unassigned</option>
+      <option value="assigned">Assigned</option>
+    </select>
+
+    <span id="results-count" class="text-xs text-gray-400 dark:text-gray-500 ml-auto"></span>
+  </div>
+
+  <!-- Issue list -->
+  <div id="issue-list" class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+    <div class="px-3 py-2 space-y-0">
+      <div class="skeleton h-9 rounded mb-1"></div>
+      <div class="skeleton h-9 rounded mb-1"></div>
+      <div class="skeleton h-9 rounded mb-1"></div>
+      <div class="skeleton h-9 rounded mb-1"></div>
+      <div class="skeleton h-9 rounded mb-1"></div>
+    </div>
+  </div>
+
+  <!-- Empty state -->
+  <div id="empty-state" class="hidden text-center py-16 text-gray-400 dark:text-gray-500">
+    <i class="fa-solid fa-circle-check text-4xl mb-3" aria-hidden="true"></i>
+    <p class="font-medium">No open issues found</p>
+  </div>
+
+  <!-- Error state -->
+  <div id="error-state" class="hidden text-center py-16 text-gray-500 dark:text-gray-400">
+    <i class="fa-solid fa-triangle-exclamation text-3xl mb-3 text-brand" aria-hidden="true"></i>
+    <p class="font-medium mb-3" id="error-msg">Failed to load issues.</p>
+    <button id="retry-btn"
+      class="px-4 py-2 text-sm bg-brand text-white rounded-md hover:bg-brand-hover transition-colors">
+      Retry
+    </button>
+  </div>
+</main>
+
+<!-- ===== FOOTER ===== -->
+<footer class="mt-8 border-t border-gray-200 dark:border-gray-700 py-5 text-center text-xs text-gray-400 dark:text-gray-500">
+  <p>
+    Data sourced from the
+    <a href="https://docs.github.com/en/rest" target="_blank" rel="noopener noreferrer"
+      class="text-brand underline-offset-2 hover:underline">GitHub REST API</a>.
+    Built for <a href="https://blt.owasp.org" target="_blank" rel="noopener noreferrer"
+      class="text-brand underline-offset-2 hover:underline">OWASP BLT</a>.
+  </p>
+  <p id="footer-ts" class="mt-1"></p>
+</footer>
+
+<script>
+/* ------------------------------------------------------------------ */
+/*  DARK MODE                                                           */
+/* ------------------------------------------------------------------ */
+(function initDark() {
+  const saved = localStorage.getItem('blt-dark');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  if (saved === 'dark' || (!saved && prefersDark)) {
+    document.documentElement.classList.add('dark');
+    const icon = document.getElementById('dark-icon');
+    if (icon) icon.className = 'fa-solid fa-sun text-sm';
+  }
+})();
+
+const darkToggle = document.getElementById('dark-toggle');
+if (darkToggle) darkToggle.addEventListener('click', () => {
+  const isDark = document.documentElement.classList.toggle('dark');
+  localStorage.setItem('blt-dark', isDark ? 'dark' : 'light');
+  const icon = document.getElementById('dark-icon');
+  if (icon) icon.className = isDark ? 'fa-solid fa-sun text-sm' : 'fa-solid fa-moon text-sm';
+});
+
+/* ------------------------------------------------------------------ */
+/*  HELPERS                                                             */
+/* ------------------------------------------------------------------ */
+function escapeHtml(str) {
+  if (!str) return '';
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function timeAgo(dateStr) {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const secs = Math.floor(diff / 1000);
+  if (secs < 60)      return 'just now';
+  if (secs < 3600)    return Math.floor(secs / 60) + 'm ago';
+  if (secs < 86400)   return Math.floor(secs / 3600) + 'h ago';
+  if (secs < 2592000) return Math.floor(secs / 86400) + 'd ago';
+  if (secs < 31536000)return Math.floor(secs / 2592000) + 'mo ago';
+  return Math.floor(secs / 31536000) + 'y ago';
+}
+
+function daysOpen(dateStr) {
+  if (!dateStr) return null;
+  return Math.max(0, Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000));
+}
+
+const DEFAULT_LABEL_COLOR = 'cccccc';
+function labelBadgeHTML(label) {
+  const rawColor = /^[0-9a-fA-F]{6}$/.test(label.color || '') ? label.color : DEFAULT_LABEL_COLOR;
+  const bg = `#${rawColor}`;
+  const r = parseInt(rawColor.slice(0, 2), 16);
+  const g = parseInt(rawColor.slice(2, 4), 16);
+  const b = parseInt(rawColor.slice(4, 6), 16);
+  const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+  const textColor = lum > 128 ? '#1f2937' : '#ffffff';
+  return `<span class="inline-block text-[10px] px-1.5 py-0.5 rounded-full font-medium whitespace-nowrap cursor-pointer label-chip"
+    style="background:${escapeHtml(bg)};color:${textColor}"
+    data-label="${escapeHtml(label.name)}">${escapeHtml(label.name)}</span>`;
+}
+
+/* ------------------------------------------------------------------ */
+/*  STATE                                                               */
+/* ------------------------------------------------------------------ */
+let allIssues = [];
+let sortKey   = localStorage.getItem('blt-issue-sort') || 'repo';
+let repoFilter    = '';
+let labelFilter   = '';
+let assigneeFilter = '';
+let searchQuery   = '';
+
+/* ------------------------------------------------------------------ */
+/*  STATS BAR                                                           */
+/* ------------------------------------------------------------------ */
+function renderStats(issues) {
+  const bar = document.getElementById('stats-bar');
+  if (!bar) return;
+
+  const repos    = new Set(issues.map(i => i.repo_name)).size;
+  const unassigned = issues.filter(i => !(i.assignees && i.assignees.length)).length;
+  const withPR   = issues.filter(i => i.linked_prs && i.linked_prs.length).length;
+
+  const statCard = (icon, value, label, extra) => `
+    <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2.5 flex items-center gap-2.5">
+      <i class="${icon} text-brand text-base w-5 text-center shrink-0" aria-hidden="true"></i>
+      <div class="min-w-0">
+        <div class="text-lg font-bold leading-none">${value}</div>
+        <div class="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5 truncate">${label}</div>
+        ${extra ? `<div class="text-[10px] text-gray-400 dark:text-gray-500">${extra}</div>` : ''}
+      </div>
+    </div>`;
+
+  bar.innerHTML =
+    statCard('fa-solid fa-circle-dot', issues.length, 'Open issues', '') +
+    statCard('fa-solid fa-code-branch', repos, 'Repositories', '') +
+    statCard('fa-solid fa-user-slash', unassigned, 'Unassigned', `${issues.length - unassigned} assigned`) +
+    statCard('fa-solid fa-code-pull-request', withPR, 'Have linked PR', `${issues.length - withPR} without PR`);
+}
+
+/* ------------------------------------------------------------------ */
+/*  POPULATE FILTER DROPDOWNS                                           */
+/* ------------------------------------------------------------------ */
+function populateFilters(issues) {
+  const repoSel  = document.getElementById('issue-repo-filter');
+  const labelSel = document.getElementById('issue-label-filter');
+  if (!repoSel || !labelSel) return;
+
+  const repos  = [...new Set(issues.map(i => i.repo_name))].sort();
+  const labels = [...new Set(issues.flatMap(i => (i.labels || []).map(l => l.name)))].sort();
+
+  repos.forEach(r => {
+    const opt = document.createElement('option');
+    opt.value = r;
+    opt.textContent = r;
+    repoSel.appendChild(opt);
+  });
+
+  labels.forEach(l => {
+    const opt = document.createElement('option');
+    opt.value = l;
+    opt.textContent = l;
+    labelSel.appendChild(opt);
+  });
+}
+
+/* ------------------------------------------------------------------ */
+/*  RENDER                                                              */
+/* ------------------------------------------------------------------ */
+function getFiltered() {
+  let list = [...allIssues];
+
+  if (repoFilter)   list = list.filter(i => i.repo_name === repoFilter);
+  if (labelFilter)  list = list.filter(i => (i.labels || []).some(l => l.name === labelFilter));
+  if (assigneeFilter === 'unassigned') list = list.filter(i => !(i.assignees && i.assignees.length));
+  if (assigneeFilter === 'assigned')   list = list.filter(i => i.assignees && i.assignees.length > 0);
+
+  if (searchQuery) {
+    const q = searchQuery.toLowerCase();
+    list = list.filter(i =>
+      i.title.toLowerCase().includes(q) ||
+      i.repo_name.toLowerCase().includes(q) ||
+      (i.labels || []).some(l => l.name.toLowerCase().includes(q)) ||
+      (i.assignees || []).some(a => a.login.toLowerCase().includes(q))
+    );
+  }
+
+  // Sort
+  if (sortKey === 'newest') {
+    list.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  } else if (sortKey === 'oldest') {
+    list.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+  } else if (sortKey === 'updated') {
+    list.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
+  } else if (sortKey === 'title') {
+    list.sort((a, b) => a.title.localeCompare(b.title));
+  } else {
+    // 'repo': group by repo name, then newest first within repo
+    list.sort((a, b) =>
+      a.repo_name.localeCompare(b.repo_name) || new Date(b.created_at) - new Date(a.created_at)
+    );
+  }
+
+  return list;
+}
+
+function renderIssues() {
+  const listEl   = document.getElementById('issue-list');
+  const emptyEl  = document.getElementById('empty-state');
+  const countEl  = document.getElementById('results-count');
+  const navCount = document.getElementById('nav-count');
+  if (!listEl) return;
+
+  const issues = getFiltered();
+
+  if (countEl) countEl.textContent = `${issues.length} issue${issues.length !== 1 ? 's' : ''}`;
+  if (navCount) navCount.textContent = `(${allIssues.length})`;
+
+  if (issues.length === 0) {
+    listEl.innerHTML = '';
+    listEl.classList.add('hidden');
+    if (emptyEl) emptyEl.classList.remove('hidden');
+    return;
+  }
+
+  listEl.classList.remove('hidden');
+  if (emptyEl) emptyEl.classList.add('hidden');
+
+  const parts = [];
+  let lastRepo = null;
+
+  for (const issue of issues) {
+    if (sortKey === 'repo' && issue.repo_name !== lastRepo) {
+      lastRepo = issue.repo_name;
+      const repoCount = issues.filter(i => i.repo_name === lastRepo).length;
+      const repoUrl = escapeHtml(issue.repo_html_url);
+      parts.push(`
+        <div class="sticky top-14 z-10 flex items-center gap-2 px-3 py-1.5
+          bg-gray-50 dark:bg-gray-800/90 border-b border-gray-200 dark:border-gray-700
+          backdrop-blur-sm">
+          <a href="${repoUrl}/issues" target="_blank" rel="noopener noreferrer"
+            class="text-xs font-semibold text-brand hover:underline truncate">${escapeHtml(issue.repo_name)}</a>
+          <a href="${repoUrl}" target="_blank" rel="noopener noreferrer"
+            class="shrink-0 text-[10px] text-gray-400 dark:text-gray-500 hover:text-brand transition-colors">
+            <i class="fa-brands fa-github" aria-hidden="true"></i>
+          </a>
+          <span class="ml-auto text-[10px] text-gray-400 dark:text-gray-500 shrink-0">${repoCount} open</span>
+        </div>`);
+    }
+
+    const labels       = (issue.labels || []).map(labelBadgeHTML).join('');
+    const assigneeImgs = (issue.assignees || []).map(a =>
+      `<a href="${escapeHtml(a.html_url)}" target="_blank" rel="noopener noreferrer" title="${escapeHtml(a.login)}">
+        <img src="${escapeHtml(a.avatar_url)}&s=24" alt="${escapeHtml(a.login)}"
+          class="inline-block w-4 h-4 rounded-full border border-white dark:border-gray-800 -ml-0.5 first:ml-0 hover:scale-110 transition-transform"
+          loading="lazy" />
+      </a>`
+    ).join('');
+
+    const prLinks = (issue.linked_prs || []).map(pr =>
+      `<a href="${escapeHtml(pr.html_url)}" target="_blank" rel="noopener noreferrer"
+        title="${escapeHtml(pr.title)}"
+        class="inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded
+          bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300
+          hover:bg-teal-100 dark:hover:bg-teal-900/50 transition-colors whitespace-nowrap">
+        <i class="fa-solid fa-code-pull-request" aria-hidden="true"></i>#${pr.number}
+      </a>`
+    ).join('');
+
+    const days = daysOpen(issue.created_at);
+    const daysStr = days === null ? '' : days === 0 ? 'today' : `${days}d`;
+    const updatedStr = issue.updated_at !== issue.created_at ? timeAgo(issue.updated_at) : '';
+
+    const repoTag = sortKey !== 'repo'
+      ? `<a href="${escapeHtml(issue.repo_html_url)}/issues" target="_blank" rel="noopener noreferrer"
+          class="text-[10px] text-gray-400 dark:text-gray-500 hover:text-brand transition-colors whitespace-nowrap shrink-0">${escapeHtml(issue.repo_name)}</a>`
+      : '';
+
+    const unassignedBadge = !(issue.assignees && issue.assignees.length)
+      ? `<span class="text-[10px] text-amber-500 dark:text-amber-400 whitespace-nowrap shrink-0" title="No assignee">
+           <i class="fa-solid fa-user-slash" aria-hidden="true"></i>
+         </span>`
+      : '';
+
+    parts.push(`
+      <article class="flex items-start gap-2 px-3 py-2 border-b border-gray-100 dark:border-gray-800
+        hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-colors last:border-b-0">
+        <div class="flex-1 min-w-0">
+          <a href="${escapeHtml(issue.html_url)}" target="_blank" rel="noopener noreferrer"
+            class="text-xs font-medium text-gray-800 dark:text-gray-100 hover:text-brand transition-colors line-clamp-1 leading-snug">
+            <span class="text-gray-400 dark:text-gray-500 tabular-nums mr-0.5">#${issue.number}</span>${escapeHtml(issue.title)}
+          </a>
+          ${repoTag || labels || prLinks ? `
+          <div class="flex items-center gap-1 flex-wrap mt-0.5">
+            ${repoTag}
+            ${labels}
+            ${prLinks}
+          </div>` : ''}
+        </div>
+        <div class="flex items-center gap-1.5 shrink-0 text-right">
+          ${unassignedBadge}
+          ${assigneeImgs ? `<span class="flex items-center">${assigneeImgs}</span>` : ''}
+          <div class="flex flex-col items-end gap-0.5">
+            ${daysStr ? `<span class="text-[10px] text-gray-400 dark:text-gray-500 whitespace-nowrap" title="Opened ${escapeHtml(issue.created_at)}">${daysStr}</span>` : ''}
+            ${updatedStr ? `<span class="text-[10px] text-gray-300 dark:text-gray-600 whitespace-nowrap" title="Updated ${escapeHtml(issue.updated_at)}">↻ ${updatedStr}</span>` : ''}
+          </div>
+        </div>
+      </article>`);
+  }
+
+  listEl.innerHTML = `<div>${parts.join('')}</div>`;
+
+  // Click on label chips to filter by that label
+  listEl.querySelectorAll('.label-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const name = chip.dataset.label;
+      const sel = document.getElementById('issue-label-filter');
+      if (sel) { sel.value = name; }
+      labelFilter = name;
+      renderIssues();
+    });
+  });
+}
+
+/* ------------------------------------------------------------------ */
+/*  DATA LOADING                                                        */
+/* ------------------------------------------------------------------ */
+async function loadData() {
+  const listEl  = document.getElementById('issue-list');
+  const errEl   = document.getElementById('error-state');
+  if (errEl) errEl.classList.add('hidden');
+
+  try {
+    const resp = await fetch(`data.json?t=${Date.now()}`);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const payload = await resp.json();
+
+    allIssues = payload.open_issues || [];
+
+    renderStats(allIssues);
+    populateFilters(allIssues);
+    renderIssues();
+
+    const footerTs = document.getElementById('footer-ts');
+    if (footerTs && payload.generated_at) {
+      footerTs.innerHTML =
+        `Stats generated by hourly action at <strong>${new Date(payload.generated_at).toLocaleString()}</strong>` +
+        ` &nbsp;·&nbsp; <a href="data.json" class="text-brand hover:underline" target="_blank" rel="noopener">data.json</a>`;
+    }
+  } catch (err) {
+    console.error('Failed to load issues:', err);
+    if (listEl) listEl.innerHTML = '';
+    if (errEl) {
+      errEl.classList.remove('hidden');
+      const msg = document.getElementById('error-msg');
+      if (msg) msg.textContent = 'Failed to load issues. Please try again.';
+    }
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/*  EVENT LISTENERS                                                     */
+/* ------------------------------------------------------------------ */
+let searchDebounce;
+document.getElementById('issue-search').addEventListener('input', e => {
+  clearTimeout(searchDebounce);
+  searchDebounce = setTimeout(() => {
+    searchQuery = e.target.value.trim();
+    renderIssues();
+  }, 200);
+});
+
+document.getElementById('issue-sort').addEventListener('change', e => {
+  sortKey = e.target.value;
+  localStorage.setItem('blt-issue-sort', sortKey);
+  renderIssues();
+});
+
+document.getElementById('issue-repo-filter').addEventListener('change', e => {
+  repoFilter = e.target.value;
+  renderIssues();
+});
+
+document.getElementById('issue-label-filter').addEventListener('change', e => {
+  labelFilter = e.target.value;
+  renderIssues();
+});
+
+document.getElementById('issue-assignee-filter').addEventListener('change', e => {
+  assigneeFilter = e.target.value;
+  renderIssues();
+});
+
+document.getElementById('retry-btn').addEventListener('click', loadData);
+
+// Restore persisted sort preference
+document.getElementById('issue-sort').value = sortKey;
+
+loadData();
+</script>
+
+</body>
+</html>
