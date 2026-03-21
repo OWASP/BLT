@@ -33,3 +33,19 @@ database_name = "blt-api"
 database_id = "bb8bc336-a8d2-4aa4-a244-f492b15a97dd" # For production, use: wrangler secret put D1_DATABASE_ID (this didn't work so we hardcoded the id)
 migrations_dir = "migrations"
 migrations_table = "d1_migrations"
+
+
+[observability]
+enabled = false
+head_sampling_rate = 1
+
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+persist = true
+invocation_logs = true
+
+[observability.traces]
+enabled = false
+persist = true
+head_sampling_rate = 1
