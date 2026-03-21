@@ -343,6 +343,6 @@ def create_client(env: Any, auth_token: Optional[str] = None) -> BLTClient:
     try:
         base_url = str(env.BLT_API_BASE_URL)
     except AttributeError:
-        base_url = "https://blt.owasp.org/api/v1"
+        base_url = "https://api.owaspblt.org/v2"
     
     return BLTClient(base_url, auth_token)

@@ -112,6 +112,30 @@ class TestRouter:
         params = router._parse_query_params("/users")
         assert params == {}
 
+    def test_parse_query_params_url_encoded(self):
+        """Test that query parameters are URL-decoded."""
+        router = Router()
+
+        # Plus-encoded spaces
+        params = router._parse_query_params("/bugs/search?q=sql+injection")
+        assert params == {"q": "sql injection"}
+
+        # Percent-encoded characters
+        params = router._parse_query_params("/bugs/search?q=hello%20world&domain=example%2Ecom")
+        assert params == {"q": "hello world", "domain": "example.com"}
+
+        # Mixed encoding
+        params = router._parse_query_params("/bugs/search?status=open&q=cross-site+scripting%20%28XSS%29")
+        assert params == {"status": "open", "q": "cross-site scripting (XSS)"}
+
+        # Blank values are preserved
+        params = router._parse_query_params("/bugs?status=&page=1")
+        assert params == {"status": "", "page": "1"}
+
+        # Duplicate keys: first value wins (v[0] from parse_qs list)
+        params = router._parse_query_params("/bugs?tag=xss&tag=sqli")
+        assert params == {"tag": "xss"}
+
 
 class TestRouterDecorators:
     """Tests for router decorator methods."""

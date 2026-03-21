@@ -53,6 +53,7 @@ router.add_route("GET", "/bugs/{id}", handle_bugs)
 
 # Users API
 router.add_route("GET", "/users", handle_users)
+router.add_route("POST", "/users", handle_users)
 router.add_route("GET", "/users/{id}", handle_users)
 router.add_route("GET", "/users/{id}/profile", handle_users)
 router.add_route("GET", "/users/{id}/bugs", handle_users)
@@ -107,6 +108,70 @@ router.add_route("GET", "/contributors/{id}", handle_contributors)
 # Repositories API
 router.add_route("GET", "/repos", handle_repos)
 router.add_route("GET", "/repos/{id}", handle_repos)
+
+
+def _add_v2_route(method: str, pattern: str, handler) -> None:
+    """Register a v2-prefixed route while preserving existing unversioned routes."""
+    v2_pattern = "/v2" if pattern == "/" else f"/v2{pattern}"
+    router.add_route(method, v2_pattern, handler)
+
+
+# v2 API routes (backward compatible with existing unversioned routes)
+_add_v2_route("GET", "/", handle_homepage)
+_add_v2_route("GET", "/health", handle_health)
+
+_add_v2_route("GET", "/bugs/search", handle_bugs)
+_add_v2_route("GET", "/bugs", handle_bugs)
+_add_v2_route("POST", "/bugs", handle_bugs)
+_add_v2_route("GET", "/bugs/{id}", handle_bugs)
+
+_add_v2_route("GET", "/users", handle_users)
+_add_v2_route("POST", "/users", handle_users)
+_add_v2_route("GET", "/users/{id}", handle_users)
+_add_v2_route("GET", "/users/{id}/profile", handle_users)
+_add_v2_route("GET", "/users/{id}/bugs", handle_users)
+_add_v2_route("GET", "/users/{id}/domains", handle_users)
+_add_v2_route("GET", "/users/{id}/followers", handle_users)
+_add_v2_route("GET", "/users/{id}/following", handle_users)
+
+_add_v2_route("POST", "/auth/signup", handle_signup)
+_add_v2_route("POST", "/auth/signin", handle_signin)
+_add_v2_route("GET", "/auth/verify-email", handle_verify_email)
+
+_add_v2_route("GET", "/domains", handle_domains)
+_add_v2_route("GET", "/domains/{id}", handle_domains)
+_add_v2_route("GET", "/domains/{id}/tags", handle_domains)
+
+_add_v2_route("GET", "/organizations", handle_organizations)
+_add_v2_route("GET", "/organizations/{id}", handle_organizations)
+_add_v2_route("GET", "/organizations/{id}/domains", handle_organizations)
+_add_v2_route("GET", "/organizations/{id}/bugs", handle_organizations)
+_add_v2_route("GET", "/organizations/{id}/managers", handle_organizations)
+_add_v2_route("GET", "/organizations/{id}/tags", handle_organizations)
+_add_v2_route("GET", "/organizations/{id}/integrations", handle_organizations)
+_add_v2_route("GET", "/organizations/{id}/stats", handle_organizations)
+
+_add_v2_route("GET", "/projects", handle_projects)
+_add_v2_route("GET", "/projects/{id}", handle_projects)
+_add_v2_route("GET", "/projects/{id}/contributors", handle_projects)
+
+_add_v2_route("GET", "/hunts/active", handle_hunts)
+_add_v2_route("GET", "/hunts/previous", handle_hunts)
+_add_v2_route("GET", "/hunts/upcoming", handle_hunts)
+_add_v2_route("GET", "/hunts", handle_hunts)
+_add_v2_route("GET", "/hunts/{id}", handle_hunts)
+
+_add_v2_route("GET", "/stats", handle_stats)
+
+_add_v2_route("GET", "/leaderboard", handle_leaderboard)
+_add_v2_route("GET", "/leaderboard/monthly", handle_leaderboard)
+_add_v2_route("GET", "/leaderboard/organizations", handle_leaderboard)
+
+_add_v2_route("GET", "/contributors", handle_contributors)
+_add_v2_route("GET", "/contributors/{id}", handle_contributors)
+
+_add_v2_route("GET", "/repos", handle_repos)
+_add_v2_route("GET", "/repos/{id}", handle_repos)
 
 class Default(WorkerEntrypoint):
     async def on_fetch(self, request):

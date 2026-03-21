@@ -89,7 +89,8 @@ def json_response(
 def error_response(
     message: str,
     status: int = 400,
-    details: Optional[Dict[str, Any]] = None
+    details: Optional[Dict[str, Any]] = None,
+    headers: Optional[Dict[str, str]] = None
 ) -> Response:
     """
     Create an error JSON response.
@@ -98,6 +99,7 @@ def error_response(
         message: Error message
         status: HTTP status code
         details: Additional error details
+        headers: Additional HTTP headers to include (e.g., {"Allow": "POST"} for 405 responses)
     
     Returns:
         Response object with error information
@@ -111,7 +113,7 @@ def error_response(
     if details:
         error_data["details"] = details
     
-    return json_response(error_data, status=status)
+    return json_response(error_data, status=status, headers=headers)
 
 
 def success_response(
@@ -214,7 +216,7 @@ def get_blt_api_url(env: Any) -> str:
     try:
         return str(env.BLT_API_BASE_URL)
     except AttributeError:
-        return "https://blt.owasp.org/api/v1"
+        return "https://api.owaspblt.org/v2"
 
 
 def get_blt_website_url(env: Any) -> str:
@@ -230,7 +232,7 @@ def get_blt_website_url(env: Any) -> str:
     try:
         return str(env.BLT_WEBSITE_URL)
     except AttributeError:
-        return "https://blt.owasp.org"
+        return "https://owaspblt.org"
 
 
 async def parse_json_body(request: Any) -> Optional[Dict[str, Any]]:

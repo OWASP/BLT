@@ -483,3 +483,142 @@ class TestModelUpdateById:
         await _TestModel.update_by_id(db, 42, is_active=False)
         assert "UPDATE test_table" in db._last_sql
         assert "WHERE id = ?" in db._last_sql
+
+
+# ---------------------------------------------------------------------------
+# QuerySet.join — SQL generation and validation
+# ---------------------------------------------------------------------------
+
+
+class TestJoin:
+    def setup_method(self):
+        self.db = MockDB()
+        self.qs = QuerySet(_TestModel, self.db)
+
+    def test_join_generates_correct_sql(self):
+        sql, _ = self.qs.join(
+            "domains", on="bugs.domain_id = domains.id", join_type="LEFT"
+        )._build_select_sql()
+        assert "LEFT JOIN domains ON bugs.domain_id = domains.id" in sql
+
+    def test_inner_join_default(self):
+        sql, _ = self.qs.join(
+            "domains", on="bugs.domain_id = domains.id"
+        )._build_select_sql()
+        assert "INNER JOIN domains ON bugs.domain_id = domains.id" in sql
+
+    def test_join_invalid_type_raises(self):
+        with pytest.raises(ValueError):
+            self.qs.join(
+                "domains", on="bugs.domain_id = domains.id", join_type="CROSS"
+            )
+
+    def test_join_unsafe_table_name_raises(self):
+        with pytest.raises(ValueError):
+            self.qs.join(
+                "domains; DROP TABLE bugs--",
+                on="bugs.domain_id = domains.id"
+            )
+
+    def test_join_unsafe_on_lhs_raises(self):
+        with pytest.raises(ValueError):
+            self.qs.join(
+                "domains",
+                on="bugs.domain_id; DROP TABLE bugs-- = domains.id"
+            )
+
+    def test_join_unsafe_on_rhs_raises(self):
+        with pytest.raises(ValueError):
+            self.qs.join(
+                "domains",
+                on="bugs.domain_id = domains.id; DROP TABLE bugs--"
+            )
+
+    def test_join_on_clause_canonical_form_stored(self):
+        """Whitespace-folding bypass prevention — canonical ON clause is stored."""
+        qs = self.qs.join(
+            "domains",
+            on="bugs.domain_id = domains.id"
+        )
+        _, _, on_clause = qs._joins[0]
+        assert on_clause == "bugs.domain_id = domains.id"
+        assert "  " not in on_clause
+
+    def test_join_on_clause_whitespace_folding_bypass_rejected(self):
+        """Extra whitespace cannot be used to smuggle unsafe expressions."""
+        with pytest.raises(ValueError):
+            self.qs.join(
+                "domains",
+                on="bugs.domain_id = domains.id OR 1"
+            )
+
+    def test_join_on_clause_without_equals_raises(self):
+        with pytest.raises(ValueError):
+            self.qs.join("domains", on="bugs.domain_id")
+
+    def test_join_does_not_mutate_original(self):
+        original = self.qs
+        joined = original.join("domains", on="bugs.domain_id = domains.id")
+        assert original._joins == []
+        assert len(joined._joins) == 1
+
+    def test_multiple_joins_chained(self):
+        sql, _ = self.qs            .join("domains", on="bugs.domain_id = domains.id", join_type="LEFT")            .join("tags", on="bugs.tag_id = tags.id", join_type="INNER")            ._build_select_sql()
+        assert "LEFT JOIN domains ON bugs.domain_id = domains.id" in sql
+        assert "INNER JOIN tags ON bugs.tag_id = tags.id" in sql
+
+    def test_join_placed_before_where(self):
+        sql, _ = self.qs            .join("domains", on="bugs.domain_id = domains.id", join_type="LEFT")            .filter(id=1)            ._build_select_sql()
+        join_pos = sql.index("LEFT JOIN")
+        where_pos = sql.index("WHERE")
+        assert join_pos < where_pos
+
+    @pytest.mark.asyncio
+    async def test_count_with_join_includes_join_clause(self):
+        self.db._first_return = {"total": 5}
+        await self.qs.join(
+            "domains", on="bugs.domain_id = domains.id", join_type="LEFT"
+        ).count()
+        assert "LEFT JOIN domains ON bugs.domain_id = domains.id" in self.db._last_sql
+        assert "COUNT(*)" in self.db._last_sql
+
+    @pytest.mark.asyncio
+    async def test_count_without_join_excludes_join_clause(self):
+        self.db._first_return = {"total": 3}
+        await self.qs.filter(id=1).count()
+        assert "JOIN" not in self.db._last_sql
+
+
+# ---------------------------------------------------------------------------
+# QuerySet.update and delete — JOIN guards
+# ---------------------------------------------------------------------------
+
+
+class TestUpdateDeleteJoinGuards:
+    def setup_method(self):
+        self.db = MockDB()
+        self.qs = QuerySet(_TestModel, self.db)
+
+    @pytest.mark.asyncio
+    async def test_update_with_join_raises(self):
+        with pytest.raises(ValueError, match=r"update\(\) is not supported"):
+            await self.qs.join(
+                "domains", on="bugs.domain_id = domains.id"
+            ).update(status="open")
+
+    @pytest.mark.asyncio
+    async def test_delete_with_join_raises(self):
+        with pytest.raises(ValueError, match=r"delete\(\) is not supported"):
+            await self.qs.join(
+                "domains", on="bugs.domain_id = domains.id"
+            ).delete()
+
+    @pytest.mark.asyncio
+    async def test_update_without_join_works(self):
+        await self.qs.filter(id=1).update(status="open")
+        assert "UPDATE test_table" in self.db._last_sql
+
+    @pytest.mark.asyncio
+    async def test_delete_without_join_works(self):
+        await self.qs.filter(id=1).delete()
+        assert "DELETE FROM test_table" in self.db._last_sql

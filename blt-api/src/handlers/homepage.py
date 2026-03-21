@@ -37,12 +37,17 @@ async def handle_homepage(
         displaying the full API documentation interface with working endpoint testers
     """
     
-    # Get request URL to construct API base URL
+    # Get request URL to construct API base URL.
+    # If homepage is served from /v2, keep all interactive calls on /v2.
     url = str(request.url)
-    # Extract base URL (protocol + host)
     if "://" in url:
-        protocol_and_host = url.split("://", 1)[1].split("/", 1)[0]
-        base_url = f"{url.split('://')[0]}://{protocol_and_host}"
+        scheme, rest = url.split("://", 1)
+        host = rest.split("/", 1)[0]
+        path_with_query = "/" + rest.split("/", 1)[1] if "/" in rest else "/"
+        path_only = path_with_query.split("?", 1)[0]
+        base_url = f"{scheme}://{host}"
+        if path_only == "/v2" or path_only.startswith("/v2/"):
+            base_url = f"{base_url}/v2"
     else:
         base_url = "https://blt-api.workers.dev"
     
@@ -57,7 +62,16 @@ async def handle_homepage(
         "Access-Control-Allow-Headers": "Content-Type",
     }
     
-    # Convert dict to list of tuples for Headers.new
-    js_headers = Headers.new(list(headers.items()))
-    
-    return Response.new(html_content, status=200, headers=js_headers)
+    if _WORKERS_RUNTIME:
+        # Cloudflare Workers expects Headers.new(...) input to be a Sequence.
+        js_headers = Headers.new(list(headers.items()))
+        return Response.new(html_content, status=200, headers=js_headers)
+
+    # Local/test shim path.
+    return Response.new(
+        html_content,
+        {
+            "status": 200,
+            "headers": headers,
+        },
+    )

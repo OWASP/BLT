@@ -1,56 +1,50 @@
 """
-Email service using Mailgun REST API directly via fetch.
-No external dependencies - works with Cloudflare Workers/Pyodide.
+Email service using SendGrid Web API v3 via the Workers fetch() API.
+No external dependencies - pure Python stdlib only.
+Uses fetch() when running in Cloudflare Workers; falls back to urllib for local testing.
 """
 
-from typing import Optional, Tuple, Dict, Any
+import json
+import base64
+from typing import Optional, Tuple
 import logging
+
 from services.email_templates import (
     get_verification_email,
     get_password_reset_email,
     get_welcome_email,
-    get_bug_submission_confirmation
+    get_bug_submission_confirmation,
 )
 
 try:
     from js import fetch, Headers, Object
+    _WORKERS_RUNTIME = True
 except ImportError:
-    # Mock for local testing
     fetch = None
     Headers = None
     Object = None
+    _WORKERS_RUNTIME = False
 
-    # curl -s --user 'api:YOUR_API_KEY' \
-    # https://api.mailgun.net/v3/YOUR_DOMAIN_NAME/messages \
-    # -F from='Excited User <postmaster@YOUR_DOMAIN_NAME>' \
-    # -F to=recipient@example.com \
-    # -F subject="Hello there!" \
-    # -F text='This will be the text-only version' \
-    # --form-string html='<html><body><p>This is the HTML version</p></body></html>'
+_SENDGRID_API_URL = "https://api.sendgrid.com/v3/mail/send"
 
 
 class EmailService:
-    """Mailgun email service using direct HTTP API calls."""
-    
-    MAILGUN_API_URL = "https://api.mailgun.net"
-    
-    def __init__(self, api_key: str, from_email: str = "postmaster@sandbox120cc536878b42198d6b4f33b30e2877.mailgun.org", from_name: str = "OWASP BLT", domain: str = None):
-        """
-        Initialize EmailService.
-        
-        Args:
-            api_key: Mailgun API key
-            from_email: Default sender email (just the email address)
-            from_name: Default sender name
-            domain: Mailgun domain (optional)
-        """
-        self.api_key = api_key
+    """SendGrid Web API v3 email service using Workers fetch()."""
+
+    def __init__(
+        self,
+        smtp_username: str,
+        smtp_password: str,
+        from_email: str,
+        from_name: str = "OWASP BLT",
+    ):
+        # smtp_password is the SendGrid API key; smtp_username is kept for
+        # interface compatibility but SendGrid Web API only needs the key.
+        self.api_key = smtp_password
         self.from_email = from_email
         self.from_name = from_name
-        self.domain = domain
         self.logger = logging.getLogger(__name__)
 
-    
     async def send_email(
         self,
         to_email: str,
@@ -58,156 +52,90 @@ class EmailService:
         content: str,
         content_type: str = "text/plain",
         from_email: Optional[str] = None,
-        from_name: Optional[str] = None
+        from_name: Optional[str] = None,
     ) -> Tuple[int, str]:
-        """
-        Send an email using Mailgun API.
-        
-        Args:
-            to_email: Recipient email address
-            subject: Email subject
-            content: Email content/body
-            content_type: Content type (text/plain or text/html)
-            from_email: Sender email (uses default if not provided)
-            from_name: Sender name (uses default if not provided)
-        
-        Returns:
-            Tuple of (status_code, response_text)
-        """
-        # Prepare form data for Mailgun API
-        from_address = from_email or self.from_email
+        """Send an email via SendGrid Web API v3."""
+        sender_address = from_email or self.from_email
         sender_name = from_name or self.from_name
-        from_field = f"{sender_name} <{from_address}>"
-        
-        # Build form data as URL-encoded string
-        form_data = {
-            "from": from_field,
-            "to": to_email,
+
+        mime_type = "text/html" if content_type == "text/html" else "text/plain"
+        payload = {
+            "personalizations": [{"to": [{"email": to_email}]}],
+            "from": {"email": sender_address, "name": sender_name},
             "subject": subject,
+            "content": [{"type": mime_type, "value": content}],
         }
-        
-        # Add content based on type
-        if content_type == "text/html":
-            form_data["html"] = content
-        else:
-            form_data["text"] = content
-        
-        # URL encode the form data
-        encoded_data = "&".join([f"{k}={self._url_encode(v)}" for k, v in form_data.items()])
-        
-        # Prepare Basic Auth (api:YOUR_API_KEY)
-        import base64
-        auth_string = f"api:{self.api_key}"
-        auth_bytes = auth_string.encode('ascii')
-        base64_auth = base64.b64encode(auth_bytes).decode('ascii')
-        
-        # Prepare headers as a list of tuples for JavaScript Headers API
+        body = json.dumps(payload)
+
         headers_list = [
-            ["Authorization", f"Basic {base64_auth}"],
-            ["Content-Type", "application/x-www-form-urlencoded"]
+            ["Authorization", f"Bearer {self.api_key}"],
+            ["Content-Type", "application/json"],
         ]
-        
+
         try:
-            # Make HTTP request using Cloudflare Workers fetch
-            if Headers:
+            if _WORKERS_RUNTIME:
                 js_headers = Headers.new(headers_list)
-                
-                # Create the request init object using JavaScript Object
-                from js import Object
                 request_init = Object.new()
                 request_init.method = "POST"
                 request_init.headers = js_headers
-                request_init.body = encoded_data
-                
-                response = await fetch(f"{self.MAILGUN_API_URL}/v3/{self.domain}/messages", request_init)
+                request_init.body = body
+                response = await fetch(_SENDGRID_API_URL, request_init)
+                status = response.status
+                text = await response.text()
             else:
-                # Fallback for testing
-                response = await fetch(
-                    f"{self.MAILGUN_API_URL}/v3/{self.domain}/messages",
-                    {
-                        "method": "POST",
-                        "headers": {
-                            "Authorization": f"Basic {base64_auth}",
-                            "Content-Type": "application/x-www-form-urlencoded"
-                        },
-                        "body": encoded_data
-                    }
+                # Local testing fallback using urllib
+                import urllib.request
+                req = urllib.request.Request(
+                    _SENDGRID_API_URL,
+                    data=body.encode("utf-8"),
+                    headers={
+                        "Authorization": f"Bearer {self.api_key}",
+                        "Content-Type": "application/json",
+                    },
+                    method="POST",
                 )
-            
-            status = response.status
-            text = await response.text()
-            
+                try:
+                    with urllib.request.urlopen(req) as resp:
+                        status = resp.status
+                        text = resp.read().decode("utf-8")
+                except urllib.error.HTTPError as http_err:
+                    status = http_err.code
+                    text = http_err.read().decode("utf-8")
+
             if status >= 400:
-                self.logger.error(f"Failed to send email to {to_email}: {status} - {text}")
+                self.logger.error("SendGrid error sending to %s: %s %s", to_email, status, text)
             else:
-                self.logger.info(f"Email sent successfully to {to_email} with status {status}")
-            
+                self.logger.info("Email sent to %s (status %s)", to_email, status)
             return status, text
-        
-            
-        except Exception as e:
-            self.logger.error(f"Error sending email: {str(e)}")
-            return 500, f"Error sending email: {str(e)}"
-    
-    def _url_encode(self, value: str) -> str:
-        """URL encode a string value."""
-        import urllib.parse
-        return urllib.parse.quote(str(value), safe='')
-    
+
+        except Exception as exc:
+            self.logger.error("Exception sending email to %s: %s", to_email, exc)
+            return 500, str(exc)
+
     async def send_verification_email(
         self,
         to_email: str,
         username: str,
         verification_token: str,
         base_url: str,
-        expires_hours: int = 24
+        expires_hours: int = 24,
     ) -> Tuple[int, str]:
-        """
-        Send email verification email with HTML template.
-        
-        Args:
-            to_email: Recipient email
-            username: User's username
-            verification_token: Email verification token
-            base_url: Base URL for verification link
-            expires_hours: Hours until link expires (default: 24)
-        
-        Returns:
-            Tuple of (status_code, response_text)
-        """
         verification_link = f"{base_url}/auth/verify-email?token={verification_token}"
-        
         subject = "Verify your OWASP BLT account"
         html_content = get_verification_email(username, verification_link, expires_hours)
-        
-        self.logger.info(f"Verification email sent to {to_email} for user {username}")
+        self.logger.info("Sending verification email to %s for user %s", to_email, username)
         return await self.send_email(to_email, subject, html_content, content_type="text/html")
-    
+
     async def send_password_reset_email(
         self,
         to_email: str,
         username: str,
         reset_token: str,
         base_url: str,
-        expires_hours: int = 1
+        expires_hours: int = 1,
     ) -> Tuple[int, str]:
-        """
-        Send password reset email with HTML template.
-        
-        Args:
-            to_email: Recipient email
-            username: User's username
-            reset_token: Password reset token
-            base_url: Base URL for reset link
-            expires_hours: Hours until link expires (default: 1)
-        
-        Returns:
-            Tuple of (status_code, response_text)
-        """
         reset_link = f"{base_url}/auth/reset-password?token={reset_token}"
-        
         subject = "Reset your OWASP BLT password"
         html_content = get_password_reset_email(username, reset_link, expires_hours)
-        
         return await self.send_email(to_email, subject, html_content, content_type="text/html")
 

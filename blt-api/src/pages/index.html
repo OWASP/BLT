@@ -60,7 +60,7 @@
                     </span>
                 </div>
                 <div class="flex justify-center space-x-3">
-                    <a href="https://blt.owasp.org" 
+                          <a href="https://owaspblt.org" 
                        class="inline-flex items-center px-5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
                        target="_blank" rel="noopener noreferrer">
                         <i class="fas fa-external-link-alt mr-2"></i>
@@ -109,6 +109,13 @@
                     <p class="text-gray-600 text-sm">Full API coverage for all BLT resources</p>
                 </div>
             </div>
+
+            <div class="mt-8 pt-6 border-t border-gray-100">
+                <h3 class="text-xl font-semibold text-gray-900 mb-4 text-center">Model Stats</h3>
+                <div id="model-stats-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+                    <div class="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-500">Loading stats...</div>
+                </div>
+            </div>
         </section>
 
         <!-- API Endpoints Section -->
@@ -154,7 +161,6 @@
                 <h3 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
                     <i class="fas fa-bug text-red-600 mr-2"></i>
                     Bugs
-                    <span id="count-bugs" class="ml-2 px-2 py-0.5 text-sm bg-red-100 text-red-600 rounded-full hidden"></span>
                 </h3>
                 <div class="space-y-3">
                     <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
@@ -236,7 +242,6 @@
                 <h3 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
                     <i class="fas fa-users text-red-600 mr-2"></i>
                     Users
-                    <span id="count-users" class="ml-2 px-2 py-0.5 text-sm bg-red-100 text-red-600 rounded-full hidden"></span>
                 </h3>
                 <div class="space-y-3">
                     <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
@@ -256,6 +261,21 @@
                             <button onclick="testEndpoint('GET', '/users', {page: 1, per_page: 10})" 
                                     class="ml-4 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition-colors flex items-center">
                                 <i class="fas fa-play mr-2"></i>Try it
+                            </button>
+                        </div>
+                    </div>
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-start flex-1">
+                                <span class="inline-block px-3 py-1 bg-green-500 text-white text-xs font-bold rounded mr-3">POST</span>
+                                <div class="flex-1">
+                                    <code class="text-sm font-mono text-gray-800">/users</code>
+                                    <p class="text-gray-600 text-sm mt-1">Create a new user with validation, rate limiting, and strong password rules</p>
+                                </div>
+                            </div>
+                            <button onclick="alert('POST /users expects JSON body: username, email, password (description optional)')" 
+                                    class="ml-4 px-4 py-2 bg-gray-400 text-white text-sm font-semibold rounded-lg cursor-not-allowed flex items-center">
+                                <i class="fas fa-file-code mr-2"></i>JSON Body
                             </button>
                         </div>
                     </div>
@@ -285,7 +305,6 @@
                 <h3 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
                     <i class="fas fa-globe text-red-600 mr-2"></i>
                     Domains
-                    <span id="count-domains" class="ml-2 px-2 py-0.5 text-sm bg-red-100 text-red-600 rounded-full hidden"></span>
                 </h3>
                 <div class="space-y-3">
                     <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
@@ -421,7 +440,6 @@
                 <h3 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
                     <i class="fas fa-crosshairs text-red-600 mr-2"></i>
                     Bug Hunts
-                    <span id="count-hunts" class="ml-2 px-2 py-0.5 text-sm bg-red-100 text-red-600 rounded-full hidden"></span>
                 </h3>
                 <div class="space-y-3">
                     <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
@@ -661,7 +679,7 @@
                         <i class="fab fa-github mr-1"></i> Documentation
                     </a>
                     <span class="text-gray-400">•</span>
-                    <a href="https://blt.owasp.org" class="text-red-600 hover:underline" target="_blank">
+                    <a href="https://owaspblt.org" class="text-red-600 hover:underline" target="_blank">
                         <i class="fas fa-external-link-alt mr-1"></i> Website
                     </a>
                     <span class="text-gray-400">•</span>
@@ -824,31 +842,78 @@
         });
 
         // Load section counts from /stats endpoint
+        function titleizeStatKey(key) {
+            return key.replace(/_/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase());
+        }
+
+        function statCardMeta(key) {
+            const map = {
+                bugs: { icon: 'fa-bug', tone: 'red' },
+                users: { icon: 'fa-users', tone: 'blue' },
+                domains: { icon: 'fa-globe', tone: 'emerald' },
+                hunts: { icon: 'fa-crosshairs', tone: 'amber' },
+                tags: { icon: 'fa-tags', tone: 'orange' },
+                organization: { icon: 'fa-building', tone: 'sky' },
+                organization_managers: { icon: 'fa-user-tie', tone: 'cyan' },
+                organization_tags: { icon: 'fa-hashtag', tone: 'violet' },
+                organization_integrations: { icon: 'fa-plug', tone: 'indigo' },
+                user_follows: { icon: 'fa-user-group', tone: 'teal' },
+                user_bug_upvotes: { icon: 'fa-thumbs-up', tone: 'green' },
+                user_bug_saves: { icon: 'fa-bookmark', tone: 'yellow' },
+                user_bug_flags: { icon: 'fa-flag', tone: 'rose' },
+                bug_tags: { icon: 'fa-tags', tone: 'orange' },
+                bug_screenshots: { icon: 'fa-image', tone: 'pink' },
+                bug_team_members: { icon: 'fa-people-group', tone: 'lime' },
+                domain_tags: { icon: 'fa-link', tone: 'purple' },
+                d1_migrations: { icon: 'fa-database', tone: 'slate' }
+            };
+            return map[key] || { icon: 'fa-table', tone: 'gray' };
+        }
+
+        function renderStatCards(statsData) {
+            const container = document.getElementById('model-stats-grid');
+            if (!container) return;
+
+            const entries = Object.entries(statsData || {})
+                .filter(([, value]) => !Number.isNaN(Number(value)))
+                .sort(([a], [b]) => a.localeCompare(b));
+
+            if (!entries.length) {
+                container.innerHTML = '<div class="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-500">No stats available</div>';
+                return;
+            }
+
+            container.innerHTML = entries.map(([key, value]) => {
+                const meta = statCardMeta(key);
+                const count = Number(value).toLocaleString();
+                const label = titleizeStatKey(key);
+                return `
+                    <div class="bg-${meta.tone}-50 border border-${meta.tone}-100 rounded-lg px-3 py-2 flex items-center gap-2 min-w-0">
+                        <div class="w-7 h-7 bg-${meta.tone}-100 text-${meta.tone}-600 rounded-md flex items-center justify-center shrink-0">
+                            <i class="fas ${meta.icon} text-[11px]"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-[10px] uppercase tracking-wide text-${meta.tone}-700 font-semibold truncate">${label}</p>
+                            <p class="text-sm font-bold text-gray-900">${count}</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
         async function loadSectionCounts() {
             try {
                 const response = await fetch(baseUrl + '/stats');
                 if (!response.ok) throw new Error();
                 const data = await response.json();
                 if (data && data.data) {
-                    const counts = {
-                        'count-bugs': data.data.bugs,
-                        'count-users': data.data.users,
-                        'count-domains': data.data.domains,
-                        'count-hunts': data.data.hunts
-                    };
-                    for (const [id, count] of Object.entries(counts)) {
-                        const num = Number(count);
-                        if (!isNaN(num)) {
-                            const el = document.getElementById(id);
-                            if (el) {
-                                el.textContent = num.toLocaleString();
-                                el.classList.remove('hidden');
-                            }
-                        }
-                    }
+                    renderStatCards(data.data);
                 }
             } catch (e) {
-                // Silently fail - counts are optional enhancements
+                const container = document.getElementById('model-stats-grid');
+                if (container) {
+                    container.innerHTML = '<div class="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-500">Stats unavailable</div>';
+                }
             }
         }
         loadSectionCounts();

@@ -24,6 +24,7 @@ Usage example::
     tag = await Tag.create(db, name='security')
 """
 
+import re
 from typing import Any, Dict, List, Optional, Tuple, Type, TypeVar
 
 T = TypeVar("T", bound="Model")
@@ -132,6 +133,8 @@ class QuerySet:
         self._offset_val: int = 0
         self._order_by_fields: List[str] = []
         self._select_fields: List[str] = []
+        # Each entry: (join_type, table, on_clause)
+        self._joins: List[Tuple[str, str, str]] = []
 
     # ------------------------------------------------------------------
     # Cloning
@@ -145,6 +148,7 @@ class QuerySet:
         qs._offset_val = self._offset_val
         qs._order_by_fields = list(self._order_by_fields)
         qs._select_fields = list(self._select_fields)
+        qs._joins = list(self._joins)
         return qs
 
     # ------------------------------------------------------------------
@@ -199,6 +203,54 @@ class QuerySet:
         """Select only the specified columns (validated identifiers)."""
         qs = self._clone()
         qs._select_fields = [_validate_identifier(f) for f in fields]
+        return qs
+
+    def join(
+        self,
+        table: str,
+        on: str,
+        join_type: str = "INNER",
+    ) -> "QuerySet":
+        """Add a JOIN clause to the query.
+
+        :param table: The table name to join (validated).
+        :param on: The ON condition, e.g. ``"bugs.domain_id = domains.id"``.
+                   Both sides are validated as safe identifiers.
+                   Only a single equality condition is supported;
+                   compound conditions (e.g. ``AND``) are not allowed.
+        :param join_type: ``"INNER"``, ``"LEFT"``, ``"RIGHT"`` or ``"FULL"``.
+                          Defaults to ``"INNER"``.
+
+        Example::
+
+            Bug.objects(db)\
+                .join("domains", on="bugs.domain_id = domains.id", join_type="LEFT")\
+                .filter(status="open")\
+                .values("bugs.id", "bugs.title", "domains.name")\
+                .all()
+        """
+        join_type = join_type.upper()
+        if join_type not in {"INNER", "LEFT", "RIGHT", "FULL"}:
+            raise ValueError(
+                f"Unsupported join_type {join_type!r}. "
+                "Use INNER, LEFT, RIGHT or FULL."
+            )
+        _validate_identifier(table)
+        # Validate each side of the ON clause (exact format: "a.b = c.d").
+        # Reject any extra tokens (e.g., "OR 1") even if whitespace is folded.
+        match = re.match(r"^\s*([A-Za-z0-9_.]+)\s*=\s*([A-Za-z0-9_.]+)\s*$", on)
+        if not match:
+            raise ValueError(
+                f"Invalid ON clause {on!r}. Expected format: 'table1.col = table2.col'."
+            )
+        lhs, rhs = match.group(1), match.group(2)
+        _validate_identifier(lhs)
+        _validate_identifier(rhs)
+        # Store canonical form (no spaces) to prevent whitespace-folding bypasses
+        canonical_on = f"{lhs} = {rhs}"
+
+        qs = self._clone()
+        qs._joins.append((join_type, table, canonical_on))
         return qs
 
     def paginate(self, page: int = 1, per_page: int = 20) -> "QuerySet":
@@ -288,13 +340,25 @@ class QuerySet:
     # Full query builder
     # ------------------------------------------------------------------
 
+    def _build_from_with_joins_sql(self) -> str:
+        """Return the FROM clause with all JOIN clauses appended.
+
+        Used by both ``_build_select_sql()`` and ``count()`` to avoid
+        duplicating FROM+JOIN assembly logic.
+        """
+        table = self._model.table_name
+        sql = f"FROM {table}"
+        for join_type, join_table, on_clause in self._joins:
+            sql += f" {join_type} JOIN {join_table} ON {on_clause}"
+        return sql
+
     def _build_select_sql(self) -> Tuple[str, List[Any]]:
         """Build the full ``SELECT`` SQL and its parameter list."""
-        table = self._model.table_name
         select = ", ".join(self._select_fields) if self._select_fields else "*"
 
         where, params = self._build_where_clause()
-        sql = f"SELECT {select} FROM {table}"
+        sql = f"SELECT {select} {self._build_from_with_joins_sql()}"
+
         if where:
             sql += f" {where}"
 
@@ -336,10 +400,17 @@ class QuerySet:
         return await self.filter(**kwargs).first()
 
     async def count(self) -> int:
-        """Return the number of rows matching the current filters."""
-        table = self._model.table_name
+        """Return the number of rows matching the current filters.
+
+        JOIN clauses (if any) are included so that filters on joined
+        columns produce consistent results with ``all()`` and ``first()``.
+
+        Note: The ON clause only supports simple equality conditions of the
+        form ``table1.col = table2.col``. Compound ON conditions are not
+        currently supported.
+        """
         where, params = self._build_where_clause()
-        sql = f"SELECT COUNT(*) AS total FROM {table}"
+        sql = f"SELECT COUNT(*) AS total {self._build_from_with_joins_sql()}"
         if where:
             sql += f" {where}"
         result = await self._db.prepare(sql).bind(*params).first()
@@ -351,7 +422,16 @@ class QuerySet:
         return (await self.count()) > 0
 
     async def update(self, **kwargs: Any) -> None:
-        """Update all matching rows with the supplied field=value pairs."""
+        """Update all matching rows with the supplied field=value pairs.
+
+        Raises ``ValueError`` if the QuerySet has active JOINs, as UPDATE
+        with JOIN is not supported by this ORM.
+        """
+        if self._joins:
+            raise ValueError(
+                "update() is not supported on QuerySets with active JOINs. "
+                "Remove .join() calls before calling .update()."
+            )
         if not kwargs:
             return
         table = self._model.table_name
@@ -369,7 +449,16 @@ class QuerySet:
         await self._db.prepare(sql).bind(*set_params, *where_params).run()
 
     async def delete(self) -> None:
-        """Delete all matching rows."""
+        """Delete all matching rows.
+
+        Raises ``ValueError`` if the QuerySet has active JOINs, as DELETE
+        with JOIN is not supported by this ORM.
+        """
+        if self._joins:
+            raise ValueError(
+                "delete() is not supported on QuerySets with active JOINs. "
+                "Remove .join() calls before calling .delete()."
+            )
         table = self._model.table_name
         where, params = self._build_where_clause()
         sql = f"DELETE FROM {table}"
