@@ -190,7 +190,7 @@
 
         <div class="grid gap-6 lg:grid-cols-[1fr_320px]" id="main-grid">
           <div>
-            <div class="grid gap-4 sm:grid-cols-2" aria-label="Video feeds">
+            <div class="video-grid" id="video-grid" aria-label="Video feeds">
               <div class="video-wrapper">
                 <video id="local-video" autoplay muted playsinline aria-label="Your video"></video>
                 <div class="video-label">
@@ -198,18 +198,7 @@
                   You (Local)
                 </div>
               </div>
-              <div class="video-wrapper bg-gray-900">
-                <video
-                  id="remote-video"
-                  autoplay
-                  playsinline
-                  aria-label="Remote participant video"
-                ></video>
-                <div class="video-label" id="remote-label">
-                  <span class="status-dot offline" aria-hidden="true" id="remote-dot"></span>
-                  Remote Participant
-                </div>
-              </div>
+              <!-- Remote participant video tiles are added here dynamically -->
             </div>
 
             <div
@@ -340,12 +329,29 @@
                 <button
                   class="btn btn-primary mt-3 w-full"
                   id="btn-call"
-                  onclick="VideoChat.callPeer(document.getElementById('remote-id').value.trim())"
-                  aria-label="Connect to room"
+                  aria-label="Add participant to room"
                 >
-                  <i class="fa-solid fa-lock" aria-hidden="true"></i>
-                  Connect Securely
+                  <i class="fa-solid fa-user-plus" aria-hidden="true"></i>
+                  Add Participant
                 </button>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <h2 class="card-title">
+                  <i class="fa-solid fa-users text-primary" aria-hidden="true"></i>
+                  Participants
+                  <span
+                    id="participant-count"
+                    class="ml-auto text-xs font-bold text-gray-500"
+                    aria-live="polite"
+                    >0 connected</span
+                  >
+                </h2>
+              </div>
+              <div class="card-body" id="participants-list">
+                <p class="text-sm text-gray-500 text-center py-2">No participants connected</p>
               </div>
             </div>
 
@@ -431,9 +437,16 @@
         }
       });
 
+      document.getElementById("btn-call").addEventListener("click", () => {
+        const input = document.getElementById("remote-id");
+        VideoChat.callPeer(input.value.trim());
+        input.value = "";
+      });
+
       document.getElementById("remote-id").addEventListener("keydown", (event) => {
         if (event.key === "Enter") {
           VideoChat.callPeer(event.target.value.trim());
+          event.target.value = "";
         }
       });
     </script>
