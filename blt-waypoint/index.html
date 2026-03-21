@@ -91,6 +91,14 @@
           <i class="fa-solid fa-grip text-xs sm:text-sm" aria-hidden="true"></i>
         </button>
 
+        <!-- Open Issues -->
+        <button id="open-issues-btn" aria-label="View all open issues"
+          title="All open issues across repositories"
+          class="w-7 h-7 sm:w-auto sm:h-auto sm:px-2.5 sm:py-1.5 flex items-center justify-center rounded-md border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-xs font-medium gap-1">
+          <i class="fa-solid fa-circle-dot text-brand text-xs sm:text-sm" aria-hidden="true"></i>
+          <span class="hidden sm:inline">Issues</span>
+        </button>
+
         <!-- Dark mode toggle -->
         <button id="dark-toggle" aria-label="Toggle dark mode"
           class="w-7 h-7 sm:w-auto sm:h-auto sm:p-2 flex items-center justify-center rounded-md border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
@@ -371,6 +379,38 @@
     </p>
     <p id="footer-ts" class="mt-1"></p>
   </footer>
+
+  <!-- ===== OPEN ISSUES MODAL ===== -->
+  <div id="issues-modal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true" aria-labelledby="issues-modal-title">
+    <!-- Backdrop -->
+    <div id="issues-modal-backdrop" class="absolute inset-0 bg-black/50 dark:bg-black/70"></div>
+    <!-- Panel -->
+    <div class="absolute inset-y-0 right-0 w-full max-w-2xl bg-white dark:bg-gray-900 shadow-xl flex flex-col">
+      <!-- Header -->
+      <div class="flex items-center justify-between px-5 py-4 border-b border-gray-200 dark:border-gray-700 shrink-0">
+        <h2 id="issues-modal-title" class="font-semibold text-base flex items-center gap-2">
+          <i class="fa-solid fa-circle-dot text-brand" aria-hidden="true"></i>
+          Open Issues
+          <span id="issues-modal-count" class="text-xs font-normal text-gray-500 dark:text-gray-400 ml-1"></span>
+        </h2>
+        <div class="flex items-center gap-2">
+          <input id="issues-modal-search" type="search" placeholder="Filter issues…" aria-label="Filter issues"
+            class="text-sm border border-gray-300 dark:border-gray-600 rounded-md px-3 py-1.5 bg-white dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-400 focus-brand w-44" />
+          <button id="issues-modal-close" aria-label="Close issues panel"
+            class="p-2 rounded-md text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+            <i class="fa-solid fa-times" aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>
+      <!-- Issue list -->
+      <div id="issues-modal-list" class="flex-1 overflow-y-auto px-4 py-3 space-y-3">
+        <!-- Populated by script.js -->
+        <div class="skeleton h-16 rounded-lg"></div>
+        <div class="skeleton h-16 rounded-lg"></div>
+        <div class="skeleton h-16 rounded-lg"></div>
+      </div>
+    </div>
+  </div>
 
   <!-- ===== JAVASCRIPT ===== -->
   <script src="script.js"></script>

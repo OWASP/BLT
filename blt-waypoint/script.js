@@ -44,6 +44,7 @@ let currentView   = (window.innerWidth < 640) ? 'card' : (localStorage.getItem('
 let tableSortCol  = localStorage.getItem('blt-table-sort-col') || 'updated_at';
 let tableSortDir  = localStorage.getItem('blt-table-sort-dir') || 'desc';
 let allLabels     = [];
+let allOpenIssues = [];   // flat list of all open issues across all repos
 
 /* ------------------------------------------------------------------ */
 /*  DARK MODE                                                           */
@@ -208,6 +209,7 @@ async function loadRepos() {
       const payload = await resp.json();
       snapshotLoaded = true;
       allRepos = payload.repos || [];
+      allOpenIssues = payload.open_issues || [];
       buildLangFilter(allRepos);
       buildLabelFilter(allRepos);
       const searchInput = document.getElementById('search-input');
@@ -1065,6 +1067,113 @@ function showError(msg) {
 }
 
 /* ------------------------------------------------------------------ */
+/*  OPEN ISSUES MODAL                                                   */
+/* ------------------------------------------------------------------ */
+
+/** Default hex colour used when a label has no (or a malformed) colour. */
+const DEFAULT_LABEL_COLOR = 'cccccc';
+
+/**
+ * Render a label badge with the repo-provided hex colour.
+ * Ensures the text contrast is readable.
+ */
+function labelBadgeHTML(label) {
+  // Normalise to a valid 6-hex-digit string, falling back to default
+  const rawColor = /^[0-9a-fA-F]{6}$/.test(label.color || '')
+    ? label.color
+    : DEFAULT_LABEL_COLOR;
+  const bg = `#${rawColor}`;
+  // Simple perceived luminance check (0–255 scale); use dark text on light bg
+  const r = parseInt(rawColor.slice(0, 2), 16);
+  const g = parseInt(rawColor.slice(2, 4), 16);
+  const b = parseInt(rawColor.slice(4, 6), 16);
+  const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+  const textColor = lum > 128 ? '#1f2937' : '#ffffff';
+  return `<span class="inline-block text-xs px-2 py-0.5 rounded-full font-medium whitespace-nowrap"
+    style="background:${escapeHtml(bg)};color:${textColor}">${escapeHtml(label.name)}</span>`;
+}
+
+function renderIssuesModal(issues) {
+  const list = document.getElementById('issues-modal-list');
+  const countEl = document.getElementById('issues-modal-count');
+  if (!list) return;
+
+  if (countEl) countEl.textContent = `(${issues.length})`;
+
+  if (issues.length === 0) {
+    list.innerHTML = `
+      <div class="text-center py-12 text-gray-400 dark:text-gray-500">
+        <i class="fa-solid fa-circle-check text-4xl mb-3" aria-hidden="true"></i>
+        <p class="font-medium">No open issues found</p>
+      </div>`;
+    return;
+  }
+
+  list.innerHTML = issues.map(issue => {
+    const labelBadges = (issue.labels || []).map(labelBadgeHTML).join(' ');
+    const assigneeAvatars = (issue.assignees || []).map(a =>
+      `<a href="${escapeHtml(a.html_url)}" target="_blank" rel="noopener noreferrer" title="${escapeHtml(a.login)}">
+        <img src="${escapeHtml(a.avatar_url)}&s=32" alt="${escapeHtml(a.login)}"
+          class="inline-block w-5 h-5 rounded-full border-2 border-white dark:border-gray-800 -ml-1 first:ml-0 hover:scale-110 transition-transform"
+          loading="lazy" />
+      </a>`
+    ).join('');
+
+    const linkedPrLinks = (issue.linked_prs || []).map(pr =>
+      `<a href="${escapeHtml(pr.html_url)}" target="_blank" rel="noopener noreferrer"
+        title="${escapeHtml(pr.title)}"
+        class="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300 hover:bg-teal-100 dark:hover:bg-teal-900/50 transition-colors whitespace-nowrap">
+        <i class="fa-solid fa-code-pull-request text-[10px]" aria-hidden="true"></i>#${pr.number}
+      </a>`
+    ).join('');
+
+    const repoLink = `<a href="${escapeHtml(issue.repo_html_url)}/issues" target="_blank" rel="noopener noreferrer"
+      class="text-xs text-gray-400 dark:text-gray-500 hover:text-brand transition-colors whitespace-nowrap">${escapeHtml(issue.repo_name)}</a>`;
+
+    const timeStr = issue.created_at ? timeAgo(issue.created_at) : '';
+
+    return `
+    <article class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-3 flex flex-col gap-2 hover:border-brand/50 transition-colors">
+      <div class="flex items-start justify-between gap-2">
+        <a href="${escapeHtml(issue.html_url)}" target="_blank" rel="noopener noreferrer"
+          class="font-medium text-sm text-gray-800 dark:text-gray-100 hover:text-brand transition-colors line-clamp-2 leading-snug flex-1">
+          <span class="text-gray-400 dark:text-gray-500 mr-1 tabular-nums">#${issue.number}</span>${escapeHtml(issue.title)}
+        </a>
+        ${timeStr ? `<span class="text-xs text-gray-400 dark:text-gray-500 shrink-0 whitespace-nowrap">${timeStr}</span>` : ''}
+      </div>
+      <div class="flex items-center gap-2 flex-wrap">
+        ${repoLink}
+        ${labelBadges ? `<span class="flex flex-wrap gap-1">${labelBadges}</span>` : ''}
+        ${linkedPrLinks ? `<span class="flex flex-wrap gap-1" title="Linked PRs">${linkedPrLinks}</span>` : ''}
+        ${assigneeAvatars
+          ? `<span class="flex items-center ml-auto" title="Assignees">${assigneeAvatars}</span>`
+          : ''}
+      </div>
+    </article>`;
+  }).join('');
+}
+
+function openIssuesModal() {
+  const modal = document.getElementById('issues-modal');
+  if (!modal) return;
+  modal.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+  renderIssuesModal(allOpenIssues);
+  const searchInput = document.getElementById('issues-modal-search');
+  if (searchInput) {
+    searchInput.value = '';
+    searchInput.focus();
+  }
+}
+
+function closeIssuesModal() {
+  const modal = document.getElementById('issues-modal');
+  if (!modal) return;
+  modal.classList.add('hidden');
+  document.body.style.overflow = '';
+}
+
+/* ------------------------------------------------------------------ */
 /*  EVENT LISTENERS                                                     */
 /* ------------------------------------------------------------------ */
 
@@ -1098,6 +1207,33 @@ on('view-card-btn', 'click', () => {
 
 // Initialize button states immediately
 updateViewButtons();
+
+// Open Issues modal
+on('open-issues-btn', 'click', openIssuesModal);
+on('issues-modal-close', 'click', closeIssuesModal);
+on('issues-modal-backdrop', 'click', closeIssuesModal);
+
+// Close modal on Escape key
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    const modal = document.getElementById('issues-modal');
+    if (modal && !modal.classList.contains('hidden')) closeIssuesModal();
+  }
+});
+
+// Filter issues by search query
+on('issues-modal-search', 'input', e => {
+  const q = e.target.value.trim().toLowerCase();
+  const filtered = q
+    ? allOpenIssues.filter(issue =>
+        issue.title.toLowerCase().includes(q) ||
+        issue.repo_name.toLowerCase().includes(q) ||
+        (issue.labels || []).some(l => l.name.toLowerCase().includes(q)) ||
+        (issue.assignees || []).some(a => a.login.toLowerCase().includes(q))
+      )
+    : allOpenIssues;
+  renderIssuesModal(filtered);
+});
 
 // Initialize sort UI to reflect stored preference
 const sortSelect = document.getElementById('sort-select');
