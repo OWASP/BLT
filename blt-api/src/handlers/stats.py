@@ -66,8 +66,16 @@ async def handle_stats(
         domains_result = await db.prepare('SELECT COUNT(*) as count FROM domains WHERE is_active = 1').first()
         domains_count = (await convert_single_d1_result(domains_result)).get('count', 0)
 
-        hunts_result = await db.prepare('SELECT COUNT(*) as count FROM hunts').first()
-        hunts_count = (await convert_single_d1_result(hunts_result)).get('count', 0)
+        try:
+            hunts_result = await db.prepare('SELECT COUNT(*) as count FROM hunts').first()
+            hunts_count = (await convert_single_d1_result(hunts_result)).get('count', 0)
+        except Exception as e:
+            # Some environments may not have the hunts table yet.
+            if 'no such table: hunts' in str(e).lower():
+                hunts_count = 0
+                logger.warning("Hunts table not found while fetching stats; defaulting hunts count to 0")
+            else:
+                raise
 
         payload = {
             "success": True,
