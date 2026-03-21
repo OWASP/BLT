@@ -44,8 +44,6 @@ let currentView   = (window.innerWidth < 640) ? 'card' : (localStorage.getItem('
 let tableSortCol  = localStorage.getItem('blt-table-sort-col') || 'updated_at';
 let tableSortDir  = localStorage.getItem('blt-table-sort-dir') || 'desc';
 let allLabels     = [];
-let allOpenIssues = [];   // flat list of all open issues across all repos
-let issueSortKey  = localStorage.getItem('blt-issue-sort') || 'repo';
 
 /* ------------------------------------------------------------------ */
 /*  DARK MODE                                                           */
@@ -210,7 +208,6 @@ async function loadRepos() {
       const payload = await resp.json();
       snapshotLoaded = true;
       allRepos = payload.repos || [];
-      allOpenIssues = payload.open_issues || [];
       buildLangFilter(allRepos);
       buildLabelFilter(allRepos);
       const searchInput = document.getElementById('search-input');
@@ -1068,181 +1065,6 @@ function showError(msg) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  OPEN ISSUES MODAL                                                   */
-/* ------------------------------------------------------------------ */
-
-/** Default hex colour used when a label has no (or a malformed) colour. */
-const DEFAULT_LABEL_COLOR = 'cccccc';
-
-/**
- * Render a label badge with the repo-provided hex colour.
- * Ensures the text contrast is readable.
- */
-function labelBadgeHTML(label) {
-  // Normalise to a valid 6-hex-digit string, falling back to default
-  const rawColor = /^[0-9a-fA-F]{6}$/.test(label.color || '')
-    ? label.color
-    : DEFAULT_LABEL_COLOR;
-  const bg = `#${rawColor}`;
-  // Simple perceived luminance check (0–255 scale); use dark text on light bg
-  const r = parseInt(rawColor.slice(0, 2), 16);
-  const g = parseInt(rawColor.slice(2, 4), 16);
-  const b = parseInt(rawColor.slice(4, 6), 16);
-  const lum = 0.299 * r + 0.587 * g + 0.114 * b;
-  const textColor = lum > 128 ? '#1f2937' : '#ffffff';
-  return `<span class="inline-block text-xs px-2 py-0.5 rounded-full font-medium whitespace-nowrap"
-    style="background:${escapeHtml(bg)};color:${textColor}">${escapeHtml(label.name)}</span>`;
-}
-
-/** Returns how many days ago a date string was (always ≥ 0). */
-function daysOpen(dateStr) {
-  if (!dateStr) return null;
-  const days = Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
-  return Math.max(days, 0);
-}
-
-function renderIssuesModal(issues) {
-  const list = document.getElementById('issues-modal-list');
-  const countEl = document.getElementById('issues-modal-count');
-  if (!list) return;
-
-  if (countEl) countEl.textContent = `(${issues.length})`;
-
-  if (issues.length === 0) {
-    list.innerHTML = `
-      <div class="text-center py-12 text-gray-400 dark:text-gray-500">
-        <i class="fa-solid fa-circle-check text-4xl mb-3" aria-hidden="true"></i>
-        <p class="font-medium">No open issues found</p>
-      </div>`;
-    return;
-  }
-
-  // Sort issues
-  const sorted = [...issues];
-  if (issueSortKey === 'newest') {
-    sorted.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-  } else if (issueSortKey === 'oldest') {
-    sorted.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
-  } else if (issueSortKey === 'title') {
-    sorted.sort((a, b) => a.title.localeCompare(b.title));
-  } else {
-    // 'repo': group by repo, then newest first within each repo
-    sorted.sort((a, b) =>
-      a.repo_name.localeCompare(b.repo_name) ||
-      new Date(b.created_at) - new Date(a.created_at)
-    );
-  }
-
-  // Build output
-  const parts = [];
-  let lastRepo = null;
-
-  for (const issue of sorted) {
-    // Repo separator when grouping by repo or when repo changes in other sort modes
-    if (issueSortKey === 'repo' && issue.repo_name !== lastRepo) {
-      lastRepo = issue.repo_name;
-      const repoCount = issues.filter(i => i.repo_name === lastRepo).length;
-      parts.push(`
-        <div class="sticky top-0 z-10 flex items-center gap-2 px-1 py-1.5 bg-gray-50 dark:bg-gray-900/80 border-b border-gray-200 dark:border-gray-700 mt-1 first:mt-0">
-          <a href="${escapeHtml(issue.repo_html_url)}/issues" target="_blank" rel="noopener noreferrer"
-            class="text-xs font-semibold text-brand hover:underline truncate">${escapeHtml(issue.repo_name)}</a>
-          <span class="ml-auto text-xs text-gray-400 dark:text-gray-500 shrink-0">${repoCount} open</span>
-        </div>`);
-    }
-
-    const labelBadges = (issue.labels || []).map(labelBadgeHTML).join('');
-    const assigneeAvatars = (issue.assignees || []).map(a =>
-      `<a href="${escapeHtml(a.html_url)}" target="_blank" rel="noopener noreferrer" title="${escapeHtml(a.login)}">
-        <img src="${escapeHtml(a.avatar_url)}&s=24" alt="${escapeHtml(a.login)}"
-          class="inline-block w-4 h-4 rounded-full border border-white dark:border-gray-800 -ml-0.5 first:ml-0 hover:scale-110 transition-transform"
-          loading="lazy" />
-      </a>`
-    ).join('');
-
-    const linkedPrLinks = (issue.linked_prs || []).map(pr =>
-      `<a href="${escapeHtml(pr.html_url)}" target="_blank" rel="noopener noreferrer"
-        title="${escapeHtml(pr.title)}"
-        class="inline-flex items-center gap-0.5 text-[10px] px-1 py-0.5 rounded bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300 hover:bg-teal-100 dark:hover:bg-teal-900/50 transition-colors whitespace-nowrap">
-        <i class="fa-solid fa-code-pull-request" aria-hidden="true"></i>#${pr.number}
-      </a>`
-    ).join('');
-
-    const days = daysOpen(issue.created_at);
-    const daysStr = days === null ? '' : days === 0 ? 'today' : `${days}d`;
-
-    const repoTag = issueSortKey !== 'repo'
-      ? `<a href="${escapeHtml(issue.repo_html_url)}/issues" target="_blank" rel="noopener noreferrer"
-          class="text-[10px] text-gray-400 dark:text-gray-500 hover:text-brand transition-colors whitespace-nowrap shrink-0">${escapeHtml(issue.repo_name)}</a>`
-      : '';
-
-    parts.push(`
-      <article class="flex items-start gap-2 px-2 py-1.5 border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-colors">
-        <div class="flex-1 min-w-0">
-          <a href="${escapeHtml(issue.html_url)}" target="_blank" rel="noopener noreferrer"
-            class="text-xs text-gray-800 dark:text-gray-100 hover:text-brand transition-colors line-clamp-1 leading-snug">
-            <span class="text-gray-400 dark:text-gray-500 tabular-nums mr-0.5">#${issue.number}</span>${escapeHtml(issue.title)}
-          </a>
-          ${labelBadges || linkedPrLinks || repoTag ? `
-          <div class="flex items-center gap-1 flex-wrap mt-0.5">
-            ${repoTag}
-            ${labelBadges}
-            ${linkedPrLinks}
-          </div>` : ''}
-        </div>
-        <div class="flex items-center gap-1.5 shrink-0">
-          ${daysStr ? `<span class="text-[10px] text-gray-400 dark:text-gray-500 whitespace-nowrap" title="Opened ${escapeHtml(issue.created_at)}">${daysStr}</span>` : ''}
-          ${assigneeAvatars ? `<span class="flex items-center">${assigneeAvatars}</span>` : ''}
-        </div>
-      </article>`);
-  }
-
-  list.innerHTML = parts.join('');
-}
-
-/**
- * Opens the open-issues modal.
- * @param {boolean} [preserveSearch] - When true, keeps the current search input value instead of clearing it.
- */
-function openIssuesModal(preserveSearch) {
-  const modal = document.getElementById('issues-modal');
-  if (!modal) return;
-  modal.classList.remove('hidden');
-  document.body.style.overflow = 'hidden';
-
-  // Sync sort select to current key
-  const sortSel = document.getElementById('issues-modal-sort');
-  if (sortSel) sortSel.value = issueSortKey;
-
-  const searchInput = document.getElementById('issues-modal-search');
-  if (!preserveSearch && searchInput) searchInput.value = '';
-
-  // Update URL hash without adding to history
-  history.replaceState(null, '', '#issues');
-
-  const q = searchInput ? searchInput.value.trim().toLowerCase() : '';
-  const filtered = q
-    ? allOpenIssues.filter(issue =>
-        issue.title.toLowerCase().includes(q) ||
-        issue.repo_name.toLowerCase().includes(q) ||
-        (issue.labels || []).some(l => l.name.toLowerCase().includes(q)) ||
-        (issue.assignees || []).some(a => a.login.toLowerCase().includes(q))
-      )
-    : allOpenIssues;
-  renderIssuesModal(filtered);
-
-  if (!preserveSearch && searchInput) searchInput.focus();
-}
-
-function closeIssuesModal() {
-  const modal = document.getElementById('issues-modal');
-  if (!modal) return;
-  modal.classList.add('hidden');
-  document.body.style.overflow = '';
-  // Remove hash from URL without adding to history
-  history.replaceState(null, '', location.pathname + location.search);
-}
-
-/* ------------------------------------------------------------------ */
 /*  EVENT LISTENERS                                                     */
 /* ------------------------------------------------------------------ */
 
@@ -1276,57 +1098,6 @@ on('view-card-btn', 'click', () => {
 
 // Initialize button states immediately
 updateViewButtons();
-
-// Open Issues modal
-on('open-issues-btn', 'click', openIssuesModal);
-on('issues-modal-close', 'click', closeIssuesModal);
-on('issues-modal-backdrop', 'click', closeIssuesModal);
-
-// Copy shareable issues link
-on('issues-modal-share', 'click', e => {
-  e.preventDefault();
-  const url = location.origin + location.pathname + location.search + '#issues';
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(url).then(() => {
-      const el = document.getElementById('issues-modal-share');
-      if (el) {
-        el.innerHTML = '<i class="fa-solid fa-check text-xs text-green-500" aria-hidden="true"></i>';
-        setTimeout(() => {
-          el.innerHTML = '<i class="fa-solid fa-link text-xs" aria-hidden="true"></i>';
-        }, 1500);
-      }
-    });
-  }
-});
-
-// Sort issues
-on('issues-modal-sort', 'change', e => {
-  issueSortKey = e.target.value;
-  localStorage.setItem('blt-issue-sort', issueSortKey);
-  openIssuesModal(true);
-});
-
-// Close modal on Escape key
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') {
-    const modal = document.getElementById('issues-modal');
-    if (modal && !modal.classList.contains('hidden')) closeIssuesModal();
-  }
-});
-
-// Filter issues by search query
-on('issues-modal-search', 'input', e => {
-  const q = e.target.value.trim().toLowerCase();
-  const filtered = q
-    ? allOpenIssues.filter(issue =>
-        issue.title.toLowerCase().includes(q) ||
-        issue.repo_name.toLowerCase().includes(q) ||
-        (issue.labels || []).some(l => l.name.toLowerCase().includes(q)) ||
-        (issue.assignees || []).some(a => a.login.toLowerCase().includes(q))
-      )
-    : allOpenIssues;
-  renderIssuesModal(filtered);
-});
 
 // Initialize sort UI to reflect stored preference
 const sortSelect = document.getElementById('sort-select');
@@ -1478,22 +1249,5 @@ window.addEventListener('resize', () => {
   }, 150);
 });
 
-loadRepos().then(() => {
-  // Auto-open issues modal if URL hash is #issues
-  if (location.hash === '#issues') {
-    openIssuesModal();
-  }
-});
-
-// Handle browser back/forward navigation affecting the hash
-window.addEventListener('hashchange', () => {
-  const modal = document.getElementById('issues-modal');
-  if (location.hash === '#issues') {
-    openIssuesModal();
-  } else if (modal && !modal.classList.contains('hidden')) {
-    // Hash removed externally – close without modifying hash again
-    modal.classList.add('hidden');
-    document.body.style.overflow = '';
-  }
-});
+loadRepos();
 
