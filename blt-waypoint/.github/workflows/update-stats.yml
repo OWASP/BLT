@@ -49,6 +49,17 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
+          # Compare new data.json against HEAD, ignoring the generated_at field.
+          # If only the timestamp changed, restore the old generated_at so that
+          # no spurious commit is made.
+          OLD_TS=$(git show HEAD:data.json 2>/dev/null | jq -r '.generated_at // empty' || true)
+          OLD_DATA=$(git show HEAD:data.json 2>/dev/null | jq -S -c 'del(.generated_at)' || echo '{}')
+          NEW_DATA=$(jq -S -c 'del(.generated_at)' data.json)
+          if [ "$OLD_DATA" = "$NEW_DATA" ] && [ -n "$OLD_TS" ]; then
+            echo "No meaningful changes detected (only generated_at differs). Restoring old timestamp."
+            jq --arg ts "$OLD_TS" '.generated_at = $ts' data.json > data.json.tmp && mv data.json.tmp data.json
+          fi
+
           git add data.json
           if git diff --cached --quiet; then
             echo "No changes to commit."
