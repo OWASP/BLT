@@ -8,6 +8,7 @@ from libs.db import get_db_safe
 from utils import parse_json_body, error_response, cors_headers, check_required_fields, extract_id_from_result, get_blt_api_url
 from libs.constant import __HASHING_ITERATIONS
 from libs.jwt_utils import create_access_token, decode_jwt
+from libs.data_protection import encrypt_sensitive, blind_index
 from services.email_service import EmailService
 from workers import Response
 from models import User
@@ -89,10 +90,13 @@ async def handle_signup(
         except Exception as e:       
             return error_response("Database connection error", 500)
 
+        email = str(body["email"]).strip().lower()
+        email_hash = blind_index(email, env, "users.email")
+
         # Check if username or email already exists
         existing_user = await User.objects(db).filter(username=body["username"]).first()
         if not existing_user:
-            existing_user = await User.objects(db).filter(email=body["email"]).first()
+            existing_user = await User.objects(db).filter(email_hash=email_hash).first()
 
         if existing_user:
             return error_response("User already exists", 400)
@@ -102,8 +106,23 @@ async def handle_signup(
         password_hash = hashlib.pbkdf2_hmac('sha256', body["password"].encode('utf-8'), salt.encode('utf-8'), __HASHING_ITERATIONS)
         hashed_password = f"{salt}${password_hash.hex()}"
 
-        # Insert the new user into the database
-        new_user = await User.create(db, username=body["username"], email=body["email"], password=hashed_password, is_active=False)
+        # Insert encrypted sensitive fields only.
+        user_data = {
+            "username": body["username"],
+            "email_encrypted": encrypt_sensitive(email, env),
+            "email_hash": email_hash,
+            "password": hashed_password,
+            "is_active": False,
+        }
+        try:
+            new_user = await User.create(db, **user_data)
+        except Exception as e:
+            if "email_encrypted" in str(e) or "email_hash" in str(e):
+                return error_response(
+                    "Encrypted user schema not ready. Run migrations to add encrypted user columns.",
+                    503,
+                )
+            raise
         user_id = new_user.get("id") if new_user else None
 
         # send verification email here using Mailgun
@@ -116,7 +135,7 @@ async def handle_signup(
         token = generate_jwt_token(user_id, env.JWT_SECRET, expires_in=10*60)  # Token valid for 10 minutes
 
         status, response = await email_service.send_verification_email(
-            to_email=body["email"],
+            to_email=email,
             username=body["username"],
             verification_token=token,
             base_url=base_url

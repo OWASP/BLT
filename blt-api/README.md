@@ -570,13 +570,15 @@ BLT-API/
 
 ### Environment Variables
 
-Configure these in `wrangler.toml`:
+Configure these in `.env.sample` (copy to `.env` for local development) and set production values via Wrangler secrets.
 
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `BLT_API_BASE_URL` | BLT backend API URL | `https://api.owaspblt.org/v2` |
 | `BLT_WEBSITE_URL` | BLT website URL | `https://owaspblt.org` |
 | `JWT_SECRET` | Secret key for JWT tokens | Required |
+| `USER_DATA_ENCRYPTION_KEY` | Key used to encrypt sensitive user fields | Required for encrypted user data |
+| `USER_DATA_HASH_KEY` | Key used for user-data blind indexes (e.g., email hash) | Required for encrypted user data |
 | `MAILGUN_API_KEY` | Mailgun API key (Private or Sending API key) | Required for email |
 | `MAILGUN_DOMAIN` | Mailgun domain (sandbox or custom domain) | Required for email |
 

@@ -149,16 +149,13 @@ wrangler d1 execute blt-api --local --file=test_data.sql
 
 ## Environment Configuration
 
-Configure environment variables in `wrangler.toml`:
+Configure environment variables using `.env.sample`:
 
-```toml
-[vars]
-BLT_API_BASE_URL = "https://api.owaspblt.org/v2"
-BLT_WEBSITE_URL = "https://owaspblt.org"
-JWT_SECRET = "your-secret-key-here"  # Use a strong random string
-MAILGUN_API_KEY = "your-mailgun-api-key"  # For email service
-MAILGUN_DOMAIN = "your-mailgun-domain"    # e.g., sandbox.mailgun.org
+```bash
+cp .env.sample .env
 ```
+
+Then configure Wrangler runtime values/secrets per environment (for example with `wrangler secret put ...`).
 
 ### Email Service Setup
 
@@ -169,7 +166,7 @@ The API uses Mailgun for sending emails (verification, password reset, welcome e
 3. **Choose a domain:**
    - **Sandbox domain** (testing): Free, limited to 5 authorized recipients
    - **Custom domain** (production): Requires DNS setup, can send to anyone
-4. **Add configuration** to `wrangler.toml` (see above)
+4. **Add configuration** from `.env.sample` and set Wrangler secrets for deployment
 
 ### JWT Authentication
 

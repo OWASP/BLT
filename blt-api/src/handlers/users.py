@@ -10,6 +10,7 @@ from typing import Any, Dict
 from utils import error_response, parse_pagination_params, convert_d1_results, parse_json_body, check_required_fields
 from libs.db import get_db_safe
 from libs.constant import __HASHING_ITERATIONS
+from libs.data_protection import encrypt_sensitive, decrypt_sensitive, blind_index
 from workers import Response
 from models import User, Bug, Domain, UserFollow
 import logging
@@ -69,7 +70,7 @@ def _is_strong_password(password: str) -> bool:
     return True
 
 
-async def create_user(db: Any, request: Any, logger: Any) -> Any:
+async def create_user(db: Any, request: Any, env: Any, logger: Any) -> Any:
     """Create a new user with layered input and abuse protections."""
     if _is_rate_limited(_get_client_identifier(request)):
         return error_response("Too many requests. Please try again later.", status=429)
@@ -114,10 +115,12 @@ async def create_user(db: Any, request: Any, logger: Any) -> Any:
     if len(description) > 500:
         return error_response("Description must be 500 characters or less", status=400)
 
+    email_hash = blind_index(email, env, "users.email")
+
     # Prevent account enumeration and duplicate account creation.
     existing_user = await User.objects(db).filter(username=username).first()
     if not existing_user:
-        existing_user = await User.objects(db).filter(email=email).first()
+        existing_user = await User.objects(db).filter(email_hash=email_hash).first()
     if existing_user:
         return error_response("Username or email already exists", status=409)
 
@@ -132,14 +135,23 @@ async def create_user(db: Any, request: Any, logger: Any) -> Any:
 
     user_data = {
         "username": username,
-        "email": email,
+        "email_encrypted": encrypt_sensitive(email, env),
+        "email_hash": email_hash,
         "password": hashed_password,
         "is_active": False,
     }
     if description:
-        user_data["description"] = description
+        user_data["description_encrypted"] = encrypt_sensitive(description, env)
 
-    created_user = await User.create(db, **user_data)
+    try:
+        created_user = await User.create(db, **user_data)
+    except Exception as e:
+        if "email_encrypted" in str(e) or "email_hash" in str(e):
+            return error_response(
+                "Encrypted user schema not ready. Run migrations to add encrypted user columns.",
+                status=503,
+            )
+        raise
     user_id = created_user.get("id") if created_user else None
     if user_id is None:
         logger.error("User creation returned no ID")
@@ -195,7 +207,7 @@ async def handle_users(
             return error_response("Method Not Allowed", status=405, headers={"Allow": "GET"})
 
         if method == "POST":
-            return await create_user(db, request, logger)
+            return await create_user(db, request, env, logger)
 
         # Get specific user
         if "id" in path_params:
@@ -207,7 +219,7 @@ async def handle_users(
             
             # Handle different sub-endpoints
             if path.endswith("/profile"):
-                return await get_user_profile(db, user_id)
+                return await get_user_profile(db, env, user_id)
             elif path.endswith("/bugs"):
                 return await get_user_bugs(db, user_id, query_params)
             elif path.endswith("/domains"):
@@ -218,7 +230,7 @@ async def handle_users(
                 return await get_user_following(db, user_id, query_params)
             else:
                 # Get basic user info
-                return await get_user(db, user_id)
+                return await get_user(db, env, user_id)
         
         # List users with pagination
         page, per_page = parse_pagination_params(query_params)
@@ -228,13 +240,22 @@ async def handle_users(
             await User.objects(db)
             .filter(is_active=1)
             .values(
-                "id", "username", "user_avatar", "total_score",
-                "winnings", "description", "date_joined", "is_active"
+                "id", "username", "total_score",
+                "winnings", "date_joined", "is_active",
+                "user_avatar_encrypted", "description_encrypted"
             )
             .order_by("-total_score")
             .paginate(page, per_page)
             .all()
         )
+
+        for user in users:
+            if user.get("user_avatar_encrypted"):
+                user["user_avatar"] = decrypt_sensitive(user.get("user_avatar_encrypted"), env)
+            if user.get("description_encrypted"):
+                user["description"] = decrypt_sensitive(user.get("description_encrypted"), env)
+            user.pop("user_avatar_encrypted", None)
+            user.pop("description_encrypted", None)
 
         return Response.json({
             "success": True,
@@ -251,7 +272,7 @@ async def handle_users(
         return error_response(f"Error handling user request: {str(e)}", status=500)
 
 
-async def get_user(db: Any, user_id: str) -> Any:
+async def get_user(db: Any, env: Any, user_id: str) -> Any:
     """
     Fetch basic user information by user ID.
     
@@ -273,6 +294,15 @@ async def get_user(db: Any, user_id: str) -> Any:
         # Remove sensitive fields
         user.pop('password', None)
         user.pop('email', None)
+        user.pop('email_encrypted', None)
+        user.pop('email_hash', None)
+
+        if user.get('user_avatar_encrypted'):
+            user['user_avatar'] = decrypt_sensitive(user.get('user_avatar_encrypted'), env)
+        if user.get('description_encrypted'):
+            user['description'] = decrypt_sensitive(user.get('description_encrypted'), env)
+        user.pop('user_avatar_encrypted', None)
+        user.pop('description_encrypted', None)
 
         return Response.json({"success": True, "data": user})
     except Exception as e:
@@ -280,7 +310,7 @@ async def get_user(db: Any, user_id: str) -> Any:
         return error_response(f"Error fetching user: {str(e)}", status=500)
 
 
-async def get_user_profile(db: Any, user_id: str) -> Any:
+async def get_user_profile(db: Any, env: Any, user_id: str) -> Any:
     """
     Fetch detailed user profile with comprehensive statistics.
     
@@ -306,6 +336,15 @@ async def get_user_profile(db: Any, user_id: str) -> Any:
 
         user.pop('password', None)
         user.pop('email', None)
+        user.pop('email_encrypted', None)
+        user.pop('email_hash', None)
+
+        if user.get('user_avatar_encrypted'):
+            user['user_avatar'] = decrypt_sensitive(user.get('user_avatar_encrypted'), env)
+        if user.get('description_encrypted'):
+            user['description'] = decrypt_sensitive(user.get('description_encrypted'), env)
+        user.pop('user_avatar_encrypted', None)
+        user.pop('description_encrypted', None)
 
         # Aggregated statistics still use raw SQL (aggregate functions /
         # CASE expressions are outside the ORM's current scope).
