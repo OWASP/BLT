@@ -69,6 +69,8 @@ HANDOFF_COMMAND = "/handoff"
 REMATCH_COMMAND = "/rematch"
 NEEDS_MENTOR_LABEL = "needs-mentor"
 MENTOR_ASSIGNED_LABEL = "mentor-assigned"
+NEEDS_APPROVAL_LABEL = "needs-approval"
+NEEDS_APPROVAL_LABEL_COLOR = "e11d48"
 MENTOR_MAX_MENTEES = 3
 MENTOR_STALE_DAYS = 14
 MENTOR_LABEL_COLOR = "7057ff"
@@ -3535,6 +3537,13 @@ async def _assign(
             f"A maintainer (such as @{TRIAGE_REVIEWER}) must first review it and add the "
             f'"{HELP_WANTED_LABEL}" label before `/assign` can be used.',
             token,
+        )
+        await _ensure_label_exists(owner, repo, NEEDS_APPROVAL_LABEL, NEEDS_APPROVAL_LABEL_COLOR, token)
+        await github_api(
+            "POST",
+            f"/repos/{owner}/{repo}/issues/{num}/labels",
+            token,
+            {"labels": [NEEDS_APPROVAL_LABEL]},
         )
         return
     await github_api(
