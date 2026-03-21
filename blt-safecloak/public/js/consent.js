@@ -73,8 +73,8 @@ const ConsentManager = (() => {
         ${entry.purpose ? `<div class="consent-entry-details text-secondary" style="margin-top:0.2rem">Purpose: ${escHtml(entry.purpose)}</div>` : ""}
         <div class="consent-entry-hash" title="Integrity hash">🔏 ${entry.hash}</div>
         <div style="margin-top:0.5rem;display:flex;gap:0.5rem">
-          <button class="btn btn-sm btn-secondary" onclick="ConsentManager.verifyEntry('${entry.id}')">Verify</button>
-          <button class="btn btn-sm btn-danger" onclick="ConsentManager.deleteEntry('${entry.id}')">Delete</button>
+          <button class="btn btn-sm btn-secondary" data-action="verify" data-entry-id="${entry.id}">Verify</button>
+          <button class="btn btn-sm btn-danger" data-action="delete" data-entry-id="${entry.id}">Delete</button>
         </div>
       </div>
     `
@@ -182,6 +182,22 @@ const ConsentManager = (() => {
     load();
     renderLog("consent-log");
     updateStats();
+
+    const logContainer = document.getElementById("consent-log");
+    if (logContainer) {
+      logContainer.addEventListener("click", (event) => {
+        const button = event.target.closest("button[data-action][data-entry-id]");
+        if (!button) return;
+        const action = button.getAttribute("data-action");
+        const entryId = button.getAttribute("data-entry-id");
+        if (!entryId) return;
+        if (action === "verify") {
+          verifyEntry(entryId);
+        } else if (action === "delete") {
+          deleteEntry(entryId);
+        }
+      });
+    }
 
     // Record form
     const form = document.getElementById("consent-form");
