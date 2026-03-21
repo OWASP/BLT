@@ -19,7 +19,6 @@ classifiers = [
 ]
 
 dependencies = [
-    "cryptography>=43.0.0",
 ]
 
 [project.optional-dependencies]

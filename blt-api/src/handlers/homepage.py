@@ -65,4 +65,10 @@ async def handle_homepage(
     # Convert dict to list of tuples for Headers.new
     js_headers = Headers.new(list(headers.items()))
     
-    return Response.new(html_content, status=200, headers=js_headers)
+    return Response.new(
+        html_content,
+        {
+            "status": 200,
+            "headers": js_headers,
+        },
+    )

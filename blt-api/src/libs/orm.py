@@ -24,6 +24,7 @@ Usage example::
     tag = await Tag.create(db, name='security')
 """
 
+import re
 from typing import Any, Dict, List, Optional, Tuple, Type, TypeVar
 
 T = TypeVar("T", bound="Model")
@@ -235,15 +236,14 @@ class QuerySet:
                 "Use INNER, LEFT, RIGHT or FULL."
             )
         _validate_identifier(table)
-        # Validate each side of the ON clause (format: "a.b = c.d")
-        # Strip spaces for parsing, but validate the stripped parts
-        # and reconstruct a canonical form to prevent whitespace-folding bypasses
-        on_stripped = on.replace(" ", "")
-        if "=" not in on_stripped:
+        # Validate each side of the ON clause (exact format: "a.b = c.d").
+        # Reject any extra tokens (e.g., "OR 1") even if whitespace is folded.
+        match = re.match(r"^\s*([A-Za-z0-9_.]+)\s*=\s*([A-Za-z0-9_.]+)\s*$", on)
+        if not match:
             raise ValueError(
                 f"Invalid ON clause {on!r}. Expected format: 'table1.col = table2.col'."
             )
-        lhs, rhs = on_stripped.split("=", 1)
+        lhs, rhs = match.group(1), match.group(2)
         _validate_identifier(lhs)
         _validate_identifier(rhs)
         # Store canonical form (no spaces) to prevent whitespace-folding bypasses

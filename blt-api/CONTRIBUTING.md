@@ -157,6 +157,18 @@ cp .env.sample .env
 
 Then configure Wrangler runtime values/secrets per environment (for example with `wrangler secret put ...`).
 
+To load all production variables from `.env.production` automatically:
+
+```bash
+bash scripts/load_env_production.sh
+```
+
+Or provide a custom path:
+
+```bash
+bash scripts/load_env_production.sh path/to/.env.production
+```
+
 ### Email Service Setup
 
 The API uses Mailgun for sending emails (verification, password reset, welcome emails):
