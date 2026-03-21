@@ -62,13 +62,22 @@ async def handle_homepage(
         "Access-Control-Allow-Headers": "Content-Type",
     }
     
-    # Convert dict to list of tuples for Headers.new
-    js_headers = Headers.new(list(headers.items()))
-    
-    return Response.new(
-        html_content,
-        {
-            "status": 200,
-            "headers": js_headers,
-        },
-    )
+    # Build headers in a runtime-compatible way (Workers runtime and test shims differ).
+    try:
+        js_headers = Headers.new(headers)
+    except TypeError:
+        js_headers = Headers.new(list(headers.items()))
+
+    # Response.new signatures differ between environments:
+    # - Workers runtime typically supports keyword args (status=..., headers=...)
+    # - Test shims use Response.new(body, init_dict)
+    try:
+        return Response.new(html_content, status=200, headers=js_headers)
+    except TypeError:
+        return Response.new(
+            html_content,
+            {
+                "status": 200,
+                "headers": js_headers,
+            },
+        )
