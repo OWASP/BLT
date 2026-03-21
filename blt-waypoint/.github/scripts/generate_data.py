@@ -176,6 +176,10 @@ def fetch_pr_counts(repo_full_name: str) -> tuple[int, int, list]:
                 "title": pr.get("title", ""),
                 "html_url": pr.get("html_url", ""),
                 "body": (pr.get("body") or "")[:2000],
+                "labels": [
+                    {"name": lbl.get("name", ""), "color": lbl.get("color", "cccccc")}
+                    for lbl in (pr.get("labels") or [])
+                ],
             }
             for pr in prs
         ]
@@ -235,6 +239,7 @@ def fetch_all_open_issues(repo_full_name: str, repo_name: str, repo_html_url: st
                         "number": pr["number"],
                         "title": pr["title"],
                         "html_url": pr["html_url"],
+                        "labels": pr.get("labels", []),
                     })
 
     try:
@@ -263,6 +268,12 @@ def fetch_all_open_issues(repo_full_name: str, repo_name: str, repo_html_url: st
                     }
                     for u in (issue.get("assignees") or [])
                 ]
+                user_obj = issue.get("user") or {}
+                user = {
+                    "login": user_obj.get("login", ""),
+                    "avatar_url": user_obj.get("avatar_url", ""),
+                    "html_url": user_obj.get("html_url", ""),
+                }
                 issue_num = issue.get("number")
                 all_issues.append({
                     "number": issue_num,
@@ -270,6 +281,7 @@ def fetch_all_open_issues(repo_full_name: str, repo_name: str, repo_html_url: st
                     "html_url": issue.get("html_url", ""),
                     "created_at": issue.get("created_at", ""),
                     "updated_at": issue.get("updated_at", ""),
+                    "user": user,
                     "labels": labels,
                     "assignees": assignees,
                     "linked_prs": linked_prs_map.get(issue_num, []),
