@@ -422,15 +422,25 @@ function renderIssues() {
       </a>`
     ).join('');
 
-    const prLinks = (issue.linked_prs || []).map(pr =>
-      `<a href="${escapeHtml(pr.html_url)}" target="_blank" rel="noopener noreferrer"
-        title="${escapeHtml(pr.title)}"
-        class="inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded
-          bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300
-          hover:bg-teal-100 dark:hover:bg-teal-900/50 transition-colors whitespace-nowrap">
-        <i class="fa-solid fa-code-pull-request" aria-hidden="true"></i>#${pr.number}
-      </a>`
-    ).join('');
+    const creatorAvatar = issue.user && issue.user.avatar_url
+      ? `<a href="${escapeHtml(issue.user.html_url)}" target="_blank" rel="noopener noreferrer"
+          title="Opened by ${escapeHtml(issue.user.login)}" class="shrink-0 mt-0.5">
+          <img src="${escapeHtml(issue.user.avatar_url)}&s=32" alt="${escapeHtml(issue.user.login)}"
+            class="w-6 h-6 rounded-full border border-gray-200 dark:border-gray-700 hover:scale-110 transition-transform"
+            loading="lazy" />
+        </a>`
+      : '';
+
+    const prLinks = (issue.linked_prs || []).map(pr => {
+      const prLabelBadges = (pr.labels || []).map(labelBadgeHTML).join('');
+      return `<a href="${escapeHtml(pr.html_url)}" target="_blank" rel="noopener noreferrer"
+          title="${escapeHtml(pr.title)}"
+          class="inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded
+            bg-teal-50 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300
+            hover:bg-teal-100 dark:hover:bg-teal-900/50 transition-colors max-w-[220px]">
+          <i class="fa-solid fa-code-pull-request shrink-0" aria-hidden="true"></i> <span class="truncate min-w-0">#${pr.number} ${escapeHtml(pr.title)}</span>
+        </a>${prLabelBadges}`;
+    }).join('');
 
     const days = daysOpen(issue.created_at);
     const daysStr = days === null ? '' : days === 0 ? 'today' : `${days}d`;
@@ -450,6 +460,7 @@ function renderIssues() {
     parts.push(`
       <article class="flex items-start gap-2 px-3 py-2 border-b border-gray-100 dark:border-gray-800
         hover:bg-gray-50 dark:hover:bg-gray-800/60 transition-colors last:border-b-0">
+        ${creatorAvatar}
         <div class="flex-1 min-w-0">
           <a href="${escapeHtml(issue.html_url)}" target="_blank" rel="noopener noreferrer"
             class="text-xs font-medium text-gray-800 dark:text-gray-100 hover:text-brand transition-colors line-clamp-1 leading-snug">
