@@ -83,11 +83,13 @@
 <main class="max-w-screen-xl mx-auto px-3 sm:px-4 py-5">
 
   <!-- Stats bar -->
-  <div id="stats-bar" class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
+  <div id="stats-bar" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 mb-4">
+    <div class="skeleton h-14 rounded-lg"></div>
     <div class="skeleton h-14 rounded-lg"></div>
     <div class="skeleton h-14 rounded-lg"></div>
     <div class="skeleton h-14 rounded-lg hidden sm:block"></div>
     <div class="skeleton h-14 rounded-lg hidden sm:block"></div>
+    <div class="skeleton h-14 rounded-lg hidden lg:block"></div>
   </div>
 
   <!-- Controls -->
@@ -254,9 +256,15 @@ function renderStats(issues) {
   const bar = document.getElementById('stats-bar');
   if (!bar) return;
 
-  const repos    = new Set(issues.map(i => i.repo_name)).size;
+  const now = Date.now();
+  const repos      = new Set(issues.map(i => i.repo_name)).size;
   const unassigned = issues.filter(i => !(i.assignees && i.assignees.length)).length;
-  const withPR   = issues.filter(i => i.linked_prs && i.linked_prs.length).length;
+  const withPR     = issues.filter(i => i.linked_prs && i.linked_prs.length).length;
+
+  const daysOpenArr = issues.map(i => Math.max(0, Math.floor((now - new Date(i.created_at).getTime()) / 86400000)));
+  const avgDays = daysOpenArr.length ? Math.round(daysOpenArr.reduce((s, d) => s + d, 0) / daysOpenArr.length) : 0;
+  const maxDays = daysOpenArr.length ? Math.max(...daysOpenArr) : 0;
+  const recentCount = daysOpenArr.filter(d => d < 7).length;
 
   const statCard = (icon, value, label, extra) => `
     <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2.5 flex items-center gap-2.5">
@@ -269,10 +277,12 @@ function renderStats(issues) {
     </div>`;
 
   bar.innerHTML =
-    statCard('fa-solid fa-circle-dot', issues.length, 'Open issues', '') +
-    statCard('fa-solid fa-code-branch', repos, 'Repositories', '') +
-    statCard('fa-solid fa-user-slash', unassigned, 'Unassigned', `${issues.length - unassigned} assigned`) +
-    statCard('fa-solid fa-code-pull-request', withPR, 'Have linked PR', `${issues.length - withPR} without PR`);
+    statCard('fa-solid fa-circle-dot',         issues.length,  'Open issues',       '') +
+    statCard('fa-solid fa-code-branch',         repos,          'Repositories',      '') +
+    statCard('fa-solid fa-user-slash',          unassigned,     'Unassigned',        `${issues.length - unassigned} assigned`) +
+    statCard('fa-solid fa-code-pull-request',   withPR,         'Have linked PR',    `${issues.length - withPR} without PR`) +
+    statCard('fa-solid fa-clock',               avgDays + 'd',  'Avg days open',     `oldest: ${maxDays}d`) +
+    statCard('fa-solid fa-calendar-plus',       recentCount,    'Opened this week',  '');
 }
 
 /* ------------------------------------------------------------------ */
@@ -336,10 +346,16 @@ function getFiltered() {
   } else if (sortKey === 'title') {
     list.sort((a, b) => a.title.localeCompare(b.title));
   } else {
-    // 'repo': group by repo name, then newest first within repo
-    list.sort((a, b) =>
-      a.repo_name.localeCompare(b.repo_name) || new Date(b.created_at) - new Date(a.created_at)
-    );
+    // 'repo': group by repo sorted by most issues, then newest first within repo
+    const repoIssueCounts = new Map();
+    for (const issue of list) {
+      repoIssueCounts.set(issue.repo_name, (repoIssueCounts.get(issue.repo_name) || 0) + 1);
+    }
+    list.sort((a, b) => {
+      const countDiff = (repoIssueCounts.get(b.repo_name) || 0) - (repoIssueCounts.get(a.repo_name) || 0);
+      if (countDiff !== 0) return countDiff;
+      return new Date(b.created_at) - new Date(a.created_at);
+    });
   }
 
   return list;
@@ -450,8 +466,8 @@ function renderIssues() {
           ${unassignedBadge}
           ${assigneeImgs ? `<span class="flex items-center">${assigneeImgs}</span>` : ''}
           <div class="flex flex-col items-end gap-0.5">
-            ${daysStr ? `<span class="text-[10px] text-gray-400 dark:text-gray-500 whitespace-nowrap" title="Opened ${escapeHtml(issue.created_at)}">${daysStr}</span>` : ''}
-            ${updatedStr ? `<span class="text-[10px] text-gray-300 dark:text-gray-600 whitespace-nowrap" title="Updated ${escapeHtml(issue.updated_at)}">↻ ${updatedStr}</span>` : ''}
+            ${daysStr ? `<span class="text-[10px] text-gray-600 dark:text-gray-300 whitespace-nowrap font-medium" title="Opened ${escapeHtml(issue.created_at)}">${daysStr}</span>` : ''}
+            ${updatedStr ? `<span class="text-[10px] text-gray-500 dark:text-gray-400 whitespace-nowrap" title="Updated ${escapeHtml(issue.updated_at)}">↻ ${updatedStr}</span>` : ''}
           </div>
         </div>
       </article>`);
@@ -484,7 +500,9 @@ async function loadData() {
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const payload = await resp.json();
 
-    allIssues = payload.open_issues || [];
+    allIssues = (payload.open_issues || []).filter(i =>
+      !(i.labels || []).some(l => l.name.toLowerCase() === 'design-submission')
+    );
 
     renderStats(allIssues);
     populateFilters(allIssues);
