@@ -145,15 +145,29 @@ async def handle_signup(
         )
         token = generate_jwt_token(user_id, env.JWT_SECRET, expires_in=10*60)  # Token valid for 10 minutes
 
-        status, response = await email_service.send_verification_email(
-            to_email=email,
-            username=username,
-            verification_token=token,
-            base_url=base_url
-        )
-        
-        if status >= 400:
-            logger.error(f"Failed to send verification email: {response}")
+        try:
+            email_status, email_response = await email_service.send_verification_email(
+                to_email=email,
+                username=username,
+                verification_token=token,
+                base_url=base_url
+            )
+        except Exception as e:
+            logger.error("Exception sending verification email to user %s: %s", user_id, str(e))
+            email_status, email_response = 500, str(e)
+
+        if email_status >= 400:
+            logger.error("Failed to send verification email to user %s: %s %s", user_id, email_status, email_response)
+            # Roll back: delete the newly created user so they can retry
+            try:
+                await User.objects(db).filter(id=user_id).delete()
+            except Exception as del_exc:
+                logger.error("Failed to roll back user %s after email failure: %s", user_id, str(del_exc))
+            return error_response(
+                "Account created but verification email could not be delivered. Please try again.",
+                503,
+                headers=cors_headers(),
+            )
 
         resp_body = {
             "message": "User registered successfully, To activate your account, please check your email for the verification link.",

@@ -1,12 +1,11 @@
 """
-Email service using SendGrid SMTP via stdlib smtplib.
+Email service using SendGrid Web API v3 via the Workers fetch() API.
 No external dependencies - pure Python stdlib only.
+Uses fetch() when running in Cloudflare Workers; falls back to urllib for local testing.
 """
 
-import smtplib
-import ssl
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
+import json
+import base64
 from typing import Optional, Tuple
 import logging
 
@@ -17,12 +16,20 @@ from services.email_templates import (
     get_bug_submission_confirmation,
 )
 
-_SENDGRID_HOST = "smtp.sendgrid.net"
-_SENDGRID_PORT = 587
+try:
+    from js import fetch, Headers, Object
+    _WORKERS_RUNTIME = True
+except ImportError:
+    fetch = None
+    Headers = None
+    Object = None
+    _WORKERS_RUNTIME = False
+
+_SENDGRID_API_URL = "https://api.sendgrid.com/v3/mail/send"
 
 
 class EmailService:
-    """SendGrid SMTP email service using stdlib smtplib."""
+    """SendGrid Web API v3 email service using Workers fetch()."""
 
     def __init__(
         self,
@@ -31,8 +38,9 @@ class EmailService:
         from_email: str,
         from_name: str = "OWASP BLT",
     ):
-        self.smtp_username = smtp_username
-        self.smtp_password = smtp_password
+        # smtp_password is the SendGrid API key; smtp_username is kept for
+        # interface compatibility but SendGrid Web API only needs the key.
+        self.api_key = smtp_password
         self.from_email = from_email
         self.from_name = from_name
         self.logger = logging.getLogger(__name__)
@@ -46,34 +54,63 @@ class EmailService:
         from_email: Optional[str] = None,
         from_name: Optional[str] = None,
     ) -> Tuple[int, str]:
-        """Send an email via SendGrid SMTP (STARTTLS on port 587)."""
+        """Send an email via SendGrid Web API v3."""
         sender_address = from_email or self.from_email
         sender_name = from_name or self.from_name
 
-        msg = MIMEMultipart("alternative")
-        msg["Subject"] = subject
-        msg["From"] = f"{sender_name} <{sender_address}>"
-        msg["To"] = to_email
+        mime_type = "text/html" if content_type == "text/html" else "text/plain"
+        payload = {
+            "personalizations": [{"to": [{"email": to_email}]}],
+            "from": {"email": sender_address, "name": sender_name},
+            "subject": subject,
+            "content": [{"type": mime_type, "value": content}],
+        }
+        body = json.dumps(payload)
 
-        mime_subtype = "html" if content_type == "text/html" else "plain"
-        msg.attach(MIMEText(content, mime_subtype, "utf-8"))
+        headers_list = [
+            ["Authorization", f"Bearer {self.api_key}"],
+            ["Content-Type", "application/json"],
+        ]
 
         try:
-            context = ssl.create_default_context()
-            with smtplib.SMTP(_SENDGRID_HOST, _SENDGRID_PORT) as server:
-                server.ehlo()
-                server.starttls(context=context)
-                server.ehlo()
-                server.login(self.smtp_username, self.smtp_password)
-                server.sendmail(sender_address, to_email, msg.as_string())
-            self.logger.info("Email sent successfully to %s", to_email)
-            return 200, "OK"
-        except smtplib.SMTPAuthenticationError as exc:
-            self.logger.error("SMTP auth failed: %s", exc)
-            return 401, f"SMTP authentication error: {exc}"
+            if _WORKERS_RUNTIME:
+                js_headers = Headers.new(headers_list)
+                request_init = Object.new()
+                request_init.method = "POST"
+                request_init.headers = js_headers
+                request_init.body = body
+                response = await fetch(_SENDGRID_API_URL, request_init)
+                status = response.status
+                text = await response.text()
+            else:
+                # Local testing fallback using urllib
+                import urllib.request
+                req = urllib.request.Request(
+                    _SENDGRID_API_URL,
+                    data=body.encode("utf-8"),
+                    headers={
+                        "Authorization": f"Bearer {self.api_key}",
+                        "Content-Type": "application/json",
+                    },
+                    method="POST",
+                )
+                try:
+                    with urllib.request.urlopen(req) as resp:
+                        status = resp.status
+                        text = resp.read().decode("utf-8")
+                except urllib.error.HTTPError as http_err:
+                    status = http_err.code
+                    text = http_err.read().decode("utf-8")
+
+            if status >= 400:
+                self.logger.error("SendGrid error sending to %s: %s %s", to_email, status, text)
+            else:
+                self.logger.info("Email sent to %s (status %s)", to_email, status)
+            return status, text
+
         except Exception as exc:
-            self.logger.error("Error sending email to %s: %s", to_email, exc)
-            return 500, f"Error sending email: {exc}"
+            self.logger.error("Exception sending email to %s: %s", to_email, exc)
+            return 500, str(exc)
 
     async def send_verification_email(
         self,
