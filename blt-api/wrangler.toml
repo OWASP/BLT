@@ -12,24 +12,25 @@ command = "bash scripts/migrate.sh"
 [assets]
 directory = "./static"
 
-[vars]
-BLT_API_BASE_URL = "https://api.owaspblt.org/api/v1"
-BLT_WEBSITE_URL = "https://owaspblt.org"
-JWT_SECRET = "your_jwt_secret_here" # For production, use: wrangler secret put JWT_SECRET
-MAILGUN_API_KEY = "your_mailgun_api_key_here" # For production, use: wrangler secret put MAILGUN_API_KEY
-MAILGUN_DOMAIN = "sandbox123...mailgun.org"  # Sandbox for testing, or your custom domain for production
-
-# Production environment
-[env.production]
-vars = { BLT_API_BASE_URL = "https://api.owaspblt.org", BLT_WEBSITE_URL = "https://owaspblt.org", JWT_SECRET = "your_jwt_secret_here", MAILGUN_API_KEY = "your_mailgun_api_key_here", MAILGUN_DOMAIN = "yourdomain.com"   }
-
-# Development environment
-[env.development]
-vars = { BLT_API_BASE_URL = "http://localhost:8787", BLT_WEBSITE_URL = "http://localhost:8000", JWT_SECRET= "your_dev_jwt_secret_here", MAILGUN_API_KEY = "your_dev_mailgun_api_key_here", MAILGUN_DOMAIN = "sandbox123...mailgun.org" }
-
 [[d1_databases]]
 binding = "blt_api"
 database_name = "blt-api"
-database_id = "bb8bc336-a8d2-4aa4-a244-f492b15a97dd" # For production, use: wrangler secret put D1_DATABASE_ID (this didn't work so we hardcoded the id)
+database_id = "bb8bc336-a8d2-4aa4-a244-f492b15a97dd"
 migrations_dir = "migrations"
 migrations_table = "d1_migrations"
+
+
+[observability]
+enabled = false
+head_sampling_rate = 1
+
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+persist = true
+invocation_logs = true
+
+[observability.traces]
+enabled = false
+persist = true
+head_sampling_rate = 1

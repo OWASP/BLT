@@ -5,9 +5,10 @@ import time
 from typing import Any, Dict, Optional
 
 from libs.db import get_db_safe
-from utils import parse_json_body, error_response, cors_headers, check_required_fields, extract_id_from_result
+from utils import parse_json_body, error_response, cors_headers, check_required_fields, extract_id_from_result, get_blt_api_url
 from libs.constant import __HASHING_ITERATIONS
 from libs.jwt_utils import create_access_token, decode_jwt
+from libs.data_protection import encrypt_sensitive, decrypt_sensitive, blind_index
 from services.email_service import EmailService
 from workers import Response
 from models import User
@@ -65,7 +66,7 @@ async def handle_signup(
         201 Created with message to check email for verification link,
         or 400/500 error if validation fails or user exists
     """
-    base_url = env.BLT_API_BASE_URL if hasattr(env, 'BLT_API_BASE_URL') else "http://localhost:8787"
+    base_url = get_blt_api_url(env)
     method = str(request.method).upper()
     logger = logging.getLogger(__name__)
     if method != "POST":
@@ -89,10 +90,23 @@ async def handle_signup(
         except Exception as e:       
             return error_response("Database connection error", 500)
 
-        # Check if username or email already exists
-        existing_user = await User.objects(db).filter(username=body["username"]).first()
+        username = str(body["username"]).strip()
+        email = str(body["email"]).strip().lower()
+        redirect_uri = str(body.get("redirect_uri", "")).strip()
+
+        # Validate redirect_uri against whitelist if provided
+        if redirect_uri:
+            allowed_uris = [u.strip() for u in getattr(env, "ALLOWED_REDIRECT_URIS", "").split(",") if u.strip()]
+            if not any(redirect_uri.startswith(allowed) for allowed in allowed_uris):
+                return error_response("Invalid redirect_uri", 400)
+
+        email_hash = blind_index(email, env, "users.email")
+        username_hash = blind_index(username, env, "users.username")
+
+        # Check if username or email already exists using blind indexes
+        existing_user = await User.objects(db).filter(username_hash=username_hash).first()
         if not existing_user:
-            existing_user = await User.objects(db).filter(email=body["email"]).first()
+            existing_user = await User.objects(db).filter(email_hash=email_hash).first()
 
         if existing_user:
             return error_response("User already exists", 400)
@@ -102,31 +116,52 @@ async def handle_signup(
         password_hash = hashlib.pbkdf2_hmac('sha256', body["password"].encode('utf-8'), salt.encode('utf-8'), __HASHING_ITERATIONS)
         hashed_password = f"{salt}${password_hash.hex()}"
 
-        # Insert the new user into the database
-        new_user = await User.create(db, username=body["username"], email=body["email"], password=hashed_password, is_active=False)
+        # Insert encrypted sensitive fields only.
+        user_data = {
+            "username_encrypted": encrypt_sensitive(username, env),
+            "username_hash": username_hash,
+            "email_encrypted": encrypt_sensitive(email, env),
+            "email_hash": email_hash,
+            "password": hashed_password,
+            "is_active": False,
+        }
+        try:
+            new_user = await User.create(db, **user_data)
+        except Exception as e:
+            if "email_encrypted" in str(e) or "email_hash" in str(e) or "username_encrypted" in str(e):
+                return error_response(
+                    "Encrypted user schema not ready. Run migrations to add encrypted user columns.",
+                    503,
+                )
+            raise
         user_id = new_user.get("id") if new_user else None
 
-        # send verification email here using Mailgun
+        # send verification email here using SendGrid SMTP
         email_service = EmailService(
-            api_key=env.MAILGUN_API_KEY,
-            domain=env.MAILGUN_DOMAIN,
-            from_email=f"postmaster@{env.MAILGUN_DOMAIN}",
+            smtp_username=env.SENDGRID_USERNAME,
+            smtp_password=env.SENDGRID_PASSWORD,
+            from_email=env.FROM_EMAIL,
             from_name="OWASP BLT"
         )
         token = generate_jwt_token(user_id, env.JWT_SECRET, expires_in=10*60)  # Token valid for 10 minutes
-        base_url = env.BLT_API_BASE_URL
-        
+
         status, response = await email_service.send_verification_email(
-            to_email=body["email"],
-            username=body["username"],
+            to_email=email,
+            username=username,
             verification_token=token,
             base_url=base_url
         )
         
         if status >= 400:
             logger.error(f"Failed to send verification email: {response}")
-        
-        return Response.json({"message": "User registered successfully, To activate your account, please check your email for the verification link.", "user_id": user_id}, status=201, headers=cors_headers())
+
+        resp_body = {
+            "message": "User registered successfully, To activate your account, please check your email for the verification link.",
+            "user_id": user_id,
+        }
+        if redirect_uri:
+            resp_body["redirect_to"] = redirect_uri
+        return Response.json(resp_body, status=201, headers=cors_headers())
 
     except Exception as e:
         logger.error("Error during signup: %s", str(e))
@@ -169,14 +204,23 @@ async def handle_signin(request: Any, env: Any, path_params: Dict[str, str], que
         valid, missing_field = await check_required_fields(body, required_fields)
         if not valid:
             return error_response("Missing required field", 400)
+
+        redirect_uri = str(body.get("redirect_uri", "")).strip()
+        if redirect_uri:
+            allowed_uris = [u.strip() for u in getattr(env, "ALLOWED_REDIRECT_URIS", "").split(",") if u.strip()]
+            if not any(redirect_uri.startswith(allowed) for allowed in allowed_uris):
+                return error_response("Invalid redirect_uri", 400)
+
         # getting db connection
         try:
             db = await get_db_safe(env)
         except Exception as e:
             return error_response("Database connection error", 500)
-        
-        # Fetch user by username    
-        user = await User.objects(db).filter(username=body["username"]).first()
+
+        # Fetch user by username hash (blind index lookup)
+        username = str(body["username"]).strip()
+        username_hash = blind_index(username, env, "users.username")
+        user = await User.objects(db).filter(username_hash=username_hash).first()
 
         if user is None or "password" not in user:
             return error_response("Invalid username or password", 401)
@@ -195,10 +239,16 @@ async def handle_signin(request: Any, env: Any, path_params: Dict[str, str], que
             expires_in=24 * 3600  # 24 hour expiration
         )
 
+        # Decrypt username for the response
+        decrypted_username = decrypt_sensitive(user["username_encrypted"], env) if user.get("username_encrypted") else username
+
         res = {
             "message": "Login successful",
-            "token": token
+            "token": token,
+            "username": decrypted_username,
         }
+        if redirect_uri:
+            res["redirect_to"] = redirect_uri
         return Response.json(res, status=200, headers=cors_headers())
 
     except Exception as e:

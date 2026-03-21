@@ -216,7 +216,7 @@ def get_blt_api_url(env: Any) -> str:
     try:
         return str(env.BLT_API_BASE_URL)
     except AttributeError:
-        return "https://blt.owasp.org/api/v1"
+        return "https://api.owaspblt.org/v2"
 
 
 def get_blt_website_url(env: Any) -> str:
@@ -232,7 +232,7 @@ def get_blt_website_url(env: Any) -> str:
     try:
         return str(env.BLT_WEBSITE_URL)
     except AttributeError:
-        return "https://blt.owasp.org"
+        return "https://owaspblt.org"
 
 
 async def parse_json_body(request: Any) -> Optional[Dict[str, Any]]:

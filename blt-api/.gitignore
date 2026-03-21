@@ -59,6 +59,8 @@ Thumbs.db
 # Local configuration
 .env
 .env.local
+.env.production
+.env.production.local
 *.local
 
 # Build artifacts

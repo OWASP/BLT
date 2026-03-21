@@ -99,6 +99,8 @@ uv run pytest tests/test_router.py -v
 | GET | `/` | API homepage with interactive documentation |
 | GET | `/health` | Health check endpoint |
 
+All API endpoints are also available under the versioned `/v2` prefix (for example, `/v2/health`, `/v2/users`, `/v2/auth/signup`).
+
 ### Authentication
 
 | Method | Endpoint | Description |
@@ -341,6 +343,7 @@ Bugs endpoints use Cloudflare D1 database for direct queries. See [docs/DATABASE
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/users` | List all users (paginated) |
+| POST | `/users` | Create user account (rate-limited, validated, password-hashed) |
 | GET | `/users/{id}` | Get a specific user |
 | GET | `/users/{id}/profile` | Get user profile with statistics |
 | GET | `/users/{id}/bugs` | Get bugs reported by user |
@@ -445,6 +448,21 @@ All API responses follow a consistent JSON format:
   "status": 400
 }
 ```
+
+## Legacy API
+
+{
+    "issues": "https://legacy.owaspblt.org/api/v1/issues/",
+    "userissues": "https://legacy.owaspblt.org/api/v1/userissues/",
+    "profile": "https://legacy.owaspblt.org/api/v1/profile/",
+    "domain": "https://legacy.owaspblt.org/api/v1/domain/",
+    "timelogs": "https://legacy.owaspblt.org/api/v1/timelogs/",
+    "activitylogs": "https://legacy.owaspblt.org/api/v1/activitylogs/",
+    "organizations": "https://legacy.owaspblt.org/api/v1/organizations/",
+    "jobs": "https://legacy.owaspblt.org/api/v1/jobs/",
+    "security-incidents": "https://legacy.owaspblt.org/api/v1/security-incidents/"
+}
+
 
 ## Database
 
@@ -552,13 +570,15 @@ BLT-API/
 
 ### Environment Variables
 
-Configure these in `wrangler.toml`:
+Configure these in `.env.sample` (copy to `.env` for local development) and set production values via Wrangler secrets.
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `BLT_API_BASE_URL` | BLT backend API URL | `https://blt.owasp.org/api/v1` |
-| `BLT_WEBSITE_URL` | BLT website URL | `https://blt.owasp.org` |
+| `BLT_API_BASE_URL` | BLT backend API URL | `https://api.owaspblt.org/v2` |
+| `BLT_WEBSITE_URL` | BLT website URL | `https://owaspblt.org` |
 | `JWT_SECRET` | Secret key for JWT tokens | Required |
+| `USER_DATA_ENCRYPTION_KEY` | Key used to encrypt sensitive user fields | Required for encrypted user data |
+| `USER_DATA_HASH_KEY` | Key used for user-data blind indexes (e.g., email hash) | Required for encrypted user data |
 | `MAILGUN_API_KEY` | Mailgun API key (Private or Sending API key) | Required for email |
 | `MAILGUN_DOMAIN` | Mailgun domain (sandbox or custom domain) | Required for email |
 
@@ -696,7 +716,7 @@ For database changes, see [docs/DATABASE.md](docs/DATABASE.md).
 ## Related Projects
 
 - [OWASP BLT](https://github.com/OWASP-BLT/BLT) - Main BLT project
-- [BLT Website](https://blt.owasp.org) - Live BLT platform
+- [BLT Website](https://owaspblt.org) - Live BLT platform
 
 ## License
 
