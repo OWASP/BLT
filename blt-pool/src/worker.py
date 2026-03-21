@@ -3681,6 +3681,16 @@ async def _deny(
             token,
         )
         return
+    # /deny should only operate on issues, not pull requests.
+    if issue.get("pull_request"):
+        await create_comment(
+            owner,
+            repo,
+            num,
+            f"@{login} The `/deny` command only works on issues, not pull requests.",
+            token,
+        )
+        return
     if issue["state"] == "closed":
         await create_comment(
             owner, repo, num,
