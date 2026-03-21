@@ -176,6 +176,10 @@ const VideoChat = (() => {
     });
 
     peer.on("call", async (incomingCall) => {
+      if (activeCalls.has(incomingCall.peer)) {
+        incomingCall.close();
+        return;
+      }
       if (!consentGiven) {
         const ok = await askConsent(incomingCall.peer);
         if (!ok) {
@@ -184,6 +188,7 @@ const VideoChat = (() => {
         }
       }
       activeCalls.set(incomingCall.peer, incomingCall);
+      updateParticipantsList();
       incomingCall.answer(localStream);
       handleCallStream(incomingCall);
     });
@@ -353,6 +358,7 @@ const VideoChat = (() => {
     setDotStatus("connecting");
     const call = peer.call(remotePeerId, localStream);
     activeCalls.set(remotePeerId, call);
+    updateParticipantsList();
     handleCallStream(call);
   }
 
