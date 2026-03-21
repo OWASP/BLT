@@ -18,6 +18,24 @@
     --shadow-hover: 0 4px 16px rgba(0,0,0,0.15);
 }
 
+/* BLT Dark Mode Theme */
+html.dark {
+    --primary-color: #E10101;
+    --secondary-color: #E10101;
+    --accent-color: #E10101;
+
+    --bg-color: #111827;        /* Dark Base */
+    --bg-light: #1F2937;        /* Dark Surface */
+
+    --text-color: #F3F4F6;
+    --text-light: #9CA3AF;
+
+    --border-color: #374151;
+
+    --shadow: 0 2px 10px rgba(0,0,0,0.5);
+    --shadow-hover: 0 6px 20px rgba(0,0,0,0.6);
+}
+
 /* Reset and Base Styles */
 * {
     margin: 0;
@@ -233,7 +251,7 @@ a:hover {
 }
 
 .feature-card {
-    background: white;
+    background: var(--bg-light);
     padding: 2rem;
     border-radius: 8px;
     box-shadow: var(--shadow);
@@ -260,7 +278,7 @@ a:hover {
 }
 
 .course-card {
-    background: white;
+    background: var(--bg-light);
     border-radius: 8px;
     padding: 1.5rem;
     box-shadow: var(--shadow);
@@ -558,7 +576,7 @@ a:hover {
 }
 
 .instructor-card {
-    background: white;
+    background: var(--bg-light);
     border-radius: 8px;
     padding: 2rem;
     box-shadow: var(--shadow);
