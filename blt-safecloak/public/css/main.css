@@ -234,6 +234,30 @@ body {
   padding: 1rem;
 }
 
+.modal {
+  background: #ffffff;
+  border-radius: 0.75rem;
+  box-shadow: 0 20px 60px rgba(17, 24, 39, 0.3);
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 420px;
+  position: relative;
+}
+
+.modal h3 {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #111827;
+  margin-bottom: 0.75rem;
+}
+
+.modal p {
+  font-size: 0.9rem;
+  color: #374151;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
 /* ============================================
    NOTES PAGE STYLES
    ============================================ */
