@@ -5,7 +5,7 @@ import time
 from typing import Any, Dict, Optional
 
 from libs.db import get_db_safe
-from utils import parse_json_body, error_response, cors_headers, check_required_fields, extract_id_from_result
+from utils import parse_json_body, error_response, cors_headers, check_required_fields, extract_id_from_result, get_blt_api_url
 from libs.constant import __HASHING_ITERATIONS
 from libs.jwt_utils import create_access_token, decode_jwt
 from services.email_service import EmailService
@@ -65,7 +65,7 @@ async def handle_signup(
         201 Created with message to check email for verification link,
         or 400/500 error if validation fails or user exists
     """
-    base_url = env.BLT_API_BASE_URL if hasattr(env, 'BLT_API_BASE_URL') else "http://localhost:8787"
+    base_url = get_blt_api_url(env)
     method = str(request.method).upper()
     logger = logging.getLogger(__name__)
     if method != "POST":
@@ -114,8 +114,7 @@ async def handle_signup(
             from_name="OWASP BLT"
         )
         token = generate_jwt_token(user_id, env.JWT_SECRET, expires_in=10*60)  # Token valid for 10 minutes
-        base_url = env.BLT_API_BASE_URL
-        
+
         status, response = await email_service.send_verification_email(
             to_email=body["email"],
             username=body["username"],

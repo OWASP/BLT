@@ -28,7 +28,7 @@ from services.email_templates import get_verification_email
 
 html = get_verification_email(
     username="john_doe",
-    verification_link="https://blt.owasp.org/verify?token=abc123",
+    verification_link="https://api.owaspblt.org/v2/auth/verify-email?token=abc123",
     expires_hours=24
 )
 ```
@@ -43,7 +43,7 @@ html = get_verification_email(
 ### Rendered Output
 ```html
 <p>Hello <strong>john_doe</strong>,</p>
-<a href="https://blt.owasp.org/verify?token=abc123" class="button">Verify Email</a>
+<a href="https://api.owaspblt.org/v2/auth/verify-email?token=abc123" class="button">Verify Email</a>
 <p>Expires in 24 hours.</p>
 ```
 

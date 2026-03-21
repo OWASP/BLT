@@ -2,12 +2,161 @@
 Users handler for the BLT API.
 """
 
+import hashlib
+import re
+import secrets
+import time
 from typing import Any, Dict
-from utils import error_response, parse_pagination_params, convert_d1_results
+from utils import error_response, parse_pagination_params, convert_d1_results, parse_json_body, check_required_fields
 from libs.db import get_db_safe
+from libs.constant import __HASHING_ITERATIONS
 from workers import Response
 from models import User, Bug, Domain, UserFollow
 import logging
+
+_USERNAME_PATTERN = re.compile(r'^[a-zA-Z0-9_.-]{3,30}$')
+_EMAIL_PATTERN = re.compile(r'^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$')
+_USER_CREATE_RATE_LIMIT: Dict[str, list] = {}
+_RATE_LIMIT_WINDOW_SECONDS = 60
+_RATE_LIMIT_MAX_REQUESTS = 5
+
+
+def _get_header(request: Any, name: str) -> str:
+    """Safely read a request header in Workers and tests."""
+    headers = getattr(request, "headers", None)
+    if headers and hasattr(headers, "get"):
+        value = headers.get(name)
+        return str(value) if value is not None else ""
+    return ""
+
+
+def _get_client_identifier(request: Any) -> str:
+    """Build a stable client identifier for rate limiting."""
+    ip = _get_header(request, "CF-Connecting-IP") or _get_header(request, "X-Forwarded-For")
+    ua = _get_header(request, "User-Agent")
+    return f"{ip}|{ua}".strip("|") or "unknown-client"
+
+
+def _is_rate_limited(client_key: str) -> bool:
+    """Basic in-memory rate limiter for user creation."""
+    now = time.time()
+    window_start = now - _RATE_LIMIT_WINDOW_SECONDS
+
+    attempts = _USER_CREATE_RATE_LIMIT.get(client_key, [])
+    attempts = [ts for ts in attempts if ts >= window_start]
+
+    if len(attempts) >= _RATE_LIMIT_MAX_REQUESTS:
+        _USER_CREATE_RATE_LIMIT[client_key] = attempts
+        return True
+
+    attempts.append(now)
+    _USER_CREATE_RATE_LIMIT[client_key] = attempts
+    return False
+
+
+def _is_strong_password(password: str) -> bool:
+    """Enforce strong password requirements."""
+    if len(password) < 12 or len(password) > 128:
+        return False
+    if not re.search(r'[a-z]', password):
+        return False
+    if not re.search(r'[A-Z]', password):
+        return False
+    if not re.search(r'\d', password):
+        return False
+    if not re.search(r'[^A-Za-z0-9]', password):
+        return False
+    return True
+
+
+async def create_user(db: Any, request: Any, logger: Any) -> Any:
+    """Create a new user with layered input and abuse protections."""
+    if _is_rate_limited(_get_client_identifier(request)):
+        return error_response("Too many requests. Please try again later.", status=429)
+
+    content_type = _get_header(request, "Content-Type").lower()
+    if "application/json" not in content_type:
+        return error_response("Content-Type must be application/json", status=415)
+
+    content_length_header = _get_header(request, "Content-Length")
+    if content_length_header and content_length_header.isdigit() and int(content_length_header) > 10_000:
+        return error_response("Request body too large", status=413)
+
+    body = await parse_json_body(request)
+    if not body:
+        return error_response("Invalid JSON body", status=400)
+
+    required_fields = ["username", "email", "password"]
+    valid, missing_field = await check_required_fields(body, required_fields)
+    if not valid:
+        return error_response(f"Missing required field: {missing_field}", status=400)
+
+    username = str(body.get("username", "")).strip()
+    email = str(body.get("email", "")).strip().lower()
+    password = str(body.get("password", ""))
+    description = str(body.get("description", "")).strip()
+
+    if not _USERNAME_PATTERN.fullmatch(username):
+        return error_response(
+            "Username must be 3-30 chars and contain only letters, numbers, underscore, dot, or hyphen",
+            status=400,
+        )
+
+    if not _EMAIL_PATTERN.fullmatch(email) or len(email) > 254:
+        return error_response("Invalid email format", status=400)
+
+    if not _is_strong_password(password):
+        return error_response(
+            "Password must be 12-128 chars and include upper, lower, number, and symbol",
+            status=400,
+        )
+
+    if len(description) > 500:
+        return error_response("Description must be 500 characters or less", status=400)
+
+    # Prevent account enumeration and duplicate account creation.
+    existing_user = await User.objects(db).filter(username=username).first()
+    if not existing_user:
+        existing_user = await User.objects(db).filter(email=email).first()
+    if existing_user:
+        return error_response("Username or email already exists", status=409)
+
+    salt = secrets.token_hex(16)
+    password_hash = hashlib.pbkdf2_hmac(
+        'sha256',
+        password.encode('utf-8'),
+        salt.encode('utf-8'),
+        __HASHING_ITERATIONS,
+    )
+    hashed_password = f"{salt}${password_hash.hex()}"
+
+    user_data = {
+        "username": username,
+        "email": email,
+        "password": hashed_password,
+        "is_active": False,
+    }
+    if description:
+        user_data["description"] = description
+
+    created_user = await User.create(db, **user_data)
+    user_id = created_user.get("id") if created_user else None
+    if user_id is None:
+        logger.error("User creation returned no ID")
+        return error_response("Failed to create user", status=500)
+
+    return Response.json(
+        {
+            "success": True,
+            "message": "User created. Please verify email to activate account.",
+            "data": {
+                "id": user_id,
+                "username": username,
+                "is_active": False,
+            },
+        },
+        status=201,
+    )
 
 async def handle_users(
     request: Any,
@@ -21,6 +170,7 @@ async def handle_users(
     
     Endpoints:
         GET /users - List users with pagination
+        POST /users - Create a user account with validation and abuse protection
         GET /users/{id} - Get a specific user
         GET /users/{id}/profile - Get user profile with stats
         GET /users/{id}/bugs - Get bugs reported by user
@@ -30,6 +180,9 @@ async def handle_users(
     """
     method = str(request.method).upper()
     logger = logging.getLogger(__name__)
+
+    if method not in {"GET", "POST"}:
+        return error_response("Method Not Allowed", status=405, headers={"Allow": "GET, POST"})
     
     try: 
         db = await get_db_safe(env)  
@@ -38,6 +191,12 @@ async def handle_users(
         return error_response(f"Database connection error: {str(e)}", status=500)
     
     try: 
+        if method == "POST" and "id" in path_params:
+            return error_response("Method Not Allowed", status=405, headers={"Allow": "GET"})
+
+        if method == "POST":
+            return await create_user(db, request, logger)
+
         # Get specific user
         if "id" in path_params:
             user_id = path_params["id"]

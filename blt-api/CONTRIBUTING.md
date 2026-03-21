@@ -153,8 +153,8 @@ Configure environment variables in `wrangler.toml`:
 
 ```toml
 [vars]
-BLT_API_BASE_URL = "https://blt.owasp.org/api/v1"
-BLT_WEBSITE_URL = "https://blt.owasp.org"
+BLT_API_BASE_URL = "https://api.owaspblt.org/v2"
+BLT_WEBSITE_URL = "https://owaspblt.org"
 JWT_SECRET = "your-secret-key-here"  # Use a strong random string
 MAILGUN_API_KEY = "your-mailgun-api-key"  # For email service
 MAILGUN_DOMAIN = "your-mailgun-domain"    # e.g., sandbox.mailgun.org
