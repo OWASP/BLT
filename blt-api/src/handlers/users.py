@@ -175,12 +175,13 @@ async def create_user(db: Any, request: Any, env: Any, logger: Any) -> Any:
     try:
         created_user = await User.create(db, **user_data)
     except Exception as e:
-        if "email_encrypted" in str(e) or "email_hash" in str(e) or "username_encrypted" in str(e):
+        logger.error(f"User creation DB error: {str(e)}")
+        if "NOT NULL" in str(e) or "UNIQUE" in str(e) or "CONSTRAINT" in str(e):
             return error_response(
-                "Encrypted user schema not ready. Run migrations to add encrypted user columns.",
+                "Unable to create account. Schema migration may be required.",
                 status=503,
             )
-        raise
+        return error_response("Failed to create user", status=500)
     user_id = created_user.get("id") if created_user else None
     if user_id is None:
         logger.error("User creation returned no ID")
@@ -229,7 +230,7 @@ async def handle_users(
         db = await get_db_safe(env)  
     except Exception as e:
         logger.error(f"Database connection error: {str(e)}")
-        return error_response(f"Database connection error: {str(e)}", status=500)
+        return error_response("Service temporarily unavailable", status=503)
     
     try: 
         if method == "POST" and "id" in path_params:
@@ -302,7 +303,7 @@ async def handle_users(
         })
     except Exception as e:
         logger.error(f"Error handling user request: {str(e)}")
-        return error_response(f"Error handling user request: {str(e)}", status=500)
+        return error_response("Internal Server Error", status=500)
 
 
 async def get_user(db: Any, env: Any, user_id: str) -> Any:

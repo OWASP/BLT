@@ -17,7 +17,7 @@ make_username() {
 }
 
 make_email() {
-    echo "bltuser$(rand_suffix)@example.com"
+    echo "test+$(rand_suffix)@owaspblt.org"
 }
 
 make_password() {

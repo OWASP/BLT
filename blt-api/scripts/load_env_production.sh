@@ -43,7 +43,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
     continue
   fi
 
-  printf '%s' "$value" | wrangler secret put "$key" --env production >/dev/null
+  printf '%s' "$value" | wrangler secret put "$key" >/dev/null
   echo "Set secret: $key"
 done < "$ENV_FILE"
 
