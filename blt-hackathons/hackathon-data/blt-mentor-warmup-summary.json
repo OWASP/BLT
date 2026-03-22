@@ -1,8 +1,8 @@
 {
   "participantCount": 16,
-  "totalPRs": 2520,
-  "mergedPRs": 1618,
-  "totalIssues": 772,
+  "totalPRs": 2527,
+  "mergedPRs": 1619,
+  "totalIssues": 774,
   "repositories": 53,
   "topContributors": [
     {
@@ -18,9 +18,9 @@
       "mergedCount": 3
     },
     {
-      "username": "JisanAR03",
-      "avatar": "https://avatars.githubusercontent.com/u/97744811?v=4",
-      "url": "https://github.com/JisanAR03",
+      "username": "btwshivam",
+      "avatar": "https://avatars.githubusercontent.com/u/127589548?v=4",
+      "url": "https://github.com/btwshivam",
       "mergedCount": 2
     }
   ]
