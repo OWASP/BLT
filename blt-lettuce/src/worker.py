@@ -3925,8 +3925,8 @@ async def handle_request(request, env):
                             or 0
                         )
                         channel_rows = await db_get_channels(env, ws_id_val)
-                        total_members = int(
-                            await fetch_workspace_member_count(bot_token) or 0
+                        total_members = sum(
+                            int(ch.get("member_count") or 0) for ch in channel_rows
                         )
                         await db_update_workspace_channel_member_counts(
                             env,
@@ -4100,7 +4100,9 @@ async def handle_request(request, env):
                         await scan_workspace_channels(env, ws_id_val, token) or 0
                     )
                     channel_rows = await db_get_channels(env, ws_id_val)
-                    total_members = int(await fetch_workspace_member_count(token) or 0)
+                    total_members = sum(
+                        int(ch.get("member_count") or 0) for ch in channel_rows
+                    )
                     await db_update_workspace_channel_member_counts(
                         env,
                         ws_id_val,
