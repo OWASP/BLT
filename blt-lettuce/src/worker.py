@@ -341,11 +341,8 @@ async def db_get_workspace_admin_identity(env, workspace):
 async def db_link_user_workspace(env, user_id, workspace_id, role="owner"):
     """Associate a user with a workspace (idempotent)."""
     now = get_utc_now()
-    print(
-        f"[db_link_user_workspace] Linking user {user_id} to workspace {workspace_id}"
-    )
     try:
-        result = await (
+        await (
             env.DB.prepare(
                 "INSERT INTO user_workspaces (user_id, workspace_id, role, created_at) "
                 "VALUES (?, ?, ?, ?) "
@@ -354,12 +351,8 @@ async def db_link_user_workspace(env, user_id, workspace_id, role="owner"):
             .bind(user_id, workspace_id, role, now)
             .run()
         )
-        print(f"[db_link_user_workspace] Link created successfully, result: {result}")
         return True
     except Exception as e:
-        print(
-            f"[db_link_user_workspace] ERROR linking user {user_id} to workspace {workspace_id}: {e}"
-        )
         try:
             sentry = get_sentry()
             sentry.capture_exception_nowait(
@@ -374,7 +367,6 @@ async def db_link_user_workspace(env, user_id, workspace_id, role="owner"):
 
 async def db_get_user_workspaces(env, user_id):
     """Return all workspaces accessible by this user."""
-    print(f"[db_get_user_workspaces] Fetching workspaces for user_id={user_id}")
     try:
         result = (
             await env.DB.prepare(
@@ -387,16 +379,8 @@ async def db_get_user_workspaces(env, user_id):
             .all()
         )
         workspaces = _rows(result)
-        print(
-            f"[db_get_user_workspaces] Found {len(workspaces)} workspace(s) for user {user_id}"
-        )
-        if workspaces:
-            print(
-                f"[db_get_user_workspaces] Workspaces: {[ws.get('team_name') for ws in workspaces]}"
-            )
         return workspaces
     except Exception as e:
-        print(f"[db_get_user_workspaces] ERROR: {e}")
         try:
             sentry = get_sentry()
             sentry.capture_exception_nowait(
@@ -642,7 +626,7 @@ async def db_upsert_channel(
 ):
     now = get_utc_now()
     try:
-        result = await (
+        await (
             env.DB.prepare(
                 "INSERT INTO channels "
                 "(workspace_id, channel_id, channel_name, member_count, topic, purpose, "
@@ -666,12 +650,8 @@ async def db_upsert_channel(
             )
             .run()
         )
-        print(
-            f"[db_upsert_channel] Saved channel {channel_name} (ID: {channel_id}), result: {result}"
-        )
         return True
     except Exception as e:
-        print(f"[db_upsert_channel] ERROR saving channel {channel_id}: {e}")
         try:
             sentry = get_sentry()
             sentry.capture_exception_nowait(
@@ -907,9 +887,6 @@ async def db_get_or_create_user(
     env, slack_user_id, team_id, name, email, access_token, avatar_url=""
 ):
     now = get_utc_now()
-    print(
-        f"[db_get_or_create_user] Called with slack_user_id={slack_user_id}, team_id={team_id}, name={name}"
-    )
     try:
         # Ensure required columns are never NULL for inserts/updates.
         slack_user_id = slack_user_id or ""
@@ -920,9 +897,6 @@ async def db_get_or_create_user(
         avatar_url = avatar_url or ""
 
         if not slack_user_id:
-            print(
-                "[db_get_or_create_user] ERROR: slack_user_id is empty, returning None"
-            )
             return None
 
         existing = _row(
@@ -931,14 +905,13 @@ async def db_get_or_create_user(
             .first()
         )
         if existing:
-            print("[db_get_or_create_user] User exists, updating...")
             # Preserve existing name when the caller provides no name (e.g. identity
             # fetch failed), so we never overwrite a real display name with an empty
             # string or the raw Slack user ID.
             # Fallback precedence: new name → existing DB name → slack_user_id
             existing_name = existing.get("name") or ""
             effective_name = name or existing_name or slack_user_id
-            result = await (
+            await (
                 env.DB.prepare(
                     "UPDATE users SET name=?, email=?, access_token=?, avatar_url=?, team_id=?, updated_at=? "
                     "WHERE slack_user_id=?"
@@ -954,12 +927,10 @@ async def db_get_or_create_user(
                 )
                 .run()
             )
-            print(f"[db_get_or_create_user] Update result: {result}")
         else:
-            print("[db_get_or_create_user] Creating new user...")
             # For new users, fall back to slack_user_id when no display name is available.
             insert_name = name or slack_user_id
-            result = await (
+            await (
                 env.DB.prepare(
                     "INSERT INTO users "
                     "(slack_user_id, team_id, name, email, access_token, avatar_url, created_at, updated_at) "
@@ -977,16 +948,13 @@ async def db_get_or_create_user(
                 )
                 .run()
             )
-            print(f"[db_get_or_create_user] Insert result: {result}")
         user = _row(
             await env.DB.prepare("SELECT * FROM users WHERE slack_user_id = ?")
             .bind(slack_user_id)
             .first()
         )
-        print(f"[db_get_or_create_user] Retrieved user: {user}")
         return user
     except Exception as e:
-        print(f"[db_get_or_create_user] ERROR: {e}")
         try:
             sentry = get_sentry()
             sentry.capture_exception_nowait(
@@ -1000,19 +968,16 @@ async def db_get_or_create_user(
 async def db_create_session(env, user_id, token):
     now = get_utc_now()
     expires = (datetime.now(timezone.utc) + timedelta(days=30)).isoformat()
-    print(f"[db_create_session] Creating session for user_id={user_id}")
     try:
-        result = await (
+        await (
             env.DB.prepare(
                 "INSERT INTO sessions (id, user_id, created_at, expires_at) VALUES (?, ?, ?, ?)"
             )
             .bind(token, user_id, now, expires)
             .run()
         )
-        print(f"[db_create_session] Session created successfully, result: {result}")
         return token
     except Exception as e:
-        print(f"[db_create_session] ERROR: {e}")
         try:
             sentry = get_sentry()
             sentry.capture_exception_nowait(
@@ -1151,31 +1116,93 @@ async def db_delete_workspace(env, workspace_id):
     """Delete a workspace and all dependent workspace-scoped records."""
     try:
         # Delete children first because FKs are not configured with cascade.
-        await (
-            env.DB.prepare("DELETE FROM events WHERE workspace_id = ?")
-            .bind(workspace_id)
-            .run()
-        )
-        await (
-            env.DB.prepare("DELETE FROM channels WHERE workspace_id = ?")
-            .bind(workspace_id)
-            .run()
-        )
-        await (
-            env.DB.prepare("DELETE FROM repositories WHERE workspace_id = ?")
-            .bind(workspace_id)
-            .run()
-        )
-        await (
-            env.DB.prepare("DELETE FROM github_organizations WHERE workspace_id = ?")
-            .bind(workspace_id)
-            .run()
-        )
-        await (
-            env.DB.prepare("DELETE FROM join_messages WHERE workspace_id = ?")
-            .bind(workspace_id)
-            .run()
-        )
+        try:
+            await (
+                env.DB.prepare("DELETE FROM events WHERE workspace_id = ?")
+                .bind(workspace_id)
+                .run()
+            )
+        except Exception as e:
+            sentry = get_sentry()
+            sentry.capture_exception_nowait(
+                e,
+                level="warning",
+                extra={
+                    "context": "db_delete_workspace/events",
+                    "workspace_id": workspace_id,
+                },
+            )
+
+        try:
+            await (
+                env.DB.prepare("DELETE FROM channels WHERE workspace_id = ?")
+                .bind(workspace_id)
+                .run()
+            )
+        except Exception as e:
+            sentry = get_sentry()
+            sentry.capture_exception_nowait(
+                e,
+                level="warning",
+                extra={
+                    "context": "db_delete_workspace/channels",
+                    "workspace_id": workspace_id,
+                },
+            )
+
+        try:
+            await (
+                env.DB.prepare("DELETE FROM repositories WHERE workspace_id = ?")
+                .bind(workspace_id)
+                .run()
+            )
+        except Exception as e:
+            sentry = get_sentry()
+            sentry.capture_exception_nowait(
+                e,
+                level="warning",
+                extra={
+                    "context": "db_delete_workspace/repositories",
+                    "workspace_id": workspace_id,
+                },
+            )
+
+        try:
+            await (
+                env.DB.prepare(
+                    "DELETE FROM github_organizations WHERE workspace_id = ?"
+                )
+                .bind(workspace_id)
+                .run()
+            )
+        except Exception as e:
+            sentry = get_sentry()
+            sentry.capture_exception_nowait(
+                e,
+                level="warning",
+                extra={
+                    "context": "db_delete_workspace/github_organizations",
+                    "workspace_id": workspace_id,
+                },
+            )
+
+        try:
+            await (
+                env.DB.prepare("DELETE FROM join_messages WHERE workspace_id = ?")
+                .bind(workspace_id)
+                .run()
+            )
+        except Exception as e:
+            sentry = get_sentry()
+            sentry.capture_exception_nowait(
+                e,
+                level="warning",
+                extra={
+                    "context": "db_delete_workspace/join_messages",
+                    "workspace_id": workspace_id,
+                },
+            )
+
         await (
             env.DB.prepare("DELETE FROM workspaces WHERE id = ?")
             .bind(workspace_id)
@@ -2058,9 +2085,7 @@ async def get_db_table_counts(env):
             row = _row(result)
             count_val = row.get("count", 0) if row else 0
             counts[table] = count_val
-            print(f"[get_db_table_counts] Table {table}: {count_val} rows")
         except Exception as e:
-            print(f"[get_db_table_counts] ERROR querying table {table}: {e}")
             try:
                 sentry = get_sentry()
                 sentry.capture_exception_nowait(
@@ -2282,8 +2307,6 @@ async def db_upsert_workspace(
 
 async def scan_workspace_channels(env, workspace_id, access_token):
     """Scan all public channels in the workspace and persist them in D1."""
-    print(f"[scan_workspace_channels] Starting scan for workspace {workspace_id}")
-    print(f"[scan_workspace_channels] Access token present: {bool(access_token)}")
     scanned = 0
     cursor = None
     while True:
@@ -2301,16 +2324,9 @@ async def scan_workspace_channels(env, workspace_id, access_token):
                 },
             )
             data = _js_to_python(await resp.json())
-            print(
-                f"[scan_workspace_channels] Slack API response ok: {data.get('ok')}, error: {data.get('error')}"
-            )
             if not data.get("ok"):
-                print(f"[scan_workspace_channels] Slack API error: {data.get('error')}")
                 break
             channels = data.get("channels", [])
-            print(
-                f"[scan_workspace_channels] Found {len(channels)} channels in this batch"
-            )
             for ch in channels:
                 cid = ch.get("id", "")
                 cname = ch.get("name", "")
@@ -2331,7 +2347,6 @@ async def scan_workspace_channels(env, workspace_id, access_token):
             if not cursor:
                 break
         except Exception as e:
-            print(f"[scan_workspace_channels] ERROR during scan: {e}")
             try:
                 sentry = get_sentry()
                 sentry.capture_exception_nowait(
@@ -2340,18 +2355,15 @@ async def scan_workspace_channels(env, workspace_id, access_token):
             except Exception:
                 pass
             break
-    print(f"[scan_workspace_channels] Scan complete: {scanned} channels saved")
     return scanned
 
 
 async def import_workspace_history(env, workspace_id, access_token):
     """Import historical channel activity from Slack to populate events table."""
-    print(f"[import_workspace_history] Starting import for workspace {workspace_id}")
 
     # Get all channels for this workspace
     channels = await db_get_channels(env, workspace_id)
     if not channels:
-        print("[import_workspace_history] No channels found. Run scan first.")
         return {"ok": False, "error": "No channels found. Please scan channels first."}
 
     total_events = 0
@@ -2362,9 +2374,6 @@ async def import_workspace_history(env, workspace_id, access_token):
 
     for ch in channels[:10]:  # Limit to first 10 channels to avoid timeout
         channel_id = ch.get("channel_id")
-        print(
-            f"[import_workspace_history] Importing history from #{ch.get('channel_name')}"
-        )
 
         try:
             headers = Headers.new()
@@ -2377,9 +2386,6 @@ async def import_workspace_history(env, workspace_id, access_token):
             data = _js_to_python(data)
 
             if not data.get("ok"):
-                print(
-                    f"[import_workspace_history] Error fetching history: {data.get('error')}"
-                )
                 continue
 
             messages = _js_to_python(data.get("messages") or [])
@@ -2397,7 +2403,6 @@ async def import_workspace_history(env, workspace_id, access_token):
                 total_events += 1
 
         except Exception as e:
-            print(f"[import_workspace_history] ERROR importing from {channel_id}: {e}")
             try:
                 sentry = get_sentry()
                 sentry.capture_exception_nowait(
@@ -2413,7 +2418,6 @@ async def import_workspace_history(env, workspace_id, access_token):
                 pass
             continue
 
-    print(f"[import_workspace_history] Import complete: {total_events} events added")
     return {
         "ok": True,
         "events_imported": total_events,
@@ -3349,7 +3353,27 @@ async def _handle_disconnect_command(env, body_json):
 
     workspace_id = workspace.get("id")
     team_name = str(workspace.get("team_name") or team_id)
-    deleted = await db_delete_workspace(env, workspace_id)
+
+    try:
+        deleted = await db_delete_workspace(env, workspace_id)
+    except Exception as e:
+        try:
+            sentry = get_sentry()
+            sentry.capture_exception_nowait(
+                e,
+                level="error",
+                extra={
+                    "context": "_handle_disconnect_command",
+                    "workspace_id": workspace_id,
+                },
+            )
+        except Exception:
+            pass
+        return {
+            "response_type": "ephemeral",
+            "text": f"An error occurred while removing workspace data: {str(e)[:100]}",
+        }
+
     if not deleted:
         return {
             "response_type": "ephemeral",
@@ -3859,7 +3883,6 @@ async def handle_request(request, env):
             if not installer_slack_user_id:
                 return _redirect("/")
 
-            print("[OAuth callback] Processing workspace installation flow")
             bot_token = token_data.get("access_token")
             team_info = _js_to_python(token_data.get("team") or {})
             team_id = _obj_get(team_info, "id", "")
@@ -3995,12 +4018,10 @@ async def handle_request(request, env):
                 )
 
             # Validate token and get workspace info
-            print(f"[manual-add] Validating token for user {user.get('user_id')}")
             validation = await validate_slack_token(token)
 
             if not validation.get("ok"):
                 error_msg = validation.get("error", "Invalid token")
-                print(f"[manual-add] Validation failed: {error_msg}")
                 return _json_response({"ok": False, "error": error_msg}, 400)
 
             team_id = validation.get("team_id")
@@ -4020,10 +4041,6 @@ async def handle_request(request, env):
             app_name = app_meta.get("app_name") or app_name
             app_icon_url = app_meta.get("app_icon_url") or ""
 
-            print(
-                f"[manual-add] Token validated. team_id={team_id}, team_name={team_name}, app_id={app_id}"
-            )
-
             # Check if workspace already exists for another user
             existing_ws = await db_get_workspace_by_team_and_app(env, team_id, app_id)
             if existing_ws:
@@ -4035,9 +4052,6 @@ async def handle_request(request, env):
                     # Link the user to existing workspace
                     await db_link_user_workspace(
                         env, user["user_id"], existing_ws["id"], role="admin"
-                    )
-                    print(
-                        f"[manual-add] Linked user {user['user_id']} to existing workspace {existing_ws['id']}"
                     )
 
                 # Update token if provided
@@ -4070,9 +4084,6 @@ async def handle_request(request, env):
                     # Link user as owner
                     await db_link_user_workspace(
                         env, user["user_id"], ws["id"], role="owner"
-                    )
-                    print(
-                        f"[manual-add] Created workspace {ws['id']} and linked user {user['user_id']}"
                     )
 
             if not ws:
@@ -4145,7 +4156,6 @@ async def handle_request(request, env):
             )
 
         except Exception as e:
-            print(f"[manual-add] ERROR: {e}")
             try:
                 sentry = get_sentry()
                 sentry.capture_exception_nowait(
@@ -5334,7 +5344,6 @@ async def handle_request(request, env):
                 {"ok": True, "counts": counts, "timestamp": get_utc_now()}
             )
         except Exception as e:
-            print(f"[/api/db-stats] ERROR: {e}")
             try:
                 sentry = get_sentry()
                 sentry.capture_exception_nowait(
@@ -5390,7 +5399,6 @@ async def handle_request(request, env):
                 }
             )
         except Exception as e:
-            print(f"[/api/debug/db] ERROR: {e}")
             try:
                 sentry = get_sentry()
                 sentry.capture_exception_nowait(
@@ -5474,10 +5482,7 @@ class Default(WorkerEntrypoint):
     async def scheduled(self, controller):
         """Cloudflare Cron trigger entrypoint."""
         try:
-            result = await run_inactivity_monitor(self.env)
-            print(
-                f"[cron inactivity monitor] checked={result.get('checked', 0)} alerted={result.get('alerted', 0)}"
-            )
+            await run_inactivity_monitor(self.env)
         except Exception as e:
             try:
                 sentry = get_sentry()
@@ -5488,4 +5493,3 @@ class Default(WorkerEntrypoint):
                 )
             except Exception:
                 pass
-            print(f"[cron inactivity monitor] ERROR: {e}")
