@@ -1754,16 +1754,40 @@ async def db_get_channel_name(env, workspace_id, channel_id):
 async def db_list_workspaces_public(env):
     """Return all workspaces with public stats (no access tokens)."""
     try:
+        workspace_columns = set()
+        try:
+            workspace_schema = _rows(
+                await env.DB.prepare("PRAGMA table_info(workspaces)").all()
+            )
+            for column in workspace_schema:
+                column_name = str((column or {}).get("name") or "").strip()
+                if column_name:
+                    workspace_columns.add(column_name)
+        except Exception:
+            workspace_columns = set()
+
+        if "icon_url" in workspace_columns:
+            icon_sql = "w.icon_url AS icon_url"
+        elif "app_icon_url" in workspace_columns:
+            icon_sql = "w.app_icon_url AS icon_url"
+        else:
+            icon_sql = "'' AS icon_url"
+
+        if "member_count" in workspace_columns:
+            member_count_sql = "COALESCE(w.member_count, 0) AS member_count"
+        else:
+            member_count_sql = "0 AS member_count"
+
         rows = _rows(
             await env.DB.prepare(
                 "SELECT "
-                "w.id, w.team_name, w.icon_url, w.created_at, "
+                f"w.id, w.team_name, {icon_sql}, w.created_at, "
                 "(SELECT COUNT(*) FROM events e WHERE e.workspace_id = w.id) AS total_activities, "
                 "(SELECT COUNT(*) FROM events e WHERE e.workspace_id = w.id AND e.event_type = 'Team_Join') AS joins, "
                 "(SELECT MAX(e2.created_at) FROM events e2 WHERE e2.workspace_id = w.id) AS last_event_time, "
                 "(SELECT COUNT(*) FROM repositories r WHERE r.workspace_id = w.id) AS repo_count, "
                 "(SELECT COUNT(*) FROM channels c WHERE c.workspace_id = w.id) AS channel_count, "
-                "COALESCE(w.member_count, 0) AS member_count "
+                f"{member_count_sql} "
                 "FROM workspaces w ORDER BY w.created_at DESC"
             ).all()
         )
