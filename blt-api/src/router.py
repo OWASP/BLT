@@ -113,6 +113,20 @@ class Router:
             return handler
         return decorator
     
+    def get_route_list(self) -> List[Dict[str, str]]:
+        """Return metadata for all registered routes.
+
+        Returns:
+            List of dicts with method and path for each route.
+        """
+        return [
+            {
+                "method": route.method,
+                "path": route.pattern,
+            }
+            for route in self.routes
+        ]
+
     def _parse_url(self, url: str) -> str:
         """Extract the path from a full URL."""
         # Handle full URLs
