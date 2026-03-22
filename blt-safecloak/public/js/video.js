@@ -451,7 +451,8 @@ const VideoChat = (() => {
   /* ── Input validation ── */
   function isValidRoomId(roomId) {
     if (!roomId || typeof roomId !== "string") return false;
-    return /^[a-zA-Z0-9]{6}$/.test(roomId.trim());
+    // Match the same character set used by Crypto.randomId(): uppercase A-Z (except I,O) + digits 2-9
+    return /^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{6}$/.test(roomId.trim());
   }
 
   async function callPeer(remotePeerId) {
@@ -468,11 +469,22 @@ const VideoChat = (() => {
       return;
     }
 
+    // Ensure remotePeerId is a string before trimming (defensive against network data)
+    if (typeof remotePeerId !== "string") {
+      showToast("Invalid Room ID format", "error");
+      return;
+    }
+
     // Normalize the peer ID by trimming whitespace
     remotePeerId = remotePeerId.trim();
 
+    if (!remotePeerId) {
+      showToast("Enter a Room ID to call", "warning");
+      return;
+    }
+
     if (!isValidRoomId(remotePeerId)) {
-      showToast("Room ID must be exactly 6 alphanumeric characters", "error");
+      showToast("Room ID must be exactly 6 characters using only uppercase letters (A-Z except I,O) and digits (2-9)", "error");
       return;
     }
     if (remotePeerId === state.peerId) {
