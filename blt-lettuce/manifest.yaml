@@ -38,24 +38,44 @@ oauth_config:
     - https://lettuce.owaspblt.org/callback
   scopes:
     bot:
-      - app_mentions:read
-      - channels:history
-      - channels:read
-      - chat:write
-      - chat:write.customize
-      - chat:write.public
-      - commands
-      - groups:history
-      - groups:read
-      - groups:write
-      - im:history
-      - im:read
-      - im:write
-      - mpim:history
-      - mpim:read
-      - mpim:write
-      - users:read
-      - team:read
+      - scope: app_mentions:read
+        description: Detect when bot is mentioned in conversations for context-aware responses
+      - scope: channels:history
+        description: Read channel message history to understand context and provide relevant assistance
+      - scope: channels:read
+        description: List and retrieve channel information for workspace navigation
+      - scope: channels:write
+        description: Manage channel topics and purposes during configuration
+      - scope: chat:write
+        description: Send welcome messages, join messages, and responses to channels and direct messages
+      - scope: chat:write.customize
+        description: Add custom branding and bot logo to messages for better visual identity
+      - scope: chat:write.public
+        description: Send messages to channels the bot is not currently a member of
+      - scope: commands
+        description: Register and process slash commands like /lettuce-welcome and /lettuce-settings
+      - scope: groups:history
+        description: Read private channel message history for context in closed conversations
+      - scope: groups:read
+        description: List and access private channel information
+      - scope: groups:write
+        description: Manage private channel metadata during configuration
+      - scope: im:history
+        description: Read direct message history for user context and interaction tracking
+      - scope: im:read
+        description: Access and read direct message conversations with users
+      - scope: im:write
+        description: Send direct messages for welcome sequences and member notifications
+      - scope: mpim:history
+        description: Read multi-person direct message history for group context
+      - scope: mpim:read
+        description: Access multi-person direct message conversations
+      - scope: mpim:write
+        description: Send messages to multi-person direct conversations
+      - scope: users:read
+        description: Look up user names and profile information for personalized messages
+      - scope: team:read
+        description: Access workspace team information for workspace management and configuration
 settings:
   event_subscriptions:
     request_url: https://lettuce.owaspblt.org/webhook
