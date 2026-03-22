@@ -18,5 +18,5 @@ enabled = true
 [[d1_databases]]
 binding = "DB"
 database_name = "blt-sammich"
-database_id = "replace-with-your-production-d1-database-id"
+database_id = "409b2fbf-ee3d-4204-a65d-c6994861a8ce"
 migrations_dir = "migrations"
