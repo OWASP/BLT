@@ -651,3 +651,118 @@ def test_handle_message_event_channel_join_falls_back_workspace_by_channel():
     assert result.get("action") == "channel_join_logged"
     assert captured["sent"] == 1
     assert "<@U123>" in captured["text"]
+
+
+def test_handle_message_event_channel_join_fallback_to_dm_when_ephemeral_fails():
+    """When channel ephemeral send fails, join message should fallback to DM."""
+    import asyncio
+    import sys
+    from unittest.mock import Mock
+
+    sys.modules["js"] = Mock()
+    sys.modules["cloudflare"] = Mock()
+    sys.modules["workers"] = Mock()
+
+    from src import worker
+
+    captured = {"ephemeral": 0, "dm": 0}
+
+    async def _fake_get_workspace_by_team(_env, _team_id):
+        return {
+            "id": 7,
+            "team_id": "T070JPE5BQQ",
+            "team_name": "Test WS",
+            "access_token": "xoxb-token",
+        }
+
+    async def _fake_get_channel_name(_env, _workspace_id, _channel_id):
+        return "contribute"
+
+    async def _fake_get_bot_user_id(_env):
+        return "UBOT"
+
+    async def _fake_get_channel_by_slack_id(_env, _workspace_id, _channel_id):
+        return None
+
+    def _fake_get_channel_join_message(_team_id, _channel_id):
+        return "Welcome <@{user_id}>"
+
+    async def _fake_send_ephemeral(
+        _env,
+        _channel,
+        _user,
+        _text,
+        blocks=None,
+        token=None,
+        branding_tracking_id="",
+    ):
+        captured["ephemeral"] += 1
+        return {"ok": False, "error": "not_in_channel"}
+
+    async def _fake_open_conversation(_env, _user, token=None):
+        return {"ok": True, "channel": {"id": "D123"}}
+
+    async def _fake_send_message(
+        _env,
+        _channel,
+        _text,
+        blocks=None,
+        token=None,
+        include_branding=True,
+        branding_tracking_id="",
+    ):
+        captured["dm"] += 1
+        captured["dm_text"] = _text
+        return {"ok": True}
+
+    async def _fake_db_log_event(*_args, **_kwargs):
+        return True
+
+    orig_get_ws_by_team = worker.db_get_workspace_by_team
+    orig_get_channel_name = worker.db_get_channel_name
+    orig_get_bot_user_id = worker.get_bot_user_id
+    orig_get_channel_row = worker.db_get_channel_by_slack_id
+    orig_get_join_msg = worker.get_channel_join_message
+    orig_send_ephemeral = worker.send_slack_ephemeral_message
+    orig_open_conversation = worker.open_conversation
+    orig_send_message = worker.send_slack_message
+    orig_log_event = worker.db_log_event
+
+    worker.db_get_workspace_by_team = _fake_get_workspace_by_team
+    worker.db_get_channel_name = _fake_get_channel_name
+    worker.get_bot_user_id = _fake_get_bot_user_id
+    worker.db_get_channel_by_slack_id = _fake_get_channel_by_slack_id
+    worker.get_channel_join_message = _fake_get_channel_join_message
+    worker.send_slack_ephemeral_message = _fake_send_ephemeral
+    worker.open_conversation = _fake_open_conversation
+    worker.send_slack_message = _fake_send_message
+    worker.db_log_event = _fake_db_log_event
+
+    try:
+        env = Mock()
+        event = {
+            "subtype": "channel_join",
+            "user": "U123",
+            "channel": "C077QBBLY1Z",
+            "channel_type": "channel",
+            "text": "",
+        }
+        result = asyncio.run(
+            worker.handle_message_event(env, event, team_id="T070JPE5BQQ")
+        )
+    finally:
+        worker.db_get_workspace_by_team = orig_get_ws_by_team
+        worker.db_get_channel_name = orig_get_channel_name
+        worker.get_bot_user_id = orig_get_bot_user_id
+        worker.db_get_channel_by_slack_id = orig_get_channel_row
+        worker.get_channel_join_message = orig_get_join_msg
+        worker.send_slack_ephemeral_message = orig_send_ephemeral
+        worker.open_conversation = orig_open_conversation
+        worker.send_slack_message = orig_send_message
+        worker.db_log_event = orig_log_event
+
+    assert result.get("ok") is True
+    assert result.get("action") == "channel_join_logged"
+    assert captured["ephemeral"] == 1
+    assert captured["dm"] == 1
+    assert "<@U123>" in captured["dm_text"]

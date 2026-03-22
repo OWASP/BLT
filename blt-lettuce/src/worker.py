@@ -3426,6 +3426,22 @@ async def handle_message_event(env, event, team_id=None):
 
     # Track channel joins in activities.
     if subtype == "channel_join":
+        try:
+            print(
+                "[channel_join]",
+                json.dumps(
+                    {
+                        "team_id": str(team_id or ""),
+                        "channel": str(channel or ""),
+                        "user": str(user or ""),
+                        "ws_found": bool(ws),
+                        "ws_id": (ws or {}).get("id") if isinstance(ws, dict) else None,
+                    }
+                ),
+            )
+        except Exception:
+            pass
+
         if ws:
             effective_team_id = str(team_id or ws.get("team_id") or "").strip()
             await db_log_event(
@@ -3496,6 +3512,27 @@ async def handle_message_event(env, event, team_id=None):
                                         token=ws_token,
                                         branding_tracking_id=logo_tracking_id,
                                     )
+                                    if not send_result.get("ok"):
+                                        # Ephemeral can fail if bot is not in channel; fallback to DM.
+                                        dm_response = await open_conversation(
+                                            env, user, token=ws_token
+                                        )
+                                        dm_channel = (
+                                            (dm_response.get("channel") or {}).get("id")
+                                            if isinstance(
+                                                dm_response.get("channel"), dict
+                                            )
+                                            else dm_response.get("channel")
+                                        )
+                                        if dm_response.get("ok") and dm_channel:
+                                            send_result = await send_slack_message(
+                                                env,
+                                                dm_channel,
+                                                rendered,
+                                                blocks=join_blocks,
+                                                token=ws_token,
+                                                branding_tracking_id=logo_tracking_id,
+                                            )
                                 else:
                                     dm_response = await open_conversation(
                                         env, user, token=ws_token
@@ -3530,6 +3567,20 @@ async def handle_message_event(env, event, team_id=None):
                                 if send_result.get("ok"):
                                     sent_join_message = True
                             except Exception:
+                                try:
+                                    print(
+                                        "[channel_join]",
+                                        json.dumps(
+                                            {
+                                                "step": "db_template_send_exception",
+                                                "workspace_id": ws.get("id"),
+                                                "channel": channel,
+                                                "user": user,
+                                            }
+                                        ),
+                                    )
+                                except Exception:
+                                    pass
                                 await db_log_event(
                                     env,
                                     ws["id"],
@@ -3613,6 +3664,40 @@ async def handle_message_event(env, event, team_id=None):
                             token=ws_token,
                             branding_tracking_id=logo_tracking_id,
                         )
+                        if not send_result.get("ok"):
+                            # Ephemeral may fail when bot is not a channel member.
+                            try:
+                                print(
+                                    "[channel_join]",
+                                    json.dumps(
+                                        {
+                                            "step": "file_fallback_ephemeral_failed",
+                                            "workspace_id": ws.get("id"),
+                                            "channel": channel,
+                                            "user": user,
+                                            "error": send_result.get("error"),
+                                        }
+                                    ),
+                                )
+                            except Exception:
+                                pass
+                            dm_response = await open_conversation(
+                                env, user, token=ws_token
+                            )
+                            dm_channel = (
+                                (dm_response.get("channel") or {}).get("id")
+                                if isinstance(dm_response.get("channel"), dict)
+                                else dm_response.get("channel")
+                            )
+                            if dm_response.get("ok") and dm_channel:
+                                send_result = await send_slack_message(
+                                    env,
+                                    dm_channel,
+                                    rendered,
+                                    blocks=join_blocks,
+                                    token=ws_token,
+                                    branding_tracking_id=logo_tracking_id,
+                                )
                         await db_log_event(
                             env,
                             ws["id"],
@@ -3651,6 +3736,21 @@ async def handle_message_event(env, event, team_id=None):
                         ),
                         verified=False,
                     )
+        else:
+            try:
+                print(
+                    "[channel_join]",
+                    json.dumps(
+                        {
+                            "step": "workspace_not_found",
+                            "team_id": str(team_id or ""),
+                            "channel": str(channel or ""),
+                            "user": str(user or ""),
+                        }
+                    ),
+                )
+            except Exception:
+                pass
         return {"ok": True, "action": "channel_join_logged"}
 
     if channel_type == "im":

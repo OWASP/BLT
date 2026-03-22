@@ -20,7 +20,7 @@ VERSION = "2.0.0"
 crons = ["* * * * *"]
 
 [observability]
-enabled = false
+enabled = true
 head_sampling_rate = 1
 
 [observability.logs]
@@ -31,7 +31,7 @@ invocation_logs = true
 destinations = [ "sentry-logs" ]
 
 [observability.traces]
-enabled = false
+enabled = true
 persist = true
 head_sampling_rate = 1
 destinations = [ "sentry-traces" ]
