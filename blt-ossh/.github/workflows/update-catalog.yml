@@ -1,0 +1,49 @@
+name: Update Catalog Data
+
+on:
+  schedule:
+    # Run daily at 6 AM UTC
+    - cron: "0 6 * * *"
+
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-catalog:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Fetch DEV.to articles
+        run: python scripts/fetch_articles.py
+
+      - name: Fetch Discord servers
+        if: env.DISCORD_BOT_TOKEN != ''
+        run: python scripts/fetch_discord.py
+
+      - name: Fetch Reddit communities
+        run: python scripts/fetch_reddit.py
+
+      - name: Commit updated catalog
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name  "github-actions[bot]"
+          git add data/ossh_catalog.json
+          git diff --staged --quiet || \
+            git commit -m "chore: update catalog data [skip ci]"
+          git push
