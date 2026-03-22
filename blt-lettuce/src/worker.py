@@ -213,88 +213,83 @@ async def ensure_d1_schema(env):
             "team_id TEXT NOT NULL,"
             "name TEXT DEFAULT '',"
             "email TEXT DEFAULT '',"
-            "access_token TEXT DEFAULT '',"
-            "avatar_url TEXT DEFAULT '',"
-            "created_at TEXT NOT NULL,"
-            "updated_at TEXT NOT NULL"
-            ")"
-        ),
-        (
-            "CREATE TABLE IF NOT EXISTS sessions ("
-            "id TEXT PRIMARY KEY,"
-            "user_id INTEGER NOT NULL,"
-            "created_at TEXT NOT NULL,"
-            "expires_at TEXT NOT NULL,"
-            "FOREIGN KEY (user_id) REFERENCES users(id)"
-            ")"
-        ),
-        (
-            "CREATE TABLE IF NOT EXISTS workspaces ("
-            "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-            "team_id TEXT NOT NULL,"
-            "team_name TEXT NOT NULL,"
-            "installer_slack_user_id TEXT DEFAULT '',"
-            "installer_name TEXT DEFAULT '',"
-            "icon_url TEXT DEFAULT '',"
-            "app_id TEXT DEFAULT '',"
-            "app_name TEXT DEFAULT '',"
-            "app_icon_url TEXT DEFAULT '',"
-            "manifest_yaml TEXT DEFAULT '',"
-            "access_token TEXT NOT NULL,"
-            "bot_user_id TEXT DEFAULT '',"
-            "created_at TEXT NOT NULL,"
-            "updated_at TEXT NOT NULL"
-            ")"
-        ),
-        (
-            "CREATE UNIQUE INDEX IF NOT EXISTS idx_workspace_team_app "
-            "ON workspaces(team_id, app_id)"
-        ),
-        (
-            "CREATE TABLE IF NOT EXISTS user_workspaces ("
-            "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-            "user_id INTEGER NOT NULL,"
-            "workspace_id INTEGER NOT NULL,"
-            "role TEXT DEFAULT 'owner',"
-            "created_at TEXT NOT NULL,"
-            "FOREIGN KEY (user_id) REFERENCES users(id),"
-            "FOREIGN KEY (workspace_id) REFERENCES workspaces(id),"
-            "UNIQUE(user_id, workspace_id)"
-            ")"
-        ),
-        (
-            "CREATE TABLE IF NOT EXISTS channels ("
-            "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-            "workspace_id INTEGER NOT NULL,"
-            "channel_id TEXT NOT NULL,"
-            "channel_name TEXT NOT NULL,"
-            "member_count INTEGER DEFAULT 0,"
-            "topic TEXT DEFAULT '',"
-            "purpose TEXT DEFAULT '',"
-            "is_private INTEGER DEFAULT 0,"
-            "send_join_message INTEGER DEFAULT 0,"
-            "join_message_id INTEGER DEFAULT NULL,"
-            "join_delivery_mode TEXT DEFAULT 'dm',"
-            "created_at TEXT NOT NULL,"
-            "updated_at TEXT NOT NULL,"
-            "FOREIGN KEY (workspace_id) REFERENCES workspaces(id),"
-            "UNIQUE(workspace_id, channel_id)"
-            ")"
-        ),
-        (
-            "CREATE TABLE IF NOT EXISTS join_messages ("
-            "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-            "workspace_id INTEGER NOT NULL,"
-            "name TEXT NOT NULL,"
-            "message_text TEXT NOT NULL,"
-            "is_active INTEGER DEFAULT 1,"
-            "created_at TEXT NOT NULL,"
-            "updated_at TEXT NOT NULL,"
-            "FOREIGN KEY (workspace_id) REFERENCES workspaces(id)"
-            ")"
-        ),
-        (
-            "CREATE TABLE IF NOT EXISTS repositories ("
+            migrations = [
+                {
+                    "table": "workspaces",
+                    "column": "app_id",
+                    "sql": "ALTER TABLE workspaces ADD COLUMN app_id TEXT DEFAULT ''",
+                },
+                {
+                    "table": "workspaces",
+                    "column": "icon_url",
+                    "sql": "ALTER TABLE workspaces ADD COLUMN icon_url TEXT DEFAULT ''",
+                },
+                {
+                    "table": "workspaces",
+                    "column": "installer_slack_user_id",
+                    "sql": "ALTER TABLE workspaces ADD COLUMN installer_slack_user_id TEXT DEFAULT ''",
+                },
+                {
+                    "table": "workspaces",
+                    "column": "installer_name",
+                    "sql": "ALTER TABLE workspaces ADD COLUMN installer_name TEXT DEFAULT ''",
+                },
+                {
+                    "table": "events",
+                    "column": "channel_name",
+                    "sql": "ALTER TABLE events ADD COLUMN channel_name TEXT DEFAULT ''",
+                },
+                {
+                    "table": "events",
+                    "column": "request_data",
+                    "sql": "ALTER TABLE events ADD COLUMN request_data TEXT DEFAULT ''",
+                },
+                {
+                    "table": "events",
+                    "column": "verified",
+                    "sql": "ALTER TABLE events ADD COLUMN verified INTEGER DEFAULT 0",
+                },
+                {
+                    "table": "repositories",
+                    "column": "source_type",
+                    "sql": "ALTER TABLE repositories ADD COLUMN source_type TEXT DEFAULT 'repo'",
+                },
+                {
+                    "table": "repositories",
+                    "column": "metadata_json",
+                    "sql": "ALTER TABLE repositories ADD COLUMN metadata_json TEXT DEFAULT ''",
+                },
+                {
+                    "table": "channels",
+                    "column": "send_join_message",
+                    "sql": "ALTER TABLE channels ADD COLUMN send_join_message INTEGER DEFAULT 0",
+                },
+                {
+                    "table": "channels",
+                    "column": "join_message_id",
+                    "sql": "ALTER TABLE channels ADD COLUMN join_message_id INTEGER DEFAULT NULL",
+                },
+                {
+                    "table": "channels",
+                    "column": "join_delivery_mode",
+                    "sql": "ALTER TABLE channels ADD COLUMN join_delivery_mode TEXT DEFAULT 'dm'",
+                },
+                {
+                    "table": "workspaces",
+                    "column": "app_name",
+                    "sql": "ALTER TABLE workspaces ADD COLUMN app_name TEXT DEFAULT ''",
+                },
+                {
+                    "table": "workspaces",
+                    "column": "manifest_yaml",
+                    "sql": "ALTER TABLE workspaces ADD COLUMN manifest_yaml TEXT DEFAULT ''",
+                },
+                {
+                    "table": "workspaces",
+                    "column": "app_icon_url",
+                    "sql": "ALTER TABLE workspaces ADD COLUMN app_icon_url TEXT DEFAULT ''",
+                },
+            ]
             "id INTEGER PRIMARY KEY AUTOINCREMENT,"
             "workspace_id INTEGER NOT NULL,"
             "repo_url TEXT NOT NULL,"
@@ -342,53 +337,9 @@ async def ensure_d1_schema(env):
         (
             "CREATE INDEX IF NOT EXISTS idx_user_workspaces_workspace "
             "ON user_workspaces(workspace_id)"
-        ),
-    ]
-
-    migrations = [
-        {
-            "table": "users",
-            "column": "avatar_url",
-            "sql": "ALTER TABLE users ADD COLUMN avatar_url TEXT DEFAULT ''",
-        },
-        {
-            "table": "workspaces",
-            "column": "app_id",
-            "sql": "ALTER TABLE workspaces ADD COLUMN app_id TEXT DEFAULT ''",
-        },
-        {
-            "table": "workspaces",
-            "column": "icon_url",
-            "sql": "ALTER TABLE workspaces ADD COLUMN icon_url TEXT DEFAULT ''",
-        },
-        {
-            "table": "workspaces",
-            "column": "installer_slack_user_id",
-            "sql": "ALTER TABLE workspaces ADD COLUMN installer_slack_user_id TEXT DEFAULT ''",
-        },
-        {
-            "table": "workspaces",
-            "column": "installer_name",
-            "sql": "ALTER TABLE workspaces ADD COLUMN installer_name TEXT DEFAULT ''",
-        },
-        {
-            "table": "events",
-            "column": "channel_name",
-            "sql": "ALTER TABLE events ADD COLUMN channel_name TEXT DEFAULT ''",
-        },
-        {
-            "table": "events",
-            "column": "request_data",
-            "sql": "ALTER TABLE events ADD COLUMN request_data TEXT DEFAULT ''",
-        },
-        {
-            "table": "events",
-            "column": "verified",
-            "sql": "ALTER TABLE events ADD COLUMN verified INTEGER DEFAULT 0",
-        },
-        {
-            "table": "repositories",
-            "column": "source_type",
+        statements = [
+            ...existing code...
+        ]
             "sql": "ALTER TABLE repositories ADD COLUMN source_type TEXT DEFAULT 'repo'",
         },
         {

@@ -53,38 +53,6 @@ ON workspaces(team_id, app_id);
 
 -- Junction table: which users manage which workspaces (many-to-many)
 -- role: 'owner' (installed the bot) or 'admin'
-CREATE TABLE IF NOT EXISTS user_workspaces (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL,
-    workspace_id INTEGER NOT NULL,
-    role TEXT DEFAULT 'owner',
-    created_at TEXT NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users(id),
-    FOREIGN KEY (workspace_id) REFERENCES workspaces(id),
-    UNIQUE(user_id, workspace_id)
-);
-
--- Channels discovered per workspace (populated during scan)
-CREATE TABLE IF NOT EXISTS channels (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    workspace_id INTEGER NOT NULL,
-    channel_id TEXT NOT NULL,
-    channel_name TEXT NOT NULL,
-    member_count INTEGER DEFAULT 0,
-    topic TEXT DEFAULT '',
-    purpose TEXT DEFAULT '',
-    is_private INTEGER DEFAULT 0,
-    created_at TEXT NOT NULL,
-    updated_at TEXT NOT NULL,
-    FOREIGN KEY (workspace_id) REFERENCES workspaces(id),
-    UNIQUE(workspace_id, channel_id)
-);
-
--- GitHub repositories attached to a workspace for user matching
-CREATE TABLE IF NOT EXISTS repositories (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    workspace_id INTEGER NOT NULL,
-    repo_url TEXT NOT NULL,
     repo_name TEXT DEFAULT '',
     description TEXT DEFAULT '',
     language TEXT DEFAULT '',
