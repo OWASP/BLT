@@ -335,10 +335,12 @@
       async function fetchWorkspaces() {
         try {
           const r = await fetch(WORKSPACES_API_URL);
-          if (!r.ok) throw new Error();
+          if (!r.ok) throw new Error(`HTTP ${r.status}`);
           const data = await r.json();
+          if (!data.ok) console.warn("[workspaces]", data.error);
           return data.workspaces || [];
-        } catch {
+        } catch (e) {
+          console.error("[workspaces] fetch failed:", e);
           return [];
         }
       }

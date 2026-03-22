@@ -5553,9 +5553,9 @@ async def handle_request(request, env):
     if pathname == "/api/workspaces-public" and method == "GET":
         try:
             workspaces = await db_list_workspaces_public(env)
-            return Response.json({"ok": True, "workspaces": workspaces})
+            return _json_response({"ok": True, "workspaces": workspaces})
         except Exception as e:
-            return Response.json({"ok": False, "workspaces": [], "error": str(e)})
+            return _json_response({"ok": False, "workspaces": [], "error": str(e)})
 
     # ------------------------------------------------------------------ #
     #  GET /api/db-stats  →  database table counts                       #
