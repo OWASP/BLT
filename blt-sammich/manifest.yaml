@@ -1,28 +1,77 @@
 display_information:
-  name: Sammich Dev
+  name: OWASP BLT
+  description: Helper Bot
+  background_color: "#e10000"
+  long_description: OWASP BLT Bot is a powerful and user-friendly assistant designed to help users navigate the OWASP ecosystem with ease. Whether you're a new contributor or a seasoned developer, this bot provides essential resources, including contribution guides, project statistics, discovery tools, and details about OWASP Google Summer of Code (GSoC). With simple commands, users can quickly access valuable information, stay updated on ongoing projects, and enhance their engagement with open-source security initiatives. OWASP BLT Bot streamlines the process of contributing to and exploring OWASP projects, making security research and development more accessible for everyone.
 features:
+  app_home:
+    home_tab_enabled: true
+    messages_tab_enabled: false
+    messages_tab_read_only_enabled: false
   bot_user:
-    display_name: Sammich Dev
-    always_online: false
+    display_name: OWASP BLT bot
+    always_online: true
   slash_commands:
-    - command: /demo
-      description: Show demo output
+    - command: /contrib
+      url: https://sammich.owaspblt.org/slack/commands/
+      description: Guide to Contributing to OWASP Projects
       should_escape: false
-    - command: /contributor
-      description: gives contributors report
+    - command: /stats
+      url: https://sammich.owaspblt.org/slack/commands/
+      description: Show OWASP project stats
+      should_escape: false
+    - command: /discover
+      url: https://sammich.owaspblt.org/slack/commands/
+      description: Discover Owasp projects to work on!
+      usage_hint: "[optional search term]"
+      should_escape: false
+    - command: /gsoc25
+      url: https://sammich.owaspblt.org/slack/commands/
+      description: Get all the essential details about OWASP GSoC 2025! 🚀
+      usage_hint: "[search by technology ,mentor or project]"
+      should_escape: false
+    - command: /blt
+      url: https://sammich.owaspblt.org/slack/commands/
+      description: On development
+      should_escape: false
+    - command: /installed_apps
+      url: https://sammich.owaspblt.org/slack/commands/
+      description: List installed apps
       should_escape: false
 oauth_config:
+  redirect_urls:
+    - https://sammich.owaspblt.org/oauth/slack/callback
   scopes:
     bot:
-      - commands
-      - users:read
+      - app_mentions:read
+      - channels:history
+      - channels:join
       - channels:read
+      - chat:write
+      - chat:write.public
+      - commands
+      - groups:history
       - groups:read
-      - mpim:read
-      - im:read
+      - im:history
+      - im:write
+      - mpim:history
+      - team:read
+      - users:read
+      - incoming-webhook
+  pkce_enabled: false
 settings:
+  event_subscriptions:
+    request_url: https://sammich.owaspblt.org/slack/events
+    bot_events:
+      - app_mention
+      - message.channels
+      - message.groups
+      - message.im
+      - message.mpim
+      - team_join
   interactivity:
     is_enabled: true
-  org_deploy_enabled: false
-  socket_mode_enabled: true
+    request_url: https://sammich.owaspblt.org/slack/events
+  org_deploy_enabled: true
+  socket_mode_enabled: false
   token_rotation_enabled: false

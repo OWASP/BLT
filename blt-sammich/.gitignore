@@ -1,5 +1,7 @@
 __pycache__
 .env
+.env.*
+!.env.example
 .ruff_cache
 .secrets
 .venv
