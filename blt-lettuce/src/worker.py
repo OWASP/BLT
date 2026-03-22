@@ -3446,6 +3446,21 @@ async def _handle_org_add_command(env, body_json):
     }
 
 
+async def _handle_app_link_command(env, body_json):
+    """Handle /lettuce-app-link: provide a link to the Slack app dashboard."""
+    app_id = str(getattr(env, "SLACK_APP_ID", "") or "").strip()
+    if not app_id:
+        return {
+            "response_type": "ephemeral",
+            "text": "Slack app ID is not configured.",
+        }
+    app_url = f"https://api.slack.com/apps/{app_id}"
+    return {
+        "response_type": "ephemeral",
+        "text": f"<{app_url}|Open Slack App Dashboard>",
+    }
+
+
 # ===========================================================================
 # Signature verification
 # ===========================================================================
@@ -5138,6 +5153,9 @@ async def handle_request(request, env):
                     return Response.json(
                         await _handle_disconnect_command(env, body_json)
                     )
+
+                if cmd_name == "/lettuce-app-link":
+                    return Response.json(await _handle_app_link_command(env, body_json))
 
                 return Response.json(
                     {

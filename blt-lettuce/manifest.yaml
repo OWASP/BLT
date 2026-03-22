@@ -21,6 +21,10 @@ features:
       url: https://lettuce.owaspblt.org/webhook
       description: Remove all bot data for this workspace from the database
       should_escape: false
+    - command: /lettuce-app-link
+      url: https://lettuce.owaspblt.org/webhook
+      description: Open the Slack app link
+      should_escape: false
 oauth_config:
   redirect_urls:
     - https://lettuce.owaspblt.org/callback
