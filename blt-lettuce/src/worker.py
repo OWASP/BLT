@@ -3326,6 +3326,45 @@ async def _is_workspace_admin_user(env, workspace, user_id):
     )
 
 
+async def _handle_disconnect_command(env, body_json):
+    """Handle /lettuce-disconnect: remove all bot data for this workspace.
+
+    Only the original installer (admin) may run this command.
+    """
+    team_id = body_json.get("team_id") or ""
+    user_id = str(body_json.get("user_id") or "").strip()
+
+    workspace = await db_get_workspace_by_team(env, team_id) if team_id else None
+    if not workspace:
+        return {
+            "response_type": "ephemeral",
+            "text": "No workspace data found for this Slack team — nothing to remove.",
+        }
+
+    if not await _is_workspace_admin_user(env, workspace, user_id):
+        return {
+            "response_type": "ephemeral",
+            "text": "Only the user who originally installed the bot can run `/lettuce-disconnect`.",
+        }
+
+    workspace_id = workspace.get("id")
+    team_name = str(workspace.get("team_name") or team_id)
+    deleted = await db_delete_workspace(env, workspace_id)
+    if not deleted:
+        return {
+            "response_type": "ephemeral",
+            "text": "An error occurred while removing workspace data. Please try again.",
+        }
+
+    return {
+        "response_type": "ephemeral",
+        "text": (
+            f":wave: All data for workspace *{html_escape(team_name)}* has been removed from the database. "
+            "You can uninstall the app from your Slack workspace settings to complete the disconnection."
+        ),
+    }
+
+
 async def _handle_org_add_command(env, body_json):
     """Handle /lettuce-org-add: connect a GitHub org to this workspace."""
     team_id = body_json.get("team_id") or ""
@@ -5068,6 +5107,11 @@ async def handle_request(request, env):
 
                 if cmd_name == "/lettuce-org-add":
                     return Response.json(await _handle_org_add_command(env, body_json))
+
+                if cmd_name == "/lettuce-disconnect":
+                    return Response.json(
+                        await _handle_disconnect_command(env, body_json)
+                    )
 
                 return Response.json(
                     {
