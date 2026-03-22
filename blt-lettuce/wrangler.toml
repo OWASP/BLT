@@ -8,6 +8,7 @@ command = "python scripts/migrate.py"
 
 [assets]
 directory = "."
+binding = "ASSETS"
 include = ["data/**", "src/data/**", "docs/static/**"]
 
 [[d1_databases]]
