@@ -12,6 +12,8 @@ CREATE TABLE IF NOT EXISTS workspaces (
     manifest_yaml TEXT DEFAULT '',
     installer_slack_user_id TEXT DEFAULT '',
     installer_name TEXT DEFAULT '',
+    channel_count INTEGER DEFAULT 0,
+    member_count INTEGER DEFAULT 0,
     access_token TEXT NOT NULL,
     bot_user_id TEXT DEFAULT '',
     created_at TEXT NOT NULL,

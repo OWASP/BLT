@@ -272,6 +272,30 @@ async def db_update_workspace_installer(
         return False
 
 
+async def db_update_workspace_channel_member_counts(
+    env, workspace_id, channel_count=0, member_count=0
+):
+    """Persist cached workspace channel/member totals."""
+    now = get_utc_now()
+    try:
+        await (
+            env.DB.prepare(
+                "UPDATE workspaces SET channel_count = ?, member_count = ?, updated_at = ? WHERE id = ?"
+            )
+            .bind(
+                int(channel_count or 0),
+                int(member_count or 0),
+                now,
+                workspace_id,
+            )
+            .run()
+        )
+        return True
+    except Exception:
+        # Older databases may not have the aggregate columns yet.
+        return False
+
+
 async def db_get_workspace_admin_identity(env, workspace):
     """Return the installer/admin Slack identity for a workspace."""
     ws = workspace or {}
@@ -3652,11 +3676,53 @@ async def handle_request(request, env):
                 installer_slack_user_id=installer_slack_user_id,
                 installer_name=installer_name or installer_slack_user_id,
             )
+            channels_scanned = 0
+            total_members = 0
             if ws:
                 ws_id_val = ws.get("id") if isinstance(ws, dict) else None
                 try:
                     if ws_id_val and bot_token:
-                        await scan_workspace_channels(env, ws_id_val, bot_token)
+                        channels_scanned = int(
+                            await scan_workspace_channels(env, ws_id_val, bot_token)
+                            or 0
+                        )
+                        channel_rows = await db_get_channels(env, ws_id_val)
+                        total_members = sum(
+                            int((row or {}).get("member_count") or 0)
+                            for row in channel_rows
+                            if isinstance(row, dict)
+                        )
+                        await db_update_workspace_channel_member_counts(
+                            env,
+                            ws_id_val,
+                            channel_count=len(channel_rows),
+                            member_count=total_members,
+                        )
+                except Exception:
+                    pass
+
+                try:
+                    conv_result = await open_conversation(
+                        env,
+                        installer_slack_user_id,
+                        token=bot_token,
+                    )
+                    dm_channel = (
+                        (conv_result.get("channel") or {}).get("id")
+                        if isinstance(conv_result.get("channel"), dict)
+                        else conv_result.get("channel")
+                    )
+                    if conv_result.get("ok") and dm_channel:
+                        await send_slack_message(
+                            env,
+                            dm_channel,
+                            (
+                                f":white_check_mark: BLT-Lettuce is now connected to *{team_name}*\n"
+                                f"Channels synced: *{channels_scanned}*\n"
+                                f"Members tracked: *{total_members}*"
+                            ),
+                            token=bot_token,
+                        )
                 except Exception:
                     pass
 
@@ -3812,6 +3878,53 @@ async def handle_request(request, env):
                 return _json_response(
                     {"ok": False, "error": "Failed to create workspace"}, 500
                 )
+
+            channels_scanned = 0
+            total_members = 0
+            try:
+                ws_id_val = ws.get("id") if isinstance(ws, dict) else None
+                if ws_id_val and token:
+                    channels_scanned = int(
+                        await scan_workspace_channels(env, ws_id_val, token) or 0
+                    )
+                    channel_rows = await db_get_channels(env, ws_id_val)
+                    total_members = sum(
+                        int((row or {}).get("member_count") or 0)
+                        for row in channel_rows
+                        if isinstance(row, dict)
+                    )
+                    await db_update_workspace_channel_member_counts(
+                        env,
+                        ws_id_val,
+                        channel_count=len(channel_rows),
+                        member_count=total_members,
+                    )
+
+                user_slack_id = str(user.get("slack_user_id") or "").strip()
+                if user_slack_id:
+                    conv_result = await open_conversation(
+                        env,
+                        user_slack_id,
+                        token=token,
+                    )
+                    dm_channel = (
+                        (conv_result.get("channel") or {}).get("id")
+                        if isinstance(conv_result.get("channel"), dict)
+                        else conv_result.get("channel")
+                    )
+                    if conv_result.get("ok") and dm_channel:
+                        await send_slack_message(
+                            env,
+                            dm_channel,
+                            (
+                                f":white_check_mark: BLT-Lettuce is now connected to *{team_name}*\n"
+                                f"Channels synced: *{channels_scanned}*\n"
+                                f"Members tracked: *{total_members}*"
+                            ),
+                            token=token,
+                        )
+            except Exception:
+                pass
 
             try:
                 sentry = get_sentry()
