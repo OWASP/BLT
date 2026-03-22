@@ -3,6 +3,9 @@ main = "src/worker.py"
 compatibility_date = "2026-03-01"
 compatibility_flags = ["python_workers"]
 
+[build]
+command = "python scripts/migrate.py"
+
 
 [[d1_databases]]
 binding = "DB"
