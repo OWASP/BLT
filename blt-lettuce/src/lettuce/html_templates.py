@@ -426,7 +426,6 @@ def get_dashboard_html(user, workspaces, selected_ws, ws_stats, events, daily_da
 def get_workspace_detail_html(workspace, user):
     """Render the workspace detail page (2-year chart + activity log)."""
     workspace = workspace or {}
-    user = user or {}
 
     ws_id = workspace.get("id")
     ws_name = html_escape(workspace.get("team_name") or "Workspace")
@@ -434,10 +433,6 @@ def get_workspace_detail_html(workspace, user):
     member_count = workspace.get("member_count") or 0
     channel_count = workspace.get("channel_count") or 0
     app_name = html_escape(workspace.get("app_name") or "BLT-Lettuce")
-    app_id = workspace.get("app_id") or ""
-    app_edit_url = (
-        f"https://api.slack.com/apps/{html_escape(app_id)}" if app_id else "#"
-    )
 
     icon_url = workspace.get("icon_url") or ""
     if icon_url:
@@ -452,10 +447,6 @@ def get_workspace_detail_html(workspace, user):
             f'justify-center text-2xl font-bold flex-shrink-0">{html_escape(initials)}</div>'
         )
 
-    user_name = html_escape(user.get("name") or user.get("slack_user_id") or "User")
-    user_slack_id = html_escape(user.get("slack_user_id") or "")
-    user_avatar = _build_user_avatar(user)
-
     return _render_template(
         "workspace_detail.html",
         {
@@ -465,10 +456,6 @@ def get_workspace_detail_html(workspace, user):
             "MEMBER_COUNT": member_count,
             "CHANNEL_COUNT": channel_count,
             "APP_NAME": app_name,
-            "APP_EDIT_URL": app_edit_url,
             "WS_ICON_HTML": ws_icon_html,
-            "USER_AVATAR": user_avatar,
-            "USER_NAME": user_name,
-            "USER_SLACK_ID": user_slack_id,
         },
     )

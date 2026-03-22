@@ -2494,8 +2494,12 @@ def get_channel_join_message(team_id, channel_id):
             [
                 os.path.normpath(os.path.join(script_dir, "..", "data")),
                 os.path.normpath(os.path.join(script_dir, "data")),
+                os.path.normpath(os.path.join(script_dir, "..", "src", "data")),
+                os.path.normpath(os.path.join(script_dir, "..", "..", "src", "data")),
+                os.path.normpath(os.path.join(script_dir, "src", "data")),
                 os.path.normpath(os.path.join(cwd, "data")),
                 os.path.normpath(os.path.join(cwd, "src", "data")),
+                "/session/src/data",
             ]
         )
         # Preserve order while de-duplicating.
@@ -5963,38 +5967,59 @@ async def handle_request(request, env):
         and method == "GET"
     ):
         try:
-            ws_id_val = int(pathname.split("/api/ws/")[1].split("/")[0])
-        except (ValueError, IndexError):
-            return _json_response({"ok": False, "error": "Invalid workspace id"}, 400)
-
-        ws = await db_get_workspace_by_id(env, ws_id_val)
-        if not ws:
-            return _json_response({"ok": False, "error": "Workspace not found"}, 404)
-
-        user = await get_current_user(env, request)
-        is_owner = bool(
-            user and await db_user_owns_workspace(env, user["user_id"], ws_id_val)
-        )
-
-        events = await db_get_events(env, ws_id_val, limit=50)
-        if not is_owner:
-            # Public detail pages should not expose raw request payloads.
-            public_events = []
-            for e in events:
-                public_events.append(
-                    {
-                        "id": e.get("id"),
-                        "event_type": e.get("event_type"),
-                        "user_slack_id": e.get("user_slack_id"),
-                        "channel_name": e.get("channel_name"),
-                        "status": e.get("status"),
-                        "created_at": e.get("created_at"),
-                        "request_data": "",
-                    }
+            try:
+                ws_id_val = int(pathname.split("/api/ws/")[1].split("/")[0])
+            except (ValueError, IndexError):
+                return _json_response(
+                    {"ok": False, "error": "Invalid workspace id"}, 400
                 )
-            return Response.json({"ok": True, "events": public_events})
 
-        return Response.json({"ok": True, "events": events})
+            ws = await db_get_workspace_by_id(env, ws_id_val)
+            if not ws:
+                return _json_response(
+                    {"ok": False, "error": "Workspace not found"}, 404
+                )
+
+            user = await get_current_user(env, request)
+            user_id_val = (
+                (user or {}).get("user_id") if isinstance(user, dict) else None
+            )
+            is_owner = bool(
+                user_id_val
+                and await db_user_owns_workspace(env, user_id_val, ws_id_val)
+            )
+
+            events = await db_get_events(env, ws_id_val, limit=50)
+            if not is_owner:
+                # Public detail pages should not expose raw request payloads.
+                public_events = []
+                for e in events:
+                    row = e if isinstance(e, dict) else {}
+                    public_events.append(
+                        {
+                            "id": row.get("id"),
+                            "event_type": row.get("event_type"),
+                            "user_slack_id": row.get("user_slack_id"),
+                            "channel_name": row.get("channel_name"),
+                            "status": row.get("status"),
+                            "created_at": row.get("created_at"),
+                            "request_data": "",
+                        }
+                    )
+                return Response.json({"ok": True, "events": public_events})
+
+            return Response.json({"ok": True, "events": events})
+        except Exception as e:
+            try:
+                sentry = get_sentry()
+                sentry.capture_exception_nowait(
+                    e,
+                    level="error",
+                    extra={"path": "/api/ws/<id>/events", "workspace_id": pathname},
+                )
+            except Exception:
+                pass
+            return _json_response({"ok": False, "error": "Internal server error"}, 500)
 
     # ------------------------------------------------------------------ #
     #  GET /api/ws/<id>/activity  →  daily stats for activity chart      #
@@ -6005,26 +6030,45 @@ async def handle_request(request, env):
         and method == "GET"
     ):
         try:
-            ws_id_val = int(pathname.split("/api/ws/")[1].split("/")[0])
-        except (ValueError, IndexError):
-            return _json_response({"ok": False, "error": "Invalid workspace id"}, 400)
+            try:
+                ws_id_val = int(pathname.split("/api/ws/")[1].split("/")[0])
+            except (ValueError, IndexError):
+                return _json_response(
+                    {"ok": False, "error": "Invalid workspace id"}, 400
+                )
 
-        ws = await db_get_workspace_by_id(env, ws_id_val)
-        if not ws:
-            return _json_response({"ok": False, "error": "Workspace not found"}, 404)
+            ws = await db_get_workspace_by_id(env, ws_id_val)
+            if not ws:
+                return _json_response(
+                    {"ok": False, "error": "Workspace not found"}, 404
+                )
 
-        qs = url.split("?", 1)[1] if "?" in url else ""
-        days_param = 730
-        for part in qs.split("&"):
-            kv = part.split("=", 1)
-            if len(kv) == 2 and kv[0] == "days":
-                try:
-                    days_param = max(1, min(int(kv[1]), 730))
-                except (ValueError, TypeError):
-                    pass
+            qs = url.split("?", 1)[1] if "?" in url else ""
+            days_param = 730
+            for part in qs.split("&"):
+                kv = part.split("=", 1)
+                if len(kv) == 2 and kv[0] == "days":
+                    try:
+                        days_param = max(1, min(int(kv[1]), 730))
+                    except (ValueError, TypeError):
+                        pass
 
-        daily = await db_get_daily_stats(env, ws_id_val, days=days_param)
-        return Response.json({"ok": True, "daily": daily})
+            daily = await db_get_daily_stats(env, ws_id_val, days=days_param)
+            return Response.json({"ok": True, "daily": daily})
+        except Exception as e:
+            try:
+                sentry = get_sentry()
+                sentry.capture_exception_nowait(
+                    e,
+                    level="error",
+                    extra={
+                        "path": "/api/ws/<id>/activity",
+                        "workspace_id": pathname,
+                    },
+                )
+            except Exception:
+                pass
+            return _json_response({"ok": False, "error": "Internal server error"}, 500)
 
     # ------------------------------------------------------------------ #
     #  POST /api/ws/<id>/manifest-check  →  analyze pasted manifest YAML #
