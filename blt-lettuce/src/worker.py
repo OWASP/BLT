@@ -3708,59 +3708,22 @@ async def handle_message_event(env, event, team_id=None):
         if ws:
             effective_team_id = str(team_id or ws.get("team_id") or "").strip()
 
-            is_duplicate = await db_seen_recent_channel_join(
+            # Only deduplicate within a very short window (5 min) to prevent accidental rejoin spam
+            # but allow legitimate rejoins after that window
+            is_spam_rejoin = await db_seen_recent_channel_join(
                 env,
                 ws.get("id"),
                 user,
                 channel,
-                seconds=3600,
+                seconds=300,  # 5 minutes - only dedupe accidental quick rejoin events
             )
-            if is_duplicate:
-                dedupe_file_template = ""
-                try:
-                    dedupe_file_template = await get_channel_join_message_runtime(
-                        env, effective_team_id, channel
-                    )
-                    print(
-                        "[channel_join]",
-                        json.dumps(
-                            {
-                                "step": "dedupe_file_debug",
-                                "workspace_id": ws.get("id"),
-                                "team_id_effective": effective_team_id,
-                                "channel": channel,
-                                "user": user,
-                                "template_found": bool(
-                                    dedupe_file_template
-                                    and dedupe_file_template.strip()
-                                ),
-                                "template_length": len(dedupe_file_template or ""),
-                            }
-                        ),
-                    )
-                except Exception as e:
-                    try:
-                        print(
-                            "[channel_join]",
-                            json.dumps(
-                                {
-                                    "step": "dedupe_file_debug_exception",
-                                    "workspace_id": ws.get("id"),
-                                    "team_id_effective": effective_team_id,
-                                    "channel": channel,
-                                    "user": user,
-                                    "error": str(e),
-                                }
-                            ),
-                        )
-                    except Exception:
-                        pass
+            if is_spam_rejoin:
                 try:
                     print(
                         "[channel_join]",
                         json.dumps(
                             {
-                                "step": "dedupe_skip",
+                                "step": "spam_rejoin_detected",
                                 "workspace_id": ws.get("id"),
                                 "channel": channel,
                                 "user": user,
@@ -3779,7 +3742,7 @@ async def handle_message_event(env, event, team_id=None):
                     channel_name=resolved_channel_name,
                     request_data=json.dumps(
                         {
-                            "step": "dedupe_skip",
+                            "step": "spam_rejoin_skipped",
                             "channel_id": channel,
                             "source_event": source_event,
                         },
@@ -3787,7 +3750,7 @@ async def handle_message_event(env, event, team_id=None):
                     ),
                     verified=False,
                 )
-                return {"ok": True, "action": "channel_join_deduped"}
+                return {"ok": True, "action": "channel_join_spam_prevented"}
 
             await db_log_event(
                 env,
