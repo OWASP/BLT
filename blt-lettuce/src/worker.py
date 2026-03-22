@@ -33,6 +33,7 @@ from lettuce.html_templates import (
     get_homepage_html,
     get_privacy_html,
     get_status_html,
+    get_sub_processors_html,
     get_terms_html,
     html_escape,
 )
@@ -2489,12 +2490,69 @@ def get_channel_join_message(team_id, channel_id):
             if not candidate_path.startswith(base_dir):
                 continue
             if not os.path.exists(candidate_path):
+                try:
+                    print(
+                        "[get_channel_join_message]",
+                        json.dumps(
+                            {
+                                "status": "file_not_found",
+                                "filename": filename,
+                                "team_id": team_id,
+                                "channel_id": channel_id,
+                            }
+                        ),
+                    )
+                except Exception:
+                    pass
                 continue
             with open(candidate_path, "r", encoding="utf-8") as f:
-                return f.read().strip()
-    except Exception:
+                content = f.read().strip()
+                try:
+                    print(
+                        "[get_channel_join_message]",
+                        json.dumps(
+                            {
+                                "status": "file_read_success",
+                                "filename": filename,
+                                "team_id": team_id,
+                                "channel_id": channel_id,
+                                "content_length": len(content),
+                            }
+                        ),
+                    )
+                except Exception:
+                    pass
+                return content
+    except Exception as e:
+        try:
+            print(
+                "[get_channel_join_message]",
+                json.dumps(
+                    {
+                        "status": "exception",
+                        "error": str(e),
+                        "team_id": team_id,
+                        "channel_id": channel_id,
+                    }
+                ),
+            )
+        except Exception:
+            pass
         return ""
 
+    try:
+        print(
+            "[get_channel_join_message]",
+            json.dumps(
+                {
+                    "status": "no_file_found",
+                    "team_id": team_id,
+                    "channel_id": channel_id,
+                }
+            ),
+        )
+    except Exception:
+        pass
     return ""
 
 
@@ -3743,6 +3801,21 @@ async def handle_message_event(env, event, team_id=None):
                     )
                 except Exception:
                     pass
+                if not file_template or not file_template.strip():
+                    try:
+                        print(
+                            "[channel_join]",
+                            json.dumps(
+                                {
+                                    "step": "no_template",
+                                    "workspace_id": ws.get("id"),
+                                    "channel": channel,
+                                    "note": "skipping message send - empty template",
+                                }
+                            ),
+                        )
+                    except Exception:
+                        pass
                 if file_template.strip():
                     rendered = render_join_message_template(
                         file_template,
@@ -3757,6 +3830,22 @@ async def handle_message_event(env, event, team_id=None):
                             "timestamp": get_utc_now(),
                         },
                     )
+                    try:
+                        print(
+                            "[channel_join]",
+                            json.dumps(
+                                {
+                                    "step": "template_rendered",
+                                    "workspace_id": ws.get("id"),
+                                    "channel": channel,
+                                    "rendered_length": len(rendered or ""),
+                                    "rendered_empty": not rendered
+                                    or not rendered.strip(),
+                                }
+                            ),
+                        )
+                    except Exception:
+                        pass
                     if rendered.strip():
                         logo_tracking_id = secrets.token_hex(12)
                         join_blocks = [
@@ -6110,6 +6199,29 @@ async def handle_request(request, env):
         return Response.new("", {"status": 302, "headers": h})
 
     # ------------------------------------------------------------------ #
+    #  GET /favicon.png  →  serve logo as favicon                        #
+    # ------------------------------------------------------------------ #
+    if pathname == "/favicon.png" and method == "GET":
+        try:
+            import os
+
+            favicon_path = os.path.normpath(
+                os.path.join(
+                    os.path.dirname(__file__), "..", "..", "docs", "static", "logo.png"
+                )
+            )
+            if os.path.exists(favicon_path):
+                with open(favicon_path, "rb") as f:
+                    favicon_data = f.read()
+                h = Headers.new()
+                h.set("Content-Type", "image/png")
+                h.set("Cache-Control", "public, max-age=86400")
+                return Response.new(favicon_data, {"headers": h})
+        except Exception:
+            pass
+        return Response.new("", {"status": 404})
+
+    # ------------------------------------------------------------------ #
     #  GET /health                                                        #
     # ------------------------------------------------------------------ #
     if pathname == "/health":
@@ -6149,6 +6261,15 @@ async def handle_request(request, env):
     if pathname == "/terms" and method == "GET":
         return _html_response(
             get_terms_html(),
+            extra_headers={"Cache-Control": "public, max-age=3600"},
+        )
+
+    # ------------------------------------------------------------------ #
+    #  GET /sub-processors  →  sub-processors information                #
+    # ------------------------------------------------------------------ #
+    if pathname == "/sub-processors" and method == "GET":
+        return _html_response(
+            get_sub_processors_html(),
             extra_headers={"Cache-Control": "public, max-age=3600"},
         )
 

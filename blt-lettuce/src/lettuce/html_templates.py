@@ -164,3 +164,8 @@ def get_privacy_html():
 def get_terms_html():
     """Generate the terms of service HTML page."""
     return _load_template("terms.html")
+
+
+def get_sub_processors_html():
+    """Generate the sub-processors information HTML page."""
+    return _load_template("sub-processors.html")

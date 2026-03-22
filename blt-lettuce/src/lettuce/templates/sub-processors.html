@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sub-Processors - BLT-Lettuce</title>
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 60px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            border-bottom: 3px solid #4DBD15;
+            padding-bottom: 30px;
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            color: #4DBD15;
+            margin-bottom: 10px;
+        }
+        
+        .last-updated {
+            color: #666;
+            font-size: 0.9em;
+            font-style: italic;
+        }
+        
+        h2 {
+            font-size: 1.4em;
+            color: #333;
+            margin-top: 40px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        h3 {
+            font-size: 1.1em;
+            color: #555;
+            margin-top: 25px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        p {
+            margin-bottom: 15px;
+            color: #555;
+        }
+        
+        ul {
+            margin-left: 25px;
+            margin-bottom: 15px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+            color: #555;
+        }
+        
+        strong {
+            color: #333;
+            font-weight: 600;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+        }
+        
+        .processor {
+            background: #f9f9f9;
+            border-left: 4px solid #4DBD15;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        .processor-name {
+            font-size: 1.2em;
+            font-weight: 700;
+            color: #4DBD15;
+            margin-bottom: 10px;
+        }
+        
+        .processor-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            background: white;
+        }
+        
+        .processor-table th,
+        .processor-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        .processor-table th {
+            background: #f5f5f5;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .processor-table td {
+            color: #555;
+        }
+        
+        .highlight {
+            background: #f0f8f0;
+            border-left: 4px solid #4DBD15;
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        
+        .footer {
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 2px solid #e0e0e0;
+            text-align: center;
+            color: #666;
+            font-size: 0.95em;
+        }
+        
+        .nav-back {
+            margin-bottom: 20px;
+        }
+        
+        .nav-back a {
+            color: #4DBD15;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .nav-back a:hover {
+            text-decoration: underline;
+        }
+        
+        .links {
+            display: flex;
+            gap: 20px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .links a {
+            color: #4DBD15;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .links a:hover {
+            text-decoration: underline;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 30px 20px;
+            }
+            
+            h1 {
+                font-size: 1.8em;
+            }
+            
+            h2 {
+                font-size: 1.2em;
+            }
+            
+            .processor-table {
+                font-size: 0.9em;
+            }
+            
+            .processor-table th,
+            .processor-table td {
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="nav-back">
+            <a href="/">&larr; Back to Home</a>
+        </div>
+        
+        <header>
+            <h1>Sub-Processors</h1>
+            <p class="last-updated">Last Updated: March 22, 2026</p>
+        </header>
+        
+        <div class="section">
+            <h2>Overview</h2>
+            <p>BLT-Lettuce uses third-party sub-processors to deliver its services. This page provides comprehensive information about each sub-processor, including their role, data handling practices, and compliance commitments.</p>
+            <p>By installing or using the Bot, you consent to data processing by these sub-processors as described below. We maintain current information about all sub-processors and notify users of material changes.</p>
+        </div>
+        
+        <div class="section">
+            <h2>Sub-Processor Directory</h2>
+            
+            <div class="processor">
+                <div class="processor-name">1. Cloudflare, Inc.</div>
+                
+                <h3>Primary Role</h3>
+                <p>Cloudflare is the primary infrastructure provider for BLT-Lettuce, hosting all application logic, databases, and data processing.</p>
+                
+                <h3>Services Provided</h3>
+                <table class="processor-table">
+                    <thead>
+                        <tr>
+                            <th>Service</th>
+                            <th>Purpose</th>
+                            <th>Data Processed</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Cloudflare Workers</strong></td>
+                            <td>Serverless computing platform executing Bot logic</td>
+                            <td>Webhook payloads, API requests, user messages, configuration data</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Cloudflare D1</strong></td>
+                            <td>Managed SQLite database for persistent data storage</td>
+                            <td>Workspace data, channel information, user profiles, event logs</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Cloudflare Security</strong></td>
+                            <td>DDoS protection, WAF, rate limiting, encryption</td>
+                            <td>Network traffic, IP addresses, request metadata</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Global Network</strong></td>
+                            <td>Content delivery and failover across data centers</td>
+                            <td>All customer data subject to replication and redundancy</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <h3>Data Centers</h3>
+                <p>Cloudflare operates data centers in multiple regions worldwide:</p>
+                <ul>
+                    <li><strong>United States</strong> – Multiple regions for US-based workspaces</li>
+                    <li><strong>Europe</strong> – GDPR-compliant regions for EU data subjects</li>
+                    <li><strong>Global</strong> – Additional regions as needed for performance and compliance</li>
+                </ul>
+                
+                <h3>Data Security Practices</h3>
+                <ul>
+                    <li><strong>Encryption:</strong> Data encrypted at rest using AES-256; in-transit using TLS 1.3</li>
+                    <li><strong>Access Controls:</strong> Role-based access control (RBAC), principle of least privilege</li>
+                    <li><strong>Redundancy:</strong> Multi-region replication for disaster recovery</li>
+                    <li><strong>Monitoring:</strong> 24/7 security monitoring and incident response</li>
+                    <li><strong>Compliance:</strong> SOC 2 Type II, ISO 27001, GDPR, CCPA</li>
+                </ul>
+                
+                <h3>Data Retention</h3>
+                <p>Cloudflare retains customer data for the duration of service. Backup copies may be retained for up to 90 days after deletion for disaster recovery purposes.</p>
+                
+                <h3>Privacy & Compliance</h3>
+                <p>For detailed information about Cloudflare's data processing practices, privacy policies, and compliance certifications, visit:</p>
+                <div class="links">
+                    <a href="https://www.cloudflare.com/privacypolicy/" target="_blank">Cloudflare Privacy Policy</a>
+                    <a href="https://www.cloudflare.com/compliance/" target="_blank">Cloudflare Compliance</a>
+                    <a href="https://www.cloudflare.com/trust-hub/" target="_blank">Cloudflare Trust Hub</a>
+                </div>
+            </div>
+            
+            <div class="processor">
+                <div class="processor-name">2. Slack Technologies, Inc.</div>
+                
+                <h3>Primary Role</h3>
+                <p>Slack is the platform through which users interact with BLT-Lettuce. The Bot operates within Slack's ecosystem using their APIs and event infrastructure.</p>
+                
+                <h3>Services Provided</h3>
+                <table class="processor-table">
+                    <thead>
+                        <tr>
+                            <th>Service</th>
+                            <th>Purpose</th>
+                            <th>Data Processed</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Slack API</strong></td>
+                            <td>Bot communication with Slack workspaces</td>
+                            <td>Messages, user information, channel metadata</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Event Subscriptions</strong></td>
+                            <td>webhooks for channel joins and other events</td>
+                            <td>Event payloads including user IDs, channel IDs, timestamps</td>
+                        </tr>
+                        <tr>
+                            <td><strong>OAuth 2.0</strong></td>
+                            <td>Bot installation and workspace authentication</td>
+                            <td>Bot tokens, workspace credentials, installer information</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Workspace Administration</strong></td>
+                            <td>Workspace data access and configuration</td>
+                            <td>Team ID, workspace name, member counts</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <h3>Data Processing</h3>
+                <p>Slack processes data according to their terms of service and privacy policies. BLT-Lettuce only requests the minimal scopes necessary for Bot operation:</p>
+                <ul>
+                    <li><strong>app_mentions:read</strong> – Detect mentions for engagement</li>
+                    <li><strong>channels:history</strong> – Read channel conversation history for context</li>
+                    <li><strong>chat:write</strong> – Send messages to channels</li>
+                    <li><strong>commands</strong> – Handle slash commands</li>
+                    <li><strong>users:read</strong> – Access user information for personalization</li>
+                    <li><strong>team:read</strong> – Access workspace information</li>
+                </ul>
+                
+                <h3>Data Security</h3>
+                <p>Communication with Slack APIs uses industry-standard TLS encryption. Slack maintains enterprise-grade security practices.</p>
+                
+                <h3>Privacy & Compliance</h3>
+                <p>For information about Slack's data handling practices:</p>
+                <div class="links">
+                    <a href="https://slack.com/privacy-policy" target="_blank">Slack Privacy Policy</a>
+                    <a href="https://slack.com/trust" target="_blank">Slack Trust & Compliance</a>
+                    <a href="https://slack.com/security" target="_blank">Slack Security</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>Data Flow Summary</h2>
+            <p>Customer data flows through the following processors:</p>
+            <ul>
+                <li><strong>User joins channel in Slack</strong> → Slack generates event webhook</li>
+                <li><strong>Event transmitted to Cloudflare Workers</strong> → Bot logic processes event</li>
+                <li><strong>Bot logic queries Cloudflare D1 database</strong> → Retrieves workspace configuration</li>
+                <li><strong>Bot sends response back to Slack</strong> → Message delivered to user via Slack API</li>
+                <li><strong>Event logged in Cloudflare D1</strong> → Audit trail stored for compliance</li>
+            </ul>
+        </div>
+        
+        <div class="section">
+            <h2>Sub-Processor Agreements</h2>
+            <p>We maintain Data Processing Agreements (DPAs) or equivalent agreements with all sub-processors to ensure compliance with data protection regulations including GDPR and CCPA.</p>
+            
+            <h3>Changes to Sub-Processors</h3>
+            <p>We may add new sub-processors or replace existing ones as the Bot evolves. We will:</p>
+            <ul>
+                <li>Maintain a current list of all active sub-processors</li>
+                <li>Notify users of material changes to sub-processor arrangements</li>
+                <li>Ensure all sub-processors maintain equivalent data protection standards</li>
+                <li>Provide users with options to object to changes where legally permissible</li>
+            </ul>
+        </div>
+        
+        <div class="section">
+            <h2>GDPR Compliance</h2>
+            <p>Under GDPR Article 28, we ensure that:</p>
+            <ul>
+                <li>All sub-processors process data only on our documented instructions</li>
+                <li>Sub-processors maintain appropriate technical and organizational measures</li>
+                <li>Sub-processors are bound by confidentiality obligations</li>
+                <li>We have assessed sub-processor capacity to ensure GDPR compliance</li>
+                <li>Sub-processors provide sufficient guarantees for data protection</li>
+            </ul>
+        </div>
+        
+        <div class="section">
+            <h2>Contact & Questions</h2>
+            <p>For questions about sub-processors, data handling, or to request information about how your data is processed:</p>
+            <ul>
+                <li>Review the individual sub-processor privacy policies linked above</li>
+                <li>Contact the Bot maintainers through the official repository</li>
+                <li>Submit data protection inquiries through your workspace administrator</li>
+            </ul>
+        </div>
+        
+        <div class="section">
+            <h2>Related Documentation</h2>
+            <div class="links">
+                <a href="/privacy">&rarr; Privacy Policy</a>
+                <a href="/terms">&rarr; Terms of Service</a>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>BLT-Lettuce maintains transparency about data processing through third parties and is committed to protecting customer data privacy.</p>
+            <p style="margin-top: 15px; font-size: 0.85em;">© 2026 OWASP BLT. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
