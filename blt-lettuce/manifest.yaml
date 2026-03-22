@@ -57,6 +57,7 @@ settings:
     request_url: https://lettuce.owaspblt.org/webhook
     bot_events:
       - team_join
+      - member_joined_channel
       - message.channels
       - message.groups
       - message.im

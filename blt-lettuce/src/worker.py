@@ -5677,6 +5677,20 @@ async def handle_request(request, env):
                 result = await handle_message_event(env, event, team_id=team_id)
                 return Response.json(result)
 
+            if event_type == "member_joined_channel":
+                # Forward as a channel_join message subtype so existing join
+                # message logic (DB templates + file fallback) handles it.
+                synthetic = {
+                    "type": "message",
+                    "subtype": "channel_join",
+                    "user": event.get("user"),
+                    "channel": event.get("channel"),
+                    "channel_type": event.get("channel_type", "C"),
+                    "text": "",
+                }
+                result = await handle_message_event(env, synthetic, team_id=team_id)
+                return Response.json(result)
+
             if event_type == "app_mention" or body_json.get("command"):
                 result = await handle_command(env, event, team_id=team_id)
                 return Response.json(result)
