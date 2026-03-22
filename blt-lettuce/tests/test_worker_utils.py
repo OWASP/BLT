@@ -986,3 +986,138 @@ def test_webhook_channel_join_sequence_sends_message_once():
 
     assert captured["ephemeral"] == 1
     assert "<@U06V72UT0J1>" in captured["text"]
+
+
+def test_handle_team_join_logs_logo_tracking_for_verification():
+    """Team join DM should persist logo_tracking_id so /logo-hit can verify it."""
+    import asyncio
+    import json
+    import sys
+    from unittest.mock import Mock
+
+    sys.modules["js"] = Mock()
+    sys.modules["cloudflare"] = Mock()
+    sys.modules["workers"] = Mock()
+
+    from src import worker
+
+    captured = {"send_tracking_id": "", "log_kwargs": {}}
+
+    async def _fake_get_bot_user_id(_env):
+        return "UBOT"
+
+    async def _fake_db_get_workspace_by_team(_env, _team_id):
+        return {"id": 8, "team_id": "T070JPE5BQQ", "access_token": "xoxb-token"}
+
+    async def _fake_open_conversation(_env, _user_id, token=None):
+        return {"ok": True, "channel": {"id": "D123TEAM"}}
+
+    async def _fake_db_get_channels(_env, _workspace_id):
+        return []
+
+    async def _fake_send_slack_message(
+        _env,
+        _channel,
+        _text,
+        blocks=None,
+        token=None,
+        include_branding=True,
+        branding_tracking_id="",
+    ):
+        captured["send_tracking_id"] = branding_tracking_id
+        return {"ok": True}
+
+    async def _fake_db_log_event(*_args, **kwargs):
+        captured["log_kwargs"] = kwargs
+        return True
+
+    orig_get_bot_user_id = worker.get_bot_user_id
+    orig_get_workspace_by_team = worker.db_get_workspace_by_team
+    orig_open_conversation = worker.open_conversation
+    orig_get_channels = worker.db_get_channels
+    orig_send_message = worker.send_slack_message
+    orig_log_event = worker.db_log_event
+
+    worker.get_bot_user_id = _fake_get_bot_user_id
+    worker.db_get_workspace_by_team = _fake_db_get_workspace_by_team
+    worker.open_conversation = _fake_open_conversation
+    worker.db_get_channels = _fake_db_get_channels
+    worker.send_slack_message = _fake_send_slack_message
+    worker.db_log_event = _fake_db_log_event
+
+    try:
+        env = Mock()
+        event = {"user": {"id": "UJOIN"}}
+        result = asyncio.run(worker.handle_team_join(env, event, team_id="T070JPE5BQQ"))
+    finally:
+        worker.get_bot_user_id = orig_get_bot_user_id
+        worker.db_get_workspace_by_team = orig_get_workspace_by_team
+        worker.open_conversation = orig_open_conversation
+        worker.db_get_channels = orig_get_channels
+        worker.send_slack_message = orig_send_message
+        worker.db_log_event = orig_log_event
+
+    assert result.get("ok") is True
+    assert captured["send_tracking_id"]
+    request_data = json.loads(captured["log_kwargs"]["request_data"])
+    assert request_data["logo_tracking_id"] == captured["send_tracking_id"]
+    assert request_data["dm_channel"] == "D123TEAM"
+
+
+def test_db_mark_join_message_verified_by_tracking_accepts_team_join():
+    """Verification lookup should include Team_Join events in addition to channel join messages."""
+    import asyncio
+    import json
+    import sys
+    from unittest.mock import Mock
+
+    sys.modules["js"] = Mock()
+    sys.modules["cloudflare"] = Mock()
+    sys.modules["workers"] = Mock()
+
+    from src import worker
+
+    state = {"select_sql": "", "updated_payload": {}}
+
+    class _FakeStmt:
+        def __init__(self, sql):
+            self.sql = sql
+            self.args = ()
+
+        def bind(self, *args):
+            self.args = args
+            return self
+
+        async def first(self):
+            state["select_sql"] = self.sql
+            return {
+                "id": 101,
+                "request_data": '{"logo_tracking_id": "tid-team", "kind": "team_join"}',
+            }
+
+        async def run(self):
+            payload = json.loads(self.args[0])
+            state["updated_payload"] = payload
+            return {"ok": True}
+
+    class _FakeDB:
+        def prepare(self, sql):
+            return _FakeStmt(sql)
+
+    env = Mock()
+    env.DB = _FakeDB()
+
+    ok = asyncio.run(
+        worker.db_mark_join_message_verified_by_tracking(
+            env,
+            "tid-team",
+            "203.0.113.10",
+            "pytest-agent",
+        )
+    )
+
+    assert ok is True
+    assert "Team_Join" in state["select_sql"]
+    assert state["updated_payload"]["verification_ip"] == "203.0.113.10"
+    assert state["updated_payload"]["verification_user_agent"] == "pytest-agent"
+    assert state["updated_payload"].get("verified_at")

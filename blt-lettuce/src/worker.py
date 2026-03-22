@@ -975,7 +975,7 @@ async def db_get_channel_join_message_sent_counts(env, workspace_id):
 async def db_mark_join_message_verified_by_tracking(
     env, tracking_id, ip_address, user_agent
 ):
-    """Mark the latest tracked Channel_Join_Message event as verified with hit metadata."""
+    """Mark the latest tracked join-related event as verified with hit metadata."""
     tid = str(tracking_id or "").strip()
     if not tid:
         return False
@@ -983,7 +983,7 @@ async def db_mark_join_message_verified_by_tracking(
         row = _row(
             await env.DB.prepare(
                 "SELECT id, request_data FROM events "
-                "WHERE event_type = 'Channel_Join_Message' "
+                "WHERE event_type IN ('Channel_Join_Message', 'Team_Join') "
                 "AND request_data LIKE ? "
                 "ORDER BY id DESC LIMIT 1"
             )
@@ -3497,10 +3497,8 @@ async def handle_team_join(env, event, team_id=None):
     ws_token = getattr(env, "SLACK_TOKEN", None)
     if team_id:
         ws = await db_get_workspace_by_team(env, team_id)
-        if ws:
-            await db_log_event(env, ws["id"], "Team_Join", user_id, "success")
-            if ws.get("access_token"):
-                ws_token = ws["access_token"]
+        if ws and ws.get("access_token"):
+            ws_token = ws["access_token"]
 
     joins_channel = getattr(env, "JOINS_CHANNEL_ID", DEFAULT_JOINS_CHANNEL_ID)
     if joins_channel:
@@ -3513,10 +3511,42 @@ async def handle_team_join(env, event, team_id=None):
 
     dm_response = await open_conversation(env, user_id, token=ws_token)
     if not dm_response.get("ok"):
+        if ws:
+            await db_log_event(
+                env,
+                ws["id"],
+                "Team_Join",
+                user_id,
+                "failed",
+                channel_name="Direct Message",
+                request_data=json.dumps(
+                    {
+                        "stage": "open_conversation",
+                        "error": dm_response.get("error") or "dm_open_failed",
+                    }
+                ),
+                verified=False,
+            )
         return {"error": f"Failed to open DM: {dm_response.get('error')}"}
 
     dm_channel = (dm_response.get("channel") or {}).get("id")
     if not dm_channel:
+        if ws:
+            await db_log_event(
+                env,
+                ws["id"],
+                "Team_Join",
+                user_id,
+                "failed",
+                channel_name="Direct Message",
+                request_data=json.dumps(
+                    {
+                        "stage": "resolve_dm_channel",
+                        "error": "missing_dm_channel_id",
+                    }
+                ),
+                verified=False,
+            )
         return {"error": "Failed to get DM channel ID"}
 
     # Build suggested channels from D1 if available
@@ -3543,13 +3573,33 @@ async def handle_team_join(env, event, team_id=None):
         {"type": "section", "text": {"type": "mrkdwn", "text": welcome_text.strip()}}
     ]
 
+    logo_tracking_id = secrets.token_hex(12)
     result = await send_slack_message(
         env,
         dm_channel,
         "Welcome to the open-source community!",
         blocks,
         token=ws_token,
+        branding_tracking_id=logo_tracking_id,
     )
+    if ws:
+        await db_log_event(
+            env,
+            ws["id"],
+            "Team_Join",
+            user_id,
+            "success" if result.get("ok") else "failed",
+            channel_name="Direct Message",
+            request_data=json.dumps(
+                {
+                    "dm_channel": dm_channel,
+                    "logo_url": get_blt_logo_url(env),
+                    "logo_tracking_id": logo_tracking_id,
+                }
+            ),
+            verified=False,
+            channel_id=dm_channel,
+        )
     return {"ok": result.get("ok"), "user_id": user_id}
 
 
