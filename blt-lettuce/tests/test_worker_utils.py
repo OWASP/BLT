@@ -283,6 +283,90 @@ def test_handle_set_invite_command_saves_link_for_admin():
     assert "invite link saved" in result["text"].lower()
 
 
+def test_welcome_command_links_channels_clickably():
+    """/lettuce-welcome should render #channel references as clickable channel mentions."""
+    import asyncio
+    import sys
+    from unittest.mock import Mock
+
+    sys.modules["js"] = Mock()
+    sys.modules["cloudflare"] = Mock()
+    sys.modules["workers"] = Mock()
+
+    from src import worker
+
+    async def _fake_db_get_workspace_by_team(_env, _team_id):
+        return {"id": 6}
+
+    async def _fake_db_get_channels(_env, _workspace_id):
+        return [
+            {"channel_id": "CGEN", "channel_name": "general"},
+            {"channel_id": "CHELP", "channel_name": "help"},
+        ]
+
+    original_get_workspace_welcome_message = worker.get_workspace_welcome_message
+    original_db_get_workspace_by_team = worker.db_get_workspace_by_team
+    original_db_get_channels = worker.db_get_channels
+
+    worker.get_workspace_welcome_message = (
+        lambda _team_id: "Hi <@{user_id}>! Start in #general and ask in #help."
+    )
+    worker.db_get_workspace_by_team = _fake_db_get_workspace_by_team
+    worker.db_get_channels = _fake_db_get_channels
+
+    try:
+        env = Mock()
+        body = {"user_id": "U123", "team_id": "T123"}
+        result = asyncio.run(worker._handle_welcome_command(env, body))
+    finally:
+        worker.get_workspace_welcome_message = original_get_workspace_welcome_message
+        worker.db_get_workspace_by_team = original_db_get_workspace_by_team
+        worker.db_get_channels = original_db_get_channels
+
+    assert result["response_type"] == "ephemeral"
+    text = result["text"]
+    assert "<#CGEN|general>" in text
+    assert "<#CHELP|help>" in text
+
+
+def test_build_public_events_hides_sensitive_fields_and_keeps_verified():
+    """Public events payload should hide sensitive fields and expose verified."""
+    import sys
+    from unittest.mock import Mock
+
+    sys.modules["js"] = Mock()
+    sys.modules["cloudflare"] = Mock()
+    sys.modules["workers"] = Mock()
+
+    from src.worker import build_public_events
+
+    events = [
+        {
+            "id": 10,
+            "event_type": "Channel_Join_Message",
+            "user_slack_id": "U123",
+            "channel_name": "general",
+            "request_data": '{"secret":"value"}',
+            "status": "success",
+            "verified": 1,
+            "created_at": "2026-03-22T20:00:00+00:00",
+        }
+    ]
+
+    public_events = build_public_events(events)
+
+    assert len(public_events) == 1
+    row = public_events[0]
+    assert row["id"] == 10
+    assert row["event_type"] == "Channel_Join_Message"
+    assert row["status"] == "success"
+    assert row["verified"] == 1
+    assert row["created_at"] == "2026-03-22T20:00:00+00:00"
+    assert "user_slack_id" not in row
+    assert "channel_name" not in row
+    assert "request_data" not in row
+
+
 def test_handle_set_invite_command_rejects_invalid_url():
     """Invite command should reject non-Slack URLs."""
     import asyncio
@@ -766,3 +850,139 @@ def test_handle_message_event_channel_join_fallback_to_dm_when_ephemeral_fails()
     assert captured["ephemeral"] == 1
     assert captured["dm"] == 1
     assert "<@U123>" in captured["dm_text"]
+
+
+def test_webhook_channel_join_sequence_sends_message_once():
+    """Webhook sequence (message + member_joined_channel) should send one join message."""
+    import asyncio
+    import json
+    import sys
+    from unittest.mock import Mock
+
+    sys.modules["js"] = Mock()
+    sys.modules["cloudflare"] = Mock()
+    sys.modules["workers"] = Mock()
+
+    from src import worker
+
+    captured = {"ephemeral": 0, "text": ""}
+
+    class _FakeRequest:
+        def __init__(self, payload):
+            self.method = "POST"
+            self.url = "https://lettuce.owaspblt.org/webhook"
+            self.headers = {
+                "Content-Type": "application/json",
+                "X-Slack-Request-Timestamp": "1774214999",
+                "X-Slack-Signature": "v0=fake",
+            }
+            self._body = json.dumps(payload)
+
+        async def text(self):
+            return self._body
+
+    async def _fake_db_get_workspace_by_team(_env, _team_id):
+        return {
+            "id": 6,
+            "team_id": "T070JPE5BQQ",
+            "team_name": "Test WS",
+            "access_token": "xoxb-token",
+        }
+
+    async def _fake_db_get_workspace_by_channel_id(_env, _channel_id):
+        return {
+            "id": 6,
+            "team_id": "T070JPE5BQQ",
+            "team_name": "Test WS",
+            "access_token": "xoxb-token",
+        }
+
+    async def _fake_db_get_channel_name(_env, _workspace_id, _channel_id):
+        return "general"
+
+    async def _fake_get_bot_user_id(_env):
+        return "UBOT"
+
+    async def _fake_db_get_channel_by_slack_id(_env, _workspace_id, _channel_id):
+        return None
+
+    async def _fake_get_channel_join_message_runtime(_env, _team_id, _channel_id):
+        return "Welcome <@{user_id}>"
+
+    async def _fake_send_ephemeral(
+        _env,
+        _channel,
+        _user,
+        _text,
+        blocks=None,
+        token=None,
+        branding_tracking_id="",
+    ):
+        captured["ephemeral"] += 1
+        captured["text"] = _text
+        return {"ok": True}
+
+    async def _fake_db_log_event(*_args, **_kwargs):
+        return True
+
+    orig_verify = worker.verify_slack_signature
+    orig_get_ws_by_team = worker.db_get_workspace_by_team
+    orig_get_ws_by_channel = worker.db_get_workspace_by_channel_id
+    orig_get_channel_name = worker.db_get_channel_name
+    orig_get_bot_user_id = worker.get_bot_user_id
+    orig_get_channel_row = worker.db_get_channel_by_slack_id
+    orig_get_join_msg_runtime = worker.get_channel_join_message_runtime
+    orig_send_ephemeral = worker.send_slack_ephemeral_message
+    orig_log_event = worker.db_log_event
+
+    worker.verify_slack_signature = lambda *_args, **_kwargs: True
+    worker.db_get_workspace_by_team = _fake_db_get_workspace_by_team
+    worker.db_get_workspace_by_channel_id = _fake_db_get_workspace_by_channel_id
+    worker.db_get_channel_name = _fake_db_get_channel_name
+    worker.get_bot_user_id = _fake_get_bot_user_id
+    worker.db_get_channel_by_slack_id = _fake_db_get_channel_by_slack_id
+    worker.get_channel_join_message_runtime = _fake_get_channel_join_message_runtime
+    worker.send_slack_ephemeral_message = _fake_send_ephemeral
+    worker.db_log_event = _fake_db_log_event
+
+    try:
+        env = Mock()
+
+        message_payload = {
+            "type": "event_callback",
+            "team_id": "T070JPE5BQQ",
+            "event": {
+                "type": "message",
+                "subtype": "channel_join",
+                "user": "U06V72UT0J1",
+                "channel": "C077QBBLY1Z",
+                "channel_type": "channel",
+                "text": "",
+            },
+        }
+        member_joined_payload = {
+            "type": "event_callback",
+            "team_id": "T070JPE5BQQ",
+            "event": {
+                "type": "member_joined_channel",
+                "user": "U06V72UT0J1",
+                "channel": "C077QBBLY1Z",
+                "channel_type": "C",
+            },
+        }
+
+        asyncio.run(worker.handle_request(_FakeRequest(message_payload), env))
+        asyncio.run(worker.handle_request(_FakeRequest(member_joined_payload), env))
+    finally:
+        worker.verify_slack_signature = orig_verify
+        worker.db_get_workspace_by_team = orig_get_ws_by_team
+        worker.db_get_workspace_by_channel_id = orig_get_ws_by_channel
+        worker.db_get_channel_name = orig_get_channel_name
+        worker.get_bot_user_id = orig_get_bot_user_id
+        worker.db_get_channel_by_slack_id = orig_get_channel_row
+        worker.get_channel_join_message_runtime = orig_get_join_msg_runtime
+        worker.send_slack_ephemeral_message = orig_send_ephemeral
+        worker.db_log_event = orig_log_event
+
+    assert captured["ephemeral"] == 1
+    assert "<@U06V72UT0J1>" in captured["text"]

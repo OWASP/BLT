@@ -97,10 +97,8 @@
         <thead>
           <tr class="border-b border-gray-200">
             <th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Type</th>
-            <th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">User</th>
-            <th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Channel</th>
             <th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Status</th>
-            <th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Data</th>
+            <th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Verified</th>
             <th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Time</th>
           </tr>
         </thead>
@@ -235,7 +233,7 @@ async function loadEvents() {
     if (wrapEl) wrapEl.classList.remove('hidden');
     if (countEl) countEl.textContent = events.length + ' most recent';
     if (!events.length) {
-      tbody.innerHTML = '<tr><td colspan="6" class="py-8 text-center text-sm text-gray-400">No activity recorded yet.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="4" class="py-8 text-center text-sm text-gray-400">No activity recorded yet.</td></tr>';
       return;
     }
     tbody.innerHTML = events.map(function(e) {
@@ -243,14 +241,13 @@ async function loadEvents() {
       var tsMs    = parseUtcTimestamp(ts);
       var status  = e.status || '';
       var stCls   = status === 'success' ? 'text-green-600' : (status ? 'text-red-500' : 'text-gray-400');
-      var reqFull = e.request_data || '';
-      var reqShow = reqFull.length > 80 ? reqFull.substring(0, 80) + '\u2026' : reqFull;
+      var verified = e.verified;
+      var verifiedText = (verified === 1 || verified === true || verified === '1') ? 'Yes' : 'No';
+      var verifiedCls = verifiedText === 'Yes' ? 'text-green-600' : 'text-gray-400';
       return '<tr class="border-b border-gray-100 hover:bg-gray-50">'
         + '<td class="py-2 px-4 text-xs font-mono text-gray-800">'  + escapeHtml(e.event_type   || '\u2014') + '</td>'
-        + '<td class="py-2 px-4 text-xs text-gray-600">'             + escapeHtml(e.user_slack_id || '\u2014') + '</td>'
-        + '<td class="py-2 px-4 text-xs text-gray-600">'             + escapeHtml(e.channel_name  || '\u2014') + '</td>'
         + '<td class="py-2 px-4 text-xs ' + stCls + '">'             + escapeHtml(status          || '\u2014') + '</td>'
-        + '<td class="py-2 px-4 text-xs text-gray-500 max-w-xs truncate" title="' + escapeHtml(reqFull) + '">' + escapeHtml(reqShow) + '</td>'
+        + '<td class="py-2 px-4 text-xs ' + verifiedCls + '">'       + escapeHtml(verifiedText) + '</td>'
         + '<td class="py-2 px-4 text-xs text-gray-400">'             + (tsMs !== null ? timeAgo(tsMs) : escapeHtml(ts)) + '</td>'
         + '</tr>';
     }).join('');

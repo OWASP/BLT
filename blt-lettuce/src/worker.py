@@ -86,7 +86,7 @@ def build_blt_branding_block(env, channel="", user_id="", tracking_id=""):
             {"type": "image", "image_url": logo_url, "alt_text": "BLT-Lettuce"},
             {
                 "type": "mrkdwn",
-                "text": f"Sent by <{get_blt_base_url(env)}|BLT-Lettuce>",
+                "text": (f"Sent by <{get_blt_base_url(env)}|BLT-Lettuce>"),
             },
         ],
     }
@@ -1706,19 +1706,21 @@ async def db_log_event(
     channel_name="",
     request_data="",
     verified=0,
+    channel_id="",
 ):
     now = get_utc_now()
     try:
         await (
             env.DB.prepare(
-                "INSERT INTO events (workspace_id, event_type, user_slack_id, channel_name, request_data, verified, status, created_at) "
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+                "INSERT INTO events (workspace_id, event_type, user_slack_id, channel_name, channel_id, request_data, verified, status, created_at) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
             )
             .bind(
                 workspace_id,
                 event_type,
                 user_slack_id,
                 channel_name,
+                channel_id,
                 request_data,
                 1 if verified else 0,
                 status,
@@ -1754,20 +1756,22 @@ async def db_insert_event(
     channel_name="",
     request_data="",
     verified=0,
+    channel_id="",
 ):
     """Insert a single event row with an explicit timestamp when provided."""
     event_time = created_at or get_utc_now()
     try:
         await (
             env.DB.prepare(
-                "INSERT INTO events (workspace_id, event_type, user_slack_id, channel_name, request_data, verified, status, created_at) "
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+                "INSERT INTO events (workspace_id, event_type, user_slack_id, channel_name, channel_id, request_data, verified, status, created_at) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
             )
             .bind(
                 workspace_id,
                 event_type,
                 user_slack_id,
                 channel_name,
+                channel_id,
                 request_data,
                 1 if verified else 0,
                 status,
@@ -1877,6 +1881,7 @@ async def import_workspace_history_csv(env, workspace_id, csv_text):
             status=status,
             created_at=created_at,
             channel_name=(normalized_row.get("channel_name") or "").strip(),
+            channel_id=(normalized_row.get("channel_id") or "").strip(),
             request_data=request_data,
             verified=verified,
         )
@@ -1918,6 +1923,23 @@ async def db_get_events(env, workspace_id, limit=20):
         except Exception:
             pass
         return []
+
+
+def build_public_events(events):
+    """Return public-safe event rows for unauthenticated workspace pages."""
+    public_events = []
+    for e in events or []:
+        row = e if isinstance(e, dict) else {}
+        public_events.append(
+            {
+                "id": row.get("id"),
+                "event_type": row.get("event_type"),
+                "status": row.get("status"),
+                "verified": row.get("verified"),
+                "created_at": row.get("created_at"),
+            }
+        )
+    return public_events
 
 
 async def db_purge_events(env, workspace_id):
@@ -3716,6 +3738,7 @@ async def handle_message_event(env, event, team_id=None):
                     },
                     separators=(",", ":"),
                 ),
+                channel_id=channel,
             )
             # Send configured join message when a template is selected for this channel.
             sent_join_message = False
@@ -3896,6 +3919,7 @@ async def handle_message_event(env, event, team_id=None):
                                     channel_name=resolved_channel_name,
                                     request_data=json.dumps(request_payload),
                                     verified=False,
+                                    channel_id=channel,
                                 )
                                 if send_result.get("ok"):
                                     sent_join_message = True
@@ -3926,46 +3950,13 @@ async def handle_message_event(env, event, team_id=None):
                                     channel_name=resolved_channel_name,
                                     request_data=json.dumps(request_payload),
                                     verified=False,
+                                    channel_id=channel,
                                 )
 
             # File-based fallback: send channel-specific ephemeral join message
             # when no DB template is configured or no message was sent.
             if not sent_join_message:
-                await db_log_event(
-                    env,
-                    ws["id"],
-                    "Channel_Join_Debug",
-                    user or "",
-                    "success",
-                    channel_name=resolved_channel_name,
-                    request_data=json.dumps(
-                        {
-                            "step": "file_fallback_lookup",
-                            "team_id_payload": str(team_id or ""),
-                            "team_id_effective": effective_team_id,
-                            "channel_id": channel,
-                        }
-                    ),
-                    verified=False,
-                )
-
                 if not effective_team_id:
-                    await db_log_event(
-                        env,
-                        ws["id"],
-                        "Channel_Join_Debug",
-                        user or "",
-                        "failed",
-                        channel_name=resolved_channel_name,
-                        request_data=json.dumps(
-                            {
-                                "step": "file_fallback_lookup",
-                                "reason": "missing_team_id",
-                                "channel_id": channel,
-                            }
-                        ),
-                        verified=False,
-                    )
                     return {"ok": True, "action": "channel_join_logged"}
 
                 try:
@@ -4150,25 +4141,10 @@ async def handle_message_event(env, event, team_id=None):
                                 }
                             ),
                             verified=False,
+                            channel_id=channel,
                         )
                 else:
-                    await db_log_event(
-                        env,
-                        ws["id"],
-                        "Channel_Join_Debug",
-                        user or "",
-                        "failed",
-                        channel_name=resolved_channel_name,
-                        request_data=json.dumps(
-                            {
-                                "step": "file_fallback_lookup",
-                                "reason": "template_not_found",
-                                "team_id_effective": effective_team_id,
-                                "channel_id": channel,
-                            }
-                        ),
-                        verified=False,
-                    )
+                    pass
         else:
             try:
                 print(
@@ -4245,6 +4221,7 @@ async def handle_command(env, event, team_id=None):
                 user_id,
                 "success",
                 channel_name=channel_name,
+                channel_id=channel_id,
             )
 
     if event.get("type") == "app_mention" and channel_id:
@@ -4358,23 +4335,31 @@ async def _handle_welcome_command(env, body_json):
 
     # Try to add channel suggestions if workspace data is available
     channel_suggestions = ""
+    all_channels = []
     if team_id:
         try:
             ws = await db_get_workspace_by_team(env, team_id)
             if ws:
                 top_channels = await db_get_channels(env, ws["id"])
+                all_channels = top_channels
                 top5 = [c for c in top_channels[:5] if c.get("channel_name")]
                 if top5:
-                    names = ", ".join(f"*#{c['channel_name']}*" for c in top5)
+                    names = ", ".join(
+                        f"*<#{c.get('channel_id')}|{c.get('channel_name')}>*"
+                        for c in top5
+                        if c.get("channel_id") and c.get("channel_name")
+                    )
                     channel_suggestions = (
                         f"\n\n:bar_chart: *Most Active Channels:* {names}"
                     )
         except Exception:
             pass
 
+    linked_welcome = link_workspace_channel_names(welcome_msg, all_channels)
+
     return {
         "response_type": "ephemeral",
-        "text": (welcome_msg + channel_suggestions),
+        "text": (linked_welcome + channel_suggestions),
     }
 
 
@@ -5986,20 +5971,7 @@ async def handle_request(request, env):
             events = await db_get_events(env, ws_id_val, limit=50)
             if not is_owner:
                 # Public detail pages should not expose raw request payloads.
-                public_events = []
-                for e in events:
-                    row = e if isinstance(e, dict) else {}
-                    public_events.append(
-                        {
-                            "id": row.get("id"),
-                            "event_type": row.get("event_type"),
-                            "user_slack_id": row.get("user_slack_id"),
-                            "channel_name": row.get("channel_name"),
-                            "status": row.get("status"),
-                            "created_at": row.get("created_at"),
-                            "request_data": "",
-                        }
-                    )
+                public_events = build_public_events(events)
                 return _json_response({"ok": True, "events": public_events})
 
             return _json_response({"ok": True, "events": events})
@@ -6598,33 +6570,40 @@ async def handle_request(request, env):
         return Response.new("", {"status": 302, "headers": h})
 
     # ------------------------------------------------------------------ #
-    #  GET /favicon.png  →  serve logo as favicon                        #
+    #  GET /favicon.png|/favicon.ico  →  serve logo as favicon          #
     # ------------------------------------------------------------------ #
-    if pathname == "/favicon.png" and method == "GET":
+    if pathname in ("/favicon.png", "/favicon.ico") and method == "GET":
         # Prefer bundled worker assets in production runtime.
-        favicon_asset = await _read_asset_bytes(env, "docs/static/logo.png")
-        if favicon_asset is not None:
-            h = Headers.new()
-            h.set("Content-Type", "image/png")
-            h.set("Cache-Control", "public, max-age=86400")
-            return Response.new(favicon_asset, {"headers": h})
+        for asset_path in ("docs/static/favicon.ico", "docs/static/logo.png"):
+            favicon_asset = await _read_asset_bytes(env, asset_path)
+            if favicon_asset is not None:
+                h = Headers.new()
+                h.set(
+                    "Content-Type",
+                    "image/x-icon" if asset_path.endswith(".ico") else "image/png",
+                )
+                h.set("Cache-Control", "public, max-age=86400")
+                return Response.new(favicon_asset, {"headers": h})
 
         # Fallback for local/dev filesystem mode.
         try:
             import os
 
-            favicon_path = os.path.normpath(
-                os.path.join(
-                    os.path.dirname(__file__), "..", "..", "docs", "static", "logo.png"
-                )
+            static_dir = os.path.normpath(
+                os.path.join(os.path.dirname(__file__), "..", "..", "docs", "static")
             )
-            if os.path.exists(favicon_path):
-                with open(favicon_path, "rb") as f:
-                    favicon_data = f.read()
-                h = Headers.new()
-                h.set("Content-Type", "image/png")
-                h.set("Cache-Control", "public, max-age=86400")
-                return Response.new(favicon_data, {"headers": h})
+            for filename in ("favicon.ico", "logo.png"):
+                favicon_path = os.path.join(static_dir, filename)
+                if os.path.exists(favicon_path):
+                    with open(favicon_path, "rb") as f:
+                        favicon_data = f.read()
+                    h = Headers.new()
+                    h.set(
+                        "Content-Type",
+                        "image/x-icon" if filename.endswith(".ico") else "image/png",
+                    )
+                    h.set("Cache-Control", "public, max-age=86400")
+                    return Response.new(favicon_data, {"headers": h})
         except Exception:
             pass
         return Response.new("", {"status": 404})

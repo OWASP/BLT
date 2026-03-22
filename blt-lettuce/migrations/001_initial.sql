@@ -74,6 +74,7 @@ CREATE TABLE IF NOT EXISTS events (
     event_type TEXT NOT NULL,
     user_slack_id TEXT DEFAULT '',
     channel_name TEXT DEFAULT '',
+    channel_id TEXT DEFAULT '',
     request_data TEXT DEFAULT '',
     verified INTEGER DEFAULT 0,
     status TEXT DEFAULT 'success',
