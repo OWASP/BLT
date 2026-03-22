@@ -558,7 +558,7 @@ async def db_get_last_event_time(env, workspace_id, event_type):
 async def db_seen_recent_channel_join(
     env, workspace_id, user_id, channel_id, seconds=15
 ):
-    """Return True when an equivalent channel join was processed recently."""
+    """Return True when a message was successfully sent for this join recently (dedupe on sends, not events)."""
     try:
         cutoff = (datetime.now(timezone.utc) - timedelta(seconds=seconds)).isoformat()
         channel_pattern = f'%"channel_id":"{str(channel_id or "")}"%'
@@ -566,7 +566,7 @@ async def db_seen_recent_channel_join(
             await env.DB.prepare(
                 "SELECT id FROM events "
                 "WHERE workspace_id = ? "
-                "AND event_type = 'Channel_Join' "
+                "AND event_type = 'Channel_Join_Message' "
                 "AND user_slack_id = ? "
                 "AND created_at >= ? "
                 "AND request_data LIKE ? "
@@ -3709,17 +3709,34 @@ async def handle_message_event(env, event, team_id=None):
                     )
                     return {"ok": True, "action": "channel_join_logged"}
 
+                try:
+                    print(
+                        "[channel_join]",
+                        json.dumps(
+                            {
+                                "step": "file_lookup_start",
+                                "workspace_id": ws.get("id"),
+                                "team_id_effective": effective_team_id,
+                                "channel": channel,
+                            }
+                        ),
+                    )
+                except Exception:
+                    pass
                 file_template = get_channel_join_message(effective_team_id, channel)
                 try:
                     print(
                         "[channel_join]",
                         json.dumps(
                             {
-                                "step": "file_lookup",
+                                "step": "file_lookup_result",
                                 "workspace_id": ws.get("id"),
                                 "team_id_effective": effective_team_id,
                                 "channel": channel,
-                                "template_found": bool(file_template.strip()),
+                                "template_found": bool(
+                                    file_template and file_template.strip()
+                                ),
+                                "template_length": len(file_template or ""),
                             }
                         ),
                     )
