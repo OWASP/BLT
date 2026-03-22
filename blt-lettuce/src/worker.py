@@ -563,7 +563,7 @@ async def db_get_last_event_time(env, workspace_id, event_type):
 async def db_seen_recent_channel_join(
     env, workspace_id, user_id, channel_id, seconds=15
 ):
-    """Return True when a message was successfully sent for this join recently (dedupe on sends, not events)."""
+    """Return True when a message was SUCCESSFULLY sent for this join recently (dedupe on sends, not events)."""
     try:
         cutoff = (datetime.now(timezone.utc) - timedelta(seconds=seconds)).isoformat()
         channel_pattern = f'%"channel_id":"{str(channel_id or "")}"%'
@@ -572,6 +572,7 @@ async def db_seen_recent_channel_join(
                 "SELECT id FROM events "
                 "WHERE workspace_id = ? "
                 "AND event_type = 'Channel_Join_Message' "
+                "AND status = 'success' "
                 "AND user_slack_id = ? "
                 "AND created_at >= ? "
                 "AND request_data LIKE ? "
