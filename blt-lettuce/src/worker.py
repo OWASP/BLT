@@ -14,7 +14,6 @@ import io
 import json
 import secrets
 from datetime import datetime, timedelta, timezone
-from pathlib import Path
 from urllib.parse import unquote_plus, urlencode, urlparse
 
 from js import Headers, Response
@@ -32,7 +31,6 @@ from lettuce.html_templates import (
     get_404_html,
     get_500_html,
     get_homepage_html,
-    get_login_page_html,
     get_status_html,
     html_escape,
 )
@@ -1778,7 +1776,9 @@ async def db_list_workspaces_public(env):
         for ws in rows:
             ws_id = int(ws.get("id") or 0)
             day_counts = timeline_by_workspace.get(ws_id, {})
-            ws["activity_timeline"] = [int(day_counts.get(day, 0)) for day in day_labels]
+            ws["activity_timeline"] = [
+                int(day_counts.get(day, 0)) for day in day_labels
+            ]
             # Normalize nulls to 0 for channel/member counts
             ws["channel_count"] = ws.get("channel_count") or 0
             ws["member_count"] = ws.get("member_count") or 0
@@ -2128,6 +2128,151 @@ def _create_quick_response_blocks(message_text):
         },
         *_create_quick_action_buttons(),
     ]
+
+
+# ==========================================================================
+# D1 - Workspace helpers
+# ==========================================================================
+
+WELCOME_MESSAGE = (
+    "Hello <@{user_id}>! Welcome to the OWASP Slack Community. "
+    "We are glad you are here."
+)
+
+
+async def db_get_workspace_by_team(env, team_id):
+    """Return the newest workspace row for a Slack team ID."""
+    try:
+        return _row(
+            await env.DB.prepare(
+                "SELECT * FROM workspaces WHERE team_id = ? "
+                "ORDER BY updated_at DESC, id DESC LIMIT 1"
+            )
+            .bind(str(team_id or ""))
+            .first()
+        )
+    except Exception:
+        return None
+
+
+async def db_get_workspace_by_id(env, workspace_id):
+    """Return one workspace row by primary key ID."""
+    try:
+        return _row(
+            await env.DB.prepare("SELECT * FROM workspaces WHERE id = ?")
+            .bind(workspace_id)
+            .first()
+        )
+    except Exception:
+        return None
+
+
+async def db_get_workspace_by_team_and_app(env, team_id, app_id):
+    """Return workspace by team/app pair, or latest team workspace when app ID is empty."""
+    team_id = str(team_id or "").strip()
+    app_id = str(app_id or "").strip()
+    if not team_id:
+        return None
+
+    try:
+        if app_id:
+            row = _row(
+                await env.DB.prepare(
+                    "SELECT * FROM workspaces WHERE team_id = ? AND app_id = ? LIMIT 1"
+                )
+                .bind(team_id, app_id)
+                .first()
+            )
+            if row:
+                return row
+        return await db_get_workspace_by_team(env, team_id)
+    except Exception:
+        return None
+
+
+async def db_upsert_workspace(
+    env,
+    team_id,
+    team_name,
+    access_token,
+    bot_user_id,
+    app_id="",
+    icon_url="",
+    app_name="",
+    app_icon_url="",
+    installer_slack_user_id="",
+    installer_name="",
+):
+    """Create or update a workspace row and return the stored record."""
+    now = get_utc_now()
+    team_id = str(team_id or "").strip()
+    team_name = str(team_name or "Unknown Workspace").strip() or "Unknown Workspace"
+    access_token = str(access_token or "").strip()
+    bot_user_id = str(bot_user_id or "").strip()
+    app_id = str(app_id or "").strip()
+    icon_url = str(icon_url or "").strip()
+    app_name = str(app_name or "").strip()
+    app_icon_url = str(app_icon_url or "").strip()
+    installer_slack_user_id = str(installer_slack_user_id or "").strip()
+    installer_name = str(installer_name or "").strip()
+
+    if not team_id or not access_token:
+        return None
+
+    # Prefer full schema (icon + installer metadata), then gracefully fallback.
+    try:
+        await (
+            env.DB.prepare(
+                "INSERT INTO workspaces "
+                "(team_id, team_name, app_id, app_name, app_icon_url, icon_url, access_token, bot_user_id, installer_slack_user_id, installer_name, created_at, updated_at) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
+                "ON CONFLICT(team_id, app_id) DO UPDATE SET "
+                "team_name=excluded.team_name, app_name=excluded.app_name, app_icon_url=excluded.app_icon_url, "
+                "icon_url=excluded.icon_url, access_token=excluded.access_token, bot_user_id=excluded.bot_user_id, "
+                "installer_slack_user_id=excluded.installer_slack_user_id, installer_name=excluded.installer_name, "
+                "updated_at=excluded.updated_at"
+            )
+            .bind(
+                team_id,
+                team_name,
+                app_id,
+                app_name,
+                app_icon_url,
+                icon_url,
+                access_token,
+                bot_user_id,
+                installer_slack_user_id,
+                installer_name,
+                now,
+                now,
+            )
+            .run()
+        )
+    except Exception:
+        await (
+            env.DB.prepare(
+                "INSERT INTO workspaces "
+                "(team_id, team_name, app_id, app_name, app_icon_url, access_token, bot_user_id, created_at, updated_at) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) "
+                "ON CONFLICT(team_id, app_id) DO UPDATE SET "
+                "team_name=excluded.team_name, app_name=excluded.app_name, app_icon_url=excluded.app_icon_url, "
+                "access_token=excluded.access_token, bot_user_id=excluded.bot_user_id, updated_at=excluded.updated_at"
+            )
+            .bind(
+                team_id,
+                team_name,
+                app_id,
+                app_name,
+                app_icon_url,
+                access_token,
+                bot_user_id,
+                now,
+                now,
+            )
+            .run()
+        )
+
+    return await db_get_workspace_by_team_and_app(env, team_id, app_id)
 
 
 # ===========================================================================
@@ -3524,15 +3669,18 @@ async def handle_request(request, env):
             return _json_response({"ok": False, "error": "Forbidden origin"}, 403)
 
     # ------------------------------------------------------------------ #
-    #  GET /login  →  redirect to Slack OAuth (sign-in, identity only)   #
+    #  GET /login  →  legacy alias for connect workspace flow             #
     # ------------------------------------------------------------------ #
     if pathname == "/login" and method == "GET":
+        return _redirect("/workspace/add")
+
+    # ------------------------------------------------------------------ #
+    #  GET /workspace/add  →  redirect to Slack OAuth (bot installation) #
+    # ------------------------------------------------------------------ #
+    if pathname == "/workspace/add" and method == "GET":
         client_id = getattr(env, "SLACK_CLIENT_ID", None)
         if not client_id:
-            return _html_response(
-                get_login_page_html("#", error="SLACK_CLIENT_ID is not configured."),
-                status=500,
-            )
+            return _html_response("SLACK_CLIENT_ID is not configured.", status=500)
         base = get_base_url(env, request)
         redirect_uri = f"{base}/callback"
         state_token = _make_oauth_state("add_workspace")
@@ -3543,10 +3691,7 @@ async def handle_request(request, env):
             f"oauth_state={state_token}; HttpOnly; Secure; SameSite=Lax; "
             "Max-Age=600; Path=/"
         )
-        return _html_response(
-            get_login_page_html(sign_in_url),
-            extra_headers={"Set-Cookie": oauth_cookie},
-        )
+        return _redirect(sign_in_url, extra_headers={"Set-Cookie": oauth_cookie})
 
     # ------------------------------------------------------------------ #
     #  GET /callback  →  OAuth callback (handles both sign-in & add-ws)  #
@@ -3572,30 +3717,11 @@ async def handle_request(request, env):
             intent = _verify_oauth_state(stored_state, received_state)
 
             if error or not code:
-                base = get_base_url(env, request)
-                client_id = getattr(env, "SLACK_CLIENT_ID", None)
-                sign_in_url = get_slack_add_workspace_url(
-                    client_id or "", f"{base}/callback"
-                )
-                return _html_response(
-                    get_login_page_html(
-                        sign_in_url, error=f"OAuth error: {error or 'missing code'}"
-                    ),
-                )
+                return _redirect("/")
 
             # Reject if CSRF state is invalid (missing or tampered)
             if intent is None:
-                base = get_base_url(env, request)
-                client_id_csrf = getattr(env, "SLACK_CLIENT_ID", None)
-                sign_in_url = get_slack_add_workspace_url(
-                    client_id_csrf or "", f"{base}/callback"
-                )
-                return _html_response(
-                    get_login_page_html(
-                        sign_in_url,
-                        error="Invalid OAuth state. Please try connecting the workspace again.",
-                    ),
-                )
+                return _redirect("/")
 
             client_id = getattr(env, "SLACK_CLIENT_ID", None)
             client_secret = getattr(env, "SLACK_CLIENT_SECRET", None)
@@ -3607,13 +3733,7 @@ async def handle_request(request, env):
             )
 
             if not token_data.get("ok"):
-                sign_in_url = get_slack_add_workspace_url(client_id or "", redirect_uri)
-                return _html_response(
-                    get_login_page_html(
-                        sign_in_url,
-                        error=f"Token exchange failed: {token_data.get('error')}",
-                    ),
-                )
+                return _redirect("/")
 
             # ---- Identify the installing workspace admin ----
             authed_user = _js_to_python(token_data.get("authed_user") or {})
@@ -3630,13 +3750,7 @@ async def handle_request(request, env):
                         installer_slack_user_id = _obj_get(profile, "id", "")
 
             if not installer_slack_user_id:
-                sign_in_url = get_slack_add_workspace_url(client_id or "", redirect_uri)
-                return _html_response(
-                    get_login_page_html(
-                        sign_in_url,
-                        error="Could not determine which Slack user installed the workspace.",
-                    ),
-                )
+                return _redirect("/")
 
             print("[OAuth callback] Processing workspace installation flow")
             bot_token = token_data.get("access_token")
@@ -3650,13 +3764,7 @@ async def handle_request(request, env):
             icon_url = ""
 
             if not team_id or not bot_token:
-                sign_in_url = get_slack_add_workspace_url(client_id or "", redirect_uri)
-                return _html_response(
-                    get_login_page_html(
-                        sign_in_url,
-                        error="Slack did not return a workspace bot token.",
-                    ),
-                )
+                return _redirect("/")
 
             app_meta = await fetch_app_metadata(bot_token, fallback_app_id=app_id)
             app_id = app_meta.get("app_id") or app_id
@@ -3747,14 +3855,8 @@ async def handle_request(request, env):
             except Exception:
                 pass
 
-            base = get_base_url(env, request)
-            client_id = getattr(env, "SLACK_CLIENT_ID", None)
-            sign_in_url = get_slack_add_workspace_url(client_id or "", f"{base}/callback")
             return _html_response(
-                get_login_page_html(
-                    sign_in_url,
-                    error="Internal server error during workspace connection. Please retry.",
-                ),
+                "Internal server error during workspace connection. Please retry.",
                 status=500,
             )
 
@@ -3768,12 +3870,6 @@ async def handle_request(request, env):
             await db_delete_session(env, session_id)
         clear_cookie = "session_id=; HttpOnly; Secure; SameSite=Lax; Max-Age=0; Path=/"
         return _redirect("/", extra_headers={"Set-Cookie": clear_cookie})
-
-    # ------------------------------------------------------------------ #
-    #  GET /workspace/add  →  redirect to Slack OAuth (bot installation) #
-    # ------------------------------------------------------------------ #
-    if pathname == "/workspace/add" and method == "GET":
-        return _redirect("/login")
 
     # -------------------------------------------------------------------------- #
     #  POST /api/workspace/manual-add  →  manually add workspace with token     #
@@ -3957,7 +4053,6 @@ async def handle_request(request, env):
             except Exception:
                 pass
             return _json_response({"ok": False, "error": "Internal server error"}, 500)
-
 
     # ------------------------------------------------------------------ #
     #  POST /api/ws/<id>/scan  →  trigger channel scan for a workspace   #
@@ -4893,9 +4988,7 @@ async def handle_request(request, env):
                 cmd_name = (body_json.get("command") or "").strip().lower()
 
                 if cmd_name == "/lettuce-org-add":
-                    return Response.json(
-                        await _handle_org_add_command(env, body_json)
-                    )
+                    return Response.json(await _handle_org_add_command(env, body_json))
 
                 return Response.json(
                     {
