@@ -10,16 +10,6 @@ database_name = "blt-lettuce"
 database_id = "b68ec3d9-6766-4496-b926-c8a24f29f2dd"
 migrations_dir = "./migrations"
 
-# Environment variables (secrets should be set via wrangler secret put)
-# Required secrets:
-#   wrangler secret put SLACK_TOKEN        # Slack Bot User OAuth Token (xoxb-...)
-#   wrangler secret put SIGNING_SECRET     # Slack App Signing Secret
-#   wrangler secret put SLACK_CLIENT_ID    # Slack OAuth App Client ID
-#   wrangler secret put SLACK_CLIENT_SECRET # Slack OAuth App Client Secret
-#
-# Optional secrets:
-#   wrangler secret put SENTRY_DSN         # Sentry Data Source Name for error tracking
-
 [vars]
 VERSION = "2.0.0"
 
@@ -36,7 +26,6 @@ head_sampling_rate = 1
 persist = true
 invocation_logs = true
 destinations = [ "sentry-logs" ]
-
 
 [observability.traces]
 enabled = false

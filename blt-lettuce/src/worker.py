@@ -293,6 +293,23 @@ async def db_update_workspace_channel_member_counts(
         return False
 
 
+async def db_update_workspace_invite_link(env, workspace_id, invite_link=""):
+    """Persist a workspace Slack invite link."""
+    now = get_utc_now()
+    try:
+        await (
+            env.DB.prepare(
+                "UPDATE workspaces SET invite_link = ?, updated_at = ? WHERE id = ?"
+            )
+            .bind(str(invite_link or "").strip(), now, workspace_id)
+            .run()
+        )
+        return True
+    except Exception:
+        # Older databases may not have the invite_link column yet.
+        return False
+
+
 async def db_get_workspace_admin_identity(env, workspace):
     """Return the installer/admin Slack identity for a workspace."""
     ws = workspace or {}
@@ -1778,6 +1795,11 @@ async def db_list_workspaces_public(env):
         else:
             member_count_sql = "0 AS member_count"
 
+        if "invite_link" in workspace_columns:
+            invite_link_sql = "COALESCE(w.invite_link, '') AS invite_link"
+        else:
+            invite_link_sql = "'' AS invite_link"
+
         rows = _rows(
             await env.DB.prepare(
                 "SELECT "
@@ -1787,7 +1809,8 @@ async def db_list_workspaces_public(env):
                 "(SELECT MAX(e2.created_at) FROM events e2 WHERE e2.workspace_id = w.id) AS last_event_time, "
                 "(SELECT COUNT(*) FROM repositories r WHERE r.workspace_id = w.id) AS repo_count, "
                 "(SELECT COUNT(*) FROM channels c WHERE c.workspace_id = w.id) AS channel_count, "
-                f"{member_count_sql} "
+                f"{member_count_sql}, "
+                f"{invite_link_sql} "
                 "FROM workspaces w ORDER BY w.created_at DESC"
             ).all()
         )
@@ -3493,16 +3516,72 @@ async def _handle_org_add_command(env, body_json):
 
 async def _handle_app_link_command(env, body_json):
     """Handle /lettuce-app-link: provide a link to the Slack app dashboard."""
-    app_id = str(getattr(env, "SLACK_APP_ID", "") or "").strip()
+    team_id = str((body_json or {}).get("team_id") or "").strip()
+    api_app_id = str((body_json or {}).get("api_app_id") or "").strip()
+
+    app_id = ""
+    workspace = None
+    if team_id:
+        workspace = await db_get_workspace_by_team_and_app(env, team_id, api_app_id)
+    if workspace:
+        app_id = str((workspace or {}).get("app_id") or "").strip()
+
+    if not app_id:
+        app_id = str(getattr(env, "SLACK_APP_ID", "") or "").strip()
+
     if not app_id:
         return {
             "response_type": "ephemeral",
-            "text": "Slack app ID is not configured.",
+            "text": "Slack app ID is not configured for this workspace yet.",
         }
     app_url = f"https://api.slack.com/apps/{app_id}"
     return {
         "response_type": "ephemeral",
         "text": f"<{app_url}|Open Slack App Dashboard>",
+    }
+
+
+async def _handle_set_invite_command(env, body_json):
+    """Handle /lettuce-set-invite: save workspace Slack invite link."""
+    team_id = str((body_json or {}).get("team_id") or "").strip()
+    user_id = str((body_json or {}).get("user_id") or "").strip()
+    invite_link = str((body_json or {}).get("text") or "").strip()
+
+    workspace = await db_get_workspace_by_team(env, team_id) if team_id else None
+    if not workspace:
+        return {
+            "response_type": "ephemeral",
+            "text": "No workspace connection was found for this Slack team. Install the app to this workspace first.",
+        }
+
+    if not await _is_workspace_admin_user(env, workspace, user_id):
+        return {
+            "response_type": "ephemeral",
+            "text": "Only the user who originally installed the bot can run `/lettuce-set-invite`.",
+        }
+
+    if not invite_link:
+        return {
+            "response_type": "ephemeral",
+            "text": "Usage: `/lettuce-set-invite <slack-invite-url>`\nExample: `/lettuce-set-invite https://join.slack.com/t/your-workspace/shared_invite/...`",
+        }
+
+    if not is_valid_slack_url(invite_link):
+        return {
+            "response_type": "ephemeral",
+            "text": "Please provide a valid Slack HTTPS URL (for example, a `join.slack.com` invite link).",
+        }
+
+    saved = await db_update_workspace_invite_link(env, workspace.get("id"), invite_link)
+    if not saved:
+        return {
+            "response_type": "ephemeral",
+            "text": "Failed to save invite link. Ensure the latest DB migrations are applied.",
+        }
+
+    return {
+        "response_type": "ephemeral",
+        "text": f":white_check_mark: Invite link saved for *{html_escape(workspace.get('team_name') or team_id)}*. Homepage card now links to: <{invite_link}|Join Workspace>",
     }
 
 
@@ -5203,6 +5282,11 @@ async def handle_request(request, env):
                 if cmd_name == "/lettuce-app-link":
                     return Response.json(await _handle_app_link_command(env, body_json))
 
+                if cmd_name == "/lettuce-set-invite":
+                    return Response.json(
+                        await _handle_set_invite_command(env, body_json)
+                    )
+
                 return Response.json(
                     {
                         "response_type": "ephemeral",
@@ -5559,10 +5643,22 @@ class Default(WorkerEntrypoint):
                 )
             return _attach_security_headers(_html_response(get_500_html(), 500))
 
-    async def scheduled(self, controller):
+    async def scheduled(self, controller=None, *args, **kwargs):
         """Cloudflare Cron trigger entrypoint."""
         try:
-            await run_inactivity_monitor(self.env)
+            # Cloudflare may pass additional runtime args for scheduled events.
+            # Accepting *args/**kwargs keeps compatibility across runtime versions.
+            env = self.env
+            if env is None and args:
+                candidate_env = args[0]
+                if hasattr(candidate_env, "DB"):
+                    env = candidate_env
+            if env is None:
+                env = kwargs.get("env")
+            if env is None:
+                return
+
+            await run_inactivity_monitor(env)
         except Exception as e:
             try:
                 sentry = get_sentry()

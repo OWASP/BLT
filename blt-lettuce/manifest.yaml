@@ -25,6 +25,10 @@ features:
       url: https://lettuce.owaspblt.org/webhook
       description: Open the Slack app link
       should_escape: false
+    - command: /lettuce-set-invite
+      url: https://lettuce.owaspblt.org/webhook
+      description: Set the workspace Slack invite link for the homepage card
+      should_escape: false
 oauth_config:
   redirect_urls:
     - https://lettuce.owaspblt.org/callback

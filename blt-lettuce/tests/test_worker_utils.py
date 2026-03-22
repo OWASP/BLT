@@ -150,3 +150,172 @@ def test_welcome_message_formatting():
 
     assert "<@U12345>" in message
     assert "Welcome to the OWASP Slack Community" in message
+
+
+def test_handle_app_link_command_uses_workspace_app_id():
+    """App link command should use app_id from workspace record when available."""
+    import asyncio
+    import sys
+    from unittest.mock import Mock
+
+    sys.modules["js"] = Mock()
+    sys.modules["cloudflare"] = Mock()
+    sys.modules["workers"] = Mock()
+
+    from src import worker
+
+    async def _fake_db_get_workspace_by_team_and_app(_env, _team_id, _app_id):
+        return {"app_id": "A_FROM_DB"}
+
+    original = worker.db_get_workspace_by_team_and_app
+    worker.db_get_workspace_by_team_and_app = _fake_db_get_workspace_by_team_and_app
+    try:
+        env = Mock()
+        env.SLACK_APP_ID = ""
+        body = {"team_id": "T123", "api_app_id": ""}
+        result = asyncio.run(worker._handle_app_link_command(env, body))
+    finally:
+        worker.db_get_workspace_by_team_and_app = original
+
+    assert result["response_type"] == "ephemeral"
+    assert "https://api.slack.com/apps/A_FROM_DB" in result["text"]
+
+
+def test_handle_app_link_command_falls_back_to_env_app_id():
+    """App link command should use env app id when workspace app_id is missing."""
+    import asyncio
+    import sys
+    from unittest.mock import Mock
+
+    sys.modules["js"] = Mock()
+    sys.modules["cloudflare"] = Mock()
+    sys.modules["workers"] = Mock()
+
+    from src import worker
+
+    async def _fake_db_get_workspace_by_team_and_app(_env, _team_id, _app_id):
+        return {"app_id": ""}
+
+    original = worker.db_get_workspace_by_team_and_app
+    worker.db_get_workspace_by_team_and_app = _fake_db_get_workspace_by_team_and_app
+    try:
+        env = Mock()
+        env.SLACK_APP_ID = "A_FROM_ENV"
+        body = {"team_id": "T123", "api_app_id": ""}
+        result = asyncio.run(worker._handle_app_link_command(env, body))
+    finally:
+        worker.db_get_workspace_by_team_and_app = original
+
+    assert result["response_type"] == "ephemeral"
+    assert "https://api.slack.com/apps/A_FROM_ENV" in result["text"]
+
+
+def test_handle_app_link_command_reports_missing_app_id():
+    """App link command should return clear message when no app_id is available."""
+    import asyncio
+    import sys
+    from unittest.mock import Mock
+
+    sys.modules["js"] = Mock()
+    sys.modules["cloudflare"] = Mock()
+    sys.modules["workers"] = Mock()
+
+    from src import worker
+
+    async def _fake_db_get_workspace_by_team_and_app(_env, _team_id, _app_id):
+        return None
+
+    original = worker.db_get_workspace_by_team_and_app
+    worker.db_get_workspace_by_team_and_app = _fake_db_get_workspace_by_team_and_app
+    try:
+        env = Mock()
+        env.SLACK_APP_ID = ""
+        body = {"team_id": "T123", "api_app_id": ""}
+        result = asyncio.run(worker._handle_app_link_command(env, body))
+    finally:
+        worker.db_get_workspace_by_team_and_app = original
+
+    assert result["response_type"] == "ephemeral"
+    assert "not configured" in result["text"].lower()
+
+
+def test_handle_set_invite_command_saves_link_for_admin():
+    """Invite command should save a valid Slack invite link for admin user."""
+    import asyncio
+    import sys
+    from unittest.mock import Mock
+
+    sys.modules["js"] = Mock()
+    sys.modules["cloudflare"] = Mock()
+    sys.modules["workers"] = Mock()
+
+    from src import worker
+
+    async def _fake_db_get_workspace_by_team(_env, _team_id):
+        return {"id": 7, "team_name": "Test Team"}
+
+    async def _fake_is_workspace_admin_user(_env, _workspace, _user_id):
+        return True
+
+    async def _fake_db_update_workspace_invite_link(_env, _workspace_id, _invite_link):
+        return True
+
+    orig_get_ws = worker.db_get_workspace_by_team
+    orig_is_admin = worker._is_workspace_admin_user
+    orig_update = worker.db_update_workspace_invite_link
+    worker.db_get_workspace_by_team = _fake_db_get_workspace_by_team
+    worker._is_workspace_admin_user = _fake_is_workspace_admin_user
+    worker.db_update_workspace_invite_link = _fake_db_update_workspace_invite_link
+    try:
+        env = Mock()
+        body = {
+            "team_id": "T123",
+            "user_id": "U123",
+            "text": "https://join.slack.com/t/test/shared_invite/abc",
+        }
+        result = asyncio.run(worker._handle_set_invite_command(env, body))
+    finally:
+        worker.db_get_workspace_by_team = orig_get_ws
+        worker._is_workspace_admin_user = orig_is_admin
+        worker.db_update_workspace_invite_link = orig_update
+
+    assert result["response_type"] == "ephemeral"
+    assert "invite link saved" in result["text"].lower()
+
+
+def test_handle_set_invite_command_rejects_invalid_url():
+    """Invite command should reject non-Slack URLs."""
+    import asyncio
+    import sys
+    from unittest.mock import Mock
+
+    sys.modules["js"] = Mock()
+    sys.modules["cloudflare"] = Mock()
+    sys.modules["workers"] = Mock()
+
+    from src import worker
+
+    async def _fake_db_get_workspace_by_team(_env, _team_id):
+        return {"id": 7, "team_name": "Test Team"}
+
+    async def _fake_is_workspace_admin_user(_env, _workspace, _user_id):
+        return True
+
+    orig_get_ws = worker.db_get_workspace_by_team
+    orig_is_admin = worker._is_workspace_admin_user
+    worker.db_get_workspace_by_team = _fake_db_get_workspace_by_team
+    worker._is_workspace_admin_user = _fake_is_workspace_admin_user
+    try:
+        env = Mock()
+        body = {
+            "team_id": "T123",
+            "user_id": "U123",
+            "text": "https://example.com/invite",
+        }
+        result = asyncio.run(worker._handle_set_invite_command(env, body))
+    finally:
+        worker.db_get_workspace_by_team = orig_get_ws
+        worker._is_workspace_admin_user = orig_is_admin
+
+    assert result["response_type"] == "ephemeral"
+    assert "valid slack https url" in result["text"].lower()

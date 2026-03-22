@@ -363,6 +363,8 @@
           const channels = ws.channel_count || 0;
           const members = ws.member_count || 0;
           const last = timeAgo(ws.last_event_time);
+          const inviteLink = String(ws.invite_link || "").trim();
+          const hasInviteLink = /^https:\/\/([a-z0-9-]+\.)*slack\.com(\/|$)/i.test(inviteLink);
           const timeline = Array.isArray(ws.activity_timeline) && ws.activity_timeline.length === 7
             ? ws.activity_timeline
             : [0, 0, 0, 0, 0, 0, 0];
@@ -393,6 +395,7 @@
                 <span class="px-2 py-1 bg-blue-50 text-blue-700 rounded-md"><span class="font-semibold">${formatNumber(channels)}</span> channels</span>
                 <span class="px-2 py-1 bg-yellow-50 text-yellow-700 rounded-md"><span class="font-semibold">${formatNumber(members)}</span> members</span>
               </div>
+              ${hasInviteLink ? `<a href="${inviteLink}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 text-xs font-semibold text-red-700 bg-red-50 border border-red-200 rounded-md px-2 py-1 hover:bg-red-100 transition-colors"><i class="fas fa-user-plus"></i> Join Workspace</a>` : ""}
               <div class="absolute bottom-3 right-5 text-xs text-gray-400 flex items-center gap-1"><i class="far fa-clock"></i> ${last}</div>
             </div>`;
         }).join("");
