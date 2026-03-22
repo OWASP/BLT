@@ -6886,20 +6886,26 @@ async def handle_request(request, env):
         return Response.new("", {"status": 302, "headers": h})
 
     # ------------------------------------------------------------------ #
-    #  GET /favicon.png|/favicon.ico  →  serve logo as favicon          #
+    #  GET /favicon.png|/favicon.ico  →  serve a stable favicon asset   #
     # ------------------------------------------------------------------ #
-    if pathname in ("/favicon.png", "/favicon.ico") and method == "GET":
-        # Prefer bundled worker assets in production runtime.
-        for asset_path in ("docs/static/favicon.ico", "docs/static/logo.png"):
+    if pathname in ("/favicon.png", "/favicon.ico") and method in ("GET", "HEAD"):
+        if pathname == "/favicon.ico":
+            h = Headers.new()
+            h.set("Location", "/favicon.png")
+            h.set("Cache-Control", "public, max-age=86400")
+            return Response.new("", {"status": 302, "headers": h})
+
+        # Prefer the dedicated favicon asset in production runtime.
+        for asset_path in ("docs/static/favicon.png", "docs/static/logo.png"):
             favicon_asset = await _read_asset_bytes(env, asset_path)
             if favicon_asset is not None:
                 h = Headers.new()
-                h.set(
-                    "Content-Type",
-                    "image/x-icon" if asset_path.endswith(".ico") else "image/png",
-                )
+                h.set("Content-Type", "image/png")
                 h.set("Cache-Control", "public, max-age=86400")
-                return Response.new(favicon_asset, {"headers": h})
+                return Response.new(
+                    "" if method == "HEAD" else favicon_asset,
+                    {"headers": h},
+                )
 
         # Fallback for local/dev filesystem mode.
         try:
@@ -6908,18 +6914,18 @@ async def handle_request(request, env):
             static_dir = os.path.normpath(
                 os.path.join(os.path.dirname(__file__), "..", "docs", "static")
             )
-            for filename in ("favicon.ico", "logo.png"):
+            for filename in ("favicon.png", "logo.png"):
                 favicon_path = os.path.join(static_dir, filename)
                 if os.path.exists(favicon_path):
                     with open(favicon_path, "rb") as f:
                         favicon_data = f.read()
                     h = Headers.new()
-                    h.set(
-                        "Content-Type",
-                        "image/x-icon" if filename.endswith(".ico") else "image/png",
-                    )
+                    h.set("Content-Type", "image/png")
                     h.set("Cache-Control", "public, max-age=86400")
-                    return Response.new(favicon_data, {"headers": h})
+                    return Response.new(
+                        "" if method == "HEAD" else favicon_data,
+                        {"headers": h},
+                    )
         except Exception:
             pass
         return Response.new("", {"status": 404})
