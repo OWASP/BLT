@@ -524,6 +524,22 @@ async def db_get_workspace_github_org_count(env, workspace_id):
         return 0
 
 
+async def db_get_workspace_latest_org_login(env, workspace_id):
+    """Return most recently updated GitHub org login for a workspace."""
+    try:
+        row = _row(
+            await env.DB.prepare(
+                "SELECT org_login FROM github_organizations WHERE workspace_id = ? "
+                "ORDER BY updated_at DESC, created_at DESC, id DESC LIMIT 1"
+            )
+            .bind(workspace_id)
+            .first()
+        )
+        return str((row or {}).get("org_login") or "").strip()
+    except Exception:
+        return ""
+
+
 async def db_get_last_event_time(env, workspace_id, event_type):
     """Return timestamp of latest matching workspace event, if any."""
     try:
@@ -2334,45 +2350,55 @@ def _format_db_stats_for_slack(counts):
     return "\n".join(lines)
 
 
-def _create_quick_action_buttons():
-    """Create Slack Block Kit buttons for quick commands."""
-    return [
-        {
-            "type": "actions",
-            "elements": [
-                {
-                    "type": "button",
-                    "text": {"type": "plain_text", "text": "📊 Stats", "emoji": True},
-                    "value": "stats",
-                    "action_id": "quick_stats",
-                    "style": "primary",
-                },
-                {
-                    "type": "button",
-                    "text": {"type": "plain_text", "text": "👋 Hello", "emoji": True},
-                    "value": "hello",
-                    "action_id": "quick_hello",
-                },
-                {
-                    "type": "button",
-                    "text": {"type": "plain_text", "text": "❓ Help", "emoji": True},
-                    "value": "help",
-                    "action_id": "quick_help",
-                },
-            ],
-        }
-    ]
+async def _format_workspace_settings_for_slack(env, ws):
+    """Return a human-readable settings summary for command responses."""
+    if not ws:
+        return (
+            "*Current Settings*\n"
+            "- Workspace: not connected\n"
+            "- GitHub org: not set\n"
+            "- Slack invite link: not set\n"
+            "- App link: not available"
+        )
+
+    ws_id = ws.get("id")
+    team_name = str(ws.get("team_name") or "Unknown Workspace")
+    app_id = str(ws.get("app_id") or "").strip()
+    org_count = await db_get_workspace_github_org_count(env, ws_id)
+    org_login = await db_get_workspace_latest_org_login(env, ws_id)
+    invite_link = await db_get_workspace_invite_link(env, ws_id)
+
+    if org_count > 0 and org_login:
+        org_setting = f"set ({org_login}, total {int(org_count)})"
+    elif org_count > 0:
+        org_setting = f"set ({int(org_count)} connected)"
+    else:
+        org_setting = "not set"
+
+    invite_setting = invite_link if invite_link else "not set"
+    app_setting = f"https://api.slack.com/apps/{app_id}" if app_id else "not available"
+
+    return (
+        "*Current Settings*\n"
+        f"- Workspace: {html_escape(team_name)}\n"
+        f"- GitHub org: {org_setting}\n"
+        f"- Slack invite link: {invite_setting}\n"
+        f"- App link: {app_setting}"
+    )
 
 
-def _create_quick_response_blocks(message_text):
-    """Create blocks that include message text and quick action buttons."""
-    return [
-        {
-            "type": "section",
-            "text": {"type": "mrkdwn", "text": message_text},
-        },
-        *_create_quick_action_buttons(),
-    ]
+def _format_available_commands_for_slack():
+    """Return plain-text command list for DM replies."""
+    return (
+        "*Available Commands*\n"
+        "- /lettuce-org-add <github-org-url-or-name>\n"
+        "- /lettuce-set-invite <slack-invite-url>\n"
+        "- /lettuce-app-link\n"
+        "- /lettuce-welcome\n"
+        "- /lettuce-disconnect\n"
+        "- help (show this message)\n"
+        "- stats (show database counts)"
+    )
 
 
 # ==========================================================================
@@ -3558,52 +3584,30 @@ async def handle_message_event(env, event, team_id=None):
             except Exception:
                 pass
 
+        settings_text = await _format_workspace_settings_for_slack(env, ws)
+        commands_text = _format_available_commands_for_slack()
+        help_with_settings = f"{commands_text}\n\n{settings_text}"
+
         if any(word in message_text for word in ("stats", "health", "tables", "db")):
             counts = await get_db_table_counts(env)
             stats_text = _format_db_stats_for_slack(counts)
-            blocks = _create_quick_action_buttons()
             result = await send_slack_message(
-                env, channel, stats_text, blocks=blocks, token=ws_token
+                env,
+                channel,
+                f"{stats_text}\n\n{settings_text}",
+                token=ws_token,
             )
             return {"ok": result.get("ok"), "action": "dm_stats"}
 
-        if any(greet in message_text for greet in ("hello", "hi", "hey")):
-            counts = await get_db_table_counts(env)
-            stats_text = _format_db_stats_for_slack(counts)
-            greet_text = (
-                f"Hello <@{user}>! Here are the latest stats.\n\n{stats_text}\n\n"
-                "Try commands: `stats`, `help`, `health`"
-            )
-            blocks = _create_quick_action_buttons()
-            result = await send_slack_message(
-                env, channel, greet_text, blocks=blocks, token=ws_token
-            )
-            return {"ok": result.get("ok"), "action": "dm_greeting_stats"}
-
         if any(word in message_text for word in ("help", "commands", "cmd")):
-            help_text = (
-                "*Lettuce Bot Commands*\n"
-                "- `stats` or `health`: Show DB table counts\n"
-                "- `hello` / `hi` / `hey`: Greeting + DB stats\n"
-                "- `help`: Show this command list\n\n"
-                "Or use the quick action buttons below!"
-            )
-            blocks = _create_quick_action_buttons()
             result = await send_slack_message(
-                env, channel, help_text, blocks=blocks, token=ws_token
+                env, channel, help_with_settings, token=ws_token
             )
             return {"ok": result.get("ok"), "action": "dm_help"}
 
-        # Default DM response with quick guidance + current stats.
-        counts = await get_db_table_counts(env)
-        stats_text = _format_db_stats_for_slack(counts)
-        default_text = (
-            f"Hi <@{user}>! I can help with stats.\n\n{stats_text}\n\n"
-            "Try: `stats`, `hello`, or `help` - or use the buttons below!"
-        )
-        blocks = _create_quick_action_buttons()
+        # Non-command DM text: return available commands and current settings.
         result = await send_slack_message(
-            env, channel, default_text, blocks=blocks, token=ws_token
+            env, channel, help_with_settings, token=ws_token
         )
         return {"ok": result.get("ok"), "action": "dm_default"}
 
@@ -3614,6 +3618,7 @@ async def handle_command(env, event, team_id=None):
     user_id = event.get("user") or event.get("user_id") or ""
     channel_id = event.get("channel") or event.get("channel_id") or ""
     channel_name = event.get("channel_name") or ""
+    ws = None
     if team_id:
         ws = await db_get_workspace_by_team(env, team_id)
         if ws:
@@ -3627,6 +3632,23 @@ async def handle_command(env, event, team_id=None):
                 "success",
                 channel_name=channel_name,
             )
+
+    if event.get("type") == "app_mention" and channel_id:
+        ws_token = (ws or {}).get("access_token") or getattr(env, "SLACK_TOKEN", None)
+        settings_text = await _format_workspace_settings_for_slack(env, ws)
+        commands_text = _format_available_commands_for_slack()
+        reply_text = f"{commands_text}\n\n{settings_text}"
+        send_result = await send_slack_message(
+            env,
+            channel_id,
+            reply_text,
+            token=ws_token,
+        )
+        return {
+            "ok": bool(send_result.get("ok")),
+            "message": "App mention handled",
+        }
+
     return {"ok": True, "message": "Command tracked"}
 
 
@@ -4753,13 +4775,11 @@ async def handle_request(request, env):
             f":wave: *Test Message from BLT Lettuce Bot!*\n\n"
             f"This is a test message from your workspace *{html_escape(ws.get('team_name', 'Unknown'))}*.\n\n"
             f"{stats_text}\n\n"
-            f":white_check_mark: Your bot is working correctly!\n\n"
-            "Try the quick action buttons below:"
+            f":white_check_mark: Your bot is working correctly!"
         )
 
-        blocks = _create_quick_action_buttons()
         send_result = await send_slack_message(
-            env, channel_id, test_message, blocks=blocks, token=ws.get("access_token")
+            env, channel_id, test_message, token=ws.get("access_token")
         )
 
         if send_result.get("ok"):
@@ -5600,21 +5620,15 @@ async def handle_request(request, env):
                     if action_id == "quick_stats":
                         counts = await get_db_table_counts(env)
                         stats_text = _format_db_stats_for_slack(counts)
-                        blocks = _create_quick_response_blocks(stats_text)
                         if ws_token and channel_id:
                             await send_slack_message(
                                 env,
                                 channel_id,
                                 stats_text,
-                                blocks=blocks,
                                 token=ws_token,
                             )
                         else:
-                            await send_interactive_response(
-                                response_url,
-                                stats_text,
-                                blocks=blocks,
-                            )
+                            await send_interactive_response(response_url, stats_text)
 
                     elif action_id == "quick_hello":
                         counts = await get_db_table_counts(env)
@@ -5623,21 +5637,15 @@ async def handle_request(request, env):
                             f"Hello <@{user_id}>! Here are the latest stats.\\n\\n{stats_text}\\n\\n"
                             "Try commands: `stats`, `help`, `health`"
                         )
-                        blocks = _create_quick_response_blocks(greet_text)
                         if ws_token and channel_id:
                             await send_slack_message(
                                 env,
                                 channel_id,
                                 greet_text,
-                                blocks=blocks,
                                 token=ws_token,
                             )
                         else:
-                            await send_interactive_response(
-                                response_url,
-                                greet_text,
-                                blocks=blocks,
-                            )
+                            await send_interactive_response(response_url, greet_text)
 
                     elif action_id == "quick_help":
                         help_text = (
@@ -5645,23 +5653,17 @@ async def handle_request(request, env):
                             "- `stats` or `health`: Show DB table counts\\n"
                             "- `hello` / `hi` / `hey`: Greeting + DB stats\\n"
                             "- `help`: Show this command list\\n\\n"
-                            "Or use the quick action buttons below!"
+                            "Use slash commands in channels for workspace actions."
                         )
-                        blocks = _create_quick_response_blocks(help_text)
                         if ws_token and channel_id:
                             await send_slack_message(
                                 env,
                                 channel_id,
                                 help_text,
-                                blocks=blocks,
                                 token=ws_token,
                             )
                         else:
-                            await send_interactive_response(
-                                response_url,
-                                help_text,
-                                blocks=blocks,
-                            )
+                            await send_interactive_response(response_url, help_text)
 
                 return Response.json({"ok": True})
 
