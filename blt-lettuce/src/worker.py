@@ -6350,6 +6350,37 @@ async def handle_request(request, env):
                 ):
                     return _json_response({"error": "Invalid signature"}, 401)
 
+            try:
+                event = body_json.get("event", {})
+                print(
+                    "[webhook_debug]",
+                    json.dumps(
+                        {
+                            "body_type": body_json.get("type"),
+                            "event_id": body_json.get("event_id"),
+                            "event_time": body_json.get("event_time"),
+                            "event_type": _obj_get(event, "type"),
+                            "event_subtype": _obj_get(event, "subtype"),
+                            "team_id": _resolve_team_id_from_payload(body_json, event),
+                            "user": _obj_get(event, "user"),
+                            "channel": _obj_get(event, "channel"),
+                            "channel_type": _obj_get(event, "channel_type"),
+                            "retry_num": request.headers.get("X-Slack-Retry-Num"),
+                            "retry_reason": request.headers.get("X-Slack-Retry-Reason"),
+                            "is_join_message_event": bool(
+                                _obj_get(event, "type") == "message"
+                                and _obj_get(event, "subtype") == "channel_join"
+                            ),
+                            "is_member_joined_channel_event": bool(
+                                _obj_get(event, "type") == "member_joined_channel"
+                            ),
+                        },
+                        separators=(",", ":"),
+                    ),
+                )
+            except Exception:
+                pass
+
             if body_json.get("type") == "url_verification":
                 return Response.json({"challenge": body_json.get("challenge")})
 
