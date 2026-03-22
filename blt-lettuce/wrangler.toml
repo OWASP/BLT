@@ -14,7 +14,7 @@ migrations_dir = "./migrations"
 VERSION = "2.0.0"
 
 [triggers]
-crons = ["*/10 * * * *"]
+crons = ["* * * * *"]
 
 [observability]
 enabled = false

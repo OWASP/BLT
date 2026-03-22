@@ -508,6 +508,144 @@ async def db_get_workspaces_with_activity_markers(env):
         return []
 
 
+async def db_get_workspace_github_org_count(env, workspace_id):
+    """Return number of GitHub organizations connected to a workspace."""
+    try:
+        row = _row(
+            await env.DB.prepare(
+                "SELECT COUNT(*) AS count FROM github_organizations WHERE workspace_id = ?"
+            )
+            .bind(workspace_id)
+            .first()
+        )
+        return int((row or {}).get("count") or 0)
+    except Exception:
+        return 0
+
+
+async def db_get_last_event_time(env, workspace_id, event_type):
+    """Return timestamp of latest matching workspace event, if any."""
+    try:
+        row = _row(
+            await env.DB.prepare(
+                "SELECT MAX(created_at) AS last_time FROM events WHERE workspace_id = ? AND event_type = ?"
+            )
+            .bind(workspace_id, event_type)
+            .first()
+        )
+        return str((row or {}).get("last_time") or "").strip()
+    except Exception:
+        return ""
+
+
+async def send_missing_github_org_alert(env, ws, repo_count=0):
+    """Notify installer/admin that workspace has no GitHub org configured."""
+    ws_id = ws.get("id")
+    if not ws_id:
+        return {"ok": False, "error": "missing_workspace_id"}
+
+    target_user = await db_get_workspace_admin_identity(env, ws)
+    if not target_user:
+        return {"ok": False, "error": "no_workspace_installer"}
+
+    slack_user_id = str(target_user.get("slack_user_id") or "").strip()
+    ws_token = ws.get("access_token") or getattr(env, "SLACK_TOKEN", None)
+    if not ws_token:
+        return {"ok": False, "error": "missing_workspace_token"}
+
+    conv_result = await open_conversation(env, slack_user_id, token=ws_token)
+    dm_channel = (
+        (conv_result.get("channel") or {}).get("id")
+        if isinstance(conv_result.get("channel"), dict)
+        else conv_result.get("channel")
+    )
+    if not conv_result.get("ok") or not dm_channel:
+        return {
+            "ok": False,
+            "error": conv_result.get("error") or "dm_open_failed",
+        }
+
+    ws_name = ws.get("team_name") or f"Workspace {ws_id}"
+    msg = (
+        f":warning: *{ws_name}* has no GitHub organization connected yet.\n"
+        "Use `/lettuce-org-add <github-org-url-or-name>` to connect one and enable repository discovery.\n"
+        f"Current repository records: *{int(repo_count or 0)}*"
+    )
+    send_result = await send_slack_message(env, dm_channel, msg, token=ws_token)
+    await db_log_event(
+        env,
+        ws_id,
+        "Missing_GitHub_Org_Alert",
+        slack_user_id,
+        "success" if send_result.get("ok") else "failed",
+        channel_name="Direct Message",
+        request_data=json.dumps(
+            {
+                "workspace_id": ws_id,
+                "workspace_name": ws_name,
+                "repo_count": int(repo_count or 0),
+            }
+        ),
+        verified=bool(send_result.get("ok")),
+    )
+    return {"ok": bool(send_result.get("ok"))}
+
+
+async def run_workspace_metrics_sync(env):
+    """Refresh workspace channel/member/repository counts and send missing-org alerts."""
+    workspaces = await db_get_workspaces_with_activity_markers(env)
+    processed = 0
+    alerted = 0
+
+    for ws in workspaces:
+        ws_id = ws.get("id")
+        if not ws_id:
+            continue
+
+        processed += 1
+        ws_token = ws.get("access_token") or getattr(env, "SLACK_TOKEN", None)
+
+        repo_rows = await db_get_repositories(env, ws_id)
+        repo_count = len(repo_rows)
+
+        if ws_token:
+            try:
+                await scan_workspace_channels(env, ws_id, ws_token)
+                channel_rows = await db_get_channels(env, ws_id)
+                total_members = int(await fetch_workspace_member_count(ws_token) or 0)
+                await db_update_workspace_channel_member_counts(
+                    env,
+                    ws_id,
+                    channel_count=len(channel_rows),
+                    member_count=total_members,
+                )
+            except Exception:
+                pass
+
+        org_count = await db_get_workspace_github_org_count(env, ws_id)
+        if org_count > 0:
+            continue
+
+        # Avoid sending this reminder every minute.
+        last_alert_raw = await db_get_last_event_time(
+            env, ws_id, "Missing_GitHub_Org_Alert"
+        )
+        last_alert_dt = _parse_iso_datetime(last_alert_raw)
+        now = datetime.now(timezone.utc)
+        if last_alert_dt and (now - last_alert_dt) < timedelta(hours=24):
+            continue
+
+        alert_result = await send_missing_github_org_alert(
+            env,
+            ws,
+            repo_count=repo_count,
+        )
+        if alert_result.get("ok"):
+            alerted += 1
+
+    return {"processed": processed, "alerted": alerted}
+
+
 async def run_inactivity_monitor(env):
     """Notify workspace installer/admin when no activity has been received for 1 day."""
     now = datetime.now(timezone.utc)
@@ -5658,6 +5796,7 @@ class Default(WorkerEntrypoint):
             if env is None:
                 return
 
+            await run_workspace_metrics_sync(env)
             await run_inactivity_monitor(env)
         except Exception as e:
             try:
@@ -5665,7 +5804,7 @@ class Default(WorkerEntrypoint):
                 sentry.capture_exception_nowait(
                     e,
                     level="error",
-                    extra={"context": "cron_inactivity_monitor"},
+                    extra={"context": "cron_scheduled_tasks"},
                 )
             except Exception:
                 pass
