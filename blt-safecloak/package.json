@@ -26,5 +26,8 @@
     "engines": {
         "node": ">=18.0.0",
         "python": ">=3.11"
+    },
+    "dependencies": {
+        "wrangler": "^4.76.0"
     }
 }

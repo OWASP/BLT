@@ -448,6 +448,12 @@ const VideoChat = (() => {
     conn.on("open", () => conn.send({ type: "peers", ids: peerList }));
   }
 
+  /* ── Input validation ── */
+  function isValidRoomId(roomId) {
+    if (!roomId || typeof roomId !== "string") return false;
+    return /^[a-zA-Z0-9]{6}$/.test(roomId.trim());
+  }
+
   async function callPeer(remotePeerId) {
     if (!peer) {
       showToast("Not connected to server", "error");
@@ -459,6 +465,10 @@ const VideoChat = (() => {
     }
     if (!remotePeerId) {
       showToast("Enter a Room ID to call", "warning");
+      return;
+    }
+    if (!isValidRoomId(remotePeerId)) {
+      showToast("Room ID must be exactly 6 alphanumeric characters", "error");
       return;
     }
     if (remotePeerId === state.peerId) {
