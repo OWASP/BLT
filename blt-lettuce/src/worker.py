@@ -14,6 +14,7 @@ import io
 import json
 import re
 import secrets
+import traceback
 from datetime import datetime, timedelta, timezone
 from urllib.parse import unquote_plus, urlencode, urlparse
 
@@ -5270,6 +5271,20 @@ async def handle_request(request, env):
 
         except Exception as e:
             try:
+                print(
+                    "[internal_server_error]",
+                    json.dumps(
+                        {
+                            "path": "/api/workspace/connect",
+                            "error": str(e),
+                            "error_type": type(e).__name__,
+                            "traceback": traceback.format_exc(),
+                        }
+                    ),
+                )
+            except Exception:
+                pass
+            try:
                 sentry = get_sentry()
                 sentry.capture_exception_nowait(
                     e, level="error", extra={"user_id": user.get("user_id")}
@@ -5928,6 +5943,20 @@ async def handle_request(request, env):
             return _json_response(ws_stats, 200)
         except Exception as e:
             try:
+                print(
+                    "[internal_server_error]",
+                    json.dumps(
+                        {
+                            "path": "/api/ws/<id>/stats",
+                            "error": str(e),
+                            "error_type": type(e).__name__,
+                            "traceback": traceback.format_exc(),
+                        }
+                    ),
+                )
+            except Exception:
+                pass
+            try:
                 sentry = get_sentry()
                 sentry.capture_exception_nowait(
                     e,
@@ -5991,6 +6020,20 @@ async def handle_request(request, env):
             return Response.json({"ok": True, "events": events})
         except Exception as e:
             try:
+                print(
+                    "[internal_server_error]",
+                    json.dumps(
+                        {
+                            "path": "/api/ws/<id>/events",
+                            "error": str(e),
+                            "error_type": type(e).__name__,
+                            "traceback": traceback.format_exc(),
+                        }
+                    ),
+                )
+            except Exception:
+                pass
+            try:
                 sentry = get_sentry()
                 sentry.capture_exception_nowait(
                     e,
@@ -6036,6 +6079,20 @@ async def handle_request(request, env):
             daily = await db_get_daily_stats(env, ws_id_val, days=days_param)
             return Response.json({"ok": True, "daily": daily})
         except Exception as e:
+            try:
+                print(
+                    "[internal_server_error]",
+                    json.dumps(
+                        {
+                            "path": "/api/ws/<id>/activity",
+                            "error": str(e),
+                            "error_type": type(e).__name__,
+                            "traceback": traceback.format_exc(),
+                        }
+                    ),
+                )
+            except Exception:
+                pass
             try:
                 sentry = get_sentry()
                 sentry.capture_exception_nowait(
@@ -6464,6 +6521,21 @@ async def handle_request(request, env):
             return Response.json({"ok": True, "message": "Event received"})
 
         except Exception as e:
+            try:
+                print(
+                    "[internal_server_error]",
+                    json.dumps(
+                        {
+                            "path": "/webhook",
+                            "method": "POST",
+                            "error": str(e),
+                            "error_type": type(e).__name__,
+                            "traceback": traceback.format_exc(),
+                        }
+                    ),
+                )
+            except Exception:
+                pass
             try:
                 sentry = get_sentry()
                 sentry.capture_exception_nowait(
