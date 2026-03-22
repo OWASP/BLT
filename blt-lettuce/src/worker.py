@@ -194,209 +194,6 @@ def _obj_get(obj, key, default=None):
     return default
 
 
-# One-time schema bootstrap guard for the active worker instance.
-_schema_initialized = False
-
-
-async def ensure_d1_schema(env):
-    """Create required D1 tables/indexes if they do not exist."""
-    global _schema_initialized
-    if _schema_initialized:
-        return True
-
-    statements = [
-        (
-            "CREATE TABLE IF NOT EXISTS users ("
-            "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-            "slack_user_id TEXT UNIQUE NOT NULL,"
-            "team_id TEXT NOT NULL,"
-            "name TEXT DEFAULT '',"
-            "email TEXT DEFAULT '',"
-            migrations = [
-                {
-                    "table": "workspaces",
-                    "column": "app_id",
-                    "sql": "ALTER TABLE workspaces ADD COLUMN app_id TEXT DEFAULT ''",
-                },
-                {
-                    "table": "workspaces",
-                    "column": "icon_url",
-                    "sql": "ALTER TABLE workspaces ADD COLUMN icon_url TEXT DEFAULT ''",
-                },
-                {
-                    "table": "workspaces",
-                    "column": "installer_slack_user_id",
-                    "sql": "ALTER TABLE workspaces ADD COLUMN installer_slack_user_id TEXT DEFAULT ''",
-                },
-                {
-                    "table": "workspaces",
-                    "column": "installer_name",
-                    "sql": "ALTER TABLE workspaces ADD COLUMN installer_name TEXT DEFAULT ''",
-                },
-                {
-                    "table": "events",
-                    "column": "channel_name",
-                    "sql": "ALTER TABLE events ADD COLUMN channel_name TEXT DEFAULT ''",
-                },
-                {
-                    "table": "events",
-                    "column": "request_data",
-                    "sql": "ALTER TABLE events ADD COLUMN request_data TEXT DEFAULT ''",
-                },
-                {
-                    "table": "events",
-                    "column": "verified",
-                    "sql": "ALTER TABLE events ADD COLUMN verified INTEGER DEFAULT 0",
-                },
-                {
-                    "table": "repositories",
-                    "column": "source_type",
-                    "sql": "ALTER TABLE repositories ADD COLUMN source_type TEXT DEFAULT 'repo'",
-                },
-                {
-                    "table": "repositories",
-                    "column": "metadata_json",
-                    "sql": "ALTER TABLE repositories ADD COLUMN metadata_json TEXT DEFAULT ''",
-                },
-                {
-                    "table": "channels",
-                    "column": "send_join_message",
-                    "sql": "ALTER TABLE channels ADD COLUMN send_join_message INTEGER DEFAULT 0",
-                },
-                {
-                    "table": "channels",
-                    "column": "join_message_id",
-                    "sql": "ALTER TABLE channels ADD COLUMN join_message_id INTEGER DEFAULT NULL",
-                },
-                {
-                    "table": "channels",
-                    "column": "join_delivery_mode",
-                    "sql": "ALTER TABLE channels ADD COLUMN join_delivery_mode TEXT DEFAULT 'dm'",
-                },
-                {
-                    "table": "workspaces",
-                    "column": "app_name",
-                    "sql": "ALTER TABLE workspaces ADD COLUMN app_name TEXT DEFAULT ''",
-                },
-                {
-                    "table": "workspaces",
-                    "column": "manifest_yaml",
-                    "sql": "ALTER TABLE workspaces ADD COLUMN manifest_yaml TEXT DEFAULT ''",
-                },
-                {
-                    "table": "workspaces",
-                    "column": "app_icon_url",
-                    "sql": "ALTER TABLE workspaces ADD COLUMN app_icon_url TEXT DEFAULT ''",
-                },
-            ]
-            "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-            "workspace_id INTEGER NOT NULL,"
-            "repo_url TEXT NOT NULL,"
-            "repo_name TEXT DEFAULT '',"
-            "description TEXT DEFAULT '',"
-            "language TEXT DEFAULT '',"
-            "stars INTEGER DEFAULT 0,"
-            "source_type TEXT DEFAULT 'repo',"
-            "metadata_json TEXT DEFAULT '',"
-            "created_at TEXT NOT NULL,"
-            "FOREIGN KEY (workspace_id) REFERENCES workspaces(id),"
-            "UNIQUE(workspace_id, repo_url)"
-            ")"
-        ),
-        (
-            "CREATE TABLE IF NOT EXISTS events ("
-            "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-            "workspace_id INTEGER,"
-            "event_type TEXT NOT NULL,"
-            "user_slack_id TEXT DEFAULT '',"
-            "channel_name TEXT DEFAULT '',"
-            "request_data TEXT DEFAULT '',"
-            "verified INTEGER DEFAULT 0,"
-            "status TEXT DEFAULT 'success',"
-            "created_at TEXT NOT NULL"
-            ")"
-        ),
-        (
-            "CREATE INDEX IF NOT EXISTS idx_events_workspace_created "
-            "ON events(workspace_id, created_at DESC)"
-        ),
-        (
-            "CREATE INDEX IF NOT EXISTS idx_channels_workspace "
-            "ON channels(workspace_id, member_count DESC)"
-        ),
-        # Removed join_messages index
-        "CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions(expires_at)",
-        (
-            "CREATE INDEX IF NOT EXISTS idx_user_workspaces_user "
-            "ON user_workspaces(user_id)"
-        ),
-        (
-            "CREATE INDEX IF NOT EXISTS idx_user_workspaces_workspace "
-            "ON user_workspaces(workspace_id)"
-        statements = [
-            ...existing code...
-        ]
-            "sql": "ALTER TABLE repositories ADD COLUMN source_type TEXT DEFAULT 'repo'",
-        },
-        {
-            "table": "repositories",
-            "column": "metadata_json",
-            "sql": "ALTER TABLE repositories ADD COLUMN metadata_json TEXT DEFAULT ''",
-        },
-        {
-            "table": "channels",
-            "column": "send_join_message",
-            "sql": "ALTER TABLE channels ADD COLUMN send_join_message INTEGER DEFAULT 0",
-        },
-        {
-            "table": "channels",
-            "column": "join_message_id",
-            "sql": "ALTER TABLE channels ADD COLUMN join_message_id INTEGER DEFAULT NULL",
-        },
-        {
-            "table": "channels",
-            "column": "join_delivery_mode",
-            "sql": "ALTER TABLE channels ADD COLUMN join_delivery_mode TEXT DEFAULT 'dm'",
-        },
-        {
-            "table": "workspaces",
-            "column": "app_name",
-            "sql": "ALTER TABLE workspaces ADD COLUMN app_name TEXT DEFAULT ''",
-        },
-        {
-            "table": "workspaces",
-            "column": "manifest_yaml",
-            "sql": "ALTER TABLE workspaces ADD COLUMN manifest_yaml TEXT DEFAULT ''",
-        },
-        {
-            "table": "workspaces",
-            "column": "app_icon_url",
-            "sql": "ALTER TABLE workspaces ADD COLUMN app_icon_url TEXT DEFAULT ''",
-        },
-    ]
-
-    try:
-        print(
-            f"[ensure_d1_schema] Initializing schema with {len(statements)} statements..."
-        )
-        for idx, sql in enumerate(statements, 1):
-            await env.DB.prepare(sql).run()
-
-        try:
-            sentry = get_sentry()
-            sentry.capture_exception_nowait(
-                e,
-                level="error",
-                extra={
-                    "context": "db_get_workspace_by_id",
-                    "workspace_id": workspace_id,
-                },
-            )
-        except Exception:
-            pass
-        return None
-
-
 async def db_update_workspace_icon(env, workspace_id, icon_url):
     """Persist a workspace icon URL."""
     try:
@@ -526,7 +323,6 @@ async def db_link_user_workspace(env, user_id, workspace_id, role="owner"):
         f"[db_link_user_workspace] Linking user {user_id} to workspace {workspace_id}"
     )
     try:
-        await ensure_d1_schema(env)
         result = await (
             env.DB.prepare(
                 "INSERT INTO user_workspaces (user_id, workspace_id, role, created_at) "
@@ -824,7 +620,6 @@ async def db_upsert_channel(
 ):
     now = get_utc_now()
     try:
-        await ensure_d1_schema(env)
         result = await (
             env.DB.prepare(
                 "INSERT INTO channels "
@@ -903,7 +698,6 @@ async def db_update_channel_join_config(
     Sending is enabled whenever join_message_id is set, disabled when NULL.
     """
     try:
-        await ensure_d1_schema(env)
         send_join_message = 1 if join_message_id else 0
         await (
             env.DB.prepare(
@@ -1095,8 +889,6 @@ async def db_get_or_create_user(
         f"[db_get_or_create_user] Called with slack_user_id={slack_user_id}, team_id={team_id}, name={name}"
     )
     try:
-        await ensure_d1_schema(env)
-
         # Ensure required columns are never NULL for inserts/updates.
         slack_user_id = slack_user_id or ""
         team_id = team_id or "unknown"
@@ -1188,7 +980,6 @@ async def db_create_session(env, user_id, token):
     expires = (datetime.now(timezone.utc) + timedelta(days=30)).isoformat()
     print(f"[db_create_session] Creating session for user_id={user_id}")
     try:
-        await ensure_d1_schema(env)
         result = await (
             env.DB.prepare(
                 "INSERT INTO sessions (id, user_id, created_at, expires_at) VALUES (?, ?, ?, ?)"
@@ -2227,8 +2018,6 @@ async def fetch_user_identity(user_token):
 
 async def get_db_table_counts(env):
     """Return counts for key D1 tables used by dashboard and bot commands."""
-    await ensure_d1_schema(env)
-
     tables = [
         "workspaces",
         "channels",
