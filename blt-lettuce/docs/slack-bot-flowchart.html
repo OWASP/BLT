@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="OWASP Slack Bot — Project Recommendation Flowchart showing Technology-based and Mission-based discovery paths" />
+    <meta name="description" content="Slack Bot project recommendation flowchart showing technology-based and mission-based discovery paths" />
     <title>Project Recommendation Flowchart | BLT-Lettuce</title>
 
     <!-- Tailwind CSS CDN -->
@@ -15,6 +15,15 @@
     <!-- Mermaid.js for diagram rendering -->
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
     <script src="https://js.sentry-cdn.com/73ec24fc4cd44cec10017d622968ee3a.min.js" crossorigin="anonymous"></script>
+    <style>
+      .flowchart-wrap {
+        min-height: 900px;
+      }
+      .flowchart-wrap .mermaid {
+        min-width: 1400px;
+        font-size: 20px;
+      }
+    </style>
   </head>
   <body class="bg-gray-50 font-sans text-gray-900">
     <!-- Navigation -->
@@ -23,7 +32,7 @@
         <div class="flex justify-between items-center h-16">
           <div class="flex items-center">
             <a href="/" class="flex items-center">
-              <img class="w-10 h-10 mr-2" src="./static/logo.png" alt="OWASP Logo" />
+              <img class="w-10 h-10 mr-2" src="./static/logo.png" alt="BLT-Lettuce Logo" />
               <h1 class="text-xl font-bold text-gray-900">BLT-Lettuce</h1>
             </a>
           </div>
@@ -42,12 +51,12 @@
       <!-- Header Section -->
       <section class="bg-white rounded-lg shadow p-8 mb-8 text-center">
         <h1 class="text-4xl font-bold text-gray-900 mb-4">
-          OWASP Slack Bot <span class="text-red-600">Flowchart</span>
+          Slack Bot <span class="text-red-600">Flowchart</span>
         </h1>
         <p class="text-xl text-gray-600 mb-4 max-w-3xl mx-auto">
-          This flowchart describes how the OWASP Slack Bot guides new contributors through a
+          This flowchart describes how the Slack bot guides new contributors through a
           <strong>Technology-based</strong> or <strong>Mission-based</strong> discovery path,
-          powered by metadata from the OWASP Metadata Aggregation project.
+          powered by community project metadata.
         </p>
         <a
           href="https://mermaid.live/edit#pako:eNqlWOtS4zYUfhWtd7YEJoSQCwnelp1c2d2GSyEdZgr7Q7FlW41jeWQZSIGZPksfrU_SI9mWL4G90DAESzr6zv2zxINhMZsYpuH47M7yMBdoPr4JEHzevUPHPltgH12KtU-iZNbycRSNiYMWTAzjxcInyKG-b76dNCfD6bQeCc6WxHzbbHaHh6N0uHtHbeGZrfC-bjGfcfNtu93mv2fnay2NfeoGpk8c8b6iJ44IHxOLRpQFqaqp-mhVEutreiIPh8S0KV6xwK7C-8yl1pDdp9CtUXvSbb4M3cyhlQkKmhNLSG-UM1_zxcG-v8DWMtcHIO3RWOvrdw86zU5Z5X6usrxsY1DPOV6bqIu6VV0ksE8htZlfk-FBb_zdfoEzrab0ptUEXF0Pu7u7UAyySBQ0DJMlNVe79ME1NGRi2zRNXR4FCdhw9Hhj_A4ZRTSggmIBZWU8oiy_D-ecOISTwCIfngCkmPsyDpqTe4WHhvLp-sb4SN-gT8jCAfKIH6I1i8H1wEZnV4PLcxRy9idkKWr8vOB7R1cs9m0l4tMlQZA_tlpBwLAARRFa4IjYiAVKdk4sL4DIuGvEODqhkTTmw43xpRKXIceB5dHAzcOiy1b6nePsDiX-I5IzSeT2G2gQLVEu8kwES2CpGRlSOiyBpXMVJG3yL9_90Vtmk-kcDS8Gp6OPZsHWV0Nq_0v5nO9DMq88anlIaB17kYDa-qAS8u_f_6DztfAgFPLxM77FycOlXj5hCwrEJB9HPottdAqZvSV6fe5xggWI2cSXGZNzY3J7SayzMFKprdp3pEazW7_WSsI7po5DrdgXz-UqlS371QK_hsSlQQDlv4c-BYLwFbFlE8BwYN9C_RC7pD3BSHTP1yGptRPl50k1Izn3gnq5VNbfBv1zxvyojkayey9IyOB5zCz4nnMMHRm4Wr3OqgRDM8mSG-CJYVPqgyfXnQY6IQJDD2GUTMnIqo1fwMSMZ3OQREjaqIQSvGnazTIjqcBijbYEdqMtnb7iAljy7IJPbom_sSJkNGiAtkIqLG9jGVuyTFANCIEEAklWoCLargSlZHwSgwscLK-7DST_fsNtKVJx-qLg9AUBy2UlIMFUA2gbB9I4KtbI4STyAhJFeTuwMPYxl4s16BQe7VksEJwuYsF4tK3lsvLbdTgFuoPaB5Qylal0n8UijMWGzYmvyWLtoJHIXpTJ84VyTDZJv_UToJ2lju_saBQg3rS6I1SbsxC1t82dHeUBEFtC5p9jCvG59Fio5lvZ_CkRkiYIV9PtbDrt9jHHLrxGSt6-ggUvPh1_zGkwZdlXAxaZu9SuJwkNgt00km8qjlyG_ZwBZwTzAA3CEEgrIbos40S1txaE_o4hsEKlR0keX7IRBJmEWuaCRAAHySwRYQI7n-ryrxh7lE2kqjNq1JZIhS9QVHln2XNJlNKFetl2GJIITlZ1ZXZmch0RYTXKWU3Bi6y1oU8bn9JX-0foq7S13MwnRQY7wcAyKUmhmgDy3bOZtSeP3HlTZkKS4mTTr1Lrl2R9x7gdVQRXWMSq06sUN_IIHL8yIkcSD9Us4dRR5JHQI9zeLoSp6oKOh6KyzjeprCBdCUCRzbJM5KxWuyLU9QSxtzeJ7SfponIu9znLCdBD6BNBSrz3WwxnbdjInIzRny-EIp-VDddup6wGHJ7b_C1iK22tcNvJj3Hb9Xgd4BWEcEYjoQ-g6Bh6_sv_pqzpYDYbDka_QoAnp-NXI-V46TUmzXoNuioAp8Bk6sDcnWQAh9ryGL9dfYk04PRaFnnUeLUysIx44cb0TPq-Bla0WeOWKnU6LFTq5D7EcFuI6IrCm1R1jy4zeNPcoTB5x1buE7lM7LoEUqdPeFkjaokzB642aGvO12gQMAENmRLN1uahCxy6JdyVHj3zDj1Ck-Ry93wZVpYLzhdWkrV0WJvSAO758lEGnRS3pyIlip5kdy64qyEMv-oFtZL8RKI3yRULwwFqpU4x-j7mEoHk8URWij6gQIgqt6kp4wAlF5ADV64Zhr1p88KJZan-G4Fs4mA4faPsRjvsy5_N_wOo62_AAvLeqBsup7ZhCh6TurGC0zeWQ-NBYt8YkJEVuTFMeLQxX94YN8ET7IGy-IOxVbaNs9j1DFmXEYziENiBjCl2Oc5FZKvzEYsDYZhdhWCYD8a9Ye62WvuNg95Bt7l_2Or1O82DurGG6V7noNHq9LuH3VbzsNfsPdWNv5TO_Ua_c3jQ77Ta_U673W_3ek__AT8CzsI"
@@ -62,7 +71,7 @@
       <!-- Flowchart Section -->
       <section class="bg-white rounded-lg shadow p-6 mb-8">
         <h2 class="text-2xl font-bold text-gray-900 mb-6 text-center">Project Discovery Flowchart</h2>
-        <div class="overflow-x-auto flex justify-center">
+        <div class="overflow-x-auto flowchart-wrap flex justify-center">
           <div class="mermaid">
 flowchart TD
     %% Global Styles
@@ -153,7 +162,7 @@ flowchart TD
               </li>
               <li class="flex gap-3">
                 <span class="flex-shrink-0 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold">6</span>
-                <span><strong>Recommend Projects:</strong> Top 3 matching OWASP projects</span>
+                <span><strong>Recommend Projects:</strong> Top 3 matching open-source projects</span>
               </li>
             </ol>
           </div>
@@ -195,7 +204,7 @@ flowchart TD
           </h3>
           <ul class="list-disc list-inside text-gray-700 space-y-1 text-sm">
             <li>Expand similar tags</li>
-            <li>Show popular OWASP projects</li>
+            <li>Show popular community projects</li>
             <li>Suggest Beginner Training resources</li>
             <li>Offer "Try Another Filter" option</li>
           </ul>
@@ -212,8 +221,7 @@ flowchart TD
           <div class="flex justify-center space-x-6 text-sm text-gray-500">
             <a href="/" class="hover:text-red-600 transition-colors">Home</a>
             <a href="https://github.com/OWASP-BLT/BLT-Lettuce" class="hover:text-red-600 transition-colors">GitHub</a>
-            <a href="https://owasp.org/slack/invite" class="hover:text-red-600 transition-colors">Join Slack</a>
-            <a href="https://owasp.org" class="hover:text-red-600 transition-colors">OWASP Foundation</a>
+            <a href="/privacy" class="hover:text-red-600 transition-colors">Privacy</a>
           </div>
         </div>
       </footer>
@@ -224,7 +232,7 @@ flowchart TD
         startOnLoad: true,
         theme: "default",
         flowchart: {
-          useMaxWidth: true,
+          useMaxWidth: false,
           htmlLabels: true,
         },
       });

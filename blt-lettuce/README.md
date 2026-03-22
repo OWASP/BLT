@@ -2,15 +2,17 @@
 
 Welcome message files in the `data/` directory use the following naming pattern:
 
-`<type>-<team_id>-<channel_id>.md`
+`message-<team_id>-<channel_id>-ephemeral.md`
 
-- `<type>`: Either `message` (for persistent messages) or `ephemeral` (for ephemeral messages)
 - `<team_id>`: The Slack team (workspace) ID (e.g., `T070JPE5BQQ`)
 - `<channel_id>`: The Slack channel ID (e.g., `C06V9S85YR1`)
 
 **Examples:**
-- `message-T070JPE5BQQ-C06V9S85YR1.md` — Persistent welcome message for team `T070JPE5BQQ` in channel `C06V9S85YR1`
-- `ephemeral-T070JPE5BQQ-C06V9S85YR1.md` — Ephemeral welcome message for the same team/channel
+- `message-T070JPE5BQQ-C06V9S85YR1-ephemeral.md` — Ephemeral join message for team `T070JPE5BQQ` in channel `C06V9S85YR1`
+- `message-T070JPE5BQQ-C06V9S85YR1.md` — Persistent/channel template fallback for the same team/channel
+
+Backward compatibility:
+- `ephemeral-T070JPE5BQQ-C06V9S85YR1.md` is still recognized by the worker.
 
 This convention makes it easy to distinguish between ephemeral and persistent messages and to target specific workspaces and channels.
 <div align="center">

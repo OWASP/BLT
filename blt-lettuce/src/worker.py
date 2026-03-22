@@ -31,6 +31,7 @@ from lettuce.html_templates import (
     get_404_html,
     get_500_html,
     get_homepage_html,
+    get_privacy_html,
     get_status_html,
     html_escape,
 )
@@ -538,8 +539,23 @@ async def db_get_last_event_time(env, workspace_id, event_type):
         return ""
 
 
-async def send_missing_github_org_alert(env, ws, repo_count=0):
-    """Notify installer/admin that workspace has no GitHub org configured."""
+async def db_get_workspace_invite_link(env, workspace_id):
+    """Return workspace invite_link when the column exists; else empty string."""
+    try:
+        row = _row(
+            await env.DB.prepare("SELECT invite_link FROM workspaces WHERE id = ?")
+            .bind(workspace_id)
+            .first()
+        )
+        return str((row or {}).get("invite_link") or "").strip()
+    except Exception:
+        return ""
+
+
+async def send_missing_github_org_alert(
+    env, ws, repo_count=0, missing_org=True, missing_invite=False
+):
+    """Notify installer/admin about missing workspace configuration."""
     ws_id = ws.get("id")
     if not ws_id:
         return {"ok": False, "error": "missing_workspace_id"}
@@ -566,16 +582,23 @@ async def send_missing_github_org_alert(env, ws, repo_count=0):
         }
 
     ws_name = ws.get("team_name") or f"Workspace {ws_id}"
-    msg = (
-        f":warning: *{ws_name}* has no GitHub organization connected yet.\n"
-        "Use `/lettuce-org-add <github-org-url-or-name>` to connect one and enable repository discovery.\n"
-        f"Current repository records: *{int(repo_count or 0)}*"
-    )
+    lines = [f":warning: Workspace setup reminder for *{ws_name}*:"]
+    if missing_org:
+        lines.append(
+            "• No GitHub organization connected. Use `/lettuce-org-add <github-org-url-or-name>`."
+        )
+    if missing_invite:
+        lines.append(
+            "• No Slack invite link set. Use `/lettuce-set-invite <slack-invite-url>`."
+        )
+    lines.append(f"Current repository records: *{int(repo_count or 0)}*")
+    msg = "\n".join(lines)
+
     send_result = await send_slack_message(env, dm_channel, msg, token=ws_token)
     await db_log_event(
         env,
         ws_id,
-        "Missing_GitHub_Org_Alert",
+        "Missing_Workspace_Config_Alert",
         slack_user_id,
         "success" if send_result.get("ok") else "failed",
         channel_name="Direct Message",
@@ -584,6 +607,8 @@ async def send_missing_github_org_alert(env, ws, repo_count=0):
                 "workspace_id": ws_id,
                 "workspace_name": ws_name,
                 "repo_count": int(repo_count or 0),
+                "missing_org": bool(missing_org),
+                "missing_invite": bool(missing_invite),
             }
         ),
         verified=bool(send_result.get("ok")),
@@ -592,7 +617,7 @@ async def send_missing_github_org_alert(env, ws, repo_count=0):
 
 
 async def run_workspace_metrics_sync(env):
-    """Refresh workspace channel/member/repository counts and send missing-org alerts."""
+    """Refresh workspace channel/member/repository counts and send missing-config alerts."""
     workspaces = await db_get_workspaces_with_activity_markers(env)
     processed = 0
     alerted = 0
@@ -608,37 +633,42 @@ async def run_workspace_metrics_sync(env):
         repo_rows = await db_get_repositories(env, ws_id)
         repo_count = len(repo_rows)
 
+        # Always refresh saved counts. If scan fails, still persist current channel rows.
+        channel_rows = await db_get_channels(env, ws_id)
+        total_members = 0
         if ws_token:
             try:
                 await scan_workspace_channels(env, ws_id, ws_token)
-                channel_rows = await db_get_channels(env, ws_id)
-                total_members = int(await fetch_workspace_member_count(ws_token) or 0)
-                await db_update_workspace_channel_member_counts(
-                    env,
-                    ws_id,
-                    channel_count=len(channel_rows),
-                    member_count=total_members,
-                )
             except Exception:
                 pass
+            channel_rows = await db_get_channels(env, ws_id)
+            try:
+                total_members = int(await fetch_workspace_member_count(ws_token) or 0)
+            except Exception:
+                total_members = 0
+
+        await db_update_workspace_channel_member_counts(
+            env,
+            ws_id,
+            channel_count=len(channel_rows),
+            member_count=total_members,
+        )
 
         org_count = await db_get_workspace_github_org_count(env, ws_id)
-        if org_count > 0:
+        invite_link = await db_get_workspace_invite_link(env, ws_id)
+        missing_org = org_count <= 0
+        missing_invite = not invite_link
+
+        if not missing_org and not missing_invite:
             continue
 
-        # Avoid sending this reminder every minute.
-        last_alert_raw = await db_get_last_event_time(
-            env, ws_id, "Missing_GitHub_Org_Alert"
-        )
-        last_alert_dt = _parse_iso_datetime(last_alert_raw)
-        now = datetime.now(timezone.utc)
-        if last_alert_dt and (now - last_alert_dt) < timedelta(hours=24):
-            continue
-
+        # Per user request: notify every cron run when config is missing.
         alert_result = await send_missing_github_org_alert(
             env,
             ws,
             repo_count=repo_count,
+            missing_org=missing_org,
+            missing_invite=missing_invite,
         )
         if alert_result.get("ok"):
             alerted += 1
@@ -1947,6 +1977,7 @@ async def db_list_workspaces_public(env):
                 "(SELECT MAX(e2.created_at) FROM events e2 WHERE e2.workspace_id = w.id) AS last_event_time, "
                 "(SELECT COUNT(*) FROM repositories r WHERE r.workspace_id = w.id) AS repo_count, "
                 "(SELECT COUNT(*) FROM channels c WHERE c.workspace_id = w.id) AS channel_count, "
+                "(SELECT go.org_login FROM github_organizations go WHERE go.workspace_id = w.id ORDER BY go.updated_at DESC, go.created_at DESC, go.id DESC LIMIT 1) AS github_org_login, "
                 f"{member_count_sql}, "
                 f"{invite_link_sql} "
                 "FROM workspaces w ORDER BY w.created_at DESC"
@@ -1993,6 +2024,11 @@ async def db_list_workspaces_public(env):
             # Normalize nulls to 0 for channel/member counts
             ws["channel_count"] = ws.get("channel_count") or 0
             ws["member_count"] = ws.get("member_count") or 0
+            org_login = str(ws.get("github_org_login") or "").strip()
+            ws["github_org_login"] = org_login
+            ws["github_org_url"] = (
+                f"https://github.com/{org_login}" if org_login else ""
+            )
 
         return rows
     except Exception:
@@ -2365,6 +2401,45 @@ def get_workspace_welcome_message(team_id):
     except Exception:
         # Fallback to default if workspace-specific file not found
         return WELCOME_MESSAGE
+
+
+def get_channel_join_message(team_id, channel_id):
+    """Load channel-join message template from data directory.
+
+    Preferred naming:
+    - message-<team_id>-<channel_id>-ephemeral.md
+
+    Backward-compatible names:
+    - ephemeral-<team_id>-<channel_id>.md
+    - message-<team_id>-<channel_id>.md
+    """
+    if not team_id or not channel_id:
+        return ""
+
+    try:
+        import os
+
+        base_dir = os.path.normpath(
+            os.path.join(os.path.dirname(__file__), "..", "data")
+        )
+        candidates = [
+            f"message-{team_id}-{channel_id}-ephemeral.md",
+            f"ephemeral-{team_id}-{channel_id}.md",
+            f"message-{team_id}-{channel_id}.md",
+        ]
+
+        for filename in candidates:
+            candidate_path = os.path.normpath(os.path.join(base_dir, filename))
+            if not candidate_path.startswith(base_dir):
+                continue
+            if not os.path.exists(candidate_path):
+                continue
+            with open(candidate_path, "r", encoding="utf-8") as f:
+                return f.read().strip()
+    except Exception:
+        return ""
+
+    return ""
 
 
 async def db_get_workspace_by_team(env, team_id):
@@ -3310,6 +3385,7 @@ async def handle_message_event(env, event, team_id=None):
                 channel_name=resolved_channel_name,
             )
             # Send configured join message when a template is selected for this channel.
+            sent_join_message = False
             channel_row = await db_get_channel_by_slack_id(env, ws["id"], channel)
             if channel_row:
                 message_id = channel_row.get("join_message_id")
@@ -3399,6 +3475,8 @@ async def handle_message_event(env, event, team_id=None):
                                     request_data=json.dumps(request_payload),
                                     verified=False,
                                 )
+                                if send_result.get("ok"):
+                                    sent_join_message = True
                             except Exception:
                                 await db_log_event(
                                     env,
@@ -3410,6 +3488,62 @@ async def handle_message_event(env, event, team_id=None):
                                     request_data=json.dumps(request_payload),
                                     verified=False,
                                 )
+
+            # File-based fallback: send channel-specific ephemeral join message
+            # when no DB template is configured or no message was sent.
+            if not sent_join_message and team_id:
+                file_template = get_channel_join_message(team_id, channel)
+                if file_template.strip():
+                    rendered = render_join_message_template(
+                        file_template,
+                        {
+                            "user_id": user or "",
+                            "user_mention": f"<@{user}>" if user else "",
+                            "channel_id": channel or "",
+                            "channel_name": resolved_channel_name or "",
+                            "workspace_id": ws.get("id") or "",
+                            "workspace_name": ws.get("team_name") or "",
+                            "event_type": "channel_join",
+                            "timestamp": get_utc_now(),
+                        },
+                    )
+                    if rendered.strip():
+                        logo_tracking_id = secrets.token_hex(12)
+                        join_blocks = [
+                            {
+                                "type": "section",
+                                "text": {"type": "mrkdwn", "text": rendered},
+                            }
+                        ]
+                        send_result = await send_slack_ephemeral_message(
+                            env,
+                            channel,
+                            user,
+                            rendered,
+                            blocks=join_blocks,
+                            token=ws_token,
+                            branding_tracking_id=logo_tracking_id,
+                        )
+                        await db_log_event(
+                            env,
+                            ws["id"],
+                            "Channel_Join_Message",
+                            user or "",
+                            "success" if send_result.get("ok") else "failed",
+                            channel_name=resolved_channel_name,
+                            request_data=json.dumps(
+                                {
+                                    "channel": channel,
+                                    "channel_name": resolved_channel_name,
+                                    "template_name": "file_fallback",
+                                    "user_id": user or "",
+                                    "delivery_mode": "ephemeral",
+                                    "logo_tracking_id": logo_tracking_id,
+                                    "source": "data_file",
+                                }
+                            ),
+                            verified=False,
+                        )
         return {"ok": True, "action": "channel_join_logged"}
 
     if channel_type == "im":
@@ -5618,6 +5752,15 @@ async def handle_request(request, env):
         return _html_response(
             get_status_html(env),
             extra_headers={"Cache-Control": "no-cache"},
+        )
+
+    # ------------------------------------------------------------------ #
+    #  GET /privacy  →  privacy policy page                             #
+    # ------------------------------------------------------------------ #
+    if pathname == "/privacy" and method == "GET":
+        return _html_response(
+            get_privacy_html(),
+            extra_headers={"Cache-Control": "public, max-age=3600"},
         )
 
     # ------------------------------------------------------------------ #

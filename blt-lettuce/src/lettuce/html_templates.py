@@ -154,3 +154,8 @@ def get_404_html():
 def get_500_html():
     """Generate the 500 internal server error HTML page."""
     return _load_template("500.html")
+
+
+def get_privacy_html():
+    """Generate the privacy policy HTML page."""
+    return _load_template("privacy.html")

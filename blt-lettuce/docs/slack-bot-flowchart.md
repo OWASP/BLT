@@ -1,6 +1,6 @@
-# OWASP Slack Bot — Project Recommendation Flowchart
+# Slack Bot — Project Recommendation Flowchart
 
-This flowchart describes how the OWASP Slack Bot guides new contributors through a Technology-based or Mission-based discovery path, powered by metadata from the OWASP Metadata Aggregation project.
+This flowchart describes how the Slack bot guides new contributors through a technology-based or mission-based discovery path, powered by community project metadata.
 
 ---
 
@@ -26,7 +26,7 @@ flowchart TD
     %% --- Start Node ---
     Start(Slack Bot):::botBubble
     Start -->|"User initiates"| Decision{Preference?}:::userDecision
-    Start -- Text --> BText["Hi! I can help you find OWASP projects.<br/>Would you like recommendations based on<br/>Technology or Mission?"]
+    Start -- Text --> BText["Hi! I can help you find projects.<br/>Would you like recommendations based on<br/>Technology or Mission?"]
 
     %% --- Branching ---
     Decision -->|Technology-Based| TechStart(1. Ask Technology):::botBubble
@@ -50,7 +50,7 @@ flowchart TD
 
     %% Tech Output
     TechRank --> TechOutput(6. Tech Recommendations):::botBubble
-    TechOutput -- Output --> TOText["**Recommended Projects (Top 3):**<br/>1. OWASP Juice Shop<br/>2. OWASP Nettacker<br/>3. OWASP Threat Dragon"]
+    TechOutput -- Output --> TOText["**Recommended Projects (Top 3):**<br/>1. Project A<br/>2. Project B<br/>3. Project C"]
 
     %% ==========================================
     %% RIGHT BRANCH: Mission
@@ -78,7 +78,7 @@ flowchart TD
     TechRank -.->|Low Confidence| Fallback(Fallback Logic):::fallbackBox
     MissionRank -.->|Low Confidence| Fallback
     
-    Fallback -- Logic --> FBText["• Expand similar tags<br/>• Show popular OWASP projects<br/>• Suggest Beginner Training<br/>• Offer 'Try Another Filter'"]
+    Fallback -- Logic --> FBText["• Expand similar tags<br/>• Show popular community projects<br/>• Suggest beginner training<br/>• Offer 'Try Another Filter'"]
     
     %% Convergence
     TechOutput --> EndNode
