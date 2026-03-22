@@ -2890,6 +2890,74 @@ async def fetch_workspace_icon_url(access_token):
         return ""
 
 
+async def fetch_workspace_member_count(access_token):
+    """Fetch best-effort workspace member count from Slack APIs."""
+    if not access_token:
+        return 0
+
+    headers = Headers.new()
+    headers.set("Authorization", f"Bearer {access_token}")
+
+    # Prefer team.info because it is a single lightweight request.
+    try:
+        resp = await js_fetch(
+            "https://slack.com/api/team.info",
+            {
+                "method": "GET",
+                "headers": headers,
+            },
+        )
+        result = _js_to_python(await resp.json())
+        if isinstance(result, dict) and result.get("ok"):
+            team = _js_to_python(result.get("team") or {})
+            count = int((team or {}).get("num_members") or 0)
+            if count > 0:
+                return count
+    except Exception:
+        pass
+
+    # Fallback to users.list pagination when team.info lacks member totals.
+    try:
+        total = 0
+        cursor = ""
+        while True:
+            url = "https://slack.com/api/users.list?limit=200"
+            if cursor:
+                url += f"&cursor={cursor}"
+
+            resp = await js_fetch(
+                url,
+                {
+                    "method": "GET",
+                    "headers": headers,
+                },
+            )
+            data = _js_to_python(await resp.json())
+            if not isinstance(data, dict) or not data.get("ok"):
+                break
+
+            members = data.get("members") or []
+            if isinstance(members, list):
+                for member in members:
+                    if not isinstance(member, dict):
+                        continue
+                    if member.get("deleted"):
+                        continue
+                    if member.get("is_bot"):
+                        continue
+                    if member.get("is_app_user"):
+                        continue
+                    total += 1
+
+            cursor = str((data.get("response_metadata") or {}).get("next_cursor") or "")
+            if not cursor:
+                break
+
+        return total
+    except Exception:
+        return 0
+
+
 async def is_image_url_reachable(url):
     """Best-effort URL check used for verified image status."""
     if not url:
@@ -3795,10 +3863,8 @@ async def handle_request(request, env):
                             or 0
                         )
                         channel_rows = await db_get_channels(env, ws_id_val)
-                        total_members = sum(
-                            int((row or {}).get("member_count") or 0)
-                            for row in channel_rows
-                            if isinstance(row, dict)
+                        total_members = int(
+                            await fetch_workspace_member_count(bot_token) or 0
                         )
                         await db_update_workspace_channel_member_counts(
                             env,
@@ -3984,11 +4050,7 @@ async def handle_request(request, env):
                         await scan_workspace_channels(env, ws_id_val, token) or 0
                     )
                     channel_rows = await db_get_channels(env, ws_id_val)
-                    total_members = sum(
-                        int((row or {}).get("member_count") or 0)
-                        for row in channel_rows
-                        if isinstance(row, dict)
-                    )
+                    total_members = int(await fetch_workspace_member_count(token) or 0)
                     await db_update_workspace_channel_member_counts(
                         env,
                         ws_id_val,
@@ -4135,7 +4197,24 @@ async def handle_request(request, env):
             return _json_response({"ok": False, "error": "Workspace not found"}, 404)
 
         scanned = await scan_workspace_channels(env, ws_id_val, ws["access_token"])
-        return Response.json({"ok": True, "channels_scanned": scanned})
+        channel_rows = await db_get_channels(env, ws_id_val)
+        total_members = int(
+            await fetch_workspace_member_count(ws.get("access_token") or "") or 0
+        )
+        await db_update_workspace_channel_member_counts(
+            env,
+            ws_id_val,
+            channel_count=len(channel_rows),
+            member_count=total_members,
+        )
+        return Response.json(
+            {
+                "ok": True,
+                "channels_scanned": scanned,
+                "channel_count": len(channel_rows),
+                "member_count": total_members,
+            }
+        )
 
     # ------------------------------------------------------------------ #
     #  POST /api/ws/<id>/test-message  →  send test DM to workspace owner#
