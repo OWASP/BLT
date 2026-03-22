@@ -26,14 +26,14 @@ jobs:
 
     - name: Verify manifest and routing contracts
       run: |
-        rg -q --fixed-strings "/lettuce-org-add" manifest.yaml
-        rg -q --fixed-strings "/lettuce-set-invite" manifest.yaml
-        rg -q --fixed-strings "/lettuce-settings" manifest.yaml
-        rg -q --fixed-strings "/lettuce-app-link" manifest.yaml
-        rg -q --fixed-strings "member_joined_channel" manifest.yaml
-        rg -q --fixed-strings "_handle_settings_command" src/worker.py
-        rg -q --fixed-strings "run_workspace_metrics_sync" src/worker.py
-        rg -q --fixed-strings "send_missing_github_org_alert" src/worker.py
+        grep -Fq "/lettuce-org-add" manifest.yaml
+        grep -Fq "/lettuce-set-invite" manifest.yaml
+        grep -Fq "/lettuce-settings" manifest.yaml
+        grep -Fq "/lettuce-app-link" manifest.yaml
+        grep -Fq "member_joined_channel" manifest.yaml
+        grep -Fq "_handle_settings_command" src/worker.py
+        grep -Fq "run_workspace_metrics_sync" src/worker.py
+        grep -Fq "send_missing_github_org_alert" src/worker.py
 
     - name: Run critical-path tests
       env:
