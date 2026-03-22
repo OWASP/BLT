@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{{ WS_NAME }} — BLT-Lettuce</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://js.sentry-cdn.com/73ec24fc4cd44cec10017d622968ee3a.min.js" crossorigin="anonymous"></script>
+  <link rel="icon" type="image/png" href="/favicon.png" />
+</head>
+<body class="bg-gray-50 font-sans text-gray-900 min-h-screen">
+
+<nav class="bg-white shadow-sm sticky top-0 z-50 border-b border-gray-100">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center h-14">
+      <div class="flex items-center gap-3 min-w-0">
+        <a href="/dashboard" class="inline-flex items-center gap-3 text-gray-800 hover:text-red-700 transition-colors flex-shrink-0">
+          <img src="https://raw.githubusercontent.com/OWASP-BLT/BLT-Lettuce/main/docs/static/logo.png"
+               alt="Logo" class="w-7 h-7"/>
+          <span class="font-bold">BLT-Lettuce</span>
+        </a>
+        <span class="text-gray-300 flex-shrink-0">|</span>
+        <a href="/dashboard" class="text-sm text-gray-500 hover:text-red-700 transition-colors flex-shrink-0">Dashboard</a>
+        <span class="text-gray-300 flex-shrink-0">/</span>
+        <span class="text-sm text-gray-700 font-medium truncate">{{ WS_NAME }}</span>
+      </div>
+      <div class="flex items-center gap-4 flex-shrink-0">
+        <div class="flex items-center gap-2">
+          {{ USER_AVATAR }}
+          <div class="leading-tight hidden sm:block">
+            <div class="text-sm text-gray-700 font-medium">{{ USER_NAME }}</div>
+            <div class="text-[10px] text-gray-400 font-mono">{{ USER_SLACK_ID }}</div>
+          </div>
+        </div>
+        <a href="/" class="text-sm text-gray-500 hover:text-gray-800">Home</a>
+        <a href="/logout"
+           class="text-sm px-3 py-1.5 border border-gray-200 rounded-lg text-gray-600
+                  hover:bg-gray-50 transition-colors">Logout</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+
+  <!-- Workspace header -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+    <div class="flex items-start gap-4">
+      {{ WS_ICON_HTML }}
+      <div class="flex-1 min-w-0">
+        <h1 class="text-2xl font-bold text-gray-900 truncate">{{ WS_NAME }}</h1>
+        <p class="text-sm text-gray-400 font-mono mt-0.5">{{ TEAM_ID }}</p>
+        <div class="flex flex-wrap gap-x-5 gap-y-2 mt-3">
+          <span class="inline-flex items-center gap-1.5 text-sm text-gray-600">
+            <i class="fas fa-users text-red-500"></i>
+            <strong>{{ MEMBER_COUNT }}</strong>&nbsp;members
+          </span>
+          <span class="inline-flex items-center gap-1.5 text-sm text-gray-600">
+            <i class="fas fa-hashtag text-red-500"></i>
+            <strong>{{ CHANNEL_COUNT }}</strong>&nbsp;channels
+          </span>
+          <span class="inline-flex items-center gap-1.5 text-sm text-gray-600">
+            <i class="fas fa-robot text-red-500"></i>
+            {{ APP_NAME }}
+          </span>
+          <a href="{{ APP_EDIT_URL }}" target="_blank" rel="noopener noreferrer"
+             class="inline-flex items-center gap-1.5 text-sm text-red-600 hover:text-red-700 underline">
+            <i class="fas fa-external-link-alt"></i> Edit in Slack
+          </a>
+        </div>
+      </div>
+      <a href="/dashboard"
+         class="flex-shrink-0 inline-flex items-center gap-1.5 text-sm text-gray-400
+                hover:text-gray-700 transition-colors">
+        <i class="fas fa-arrow-left"></i>
+        <span class="hidden sm:inline">Dashboard</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- 2-year activity chart -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+    <div class="flex items-center justify-between mb-5">
+      <h2 class="text-lg font-bold text-gray-800">Activity &mdash; Last 2 Years</h2>
+      <span id="chart-status" class="text-xs text-gray-400 italic"></span>
+    </div>
+    <div id="chart-loading" class="text-center py-10 text-gray-400">
+      <i class="fas fa-circle-notch fa-spin text-2xl text-red-500 mb-2"></i>
+      <p class="text-sm mt-2">Loading chart&hellip;</p>
+    </div>
+    <div class="relative hidden" id="chart-wrap" style="height:300px">
+      <canvas id="activityChart2y"></canvas>
+    </div>
+  </div>
+
+  <!-- Activity log -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+    <div class="flex items-center justify-between mb-5">
+      <h2 class="text-lg font-bold text-gray-800">Activity Log</h2>
+      <span id="events-count" class="text-xs text-gray-400 italic"></span>
+    </div>
+    <div id="events-loading" class="text-center py-10 text-gray-400">
+      <i class="fas fa-circle-notch fa-spin text-2xl text-red-500 mb-2"></i>
+      <p class="text-sm mt-2">Loading activity log&hellip;</p>
+    </div>
+    <div id="events-error" class="hidden text-center py-6 text-red-500 text-sm"></div>
+    <div class="overflow-x-auto hidden" id="events-table-wrap">
+      <table class="w-full text-left">
+        <thead>
+          <tr class="border-b border-gray-200">
+            <th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Type</th>
+            <th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">User</th>
+            <th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Channel</th>
+            <th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Status</th>
+            <th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Data</th>
+            <th class="pb-2 px-4 text-xs font-semibold text-gray-400 uppercase tracking-wide">Time</th>
+          </tr>
+        </thead>
+        <tbody id="events-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+
+<script>
+const WS_ID = {{ WS_ID_JSON }};
+
+function parseUtcTimestamp(rawValue) {
+  if (!rawValue) return null;
+  const raw = String(rawValue).trim();
+  if (!raw || raw === '-' || raw === '\u2014') return null;
+  let normalized = raw.replace(' ', 'T');
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(normalized)) normalized += ':00';
+  if (!/(Z|[+-]\d{2}:\d{2})$/i.test(normalized)) normalized += 'Z';
+  const ms = Date.parse(normalized);
+  return Number.isNaN(ms) ? null : ms;
+}
+
+function timeAgo(ms) {
+  if (ms == null) return '\u2014';
+  const diff = Math.max(0, Math.floor((Date.now() - ms) / 1000));
+  if (diff < 60) return diff + 's ago';
+  if (diff < 3600) return Math.floor(diff / 60) + ' min ago';
+  if (diff < 86400) {
+    const h = Math.floor(diff / 3600), m = Math.floor((diff % 3600) / 60);
+    return h + 'h' + (m ? ' ' + m + 'm' : '') + ' ago';
+  }
+  return Math.floor(diff / 86400) + 'd ago';
+}
+
+function escapeHtml(s) {
+  return String(s || '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+async function loadChart() {
+  const statusEl = document.getElementById('chart-status');
+  const loadingEl = document.getElementById('chart-loading');
+  const wrapEl = document.getElementById('chart-wrap');
+  try {
+    if (statusEl) statusEl.textContent = 'Loading\u2026';
+    const r = await fetch('/api/ws/' + WS_ID + '/activity?days=730');
+    const d = await r.json();
+    if (!d.ok) {
+      if (statusEl) statusEl.textContent = 'Failed to load.';
+      if (loadingEl) loadingEl.innerHTML = '<p class="text-sm text-red-400">Could not load chart data.</p>';
+      return;
+    }
+    // Aggregate daily rows into calendar months
+    const monthly = {};
+    for (const row of (d.daily || [])) {
+      const month = (row.date || '').slice(0, 7); // "YYYY-MM"
+      if (!month) continue;
+      if (!monthly[month]) monthly[month] = { joins: 0, commands: 0, other: 0 };
+      const count = Number(row.count) || 0;
+      if (row.event_type === 'Team_Join') monthly[month].joins += count;
+      else if (row.event_type === 'Command') monthly[month].commands += count;
+      else monthly[month].other += count;
+    }
+    const months = Object.keys(monthly).sort();
+    if (!months.length) {
+      if (statusEl) statusEl.textContent = 'No data yet.';
+      if (loadingEl) loadingEl.innerHTML = '<p class="text-sm text-gray-400">No activity in the last 2 years.</p>';
+      return;
+    }
+    const labels = months.map(function(m) {
+      var parts = m.split('-');
+      return new Date(Number(parts[0]), Number(parts[1]) - 1, 1)
+        .toLocaleString('default', { month: 'short', year: '2-digit' });
+    });
+    const joins    = months.map(function(m) { return monthly[m].joins; });
+    const commands = months.map(function(m) { return monthly[m].commands; });
+    const other    = months.map(function(m) { return monthly[m].other; });
+
+    if (loadingEl) loadingEl.classList.add('hidden');
+    if (wrapEl) wrapEl.classList.remove('hidden');
+
+    new Chart(document.getElementById('activityChart2y'), {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [
+          { label: 'Team Joins', data: joins,    backgroundColor: 'rgba(220,38,38,0.85)', borderRadius: 2 },
+          { label: 'Commands',   data: commands, backgroundColor: 'rgba(252,165,165,0.7)', borderRadius: 2 },
+          { label: 'Other',      data: other,    backgroundColor: 'rgba(209,213,219,0.6)', borderRadius: 2 },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'top', labels: { boxWidth: 26, font: { size: 12 } } } },
+        scales: {
+          x: { stacked: true, ticks: { maxRotation: 45, font: { size: 10 } }, grid: { display: false } },
+          y: { stacked: true, beginAtZero: true, ticks: { font: { size: 11 } } },
+        },
+      },
+    });
+
+    var total = months.reduce(function(s, m) {
+      return s + monthly[m].joins + monthly[m].commands + monthly[m].other;
+    }, 0);
+    if (statusEl) statusEl.textContent = total.toLocaleString() + ' events \u00b7 ' + months.length + ' months';
+  } catch (e) {
+    if (statusEl) statusEl.textContent = 'Error loading chart.';
+    if (loadingEl) loadingEl.innerHTML = '<p class="text-sm text-red-400">Error: ' + escapeHtml(e.message) + '</p>';
+  }
+}
+
+async function loadEvents() {
+  var loadingEl  = document.getElementById('events-loading');
+  var errorEl    = document.getElementById('events-error');
+  var wrapEl     = document.getElementById('events-table-wrap');
+  var tbody      = document.getElementById('events-tbody');
+  var countEl    = document.getElementById('events-count');
+  try {
+    const r = await fetch('/api/ws/' + WS_ID + '/events');
+    const d = await r.json();
+    if (!d.ok) {
+      if (loadingEl) loadingEl.classList.add('hidden');
+      if (errorEl) { errorEl.textContent = 'Failed: ' + (d.error || 'unknown'); errorEl.classList.remove('hidden'); }
+      return;
+    }
+    const events = d.events || [];
+    if (loadingEl) loadingEl.classList.add('hidden');
+    if (wrapEl) wrapEl.classList.remove('hidden');
+    if (countEl) countEl.textContent = events.length + ' most recent';
+    if (!events.length) {
+      tbody.innerHTML = '<tr><td colspan="6" class="py-8 text-center text-sm text-gray-400">No activity recorded yet.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = events.map(function(e) {
+      var ts      = e.created_at || '';
+      var tsMs    = parseUtcTimestamp(ts);
+      var status  = e.status || '';
+      var stCls   = status === 'success' ? 'text-green-600' : (status ? 'text-red-500' : 'text-gray-400');
+      var reqFull = e.request_data || '';
+      var reqShow = reqFull.length > 80 ? reqFull.substring(0, 80) + '\u2026' : reqFull;
+      return '<tr class="border-b border-gray-100 hover:bg-gray-50">'
+        + '<td class="py-2 px-4 text-xs font-mono text-gray-800">'  + escapeHtml(e.event_type   || '\u2014') + '</td>'
+        + '<td class="py-2 px-4 text-xs text-gray-600">'             + escapeHtml(e.user_slack_id || '\u2014') + '</td>'
+        + '<td class="py-2 px-4 text-xs text-gray-600">'             + escapeHtml(e.channel_name  || '\u2014') + '</td>'
+        + '<td class="py-2 px-4 text-xs ' + stCls + '">'             + escapeHtml(status          || '\u2014') + '</td>'
+        + '<td class="py-2 px-4 text-xs text-gray-500 max-w-xs truncate" title="' + escapeHtml(reqFull) + '">' + escapeHtml(reqShow) + '</td>'
+        + '<td class="py-2 px-4 text-xs text-gray-400">'             + (tsMs !== null ? timeAgo(tsMs) : escapeHtml(ts)) + '</td>'
+        + '</tr>';
+    }).join('');
+  } catch (ex) {
+    if (loadingEl) loadingEl.classList.add('hidden');
+    if (errorEl) { errorEl.textContent = 'Error: ' + ex.message; errorEl.classList.remove('hidden'); }
+  }
+}
+
+if (WS_ID) {
+  loadChart();
+  loadEvents();
+}
+</script>
+</body>
+</html>

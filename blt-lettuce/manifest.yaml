@@ -85,6 +85,7 @@ settings:
       - message.im
       - message.mpim
       - app_mention
+      - app_home_opened
   interactivity:
     is_enabled: true
     request_url: https://lettuce.owaspblt.org/webhook

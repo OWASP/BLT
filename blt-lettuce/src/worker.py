@@ -12,6 +12,7 @@ import hashlib
 import hmac
 import io
 import json
+import re
 import secrets
 from datetime import datetime, timedelta, timezone
 from urllib.parse import unquote_plus, urlencode, urlparse
@@ -30,11 +31,13 @@ except ImportError:
 from lettuce.html_templates import (
     get_404_html,
     get_500_html,
+    get_dashboard_html,
     get_homepage_html,
     get_privacy_html,
     get_status_html,
     get_sub_processors_html,
     get_terms_html,
+    get_workspace_detail_html,
     html_escape,
 )
 from lettuce.sentry import get_sentry, init_sentry
@@ -2437,7 +2440,7 @@ def _format_available_commands_for_slack():
 # ==========================================================================
 
 WELCOME_MESSAGE = (
-    "Hello <@{user_id}>! Welcome to the OWASP Slack Community. "
+    "Hello <@{user_id}>! Welcome to the open-source community. "
     "We are glad you are here."
 )
 
@@ -2488,6 +2491,22 @@ def get_channel_join_message(team_id, channel_id):
         for filename in candidates:
             candidate_path = os.path.normpath(os.path.join(base_dir, filename))
             if not candidate_path.startswith(base_dir):
+                try:
+                    print(
+                        "[get_channel_join_message]",
+                        json.dumps(
+                            {
+                                "status": "invalid_candidate_path",
+                                "filename": filename,
+                                "candidate_path": candidate_path,
+                                "base_dir": base_dir,
+                                "team_id": team_id,
+                                "channel_id": channel_id,
+                            }
+                        ),
+                    )
+                except Exception:
+                    pass
                 continue
             if not os.path.exists(candidate_path):
                 try:
@@ -2497,6 +2516,8 @@ def get_channel_join_message(team_id, channel_id):
                             {
                                 "status": "file_not_found",
                                 "filename": filename,
+                                "candidate_path": candidate_path,
+                                "base_dir": base_dir,
                                 "team_id": team_id,
                                 "channel_id": channel_id,
                             }
@@ -2505,6 +2526,23 @@ def get_channel_join_message(team_id, channel_id):
                 except Exception:
                     pass
                 continue
+            try:
+                print(
+                    "[get_channel_join_message]",
+                    json.dumps(
+                        {
+                            "status": "file_exists_check",
+                            "filename": filename,
+                            "candidate_path": candidate_path,
+                            "is_file": bool(os.path.isfile(candidate_path)),
+                            "readable": bool(os.access(candidate_path, os.R_OK)),
+                            "team_id": team_id,
+                            "channel_id": channel_id,
+                        }
+                    ),
+                )
+            except Exception:
+                pass
             with open(candidate_path, "r", encoding="utf-8") as f:
                 content = f.read().strip()
                 try:
@@ -2514,6 +2552,7 @@ def get_channel_join_message(team_id, channel_id):
                             {
                                 "status": "file_read_success",
                                 "filename": filename,
+                                "candidate_path": candidate_path,
                                 "team_id": team_id,
                                 "channel_id": channel_id,
                                 "content_length": len(content),
@@ -3395,6 +3434,31 @@ def render_join_message_template(template_text, context):
     return output
 
 
+def link_workspace_channel_names(text, channels):
+    """Convert #channel-name references into Slack channel mentions using IDs."""
+    linked = str(text or "")
+    if not linked:
+        return linked
+
+    pairs = []
+    for ch in channels or []:
+        channel_name = str((ch or {}).get("channel_name") or "").strip()
+        channel_id = str((ch or {}).get("channel_id") or "").strip()
+        if channel_name and channel_id:
+            pairs.append((channel_name, channel_id))
+
+    # Longest names first prevents partial replacements on similar names.
+    pairs.sort(key=lambda item: len(item[0]), reverse=True)
+
+    for channel_name, channel_id in pairs:
+        pattern = re.compile(
+            rf"(?<![A-Za-z0-9_/<])#{re.escape(channel_name)}(?![A-Za-z0-9_-])"
+        )
+        linked = pattern.sub(f"<#{channel_id}|{channel_name}>", linked)
+
+    return linked
+
+
 # ===========================================================================
 # Webhook event handlers
 # ===========================================================================
@@ -3443,24 +3507,119 @@ async def handle_team_join(env, event, team_id=None):
 
     # Build suggested channels from D1 if available
     channel_suggestions = ""
+    all_channels = []
     if ws:
         top_channels = await db_get_channels(env, ws["id"])
+        all_channels = top_channels
         top5 = [c for c in top_channels[:5] if c.get("channel_name")]
         if top5:
-            names = ", ".join(f"*#{c['channel_name']}*" for c in top5)
+            names = ", ".join(
+                f"*<#{c.get('channel_id')}|{c.get('channel_name')}>*"
+                for c in top5
+                if c.get("channel_id") and c.get("channel_name")
+            )
             channel_suggestions = f"\n\n:bar_chart: *Most Active Channels:* {names}"
 
-    welcome_text = (
+    welcome_text = link_workspace_channel_names(
         get_workspace_welcome_message(team_id).format(user_id=user_id)
-        + channel_suggestions
+        + channel_suggestions,
+        all_channels,
     )
     blocks = [
         {"type": "section", "text": {"type": "mrkdwn", "text": welcome_text.strip()}}
     ]
 
     result = await send_slack_message(
-        env, dm_channel, "Welcome to the OWASP Slack Community!", blocks, token=ws_token
+        env,
+        dm_channel,
+        "Welcome to the open-source community!",
+        blocks,
+        token=ws_token,
     )
+    return {"ok": result.get("ok"), "user_id": user_id}
+
+
+async def handle_app_home_opened(env, event, team_id=None):
+    """Send a greeting DM the first time a user opens the App Home Messages tab."""
+    user_id = event.get("user")
+    if not user_id:
+        return {"ok": True, "message": "No user in app_home_opened event"}
+
+    # Only respond to the Messages tab (tab=="messages"), not the Home tab
+    if event.get("tab") != "messages":
+        return {"ok": True, "message": "Ignoring non-messages tab open"}
+
+    ws = None
+    ws_token = getattr(env, "SLACK_TOKEN", None)
+    if team_id:
+        ws = await db_get_workspace_by_team(env, team_id)
+        if ws and ws.get("access_token"):
+            ws_token = ws["access_token"]
+
+    # Skip if we already greeted this user (check for a prior App_Home_Opened event)
+    if ws:
+        try:
+            cutoff = (datetime.now(timezone.utc) - timedelta(days=365)).isoformat()
+            row = _row(
+                await env.DB.prepare(
+                    "SELECT id FROM events "
+                    "WHERE workspace_id = ? AND event_type = 'App_Home_Opened' "
+                    "AND user_slack_id = ? AND created_at >= ? LIMIT 1"
+                )
+                .bind(ws["id"], str(user_id), cutoff)
+                .first()
+            )
+            if row is not None:
+                return {"ok": True, "message": "Already greeted this user"}
+        except Exception:
+            pass
+
+    bot_user_id = await get_bot_user_id(env)
+    if user_id == bot_user_id:
+        return {"ok": True, "message": "Ignoring bot's own app_home_opened"}
+
+    dm_response = await open_conversation(env, user_id, token=ws_token)
+    if not dm_response.get("ok"):
+        return {"error": f"Failed to open DM: {dm_response.get('error')}"}
+
+    dm_channel = (dm_response.get("channel") or {}).get("id")
+    if not dm_channel:
+        return {"error": "Failed to get DM channel ID"}
+
+    channel_suggestions = ""
+    all_channels = []
+    if ws:
+        top_channels = await db_get_channels(env, ws["id"])
+        all_channels = top_channels
+        top5 = [c for c in top_channels[:5] if c.get("channel_name")]
+        if top5:
+            names = ", ".join(
+                f"*<#{c.get('channel_id')}|{c.get('channel_name')}>*"
+                for c in top5
+                if c.get("channel_id") and c.get("channel_name")
+            )
+            channel_suggestions = f"\n\n:bar_chart: *Popular Channels:* {names}"
+
+    greeting = link_workspace_channel_names(
+        f":wave: Hi <@{user_id}>! I'm *Lettuce*, your open-source community bot.\n\n"
+        "I help new members discover security projects and get involved in the community. "
+        "Here's what I can do:\n\n"
+        "• Welcome new members when they join channels\n"
+        "• Help you find GitHub repos and open-source projects\n"
+        "• Answer questions with `/lettuce-welcome`\n\n"
+        "Feel free to message me here anytime!" + channel_suggestions,
+        all_channels,
+    )
+    blocks = [{"type": "section", "text": {"type": "mrkdwn", "text": greeting}}]
+
+    result = await send_slack_message(env, dm_channel, greeting, blocks, token=ws_token)
+
+    if ws:
+        try:
+            await db_log_event(env, ws["id"], "App_Home_Opened", user_id, "success")
+        except Exception:
+            pass
+
     return {"ok": result.get("ok"), "user_id": user_id}
 
 
@@ -3539,6 +3698,45 @@ async def handle_message_event(env, event, team_id=None):
                 seconds=15,
             )
             if is_duplicate:
+                dedupe_file_template = ""
+                try:
+                    dedupe_file_template = get_channel_join_message(
+                        effective_team_id, channel
+                    )
+                    print(
+                        "[channel_join]",
+                        json.dumps(
+                            {
+                                "step": "dedupe_file_debug",
+                                "workspace_id": ws.get("id"),
+                                "team_id_effective": effective_team_id,
+                                "channel": channel,
+                                "user": user,
+                                "template_found": bool(
+                                    dedupe_file_template
+                                    and dedupe_file_template.strip()
+                                ),
+                                "template_length": len(dedupe_file_template or ""),
+                            }
+                        ),
+                    )
+                except Exception as e:
+                    try:
+                        print(
+                            "[channel_join]",
+                            json.dumps(
+                                {
+                                    "step": "dedupe_file_debug_exception",
+                                    "workspace_id": ws.get("id"),
+                                    "team_id_effective": effective_team_id,
+                                    "channel": channel,
+                                    "user": user,
+                                    "error": str(e),
+                                }
+                            ),
+                        )
+                    except Exception:
+                        pass
                 try:
                     print(
                         "[channel_join]",
@@ -5744,6 +5942,38 @@ async def handle_request(request, env):
         return Response.json({"ok": True, "events": events})
 
     # ------------------------------------------------------------------ #
+    #  GET /api/ws/<id>/activity  →  daily stats for activity chart      #
+    # ------------------------------------------------------------------ #
+    if (
+        pathname.startswith("/api/ws/")
+        and pathname.endswith("/activity")
+        and method == "GET"
+    ):
+        user = await get_current_user(env, request)
+        if not user:
+            return _json_response({"ok": False, "error": "Unauthorized"}, 401)
+        try:
+            ws_id_val = int(pathname.split("/api/ws/")[1].split("/")[0])
+        except (ValueError, IndexError):
+            return _json_response({"ok": False, "error": "Invalid workspace id"}, 400)
+
+        if not await db_user_owns_workspace(env, user["user_id"], ws_id_val):
+            return _json_response({"ok": False, "error": "Forbidden"}, 403)
+
+        qs = url.split("?", 1)[1] if "?" in url else ""
+        days_param = 730
+        for part in qs.split("&"):
+            kv = part.split("=", 1)
+            if len(kv) == 2 and kv[0] == "days":
+                try:
+                    days_param = max(1, min(int(kv[1]), 730))
+                except (ValueError, TypeError):
+                    pass
+
+        daily = await db_get_daily_stats(env, ws_id_val, days=days_param)
+        return Response.json({"ok": True, "daily": daily})
+
+    # ------------------------------------------------------------------ #
     #  POST /api/ws/<id>/manifest-check  →  analyze pasted manifest YAML #
     # ------------------------------------------------------------------ #
     if (
@@ -6150,6 +6380,10 @@ async def handle_request(request, env):
                 result = await handle_command(env, event, team_id=team_id)
                 return Response.json(result)
 
+            if event_type == "app_home_opened":
+                result = await handle_app_home_opened(env, event, team_id=team_id)
+                return Response.json(result)
+
             return Response.json({"ok": True, "message": "Event received"})
 
         except Exception as e:
@@ -6226,6 +6460,73 @@ async def handle_request(request, env):
     # ------------------------------------------------------------------ #
     if pathname == "/health":
         return Response.json({"status": "ok", "timestamp": get_utc_now()})
+
+    # ------------------------------------------------------------------ #
+    #  GET /dashboard  →  authenticated workspace management dashboard   #
+    # ------------------------------------------------------------------ #
+    if pathname == "/dashboard" and method == "GET":
+        user = await get_current_user(env, request)
+        if not user:
+            return _redirect("/workspace/add")
+
+        workspaces = await db_get_user_workspaces(env, user["user_id"])
+
+        # Determine which workspace to show (query param ?ws=<id> or first)
+        qs = url.split("?", 1)[1] if "?" in url else ""
+        ws_id_param = None
+        for part in qs.split("&"):
+            kv = part.split("=", 1)
+            if len(kv) == 2 and kv[0] == "ws":
+                try:
+                    ws_id_param = int(kv[1])
+                except (ValueError, TypeError):
+                    pass
+
+        selected_ws = None
+        if ws_id_param:
+            for ws in workspaces:
+                if ws.get("id") == ws_id_param:
+                    selected_ws = ws
+                    break
+        if selected_ws is None and workspaces:
+            selected_ws = workspaces[0]
+
+        ws_stats = {}
+        events = []
+        daily_data = []
+        if selected_ws:
+            ws_id_val = selected_ws.get("id")
+            ws_stats = await db_get_workspace_stats(env, ws_id_val)
+            events = await db_get_events(env, ws_id_val, limit=50)
+            daily_data = await db_get_daily_stats(env, ws_id_val, days=30)
+
+        html = get_dashboard_html(
+            user, workspaces, selected_ws, ws_stats, events, daily_data
+        )
+        return _html_response(html)
+
+    # ------------------------------------------------------------------ #
+    #  GET /ws/<id>  →  workspace detail page (2-year chart + log)       #
+    # ------------------------------------------------------------------ #
+    if pathname.startswith("/ws/") and method == "GET":
+        try:
+            ws_id_val = int(pathname.split("/ws/")[1].rstrip("/"))
+        except (ValueError, IndexError):
+            return _html_response(get_404_html(), 404)
+
+        user = await get_current_user(env, request)
+        if not user:
+            return _redirect("/workspace/add")
+
+        if not await db_user_owns_workspace(env, user["user_id"], ws_id_val):
+            return _html_response(get_404_html(), 404)
+
+        workspace = await db_get_workspace_by_id(env, ws_id_val)
+        if not workspace:
+            return _html_response(get_404_html(), 404)
+
+        html = get_workspace_detail_html(workspace, user)
+        return _html_response(html)
 
     # ------------------------------------------------------------------ #
     #  GET /  →  homepage                                                #
@@ -6449,8 +6750,56 @@ class Default(WorkerEntrypoint):
             if env is None:
                 return
 
-            await run_workspace_metrics_sync(env)
-            await run_inactivity_monitor(env)
+            # Use scheduled timestamp minute to stagger expensive jobs.
+            minute = None
+            try:
+                scheduled_ms = getattr(controller, "scheduledTime", None)
+                if scheduled_ms is None:
+                    scheduled_ms = kwargs.get("scheduledTime")
+                if scheduled_ms is not None:
+                    dt = datetime.fromtimestamp(
+                        (int(scheduled_ms) / 1000.0), tz=timezone.utc
+                    )
+                    minute = int(dt.minute)
+            except Exception:
+                minute = None
+
+            # Heavy sync runs every 10 minutes, inactivity monitor every 5 minutes.
+            # This avoids CPU spikes from running all scans every minute.
+            run_metrics = minute is not None and (minute % 10 == 0)
+            run_inactivity = minute is not None and (minute % 5 == 0)
+
+            # Fallback for runtimes that do not expose scheduledTime.
+            if minute is None:
+                run_inactivity = True
+
+            if run_metrics:
+                try:
+                    await run_workspace_metrics_sync(env)
+                except Exception as metrics_err:
+                    try:
+                        sentry = get_sentry()
+                        sentry.capture_exception_nowait(
+                            metrics_err,
+                            level="error",
+                            extra={"context": "cron_workspace_metrics_sync"},
+                        )
+                    except Exception:
+                        pass
+
+            if run_inactivity:
+                try:
+                    await run_inactivity_monitor(env)
+                except Exception as inactivity_err:
+                    try:
+                        sentry = get_sentry()
+                        sentry.capture_exception_nowait(
+                            inactivity_err,
+                            level="error",
+                            extra={"context": "cron_inactivity_monitor"},
+                        )
+                    except Exception:
+                        pass
         except Exception as e:
             try:
                 sentry = get_sentry()
