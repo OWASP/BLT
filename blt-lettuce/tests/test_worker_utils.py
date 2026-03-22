@@ -554,3 +554,95 @@ def test_resolve_team_id_from_payload_uses_authorizations_fallback():
     payload = {"authorizations": [{"team_id": "T_AUTH"}]}
     event = {}
     assert _resolve_team_id_from_payload(payload, event) == "T_AUTH"
+
+
+def test_handle_message_event_channel_join_falls_back_workspace_by_channel():
+    """Channel join should still send fallback message when team_id is unavailable."""
+    import asyncio
+    import sys
+    from unittest.mock import Mock
+
+    sys.modules["js"] = Mock()
+    sys.modules["cloudflare"] = Mock()
+    sys.modules["workers"] = Mock()
+
+    from src import worker
+
+    captured = {"sent": 0}
+
+    async def _fake_get_workspace_by_team(_env, _team_id):
+        return None
+
+    async def _fake_get_workspace_by_channel_id(_env, _channel_id):
+        return {"id": 7, "team_name": "Test WS", "access_token": "xoxb-token"}
+
+    async def _fake_get_channel_name(_env, _workspace_id, _channel_id):
+        return "contribute"
+
+    async def _fake_get_bot_user_id(_env):
+        return "UBOT"
+
+    async def _fake_get_channel_by_slack_id(_env, _workspace_id, _channel_id):
+        return None
+
+    def _fake_get_channel_join_message(_team_id, _channel_id):
+        return "Welcome <@{user_id}>"
+
+    async def _fake_send_ephemeral(
+        _env,
+        _channel,
+        _user,
+        _text,
+        blocks=None,
+        token=None,
+        branding_tracking_id="",
+    ):
+        captured["sent"] += 1
+        captured["text"] = _text
+        return {"ok": True}
+
+    async def _fake_db_log_event(*_args, **_kwargs):
+        return True
+
+    orig_get_ws_by_team = worker.db_get_workspace_by_team
+    orig_get_ws_by_channel = worker.db_get_workspace_by_channel_id
+    orig_get_channel_name = worker.db_get_channel_name
+    orig_get_bot_user_id = worker.get_bot_user_id
+    orig_get_channel_row = worker.db_get_channel_by_slack_id
+    orig_get_join_msg = worker.get_channel_join_message
+    orig_send_ephemeral = worker.send_slack_ephemeral_message
+    orig_log_event = worker.db_log_event
+
+    worker.db_get_workspace_by_team = _fake_get_workspace_by_team
+    worker.db_get_workspace_by_channel_id = _fake_get_workspace_by_channel_id
+    worker.db_get_channel_name = _fake_get_channel_name
+    worker.get_bot_user_id = _fake_get_bot_user_id
+    worker.db_get_channel_by_slack_id = _fake_get_channel_by_slack_id
+    worker.get_channel_join_message = _fake_get_channel_join_message
+    worker.send_slack_ephemeral_message = _fake_send_ephemeral
+    worker.db_log_event = _fake_db_log_event
+
+    try:
+        env = Mock()
+        event = {
+            "subtype": "channel_join",
+            "user": "U123",
+            "channel": "C077QBBLY1Z",
+            "channel_type": "channel",
+            "text": "",
+        }
+        result = asyncio.run(worker.handle_message_event(env, event, team_id=""))
+    finally:
+        worker.db_get_workspace_by_team = orig_get_ws_by_team
+        worker.db_get_workspace_by_channel_id = orig_get_ws_by_channel
+        worker.db_get_channel_name = orig_get_channel_name
+        worker.get_bot_user_id = orig_get_bot_user_id
+        worker.db_get_channel_by_slack_id = orig_get_channel_row
+        worker.get_channel_join_message = orig_get_join_msg
+        worker.send_slack_ephemeral_message = orig_send_ephemeral
+        worker.db_log_event = orig_log_event
+
+    assert result.get("ok") is True
+    assert result.get("action") == "channel_join_logged"
+    assert captured["sent"] == 1
+    assert "<@U123>" in captured["text"]

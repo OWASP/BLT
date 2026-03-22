@@ -2487,6 +2487,23 @@ async def db_get_workspace_by_team(env, team_id):
         return None
 
 
+async def db_get_workspace_by_channel_id(env, channel_id):
+    """Return workspace owning a tracked Slack channel ID, newest first."""
+    try:
+        return _row(
+            await env.DB.prepare(
+                "SELECT w.* FROM channels c "
+                "JOIN workspaces w ON w.id = c.workspace_id "
+                "WHERE c.channel_id = ? "
+                "ORDER BY w.updated_at DESC, w.id DESC LIMIT 1"
+            )
+            .bind(str(channel_id or ""))
+            .first()
+        )
+    except Exception:
+        return None
+
+
 async def db_get_workspace_by_id(env, workspace_id):
     """Return one workspace row by primary key ID."""
     try:
@@ -3390,15 +3407,16 @@ async def handle_message_event(env, event, team_id=None):
     resolved_channel_name = ""
     if team_id:
         ws = await db_get_workspace_by_team(env, team_id)
-        if ws and ws.get("access_token"):
-            ws_token = ws["access_token"]
-        if ws:
-            if channel_type == "im":
-                resolved_channel_name = "Direct Message"
-            else:
-                resolved_channel_name = await db_get_channel_name(
-                    env, ws["id"], channel
-                )
+    if not ws and channel:
+        ws = await db_get_workspace_by_channel_id(env, channel)
+
+    if ws and ws.get("access_token"):
+        ws_token = ws["access_token"]
+    if ws:
+        if channel_type == "im":
+            resolved_channel_name = "Direct Message"
+        else:
+            resolved_channel_name = await db_get_channel_name(env, ws["id"], channel)
 
     bot_user_id = await get_bot_user_id(env)
     if user == bot_user_id:

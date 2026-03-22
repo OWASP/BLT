@@ -257,7 +257,6 @@
     </main>
 
     <script>
-      const STATS_API_URL = window.location.origin + "/stats";
       const GITHUB_API_URL = "https://api.github.com/repos/OWASP-BLT/BLT-Lettuce";
       const WORKSPACES_API_URL = window.location.origin + "/api/workspaces-public";
       const FALLBACK_STATS = { total_activities: 15420, team_joins: 1250, commands: 3450, last_updated: new Date().toISOString() };
@@ -273,9 +272,26 @@
 
       async function fetchStats() {
         try {
-          const r = await fetch(STATS_API_URL);
+          const r = await fetch(WORKSPACES_API_URL);
           if (!r.ok) throw new Error();
-          return await r.json();
+          const data = await r.json();
+          const workspaces = Array.isArray(data.workspaces) ? data.workspaces : [];
+          const totalActivities = workspaces.reduce((acc, ws) => acc + Number(ws.total_activities || 0), 0);
+          const teamJoins = workspaces.reduce((acc, ws) => acc + Number(ws.joins || 0), 0);
+          const commands = Math.max(totalActivities - teamJoins, 0);
+          let lastUpdated = "";
+          for (const ws of workspaces) {
+            const ts = String(ws.last_event_time || "");
+            if (ts && (!lastUpdated || ts > lastUpdated)) {
+              lastUpdated = ts;
+            }
+          }
+          return {
+            total_activities: totalActivities,
+            team_joins: teamJoins,
+            commands,
+            last_updated: lastUpdated || new Date().toISOString(),
+          };
         } catch {
           return FALLBACK_STATS;
         }
