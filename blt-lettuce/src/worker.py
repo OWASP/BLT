@@ -2467,12 +2467,8 @@ def get_workspace_welcome_message(team_id):
 def get_channel_join_message(team_id, channel_id):
     """Load channel-join message template from data directory.
 
-    Preferred naming:
+    Uses standard naming:
     - message-<team_id>-<channel_id>-ephemeral.md
-
-    Backward-compatible names:
-    - ephemeral-<team_id>-<channel_id>.md
-    - message-<team_id>-<channel_id>.md
     """
     if not team_id or not channel_id:
         return ""
@@ -2506,76 +2502,20 @@ def get_channel_join_message(team_id, channel_id):
         # Preserve order while de-duplicating.
         search_dirs = list(dict.fromkeys(search_dirs))
 
-        try:
-            print(
-                "[get_channel_join_message]",
-                json.dumps(
-                    {
-                        "status": "search_roots",
-                        "team_id": team_id,
-                        "channel_id": channel_id,
-                        "dirs": search_dirs,
-                    }
-                ),
-            )
-        except Exception:
-            pass
-
-        candidates = [
-            f"message-{team_id}-{channel_id}-ephemeral.md",
-            f"ephemeral-{team_id}-{channel_id}.md",
-            f"message-{team_id}-{channel_id}.md",
-        ]
+        filename = f"message-{team_id}-{channel_id}-ephemeral.md"
 
         for base_dir in search_dirs:
-            for filename in candidates:
-                candidate_path = os.path.normpath(os.path.join(base_dir, filename))
-                if not candidate_path.startswith(base_dir):
-                    try:
-                        print(
-                            "[get_channel_join_message]",
-                            json.dumps(
-                                {
-                                    "status": "invalid_candidate_path",
-                                    "filename": filename,
-                                    "candidate_path": candidate_path,
-                                    "base_dir": base_dir,
-                                    "team_id": team_id,
-                                    "channel_id": channel_id,
-                                }
-                            ),
-                        )
-                    except Exception:
-                        pass
-                    continue
-                if not os.path.exists(candidate_path):
-                    try:
-                        print(
-                            "[get_channel_join_message]",
-                            json.dumps(
-                                {
-                                    "status": "file_not_found",
-                                    "filename": filename,
-                                    "candidate_path": candidate_path,
-                                    "base_dir": base_dir,
-                                    "team_id": team_id,
-                                    "channel_id": channel_id,
-                                }
-                            ),
-                        )
-                    except Exception:
-                        pass
-                    continue
+            candidate_path = os.path.normpath(os.path.join(base_dir, filename))
+            if not candidate_path.startswith(base_dir):
                 try:
                     print(
                         "[get_channel_join_message]",
                         json.dumps(
                             {
-                                "status": "file_exists_check",
+                                "status": "invalid_candidate_path",
                                 "filename": filename,
                                 "candidate_path": candidate_path,
-                                "is_file": bool(os.path.isfile(candidate_path)),
-                                "readable": bool(os.access(candidate_path, os.R_OK)),
+                                "base_dir": base_dir,
                                 "team_id": team_id,
                                 "channel_id": channel_id,
                             }
@@ -2583,25 +2523,61 @@ def get_channel_join_message(team_id, channel_id):
                     )
                 except Exception:
                     pass
-                with open(candidate_path, "r", encoding="utf-8") as f:
-                    content = f.read().strip()
+                continue
+            if not os.path.exists(candidate_path):
                 try:
                     print(
                         "[get_channel_join_message]",
                         json.dumps(
                             {
-                                "status": "file_read_success",
+                                "status": "file_not_found",
                                 "filename": filename,
                                 "candidate_path": candidate_path,
+                                "base_dir": base_dir,
                                 "team_id": team_id,
                                 "channel_id": channel_id,
-                                "content_length": len(content),
                             }
                         ),
                     )
                 except Exception:
                     pass
-                return content
+                continue
+            try:
+                print(
+                    "[get_channel_join_message]",
+                    json.dumps(
+                        {
+                            "status": "file_exists_check",
+                            "filename": filename,
+                            "candidate_path": candidate_path,
+                            "is_file": bool(os.path.isfile(candidate_path)),
+                            "readable": bool(os.access(candidate_path, os.R_OK)),
+                            "team_id": team_id,
+                            "channel_id": channel_id,
+                        }
+                    ),
+                )
+            except Exception:
+                pass
+            with open(candidate_path, "r", encoding="utf-8") as f:
+                content = f.read().strip()
+            try:
+                print(
+                    "[get_channel_join_message]",
+                    json.dumps(
+                        {
+                            "status": "file_read_success",
+                            "filename": filename,
+                            "candidate_path": candidate_path,
+                            "team_id": team_id,
+                            "channel_id": channel_id,
+                            "content_length": len(content),
+                        }
+                    ),
+                )
+            except Exception:
+                pass
+            return content
     except Exception as e:
         try:
             print(
@@ -2674,34 +2650,29 @@ async def get_channel_join_message_runtime(env, team_id, channel_id):
     if not team_id or not channel_id:
         return ""
 
-    candidates = [
-        f"message-{team_id}-{channel_id}-ephemeral.md",
-        f"ephemeral-{team_id}-{channel_id}.md",
-        f"message-{team_id}-{channel_id}.md",
-    ]
+    filename = f"message-{team_id}-{channel_id}-ephemeral.md"
 
     # First try ASSETS binding paths (deployment-safe in Workers runtime).
-    for filename in candidates:
-        for base in ("data", "src/data"):
-            asset_rel_path = f"{base}/{filename}"
-            content = await _read_asset_text(env, asset_rel_path)
-            if content.strip():
-                try:
-                    print(
-                        "[get_channel_join_message]",
-                        json.dumps(
-                            {
-                                "status": "asset_read_success",
-                                "asset_path": f"/{asset_rel_path}",
-                                "team_id": team_id,
-                                "channel_id": channel_id,
-                                "content_length": len(content.strip()),
-                            }
-                        ),
-                    )
-                except Exception:
-                    pass
-                return content.strip()
+    for base in ("data", "src/data"):
+        asset_rel_path = f"{base}/{filename}"
+        content = await _read_asset_text(env, asset_rel_path)
+        if content.strip():
+            try:
+                print(
+                    "[get_channel_join_message]",
+                    json.dumps(
+                        {
+                            "status": "asset_read_success",
+                            "asset_path": f"/{asset_rel_path}",
+                            "team_id": team_id,
+                            "channel_id": channel_id,
+                            "content_length": len(content.strip()),
+                        }
+                    ),
+                )
+            except Exception:
+                pass
+            return content.strip()
 
     # Fallback to filesystem lookup for local/dev modes.
     return get_channel_join_message(team_id, channel_id)
