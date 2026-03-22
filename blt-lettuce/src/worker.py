@@ -3712,7 +3712,7 @@ async def handle_message_event(env, event, team_id=None):
                 ws.get("id"),
                 user,
                 channel,
-                seconds=15,
+                seconds=3600,
             )
             if is_duplicate:
                 dedupe_file_template = ""
