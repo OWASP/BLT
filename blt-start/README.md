@@ -1,3 +1,4 @@
+
 # 🚀 BLT Contributor Start Page
 
 <p align="center">
@@ -45,10 +46,9 @@ This dashboard helps:
 ## 📸 Screenshots
 
 <p align="center">
-  <img src="https://via.placeholder.com/800x400?text=BLT+Dashboard+UI" width="90%"/>
+  <img src="Screenshot 2026-03-23 at 12.44.58 AM.png" width="90%"/>
 </p>
 
-> 💡 Replace this with your actual UI screenshot
 
 ---
 
