@@ -2479,27 +2479,98 @@ def get_channel_join_message(team_id, channel_id):
     try:
         import os
 
-        base_dir = os.path.normpath(
-            os.path.join(os.path.dirname(__file__), "..", "data")
+        # Support both local/dev and deployed worker layouts.
+        # In production this can be /session/src/worker.py, and data files may
+        # be present under either /session/data or /session/src/data.
+        script_dir = os.path.dirname(__file__)
+        cwd = os.getcwd()
+        configured_dir = str(
+            getattr(_current_env, "JOIN_MESSAGE_DIR", "") or ""
+        ).strip()
+        search_dirs = []
+        if configured_dir:
+            search_dirs.append(os.path.normpath(configured_dir))
+        search_dirs.extend(
+            [
+                os.path.normpath(os.path.join(script_dir, "..", "data")),
+                os.path.normpath(os.path.join(script_dir, "data")),
+                os.path.normpath(os.path.join(cwd, "data")),
+                os.path.normpath(os.path.join(cwd, "src", "data")),
+            ]
         )
+        # Preserve order while de-duplicating.
+        search_dirs = list(dict.fromkeys(search_dirs))
+
+        try:
+            print(
+                "[get_channel_join_message]",
+                json.dumps(
+                    {
+                        "status": "search_roots",
+                        "team_id": team_id,
+                        "channel_id": channel_id,
+                        "dirs": search_dirs,
+                    }
+                ),
+            )
+        except Exception:
+            pass
+
         candidates = [
             f"message-{team_id}-{channel_id}-ephemeral.md",
             f"ephemeral-{team_id}-{channel_id}.md",
             f"message-{team_id}-{channel_id}.md",
         ]
 
-        for filename in candidates:
-            candidate_path = os.path.normpath(os.path.join(base_dir, filename))
-            if not candidate_path.startswith(base_dir):
+        for base_dir in search_dirs:
+            for filename in candidates:
+                candidate_path = os.path.normpath(os.path.join(base_dir, filename))
+                if not candidate_path.startswith(base_dir):
+                    try:
+                        print(
+                            "[get_channel_join_message]",
+                            json.dumps(
+                                {
+                                    "status": "invalid_candidate_path",
+                                    "filename": filename,
+                                    "candidate_path": candidate_path,
+                                    "base_dir": base_dir,
+                                    "team_id": team_id,
+                                    "channel_id": channel_id,
+                                }
+                            ),
+                        )
+                    except Exception:
+                        pass
+                    continue
+                if not os.path.exists(candidate_path):
+                    try:
+                        print(
+                            "[get_channel_join_message]",
+                            json.dumps(
+                                {
+                                    "status": "file_not_found",
+                                    "filename": filename,
+                                    "candidate_path": candidate_path,
+                                    "base_dir": base_dir,
+                                    "team_id": team_id,
+                                    "channel_id": channel_id,
+                                }
+                            ),
+                        )
+                    except Exception:
+                        pass
+                    continue
                 try:
                     print(
                         "[get_channel_join_message]",
                         json.dumps(
                             {
-                                "status": "invalid_candidate_path",
+                                "status": "file_exists_check",
                                 "filename": filename,
                                 "candidate_path": candidate_path,
-                                "base_dir": base_dir,
+                                "is_file": bool(os.path.isfile(candidate_path)),
+                                "readable": bool(os.access(candidate_path, os.R_OK)),
                                 "team_id": team_id,
                                 "channel_id": channel_id,
                             }
@@ -2507,44 +2578,8 @@ def get_channel_join_message(team_id, channel_id):
                     )
                 except Exception:
                     pass
-                continue
-            if not os.path.exists(candidate_path):
-                try:
-                    print(
-                        "[get_channel_join_message]",
-                        json.dumps(
-                            {
-                                "status": "file_not_found",
-                                "filename": filename,
-                                "candidate_path": candidate_path,
-                                "base_dir": base_dir,
-                                "team_id": team_id,
-                                "channel_id": channel_id,
-                            }
-                        ),
-                    )
-                except Exception:
-                    pass
-                continue
-            try:
-                print(
-                    "[get_channel_join_message]",
-                    json.dumps(
-                        {
-                            "status": "file_exists_check",
-                            "filename": filename,
-                            "candidate_path": candidate_path,
-                            "is_file": bool(os.path.isfile(candidate_path)),
-                            "readable": bool(os.access(candidate_path, os.R_OK)),
-                            "team_id": team_id,
-                            "channel_id": channel_id,
-                        }
-                    ),
-                )
-            except Exception:
-                pass
-            with open(candidate_path, "r", encoding="utf-8") as f:
-                content = f.read().strip()
+                with open(candidate_path, "r", encoding="utf-8") as f:
+                    content = f.read().strip()
                 try:
                     print(
                         "[get_channel_join_message]",
@@ -5927,18 +5962,38 @@ async def handle_request(request, env):
         and pathname.endswith("/events")
         and method == "GET"
     ):
-        user = await get_current_user(env, request)
-        if not user:
-            return _json_response({"ok": False, "error": "Unauthorized"}, 401)
         try:
             ws_id_val = int(pathname.split("/api/ws/")[1].split("/")[0])
         except (ValueError, IndexError):
             return _json_response({"ok": False, "error": "Invalid workspace id"}, 400)
 
-        if not await db_user_owns_workspace(env, user["user_id"], ws_id_val):
-            return _json_response({"ok": False, "error": "Forbidden"}, 403)
+        ws = await db_get_workspace_by_id(env, ws_id_val)
+        if not ws:
+            return _json_response({"ok": False, "error": "Workspace not found"}, 404)
+
+        user = await get_current_user(env, request)
+        is_owner = bool(
+            user and await db_user_owns_workspace(env, user["user_id"], ws_id_val)
+        )
 
         events = await db_get_events(env, ws_id_val, limit=50)
+        if not is_owner:
+            # Public detail pages should not expose raw request payloads.
+            public_events = []
+            for e in events:
+                public_events.append(
+                    {
+                        "id": e.get("id"),
+                        "event_type": e.get("event_type"),
+                        "user_slack_id": e.get("user_slack_id"),
+                        "channel_name": e.get("channel_name"),
+                        "status": e.get("status"),
+                        "created_at": e.get("created_at"),
+                        "request_data": "",
+                    }
+                )
+            return Response.json({"ok": True, "events": public_events})
+
         return Response.json({"ok": True, "events": events})
 
     # ------------------------------------------------------------------ #
@@ -5949,16 +6004,14 @@ async def handle_request(request, env):
         and pathname.endswith("/activity")
         and method == "GET"
     ):
-        user = await get_current_user(env, request)
-        if not user:
-            return _json_response({"ok": False, "error": "Unauthorized"}, 401)
         try:
             ws_id_val = int(pathname.split("/api/ws/")[1].split("/")[0])
         except (ValueError, IndexError):
             return _json_response({"ok": False, "error": "Invalid workspace id"}, 400)
 
-        if not await db_user_owns_workspace(env, user["user_id"], ws_id_val):
-            return _json_response({"ok": False, "error": "Forbidden"}, 403)
+        ws = await db_get_workspace_by_id(env, ws_id_val)
+        if not ws:
+            return _json_response({"ok": False, "error": "Workspace not found"}, 404)
 
         qs = url.split("?", 1)[1] if "?" in url else ""
         days_param = 730
@@ -6514,16 +6567,11 @@ async def handle_request(request, env):
         except (ValueError, IndexError):
             return _html_response(get_404_html(), 404)
 
-        user = await get_current_user(env, request)
-        if not user:
-            return _redirect("/workspace/add")
-
-        if not await db_user_owns_workspace(env, user["user_id"], ws_id_val):
-            return _html_response(get_404_html(), 404)
-
         workspace = await db_get_workspace_by_id(env, ws_id_val)
         if not workspace:
             return _html_response(get_404_html(), 404)
+
+        user = await get_current_user(env, request)
 
         html = get_workspace_detail_html(workspace, user)
         return _html_response(html)
