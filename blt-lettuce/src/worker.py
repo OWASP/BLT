@@ -3373,6 +3373,35 @@ async def _handle_disconnect_command(env, body_json):
     }
 
 
+async def _handle_welcome_command(env, body_json):
+    """Handle /lettuce-welcome: send the welcome message to the user."""
+    user_id = str(body_json.get("user_id") or "").strip()
+    team_id = body_json.get("team_id") or ""
+
+    welcome_msg = WELCOME_MESSAGE.format(user_id=user_id)
+
+    # Try to add channel suggestions if workspace data is available
+    channel_suggestions = ""
+    if team_id:
+        try:
+            ws = await db_get_workspace_by_team(env, team_id)
+            if ws:
+                top_channels = await db_get_channels(env, ws["id"])
+                top5 = [c for c in top_channels[:5] if c.get("channel_name")]
+                if top5:
+                    names = ", ".join(f"*#{c['channel_name']}*" for c in top5)
+                    channel_suggestions = (
+                        f"\n\n:bar_chart: *Most Active Channels:* {names}"
+                    )
+        except Exception:
+            pass
+
+    return {
+        "response_type": "ephemeral",
+        "text": (welcome_msg + channel_suggestions),
+    }
+
+
 async def _handle_org_add_command(env, body_json):
     """Handle /lettuce-org-add: connect a GitHub org to this workspace."""
     team_id = body_json.get("team_id") or ""
@@ -5098,6 +5127,9 @@ async def handle_request(request, env):
 
             if body_json.get("type") == "slash_command":
                 cmd_name = (body_json.get("command") or "").strip().lower()
+
+                if cmd_name == "/lettuce-welcome":
+                    return Response.json(await _handle_welcome_command(env, body_json))
 
                 if cmd_name == "/lettuce-org-add":
                     return Response.json(await _handle_org_add_command(env, body_json))

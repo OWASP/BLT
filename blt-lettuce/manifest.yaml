@@ -9,6 +9,10 @@ features:
     display_name: Lettuce
     always_online: true
   slash_commands:
+    - command: /lettuce-welcome
+      url: https://lettuce.owaspblt.org/webhook
+      description: Send the welcome message to yourself
+      should_escape: false
     - command: /lettuce-org-add
       url: https://lettuce.owaspblt.org/webhook
       description: Add the GitHub org that the bot will be connected to
