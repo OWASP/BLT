@@ -319,3 +319,156 @@ def test_handle_set_invite_command_rejects_invalid_url():
 
     assert result["response_type"] == "ephemeral"
     assert "valid slack https url" in result["text"].lower()
+
+
+def test_handle_settings_command_shows_commands_and_current_settings():
+    """Settings command should include both command list and workspace settings."""
+    import asyncio
+    import sys
+    from unittest.mock import Mock
+
+    sys.modules["js"] = Mock()
+    sys.modules["cloudflare"] = Mock()
+    sys.modules["workers"] = Mock()
+
+    from src import worker
+
+    async def _fake_db_get_workspace_by_team(_env, _team_id):
+        return {"id": 7, "team_name": "Test Team", "app_id": "A123"}
+
+    async def _fake_db_get_workspace_github_org_count(_env, _workspace_id):
+        return 1
+
+    async def _fake_db_get_workspace_latest_org_login(_env, _workspace_id):
+        return "OWASP-BLT"
+
+    async def _fake_db_get_workspace_invite_link(_env, _workspace_id):
+        return "https://join.slack.com/t/test/shared_invite/abc"
+
+    orig_get_ws = worker.db_get_workspace_by_team
+    orig_org_count = worker.db_get_workspace_github_org_count
+    orig_org_login = worker.db_get_workspace_latest_org_login
+    orig_invite = worker.db_get_workspace_invite_link
+    worker.db_get_workspace_by_team = _fake_db_get_workspace_by_team
+    worker.db_get_workspace_github_org_count = _fake_db_get_workspace_github_org_count
+    worker.db_get_workspace_latest_org_login = _fake_db_get_workspace_latest_org_login
+    worker.db_get_workspace_invite_link = _fake_db_get_workspace_invite_link
+    try:
+        env = Mock()
+        body = {"team_id": "T123"}
+        result = asyncio.run(worker._handle_settings_command(env, body))
+    finally:
+        worker.db_get_workspace_by_team = orig_get_ws
+        worker.db_get_workspace_github_org_count = orig_org_count
+        worker.db_get_workspace_latest_org_login = orig_org_login
+        worker.db_get_workspace_invite_link = orig_invite
+
+    assert result["response_type"] == "ephemeral"
+    text = result["text"]
+    assert "/lettuce-settings" in text
+    assert "Current Settings" in text
+    assert "OWASP-BLT" in text
+    assert "join.slack.com" in text
+
+
+def test_run_workspace_metrics_sync_uses_full_workspace_for_alert_target():
+    """Cron missing-config alerts should hydrate full workspace data before notifying."""
+    import asyncio
+    import sys
+    from unittest.mock import Mock
+
+    sys.modules["js"] = Mock()
+    sys.modules["cloudflare"] = Mock()
+    sys.modules["workers"] = Mock()
+
+    from src import worker
+
+    captured = {}
+
+    async def _fake_get_workspaces_with_activity_markers(_env):
+        return [{"id": 9, "team_name": "Partial WS", "access_token": "xoxb-token"}]
+
+    async def _fake_db_get_repositories(_env, _ws_id):
+        return []
+
+    async def _fake_db_get_channels(_env, _ws_id):
+        return []
+
+    async def _fake_scan_workspace_channels(_env, _ws_id, _token):
+        return None
+
+    async def _fake_fetch_workspace_member_count(_token):
+        return 0
+
+    async def _fake_update_counts(_env, _ws_id, channel_count=0, member_count=0):
+        return True
+
+    async def _fake_org_count(_env, _ws_id):
+        return 0
+
+    async def _fake_invite_link(_env, _ws_id):
+        return ""
+
+    async def _fake_db_get_workspace_by_id(_env, _ws_id):
+        return {
+            "id": 9,
+            "team_name": "Hydrated WS",
+            "access_token": "xoxb-token",
+            "installer_slack_user_id": "U123",
+            "installer_name": "Installer",
+        }
+
+    async def _fake_send_missing_alert(
+        _env, ws, repo_count=0, missing_org=True, missing_invite=False
+    ):
+        captured["workspace_name"] = ws.get("team_name")
+        captured["installer_slack_user_id"] = ws.get("installer_slack_user_id")
+        captured["missing_org"] = missing_org
+        captured["missing_invite"] = missing_invite
+        return {"ok": True}
+
+    orig_get_markers = worker.db_get_workspaces_with_activity_markers
+    orig_get_repos = worker.db_get_repositories
+    orig_get_channels = worker.db_get_channels
+    orig_scan_channels = worker.scan_workspace_channels
+    orig_member_count = worker.fetch_workspace_member_count
+    orig_update_counts = worker.db_update_workspace_channel_member_counts
+    orig_org_count = worker.db_get_workspace_github_org_count
+    orig_invite = worker.db_get_workspace_invite_link
+    orig_get_by_id = worker.db_get_workspace_by_id
+    orig_send_alert = worker.send_missing_github_org_alert
+
+    worker.db_get_workspaces_with_activity_markers = (
+        _fake_get_workspaces_with_activity_markers
+    )
+    worker.db_get_repositories = _fake_db_get_repositories
+    worker.db_get_channels = _fake_db_get_channels
+    worker.scan_workspace_channels = _fake_scan_workspace_channels
+    worker.fetch_workspace_member_count = _fake_fetch_workspace_member_count
+    worker.db_update_workspace_channel_member_counts = _fake_update_counts
+    worker.db_get_workspace_github_org_count = _fake_org_count
+    worker.db_get_workspace_invite_link = _fake_invite_link
+    worker.db_get_workspace_by_id = _fake_db_get_workspace_by_id
+    worker.send_missing_github_org_alert = _fake_send_missing_alert
+
+    try:
+        env = Mock()
+        result = asyncio.run(worker.run_workspace_metrics_sync(env))
+    finally:
+        worker.db_get_workspaces_with_activity_markers = orig_get_markers
+        worker.db_get_repositories = orig_get_repos
+        worker.db_get_channels = orig_get_channels
+        worker.scan_workspace_channels = orig_scan_channels
+        worker.fetch_workspace_member_count = orig_member_count
+        worker.db_update_workspace_channel_member_counts = orig_update_counts
+        worker.db_get_workspace_github_org_count = orig_org_count
+        worker.db_get_workspace_invite_link = orig_invite
+        worker.db_get_workspace_by_id = orig_get_by_id
+        worker.send_missing_github_org_alert = orig_send_alert
+
+    assert result["processed"] == 1
+    assert result["alerted"] == 1
+    assert captured["workspace_name"] == "Hydrated WS"
+    assert captured["installer_slack_user_id"] == "U123"
+    assert captured["missing_org"] is True
+    assert captured["missing_invite"] is True

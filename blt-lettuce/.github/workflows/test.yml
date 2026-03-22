@@ -7,6 +7,47 @@ on:
     branches: [ main, develop ]
 
 jobs:
+  critical-components:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install test dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest pytest-cov pytest-asyncio
+        if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
+
+    - name: Verify manifest and routing contracts
+      run: |
+        rg -q --fixed-strings "/lettuce-org-add" manifest.yaml
+        rg -q --fixed-strings "/lettuce-set-invite" manifest.yaml
+        rg -q --fixed-strings "/lettuce-settings" manifest.yaml
+        rg -q --fixed-strings "/lettuce-app-link" manifest.yaml
+        rg -q --fixed-strings "member_joined_channel" manifest.yaml
+        rg -q --fixed-strings "_handle_settings_command" src/worker.py
+        rg -q --fixed-strings "run_workspace_metrics_sync" src/worker.py
+        rg -q --fixed-strings "send_missing_github_org_alert" src/worker.py
+
+    - name: Run critical-path tests
+      env:
+        PYTHONPATH: src
+      run: |
+        pytest -q \
+          tests/test_worker_utils.py::test_handle_app_link_command_uses_workspace_app_id \
+          tests/test_worker_utils.py::test_handle_app_link_command_falls_back_to_env_app_id \
+          tests/test_worker_utils.py::test_handle_app_link_command_reports_missing_app_id \
+          tests/test_worker_utils.py::test_handle_set_invite_command_saves_link_for_admin \
+          tests/test_worker_utils.py::test_handle_set_invite_command_rejects_invalid_url \
+          tests/test_worker_utils.py::test_handle_settings_command_shows_commands_and_current_settings \
+          tests/test_worker_utils.py::test_run_workspace_metrics_sync_uses_full_workspace_for_alert_target
+
   test:
     runs-on: ubuntu-latest
     
@@ -25,6 +66,8 @@ jobs:
         if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
     
     - name: Run tests
+      env:
+        PYTHONPATH: src
       run: |
         pytest tests/ -v --cov=src --cov-report=term-missing
     

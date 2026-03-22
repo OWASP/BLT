@@ -678,10 +678,13 @@ async def run_workspace_metrics_sync(env):
         if not missing_org and not missing_invite:
             continue
 
+        full_workspace = await db_get_workspace_by_id(env, ws_id)
+        target_workspace = full_workspace or ws
+
         # Per user request: notify every cron run when config is missing.
         alert_result = await send_missing_github_org_alert(
             env,
-            ws,
+            target_workspace,
             repo_count=repo_count,
             missing_org=missing_org,
             missing_invite=missing_invite,
@@ -2393,6 +2396,7 @@ def _format_available_commands_for_slack():
         "*Available Commands*\n"
         "- /lettuce-org-add <github-org-url-or-name>\n"
         "- /lettuce-set-invite <slack-invite-url>\n"
+        "- /lettuce-settings\n"
         "- /lettuce-app-link\n"
         "- /lettuce-welcome\n"
         "- /lettuce-disconnect\n"
@@ -3876,6 +3880,19 @@ async def _handle_set_invite_command(env, body_json):
     return {
         "response_type": "ephemeral",
         "text": f":white_check_mark: Invite link saved for *{html_escape(workspace.get('team_name') or team_id)}*. Homepage card now links to: <{invite_link}|Join Workspace>",
+    }
+
+
+async def _handle_settings_command(env, body_json):
+    """Handle /lettuce-settings: show command-controlled workspace settings."""
+    team_id = str((body_json or {}).get("team_id") or "").strip()
+    workspace = await db_get_workspace_by_team(env, team_id) if team_id else None
+
+    commands_text = _format_available_commands_for_slack()
+    settings_text = await _format_workspace_settings_for_slack(env, workspace)
+    return {
+        "response_type": "ephemeral",
+        "text": f"{commands_text}\n\n{settings_text}",
     }
 
 
@@ -5578,6 +5595,9 @@ async def handle_request(request, env):
                     return Response.json(
                         await _handle_set_invite_command(env, body_json)
                     )
+
+                if cmd_name == "/lettuce-settings":
+                    return Response.json(await _handle_settings_command(env, body_json))
 
                 return Response.json(
                     {
