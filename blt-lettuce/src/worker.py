@@ -1763,7 +1763,7 @@ async def db_list_workspaces_public(env):
                 "(SELECT MAX(e2.created_at) FROM events e2 WHERE e2.workspace_id = w.id) AS last_event_time, "
                 "(SELECT COUNT(*) FROM repositories r WHERE r.workspace_id = w.id) AS repo_count, "
                 "(SELECT COUNT(*) FROM channels c WHERE c.workspace_id = w.id) AS channel_count, "
-                "(SELECT SUM(c.member_count) FROM channels c WHERE c.workspace_id = w.id) AS member_count "
+                "COALESCE((SELECT SUM(COALESCE(c.member_count, 0)) FROM channels c WHERE c.workspace_id = w.id), 0) AS member_count "
                 "FROM workspaces w ORDER BY w.created_at DESC"
             ).all()
         )
