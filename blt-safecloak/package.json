@@ -21,13 +21,11 @@
     ],
     "license": "MIT",
     "devDependencies": {
-        "prettier": "^3.2.5"
+        "prettier": "^3.2.5",
+        "wrangler": "^4.76.0"
     },
     "engines": {
         "node": ">=18.0.0",
         "python": ">=3.11"
-    },
-    "dependencies": {
-        "wrangler": "^4.76.0"
     }
 }
