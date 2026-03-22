@@ -45,7 +45,7 @@ def html_escape(text):
 
 
 def get_login_page_html(sign_in_url, error=None):
-    """Generate the login page HTML for Slack OAuth."""
+    """Generate the workspace connection page HTML for Slack OAuth."""
     err_block = (
         f'<div class="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg '
         f'text-sm text-red-700">{html_escape(error)}</div>'
@@ -817,12 +817,8 @@ def get_dashboard_html(
 
 def get_homepage_html(user=None):
     """Generate the homepage HTML with project information and live stats."""
-    if user:
-        auth_button_href = "/dashboard"
-        auth_button_text = "Go to Dashboard"
-    else:
-        auth_button_href = "/login"
-        auth_button_text = "Sign in with Slack"
+    auth_button_href = "/login"
+    auth_button_text = "Connect Workspace"
 
     return _render_template(
         "homepage.html",

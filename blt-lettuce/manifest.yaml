@@ -1,43 +1,44 @@
 display_information:
-  name: BLT-Lettuce
-  description: OWASP Slack bot that welcomes new members and helps them discover security projects
+  name: Lettuce
+  description:Slack bot that welcomes new members and helps them discover security projects
   background_color: "#FF0000"
   long_description: An intelligent OWASP Slack bot that welcomes new community members, helps them discover security projects through interactive conversations, and connects the global cybersecurity community. Powered by Cloudflare Workers for global, low-latency performance.
+
 features:
   bot_user:
-    display_name: BLT-Lettuce
+    display_name: Lettuce
     always_online: true
   slash_commands:
-    - command: /lettuce
-      description: Start discovering OWASP projects
-      should_escape: false
-    - command: /project
-      description: Checkout all the projects available
-      should_escape: false
-    - command: /repo
-      description: Checkout all the repositories available
+    - command: /lettuce-org-add
+      url: <YOUR_BASE_URL>/webhook
+      description: Add the GitHub org that the bot will be connected to
       should_escape: false
 oauth_config:
+  redirect_urls:
+    - <YOUR_BASE_URL>/callback
   scopes:
     bot:
+      - app_mentions:read
       - channels:history
       - channels:read
       - chat:write
+      - chat:write.customize
+      - chat:write.public
       - commands
       - groups:history
       - groups:read
+      - groups:write
       - im:history
       - im:read
       - im:write
       - mpim:history
       - mpim:read
+      - mpim:write
       - users:read
       - team:read
 settings:
   event_subscriptions:
-    # IMPORTANT: Replace <YOUR_WORKER_URL> with your actual Cloudflare Worker URL
-    # Example: https://blt-lettuce-worker.your-subdomain.workers.dev/webhook
-    request_url: <YOUR_WORKER_URL>/webhook
+    request_url: <YOUR_BASE_URL>/webhook
     bot_events:
       - team_join
       - message.channels
@@ -47,8 +48,7 @@ settings:
       - app_mention
   interactivity:
     is_enabled: true
-    # IMPORTANT: Replace <YOUR_WORKER_URL> with your actual Cloudflare Worker URL
-    request_url: <YOUR_WORKER_URL>/webhook
+    request_url: <YOUR_BASE_URL>/webhook
   org_deploy_enabled: true
   socket_mode_enabled: false
   token_rotation_enabled: false
