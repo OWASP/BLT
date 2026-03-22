@@ -360,9 +360,15 @@
           const joins = ws.joins || 0;
           const repos = ws.repo_count || 0;
           const last = timeAgo(ws.last_event_time);
-          const actPct = Math.min(Math.round(activity / Math.max(activity, 200) * 100), 100);
-          const joinPct = Math.min(Math.round(joins / Math.max(joins, 50) * 100), 100);
-          const repoPct = Math.min(Math.round(repos / Math.max(repos, 20) * 100), 100);
+          const timeline = Array.isArray(ws.activity_timeline) && ws.activity_timeline.length === 7
+            ? ws.activity_timeline
+            : [0, 0, 0, 0, 0, 0, 0];
+          const maxTimeline = Math.max(...timeline, 1);
+          const timelineBars = timeline.map((count, idx) => {
+            const h = count > 0 ? Math.max(12, Math.round((count / maxTimeline) * 100)) : 6;
+            const opacity = 0.45 + (idx / 10);
+            return `<div class="flex-1 h-full flex items-end" title="${count} events"><div class="w-full rounded-sm bg-red-500" style="height:${h}%; opacity:${opacity.toFixed(2)}"></div></div>`;
+          }).join("");
           return `
             <div class="border border-gray-200 rounded-xl p-5 hover:shadow-md transition-shadow">
               <div class="flex items-center gap-3 mb-4">
@@ -372,19 +378,16 @@
                   <p class="text-xs text-gray-400">Last active: ${last}</p>
                 </div>
               </div>
-              <div class="space-y-2">
-                <div>
-                  <div class="flex justify-between text-xs text-gray-500 mb-1"><span>Activities</span><span class="font-semibold text-gray-700">${formatNumber(activity)}</span></div>
-                  <div class="h-1.5 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-red-500 rounded-full" style="width:${actPct}%"></div></div>
+              <div class="mb-3">
+                <div class="flex justify-between text-xs text-gray-500 mb-2"><span>Activity timeline (7d)</span><span class="font-semibold text-gray-700">${formatNumber(activity)} total</span></div>
+                <div class="h-14 rounded-md bg-gray-50 border border-gray-100 p-2 flex items-end gap-1">
+                  ${timelineBars}
                 </div>
-                <div>
-                  <div class="flex justify-between text-xs text-gray-500 mb-1"><span>Members welcomed</span><span class="font-semibold text-gray-700">${formatNumber(joins)}</span></div>
-                  <div class="h-1.5 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-indigo-500 rounded-full" style="width:${joinPct}%"></div></div>
-                </div>
-                <div>
-                  <div class="flex justify-between text-xs text-gray-500 mb-1"><span>Repositories</span><span class="font-semibold text-gray-700">${formatNumber(repos)}</span></div>
-                  <div class="h-1.5 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-green-500 rounded-full" style="width:${repoPct}%"></div></div>
-                </div>
+                <div class="flex justify-between text-[10px] text-gray-400 mt-1"><span>6d ago</span><span>Today</span></div>
+              </div>
+              <div class="flex flex-wrap gap-2 text-xs">
+                <span class="px-2 py-1 bg-indigo-50 text-indigo-700 rounded-md"><span class="font-semibold">${formatNumber(joins)}</span> welcomed</span>
+                <span class="px-2 py-1 bg-green-50 text-green-700 rounded-md"><span class="font-semibold">${formatNumber(repos)}</span> repos</span>
               </div>
             </div>`;
         }).join("");

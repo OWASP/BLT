@@ -2149,6 +2149,43 @@ async def db_list_workspaces_public(env):
                 "FROM workspaces w ORDER BY w.created_at DESC"
             ).all()
         )
+
+        if not rows:
+            return []
+
+        # Attach a 7-day activity timeline to each workspace for homepage charts.
+        since = (datetime.now(timezone.utc) - timedelta(days=6)).isoformat()
+        timeline_rows = _rows(
+            await env.DB.prepare(
+                "SELECT workspace_id, substr(created_at, 1, 10) AS day, COUNT(*) AS count "
+                "FROM events WHERE workspace_id IS NOT NULL AND created_at >= ? "
+                "GROUP BY workspace_id, day"
+            )
+            .bind(since)
+            .all()
+        )
+
+        day_labels = [
+            (datetime.now(timezone.utc) - timedelta(days=offset)).strftime("%Y-%m-%d")
+            for offset in range(6, -1, -1)
+        ]
+
+        timeline_by_workspace = {}
+        for row in timeline_rows:
+            ws_id = int(row.get("workspace_id") or 0)
+            if not ws_id:
+                continue
+            day = str(row.get("day") or "")
+            count = int(row.get("count") or 0)
+            if ws_id not in timeline_by_workspace:
+                timeline_by_workspace[ws_id] = {}
+            timeline_by_workspace[ws_id][day] = count
+
+        for ws in rows:
+            ws_id = int(ws.get("id") or 0)
+            day_counts = timeline_by_workspace.get(ws_id, {})
+            ws["activity_timeline"] = [int(day_counts.get(day, 0)) for day in day_labels]
+
         return rows
     except Exception:
         return []
