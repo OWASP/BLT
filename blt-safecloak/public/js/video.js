@@ -467,6 +467,10 @@ const VideoChat = (() => {
       showToast("Enter a Room ID to call", "warning");
       return;
     }
+
+    // Normalize the peer ID by trimming whitespace
+    remotePeerId = remotePeerId.trim();
+
     if (!isValidRoomId(remotePeerId)) {
       showToast("Room ID must be exactly 6 alphanumeric characters", "error");
       return;
