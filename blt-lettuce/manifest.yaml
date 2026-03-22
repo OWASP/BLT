@@ -10,16 +10,16 @@ features:
     always_online: true
   slash_commands:
     - command: /lettuce-org-add
-      url: <YOUR_BASE_URL>/webhook
+      url: https://lettuce.owaspblt.org/webhook
       description: Add the GitHub org that the bot will be connected to
       should_escape: false
     - command: /lettuce-disconnect
-      url: <YOUR_BASE_URL>/webhook
+      url: https://lettuce.owaspblt.org/webhook
       description: Remove all bot data for this workspace from the database
       should_escape: false
 oauth_config:
   redirect_urls:
-    - <YOUR_BASE_URL>/callback
+    - https://lettuce.owaspblt.org/callback
   scopes:
     bot:
       - app_mentions:read
@@ -42,7 +42,7 @@ oauth_config:
       - team:read
 settings:
   event_subscriptions:
-    request_url: <YOUR_BASE_URL>/webhook
+    request_url: https://lettuce.owaspblt.org/webhook
     bot_events:
       - team_join
       - message.channels
@@ -52,7 +52,7 @@ settings:
       - app_mention
   interactivity:
     is_enabled: true
-    request_url: <YOUR_BASE_URL>/webhook
+    request_url: https://lettuce.owaspblt.org/webhook
   org_deploy_enabled: true
   socket_mode_enabled: false
   token_rotation_enabled: false
