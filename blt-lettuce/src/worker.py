@@ -1404,6 +1404,53 @@ async def db_get_repositories(env, workspace_id):
         return []
 
 
+async def db_upsert_github_organization(
+    env,
+    workspace_id,
+    org_login,
+    org_type="org",
+    metadata_json="",
+):
+    """Persist a GitHub org/user source linked to a workspace."""
+    now = get_utc_now()
+    try:
+        await (
+            env.DB.prepare(
+                "INSERT INTO github_organizations "
+                "(workspace_id, org_login, org_type, metadata_json, created_at, updated_at) "
+                "VALUES (?, ?, ?, ?, ?, ?) "
+                "ON CONFLICT(workspace_id, org_login) DO UPDATE SET "
+                "org_type=excluded.org_type, metadata_json=excluded.metadata_json, "
+                "updated_at=excluded.updated_at"
+            )
+            .bind(
+                workspace_id,
+                str(org_login or "").strip(),
+                str(org_type or "org").strip() or "org",
+                str(metadata_json or ""),
+                now,
+                now,
+            )
+            .run()
+        )
+        return True
+    except Exception as e:
+        try:
+            sentry = get_sentry()
+            sentry.capture_exception_nowait(
+                e,
+                level="error",
+                extra={
+                    "context": "db_upsert_github_organization",
+                    "workspace_id": workspace_id,
+                    "org_login": org_login,
+                },
+            )
+        except Exception:
+            pass
+        return False
+
+
 def _extract_github_target(repo_url):
     """Return {'kind': 'repo'|'org', ...} for GitHub URLs, else None."""
     try:
@@ -1487,10 +1534,25 @@ def _repo_metadata_from_github(repo_data, source_type="repo", org_login=""):
 
 async def _import_github_org_repositories(env, workspace_id, org_login, max_repos=150):
     """Import repositories for a GitHub organization/user URL."""
+    org_login = str(org_login or "").strip()
+    if not org_login:
+        return {"imported": 0, "failed": 0, "organization": "", "org_type": "org"}
+
     imported = 0
     failed = 0
     page = 1
     per_page = 100
+    org_type = "org"
+
+    org_profile = await _fetch_github_json(f"https://api.github.com/orgs/{org_login}")
+    if isinstance(org_profile, dict) and org_profile.get("message") == "Not Found":
+        org_type = "user"
+        org_profile = await _fetch_github_json(
+            f"https://api.github.com/users/{org_login}"
+        )
+
+    if isinstance(org_profile, dict) and org_profile.get("login"):
+        org_login = str(org_profile.get("login") or org_login)
 
     while imported + failed < max_repos:
         api_url = f"https://api.github.com/orgs/{org_login}/repos?per_page={per_page}&page={page}&type=all"
@@ -1537,7 +1599,48 @@ async def _import_github_org_repositories(env, workspace_id, org_login, max_repo
             break
         page += 1
 
-    return {"imported": imported, "failed": failed}
+    public_repos = 0
+    followers = 0
+    if isinstance(org_profile, dict):
+        try:
+            public_repos = int(org_profile.get("public_repos") or 0)
+        except Exception:
+            public_repos = 0
+        try:
+            followers = int(org_profile.get("followers") or 0)
+        except Exception:
+            followers = 0
+
+    org_metadata = {
+        "login": org_login,
+        "type": org_type,
+        "name": org_profile.get("name") if isinstance(org_profile, dict) else "",
+        "avatar_url": (
+            org_profile.get("avatar_url") if isinstance(org_profile, dict) else ""
+        ),
+        "html_url": (
+            org_profile.get("html_url") if isinstance(org_profile, dict) else ""
+        ),
+        "public_repos": public_repos,
+        "followers": followers,
+        "repos_imported": imported,
+        "repos_failed": failed,
+        "last_imported_at": get_utc_now(),
+    }
+    await db_upsert_github_organization(
+        env,
+        workspace_id,
+        org_login,
+        org_type=org_type,
+        metadata_json=json.dumps(org_metadata),
+    )
+
+    return {
+        "imported": imported,
+        "failed": failed,
+        "organization": org_login,
+        "org_type": org_type,
+    }
 
 
 # ===========================================================================
@@ -2131,6 +2234,7 @@ async def get_db_table_counts(env):
         "channels",
         "repositories",
         "events",
+        "github_organizations",
     ]
     counts = {}
     for table in tables:
@@ -2165,6 +2269,7 @@ def _format_db_stats_for_slack(counts):
         ("channels", "Channels"),
         ("repositories", "Repositories"),
         ("events", "Events"),
+        ("github_organizations", "GitHub Orgs"),
     ]
     for key, label in ordered:
         lines.append(f"- *{label}:* {counts.get(key, 0)}")
@@ -3228,10 +3333,11 @@ async def _handle_org_add_command(env, body_json):
 
     ws_id = workspace.get("id")
     result = await _import_github_org_repositories(env, ws_id, org_login)
+    canonical_org = str(result.get("organization") or org_login)
     return {
         "response_type": "ephemeral",
         "text": (
-            f"Connected GitHub org *{org_login}*: "
+            f"Connected GitHub org *{canonical_org}*: "
             f"{int(result.get('imported') or 0)} repositories imported, "
             f"{int(result.get('failed') or 0)} failed."
         ),
@@ -4491,7 +4597,12 @@ async def handle_request(request, env):
                         {
                             "ok": True,
                             "mode": "org",
-                            "organization": org_login,
+                            "organization": str(
+                                org_result.get("organization") or org_login
+                            ),
+                            "organization_type": str(
+                                org_result.get("org_type") or "org"
+                            ),
                             "imported": int(org_result.get("imported") or 0),
                             "failed": int(org_result.get("failed") or 0),
                         }

@@ -8,6 +8,7 @@ compatibility_flags = ["python_workers"]
 binding = "DB"
 database_name = "blt-lettuce"
 database_id = "b68ec3d9-6766-4496-b926-c8a24f29f2dd"
+migrations_dir = "./migrations"
 
 # Environment variables (secrets should be set via wrangler secret put)
 # Required secrets:
