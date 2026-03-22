@@ -17,7 +17,7 @@ import secrets
 from datetime import datetime, timedelta, timezone
 from urllib.parse import unquote_plus, urlencode, urlparse
 
-from js import Headers, Response
+from js import Headers, Request, Response
 from js import fetch as js_fetch
 
 try:
@@ -2634,6 +2634,78 @@ def get_channel_join_message(team_id, channel_id):
     return ""
 
 
+async def _read_asset_text(env, asset_path):
+    """Read text from the ASSETS binding when available."""
+    try:
+        assets = getattr(env, "ASSETS", None)
+        if not assets:
+            return ""
+        normalized = str(asset_path or "").lstrip("/")
+        req = Request.new(f"https://assets.local/{normalized}")
+        resp = await assets.fetch(req)
+        status = int(getattr(resp, "status", 0) or 0)
+        if status < 200 or status >= 300:
+            return ""
+        return str(await resp.text() or "")
+    except Exception:
+        return ""
+
+
+async def _read_asset_bytes(env, asset_path):
+    """Read binary bytes from the ASSETS binding when available."""
+    try:
+        assets = getattr(env, "ASSETS", None)
+        if not assets:
+            return None
+        normalized = str(asset_path or "").lstrip("/")
+        req = Request.new(f"https://assets.local/{normalized}")
+        resp = await assets.fetch(req)
+        status = int(getattr(resp, "status", 0) or 0)
+        if status < 200 or status >= 300:
+            return None
+        return await resp.arrayBuffer()
+    except Exception:
+        return None
+
+
+async def get_channel_join_message_runtime(env, team_id, channel_id):
+    """Load channel-join template from bundled assets first, then filesystem."""
+    if not team_id or not channel_id:
+        return ""
+
+    candidates = [
+        f"message-{team_id}-{channel_id}-ephemeral.md",
+        f"ephemeral-{team_id}-{channel_id}.md",
+        f"message-{team_id}-{channel_id}.md",
+    ]
+
+    # First try ASSETS binding paths (deployment-safe in Workers runtime).
+    for filename in candidates:
+        for base in ("data", "src/data"):
+            asset_rel_path = f"{base}/{filename}"
+            content = await _read_asset_text(env, asset_rel_path)
+            if content.strip():
+                try:
+                    print(
+                        "[get_channel_join_message]",
+                        json.dumps(
+                            {
+                                "status": "asset_read_success",
+                                "asset_path": f"/{asset_rel_path}",
+                                "team_id": team_id,
+                                "channel_id": channel_id,
+                                "content_length": len(content.strip()),
+                            }
+                        ),
+                    )
+                except Exception:
+                    pass
+                return content.strip()
+
+    # Fallback to filesystem lookup for local/dev modes.
+    return get_channel_join_message(team_id, channel_id)
+
+
 async def db_get_workspace_by_team(env, team_id):
     """Return the newest workspace row for a Slack team ID."""
     try:
@@ -3739,8 +3811,8 @@ async def handle_message_event(env, event, team_id=None):
             if is_duplicate:
                 dedupe_file_template = ""
                 try:
-                    dedupe_file_template = get_channel_join_message(
-                        effective_team_id, channel
+                    dedupe_file_template = await get_channel_join_message_runtime(
+                        env, effective_team_id, channel
                     )
                     print(
                         "[channel_join]",
@@ -4019,7 +4091,9 @@ async def handle_message_event(env, event, team_id=None):
                     )
                 except Exception:
                     pass
-                file_template = get_channel_join_message(effective_team_id, channel)
+                file_template = await get_channel_join_message_runtime(
+                    env, effective_team_id, channel
+                )
                 try:
                     print(
                         "[channel_join]",
@@ -6533,6 +6607,15 @@ async def handle_request(request, env):
     #  GET /favicon.png  →  serve logo as favicon                        #
     # ------------------------------------------------------------------ #
     if pathname == "/favicon.png" and method == "GET":
+        # Prefer bundled worker assets in production runtime.
+        favicon_asset = await _read_asset_bytes(env, "docs/static/logo.png")
+        if favicon_asset is not None:
+            h = Headers.new()
+            h.set("Content-Type", "image/png")
+            h.set("Cache-Control", "public, max-age=86400")
+            return Response.new(favicon_asset, {"headers": h})
+
+        # Fallback for local/dev filesystem mode.
         try:
             import os
 

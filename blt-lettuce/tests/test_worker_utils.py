@@ -149,7 +149,7 @@ def test_welcome_message_formatting():
     message = WELCOME_MESSAGE.format(user_id=user_id)
 
     assert "<@U12345>" in message
-    assert "Welcome to the OWASP Slack Community" in message
+    assert "Welcome to the open-source community" in message
 
 
 def test_handle_app_link_command_uses_workspace_app_id():
