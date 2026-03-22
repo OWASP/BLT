@@ -2,6 +2,7 @@ import sys
 import os
 import json
 import pytest
+import ast
 from datetime import datetime
 from unittest.mock import MagicMock
 
@@ -21,7 +22,6 @@ sys.modules['workers'] = mock_workers
 
 # Fix the path so it finds your 'src' folder
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
 # Now the import will work perfectly!
 from src.libs.utils import html_response, json_response, cors_response
 
@@ -34,6 +34,8 @@ def test_html_response():
     assert response.status_code == 200
     assert response.headers["Content-Type"] == "text/html; charset=utf-8"
     assert "<h1>Test Page</h1>" in response.body.decode('utf-8')
+    #fix for issue 2
+    assert response.headers["Access-Control-Allow-Origin"] == "*"
 
 def test_json_response():
     """Test that json_response correctly formats a dict to JSON."""
@@ -43,14 +45,18 @@ def test_json_response():
     assert response.status_code == 200
     assert response.headers["Content-Type"] == "application/json; charset=utf-8"
     assert json.loads(response.body) == data
+    #fix for issue 2
+    assert response.headers["Access-Control-Allow-Origin"] == "*"
 
 def test_cors_response():
     """Test that cors_response injects the correct CORS headers."""
     response = cors_response()
-    
+    #fix for isssue 3
     assert response.status_code == 204
-    assert "Access-Control-Allow-Origin" in response.headers
     assert response.headers["Access-Control-Allow-Origin"] == "*"
+    assert response.headers["Access-Control-Allow-Methods"] == "GET, POST, OPTIONS"
+    assert response.headers["Access-Control-Allow-Headers"] == "Content-Type"
+    assert response.headers["Access-Control-Max-Age"] == "86400"
 
 def test_json_response_default_str_fallback():
     """
@@ -67,6 +73,7 @@ def test_json_response_default_str_fallback():
     
     assert response.status_code == 200
     response_data = json.loads(response.body)
-    
+    # fix for issue 1
     assert response_data["timestamp"] == "2026-03-22 12:00:00"
-    assert response_data["unique_items"] == "{1, 2, 3}"
+    actual_set = set(ast.literal_eval(response_data["unique_items"]))
+    assert actual_set == {1, 2, 3}
