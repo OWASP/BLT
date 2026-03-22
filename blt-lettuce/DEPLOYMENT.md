@@ -137,7 +137,7 @@ Slack will verify the URL - you should see a green checkmark if everything is co
 1. In your Slack workspace, invite a test user or create a new account
 2. The bot should automatically send them a welcome DM
 3. Try sending a message with the word "contribute" - the bot should respond
-4. Visit your worker URL in a browser to see the dashboard
+4. Visit your worker URL in a browser to see the homepage
 
 ## Deploying to Multiple Organizations
 
@@ -181,9 +181,9 @@ wrangler tail
 
 This shows real-time logs from your worker.
 
-### View Dashboard
+### View Homepage
 
-Visit `https://your-worker-url.workers.dev/` to see the full dashboard with:
+Visit `https://your-worker-url.workers.dev/` to see the full homepage with:
 - Live statistics
 - Bot features
 - GitHub project information

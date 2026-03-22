@@ -1,3 +1,18 @@
+### File Naming Convention
+
+Welcome message files in the `data/` directory use the following naming pattern:
+
+`<type>-<team_id>-<channel_id>.md`
+
+- `<type>`: Either `message` (for persistent messages) or `ephemeral` (for ephemeral messages)
+- `<team_id>`: The Slack team (workspace) ID (e.g., `T070JPE5BQQ`)
+- `<channel_id>`: The Slack channel ID (e.g., `C06V9S85YR1`)
+
+**Examples:**
+- `message-T070JPE5BQQ-C06V9S85YR1.md` — Persistent welcome message for team `T070JPE5BQQ` in channel `C06V9S85YR1`
+- `ephemeral-T070JPE5BQQ-C06V9S85YR1.md` — Ephemeral welcome message for the same team/channel
+
+This convention makes it easy to distinguish between ephemeral and persistent messages and to target specific workspaces and channels.
 <div align="center">
 
 # 🥬 BLT-Lettuce
@@ -23,7 +38,7 @@
 [![Code Style: Ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg?style=flat-square)](https://github.com/astral-sh/ruff)
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg?style=flat-square)](https://conventionalcommits.org)
 
-[📊 **Live Dashboard**](https://owasp-blt.github.io/BLT-Lettuce/) · [💬 **Join OWASP Slack**](https://owasp.org/slack/invite) · [🐛 **Report Bug**](https://github.com/OWASP-BLT/BLT-Lettuce/issues/new?template=bug_report.md) · [✨ **Request Feature**](https://github.com/OWASP-BLT/BLT-Lettuce/issues/new?template=feature_request.md)
+[💬 **Join OWASP Slack**](https://owasp.org/slack/invite) · [🐛 **Report Bug**](https://github.com/OWASP-BLT/BLT-Lettuce/issues/new?template=bug_report.md) · [✨ **Request Feature**](https://github.com/OWASP-BLT/BLT-Lettuce/issues/new?template=feature_request.md)
 
 </div>
 
@@ -37,13 +52,7 @@ BLT-Lettuce is an intelligent Slack bot designed for the OWASP Slack workspace. 
 
 ### 🎯 Core Features
 
-- **👋 Welcome New Members** - Automatically sends personalized welcome messages to newcomers
-- **🔍 Project Discovery** - Interactive conversations help users find relevant OWASP projects
-- **📊 GitHub Integration** - Scans configured organizations and caches project metadata
-- **🤖 Conversational Flow** - Asks multiple-choice questions to understand user needs
-- **⚡ Edge-Powered** - Runs on Cloudflare Workers for global, low-latency performance
 
----
 
 ## 🏗️ Architecture
 
@@ -59,13 +68,9 @@ BLT-Lettuce is an intelligent Slack bot designed for the OWASP Slack workspace. 
 │  │   Webhook    │  │    Stats     │  │   Project Discovery  │  │
 │  │   Handler    │  │   Tracking   │  │      Flowchart       │  │
 │  └──────────────┘  └──────────────┘  └──────────────────────┘  │
-└─────────────────────────────────┬───────────────────────────────┘
-                                  │
-          ┌───────────────────────┼───────────────────────┐
           ▼                       ▼                       ▼
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   Cloudflare    │    │    GitHub API   │    │   GitHub Pages  │
-│   KV Storage    │    │  (Org scanning) │    │  (Dashboard)    │
+│   KV Storage    │    │  (Org scanning) │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
@@ -114,9 +119,9 @@ The bot uses a conversational flowchart to help users find OWASP projects:
 
 ---
 
-## 📊 Live Dashboard
+## 📊 Live Stats
 
-View real-time statistics at our **[Stats Dashboard](https://owasp-blt.github.io/BLT-Lettuce/)**:
+View real-time statistics at our **[Stats Page](https://owasp-blt.github.io/BLT-Lettuce/)**:
 
 - 👋 Members welcomed
 - ⚡ Commands executed
@@ -129,7 +134,7 @@ View real-time statistics at our **[Stats Dashboard](https://owasp-blt.github.io
 
 BLT-Lettuce is now **fully powered by a Cloudflare Python Worker** (`src/worker.py`) that serves as the complete backend:
 
-- **Homepage**: Serves the dashboard at the root URL
+- **Homepage**: Serves the stats at the root URL
 - **Slack Events**: Handles all webhook events (team joins, messages, mentions)
 - **Welcome Messages**: Sends personalized welcome messages to new members
 - **Message Handling**: Detects keywords like "contribute" and provides helpful responses
@@ -142,7 +147,7 @@ BLT-Lettuce is now **fully powered by a Cloudflare Python Worker** (`src/worker.
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/` | GET | Homepage dashboard |
+| `/` | GET | Homepage |
 | `/webhook` | POST | Slack webhook for events |
 | `/stats` | GET | Returns statistics JSON |
 | `/health` | GET | Health check endpoint |
@@ -282,7 +287,7 @@ BLT-Lettuce/
 ├── wrangler.toml           # Worker configuration
 ├── manifest.yaml           # Slack App manifest for easy setup
 ├── docs/
-│   └── index.html          # GitHub Pages dashboard (reference)
+│   └── index.html          # GitHub Pages stats (reference)
 ├── app.py                  # Legacy Flask application (kept for reference)
 ├── data/
 │   ├── projects.json       # OWASP project metadata cache

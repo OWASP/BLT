@@ -7,7 +7,7 @@ BLT-Lettuce has been successfully converted from a Flask-based application to a 
 - **Global Edge Deployment**: Bot runs on Cloudflare's global network for low latency worldwide
 - **Serverless Architecture**: No server maintenance, automatic scaling, zero cold starts
 - **Multi-Organization Support**: Single deployment can serve any Slack workspace
-- **Homepage Integration**: Worker serves both the Slack bot API and the public dashboard
+- **Homepage Integration**: Worker serves both the Slack bot API and the public homepage
 - **Cost Efficiency**: Free tier supports 100,000 requests/day - more than enough for most workspaces
 
 ## Architecture Changes
@@ -29,7 +29,7 @@ BLT-Lettuce has been successfully converted from a Flask-based application to a 
 │      Cloudflare Worker (Global)        │
 │  ┌──────────┐  ┌──────────┐           │
 │  │ Homepage │  │ Slack    │           │
-│  │ Dashboard│  │ Bot API  │           │
+│  │ Bot API  │           │
 │  └──────────┘  └──────────┘           │
 │         │              │               │
 │         ▼              ▼               │

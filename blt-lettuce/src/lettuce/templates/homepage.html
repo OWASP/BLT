@@ -56,7 +56,7 @@
             <span class="inline-flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium"><i class="fas fa-users mr-2 text-red-600"></i>Community Builder</span>
           </div>
           <div class="flex justify-center gap-4 flex-wrap">
-            <a href="/login"
+            <!-- login link removed -->
                class="inline-flex items-center gap-2 px-6 py-3 bg-[#4A154B] text-white
                       rounded-lg hover:bg-[#3b1040] transition-colors font-semibold shadow-md transform hover:-translate-y-0.5">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 122.8 122.8" class="w-5 h-5">
@@ -245,7 +245,7 @@
           <p class="text-gray-600 mb-4">Made with love by the <a href="https://owasp.org/www-project-bug-logging-tool/" target="_blank" class="text-red-600 hover:underline font-medium">OWASP BLT Team</a></p>
           <div class="flex justify-center space-x-6 text-sm text-gray-500">
             <a href="https://github.com/OWASP-BLT/BLT-Lettuce" class="hover:text-red-600 transition-colors">GitHub</a>
-            <a href="/login" class="hover:text-red-600 transition-colors">Connect Workspace</a>
+            <!-- Connect Workspace login link removed -->
             <a href="https://owasp.org/www-project-bug-logging-tool/" class="hover:text-red-600 transition-colors">About BLT</a>
           </div>
         </div>
@@ -348,7 +348,7 @@
       function renderWorkspaces(workspaces) {
         const c = document.getElementById("workspaces-container");
         if (!workspaces.length) {
-          c.innerHTML = `<div class="col-span-3 text-center py-10 text-gray-400"><i class="fab fa-slack text-4xl mb-3 block"></i><p class="font-medium">No workspaces connected yet.</p><a href="/login" class="mt-3 inline-block text-sm text-red-600 hover:underline">Be the first to connect</a></div>`;
+          c.innerHTML = `<div class="col-span-3 text-center py-10 text-gray-400"><i class="fab fa-slack text-4xl mb-3 block"></i><p class="font-medium">No workspaces connected yet.</p></div>`;
           return;
         }
         c.className = "grid sm:grid-cols-2 lg:grid-cols-3 gap-6";
@@ -359,6 +359,8 @@
           const activity = ws.total_activities || 0;
           const joins = ws.joins || 0;
           const repos = ws.repo_count || 0;
+          const channels = ws.channel_count || 0;
+          const members = ws.member_count || 0;
           const last = timeAgo(ws.last_event_time);
           const timeline = Array.isArray(ws.activity_timeline) && ws.activity_timeline.length === 7
             ? ws.activity_timeline
@@ -370,12 +372,11 @@
             return `<div class="flex-1 h-full flex items-end" title="${count} events"><div class="w-full rounded-sm bg-red-500" style="height:${h}%; opacity:${opacity.toFixed(2)}"></div></div>`;
           }).join("");
           return `
-            <div class="border border-gray-200 rounded-xl p-5 hover:shadow-md transition-shadow">
+            <div class="border border-gray-200 rounded-xl p-5 hover:shadow-md transition-shadow relative">
               <div class="flex items-center gap-3 mb-4">
                 ${icon}
                 <div class="min-w-0">
                   <h3 class="font-bold text-gray-900 truncate">${ws.team_name || "Unnamed Workspace"}</h3>
-                  <p class="text-xs text-gray-400">Last active: ${last}</p>
                 </div>
               </div>
               <div class="mb-3">
@@ -385,10 +386,13 @@
                 </div>
                 <div class="flex justify-between text-[10px] text-gray-400 mt-1"><span>6d ago</span><span>Today</span></div>
               </div>
-              <div class="flex flex-wrap gap-2 text-xs">
+              <div class="flex flex-wrap gap-2 text-xs mb-6">
                 <span class="px-2 py-1 bg-indigo-50 text-indigo-700 rounded-md"><span class="font-semibold">${formatNumber(joins)}</span> welcomed</span>
                 <span class="px-2 py-1 bg-green-50 text-green-700 rounded-md"><span class="font-semibold">${formatNumber(repos)}</span> repos</span>
+                <span class="px-2 py-1 bg-blue-50 text-blue-700 rounded-md"><span class="font-semibold">${formatNumber(channels)}</span> channels</span>
+                <span class="px-2 py-1 bg-yellow-50 text-yellow-700 rounded-md"><span class="font-semibold">${formatNumber(members)}</span> members</span>
               </div>
+              <div class="absolute bottom-3 right-5 text-xs text-gray-400 flex items-center gap-1"><i class="far fa-clock"></i> ${last}</div>
             </div>`;
         }).join("");
       }

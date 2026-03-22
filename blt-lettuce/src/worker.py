@@ -31,7 +31,6 @@ except ImportError:
 from lettuce.html_templates import (
     get_404_html,
     get_500_html,
-    get_dashboard_html,
     get_homepage_html,
     get_login_page_html,
     get_status_html,
@@ -325,10 +324,7 @@ async def ensure_d1_schema(env):
             "CREATE INDEX IF NOT EXISTS idx_channels_workspace "
             "ON channels(workspace_id, member_count DESC)"
         ),
-        (
-            "CREATE INDEX IF NOT EXISTS idx_join_messages_workspace "
-            "ON join_messages(workspace_id, created_at DESC)"
-        ),
+        # Removed join_messages index
         "CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions(expires_at)",
         (
             "CREATE INDEX IF NOT EXISTS idx_user_workspaces_user "
@@ -385,280 +381,7 @@ async def ensure_d1_schema(env):
         )
         for idx, sql in enumerate(statements, 1):
             await env.DB.prepare(sql).run()
-            print(f"[ensure_d1_schema] Statement {idx}/{len(statements)} executed")
 
-        # Run migrations only when the target column is missing.
-        print(f"[ensure_d1_schema] Running {len(migrations)} migration(s)...")
-        for idx, migration in enumerate(migrations, 1):
-            try:
-                table_name = migration["table"]
-                column_name = migration["column"]
-                migration_sql = migration["sql"]
-
-                pragma_result = await env.DB.prepare(
-                    f"PRAGMA table_info({table_name})"
-                ).all()
-                columns = _rows(pragma_result)
-                existing_column_names = {
-                    (col.get("name") or "") for col in columns if isinstance(col, dict)
-                }
-
-                if column_name in existing_column_names:
-                    print(
-                        f"[ensure_d1_schema] Migration {idx}/{len(migrations)} skipped: column {table_name}.{column_name} already exists"
-                    )
-                    continue
-
-                await env.DB.prepare(migration_sql).run()
-                print(
-                    f"[ensure_d1_schema] Migration {idx}/{len(migrations)} executed successfully"
-                )
-            except Exception as migration_error:
-                print(f"[ensure_d1_schema] Migration {idx} failed: {migration_error}")
-                try:
-                    sentry = get_sentry()
-                    sentry.capture_exception_nowait(
-                        migration_error,
-                        level="error",
-                        extra={
-                            "context": "schema_migration",
-                            "migration_index": idx,
-                            "migration_sql": migration_sql,
-                        },
-                    )
-                except Exception:
-                    pass
-
-        _schema_initialized = True
-        print("[ensure_d1_schema] Schema initialization complete")
-        return True
-    except Exception as e:
-        print(f"[ensure_d1_schema] ERROR: {e}")
-        try:
-            sentry = get_sentry()
-            sentry.capture_exception_nowait(
-                e, level="error", extra={"context": "schema_initialization"}
-            )
-        except Exception:
-            pass
-        return False
-
-
-# ---------------------------------------------------------------------------
-# Welcome message template
-# ---------------------------------------------------------------------------
-WELCOME_MESSAGE = (
-    ":tada: *Welcome to the OWASP Slack Community, <@{user_id}>!* :tada:\n\n"
-    "We're thrilled to have you here! Whether you're new to OWASP or a "
-    "long-time contributor, this Slack workspace is the perfect place to "
-    "connect, collaborate, and stay informed about all things OWASP.\n\n"
-    ":small_blue_diamond: *Get Involved:*\n"
-    "• Check out the *#contribute* channel to find ways to get involved "
-    "with OWASP projects and initiatives.\n"
-    "• Explore individual project channels, which are named *#project-name*, "
-    "to dive into specific projects that interest you.\n"
-    "• Join our chapter channels, named *#chapter-name*, to connect with "
-    "local OWASP members in your area.\n\n"
-    ":small_blue_diamond: *Stay Updated:*\n"
-    "• Visit *#newsroom* for the latest updates and announcements.\n"
-    "• Follow *#external-activities* for news about OWASP's engagement "
-    "with the wider security community.\n\n"
-    ":small_blue_diamond: *Connect and Learn:*\n"
-    "• *#jobs*: Looking for new opportunities? Check out the latest "
-    "job postings here.\n"
-    "• *#leaders*: Connect with OWASP leaders and stay informed about "
-    "leadership activities.\n"
-    "• *#project-committee*: Engage with the committee overseeing "
-    "OWASP projects.\n"
-    "• *#gsoc*: Stay updated on Google Summer of Code initiatives.\n"
-    "• *#github-admins*: Get support and discuss issues related to "
-    "OWASP's GitHub repositories.\n"
-    "• *#learning*: Share and find resources to expand your knowledge "
-    "in the field of application security.\n\n"
-    "We're excited to see the amazing contributions you'll make. If you "
-    "have any questions or need assistance, don't hesitate to ask. Let's "
-    "work together to make software security visible and improve the "
-    "security of the software we all rely on.\n\n"
-    "Welcome aboard! :rocket:"
-)
-
-
-# ===========================================================================
-# D1 — Workspace helpers
-# ===========================================================================
-
-
-async def db_get_workspace_by_team(env, team_id):
-    """Get first workspace for a team (legacy - use db_get_workspace_by_team_and_app instead)."""
-    try:
-        return _row(
-            await env.DB.prepare("SELECT * FROM workspaces WHERE team_id = ? LIMIT 1")
-            .bind(team_id)
-            .first()
-        )
-    except Exception as e:
-        try:
-            sentry = get_sentry()
-            sentry.capture_exception_nowait(
-                e,
-                level="error",
-                extra={"context": "db_get_workspace_by_team", "team_id": team_id},
-            )
-        except Exception:
-            pass
-        return None
-
-
-async def db_get_workspace_by_team_and_app(env, team_id, app_id):
-    """Get a specific workspace by team_id and app_id."""
-    try:
-        return _row(
-            await env.DB.prepare(
-                "SELECT * FROM workspaces WHERE team_id = ? AND app_id = ?"
-            )
-            .bind(team_id, app_id)
-            .first()
-        )
-    except Exception as e:
-        try:
-            sentry = get_sentry()
-            sentry.capture_exception_nowait(
-                e,
-                level="error",
-                extra={
-                    "context": "db_get_workspace_by_team_and_app",
-                    "team_id": team_id,
-                    "app_id": app_id,
-                },
-            )
-        except Exception:
-            pass
-        return None
-
-
-async def db_get_workspaces_by_team(env, team_id):
-    """Get all bot/app installations for a given team."""
-    try:
-        result = (
-            await env.DB.prepare(
-                "SELECT * FROM workspaces WHERE team_id = ? ORDER BY created_at ASC"
-            )
-            .bind(team_id)
-            .all()
-        )
-        return _rows(result)
-    except Exception as e:
-        try:
-            sentry = get_sentry()
-            sentry.capture_exception_nowait(
-                e,
-                level="error",
-                extra={"context": "db_get_workspaces_by_team", "team_id": team_id},
-            )
-        except Exception:
-            pass
-        return []
-
-
-async def db_upsert_workspace(
-    env,
-    team_id,
-    team_name,
-    access_token,
-    bot_user_id="",
-    app_id="",
-    icon_url="",
-    app_name="",
-    app_icon_url="",
-    installer_slack_user_id="",
-    installer_name="",
-):
-    now = get_utc_now()
-    try:
-        await ensure_d1_schema(env)
-
-        # Use app_id to distinguish multiple bot installations
-        if not app_id:
-            app_id = ""
-
-        # Try to find existing by team_id + app_id
-        existing = await db_get_workspace_by_team_and_app(env, team_id, app_id)
-
-        if existing:
-            result = await (
-                env.DB.prepare(
-                    "UPDATE workspaces SET team_name=?, installer_slack_user_id=?, installer_name=?, icon_url=?, app_name=?, app_icon_url=?, access_token=?, bot_user_id=?, "
-                    "updated_at=? WHERE team_id=? AND app_id=?"
-                )
-                .bind(
-                    team_name,
-                    installer_slack_user_id,
-                    installer_name,
-                    icon_url,
-                    app_name,
-                    app_icon_url,
-                    access_token,
-                    bot_user_id,
-                    now,
-                    team_id,
-                    app_id,
-                )
-                .run()
-            )
-            print(
-                f"[db_upsert_workspace] Updated workspace {team_id}/{app_id}, result: {result}"
-            )
-        else:
-            result = await (
-                env.DB.prepare(
-                    "INSERT INTO workspaces "
-                    "(team_id, team_name, installer_slack_user_id, installer_name, icon_url, app_id, app_name, app_icon_url, access_token, bot_user_id, created_at, updated_at) "
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-                )
-                .bind(
-                    team_id,
-                    team_name,
-                    installer_slack_user_id,
-                    installer_name,
-                    icon_url,
-                    app_id,
-                    app_name,
-                    app_icon_url,
-                    access_token,
-                    bot_user_id,
-                    now,
-                    now,
-                )
-                .run()
-            )
-            print(
-                f"[db_upsert_workspace] Inserted workspace {team_id}/{app_id}, result: {result}"
-            )
-        ws = await db_get_workspace_by_team_and_app(env, team_id, app_id)
-        print(f"[db_upsert_workspace] Retrieved workspace: {ws}")
-        return ws
-    except Exception as e:
-        print(f"[db_upsert_workspace] ERROR: {e}")
-        try:
-            sentry = get_sentry()
-            sentry.capture_exception_nowait(
-                e,
-                level="error",
-                extra={"team_id": team_id, "team_name": team_name, "app_id": app_id},
-            )
-        except Exception:
-            pass
-        return None
-
-
-async def db_get_workspace_by_id(env, workspace_id):
-    try:
-        return _row(
-            await env.DB.prepare("SELECT * FROM workspaces WHERE id = ?")
-            .bind(workspace_id)
-            .first()
-        )
-    except Exception as e:
         try:
             sentry = get_sentry()
             sentry.capture_exception_nowait(
@@ -2096,7 +1819,9 @@ async def db_list_workspaces_public(env):
                 "(SELECT COUNT(*) FROM events e WHERE e.workspace_id = w.id) AS total_activities, "
                 "(SELECT COUNT(*) FROM events e WHERE e.workspace_id = w.id AND e.event_type = 'Team_Join') AS joins, "
                 "(SELECT MAX(e2.created_at) FROM events e2 WHERE e2.workspace_id = w.id) AS last_event_time, "
-                "(SELECT COUNT(*) FROM repositories r WHERE r.workspace_id = w.id) AS repo_count "
+                "(SELECT COUNT(*) FROM repositories r WHERE r.workspace_id = w.id) AS repo_count, "
+                "(SELECT COUNT(*) FROM channels c WHERE c.workspace_id = w.id) AS channel_count, "
+                "(SELECT SUM(c.member_count) FROM channels c WHERE c.workspace_id = w.id) AS member_count "
                 "FROM workspaces w ORDER BY w.created_at DESC"
             ).all()
         )
@@ -2136,6 +1861,9 @@ async def db_list_workspaces_public(env):
             ws_id = int(ws.get("id") or 0)
             day_counts = timeline_by_workspace.get(ws_id, {})
             ws["activity_timeline"] = [int(day_counts.get(day, 0)) for day in day_labels]
+            # Normalize nulls to 0 for channel/member counts
+            ws["channel_count"] = ws.get("channel_count") or 0
+            ws["member_count"] = ws.get("member_count") or 0
 
         return rows
     except Exception:
@@ -2400,7 +2128,6 @@ async def get_db_table_counts(env):
 
     tables = [
         "workspaces",
-        "join_messages",
         "channels",
         "repositories",
         "events",
@@ -2435,7 +2162,6 @@ def _format_db_stats_for_slack(counts):
     lines = ["*BLT Lettuce DB Stats* :bar_chart:"]
     ordered = [
         ("workspaces", "Workspaces"),
-        ("join_messages", "Join Messages"),
         ("channels", "Channels"),
         ("repositories", "Repositories"),
         ("events", "Events"),
@@ -4224,182 +3950,6 @@ async def handle_request(request, env):
                 pass
             return _json_response({"ok": False, "error": "Internal server error"}, 500)
 
-    # ------------------------------------------------------------------ #
-    #  GET /dashboard  →  live stats dashboard (requires auth)           #
-    # ------------------------------------------------------------------ #
-    if pathname == "/dashboard" and method == "GET":
-        user = await get_current_user(env, request)
-        if not user:
-            return _redirect("/login")
-
-        print(
-            f"[GET /dashboard] User: {user.get('name')} (user_id={user.get('user_id')}, slack_user_id={user.get('slack_user_id')})"
-        )
-        workspaces = await db_get_user_workspaces(env, user["user_id"])
-
-        # Backfill missing workspace icons from Slack for older records.
-        for ws in workspaces:
-            if ws.get("icon_url"):
-                token = ws.get("access_token") or ""
-            else:
-                token = ws.get("access_token") or ""
-                if token:
-                    icon_url = await fetch_workspace_icon_url(token)
-                    if icon_url:
-                        ws["icon_url"] = icon_url
-                        ws_id_backfill = ws.get("id")
-                        if ws_id_backfill:
-                            await db_update_workspace_icon(
-                                env, ws_id_backfill, icon_url
-                            )
-
-            # Backfill missing app metadata (name/icon/app_id) from Slack app API.
-            if token and (
-                not str(ws.get("app_name") or "").strip()
-                or not str(ws.get("app_icon_url") or "").strip()
-            ):
-                app_meta = await fetch_app_metadata(
-                    token,
-                    fallback_app_id=str(ws.get("app_id") or ""),
-                )
-                app_name = str(
-                    app_meta.get("app_name") or ws.get("app_name") or ""
-                ).strip()
-                app_icon_url = str(
-                    app_meta.get("app_icon_url") or ws.get("app_icon_url") or ""
-                ).strip()
-                app_id = str(app_meta.get("app_id") or ws.get("app_id") or "").strip()
-                if app_name or app_icon_url or app_id:
-                    ws["app_name"] = app_name or ws.get("app_name")
-                    ws["app_icon_url"] = app_icon_url or ws.get("app_icon_url")
-                    ws["app_id"] = app_id or ws.get("app_id")
-                    ws_id_backfill = ws.get("id")
-                    if ws_id_backfill:
-                        await db_update_workspace_app_metadata(
-                            env,
-                            ws_id_backfill,
-                            app_name=ws.get("app_name") or "",
-                            app_icon_url=ws.get("app_icon_url") or "",
-                            app_id=ws.get("app_id") or "",
-                        )
-
-        # Determine which workspace to show (ws= query param or first)
-        qs = url.split("?", 1)[1] if "?" in url else ""
-        qs_params = {}
-        for part in qs.split("&"):
-            kv = part.split("=", 1)
-            if len(kv) == 2:
-                qs_params[kv[0]] = kv[1]
-
-        current_ws = None
-        selected_ws_id = qs_params.get("ws")
-        selected_tab = (qs_params.get("tab") or "overview").lower()
-        if selected_tab not in (
-            "overview",
-            "channels",
-            "repositories",
-            "apps",
-            "manifest",
-            "join-messages",
-        ):
-            selected_tab = "overview"
-        if selected_ws_id:
-            try:
-                sid = int(selected_ws_id)
-                # Ensure the user actually owns this workspace
-                for ws in workspaces:
-                    if ws.get("id") == sid:
-                        current_ws = ws
-                        break
-            except (ValueError, TypeError):
-                pass
-        if not current_ws and workspaces:
-            current_ws = workspaces[0]
-
-        ws_stats = {}
-        channels = []
-        events = []
-        daily_stats = []
-        repos = []
-        installed_apps = []
-        apps_permission_warning = ""
-        workspace_installers = []
-        manifest_result = None
-        join_messages = []
-        join_message_event_counts = {}
-        can_manage_manifest = False
-
-        if current_ws:
-            ws_id_val = current_ws["id"]
-            user_role = await db_get_user_workspace_role(
-                env, user["user_id"], ws_id_val
-            )
-            can_manage_manifest = user_role in ("owner", "admin")
-            ws_stats = await db_get_workspace_stats(env, ws_id_val)
-            channels = await db_get_channels(env, ws_id_val)
-            join_messages = await db_get_join_messages(env, ws_id_val)
-            join_message_event_counts = await db_get_channel_join_message_sent_counts(
-                env, ws_id_val
-            )
-            events = await db_get_events(env, ws_id_val, limit=20)
-            daily_stats = await db_get_daily_stats(env, ws_id_val, days=30)
-            repos = await db_get_repositories(env, ws_id_val)
-            if selected_tab == "apps":
-                apps_payload = await get_workspace_installed_apps(env, current_ws)
-                installed_apps = (apps_payload or {}).get("apps") or []
-                apps_permission_warning = (apps_payload or {}).get(
-                    "permission_warning"
-                ) or ""
-                workspace_installers = await db_get_workspace_installers(env, ws_id_val)
-
-                # Attach best-effort installer attribution to each app row.
-                installer_name = ""
-                if workspace_installers:
-                    primary = workspace_installers[0]
-                    installer_name = (
-                        primary.get("name") or primary.get("slack_user_id") or "Unknown"
-                    )
-                for app in installed_apps:
-                    app["installed_by"] = installer_name or "Unknown"
-            elif selected_tab == "manifest":
-                if not can_manage_manifest:
-                    manifest_result = {
-                        "ok": False,
-                        "summary": "Access denied",
-                        "manifest_path": "manifest.yaml",
-                        "checks": [],
-                        "error": "Only workspace admins/owners can access Manifest Checker.",
-                    }
-                else:
-                    saved_manifest = str(current_ws.get("manifest_yaml") or "").strip()
-                    if saved_manifest:
-                        manifest_result = check_manifest_requirements_from_text(
-                            saved_manifest,
-                            manifest_label="saved workspace manifest",
-                        )
-                    else:
-                        base_dir = Path(__file__).resolve().parents[1]
-                        manifest_path = base_dir / "manifest.yaml"
-                        manifest_result = check_manifest_requirements(manifest_path)
-
-        html = get_dashboard_html(
-            user,
-            workspaces,
-            current_ws,
-            ws_stats,
-            channels,
-            events,
-            daily_stats,
-            repos,
-            installed_apps,
-            apps_permission_warning,
-            manifest_result,
-            join_messages,
-            join_message_event_counts,
-            can_manage_manifest,
-            active_tab=selected_tab,
-        )
-        return _html_response(html)
 
     # ------------------------------------------------------------------ #
     #  POST /api/ws/<id>/scan  →  trigger channel scan for a workspace   #

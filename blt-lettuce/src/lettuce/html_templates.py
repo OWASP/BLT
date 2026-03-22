@@ -44,21 +44,7 @@ def html_escape(text):
     )
 
 
-def get_login_page_html(sign_in_url, error=None):
-    """Generate the workspace connection page HTML for Slack OAuth."""
-    err_block = (
-        f'<div class="mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg '
-        f'text-sm text-red-700">{html_escape(error)}</div>'
-        if error
-        else ""
-    )
-    return _render_template(
-        "login.html",
-        {
-            "ERR_BLOCK": err_block,
-            "SIGN_IN_URL": html_escape(sign_in_url),
-        },
-    )
+
 
 
 def get_dashboard_html(
@@ -73,8 +59,8 @@ def get_dashboard_html(
     installed_apps,
     apps_permission_warning,
     manifest_result,
-    join_messages,
-    join_message_event_counts,
+    join_messages,  # deprecated
+    join_message_event_counts,  # deprecated
     can_manage_manifest,
     active_tab="overview",
 ):
@@ -285,28 +271,38 @@ def get_dashboard_html(
     chart_joins = json.dumps([date_joins.get(d, 0) for d in all_dates])
     chart_commands = json.dumps([date_commands.get(d, 0) for d in all_dates])
 
-    dashboard_tabs = ""
+    # dashboard_tabs removed
     if current_ws:
         ws_q = f"ws={ws_id}" if ws_id else ""
         overview_href = (
             f"/dashboard?{ws_q}&tab=overview" if ws_q else "/dashboard?tab=overview"
+            # dashboard tab link removed
         )
         channels_href = (
             f"/dashboard?{ws_q}&tab=channels" if ws_q else "/dashboard?tab=channels"
+            # dashboard tab link removed
         )
         repositories_href = (
             f"/dashboard?{ws_q}&tab=repositories"
+                # dashboard tab link removed
             if ws_q
             else "/dashboard?tab=repositories"
+            # dashboard tab link removed
         )
         apps_href = f"/dashboard?{ws_q}&tab=apps" if ws_q else "/dashboard?tab=apps"
+            # dashboard tab link removed
+            # dashboard tab link removed
         manifest_href = (
             f"/dashboard?{ws_q}&tab=manifest" if ws_q else "/dashboard?tab=manifest"
+            # dashboard tab link removed
+            # dashboard tab link removed
+            # dashboard tab link removed
         )
         join_messages_href = (
             f"/dashboard?{ws_q}&tab=join-messages"
             if ws_q
             else "/dashboard?tab=join-messages"
+            # dashboard tab link removed
         )
         overview_active = (
             "bg-red-600 text-white border-red-600"
@@ -373,45 +369,22 @@ def get_dashboard_html(
         )
         manifest_tab_html = ""
         if can_manage_manifest:
-            manifest_tab_html = (
-                f'<a href="{manifest_href}" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm font-medium {manifest_active}">'
-                f'<i class="fas fa-clipboard-check"></i> Manifest {manifest_count_badge}</a>'
+            # Removed join_messages tab and related UI
+            dashboard_tabs = (
+                    # dashboard_tabs removed
+                '<section class="bg-white rounded-xl shadow-sm border border-gray-100 p-3">'
+                '<div class="flex flex-wrap gap-2">'
+                f'<a href="{overview_href}" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm font-medium {overview_active}">'
+                f'<i class="fas fa-chart-line"></i> Activities {overview_count_badge}</a>'
+                f'<a href="{channels_href}" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm font-medium {channels_active}">'
+                f'<i class="fas fa-hashtag"></i> Channels {channels_count_badge}</a>'
+                f'<a href="{repositories_href}" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm font-medium {repositories_active}">'
+                f'<i class="fas fa-code-branch"></i> Repositories {repos_count_badge}</a>'
+                f'<a href="{apps_href}" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm font-medium {apps_active}">'
+                f'<i class="fas fa-puzzle-piece"></i> Apps {apps_count_badge}</a>'
+                f"{manifest_tab_html}"
+                "</div></section>"
             )
-        join_messages_tab_html = ""
-        if can_manage_manifest:
-            join_messages_tab_html = (
-                f'<a href="{join_messages_href}" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm font-medium {join_messages_active}">'
-                f'<i class="fas fa-message"></i> Join Messages {join_messages_count_badge}</a>'
-            )
-        dashboard_tabs = (
-            '<section class="bg-white rounded-xl shadow-sm border border-gray-100 p-3">'
-            '<div class="flex flex-wrap gap-2">'
-            f'<a href="{overview_href}" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm font-medium {overview_active}">'
-            f'<i class="fas fa-chart-line"></i> Activities {overview_count_badge}</a>'
-            f'<a href="{channels_href}" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm font-medium {channels_active}">'
-            f'<i class="fas fa-hashtag"></i> Channels {channels_count_badge}</a>'
-            f'<a href="{repositories_href}" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm font-medium {repositories_active}">'
-            f'<i class="fas fa-code-branch"></i> Repositories {repos_count_badge}</a>'
-            f'<a href="{apps_href}" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm font-medium {apps_active}">'
-            f'<i class="fas fa-puzzle-piece"></i> Apps {apps_count_badge}</a>'
-            f"{manifest_tab_html}"
-            f"{join_messages_tab_html}"
-            "</div></section>"
-        )
-
-    if current_ws and active_tab == "channels":
-        join_message_options = '<option value="">None (disabled)</option>'
-        for jm in join_messages or []:
-            jm_id = int(jm.get("id") or 0)
-            jm_name = html_escape(jm.get("name") or f"Message {jm_id}")
-            join_message_options += f'<option value="{jm_id}">{jm_name}</option>'
-
-        all_channels_rows = ""
-        for idx, ch in enumerate(channels, start=1):
-            ch_id = html_escape(ch.get("channel_id", ""))
-            current_join_id = str(ch.get("join_message_id") or "")
-            delivery_mode = str(ch.get("join_delivery_mode") or "dm").strip().lower()
-            if delivery_mode not in ("dm", "ephemeral"):
                 delivery_mode = "dm"
             is_configured = bool(current_join_id)
             status_badge = (
@@ -767,6 +740,7 @@ def get_dashboard_html(
         )
         workspace_section = _render_template(
             "dashboard_workspace_section.html",
+                # "dashboard_workspace_section.html",  # dashboard removed
             {
                 "WS_NAME": ws_name,
                 "APP_EDIT_URL": app_edit_url,
@@ -877,45 +851,6 @@ def get_manifest_checker_html(result):
         },
     )
 
-
-def get_status_html(env):
-    """Generate the status page HTML showing configuration status."""
-
-    def _status_item(name, description, is_set, required=True):
-        """Generate a status item HTML."""
-        status_class = "set" if is_set else "missing"
-        icon = "✓" if is_set else "✗"
-        badge_text = "Required" if required else "Optional"
-
-        # Tailwind classes for styling
-        border_color = (
-            "border-l-green-500 bg-green-50" if is_set else "border-l-red-500 bg-red-50"
-        )
-        icon_color = "text-green-600" if is_set else "text-red-600"
-        badge_bg = (
-            "bg-red-100 text-red-800" if required else "bg-blue-100 text-blue-800"
-        )
-
-        return f"""<div class="status-item {status_class} flex items-start p-4 bg-gray-50 rounded-lg border-l-4 {border_color}">
-        <div class="status-icon text-2xl mr-4 flex-shrink-0 {icon_color}">{icon}</div>
-        <div class="status-details flex-1">
-            <div class="status-name font-semibold text-gray-900 mb-1">
-                {name} 
-                <span class="badge inline-block px-2 py-1 rounded-full text-xs font-semibold uppercase ml-2 {badge_bg}">{badge_text}</span>
-            </div>
-            <div class="status-desc text-sm text-gray-600">{description}</div>
-        </div>
-    </div>"""
-
-    # Check which secrets are set
-    slack_token = bool(getattr(env, "SLACK_TOKEN", None))
-    signing_secret = bool(getattr(env, "SIGNING_SECRET", None))
-    slack_client_id = bool(getattr(env, "SLACK_CLIENT_ID", None))
-    slack_client_secret = bool(getattr(env, "SLACK_CLIENT_SECRET", None))
-    sentry_dsn = bool(getattr(env, "SENTRY_DSN", None))
-    base_url = bool(getattr(env, "BASE_URL", None))
-    joins_channel = bool(getattr(env, "JOINS_CHANNEL_ID", None))
-    contribute_id = bool(getattr(env, "CONTRIBUTE_ID", None))
 
     replacements = {
         "SLACK_TOKEN_STATUS": _status_item(
