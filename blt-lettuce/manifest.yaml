@@ -1,6 +1,6 @@
 display_information:
   name: Lettuce
-  description:Slack bot that welcomes new members and helps them discover security projects
+  description: Slack bot that welcomes new members and helps them discover security projects
   background_color: "#FF0000"
   long_description: An intelligent OWASP Slack bot that welcomes new community members, helps them discover security projects through interactive conversations, and connects the global cybersecurity community. Powered by Cloudflare Workers for global, low-latency performance.
 
