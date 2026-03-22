@@ -561,32 +561,6 @@ async def db_get_last_event_time(env, workspace_id, event_type):
         return ""
 
 
-async def db_seen_recent_channel_join(
-    env, workspace_id, user_id, channel_id, seconds=15
-):
-    """Return True when a message was SUCCESSFULLY sent for this join recently (dedupe on sends, not events)."""
-    try:
-        cutoff = (datetime.now(timezone.utc) - timedelta(seconds=seconds)).isoformat()
-        channel_pattern = f'%"channel_id":"{str(channel_id or "")}"%'
-        row = _row(
-            await env.DB.prepare(
-                "SELECT id FROM events "
-                "WHERE workspace_id = ? "
-                "AND event_type = 'Channel_Join_Message' "
-                "AND status = 'success' "
-                "AND user_slack_id = ? "
-                "AND created_at >= ? "
-                "AND request_data LIKE ? "
-                "ORDER BY id DESC LIMIT 1"
-            )
-            .bind(workspace_id, str(user_id or ""), cutoff, channel_pattern)
-            .first()
-        )
-        return row is not None
-    except Exception:
-        return False
-
-
 async def db_get_workspace_invite_link(env, workspace_id):
     """Return workspace invite_link when the column exists; else empty string."""
     try:
@@ -3728,50 +3702,6 @@ async def handle_message_event(env, event, team_id=None):
         if ws:
             effective_team_id = str(team_id or ws.get("team_id") or "").strip()
 
-            # member_joined_channel is the canonical source for join messages.
-            # Keep a tiny dedupe window only for immediate retries of the same event.
-            is_spam_rejoin = await db_seen_recent_channel_join(
-                env,
-                ws.get("id"),
-                user,
-                channel,
-                seconds=10,
-            )
-            if is_spam_rejoin:
-                try:
-                    print(
-                        "[channel_join]",
-                        json.dumps(
-                            {
-                                "step": "spam_rejoin_detected",
-                                "workspace_id": ws.get("id"),
-                                "channel": channel,
-                                "user": user,
-                                "source_event": source_event,
-                            }
-                        ),
-                    )
-                except Exception:
-                    pass
-                await db_log_event(
-                    env,
-                    ws["id"],
-                    "Channel_Join_Debug",
-                    user or "",
-                    "success",
-                    channel_name=resolved_channel_name,
-                    request_data=json.dumps(
-                        {
-                            "step": "spam_rejoin_skipped",
-                            "channel_id": channel,
-                            "source_event": source_event,
-                        },
-                        separators=(",", ":"),
-                    ),
-                    verified=False,
-                )
-                return {"ok": True, "action": "channel_join_spam_prevented"}
-
             await db_log_event(
                 env,
                 ws["id"],
@@ -3837,6 +3767,24 @@ async def handle_message_event(env, event, team_id=None):
                                     .strip()
                                     .lower()
                                 )
+                                try:
+                                    print(
+                                        "[channel_join]",
+                                        json.dumps(
+                                            {
+                                                "step": "db_template_send_start",
+                                                "workspace_id": ws.get("id"),
+                                                "channel": channel,
+                                                "user": user,
+                                                "delivery_mode": delivery_mode,
+                                                "template_id": message_id,
+                                                "template_name": template.get("name")
+                                                or "",
+                                            }
+                                        ),
+                                    )
+                                except Exception:
+                                    pass
                                 if delivery_mode == "ephemeral":
                                     send_result = await send_slack_ephemeral_message(
                                         env,
@@ -3859,6 +3807,33 @@ async def handle_message_event(env, event, team_id=None):
                                             )
                                             else dm_response.get("channel")
                                         )
+                                        try:
+                                            print(
+                                                "[channel_join]",
+                                                json.dumps(
+                                                    {
+                                                        "step": "ephemeral_fallback_to_dm",
+                                                        "workspace_id": ws.get("id"),
+                                                        "channel": channel,
+                                                        "user": user,
+                                                        "ephemeral_ok": bool(
+                                                            send_result.get("ok")
+                                                        ),
+                                                        "ephemeral_error": send_result.get(
+                                                            "error"
+                                                        ),
+                                                        "dm_open_ok": bool(
+                                                            dm_response.get("ok")
+                                                        ),
+                                                        "dm_open_error": dm_response.get(
+                                                            "error"
+                                                        ),
+                                                        "dm_channel": dm_channel,
+                                                    }
+                                                ),
+                                            )
+                                        except Exception:
+                                            pass
                                         if dm_response.get("ok") and dm_channel:
                                             send_result = await send_slack_message(
                                                 env,
@@ -3889,6 +3864,29 @@ async def handle_message_event(env, event, team_id=None):
                                         token=ws_token,
                                         branding_tracking_id=logo_tracking_id,
                                     )
+                                try:
+                                    print(
+                                        "[channel_join]",
+                                        json.dumps(
+                                            {
+                                                "step": "db_template_send_result",
+                                                "workspace_id": ws.get("id"),
+                                                "channel": channel,
+                                                "user": user,
+                                                "delivery_mode": delivery_mode,
+                                                "ok": bool(send_result.get("ok")),
+                                                "error": send_result.get("error"),
+                                                "warning": send_result.get("warning"),
+                                                "channel_used": send_result.get(
+                                                    "channel"
+                                                )
+                                                or send_result.get("channel_id"),
+                                                "ts": send_result.get("ts"),
+                                            }
+                                        ),
+                                    )
+                                except Exception:
+                                    pass
                                 await db_log_event(
                                     env,
                                     ws["id"],
@@ -3901,7 +3899,7 @@ async def handle_message_event(env, event, team_id=None):
                                 )
                                 if send_result.get("ok"):
                                     sent_join_message = True
-                            except Exception:
+                            except Exception as e:
                                 try:
                                     print(
                                         "[channel_join]",
@@ -3911,6 +3909,9 @@ async def handle_message_event(env, event, team_id=None):
                                                 "workspace_id": ws.get("id"),
                                                 "channel": channel,
                                                 "user": user,
+                                                "error": str(e),
+                                                "error_type": type(e).__name__,
+                                                "traceback": traceback.format_exc(),
                                             }
                                         ),
                                     )
