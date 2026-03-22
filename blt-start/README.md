@@ -12,7 +12,7 @@
   <img src="https://img.shields.io/badge/JavaScript-Vanilla-yellow?logo=javascript"/>
   <!-- <img src="https://img.shields.io/github/stars/your-username/repo?style=social"/>
   <img src="https://img.shields.io/github/forks/your-username/repo?style=social"/> -->
-  <img src="https://img.shields.io/github/license/your-username/repo"/>
+  <!-- <img src="https://img.shields.io/github/license/your-username/repo"/> -->
 </p>
 
 ---
