@@ -1121,3 +1121,168 @@ def test_db_mark_join_message_verified_by_tracking_accepts_team_join():
     assert state["updated_payload"]["verification_ip"] == "203.0.113.10"
     assert state["updated_payload"]["verification_user_agent"] == "pytest-agent"
     assert state["updated_payload"].get("verified_at")
+
+
+def test_handle_team_join_duplicate_event_id_is_skipped():
+    """Duplicate Team Join event_id should skip welcome send and avoid Team_Join recount."""
+    import asyncio
+    import sys
+    from unittest.mock import Mock
+
+    sys.modules["js"] = Mock()
+    sys.modules["cloudflare"] = Mock()
+    sys.modules["workers"] = Mock()
+
+    from src import worker
+
+    captured = {"send_calls": 0, "log_events": []}
+
+    async def _fake_get_bot_user_id(_env):
+        return "UBOT"
+
+    async def _fake_db_get_workspace_by_team(_env, _team_id):
+        return {"id": 8, "team_id": "T070JPE5BQQ", "access_token": "xoxb-token"}
+
+    async def _fake_db_has_team_join_event_id(_env, _workspace_id, _event_id):
+        return True
+
+    async def _fake_send_slack_message(*_args, **_kwargs):
+        captured["send_calls"] += 1
+        return {"ok": True}
+
+    async def _fake_db_log_event(_env, _workspace_id, event_type, *_args, **_kwargs):
+        captured["log_events"].append(event_type)
+        return True
+
+    orig_get_bot_user_id = worker.get_bot_user_id
+    orig_get_workspace = worker.db_get_workspace_by_team
+    orig_has_duplicate = worker.db_has_team_join_event_id
+    orig_send_message = worker.send_slack_message
+    orig_db_log_event = worker.db_log_event
+
+    worker.get_bot_user_id = _fake_get_bot_user_id
+    worker.db_get_workspace_by_team = _fake_db_get_workspace_by_team
+    worker.db_has_team_join_event_id = _fake_db_has_team_join_event_id
+    worker.send_slack_message = _fake_send_slack_message
+    worker.db_log_event = _fake_db_log_event
+
+    try:
+        env = Mock()
+        event = {
+            "user": {"id": "UJOIN"},
+            "_event_id": "EvDuplicate123",
+            "_event_time": 1774219000,
+            "_retry_num": "1",
+            "_retry_reason": "http_timeout",
+        }
+        result = asyncio.run(worker.handle_team_join(env, event, team_id="T070JPE5BQQ"))
+    finally:
+        worker.get_bot_user_id = orig_get_bot_user_id
+        worker.db_get_workspace_by_team = orig_get_workspace
+        worker.db_has_team_join_event_id = orig_has_duplicate
+        worker.send_slack_message = orig_send_message
+        worker.db_log_event = orig_db_log_event
+
+    assert result.get("ok") is True
+    assert "Duplicate" in str(result.get("message") or "")
+    assert captured["send_calls"] == 0
+    assert "Team_Join_Duplicate" in captured["log_events"]
+    assert "Team_Join" not in captured["log_events"]
+
+
+def test_webhook_persists_webhook_received_event_with_request_data():
+    """Webhook handler should persist full inbound payload metadata into events table."""
+    import asyncio
+    import json
+    import sys
+    from unittest.mock import Mock
+
+    sys.modules["js"] = Mock()
+    sys.modules["cloudflare"] = Mock()
+    sys.modules["workers"] = Mock()
+
+    from src import worker
+
+    captured = {"event_types": [], "request_data": {}, "webhook_fields": {}}
+
+    class _FakeRequest:
+        def __init__(self, payload):
+            self.method = "POST"
+            self.url = "https://lettuce.owaspblt.org/webhook"
+            self.headers = {
+                "Content-Type": "application/json",
+                "X-Slack-Request-Timestamp": "1774219999",
+                "X-Slack-Signature": "v0=fake",
+                "X-Slack-Retry-Num": "1",
+                "X-Slack-Retry-Reason": "http_timeout",
+            }
+            self._body = json.dumps(payload)
+
+        async def text(self):
+            return self._body
+
+    async def _fake_db_get_workspace_by_team(_env, _team_id):
+        return {"id": 6, "team_id": "T070JPE5BQQ", "access_token": "xoxb-token"}
+
+    async def _fake_handle_message_event(_env, _event, team_id=None):
+        return {"ok": True, "team_id": team_id}
+
+    async def _fake_db_log_event(_env, _workspace_id, event_type, *_args, **kwargs):
+        captured["event_types"].append(event_type)
+        if event_type == "Webhook_Received":
+            captured["request_data"] = json.loads(kwargs.get("request_data") or "{}")
+            captured["webhook_fields"] = {
+                "webhook_body_type": kwargs.get("webhook_body_type"),
+                "webhook_event_id": kwargs.get("webhook_event_id"),
+                "webhook_event_time": kwargs.get("webhook_event_time"),
+                "webhook_event_subtype": kwargs.get("webhook_event_subtype"),
+                "webhook_retry_num": kwargs.get("webhook_retry_num"),
+                "webhook_retry_reason": kwargs.get("webhook_retry_reason"),
+            }
+        return True
+
+    orig_verify = worker.verify_slack_signature
+    orig_get_workspace = worker.db_get_workspace_by_team
+    orig_handle_message_event = worker.handle_message_event
+    orig_db_log_event = worker.db_log_event
+
+    worker.verify_slack_signature = lambda *_args, **_kwargs: True
+    worker.db_get_workspace_by_team = _fake_db_get_workspace_by_team
+    worker.handle_message_event = _fake_handle_message_event
+    worker.db_log_event = _fake_db_log_event
+
+    try:
+        env = Mock()
+        payload = {
+            "type": "event_callback",
+            "team_id": "T070JPE5BQQ",
+            "event_id": "EvWebhookPersist1",
+            "event_time": 1774219999,
+            "event": {
+                "type": "message",
+                "subtype": "channel_join",
+                "user": "U123",
+                "channel": "C123",
+                "channel_type": "channel",
+            },
+        }
+        asyncio.run(worker.handle_request(_FakeRequest(payload), env))
+    finally:
+        worker.verify_slack_signature = orig_verify
+        worker.db_get_workspace_by_team = orig_get_workspace
+        worker.handle_message_event = orig_handle_message_event
+        worker.db_log_event = orig_db_log_event
+
+    assert "Webhook_Received" in captured["event_types"]
+    assert captured["request_data"].get("event_id") == "EvWebhookPersist1"
+    assert captured["request_data"].get("event_type") == "message"
+    assert captured["request_data"].get("event_subtype") == "channel_join"
+    assert captured["request_data"].get("retry_num") == "1"
+    assert captured["request_data"].get("raw_body")
+    assert isinstance(captured["request_data"].get("parsed_body"), dict)
+    assert captured["webhook_fields"]["webhook_body_type"] == "event_callback"
+    assert captured["webhook_fields"]["webhook_event_id"] == "EvWebhookPersist1"
+    assert str(captured["webhook_fields"]["webhook_event_time"]) == "1774219999"
+    assert captured["webhook_fields"]["webhook_event_subtype"] == "channel_join"
+    assert captured["webhook_fields"]["webhook_retry_num"] == "1"
+    assert captured["webhook_fields"]["webhook_retry_reason"] == "http_timeout"

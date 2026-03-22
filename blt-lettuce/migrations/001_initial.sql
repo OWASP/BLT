@@ -78,6 +78,12 @@ CREATE TABLE IF NOT EXISTS events (
     request_data TEXT DEFAULT '',
     verified INTEGER DEFAULT 0,
     status TEXT DEFAULT 'success',
+    webhook_body_type TEXT DEFAULT '',
+    webhook_event_id TEXT DEFAULT '',
+    webhook_event_time TEXT DEFAULT '',
+    webhook_event_subtype TEXT DEFAULT '',
+    webhook_retry_num TEXT DEFAULT '',
+    webhook_retry_reason TEXT DEFAULT '',
     created_at TEXT NOT NULL
 );
 

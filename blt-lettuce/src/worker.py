@@ -561,6 +561,28 @@ async def db_get_last_event_time(env, workspace_id, event_type):
         return ""
 
 
+async def db_has_team_join_event_id(env, workspace_id, event_id):
+    """Return True when this workspace already logged a Team_Join for event_id."""
+    ws_id = str(workspace_id or "").strip()
+    eid = str(event_id or "").strip()
+    if not ws_id or not eid:
+        return False
+    try:
+        row = _row(
+            await env.DB.prepare(
+                "SELECT id FROM events "
+                "WHERE workspace_id = ? AND event_type = 'Team_Join' "
+                "AND request_data LIKE ? "
+                "ORDER BY id DESC LIMIT 1"
+            )
+            .bind(ws_id, f'%"event_id":"{eid}"%')
+            .first()
+        )
+        return row is not None
+    except Exception:
+        return False
+
+
 async def db_get_workspace_invite_link(env, workspace_id):
     """Return workspace invite_link when the column exists; else empty string."""
     try:
@@ -1707,13 +1729,20 @@ async def db_log_event(
     request_data="",
     verified=0,
     channel_id="",
+    webhook_body_type="",
+    webhook_event_id="",
+    webhook_event_time="",
+    webhook_event_subtype="",
+    webhook_retry_num="",
+    webhook_retry_reason="",
 ):
     now = get_utc_now()
     try:
         await (
             env.DB.prepare(
-                "INSERT INTO events (workspace_id, event_type, user_slack_id, channel_name, channel_id, request_data, verified, status, created_at) "
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                "INSERT INTO events (workspace_id, event_type, user_slack_id, channel_name, channel_id, request_data, verified, status, created_at, "
+                "webhook_body_type, webhook_event_id, webhook_event_time, webhook_event_subtype, webhook_retry_num, webhook_retry_reason) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
             )
             .bind(
                 workspace_id,
@@ -1725,6 +1754,12 @@ async def db_log_event(
                 1 if verified else 0,
                 status,
                 now,
+                str(webhook_body_type or ""),
+                str(webhook_event_id or ""),
+                str(webhook_event_time or ""),
+                str(webhook_event_subtype or ""),
+                str(webhook_retry_num or ""),
+                str(webhook_retry_reason or ""),
             )
             .run()
         )
@@ -1757,14 +1792,21 @@ async def db_insert_event(
     request_data="",
     verified=0,
     channel_id="",
+    webhook_body_type="",
+    webhook_event_id="",
+    webhook_event_time="",
+    webhook_event_subtype="",
+    webhook_retry_num="",
+    webhook_retry_reason="",
 ):
     """Insert a single event row with an explicit timestamp when provided."""
     event_time = created_at or get_utc_now()
     try:
         await (
             env.DB.prepare(
-                "INSERT INTO events (workspace_id, event_type, user_slack_id, channel_name, channel_id, request_data, verified, status, created_at) "
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                "INSERT INTO events (workspace_id, event_type, user_slack_id, channel_name, channel_id, request_data, verified, status, created_at, "
+                "webhook_body_type, webhook_event_id, webhook_event_time, webhook_event_subtype, webhook_retry_num, webhook_retry_reason) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
             )
             .bind(
                 workspace_id,
@@ -1776,6 +1818,12 @@ async def db_insert_event(
                 1 if verified else 0,
                 status,
                 event_time,
+                str(webhook_body_type or ""),
+                str(webhook_event_id or ""),
+                str(webhook_event_time or ""),
+                str(webhook_event_subtype or ""),
+                str(webhook_retry_num or ""),
+                str(webhook_retry_reason or ""),
             )
             .run()
         )
@@ -3487,6 +3535,14 @@ async def handle_team_join(env, event, team_id=None):
     if not user_id:
         return {"error": "No user ID in event"}
 
+    event_id = str(event.get("_event_id") or "").strip()
+    event_time = event.get("_event_time")
+    retry_num = str(event.get("_retry_num") or "").strip()
+    retry_reason = str(event.get("_retry_reason") or "").strip()
+    inbound_payload = {
+        k: v for k, v in (event or {}).items() if not str(k).startswith("_")
+    }
+
     # Ignore if the bot is welcoming itself
     bot_user_id = await get_bot_user_id(env)
     if user_id == bot_user_id:
@@ -3499,6 +3555,85 @@ async def handle_team_join(env, event, team_id=None):
         ws = await db_get_workspace_by_team(env, team_id)
         if ws and ws.get("access_token"):
             ws_token = ws["access_token"]
+
+    if ws and event_id:
+        try:
+            is_duplicate = await db_has_team_join_event_id(env, ws["id"], event_id)
+        except Exception:
+            is_duplicate = False
+        if is_duplicate:
+            try:
+                print(
+                    "[team_join_debug]",
+                    json.dumps(
+                        {
+                            "step": "duplicate_event_skipped",
+                            "workspace_id": ws.get("id"),
+                            "team_id": str(team_id or ""),
+                            "user_id": str(user_id or ""),
+                            "event_id": event_id,
+                            "event_time": event_time,
+                            "retry_num": retry_num,
+                            "retry_reason": retry_reason,
+                        },
+                        separators=(",", ":"),
+                    ),
+                )
+            except Exception:
+                pass
+            await db_log_event(
+                env,
+                ws["id"],
+                "Team_Join_Duplicate",
+                user_id,
+                "skipped",
+                channel_name="Direct Message",
+                request_data=json.dumps(
+                    {
+                        "event_id": event_id,
+                        "event_time": event_time,
+                        "retry_num": retry_num,
+                        "retry_reason": retry_reason,
+                        "reason": "duplicate_event_id",
+                        "inbound_payload": inbound_payload,
+                    },
+                    separators=(",", ":"),
+                ),
+                verified=False,
+                webhook_body_type="event_callback",
+                webhook_event_id=event_id,
+                webhook_event_time=event_time,
+                webhook_event_subtype="team_join",
+                webhook_retry_num=retry_num,
+                webhook_retry_reason=retry_reason,
+            )
+            return {
+                "ok": True,
+                "message": "Duplicate team_join skipped",
+                "event_id": event_id,
+            }
+
+    try:
+        print(
+            "[team_join_debug]",
+            json.dumps(
+                {
+                    "step": "processing",
+                    "workspace_id": (ws or {}).get("id")
+                    if isinstance(ws, dict)
+                    else None,
+                    "team_id": str(team_id or ""),
+                    "user_id": str(user_id or ""),
+                    "event_id": event_id,
+                    "event_time": event_time,
+                    "retry_num": retry_num,
+                    "retry_reason": retry_reason,
+                },
+                separators=(",", ":"),
+            ),
+        )
+    except Exception:
+        pass
 
     joins_channel = getattr(env, "JOINS_CHANNEL_ID", DEFAULT_JOINS_CHANNEL_ID)
     if joins_channel:
@@ -3523,9 +3658,21 @@ async def handle_team_join(env, event, team_id=None):
                     {
                         "stage": "open_conversation",
                         "error": dm_response.get("error") or "dm_open_failed",
-                    }
+                        "event_id": event_id,
+                        "event_time": event_time,
+                        "retry_num": retry_num,
+                        "retry_reason": retry_reason,
+                        "inbound_payload": inbound_payload,
+                    },
+                    separators=(",", ":"),
                 ),
                 verified=False,
+                webhook_body_type="event_callback",
+                webhook_event_id=event_id,
+                webhook_event_time=event_time,
+                webhook_event_subtype="team_join",
+                webhook_retry_num=retry_num,
+                webhook_retry_reason=retry_reason,
             )
         return {"error": f"Failed to open DM: {dm_response.get('error')}"}
 
@@ -3543,9 +3690,21 @@ async def handle_team_join(env, event, team_id=None):
                     {
                         "stage": "resolve_dm_channel",
                         "error": "missing_dm_channel_id",
-                    }
+                        "event_id": event_id,
+                        "event_time": event_time,
+                        "retry_num": retry_num,
+                        "retry_reason": retry_reason,
+                        "inbound_payload": inbound_payload,
+                    },
+                    separators=(",", ":"),
                 ),
                 verified=False,
+                webhook_body_type="event_callback",
+                webhook_event_id=event_id,
+                webhook_event_time=event_time,
+                webhook_event_subtype="team_join",
+                webhook_retry_num=retry_num,
+                webhook_retry_reason=retry_reason,
             )
         return {"error": "Failed to get DM channel ID"}
 
@@ -3595,10 +3754,22 @@ async def handle_team_join(env, event, team_id=None):
                     "dm_channel": dm_channel,
                     "logo_url": get_blt_logo_url(env),
                     "logo_tracking_id": logo_tracking_id,
-                }
+                    "event_id": event_id,
+                    "event_time": event_time,
+                    "retry_num": retry_num,
+                    "retry_reason": retry_reason,
+                    "inbound_payload": inbound_payload,
+                },
+                separators=(",", ":"),
             ),
             verified=False,
             channel_id=dm_channel,
+            webhook_body_type="event_callback",
+            webhook_event_id=event_id,
+            webhook_event_time=event_time,
+            webhook_event_subtype="team_join",
+            webhook_retry_num=retry_num,
+            webhook_retry_reason=retry_reason,
         )
     return {"ok": result.get("ok"), "user_id": user_id}
 
@@ -6340,10 +6511,12 @@ async def handle_request(request, env):
             body_text = await request.text()
             content_type = (request.headers.get("Content-Type") or "").lower()
             body_json = {}
+            form_data = {}
+            header_snapshot = {}
+            webhook_log_payload = {}
 
             # Slack interactivity and slash commands are form-encoded.
             if "application/x-www-form-urlencoded" in content_type:
-                form_data = {}
                 for pair in body_text.split("&"):
                     if not pair:
                         continue
@@ -6375,6 +6548,39 @@ async def handle_request(request, env):
 
             try:
                 event = body_json.get("event", {})
+                header_snapshot = {
+                    "Content-Type": request.headers.get("Content-Type"),
+                    "User-Agent": request.headers.get("User-Agent"),
+                    "CF-Connecting-IP": request.headers.get("CF-Connecting-IP"),
+                    "X-Forwarded-For": request.headers.get("X-Forwarded-For"),
+                    "X-Slack-Request-Timestamp": request.headers.get(
+                        "X-Slack-Request-Timestamp"
+                    ),
+                    "X-Slack-Signature": request.headers.get("X-Slack-Signature"),
+                    "X-Slack-Retry-Num": request.headers.get("X-Slack-Retry-Num"),
+                    "X-Slack-Retry-Reason": request.headers.get("X-Slack-Retry-Reason"),
+                }
+                # Drop empty header values so logs stay compact and readable.
+                header_snapshot = {
+                    k: v
+                    for k, v in header_snapshot.items()
+                    if v is not None and v != ""
+                }
+                webhook_log_payload = {
+                    "path": "/webhook",
+                    "method": "POST",
+                    "content_type": content_type,
+                    "query": _parsed.query,
+                    "headers": header_snapshot,
+                    "raw_body": body_text,
+                    "parsed_body": body_json,
+                }
+                if form_data:
+                    webhook_log_payload["form_data"] = form_data
+                print(
+                    "[webhook_payload]",
+                    json.dumps(webhook_log_payload, separators=(",", ":")),
+                )
                 print(
                     "[webhook_debug]",
                     json.dumps(
@@ -6524,7 +6730,67 @@ async def handle_request(request, env):
             team_id = _resolve_team_id_from_payload(body_json, event)
             event_type = event.get("type")
 
+            # Persist full inbound webhook payload metadata for workspace activity/debugging.
+            if team_id:
+                try:
+                    ws_for_webhook = await db_get_workspace_by_team(env, team_id)
+                except Exception:
+                    ws_for_webhook = None
+                if ws_for_webhook:
+                    event_user = _obj_get(event, "user")
+                    if isinstance(event_user, dict):
+                        event_user = event_user.get("id")
+                    event_user = str(event_user or "")
+
+                    event_channel = _obj_get(event, "channel")
+                    if isinstance(event_channel, dict):
+                        event_channel = event_channel.get("id")
+                    event_channel = str(event_channel or "")
+
+                    await db_log_event(
+                        env,
+                        ws_for_webhook["id"],
+                        "Webhook_Received",
+                        event_user,
+                        "received",
+                        channel_name=str(_obj_get(event, "channel_type") or "Webhook"),
+                        request_data=json.dumps(
+                            {
+                                "body_type": body_json.get("type"),
+                                "event_id": body_json.get("event_id"),
+                                "event_time": body_json.get("event_time"),
+                                "event_type": _obj_get(event, "type"),
+                                "event_subtype": _obj_get(event, "subtype"),
+                                "team_id": team_id,
+                                "retry_num": request.headers.get("X-Slack-Retry-Num"),
+                                "retry_reason": request.headers.get(
+                                    "X-Slack-Retry-Reason"
+                                ),
+                                "headers": header_snapshot,
+                                "raw_body": body_text,
+                                "parsed_body": body_json,
+                                "form_data": form_data,
+                            },
+                            separators=(",", ":"),
+                        ),
+                        verified=False,
+                        channel_id=event_channel,
+                        webhook_body_type=body_json.get("type"),
+                        webhook_event_id=body_json.get("event_id"),
+                        webhook_event_time=body_json.get("event_time"),
+                        webhook_event_subtype=_obj_get(event, "subtype")
+                        or _obj_get(event, "type"),
+                        webhook_retry_num=request.headers.get("X-Slack-Retry-Num"),
+                        webhook_retry_reason=request.headers.get(
+                            "X-Slack-Retry-Reason"
+                        ),
+                    )
+
             if event_type == "team_join":
+                event["_event_id"] = body_json.get("event_id")
+                event["_event_time"] = body_json.get("event_time")
+                event["_retry_num"] = request.headers.get("X-Slack-Retry-Num")
+                event["_retry_reason"] = request.headers.get("X-Slack-Retry-Reason")
                 result = await handle_team_join(env, event, team_id=team_id)
                 return Response.json(result)
 
@@ -6640,7 +6906,7 @@ async def handle_request(request, env):
             import os
 
             static_dir = os.path.normpath(
-                os.path.join(os.path.dirname(__file__), "..", "..", "docs", "static")
+                os.path.join(os.path.dirname(__file__), "..", "docs", "static")
             )
             for filename in ("favicon.ico", "logo.png"):
                 favicon_path = os.path.join(static_dir, filename)
