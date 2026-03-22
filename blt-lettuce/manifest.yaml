@@ -37,13 +37,24 @@ oauth_config:
     - https://lettuce.owaspblt.org/callback
   scopes:
     bot:
+      - app_mentions:read
+      - channels:history
+      - channels:read
       - chat:write
       - chat:write.customize
       - chat:write.public
       - commands
+      - groups:history
+      - groups:read
+      - groups:write
+      - im:history
+      - im:read
+      - im:write
+      - mpim:history
+      - mpim:read
+      - mpim:write
       - team:read
       - users:read
-      - im:write
   pkce_enabled: false
 settings:
   event_subscriptions:
