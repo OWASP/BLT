@@ -472,3 +472,53 @@ def test_run_workspace_metrics_sync_uses_full_workspace_for_alert_target():
     assert captured["installer_slack_user_id"] == "U123"
     assert captured["missing_org"] is True
     assert captured["missing_invite"] is True
+
+
+def test_send_slack_message_plain_text_does_not_include_blocks():
+    """Plain-text Slack messages should not include branding-only blocks."""
+    import asyncio
+    import json
+    import sys
+    from unittest.mock import Mock
+
+    sys.modules["js"] = Mock()
+    sys.modules["cloudflare"] = Mock()
+    sys.modules["workers"] = Mock()
+
+    from src import worker
+
+    captured_payload = {}
+
+    class _FakeHeaders:
+        def __init__(self):
+            self.values = {}
+
+        def set(self, key, value):
+            self.values[key] = value
+
+    class _FakeResponse:
+        async def json(self):
+            return {"ok": True}
+
+    async def _fake_fetch(_url, options):
+        captured_payload.update(json.loads(options.get("body") or "{}"))
+        return _FakeResponse()
+
+    original_headers = worker.Headers
+    original_fetch = worker.js_fetch
+    worker.Headers = type("HeadersShim", (), {"new": staticmethod(_FakeHeaders)})
+    worker.js_fetch = _fake_fetch
+
+    try:
+        env = Mock()
+        env.SLACK_TOKEN = "xoxb-test-token"
+        result = asyncio.run(
+            worker.send_slack_message(env, "D123", "hello world", blocks=None)
+        )
+    finally:
+        worker.Headers = original_headers
+        worker.js_fetch = original_fetch
+
+    assert result.get("ok") is True
+    assert captured_payload.get("text") == "hello world"
+    assert "blocks" not in captured_payload

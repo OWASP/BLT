@@ -3044,7 +3044,9 @@ async def send_slack_message(
         return {"ok": False, "error": "SLACK_TOKEN not configured"}
     payload = {"channel": channel, "text": text}
     payload_blocks = list(blocks) if isinstance(blocks, list) else []
-    if include_branding and len(payload_blocks) < 50:
+    # Only append branding when callers already provide content blocks.
+    # Sending a branding block by itself can hide plain text in Slack clients.
+    if include_branding and payload_blocks and len(payload_blocks) < 50:
         payload_blocks.append(
             build_blt_branding_block(
                 env,
@@ -3089,7 +3091,8 @@ async def send_slack_ephemeral_message(
         return {"ok": False, "error": "SLACK_TOKEN not configured"}
     payload = {"channel": channel, "user": user_id, "text": text}
     payload_blocks = list(blocks) if isinstance(blocks, list) else []
-    if include_branding and len(payload_blocks) < 50:
+    # Keep plain-text-only ephemeral responses plain text.
+    if include_branding and payload_blocks and len(payload_blocks) < 50:
         payload_blocks.append(
             build_blt_branding_block(
                 env,
