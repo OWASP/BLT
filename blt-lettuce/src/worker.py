@@ -3705,17 +3705,37 @@ async def handle_message_event(env, event, team_id=None):
         except Exception:
             pass
 
+        if source_event == "message":
+            try:
+                print(
+                    "[channel_join]",
+                    json.dumps(
+                        {
+                            "step": "message_event_ignored",
+                            "channel": str(channel or ""),
+                            "user": str(user or ""),
+                            "team_id": str(team_id or ""),
+                        }
+                    ),
+                )
+            except Exception:
+                pass
+            return {
+                "ok": True,
+                "action": "channel_join_waiting_for_member_joined_channel",
+            }
+
         if ws:
             effective_team_id = str(team_id or ws.get("team_id") or "").strip()
 
-            # Only deduplicate within a very short window (5 min) to prevent accidental rejoin spam
-            # but allow legitimate rejoins after that window
+            # member_joined_channel is the canonical source for join messages.
+            # Keep a tiny dedupe window only for immediate retries of the same event.
             is_spam_rejoin = await db_seen_recent_channel_join(
                 env,
                 ws.get("id"),
                 user,
                 channel,
-                seconds=300,  # 5 minutes - only dedupe accidental quick rejoin events
+                seconds=10,
             )
             if is_spam_rejoin:
                 try:
@@ -4573,8 +4593,9 @@ def _json_response(data, status=200):
     """Return a JSON response with the given status code."""
     h = Headers.new()
     h.set("Content-Type", "application/json")
+    safe_data = _js_to_python(data)
     return Response.new(
-        json.dumps(data),
+        json.dumps(safe_data),
         {"status": status, "headers": h},
     )
 
@@ -5978,9 +5999,9 @@ async def handle_request(request, env):
                             "request_data": "",
                         }
                     )
-                return Response.json({"ok": True, "events": public_events})
+                return _json_response({"ok": True, "events": public_events})
 
-            return Response.json({"ok": True, "events": events})
+            return _json_response({"ok": True, "events": events})
         except Exception as e:
             try:
                 print(
@@ -6040,7 +6061,7 @@ async def handle_request(request, env):
                         pass
 
             daily = await db_get_daily_stats(env, ws_id_val, days=days_param)
-            return Response.json({"ok": True, "daily": daily})
+            return _json_response({"ok": True, "daily": daily})
         except Exception as e:
             try:
                 print(
