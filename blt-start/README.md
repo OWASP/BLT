@@ -10,8 +10,8 @@
   <img src="https://img.shields.io/badge/HTML-5-orange?logo=html5"/>
   <img src="https://img.shields.io/badge/TailwindCSS-3-blue?logo=tailwindcss"/>
   <img src="https://img.shields.io/badge/JavaScript-Vanilla-yellow?logo=javascript"/>
-  <img src="https://img.shields.io/github/stars/your-username/repo?style=social"/>
-  <img src="https://img.shields.io/github/forks/your-username/repo?style=social"/>
+  <!-- <img src="https://img.shields.io/github/stars/your-username/repo?style=social"/>
+  <img src="https://img.shields.io/github/forks/your-username/repo?style=social"/> -->
   <img src="https://img.shields.io/github/license/your-username/repo"/>
 </p>
 
