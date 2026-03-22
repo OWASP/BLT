@@ -159,3 +159,8 @@ def get_500_html():
 def get_privacy_html():
     """Generate the privacy policy HTML page."""
     return _load_template("privacy.html")
+
+
+def get_terms_html():
+    """Generate the terms of service HTML page."""
+    return _load_template("terms.html")

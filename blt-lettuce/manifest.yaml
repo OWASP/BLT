@@ -37,23 +37,41 @@ oauth_config:
     - https://lettuce.owaspblt.org/callback
   scopes:
     bot:
+      # Detect when bot is mentioned in conversations for context-aware responses and engagement
       - app_mentions:read
+      # Read message history in public channels to understand context and provide relevant assistance
       - channels:history
+      # Look up channel information to route messages correctly and identify which channels to monitor
       - channels:read
+      # Send welcome messages, join notifications, and responses to channels and direct messages
       - chat:write
+      # Add custom branding and bot logo to messages to maintain consistent visual identity throughout
       - chat:write.customize
+      # Send messages to public channels the bot isn't explicitly a member of for broader community reach
       - chat:write.public
+      # Handle slash commands like /lettuce-welcome and /lettuce-settings for workspace user interaction
       - commands
+      # Read message history in private channels to understand context and respond appropriately there
       - groups:history
+      # Look up private channel information to provide support and route messages to correct places
       - groups:read
+      # Create and manage private channels during workspace configuration and community onboarding setup
       - groups:write
+      # Read message history in direct messages for context-aware personalized assistance and responses
       - im:history
+      # Access direct message conversations to send welcome sequences and member notifications reliably
       - im:read
+      # Send direct messages for welcome sequences, member notifications, and fallback delivery mechanisms
       - im:write
+      # Read message history in group direct messages to understand complex multi-user conversation context
       - mpim:history
+      # Access group direct message conversations to send coordinated messages and announcements to users
       - mpim:read
+      # Send messages to group direct conversations for team announcements and broader community engagement
       - mpim:write
+      # Access workspace information to identify metadata, verify configuration, and personalize responses
       - team:read
+      # Look up user names and profile information to personalize welcome messages and send notifications
       - users:read
   pkce_enabled: false
 settings:

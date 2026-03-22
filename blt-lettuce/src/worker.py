@@ -33,6 +33,7 @@ from lettuce.html_templates import (
     get_homepage_html,
     get_privacy_html,
     get_status_html,
+    get_terms_html,
     html_escape,
 )
 from lettuce.sentry import get_sentry, init_sentry
@@ -6139,6 +6140,15 @@ async def handle_request(request, env):
     if pathname == "/privacy" and method == "GET":
         return _html_response(
             get_privacy_html(),
+            extra_headers={"Cache-Control": "public, max-age=3600"},
+        )
+
+    # ------------------------------------------------------------------ #
+    #  GET /terms  →  terms of service                                   #
+    # ------------------------------------------------------------------ #
+    if pathname == "/terms" and method == "GET":
+        return _html_response(
+            get_terms_html(),
             extra_headers={"Cache-Control": "public, max-age=3600"},
         )
 
