@@ -3927,6 +3927,29 @@ def verify_slack_signature(signing_secret, timestamp, body, signature):
     return hmac.compare_digest(expected, signature)
 
 
+def _resolve_team_id_from_payload(body_json, event):
+    """Best-effort Slack team/workspace ID extraction across payload shapes."""
+    team_id = str((body_json or {}).get("team_id") or "").strip()
+    if team_id:
+        return team_id
+
+    team_obj = (body_json or {}).get("team")
+    if isinstance(team_obj, dict):
+        team_id = str(team_obj.get("id") or "").strip()
+        if team_id:
+            return team_id
+
+    authz = (body_json or {}).get("authorizations")
+    if isinstance(authz, list) and authz:
+        first = authz[0] if isinstance(authz[0], dict) else {}
+        team_id = str(first.get("team_id") or "").strip()
+        if team_id:
+            return team_id
+
+    team_id = str((event or {}).get("team") or "").strip()
+    return team_id
+
+
 # ===========================================================================
 # HTML helpers
 # ===========================================================================
@@ -5690,8 +5713,8 @@ async def handle_request(request, env):
 
                 return Response.json({"ok": True})
 
-            team_id = body_json.get("team_id")
             event = body_json.get("event", {})
+            team_id = _resolve_team_id_from_payload(body_json, event)
             event_type = event.get("type")
 
             if event_type == "team_join":

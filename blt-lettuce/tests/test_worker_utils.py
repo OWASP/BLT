@@ -522,3 +522,35 @@ def test_send_slack_message_plain_text_does_not_include_blocks():
     assert result.get("ok") is True
     assert captured_payload.get("text") == "hello world"
     assert "blocks" not in captured_payload
+
+
+def test_resolve_team_id_from_payload_prefers_top_level_team_id():
+    """Team ID should come from top-level team_id when present."""
+    import sys
+    from unittest.mock import Mock
+
+    sys.modules["js"] = Mock()
+    sys.modules["cloudflare"] = Mock()
+    sys.modules["workers"] = Mock()
+
+    from src.worker import _resolve_team_id_from_payload
+
+    payload = {"team_id": "T_TOP"}
+    event = {"team": "T_EVENT"}
+    assert _resolve_team_id_from_payload(payload, event) == "T_TOP"
+
+
+def test_resolve_team_id_from_payload_uses_authorizations_fallback():
+    """Team ID should fallback to authorizations[0].team_id for event payloads."""
+    import sys
+    from unittest.mock import Mock
+
+    sys.modules["js"] = Mock()
+    sys.modules["cloudflare"] = Mock()
+    sys.modules["workers"] = Mock()
+
+    from src.worker import _resolve_team_id_from_payload
+
+    payload = {"authorizations": [{"team_id": "T_AUTH"}]}
+    event = {}
+    assert _resolve_team_id_from_payload(payload, event) == "T_AUTH"
