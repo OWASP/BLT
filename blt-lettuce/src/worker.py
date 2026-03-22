@@ -555,6 +555,31 @@ async def db_get_last_event_time(env, workspace_id, event_type):
         return ""
 
 
+async def db_seen_recent_channel_join(
+    env, workspace_id, user_id, channel_id, seconds=15
+):
+    """Return True when an equivalent channel join was processed recently."""
+    try:
+        cutoff = (datetime.now(timezone.utc) - timedelta(seconds=seconds)).isoformat()
+        channel_pattern = f'%"channel_id":"{str(channel_id or "")}"%'
+        row = _row(
+            await env.DB.prepare(
+                "SELECT id FROM events "
+                "WHERE workspace_id = ? "
+                "AND event_type = 'Channel_Join' "
+                "AND user_slack_id = ? "
+                "AND created_at >= ? "
+                "AND request_data LIKE ? "
+                "ORDER BY id DESC LIMIT 1"
+            )
+            .bind(workspace_id, str(user_id or ""), cutoff, channel_pattern)
+            .first()
+        )
+        return row is not None
+    except Exception:
+        return False
+
+
 async def db_get_workspace_invite_link(env, workspace_id):
     """Return workspace invite_link when the column exists; else empty string."""
     try:
@@ -3387,6 +3412,7 @@ async def handle_message_event(env, event, team_id=None):
     channel = event.get("channel")
     channel_type = event.get("channel_type")
     subtype = event.get("subtype")
+    source_event = str(event.get("_source_event") or "").strip()
 
     # Ignore bot messages (check both bot_id field and user field)
     if event.get("bot_id") or event.get("bot_profile"):
@@ -3431,6 +3457,7 @@ async def handle_message_event(env, event, team_id=None):
                 "[channel_join]",
                 json.dumps(
                     {
+                        "source_event": source_event,
                         "team_id": str(team_id or ""),
                         "channel": str(channel or ""),
                         "user": str(user or ""),
@@ -3444,6 +3471,49 @@ async def handle_message_event(env, event, team_id=None):
 
         if ws:
             effective_team_id = str(team_id or ws.get("team_id") or "").strip()
+
+            is_duplicate = await db_seen_recent_channel_join(
+                env,
+                ws.get("id"),
+                user,
+                channel,
+                seconds=15,
+            )
+            if is_duplicate:
+                try:
+                    print(
+                        "[channel_join]",
+                        json.dumps(
+                            {
+                                "step": "dedupe_skip",
+                                "workspace_id": ws.get("id"),
+                                "channel": channel,
+                                "user": user,
+                                "source_event": source_event,
+                            }
+                        ),
+                    )
+                except Exception:
+                    pass
+                await db_log_event(
+                    env,
+                    ws["id"],
+                    "Channel_Join_Debug",
+                    user or "",
+                    "success",
+                    channel_name=resolved_channel_name,
+                    request_data=json.dumps(
+                        {
+                            "step": "dedupe_skip",
+                            "channel_id": channel,
+                            "source_event": source_event,
+                        },
+                        separators=(",", ":"),
+                    ),
+                    verified=False,
+                )
+                return {"ok": True, "action": "channel_join_deduped"}
+
             await db_log_event(
                 env,
                 ws["id"],
@@ -3451,6 +3521,13 @@ async def handle_message_event(env, event, team_id=None):
                 user or "",
                 "success",
                 channel_name=resolved_channel_name,
+                request_data=json.dumps(
+                    {
+                        "channel_id": channel,
+                        "source_event": source_event,
+                    },
+                    separators=(",", ":"),
+                ),
             )
             # Send configured join message when a template is selected for this channel.
             sent_join_message = False
@@ -3633,6 +3710,21 @@ async def handle_message_event(env, event, team_id=None):
                     return {"ok": True, "action": "channel_join_logged"}
 
                 file_template = get_channel_join_message(effective_team_id, channel)
+                try:
+                    print(
+                        "[channel_join]",
+                        json.dumps(
+                            {
+                                "step": "file_lookup",
+                                "workspace_id": ws.get("id"),
+                                "team_id_effective": effective_team_id,
+                                "channel": channel,
+                                "template_found": bool(file_template.strip()),
+                            }
+                        ),
+                    )
+                except Exception:
+                    pass
                 if file_template.strip():
                     rendered = render_join_message_template(
                         file_template,
@@ -3698,6 +3790,38 @@ async def handle_message_event(env, event, team_id=None):
                                     token=ws_token,
                                     branding_tracking_id=logo_tracking_id,
                                 )
+                            else:
+                                try:
+                                    print(
+                                        "[channel_join]",
+                                        json.dumps(
+                                            {
+                                                "step": "dm_fallback_open_failed",
+                                                "workspace_id": ws.get("id"),
+                                                "channel": channel,
+                                                "user": user,
+                                                "error": dm_response.get("error"),
+                                            }
+                                        ),
+                                    )
+                                except Exception:
+                                    pass
+                        try:
+                            print(
+                                "[channel_join]",
+                                json.dumps(
+                                    {
+                                        "step": "final_delivery",
+                                        "workspace_id": ws.get("id"),
+                                        "channel": channel,
+                                        "user": user,
+                                        "ok": bool(send_result.get("ok")),
+                                        "error": send_result.get("error"),
+                                    }
+                                ),
+                            )
+                        except Exception:
+                            pass
                         await db_log_event(
                             env,
                             ws["id"],
@@ -5896,6 +6020,7 @@ async def handle_request(request, env):
                 return Response.json(result)
 
             if event_type == "message":
+                event["_source_event"] = "message"
                 result = await handle_message_event(env, event, team_id=team_id)
                 return Response.json(result)
 
@@ -5909,6 +6034,7 @@ async def handle_request(request, env):
                     "channel": event.get("channel"),
                     "channel_type": event.get("channel_type", "C"),
                     "text": "",
+                    "_source_event": "member_joined_channel",
                 }
                 result = await handle_message_event(env, synthetic, team_id=team_id)
                 return Response.json(result)
