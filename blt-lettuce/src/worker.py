@@ -1167,12 +1167,12 @@ async def db_delete_workspace(env, workspace_id):
             .run()
         )
         await (
-            env.DB.prepare("DELETE FROM join_messages WHERE workspace_id = ?")
+            env.DB.prepare("DELETE FROM github_organizations WHERE workspace_id = ?")
             .bind(workspace_id)
             .run()
         )
         await (
-            env.DB.prepare("DELETE FROM user_workspaces WHERE workspace_id = ?")
+            env.DB.prepare("DELETE FROM join_messages WHERE workspace_id = ?")
             .bind(workspace_id)
             .run()
         )
