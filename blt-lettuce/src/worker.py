@@ -41,7 +41,6 @@ from lettuce.sentry import get_sentry, init_sentry
 # ---------------------------------------------------------------------------
 DEFAULT_DEPLOYS_CHANNEL = None
 DEFAULT_JOINS_CHANNEL_ID = None
-DEFAULT_CONTRIBUTE_ID = None
 
 
 def get_blt_base_url(env):
@@ -3091,10 +3090,9 @@ async def handle_message_event(env, event, team_id=None):
     if user == bot_user_id:
         return {"ok": True, "message": "Ignoring bot message"}
 
-    contribute_id = getattr(env, "CONTRIBUTE_ID", DEFAULT_CONTRIBUTE_ID)
     joins_channel = getattr(env, "JOINS_CHANNEL_ID", DEFAULT_JOINS_CHANNEL_ID)
 
-    # Track channel joins in activities and notify contribute channel.
+    # Track channel joins in activities.
     if subtype == "channel_join":
         if ws:
             await db_log_event(
@@ -3207,20 +3205,6 @@ async def handle_message_event(env, event, team_id=None):
                                     verified=False,
                                 )
         return {"ok": True, "action": "channel_join_logged"}
-
-    if (
-        subtype is None
-        and "#contribute" not in message_text
-        and any(
-            kw in message_text for kw in ("contribute", "contributing", "contributes")
-        )
-    ):
-        text = (
-            f"Hello <@{user}>! Please check this channel "
-            f"<#{contribute_id}> for contributing guidelines today!"
-        )
-        result = await send_slack_message(env, channel, text, token=ws_token)
-        return {"ok": result.get("ok"), "action": "contribute_response"}
 
     if channel_type == "im":
         if joins_channel:
