@@ -3427,6 +3427,7 @@ async def handle_message_event(env, event, team_id=None):
     # Track channel joins in activities.
     if subtype == "channel_join":
         if ws:
+            effective_team_id = str(team_id or ws.get("team_id") or "").strip()
             await db_log_event(
                 env,
                 ws["id"],
@@ -3542,8 +3543,45 @@ async def handle_message_event(env, event, team_id=None):
 
             # File-based fallback: send channel-specific ephemeral join message
             # when no DB template is configured or no message was sent.
-            if not sent_join_message and team_id:
-                file_template = get_channel_join_message(team_id, channel)
+            if not sent_join_message:
+                await db_log_event(
+                    env,
+                    ws["id"],
+                    "Channel_Join_Debug",
+                    user or "",
+                    "success",
+                    channel_name=resolved_channel_name,
+                    request_data=json.dumps(
+                        {
+                            "step": "file_fallback_lookup",
+                            "team_id_payload": str(team_id or ""),
+                            "team_id_effective": effective_team_id,
+                            "channel_id": channel,
+                        }
+                    ),
+                    verified=False,
+                )
+
+                if not effective_team_id:
+                    await db_log_event(
+                        env,
+                        ws["id"],
+                        "Channel_Join_Debug",
+                        user or "",
+                        "failed",
+                        channel_name=resolved_channel_name,
+                        request_data=json.dumps(
+                            {
+                                "step": "file_fallback_lookup",
+                                "reason": "missing_team_id",
+                                "channel_id": channel,
+                            }
+                        ),
+                        verified=False,
+                    )
+                    return {"ok": True, "action": "channel_join_logged"}
+
+                file_template = get_channel_join_message(effective_team_id, channel)
                 if file_template.strip():
                     rendered = render_join_message_template(
                         file_template,
@@ -3595,6 +3633,24 @@ async def handle_message_event(env, event, team_id=None):
                             ),
                             verified=False,
                         )
+                else:
+                    await db_log_event(
+                        env,
+                        ws["id"],
+                        "Channel_Join_Debug",
+                        user or "",
+                        "failed",
+                        channel_name=resolved_channel_name,
+                        request_data=json.dumps(
+                            {
+                                "step": "file_fallback_lookup",
+                                "reason": "template_not_found",
+                                "team_id_effective": effective_team_id,
+                                "channel_id": channel,
+                            }
+                        ),
+                        verified=False,
+                    )
         return {"ok": True, "action": "channel_join_logged"}
 
     if channel_type == "im":

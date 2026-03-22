@@ -574,7 +574,12 @@ def test_handle_message_event_channel_join_falls_back_workspace_by_channel():
         return None
 
     async def _fake_get_workspace_by_channel_id(_env, _channel_id):
-        return {"id": 7, "team_name": "Test WS", "access_token": "xoxb-token"}
+        return {
+            "id": 7,
+            "team_id": "T070JPE5BQQ",
+            "team_name": "Test WS",
+            "access_token": "xoxb-token",
+        }
 
     async def _fake_get_channel_name(_env, _workspace_id, _channel_id):
         return "contribute"
