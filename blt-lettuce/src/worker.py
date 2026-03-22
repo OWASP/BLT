@@ -1763,7 +1763,7 @@ async def db_list_workspaces_public(env):
                 "(SELECT MAX(e2.created_at) FROM events e2 WHERE e2.workspace_id = w.id) AS last_event_time, "
                 "(SELECT COUNT(*) FROM repositories r WHERE r.workspace_id = w.id) AS repo_count, "
                 "(SELECT COUNT(*) FROM channels c WHERE c.workspace_id = w.id) AS channel_count, "
-                "COALESCE((SELECT SUM(COALESCE(c.member_count, 0)) FROM channels c WHERE c.workspace_id = w.id), 0) AS member_count "
+                "COALESCE(w.member_count, 0) AS member_count "
                 "FROM workspaces w ORDER BY w.created_at DESC"
             ).all()
         )
@@ -2162,6 +2162,24 @@ WELCOME_MESSAGE = (
     "Hello <@{user_id}>! Welcome to the OWASP Slack Community. "
     "We are glad you are here."
 )
+
+
+def get_workspace_welcome_message(team_id):
+    """Load workspace-specific welcome message from file, or fallback to default."""
+    if not team_id:
+        return WELCOME_MESSAGE
+
+    try:
+        import os
+
+        msg_file = os.path.join(
+            os.path.dirname(__file__), f"workspace_welcome_message_{team_id}.txt"
+        )
+        with open(msg_file, "r", encoding="utf-8") as f:
+            return f.read().strip()
+    except Exception:
+        # Fallback to default if workspace-specific file not found
+        return WELCOME_MESSAGE
 
 
 async def db_get_workspace_by_team(env, team_id):
@@ -3038,7 +3056,10 @@ async def handle_team_join(env, event, team_id=None):
             names = ", ".join(f"*#{c['channel_name']}*" for c in top5)
             channel_suggestions = f"\n\n:bar_chart: *Most Active Channels:* {names}"
 
-    welcome_text = WELCOME_MESSAGE.format(user_id=user_id) + channel_suggestions
+    welcome_text = (
+        get_workspace_welcome_message(team_id).format(user_id=user_id)
+        + channel_suggestions
+    )
     blocks = [
         {"type": "section", "text": {"type": "mrkdwn", "text": welcome_text.strip()}}
     ]
@@ -3374,11 +3395,11 @@ async def _handle_disconnect_command(env, body_json):
 
 
 async def _handle_welcome_command(env, body_json):
-    """Handle /lettuce-welcome: send the welcome message to the user."""
+    """Handle /lettuce-welcome: send the workspace welcome message to the user."""
     user_id = str(body_json.get("user_id") or "").strip()
     team_id = body_json.get("team_id") or ""
 
-    welcome_msg = WELCOME_MESSAGE.format(user_id=user_id)
+    welcome_msg = get_workspace_welcome_message(team_id).format(user_id=user_id)
 
     # Try to add channel suggestions if workspace data is available
     channel_suggestions = ""
@@ -3953,8 +3974,9 @@ async def handle_request(request, env):
                             or 0
                         )
                         channel_rows = await db_get_channels(env, ws_id_val)
-                        total_members = sum(
-                            int(ch.get("member_count") or 0) for ch in channel_rows
+                        # Fetch actual member count from Slack API (always on first connection)
+                        total_members = int(
+                            await fetch_workspace_member_count(bot_token) or 0
                         )
                         await db_update_workspace_channel_member_counts(
                             env,
@@ -4128,9 +4150,8 @@ async def handle_request(request, env):
                         await scan_workspace_channels(env, ws_id_val, token) or 0
                     )
                     channel_rows = await db_get_channels(env, ws_id_val)
-                    total_members = sum(
-                        int(ch.get("member_count") or 0) for ch in channel_rows
-                    )
+                    # Fetch actual member count from Slack API
+                    total_members = int(await fetch_workspace_member_count(token) or 0)
                     await db_update_workspace_channel_member_counts(
                         env,
                         ws_id_val,
@@ -4277,7 +4298,8 @@ async def handle_request(request, env):
 
         scanned = await scan_workspace_channels(env, ws_id_val, ws["access_token"])
         channel_rows = await db_get_channels(env, ws_id_val)
-        total_members = sum(int(ch.get("member_count") or 0) for ch in channel_rows)
+        # Fetch actual member count from Slack API
+        total_members = int(await fetch_workspace_member_count(ws["access_token"]) or 0)
         await db_update_workspace_channel_member_counts(
             env,
             ws_id_val,
