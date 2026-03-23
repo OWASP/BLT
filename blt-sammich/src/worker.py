@@ -1071,6 +1071,18 @@ async def handle_request(request: Any, env: Any) -> Any:
 
     if method == "POST" and path in ("/slack/commands", "/slack/events"):
         body_text = str(await request.text())
+
+        # Slack URL verification can be sent before signing secret wiring is complete.
+        if path == "/slack/events":
+            try:
+                verification_payload = json.loads(body_text or "{}")
+            except json.JSONDecodeError:
+                verification_payload = {}
+            if verification_payload.get("type") == "url_verification":
+                return json_response(
+                    {"challenge": verification_payload.get("challenge", "")}
+                )
+
         signing_secret = env_value(env, "SLACK_SIGNING_SECRET", "") or ""
         timestamp = request.headers.get("x-slack-request-timestamp", "")
         signature = request.headers.get("x-slack-signature", "")
