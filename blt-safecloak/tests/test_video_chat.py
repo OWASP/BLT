@@ -149,13 +149,16 @@ _MOCK_GET_USER_MEDIA = """
 })();
 """
 
-# Allowlist regex for a single URL path segment used when serving static
-# assets.  A segment must start with an alphanumeric character and may
-# only contain alphanumeric characters, dots, underscores, and hyphens.
-# This deliberately excludes `..`, `.`, empty strings, slashes, and every
-# other special character, breaking the CodeQL taint chain: only the text
-# captured by the match group is allowed to flow into path construction.
-_SAFE_SEGMENT_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]*")
+# Pre-enumerate every static file under public/ at module-load time.
+# URL paths (e.g. "/js/video.js") map to their absolute Path objects.
+# User-provided request paths are used only as dict keys – they never
+# reach any filesystem operation directly, eliminating the CodeQL
+# "Uncontrolled data used in path expression" taint entirely.
+_PUBLIC_FILES: dict[str, Path] = {
+    "/" + f.relative_to(ROOT / "public").as_posix(): f
+    for f in (ROOT / "public").rglob("*")
+    if f.is_file()
+}
 
 # Regex that matches the peerjs CDN <script> tag (spans multiple lines).
 _PEERJS_SCRIPT_RE = re.compile(
@@ -258,29 +261,12 @@ class _AppHandler(http.server.BaseHTTPRequestHandler):
             return
 
         # Serve static files from public/.
-        public_root = (ROOT / "public").resolve()
-        # Sanitize the request path using a strict allowlist regex so that
-        # only text validated by the pattern can reach the filesystem.
-        # Extracting m.group() from the match object (rather than the raw
-        # segment string) breaks the CodeQL taint chain: CodeQL recognises
-        # regex-match-group values as sanitized.
-        # Segments containing "..", ".", "/", or any special character are
-        # silently skipped because they do not match _SAFE_SEGMENT_RE.
-        safe_parts = [
-            m.group()
-            for seg in path.split("/")
-            if (m := _SAFE_SEGMENT_RE.fullmatch(seg)) is not None
-        ]
-        candidate = (public_root / "/".join(safe_parts)).resolve()
-        # Defense-in-depth: confirm the resolved path is still within public_root.
-        try:
-            candidate.relative_to(public_root)
-        except ValueError:
-            self._respond(404, "text/plain", b"Not found")
-            return
-        if candidate.is_file():
-            data = candidate.read_bytes()
-            ct = _MIME.get(candidate.suffix, "application/octet-stream")
+        # Look up the URL path in the pre-enumerated allowlist; user input
+        # is used only as a dict key and never flows into any filesystem call.
+        file_path = _PUBLIC_FILES.get(path)
+        if file_path is not None:
+            data = file_path.read_bytes()
+            ct = _MIME.get(file_path.suffix, "application/octet-stream")
             self._respond(200, ct, data)
             return
 
