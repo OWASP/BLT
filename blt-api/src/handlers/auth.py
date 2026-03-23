@@ -17,6 +17,7 @@ from models import User
 import logging
 
 _USERNAME_RE = re.compile(r'^[a-zA-Z0-9_.-]{3,30}$')
+_EMAIL_RE = re.compile(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
 def generate_jwt_token(user_id: int, secret: str, expires_in: int = 3600) -> str:
     """
     Generate a JWT authentication token for a user.
@@ -109,7 +110,9 @@ async def handle_signup(
                 400,
             )
 
-        _EMAIL_RE = re.compile(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
+        if len(email) > 254:
+            return error_response("Email too long", 400)
+
         if not _EMAIL_RE.match(email):
             return error_response("Invalid email format", 400)
 
