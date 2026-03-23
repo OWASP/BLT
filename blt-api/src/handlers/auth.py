@@ -1,5 +1,6 @@
 
 import hashlib
+import re
 import secrets
 import time
 from typing import Any, Dict, Optional
@@ -93,6 +94,30 @@ async def handle_signup(
         username = str(body["username"]).strip()
         email = str(body["email"]).strip().lower()
         redirect_uri = str(body.get("redirect_uri", "")).strip()
+
+        # --- Input Validation ---
+        password = body["password"]
+        if not (8 <= len(password) <= 128 and
+                re.search(r'[A-Z]', password) and
+                re.search(r'[a-z]', password) and
+                re.search(r'\d', password) and
+                re.search(r'[^a-zA-Z0-9]', password)):
+            return error_response(
+                "Password must be 8-128 characters and contain at least one uppercase letter, one lowercase letter, one number, and one special character",
+                400,
+            )
+
+        _EMAIL_RE = re.compile(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
+        if not _EMAIL_RE.match(email):
+            return error_response("Invalid email format", 400)
+
+        _USERNAME_RE = re.compile(r'^[a-zA-Z0-9_]{3,150}$')
+        if not _USERNAME_RE.match(username):
+            return error_response(
+                "Username must be 3-150 characters and contain only letters, numbers, and underscores",
+                400,
+            )
+        # --- End Input Validation ---
 
         # Validate redirect_uri against whitelist if provided
         if redirect_uri:
