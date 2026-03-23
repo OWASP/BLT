@@ -311,13 +311,15 @@
                 <button
                   class="inline-flex items-center justify-center gap-2 rounded-md border border-neutral-border bg-white px-4 py-2.5 text-sm font-bold text-gray-700 transition hover:border-primary hover:text-primary hover:bg-red-50"
                   onclick="
-                    ConsentManager.record({
+                    recordTemplateConsent({
                       type: 'given',
                       name: 'All Participants',
                       purpose: 'Video call recording',
                       details: 'Explicit consent given before session start via in-app prompt',
-                    }).then(() => {
-                      renderConsentPage();
+                    }).then((entry) => {
+                      if (entry && typeof renderConsentPage === 'function') {
+                        renderConsentPage();
+                      }
                     })
                   "
                   aria-label="Record session consent"
@@ -327,13 +329,15 @@
                 <button
                   class="inline-flex items-center justify-center gap-2 rounded-md border border-neutral-border bg-white px-4 py-2.5 text-sm font-bold text-gray-700 transition hover:border-primary hover:text-primary hover:bg-red-50"
                   onclick="
-                    ConsentManager.record({
+                    recordTemplateConsent({
                       type: 'given',
                       name: 'All Participants',
                       purpose: 'AI meeting notes',
                       details: 'Consent to generate encrypted AI notes from meeting content',
-                    }).then(() => {
-                      renderConsentPage();
+                    }).then((entry) => {
+                      if (entry && typeof renderConsentPage === 'function') {
+                        renderConsentPage();
+                      }
                     })
                   "
                   aria-label="Record AI notes consent"
@@ -343,13 +347,15 @@
                 <button
                   class="inline-flex items-center justify-center gap-2 rounded-md border border-neutral-border bg-white px-4 py-2.5 text-sm font-bold text-gray-700 transition hover:border-primary hover:text-primary hover:bg-red-50"
                   onclick="
-                    ConsentManager.record({
+                    recordTemplateConsent({
                       type: 'recorded',
                       name: 'System',
                       purpose: 'Session metadata',
                       details: 'Secure session initiated; all participants anonymized',
-                    }).then(() => {
-                      renderConsentPage();
+                    }).then((entry) => {
+                      if (entry && typeof renderConsentPage === 'function') {
+                        renderConsentPage();
+                      }
                     })
                   "
                   aria-label="Record session start"
@@ -359,14 +365,16 @@
                 <button
                   class="inline-flex items-center justify-center gap-2 rounded-md border border-neutral-border bg-white px-4 py-2.5 text-sm font-bold text-gray-700 transition hover:border-primary hover:text-primary hover:bg-red-50"
                   onclick="
-                    ConsentManager.record({
+                    recordTemplateConsent({
                       type: 'withdrawn',
                       name: 'Participant',
                       purpose: 'Right to erasure',
                       details:
                         'Participant has withdrawn consent and requested data deletion (GDPR Art. 17)',
-                    }).then(() => {
-                      renderConsentPage();
+                    }).then((entry) => {
+                      if (entry && typeof renderConsentPage === 'function') {
+                        renderConsentPage();
+                      }
                     })
                   "
                   aria-label="Record consent withdrawal"
@@ -472,6 +480,15 @@
           showToast("Please confirm the legal attestation before recording", "warning");
         }
       });
+
+      function recordTemplateConsent(payload) {
+        const confirmLegal = document.getElementById("confirm-legal");
+        if (!confirmLegal || !confirmLegal.checked) {
+          showToast("Please confirm the legal attestation before recording", "warning");
+          return Promise.resolve(null);
+        }
+        return ConsentManager.record(payload);
+      }
 
       function renderConsentPage() {
         if (ConsentManager.renderLog) {

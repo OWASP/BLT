@@ -21,7 +21,9 @@
     ],
     "license": "MIT",
     "devDependencies": {
-        "prettier": "^3.2.5"
+        "prettier": "^3.2.5",
+        "peer": "^1.0.2",
+        "peerjs": "^1.5.5"
     },
     "engines": {
         "node": ">=18.0.0",

@@ -34,3 +34,6 @@ ignore_missing_imports = true
 [[tool.mypy.overrides]]
 module = ["js", "js.*", "workers", "workers.*"]
 ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
