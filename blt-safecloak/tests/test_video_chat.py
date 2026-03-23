@@ -195,8 +195,13 @@ class _AppHandler(http.server.BaseHTTPRequestHandler):
 
         # Serve static files from public/.
         public_root = (ROOT / "public").resolve()
-        candidate = (public_root / path.lstrip("/")).resolve()
-        # Guard against path traversal.
+        # Sanitize the request path before any filesystem operation: strip
+        # empty segments and reject any "." or ".." traversal components so
+        # CodeQL can confirm that user-supplied data never flows into a path
+        # expression unguarded.
+        safe_parts = [p for p in path.split("/") if p and p not in (".", "..")]
+        candidate = (public_root / "/".join(safe_parts)).resolve()
+        # Defense-in-depth: confirm the resolved path is still within public_root.
         try:
             candidate.relative_to(public_root)
         except ValueError:
