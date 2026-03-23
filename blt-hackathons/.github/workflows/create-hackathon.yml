@@ -8,6 +8,10 @@ permissions:
   contents: write
   issues: write
 
+concurrency:
+  group: hackathon-config-update
+  cancel-in-progress: false
+
 jobs:
   create-hackathon:
     if: contains(github.event.issue.labels.*.name, 'hackathon-creation')
