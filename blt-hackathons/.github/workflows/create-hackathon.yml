@@ -2,7 +2,7 @@ name: Create Hackathon from Issue
 
 on:
   issues:
-    types: [opened, reopened, labeled]
+    types: [opened, labeled]
 
 permissions:
   contents: write
