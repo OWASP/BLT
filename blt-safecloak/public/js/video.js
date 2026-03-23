@@ -235,13 +235,13 @@ const VideoChat = (() => {
     state.sessionKey = await Crypto.generateKey();
     state.sessionId = state.peerId;
 
-    peer = new Peer(state.peerId, {
+    peer = new Peer(state.peerId, Object.assign({
       host: "0.peerjs.com",
       port: 443,
       secure: true,
       path: "/",
       debug: 0,
-    });
+    }, window.__PEERJS_CONFIG__ || {}));
 
     peer.on("open", (id) => {
       $("my-peer-id") && ($("my-peer-id").textContent = id);
