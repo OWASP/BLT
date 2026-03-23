@@ -394,26 +394,14 @@ class TestHandleAssign(unittest.TestCase):
         self.assertEqual(calls, [])
         self.assertTrue(any("already assigned" in c for c in comments))
 
-    def test_reassigns_existing_assignee(self):
-        # When another user already holds the assignment, the latest /assign should
-        # unassign the previous holder and assign the new requester.
+    def test_does_not_assign_when_max_assignees_reached(self):
         payload = _make_issue_payload(
-            assignees=[{"login": "bob"}],
-            labels=[{"name": "help wanted"}],
+            assignees=[{"login": "bob"}, {"login": "carol"}, {"login": "dave"}]
         )
         comments, calls = [], []
         self._run_assign(payload, comments, calls)
-        # Should DELETE the existing assignee(s) first.
-        self.assertTrue(any(
-            method == "DELETE" and "assignees" in path
-            for method, path, *_ in calls
-        ))
-        # Then POST the new assignee.
-        self.assertTrue(any(
-            method == "POST" and "assignees" in path
-            for method, path, *_ in calls
-        ))
-        self.assertTrue(any("assigned to this issue" in c for c in comments))
+        self.assertEqual(calls, [])
+        self.assertTrue(any("maximum number of assignees" in c for c in comments))
 
     def test_does_not_assign_on_pull_request(self):
         payload = _make_issue_payload(is_pr=True)
@@ -461,17 +449,18 @@ class TestHandleUnassign(unittest.TestCase):
 class TestHandleApprove(unittest.TestCase):
     """_approve — triage reviewer approves an issue for assignment"""
 
-    def _run_approve(self, payload, comments, github_calls, *, commenter="donnieblt"):
+    def _run_approve(self, payload, comments, github_calls, *, commenter="donnieblt", last_requester=None):
         async def _inner():
             with patch.object(_worker, "create_comment", new=AsyncMock(side_effect=lambda o, r, n, b, t: comments.append(b))):
                 with patch.object(_worker, "github_api", new=AsyncMock(side_effect=lambda *a, **kw: github_calls.append(a))):
-                    await _worker._approve(
-                        payload["repository"]["owner"]["login"],
-                        payload["repository"]["name"],
-                        payload["issue"],
-                        commenter,
-                        "tok",
-                    )
+                    with patch.object(_worker, "_get_last_assign_requester", new=AsyncMock(return_value=last_requester)):
+                        await _worker._approve(
+                            payload["repository"]["owner"]["login"],
+                            payload["repository"]["name"],
+                            payload["issue"],
+                            commenter,
+                            "tok",
+                        )
         _run(_inner())
 
     def test_approve_adds_help_wanted_label_and_assigns_opener(self):
@@ -489,6 +478,21 @@ class TestHandleApprove(unittest.TestCase):
             for method, path, *_ in calls
         ))
         self.assertTrue(any("approved" in c for c in comments))
+
+    def test_approve_assigns_last_assign_requester_over_opener(self):
+        # When someone already said /assign before the approve, they should be
+        # assigned instead of the issue opener.
+        payload = _make_issue_payload(issue_user={"login": "alice", "type": "User"})
+        comments, calls = [], []
+        self._run_approve(payload, comments, calls, last_requester="bob")
+        # bob (last requester) should be assigned, not alice (opener)
+        assign_calls = [
+            body for method, path, _tok, body in calls
+            if method == "POST" and "assignees" in path
+        ]
+        self.assertTrue(any("bob" in body.get("assignees", []) for body in assign_calls))
+        self.assertFalse(any("alice" in body.get("assignees", []) for body in assign_calls))
+        self.assertTrue(any("@bob" in c and "assigned" in c for c in comments))
 
     def test_approve_rejected_for_non_reviewer(self):
         payload = _make_issue_payload()
@@ -515,7 +519,7 @@ class TestHandleApprove(unittest.TestCase):
             method == "POST" and "labels" in path
             for method, path, *_ in calls
         ))
-        # No assignees POST since opener is unknown
+        # No assignees POST since opener is unknown and no prior /assign
         self.assertFalse(any(
             method == "POST" and "assignees" in path
             for method, path, *_ in calls

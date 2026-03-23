@@ -3521,6 +3521,14 @@ async def _assign(
             token,
         )
         return
+    if len(assignees) >= MAX_ASSIGNEES:
+        await create_comment(
+            owner, repo, num,
+            f"@{login} This issue already has the maximum number of assignees "
+            f"({MAX_ASSIGNEES}). Please work on a different issue.",
+            token,
+        )
+        return
     label_names = {lb.get("name", "").lower() for lb in issue.get("labels", [])}
     if HELP_WANTED_LABEL not in label_names:
         await create_comment(
@@ -3538,14 +3546,6 @@ async def _assign(
             {"labels": [NEEDS_APPROVAL_LABEL]},
         )
         return
-    # Unassign any existing assignees so that the last person to say /assign wins.
-    if assignees:
-        await github_api(
-            "DELETE",
-            f"/repos/{owner}/{repo}/issues/{num}/assignees",
-            token,
-            {"assignees": assignees},
-        )
     await github_api(
         "POST",
         f"/repos/{owner}/{repo}/issues/{num}/assignees",
@@ -3595,14 +3595,41 @@ async def _unassign(
     )
 
 
+async def _get_last_assign_requester(
+    owner: str, repo: str, num: int, token: str
+) -> Optional[str]:
+    """Return the login of the last human who commented ``/assign`` on the issue, or None."""
+    try:
+        resp = await github_api(
+            "GET",
+            f"/repos/{owner}/{repo}/issues/{num}/comments?per_page=100&direction=desc",
+            token,
+        )
+        if resp.status != 200:
+            return None
+        comments = json.loads(await resp.text())
+        for c in comments:
+            user = c.get("user") or {}
+            body = (c.get("body") or "").strip()
+            login = user.get("login", "")
+            if not login or not _is_human(user):
+                continue
+            if _extract_command(body) == ASSIGN_COMMAND:
+                return login
+    except Exception:
+        pass
+    return None
+
+
 async def _approve(
     owner: str, repo: str, issue: dict, login: str, token: str
 ) -> None:
     """Handle the ``/approve`` command (triage reviewer approves an issue for assignment).
 
     Only :data:`TRIAGE_REVIEWER` is authorised to use this command.  When
-    approved the ``help wanted`` label is added and the issue opener is
-    assigned so they can start work immediately.
+    approved the ``help wanted`` label is added.  The issue is then assigned to
+    the last person who requested ``/assign`` (if any); otherwise the issue
+    opener is assigned so they can start work immediately.
     """
     num = issue["number"]
     if login.lower() != TRIAGE_REVIEWER.lower():
@@ -3623,31 +3650,33 @@ async def _approve(
         token,
         {"labels": [HELP_WANTED_LABEL]},
     )
-    # Assign the issue to the person who opened it, respecting existing assignees
-    # and the global MAX_ASSIGNEES limit enforced by the /assign workflow.
+    # Determine who to assign: prefer the last person who said /assign, falling
+    # back to the issue opener so they can start work immediately.
     opener = issue.get("user", {}).get("login", "")
+    last_requester = await _get_last_assign_requester(owner, repo, num, token)
+    assignee = last_requester or opener
     opener_assigned = False
     assignment_note = ""
-    if opener:
+    if assignee:
         assignees = issue.get("assignees") or []
         assignee_logins = {
             a.get("login")
             for a in assignees
             if isinstance(a, dict) and a.get("login")
         }
-        # If the opener is already assigned, we don't need to call the API again.
-        if opener in assignee_logins:
+        # If the chosen assignee is already assigned, we don't need to call the API again.
+        if assignee in assignee_logins:
             opener_assigned = True
         # If we've reached the maximum number of assignees, do not add another.
         elif len(assignee_logins) >= MAX_ASSIGNEES:
             assignment_note = (
                 "However, this issue already has the maximum number of assignees, "
-                "so the opener was not additionally assigned."
+                "so the chosen assignee was not additionally assigned."
             )
-        # If someone else has already claimed the issue, avoid assigning the opener.
+        # If someone else has already claimed the issue, avoid assigning over them.
         elif assignee_logins:
             assignment_note = (
-                "Note: this issue already has an assignee, so the opener was not "
+                "Note: this issue already has an assignee, so the chosen assignee was not "
                 "automatically assigned."
             )
         else:
@@ -3655,11 +3684,11 @@ async def _approve(
                 "POST",
                 f"/repos/{owner}/{repo}/issues/{num}/assignees",
                 token,
-                {"assignees": [opener]},
+                {"assignees": [assignee]},
             )
             opener_assigned = True
-    if opener and opener_assigned:
-        assignment_text = f"@{opener} You have been assigned — good luck! 🚀\n\n"
+    if assignee and opener_assigned:
+        assignment_text = f"@{assignee} You have been assigned — good luck! 🚀\n\n"
     elif assignment_note:
         assignment_text = assignment_note + "\n\n"
     else:
