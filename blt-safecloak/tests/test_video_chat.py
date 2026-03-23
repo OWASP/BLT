@@ -42,9 +42,11 @@ Then run the tests::
 
 import http.server
 import re
+import shutil
 import socket
 import socketserver
 import subprocess
+import sys
 import threading
 import time
 from pathlib import Path
@@ -57,9 +59,6 @@ ROOT = Path(__file__).parent.parent
 # Path to peerjs.min.js bundled with the ``peerjs`` npm package (installed
 # via ``npm install``).  Avoids any CDN dependency during tests.
 _PEERJS_MIN_JS = ROOT / "node_modules" / "peerjs" / "dist" / "peerjs.min.js"
-
-# Path to the local PeerJS signaling-server binary (``peer`` npm package).
-_PEERJS_BIN = ROOT / "node_modules" / ".bin" / "peerjs"
 
 # Seconds to wait for the local PeerJS server to become ready.
 _PEERJS_STARTUP_TIMEOUT = 15
@@ -156,12 +155,69 @@ _PEERJS_SCRIPT_RE = re.compile(
     re.DOTALL,
 )
 
+# External CDN resources that are stripped from video-chat HTML at test-serve
+# time so the E2E test does not hang on blocked / slow external network calls.
+# Tailwind CDN <script> tag (the inline ``tailwind.config`` block that
+# immediately follows it is also removed since it references ``tailwind.*``).
+_TAILWIND_SCRIPT_RE = re.compile(
+    r'<script\b[^>]*\bsrc="https://cdn\.tailwindcss\.com[^"]*"[^>]*>\s*</script>',
+    re.DOTALL,
+)
+_TAILWIND_CONFIG_RE = re.compile(
+    r'<script>\s*tailwind\.config\s*=\s*\{.*?\};\s*</script>',
+    re.DOTALL,
+)
+# Google Fonts <link> tags (preconnect + stylesheet).
+_GOOGLE_FONTS_RE = re.compile(
+    r'<link\b[^>]*\bhref="https://fonts\.(googleapis|gstatic)\.com[^"]*"[^>]*/?>',
+    re.DOTALL,
+)
+# Font Awesome stylesheet from cdnjs.
+_FONT_AWESOME_RE = re.compile(
+    r'<link\b[^>]*\bhref="https://cdnjs\.cloudflare\.com[^"]*"[^>]*/?>',
+    re.DOTALL,
+)
+
 
 def _free_port() -> int:
     """Return an unused TCP port on localhost."""
     with socket.socket() as s:
         s.bind(("127.0.0.1", 0))
         return s.getsockname()[1]
+
+
+def _resolve_peerjs_bin() -> list:
+    """Return the argv prefix for running the PeerJS signaling-server CLI.
+
+    Resolution order (cross-platform):
+    1. ``node_modules/.bin/peerjs.cmd``  – Windows npm-installed wrapper
+    2. ``node_modules/.bin/peerjs``      – Unix npm-installed binary
+    3. ``shutil.which('peerjs')``        – global install on PATH
+    4. ``['npx', '--yes', 'peerjs']``  – last-resort: delegate to npx
+    """
+    local_bin = ROOT / "node_modules" / ".bin" / "peerjs"
+    if sys.platform == "win32":
+        cmd_wrapper = local_bin.with_suffix(".cmd")
+        if cmd_wrapper.exists():
+            return [str(cmd_wrapper)]
+    if local_bin.exists():
+        return [str(local_bin)]
+    found = shutil.which("peerjs")
+    if found:
+        return [found]
+    return ["npx", "--yes", "peerjs"]
+
+
+class _ThreadingTCPServer(socketserver.ThreadingTCPServer):
+    """ThreadingTCPServer with SO_REUSEADDR set before the socket is bound.
+
+    ``socketserver.ThreadingTCPServer`` only honours ``allow_reuse_address``
+    if it is already True when ``server_bind`` is called (inside ``__init__``),
+    so we set it as a class attribute rather than as an instance attribute after
+    construction.
+    """
+
+    allow_reuse_address = True
 
 
 class _AppHandler(http.server.BaseHTTPRequestHandler):
@@ -230,9 +286,14 @@ class _AppHandler(http.server.BaseHTTPRequestHandler):
 def _patch_video_chat_html(data: bytes, peerjs_port: int) -> bytes:
     """Rewrite video-chat HTML to use the local PeerJS signaling server.
 
-    Replaces the unpkg.com CDN script tag with a local ``/peerjs.min.js``
-    reference, then injects a ``window.__PEERJS_CONFIG__`` block that
-    overrides the signaling-server host/port in ``video.js`` at runtime.
+    1. Strips blocking external CDN resources (Tailwind, Google Fonts, Font
+       Awesome) so the test does not depend on external network access.
+    2. Replaces the unpkg.com CDN script tag with a local ``/peerjs.min.js``
+       reference, then injects a ``window.__PEERJS_CONFIG__`` block that
+       overrides the signaling-server host/port in ``video.js`` at runtime.
+
+    Raises ``RuntimeError`` if the PeerJS script tag is not found exactly once,
+    which would indicate the HTML template has changed in a breaking way.
     """
     config_script = (
         '<script src="/peerjs.min.js"></script>\n'
@@ -242,7 +303,21 @@ def _patch_video_chat_html(data: bytes, peerjs_port: int) -> bytes:
         "    </script>"
     )
     html = data.decode("utf-8")
-    html = _PEERJS_SCRIPT_RE.sub(config_script, html)
+
+    # Strip external CDN resources that can block / slow the test.
+    html = _TAILWIND_SCRIPT_RE.sub("", html)
+    html = _TAILWIND_CONFIG_RE.sub("", html)
+    html = _GOOGLE_FONTS_RE.sub("", html)
+    html = _FONT_AWESOME_RE.sub("", html)
+
+    # Replace PeerJS CDN tag, asserting exactly one replacement.
+    html, n_subs = _PEERJS_SCRIPT_RE.subn(config_script, html)
+    if n_subs != 1:
+        raise RuntimeError(
+            f"Expected to replace exactly one PeerJS <script> tag but found {n_subs}. "
+            "The video-chat HTML template may have changed – update _PEERJS_SCRIPT_RE."
+        )
+
     return html.encode("utf-8")
 
 
@@ -252,17 +327,15 @@ def peerjs_server():
 
     Uses the ``peerjs`` CLI provided by the ``peer`` npm package installed
     in ``node_modules``.  Falls back to a globally installed ``peerjs``
-    binary if the local one is not present (e.g. ``npm install -g peer``).
+    binary or ``npx peerjs`` if the local one is not present.
     """
     port = _free_port()
-
-    # Prefer the locally installed binary to avoid PATH ambiguity in CI.
-    bin_path = str(_PEERJS_BIN) if _PEERJS_BIN.exists() else "peerjs"
+    cmd = _resolve_peerjs_bin() + ["--port", str(port), "--path", "/"]
 
     proc = subprocess.Popen(
-        [bin_path, "--port", str(port), "--path", "/"],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
+        cmd,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
     )
 
     # Wait until the TCP port is open (the server is ready to accept
@@ -271,11 +344,9 @@ def peerjs_server():
     ready = False
     while time.monotonic() < deadline:
         if proc.poll() is not None:
-            stdout_text = (
-                proc.stdout.read().decode(errors="replace") if proc.stdout else ""
-            )
             raise RuntimeError(
-                f"PeerJS server exited early (code {proc.returncode}).\n{stdout_text}"
+                f"PeerJS server exited early (code {proc.returncode}). "
+                f"Command: {cmd}"
             )
         try:
             with socket.create_connection(("127.0.0.1", port), timeout=1):
@@ -311,8 +382,7 @@ def base_url(peerjs_server):
         )
     _AppHandler.peerjs_js = _PEERJS_MIN_JS.read_bytes()
     _AppHandler.peerjs_port = peerjs_server
-    server = socketserver.ThreadingTCPServer(("127.0.0.1", 0), _AppHandler)
-    server.allow_reuse_address = True
+    server = _ThreadingTCPServer(("127.0.0.1", 0), _AppHandler)
     port = server.server_address[1]
     t = threading.Thread(target=server.serve_forever, daemon=True)
     t.start()

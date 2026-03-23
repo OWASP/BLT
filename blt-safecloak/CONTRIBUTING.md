@@ -86,7 +86,10 @@ The test suite will automatically:
 3. Launch headless Chromium with fake camera/microphone devices
 4. Tear everything down after the tests complete
 
-No network access to external services is required.
+No network access to external signaling or backend services is required.
+The served pages load static assets (Tailwind CSS, Google Fonts, Font Awesome)
+from their public CDNs; the test server strips those CDN tags so the E2E test
+runs without any external network dependency.
 
 1. Test all affected pages manually
 2. Verify WebRTC functionality in multiple browsers
