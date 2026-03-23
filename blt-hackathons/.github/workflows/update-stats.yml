@@ -19,7 +19,6 @@ concurrency:
 
 jobs:
   update-stats:
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository

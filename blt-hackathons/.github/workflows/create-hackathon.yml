@@ -2,11 +2,15 @@ name: Create Hackathon from Issue
 
 on:
   issues:
-    types: [opened, reopened, labeled]
+    types: [opened, labeled]
 
 permissions:
   contents: write
   issues: write
+
+concurrency:
+  group: hackathon-config-update
+  cancel-in-progress: false
 
 jobs:
   create-hackathon:
