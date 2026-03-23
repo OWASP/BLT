@@ -149,6 +149,14 @@ _MOCK_GET_USER_MEDIA = """
 })();
 """
 
+# Allowlist regex for a single URL path segment used when serving static
+# assets.  A segment must start with an alphanumeric character and may
+# only contain alphanumeric characters, dots, underscores, and hyphens.
+# This deliberately excludes `..`, `.`, empty strings, slashes, and every
+# other special character, breaking the CodeQL taint chain: only the text
+# captured by the match group is allowed to flow into path construction.
+_SAFE_SEGMENT_RE = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]*")
+
 # Regex that matches the peerjs CDN <script> tag (spans multiple lines).
 _PEERJS_SCRIPT_RE = re.compile(
     r'<script\b[^>]*\bsrc="https://unpkg\.com/peerjs[^"]*"[^>]*>.*?</script>',
@@ -251,11 +259,18 @@ class _AppHandler(http.server.BaseHTTPRequestHandler):
 
         # Serve static files from public/.
         public_root = (ROOT / "public").resolve()
-        # Sanitize the request path before any filesystem operation:
-        # - split on "/" to get path segments
-        # - drop empty segments (from leading/trailing or duplicate slashes)
-        # - reject any "." or ".." traversal components
-        safe_parts = [p for p in path.split("/") if p and p not in (".", "..")]
+        # Sanitize the request path using a strict allowlist regex so that
+        # only text validated by the pattern can reach the filesystem.
+        # Extracting m.group() from the match object (rather than the raw
+        # segment string) breaks the CodeQL taint chain: CodeQL recognises
+        # regex-match-group values as sanitized.
+        # Segments containing "..", ".", "/", or any special character are
+        # silently skipped because they do not match _SAFE_SEGMENT_RE.
+        safe_parts = [
+            m.group()
+            for seg in path.split("/")
+            if (m := _SAFE_SEGMENT_RE.fullmatch(seg)) is not None
+        ]
         candidate = (public_root / "/".join(safe_parts)).resolve()
         # Defense-in-depth: confirm the resolved path is still within public_root.
         try:
