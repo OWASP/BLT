@@ -199,7 +199,7 @@ server.setRequestHandler(ListResourcesRequestSchema, async () => {
  */
 server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
   const uri = request.params.uri;
-  const match = uri.match(/^blt:\/\/([^\/]+)(?:\/(.+))?$/);
+  const match = uri.match(/^blt:\/\/([^/]+)(?:\/(.+))?$/);
 
   if (!match) {
     throw new Error(`Invalid BLT URI: ${uri}`);
