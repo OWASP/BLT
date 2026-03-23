@@ -394,14 +394,26 @@ class TestHandleAssign(unittest.TestCase):
         self.assertEqual(calls, [])
         self.assertTrue(any("already assigned" in c for c in comments))
 
-    def test_does_not_assign_when_max_assignees_reached(self):
+    def test_reassigns_existing_assignee(self):
+        # When another user already holds the assignment, the latest /assign should
+        # unassign the previous holder and assign the new requester.
         payload = _make_issue_payload(
-            assignees=[{"login": "bob"}, {"login": "carol"}, {"login": "dave"}]
+            assignees=[{"login": "bob"}],
+            labels=[{"name": "help wanted"}],
         )
         comments, calls = [], []
         self._run_assign(payload, comments, calls)
-        self.assertEqual(calls, [])
-        self.assertTrue(any("maximum number of assignees" in c for c in comments))
+        # Should DELETE the existing assignee(s) first.
+        self.assertTrue(any(
+            method == "DELETE" and "assignees" in path
+            for method, path, *_ in calls
+        ))
+        # Then POST the new assignee.
+        self.assertTrue(any(
+            method == "POST" and "assignees" in path
+            for method, path, *_ in calls
+        ))
+        self.assertTrue(any("assigned to this issue" in c for c in comments))
 
     def test_does_not_assign_on_pull_request(self):
         payload = _make_issue_payload(is_pr=True)

@@ -3521,14 +3521,6 @@ async def _assign(
             token,
         )
         return
-    if len(assignees) >= MAX_ASSIGNEES:
-        await create_comment(
-            owner, repo, num,
-            f"@{login} This issue already has the maximum number of assignees "
-            f"({MAX_ASSIGNEES}). Please work on a different issue.",
-            token,
-        )
-        return
     label_names = {lb.get("name", "").lower() for lb in issue.get("labels", [])}
     if HELP_WANTED_LABEL not in label_names:
         await create_comment(
@@ -3546,6 +3538,14 @@ async def _assign(
             {"labels": [NEEDS_APPROVAL_LABEL]},
         )
         return
+    # Unassign any existing assignees so that the last person to say /assign wins.
+    if assignees:
+        await github_api(
+            "DELETE",
+            f"/repos/{owner}/{repo}/issues/{num}/assignees",
+            token,
+            {"assignees": assignees},
+        )
     await github_api(
         "POST",
         f"/repos/{owner}/{repo}/issues/{num}/assignees",
