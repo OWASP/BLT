@@ -12,3 +12,9 @@ CREATE TABLE IF NOT EXISTS slack_activity (
 
 CREATE INDEX IF NOT EXISTS idx_slack_activity_received_at
 ON slack_activity(received_at);
+
+CREATE TABLE IF NOT EXISTS workspace_installations (
+    team_id TEXT PRIMARY KEY,
+    installer_user_id TEXT NOT NULL,
+    installed_at TEXT NOT NULL
+);

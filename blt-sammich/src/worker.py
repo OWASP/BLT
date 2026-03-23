@@ -38,6 +38,13 @@ SCHEMA_STATEMENTS = [
         "CREATE INDEX IF NOT EXISTS idx_slack_activity_received_at "
         "ON slack_activity(received_at)"
     ),
+    (
+        "CREATE TABLE IF NOT EXISTS workspace_installations ("
+        "team_id TEXT PRIMARY KEY, "
+        "installer_user_id TEXT NOT NULL, "
+        "installed_at TEXT NOT NULL"
+        ")"
+    ),
 ]
 SCHEMA_READY = False
 
@@ -98,7 +105,9 @@ def get_team_message_template(team_id: str, event_name: str) -> Optional[str]:
     return load_text_file(template_path)
 
 
-def render_team_join_message(event_payload: Dict[str, Any], team_id: str) -> Optional[str]:
+def render_team_join_message(
+    event_payload: Dict[str, Any], team_id: str
+) -> Optional[str]:
     template = get_team_message_template(team_id, "team_join")
     if not template:
         return None
@@ -112,6 +121,44 @@ def render_team_join_message(event_payload: Dict[str, Any], team_id: str) -> Opt
         or "there"
     )
     return template.format(username=username)
+
+
+def current_config_message(env: Any, team_id: str, installer_user_id: str) -> str:
+    def _get_value(name: str) -> str:
+        return env_value(env, name) or "(unset)"
+
+    lines = [
+        "Current BLT worker config:",
+        "team_id: {0}".format(team_id or "(unknown)"),
+        "installer_user_id: {0}".format(installer_user_id or "(unknown)"),
+        "github_activity_repo: {0}/{1}".format(
+            _get_value("GITHUB_ACTIVITY_OWNER"), _get_value("GITHUB_ACTIVITY_REPO")
+        ),
+        "github_issue_repo: {0}/{1}".format(
+            _get_value("GITHUB_ISSUE_OWNER"), _get_value("GITHUB_ISSUE_REPO")
+        ),
+        "slack_redirect_url: {0}".format(_get_value("SLACK_REDIRECT_URL")),
+        "slack_app_url: {0}".format(_get_value("SLACK_APP_URL")),
+    ]
+    return "\n".join(lines)
+
+
+def build_slack_install_url(env: Any) -> str:
+    client_id = required_env_value(env, "SLACK_CLIENT_ID")
+    redirect_uri = required_env_value(env, "SLACK_REDIRECT_URL")
+    state = required_env_value(env, "SLACK_OAUTH_STATE")
+    scopes = required_env_value(env, "SLACK_OAUTH_SCOPES")
+    user_scopes = env_value(env, "SLACK_OAUTH_USER_SCOPES")
+
+    params = {
+        "client_id": client_id,
+        "scope": scopes,
+        "redirect_uri": redirect_uri,
+        "state": state,
+    }
+    if user_scopes:
+        params["user_scope"] = user_scopes
+    return "https://slack.com/oauth/v2/authorize?{0}".format(urlencode(params))
 
 
 def build_response(
@@ -167,9 +214,10 @@ def verify_slack_signature(
         return False
 
     payload = "v0:{0}:{1}".format(timestamp, body).encode("utf-8")
-    expected = "v0=" + hmac.new(
-        signing_secret.encode("utf-8"), payload, hashlib.sha256
-    ).hexdigest()
+    expected = (
+        "v0="
+        + hmac.new(signing_secret.encode("utf-8"), payload, hashlib.sha256).hexdigest()
+    )
     return hmac.compare_digest(expected, signature)
 
 
@@ -218,7 +266,9 @@ def build_project_selection_blocks(project_names: List[str]) -> List[Dict[str, A
     return blocks
 
 
-def build_repo_selection_blocks(repo_data: Dict[str, List[str]]) -> List[Dict[str, Any]]:
+def build_repo_selection_blocks(
+    repo_data: Dict[str, List[str]],
+) -> List[Dict[str, Any]]:
     technologies = sorted(repo_data.keys())
     if not technologies:
         return [make_section_block("No technologies are configured.")]
@@ -290,13 +340,21 @@ def format_contributor_blocks(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
         return {
             "response_type": "ephemeral",
             "text": "No contributor activity was found for the last 7 days.",
-            "blocks": [make_section_block("No contributor activity was found for the last 7 days.")],
+            "blocks": [
+                make_section_block(
+                    "No contributor activity was found for the last 7 days."
+                )
+            ],
         }
 
     user_width = max(len(str(row["user"])) for row in rows)
     prs_width = max(len("PRs Merged"), max(len(str(row["prs"])) for row in rows))
-    issues_width = max(len("Issues Closed"), max(len(str(row["issues"])) for row in rows))
-    comments_width = max(len("Comments"), max(len(str(row["comments"])) for row in rows))
+    issues_width = max(
+        len("Issues Closed"), max(len(str(row["issues"])) for row in rows)
+    )
+    comments_width = max(
+        len("Comments"), max(len(str(row["comments"])) for row in rows)
+    )
 
     header = "{0:<{uw}}  {1:<{pw}}  {2:<{iw}}  {3:<{cw}}".format(
         "User",
@@ -333,7 +391,9 @@ def format_contributor_blocks(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
     return {
         "response_type": "ephemeral",
         "text": "Contributor activity for the last 7 days.",
-        "blocks": [make_section_block("*Contributor Activity*\n```{0}```".format(table))],
+        "blocks": [
+            make_section_block("*Contributor Activity*\n```{0}```".format(table))
+        ],
     }
 
 
@@ -392,7 +452,9 @@ async def fetch_json(
     return bool(response.ok), payload, int(response.status)
 
 
-async def d1_run(env: Any, sql: str, params: Optional[List[Any]] = None) -> Dict[str, Any]:
+async def d1_run(
+    env: Any, sql: str, params: Optional[List[Any]] = None
+) -> Dict[str, Any]:
     statement = env.DB.prepare(sql)
     if params:
         statement = statement.bind(*params)
@@ -413,7 +475,9 @@ async def ensure_schema(env: Any) -> None:
     SCHEMA_READY = True
 
 
-async def record_activity(env: Any, activity_kind: str, payload: Dict[str, Any]) -> None:
+async def record_activity(
+    env: Any, activity_kind: str, payload: Dict[str, Any]
+) -> None:
     try:
         getattr(env, "DB")
     except Exception:
@@ -446,6 +510,51 @@ async def record_activity(env: Any, activity_kind: str, payload: Dict[str, Any])
             received_at,
         ],
     )
+
+
+async def save_workspace_installer(
+    env: Any, team_id: str, installer_user_id: str
+) -> None:
+    if not team_id or not installer_user_id:
+        return
+    try:
+        getattr(env, "DB")
+    except Exception:
+        return
+
+    await ensure_schema(env)
+    installed_at = datetime.now(timezone.utc).isoformat()
+    await d1_run(
+        env,
+        (
+            "INSERT INTO workspace_installations (team_id, installer_user_id, installed_at) "
+            "VALUES (?, ?, ?) "
+            "ON CONFLICT(team_id) DO UPDATE SET "
+            "installer_user_id = excluded.installer_user_id, "
+            "installed_at = excluded.installed_at"
+        ),
+        [team_id, installer_user_id, installed_at],
+    )
+
+
+async def get_workspace_installer(env: Any, team_id: str) -> Optional[str]:
+    if not team_id:
+        return env_value(env, "SLACK_INSTALLER_USER_ID")
+    try:
+        getattr(env, "DB")
+    except Exception:
+        return env_value(env, "SLACK_INSTALLER_USER_ID")
+
+    await ensure_schema(env)
+    result = await d1_run(
+        env,
+        "SELECT installer_user_id FROM workspace_installations WHERE team_id = ? LIMIT 1",
+        [team_id],
+    )
+    rows = result.get("results") or []
+    if rows and rows[0].get("installer_user_id"):
+        return str(rows[0]["installer_user_id"])
+    return env_value(env, "SLACK_INSTALLER_USER_ID")
 
 
 async def installed_apps_summary(env: Any) -> str:
@@ -481,8 +590,12 @@ async def fetch_contributor_activity(env: Any) -> List[Dict[str, Any]]:
     if token:
         headers["Authorization"] = "Bearer {0}".format(token)
 
-    prs_query = "repo:{0}/{1} is:pr is:merged merged:>={2}".format(owner, repo, since_date)
-    issues_query = "repo:{0}/{1} is:issue is:closed closed:>={2}".format(owner, repo, since_date)
+    prs_query = "repo:{0}/{1} is:pr is:merged merged:>={2}".format(
+        owner, repo, since_date
+    )
+    issues_query = "repo:{0}/{1} is:issue is:closed closed:>={2}".format(
+        owner, repo, since_date
+    )
 
     prs_url = "https://api.github.com/search/issues?{0}".format(
         urlencode({"q": prs_query, "per_page": "100"})
@@ -541,26 +654,91 @@ def help_response() -> Dict[str, Any]:
         "• /contributors or /stats\n"
         "• /project [name]\n"
         "• /repo [technology]\n"
-        "• /ghissue [title]"
+        "• /ghissue [title]\n"
+        "• /blt-app-url"
     )
     return {
         "response_type": "ephemeral",
         "text": text,
-        "blocks": [make_section_block("*BLT Sammich Commands*\n{0}".format(text.replace("\n", "\n")))],
+        "blocks": [
+            make_section_block(
+                "*BLT Sammich Commands*\n{0}".format(text.replace("\n", "\n"))
+            )
+        ],
+    }
+
+
+def contrib_response() -> Dict[str, Any]:
+    message = (
+        ":rocket: Contributing to OWASP Projects\n\n"
+        "    :small_blue_diamond: Join the OWASP Slack Channel: Find guidance and check pinned "
+        "posts for projects seeking contributors.\n"
+        "    :small_blue_diamond: Explore OWASP Projects Page: Identify projects that align "
+        "with your skills and interests.\n\n"
+        ":loudspeaker: Engaging on Slack\n\n"
+        "    Many projects have dedicated project channels for collaboration.\n\n"
+        "    :mag: Find and Join a Project Channel: To find project channels:\n\n"
+        ":one: Use Slack's channel browser (Ctrl/Cmd + K)\n"
+        ":two: Type #project- to see all project channels\n"
+        ":three: Join the channels that interest you\n\n"
+        "All OWASP project channels start with #project-\n\n"
+        ":hammer_and_wrench: GSOC Projects: View this year's participating GSOC projects "
+        "https://owasp.org/www-community/initiatives/gsoc/gsoc2026ideas\n\n"
+        ":busts_in_silhouette: Identifying Key People and Activity\n\n"
+        "    • Visit the OWASP Projects page to find project leaders and contributors.\n"
+        "    • Review GitHub commit history for active developers.\n"
+        "    • Check Slack activity for updates on project progress.\n\n"
+        ":pushpin: Communication Guidelines\n\n"
+        "    :white_check_mark: Check pinned messages in project channels for updates.\n"
+        "    :white_check_mark: Ask questions in relevant project channels.\n"
+        "    :white_check_mark: Introduce yourself while keeping personal details private.\n\n"
+        ":hammer_and_wrench: How to Contribute\n\n"
+        "    :one: Select a project and review its contribution guidelines.\n"
+        "    :two: Work on an open GitHub issue or propose a new one.\n"
+        "    :three: Coordinate with project leaders to prevent overlaps.\n"
+        "    :four: Submit a pull request and keep the team informed.\n\n"
+        "    :bulb: Focus on clear communication and teamwork! :rocket:"
+    )
+    return {
+        "response_type": "ephemeral",
+        "text": message,
+        "blocks": [make_section_block(message)],
+    }
+
+
+def blt_app_url_response(env: Any) -> Dict[str, Any]:
+    app_url = env_value(env, "SLACK_APP_URL")
+    if not app_url:
+        message = "Missing required environment variable: SLACK_APP_URL"
+        return {
+            "response_type": "ephemeral",
+            "text": message,
+            "blocks": [make_section_block(message)],
+        }
+    return {
+        "response_type": "ephemeral",
+        "text": app_url,
+        "blocks": [make_section_block("Slack App URL:\n{0}".format(app_url))],
     }
 
 
 def discover_response(query: str) -> Dict[str, Any]:
     project_matches = search_projects(query)
     repo_matches = search_repo_technologies(query)
-    blocks = [make_section_block("*Discovery results for* `{0}`".format(query or "everything"))]
+    blocks = [
+        make_section_block(
+            "*Discovery results for* `{0}`".format(query or "everything")
+        )
+    ]
 
     if project_matches:
         blocks.append(make_section_block("*Projects*\n" + "\n".join(project_matches)))
     if repo_matches:
         blocks.append(make_section_block("*Technologies*\n" + "\n".join(repo_matches)))
     if len(blocks) == 1:
-        blocks.append(make_section_block("No matching projects or technologies were found."))
+        blocks.append(
+            make_section_block("No matching projects or technologies were found.")
+        )
 
     return {
         "response_type": "ephemeral",
@@ -584,7 +762,11 @@ def project_response(text: str) -> Dict[str, Any]:
             blocks = [make_section_block("Project not found. Similar matches:")]
             for match in matches:
                 blocks.append(make_section_block("• {0}".format(match)))
-            return {"response_type": "ephemeral", "text": "Similar project matches found.", "blocks": blocks}
+            return {
+                "response_type": "ephemeral",
+                "text": "Similar project matches found.",
+                "blocks": blocks,
+            }
         return {
             "response_type": "ephemeral",
             "text": "Project not found.",
@@ -614,7 +796,9 @@ def repo_response(text: str) -> Dict[str, Any]:
             return {
                 "response_type": "ephemeral",
                 "text": "Technology not found. Similar matches are available.",
-                "blocks": [make_section_block("Similar technologies:\n" + "\n".join(matches))],
+                "blocks": [
+                    make_section_block("Similar technologies:\n" + "\n".join(matches))
+                ],
             }
         return {
             "response_type": "ephemeral",
@@ -656,7 +840,11 @@ async def command_response(form: Dict[str, str], env: Any) -> Dict[str, Any]:
             return {
                 "response_type": "ephemeral",
                 "text": "Issue created successfully: {0}".format(message),
-                "blocks": [make_section_block("Issue created successfully:\n{0}".format(message))],
+                "blocks": [
+                    make_section_block(
+                        "Issue created successfully:\n{0}".format(message)
+                    )
+                ],
             }
         return {
             "response_type": "ephemeral",
@@ -670,7 +858,7 @@ async def command_response(form: Dict[str, str], env: Any) -> Dict[str, Any]:
     if command_name == "/discover":
         return discover_response(command_text)
     if command_name == "/contrib":
-        return help_response()
+        return contrib_response()
     if command_name == "/gsoc25":
         return {
             "response_type": "ephemeral",
@@ -688,6 +876,8 @@ async def command_response(form: Dict[str, str], env: Any) -> Dict[str, Any]:
             "text": summary,
             "blocks": [make_section_block(summary)],
         }
+    if command_name == "/blt-app-url":
+        return blt_app_url_response(env)
     if command_name == "/blt":
         return help_response()
 
@@ -709,12 +899,20 @@ def interaction_response(payload: Dict[str, Any]) -> Dict[str, Any]:
         project_name = action.get("selected_option", {}).get("value", "")
         detail = make_project_detail(project_name)
         if detail:
-            return {"text": detail, "replace_original": False, "blocks": [make_section_block(detail)]}
+            return {
+                "text": detail,
+                "replace_original": False,
+                "blocks": [make_section_block(detail)],
+            }
     if action_id.startswith("plugin_repo_button_"):
         technology = action.get("value", "")
         detail = make_repo_detail(technology)
         if detail:
-            return {"text": detail, "replace_original": False, "blocks": [make_section_block(detail)]}
+            return {
+                "text": detail,
+                "replace_original": False,
+                "blocks": [make_section_block(detail)],
+            }
     return {"text": "Interaction received.", "replace_original": False}
 
 
@@ -752,6 +950,19 @@ async def handle_event_payload(payload: Dict[str, Any], env: Any) -> Any:
         welcome_message = render_team_join_message(event, team_id)
         if user_id and welcome_message:
             await slack_api_post_message(user_id, welcome_message, env)
+    if event.get("type") == "message":
+        if event.get("subtype"):
+            return json_response({"ok": True})
+        team_id = payload.get("team_id", "")
+        user_id = event.get("user", "")
+        channel_id = event.get("channel", "")
+        installer_user_id = await get_workspace_installer(env, team_id)
+        if installer_user_id and user_id == installer_user_id and channel_id:
+            await slack_api_post_message(
+                channel_id,
+                current_config_message(env, team_id, installer_user_id),
+                env,
+            )
     return json_response({"ok": True})
 
 
@@ -759,7 +970,8 @@ async def handle_oauth_callback(request_url: Any, env: Any) -> Any:
     params = parse_qs(request_url.query)
     if params.get("error"):
         return html_response(
-            "<h1>Slack OAuth failed</h1><p>{0}</p>".format(params["error"][0]), status=400
+            "<h1>Slack OAuth failed</h1><p>{0}</p>".format(params["error"][0]),
+            status=400,
         )
 
     code = params.get("code", [""])[0]
@@ -803,12 +1015,24 @@ async def handle_oauth_callback(request_url: Any, env: Any) -> Any:
     await record_activity(
         env,
         "oauth_callback",
-        {"type": "oauth_callback", "team_id": payload.get("team", {}).get("id"), "payload": payload},
+        {
+            "type": "oauth_callback",
+            "team_id": payload.get("team", {}).get("id"),
+            "payload": payload,
+        },
+    )
+
+    await save_workspace_installer(
+        env,
+        str(payload.get("team", {}).get("id") or ""),
+        str(payload.get("authed_user", {}).get("id") or ""),
     )
 
     if not ok or not payload.get("ok"):
         error_message = payload.get("error") or "OAuth exchange failed."
-        return html_response("<h1>Slack OAuth failed</h1><p>{0}</p>".format(error_message), status=500)
+        return html_response(
+            "<h1>Slack OAuth failed</h1><p>{0}</p>".format(error_message), status=500
+        )
 
     team_name = payload.get("team", {}).get("name") or "your workspace"
     return html_response(
@@ -830,6 +1054,20 @@ async def handle_request(request: Any, env: Any) -> Any:
 
     if method == "GET" and path == "/oauth/slack/callback":
         return await handle_oauth_callback(parsed_url, env)
+
+    if method == "GET" and path == "/install-slack":
+        try:
+            install_url = build_slack_install_url(env)
+        except ValueError as error:
+            return html_response(
+                "<h1>Install URL misconfigured</h1><p>{0}</p>".format(str(error)),
+                status=500,
+            )
+        return build_response(
+            "",
+            status=302,
+            headers={"location": install_url},
+        )
 
     if method == "POST" and path in ("/slack/commands", "/slack/events"):
         body_text = str(await request.text())

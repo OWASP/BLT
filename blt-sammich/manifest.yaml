@@ -38,6 +38,10 @@ features:
       url: https://sammich.owaspblt.org/slack/commands/
       description: List installed apps
       should_escape: false
+    - command: /blt-app-url
+      url: https://sammich.owaspblt.org/slack/commands/
+      description: Return the Slack app management URL
+      should_escape: false
 oauth_config:
   redirect_urls:
     - https://sammich.owaspblt.org/oauth/slack/callback
