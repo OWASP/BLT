@@ -97,13 +97,13 @@ async def handle_signup(
 
         # --- Input Validation ---
         password = body["password"]
-        if not (12 <= len(password) <= 128 and
+        if not isinstance(password, str) or not (12 <= len(password) <= 128 and
                 re.search(r'[A-Z]', password) and
                 re.search(r'[a-z]', password) and
                 re.search(r'\d', password) and
                 re.search(r'[^a-zA-Z0-9]', password)):
             return error_response(
-                "Password must be 12-128 characters and contain at least one uppercase letter, one lowercase letter, one number, and one special character",
+                "Password must be a string of 12-128 characters and contain at least one uppercase letter, one lowercase letter, one number, and one special character",
                 400,
             )
 
