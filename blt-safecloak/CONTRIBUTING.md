@@ -57,6 +57,37 @@ npm run check
 
 ### Testing Changes
 
+#### E2E Video Chat Tests
+
+The repository includes automated end-to-end tests for the video chat feature.  
+These tests use a **local PeerJS signaling server** (no dependency on the public
+`0.peerjs.com` server) for reliability in CI and local development.
+
+**Prerequisites:**
+
+```bash
+# Install all Node and Python dependencies
+npm install
+pip install -r requirements-dev.txt
+
+# Install the Playwright browser driver
+playwright install chromium --with-deps
+```
+
+**Running the tests:**
+
+```bash
+pytest tests/ -v
+```
+
+The test suite will automatically:
+1. Start a local PeerJS signaling server (port chosen dynamically)
+2. Spin up a lightweight HTTP server to serve the app pages
+3. Launch headless Chromium with fake camera/microphone devices
+4. Tear everything down after the tests complete
+
+No network access to external services is required.
+
 1. Test all affected pages manually
 2. Verify WebRTC functionality in multiple browsers
 3. Test consent flow end-to-end
