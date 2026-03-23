@@ -516,3 +516,150 @@ def test_three_clients_connect_and_see_cameras(base_url):
                 )
         finally:
             browser.close()
+
+
+# ---------------------------------------------------------------------------
+# VoiceChanger unit tests (run in a headless browser page)
+# ---------------------------------------------------------------------------
+
+# JavaScript that exercises VoiceChanger in the browser context.
+_VOICE_CHANGER_MODES_JS = """
+() => {
+    /* VoiceChanger must be defined */
+    if (typeof VoiceChanger === 'undefined') return {ok: false, error: 'VoiceChanger not defined'};
+
+    const modes = VoiceChanger.getModes();
+    const expected = ['normal', 'deep', 'chipmunk', 'robot', 'echo'];
+    for (const m of expected) {
+        if (!modes[m]) return {ok: false, error: 'Missing mode: ' + m};
+        if (!modes[m].label) return {ok: false, error: 'Missing label for: ' + m};
+        if (!modes[m].icon) return {ok: false, error: 'Missing icon for: ' + m};
+    }
+    return {ok: true};
+}
+"""
+
+_VOICE_CHANGER_INIT_JS = """
+async () => {
+    if (typeof VoiceChanger === 'undefined') return {ok: false, error: 'VoiceChanger not defined'};
+
+    /* Build a minimal fake audio stream via AudioContext */
+    let stream;
+    try {
+        const ac = new AudioContext();
+        const osc = ac.createOscillator();
+        const dest = ac.createMediaStreamDestination();
+        osc.connect(dest);
+        osc.start();
+        stream = dest.stream;
+    } catch (e) {
+        return {ok: false, error: 'AudioContext unavailable: ' + e.message};
+    }
+
+    const processed = VoiceChanger.init(stream);
+    if (!processed) return {ok: false, error: 'init() returned falsy'};
+
+    /* Processed stream should have at least one audio track */
+    const audioTracks = processed.getAudioTracks ? processed.getAudioTracks() : [];
+    if (audioTracks.length === 0) return {ok: false, error: 'No audio tracks in processed stream'};
+
+    /* Default mode should still be normal */
+    if (VoiceChanger.getMode() !== 'normal') return {ok: false, error: 'Default mode is not normal'};
+
+    VoiceChanger.destroy();
+    return {ok: true};
+}
+"""
+
+_VOICE_CHANGER_SET_MODE_JS = """
+async () => {
+    if (typeof VoiceChanger === 'undefined') return {ok: false, error: 'VoiceChanger not defined'};
+
+    /* Build a fake stream */
+    let stream;
+    try {
+        const ac = new AudioContext();
+        const osc = ac.createOscillator();
+        const dest = ac.createMediaStreamDestination();
+        osc.connect(dest);
+        osc.start();
+        stream = dest.stream;
+    } catch (e) {
+        return {ok: false, error: 'AudioContext unavailable: ' + e.message};
+    }
+
+    VoiceChanger.init(stream);
+
+    const modes = ['normal', 'deep', 'chipmunk', 'robot', 'echo'];
+    for (const mode of modes) {
+        VoiceChanger.setMode(mode);
+        if (VoiceChanger.getMode() !== mode) {
+            VoiceChanger.destroy();
+            return {ok: false, error: 'setMode(' + mode + ') did not update getMode()'};
+        }
+        /* getProcessedStream() must remain valid after a mode switch */
+        const ps = VoiceChanger.getProcessedStream();
+        if (!ps) {
+            VoiceChanger.destroy();
+            return {ok: false, error: 'getProcessedStream() returned null after setMode(' + mode + ')'};
+        }
+    }
+
+    VoiceChanger.destroy();
+    /* After destroy, getMode resets to normal */
+    if (VoiceChanger.getMode() !== 'normal') return {ok: false, error: 'getMode() after destroy() is not normal'};
+    return {ok: true};
+}
+"""
+
+_VOICE_CHANGER_IGNORE_UNKNOWN_MODE_JS = """
+() => {
+    if (typeof VoiceChanger === 'undefined') return {ok: false, error: 'VoiceChanger not defined'};
+    /* setMode with an unknown key must be a no-op */
+    const before = VoiceChanger.getMode();
+    VoiceChanger.setMode('__unknown__');
+    const after = VoiceChanger.getMode();
+    if (before !== after) return {ok: false, error: 'setMode(unknown) changed mode to: ' + after};
+    return {ok: true};
+}
+"""
+
+
+@pytest.fixture(scope="module")
+def voice_changer_page(base_url):
+    """Open a single video-chat page for VoiceChanger unit tests."""
+    with sync_playwright() as pw:
+        browser = pw.chromium.launch(args=_BROWSER_ARGS)
+        try:
+            ctx = _new_context(browser)
+            page = ctx.new_page()
+            page.goto(f"{base_url}/video-chat")
+            # Wait for VoiceChanger to be defined (scripts loaded)
+            page.wait_for_function("typeof VoiceChanger !== 'undefined'", timeout=TIMEOUT_MS)
+            yield page
+        finally:
+            browser.close()
+
+
+def test_voice_changer_modes_defined(voice_changer_page):
+    """VoiceChanger.getModes() must expose all five required effect keys."""
+    result = voice_changer_page.evaluate(_VOICE_CHANGER_MODES_JS)
+    assert result["ok"], result.get("error", "unknown error")
+
+
+def test_voice_changer_init_returns_processed_stream(voice_changer_page):
+    """VoiceChanger.init() must return a MediaStream with at least one audio track."""
+    result = voice_changer_page.evaluate(_VOICE_CHANGER_INIT_JS)
+    assert result["ok"], result.get("error", "unknown error")
+
+
+def test_voice_changer_set_mode_cycles_all_effects(voice_changer_page):
+    """setMode() must switch the active mode and keep getProcessedStream() valid."""
+    result = voice_changer_page.evaluate(_VOICE_CHANGER_SET_MODE_JS)
+    assert result["ok"], result.get("error", "unknown error")
+
+
+def test_voice_changer_ignores_unknown_mode(voice_changer_page):
+    """setMode() with an unrecognised key must not change the current mode."""
+    result = voice_changer_page.evaluate(_VOICE_CHANGER_IGNORE_UNKNOWN_MODE_JS)
+    assert result["ok"], result.get("error", "unknown error")

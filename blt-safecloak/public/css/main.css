@@ -205,6 +205,39 @@ body {
   color: #ffffff;
 }
 
+/* === Voice Effect Buttons === */
+.voice-effect-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.65rem 0.5rem;
+  border-radius: 0.6rem;
+  border: 1.5px solid var(--blt-neutral-border);
+  background: #ffffff;
+  color: #374151;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    color 0.15s ease;
+  text-align: center;
+  min-height: 72px; /* touch-target height for voice-effect buttons */
+}
+
+.voice-effect-btn:hover {
+  border-color: var(--blt-primary);
+  background: #fff5f5;
+  color: var(--blt-primary);
+}
+
+.voice-effect-btn.active {
+  border-color: var(--blt-primary);
+  background: #feeae9;
+  color: var(--blt-primary);
+  font-weight: 700;
+}
+
 /* === Voice Meter === */
 .voice-meter {
   display: flex;

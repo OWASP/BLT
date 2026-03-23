@@ -244,6 +244,17 @@
                 <i class="fa-solid fa-display" aria-hidden="true"></i>
               </button>
               <button
+                class="control-btn"
+                id="btn-voice-changer"
+                title="Voice effects"
+                onclick="VideoChat.toggleVoiceEffectsPanel()"
+                aria-label="Toggle voice effects panel"
+                aria-controls="voice-effects-panel"
+                aria-expanded="false"
+              >
+                <i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>
+              </button>
+              <button
                 class="control-btn end-call"
                 id="btn-end"
                 title="End call"
@@ -275,6 +286,87 @@
                   >
                   <span class="badge badge-success">Echo Cancel</span>
                   <span class="badge badge-primary">Auto Gain</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- ── Voice Effects Panel ── -->
+            <div
+              class="card mt-4 hidden"
+              id="voice-effects-panel"
+              aria-label="Voice effects"
+              aria-live="polite"
+            >
+              <div class="card-header">
+                <h2 class="card-title">
+                  <i class="fa-solid fa-wand-magic-sparkles text-primary" aria-hidden="true"></i>
+                  Voice Effects
+                </h2>
+              </div>
+              <div class="card-body">
+                <p class="mb-3 text-xs text-gray-500">
+                  Apply a real-time audio effect to your microphone before it is transmitted.
+                </p>
+                <div
+                  class="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3"
+                  role="group"
+                  aria-label="Voice effect options"
+                >
+                  <button
+                    class="voice-effect-btn active"
+                    data-voice-mode="normal"
+                    onclick="VideoChat.setVoiceMode('normal')"
+                    title="No voice effect"
+                    aria-pressed="true"
+                  >
+                    <i class="fa-solid fa-microphone mb-1 text-lg" aria-hidden="true"></i>
+                    <span class="block text-xs font-semibold">Normal</span>
+                    <span class="block text-[10px] text-gray-500">No effect</span>
+                  </button>
+                  <button
+                    class="voice-effect-btn"
+                    data-voice-mode="deep"
+                    onclick="VideoChat.setVoiceMode('deep')"
+                    title="Deep voice effect"
+                    aria-pressed="false"
+                  >
+                    <i class="fa-solid fa-down-long mb-1 text-lg" aria-hidden="true"></i>
+                    <span class="block text-xs font-semibold">Deep</span>
+                    <span class="block text-[10px] text-gray-500">Lower tone</span>
+                  </button>
+                  <button
+                    class="voice-effect-btn"
+                    data-voice-mode="chipmunk"
+                    onclick="VideoChat.setVoiceMode('chipmunk')"
+                    title="Chipmunk voice effect"
+                    aria-pressed="false"
+                  >
+                    <i class="fa-solid fa-up-long mb-1 text-lg" aria-hidden="true"></i>
+                    <span class="block text-xs font-semibold">Chipmunk</span>
+                    <span class="block text-[10px] text-gray-500">Higher pitch</span>
+                  </button>
+                  <button
+                    class="voice-effect-btn"
+                    data-voice-mode="robot"
+                    onclick="VideoChat.setVoiceMode('robot')"
+                    title="Robot voice effect"
+                    aria-pressed="false"
+                  >
+                    <i class="fa-solid fa-robot mb-1 text-lg" aria-hidden="true"></i>
+                    <span class="block text-xs font-semibold">Robot</span>
+                    <span class="block text-[10px] text-gray-500">Ring modulation</span>
+                  </button>
+                  <button
+                    class="voice-effect-btn"
+                    data-voice-mode="echo"
+                    onclick="VideoChat.setVoiceMode('echo')"
+                    title="Echo voice effect"
+                    aria-pressed="false"
+                  >
+                    <i class="fa-solid fa-wave-square mb-1 text-lg" aria-hidden="true"></i>
+                    <span class="block text-xs font-semibold">Echo</span>
+                    <span class="block text-[10px] text-gray-500">Reverb &amp; delay</span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -434,6 +526,7 @@
     <script src="js/crypto.js"></script>
     <script src="js/ui.js"></script>
     <script src="js/consent.js"></script>
+    <script src="js/voice-changer.js"></script>
     <script src="js/video.js"></script>
     <script>
       document.addEventListener("DOMContentLoaded", async () => {
