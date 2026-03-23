@@ -1,4 +1,3 @@
-
 # 🚀 BLT Contributor Start Page
 
 <p align="center">
@@ -10,9 +9,6 @@
   <img src="https://img.shields.io/badge/HTML-5-orange?logo=html5"/>
   <img src="https://img.shields.io/badge/TailwindCSS-3-blue?logo=tailwindcss"/>
   <img src="https://img.shields.io/badge/JavaScript-Vanilla-yellow?logo=javascript"/>
-  <!-- <img src="https://img.shields.io/github/stars/your-username/repo?style=social"/>
-  <img src="https://img.shields.io/github/forks/your-username/repo?style=social"/> -->
-  <!-- <img src="https://img.shields.io/github/license/your-username/repo"/> -->
 </p>
 
 ---
@@ -46,9 +42,8 @@ This dashboard helps:
 ## 📸 Screenshots
 
 <p align="center">
-  <img src="Screenshot 2026-03-23 at 12.44.58 AM.png" width="90%"/>
+  <img src="screenshot.png" width="90%"/>
 </p>
-
 
 ---
 
@@ -65,11 +60,37 @@ This dashboard helps:
 
 ### 📦 Installation
 
-```bash
-git clone https://github.com/your-username/blt-contributor-page.git
-cd blt-contributor-page
-open index.html
-```
+1. Clone the repository:
+
+   ```bash
+   git clone https://github.com/shiva119127/blt-contributor-page.git
+   ```
+
+2. Navigate to the project directory:
+
+   ```bash
+   cd blt-contributor-page
+   ```
+
+3. Open the project in your browser:
+
+   * **macOS**
+
+     ```bash
+     open index.html
+     ```
+
+   * **Windows**
+
+     ```bash
+     start index.html
+     ```
+
+   * **Linux**
+
+     ```bash
+     xdg-open index.html
+     ```
 
 ---
 
@@ -84,7 +105,7 @@ open index.html
 
 ## 📁 Project Structure
 
-```
+```text
 .
 ├── index.html
 ├── assets/
