@@ -73,7 +73,7 @@
 
     <main class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
       <header class="mb-8">
-        <h1 class="text-3xl font-bold tracking-tight sm:text-4xl dark:text-gray-100">
+        <h1 class="text-2xl font-bold tracking-tight sm:text-4xl dark:text-gray-100">
           <i class="fa-solid fa-trophy text-yellow-500 mr-2" aria-hidden="true"></i>
           Job Poster Leaderboard
         </h1>
@@ -144,12 +144,12 @@
 
           var maxCount = ranked[0].count;
 
-          var html = '<div class="rounded-xl border border-slate-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800 overflow-hidden">';
+          var html = '<div class="rounded-xl overflow-x-auto border border-slate-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800 overflow-hidden">';
           html += '<table class="w-full text-sm">';
           html += '<thead><tr class="border-b border-slate-200 dark:border-gray-700 bg-slate-50 dark:bg-gray-700/50">';
           html += '<th class="px-6 py-3 text-left font-semibold text-slate-600 dark:text-gray-300 w-16">Rank</th>';
           html += '<th class="px-6 py-3 text-left font-semibold text-slate-600 dark:text-gray-300">Contributor</th>';
-          html += '<th class="px-6 py-3 text-right font-semibold text-slate-600 dark:text-gray-300 w-32">Jobs Posted</th>';
+          html += '<th class="px-6 py-3  text-right font-semibold text-slate-600 dark:text-gray-300 w-32">Jobs Posted</th>';
           html += '</tr></thead>';
           html += '<tbody class="divide-y divide-slate-100 dark:divide-gray-700">';
 
@@ -175,7 +175,7 @@
             html += '</div></div>';
             html += '</td>';
             html += '<td class="px-6 py-4 text-right">';
-            html += '<span class="inline-flex items-center gap-1 rounded-full bg-red-50 px-3 py-1 text-sm font-semibold text-red-700 dark:bg-red-900/30 dark:text-red-400">';
+            html += '<span class="inline-flex whitespace-nowrap items-center gap-1 rounded-full bg-red-50 px-4 py-1.5 text-sm font-semibold text-red-700 dark:bg-red-900/30 dark:text-red-400">';
             html += '<i class="fa-solid fa-briefcase text-xs" aria-hidden="true"></i> ';
             html += entry.count + ' job' + (entry.count !== 1 ? 's' : '');
             html += '</span>';
