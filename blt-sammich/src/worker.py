@@ -2,6 +2,7 @@ import hashlib
 import hmac
 import json
 import time
+import traceback
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -193,6 +194,26 @@ def flatten_form_values(values: Dict[str, List[str]]) -> Dict[str, str]:
 
 def parse_form_encoded(body: str) -> Dict[str, str]:
     return flatten_form_values(parse_qs(body, keep_blank_values=True))
+
+
+def log_exception_one_line(
+    error: Exception,
+    context: str,
+    extra: Optional[Dict[str, Any]] = None,
+) -> None:
+    stack = "".join(
+        traceback.format_exception(type(error), error, error.__traceback__)
+    ).replace("\n", "\\n")
+    payload = {
+        "level": "error",
+        "context": context,
+        "error_type": type(error).__name__,
+        "error": str(error),
+        "stack": stack,
+    }
+    if extra:
+        payload["extra"] = extra
+    print(json.dumps(payload, separators=(",", ":")))
 
 
 def verify_slack_signature(
@@ -1059,6 +1080,11 @@ async def handle_request(request: Any, env: Any) -> Any:
         try:
             install_url = build_slack_install_url(env)
         except ValueError as error:
+            log_exception_one_line(
+                error,
+                "install_slack_misconfigured",
+                {"path": path},
+            )
             return html_response(
                 "<h1>Install URL misconfigured</h1><p>{0}</p>".format(str(error)),
                 status=500,
@@ -1115,4 +1141,15 @@ async def handle_request(request: Any, env: Any) -> Any:
 
 class Default(WorkerEntrypoint):
     async def fetch(self, request: Any) -> Any:
-        return await handle_request(request, self.env)
+        try:
+            return await handle_request(request, self.env)
+        except Exception as error:
+            log_exception_one_line(
+                error,
+                "unhandled_fetch_exception",
+                {
+                    "url": str(request.url),
+                    "method": str(request.method).upper(),
+                },
+            )
+            return build_response("Internal Server Error", status=500)
