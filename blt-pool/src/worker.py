@@ -5174,7 +5174,6 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
-  <link rel="icon" href="/favicon.ico">
   <link rel="icon" type="image/png" href="/logo-sm.png?v=3">
   <script>
     tailwind.config = {{
