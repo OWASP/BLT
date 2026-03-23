@@ -51,7 +51,7 @@ node test-sorting-security.js
 1. **Fork** [OWASP-BLT/BLT-Leaf](https://github.com/OWASP-BLT/BLT-Leaf) and **clone your fork**.
 2. Create a branch, e.g. `docs/...`, `fix/...`, or `feat/...`.
 3. Keep commits focused; update docs when behavior or setup changes.
-4. Open a PR against **`main`**. CI runs `npm run lint`, `npm run format:check`, `npm test`, and `npm audit`.
+4. Open a PR against **`main`**. CI runs `npm run lint`, `npm run format:check`, `npm test`, and `npm audit --audit-level=high` (see [.github/workflows/ci.yml](.github/workflows/ci.yml)).
 
 ## Getting help
 
