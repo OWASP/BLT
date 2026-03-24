@@ -29,36 +29,25 @@ const VoiceChanger = (() => {
   let monitorEnabled = false;
   let monitorVolume = 0.5;
   let micGain = 1.0;
+  let effectIntensity = 0.5; /* 0 = subtle, 1 = maximum; scales every effect chain */
 
   const MODES = {
-    normal: {
-      label: "Normal",
-      icon: "fa-microphone",
-      description: "No voice effect applied",
-    },
-    deep: {
-      label: "Deep",
-      icon: "fa-down-long",
-      description: "Lower, deeper voice tone",
-    },
-    chipmunk: {
-      label: "Chipmunk",
-      icon: "fa-up-long",
-      description: "Higher-pitched squeaky voice",
-    },
-    robot: {
-      label: "Robot",
-      icon: "fa-robot",
-      description: "Robotic ring-modulation effect",
-    },
-    echo: {
-      label: "Echo",
-      icon: "fa-wave-square",
-      description: "Reverb and echo effect",
-    },
+    normal:   { label: "Normal",    icon: "fa-microphone",     description: "No voice effect applied" },
+    deep:     { label: "Deep",      icon: "fa-down-long",      description: "Lower, deeper voice tone" },
+    chipmunk: { label: "Chipmunk",  icon: "fa-up-long",        description: "Higher-pitched squeaky voice" },
+    robot:    { label: "Robot",     icon: "fa-robot",          description: "Robotic ring-modulation effect" },
+    echo:     { label: "Echo",      icon: "fa-wave-square",    description: "Reverb and echo effect" },
+    voice1:   { label: "Telephone", icon: "fa-phone",          description: "Classic telephone / walkie-talkie" },
+    voice2:   { label: "Alien",     icon: "fa-user-astronaut", description: "Otherworldly alien voice" },
+    voice3:   { label: "Monster",   icon: "fa-skull",          description: "Deep monster voice with tremolo" },
   };
 
   /* ── Helpers ── */
+
+  /** Linear interpolate between a and b at position t (0–1). */
+  function lerp(a, b, t) {
+    return a + (b - a) * t;
+  }
 
   function makeDistortionCurve(amount) {
     const n = 512;
@@ -117,18 +106,21 @@ const VoiceChanger = (() => {
     /* Always reconnect: sourceNode → inputGainNode */
     sourceNode.connect(inputGainNode);
 
+    /* t = effectIntensity (0–1) used to scale every effect parameter */
+    const t = effectIntensity;
+
     switch (mode) {
       case "deep": {
         /* Boost bass, attenuate treble → deeper sounding voice */
         const lowShelf = audioCtx.createBiquadFilter();
         lowShelf.type = "lowshelf";
         lowShelf.frequency.value = 250;
-        lowShelf.gain.value = 9;
+        lowShelf.gain.value = lerp(3, 18, t);
 
         const highShelf = audioCtx.createBiquadFilter();
         highShelf.type = "highshelf";
         highShelf.frequency.value = 2000;
-        highShelf.gain.value = -8;
+        highShelf.gain.value = lerp(-3, -16, t);
 
         const gain = audioCtx.createGain();
         gain.gain.value = 1.1;
@@ -145,7 +137,7 @@ const VoiceChanger = (() => {
         const lowShelf = audioCtx.createBiquadFilter();
         lowShelf.type = "lowshelf";
         lowShelf.frequency.value = 400;
-        lowShelf.gain.value = -10;
+        lowShelf.gain.value = lerp(-4, -14, t);
 
         const highpass = audioCtx.createBiquadFilter();
         highpass.type = "highpass";
@@ -155,7 +147,7 @@ const VoiceChanger = (() => {
         const peaking = audioCtx.createBiquadFilter();
         peaking.type = "peaking";
         peaking.frequency.value = 3200;
-        peaking.gain.value = 8;
+        peaking.gain.value = lerp(3, 14, t);
         peaking.Q.value = 1;
 
         inputGainNode.connect(lowShelf);
@@ -169,7 +161,7 @@ const VoiceChanger = (() => {
         /* Ring modulation: multiply source by a low-frequency oscillator */
         const oscillator = audioCtx.createOscillator();
         oscillator.type = "square";
-        oscillator.frequency.value = 60;
+        oscillator.frequency.value = lerp(30, 100, t);
 
         /* The oscillator drives the gain of a GainNode that the source passes through */
         const ringGain = audioCtx.createGain();
@@ -180,7 +172,7 @@ const VoiceChanger = (() => {
         activeOscillator = oscillator; /* tracked so it can be stopped on next buildChain */
 
         const waveshaper = audioCtx.createWaveShaper();
-        waveshaper.curve = makeDistortionCurve(80);
+        waveshaper.curve = makeDistortionCurve(lerp(30, 150, t));
         waveshaper.oversample = "4x";
 
         const bandpass = audioCtx.createBiquadFilter();
@@ -202,16 +194,16 @@ const VoiceChanger = (() => {
       case "echo": {
         /* Short delay with feedback loop mixed with the dry signal */
         const delay = audioCtx.createDelay(1.0);
-        delay.delayTime.value = 0.22;
+        delay.delayTime.value = lerp(0.1, 0.38, t);
 
         const feedback = audioCtx.createGain();
-        feedback.gain.value = 0.38;
+        feedback.gain.value = lerp(0.2, 0.55, t);
 
         const dryGain = audioCtx.createGain();
         dryGain.gain.value = 0.8;
 
         const wetGain = audioCtx.createGain();
-        wetGain.gain.value = 0.55;
+        wetGain.gain.value = lerp(0.3, 0.7, t);
 
         /* Dry path */
         inputGainNode.connect(dryGain);
@@ -223,6 +215,109 @@ const VoiceChanger = (() => {
         feedback.connect(delay);
         delay.connect(wetGain);
         wetGain.connect(destinationNode);
+        break;
+      }
+
+      case "voice1": {
+        /* Telephone: narrow phone bandwidth (HP+LP) + tube-style distortion */
+        const highpass = audioCtx.createBiquadFilter();
+        highpass.type = "highpass";
+        highpass.frequency.value = lerp(150, 500, t);
+        highpass.Q.value = 0.9;
+
+        const lowpass = audioCtx.createBiquadFilter();
+        lowpass.type = "lowpass";
+        lowpass.frequency.value = lerp(5000, 2200, t);
+        lowpass.Q.value = 0.9;
+
+        const waveshaper = audioCtx.createWaveShaper();
+        waveshaper.curve = makeDistortionCurve(lerp(10, 90, t));
+        waveshaper.oversample = "2x";
+
+        const gainOut = audioCtx.createGain();
+        gainOut.gain.value = 1.2;
+
+        inputGainNode.connect(highpass);
+        highpass.connect(lowpass);
+        lowpass.connect(waveshaper);
+        waveshaper.connect(gainOut);
+        gainOut.connect(destinationNode);
+        break;
+      }
+
+      case "voice2": {
+        /* Alien: ring modulation at a mid frequency + comb-filter via short delay */
+        const oscillator = audioCtx.createOscillator();
+        oscillator.type = "sine";
+        oscillator.frequency.value = lerp(60, 200, t);
+
+        const ringGain = audioCtx.createGain();
+        ringGain.gain.value = 0;
+        oscillator.connect(ringGain.gain);
+        oscillator.start();
+        activeOscillator = oscillator;
+
+        /* Comb filter via short feedback delay */
+        const combDelay = audioCtx.createDelay(0.05);
+        combDelay.delayTime.value = lerp(0.003, 0.015, t);
+        const combFeedback = audioCtx.createGain();
+        combFeedback.gain.value = lerp(0.35, 0.65, t);
+
+        const dryGain = audioCtx.createGain();
+        dryGain.gain.value = 0.6;
+        const wetGain = audioCtx.createGain();
+        wetGain.gain.value = lerp(0.4, 0.9, t);
+
+        inputGainNode.connect(dryGain);
+        dryGain.connect(destinationNode);
+
+        inputGainNode.connect(ringGain);
+        ringGain.connect(combDelay);
+        combDelay.connect(combFeedback);
+        combFeedback.connect(combDelay);
+        combDelay.connect(wetGain);
+        wetGain.connect(destinationNode);
+        break;
+      }
+
+      case "voice3": {
+        /* Monster: strong low-shelf boost + tremolo + heavy distortion */
+        const lowShelf = audioCtx.createBiquadFilter();
+        lowShelf.type = "lowshelf";
+        lowShelf.frequency.value = 300;
+        lowShelf.gain.value = lerp(8, 20, t);
+
+        const highShelf = audioCtx.createBiquadFilter();
+        highShelf.type = "highshelf";
+        highShelf.frequency.value = 1500;
+        highShelf.gain.value = lerp(-6, -18, t);
+
+        /* Tremolo via LFO modulating a gain node */
+        const tremoloGain = audioCtx.createGain();
+        tremoloGain.gain.value = 0.7;
+        const tremolo = audioCtx.createOscillator();
+        tremolo.type = "sine";
+        tremolo.frequency.value = lerp(3, 10, t);
+        const tremoloDepth = audioCtx.createGain();
+        tremoloDepth.gain.value = lerp(0.15, 0.5, t);
+        tremolo.connect(tremoloDepth);
+        tremoloDepth.connect(tremoloGain.gain);
+        tremolo.start();
+        activeOscillator = tremolo;
+
+        const waveshaper = audioCtx.createWaveShaper();
+        waveshaper.curve = makeDistortionCurve(lerp(80, 280, t));
+        waveshaper.oversample = "4x";
+
+        const gainOut = audioCtx.createGain();
+        gainOut.gain.value = lerp(0.9, 1.4, t);
+
+        inputGainNode.connect(lowShelf);
+        lowShelf.connect(highShelf);
+        highShelf.connect(tremoloGain);
+        tremoloGain.connect(waveshaper);
+        waveshaper.connect(gainOut);
+        gainOut.connect(destinationNode);
         break;
       }
 
@@ -340,6 +435,16 @@ const VoiceChanger = (() => {
     return micGain;
   }
 
+  /**
+   * Set the intensity of the current effect chain (0–1).
+   * 0 = subtle / 1 = maximum. Rebuilds the active chain immediately.
+   */
+  function setEffectIntensity(v) {
+    effectIntensity = Math.max(0, Math.min(1, Number(v)));
+    buildChain(currentMode);
+    return effectIntensity;
+  }
+
   function getMode() {
     return currentMode;
   }
@@ -362,6 +467,10 @@ const VoiceChanger = (() => {
 
   function getMicGain() {
     return micGain;
+  }
+
+  function getEffectIntensity() {
+    return effectIntensity;
   }
 
   /** Release all audio resources. */
@@ -421,9 +530,11 @@ const VoiceChanger = (() => {
     toggleMonitor,
     setMonitorVolume,
     setMicGain,
+    setEffectIntensity,
     getMonitorEnabled,
     getMonitorVolume,
     getMicGain,
+    getEffectIntensity,
   };
 })();
 

@@ -529,7 +529,7 @@ _VOICE_CHANGER_MODES_JS = """
     if (typeof VoiceChanger === 'undefined') return {ok: false, error: 'VoiceChanger not defined'};
 
     const modes = VoiceChanger.getModes();
-    const expected = ['normal', 'deep', 'chipmunk', 'robot', 'echo'];
+    const expected = ['normal', 'deep', 'chipmunk', 'robot', 'echo', 'voice1', 'voice2', 'voice3'];
     for (const m of expected) {
         if (!modes[m]) return {ok: false, error: 'Missing mode: ' + m};
         if (!modes[m].label) return {ok: false, error: 'Missing label for: ' + m};
@@ -590,7 +590,7 @@ async () => {
 
     VoiceChanger.init(stream);
 
-    const modes = ['normal', 'deep', 'chipmunk', 'robot', 'echo'];
+    const modes = ['normal', 'deep', 'chipmunk', 'robot', 'echo', 'voice1', 'voice2', 'voice3'];
     for (const mode of modes) {
         VoiceChanger.setMode(mode);
         if (VoiceChanger.getMode() !== mode) {
@@ -808,6 +808,64 @@ async () => {
 }
 """
 
+_VOICE_CHANGER_INTENSITY_JS = """
+async () => {
+    if (typeof VoiceChanger === 'undefined') return {ok: false, error: 'VoiceChanger not defined'};
+    if (typeof VoiceChanger.setEffectIntensity !== 'function')
+        return {ok: false, error: 'setEffectIntensity not defined'};
+    if (typeof VoiceChanger.getEffectIntensity !== 'function')
+        return {ok: false, error: 'getEffectIntensity not defined'};
+
+    /* Build a fake stream */
+    let stream;
+    try {
+        const ac = new AudioContext();
+        const osc = ac.createOscillator();
+        const dest = ac.createMediaStreamDestination();
+        osc.connect(dest);
+        osc.start();
+        stream = dest.stream;
+    } catch (e) {
+        return {ok: false, error: 'AudioContext unavailable: ' + e.message};
+    }
+
+    VoiceChanger.init(stream);
+
+    /* setEffectIntensity clamps to [0, 1] */
+    VoiceChanger.setEffectIntensity(0.75);
+    if (Math.abs(VoiceChanger.getEffectIntensity() - 0.75) > 0.001) {
+        VoiceChanger.destroy();
+        return {ok: false, error: 'setEffectIntensity(0.75) not stored correctly'};
+    }
+    VoiceChanger.setEffectIntensity(5);
+    if (VoiceChanger.getEffectIntensity() !== 1) {
+        VoiceChanger.destroy();
+        return {ok: false, error: 'setEffectIntensity(5) should clamp to 1, got ' + VoiceChanger.getEffectIntensity()};
+    }
+    VoiceChanger.setEffectIntensity(-1);
+    if (VoiceChanger.getEffectIntensity() !== 0) {
+        VoiceChanger.destroy();
+        return {ok: false, error: 'setEffectIntensity(-1) should clamp to 0, got ' + VoiceChanger.getEffectIntensity()};
+    }
+
+    /* Switching intensity on persona modes must not throw */
+    VoiceChanger.setEffectIntensity(0.5);
+    const personaModes = ['voice1', 'voice2', 'voice3'];
+    for (const m of personaModes) {
+        try {
+            VoiceChanger.setMode(m);
+            VoiceChanger.setEffectIntensity(0.8);
+        } catch (e) {
+            VoiceChanger.destroy();
+            return {ok: false, error: 'setEffectIntensity threw on mode ' + m + ': ' + e.message};
+        }
+    }
+
+    VoiceChanger.destroy();
+    return {ok: true};
+}
+"""
+
 
 def test_voice_changer_monitor_toggle(voice_changer_page):
     """toggleMonitor() must enable/disable the monitor and getMonitorEnabled() must reflect it."""
@@ -824,4 +882,10 @@ def test_voice_changer_volume_and_mic_gain(voice_changer_page):
 def test_voice_changer_init_idempotent(voice_changer_page):
     """Calling init() twice must not throw and must return a valid processed stream."""
     result = voice_changer_page.evaluate(_VOICE_CHANGER_INIT_IDEMPOTENT_JS)
+    assert result["ok"], result.get("error", "unknown error")
+
+
+def test_voice_changer_effect_intensity(voice_changer_page):
+    """setEffectIntensity() must clamp to [0,1], persist, and not throw on persona modes."""
+    result = voice_changer_page.evaluate(_VOICE_CHANGER_INTENSITY_JS)
     assert result["ok"], result.get("error", "unknown error")

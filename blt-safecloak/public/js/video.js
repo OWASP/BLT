@@ -569,14 +569,20 @@ const VideoChat = (() => {
     if (voiceAnimFrame) cancelAnimationFrame(voiceAnimFrame);
     if (audioContext) audioContext.close();
     if (typeof VoiceChanger !== "undefined") VoiceChanger.destroy();
-    /* Reset monitor button state in the UI after destroy() clears monitorEnabled */
+    /* Reset monitor button state */
     const monitorBtn = $("btn-monitor");
     if (monitorBtn) {
       monitorBtn.classList.remove("active");
       monitorBtn.setAttribute("aria-pressed", "false");
-      const lbl = document.getElementById("lbl-monitor-btn");
-      if (lbl) lbl.textContent = "Hear Yourself — Off";
     }
+    /* Reset voice mode buttons to normal and hide the intensity row */
+    document.querySelectorAll("[data-voice-mode]").forEach((btn) => {
+      const isNormal = btn.dataset.voiceMode === "normal";
+      btn.classList.toggle("active", isNormal);
+      btn.setAttribute("aria-pressed", String(isNormal));
+    });
+    const intensityRow = document.getElementById("effect-intensity-row");
+    if (intensityRow) intensityRow.style.display = "none";
     setDotStatus("offline");
     updateStatus("Disconnected", "muted");
     showToast("Session ended and media released", "success");
@@ -609,6 +615,12 @@ const VideoChat = (() => {
       btn.setAttribute("aria-pressed", String(isActive));
     });
 
+    /* Show or hide the Effect Intensity slider (not relevant for "normal") */
+    const intensityRow = document.getElementById("effect-intensity-row");
+    if (intensityRow) {
+      intensityRow.style.display = mode === "normal" ? "none" : "flex";
+    }
+
     const modeName = VoiceChanger.getModes()[mode] ? VoiceChanger.getModes()[mode].label : mode;
     showToast(`Voice effect: ${modeName}`, "info");
   }
@@ -631,8 +643,6 @@ const VideoChat = (() => {
       btn.classList.toggle("active", on);
       btn.setAttribute("aria-pressed", String(on));
     }
-    const lbl = document.getElementById("lbl-monitor-btn");
-    if (lbl) lbl.textContent = on ? "Hear Yourself — On" : "Hear Yourself — Off";
   }
 
   /* ── Noise suppression hint ── */

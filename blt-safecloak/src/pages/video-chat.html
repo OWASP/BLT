@@ -290,116 +290,113 @@
               </div>
             </div>
 
-            <!-- ── Voice Effects Panel ── -->
+            <!-- ── Voice Effects Panel (compact) ── -->
             <div
               class="card mt-4"
               id="voice-effects-panel"
               aria-label="Voice effects"
               aria-live="polite"
             >
-              <div class="card-header">
-                <h2 class="card-title">
-                  <i class="fa-solid fa-wand-magic-sparkles text-primary" aria-hidden="true"></i>
-                  Voice Effects
-                </h2>
-              </div>
-              <div class="card-body">
-                <p class="mb-3 text-xs text-gray-500">
-                  Apply a real-time audio effect to your microphone before it is transmitted.
-                </p>
+              <div class="card-body px-3 py-3">
+                <!-- Effect chip buttons — 4-column grid, 2 rows -->
                 <div
-                  class="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3"
+                  class="grid grid-cols-4 gap-1.5"
                   role="group"
                   aria-label="Voice effect options"
                 >
-                  <button
-                    class="voice-effect-btn active"
-                    data-voice-mode="normal"
+                  <button class="voice-chip active" data-voice-mode="normal"
                     onclick="VideoChat.setVoiceMode('normal')"
-                    title="No voice effect"
-                    aria-pressed="true"
-                  >
-                    <i class="fa-solid fa-microphone mb-1 text-lg" aria-hidden="true"></i>
-                    <span class="block text-xs font-semibold">Normal</span>
-                    <span class="block text-[10px] text-gray-500">No effect</span>
+                    title="No voice effect" aria-pressed="true">
+                    <i class="fa-solid fa-microphone" aria-hidden="true"></i>
+                    <span>Normal</span>
                   </button>
-                  <button
-                    class="voice-effect-btn"
-                    data-voice-mode="deep"
+                  <button class="voice-chip" data-voice-mode="deep"
                     onclick="VideoChat.setVoiceMode('deep')"
-                    title="Deep voice effect"
-                    aria-pressed="false"
-                  >
-                    <i class="fa-solid fa-down-long mb-1 text-lg" aria-hidden="true"></i>
-                    <span class="block text-xs font-semibold">Deep</span>
-                    <span class="block text-[10px] text-gray-500">Lower tone</span>
+                    title="Deep voice" aria-pressed="false">
+                    <i class="fa-solid fa-down-long" aria-hidden="true"></i>
+                    <span>Deep</span>
                   </button>
-                  <button
-                    class="voice-effect-btn"
-                    data-voice-mode="chipmunk"
+                  <button class="voice-chip" data-voice-mode="chipmunk"
                     onclick="VideoChat.setVoiceMode('chipmunk')"
-                    title="Chipmunk voice effect"
-                    aria-pressed="false"
-                  >
-                    <i class="fa-solid fa-up-long mb-1 text-lg" aria-hidden="true"></i>
-                    <span class="block text-xs font-semibold">Chipmunk</span>
-                    <span class="block text-[10px] text-gray-500">Higher pitch</span>
+                    title="Chipmunk voice" aria-pressed="false">
+                    <i class="fa-solid fa-up-long" aria-hidden="true"></i>
+                    <span>Chipmunk</span>
                   </button>
-                  <button
-                    class="voice-effect-btn"
-                    data-voice-mode="robot"
+                  <button class="voice-chip" data-voice-mode="robot"
                     onclick="VideoChat.setVoiceMode('robot')"
-                    title="Robot voice effect"
-                    aria-pressed="false"
-                  >
-                    <i class="fa-solid fa-robot mb-1 text-lg" aria-hidden="true"></i>
-                    <span class="block text-xs font-semibold">Robot</span>
-                    <span class="block text-[10px] text-gray-500">Ring modulation</span>
+                    title="Robot voice" aria-pressed="false">
+                    <i class="fa-solid fa-robot" aria-hidden="true"></i>
+                    <span>Robot</span>
                   </button>
-                  <button
-                    class="voice-effect-btn"
-                    data-voice-mode="echo"
+                  <button class="voice-chip" data-voice-mode="echo"
                     onclick="VideoChat.setVoiceMode('echo')"
-                    title="Echo voice effect"
-                    aria-pressed="false"
-                  >
-                    <i class="fa-solid fa-wave-square mb-1 text-lg" aria-hidden="true"></i>
-                    <span class="block text-xs font-semibold">Echo</span>
-                    <span class="block text-[10px] text-gray-500">Reverb &amp; delay</span>
+                    title="Echo effect" aria-pressed="false">
+                    <i class="fa-solid fa-wave-square" aria-hidden="true"></i>
+                    <span>Echo</span>
+                  </button>
+                  <button class="voice-chip" data-voice-mode="voice1"
+                    onclick="VideoChat.setVoiceMode('voice1')"
+                    title="Telephone voice persona" aria-pressed="false">
+                    <i class="fa-solid fa-phone" aria-hidden="true"></i>
+                    <span>Phone</span>
+                  </button>
+                  <button class="voice-chip" data-voice-mode="voice2"
+                    onclick="VideoChat.setVoiceMode('voice2')"
+                    title="Alien voice persona" aria-pressed="false">
+                    <i class="fa-solid fa-user-astronaut" aria-hidden="true"></i>
+                    <span>Alien</span>
+                  </button>
+                  <button class="voice-chip" data-voice-mode="voice3"
+                    onclick="VideoChat.setVoiceMode('voice3')"
+                    title="Monster voice persona" aria-pressed="false">
+                    <i class="fa-solid fa-skull" aria-hidden="true"></i>
+                    <span>Monster</span>
                   </button>
                 </div>
 
-                <!-- ── Monitor / Hear Yourself ── -->
-                <div class="mt-4 border-t border-neutral-border pt-4">
-                  <p class="mb-3 text-xs font-bold uppercase tracking-wide text-gray-500">
-                    Monitor — Hear Yourself
-                  </p>
+                <!-- Effect Intensity slider (hidden for "normal") -->
+                <div
+                  id="effect-intensity-row"
+                  class="mt-2 flex items-center gap-2"
+                  style="display:none"
+                  aria-label="Effect intensity"
+                >
+                  <span class="flex-none text-[11px] font-semibold text-gray-500 whitespace-nowrap">Intensity</span>
+                  <input
+                    type="range"
+                    class="voice-slider flex-1"
+                    id="slider-effect-intensity"
+                    min="0"
+                    max="100"
+                    step="1"
+                    value="50"
+                    aria-label="Effect intensity"
+                    oninput="
+                      VoiceChanger.setEffectIntensity(this.value / 100);
+                      document.getElementById('lbl-effect-intensity').textContent = this.value + '%';
+                    "
+                  />
+                  <span id="lbl-effect-intensity" class="flex-none w-7 text-right text-[11px] font-semibold text-primary">50%</span>
+                </div>
 
+                <!-- Monitor row (compact inline) -->
+                <div class="mt-2 flex items-center gap-2 border-t border-neutral-border pt-2">
                   <button
-                    class="voice-monitor-toggle mb-4 w-full"
+                    class="voice-chip flex-none"
                     id="btn-monitor"
-                    title="Hear yourself with the selected voice effect applied"
+                    title="Hear yourself with the selected voice effect"
                     aria-pressed="false"
                     onclick="VideoChat.toggleMonitor()"
                   >
                     <i class="fa-solid fa-headphones" aria-hidden="true"></i>
-                    <span id="lbl-monitor-btn">Hear Yourself — Off</span>
+                    <span id="lbl-monitor-btn">Monitor</span>
                   </button>
 
-                  <div class="mb-4">
-                    <label
-                      class="mb-2 flex items-center justify-between text-sm font-medium text-gray-700"
-                      for="slider-monitor-volume"
-                    >
-                      <span class="flex items-center gap-1.5">
-                        <i class="fa-solid fa-volume-high text-gray-400" aria-hidden="true"></i>
-                        Monitor Volume
-                      </span>
-                      <span id="label-monitor-volume" class="font-semibold text-primary">50%</span>
-                    </label>
+                  <div class="flex flex-1 items-center gap-1 min-w-0">
+                    <i class="fa-solid fa-volume-high text-[11px] text-gray-400 flex-none" aria-hidden="true"></i>
                     <input
                       type="range"
-                      class="voice-slider"
+                      class="voice-slider flex-1 min-w-0"
                       id="slider-monitor-volume"
                       min="0"
                       max="100"
@@ -411,22 +408,14 @@
                         document.getElementById('label-monitor-volume').textContent = this.value + '%';
                       "
                     />
+                    <span id="label-monitor-volume" class="flex-none w-6 text-right text-[10px] font-semibold text-primary">50%</span>
                   </div>
 
-                  <div>
-                    <label
-                      class="mb-2 flex items-center justify-between text-sm font-medium text-gray-700"
-                      for="slider-mic-gain"
-                    >
-                      <span class="flex items-center gap-1.5">
-                        <i class="fa-solid fa-microphone text-gray-400" aria-hidden="true"></i>
-                        Mic Level
-                      </span>
-                      <span id="label-mic-gain" class="font-semibold text-primary">100%</span>
-                    </label>
+                  <div class="flex flex-1 items-center gap-1 min-w-0">
+                    <i class="fa-solid fa-microphone text-[11px] text-gray-400 flex-none" aria-hidden="true"></i>
                     <input
                       type="range"
-                      class="voice-slider"
+                      class="voice-slider flex-1 min-w-0"
                       id="slider-mic-gain"
                       min="0"
                       max="200"
@@ -438,7 +427,7 @@
                         document.getElementById('label-mic-gain').textContent = this.value + '%';
                       "
                     />
-                    <p class="mt-1 text-[11px] text-gray-400">100% = unity - 200% = double</p>
+                    <span id="label-mic-gain" class="flex-none w-8 text-right text-[10px] font-semibold text-primary">100%</span>
                   </div>
                 </div>
               </div>

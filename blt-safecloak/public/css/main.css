@@ -205,70 +205,41 @@ body {
   color: #ffffff;
 }
 
-/* === Voice Effect Buttons === */
-.voice-effect-btn {
+/* === Compact Voice Effect Chips === */
+.voice-chip {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 0.65rem 0.5rem;
-  border-radius: 0.6rem;
+  gap: 2px;
+  padding: 0.4rem 0.25rem;
+  border-radius: 0.5rem;
   border: 1.5px solid var(--blt-neutral-border);
   background: #ffffff;
   color: #374151;
   cursor: pointer;
+  font-size: 0.7rem;
+  min-height: 44px; /* accessible touch target */
+  width: 100%;
+  text-align: center;
+  touch-action: manipulation; /* prevent double-tap zoom on mobile */
   transition:
     border-color 0.15s ease,
     background 0.15s ease,
     color 0.15s ease;
-  text-align: center;
-  min-height: 72px; /* touch-target height for voice-effect buttons */
 }
 
-.voice-effect-btn:hover {
+.voice-chip:hover {
   border-color: var(--blt-primary);
   background: #fff5f5;
   color: var(--blt-primary);
 }
 
-.voice-effect-btn.active {
+.voice-chip.active {
   border-color: var(--blt-primary);
   background: #feeae9;
   color: var(--blt-primary);
   font-weight: 700;
-}
-
-/* === Hear Yourself toggle button === */
-.voice-monitor-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  border-radius: 0.6rem;
-  border: 1.5px solid var(--blt-neutral-border);
-  background: #ffffff;
-  color: #374151;
-  cursor: pointer;
-  font-size: 0.875rem;
-  font-weight: 600;
-  min-height: 48px; /* accessible touch target */
-  transition:
-    border-color 0.15s ease,
-    background 0.15s ease,
-    color 0.15s ease;
-}
-
-.voice-monitor-toggle:hover {
-  border-color: var(--blt-primary);
-  background: #fff5f5;
-  color: var(--blt-primary);
-}
-
-.voice-monitor-toggle.active {
-  border-color: var(--blt-primary);
-  background: #feeae9;
-  color: var(--blt-primary);
 }
 
 /* === Voice Monitor Sliders === */
