@@ -36,6 +36,10 @@ from urllib.parse import quote, urlparse
 
 from js import Headers, Response, console, fetch  # Cloudflare Workers JS bindings
 from index_template import GITHUB_PAGE_HTML  # Landing page HTML template
+from services.check_orchestrator import (
+    dispatch_check_orchestrator_event,
+    should_dispatch_check_orchestrator_event,
+)
 from services.admin import AdminService, has_merged_pr_in_org
 from services.mentor_seed import INITIAL_MENTORS
 from checks_api import build_update_check_run_payloads
@@ -4813,6 +4817,17 @@ async def handle_webhook(request, env) -> Response:
     blt_api_url = getattr(env, "BLT_API_URL", "https://blt-api.owasp-blt.workers.dev")
 
     try:
+        if should_dispatch_check_orchestrator_event(event, action):
+            try:
+                await dispatch_check_orchestrator_event(event, action, payload, token, github_api)
+            except Exception as exc:
+                console.error(
+                    "[BLT][checks-dispatch] best-effort dispatch failed: "
+                    f"event={event} action={action} "
+                    f"repo={repo_full_name or '-'} installation={installation_id or '-'} "
+                    f"token_present={bool(token)} error={exc}"
+                )
+
         if event == "issue_comment" and action == "created":
             await handle_issue_comment(payload, token, env)
         elif event == "issues":
