@@ -1,5 +1,6 @@
 
 import hashlib
+import re
 import secrets
 import time
 from typing import Any, Dict, Optional
@@ -14,6 +15,9 @@ from workers import Response
 from models import User
 
 import logging
+
+_USERNAME_RE = re.compile(r'^[a-zA-Z0-9_.-]{3,30}$')
+_EMAIL_RE = re.compile(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
 def generate_jwt_token(user_id: int, secret: str, expires_in: int = 3600) -> str:
     """
     Generate a JWT authentication token for a user.
@@ -93,6 +97,31 @@ async def handle_signup(
         username = str(body["username"]).strip()
         email = str(body["email"]).strip().lower()
         redirect_uri = str(body.get("redirect_uri", "")).strip()
+
+        # --- Input Validation ---
+        password = body["password"]
+        if not isinstance(password, str) or not (12 <= len(password) <= 128 and
+                re.search(r'[A-Z]', password) and
+                re.search(r'[a-z]', password) and
+                re.search(r'\d', password) and
+                re.search(r'[^a-zA-Z0-9]', password)):
+            return error_response(
+                "Password must be a string of 12-128 characters and contain at least one uppercase letter, one lowercase letter, one number, and one special character",
+                400,
+            )
+
+        if len(email) > 254:
+            return error_response("Email too long", 400)
+
+        if not _EMAIL_RE.match(email):
+            return error_response("Invalid email format", 400)
+
+        if not _USERNAME_RE.match(username):
+            return error_response(
+                "Username must be 3-30 characters and may include letters, numbers, underscores, dots, and hyphens",
+                400,
+            )
+        # --- End Input Validation ---
 
         # Validate redirect_uri against whitelist if provided
         if redirect_uri:
