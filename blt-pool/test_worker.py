@@ -3711,6 +3711,150 @@ class TestCheckUnresolvedConversations(unittest.TestCase):
             f"Expected label with count 3, calls: {api_calls}",
         )
 
+    def test_creates_failing_check_run_when_unresolved(self):
+        """A failing check run should be posted when threads are unresolved."""
+        threads = [{"isResolved": False}, {"isResolved": True}]
+        api_calls = []
+
+        async def _inner():
+            with patch.object(_worker, "fetch", new=AsyncMock(return_value=self._graphql_response(threads))):
+                with patch.object(
+                    _worker,
+                    "github_api",
+                    new=AsyncMock(side_effect=lambda *a, **kw: (api_calls.append(a), self._ok_response())[-1]),
+                ):
+                    await _worker.check_unresolved_conversations(self._payload(), "tok")
+
+        _run(_inner())
+        check_run_calls = [
+            c for c in api_calls
+            if c[0] == "POST" and "/check-runs" in c[1]
+        ]
+        self.assertTrue(len(check_run_calls) >= 1, f"Expected POST to check-runs, got {api_calls}")
+        body = check_run_calls[0][3]
+        self.assertEqual(body.get("conclusion"), "failure")
+        self.assertEqual(body.get("name"), _worker.UNRESOLVED_CONVERSATIONS_CHECK_NAME)
+
+    def test_creates_passing_check_run_when_all_resolved(self):
+        """A passing check run should be posted when all threads are resolved."""
+        threads = [{"isResolved": True}, {"isResolved": True}]
+        api_calls = []
+
+        async def _inner():
+            with patch.object(_worker, "fetch", new=AsyncMock(return_value=self._graphql_response(threads))):
+                with patch.object(
+                    _worker,
+                    "github_api",
+                    new=AsyncMock(side_effect=lambda *a, **kw: (api_calls.append(a), self._ok_response())[-1]),
+                ):
+                    await _worker.check_unresolved_conversations(self._payload(), "tok")
+
+        _run(_inner())
+        check_run_calls = [
+            c for c in api_calls
+            if c[0] == "POST" and "/check-runs" in c[1]
+        ]
+        self.assertTrue(len(check_run_calls) >= 1, f"Expected POST to check-runs, got {api_calls}")
+        body = check_run_calls[0][3]
+        self.assertEqual(body.get("conclusion"), "success")
+
+    def test_posts_comment_when_unresolved(self):
+        """A warning comment should be posted when there are unresolved threads."""
+        threads = [{"isResolved": False}]
+        comment_bodies = []
+
+        async def _inner():
+            with patch.object(_worker, "fetch", new=AsyncMock(return_value=self._graphql_response(threads))):
+                with patch.object(
+                    _worker,
+                    "github_api",
+                    new=AsyncMock(side_effect=lambda *a, **kw: self._ok_response()),
+                ):
+                    with patch.object(
+                        _worker,
+                        "create_comment",
+                        new=AsyncMock(side_effect=lambda o, r, n, b, t: comment_bodies.append(b)),
+                    ):
+                        await _worker.check_unresolved_conversations(self._payload(), "tok")
+
+        _run(_inner())
+        self.assertTrue(len(comment_bodies) >= 1, "Expected a comment to be posted")
+        self.assertIn(_worker.UNRESOLVED_CONVERSATIONS_MARKER, comment_bodies[0])
+        self.assertIn("1", comment_bodies[0])
+
+    def test_updates_existing_comment_when_unresolved(self):
+        """An existing marker comment should be PATCHed rather than creating a duplicate."""
+        threads = [{"isResolved": False}, {"isResolved": False}]
+        existing_comment = {"id": 42, "body": f"{_worker.UNRESOLVED_CONVERSATIONS_MARKER}\nold text"}
+        api_calls = []
+        comment_creates = []
+
+        async def mock_api(*args, **kwargs):
+            api_calls.append(args)
+            if args[0] == "GET" and "/comments" in args[1] and "comments/" not in args[1]:
+                resp = MagicMock()
+                resp.status = 200
+                resp.text = AsyncMock(return_value=json.dumps([existing_comment]))
+                return resp
+            return self._ok_response()
+
+        async def _inner():
+            with patch.object(_worker, "fetch", new=AsyncMock(return_value=self._graphql_response(threads))):
+                with patch.object(_worker, "github_api", new=AsyncMock(side_effect=mock_api)):
+                    with patch.object(_worker, "create_comment", new=AsyncMock(side_effect=lambda *a: comment_creates.append(a))):
+                        await _worker.check_unresolved_conversations(self._payload(), "tok")
+
+        _run(_inner())
+        patch_calls = [c for c in api_calls if c[0] == "PATCH" and "/comments/42" in c[1]]
+        self.assertTrue(len(patch_calls) >= 1, f"Expected PATCH to update comment, got {api_calls}")
+        self.assertEqual(len(comment_creates), 0, "Should not create a new comment when one exists")
+
+    def test_deletes_comment_when_all_resolved(self):
+        """The warning comment should be removed once all conversations are resolved."""
+        threads = [{"isResolved": True}]
+        existing_comment = {"id": 99, "body": f"{_worker.UNRESOLVED_CONVERSATIONS_MARKER}\nsome warning"}
+        api_calls = []
+
+        async def mock_api(*args, **kwargs):
+            api_calls.append(args)
+            if args[0] == "GET" and "/comments" in args[1] and "comments/" not in args[1]:
+                resp = MagicMock()
+                resp.status = 200
+                resp.text = AsyncMock(return_value=json.dumps([existing_comment]))
+                return resp
+            return self._ok_response()
+
+        async def _inner():
+            with patch.object(_worker, "fetch", new=AsyncMock(return_value=self._graphql_response(threads))):
+                with patch.object(_worker, "github_api", new=AsyncMock(side_effect=mock_api)):
+                    await _worker.check_unresolved_conversations(self._payload(), "tok")
+
+        _run(_inner())
+        delete_calls = [c for c in api_calls if c[0] == "DELETE" and "/comments/99" in c[1]]
+        self.assertTrue(len(delete_calls) >= 1, f"Expected DELETE for resolved comment, got {api_calls}")
+
+    def test_no_comment_posted_when_no_threads(self):
+        """No warning comment should be posted when there are no review threads."""
+        threads = []
+        comment_creates = []
+
+        async def _inner():
+            with patch.object(_worker, "fetch", new=AsyncMock(return_value=self._graphql_response(threads))):
+                with patch.object(
+                    _worker,
+                    "github_api",
+                    new=AsyncMock(side_effect=lambda *a, **kw: self._ok_response()),
+                ):
+                    with patch.object(
+                        _worker,
+                        "create_comment",
+                        new=AsyncMock(side_effect=lambda *a: comment_creates.append(a)),
+                    ):
+                        await _worker.check_unresolved_conversations(self._payload(), "tok")
+
+        _run(_inner())
+        self.assertEqual(len(comment_creates), 0, "No comment should be posted when there are no threads")
+
 
 # ---------------------------------------------------------------------------
 # label_pending_checks / handle_workflow_run / handle_check_run tests
