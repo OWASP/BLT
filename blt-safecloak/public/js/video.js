@@ -569,6 +569,12 @@ const VideoChat = (() => {
     if (voiceAnimFrame) cancelAnimationFrame(voiceAnimFrame);
     if (audioContext) audioContext.close();
     if (typeof VoiceChanger !== "undefined") VoiceChanger.destroy();
+    /* Reset monitor button state in the UI after destroy() clears monitorEnabled */
+    const monitorBtn = $("btn-monitor");
+    if (monitorBtn) {
+      monitorBtn.classList.remove("active");
+      monitorBtn.setAttribute("aria-pressed", "false");
+    }
     setDotStatus("offline");
     updateStatus("Disconnected", "muted");
     showToast("Session ended and media released", "success");

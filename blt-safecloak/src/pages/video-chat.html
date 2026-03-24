@@ -368,6 +368,78 @@
                     <span class="block text-[10px] text-gray-500">Reverb &amp; delay</span>
                   </button>
                 </div>
+
+                <!-- ── Monitor / Hear Yourself ── -->
+                <div class="mt-4 border-t border-neutral-border pt-4">
+                  <div class="mb-3 flex items-center justify-between">
+                    <span class="text-xs font-bold uppercase tracking-wide text-gray-500"
+                      >Monitor</span
+                    >
+                    <button
+                      class="voice-effect-btn"
+                      id="btn-monitor"
+                      title="Hear yourself with the selected voice effect applied"
+                      aria-pressed="false"
+                      style="min-height: 0; padding: 0.35rem 0.75rem; flex-direction: row; gap: 0.4rem; font-size: 0.75rem"
+                      onclick="
+                        VoiceChanger.toggleMonitor();
+                        this.classList.toggle('active', VoiceChanger.getMonitorEnabled());
+                        this.setAttribute('aria-pressed', String(VoiceChanger.getMonitorEnabled()));
+                      "
+                    >
+                      <i class="fa-solid fa-headphones" aria-hidden="true"></i>
+                      Hear Yourself
+                    </button>
+                  </div>
+
+                  <div class="mb-3">
+                    <label
+                      class="mb-1 flex items-center justify-between text-xs text-gray-600"
+                      for="slider-monitor-volume"
+                    >
+                      <span>Monitor Volume</span>
+                      <span id="label-monitor-volume" class="font-semibold text-gray-400">50%</span>
+                    </label>
+                    <input
+                      type="range"
+                      class="voice-slider"
+                      id="slider-monitor-volume"
+                      min="0"
+                      max="100"
+                      step="1"
+                      value="50"
+                      aria-label="Monitor volume"
+                      oninput="
+                        VoiceChanger.setMonitorVolume(this.value / 100);
+                        document.getElementById('label-monitor-volume').textContent = this.value + '%';
+                      "
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      class="mb-1 flex items-center justify-between text-xs text-gray-600"
+                      for="slider-mic-gain"
+                    >
+                      <span>Mic Level</span>
+                      <span id="label-mic-gain" class="font-semibold text-gray-400">100%</span>
+                    </label>
+                    <input
+                      type="range"
+                      class="voice-slider"
+                      id="slider-mic-gain"
+                      min="0"
+                      max="200"
+                      step="1"
+                      value="100"
+                      aria-label="Microphone input level"
+                      oninput="
+                        VoiceChanger.setMicGain(this.value / 100);
+                        document.getElementById('label-mic-gain').textContent = this.value + '%';
+                      "
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           </div>

@@ -663,3 +663,165 @@ def test_voice_changer_ignores_unknown_mode(voice_changer_page):
     """setMode() with an unrecognised key must not change the current mode."""
     result = voice_changer_page.evaluate(_VOICE_CHANGER_IGNORE_UNKNOWN_MODE_JS)
     assert result["ok"], result.get("error", "unknown error")
+
+
+# ---------------------------------------------------------------------------
+# VoiceChanger monitor / mic-gain tests
+# ---------------------------------------------------------------------------
+
+_VOICE_CHANGER_MONITOR_JS = """
+async () => {
+    if (typeof VoiceChanger === 'undefined') return {ok: false, error: 'VoiceChanger not defined'};
+
+    /* Build a fake stream */
+    let stream;
+    try {
+        const ac = new AudioContext();
+        const osc = ac.createOscillator();
+        const dest = ac.createMediaStreamDestination();
+        osc.connect(dest);
+        osc.start();
+        stream = dest.stream;
+    } catch (e) {
+        return {ok: false, error: 'AudioContext unavailable: ' + e.message};
+    }
+
+    VoiceChanger.init(stream);
+
+    /* Monitor must start disabled */
+    if (VoiceChanger.getMonitorEnabled()) {
+        VoiceChanger.destroy();
+        return {ok: false, error: 'monitor should be disabled after init'};
+    }
+
+    /* Toggle on */
+    const enabled = VoiceChanger.toggleMonitor();
+    if (!enabled) {
+        VoiceChanger.destroy();
+        return {ok: false, error: 'toggleMonitor() should return true after first toggle'};
+    }
+    if (!VoiceChanger.getMonitorEnabled()) {
+        VoiceChanger.destroy();
+        return {ok: false, error: 'getMonitorEnabled() should be true after toggle'};
+    }
+
+    /* Toggle off */
+    VoiceChanger.toggleMonitor();
+    if (VoiceChanger.getMonitorEnabled()) {
+        VoiceChanger.destroy();
+        return {ok: false, error: 'getMonitorEnabled() should be false after second toggle'};
+    }
+
+    VoiceChanger.destroy();
+    return {ok: true};
+}
+"""
+
+_VOICE_CHANGER_VOLUME_GAIN_JS = """
+async () => {
+    if (typeof VoiceChanger === 'undefined') return {ok: false, error: 'VoiceChanger not defined'};
+
+    /* Build a fake stream */
+    let stream;
+    try {
+        const ac = new AudioContext();
+        const osc = ac.createOscillator();
+        const dest = ac.createMediaStreamDestination();
+        osc.connect(dest);
+        osc.start();
+        stream = dest.stream;
+    } catch (e) {
+        return {ok: false, error: 'AudioContext unavailable: ' + e.message};
+    }
+
+    VoiceChanger.init(stream);
+
+    /* setMonitorVolume clamps to [0, 1] */
+    VoiceChanger.setMonitorVolume(0.75);
+    if (Math.abs(VoiceChanger.getMonitorVolume() - 0.75) > 0.001) {
+        VoiceChanger.destroy();
+        return {ok: false, error: 'setMonitorVolume(0.75) not stored correctly'};
+    }
+    VoiceChanger.setMonitorVolume(5); /* above max */
+    if (VoiceChanger.getMonitorVolume() !== 1) {
+        VoiceChanger.destroy();
+        return {ok: false, error: 'setMonitorVolume(5) should clamp to 1, got ' + VoiceChanger.getMonitorVolume()};
+    }
+    VoiceChanger.setMonitorVolume(-1); /* below min */
+    if (VoiceChanger.getMonitorVolume() !== 0) {
+        VoiceChanger.destroy();
+        return {ok: false, error: 'setMonitorVolume(-1) should clamp to 0, got ' + VoiceChanger.getMonitorVolume()};
+    }
+
+    /* setMicGain clamps to [0, 2] */
+    VoiceChanger.setMicGain(1.5);
+    if (Math.abs(VoiceChanger.getMicGain() - 1.5) > 0.001) {
+        VoiceChanger.destroy();
+        return {ok: false, error: 'setMicGain(1.5) not stored correctly'};
+    }
+    VoiceChanger.setMicGain(10); /* above max */
+    if (VoiceChanger.getMicGain() !== 2) {
+        VoiceChanger.destroy();
+        return {ok: false, error: 'setMicGain(10) should clamp to 2, got ' + VoiceChanger.getMicGain()};
+    }
+    VoiceChanger.setMicGain(-1); /* below min */
+    if (VoiceChanger.getMicGain() !== 0) {
+        VoiceChanger.destroy();
+        return {ok: false, error: 'setMicGain(-1) should clamp to 0, got ' + VoiceChanger.getMicGain()};
+    }
+
+    VoiceChanger.destroy();
+    return {ok: true};
+}
+"""
+
+_VOICE_CHANGER_INIT_IDEMPOTENT_JS = """
+async () => {
+    if (typeof VoiceChanger === 'undefined') return {ok: false, error: 'VoiceChanger not defined'};
+
+    function makeStream() {
+        const ac = new AudioContext();
+        const osc = ac.createOscillator();
+        const dest = ac.createMediaStreamDestination();
+        osc.connect(dest);
+        osc.start();
+        return dest.stream;
+    }
+
+    /* Call init twice — the second call must not throw and must return a valid stream */
+    try {
+        const s1 = VoiceChanger.init(makeStream());
+        if (!s1) return {ok: false, error: 'First init() returned falsy'};
+
+        const s2 = VoiceChanger.init(makeStream());
+        if (!s2) return {ok: false, error: 'Second init() returned falsy'};
+
+        const tracks = s2.getAudioTracks ? s2.getAudioTracks() : [];
+        if (tracks.length === 0) return {ok: false, error: 'Second init() stream has no audio tracks'};
+    } catch (e) {
+        VoiceChanger.destroy();
+        return {ok: false, error: 'init() threw on second call: ' + e.message};
+    }
+
+    VoiceChanger.destroy();
+    return {ok: true};
+}
+"""
+
+
+def test_voice_changer_monitor_toggle(voice_changer_page):
+    """toggleMonitor() must enable/disable the monitor and getMonitorEnabled() must reflect it."""
+    result = voice_changer_page.evaluate(_VOICE_CHANGER_MONITOR_JS)
+    assert result["ok"], result.get("error", "unknown error")
+
+
+def test_voice_changer_volume_and_mic_gain(voice_changer_page):
+    """setMonitorVolume() and setMicGain() must clamp values and persist them."""
+    result = voice_changer_page.evaluate(_VOICE_CHANGER_VOLUME_GAIN_JS)
+    assert result["ok"], result.get("error", "unknown error")
+
+
+def test_voice_changer_init_idempotent(voice_changer_page):
+    """Calling init() twice must not throw and must return a valid processed stream."""
+    result = voice_changer_page.evaluate(_VOICE_CHANGER_INIT_IDEMPOTENT_JS)
+    assert result["ok"], result.get("error", "unknown error")
