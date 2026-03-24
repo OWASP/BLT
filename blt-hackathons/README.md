@@ -70,7 +70,7 @@ Your main page (`index.html`) will show all hackathons, and each hackathon will 
 1. Push your changes to GitHub
 2. Go to your repository **Settings** → **Pages**
 3. Under "Source", select the branch you want to deploy (usually `main`)
-4. Your hackathon platform will be live at: `https://your-username.github.io/BLT-Hackathon/`
+4. Your hackathon platform will be live at: `https://your-username.github.io/BLT-Hackathons/`
 
 ## 📖 Configuration Guide
 
