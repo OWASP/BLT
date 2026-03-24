@@ -36,8 +36,13 @@ from urllib.parse import quote, urlparse
 
 from js import Headers, Response, console, fetch  # Cloudflare Workers JS bindings
 from index_template import GITHUB_PAGE_HTML  # Landing page HTML template
+from services.check_orchestrator import (
+    dispatch_check_orchestrator_event,
+    should_dispatch_check_orchestrator_event,
+)
 from services.admin import AdminService, has_merged_pr_in_org
 from services.mentor_seed import INITIAL_MENTORS
+from checks_api import build_update_check_run_payloads
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -88,6 +93,11 @@ _MENTOR_STATS_CACHE_TTL = 86400
 # This default can also be overridden at runtime by setting the Cloudflare
 # Worker environment variable ``MENTOR_AUTO_PR_REVIEWER_ENABLED=true``.
 MENTOR_AUTO_PR_REVIEWER_ENABLED = False
+
+# Unresolved conversations check — check-run name and HTML comment marker used
+# to identify the bot comment so it can be updated rather than duplicated.
+UNRESOLVED_CONVERSATIONS_CHECK_NAME = "Unresolved Conversations"
+UNRESOLVED_CONVERSATIONS_MARKER = "<!-- BLT-UNRESOLVED-CONVERSATIONS -->"
 
 # DER OID sequence for rsaEncryption (used when wrapping PKCS#1 → PKCS#8)
 _RSA_OID_SEQ = bytes([
@@ -4176,7 +4186,7 @@ async def _ensure_label_exists(
             )
 
 async def check_unresolved_conversations(payload, token):
-    """Add label if PR has unresolved review conversations"""
+    """Add label, create a check run, and post a comment if PR has unresolved review conversations."""
     pr = payload.get("pull_request")
     if not pr:
         return
@@ -4184,6 +4194,7 @@ async def check_unresolved_conversations(payload, token):
     owner = payload["repository"]["owner"]["login"]
     repo = payload["repository"]["name"]
     number = pr["number"]
+    head_sha = pr.get("head", {}).get("sha", "")
 
     query = """
     query($owner: String!, $repo: String!, $number: Int!) {
@@ -4251,9 +4262,9 @@ async def check_unresolved_conversations(payload, token):
     label = f"unresolved-conversations: {unresolved_count}"
 
     if unresolved:
-        await _ensure_label_exists(owner, repo, label, "e74c3c", token)
+        await _ensure_label_exists(owner, repo, label, "e74c3c", token)  # Red
     else:
-        await _ensure_label_exists(owner, repo, label, "5cb85c", token)
+        await _ensure_label_exists(owner, repo, label, "5cb85c", token)  # Green
 
     await github_api(
         "POST",
@@ -4261,6 +4272,105 @@ async def check_unresolved_conversations(payload, token):
         token,
         {"labels": [label]},
     )
+
+    # Create or update a check run that fails when there are unresolved conversations.
+    noun = "conversation" if unresolved_count == 1 else "conversations"
+    if head_sha:
+        if unresolved:
+            check_title = f"{unresolved_count} unresolved {noun}"
+            check_summary = (
+                f"There {'is' if unresolved_count == 1 else 'are'} {unresolved_count} "
+                f"unresolved review {noun} that must be resolved before merging."
+            )
+            check_conclusion = "failure"
+        else:
+            check_title = "All conversations resolved"
+            check_summary = "All review conversations have been resolved."
+            check_conclusion = "success"
+
+        update_payload = build_update_check_run_payloads(
+            status="completed",
+            title=check_title,
+            summary=check_summary,
+            conclusion=check_conclusion,
+        )[0]
+
+        # Reuse an existing check run for this SHA/name to avoid creating
+        # multiple redundant check runs when called from different event types.
+        existing_check_run_id = None
+        resp_check_runs = await github_api(
+            "GET",
+            f"/repos/{owner}/{repo}/commits/{head_sha}/check-runs",
+            token,
+        )
+        if resp_check_runs.status == 200:
+            resp_data = json.loads(await resp_check_runs.text())
+            for check_run in resp_data.get("check_runs", []):
+                if check_run.get("name") == UNRESOLVED_CONVERSATIONS_CHECK_NAME:
+                    existing_check_run_id = check_run.get("id")
+                    break
+
+        if existing_check_run_id is not None:
+            await github_api(
+                "PATCH",
+                f"/repos/{owner}/{repo}/check-runs/{existing_check_run_id}",
+                token,
+                update_payload,
+            )
+        else:
+            await github_api(
+                "POST",
+                f"/repos/{owner}/{repo}/check-runs",
+                token,
+                {"name": UNRESOLVED_CONVERSATIONS_CHECK_NAME, "head_sha": head_sha, **update_payload},
+            )
+
+    # Post or update a comment when there are unresolved conversations; remove
+    # it once all conversations are resolved.
+    marker = UNRESOLVED_CONVERSATIONS_MARKER
+    existing_comment_id = None
+    page = 1
+    while True:
+        resp_comments = await github_api(
+            "GET",
+            f"/repos/{owner}/{repo}/issues/{number}/comments?per_page=100&page={page}",
+            token,
+        )
+        if resp_comments.status != 200:
+            break
+        comments = json.loads(await resp_comments.text())
+        if not comments:
+            break
+        for comment in comments:
+            if marker in comment.get("body", ""):
+                existing_comment_id = comment["id"]
+                break
+        if existing_comment_id is not None:
+            break
+        page += 1
+
+    if unresolved:
+        comment_body = (
+            f"{marker}\n"
+            f"⚠️ This pull request has **{unresolved_count} unresolved review "
+            f"{noun}** that must be resolved before merging."
+        )
+        if existing_comment_id is not None:
+            await github_api(
+                "PATCH",
+                f"/repos/{owner}/{repo}/issues/comments/{existing_comment_id}",
+                token,
+                {"body": comment_body},
+            )
+        else:
+            await create_comment(owner, repo, number, comment_body, token)
+    elif existing_comment_id is not None:
+        # All conversations resolved — remove the warning comment.
+        await github_api(
+            "DELETE",
+            f"/repos/{owner}/{repo}/issues/comments/{existing_comment_id}",
+            token,
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -4707,6 +4817,17 @@ async def handle_webhook(request, env) -> Response:
     blt_api_url = getattr(env, "BLT_API_URL", "https://blt-api.owasp-blt.workers.dev")
 
     try:
+        if should_dispatch_check_orchestrator_event(event, action):
+            try:
+                await dispatch_check_orchestrator_event(event, action, payload, token, github_api)
+            except Exception as exc:
+                console.error(
+                    "[BLT][checks-dispatch] best-effort dispatch failed: "
+                    f"event={event} action={action} "
+                    f"repo={repo_full_name or '-'} installation={installation_id or '-'} "
+                    f"token_present={bool(token)} error={exc}"
+                )
+
         if event == "issue_comment" and action == "created":
             await handle_issue_comment(payload, token, env)
         elif event == "issues":
@@ -4731,8 +4852,12 @@ async def handle_webhook(request, env) -> Response:
                 await handle_pull_request_review_submitted(payload, env)
                 # Also check peer review status
                 await handle_pull_request_review(payload, token)
+                # Update unresolved conversations label/check/comment
+                await check_unresolved_conversations(payload, token)
             elif action == "dismissed":
                 await handle_pull_request_review(payload, token)
+                # Update unresolved conversations label/check/comment
+                await check_unresolved_conversations(payload, token)
         elif event == "pull_request_review_comment":
             await check_unresolved_conversations(payload, token)
         elif event == "pull_request_review_thread":
