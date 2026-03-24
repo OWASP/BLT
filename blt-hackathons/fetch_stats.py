@@ -398,6 +398,35 @@ def process_hackathon_stats(prs, all_reviews, issues, start_dt, end_dt, reposito
             repo_stats[repo_key]["closedIssues"] += 1
             closed_issues += 1
 
+    # Get last 10 PRs (filtered for humans and optionally by allowlist)
+    recent_prs_list = sorted(
+        [
+            pr for pr in prs
+            if not (
+                "[bot]" in pr["user"]["login"] or
+                pr["user"]["login"].lower().endswith("bot") or
+                "copilot" in pr["user"]["login"].lower() or
+                "copilot" in pr.get("title", "").lower()
+            ) and (allowed_participants is None or pr["user"]["login"].lower() in allowed_participants)
+        ],
+        key=lambda x: x["created_at"],
+        reverse=True
+    )[:10]
+
+    recent_prs = [
+        {
+            "title": pr.get("title"),
+            "url": pr.get("html_url"),
+            "username": pr["user"]["login"],
+            "avatar": pr["user"].get("avatar_url"),
+            "state": pr.get("state"),
+            "created_at": pr.get("created_at"),
+            "merged_at": pr.get("merged_at"),
+            "repository": pr.get("repository"),
+        }
+        for pr in recent_prs_list
+    ]
+
     # Build sorted leaderboards
     leaderboard = sorted(
         [p for p in participants.values() if p["mergedCount"] > 0],
@@ -416,6 +445,7 @@ def process_hackathon_stats(prs, all_reviews, issues, start_dt, end_dt, reposito
         "totalIssues": total_issues,
         "closedIssues": closed_issues,
         "participantCount": len(participants),
+        "recentPRs": recent_prs,
         "leaderboard": leaderboard,
         "reviewLeaderboard": review_leaderboard,
         "repoStats": repo_stats,
@@ -694,6 +724,7 @@ def build_summary(data):
         "totalIssues": stats.get("totalIssues", 0),
         "repositories": len(data.get("repositories", [])),
         "topContributors": top_contributors,
+        "recentPRs": stats.get("recentPRs", []),
     }
 
 
