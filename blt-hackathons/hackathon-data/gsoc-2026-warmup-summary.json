@@ -1,8 +1,8 @@
 {
   "participantCount": 187,
-  "totalPRs": 2567,
-  "mergedPRs": 1637,
-  "totalIssues": 787,
+  "totalPRs": 2568,
+  "mergedPRs": 1638,
+  "totalIssues": 788,
   "repositories": 53,
   "topContributors": [
     {
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "More mentors included",
+      "url": "https://github.com/OWASP-BLT/BLT-Hackathons/pull/84",
+      "username": "Nachiket-Roy",
+      "avatar": "https://avatars.githubusercontent.com/u/204239697?v=4",
+      "state": "open",
+      "created_at": "2026-03-24T15:58:07Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-Hackathons"
+    },
     {
       "title": "feat(checks): add timeout-aware tool runner with retry fallback",
       "url": "https://github.com/OWASP-BLT/BLT-Pool/pull/99",
@@ -90,7 +100,7 @@
       "url": "https://github.com/OWASP-BLT/BLT/pull/6063",
       "username": "giftidris4-spec",
       "avatar": "https://avatars.githubusercontent.com/u/270459024?v=4",
-      "state": "closed",
+      "state": "open",
       "created_at": "2026-03-24T08:40:02Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT"
@@ -112,16 +122,6 @@
       "avatar": "https://avatars.githubusercontent.com/u/270459024?v=4",
       "state": "closed",
       "created_at": "2026-03-23T21:41:47Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "chore: delete unused recommended_articles include #6030",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6060",
-      "username": "giftidris4-spec",
-      "avatar": "https://avatars.githubusercontent.com/u/270459024?v=4",
-      "state": "closed",
-      "created_at": "2026-03-23T21:38:06Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT"
     }
