@@ -3567,6 +3567,44 @@ class TestCheckUnresolvedConversations(unittest.TestCase):
         resp.text = AsyncMock(return_value="{}")
         return resp
 
+    def _empty_list_response(self):
+        """Return an empty JSON list — suitable for list endpoints like GET /comments."""
+        resp = MagicMock()
+        resp.status = 200
+        resp.text = AsyncMock(return_value="[]")
+        return resp
+
+    def _check_runs_list_response(self, check_runs=None):
+        """Return a check-runs listing with the given check-run objects (default empty)."""
+        resp = MagicMock()
+        resp.status = 200
+        resp.text = AsyncMock(return_value=json.dumps({"check_runs": check_runs or []}))
+        return resp
+
+    def _make_api_mock(self, api_calls=None, existing_check_run_id=None):
+        """Return an endpoint-aware async mock for github_api.
+
+        Routes:
+        - GET /comments (list)  → empty list response
+        - GET /check-runs (list) → check-runs list (optionally with an existing run)
+        - Everything else       → generic ok response ({})
+        """
+        def _side_effect(*args, **kwargs):
+            if api_calls is not None:
+                api_calls.append(args)
+            method, path = args[0], args[1]
+            # Comments list endpoint
+            if method == "GET" and "/comments" in path and "comments/" not in path:
+                return self._empty_list_response()
+            # Check-runs list endpoint
+            if method == "GET" and "/check-runs" in path and "check-runs/" not in path:
+                if existing_check_run_id is not None:
+                    run = {"id": existing_check_run_id, "name": _worker.UNRESOLVED_CONVERSATIONS_CHECK_NAME}
+                    return self._check_runs_list_response([run])
+                return self._check_runs_list_response()
+            return self._ok_response()
+        return AsyncMock(side_effect=_side_effect)
+
     def _payload(self):
         return _make_pr_payload(owner="acme", repo="widgets", number=7)
 
@@ -3603,11 +3641,7 @@ class TestCheckUnresolvedConversations(unittest.TestCase):
 
         async def _inner():
             with patch.object(_worker, "fetch", new=AsyncMock(return_value=self._graphql_response(threads))):
-                with patch.object(
-                    _worker,
-                    "github_api",
-                    new=AsyncMock(side_effect=lambda *a, **kw: (api_calls.append(a), self._ok_response())[-1]),
-                ):
+                with patch.object(_worker, "github_api", new=self._make_api_mock(api_calls)):
                     await _worker.check_unresolved_conversations(self._payload(), "tok")
 
         _run(_inner())
@@ -3626,11 +3660,7 @@ class TestCheckUnresolvedConversations(unittest.TestCase):
 
         async def _inner():
             with patch.object(_worker, "fetch", new=AsyncMock(return_value=self._graphql_response(threads))):
-                with patch.object(
-                    _worker,
-                    "github_api",
-                    new=AsyncMock(side_effect=lambda *a, **kw: (api_calls.append(a), self._ok_response())[-1]),
-                ):
+                with patch.object(_worker, "github_api", new=self._make_api_mock(api_calls)):
                     await _worker.check_unresolved_conversations(self._payload(), "tok")
 
         _run(_inner())
@@ -3651,6 +3681,10 @@ class TestCheckUnresolvedConversations(unittest.TestCase):
             # Return existing labels for GET labels call
             if args[0] == "GET" and "/issues/" in args[1] and "/labels" in args[1] and "labels/" not in args[1]:
                 return self._labels_response(existing_labels)
+            if args[0] == "GET" and "/comments" in args[1] and "comments/" not in args[1]:
+                return self._empty_list_response()
+            if args[0] == "GET" and "/check-runs" in args[1] and "check-runs/" not in args[1]:
+                return self._check_runs_list_response()
             return self._ok_response()
 
         async def _inner():
@@ -3673,11 +3707,7 @@ class TestCheckUnresolvedConversations(unittest.TestCase):
 
         async def _inner():
             with patch.object(_worker, "fetch", new=AsyncMock(return_value=self._graphql_response(threads))):
-                with patch.object(
-                    _worker,
-                    "github_api",
-                    new=AsyncMock(side_effect=lambda *a, **kw: (api_calls.append(a), self._ok_response())[-1]),
-                ):
+                with patch.object(_worker, "github_api", new=self._make_api_mock(api_calls)):
                     await _worker.check_unresolved_conversations(self._payload(), "tok")
 
         _run(_inner())
@@ -3698,11 +3728,7 @@ class TestCheckUnresolvedConversations(unittest.TestCase):
 
         async def _inner():
             with patch.object(_worker, "fetch", new=AsyncMock(return_value=self._graphql_response(threads))):
-                with patch.object(
-                    _worker,
-                    "github_api",
-                    new=AsyncMock(side_effect=lambda *a, **kw: (api_calls.append(a), self._ok_response())[-1]),
-                ):
+                with patch.object(_worker, "github_api", new=self._make_api_mock(api_calls)):
                     await _worker.check_unresolved_conversations(self._payload(), "tok")
 
         _run(_inner())
@@ -3712,17 +3738,13 @@ class TestCheckUnresolvedConversations(unittest.TestCase):
         )
 
     def test_creates_failing_check_run_when_unresolved(self):
-        """A failing check run should be posted when threads are unresolved."""
+        """When no existing check run exists, a new failing run is POSTed for unresolved threads."""
         threads = [{"isResolved": False}, {"isResolved": True}]
         api_calls = []
 
         async def _inner():
             with patch.object(_worker, "fetch", new=AsyncMock(return_value=self._graphql_response(threads))):
-                with patch.object(
-                    _worker,
-                    "github_api",
-                    new=AsyncMock(side_effect=lambda *a, **kw: (api_calls.append(a), self._ok_response())[-1]),
-                ):
+                with patch.object(_worker, "github_api", new=self._make_api_mock(api_calls)):
                     await _worker.check_unresolved_conversations(self._payload(), "tok")
 
         _run(_inner())
@@ -3734,19 +3756,17 @@ class TestCheckUnresolvedConversations(unittest.TestCase):
         body = check_run_calls[0][3]
         self.assertEqual(body.get("conclusion"), "failure")
         self.assertEqual(body.get("name"), _worker.UNRESOLVED_CONVERSATIONS_CHECK_NAME)
+        # Payload built via build_update_check_run_payloads must include completed_at
+        self.assertIn("completed_at", body)
 
     def test_creates_passing_check_run_when_all_resolved(self):
-        """A passing check run should be posted when all threads are resolved."""
+        """When no existing check run exists, a new passing run is POSTed when all resolved."""
         threads = [{"isResolved": True}, {"isResolved": True}]
         api_calls = []
 
         async def _inner():
             with patch.object(_worker, "fetch", new=AsyncMock(return_value=self._graphql_response(threads))):
-                with patch.object(
-                    _worker,
-                    "github_api",
-                    new=AsyncMock(side_effect=lambda *a, **kw: (api_calls.append(a), self._ok_response())[-1]),
-                ):
+                with patch.object(_worker, "github_api", new=self._make_api_mock(api_calls)):
                     await _worker.check_unresolved_conversations(self._payload(), "tok")
 
         _run(_inner())
@@ -3757,6 +3777,26 @@ class TestCheckUnresolvedConversations(unittest.TestCase):
         self.assertTrue(len(check_run_calls) >= 1, f"Expected POST to check-runs, got {api_calls}")
         body = check_run_calls[0][3]
         self.assertEqual(body.get("conclusion"), "success")
+        self.assertIn("completed_at", body)
+
+    def test_patches_existing_check_run_when_unresolved(self):
+        """When a check run already exists for this SHA, it should be PATCHed instead of POSTed."""
+        threads = [{"isResolved": False}]
+        api_calls = []
+
+        async def _inner():
+            with patch.object(_worker, "fetch", new=AsyncMock(return_value=self._graphql_response(threads))):
+                # Simulate an existing check run with id=101
+                with patch.object(_worker, "github_api", new=self._make_api_mock(api_calls, existing_check_run_id=101)):
+                    await _worker.check_unresolved_conversations(self._payload(), "tok")
+
+        _run(_inner())
+        patch_calls = [c for c in api_calls if c[0] == "PATCH" and "/check-runs/101" in c[1]]
+        post_calls = [c for c in api_calls if c[0] == "POST" and "/check-runs" in c[1]]
+        self.assertTrue(len(patch_calls) >= 1, f"Expected PATCH to check-runs/101, got {api_calls}")
+        self.assertEqual(len(post_calls), 0, f"Should not POST a new check run when one exists, got {api_calls}")
+        body = patch_calls[0][3]
+        self.assertEqual(body.get("conclusion"), "failure")
 
     def test_posts_comment_when_unresolved(self):
         """A warning comment should be posted when there are unresolved threads."""
@@ -3765,11 +3805,7 @@ class TestCheckUnresolvedConversations(unittest.TestCase):
 
         async def _inner():
             with patch.object(_worker, "fetch", new=AsyncMock(return_value=self._graphql_response(threads))):
-                with patch.object(
-                    _worker,
-                    "github_api",
-                    new=AsyncMock(side_effect=lambda *a, **kw: self._ok_response()),
-                ):
+                with patch.object(_worker, "github_api", new=self._make_api_mock()):
                     with patch.object(
                         _worker,
                         "create_comment",
@@ -3796,6 +3832,8 @@ class TestCheckUnresolvedConversations(unittest.TestCase):
                 resp.status = 200
                 resp.text = AsyncMock(return_value=json.dumps([existing_comment]))
                 return resp
+            if args[0] == "GET" and "/check-runs" in args[1] and "check-runs/" not in args[1]:
+                return self._check_runs_list_response()
             return self._ok_response()
 
         async def _inner():
@@ -3822,6 +3860,8 @@ class TestCheckUnresolvedConversations(unittest.TestCase):
                 resp.status = 200
                 resp.text = AsyncMock(return_value=json.dumps([existing_comment]))
                 return resp
+            if args[0] == "GET" and "/check-runs" in args[1] and "check-runs/" not in args[1]:
+                return self._check_runs_list_response()
             return self._ok_response()
 
         async def _inner():
@@ -3840,11 +3880,7 @@ class TestCheckUnresolvedConversations(unittest.TestCase):
 
         async def _inner():
             with patch.object(_worker, "fetch", new=AsyncMock(return_value=self._graphql_response(threads))):
-                with patch.object(
-                    _worker,
-                    "github_api",
-                    new=AsyncMock(side_effect=lambda *a, **kw: self._ok_response()),
-                ):
+                with patch.object(_worker, "github_api", new=self._make_api_mock()):
                     with patch.object(
                         _worker,
                         "create_comment",

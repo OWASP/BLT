@@ -38,6 +38,7 @@ from js import Headers, Response, console, fetch  # Cloudflare Workers JS bindin
 from index_template import GITHUB_PAGE_HTML  # Landing page HTML template
 from services.admin import AdminService, has_merged_pr_in_org
 from services.mentor_seed import INITIAL_MENTORS
+from checks_api import build_update_check_run_payloads
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -4268,7 +4269,7 @@ async def check_unresolved_conversations(payload, token):
         {"labels": [label]},
     )
 
-    # Create a check run that fails when there are unresolved conversations.
+    # Create or update a check run that fails when there are unresolved conversations.
     noun = "conversation" if unresolved_count == 1 else "conversations"
     if head_sha:
         if unresolved:
@@ -4283,21 +4284,42 @@ async def check_unresolved_conversations(payload, token):
             check_summary = "All review conversations have been resolved."
             check_conclusion = "success"
 
-        await github_api(
-            "POST",
-            f"/repos/{owner}/{repo}/check-runs",
+        update_payload = build_update_check_run_payloads(
+            status="completed",
+            title=check_title,
+            summary=check_summary,
+            conclusion=check_conclusion,
+        )[0]
+
+        # Reuse an existing check run for this SHA/name to avoid creating
+        # multiple redundant check runs when called from different event types.
+        existing_check_run_id = None
+        resp_check_runs = await github_api(
+            "GET",
+            f"/repos/{owner}/{repo}/commits/{head_sha}/check-runs",
             token,
-            {
-                "name": UNRESOLVED_CONVERSATIONS_CHECK_NAME,
-                "head_sha": head_sha,
-                "status": "completed",
-                "conclusion": check_conclusion,
-                "output": {
-                    "title": check_title,
-                    "summary": check_summary,
-                },
-            },
         )
+        if resp_check_runs.status == 200:
+            resp_data = json.loads(await resp_check_runs.text())
+            for check_run in resp_data.get("check_runs", []):
+                if check_run.get("name") == UNRESOLVED_CONVERSATIONS_CHECK_NAME:
+                    existing_check_run_id = check_run.get("id")
+                    break
+
+        if existing_check_run_id is not None:
+            await github_api(
+                "PATCH",
+                f"/repos/{owner}/{repo}/check-runs/{existing_check_run_id}",
+                token,
+                update_payload,
+            )
+        else:
+            await github_api(
+                "POST",
+                f"/repos/{owner}/{repo}/check-runs",
+                token,
+                {"name": UNRESOLVED_CONVERSATIONS_CHECK_NAME, "head_sha": head_sha, **update_payload},
+            )
 
     # Post or update a comment when there are unresolved conversations; remove
     # it once all conversations are resolved.
