@@ -574,6 +574,8 @@ const VideoChat = (() => {
     if (monitorBtn) {
       monitorBtn.classList.remove("active");
       monitorBtn.setAttribute("aria-pressed", "false");
+      const lbl = document.getElementById("lbl-monitor-btn");
+      if (lbl) lbl.textContent = "Hear Yourself — Off";
     }
     setDotStatus("offline");
     updateStatus("Disconnected", "muted");
@@ -617,6 +619,20 @@ const VideoChat = (() => {
     if (!panel) return;
     const isHidden = panel.classList.toggle("hidden");
     if (btn) btn.setAttribute("aria-expanded", isHidden ? "false" : "true");
+  }
+
+  /** Toggle the "Hear Yourself" monitor on/off and sync the UI button state. */
+  function toggleMonitor() {
+    if (typeof VoiceChanger === "undefined") return;
+    VoiceChanger.toggleMonitor();
+    const on = VoiceChanger.getMonitorEnabled();
+    const btn = $("btn-monitor");
+    if (btn) {
+      btn.classList.toggle("active", on);
+      btn.setAttribute("aria-pressed", String(on));
+    }
+    const lbl = document.getElementById("lbl-monitor-btn");
+    if (lbl) lbl.textContent = on ? "Hear Yourself — On" : "Hear Yourself — Off";
   }
 
   /* ── Noise suppression hint ── */
@@ -752,6 +768,7 @@ const VideoChat = (() => {
     toggleNoiseSuppression,
     setVoiceMode,
     toggleVoiceEffectsPanel,
+    toggleMonitor,
     shareScreen,
     stopScreenShare,
     copyRoomLink,

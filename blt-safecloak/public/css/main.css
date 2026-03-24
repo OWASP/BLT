@@ -238,24 +238,58 @@ body {
   font-weight: 700;
 }
 
+/* === Hear Yourself toggle button === */
+.voice-monitor-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.6rem;
+  border: 1.5px solid var(--blt-neutral-border);
+  background: #ffffff;
+  color: #374151;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 600;
+  min-height: 48px; /* accessible touch target */
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.voice-monitor-toggle:hover {
+  border-color: var(--blt-primary);
+  background: #fff5f5;
+  color: var(--blt-primary);
+}
+
+.voice-monitor-toggle.active {
+  border-color: var(--blt-primary);
+  background: #feeae9;
+  color: var(--blt-primary);
+}
+
 /* === Voice Monitor Sliders === */
 .voice-slider {
   -webkit-appearance: none;
   appearance: none;
   width: 100%;
-  height: 4px;
+  height: 6px; /* slightly taller track for easier touch interaction */
   border-radius: 9999px;
   background: var(--blt-neutral-border);
   outline: none;
   cursor: pointer;
   display: block;
+  touch-action: manipulation; /* prevent double-tap zoom on mobile */
 }
 
 .voice-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 16px;
-  height: 16px;
+  width: 22px; /* larger thumb for mobile touch */
+  height: 22px;
   border-radius: 50%;
   background: var(--blt-primary);
   cursor: pointer;
@@ -264,8 +298,8 @@ body {
 }
 
 .voice-slider::-moz-range-thumb {
-  width: 16px;
-  height: 16px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   background: var(--blt-primary);
   cursor: pointer;

@@ -250,7 +250,7 @@
                 onclick="VideoChat.toggleVoiceEffectsPanel()"
                 aria-label="Toggle voice effects panel"
                 aria-controls="voice-effects-panel"
-                aria-expanded="false"
+                aria-expanded="true"
               >
                 <i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>
               </button>
@@ -292,7 +292,7 @@
 
             <!-- ── Voice Effects Panel ── -->
             <div
-              class="card mt-4 hidden"
+              class="card mt-4"
               id="voice-effects-panel"
               aria-label="Voice effects"
               aria-live="polite"
@@ -371,34 +371,31 @@
 
                 <!-- ── Monitor / Hear Yourself ── -->
                 <div class="mt-4 border-t border-neutral-border pt-4">
-                  <div class="mb-3 flex items-center justify-between">
-                    <span class="text-xs font-bold uppercase tracking-wide text-gray-500"
-                      >Monitor</span
-                    >
-                    <button
-                      class="voice-effect-btn"
-                      id="btn-monitor"
-                      title="Hear yourself with the selected voice effect applied"
-                      aria-pressed="false"
-                      style="min-height: 0; padding: 0.35rem 0.75rem; flex-direction: row; gap: 0.4rem; font-size: 0.75rem"
-                      onclick="
-                        VoiceChanger.toggleMonitor();
-                        this.classList.toggle('active', VoiceChanger.getMonitorEnabled());
-                        this.setAttribute('aria-pressed', String(VoiceChanger.getMonitorEnabled()));
-                      "
-                    >
-                      <i class="fa-solid fa-headphones" aria-hidden="true"></i>
-                      Hear Yourself
-                    </button>
-                  </div>
+                  <p class="mb-3 text-xs font-bold uppercase tracking-wide text-gray-500">
+                    Monitor — Hear Yourself
+                  </p>
 
-                  <div class="mb-3">
+                  <button
+                    class="voice-monitor-toggle mb-4 w-full"
+                    id="btn-monitor"
+                    title="Hear yourself with the selected voice effect applied"
+                    aria-pressed="false"
+                    onclick="VideoChat.toggleMonitor()"
+                  >
+                    <i class="fa-solid fa-headphones" aria-hidden="true"></i>
+                    <span id="lbl-monitor-btn">Hear Yourself — Off</span>
+                  </button>
+
+                  <div class="mb-4">
                     <label
-                      class="mb-1 flex items-center justify-between text-xs text-gray-600"
+                      class="mb-2 flex items-center justify-between text-sm font-medium text-gray-700"
                       for="slider-monitor-volume"
                     >
-                      <span>Monitor Volume</span>
-                      <span id="label-monitor-volume" class="font-semibold text-gray-400">50%</span>
+                      <span class="flex items-center gap-1.5">
+                        <i class="fa-solid fa-volume-high text-gray-400" aria-hidden="true"></i>
+                        Monitor Volume
+                      </span>
+                      <span id="label-monitor-volume" class="font-semibold text-primary">50%</span>
                     </label>
                     <input
                       type="range"
@@ -418,11 +415,14 @@
 
                   <div>
                     <label
-                      class="mb-1 flex items-center justify-between text-xs text-gray-600"
+                      class="mb-2 flex items-center justify-between text-sm font-medium text-gray-700"
                       for="slider-mic-gain"
                     >
-                      <span>Mic Level</span>
-                      <span id="label-mic-gain" class="font-semibold text-gray-400">100%</span>
+                      <span class="flex items-center gap-1.5">
+                        <i class="fa-solid fa-microphone text-gray-400" aria-hidden="true"></i>
+                        Mic Level
+                      </span>
+                      <span id="label-mic-gain" class="font-semibold text-primary">100%</span>
                     </label>
                     <input
                       type="range"
@@ -438,6 +438,7 @@
                         document.getElementById('label-mic-gain').textContent = this.value + '%';
                       "
                     />
+                    <p class="mt-1 text-[11px] text-gray-400">100% = unity - 200% = double</p>
                   </div>
                 </div>
               </div>
