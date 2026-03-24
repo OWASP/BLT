@@ -1,9 +1,9 @@
 """Main entry point for BLT-Leaf PR Readiness Checker - Cloudflare Worker"""
 import json
 from js import Response, URL, Object
+import time as _time
 from pyodide.ffi import to_js
 from slack_notifier import notify_slack_exception, notify_slack_error
-from cache import check_rate_limit_bucket,should_send_dedupe, slack_budget_allow
 # Import all handlers
 from handlers import (
     handle_add_pr,
@@ -29,6 +29,40 @@ from auth_handlers import (
     handle_auth_user,
     handle_auth_logout,
 )
+
+_err_rl:     dict = {}                               # rate-limit buckets
+_err_dedup:  dict = {}                               # dedup: sig -> expiry
+_slack_bgt:  dict = {'count': 0, 'window_start': 0.0}  # global Slack budget
+
+def check_rate_limit_bucket(bucket, ip, limit, window):
+    now = _time.time()
+    key = f"{bucket}:{ip}"
+    e = _err_rl.get(key)
+    if not e or (now - e['window_start']) >= window:
+        _err_rl[key] = {'count': 1, 'window_start': now}
+        return True, 0
+    if e['count'] < limit:
+        e['count'] += 1
+        return True, 0
+    return False, int(window - (now - e['window_start'])) + 1
+
+def should_send_dedupe(sig, ttl):
+    now = _time.time()
+    if _err_dedup.get(sig, 0) > now:
+        return False
+    _err_dedup[sig] = now + ttl
+    return True
+
+def slack_budget_allow(limit, window):
+    now = _time.time()
+    ws = _slack_bgt['window_start']
+    if not ws or (now - ws) >= window:
+        _slack_bgt.update({'count': 1, 'window_start': now})
+        return True, 0
+    if _slack_bgt['count'] < limit:
+        _slack_bgt['count'] += 1
+        return True, 0
+    return False, int(window - (now - ws)) + 1
 
 def _get_client_ip(request):
     return (
