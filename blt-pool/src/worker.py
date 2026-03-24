@@ -5777,7 +5777,7 @@ async def on_fetch(request, env) -> Response:
     method = request.method
     path = urlparse(str(request.url)).path.rstrip("/") or "/"
 
-    if path == "/logo-sm.ico" or path.endswith("logo-sm.ico"):
+    if path == "/logo-sm.png" or path.endswith("logo-sm.png"):
         return await env.ASSETS.fetch(request)
 
     admin_response = await AdminService(env).handle(request)
