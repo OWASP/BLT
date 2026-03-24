@@ -1,7 +1,7 @@
 {
   "participantCount": 187,
   "totalPRs": 2565,
-  "mergedPRs": 1633,
+  "mergedPRs": 1634,
   "totalIssues": 787,
   "repositories": 53,
   "topContributors": [
@@ -22,6 +22,108 @@
       "avatar": "https://avatars.githubusercontent.com/u/146115505?v=4",
       "url": "https://github.com/Pritz395",
       "mergedCount": 39
+    }
+  ],
+  "recentPRs": [
+    {
+      "title": "Add class-based dark theme toggle across SafeCloak pages",
+      "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/42",
+      "username": "Tejas-Ladhani",
+      "avatar": "https://avatars.githubusercontent.com/u/67834407?v=4",
+      "state": "open",
+      "created_at": "2026-03-24T12:49:09Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-SafeCloak"
+    },
+    {
+      "title": "Remove remaining OSSH code (URLs, admin, models, tests) - parts of #6030",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6066",
+      "username": "Mahlogonolo8",
+      "avatar": "https://avatars.githubusercontent.com/u/165427201?v=4",
+      "state": "closed",
+      "created_at": "2026-03-24T10:58:29Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT"
+    },
+    {
+      "title": "Delete OSSH management commands ( part of #6030 )",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6065",
+      "username": "Mahlogonolo8",
+      "avatar": "https://avatars.githubusercontent.com/u/165427201?v=4",
+      "state": "closed",
+      "created_at": "2026-03-24T10:39:05Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT"
+    },
+    {
+      "title": "Delete OSSH views and templates (part of #6030 )",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6064",
+      "username": "Mahlogonolo8",
+      "avatar": "https://avatars.githubusercontent.com/u/165427201?v=4",
+      "state": "closed",
+      "created_at": "2026-03-24T10:28:13Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT"
+    },
+    {
+      "title": "chore: delete unused ossh includes #6030",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6063",
+      "username": "giftidris4-spec",
+      "avatar": "https://avatars.githubusercontent.com/u/270459024?v=4",
+      "state": "closed",
+      "created_at": "2026-03-24T08:40:02Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT"
+    },
+    {
+      "title": "Add multilingual support for Site interface",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6062",
+      "username": "Manahil-Afzal",
+      "avatar": "https://avatars.githubusercontent.com/u/207878232?v=4",
+      "state": "closed",
+      "created_at": "2026-03-24T05:35:47Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT"
+    },
+    {
+      "title": "chore: delete unused recommended_articles include #6030",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6061",
+      "username": "giftidris4-spec",
+      "avatar": "https://avatars.githubusercontent.com/u/270459024?v=4",
+      "state": "closed",
+      "created_at": "2026-03-23T21:41:47Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT"
+    },
+    {
+      "title": "chore: delete unused recommended_articles include #6030",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6060",
+      "username": "giftidris4-spec",
+      "avatar": "https://avatars.githubusercontent.com/u/270459024?v=4",
+      "state": "closed",
+      "created_at": "2026-03-23T21:38:06Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT"
+    },
+    {
+      "title": "chore: delete unused recommended_articles include #6030",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6059",
+      "username": "giftidris4-spec",
+      "avatar": "https://avatars.githubusercontent.com/u/270459024?v=4",
+      "state": "closed",
+      "created_at": "2026-03-23T21:35:14Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT"
+    },
+    {
+      "title": "chore: delete unused github_stats include #6030",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6058",
+      "username": "giftidris4-spec",
+      "avatar": "https://avatars.githubusercontent.com/u/270459024?v=4",
+      "state": "closed",
+      "created_at": "2026-03-23T21:31:00Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT"
     }
   ]
 }
