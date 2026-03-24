@@ -326,14 +326,18 @@
                 </h2>
               </div>
               <div class="card-body">
-                <label class="form-label" for="remote-id">Remote Room ID</label>
+                <label class="block text-sm font-semibold text-gray-700 mb-2" for="remote-id">Remote Room ID</label>
                 <input
                   type="text"
-                  class="form-input"
+                  class="w-full border border-neutral-border rounded-md px-4 py-2 text-gray-900 placeholder-gray-500 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-colors"
                   id="remote-id"
                   placeholder="Enter Room ID..."
                   autocomplete="off"
                   aria-label="Remote room ID"
+                  pattern="[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{6}"
+                  maxlength="6"
+                  inputmode="text"
+                  required
                 />
                 <button
                   class="btn btn-primary mt-3 w-full"
