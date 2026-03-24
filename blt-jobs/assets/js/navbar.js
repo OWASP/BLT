@@ -9,7 +9,16 @@
 
   // Helper to determine the repository URL (standard across pages)
   const params = new URLSearchParams(window.location.search);
-  const repo = params.get("repo") || (window.location.hostname.indexOf("pritz395.github.io") !== -1 ? "Pritz395/BLT-Jobs" : "OWASP-BLT/BLT-Jobs");
+  const defaultRepo =
+    window.location.hostname.indexOf("pritz395.github.io") !== -1
+      ? "Pritz395/BLT-Jobs"
+      : "OWASP-BLT/BLT-Jobs";
+  const repoParam = params.get("repo");
+  const repo =
+    typeof repoParam === "string" &&
+    /^[A-Za-z0-9._-]+\/[A-Za-z0-9._-]+$/.test(repoParam)
+      ? repoParam
+      : defaultRepo;
   const githubUrl = "https://github.com/" + repo;
 
   // Determine which page is current to highlight the active link
@@ -42,7 +51,7 @@
     content += isMobile && link.name === "Saved" ? "Saved Jobs" : link.name;
     
     if (link.showBadge) {
-      content += ` <span id="saved-count-badge" class="hidden ml-1 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-white bg-red-600 rounded-full"></span>`;
+      content += ` <span class="saved-count-badge hidden ml-1 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-white bg-red-600 rounded-full"></span>`;
     }
 
     return `<a href="${link.href}" class="${classes}">${content}</a>`;
@@ -75,7 +84,7 @@
               <i id="sun-icon" class="fas fa-sun text-xl absolute opacity-0 transition-all duration-300 -rotate-90 dark:opacity-100 dark:rotate-0"></i>
               <i id="moon-icon" class="fas fa-moon text-xl absolute opacity-100 transition-all duration-300 rotate-0 dark:opacity-0 dark:rotate-90"></i>
             </button>
-            <button id="mobile-menu-toggle" class="sm:hidden inline-flex h-10 w-10 items-center justify-center rounded-lg border-2 border-slate-200 text-slate-700 transition hover:bg-slate-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800" aria-label="Open menu">
+            <button id="mobile-menu-toggle" class="sm:hidden inline-flex h-10 w-10 items-center justify-center rounded-lg border-2 border-slate-200 text-slate-700 transition hover:bg-slate-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800" aria-label="Open menu" aria-controls="mobile-menu" aria-expanded="false">
               <i class="fa-solid fa-bars text-lg" aria-hidden="true"></i>
             </button>
           </div>
@@ -109,7 +118,7 @@
 
   // Handle saved count badge updates
   function updateSavedCountBadge() {
-    const badges = document.querySelectorAll("#saved-count-badge");
+    const badges = document.querySelectorAll(".saved-count-badge");
     if (badges.length > 0 && typeof SavedJobs !== "undefined") {
       const count = SavedJobs.count();
       badges.forEach((badge) => {
