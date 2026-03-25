@@ -1,6 +1,6 @@
 {
   "participantCount": 188,
-  "totalPRs": 2580,
+  "totalPRs": 2581,
   "mergedPRs": 1643,
   "totalIssues": 791,
   "repositories": 53,
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "Connect@BLT University to OWASP: Footer Social Links Update",
+      "url": "https://github.com/OWASP-BLT/BLT-University/pull/33",
+      "username": "Manahil-Afzal",
+      "avatar": "https://avatars.githubusercontent.com/u/207878232?v=4",
+      "state": "open",
+      "created_at": "2026-03-25T12:05:57Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-University"
+    },
     {
       "title": "Add a title * feat: Add follow/unfollow user endpoints (POST/DELETE /users/{id}/fol\u2026  Add a description",
       "url": "https://github.com/OWASP-BLT/BLT-API/pull/77",
@@ -114,16 +124,6 @@
       "created_at": "2026-03-24T15:58:07Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT-Hackathons"
-    },
-    {
-      "title": "feat(checks): add timeout-aware tool runner with retry fallback",
-      "url": "https://github.com/OWASP-BLT/BLT-Pool/pull/99",
-      "username": "aryanghai12",
-      "avatar": "https://avatars.githubusercontent.com/u/141923179?v=4",
-      "state": "open",
-      "created_at": "2026-03-24T14:56:47Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-Pool"
     }
   ]
 }
