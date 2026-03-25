@@ -1,6 +1,6 @@
 {
   "participantCount": 190,
-  "totalPRs": 2590,
+  "totalPRs": 2591,
   "mergedPRs": 1643,
   "totalIssues": 795,
   "repositories": 53,
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "fix: populate ISO 8601 timestamps in /health and /api/review responses (closes #35)",
+      "url": "https://github.com/OWASP-BLT/BLT-Toasty/pull/37",
+      "username": "DrGalio",
+      "avatar": "https://avatars.githubusercontent.com/u/269968451?v=4",
+      "state": "open",
+      "created_at": "2026-03-25T23:00:00Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-Toasty"
+    },
     {
       "title": "fix: replace dummy None timestamps with actual UTC datetimes",
       "url": "https://github.com/OWASP-BLT/BLT-Toasty/pull/36",
@@ -114,16 +124,6 @@
       "created_at": "2026-03-25T12:05:57Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT-University"
-    },
-    {
-      "title": "Add a title * feat: Add follow/unfollow user endpoints (POST/DELETE /users/{id}/fol\u2026  Add a description",
-      "url": "https://github.com/OWASP-BLT/BLT-API/pull/77",
-      "username": "azizrebhi",
-      "avatar": "https://avatars.githubusercontent.com/u/154744962?v=4",
-      "state": "open",
-      "created_at": "2026-03-25T10:14:55Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-API"
     }
   ]
 }
