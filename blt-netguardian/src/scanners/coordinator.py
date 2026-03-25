@@ -1,54 +1,87 @@
 """Scanner coordinator that manages all scanning agents."""
+import inspect
 from typing import List, Dict, Any
-from datetime import datetime
-
 from scanners.web2_crawler import Web2Crawler
 from scanners.web3_monitor import Web3Monitor
 from scanners.static_analyzer import StaticAnalyzer
 from scanners.contract_scanner import ContractScanner
 from scanners.volunteer_agent import VolunteerAgentManager
 
+# Global scanner registry
+_SCANNER_REGISTRY: Dict[str, type] = {}
+
+
+def register_scanner(task_type: str, scanner_class: type) -> None:
+    """Register a scanner class for a given task type."""
+    if not isinstance(task_type, str) or not task_type.strip():
+        raise ValueError("task_type must be a non-empty string")
+    if not isinstance(scanner_class, type):
+        raise TypeError("scanner_class must be a class")
+    if task_type in _SCANNER_REGISTRY:
+        raise ValueError(
+            f"Scanner already registered for task type: '{task_type}'. "
+            f"Existing: {_SCANNER_REGISTRY[task_type].__name__}, "
+            f"New: {scanner_class.__name__}"
+        )
+    for required_method in ("scan", "get_status"):
+        method = getattr(scanner_class, required_method, None)
+        if not callable(method):
+            raise TypeError(
+                f"{scanner_class.__name__} must define `{required_method}`"
+            )
+    init_sig = inspect.signature(scanner_class.__init__)
+    required_ctor_params = [
+        p for name, p in init_sig.parameters.items()
+        if name != "self"
+        and p.kind in (p.POSITIONAL_ONLY, p.POSITIONAL_OR_KEYWORD, p.KEYWORD_ONLY)
+        and p.default is inspect.Parameter.empty
+    ]
+    if required_ctor_params:
+        raise TypeError(
+            f"{scanner_class.__name__} must be instantiable without required constructor args"
+        )
+    _SCANNER_REGISTRY[task_type] = scanner_class
+
+
+register_scanner('crawler', Web2Crawler)
+register_scanner('web3_monitor', Web3Monitor)
+register_scanner('static_analysis', StaticAnalyzer)
+register_scanner('contract_audit', ContractScanner)
+register_scanner('vulnerability_scan', Web2Crawler)  # intentionally reuses Web2Crawler
+register_scanner('penetration_test', VolunteerAgentManager)
+
 
 class ScannerCoordinator:
     """Coordinates all security scanning agents."""
-    
-    def __init__(self, env):
-        """Initialize coordinator with all scanner agents."""
-        self.env = env
-        self.web2_crawler = Web2Crawler()
-        self.web3_monitor = Web3Monitor()
-        self.static_analyzer = StaticAnalyzer()
-        self.contract_scanner = ContractScanner()
-        self.volunteer_manager = VolunteerAgentManager()
-        
-        # Map task types to scanners
+
+    def __init__(self):
+        """Initialize coordinator from registry."""
+        # TODO: Accept env parameter when scanners need environment config
         self.scanner_map = {
-            'crawler': self.web2_crawler,
-            'web3_monitor': self.web3_monitor,
-            'static_analysis': self.static_analyzer,
-            'contract_audit': self.contract_scanner,
-            'vulnerability_scan': self.web2_crawler,  # Reuse web2 crawler
-            'penetration_test': self.volunteer_manager,
+            task_type: scanner_class()
+            for task_type, scanner_class in _SCANNER_REGISTRY.items()
         }
-    
-    async def process_job(self, job_id: str, tasks: List[Any]):
-        """Process all tasks in a job."""
+
+    async def process_job(self, job_id: str, tasks: List[Any]) -> List[Dict[str, Any]]:
+        """Process all tasks in a job and return results."""
+        results = []
         for task in tasks:
-            await self.process_task(task)
-    
+            result = await self.process_task(task)
+            results.append(result)
+        return results
+
     async def process_task(self, task) -> Dict[str, Any]:
         """Process a single task by dispatching to appropriate scanner."""
         task_type = task.task_type
         scanner = self.scanner_map.get(task_type)
-        
+
         if not scanner:
             return {
                 'success': False,
                 'error': f'No scanner available for task type: {task_type}'
             }
-        
+
         try:
-            # Execute the scan
             result = await scanner.scan(task)
             return {
                 'success': True,
@@ -59,14 +92,14 @@ class ScannerCoordinator:
                 'success': False,
                 'error': str(e)
             }
-    
+
     async def get_scanner_status(self, scanner_type: str) -> Dict[str, Any]:
         """Get status of a specific scanner."""
         scanner = self.scanner_map.get(scanner_type)
         if scanner:
             return await scanner.get_status()
         return {'available': False}
-    
+
     async def get_all_scanner_status(self) -> Dict[str, Dict[str, Any]]:
         """Get status of all scanners."""
         status = {}
