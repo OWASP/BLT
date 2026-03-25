@@ -1,6 +1,6 @@
 {
   "participantCount": 188,
-  "totalPRs": 2581,
+  "totalPRs": 2582,
   "mergedPRs": 1643,
   "totalIssues": 791,
   "repositories": 53,
@@ -27,10 +27,20 @@
   "recentPRs": [
     {
       "title": "Connect@BLT University to OWASP: Footer Social Links Update",
-      "url": "https://github.com/OWASP-BLT/BLT-University/pull/33",
+      "url": "https://github.com/OWASP-BLT/BLT-University/pull/34",
       "username": "Manahil-Afzal",
       "avatar": "https://avatars.githubusercontent.com/u/207878232?v=4",
       "state": "open",
+      "created_at": "2026-03-25T13:02:50Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-University"
+    },
+    {
+      "title": "Connect@BLT University to OWASP: Footer Social Links Update",
+      "url": "https://github.com/OWASP-BLT/BLT-University/pull/33",
+      "username": "Manahil-Afzal",
+      "avatar": "https://avatars.githubusercontent.com/u/207878232?v=4",
+      "state": "closed",
       "created_at": "2026-03-25T12:05:57Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT-University"
@@ -114,16 +124,6 @@
       "created_at": "2026-03-24T17:59:07Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT-Pool"
-    },
-    {
-      "title": "More mentors included",
-      "url": "https://github.com/OWASP-BLT/BLT-Hackathons/pull/84",
-      "username": "Nachiket-Roy",
-      "avatar": "https://avatars.githubusercontent.com/u/204239697?v=4",
-      "state": "open",
-      "created_at": "2026-03-24T15:58:07Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-Hackathons"
     }
   ]
 }
