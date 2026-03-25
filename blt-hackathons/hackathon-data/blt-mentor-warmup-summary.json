@@ -1,20 +1,20 @@
 {
   "participantCount": 17,
-  "totalPRs": 2576,
-  "mergedPRs": 1639,
-  "totalIssues": 788,
+  "totalPRs": 2578,
+  "mergedPRs": 1642,
+  "totalIssues": 789,
   "repositories": 53,
   "topContributors": [
-    {
-      "username": "ramansh18",
-      "avatar": "https://avatars.githubusercontent.com/u/123497240?v=4",
-      "url": "https://github.com/ramansh18",
-      "mergedCount": 6
-    },
     {
       "username": "Ankitsinghsisodya",
       "avatar": "https://avatars.githubusercontent.com/u/118156935?v=4",
       "url": "https://github.com/Ankitsinghsisodya",
+      "mergedCount": 6
+    },
+    {
+      "username": "ramansh18",
+      "avatar": "https://avatars.githubusercontent.com/u/123497240?v=4",
+      "url": "https://github.com/ramansh18",
       "mergedCount": 6
     },
     {

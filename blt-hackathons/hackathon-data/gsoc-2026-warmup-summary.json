@@ -1,8 +1,8 @@
 {
   "participantCount": 187,
-  "totalPRs": 2573,
-  "mergedPRs": 1639,
-  "totalIssues": 788,
+  "totalPRs": 2575,
+  "mergedPRs": 1642,
+  "totalIssues": 789,
   "repositories": 53,
   "topContributors": [
     {
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "Delete .cursorrules",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6071",
+      "username": "DonnieBLT",
+      "avatar": "https://avatars.githubusercontent.com/u/128622481?v=4",
+      "state": "closed",
+      "created_at": "2026-03-25T04:33:58Z",
+      "merged_at": "2026-03-25T04:34:12Z",
+      "repository": "OWASP-BLT/BLT"
+    },
     {
       "title": "feat(notes): add robust JSON import flow for device migration",
       "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/44",
@@ -112,16 +122,6 @@
       "avatar": "https://avatars.githubusercontent.com/u/165427201?v=4",
       "state": "closed",
       "created_at": "2026-03-24T10:28:13Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "chore: delete unused ossh includes #6030",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6063",
-      "username": "giftidris4-spec",
-      "avatar": "https://avatars.githubusercontent.com/u/270459024?v=4",
-      "state": "open",
-      "created_at": "2026-03-24T08:40:02Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT"
     }
