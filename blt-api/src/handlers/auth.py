@@ -261,9 +261,19 @@ async def handle_signin(request: Any, env: Any, path_params: Dict[str, str], que
             return error_response("Database connection error", 500)
 
         # Fetch user by username hash (blind index lookup)
-        username = str(body["username"]).strip()
+        username = body["username"]
+        password = body["password"]
+
+        if not isinstance(username, str) or not (3 <= len(username.strip()) <= 30):
+            return error_response("Username must be a string of 3-30 characters", 400)
+
+        if not isinstance(password, str) or not (12 <= len(password) <= 128):
+            return error_response("Password must be a string of 12-128 characters", 400)
+
+        username = username.strip()
         username_hash = blind_index(username, env, "users.username")
         user = await User.objects(db).filter(username_hash=username_hash).first()
+
 
         if user is None or "password" not in user:
             return error_response("Invalid username or password", 401)
