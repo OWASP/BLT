@@ -36,10 +36,13 @@ sys.modules.setdefault("libs", MagicMock())
 sys.modules.setdefault("libs.db", MagicMock())
 sys.modules.setdefault("libs.constant", MagicMock(__HASHING_ITERATIONS=1))
 sys.modules.setdefault("libs.jwt_utils", MagicMock())
+sys.modules.setdefault("libs.data_protection", MagicMock())
+sys.modules.setdefault("libs.orm", MagicMock())
 sys.modules.setdefault("models", MagicMock())
 sys.modules.setdefault("services", MagicMock())
 sys.modules.setdefault("services.email_service", MagicMock())
 sys.modules.setdefault("services.email_templates", MagicMock())
+
 
 from handlers.auth import handle_signin, handle_signup, handle_verify_email  # noqa: E402
 

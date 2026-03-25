@@ -25,6 +25,8 @@ _mock_workers.Response = _MockResponse
 sys.modules.setdefault("workers", _mock_workers)
 sys.modules.setdefault("libs", MagicMock())
 sys.modules.setdefault("libs.db", MagicMock())
+sys.modules.setdefault("libs.data_protection", MagicMock())
+sys.modules.setdefault("libs.orm", MagicMock())
 sys.modules.setdefault("models", MagicMock())
 
 from handlers.bugs import handle_bugs  # noqa: E402
