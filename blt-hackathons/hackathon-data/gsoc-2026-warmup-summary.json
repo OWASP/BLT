@@ -1,7 +1,7 @@
 {
   "participantCount": 187,
   "totalPRs": 2576,
-  "mergedPRs": 1642,
+  "mergedPRs": 1643,
   "totalIssues": 789,
   "repositories": 53,
   "topContributors": [
@@ -30,9 +30,9 @@
       "url": "https://github.com/OWASP-BLT/BLT-API/pull/76",
       "username": "ramansh18",
       "avatar": "https://avatars.githubusercontent.com/u/123497240?v=4",
-      "state": "open",
+      "state": "closed",
       "created_at": "2026-03-25T04:54:13Z",
-      "merged_at": null,
+      "merged_at": "2026-03-25T05:52:13Z",
       "repository": "OWASP-BLT/BLT-API"
     },
     {
