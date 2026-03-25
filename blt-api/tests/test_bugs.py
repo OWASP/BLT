@@ -22,12 +22,18 @@ class _MockResponse:
 
 _mock_workers = MagicMock()
 _mock_workers.Response = _MockResponse
-sys.modules.setdefault("workers", _mock_workers)
-sys.modules.setdefault("libs", MagicMock())
-sys.modules.setdefault("libs.db", MagicMock())
-sys.modules.setdefault("models", MagicMock())
+sys.modules["workers"] = _mock_workers
+
+# Removed sys.modules.js mock for same reason as test_auth
 
 from handlers.bugs import handle_bugs  # noqa: E402
+
+
+@pytest.fixture(autouse=True)
+def mock_response():
+    """Ensure handle_bugs uses the local _MockResponse class."""
+    with patch("handlers.bugs.Response", _MockResponse):
+        yield
 
 
 class _AllResult:

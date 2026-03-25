@@ -94,9 +94,16 @@ async def handle_signup(
         except Exception as e:       
             return error_response("Database connection error", 500)
 
-        username = str(body["username"]).strip()
-        email = str(body["email"]).strip().lower()
-        redirect_uri = str(body.get("redirect_uri", "")).strip()
+        username_val = body.get("username")
+        email_val = body.get("email")
+        redirect_uri_val = body.get("redirect_uri", "")
+
+        if not isinstance(username_val, str) or not isinstance(email_val, str) or not isinstance(redirect_uri_val, str):
+            return error_response("Username, email, and redirect_uri must be strings", 400)
+
+        username = username_val.strip()
+        email = email_val.strip().lower()
+        redirect_uri = redirect_uri_val.strip()
 
         # --- Input Validation ---
         password = body["password"]
@@ -261,9 +268,31 @@ async def handle_signin(request: Any, env: Any, path_params: Dict[str, str], que
             return error_response("Database connection error", 500)
 
         # Fetch user by username hash (blind index lookup)
-        username = str(body["username"]).strip()
+        username_val = body["username"]
+        password_val = body["password"]
+
+        if not isinstance(username_val, str) or not isinstance(password_val, str):
+            return error_response("Username and password must be strings", 400)
+
+        username = username_val.strip()
+        password = password_val
+
+        if not _USERNAME_RE.fullmatch(username):
+            return error_response(
+                "Username must be 3-30 characters and may include letters, numbers, underscores, dots, and hyphens",
+                400,
+            )
+
+       # Hardening: password length
+        if len(password) < 12:
+            return error_response("Password must be at least 12 characters", status=400)
+
+        if not (12 <= len(password) <= 128):
+            return error_response("Password must be a string of 12-128 characters", 400)
+
         username_hash = blind_index(username, env, "users.username")
         user = await User.objects(db).filter(username_hash=username_hash).first()
+
 
         if user is None or "password" not in user:
             return error_response("Invalid username or password", 401)

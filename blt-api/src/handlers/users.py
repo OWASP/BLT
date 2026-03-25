@@ -103,10 +103,20 @@ async def create_user(db: Any, request: Any, env: Any, logger: Any) -> Any:
     if not valid:
         return error_response(f"Missing required field: {missing_field}", status=400)
 
-    username = str(body.get("username", "")).strip()
-    email = str(body.get("email", "")).strip().lower()
-    password = str(body.get("password", ""))
-    description = str(body.get("description", "")).strip()
+    username_val = body.get("username", "")
+    email_val = body.get("email", "")
+    password_val = body.get("password", "")
+    description_val = body.get("description", "")
+
+    if not isinstance(username_val, str) or not isinstance(email_val, str) or \
+       not isinstance(password_val, str) or not isinstance(description_val, str):
+        return error_response("Required fields must be strings", status=400)
+
+    username = username_val.strip()
+    email = email_val.strip().lower()
+    password = password_val
+    description = description_val.strip()
+
 
     if not _USERNAME_PATTERN.fullmatch(username):
         return error_response(

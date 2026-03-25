@@ -52,7 +52,7 @@ async def handle_homepage(
         base_url = "https://blt-api.workers.dev"
     
     html_file = Path(__file__).resolve().parent.parent / "pages" / "index.html"
-    html_content = html_file.read_text().replace("[[API_BASE_URL]]", base_url)
+    html_content = html_file.read_text(encoding="utf-8").replace("[[API_BASE_URL]]", base_url)
     
     # Create HTML response with proper headers
     headers = {
