@@ -259,8 +259,14 @@ async def test_handle_result_ingestion_rejects_non_string_identifiers():
 
 
 @pytest.mark.asyncio
-async def test_handle_result_ingestion_rejects_legacy_flat_payload():
+async def test_handle_result_ingestion_accepts_legacy_flat_payload():
     worker = BLTWorker(SimpleNamespace(DB=None))
+    worker.vuln_db = SimpleNamespace(store_vulnerability=AsyncMock())
+    worker.task_queue = SimpleNamespace(
+        get_task=AsyncMock(return_value={"job_id": "job-1", "target_id": "target-1"}),
+        update_task=AsyncMock(),
+    )
+    worker.job_store = SimpleNamespace(update_job_progress=AsyncMock())
 
     response = await worker.handle_result_ingestion(
         FakeRequest(
@@ -276,10 +282,12 @@ async def test_handle_result_ingestion_rejects_legacy_flat_payload():
     )
     payload = parse_json(response)
 
-    assert response.status == 400
-    assert payload["error"] == (
-        "Legacy payload format is not supported; use results.{findings,vulnerabilities,metadata}"
-    )
+    assert response.status == 200
+    assert payload["success"] is True
+    assert payload["vulnerabilities_found"] == 0
+    worker.task_queue.get_task.assert_awaited_once_with("task-1")
+    worker.task_queue.update_task.assert_awaited_once()
+    worker.job_store.update_job_progress.assert_awaited_once_with("job-1")
 
 
 @pytest.mark.asyncio

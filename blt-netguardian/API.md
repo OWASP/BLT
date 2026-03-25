@@ -140,6 +140,8 @@ Submit scan results from security scanning agents.
 }
 ```
 
+Legacy compatibility: when `results` is omitted, the worker also accepts top-level `findings`, `vulnerabilities`, and `metadata` fields.
+
 **Response (200):**
 ```json
 {

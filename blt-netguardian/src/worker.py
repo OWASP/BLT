@@ -351,12 +351,16 @@ class BLTWorker:
             task_id = data.get('task_id')
             agent_type = data.get('agent_type')
 
-            if 'results' not in data and any(key in data for key in ('findings', 'vulnerabilities', 'metadata')):
-                return self.json_response({
-                    'error': 'Legacy payload format is not supported; use results.{findings,vulnerabilities,metadata}'
-                }, status=400)
-
-            results = data.get('results', {})
+            if 'results' in data:
+                results = data.get('results', {})
+            else:
+                results = {}
+                if any(key in data for key in ('findings', 'vulnerabilities', 'metadata')):
+                    results = {
+                        'findings': data.get('findings', []),
+                        'vulnerabilities': data.get('vulnerabilities', []),
+                        'metadata': data.get('metadata', {})
+                    }
 
             if (
                 not isinstance(task_id, str) or not task_id.strip()
