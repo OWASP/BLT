@@ -5499,12 +5499,12 @@ class TestGenerateMentorRow(unittest.TestCase):
         self.assertIn("42", html)
         self.assertIn("7", html)
         self.assertIn("PRs", html)
-        self.assertIn("Reviews", html)
+        self.assertIn("reviews", html)
 
     def test_stats_not_shown_when_none(self):
         html = _worker._generate_mentor_row(self._make_mentor(), stats=None)
         # Should not contain PR/review stat headings when stats are absent
-        self.assertNotIn("Reviews", html)
+        self.assertNotIn("reviews", html)
         self.assertNotIn("PRs", html)
 
     def test_stats_zero_values_shown(self):
@@ -5513,7 +5513,7 @@ class TestGenerateMentorRow(unittest.TestCase):
         )
         # Zero stats are still displayed when the stats dict is provided
         self.assertIn("PRs", html)
-        self.assertIn("Reviews", html)
+        self.assertIn("reviews", html)
 
 
 class TestIndexHtml(unittest.TestCase):
@@ -5567,7 +5567,7 @@ class TestIndexHtml(unittest.TestCase):
         mentors = [{"name": "Alice", "github_username": "alice", "active": True, "status": "available"}]
         html = _worker._index_html(mentors, mentor_stats={})
         # Stats headings should not appear when no stats are provided
-        self.assertNotIn("Reviews", html)
+        self.assertNotIn("reviews", html)
 
     def test_active_assignments_section_shown(self):
         """Active assignments section appears when assignments are provided."""
