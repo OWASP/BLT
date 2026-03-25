@@ -1,8 +1,8 @@
 {
   "participantCount": 187,
-  "totalPRs": 2576,
+  "totalPRs": 2578,
   "mergedPRs": 1643,
-  "totalIssues": 789,
+  "totalIssues": 790,
   "repositories": 53,
   "topContributors": [
     {
@@ -25,6 +25,26 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "CI: add \u201crequire friend mention\u201d gate and label for PRs missing",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6072",
+      "username": "Jayant2908",
+      "avatar": "https://avatars.githubusercontent.com/u/200989760?v=4",
+      "state": "closed",
+      "created_at": "2026-03-25T07:07:41Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT"
+    },
+    {
+      "title": "harden humanCommenter (block owasp-blt[bot] & coderabbitai[bot])",
+      "url": "https://github.com/OWASP-BLT/BLT-Action/pull/117",
+      "username": "Jayant2908",
+      "avatar": "https://avatars.githubusercontent.com/u/200989760?v=4",
+      "state": "open",
+      "created_at": "2026-03-25T06:42:21Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-Action"
+    },
     {
       "title": "Fix: Add strict input validation and length constraints to Auth and User Handlers",
       "url": "https://github.com/OWASP-BLT/BLT-API/pull/76",
@@ -104,26 +124,6 @@
       "created_at": "2026-03-24T12:49:09Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT-SafeCloak"
-    },
-    {
-      "title": "Remove remaining OSSH code (URLs, admin, models, tests) - parts of #6030",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6066",
-      "username": "Mahlogonolo8",
-      "avatar": "https://avatars.githubusercontent.com/u/165427201?v=4",
-      "state": "closed",
-      "created_at": "2026-03-24T10:58:29Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "Delete OSSH management commands ( part of #6030 )",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6065",
-      "username": "Mahlogonolo8",
-      "avatar": "https://avatars.githubusercontent.com/u/165427201?v=4",
-      "state": "closed",
-      "created_at": "2026-03-24T10:39:05Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT"
     }
   ]
 }
