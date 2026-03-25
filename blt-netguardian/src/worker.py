@@ -348,6 +348,9 @@ class BLTWorker:
         
         try:
             data = await request.json()
+            if not isinstance(data, dict):
+                return self.json_response({'error': 'Invalid request payload'}, status=400)
+
             task_id = data.get('task_id')
             agent_type = data.get('agent_type')
 

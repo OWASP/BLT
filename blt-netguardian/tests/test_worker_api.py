@@ -259,6 +259,23 @@ async def test_handle_result_ingestion_rejects_non_string_identifiers():
 
 
 @pytest.mark.asyncio
+async def test_handle_result_ingestion_rejects_non_object_json_payload():
+    worker = BLTWorker(SimpleNamespace(DB=None))
+
+    response = await worker.handle_result_ingestion(
+        FakeRequest(
+            "https://api.example.com/api/results/ingest",
+            method="POST",
+            payload=[1],
+        )
+    )
+    payload = parse_json(response)
+
+    assert response.status == 400
+    assert payload["error"] == "Invalid request payload"
+
+
+@pytest.mark.asyncio
 async def test_handle_result_ingestion_accepts_legacy_flat_payload():
     worker = BLTWorker(SimpleNamespace(DB=None))
     worker.vuln_db = SimpleNamespace(store_vulnerability=AsyncMock())
