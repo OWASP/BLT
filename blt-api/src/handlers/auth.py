@@ -283,6 +283,10 @@ async def handle_signin(request: Any, env: Any, path_params: Dict[str, str], que
                 400,
             )
 
+       # Hardening: password length
+        if len(password) < 12:
+            return error_response("Password must be at least 12 characters", status=400)
+
         if not (12 <= len(password) <= 128):
             return error_response("Password must be a string of 12-128 characters", 400)
 

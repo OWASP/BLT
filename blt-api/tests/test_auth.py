@@ -31,20 +31,19 @@ class _MockResponse:
 
 
 _mock_workers.Response = _MockResponse
-sys.modules.setdefault("workers", _mock_workers)
-sys.modules.setdefault("libs", MagicMock())
-sys.modules.setdefault("libs.db", MagicMock())
-sys.modules.setdefault("libs.constant", MagicMock(__HASHING_ITERATIONS=1))
-sys.modules.setdefault("libs.jwt_utils", MagicMock())
-sys.modules.setdefault("libs.data_protection", MagicMock())
-sys.modules.setdefault("libs.orm", MagicMock())
-sys.modules.setdefault("models", MagicMock())
-sys.modules.setdefault("services", MagicMock())
-sys.modules.setdefault("services.email_service", MagicMock())
-sys.modules.setdefault("services.email_templates", MagicMock())
+sys.modules["workers"] = _mock_workers
+
+# Removed sys.modules.js mock to allow utils.py fallback
 
 
 from handlers.auth import handle_signin, handle_signup, handle_verify_email  # noqa: E402
+
+
+@pytest.fixture(autouse=True)
+def mock_response():
+    """Ensure handle_auth uses the local _MockResponse class."""
+    with patch("handlers.auth.Response", _MockResponse):
+        yield
 
 
 HASHING_ITERATIONS = 1
@@ -78,7 +77,7 @@ class MockEnv:
     MAILGUN_DOMAIN = "test.mailgun.org"
 
 
-def _make_mock_user(is_active=True, password="testpass123"):
+def _make_mock_user(is_active=True, password="testpass123456"):
     """Create a mock user dict as returned by User.objects().filter().first()."""
     return {
         "id": 1,
@@ -105,7 +104,7 @@ class TestSigninIsActiveCheck:
         mock_qs.first = AsyncMock(return_value=user)
         mock_user_cls.objects.return_value = mock_qs
 
-        body = {"username": "testuser", "password": "testpass123"}
+        body = {"username": "testuser", "password": "testpass123456"}
         request = MockRequest(method="POST", body=body)
 
         with patch("handlers.auth.get_db_safe", AsyncMock(return_value=MagicMock())), \
@@ -114,7 +113,7 @@ class TestSigninIsActiveCheck:
             resp = await handle_signin(request, MockEnv(), {}, {}, "/auth/signin")
 
         assert resp.status == 403
-        data = resp.data if isinstance(resp.data, dict) else json.loads(resp.body)
+        data = resp.data if hasattr(resp, 'data') else json.loads(resp.body)
         assert "not verified" in data.get("message", "").lower()
 
     @pytest.mark.asyncio
@@ -127,7 +126,7 @@ class TestSigninIsActiveCheck:
         mock_qs.first = AsyncMock(return_value=user)
         mock_user_cls.objects.return_value = mock_qs
 
-        body = {"username": "testuser", "password": "testpass123"}
+        body = {"username": "testuser", "password": "testpass123456"}
         request = MockRequest(method="POST", body=body)
 
         with patch("handlers.auth.get_db_safe", AsyncMock(return_value=MagicMock())), \
@@ -150,7 +149,7 @@ class TestSigninIsActiveCheck:
         mock_qs.first = AsyncMock(return_value=user)
         mock_user_cls.objects.return_value = mock_qs
 
-        body = {"username": "testuser", "password": "testpass123"}
+        body = {"username": "testuser", "password": "testpass123456"}
         request = MockRequest(method="POST", body=body)
 
         with patch("handlers.auth.get_db_safe", AsyncMock(return_value=MagicMock())), \
@@ -191,7 +190,7 @@ class TestSigninValidation:
         mock_qs.first = AsyncMock(return_value=None)
         mock_user_cls.objects.return_value = mock_qs
 
-        body = {"username": "nouser", "password": "pass"}
+        body = {"username": "nouser", "password": "testpass123456"}
         request = MockRequest(method="POST", body=body)
 
         with patch("handlers.auth.get_db_safe", AsyncMock(return_value=MagicMock())), \
@@ -202,14 +201,14 @@ class TestSigninValidation:
 
     @pytest.mark.asyncio
     async def test_wrong_password_returns_401(self):
-        user = _make_mock_user(is_active=True, password="correctpass")
+        user = _make_mock_user(is_active=True, password="correctpassword123")
         mock_user_cls = MagicMock()
         mock_qs = MagicMock()
         mock_qs.filter.return_value = mock_qs
         mock_qs.first = AsyncMock(return_value=user)
         mock_user_cls.objects.return_value = mock_qs
 
-        body = {"username": "testuser", "password": "wrongpass"}
+        body = {"username": "testuser", "password": "wrongpassword123"}
         request = MockRequest(method="POST", body=body)
 
         with patch("handlers.auth.get_db_safe", AsyncMock(return_value=MagicMock())), \
@@ -221,7 +220,7 @@ class TestSigninValidation:
 
     @pytest.mark.asyncio
     async def test_db_connection_error_returns_500(self):
-        body = {"username": "testuser", "password": "pass"}
+        body = {"username": "testuser", "password": "testpass123456"}
         request = MockRequest(method="POST", body=body)
 
         with patch("handlers.auth.get_db_safe", AsyncMock(side_effect=Exception("DB down"))):
@@ -250,7 +249,7 @@ class TestSignupValidation:
 
     @pytest.mark.asyncio
     async def test_missing_field_returns_400(self):
-        request = MockRequest(method="POST", body={"username": "u", "password": "p"})
+        request = MockRequest(method="POST", body={"username": "user123", "password": "testpass123456"})
         with patch("handlers.auth.check_required_fields", AsyncMock(return_value=(False, "email"))):
             resp = await handle_signup(request, MockEnv(), {}, {}, "/auth/signup")
         assert resp.status == 400
