@@ -1,6 +1,6 @@
 {
   "participantCount": 194,
-  "totalPRs": 2604,
+  "totalPRs": 2606,
   "mergedPRs": 1649,
   "totalIssues": 796,
   "repositories": 53,
@@ -25,6 +25,26 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "chore: delete unused chatbot asset",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6084",
+      "username": "SamrithaShree",
+      "avatar": "https://avatars.githubusercontent.com/u/183441831?v=4",
+      "state": "open",
+      "created_at": "2026-03-26T10:23:04Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT"
+    },
+    {
+      "title": "Enable Mobile-First Hamburger Navigation with CSS-Driven Sidebar Drawer",
+      "url": "https://github.com/OWASP-BLT/BLT-University/pull/39",
+      "username": "Manahil-Afzal",
+      "avatar": "https://avatars.githubusercontent.com/u/207878232?v=4",
+      "state": "open",
+      "created_at": "2026-03-26T09:34:19Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-University"
+    },
     {
       "title": "Fix: Resolve issue #95",
       "url": "https://github.com/OWASP-BLT/BLT-Pages/pull/96",
@@ -104,26 +124,6 @@
       "created_at": "2026-03-26T01:25:54Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "fix(domains): sanitize error responses and add logging",
-      "url": "https://github.com/OWASP-BLT/BLT-API/pull/78",
-      "username": "jarvis24pro-A01",
-      "avatar": "https://avatars.githubusercontent.com/u/271031205?v=4",
-      "state": "open",
-      "created_at": "2026-03-25T23:14:47Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-API"
-    },
-    {
-      "title": "fix: populate ISO 8601 timestamps in /health and /api/review responses (closes #35)",
-      "url": "https://github.com/OWASP-BLT/BLT-Toasty/pull/37",
-      "username": "DrGalio",
-      "avatar": "https://avatars.githubusercontent.com/u/269968451?v=4",
-      "state": "open",
-      "created_at": "2026-03-25T23:00:00Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-Toasty"
     }
   ]
 }
