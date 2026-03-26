@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-03-19T15:53:59.529748Z",
-  "commit_sha": "a03039cb8a5e1908c7bc4516b74d294f1f882b3d",
+  "updated_at": "2026-03-26T09:17:11.483739Z",
+  "commit_sha": "5dd1d41ff2283dbec0ecea94c5a79869ca2ee6f9",
   "total_bugs": 18,
   "open_bugs": 5,
   "closed_bugs": 13,
@@ -53,17 +53,17 @@
     },
     {
       "rank": 2,
+      "login": "DonnieBLT",
+      "count": 4,
+      "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
+      "profile_url": "https://github.com/DonnieBLT"
+    },
+    {
+      "rank": 3,
       "login": "Sub-allllllllllll",
       "count": 3,
       "avatar_url": "https://avatars.githubusercontent.com/u/232794913?v=4",
       "profile_url": "https://github.com/Sub-allllllllllll"
-    },
-    {
-      "rank": 3,
-      "login": "DonnieBLT",
-      "count": 3,
-      "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
-      "profile_url": "https://github.com/DonnieBLT"
     },
     {
       "rank": 4,
@@ -109,48 +109,55 @@
     },
     {
       "rank": 10,
+      "login": "Aashish-gif",
+      "count": 1,
+      "avatar_url": "https://avatars.githubusercontent.com/u/180637528?v=4",
+      "profile_url": "https://github.com/Aashish-gif"
+    },
+    {
+      "rank": 11,
       "login": "VarunPorwal",
       "count": 1,
       "avatar_url": "https://avatars.githubusercontent.com/u/195159026?v=4",
       "profile_url": "https://github.com/VarunPorwal"
     },
     {
-      "rank": 11,
+      "rank": 12,
       "login": "e-esakman",
       "count": 1,
       "avatar_url": "https://avatars.githubusercontent.com/u/187769872?v=4",
       "profile_url": "https://github.com/e-esakman"
     },
     {
-      "rank": 12,
+      "rank": 13,
       "login": "tiggachris",
       "count": 1,
       "avatar_url": "https://avatars.githubusercontent.com/u/169353352?v=4",
       "profile_url": "https://github.com/tiggachris"
     },
     {
-      "rank": 13,
+      "rank": 14,
       "login": "akhileshjadhav-coder",
       "count": 1,
       "avatar_url": "https://avatars.githubusercontent.com/u/226160161?v=4",
       "profile_url": "https://github.com/akhileshjadhav-coder"
     },
     {
-      "rank": 14,
+      "rank": 15,
       "login": "yogeshwarithombare",
       "count": 1,
       "avatar_url": "https://avatars.githubusercontent.com/u/247213611?v=4",
       "profile_url": "https://github.com/yogeshwarithombare"
     },
     {
-      "rank": 15,
+      "rank": 16,
       "login": "Armaansaxena",
       "count": 1,
       "avatar_url": "https://avatars.githubusercontent.com/u/143505186?v=4",
       "profile_url": "https://github.com/Armaansaxena"
     },
     {
-      "rank": 16,
+      "rank": 17,
       "login": "swaparup36",
       "count": 1,
       "avatar_url": "https://avatars.githubusercontent.com/u/82692857?v=4",
@@ -190,7 +197,7 @@
       "title": "[BUG] tabs are overlapping",
       "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/95",
       "created_at": "2026-03-19T15:53:45Z",
-      "comment_count": 1,
+      "comment_count": 3,
       "user": {
         "login": "DonnieBLT",
         "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
@@ -198,11 +205,13 @@
       },
       "image_url": "https://github.com/user-attachments/assets/9592f5eb-0bb9-4f09-86bd-7389335eb0d4",
       "domain": "owasp.org",
-      "reactions": {},
+      "reactions": {
+        "eyes": 1
+      },
       "latest_comment": {
-        "body": "👋 Thanks for opening this issue, @DonnieBLT!\n\nOur team will review it shortly. In the meantime:\n- If you'd like to work on this issue, comment `/assign` to get assigned.\n- Visit [OWASP BLT-Pool](https://pool.owaspblt.org) for more information about our bug bounty platform.\n",
-        "created_at": "2026-03-19T15:53:48Z",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/95#issuecomment-4091203993",
+        "body": "@Aashish-gif This issue is not yet ready for assignment. A maintainer (such as @donnieblt) must first review it and add the \"help wanted\" label before `/assign` can be used.",
+        "created_at": "2026-03-26T09:16:56Z",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/95#issuecomment-4132954512",
         "user": {
           "login": "owasp-blt[bot]",
           "avatar_url": "https://avatars.githubusercontent.com/in/1159228?v=4",
@@ -215,7 +224,7 @@
       "title": "[BUG] open / closed count is not showing correct open counts",
       "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/87",
       "created_at": "2026-03-11T08:09:43Z",
-      "comment_count": 10,
+      "comment_count": 11,
       "user": {
         "login": "DonnieBLT",
         "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
@@ -227,13 +236,13 @@
         "eyes": 1
       },
       "latest_comment": {
-        "body": "@subalkum You are not currently assigned to this issue.",
-        "created_at": "2026-03-17T08:25:18Z",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/87#issuecomment-4073183330",
+        "body": "<img width=\"1290\" height=\"1068\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/11620dda-f40e-4808-91e2-3373897d6517\" /> Also count is inaccurate on the agents page in this case I had one completed task ",
+        "created_at": "2026-03-24T12:54:01Z",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/87#issuecomment-4118022589",
         "user": {
-          "login": "owasp-blt[bot]",
-          "avatar_url": "https://avatars.githubusercontent.com/in/1159228?v=4",
-          "profile_url": "https://github.com/apps/owasp-blt"
+          "login": "DonnieBLT",
+          "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
+          "profile_url": "https://github.com/DonnieBLT"
         }
       }
     },
