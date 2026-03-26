@@ -1,6 +1,6 @@
 {
-  "participantCount": 192,
-  "totalPRs": 2602,
+  "participantCount": 194,
+  "totalPRs": 2604,
   "mergedPRs": 1649,
   "totalIssues": 796,
   "repositories": 53,
@@ -25,6 +25,26 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "Fix: Resolve issue #95",
+      "url": "https://github.com/OWASP-BLT/BLT-Pages/pull/96",
+      "username": "Aashish-gif",
+      "avatar": "https://avatars.githubusercontent.com/u/180637528?v=4",
+      "state": "open",
+      "created_at": "2026-03-26T09:15:28Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-Pages"
+    },
+    {
+      "title": "chore: decommission non-functional legacy chatbot UI and assets",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6083",
+      "username": "SamrithaShree",
+      "avatar": "https://avatars.githubusercontent.com/u/183441831?v=4",
+      "state": "closed",
+      "created_at": "2026-03-26T09:14:54Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT"
+    },
     {
       "title": "perf: cache database initialization check per worker isolate",
       "url": "https://github.com/OWASP-BLT/BLT-API/pull/82",
@@ -104,26 +124,6 @@
       "created_at": "2026-03-25T23:00:00Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT-Toasty"
-    },
-    {
-      "title": "fix: replace dummy None timestamps with actual UTC datetimes",
-      "url": "https://github.com/OWASP-BLT/BLT-Toasty/pull/36",
-      "username": "Rudrawhy",
-      "avatar": "https://avatars.githubusercontent.com/u/154898503?v=4",
-      "state": "open",
-      "created_at": "2026-03-25T22:05:33Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-Toasty"
-    },
-    {
-      "title": "fix: create parent directories for CLI output to prevent crashes",
-      "url": "https://github.com/OWASP-BLT/BLT-Preflight/pull/18",
-      "username": "Engineer12-Garko",
-      "avatar": "https://avatars.githubusercontent.com/u/193513198?v=4",
-      "state": "closed",
-      "created_at": "2026-03-25T21:59:01Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-Preflight"
     }
   ]
 }
