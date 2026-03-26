@@ -1,8 +1,8 @@
 {
   "participantCount": 192,
-  "totalPRs": 2595,
-  "mergedPRs": 1643,
-  "totalIssues": 795,
+  "totalPRs": 2597,
+  "mergedPRs": 1648,
+  "totalIssues": 796,
   "repositories": 53,
   "topContributors": [
     {
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "Swarm Fix: Redundant Database Initialization Checks in get_db_safe",
+      "url": "https://github.com/OWASP-BLT/BLT-API/pull/80",
+      "username": "willkhinz",
+      "avatar": "https://avatars.githubusercontent.com/u/253369921?v=4",
+      "state": "open",
+      "created_at": "2026-03-26T04:24:52Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-API"
+    },
     {
       "title": "Update README.md",
       "url": "https://github.com/OWASP-BLT/BLT/pull/6081",
@@ -114,16 +124,6 @@
       "created_at": "2026-03-25T15:26:05Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "fix: link \"OWASP Community\" in footer to official Slack invite page",
-      "url": "https://github.com/OWASP-BLT/BLT-University/pull/37",
-      "username": "DrGalio",
-      "avatar": "https://avatars.githubusercontent.com/u/269968451?v=4",
-      "state": "open",
-      "created_at": "2026-03-25T14:55:03Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-University"
     }
   ]
 }
