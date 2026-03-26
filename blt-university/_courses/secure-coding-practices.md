@@ -11,7 +11,7 @@ description: Learn to write secure code from the ground up. Covers common vulner
 
 resources:
   - title: Secure Coding Fundamentals
-    url: https://www.youtube.com/watch?v=dQw4w9WgXcQ
+    url: https://www.youtube.com/watch?v=R-4_DbV1Su4
     type: video
   - title: OWASP Secure Coding Practices
     url: https://owasp.org/www-project-secure-coding-practices-quick-reference-guide/

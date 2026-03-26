@@ -11,7 +11,7 @@ description: Learn the foundations of network security including firewalls, VPNs
 
 resources:
   - title: Network Security Course Introduction
-    url: https://www.youtube.com/watch?v=dQw4w9WgXcQ
+    url: https://www.youtube.com/watch?v=lJRz-5hjWZ0
     type: video
   - title: TCP/IP Guide
     url: https://www.ietf.org/rfc/rfc793.txt
