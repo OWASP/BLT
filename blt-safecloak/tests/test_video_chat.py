@@ -889,3 +889,189 @@ def test_voice_changer_effect_intensity(voice_changer_page):
     """setEffectIntensity() must clamp to [0,1], persist, and not throw on persona modes."""
     result = voice_changer_page.evaluate(_VOICE_CHANGER_INTENSITY_JS)
     assert result["ok"], result.get("error", "unknown error")
+
+
+# ---------------------------------------------------------------------------
+# Combined-effects API tests
+# ---------------------------------------------------------------------------
+
+_VOICE_CHANGER_COMBINED_EFFECTS_JS = """
+async () => {
+    if (typeof VoiceChanger === 'undefined') return {ok: false, error: 'VoiceChanger not defined'};
+    if (typeof VoiceChanger.setEffectLevel !== 'function')
+        return {ok: false, error: 'setEffectLevel not defined'};
+    if (typeof VoiceChanger.getEffectLevels !== 'function')
+        return {ok: false, error: 'getEffectLevels not defined'};
+    if (typeof VoiceChanger.toggleEffect !== 'function')
+        return {ok: false, error: 'toggleEffect not defined'};
+
+    let stream;
+    try {
+        const ac = new AudioContext();
+        const osc = ac.createOscillator();
+        const dest = ac.createMediaStreamDestination();
+        osc.connect(dest);
+        osc.start();
+        stream = dest.stream;
+    } catch (e) {
+        return {ok: false, error: 'AudioContext unavailable: ' + e.message};
+    }
+
+    VoiceChanger.init(stream);
+
+    /* All levels should start at 0 */
+    const initial = VoiceChanger.getEffectLevels();
+    const nonZero = Object.values(initial).filter(v => v !== 0);
+    if (nonZero.length > 0) {
+        VoiceChanger.destroy();
+        return {ok: false, error: 'Expected all effectLevels to be 0 after init, got: ' + JSON.stringify(initial)};
+    }
+
+    /* setEffectLevel(mode, level) updates only that mode */
+    VoiceChanger.setEffectLevel('deep', 0.6);
+    const levels1 = VoiceChanger.getEffectLevels();
+    if (Math.abs(levels1['deep'] - 0.6) > 0.001) {
+        VoiceChanger.destroy();
+        return {ok: false, error: 'setEffectLevel deep 0.6 not stored; got ' + levels1['deep']};
+    }
+    if (levels1['echo'] !== 0) {
+        VoiceChanger.destroy();
+        return {ok: false, error: 'setEffectLevel deep should not affect echo; echo=' + levels1['echo']};
+    }
+
+    /* Two effects can be active simultaneously */
+    VoiceChanger.setEffectLevel('echo', 0.4);
+    const levels2 = VoiceChanger.getEffectLevels();
+    if (Math.abs(levels2['deep'] - 0.6) > 0.001 || Math.abs(levels2['echo'] - 0.4) > 0.001) {
+        VoiceChanger.destroy();
+        return {ok: false, error: 'Expected deep=0.6 and echo=0.4, got: ' + JSON.stringify(levels2)};
+    }
+
+    /* setEffectLevel clamps to [0,1] */
+    VoiceChanger.setEffectLevel('deep', 5);
+    if (VoiceChanger.getEffectLevels()['deep'] !== 1) {
+        VoiceChanger.destroy();
+        return {ok: false, error: 'setEffectLevel(5) should clamp to 1'};
+    }
+    VoiceChanger.setEffectLevel('deep', -1);
+    if (VoiceChanger.getEffectLevels()['deep'] !== 0) {
+        VoiceChanger.destroy();
+        return {ok: false, error: 'setEffectLevel(-1) should clamp to 0'};
+    }
+
+    /* toggleEffect: off → on at globalIntensity */
+    VoiceChanger.setEffectLevel('robot', 0);
+    const toggled = VoiceChanger.toggleEffect('robot');
+    if (toggled <= 0) {
+        VoiceChanger.destroy();
+        return {ok: false, error: 'toggleEffect on robot (off→on) should return > 0, got ' + toggled};
+    }
+    if (VoiceChanger.getEffectLevels()['robot'] !== toggled) {
+        VoiceChanger.destroy();
+        return {ok: false, error: 'toggleEffect did not update effectLevels.robot'};
+    }
+
+    /* toggleEffect: on → off */
+    const toggled2 = VoiceChanger.toggleEffect('robot');
+    if (toggled2 !== 0) {
+        VoiceChanger.destroy();
+        return {ok: false, error: 'toggleEffect on robot (on→off) should return 0, got ' + toggled2};
+    }
+
+    /* setEffectLevel(mode, 0) bypasses that effect; getProcessedStream still valid */
+    VoiceChanger.setEffectLevel('echo', 0);
+    const ps = VoiceChanger.getProcessedStream();
+    if (!ps || (ps.getAudioTracks && ps.getAudioTracks().length === 0)) {
+        VoiceChanger.destroy();
+        return {ok: false, error: 'getProcessedStream() invalid after setEffectLevel to 0'};
+    }
+
+    /* destroy() resets all effectLevels to 0 */
+    VoiceChanger.setEffectLevel('chipmunk', 0.7);
+    VoiceChanger.destroy();
+    const afterDestroy = VoiceChanger.getEffectLevels();
+    const nonZeroAfter = Object.values(afterDestroy).filter(v => v !== 0);
+    if (nonZeroAfter.length > 0) {
+        return {ok: false, error: 'effectLevels not reset to 0 after destroy: ' + JSON.stringify(afterDestroy)};
+    }
+
+    return {ok: true};
+}
+"""
+
+_VOICE_CHANGER_ALL_EFFECTS_COMBINED_JS = """
+async () => {
+    if (typeof VoiceChanger === 'undefined') return {ok: false, error: 'VoiceChanger not defined'};
+
+    let stream;
+    try {
+        const ac = new AudioContext();
+        const osc = ac.createOscillator();
+        const dest = ac.createMediaStreamDestination();
+        osc.connect(dest);
+        osc.start();
+        stream = dest.stream;
+    } catch (e) {
+        return {ok: false, error: 'AudioContext unavailable: ' + e.message};
+    }
+
+    VoiceChanger.init(stream);
+
+    /* Enable all 7 effects simultaneously — must not throw */
+    const effectModes = ['deep', 'chipmunk', 'robot', 'echo', 'voice1', 'voice2', 'voice3'];
+    try {
+        for (const m of effectModes) {
+            VoiceChanger.setEffectLevel(m, 0.5);
+        }
+    } catch (e) {
+        VoiceChanger.destroy();
+        return {ok: false, error: 'setEffectLevel threw when combining all effects: ' + e.message};
+    }
+
+    /* All levels should be 0.5 */
+    const levels = VoiceChanger.getEffectLevels();
+    for (const m of effectModes) {
+        if (Math.abs(levels[m] - 0.5) > 0.001) {
+            VoiceChanger.destroy();
+            return {ok: false, error: 'Expected level 0.5 for ' + m + ', got ' + levels[m]};
+        }
+    }
+
+    /* Processed stream must still be valid */
+    const ps = VoiceChanger.getProcessedStream();
+    if (!ps) {
+        VoiceChanger.destroy();
+        return {ok: false, error: 'getProcessedStream() null with all effects combined'};
+    }
+    const tracks = ps.getAudioTracks ? ps.getAudioTracks() : [];
+    if (tracks.length === 0) {
+        VoiceChanger.destroy();
+        return {ok: false, error: 'getProcessedStream() has no audio tracks with all effects combined'};
+    }
+
+    /* Disabling one effect at a time down to 0 should not throw */
+    try {
+        for (const m of effectModes) {
+            VoiceChanger.setEffectLevel(m, 0);
+        }
+    } catch (e) {
+        VoiceChanger.destroy();
+        return {ok: false, error: 'setEffectLevel(0) threw when removing effects: ' + e.message};
+    }
+
+    VoiceChanger.destroy();
+    return {ok: true};
+}
+"""
+
+
+def test_voice_changer_combined_effects_api(voice_changer_page):
+    """setEffectLevel/getEffectLevels/toggleEffect must support independent per-effect levels."""
+    result = voice_changer_page.evaluate(_VOICE_CHANGER_COMBINED_EFFECTS_JS)
+    assert result["ok"], result.get("error", "unknown error")
+
+
+def test_voice_changer_all_effects_combined(voice_changer_page):
+    """All 7 effects active simultaneously must not throw and keep the stream valid."""
+    result = voice_changer_page.evaluate(_VOICE_CHANGER_ALL_EFFECTS_COMBINED_JS)
+    assert result["ok"], result.get("error", "unknown error")

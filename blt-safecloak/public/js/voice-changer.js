@@ -6,41 +6,64 @@
  *
  * Audio graph
  * -----------
- *   rawStream → sourceNode → inputGainNode → [effect chain] → destinationNode
- *                                                                     ↓
- *                                                          monitorSourceNode
- *                                                                     ↓
- *                                                          monitorGain → audioCtx.destination
+ *   rawStream → sourceNode → inputGainNode → [effect segments in series] → destinationNode
+ *                                                                                  ↓
+ *                                                                       monitorSourceNode
+ *                                                                                  ↓
+ *                                                                       monitorGain → audioCtx.destination
+ *
+ * Effect segments (dry/wet per-effect):
+ *   prevNode ─── dryGain (1−level) ──────────────────────────→ mergerNode
+ *            └── wetPath: effectIn → [nodes] → effectOut → wetGain (level) ─┘
+ *
+ * Multiple effects are chained in series. At level=0 an effect is bypassed
+ * entirely (only the dry signal passes through to the next stage).
  */
 
 const VoiceChanger = (() => {
   let audioCtx = null;
   let sourceNode = null;
-  let inputGainNode = null;      /* mic input level control */
+  let inputGainNode = null; /* mic input level control */
   let destinationNode = null;
-  let monitorGain = null;        /* speaker output for "hear yourself" */
-  let monitorSourceNode = null;  /* re-routes processed stream to speakers */
-  let activeOscillator = null;   /* robot mode oscillator — needs explicit stop */
+  let monitorGain = null; /* speaker output for "hear yourself" */
+  let monitorSourceNode = null; /* re-routes processed stream to speakers */
+  let activeOscillators = []; /* all running oscillators — need explicit stop on rebuild */
 
-  let currentMode = "normal";
-  let processedStream = null;
+  /** Per-effect intensity levels (0 = bypassed, 1 = full effect). */
+  let effectLevels = { deep: 0, chipmunk: 0, robot: 0, echo: 0, voice1: 0, voice2: 0, voice3: 0 };
+
+  /* Backward-compat state for setMode / getMode / setEffectIntensity / getEffectIntensity */
+  let _primaryMode = "normal";
+  let _globalIntensity = 0.5;
 
   /* User preferences — preserved across destroy/init cycles */
   let monitorEnabled = false;
   let monitorVolume = 0.5;
   let micGain = 1.0;
-  let effectIntensity = 0.5; /* 0 = subtle, 1 = maximum; scales every effect chain */
+
+  let processedStream = null;
 
   const MODES = {
-    normal:   { label: "Normal",    icon: "fa-microphone",     description: "No voice effect applied" },
-    deep:     { label: "Deep",      icon: "fa-down-long",      description: "Lower, deeper voice tone" },
-    chipmunk: { label: "Chipmunk",  icon: "fa-up-long",        description: "Higher-pitched squeaky voice" },
-    robot:    { label: "Robot",     icon: "fa-robot",          description: "Robotic ring-modulation effect" },
-    echo:     { label: "Echo",      icon: "fa-wave-square",    description: "Reverb and echo effect" },
-    voice1:   { label: "Telephone", icon: "fa-phone",          description: "Classic telephone / walkie-talkie" },
-    voice2:   { label: "Alien",     icon: "fa-user-astronaut", description: "Otherworldly alien voice" },
-    voice3:   { label: "Monster",   icon: "fa-skull",          description: "Deep monster voice with tremolo" },
+    normal: { label: "Normal", icon: "fa-microphone", description: "No voice effect applied" },
+    deep: { label: "Deep", icon: "fa-down-long", description: "Lower, deeper voice tone" },
+    chipmunk: {
+      label: "Chipmunk",
+      icon: "fa-up-long",
+      description: "Higher-pitched squeaky voice",
+    },
+    robot: { label: "Robot", icon: "fa-robot", description: "Robotic ring-modulation effect" },
+    echo: { label: "Echo", icon: "fa-wave-square", description: "Reverb and echo effect" },
+    voice1: {
+      label: "Telephone",
+      icon: "fa-phone",
+      description: "Classic telephone / walkie-talkie",
+    },
+    voice2: { label: "Alien", icon: "fa-user-astronaut", description: "Otherworldly alien voice" },
+    voice3: { label: "Monster", icon: "fa-skull", description: "Deep monster voice with tremolo" },
   };
+
+  /** The order in which active effects are applied in series. */
+  const EFFECT_ORDER = ["deep", "chipmunk", "robot", "echo", "voice1", "voice2", "voice3"];
 
   /* ── Helpers ── */
 
@@ -60,24 +83,24 @@ const VoiceChanger = (() => {
   }
 
   /**
-   * Stop any running oscillator from a previous robot chain, then
-   * disconnect both sourceNode and inputGainNode so the old effect
-   * chain is fully torn down before a new one is wired up.
+   * Stop all running oscillators, then disconnect sourceNode and inputGainNode
+   * so the old effect chain is fully torn down before a new one is wired up.
    */
   function disconnectSource() {
-    if (activeOscillator) {
+    activeOscillators.forEach((osc) => {
       try {
-        activeOscillator.stop();
+        osc.stop();
       } catch {
-        /* ignore — already stopped */
+        /* already stopped */
       }
       try {
-        activeOscillator.disconnect();
+        osc.disconnect();
       } catch {
         /* ignore */
       }
-      activeOscillator = null;
-    }
+    });
+    activeOscillators = [];
+
     if (inputGainNode) {
       try {
         inputGainNode.disconnect();
@@ -94,24 +117,19 @@ const VoiceChanger = (() => {
     }
   }
 
-  /* ── Effect chains ── */
+  /* ── Effect node builders ── */
 
-  function buildChain(mode) {
-    disconnectSource();
-    /* monitorGain is not checked here — it is wired once in init() and does not
-     * participate in the effect chain itself; it reads from destinationNode.stream
-     * and routes to audioCtx.destination independently. */
-    if (!audioCtx || !sourceNode || !inputGainNode || !destinationNode) return;
-
-    /* Always reconnect: sourceNode → inputGainNode */
-    sourceNode.connect(inputGainNode);
-
-    /* t = effectIntensity (0–1) used to scale every effect parameter */
-    const t = effectIntensity;
-
+  /**
+   * Build the pure-wet audio nodes for one effect mode.
+   * Returns { inputNode, outputNode } — the caller is responsible for connecting
+   * prevNode → inputNode and outputNode → wetGainNode.
+   * @param {string} mode - effect key
+   * @param {number} t    - effect level (0–1), used to scale parameters
+   */
+  function buildEffectNodes(mode, t) {
     switch (mode) {
       case "deep": {
-        /* Boost bass, attenuate treble → deeper sounding voice */
+        /* Boost bass, attenuate treble — scaled with t for smoother intensity blending */
         const lowShelf = audioCtx.createBiquadFilter();
         lowShelf.type = "lowshelf";
         lowShelf.frequency.value = 250;
@@ -122,18 +140,12 @@ const VoiceChanger = (() => {
         highShelf.frequency.value = 2000;
         highShelf.gain.value = lerp(-3, -16, t);
 
-        const gain = audioCtx.createGain();
-        gain.gain.value = 1.1;
-
-        inputGainNode.connect(lowShelf);
         lowShelf.connect(highShelf);
-        highShelf.connect(gain);
-        gain.connect(destinationNode);
-        break;
+        return { inputNode: lowShelf, outputNode: highShelf };
       }
 
       case "chipmunk": {
-        /* Attenuate bass, boost upper-mid/treble → thin, squeaky voice */
+        /* Attenuate bass, boost upper-mid/treble — scaled with t */
         const lowShelf = audioCtx.createBiquadFilter();
         lowShelf.type = "lowshelf";
         lowShelf.frequency.value = 400;
@@ -150,26 +162,21 @@ const VoiceChanger = (() => {
         peaking.gain.value = lerp(3, 14, t);
         peaking.Q.value = 1;
 
-        inputGainNode.connect(lowShelf);
         lowShelf.connect(highpass);
         highpass.connect(peaking);
-        peaking.connect(destinationNode);
-        break;
+        return { inputNode: lowShelf, outputNode: peaking };
       }
 
       case "robot": {
-        /* Ring modulation: multiply source by a low-frequency oscillator */
         const oscillator = audioCtx.createOscillator();
         oscillator.type = "square";
         oscillator.frequency.value = lerp(30, 100, t);
 
-        /* The oscillator drives the gain of a GainNode that the source passes through */
         const ringGain = audioCtx.createGain();
-        ringGain.gain.value = 0; /* oscillator will modulate this */
-
+        ringGain.gain.value = 0;
         oscillator.connect(ringGain.gain);
         oscillator.start();
-        activeOscillator = oscillator; /* tracked so it can be stopped on next buildChain */
+        activeOscillators.push(oscillator);
 
         const waveshaper = audioCtx.createWaveShaper();
         waveshaper.curve = makeDistortionCurve(lerp(30, 150, t));
@@ -180,46 +187,25 @@ const VoiceChanger = (() => {
         bandpass.frequency.value = 1400;
         bandpass.Q.value = 0.6;
 
-        const gainOut = audioCtx.createGain();
-        gainOut.gain.value = 1.4;
-
-        inputGainNode.connect(ringGain);
         ringGain.connect(waveshaper);
         waveshaper.connect(bandpass);
-        bandpass.connect(gainOut);
-        gainOut.connect(destinationNode);
-        break;
+        return { inputNode: ringGain, outputNode: bandpass };
       }
 
       case "echo": {
-        /* Short delay with feedback loop mixed with the dry signal */
         const delay = audioCtx.createDelay(1.0);
         delay.delayTime.value = lerp(0.1, 0.38, t);
 
         const feedback = audioCtx.createGain();
         feedback.gain.value = lerp(0.2, 0.55, t);
 
-        const dryGain = audioCtx.createGain();
-        dryGain.gain.value = 0.8;
-
-        const wetGain = audioCtx.createGain();
-        wetGain.gain.value = lerp(0.3, 0.7, t);
-
-        /* Dry path */
-        inputGainNode.connect(dryGain);
-        dryGain.connect(destinationNode);
-
-        /* Wet path with feedback */
-        inputGainNode.connect(delay);
         delay.connect(feedback);
         feedback.connect(delay);
-        delay.connect(wetGain);
-        wetGain.connect(destinationNode);
-        break;
+        /* The delay node acts as both input and output; the feedback loop is internal. */
+        return { inputNode: delay, outputNode: delay };
       }
 
       case "voice1": {
-        /* Telephone: narrow phone bandwidth (HP+LP) + tube-style distortion */
         const highpass = audioCtx.createBiquadFilter();
         highpass.type = "highpass";
         highpass.frequency.value = lerp(150, 500, t);
@@ -234,19 +220,12 @@ const VoiceChanger = (() => {
         waveshaper.curve = makeDistortionCurve(lerp(10, 90, t));
         waveshaper.oversample = "2x";
 
-        const gainOut = audioCtx.createGain();
-        gainOut.gain.value = 1.2;
-
-        inputGainNode.connect(highpass);
         highpass.connect(lowpass);
         lowpass.connect(waveshaper);
-        waveshaper.connect(gainOut);
-        gainOut.connect(destinationNode);
-        break;
+        return { inputNode: highpass, outputNode: waveshaper };
       }
 
       case "voice2": {
-        /* Alien: ring modulation at a mid frequency + comb-filter via short delay */
         const oscillator = audioCtx.createOscillator();
         oscillator.type = "sine";
         oscillator.frequency.value = lerp(60, 200, t);
@@ -255,33 +234,20 @@ const VoiceChanger = (() => {
         ringGain.gain.value = 0;
         oscillator.connect(ringGain.gain);
         oscillator.start();
-        activeOscillator = oscillator;
+        activeOscillators.push(oscillator);
 
-        /* Comb filter via short feedback delay */
         const combDelay = audioCtx.createDelay(0.05);
         combDelay.delayTime.value = lerp(0.003, 0.015, t);
         const combFeedback = audioCtx.createGain();
         combFeedback.gain.value = lerp(0.35, 0.65, t);
 
-        const dryGain = audioCtx.createGain();
-        dryGain.gain.value = 0.6;
-        const wetGain = audioCtx.createGain();
-        wetGain.gain.value = lerp(0.4, 0.9, t);
-
-        inputGainNode.connect(dryGain);
-        dryGain.connect(destinationNode);
-
-        inputGainNode.connect(ringGain);
         ringGain.connect(combDelay);
         combDelay.connect(combFeedback);
         combFeedback.connect(combDelay);
-        combDelay.connect(wetGain);
-        wetGain.connect(destinationNode);
-        break;
+        return { inputNode: ringGain, outputNode: combDelay };
       }
 
       case "voice3": {
-        /* Monster: strong low-shelf boost + tremolo + heavy distortion */
         const lowShelf = audioCtx.createBiquadFilter();
         lowShelf.type = "lowshelf";
         lowShelf.frequency.value = 300;
@@ -292,7 +258,6 @@ const VoiceChanger = (() => {
         highShelf.frequency.value = 1500;
         highShelf.gain.value = lerp(-6, -18, t);
 
-        /* Tremolo via LFO modulating a gain node */
         const tremoloGain = audioCtx.createGain();
         tremoloGain.gain.value = 0.7;
         const tremolo = audioCtx.createOscillator();
@@ -303,40 +268,87 @@ const VoiceChanger = (() => {
         tremolo.connect(tremoloDepth);
         tremoloDepth.connect(tremoloGain.gain);
         tremolo.start();
-        activeOscillator = tremolo;
+        activeOscillators.push(tremolo);
 
         const waveshaper = audioCtx.createWaveShaper();
         waveshaper.curve = makeDistortionCurve(lerp(80, 280, t));
         waveshaper.oversample = "4x";
 
-        const gainOut = audioCtx.createGain();
-        gainOut.gain.value = lerp(0.9, 1.4, t);
-
-        inputGainNode.connect(lowShelf);
         lowShelf.connect(highShelf);
         highShelf.connect(tremoloGain);
         tremoloGain.connect(waveshaper);
-        waveshaper.connect(gainOut);
-        gainOut.connect(destinationNode);
-        break;
+        return { inputNode: lowShelf, outputNode: waveshaper };
       }
 
-      default: /* normal — direct passthrough */
-        inputGainNode.connect(destinationNode);
+      default: {
+        /* Passthrough — should not normally be called for 'normal' */
+        const pass = audioCtx.createGain();
+        return { inputNode: pass, outputNode: pass };
+      }
     }
+  }
+
+  /**
+   * Build a single dry/wet effect segment for one mode at the given level.
+   * @param {string} mode      - effect key
+   * @param {number} level     - 0–1 (0 = fully bypassed, 1 = 100% wet)
+   * @param {AudioNode} prevNode - the node that feeds into this segment
+   * @returns {AudioNode} - the merger/output node to use as input for the next segment
+   */
+  function buildEffectSegment(mode, level, prevNode) {
+    const merger = audioCtx.createGain();
+
+    /* Dry path (1 − level) */
+    const dryGain = audioCtx.createGain();
+    dryGain.gain.value = Math.max(0, 1 - level);
+    prevNode.connect(dryGain);
+    dryGain.connect(merger);
+
+    /* Wet path (level) */
+    const { inputNode, outputNode } = buildEffectNodes(mode, level);
+    const wetGain = audioCtx.createGain();
+    wetGain.gain.value = level;
+    prevNode.connect(inputNode);
+    outputNode.connect(wetGain);
+    wetGain.connect(merger);
+
+    return merger;
+  }
+
+  /**
+   * Tear down the current chain and rebuild it from effectLevels.
+   * Active effects (level > 0) are applied in EFFECT_ORDER as dry/wet segments in series.
+   * When all levels are 0 the signal passes through unchanged (normal mode).
+   */
+  function buildCombinedChain() {
+    disconnectSource();
+    if (!audioCtx || !sourceNode || !inputGainNode || !destinationNode) return;
+
+    sourceNode.connect(inputGainNode);
+
+    const activeEffects = EFFECT_ORDER.filter((m) => effectLevels[m] > 0);
+
+    if (activeEffects.length === 0) {
+      /* No effects active — plain passthrough */
+      inputGainNode.connect(destinationNode);
+      return;
+    }
+
+    let prevNode = inputGainNode;
+    for (const mode of activeEffects) {
+      prevNode = buildEffectSegment(mode, effectLevels[mode], prevNode);
+    }
+    prevNode.connect(destinationNode);
   }
 
   /* ── Public API ── */
 
   /**
    * Initialise the voice changer with a raw microphone MediaStream.
-   * Returns a MediaStream containing only the processed audio track
-   * that can be combined with a video track for WebRTC transmission.
-   *
+   * Returns a MediaStream containing only the processed audio track.
    * Safe to call multiple times — tears down any previous context first.
    */
   function init(rawStream) {
-    /* Tear down any existing audio context and nodes before reinitialising */
     destroy();
 
     let newAudioCtx = null;
@@ -349,27 +361,23 @@ const VoiceChanger = (() => {
 
       const newDestinationNode = newAudioCtx.createMediaStreamDestination();
 
-      /* Monitor path: processed stream → speakers */
       const newMonitorGain = newAudioCtx.createGain();
       newMonitorGain.gain.value = monitorEnabled ? monitorVolume : 0;
       newMonitorGain.connect(newAudioCtx.destination);
 
-      /* Only assign module-level state after all nodes are created successfully */
+      /* Assign module-level state only after all nodes are created successfully */
       audioCtx = newAudioCtx;
       sourceNode = newSourceNode;
       inputGainNode = newInputGainNode;
       destinationNode = newDestinationNode;
       monitorGain = newMonitorGain;
 
-      buildChain(currentMode);
+      buildCombinedChain();
       processedStream = destinationNode.stream;
 
-      /* Route processed audio back to speakers for the monitor feature.
-       * monitorGain.gain = 0 keeps it silent until the user enables monitoring. */
       monitorSourceNode = audioCtx.createMediaStreamSource(processedStream);
       monitorSourceNode.connect(monitorGain);
     } catch {
-      /* Clean up any partially-created AudioContext before falling back */
       if (newAudioCtx) {
         try {
           newAudioCtx.close();
@@ -392,17 +400,81 @@ const VoiceChanger = (() => {
     return processedStream;
   }
 
-  /** Switch the active voice effect at any time (even during an active call). */
-  function setMode(mode) {
-    if (!MODES[mode]) return;
-    currentMode = mode;
-    buildChain(mode);
+  /* ── Combined-effects API ── */
+
+  /**
+   * Set the intensity level of a single effect (0 = off / bypass, 1 = full effect).
+   * Multiple effects can be active simultaneously.
+   * Rebuilds the chain immediately.
+   */
+  function setEffectLevel(mode, level) {
+    if (!effectLevels.hasOwnProperty(mode)) return 0;
+    effectLevels[mode] = Math.max(0, Math.min(1, Number(level)));
+    buildCombinedChain();
+    return effectLevels[mode];
+  }
+
+  /** Return a shallow copy of the current effectLevels map. */
+  function getEffectLevels() {
+    return { ...effectLevels };
   }
 
   /**
-   * Toggle the "hear yourself" monitor on or off.
-   * Returns the new enabled state.
+   * Toggle a single effect on (at _globalIntensity) or off (0).
+   * Returns the new level.
    */
+  function toggleEffect(mode) {
+    if (!effectLevels.hasOwnProperty(mode)) return 0;
+    const newLevel = effectLevels[mode] > 0 ? 0 : _globalIntensity;
+    effectLevels[mode] = newLevel;
+    buildCombinedChain();
+    return newLevel;
+  }
+
+  /* ── Backward-compatible single-mode API ── */
+
+  /**
+   * Set a single exclusive voice effect, clearing all others.
+   * Backward-compatible with older call sites and tests.
+   */
+  function setMode(mode) {
+    if (!MODES[mode]) return;
+    _primaryMode = mode;
+    /* Exclusive: clear all effect levels */
+    EFFECT_ORDER.forEach((m) => {
+      effectLevels[m] = 0;
+    });
+    if (mode !== "normal") {
+      effectLevels[mode] = _globalIntensity;
+    }
+    buildCombinedChain();
+  }
+
+  /** Return the primary mode set via setMode() (backward compat). */
+  function getMode() {
+    return _primaryMode;
+  }
+
+  /**
+   * Set the global intensity applied when toggling effects on.
+   * Also updates the primary mode's level if set via setMode().
+   * Backward-compatible with the single-intensity API.
+   */
+  function setEffectIntensity(v) {
+    _globalIntensity = Math.max(0, Math.min(1, Number(v)));
+    if (_primaryMode !== "normal" && effectLevels.hasOwnProperty(_primaryMode)) {
+      effectLevels[_primaryMode] = _globalIntensity;
+      buildCombinedChain();
+    }
+    return _globalIntensity;
+  }
+
+  function getEffectIntensity() {
+    return _globalIntensity;
+  }
+
+  /* ── Monitor API ── */
+
   function toggleMonitor() {
     monitorEnabled = !monitorEnabled;
     if (monitorGain) {
@@ -411,10 +483,6 @@ const VoiceChanger = (() => {
     return monitorEnabled;
   }
 
-  /**
-   * Set monitor speaker volume (0–1).
-   * Takes effect immediately when the monitor is enabled.
-   */
   function setMonitorVolume(v) {
     monitorVolume = Math.max(0, Math.min(1, Number(v)));
     if (monitorGain && monitorEnabled) {
@@ -423,10 +491,6 @@ const VoiceChanger = (() => {
     return monitorVolume;
   }
 
-  /**
-   * Set microphone input gain (0–2).
-   * A value of 1.0 is unity gain; 2.0 doubles the signal level.
-   */
   function setMicGain(v) {
     micGain = Math.max(0, Math.min(2, Number(v)));
     if (inputGainNode) {
@@ -435,19 +499,7 @@ const VoiceChanger = (() => {
     return micGain;
   }
 
-  /**
-   * Set the intensity of the current effect chain (0–1).
-   * 0 = subtle / 1 = maximum. Rebuilds the active chain immediately.
-   */
-  function setEffectIntensity(v) {
-    effectIntensity = Math.max(0, Math.min(1, Number(v)));
-    buildChain(currentMode);
-    return effectIntensity;
-  }
-
-  function getMode() {
-    return currentMode;
-  }
+  /* ── Getters ── */
 
   function getModes() {
     return MODES;
@@ -469,25 +521,22 @@ const VoiceChanger = (() => {
     return micGain;
   }
 
-  function getEffectIntensity() {
-    return effectIntensity;
-  }
-
   /** Release all audio resources. */
   function destroy() {
-    if (activeOscillator) {
+    activeOscillators.forEach((osc) => {
       try {
-        activeOscillator.stop();
+        osc.stop();
       } catch {
-        /* ignore — may already be stopped */
+        /* may already be stopped */
       }
       try {
-        activeOscillator.disconnect();
+        osc.disconnect();
       } catch {
         /* ignore */
       }
-      activeOscillator = null;
-    }
+    });
+    activeOscillators = [];
+
     if (monitorSourceNode) {
       try {
         monitorSourceNode.disconnect();
@@ -512,29 +561,39 @@ const VoiceChanger = (() => {
     destinationNode = null;
     monitorGain = null;
     processedStream = null;
-    currentMode = "normal";
-    /* monitorEnabled is intentionally reset to false on destroy — silently
-     * re-enabling mic monitoring on the next init() without user action
-     * would be surprising and potentially undesirable.
-     * monitorVolume and micGain are user preferences preserved across destroy/init. */
+
+    /* Reset effect state */
+    EFFECT_ORDER.forEach((m) => {
+      effectLevels[m] = 0;
+    });
+    _primaryMode = "normal";
+
+    /* monitorEnabled intentionally reset — silently re-enabling without user action is surprising */
     monitorEnabled = false;
+    /* monitorVolume, micGain, _globalIntensity are user preferences preserved across destroy/init */
   }
 
   return {
     init,
+    destroy,
+    /* Combined-effects API */
+    setEffectLevel,
+    getEffectLevels,
+    toggleEffect,
+    /* Backward-compat single-mode API */
     setMode,
     getMode,
     getModes,
-    getProcessedStream,
-    destroy,
+    setEffectIntensity,
+    getEffectIntensity,
+    /* Monitor / mic API */
     toggleMonitor,
     setMonitorVolume,
     setMicGain,
-    setEffectIntensity,
+    /* Getters */
+    getProcessedStream,
     getMonitorEnabled,
     getMonitorVolume,
     getMicGain,
-    getEffectIntensity,
   };
 })();
-

@@ -249,7 +249,8 @@ body {
   width: 100%;
   height: 6px; /* slightly taller track for easier touch interaction */
   border-radius: 9999px;
-  background: var(--blt-neutral-border);
+  /* Base gradient — overridden inline by JS to show fill progress */
+  background: linear-gradient(to right, #e10101 50%, #e5e7eb 50%);
   outline: none;
   cursor: pointer;
   display: block;
