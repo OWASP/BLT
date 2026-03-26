@@ -60,9 +60,12 @@ async def check_db_initialized(db):
         raise Exception(f"Failed to check database initialization: {str(e)}")
 
 
+import asyncio
+
 # Global cache for database initialization status.
 # In Cloudflare Workers, global variables persist between requests on the same isolate.
 _DB_INITIALIZED_CACHE: bool = False
+_DB_INITIALIZED_LOCK = asyncio.Lock()
 
 
 async def get_db_safe(env):
@@ -81,15 +84,22 @@ async def get_db_safe(env):
     
     db = get_db(env)
     
-    if not _DB_INITIALIZED_CACHE:
-        is_initialized, missing_tables = await check_db_initialized(db)
+    # Fast path: already initialized
+    if _DB_INITIALIZED_CACHE:
+        return db
         
-        if not is_initialized:
-            raise Exception(
-                f"Database is not initialized. Missing tables: {', '.join(missing_tables)}. "
-                "Please run migrations first."
-            )
-        
-        _DB_INITIALIZED_CACHE = True
+    # Slow path: need to check initialization, guarded by a lock to prevent race conditions
+    async with _DB_INITIALIZED_LOCK:
+        # Double-check after acquiring lock
+        if not _DB_INITIALIZED_CACHE:
+            is_initialized, missing_tables = await check_db_initialized(db)
+            
+            if not is_initialized:
+                raise Exception(
+                    f"Database is not initialized. Missing tables: {', '.join(missing_tables)}. "
+                    "Please run migrations first."
+                )
+            
+            _DB_INITIALIZED_CACHE = True
     
     return db
