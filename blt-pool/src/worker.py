@@ -5078,34 +5078,52 @@ def _generate_mentor_row(mentor: dict, stats: Optional[dict] = None) -> str:
         for s in specialties
     ) if specialties else ""
 
-    # Compact meta items shown on the first row beside the name.
-    meta_parts = []
+    # Visible status chip — used instead of a tooltip so mobile users can read status.
+    if not active or status == "inactive":
+        status_chip = (
+            '<span class="inline-flex items-center gap-1 text-xs text-gray-400 whitespace-nowrap">'
+            '<span class="h-2 w-2 rounded-full bg-gray-300 shrink-0"></span>Inactive</span>'
+        )
+    elif status == "assigned":
+        status_chip = (
+            '<span class="inline-flex items-center gap-1 text-xs text-blue-500 whitespace-nowrap">'
+            '<span class="h-2 w-2 rounded-full bg-blue-400 shrink-0"></span>Mentoring</span>'
+        )
+    else:
+        status_chip = (
+            '<span class="inline-flex items-center gap-1 text-xs text-emerald-600 whitespace-nowrap">'
+            '<span class="h-2 w-2 rounded-full bg-emerald-400 shrink-0"></span>Available</span>'
+        )
+
+    # Compact meta items — each is its own flex child so they can wrap independently on mobile.
+    sep = '<span class="text-gray-300 select-none text-xs" aria-hidden="true">·</span>'
+    meta_parts = [status_chip]
     if timezone:
         meta_parts.append(
-            f'<span class="text-xs text-gray-400">'
+            f'<span class="text-xs text-gray-400 whitespace-nowrap">'
             f'<i class="fa-regular fa-clock mr-0.5" aria-hidden="true"></i>'
             f'{_html_mod.escape(timezone)}</span>'
         )
     meta_parts.append(
-        f'<span class="text-xs text-gray-400">Cap&nbsp;{max_mentees}</span>'
+        f'<span class="text-xs text-gray-400 whitespace-nowrap">Cap&nbsp;{max_mentees}</span>'
     )
     if referred_by:
         ref_escaped = _html_mod.escape(referred_by)
         meta_parts.append(
             f'<a href="https://github.com/{ref_escaped}" target="_blank" rel="noopener" '
-            f'class="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-[#E10101]" '
+            f'class="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-[#E10101] whitespace-nowrap" '
             f'title="Referred by @{ref_escaped}">'
             f'<img src="https://github.com/{ref_escaped}.png" alt="{ref_escaped}" '
             f'class="h-4 w-4 rounded-full border border-gray-200 object-cover">'
             f'@{ref_escaped}'
             f'</a>'
         )
-    meta_html = ' <span class="text-gray-200 select-none">·</span> '.join(meta_parts) if meta_parts else ""
-
     meta_row = (
-        '<span class="text-xs text-gray-400">' + meta_html + '</span>'
-        if meta_html else ''
+        f'<div class="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 min-w-0">'
+        + sep.join(meta_parts)
+        + '</div>'
     )
+
     skills_row = (
         '<div class="mt-1.5 flex flex-wrap gap-1">' + specialty_chips + '</div>'
         if specialty_chips else ''
@@ -5117,10 +5135,10 @@ def _generate_mentor_row(mentor: dict, stats: Optional[dict] = None) -> str:
         reviews = int(stats.get("reviews") or 0)
         stats_row = (
             f'<div class="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-0.5">'
-            f'<span class="text-xs text-gray-400">'
+            f'<span class="text-xs text-gray-400 whitespace-nowrap">'
             f'<i class="fa-solid fa-code-pull-request mr-0.5 text-gray-300" aria-hidden="true"></i>'
             f'<span class="font-semibold text-gray-600">{merged_prs}</span> PRs</span>'
-            f'<span class="text-xs text-gray-400">'
+            f'<span class="text-xs text-gray-400 whitespace-nowrap">'
             f'<i class="fa-solid fa-magnifying-glass-chart mr-0.5 text-gray-300" aria-hidden="true"></i>'
             f'<span class="font-semibold text-gray-600">{reviews}</span> reviews</span>'
             f'</div>'
@@ -5132,14 +5150,13 @@ def _generate_mentor_row(mentor: dict, stats: Optional[dict] = None) -> str:
     <li class="flex items-start gap-3 rounded-xl border border-[#E5E5E5] bg-white px-4 py-3 transition hover:shadow-sm">
       {avatar_block}
       <div class="min-w-0 flex-1">
-        <!-- Row 1: name + compact meta -->
-        <div class="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-          <p class="font-semibold text-[#111827] text-sm">{name}</p>
-          {meta_row}
-        </div>
-        <!-- Row 2: skills — full width -->
+        <!-- Row 1: name -->
+        <p class="font-semibold text-[#111827] text-sm leading-snug">{name}</p>
+        <!-- Row 2: status + meta — each item wraps independently on narrow screens -->
+        {meta_row}
+        <!-- Row 3: skills — full width -->
         {skills_row}
-        <!-- Row 3: compact stats -->
+        <!-- Row 4: compact stats -->
         {stats_row}
       </div>
     </li>
