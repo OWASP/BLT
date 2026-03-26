@@ -1,11 +1,12 @@
 <footer class="bg-slate-900 border-t border-slate-800 mt-auto">
     <div class="max-w-7xl mx-auto px-6 pt-10 md:pt-16 pb-12 grid grid-cols-1 md:grid-cols-4 gap-12">
         <div class="col-span-1">
-            <div class="flex items-center gap-3 font-display font-bold text-xl text-white mb-6">
+            <a href="{{ '/' | relative_url }}" 
+            class="flex items-center gap-3 font-display font-bold text-xl text-white mb-6">
                 <img src="{{ site.baseurl }}/assets/images/blt-logo.png"
                     onerror="this.src='/assets/images/blt-logo.png'" alt="Logo" class="w-8 h-8 object-contain">
                 {{ site.university.name | default: "BLT University" }}
-            </div>
+            </a>
             <p class="text-sm leading-relaxed text-slate-400 mb-6">
                 {{ site.description | default: "A cybersecurity-focused online university powered by GitHub Pages." |
                 truncate: 120 }}
@@ -66,7 +67,13 @@
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
             <p class="text-slate-500 text-xs font-medium">
                 &copy; {{ site.time | date: "%Y" }} {{ site.university.name | default: "BLT University" }}. Built with
-                pride by the <span class="text-bltRed font-bold">OWASP Community</span>.
+                pride by the 
+                <a href="https://owasp.org/slack/invite" target="_blank" rel="noopener noreferrer"
+               class="text-bltRed font-bold hover:underline"
+               aria-label="Join OWASP Slack Community"
+               title="Join OWASP Slack Community">
+               OWASP Community
+            </a>.
             </p>
             <div class="flex items-center gap-6">
                 <p class="text-slate-500 text-xs uppercase tracking-widest font-bold">
