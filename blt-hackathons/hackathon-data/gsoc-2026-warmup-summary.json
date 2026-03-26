@@ -1,6 +1,6 @@
 {
   "participantCount": 198,
-  "totalPRs": 2613,
+  "totalPRs": 2615,
   "mergedPRs": 1650,
   "totalIssues": 800,
   "repositories": 53,
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "feat: move DEBUG and ALLOWED_HOSTS to environment variables",
+      "url": "https://github.com/OWASP-BLT/BLT-Toasty/pull/38",
+      "username": "ojaswa072",
+      "avatar": "https://avatars.githubusercontent.com/u/230836303?v=4",
+      "state": "open",
+      "created_at": "2026-03-26T15:06:51Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-Toasty"
+    },
     {
       "title": "Improve fallback handling, logging, and add test",
       "url": "https://github.com/OWASP-BLT/BLT-Preflight/pull/22",
@@ -114,16 +124,6 @@
       "created_at": "2026-03-26T09:15:28Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT-Pages"
-    },
-    {
-      "title": "chore: decommission non-functional legacy chatbot UI and assets",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6083",
-      "username": "SamrithaShree",
-      "avatar": "https://avatars.githubusercontent.com/u/183441831?v=4",
-      "state": "closed",
-      "created_at": "2026-03-26T09:14:54Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT"
     }
   ]
 }
