@@ -1,6 +1,6 @@
 {
   "participantCount": 17,
-  "totalPRs": 2600,
+  "totalPRs": 2601,
   "mergedPRs": 1648,
   "totalIssues": 796,
   "repositories": 53,
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "feat: cache database initialization status to improve performance",
+      "url": "https://github.com/OWASP-BLT/BLT-API/pull/81",
+      "username": "ramansh18",
+      "avatar": "https://avatars.githubusercontent.com/u/123497240?v=4",
+      "state": "open",
+      "created_at": "2026-03-26T05:09:22Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-API"
+    },
     {
       "title": "Fix: Add strict input validation and length constraints to Auth and User Handlers",
       "url": "https://github.com/OWASP-BLT/BLT-API/pull/76",
@@ -114,16 +124,6 @@
       "created_at": "2026-03-22T18:25:17Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT-Next"
-    },
-    {
-      "title": "Remove reopened trigger from create-hackathon workflow",
-      "url": "https://github.com/OWASP-BLT/BLT-Hackathons/pull/72",
-      "username": "Ankitsinghsisodya",
-      "avatar": "https://avatars.githubusercontent.com/u/118156935?v=4",
-      "state": "closed",
-      "created_at": "2026-03-22T18:10:31Z",
-      "merged_at": "2026-03-23T03:53:46Z",
-      "repository": "OWASP-BLT/BLT-Hackathons"
     }
   ]
 }
