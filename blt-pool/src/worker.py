@@ -5034,6 +5034,7 @@ def _generate_mentor_row(mentor: dict, stats: Optional[dict] = None) -> str:
     timezone = mentor.get("timezone", "")
     status = mentor.get("status", "available")
     active = mentor.get("active", True)
+    referred_by = (mentor.get("referred_by", "") or "").strip()
 
     avatar_url = (
         f"https://github.com/{github}.png"
@@ -5041,87 +5042,122 @@ def _generate_mentor_row(mentor: dict, stats: Optional[dict] = None) -> str:
         else "https://api.dicebear.com/7.x/initials/svg?seed=" + quote(name)
     )
 
+    # Status dot color: green = available, blue = mentoring, gray = inactive.
     if not active or status == "inactive":
-        status_badge = '<span class="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-xs font-semibold text-gray-500">Inactive</span>'
+        dot_color = "bg-gray-300"
+        dot_title = "Inactive"
     elif status == "assigned":
-        status_badge = '<span class="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700">Mentoring</span>'
+        dot_color = "bg-blue-400"
+        dot_title = "Mentoring"
     else:
-        status_badge = '<span class="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700">Available</span>'
+        dot_color = "bg-emerald-400"
+        dot_title = "Available"
+
+    # Avatar wrapped in a GitHub profile link; status dot overlaid bottom-right.
+    if github:
+        avatar_block = (
+            f'<div class="relative shrink-0" title="{dot_title}">'
+            f'<a href="https://github.com/{github}" target="_blank" rel="noopener" aria-label="{name} GitHub profile">'
+            f'<img src="{avatar_url}" alt="{name}" '
+            f'class="h-11 w-11 rounded-full border border-[#E5E5E5] bg-white object-cover">'
+            f'</a>'
+            f'<span class="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white {dot_color}"></span>'
+            f'</div>'
+        )
+    else:
+        avatar_block = (
+            f'<div class="relative shrink-0" title="{dot_title}">'
+            f'<img src="{avatar_url}" alt="{name}" '
+            f'class="h-11 w-11 rounded-full border border-[#E5E5E5] bg-white object-cover">'
+            f'<span class="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white {dot_color}"></span>'
+            f'</div>'
+        )
 
     specialty_chips = " ".join(
         f'<span class="rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-600">{s}</span>'
         for s in specialties
-    ) if specialties else '<span class="text-xs text-gray-400">—</span>'
+    ) if specialties else ""
 
-    github_link = (
-        f'<a href="https://github.com/{github}" target="_blank" rel="noopener" '
-        f'class="text-gray-500 hover:text-[#E10101]" aria-label="{name} GitHub profile">'
-        '<i class="fa-brands fa-github" aria-hidden="true"></i></a>'
-        if github
-        else '<span class="text-gray-300"><i class="fa-brands fa-github" aria-hidden="true"></i></span>'
+    # Visible status chip — used instead of a tooltip so mobile users can read status.
+    if not active or status == "inactive":
+        status_chip = (
+            '<span class="inline-flex items-center gap-1 text-xs text-gray-400 whitespace-nowrap">'
+            '<span class="h-2 w-2 rounded-full bg-gray-300 shrink-0"></span>Inactive</span>'
+        )
+    elif status == "assigned":
+        status_chip = (
+            '<span class="inline-flex items-center gap-1 text-xs text-blue-500 whitespace-nowrap">'
+            '<span class="h-2 w-2 rounded-full bg-blue-400 shrink-0"></span>Mentoring</span>'
+        )
+    else:
+        status_chip = (
+            '<span class="inline-flex items-center gap-1 text-xs text-emerald-600 whitespace-nowrap">'
+            '<span class="h-2 w-2 rounded-full bg-emerald-400 shrink-0"></span>Available</span>'
+        )
+
+    # Compact meta items — each is its own flex child so they can wrap independently on mobile.
+    sep = '<span class="text-gray-300 select-none text-xs" aria-hidden="true">·</span>'
+    meta_parts = [status_chip]
+    if timezone:
+        meta_parts.append(
+            f'<span class="text-xs text-gray-400 whitespace-nowrap">'
+            f'<i class="fa-regular fa-clock mr-0.5" aria-hidden="true"></i>'
+            f'{_html_mod.escape(timezone)}</span>'
+        )
+    meta_parts.append(
+        f'<span class="text-xs text-gray-400 whitespace-nowrap">Cap&nbsp;{max_mentees}</span>'
+    )
+    if referred_by:
+        ref_escaped = _html_mod.escape(referred_by)
+        meta_parts.append(
+            f'<a href="https://github.com/{ref_escaped}" target="_blank" rel="noopener" '
+            f'class="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-[#E10101] whitespace-nowrap" '
+            f'title="Referred by @{ref_escaped}">'
+            f'<img src="https://github.com/{ref_escaped}.png" alt="{ref_escaped}" '
+            f'class="h-4 w-4 rounded-full border border-gray-200 object-cover">'
+            f'@{ref_escaped}'
+            f'</a>'
+        )
+    meta_row = (
+        f'<div class="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 min-w-0">'
+        + sep.join(meta_parts)
+        + '</div>'
     )
 
-    tz_cell = f'<span class="text-xs text-gray-500">{_html_mod.escape(timezone)}</span>' if timezone else '<span class="text-xs text-gray-400">—</span>'
+    skills_row = (
+        '<div class="mt-1.5 flex flex-wrap gap-1">' + specialty_chips + '</div>'
+        if specialty_chips else ''
+    )
 
-    # Stats cells — shown when D1 data is available.
+    # Compact stats row — shown only when D1 data is available.
     if stats:
         merged_prs = int(stats.get("merged_prs") or 0)
         reviews = int(stats.get("reviews") or 0)
-        stats_desktop = (
-            f'<div class="text-center">'
-            f'  <p class="text-xs text-gray-400 leading-none">PRs</p>'
-            f'  <p class="text-sm font-semibold text-gray-700">{merged_prs}</p>'
-            f'</div>'
-            f'<div class="text-center">'
-            f'  <p class="text-xs text-gray-400 leading-none">Reviews</p>'
-            f'  <p class="text-sm font-semibold text-gray-700">{reviews}</p>'
+        stats_row = (
+            f'<div class="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-0.5">'
+            f'<span class="text-xs text-gray-400 whitespace-nowrap">'
+            f'<i class="fa-solid fa-code-pull-request mr-0.5 text-gray-300" aria-hidden="true"></i>'
+            f'<span class="font-semibold text-gray-600">{merged_prs}</span> PRs</span>'
+            f'<span class="text-xs text-gray-400 whitespace-nowrap">'
+            f'<i class="fa-solid fa-magnifying-glass-chart mr-0.5 text-gray-300" aria-hidden="true"></i>'
+            f'<span class="font-semibold text-gray-600">{reviews}</span> reviews</span>'
             f'</div>'
         )
-        stats_mobile = (
-            f'<span class="text-xs text-gray-500">'
-            f'<i class="fa-solid fa-code-pull-request text-gray-400" aria-hidden="true"></i> {merged_prs} PRs</span>'
-            f'<span class="text-xs text-gray-500">'
-            f'<i class="fa-solid fa-magnifying-glass-chart text-gray-400" aria-hidden="true"></i> {reviews} reviews</span>'
-        )
-        desktop_cols = "sm:grid-cols-[1fr_auto_auto_auto_auto_auto_auto]"
     else:
-        stats_desktop = ""
-        stats_mobile = ""
-        desktop_cols = "sm:grid-cols-[1fr_auto_auto_auto_auto]"
+        stats_row = ""
 
     return f'''
-    <li class="flex items-start gap-3 rounded-xl border border-[#E5E5E5] bg-white px-4 py-3 transition hover:shadow-sm sm:items-center sm:gap-4">
-      <img src="{avatar_url}" alt="{name}" class="mt-0.5 h-9 w-9 shrink-0 rounded-full border border-[#E5E5E5] bg-white object-cover sm:mt-0 sm:h-10 sm:w-10">
+    <li class="flex items-start gap-3 rounded-xl border border-[#E5E5E5] bg-white px-4 py-3 transition hover:shadow-sm">
+      {avatar_block}
       <div class="min-w-0 flex-1">
-        <!-- Desktop: grid layout with separate columns -->
-        <div class="hidden sm:grid {desktop_cols} sm:items-center sm:gap-4">
-          <div class="min-w-0">
-            <p class="truncate font-semibold text-[#111827] text-sm">{name}</p>
-            <div class="mt-0.5 flex flex-wrap gap-1">{specialty_chips}</div>
-          </div>
-          <div>{status_badge}</div>
-          <div class="text-center">
-            <p class="text-xs text-gray-400 leading-none">Cap</p>
-            <p class="text-sm font-semibold text-gray-700">{max_mentees}</p>
-          </div>
-          {stats_desktop}
-          <div>{tz_cell}</div>
-          <div>{github_link}</div>
-        </div>
-        <!-- Mobile: compact card layout -->
-        <div class="sm:hidden">
-          <div class="flex items-start justify-between gap-2">
-            <p class="truncate font-semibold text-[#111827] text-sm">{name}</p>
-            <div class="shrink-0">{github_link}</div>
-          </div>
-          <div class="mt-0.5 flex flex-wrap gap-1">{specialty_chips}</div>
-          <div class="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
-            {status_badge}
-            <span class="text-xs text-gray-500">Cap: {max_mentees}</span>
-            {stats_mobile}
-            {tz_cell}
-          </div>
-        </div>
+        <!-- Row 1: name -->
+        <p class="font-semibold text-[#111827] text-sm leading-snug">{name}</p>
+        <!-- Row 2: status + meta — each item wraps independently on narrow screens -->
+        {meta_row}
+        <!-- Row 3: skills — full width -->
+        {skills_row}
+        <!-- Row 4: compact stats -->
+        {stats_row}
       </div>
     </li>
     '''
@@ -5415,14 +5451,6 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
           </h3>
         </div>
         <ul class="space-y-2" aria-label="Mentor list">
-          <!-- Header row (desktop) -->
-          <li class="hidden sm:grid sm:grid-cols-[1fr_auto_auto_auto_auto] sm:items-center sm:gap-4 sm:px-4 sm:py-1 text-xs font-semibold uppercase tracking-wide text-gray-400">
-            <span>Mentor</span>
-            <span>Status</span>
-            <span class="text-center">Cap</span>
-            <span>Timezone</span>
-            <span>Link</span>
-          </li>
           {mentor_rows_html}
         </ul>
       </section>
