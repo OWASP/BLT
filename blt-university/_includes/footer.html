@@ -1,12 +1,12 @@
 <footer class="bg-slate-900 border-t border-slate-800 mt-auto">
     <div class="max-w-7xl mx-auto px-6 pt-10 md:pt-16 pb-12 grid grid-cols-1 md:grid-cols-4 gap-12">
         <div class="col-span-1">
-            <a href="{{ '/' | relative_url }}" 
-               class="flex items-center gap-3 font-display font-bold text-xl text-white mb-6">
+            <a href="{{ '/' | relative_url }}"
+             class="flex items-center gap-3 font-display font-bold text-xl text-white mb-6">
                 <img src="{{ site.baseurl }}/assets/images/blt-logo.png"
                     onerror="this.src='/assets/images/blt-logo.png'" alt="Logo" class="w-8 h-8 object-contain">
                 {{ site.university.name | default: "BLT University" }}
-             </a> 
+             </a>
             <p class="text-sm leading-relaxed text-slate-400 mb-6">
                 {{ site.description | default: "A cybersecurity-focused online university powered by GitHub Pages." |
                 truncate: 120 }}
