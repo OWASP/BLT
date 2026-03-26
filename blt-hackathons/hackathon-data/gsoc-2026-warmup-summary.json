@@ -1,6 +1,6 @@
 {
-  "participantCount": 190,
-  "totalPRs": 2591,
+  "participantCount": 191,
+  "totalPRs": 2592,
   "mergedPRs": 1643,
   "totalIssues": 795,
   "repositories": 53,
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "fix(domains): sanitize error responses and add logging",
+      "url": "https://github.com/OWASP-BLT/BLT-API/pull/78",
+      "username": "jarvis24pro-A01",
+      "avatar": "https://avatars.githubusercontent.com/u/271031205?v=4",
+      "state": "open",
+      "created_at": "2026-03-25T23:14:47Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-API"
+    },
     {
       "title": "fix: populate ISO 8601 timestamps in /health and /api/review responses (closes #35)",
       "url": "https://github.com/OWASP-BLT/BLT-Toasty/pull/37",
@@ -112,16 +122,6 @@
       "avatar": "https://avatars.githubusercontent.com/u/207878232?v=4",
       "state": "open",
       "created_at": "2026-03-25T13:02:50Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-University"
-    },
-    {
-      "title": "Connect@BLT University to OWASP: Footer Social Links Update",
-      "url": "https://github.com/OWASP-BLT/BLT-University/pull/33",
-      "username": "Manahil-Afzal",
-      "avatar": "https://avatars.githubusercontent.com/u/207878232?v=4",
-      "state": "closed",
-      "created_at": "2026-03-25T12:05:57Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT-University"
     }
