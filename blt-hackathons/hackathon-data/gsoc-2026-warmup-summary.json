@@ -1,6 +1,6 @@
 {
-  "participantCount": 191,
-  "totalPRs": 2592,
+  "participantCount": 192,
+  "totalPRs": 2595,
   "mergedPRs": 1643,
   "totalIssues": 795,
   "repositories": 53,
@@ -25,6 +25,36 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "Update README.md",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6081",
+      "username": "abdullahelsafty4-droid",
+      "avatar": "https://avatars.githubusercontent.com/u/271098918?v=4",
+      "state": "closed",
+      "created_at": "2026-03-26T01:32:03Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT"
+    },
+    {
+      "title": "Update README.md",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6080",
+      "username": "abdullahelsafty4-droid",
+      "avatar": "https://avatars.githubusercontent.com/u/271098918?v=4",
+      "state": "closed",
+      "created_at": "2026-03-26T01:28:30Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT"
+    },
+    {
+      "title": "Update README.md",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6079",
+      "username": "abdullahelsafty4-droid",
+      "avatar": "https://avatars.githubusercontent.com/u/271098918?v=4",
+      "state": "closed",
+      "created_at": "2026-03-26T01:25:54Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT"
+    },
     {
       "title": "fix(domains): sanitize error responses and add logging",
       "url": "https://github.com/OWASP-BLT/BLT-API/pull/78",
@@ -92,36 +122,6 @@
       "avatar": "https://avatars.githubusercontent.com/u/269968451?v=4",
       "state": "open",
       "created_at": "2026-03-25T14:55:03Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-University"
-    },
-    {
-      "title": "Link OWASP Community text to Slack in BLT University footer",
-      "url": "https://github.com/OWASP-BLT/BLT-University/pull/36",
-      "username": "Manahil-Afzal",
-      "avatar": "https://avatars.githubusercontent.com/u/207878232?v=4",
-      "state": "open",
-      "created_at": "2026-03-25T14:45:57Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-University"
-    },
-    {
-      "title": "Fix: improved README",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6074",
-      "username": "garimaupadhyayy",
-      "avatar": "https://avatars.githubusercontent.com/u/215994705?v=4",
-      "state": "closed",
-      "created_at": "2026-03-25T13:46:53Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "Connect@BLT University to OWASP: Footer Social Links Update",
-      "url": "https://github.com/OWASP-BLT/BLT-University/pull/34",
-      "username": "Manahil-Afzal",
-      "avatar": "https://avatars.githubusercontent.com/u/207878232?v=4",
-      "state": "open",
-      "created_at": "2026-03-25T13:02:50Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT-University"
     }
