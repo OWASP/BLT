@@ -11,7 +11,7 @@ description: Master cloud security for AWS, Azure, and GCP. Learn to secure clou
 
 resources:
   - title: Cloud Security Overview
-    url: https://www.youtube.com/watch?v=dQw4w9WgXcQ
+    url: https://www.youtube.com/watch?v=j31A_XblHmc
     type: video
   - title: AWS Security Best Practices
     url: https://aws.amazon.com/security/
