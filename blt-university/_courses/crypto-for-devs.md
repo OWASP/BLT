@@ -12,7 +12,7 @@ description: Learn practical cryptography for software developers. Understand en
 
 resources:
   - title: Introduction to Cryptography
-    url: https://www.youtube.com/watch?v=dQw4w9WgXcQ
+    url: https://www.youtube.com/watch?v=NuyzuNBFWxQ
     type: video
   - title: Applied Cryptography Book
     url: https://www.schneier.com/books/applied-cryptography/

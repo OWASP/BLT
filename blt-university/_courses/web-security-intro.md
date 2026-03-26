@@ -12,7 +12,7 @@ description: Learn the fundamentals of web application security, including commo
 
 resources:
   - title: Course Introduction Video
-    url: https://www.youtube.com/watch?v=dQw4w9WgXcQ
+    url: https://www.youtube.com/watch?v=lHztLP6MeG8
     type: video
   - title: OWASP Top 10 Guide
     url: https://owasp.org/www-project-top-ten/
