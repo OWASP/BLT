@@ -1,6 +1,6 @@
 {
   "participantCount": 192,
-  "totalPRs": 2601,
+  "totalPRs": 2602,
   "mergedPRs": 1649,
   "totalIssues": 796,
   "repositories": 53,
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "perf: cache database initialization check per worker isolate",
+      "url": "https://github.com/OWASP-BLT/BLT-API/pull/82",
+      "username": "DrGalio",
+      "avatar": "https://avatars.githubusercontent.com/u/269968451?v=4",
+      "state": "open",
+      "created_at": "2026-03-26T07:57:53Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-API"
+    },
     {
       "title": "feat: cache database initialization status to improve performance",
       "url": "https://github.com/OWASP-BLT/BLT-API/pull/81",
@@ -114,16 +124,6 @@
       "created_at": "2026-03-25T21:59:01Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT-Preflight"
-    },
-    {
-      "title": "refactor: modernize utils and improve email crawler reliability",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6076",
-      "username": "Makeepan-dev",
-      "avatar": "https://avatars.githubusercontent.com/u/183580740?v=4",
-      "state": "closed",
-      "created_at": "2026-03-25T15:35:36Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT"
     }
   ]
 }
