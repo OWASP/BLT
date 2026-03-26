@@ -66,7 +66,13 @@
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
             <p class="text-slate-500 text-xs font-medium">
                 &copy; {{ site.time | date: "%Y" }} {{ site.university.name | default: "BLT University" }}. Built with
-                pride by the <a href="https://owasp.org/slack/invite" target="_blank" rel="noopener noreferrer" class="text-bltRed font-bold hover:text-white transition-colors">OWASP Community</a>.
+                pride by the 
+                <a href="https://owasp.org/slack/invite" target="_blank" rel="noopener noreferrer"
+               class="text-bltRed font-bold hover:underline"
+               aria-label="Join OWASP Slack Community"
+               title="Join OWASP Slack Community">
+               OWASP Community
+            </a>.
             </p>
             <div class="flex items-center gap-6">
                 <p class="text-slate-500 text-xs uppercase tracking-widest font-bold">
