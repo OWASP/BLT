@@ -60,6 +60,11 @@ async def check_db_initialized(db):
         raise Exception(f"Failed to check database initialization: {str(e)}")
 
 
+# Global cache for database initialization status.
+# In Cloudflare Workers, global variables persist between requests on the same isolate.
+_DB_INITIALIZED_CACHE: bool = False
+
+
 async def get_db_safe(env):
     """Get database and verify it's properly initialized.
     
@@ -72,14 +77,19 @@ async def get_db_safe(env):
     Raises:
         Exception: If database is not configured or not initialized
     """
+    global _DB_INITIALIZED_CACHE
+    
     db = get_db(env)
     
-    is_initialized, missing_tables = await check_db_initialized(db)
-    
-    if not is_initialized:
-        raise Exception(
-            f"Database is not initialized. Missing tables: {', '.join(missing_tables)}. "
-            "Please run migrations first."
-        )
+    if not _DB_INITIALIZED_CACHE:
+        is_initialized, missing_tables = await check_db_initialized(db)
+        
+        if not is_initialized:
+            raise Exception(
+                f"Database is not initialized. Missing tables: {', '.join(missing_tables)}. "
+                "Please run migrations first."
+            )
+        
+        _DB_INITIALIZED_CACHE = True
     
     return db
