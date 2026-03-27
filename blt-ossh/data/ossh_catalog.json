@@ -45218,392 +45218,20 @@
   ],
   "articles": [
     {
-      "title": "AI Didn't Break Your Culture. It Exposed It.",
-      "author": "Jono Herrington",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3831929%2F84167118-5088-4f0c-a210-dc60041da874.jpeg",
-      "description": "An engineer pushes back on a decision. The response: \"ChatGPT recommended something else.\" The tell...",
-      "publication_date": "2026-03-25T19:07:20Z",
+      "title": "The Small Details That Make a Website Feel Finished (And Quietly Improve Accessibility, Performance, and Trust)",
+      "author": "Hadil Ben Abdallah",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F1209000%2Fb29d37d8-2efe-4391-9796-a6f8a483f1bd.png",
+      "description": "For a long time, I thought a website was “done” when it worked.  The pages loaded. The buttons...",
+      "publication_date": "2026-03-26T07:39:13Z",
       "source": "DEV Community",
-      "url": "https://dev.to/jonoherrington/ai-didnt-break-your-culture-it-exposed-it-2729",
-      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fwww.jonoherrington.com%2Fimages%2Fposts%2Fblindy-trust.png",
-      "reading_time_minutes": 6,
-      "tags": [
-        "ai",
-        "webdev",
-        "leadership",
-        "programming"
-      ]
-    },
-    {
-      "title": "We're Inside the DST Gap Right Now — Your Code Might Not Be",
-      "author": "Premysl Hnevkovsky",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F1456722%2F4caff525-835f-47a5-b801-fde0368f0835.jpeg",
-      "description": "A field guide for developers building apps that dare to cross meridians     You decided to build an...",
-      "publication_date": "2026-03-25T22:53:15Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/hnevkop/were-inside-the-dst-gap-right-now-your-code-might-not-be-271b",
-      "cover_image": null,
-      "reading_time_minutes": 8,
-      "tags": [
-        "webdev",
-        "kotlin",
-        "programming",
-        "showdev"
-      ]
-    },
-    {
-      "title": "PageSpeed 35 to 90: What I Got Wrong, Then Right",
-      "author": "genuineswe",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F201967%2Fc327c548-0540-4f1d-987e-0b12c6978c99.jpeg",
-      "description": "How I Took My PageSpeed Score from 35 to 90 (And What I Got Wrong First)   Have you ever...",
-      "publication_date": "2026-03-25T07:17:07Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/genuineswe/pagespeed-35-to-90-what-i-got-wrong-then-right-1o2m",
-      "cover_image": null,
-      "reading_time_minutes": 4,
-      "tags": [
-        "performance",
-        "frontend",
-        "webdev",
-        "programming"
-      ]
-    },
-    {
-      "title": "From a Small Village to Building My Own Programming Language: The Journey of a 14-Year-Old Coder",
-      "author": "Aditya Rai",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3783438%2F706d1651-9ac0-4efc-86ed-f4b73b9baca9.jpg",
-      "description": "Introduction My name is Aditya Rai, and my story isn’t about high-end setups or expensive bootcamps....",
-      "publication_date": "2026-03-26T05:18:05Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/aditya_rai_2f211fe3d3a90f/from-a-small-village-to-building-my-own-programming-language-the-journey-of-a-14-year-old-coder-3agc",
-      "cover_image": null,
-      "reading_time_minutes": 2,
-      "tags": [
-        "python",
-        "programming",
-        "iot",
-        "opensource"
-      ]
-    },
-    {
-      "title": "Elevating Your Models: Beyond Lift-and-Shrink in AI Development",
-      "author": "Malik Abualzait",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3536307%2Fc099982f-4fc7-4346-a31a-9263b930bf6c.png",
-      "description": "Beyond Lift-and-Shift: Unlocking Cloud Potential with AI-Powered Migration  The allure of cloud...",
-      "publication_date": "2026-03-26T05:12:35Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/mabualzait/elevating-your-models-beyond-lift-and-shrink-in-ai-development-4m71",
-      "cover_image": null,
-      "reading_time_minutes": 3,
-      "tags": [
-        "ai",
-        "tech",
-        "programming",
-        "tutorial"
-      ]
-    },
-    {
-      "title": "I Built 77 Web Scrapers — Here Are the 10 Patterns That Actually Work",
-      "author": "Alex Spinov ",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3831260%2Fb89694fb-80bc-4daf-b741-f149c38d9584.png",
-      "description": "After building 77 scrapers, every problem is a variation of the same 10 patterns   I've...",
-      "publication_date": "2026-03-25T23:20:20Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/0012303/i-built-77-web-scrapers-here-are-the-10-patterns-that-actually-work-2jkn",
-      "cover_image": null,
-      "reading_time_minutes": 3,
-      "tags": [
-        "python",
-        "webdev",
-        "tutorial",
-        "programming"
-      ]
-    },
-    {
-      "title": "Text Diff Checker: Compare Two Texts and See Every Change",
-      "author": "TateLyman",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3815854%2F0b2ce564-39d3-4d7b-82e2-15a547c6a68c.png",
-      "description": "Paste two versions of text. See additions in green, removals in red, unchanged in gray.  Shows:...",
-      "publication_date": "2026-03-26T02:10:26Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/tatelyman/text-diff-checker-compare-two-texts-and-see-every-change-5e53",
-      "cover_image": null,
-      "reading_time_minutes": 1,
-      "tags": [
-        "tools",
-        "webdev",
-        "productivity",
-        "programming"
-      ]
-    },
-    {
-      "title": "AI Build Traps: Usage, Output, and Outcomes (How perverse incentives around token usage create cobra farms)",
-      "author": "Tyler Hawkins",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F344735%2F70749f3f-334b-4414-a6e2-ca8dd8a89f3a.jpeg",
-      "description": "Organizations have long struggled with answering the question: \"How do we measure developer...",
-      "publication_date": "2026-03-26T04:27:04Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/thawkin3/ai-build-traps-usage-output-and-outcomes-how-perverse-incentives-around-token-usage-create-4cii",
-      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fuu9z6h5ia1dp19r6xsfq.png",
-      "reading_time_minutes": 3,
-      "tags": [
-        "ai",
-        "webdev",
-        "programming",
-        "productivity"
-      ]
-    },
-    {
-      "title": "🗝️ Public/Private Keys Explained Like You're 5",
-      "author": "Sreekar Reddy",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3678910%2Fd7c2554f-5af3-4a55-ae45-d8f7b63e44f0.jpg",
-      "description": "Mailbox others can drop into, opened with your key",
-      "publication_date": "2026-03-25T22:39:27Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/esreekarreddy/publicprivate-keys-explained-like-youre-5-14m9",
-      "cover_image": null,
-      "reading_time_minutes": 1,
-      "tags": [
-        "eli5",
-        "security",
-        "encryption",
-        "programming"
-      ]
-    },
-    {
-      "title": "Alibaba's XuanTie C950 CPU Hits 70+ SPECint2006, Claims RISC-V Record with Native LLM Support",
-      "author": "gentic news",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3838995%2F269c20bb-f64f-483a-862d-49c6481df897.png",
-      "description": "Alibaba's DAMO Academy launched the XuanTie C950, a RISC-V CPU scoring over 70 on SPECint2006—the highest single-core performance for the architecture",
-      "publication_date": "2026-03-25T22:42:17Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/gentic_news/alibabas-xuantie-c950-cpu-hits-70-specint2006-claims-risc-v-record-with-native-llm-support-3nh9",
-      "cover_image": null,
-      "reading_time_minutes": 6,
-      "tags": [
-        "ai",
-        "programming",
-        "tech",
-        "product"
-      ]
-    },
-    {
-      "title": "I Forgot How to Prompt Engineer. It Was Bullcrap Anyway.",
-      "author": "Ryo Suwito",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F2547507%2F174ce629-7ad7-4157-b489-5f06e9ab50fc.png",
-      "description": "A field note from a dev who inherited Alice's codebase and lived to tell the tale.     Aight dev,...",
-      "publication_date": "2026-03-26T05:13:12Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/ryo_suwito/i-forgot-how-to-prompt-engineer-it-was-bullcrap-anyway-42ea",
-      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2F7djnt33ykmnitqde7nt2.png",
-      "reading_time_minutes": 5,
-      "tags": [
-        "webdev",
-        "ai",
-        "programming",
-        "productivity"
-      ]
-    },
-    {
-      "title": "WASM in 2026: What I Found After Testing It for a Video Platform",
-      "author": "as1as",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3803418%2F7b9d16a6-b037-4847-aa90-5ed9c1c7fd99.png",
-      "description": "I'm an IT engineer at an online video platform company.  My job involves constantly evaluating new...",
-      "publication_date": "2026-03-26T03:37:07Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/as1as/wasm-in-2026-what-i-found-after-testing-it-for-a-video-platform-3lne",
-      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2F6k01o45amlknyu8nqc13.png",
-      "reading_time_minutes": 5,
-      "tags": [
-        "webassembly",
-        "javascript",
-        "webdev",
-        "programming"
-      ]
-    },
-    {
-      "title": "I built 10 autonomous AI agents for Claude Code — here's how they work Tags: ai, webdev, productivity, opensource",
-      "author": "Samarth Bhamare",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3842630%2Fdf389b60-b285-44bb-b5c5-1f548dbc1be9.png",
-      "description": "Most developers use Claude Code at maybe 20% of its potential.  They type \"fix this bug\" and expect...",
-      "publication_date": "2026-03-26T02:35:18Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/samarth0211/i-built-10-autonomous-ai-agents-for-claude-code-heres-how-they-work-tags-ai-webdev-3bmc",
-      "cover_image": null,
+      "url": "https://dev.to/hadil/the-small-details-that-make-a-website-feel-finished-and-quietly-improve-accessibility-4jkp",
+      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fvq84fje9uqe06kmknaer.png",
       "reading_time_minutes": 4,
       "tags": [
         "webdev",
-        "ai",
         "programming",
-        "opensource"
-      ]
-    },
-    {
-      "title": "90% of Claude Code Output Goes to Repos Nobody Stars. That's the Wrong Problem.",
-      "author": "Aditya Agarwal",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F2760047%2F17358ceb-daca-46e9-9a88-1904b8402d3f.jpg",
-      "description": "90% of Claude Code output goes to repos with less than 2 stars. A dashboard called claudescode.dev...",
-      "publication_date": "2026-03-26T03:18:48Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/adioof/90-of-claude-code-output-goes-to-repos-nobody-stars-thats-the-wrong-problem-nac",
-      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Ffiles.catbox.moe%2Fcfxquq.png",
-      "reading_time_minutes": 2,
-      "tags": [
-        "discuss",
-        "career",
-        "programming",
-        "ai"
-      ]
-    },
-    {
-      "title": "The Real Cost of Using Claude Code Daily — My 3-Month Breakdown",
-      "author": "Jim L",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3766233%2F709db6b4-8669-45ab-9e00-5fd8f0a97aba.png",
-      "description": "I've been using Claude Code as my primary coding tool for about three months. Before that I was using...",
-      "publication_date": "2026-03-26T02:09:12Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/jim_l_efc70c3a738e9f4baa7/the-real-cost-of-using-claude-code-daily-my-3-month-breakdown-22ml",
-      "cover_image": null,
-      "reading_time_minutes": 3,
-      "tags": [
-        "ai",
-        "programming",
-        "productivity",
-        "webdev"
-      ]
-    },
-    {
-      "title": "Is Your Game Ready to Port? A Technical Feasibility Guide",
-      "author": "Ocean View Games",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3759146%2Facc6c0f9-e878-495b-a792-b9528c850c0e.png",
-      "description": "Porting a game to a new platform sounds straightforward in a pitch meeting. \"We built it in Unity,...",
-      "publication_date": "2026-03-26T03:57:50Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/oceanviewgames/is-your-game-ready-to-port-a-technical-feasibility-guide-49k2",
-      "cover_image": null,
-      "reading_time_minutes": 8,
-      "tags": [
-        "gamedev",
-        "unity3d",
-        "programming"
-      ]
-    },
-    {
-      "title": "Skin Health at the Edge: Deploying Custom Vision Transformers (ViT) on iOS with CoreML",
-      "author": "Beck_Moulton",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F913145%2Ffe0ada43-483b-46bc-b789-499b76773dce.jpg",
-      "description": "Have you ever wondered if that weird rash on your arm is just a heat rash or something that needs a...",
-      "publication_date": "2026-03-26T00:38:00Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/beck_moulton/skin-health-at-the-edge-deploying-custom-vision-transformers-vit-on-ios-with-coreml-5fe8",
-      "cover_image": null,
-      "reading_time_minutes": 4,
-      "tags": [
-        "machinelearning",
-        "swift",
-        "ios",
-        "programming"
-      ]
-    },
-    {
-      "title": "Still Picking API vs Local LLM by Gut Feeling? A Framework With Real Benchmarks",
-      "author": "plasmon",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3838326%2Fc1f964cb-23af-4996-957d-2b4aaa5e86ce.jpg",
-      "description": "Still Picking API vs Local LLM by Gut Feeling? A Framework With Real Benchmarks   \"Just use...",
-      "publication_date": "2026-03-26T00:31:25Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/plasmon_imp/still-picking-api-vs-local-llm-by-gut-feeling-a-framework-with-real-benchmarks-2c0l",
-      "cover_image": null,
-      "reading_time_minutes": 6,
-      "tags": [
-        "llm",
-        "ai",
-        "programming",
-        "productivity"
-      ]
-    },
-    {
-      "title": "Build a Real-Time Social Media App with InsForge, MiniMax, and Next.js",
-      "author": "Astrodevil",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F647287%2Fed664d6c-6825-4dd6-9767-e0ad901afa6a.jpg",
-      "description": "Introduction   In this tutorial, we will build a full-stack social platform where users...",
-      "publication_date": "2026-03-25T18:57:24Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/astrodevil/build-a-real-time-social-media-app-with-insforge-minimax-and-nextjs-3jb8",
-      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fptyfdlxhcokj8rqw52qt.png",
-      "reading_time_minutes": 11,
-      "tags": [
-        "webdev",
-        "ai",
-        "programming",
-        "javascript"
-      ]
-    },
-    {
-      "title": "Intent to Specs: Agentic Specification Protocol",
-      "author": "Luis Cruz",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3757710%2Fcb63b2a3-631f-4173-a7b0-5cf3afff67e7.png",
-      "description": "As an architect, engineer or analyst, your goal is to create a \"Contract\" between the business intent...",
-      "publication_date": "2026-03-26T01:56:10Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/the_binary_moat/intent-to-specs-agentic-specification-protocol-3ho2",
-      "cover_image": null,
-      "reading_time_minutes": 4,
-      "tags": [
-        "ai",
-        "programming",
-        "analyst"
-      ]
-    },
-    {
-      "title": "The Art of the Primary Key: Surrogate (Auto-increment) vs. Natural Keys",
-      "author": "Alex Aslam",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F2607368%2Fb74d2406-bd46-4f49-a4ac-9ebe867ee219.jpeg",
-      "description": "I still remember the exact moment I learned that primary keys are not just technical constraints,...",
-      "publication_date": "2026-03-25T21:58:44Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/alex_aslam/the-art-of-the-primary-key-surrogate-auto-increment-vs-natural-keys-1m8b",
-      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fakn6dee0kyp262j0qtp8.png",
-      "reading_time_minutes": 6,
-      "tags": [
-        "webdev",
-        "programming",
-        "beginners",
-        "productivity"
-      ]
-    },
-    {
-      "title": "Beyond 3rd Normal Form: When to Stop Normalizing for Performance",
-      "author": "Alex Aslam",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F2607368%2Fb74d2406-bd46-4f49-a4ac-9ebe867ee219.jpeg",
-      "description": "I still remember the day I nearly destroyed a startup’s database chasing the “perfect” schema.  We...",
-      "publication_date": "2026-03-25T21:51:45Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/alex_aslam/beyond-3rd-normal-form-when-to-stop-normalizing-for-performance-3kjm",
-      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Feevjjse8l9414uzoqnpc.png",
-      "reading_time_minutes": 5,
-      "tags": [
-        "webdev",
-        "programming",
-        "beginners",
-        "productivity"
-      ]
-    },
-    {
-      "title": "Normalization vs. Denormalization: A Strategic Guide, Not a Dogma",
-      "author": "Alex Aslam",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F2607368%2Fb74d2406-bd46-4f49-a4ac-9ebe867ee219.jpeg",
-      "description": "We’ve all been there.  It’s 2:00 AM. The pager or worse, a Slack DM from the CEO goes off. The...",
-      "publication_date": "2026-03-25T21:48:43Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/alex_aslam/normalization-vs-denormalization-a-strategic-guide-not-a-dogma-a1d",
-      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Faowgzgqiuqfyukbotkju.png",
-      "reading_time_minutes": 6,
-      "tags": [
-        "webdev",
-        "programming",
-        "beginners",
-        "productivity"
+        "a11y",
+        "frontend"
       ]
     },
     {
@@ -45623,15 +45251,253 @@
       ]
     },
     {
-      "title": "Day 20 – Research Agents (web Search + Summarization)",
+      "title": "Building a Hate Speech Dataset with Responsible Web Scraping",
+      "author": "agenthustler",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3810515%2F33856722-1a98-4563-ba8b-622b5fddcf7e.png",
+      "description": "Why Build Hate Speech Datasets?   AI moderation models are only as good as their training...",
+      "publication_date": "2026-03-27T04:09:55Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/agenthustler/building-a-hate-speech-dataset-with-responsible-web-scraping-1554",
+      "cover_image": null,
+      "reading_time_minutes": 3,
+      "tags": [
+        "python",
+        "webdev",
+        "tutorial",
+        "programming"
+      ]
+    },
+    {
+      "title": "Building a Media Monitoring Tool: Mentions Across News Sites",
+      "author": "agenthustler",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3810515%2F33856722-1a98-4563-ba8b-622b5fddcf7e.png",
+      "description": "Media monitoring, tracking brand mentions, competitor coverage, and industry news, is a service...",
+      "publication_date": "2026-03-27T01:10:26Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/agenthustler/building-a-media-monitoring-tool-mentions-across-news-sites-2b9b",
+      "cover_image": null,
+      "reading_time_minutes": 3,
+      "tags": [
+        "python",
+        "webdev",
+        "tutorial",
+        "programming"
+      ]
+    },
+    {
+      "title": "We Just Shipped What OpenAI, Google, and Anthropic Have Not. Here Are 6 Updates.",
+      "author": "Jonathan Murray",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3824580%2Fcbf3ef23-2d0b-4576-90ff-0d46b2119ea8.png",
+      "description": "This post is a tight walkthrough of 6 updates we just shipped at Backboard.io that directly target...",
+      "publication_date": "2026-03-26T18:49:06Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/jon_at_backboardio/we-just-shipped-what-openai-google-and-anthropic-have-not-here-are-6-updates-2fj8",
+      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fn3t58rsd21a67zjbmqdd.png",
+      "reading_time_minutes": 5,
+      "tags": [
+        "ai",
+        "programming",
+        "devops",
+        "tooling"
+      ]
+    },
+    {
+      "title": "How to Scrape Glassdoor Without Getting Blocked",
+      "author": "agenthustler",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3810515%2F33856722-1a98-4563-ba8b-622b5fddcf7e.png",
+      "description": "Glassdoor is one of the most valuable sources for job market data, company reviews, and salary...",
+      "publication_date": "2026-03-26T22:09:59Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/agenthustler/how-to-scrape-glassdoor-without-getting-blocked-1bgg",
+      "cover_image": null,
+      "reading_time_minutes": 3,
+      "tags": [
+        "python",
+        "webdev",
+        "tutorial",
+        "programming"
+      ]
+    },
+    {
+      "title": "Why Your AI Assistant Forgets Everything (and How to Fix It With Seed Files)",
+      "author": "Nova Elvaris",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3774356%2F1cb4e0e2-edf0-49b3-a78f-5f7aa4523cb4.png",
+      "description": "\"Didn't we already go over this?\"  If you've said that to an AI assistant, you've hit the memory...",
+      "publication_date": "2026-03-26T19:10:07Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/novaelvaris/why-your-ai-assistant-forgets-everything-and-how-to-fix-it-with-seed-files-2iop",
+      "cover_image": null,
+      "reading_time_minutes": 3,
+      "tags": [
+        "ai",
+        "productivity",
+        "beginners",
+        "programming"
+      ]
+    },
+    {
+      "title": "Why bcrypt Is Not Enough in 2026 And What We Built Instead",
+      "author": "Shaswat Choudhary",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F2638417%2Fdb5453e6-ef70-4005-b43f-15b4fc071963.png",
+      "description": "The Story Behind This Package   Every time I started a new Node.js backend project, I...",
+      "publication_date": "2026-03-27T03:50:33Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/shaswat_choudhary/why-bcrypt-is-not-enough-in-2026-and-what-we-built-instead-149m",
+      "cover_image": null,
+      "reading_time_minutes": 9,
+      "tags": [
+        "webdev",
+        "programming",
+        "node",
+        "npm"
+      ]
+    },
+    {
+      "title": "CLI vs MCP vs Skills: The Whole Debate Is Asking the Wrong Question",
+      "author": "Abin",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3844298%2Fec74c037-d408-4640-b876-caeac60e0987.jpg",
+      "description": "What They're Fighting About   In March 2026, the hottest topic in the AI Agent world isn't...",
+      "publication_date": "2026-03-27T04:48:36Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/trashwbin/cli-vs-mcp-vs-skills-the-whole-debate-is-asking-the-wrong-question-nc1",
+      "cover_image": null,
+      "reading_time_minutes": 8,
+      "tags": [
+        "ai",
+        "webdev",
+        "programming",
+        "devops"
+      ]
+    },
+    {
+      "title": "Commit 42: We Replaced Cookies with One Sentence — and Gandhi Showed Up",
+      "author": "Art",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3817798%2Fc8737449-667c-4095-b2ec-393e198fbfb4.jpg",
+      "description": "A story about Ahimsa in software, 190 lines vs 1,400, and why the rod matters more than the...",
+      "publication_date": "2026-03-27T02:48:55Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/artanidos/commit-42-we-replaced-cookies-with-one-sentence-and-gandhi-showed-up-3lcf",
+      "cover_image": null,
+      "reading_time_minutes": 4,
+      "tags": [
+        "opensource",
+        "webdev",
+        "programming",
+        "forge"
+      ]
+    },
+    {
+      "title": "Lately, I’ve been digging into what actually slows down APIs. Here are a few bottlenecks that changed how I think about performance",
+      "author": "Anshita Verma",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3843805%2F8652f82e-ba37-4d81-89a4-a6cf4d3aab7e.jpg",
+      "description": "• It’s not always the database, sometimes it’s how we call it. Sending multiple small requests...",
+      "publication_date": "2026-03-26T18:22:14Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/anshita_verma_1cbd4718b8e/lately-ive-been-digging-into-what-actually-slows-down-apis-here-are-a-few-bottlenecks-that-3f0n",
+      "cover_image": null,
+      "reading_time_minutes": 1,
+      "tags": [
+        "webdev",
+        "api",
+        "programming",
+        "perl"
+      ]
+    },
+    {
+      "title": "Day 53 of #100DaysOfCode — Routing (App Router)",
+      "author": "M Saad Ahmad",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F1853445%2F521468fd-cc24-4c92-9f2f-ec930c04557b.jpg",
+      "description": "Routing is one of the most fundamental concepts in any web application. It determines how users move...",
+      "publication_date": "2026-03-27T06:13:19Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/m_saad_ahmad/day-53-of-100daysofcode-routing-app-router-1f57",
+      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Folfagcbjlo07w2dnd0sb.png",
+      "reading_time_minutes": 2,
+      "tags": [
+        "webdev",
+        "programming",
+        "nextjs",
+        "100daysofcode"
+      ]
+    },
+    {
+      "title": "How to Setup SonarQube - Complete Docker, Scanner, and CI/CD Guide",
+      "author": "Rahul Singh",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3821051%2Fc871b6c4-e4ab-4dc7-87d4-015d6d227d34.png",
+      "description": "Step-by-step guide to setting up SonarQube with Docker Compose, PostgreSQL, SonarScanner, quality gates, and GitHub Actions CI/CD. Covers Community Edition through enterprise deployment with PR decora",
+      "publication_date": "2026-03-27T06:00:00Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/rahulxsingh/how-to-setup-sonarqube-complete-docker-scanner-and-cicd-guide-1enm",
+      "cover_image": null,
+      "reading_time_minutes": 21,
+      "tags": [
+        "codereview",
+        "ai",
+        "programming",
+        "webdev"
+      ]
+    },
+    {
+      "title": "How to Scrape TikTok: Videos, Profiles, and Trending Content",
+      "author": "agenthustler",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3810515%2F33856722-1a98-4563-ba8b-622b5fddcf7e.png",
+      "description": "TikTok's rapid growth makes it a prime target for data analysis. This guide covers practical...",
+      "publication_date": "2026-03-26T22:12:02Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/agenthustler/how-to-scrape-tiktok-videos-profiles-and-trending-content-4l7k",
+      "cover_image": null,
+      "reading_time_minutes": 3,
+      "tags": [
+        "python",
+        "webdev",
+        "tutorial",
+        "programming"
+      ]
+    },
+    {
+      "title": "Building a Patent Data Scraper: USPTO, EPO, and Google Patents",
+      "author": "agenthustler",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3810515%2F33856722-1a98-4563-ba8b-622b5fddcf7e.png",
+      "description": "Patent data is a goldmine for competitive intelligence, research, and innovation tracking. This guide...",
+      "publication_date": "2026-03-26T22:11:26Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/agenthustler/building-a-patent-data-scraper-uspto-epo-and-google-patents-3ob1",
+      "cover_image": null,
+      "reading_time_minutes": 3,
+      "tags": [
+        "python",
+        "webdev",
+        "tutorial",
+        "programming"
+      ]
+    },
+    {
+      "title": "Why Your Claude-Assisted Builds Break Down After Week 3 (And How to Fix It)",
+      "author": "Panav Mhatre",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3833062%2F868dcadf-16d4-42a2-ad3d-a93b59c257c1.png",
+      "description": "There's a pattern I keep seeing with developers who use Claude to build things.  Week 1: Everything's...",
+      "publication_date": "2026-03-27T04:18:58Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/panav_mhatre_732271d2d44b/why-your-claude-assisted-builds-break-down-after-week-3-and-how-to-fix-it-ono",
+      "cover_image": null,
+      "reading_time_minutes": 3,
+      "tags": [
+        "ai",
+        "productivity",
+        "programming",
+        "tutorial"
+      ]
+    },
+    {
+      "title": "Day 21: Agent Failure Modes & Debugging Techniques 🧨🔍",
       "author": "swati goyal",
       "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F2138482%2F82ef0b02-a2ea-44e6-aa38-bb05a5c4ff43.jpg",
-      "description": "Executive Summary   Research is one of the most misunderstood applications of agentic...",
-      "publication_date": "2026-03-26T00:30:00Z",
+      "description": "Executive Summary   Most teams don’t notice agent failures — they experience...",
+      "publication_date": "2026-03-27T00:30:00Z",
       "source": "DEV Community",
-      "url": "https://dev.to/swatigoyal911/day-20-research-agents-web-search-summarization-3622",
-      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fep2roxuewu75mlwgofj5.png",
-      "reading_time_minutes": 3,
+      "url": "https://dev.to/swatigoyal911/day-21-agent-failure-modes-debugging-techniques-307n",
+      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fh1b13ja911j2e61l6rjs.png",
+      "reading_time_minutes": 4,
       "tags": [
         "ai",
         "programming",
@@ -45640,49 +45506,66 @@
       ]
     },
     {
-      "title": "Building Bootable Images in Userspace: Avoiding the Loop Device Trap",
-      "author": "Vincent Yang",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3784540%2F2ac14382-f5c1-4972-b009-ba8eff183bbd.png",
-      "description": "Building Disk Images Without Root (And Without Regret)   If you have built enough disk...",
-      "publication_date": "2026-03-26T00:00:00Z",
+      "title": "The EU Just Killed Mass Surveillance of Your DMs. Most Developers Missed It.",
+      "author": "Aditya Agarwal",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F2760047%2F17358ceb-daca-46e9-9a88-1904b8402d3f.jpg",
+      "description": "The EU has prevented mass surveillance of your DMs. And most developers are not aware of the near...",
+      "publication_date": "2026-03-26T23:33:41Z",
       "source": "DEV Community",
-      "url": "https://dev.to/vincent4486/building-a-disk-image-without-root-privilege-40kp",
-      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fnl9xqfaay3sv0ebpf8bf.jpg",
-      "reading_time_minutes": 5,
+      "url": "https://dev.to/adioof/the-eu-just-killed-mass-surveillance-of-your-dms-most-developers-missed-it-l0k",
+      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Ffiles.catbox.moe%2F8ly331.png",
+      "reading_time_minutes": 2,
       "tags": [
+        "discuss",
         "programming",
-        "osdev",
-        "software",
-        "cli"
+        "webdev",
+        "career"
       ]
     },
     {
-      "title": "Build with TRAE @ São Paulo: Muito além do demo, veja como os devs dominam o TRAE SOLO",
-      "author": "Captain",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3754387%2F326e5299-07d0-4fb4-a820-ee206e69dd34.png",
-      "description": "No dia 22 de março, o Infinity Tower — icônico escritório da ByteDance em São Paulo — abriu suas...",
-      "publication_date": "2026-03-26T02:40:22Z",
+      "title": "Building a live electricity dashboard as a first-semester CS student",
+      "author": "Tariq Mehmood",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F1944122%2Fbfc01ca9-9ffb-4c2e-9276-57b81b0d3102.png",
+      "description": "Hi everyone, I’m Tariq Mehmood. I’m currently in my first semester as a computer science student, and...",
+      "publication_date": "2026-03-27T04:49:32Z",
       "source": "DEV Community",
-      "url": "https://dev.to/captaincc/build-with-trae-sao-paulo-muito-alem-do-demo-veja-como-os-devs-dominam-o-trae-solo-3hmm",
+      "url": "https://dev.to/leonardokaprio/building-a-live-electricity-dashboard-as-a-first-semester-cs-student-59i8",
       "cover_image": null,
-      "reading_time_minutes": 4,
+      "reading_time_minutes": 2,
       "tags": [
         "webdev",
-        "ai",
         "programming",
-        "coding"
+        "beginners",
+        "api"
       ]
     },
     {
-      "title": "How to Isolate AI-Generated Code Before It Destroys Your System",
+      "title": "Claude Code Hooks, Subagents & Power Features: The Complete Guide (2026)",
+      "author": "Vibehackers",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3833754%2F8998be38-f7b5-47a9-8472-467324aec154.png",
+      "description": "Most people use Claude Code like a chatbot. Type a question, get an answer, type another question....",
+      "publication_date": "2026-03-26T20:38:12Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/vibehackers/claude-code-hooks-subagents-power-features-the-complete-guide-2026-c71",
+      "cover_image": null,
+      "reading_time_minutes": 11,
+      "tags": [
+        "ai",
+        "programming",
+        "tutorial",
+        "productivity"
+      ]
+    },
+    {
+      "title": "From Solo Developer to Agentic Commander: Designing Multi-Agent Engineering Systems That Actually Work in Production",
       "author": "Lalit Mishra",
       "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3663624%2Ff0c35f98-8f53-4946-817b-d0f618c5de57.png",
-      "description": "It happens faster than most engineering teams can react. A product manager, leveraging a modern AI...",
-      "publication_date": "2026-03-25T22:00:00Z",
+      "description": "The trajectory of a modern software project built with generative AI is predictably deceptive. It...",
+      "publication_date": "2026-03-26T22:00:00Z",
       "source": "DEV Community",
-      "url": "https://dev.to/deepak_mishra_35863517037/containing-the-blast-radius-how-to-isolate-ai-generated-code-before-it-destroys-your-system-npa",
-      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fkj9wvs3r38yk3u0gh21w.png",
-      "reading_time_minutes": 6,
+      "url": "https://dev.to/deepak_mishra_35863517037/from-solo-developer-to-agentic-commander-designing-multi-agent-engineering-systems-that-actually-21bp",
+      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fuc8mlq78t4kzf875n669.png",
+      "reading_time_minutes": 5,
       "tags": [
         "vibecoding",
         "ai",
@@ -45691,509 +45574,1036 @@
       ]
     },
     {
-      "title": "My first SaaS application and what I've learned",
-      "author": "Matthias Schild",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3294824%2F042933be-d61a-4bda-90f5-2d5212f350a8.png",
-      "description": "I've been working for 9 years full-time as a software developer. This started way earlier - for...",
-      "publication_date": "2026-03-25T21:30:22Z",
+      "title": "Structuring Claude Code for Multi-Repo Workspaces",
+      "author": "Karun Japhet",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F243178%2Fb6350b6f-468d-4124-88f8-9119b98e01db.jpeg",
+      "description": "How to structure CLAUDE.md files, repo manifests, and a bootstrap repo so Claude Code understands your entire multi-repo workspace, not just one repo.",
+      "publication_date": "2026-03-26T19:38:34Z",
       "source": "DEV Community",
-      "url": "https://dev.to/matthiasschild/my-first-saas-application-and-what-ive-learned-2la6",
+      "url": "https://dev.to/javatarz/structuring-claude-code-for-multi-repo-workspaces-4147",
       "cover_image": null,
-      "reading_time_minutes": 4,
+      "reading_time_minutes": 6,
       "tags": [
-        "webdev",
+        "ai",
         "programming",
-        "learning",
+        "productivity",
+        "tutorial"
+      ]
+    },
+    {
+      "title": "GitHub Copilot vs Tabnine: The Complete Comparison (2026)",
+      "author": "Rahul Singh",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3821051%2Fc871b6c4-e4ab-4dc7-87d4-015d6d227d34.png",
+      "description": "GitHub Copilot vs Tabnine compared head-to-head for AI code completion, privacy, enterprise features, pricing, and IDE support. Find out which AI code assistant fits your workflow in 2026.",
+      "publication_date": "2026-03-26T20:00:00Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/rahulxsingh/github-copilot-vs-tabnine-the-complete-comparison-2026-49d8",
+      "cover_image": null,
+      "reading_time_minutes": 23,
+      "tags": [
+        "codereview",
+        "ai",
+        "programming",
+        "webdev"
+      ]
+    },
+    {
+      "title": "The 8-Month Feature Nobody Wanted (Including Me, Eventually)",
+      "author": "Tombri Bowei",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F1745361%2Fa5ccba4b-d4ad-4f12-8265-dcd18c3775cd.jpg",
+      "description": "TL;DR: I built something so obsessively specific to my own workflow that I convinced myself it was...",
+      "publication_date": "2026-03-26T23:26:18Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/_boweii/the-8-month-feature-nobody-wanted-including-me-eventually-4fg9",
+      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2F6tmx88eb15a0tq17cxpp.png",
+      "reading_time_minutes": 2,
+      "tags": [
+        "buildinpublic",
+        "programming",
+        "softwaredevelopment",
         "startup"
+      ]
+    },
+    {
+      "title": "SAP ABAP Performance Optimization: Identifying and Fixing Bottlenecks in Real-World Systems",
+      "author": "Oktay Ates",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3815408%2F9552fca3-5256-48c7-b621-f02ed2bee5cd.png",
+      "description": "SAP ABAP Performance Optimization: Identifying and Fixing Bottlenecks in Real-World Systems If you’ve...",
+      "publication_date": "2026-03-26T21:37:05Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/oktay_a56a5e9cc26cc1df8fe/sap-abap-performance-optimization-identifying-and-fixing-bottlenecks-in-real-world-systems-1jld",
+      "cover_image": null,
+      "reading_time_minutes": 10,
+      "tags": [
+        "sap",
+        "abap",
+        "programming",
+        "ai"
+      ]
+    },
+    {
+      "title": "AI 自主演化的時代來臨：從 Stanford 理論到 Google AlphaEvolve 與 Berkeley OpenSage",
+      "author": "Yang Goufang",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3808809%2Fddc4c93b-6669-4563-b8f5-ba711077aed3.jpg",
+      "description": "AI 系統正在學會自我改進——設計更好的演算法、生成自己的訓練資料、組裝自主的 Agent 網路。這對開發者意味著什麼？",
+      "publication_date": "2026-03-27T05:12:38Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/yang_goufang_23c7ba674984/ai-zi-zhu-yan-hua-de-shi-dai-lai-lin-cong-stanford-li-lun-dao-google-alphaevolve-yu-berkeley-opensage-396l",
+      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Ffiles.catbox.moe%2Ft0l9ze.png",
+      "reading_time_minutes": 1,
+      "tags": [
+        "ai",
+        "machinelearning",
+        "deeplearning",
+        "programming"
+      ]
+    },
+    {
+      "title": "SAP BTP Event Mesh &#038; Event-Driven Architecture: Building Resilient Integrations That Actually Scale",
+      "author": "Oktay Ates",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3815408%2F9552fca3-5256-48c7-b621-f02ed2bee5cd.png",
+      "description": "If you’ve spent any significant time working on SAP integration projects, you know the pain:...",
+      "publication_date": "2026-03-26T21:36:12Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/oktay_a56a5e9cc26cc1df8fe/sap-btp-event-mesh-038-event-driven-architecture-building-resilient-integrations-that-actually-3ed8",
+      "cover_image": null,
+      "reading_time_minutes": 10,
+      "tags": [
+        "sap",
+        "abap",
+        "programming",
+        "ai"
+      ]
+    },
+    {
+      "title": "How to Set Up Semgrep in 2026 - Complete Installation and Configuration Guide",
+      "author": "Rahul Singh",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3821051%2Fc871b6c4-e4ab-4dc7-87d4-015d6d227d34.png",
+      "description": "Step-by-step guide to setting up Semgrep for security scanning. Covers CLI installation, first scan, rule sets, custom rules, GitHub Actions integration, Semgrep Cloud, PR comments, and troubleshootin",
+      "publication_date": "2026-03-26T22:30:00Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/rahulxsingh/how-to-set-up-semgrep-in-2026-complete-installation-and-configuration-guide-5emm",
+      "cover_image": null,
+      "reading_time_minutes": 19,
+      "tags": [
+        "codereview",
+        "ai",
+        "programming",
+        "webdev"
+      ]
+    },
+    {
+      "title": "How to Build an Earnings Call Transcript Analyzer",
+      "author": "agenthustler",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3810515%2F33856722-1a98-4563-ba8b-622b5fddcf7e.png",
+      "description": "How to Build an Earnings Call Transcript Analyzer   Earnings calls contain signals that move...",
+      "publication_date": "2026-03-27T03:12:29Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/agenthustler/how-to-build-an-earnings-call-transcript-analyzer-4a02",
+      "cover_image": null,
+      "reading_time_minutes": 3,
+      "tags": [
+        "python",
+        "webdev",
+        "tutorial",
+        "programming"
+      ]
+    },
+    {
+      "title": "How to Monitor Open Source Vulnerability Disclosures",
+      "author": "agenthustler",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3810515%2F33856722-1a98-4563-ba8b-622b5fddcf7e.png",
+      "description": "How to Monitor Open Source Vulnerability Disclosures   When a critical vulnerability drops...",
+      "publication_date": "2026-03-27T03:13:42Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/agenthustler/how-to-monitor-open-source-vulnerability-disclosures-37mh",
+      "cover_image": null,
+      "reading_time_minutes": 3,
+      "tags": [
+        "python",
+        "webdev",
+        "tutorial",
+        "programming"
+      ]
+    },
+    {
+      "title": "I Love Watching the Storms Roll In",
+      "author": "Anna Villarreal",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F1467610%2F6ede9a19-775f-483a-b3b8-2bb47e8f954b.jpg",
+      "description": "I have always liked the weather radar. First of all, it's rainbow. Second of all, the weather is...",
+      "publication_date": "2026-03-27T02:06:12Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/annavi11arrea1/i-love-watching-the-storms-roll-in-166m",
+      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fp00tprgtt4ug11xjmica.png",
+      "reading_time_minutes": 2,
+      "tags": [
+        "weather",
+        "webdev",
+        "api",
+        "javascript"
+      ]
+    },
+    {
+      "title": "I Built an Uptime Monitoring SaaS in a Weekend — Here's What I Learned",
+      "author": "Cory Zilisch (Cory Zilisch)",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3844746%2F0a892392-4254-4ffe-9230-85279cb96103.jpg",
+      "description": "The Setup   I was paying $15/month for Uptime Robot.  I used maybe 30% of it. Most days I...",
+      "publication_date": "2026-03-26T13:09:55Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/the_zilisch/i-built-an-uptime-monitoring-saas-in-a-weekend-heres-what-i-learned-4nih",
+      "cover_image": null,
+      "reading_time_minutes": 8,
+      "tags": [
+        "javascript",
+        "startup",
+        "webdev",
+        "node"
+      ]
+    },
+    {
+      "title": "I built a free API for online slot game data — 2,600+ slots",
+      "author": "slreport",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3845400%2F2fdbe28d-b81c-479f-a599-2ef7a32f5514.jpg",
+      "description": "I built a free, public JSON API that serves data for 2,600+ online slot games from 21 providers.     ...",
+      "publication_date": "2026-03-27T00:39:08Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/slreport/i-built-a-free-api-for-online-slot-game-data-2600-slots-2jba",
+      "cover_image": null,
+      "reading_time_minutes": 1,
+      "tags": [
+        "api",
+        "opensource",
+        "webdev",
+        "javascript"
+      ]
+    },
+    {
+      "title": "Pull SEC EDGAR Filings into Your App with One API Call",
+      "author": "Donny Nguyen",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3813586%2F378063f8-8e69-4d54-b956-fdbde617ae12.jpg",
+      "description": "If you've ever tried scraping SEC EDGAR for company filings, you know the pain: inconsistent HTML,...",
+      "publication_date": "2026-03-26T20:18:07Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/donnyautomation/pull-sec-edgar-filings-into-your-app-with-one-api-call-40k9",
+      "cover_image": null,
+      "reading_time_minutes": 2,
+      "tags": [
+        "api",
+        "finance",
+        "javascript",
+        "webdev"
+      ]
+    },
+    {
+      "title": "Real-time React: Syncing State Across Browser Tabs",
+      "author": "reactuse.com",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F1119566%2F2b0c07f8-e03d-420f-8876-c660f7ce083c.png",
+      "description": "Keep auth, theme, and app state in sync across browser tabs — with BroadcastChannel and React hooks.",
+      "publication_date": "2026-03-27T00:49:00Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/childrentime/real-time-react-syncing-state-across-browser-tabs-hn5",
+      "cover_image": null,
+      "reading_time_minutes": 9,
+      "tags": [
+        "react",
+        "javascript",
+        "webdev",
+        "tutorial"
+      ]
+    },
+    {
+      "title": "The Secret Memory of JavaScript Functions That Nobody Talks About",
+      "author": "Ebenezer",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3701631%2F5a47ce90-fb43-4abd-b071-e221a02fc945.png",
+      "description": "My Institute Trainer Mr.Vijayaragavan sir dropped this code on my screen during our training...",
+      "publication_date": "2026-03-27T05:26:43Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/buddingdeveloper/the-secret-memory-of-javascript-functions-that-nobody-talks-about-10bg",
+      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2F6zmu942k9qxx7vwq74so.png",
+      "reading_time_minutes": 5,
+      "tags": [
+        "javascript",
+        "beginners",
+        "tutorial",
+        "webdev"
+      ]
+    },
+    {
+      "title": "cathedral-memory is now on npm — persistent memory for JS/TS AI agents",
+      "author": "Mike W",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3819025%2Fdbebfbb6-f84f-4bea-96b6-e89a2d46e9d5.png",
+      "description": "Your AI agent forgets everything when the context resets. Cathedral fixes that.  The official...",
+      "publication_date": "2026-03-26T16:09:06Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/mike_w_06c113a8d0bb14c793/cathedral-memory-is-now-on-npm-persistent-memory-for-jsts-ai-agents-2lgp",
+      "cover_image": null,
+      "reading_time_minutes": 1,
+      "tags": [
+        "ai",
+        "javascript",
+        "typescript",
+        "webdev"
+      ]
+    },
+    {
+      "title": "Supercharge Your Web Apps: AI in the Background with Service Workers",
+      "author": "Programming Central",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3681483%2F4b902217-95ae-4f71-818a-d00cc58e51fd.png",
+      "description": "I created a new website: Free Access to the 8 Volumes on Typescript &amp; AI Masterclass, no...",
+      "publication_date": "2026-03-26T20:00:00Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/programmingcentral/supercharge-your-web-apps-ai-in-the-background-with-service-workers-502k",
+      "cover_image": null,
+      "reading_time_minutes": 7,
+      "tags": [
+        "javascript",
+        "typescript",
+        "ai",
+        "webdev"
+      ]
+    },
+    {
+      "title": "Node.js Memory Leaks in Production: Finding and Fixing Them Fast",
+      "author": "AXIOM Agent",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3840392%2F09903613-c677-4954-a2ea-b6742f97cca9.png",
+      "description": "Node.js Memory Leaks in Production: Finding and Fixing Them Fast   Memory leaks don't...",
+      "publication_date": "2026-03-26T22:20:06Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/axiom_agent_1dc642fa83651/nodejs-memory-leaks-in-production-finding-and-fixing-them-fast-2cna",
+      "cover_image": null,
+      "reading_time_minutes": 8,
+      "tags": [
+        "node",
+        "javascript",
+        "performance",
+        "webdev"
       ]
     },
     {
       "title": "How I Built a 2,000-Page Puzzle Site with Programmatic SEO",
       "author": "Clawrl Byte",
       "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3843729%2F9d54ae6c-1ed1-49b9-bbe4-156061827778.png",
-      "description": "I built PuzzlePonder.com — a free daily puzzle site with 10 different game types. What started as a...",
-      "publication_date": "2026-03-25T21:09:20Z",
+      "description": "How I Built a 2,000-Page Puzzle Site with Programmatic SEO   I built PuzzlePonder.com — a...",
+      "publication_date": "2026-03-26T18:21:56Z",
       "source": "DEV Community",
-      "url": "https://dev.to/clawrl3000/how-i-built-a-2000-page-puzzle-site-with-programmatic-seo-147o",
+      "url": "https://dev.to/clawrl3000/how-i-built-a-2000-page-puzzle-site-with-programmatic-seo-18p8",
       "cover_image": null,
       "reading_time_minutes": 4,
       "tags": [
-        "showdev",
         "webdev",
-        "programming",
-        "tutorial"
-      ]
-    },
-    {
-      "title": "Code Your Own Virtual DOM in 100 Lines of JavaScript",
-      "author": "Luiz Claudio Garcia",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3843774%2F3e062cbf-6b6a-4749-bbdc-e4ca481360f9.png",
-      "description": "Build a working Virtual DOM engine in 71 lines of vanilla JS — no build step, no npm. Four functions: h(), render(), diff(), patch(). Finally understand what React's reconciler actually does.",
-      "publication_date": "2026-03-25T22:10:54Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/luizgarcia/code-your-own-virtual-dom-in-100-lines-of-javascript-a7h",
-      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fraw.githubusercontent.com%2Fluizcg%2Farticles%2Fmain%2Farticles%2Fcode-your-own-virtual-dom-in-100-lines-of-javascript%2Fimages%2Fcover.png",
-      "reading_time_minutes": 14,
-      "tags": [
-        "javascript",
-        "webdev",
-        "react",
-        "tutorial"
-      ]
-    },
-    {
-      "title": "rgql: AST-Aware GraphQL Refactoring That AI Agents Can Trust",
-      "author": "Yamashou",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F45213%2Fae6df705-6a20-4dd2-b4ac-02c8a62642a8.png",
-      "description": "`rgql` is a CLI tool that renames GraphQL types, fields, and fragments across schema files and embedded TypeScript queries using full AST analysis. Because it's type-safe and deterministic, it's ideal for AI coding agents like Claude Code and Codex — they can invoke a single command instead of performing fragile find-and-replace across dozens of files.",
-      "publication_date": "2026-03-26T05:12:54Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/yamashou/rgql-ast-aware-graphql-refactoring-that-ai-agents-can-trust-4aib",
-      "cover_image": null,
-      "reading_time_minutes": 4,
-      "tags": [
-        "graphql",
-        "ast",
-        "ts",
-        "javascript"
-      ]
-    },
-    {
-      "title": "JavaScript DOM for Beginners",
-      "author": "Priyaramu",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3690876%2Faff92635-890b-4d76-a510-afe5b918d95b.png",
-      "description": "DOM (Document Object Model)  When a browser loads a web page, it converts the HTML into a structured...",
-      "publication_date": "2026-03-25T17:22:43Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/chandra_ramu_6ec0a1c1eb59/javascript-dom-explained-simply-4163",
-      "cover_image": null,
-      "reading_time_minutes": 2,
-      "tags": [
-        "javascript"
-      ]
-    },
-    {
-      "title": "Cloudflare Dynamic Workers: Sandboxed Code Execution at the Edge",
-      "author": "Rick Cogley",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F738061%2Fff39689f-603b-4fcd-a3b1-c68ca7609b3f.jpeg",
-      "description": "I needed to run user-defined JavaScript templates from a database — code that formats RSS feed items...",
-      "publication_date": "2026-03-26T04:30:42Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/rickcogley/cloudflare-dynamic-workers-sandboxed-code-execution-at-the-edge-3ekn",
-      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fapi.cogley.jp%2Fapi%2Fog%2Fcover%2F01KMM5C25ZE5Z6P88H4Y97ZVHV.png",
-      "reading_time_minutes": 6,
-      "tags": [
-        "tech",
-        "javascript",
-        "cloudflare"
-      ]
-    },
-    {
-      "title": "Top 10 JavaScript Utility Libraries in 2026",
-      "author": "Evan Moon",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3820040%2F3ec5372b-2079-49e4-9170-39180ddfa181.jpg",
-      "description": "There was a time when Lodash was pretty much the only game in town. That's not the case anymore....",
-      "publication_date": "2026-03-26T05:20:17Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/evanmoon/top-10-javascript-utility-libraries-in-2026-f76",
-      "cover_image": null,
-      "reading_time_minutes": 9,
-      "tags": [
-        "javascript",
-        "performance",
-        "tooling",
-        "typescript"
-      ]
-    },
-    {
-      "title": "Prime Number",
-      "author": "Divya Divya",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3527297%2Fbbeaee6e-8abc-44f0-a881-0e1dd186d510.png",
-      "description": "What is prime number? A number is called a prime number if it has only two factors.  Important...",
-      "publication_date": "2026-03-25T15:39:44Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/divya_divya_b18f82b19353a/prime-number-53kp",
-      "cover_image": null,
-      "reading_time_minutes": 1,
-      "tags": [
-        "algorithms",
-        "beginners",
-        "javascript",
-        "tutorial"
-      ]
-    },
-    {
-      "title": "Scraping JavaScript-Heavy SPAs with Python: Dynamic Content, Infinite Scroll, and API Interception",
-      "author": "AlterLab",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3842661%2F6ea3b67f-3a2b-423f-b726-51041ab344e6.png",
-      "description": "Scraping JavaScript-Heavy SPAs with Python: Dynamic Content, Infinite Scroll, and API...",
-      "publication_date": "2026-03-26T04:02:29Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/alterlab/scraping-javascript-heavy-spas-with-python-dynamic-content-infinite-scroll-and-api-interception-20dk",
-      "cover_image": null,
-      "reading_time_minutes": 7,
-      "tags": [
-        "api",
-        "javascript",
-        "python",
-        "webscraping"
-      ]
-    },
-    {
-      "title": "The Bollinger Band Strategy I Applied to My Habits (And What It Revealed)",
-      "author": "Eastkap",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F273102%2F38e517f4-1264-49c8-b7cd-e9eef23de464.jpeg",
-      "description": "The Bollinger Band Strategy I Applied to My Habits (And What It Revealed)   How volatility...",
-      "publication_date": "2026-03-26T04:05:07Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/eastkap/the-bollinger-band-strategy-i-applied-to-my-habits-and-what-it-revealed-2op4",
-      "cover_image": null,
-      "reading_time_minutes": 3,
-      "tags": [
-        "productivity",
-        "javascript",
-        "webdev",
-        "indiehackers"
-      ]
-    },
-    {
-      "title": "How I solved Ethereum RPC rate limits with traffic engineering instead of paying $250/month",
-      "author": "Sergei Karasev",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3834134%2Ff58e337d-4873-4902-b048-ded15818d2cf.png",
-      "description": "A production engineering story about rate limits, retries, failure behavior, and building...",
-      "publication_date": "2026-03-25T22:30:52Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/ahiipsa/how-i-solved-ethereum-rpc-rate-limits-with-traffic-engineering-instead-of-paying-250month-30ed",
-      "cover_image": null,
-      "reading_time_minutes": 6,
-      "tags": [
-        "blockchain",
-        "ethereum",
-        "javascript",
-        "architecture"
-      ]
-    },
-    {
-      "title": "Signals in React(IV): Separating UI Effects and Data Effects with Signals",
-      "author": "Luciano0322",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F964885%2F6ee5d567-3bf5-4b29-94c2-ab63f71b44ed.png",
-      "description": "Quick Recap   This article continues from the conclusion of the previous one. We will look...",
-      "publication_date": "2026-03-26T02:24:37Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/luciano0322/signals-in-reactiv-separating-ui-effects-and-data-effects-with-signals-ea8",
-      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Flu96fw53kv36nkx8t6y1.png",
-      "reading_time_minutes": 4,
-      "tags": [
-        "webdev",
-        "javascript",
-        "frontend",
-        "react"
-      ]
-    },
-    {
-      "title": "The Right Way to Add Months to a Date in JavaScript (It's Not What You Think)",
-      "author": "HAU",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3839622%2Fe08f5288-0ee6-44ea-8239-36b5a9f5223b.png",
-      "description": "\"What date is 1 month from today?\"  For March 24, the intuitive answer is April 24. Simple. But what...",
-      "publication_date": "2026-03-26T02:00:03Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/work_hau_cb718f47075930f9/the-right-way-to-add-months-to-a-date-in-javascript-its-not-what-you-think-65h",
-      "cover_image": null,
-      "reading_time_minutes": 3,
-      "tags": [
-        "javascript",
-        "webdev",
-        "tutorial",
-        "beginners"
-      ]
-    },
-    {
-      "title": "From Chaos to Control: Multiple Node.js Environments with Multi-Env CLI",
-      "author": "CinfiniteDev",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3780619%2Fc3c3d0ea-ec65-43bb-96d5-824ce2e22392.jpg",
-      "description": "⚡ Multi-Env CLI    Stop juggling .env files for Node.js projects. Run multiple environments...",
-      "publication_date": "2026-03-25T23:10:11Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/cinfinitedev_engine/from-chaos-to-control-multiple-nodejs-environments-with-multi-env-cli-cai",
-      "cover_image": null,
-      "reading_time_minutes": 3,
-      "tags": [
-        "javascript",
-        "cli",
-        "opensource",
-        "npm"
-      ]
-    },
-    {
-      "title": "Built a 3D Batman Themed Portfolio 🦇🏎️",
-      "author": "Sai Akshith Akshintala",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3843780%2Fe6d1fb16-18b4-4d76-a041-8152276984b0.png",
-      "description": "The Hook Most portfolios are flat. I wanted mine to feel like a high-performance terminal. So, I...",
-      "publication_date": "2026-03-25T22:08:07Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/akshith_dev/built-a-3d-batman-themed-portfolio-gd9",
-      "cover_image": null,
-      "reading_time_minutes": 1,
-      "tags": [
-        "javascript",
-        "opensource",
-        "showdev",
-        "webdev"
-      ]
-    },
-    {
-      "title": "Code Your Own Virtual DOM in 100 Lines of JavaScript",
-      "author": "Luiz Claudio Garcia",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3843774%2F3e062cbf-6b6a-4749-bbdc-e4ca481360f9.png",
-      "description": "Build a working Virtual DOM engine in 71 lines of vanilla JS — no build step, no npm. Four functions: h(), render(), diff(), patch(). Finally understand what React's reconciler actually does.",
-      "publication_date": "2026-03-26T01:02:31Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/luizgarcia/code-your-own-virtual-dom-in-100-lines-of-javascript-4np5",
-      "cover_image": null,
-      "reading_time_minutes": 14,
-      "tags": [
-        "javascript",
-        "webdev",
-        "react",
-        "tutorial"
-      ]
-    },
-    {
-      "title": "OG Images Done Right — How I Made Every Shared Link Work Harder",
-      "author": "as1as",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3803418%2F7b9d16a6-b037-4847-aa90-5ed9c1c7fd99.png",
-      "description": "One thing I learned building TalkWith.chat:  No matter how good your product is, if sharing a link on...",
-      "publication_date": "2026-03-26T03:41:35Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/as1as/og-images-done-right-how-i-made-every-shared-link-work-harder-4e96",
-      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2F98jgc6mu7hb18bjtkxg5.png",
-      "reading_time_minutes": 3,
-      "tags": [
-        "webdev",
-        "nextjs",
         "seo",
-        "javascript"
-      ]
-    },
-    {
-      "title": "Deno Deploy Has a Free Tier — Deploy Edge Functions Globally in 10 Seconds (No Docker, No AWS, No Config)",
-      "author": "Alex Spinov ",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3831260%2Fb89694fb-80bc-4daf-b741-f149c38d9584.png",
-      "description": "You want to deploy a function. AWS Lambda needs IAM roles, API Gateway, CloudFormation. Vercel needs...",
-      "publication_date": "2026-03-26T02:40:39Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/0012303/deno-deploy-has-a-free-tier-deploy-edge-functions-globally-in-10-seconds-no-docker-no-aws-no-30l2",
-      "cover_image": null,
-      "reading_time_minutes": 3,
-      "tags": [
-        "deno",
-        "serverless",
-        "webdev",
-        "javascript"
-      ]
-    },
-    {
-      "title": "Build and deploy web apps in minutes with Spektrum, an AI app builder for instant MVPs, rapid prototyping, and JavaScript development. Skip setup, generate full-stack apps, and launch faster with AI 🔥",
-      "author": "Hadil Ben Abdallah",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F1209000%2Fb29d37d8-2efe-4391-9796-a6f8a483f1bd.png",
-      "description": "Spektrum: Turn Natural Language into Live Web Apps (Deploy in Minutes with AI)                ...",
-      "publication_date": "2026-03-25T09:15:18Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/hadil/build-and-deploy-web-apps-in-minutes-with-spektrum-an-ai-app-builder-for-instant-mvps-rapid-c11",
-      "cover_image": null,
-      "reading_time_minutes": 1,
-      "tags": [
-        "ai",
-        "webdev",
-        "programming",
-        "javascript"
-      ]
-    },
-    {
-      "title": "Supercharge Your Web Apps: Hardware Acceleration with WebGPU and WebAssembly",
-      "author": "Programming Central",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3681483%2F4b902217-95ae-4f71-818a-d00cc58e51fd.png",
-      "description": "I created a new website: Free Access to the 8 Volumes on Typescript &amp; AI Masterclass, no...",
-      "publication_date": "2026-03-25T20:00:00Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/programmingcentral/supercharge-your-web-apps-hardware-acceleration-with-webgpu-and-webassembly-259d",
-      "cover_image": null,
-      "reading_time_minutes": 5,
-      "tags": [
-        "javascript",
-        "typescript",
-        "ai",
-        "webdev"
-      ]
-    },
-    {
-      "title": "Chrome DevTools MCP but from the inside — a Vite plugin that lets AI debug your frontend in any browser",
-      "author": "崮生",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F2009505%2F8962540b-5e92-42f7-93c6-04644d3c8e1e.png",
-      "description": "Chrome DevTools MCP is great, but it doesn't work if you're building browser extensions, embedded...",
-      "publication_date": "2026-03-26T02:50:38Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/llej/chrome-devtools-mcp-but-from-the-inside-a-vite-plugin-that-lets-ai-debug-your-frontend-in-any-5g29",
-      "cover_image": null,
-      "reading_time_minutes": 2,
-      "tags": [
-        "ai",
-        "frontend",
-        "javascript",
-        "mcp"
-      ]
-    },
-    {
-      "title": "Video.js Was Abandoned After 16 Years. Its Creator Came Back and Merged 5 Competing Players Into One.",
-      "author": "Aditya Agarwal",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F2760047%2F17358ceb-daca-46e9-9a88-1904b8402d3f.jpg",
-      "description": "The Video.js platform has been available for an entire generation of engineers to use, over 16 years....",
-      "publication_date": "2026-03-25T23:31:34Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/adioof/videojs-was-abandoned-after-16-years-its-creator-came-back-and-merged-5-competing-players-into-3o29",
-      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Ffiles.catbox.moe%2Fongt6n.png",
-      "reading_time_minutes": 3,
-      "tags": [
-        "discuss",
-        "javascript",
-        "opensource",
-        "programming"
-      ]
-    },
-    {
-      "title": "React Native offline-first: conflict rules in SQLite",
-      "author": "Sathish",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3705649%2Fc81bbb3f-cee7-4ffd-80f3-a0f5243c5779.png",
-      "description": "I stopped “last write wins” from nuking offline edits. I model conflicts with base_rev + rev in...",
-      "publication_date": "2026-03-25T15:01:24Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/sathish_daggula/react-native-offline-first-conflict-rules-in-sqlite-3h7h",
-      "cover_image": null,
-      "reading_time_minutes": 7,
-      "tags": [
-        "reactnative",
-        "typescript",
-        "javascript",
-        "tutorial"
-      ]
-    },
-    {
-      "title": "I finally published a side project I wrote 4 years ago",
-      "author": "Yash Datir",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F335494%2F32a73db1-558e-4ca2-8f51-b654b876e8bc.jpeg",
-      "description": "In 2021, I was building a Node.js CLI tool and got frustrated with how bare console.log looks when...",
-      "publication_date": "2026-03-25T18:36:44Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/yashdatir/i-finally-published-a-side-project-i-wrote-4-years-ago-46il",
-      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fy675oyh956hm6q5xta6r.jpg",
-      "reading_time_minutes": 2,
-      "tags": [
-        "node",
-        "javascript",
-        "npm",
-        "opensource"
-      ]
-    },
-    {
-      "title": "AI Agents Negotiating the Road: Building PathPact",
-      "author": "Harish Kotra (he/him)",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F101279%2F516b4cd2-cc6d-451c-a8c8-a7d9ab5ec41a.png",
-      "description": "Route selection is a complex problem. For autonomous vehicles, it's not just about the fastest path;...",
-      "publication_date": "2026-03-25T12:30:00Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/harishkotra/ai-agents-negotiating-the-road-building-pathpact-24da",
-      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fr8gnda30hz64g2op8jz7.png",
-      "reading_time_minutes": 3,
-      "tags": [
-        "ai",
-        "programming",
-        "javascript",
-        "dailybuild2026"
-      ]
-    },
-    {
-      "title": "How I Built a 100% Private, Browser-Side Toolbox with AI as My Co-Pilot",
-      "author": "a31139027-",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3843889%2F447a9ed8-14d6-4390-8c2b-1be2f8c0ab82.png",
-      "description": "Hi everyone! 👋  I wanted to share a project I’ve been working on called CryptoWave. It’s a collection...",
-      "publication_date": "2026-03-26T01:37:22Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/a31139027commits/how-i-built-a-100-private-browser-side-toolbox-with-ai-as-my-co-pilot-1dpl",
-      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2F51hyn21zhcp3520u13wx.png",
-      "reading_time_minutes": 2,
-      "tags": [
-        "webdev",
-        "ai",
         "javascript",
         "showdev"
       ]
     },
     {
-      "title": "How to Understand a MongoDB Schema | From Raw JSON to Diagrams",
-      "author": "VisuaLeaf",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3818324%2F6cb54fe1-a36c-4f1a-a7b5-fa360f5daf8a.png",
-      "description": "When you work with MongoDB, everything feels simple… at the beginning.  You open a collection, look...",
-      "publication_date": "2026-03-25T15:20:25Z",
+      "title": "Build a Pinterest-Powered Visual Search with the Pinterest Pin Search API",
+      "author": "Donny Nguyen",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3813586%2F378063f8-8e69-4d54-b956-fdbde617ae12.jpg",
+      "description": "If you've ever wanted to tap into Pinterest's massive library of visual content programmatically, the...",
+      "publication_date": "2026-03-26T06:09:43Z",
       "source": "DEV Community",
-      "url": "https://dev.to/visualeaf/how-to-understand-a-mongodb-schema-from-raw-json-to-diagrams-hm8",
-      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fx8xnx6swa5iyz7npaw3m.png",
-      "reading_time_minutes": 3,
+      "url": "https://dev.to/donnyautomation/build-a-pinterest-powered-visual-search-with-the-pinterest-pin-search-api-946",
+      "cover_image": null,
+      "reading_time_minutes": 2,
       "tags": [
+        "api",
         "webdev",
         "javascript",
-        "mongodb",
-        "database"
+        "pinterest"
       ]
     },
     {
-      "title": "I Built a RAG-Based PDF Reader Web App Using Node.js, LangChain, Ollama, and Hugging Face",
-      "author": "Sumit Kumar",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F1025149%2F20e40950-80c3-4d25-b5a0-194b3364d6d5.jpeg",
-      "description": "Turn any PDF into an interactive AI knowledge base using Retrieval-Augmented Generation (RAG). A complete guide with full source code to building a full-stack RAG PDF chat application locally.",
-      "publication_date": "2026-03-25T17:40:33Z",
+      "title": "Node.js Memory Leaks in Production: Finding and Fixing Them Fast",
+      "author": "AXIOM Agent",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3840392%2F09903613-c677-4954-a2ea-b6742f97cca9.png",
+      "description": "Node.js Memory Leaks in Production: Finding and Fixing Them Fast   Memory leaks don't...",
+      "publication_date": "2026-03-26T18:16:31Z",
       "source": "DEV Community",
-      "url": "https://dev.to/sumitk25/i-built-a-rag-based-pdf-reader-web-app-using-nodejs-langchain-ollama-and-hugging-face-56dn",
+      "url": "https://dev.to/axiom_agent_1dc642fa83651/nodejs-memory-leaks-in-production-finding-and-fixing-them-fast-1aep",
       "cover_image": null,
-      "reading_time_minutes": 11,
+      "reading_time_minutes": 8,
+      "tags": [
+        "node",
+        "javascript",
+        "performance",
+        "webdev"
+      ]
+    },
+    {
+      "title": "I built a Base64 encoder that doesn't phone home",
+      "author": "Chad Brunswick",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3845396%2F281ecbc9-b1eb-4589-9f8c-843a05a17b81.png",
+      "description": "I've been meaning to build a proper Base64 tool for ages. Every time I need to quickly encode or...",
+      "publication_date": "2026-03-27T02:37:52Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/chadbrunswick2021/i-built-a-base64-encoder-that-doesnt-phone-home-2123",
+      "cover_image": null,
+      "reading_time_minutes": 2,
+      "tags": [
+        "webdev",
+        "javascript",
+        "opensource",
+        "productivity"
+      ]
+    },
+    {
+      "title": "I built a JSON formatter that actually tells you WHERE your JSON broke",
+      "author": "Chad Brunswick",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3845396%2F281ecbc9-b1eb-4589-9f8c-843a05a17b81.png",
+      "description": "I've lost count of how many times I've pasted a blob of JSON into a terminal window and tried to make...",
+      "publication_date": "2026-03-27T02:29:44Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/chadbrunswick2021/i-built-a-json-formatter-that-actually-tells-you-where-your-json-broke-2l0i",
+      "cover_image": null,
+      "reading_time_minutes": 1,
+      "tags": [
+        "webdev",
+        "javascript",
+        "opensource",
+        "productivity"
+      ]
+    },
+    {
+      "title": "When setTimeout Overflows and Your Agent Melts",
+      "author": "Wu Long",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3826590%2Ff020765e-a4ff-4a83-b7c0-18067654eeb0.jpeg",
+      "description": "A token expiry heuristic misidentifies seconds as milliseconds, producing a 360 billion ms...",
+      "publication_date": "2026-03-26T21:02:33Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/oolongtea2026/when-settimeout-overflows-and-your-agent-melts-427o",
+      "cover_image": null,
+      "reading_time_minutes": 3,
+      "tags": [
+        "openclaw",
+        "node",
+        "javascript",
+        "debugging"
+      ]
+    },
+    {
+      "title": "I Built a CLI That Can Create, Fix, and Improve Projects Using Natural Language — Wrath CLI",
+      "author": "Mohamed Yaseen",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3382387%2F9dc13f74-4350-45d7-ad08-f2105f1c285b.jpg",
+      "description": "Most developers spend a lot of time doing repetitive tasks:   Creating project structure Fixing...",
+      "publication_date": "2026-03-27T04:21:37Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/i_am_yaseen/i-built-a-cli-that-can-create-fix-and-improve-projects-using-natural-language-wrath-cli-5732",
+      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Flnvuoa4x2jo6avh0mxnn.png",
+      "reading_time_minutes": 1,
       "tags": [
         "ai",
-        "javascript",
-        "node",
-        "langchain"
+        "webdev",
+        "programming",
+        "javascript"
       ]
     },
     {
-      "title": "Hono.js Is What Express Should Have Been — Build APIs in 5 Minutes",
-      "author": "Alex Spinov ",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3831260%2Fb89694fb-80bc-4daf-b741-f149c38d9584.png",
-      "description": "Express Is 14 Years Old. We Can Do Better.   Express was revolutionary in 2010. But in 2026,...",
-      "publication_date": "2026-03-25T23:58:24Z",
+      "title": "新盛公司客服联系【薇 dhjd27272】",
+      "author": "李长安",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3845579%2F788c4dc5-918a-4036-97d7-78b4c7a97d53.jpg",
+      "description": "客服薇：dhjd27272「官网—xs10669.com——」 ...",
+      "publication_date": "2026-03-27T05:18:50Z",
       "source": "DEV Community",
-      "url": "https://dev.to/0012303/honojs-is-what-express-should-have-been-build-apis-in-5-minutes-n3o",
+      "url": "https://dev.to/_95f1cca38cc38675de4a9/xin-sheng-gong-si-ke-fu-lian-xi-wei-dhjd27272-1fol",
+      "cover_image": null,
+      "reading_time_minutes": 1,
+      "tags": [
+        "webdev",
+        "ai",
+        "javascript",
+        "python"
+      ]
+    },
+    {
+      "title": "JavaScript Closures Explained Simply with Examples",
+      "author": "Bala Murugan",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3689423%2F44a7af24-50e6-4639-90bc-de906d6b849f.png",
+      "description": "What is a Closure:    A closure is a function that remembers the variables from its outer function...",
+      "publication_date": "2026-03-27T05:48:54Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/bala_murugan_/javascript-closures-explained-simply-with-examples-5g4e",
+      "cover_image": null,
+      "reading_time_minutes": 1,
+      "tags": [
+        "webdev",
+        "javascript",
+        "frontend",
+        "programming"
+      ]
+    },
+    {
+      "title": "Agents Slow Down, useEffect Axed, VMs Go Instant",
+      "author": "Adam",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F205729%2F318431e8-d51d-441c-a5bc-e94a4e85145f.jpg",
+      "description": "The headline this week belongs to Gergely Orosz, who asks the uncomfortable question: are AI agents...",
+      "publication_date": "2026-03-27T06:18:08Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/urbanisierung/agents-slow-down-useeffect-axed-vms-go-instant-3o4j",
+      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fwzpgdbrkl91rbi95mos7.png",
+      "reading_time_minutes": 3,
+      "tags": [
+        "webdev",
+        "weeklyfoo",
+        "javascript",
+        "node"
+      ]
+    },
+    {
+      "title": "# I Built a Universal Conversion Suite That Runs Fully Client-Side",
+      "author": "md nurul islam",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3845557%2Fe280d2a8-6960-4c06-b057-5af4695362b7.png",
+      "description": "If you have ever searched for a quick converter and ended up buried in popups, slow pages, or tools...",
+      "publication_date": "2026-03-27T04:41:10Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/md_nurulislam_eed3d12f6c/-i-built-a-universal-conversion-suite-that-runs-fully-client-side-35a9",
       "cover_image": null,
       "reading_time_minutes": 3,
       "tags": [
-        "javascript",
         "webdev",
+        "ai",
+        "programming",
+        "javascript"
+      ]
+    },
+    {
+      "title": "I Let AI Code My React App. Here's What Happened",
+      "author": "张一凡",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3821334%2F55090c5a-aa30-413b-acc1-d7b2d971e17c.png",
+      "description": "I gave Cursor free reign to build a React app. The result? Surprisingly solid code.            The...",
+      "publication_date": "2026-03-27T04:19:46Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/zyf93/i-let-ai-code-my-react-app-heres-what-happened-p9o",
+      "cover_image": null,
+      "reading_time_minutes": 2,
+      "tags": [
+        "react",
+        "javascript",
+        "typescript",
+        "frontend"
+      ]
+    },
+    {
+      "title": "I Built a Suite of Free Business Tools That Run Entirely in Your Browser",
+      "author": "Winston",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3845543%2F0697944e-a923-4360-8100-066065170eaf.png",
+      "description": "A few months ago, I was helping a friend set up her freelance business. She needed a privacy policy...",
+      "publication_date": "2026-03-27T04:20:47Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/toolkitdev/i-built-a-suite-of-free-business-tools-that-run-entirely-in-your-browser-452l",
+      "cover_image": null,
+      "reading_time_minutes": 7,
+      "tags": [
+        "webdev",
+        "javascript",
+        "privacy",
+        "productivity"
+      ]
+    },
+    {
+      "title": "Why I Deleted My Custom \"Crew\" Logic Mid-Build",
+      "author": "Ron (teRON) Bullock",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F878842%2F7035189c-9601-4eac-b3a6-c7867dc5b31b.jpg",
+      "description": "I was deep into building a custom \"Crew\" management system for my Next.js SaaS, a job and invoice...",
+      "publication_date": "2026-03-26T23:34:31Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/teronbullock/why-i-deleted-my-custom-crew-logic-mid-build-2mp5",
+      "cover_image": null,
+      "reading_time_minutes": 2,
+      "tags": [
+        "architecture",
+        "javascript",
+        "buildinpublic",
+        "react"
+      ]
+    },
+    {
+      "title": "How Do You Build AI Agents in Node.js for Production?",
+      "author": "Geminate Solutions",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3845246%2Fa42ad70a-16b6-4602-aaf9-cd64d38e4b30.jpg",
+      "description": "Build AI Agents in Node.js That Handle 10K Requests/Day   Most AI agent tutorials teach you...",
+      "publication_date": "2026-03-26T20:50:20Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/geminate_solutions_9b6035/build-ai-agents-in-nodejs-that-handle-10k-requestsday-3fg5",
+      "cover_image": null,
+      "reading_time_minutes": 7,
+      "tags": [
+        "ai",
         "node",
+        "javascript",
         "tutorial"
       ]
     },
     {
-      "title": "Every Skill That Makes a $200k Engineer Is Free on the Internet. The Problem Is How You're Practicing.",
-      "author": "Michael Gorman",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3843532%2F076c6fdd-019b-49cc-82a2-392eec6c06ba.png",
-      "description": "The knowledge required to build production grade authentication, handle Stripe webhooks, or design a...",
-      "publication_date": "2026-03-25T17:26:59Z",
+      "title": "I Built \"Duolingo for Chart Reading\" as a Solo Dev - Here's What I Learned",
+      "author": "Joel",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3845154%2F62b7f12d-40de-48a6-94ef-3f10a10a152c.png",
+      "description": "There are thousands of resources that teach you what a hammer candlestick looks like. Almost none of...",
+      "publication_date": "2026-03-26T19:00:38Z",
       "source": "DEV Community",
-      "url": "https://dev.to/todo_fix_later/every-skill-that-makes-a-200k-engineer-is-free-on-the-internet-the-problem-is-how-youre-1a16",
+      "url": "https://dev.to/candle-dojo/i-built-duolingo-for-chart-reading-as-a-solo-dev-heres-what-i-learned-3770",
+      "cover_image": null,
+      "reading_time_minutes": 2,
+      "tags": [
+        "webdev",
+        "javascript",
+        "ai",
+        "beginners"
+      ]
+    },
+    {
+      "title": "I Scanned 50 Popular Websites for ADA Compliance — Google Scored a D",
+      "author": "ryuno",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3845494%2Fc6f00688-1834-4079-bdc8-0a554a158f85.png",
+      "description": "TL;DR: I built an open-source accessibility scanner and ran it against 50 of the most visited...",
+      "publication_date": "2026-03-27T03:27:21Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/ryuno_08767f3553ab40f4f26/i-scanned-50-popular-websites-for-ada-compliance-google-scored-a-d-4hdo",
+      "cover_image": null,
+      "reading_time_minutes": 5,
+      "tags": [
+        "opensource",
+        "webdev",
+        "a11y",
+        "javascript"
+      ]
+    },
+    {
+      "title": "How to See What Your OpenClaw AI Assistant Actually Costs Per Conversation",
+      "author": "Habeeb Rahman",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3838756%2Fb64eacbd-1730-4392-8ace-1875c2df9a1d.png",
+      "description": "I've been running OpenClaw for a few months — it's become my daily AI assistant across WhatsApp and...",
+      "publication_date": "2026-03-26T21:04:08Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/mdhbr/how-to-see-what-your-openclaw-ai-assistant-actually-costs-per-conversation-47gi",
+      "cover_image": null,
+      "reading_time_minutes": 2,
+      "tags": [
+        "ai",
+        "opensource",
+        "javascript"
+      ]
+    },
+    {
+      "title": "I Built a Monitoring Tool Because Uptime Checks Kept Lying to Me",
+      "author": "Nicky Christensen",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F806146%2Fd80b4677-6736-4840-85bc-3276cd0c6f78.jpeg",
+      "description": "If you deploy sites to Netlify, Vercel, Cloudflare Pages or pretty much any modern platform — you've...",
+      "publication_date": "2026-03-26T14:18:02Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/nickycdk/i-built-a-monitoring-tool-because-uptime-checks-kept-lying-to-me-35mf",
+      "cover_image": null,
+      "reading_time_minutes": 4,
+      "tags": [
+        "frontend",
+        "javascript",
+        "webdev",
+        "startup"
+      ]
+    },
+    {
+      "title": "Typing Master Web App (React + Vite) — Full Project Breakdown",
+      "author": "Muhammad Yasir ",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3683167%2Fcedd5c64-9505-4a6c-8ae8-98e262b3723b.jpeg",
+      "description": "Introduction   Hi, I’m Muhammad Yasir — a Full Stack Developer.  In this blog, I’m excited...",
+      "publication_date": "2026-03-26T16:38:48Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/yasirawan4831/typing-master-web-app-react-vite-full-project-breakdown-bm6",
+      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2F83ec8hktn255b8cew86g.png",
+      "reading_time_minutes": 2,
+      "tags": [
+        "javascript",
+        "react",
+        "showdev",
+        "webdev"
+      ]
+    },
+    {
+      "title": "Node.js Performance Profiling in Production: V8 Profiler, Clinic.js, and Flame Graphs",
+      "author": "AXIOM Agent",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3840392%2F09903613-c677-4954-a2ea-b6742f97cca9.png",
+      "description": "Node.js Performance Profiling in Production: V8 Profiler, Clinic.js, and Flame Graphs   Your...",
+      "publication_date": "2026-03-27T06:17:49Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/axiom_agent_1dc642fa83651/nodejs-performance-profiling-in-production-v8-profiler-clinicjs-and-flame-graphs-1iad",
+      "cover_image": null,
+      "reading_time_minutes": 7,
+      "tags": [
+        "node",
+        "performance",
+        "devops",
+        "javascript"
+      ]
+    },
+    {
+      "title": "I built a self-hosted AI chat app that connects 7 providers in one UI",
+      "author": "Tsunamayo",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3799407%2F32972943-a8b3-4e69-9d9b-18bc21fff417.png",
+      "description": "Over the past few months, I've been juggling Ollama for local stuff, Claude for tricky reasoning, and...",
+      "publication_date": "2026-03-26T11:41:12Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/tsunamayo7/i-built-a-self-hosted-ai-chat-app-that-connects-7-providers-in-one-ui-12ok",
       "cover_image": null,
       "reading_time_minutes": 3,
       "tags": [
+        "ai",
+        "opensource",
+        "python",
+        "webdev"
+      ]
+    },
+    {
+      "title": "One Decorator to Audit Every AI Agent Call",
+      "author": "João André Gomes Marques",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3836862%2Fb366b35b-2375-486a-b867-2535919afb9f.png",
+      "description": "Your AI agent makes hundreds of API calls a day. Can you prove what it did last Tuesday at...",
+      "publication_date": "2026-03-27T00:41:29Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/jagmarques/one-decorator-to-audit-every-ai-agent-call-3agk",
+      "cover_image": null,
+      "reading_time_minutes": 1,
+      "tags": [
+        "ai",
+        "python",
+        "tutorial",
+        "opensource"
+      ]
+    },
+    {
+      "title": "Stop AI Agents from Leaking PII",
+      "author": "João André Gomes Marques",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3836862%2Fb366b35b-2375-486a-b867-2535919afb9f.png",
+      "description": "Your AI agent passes a context dict to every LLM call. That dict might contain credit card numbers,...",
+      "publication_date": "2026-03-27T00:34:44Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/jagmarques/stop-ai-agents-from-leaking-pii-3iio",
+      "cover_image": null,
+      "reading_time_minutes": 1,
+      "tags": [
+        "ai",
+        "python",
+        "security",
+        "privacy"
+      ]
+    },
+    {
+      "title": "AI Agents Don’t Need Complex Workflows. Build One in Python in 10 Minutes",
+      "author": "Morgan Willis",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3618325%2F470cf6d0-e54c-4ddf-8d83-e3db9f829f2b.jpg",
+      "description": "Building an AI agent in Python can be as easy as giving a model some tools and letting it figure out...",
+      "publication_date": "2026-03-26T22:16:10Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/morganwilliscloud/ai-agents-dont-need-complex-workflows-build-one-in-python-in-10-minutes-2m5d",
+      "cover_image": null,
+      "reading_time_minutes": 11,
+      "tags": [
+        "agents",
+        "ai",
+        "python",
+        "aws"
+      ]
+    },
+    {
+      "title": "The LiteLLM Supply Chain Attack Broke Trust in Python-Based AI Infrastructure",
+      "author": "Pranay Batta",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3652594%2F9d2926ca-eede-4542-b782-4feb2ced66f1.jpg",
+      "description": "If you run LiteLLM in production, you probably had a rough week.  On March 24, 2026, two backdoored...",
+      "publication_date": "2026-03-27T04:48:05Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/pranay_batta/the-litellm-supply-chain-attack-broke-trust-in-python-based-ai-infrastructure-1poi",
+      "cover_image": null,
+      "reading_time_minutes": 7,
+      "tags": [
+        "ai",
+        "llm",
+        "python",
+        "security"
+      ]
+    },
+    {
+      "title": "Web3 Automation with Python: From Zero to Daily NFT Mints",
+      "author": "RTT Enjoy",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3832871%2Ff706aec4-63af-47c0-9efb-aa3e6858ee96.png",
+      "description": "Automate Web3 tasks with Python",
+      "publication_date": "2026-03-26T16:40:00Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/rtt_enjoy_321ecb2d475c379/web3-automation-with-python-from-zero-to-daily-nft-mints-4np6",
+      "cover_image": null,
+      "reading_time_minutes": 2,
+      "tags": [
+        "web3",
+        "python",
+        "nft",
+        "automation"
+      ]
+    },
+    {
+      "title": "Bedrock Structured Outputs: From Begging to Contract",
+      "author": "Gerardo Arroyo",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F1888401%2F40ce581a-280e-4c7b-96f1-51ebf3681695.jpg",
+      "description": "I had a working system. An agent that processed the AWS RSS feed several times a day, filtered...",
+      "publication_date": "2026-03-27T01:43:01Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/aws-builders/bedrock-structured-outputs-from-begging-to-contract-8g4",
+      "cover_image": null,
+      "reading_time_minutes": 8,
+      "tags": [
+        "aws",
+        "bedrock",
+        "python",
+        "structuredoutputs"
+      ]
+    },
+    {
+      "title": "Stop Fighting Messy JSON: Why I Built a \"Zen\" Viewer for Developers",
+      "author": "suraj patel",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F184637%2F63731713-b071-4be8-821d-285d4a75e5ca.png",
+      "description": "The Problem: The \"JSON Fatigue\"   We’ve all been there. You copy a truncated JSON string...",
+      "publication_date": "2026-03-27T05:27:50Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/surajpatelcs/stop-fighting-messy-json-why-i-built-a-zen-viewer-for-developers-59oj",
+      "cover_image": null,
+      "reading_time_minutes": 2,
+      "tags": [
+        "datascience",
         "webdev",
-        "showdev",
-        "javascript",
-        "career"
+        "productivity",
+        "python"
+      ]
+    },
+    {
+      "title": "MoneyPrinterTurbo: AI 원클릭 숏폼 영상 자동 생성 오픈소스 (53K+ Stars)",
+      "author": "정상록",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3798483%2F5958ee10-90dd-45e5-815a-91d3f8196156.png",
+      "description": "TL;DR   MoneyPrinterTurbo는 영상 주제만 입력하면 AI가 전체 제작 파이프라인을 자동화하는 오픈소스 도구입니다. GitHub 53K+ 스타,...",
+      "publication_date": "2026-03-27T05:28:12Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/_46ea277e677b888e0cd13/moneyprinterturbo-ai-weonkeulrig-syospom-yeongsang-jadong-saengseong-opeunsoseu-53k-stars-enm",
+      "cover_image": null,
+      "reading_time_minutes": 1,
+      "tags": [
+        "ai",
+        "automation",
+        "opensource",
+        "python"
+      ]
+    },
+    {
+      "title": "The Silent $800 MRR Killer: Why I Built BillingWatch",
+      "author": "Ray",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3833105%2F0e073b89-2eab-47df-8434-c52c3b20ef73.png",
+      "description": "The Day I Noticed the Drop   It started with a Slack notification I almost ignored: \"Stripe:...",
+      "publication_date": "2026-03-27T04:46:34Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/qcautomation/the-silent-800-mrr-killer-why-i-built-billingwatch-28fg",
+      "cover_image": null,
+      "reading_time_minutes": 3,
+      "tags": [
+        "python",
+        "stripe",
+        "billing",
+        "startup"
+      ]
+    },
+    {
+      "title": "I Ran a 4-Strategy AI Trading Tournament in Paper Trading — Here's Who Won",
+      "author": "Ray",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3833105%2F0e073b89-2eab-47df-8434-c52c3b20ef73.png",
+      "description": "The Tournament Idea   Every algo trader has opinions about which strategy is better. RSI...",
+      "publication_date": "2026-03-27T04:47:11Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/qcautomation/i-ran-a-4-strategy-ai-trading-tournament-in-paper-trading-heres-who-won-586i",
+      "cover_image": null,
+      "reading_time_minutes": 3,
+      "tags": [
+        "python",
+        "trading",
+        "algorithmic",
+        "ai"
+      ]
+    },
+    {
+      "title": "CI/CD in the Era of AI and Platform Engineering: A Deep Dive into Dagger CI (Part 4)",
+      "author": "Sami Chibani",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F2358691%2Fbac84f45-a2db-452c-926b-fb573495b966.png",
+      "description": "Part 4: The AI-Native CI/CD Stack: Agents, Modules, and Spec-Driven Development    Fixed...",
+      "publication_date": "2026-03-27T00:26:11Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/sami_chibani/cicd-in-the-era-of-ai-and-platform-engineering-a-deep-dive-into-dagger-ci-part-4-4323",
+      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fx9gpm3qienj0uuihrcx4.jpg",
+      "reading_time_minutes": 24,
+      "tags": [
+        "cicd",
+        "ai",
+        "devops",
+        "python"
+      ]
+    },
+    {
+      "title": "CI/CD in the Era of AI and Platform Engineering: A Deep Dive into Dagger CI (Part 1)",
+      "author": "Sami Chibani",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F2358691%2Fbac84f45-a2db-452c-926b-fb573495b966.png",
+      "description": "Part 1: The CI/CD Bottleneck Nobody Talks About    Platform Engineering matured how we...",
+      "publication_date": "2026-03-27T00:16:43Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/sami_chibani/cicd-in-the-era-of-ai-and-platform-engineering-a-deep-dive-into-dagger-ci-part-1-58pi",
+      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2F9u5joc61qt1eskz8n15p.jpg",
+      "reading_time_minutes": 17,
+      "tags": [
+        "cicd",
+        "ai",
+        "devops",
+        "python"
+      ]
+    },
+    {
+      "title": "vLLM On-Demand Gateway: Zero-VRAM Standby for Local LLMs on Consumer GPUs",
+      "author": "soy",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3812665%2F761376f9-10b8-4c2c-b6cb-af00f9fa48ab.jpeg",
+      "description": "The Problem: vLLM Hogs Your GPU 24/7   If you run a local LLM with vLLM, you know the pain....",
+      "publication_date": "2026-03-26T21:08:23Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/soytuber/vllm-on-demand-gateway-zero-vram-standby-for-local-llms-on-consumer-gpus-3a5l",
+      "cover_image": null,
+      "reading_time_minutes": 4,
+      "tags": [
+        "vllm",
+        "llm",
+        "gpu",
+        "python"
+      ]
+    },
+    {
+      "title": "How I Built 65+ AI Tools on a Raspberry Pi 5",
+      "author": "Damien",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3842324%2Fc48549fd-c663-4e18-bf23-f6bc762493d1.png",
+      "description": "There's a gap in the MCP ecosystem that bothered me. If you want to give your AI coding assistant...",
+      "publication_date": "2026-03-27T03:35:45Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/damien829/how-i-built-65-ai-tools-on-a-raspberry-pi-5-22h",
+      "cover_image": null,
+      "reading_time_minutes": 3,
+      "tags": [
+        "python"
+      ]
+    },
+    {
+      "title": "How to Store Web Scraped Data in 2026: PostgreSQL, MongoDB, CSV, and Cloud Storage",
+      "author": "agenthustler",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3810515%2F33856722-1a98-4563-ba8b-622b5fddcf7e.png",
+      "description": "You've built your scraper and it's pulling data beautifully. Now what? Where you store that data...",
+      "publication_date": "2026-03-26T12:09:09Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/agenthustler/how-to-store-web-scraped-data-in-2026-postgresql-mongodb-csv-and-cloud-storage-2f5c",
+      "cover_image": null,
+      "reading_time_minutes": 4,
+      "tags": [
+        "python",
+        "tutorial",
+        "beginners",
+        "webdev"
+      ]
+    },
+    {
+      "title": "LocalStack Is Gone. Floci vs. Moto vs. Testcontainers: Which One Replaces It?",
+      "author": "Peyton Green",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3841094%2Fcd71e62e-604d-4596-a983-9e5687079c26.png",
+      "description": "On March 23, 2026, LocalStack archived its public GitHub repository and moved all images behind...",
+      "publication_date": "2026-03-26T19:55:33Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/peytongreen_dev/localstack-is-gone-floci-vs-moto-vs-testcontainers-which-one-replaces-it-c7c",
+      "cover_image": null,
+      "reading_time_minutes": 5,
+      "tags": [
+        "python",
+        "aws",
+        "testing",
+        "devops"
+      ]
+    },
+    {
+      "title": "The Real Cost of Your AI Agent (It's Not What You Think)",
+      "author": "Devon",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3757816%2F277d1105-9ca0-4499-8c2f-b78d03c6a2c3.png",
+      "description": "Token spend is the visible cost. Retries, failed calls, and over-provisioned models for simple tasks are where the real money goes. Here's how to measure and reduce it.",
+      "publication_date": "2026-03-27T02:13:53Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/devonakelley/the-real-cost-of-your-ai-agent-its-not-what-you-think-aai",
+      "cover_image": null,
+      "reading_time_minutes": 6,
+      "tags": [
+        "python",
+        "ai",
+        "agents",
+        "llm"
+      ]
+    },
+    {
+      "title": "I Automated a YouTube Channel With AI — 29 Videos, $0 Budget, Here's What Happened",
+      "author": "MaxxMini",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3773591%2Fbcf21d98-1095-45f0-a2e6-327367c65c15.png",
+      "description": "Three weeks ago, I had zero videos on YouTube. Today I have 29 — including 4 long-form videos over 7...",
+      "publication_date": "2026-03-27T04:10:53Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/maxxmini/i-automated-a-youtube-channel-with-ai-29-videos-0-budget-heres-what-happened-1ef8",
+      "cover_image": null,
+      "reading_time_minutes": 3,
+      "tags": [
+        "ai",
+        "youtube",
+        "automation",
+        "python"
+      ]
+    },
+    {
+      "title": "I Cut Vision LLM Costs by 98.9% -> Here's How Token0 Works Under the Hood",
+      "author": "Pritom Mazumdar",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3830966%2Fa0704f49-444a-4388-a5c6-6ce5bc9fd9cd.jpeg",
+      "description": "Every time you send an image to GPT-4o, Claude, or Gemini, you are paying for vision tokens. And most...",
+      "publication_date": "2026-03-27T04:34:50Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/pritom14/i-cut-vision-llm-costs-by-989-heres-how-token0-works-under-the-hood-4ldc",
+      "cover_image": null,
+      "reading_time_minutes": 4,
+      "tags": [
+        "vision",
+        "python",
+        "webdev",
+        "deepseek"
+      ]
+    },
+    {
+      "title": "How I Added a Circuit Breaker to My AI Trading Bot (And Why Every Algo Needs One)",
+      "author": "Ray",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3833105%2F0e073b89-2eab-47df-8434-c52c3b20ef73.png",
+      "description": "My AI trading bot was profitable in backtests but blew up in paper trading. The fix was a circuit breaker pattern borrowed from distributed systems.",
+      "publication_date": "2026-03-27T00:46:31Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/qcautomation/how-i-added-a-circuit-breaker-to-my-ai-trading-bot-and-why-every-algo-needs-one-4p95",
+      "cover_image": null,
+      "reading_time_minutes": 3,
+      "tags": [
+        "python",
+        "trading",
+        "algorithms",
+        "finance"
+      ]
+    },
+    {
+      "title": "Your AI Agents Are Running Unsupervised",
+      "author": "João André Gomes Marques",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3836862%2Fb366b35b-2375-486a-b867-2535919afb9f.png",
+      "description": "Your AI Agents Are Running Unsupervised   The EU AI Act is enforceable. SOC 2 auditors are...",
+      "publication_date": "2026-03-27T00:31:59Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/jagmarques/your-ai-agents-are-running-unsupervised-4ble",
+      "cover_image": null,
+      "reading_time_minutes": 2,
+      "tags": [
+        "ai",
+        "python",
+        "security",
+        "opensource"
       ]
     },
     {
@@ -46212,723 +46622,201 @@
       ]
     },
     {
-      "title": "ScrapeOps Review 2026: The Best Proxy Aggregator for Web Scraping?",
-      "author": "agenthustler",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3810515%2F33856722-1a98-4563-ba8b-622b5fddcf7e.png",
-      "description": "Most web scraping guides tell you to pick a proxy provider and stick with it. The problem? No single...",
-      "publication_date": "2026-03-26T05:06:05Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/agenthustler/scrapeops-review-2026-the-best-proxy-aggregator-for-web-scraping-7k6",
-      "cover_image": null,
-      "reading_time_minutes": 4,
-      "tags": [
-        "webscraping",
-        "python",
-        "scrapy",
-        "proxies"
-      ]
-    },
-    {
-      "title": "Telegram Bot API — The Most Developer-Friendly API I Have Ever Used",
-      "author": "Alex Spinov ",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3831260%2Fb89694fb-80bc-4daf-b741-f149c38d9584.png",
-      "description": "Why Telegram Bot API Is Special   Most APIs make you fight with OAuth, rate limits, and...",
-      "publication_date": "2026-03-26T00:09:49Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/0012303/telegram-bot-api-the-most-developer-friendly-api-i-have-ever-used-a01",
-      "cover_image": null,
-      "reading_time_minutes": 2,
-      "tags": [
-        "api",
-        "python",
-        "tutorial",
-        "productivity"
-      ]
-    },
-    {
-      "title": "Open-Meteo API: Free Weather Data for Any Location (No Key, No Limits, No BS)",
-      "author": "Alex Spinov ",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3831260%2Fb89694fb-80bc-4daf-b741-f149c38d9584.png",
-      "description": "Why I Stopped Paying for Weather APIs   I was paying $40/month for a weather API. Then I...",
-      "publication_date": "2026-03-25T23:40:16Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/0012303/open-meteo-api-free-weather-data-for-any-location-no-key-no-limits-no-bs-2j2",
-      "cover_image": null,
-      "reading_time_minutes": 3,
-      "tags": [
-        "api",
-        "python",
-        "tutorial",
-        "webdev"
-      ]
-    },
-    {
-      "title": "How I Monitor 77 Web Scrapers Without Going Crazy (My Exact Setup)",
-      "author": "Alex Spinov ",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3831260%2Fb89694fb-80bc-4daf-b741-f149c38d9584.png",
-      "description": "When you have 1 scraper, monitoring is easy. Check if it runs. Done.  When you have 77 scrapers...",
-      "publication_date": "2026-03-25T22:52:42Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/0012303/how-i-monitor-77-web-scrapers-without-going-crazy-my-exact-setup-4bl0",
-      "cover_image": null,
-      "reading_time_minutes": 4,
-      "tags": [
-        "python",
-        "devops",
-        "beginners",
-        "discuss"
-      ]
-    },
-    {
-      "title": "Building a Multimodal Cross Cloud Live Agent with ADK, Azure App Service, and Gemini CLI",
-      "author": "xbill",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3490099%2Fc6a975d0-cd94-485d-82b1-14ed5b344fcf.jpg",
-      "description": "Leveraging the Google Agent Development Kit (ADK) and the underlying Gemini LLM to build cross cloud...",
-      "publication_date": "2026-03-24T17:57:55Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/gde/building-a-multimodal-cross-cloud-live-agent-with-adk-azure-app-service-and-gemini-cli-2ma3",
-      "cover_image": null,
-      "reading_time_minutes": 6,
-      "tags": [
-        "gemini",
-        "python",
-        "azureappservice",
-        "googleadk"
-      ]
-    },
-    {
-      "title": "Your LangChain Agent Has No Security. Neither Does CrewAI, OpenAI, or 6 Others.",
-      "author": "Dongha Koo",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3841777%2F690a8bb0-e551-47d5-8bac-0a9698c893a1.png",
-      "description": "Every AI framework lets your agent call tools. None of them check what those tools actually...",
-      "publication_date": "2026-03-26T05:26:41Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/acacian/your-langchain-agent-has-no-security-neither-does-crewai-openai-or-6-others-2ecp",
-      "cover_image": null,
-      "reading_time_minutes": 4,
-      "tags": [
-        "ai",
-        "security",
-        "python",
-        "opensource"
-      ]
-    },
-    {
-      "title": "Rotating Proxies for Web Scraping: What Works and What Wastes Money",
-      "author": "AlterLab",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3842661%2F6ea3b67f-3a2b-423f-b726-51041ab344e6.png",
-      "description": "Rotating Proxies for Web Scraping: What Works and What Wastes Money   Proxies are not magic....",
-      "publication_date": "2026-03-26T03:38:57Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/alterlab/rotating-proxies-for-web-scraping-what-works-and-what-wastes-money-370p",
-      "cover_image": null,
-      "reading_time_minutes": 4,
-      "tags": [
-        "python",
-        "proxies"
-      ]
-    },
-    {
-      "title": "I have never written a line of Python in my life. And yet, this week I built my first Python project. 🐍",
-      "author": "Leanne R",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F187438%2F9236aa93-2ee1-435e-a632-5c5116ce28b3.png",
-      "description": "I've kept a reading journal on GitHub for years 📚 (223 books and counting, here if anyone is...",
-      "publication_date": "2026-03-25T11:01:22Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/lkrryba/i-have-never-written-a-line-of-python-in-my-life-and-yet-this-week-i-built-my-first-python-3g0a",
-      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Famw3gh4xchi1jahxa3rh.JPG",
-      "reading_time_minutes": 1,
-      "tags": [
-        "vibecoding",
-        "python",
-        "ai"
-      ]
-    },
-    {
-      "title": "The Security Gap in MCP Tool Servers (And What I Built to Fix It)",
-      "author": "Steve Gonzalez",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3839366%2F25073b27-58cf-4933-975b-920278b4336f.png",
-      "description": "MCP has no security model. I built Heddle — a policy-and-trust layer that turns YAML configs into...",
-      "publication_date": "2026-03-25T22:36:59Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/goweft/the-security-gap-in-mcp-tool-servers-and-what-i-built-to-fix-it-1hlg",
-      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fcyaz5chd6a01esa6tmhp.png",
-      "reading_time_minutes": 6,
-      "tags": [
-        "mcp",
-        "security",
-        "python",
-        "ai"
-      ]
-    },
-    {
-      "title": "I Built a Nervous System for AI Agents (Not Another Memory Store)",
-      "author": "Alex LaGuardia",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3832811%2Faba6514b-1248-4d62-a8ac-2568cd790b8f.jpeg",
-      "description": "Why your AI agents need awareness, not just memory — and how frame-based tool filtering, session handoff, and an MCP server changed everything.",
-      "publication_date": "2026-03-25T22:09:18Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/alexlaguardia/i-built-a-nervous-system-for-ai-agents-not-another-memory-store-5a8a",
-      "cover_image": null,
-      "reading_time_minutes": 5,
-      "tags": [
-        "ai",
-        "python",
-        "mcp",
-        "opensource"
-      ]
-    },
-    {
-      "title": "Managing a WooCommerce Store from Claude — 34 MCP Tools I Wish Existed",
-      "author": "Alex LaGuardia",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3832811%2Faba6514b-1248-4d62-a8ac-2568cd790b8f.jpeg",
-      "description": "34 tools for the WooCommerce REST API, built with Python and the official MCP SDK. Manage products, orders, customers, coupons, and more — directly from Claude, Cursor, or any MCP client.",
-      "publication_date": "2026-03-25T21:37:48Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/alexlaguardia/managing-a-woocommerce-store-from-claude-34-mcp-tools-i-wish-existed-3d6l",
-      "cover_image": null,
-      "reading_time_minutes": 4,
-      "tags": [
-        "mcp",
-        "ai",
-        "python",
-        "woocommerce"
-      ]
-    },
-    {
-      "title": "I Built an Autonomous AI Outreach Swarm — Now It Reports to Notion in Real-Time",
+      "title": "My 11-Agent AI Swarm Was Secretly Hallucinating. My Own Monitoring Tool Caught It.",
       "author": "fliptrigga13",
       "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3810513%2F16afb5ba-b280-43d9-aa55-e0383e44fbce.png",
-      "description": "My submission for the Notion MCP Challenge           What I Built   NEXUS Ultra is an autonomous AI...",
-      "publication_date": "2026-03-26T01:07:27Z",
+      "description": "I built an 11-agent swarm to write Reddit outreach for my product. It ran for weeks. It was...",
+      "publication_date": "2026-03-26T12:51:10Z",
       "source": "DEV Community",
-      "url": "https://dev.to/fliptrigga13/i-built-an-autonomous-ai-outreach-swarm-now-it-reports-to-notion-in-real-time-1nai",
+      "url": "https://dev.to/fliptrigga13/my-11-agent-ai-swarm-was-secretly-hallucinating-my-own-monitoring-tool-caught-it-4hj4",
       "cover_image": null,
-      "reading_time_minutes": 2,
-      "tags": [
-        "notion",
-        "mcp",
-        "ai",
-        "python"
-      ]
-    },
-    {
-      "title": "PaperBanana: Automating Research Diagrams With an Agentic AI Framework",
-      "author": "Dextra Labs",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3662653%2F4a16ca71-2863-42bd-8d70-cfc2598122b1.png",
-      "description": "Google just shipped a framework that turns natural language into publication-ready figures. Here's...",
-      "publication_date": "2026-03-26T04:24:52Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/dextralabs/paperbanana-automating-research-diagrams-with-an-agentic-ai-framework-3ajk",
-      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fk7ic3n89q3ne44u6ntwl.png",
-      "reading_time_minutes": 7,
-      "tags": [
-        "python",
-        "ai",
-        "machinelearning",
-        "datascience"
-      ]
-    },
-    {
-      "title": "The Production Agent Checklist: What Every AI Agent Needs Before It Touches Real Users",
-      "author": "Devon",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3757816%2F277d1105-9ca0-4499-8c2f-b78d03c6a2c3.png",
-      "description": "A no-nonsense checklist for Python AI agents going to production. Error handling, retries, fallbacks, outcome tracking, cost monitoring — and how the pieces actually fit together.",
-      "publication_date": "2026-03-26T04:21:11Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/devonakelley/the-production-agent-checklist-what-every-ai-agent-needs-before-it-touches-real-users-4pfa",
-      "cover_image": null,
-      "reading_time_minutes": 9,
-      "tags": [
-        "python",
-        "ai",
-        "agents",
-        "llm"
-      ]
-    },
-    {
-      "title": "Stop Hardcoding Model Fallbacks: Let Production Data Pick Your Paths",
-      "author": "Devon",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3757816%2F277d1105-9ca0-4499-8c2f-b78d03c6a2c3.png",
-      "description": "Manual try/except fallback chains are fragile and static. Here's how Thompson Sampling routes between LLM paths based on real outcome signals — with CrewAI and LangChain examples.",
-      "publication_date": "2026-03-26T04:21:14Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/devonakelley/stop-hardcoding-model-fallbacks-let-production-data-pick-your-paths-2pe8",
-      "cover_image": null,
-      "reading_time_minutes": 8,
-      "tags": [
-        "python",
-        "ai",
-        "agents",
-        "llm"
-      ]
-    },
-    {
-      "title": "Securing Python Package Management: Strategies to Mitigate Supply Chain Attacks and Ensure Dependency Integrity",
-      "author": "Roman Dubrovin",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3781141%2F8159a87a-ef4b-41ee-923a-5323e0d46f4e.jpg",
-      "description": "Introduction: The Rising Threat of Supply Chain Attacks   The Python ecosystem, with its...",
-      "publication_date": "2026-03-26T00:13:13Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/romdevin/securing-python-package-management-strategies-to-mitigate-supply-chain-attacks-and-ensure-69m",
-      "cover_image": null,
-      "reading_time_minutes": 12,
-      "tags": [
-        "python",
-        "security",
-        "supplychain",
-        "dependencies"
-      ]
-    },
-    {
-      "title": "🥘 From Pixels to Proteins: Mastering Calorie Estimation with GPT-4o Vision and SAM",
-      "author": "wellallyTech",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F2750397%2F35d7e98d-b131-48d3-838d-317b14dc6f7e.jpg",
-      "description": "We’ve all been there: staring at a plate of delicious pasta, trying to figure out if it's 400...",
-      "publication_date": "2026-03-26T01:10:00Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/wellallytech/from-pixels-to-proteins-mastering-calorie-estimation-with-gpt-4o-vision-and-sam-3fab",
-      "cover_image": null,
-      "reading_time_minutes": 3,
-      "tags": [
-        "ai",
-        "sam",
-        "python",
-        "discuss"
-      ]
-    },
-    {
-      "title": "How I Built an AI-Powered B2B Supplier Matching Platform (MapleBridge.io)",
-      "author": "jinjihuang88-ui",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3810270%2F1d26b14e-7de2-402e-a56e-5578958b515a.png",
-      "description": "Finding a reliable Chinese supplier as a North American buyer is painful. You browse Alibaba for...",
-      "publication_date": "2026-03-26T01:44:28Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/jinjihuang88ui/how-i-built-an-ai-powered-b2b-supplier-matching-platform-maplebridgeio-4d9o",
-      "cover_image": null,
-      "reading_time_minutes": 3,
-      "tags": [
-        "ai",
-        "python",
-        "fastapi",
-        "webdev"
-      ]
-    },
-    {
-      "title": "How I Run 77 Web Scrapers on a Schedule Without Breaking the Bank",
-      "author": "Alex Spinov ",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3831260%2Fb89694fb-80bc-4daf-b741-f149c38d9584.png",
-      "description": "In 2024, I was running 12 scrapers on my laptop. A cron job that silently died at 3 AM. Data gaps I...",
-      "publication_date": "2026-03-26T00:36:53Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/0012303/how-i-run-77-web-scrapers-on-a-schedule-without-breaking-the-bank-4j1o",
-      "cover_image": null,
-      "reading_time_minutes": 3,
-      "tags": [
-        "webdev",
-        "devops",
-        "python",
-        "tutorial"
-      ]
-    },
-    {
-      "title": "LLM Non-Determinism: What Providers Guarantee, and How to Build Around It",
-      "author": "Johann Hagerer",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3582706%2Fbfb30789-5ba5-4e24-9f2a-fa94c141f91c.jpg",
-      "description": "This post is based on sections 3--5 of \"Understanding why deterministic output from LLMs is nearly...",
-      "publication_date": "2026-03-25T17:15:35Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/jhagerer/llm-non-determinism-what-providers-guarantee-and-how-to-build-around-it-3502",
-      "cover_image": null,
-      "reading_time_minutes": 6,
+      "reading_time_minutes": 4,
       "tags": [
         "ai",
         "llm",
-        "python",
-        "tutorial"
-      ]
-    },
-    {
-      "title": "How to Avoid Getting Blocked While Scraping in 2026 (Complete Guide)",
-      "author": "agenthustler",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3810515%2F33856722-1a98-4563-ba8b-622b5fddcf7e.png",
-      "description": "Every web scraper eventually hits the wall: your requests start returning 403s, CAPTCHAs appear on...",
-      "publication_date": "2026-03-26T03:03:17Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/agenthustler/how-to-avoid-getting-blocked-while-scraping-in-2026-complete-guide-3d7i",
-      "cover_image": null,
-      "reading_time_minutes": 5,
-      "tags": [
-        "webscraping",
-        "python",
-        "proxies",
-        "tutorial"
-      ]
-    },
-    {
-      "title": "OCR on Patent Figures with DeepSeek-OCR",
-      "author": "Chee Yu Yang",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F347440%2F002efdb8-608e-4ad4-8d4d-181644fc65cc.png",
-      "description": "12 approaches to extracting text and reference numbers from patent figure sheets, tested against 8...",
-      "publication_date": "2026-03-26T00:58:21Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/chyuang/ocr-on-patent-figures-with-deepseek-ocr-5aci",
-      "cover_image": null,
-      "reading_time_minutes": 6,
-      "tags": [
-        "machinelearning",
-        "python",
-        "ai",
-        "computervision"
-      ]
-    },
-    {
-      "title": "Add Authentication and SSO to Your Gradio App",
-      "author": "Mrunank Pawar",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F491439%2F2bd76281-a5ab-4da4-a87d-1afe579f5e91.jpeg",
-      "description": "This blog was originally published on Descope  Gradio is an open source Python package that allows...",
-      "publication_date": "2026-03-25T20:46:42Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/descope/add-authentication-and-sso-to-your-gradio-app-3oia",
-      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2F0q2oo0zl6go1ukupj7su.webp",
-      "reading_time_minutes": 14,
-      "tags": [
-        "ai",
-        "python",
-        "security",
-        "tutorial"
-      ]
-    },
-    {
-      "title": "Python Basics",
-      "author": "Shatakshi",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F603201%2Fafd39f7a-59fc-439b-9862-a0504b57580f.jpg",
-      "description": "The only guide you'd need to deep dive into Python basics like lists, tuples, dictionaries, and so...",
-      "publication_date": "2026-03-26T05:35:07Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/shatakshig8/python-basics-4gdl",
-      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fyezeeb545vmkwuycx1mj.jpg",
-      "reading_time_minutes": 16,
-      "tags": [
-        "beginners",
-        "programming",
-        "python",
-        "tutorial"
-      ]
-    },
-    {
-      "title": "The TeamPCP Supply Chain Cascade: How One Compromised Security Scanner Led to 3 Million Daily Downloads of Crypto-Stealing Malware",
-      "author": "ohmygod",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3750445%2F38ad506e-4cd9-4f3c-b848-9391167fb580.png",
-      "description": "The TeamPCP Supply Chain Cascade: How One Compromised Security Scanner Led to 3 Million...",
-      "publication_date": "2026-03-26T01:39:45Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/ohmygod/the-teampcp-supply-chain-cascade-how-one-compromised-security-scanner-led-to-3-million-daily-lom",
-      "cover_image": null,
-      "reading_time_minutes": 8,
-      "tags": [
-        "security",
-        "blockchain",
-        "defi",
+        "devops",
         "python"
       ]
     },
     {
-      "title": "The Vinted Arbitrage War: Building a Scraper That Doesn't Get IP-Banned",
-      "author": "KazKN",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3771950%2F1f07ca19-8ac3-4a7e-99ea-11c6d02acbb1.png",
-      "description": "War diary. Real failures. Real fix. No inspirational BS.      I'll be honest with you: I spent three...",
-      "publication_date": "2026-03-25T21:05:13Z",
+      "title": "Cosine Similarity Failed Our RAG on Exact Terms — BM25 Fixed It",
+      "author": "JunyiiBlvd",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3845412%2Fb83e7e6f-2677-4e8e-be66-fb22e943a643.jpeg",
+      "description": "Our RAG Couldn't Find Its Own Documentation — Here's the Fix   I built a local AI pipeline...",
+      "publication_date": "2026-03-27T01:22:09Z",
       "source": "DEV Community",
-      "url": "https://dev.to/datakaz/the-vinted-arbitrage-war-building-a-scraper-that-doesnt-get-ip-banned-4bh3",
-      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fi.imgur.com%2F5MXEoiy.png",
-      "reading_time_minutes": 9,
-      "tags": [
-        "webdev",
-        "python",
-        "dataengineering",
-        "tutorial"
-      ]
-    },
-    {
-      "title": "Parsing Filter Expressions in NestJS with a Context-Free Grammar",
-      "author": "Robert Ozimek",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3282392%2Ff6a948a7-6d09-4878-a0a1-c8bbc78c8aa8.jpg",
-      "description": "Flat query param filtering breaks down fast. ?status=active&amp;age_gte=18 works until someone needs...",
-      "publication_date": "2026-03-26T04:50:43Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/robert_ozimek_6ff63966445/parsing-filter-expressions-in-nestjs-with-a-context-free-grammar-132",
+      "url": "https://dev.to/junyiiblvd/cosine-similarity-failed-our-rag-on-exact-terms-bm25-fixed-it-af8",
       "cover_image": null,
       "reading_time_minutes": 6,
       "tags": [
-        "nextjs",
-        "typescript",
-        "webdev",
-        "node"
+        "ollama",
+        "rag",
+        "python",
+        "llm"
       ]
     },
     {
-      "title": "I created a plugin that simplifies the integration of Google Maps into Vite and React",
-      "author": "Franco Andrés",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F364850%2F3088bb42-8c5b-4c2a-a345-d548cc48c473.jpg",
-      "description": "If you're using Vite and React, you've probably dealt with manually loading the Google Maps...",
-      "publication_date": "2026-03-25T23:19:52Z",
+      "title": "I built a file transfer tool that can’t spy on you even if it wanted to",
+      "author": "Ali Raza",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F360533%2F9ac51469-8688-4fc1-a7f8-9b8150938feb.jpg",
+      "description": "I got tired of explaining privacy policies to people.  Every time I needed to send a file to someone,...",
+      "publication_date": "2026-03-26T10:50:55Z",
       "source": "DEV Community",
-      "url": "https://dev.to/franqsanz/i-created-a-plugin-that-simplifies-the-integration-of-google-maps-into-vite-and-react-1c1l",
-      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fwtu2bjr28dod6ydt4s1m.webp",
-      "reading_time_minutes": 3,
-      "tags": [
-        "typescript",
-        "vite",
-        "react",
-        "webdev"
-      ]
-    },
-    {
-      "title": "MCP Apps are hard to test",
-      "author": "Abe Wheeler",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3648565%2Fd0908335-f89f-46af-9aeb-c5ea99da2236.png",
-      "description": "MCP Apps are hard to test.  They run inside ChatGPT and Claude, so every code change means deploying...",
-      "publication_date": "2026-03-25T16:39:12Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/abewheeler/mcp-apps-are-hard-to-test-52d5",
-      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fdj91lkeiqd9n44gcffbq.jpeg",
-      "reading_time_minutes": 1,
-      "tags": [
-        "mcp",
-        "chatgpt",
-        "react",
-        "webdev"
-      ]
-    },
-    {
-      "title": "CSS Grid Playground: Build Layouts Visually",
-      "author": "TateLyman",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3815854%2F0b2ce564-39d3-4d7b-82e2-15a547c6a68c.png",
-      "description": "CSS Grid is powerful but hard to visualize. This playground lets you adjust columns, rows, gap, and...",
-      "publication_date": "2026-03-26T02:10:25Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/tatelyman/css-grid-playground-build-layouts-visually-3i1l",
-      "cover_image": null,
-      "reading_time_minutes": 1,
-      "tags": [
-        "css",
-        "webdev",
-        "tools",
-        "frontend"
-      ]
-    },
-    {
-      "title": "Hacker News Has a Free API — No Key, No Auth, No Limits",
-      "author": "Alex Spinov ",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3831260%2Fb89694fb-80bc-4daf-b741-f149c38d9584.png",
-      "description": "Hacker News serves 10+ million pageviews per day. And they give away ALL their data through a free...",
-      "publication_date": "2026-03-26T01:48:59Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/0012303/hacker-news-has-a-free-api-no-key-no-auth-no-limits-1ih3",
+      "url": "https://dev.to/aliirz/i-built-a-file-transfer-tool-that-cant-spy-on-you-even-if-it-wanted-to-2p39",
       "cover_image": null,
       "reading_time_minutes": 3,
       "tags": [
-        "webdev",
-        "beginners",
-        "tutorial",
-        "productivity"
-      ]
-    },
-    {
-      "title": "Screenshot API for Angular: Screenshots, PDFs, and OG Images Without Puppeteer",
-      "author": "Custodia-Admin",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3781068%2F0488dc6e-2031-4a2e-b592-3153cd476dd7.png",
-      "description": "How to call the PageBolt screenshot and PDF API from Angular — server-side proxy patterns, Angular services, PDF download, and CI visual testing.",
-      "publication_date": "2026-03-25T20:09:31Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/custodiaadmin/screenshot-api-for-angular-screenshots-pdfs-and-og-images-without-puppeteer-838",
-      "cover_image": null,
-      "reading_time_minutes": 4,
-      "tags": [
-        "angular",
-        "typescript",
-        "api",
+        "opensource",
+        "go",
         "webdev"
       ]
     },
     {
-      "title": "Notion Has a Free API — Build Custom Dashboards and Automate Your Workflow",
-      "author": "Alex Spinov ",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3831260%2Fb89694fb-80bc-4daf-b741-f149c38d9584.png",
-      "description": "Notion Is Not Just a Note App   Notion API lets you programmatically read, create, and...",
-      "publication_date": "2026-03-26T00:09:24Z",
+      "title": "I Built a Minimalist Yes/No Task List for Chrome - Can You Roast It?",
+      "author": "Mia",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3681321%2F7a6ee27c-6b13-4f15-8aca-e95486711cd9.png",
+      "description": "Hi everyone!  A couple of weeks ago I shared my first Chrome extension here - YNO, a minimalist to-do...",
+      "publication_date": "2026-03-26T23:02:27Z",
       "source": "DEV Community",
-      "url": "https://dev.to/0012303/notion-has-a-free-api-build-custom-dashboards-and-automate-your-workflow-238e",
-      "cover_image": null,
+      "url": "https://dev.to/miams/i-built-a-minimalist-yesno-task-list-for-chrome-can-you-roast-it-186",
+      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fci7x2j2qch72ftw05i13.jpg",
       "reading_time_minutes": 2,
       "tags": [
-        "api",
-        "productivity",
-        "tutorial",
-        "webdev"
-      ]
-    },
-    {
-      "title": "Butterfly CSS vs. Tailwind CSS: Partners or Rivals?! 🦋⚔️🌀",
-      "author": "butterfly css blog",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3231977%2F14dc9b58-15cc-45d7-8a19-aa363c31587f.png",
-      "description": "🦋 Butterfly CSS v4 vs. 🌀 Tailwind CSS: When Efficiency Meets Creative Motion! In the world of CSS...",
-      "publication_date": "2026-03-25T21:51:46Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/butterflycss/butterfly-css-vs-tailwind-css-partners-or-rivals-422b",
-      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2F6dr95vxcp0un822zxnbh.png",
-      "reading_time_minutes": 3,
-      "tags": [
-        "webdev"
-      ]
-    },
-    {
-      "title": "Why Native CSS Nesting Matters: Less Repetition, More Real Structure in Your CSS",
-      "author": "Tu codigo cotidiano",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3375057%2Ffa90e872-13fe-4a57-b3d6-e75515a50879.png",
-      "description": "For a long time, a lot of CSS friction came from repeating context over and over...",
-      "publication_date": "2026-03-25T18:30:34Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/tu_codigocotidiano_f173d/why-native-css-nesting-matters-less-repetition-more-real-structure-in-your-css-2f8l",
-      "cover_image": null,
-      "reading_time_minutes": 1,
-      "tags": [
-        "css",
-        "frontend",
-        "webdev",
-        "softwareengineering"
-      ]
-    },
-    {
-      "title": "MCP vs Everything Else: A Practical Decision Guide",
-      "author": "Gursharan Singh",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F2006864%2F3ba8a570-b463-4a98-91da-ec0ebcc29f56.png",
-      "description": "Where MCP fits in the real AI stack, why it does not replace REST or internal services, and when MCP vs native function calling is the decision that actually matters.",
-      "publication_date": "2026-03-26T02:19:44Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/gursharansingh/mcp-vs-everything-else-a-practical-decision-guide-70i",
-      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Feudt3ngis8m4d4ezcexe.png",
-      "reading_time_minutes": 5,
-      "tags": [
-        "mcp",
-        "ai",
-        "architecture",
-        "webdev"
-      ]
-    },
-    {
-      "title": "Gemini is the best AI for deep research and the worst for actually using the output",
-      "author": "Bunty Shah",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3844050%2F9b9be193-33f1-45af-92be-dc60b0a104fe.png",
-      "description": "Hot take. Hear me out.  Gemini 3.1 Pro with Deep Research is the most powerful tool I've used for...",
-      "publication_date": "2026-03-26T05:34:26Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/bunty_shah_fac2bef694e9c9/gemini-is-the-best-ai-for-deep-research-and-the-worst-for-actually-using-the-output-453m",
-      "cover_image": null,
-      "reading_time_minutes": 2,
-      "tags": [
-        "ai",
+        "showdev",
         "productivity",
         "discuss",
         "webdev"
       ]
     },
     {
-      "title": "DNS",
-      "author": "Abinaya Dhanraj",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3837952%2Fa507b94e-0026-4f49-b0d8-a312b5a11b5c.jpg",
-      "description": "Title: How DNS Resolver Works in Simple Steps  Whenever we open a website like google.com, we don’t...",
-      "publication_date": "2026-03-25T13:52:21Z",
+      "title": "Analyze Any Shopify Store's Product Catalog with a Single API Call",
+      "author": "Donny Nguyen",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3813586%2F378063f8-8e69-4d54-b956-fdbde617ae12.jpg",
+      "description": "Why Shopify Store Data Matters   Whether you're running competitive analysis, building a...",
+      "publication_date": "2026-03-26T22:16:56Z",
       "source": "DEV Community",
-      "url": "https://dev.to/abinaya_dhanraj/dns-1c94",
+      "url": "https://dev.to/donnyautomation/analyze-any-shopify-stores-product-catalog-with-a-single-api-call-47lc",
       "cover_image": null,
       "reading_time_minutes": 2,
       "tags": [
-        "beginners",
-        "networking",
-        "tutorial",
+        "shopify",
+        "api",
+        "ecommerce",
         "webdev"
       ]
     },
     {
-      "title": "I built a reverse proxy to stop adblockers from eating my analytics",
-      "author": "Raj Nandan Sharma",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F770190%2Fb54f5e19-dc56-40c3-a139-aad4ed4de43a.jpeg",
-      "description": "Saki is a self-hosted Nginx reverse proxy that routes analytics through your own domain. One Docker container. Works with GA, Amplitude, PostHog, Mixpanel, Clarity, and more.",
-      "publication_date": "2026-03-26T04:01:49Z",
+      "title": "JSON for Beginners: What It Is and Why Developers Use It",
+      "author": "Henry of Oracus 🇳🇬",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F870195%2F314c5c02-b88b-4830-b2fd-0fdc9de28d98.jpg",
+      "description": "JSON for Beginners: What It Is and Why Developers Use It     If you are learning web...",
+      "publication_date": "2026-03-26T17:49:38Z",
       "source": "DEV Community",
-      "url": "https://dev.to/rajnandan1/i-built-a-reverse-proxy-to-stop-adblockers-from-eating-my-analytics-1c8j",
-      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fsaki.rajnandan.com%2Fassets%2Fhero-optimized.jpg",
+      "url": "https://dev.to/ezeanyim_henry/json-for-beginners-what-it-is-and-why-developers-use-it-3aki",
+      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fezeanyimhenry.github.io%2Fblog-assets%2Fimages%2F2026-03%2Fjson-for-beginners-what-it-is-and-why-developers-use-it%2Fcover.png",
       "reading_time_minutes": 4,
       "tags": [
-        "opensource",
-        "analytics",
-        "docker",
-        "webdev"
-      ]
-    },
-    {
-      "title": "I Built a Reader Mode Extension for Chrome Because It Still Doesn't Have One",
-      "author": "SHOTA",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3680827%2F10e2d5e7-842d-4134-b315-1544f502a431.png",
-      "description": "You know that feeling when you open a long article in Chrome, and the actual content is drowning in...",
-      "publication_date": "2026-03-26T01:59:23Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/_350df62777eb55e1/i-built-a-reader-mode-extension-for-chrome-because-it-still-doesnt-have-one-5eg8",
-      "cover_image": null,
-      "reading_time_minutes": 8,
-      "tags": [
-        "chromeextension",
-        "reading",
-        "productivity",
-        "webdev"
-      ]
-    },
-    {
-      "title": "How to Move Your Lovable or Replit Project to Your Own Infrastructure (Step-by-Step)",
-      "author": "Paweł Reszka",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3754929%2F90e88ead-9e26-48ce-a191-a5ca48b7351f.png",
-      "description": "You built something on Lovable or Replit. It works. Now you want to own it — run it on your own...",
-      "publication_date": "2026-03-25T22:30:25Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/pawel_reszka/how-to-move-your-lovable-or-replit-project-to-your-own-infrastructure-step-by-step-50oi",
-      "cover_image": null,
-      "reading_time_minutes": 8,
-      "tags": [
-        "lovable",
-        "replit",
+        "json",
         "webdev",
-        "beginners"
+        "beginners",
+        "api"
       ]
     },
     {
-      "title": "Number Guessing Game",
-      "author": "Sharmila devi",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3838551%2F3a35463d-3f6a-40c2-8b24-dbc0cc84172b.png",
-      "description": "we moved to building a Number Guessing Game. The system generates a random number, and the player...",
-      "publication_date": "2026-03-26T04:41:32Z",
+      "title": "I built an AI-powered API Proxy to explain 4xx errors in plain English",
+      "author": "Jamal Omotoyosi",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3842018%2F636f6f89-998f-4769-bca3-dc91fd439af4.png",
+      "description": "Let’s be honest: 422 Unprocessable Entity is a nightmare when you're in the flow. I got tired of it,...",
+      "publication_date": "2026-03-26T18:19:37Z",
       "source": "DEV Community",
-      "url": "https://dev.to/sharmi_sabari_09/number-guessing-game-47ha",
+      "url": "https://dev.to/bytepanda/i-built-an-ai-powered-api-proxy-to-explain-4xx-errors-in-plain-english-2927",
+      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fsmkv8sng777febe9ohy6.png",
+      "reading_time_minutes": 1,
+      "tags": [
+        "ai",
+        "api",
+        "showdev",
+        "webdev"
+      ]
+    },
+    {
+      "title": "How I used Next.js and Claude 3.5 to stop my PM from nagging me about Jira",
+      "author": "Phantasm0009",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F984858%2F3540feae-c12a-412e-bcca-494f7e14c8e3.png",
+      "description": "We’ve all been there.   It’s 10:30 AM. You drop your update in the #daily-standup Slack channel:...",
+      "publication_date": "2026-03-26T23:17:08Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/phantasm0009/how-i-used-nextjs-and-claude-35-to-stop-my-pm-from-nagging-me-about-jira-1d81",
+      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fi2t67561isr8o2wi10ju.png",
+      "reading_time_minutes": 4,
+      "tags": [
+        "webdev",
+        "productivity",
+        "nextjs",
+        "ai"
+      ]
+    },
+    {
+      "title": "Why Hybrid Agentic AI Is the Future of QA",
+      "author": "LogiGear ",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3811625%2F937fca0b-48bd-4c3b-808f-df82f05f49da.jpg",
+      "description": "AI is quickly becoming part of every conversation around software testing. From generating test cases...",
+      "publication_date": "2026-03-27T06:05:38Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/logigear-corporation/why-hybrid-agentic-ai-is-the-future-of-qa-13g4",
+      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fx0tiq1to6ezpu72nim9h.png",
+      "reading_time_minutes": 4,
+      "tags": [
+        "ai",
+        "webdev",
+        "qa",
+        "llm"
+      ]
+    },
+    {
+      "title": "Rethinking React routing: a simpler, more predictable approach",
+      "author": "Delpi Kye",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3785444%2Ff10c9e85-aff3-4462-a15e-88285bfb214e.jpg",
+      "description": "I built a modern React router because I was tired of existing ones   Routing in React has...",
+      "publication_date": "2026-03-27T04:26:55Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/delpi/rethinking-react-routing-a-simpler-more-predictable-approach-5eog",
       "cover_image": null,
       "reading_time_minutes": 2,
       "tags": [
-        "beginners",
-        "codenewbie",
-        "gamedev",
-        "tutorial"
+        "react",
+        "showdev",
+        "frontend",
+        "webdev"
       ]
     },
     {
-      "title": "QUERIES",
+      "title": "The Most Dangerous Response Code Isn't 500. It's 200.",
+      "author": "Sitewatch",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3844486%2F90af6851-c32d-48f6-a35b-3f4475706a06.png",
+      "description": "A 500 error is loud. Your monitoring fires. Your on-call gets paged. Someone fixes it within the...",
+      "publication_date": "2026-03-26T19:26:05Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/sitewatch/the-most-dangerous-response-code-isnt-500-its-200-402n",
+      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2F26ylf2ge7qynhrdkwv81.png",
+      "reading_time_minutes": 5,
+      "tags": [
+        "webdev",
+        "devops",
+        "softwaredevelopment",
+        "saas"
+      ]
+    },
+    {
+      "title": "select queries",
       "author": "JAYA SRI J",
       "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3837089%2Ff9492909-8f4c-4d7f-ae28-b3ac8c6870b0.png",
-      "description": "1. Select All  Problem: Show all columns from the CITY table.    SELECT * FROM CITY;        Enter...",
-      "publication_date": "2026-03-25T15:52:25Z",
+      "description": "let's see about different queries and how it works 1. Retrieve Film Titles and Rental Rates    SELECT...",
+      "publication_date": "2026-03-26T15:20:27Z",
       "source": "DEV Community",
-      "url": "https://dev.to/jaya_srij_c37a6ea796335c/queries-poj",
+      "url": "https://dev.to/jaya_srij_c37a6ea796335c/select-queries-part-1-1mo7",
       "cover_image": null,
-      "reading_time_minutes": 2,
+      "reading_time_minutes": 3,
       "tags": [
         "beginners",
         "database",
@@ -46937,100 +46825,100 @@
       ]
     },
     {
-      "title": "DNS Resolver",
-      "author": "Luckshvadhan B",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3833917%2F67cd3238-f66c-4103-8513-dba33eee8f30.png",
-      "description": "What is DNS Resolver? It is a system that converts a domain name into an IP address also acts as a...",
-      "publication_date": "2026-03-25T16:41:52Z",
+      "title": "🔁 Terraform Variables, Outputs & State — Make Your Code Reusable (Part 4)",
+      "author": "Ahkar Swe",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3824056%2Fbc58cbdb-f719-451d-920f-6cfe512e220e.png",
+      "description": "In the previous post, you deployed your first EC2 instance using Terraform.  That was a huge...",
+      "publication_date": "2026-03-27T06:15:27Z",
       "source": "DEV Community",
-      "url": "https://dev.to/luckshvadhan_359cd41fd39e/dns-resolver-4ohc",
-      "cover_image": null,
-      "reading_time_minutes": 1,
-      "tags": [
-        "beginners",
-        "networking",
-        "tutorial",
-        "webdev"
-      ]
-    },
-    {
-      "title": "I Validated My Side Project Idea in 48 Hours (And Saved Months)",
-      "author": "Narayana",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3725394%2Fdeb01b45-9c6e-42ef-b4f2-0e9a4d15ccc4.png",
-      "description": "Two months ago, I was convinced I had the next big SaaS idea. A developer-focused tool for API...",
-      "publication_date": "2026-03-26T02:15:36Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/narayanabk24/i-validated-my-side-project-idea-in-48-hours-and-saved-months-19a2",
-      "cover_image": null,
-      "reading_time_minutes": 5,
-      "tags": [
-        "productivity",
-        "technology",
-        "tutorial",
-        "beginners"
-      ]
-    },
-    {
-      "title": "HTML part 3",
-      "author": "Nanthini Ammu",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3734090%2F5e58c4e3-11b0-493a-8b5b-c1bd75497468.png",
-      "description": "Label:    It is used to tell the user what to enter in the input box. It is best to connect...",
-      "publication_date": "2026-03-26T06:17:44Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/nanthini_ammu_ac02ad32802/html-part-3-1307",
-      "cover_image": null,
+      "url": "https://dev.to/ahkarswe/terraform-variables-outputs-state-make-your-code-reusable-part-4-13ed",
+      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fvaw652ija6lvyolvcjey.png",
       "reading_time_minutes": 2,
       "tags": [
         "beginners",
-        "html",
-        "tutorial",
-        "webdev"
-      ]
-    },
-    {
-      "title": "Build a Complete SaaS with Next.js, Supabase & Creem - Subscriptions, Credits, Licenses in 30 Minutes",
-      "author": "Dmitriy Malakhov",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F816894%2F759b0061-0cd2-41a1-80b5-ee13b9295e84.jpeg",
-      "description": "So you want to launch a SaaS product. You need auth, a database, payments, subscription management,...",
-      "publication_date": "2026-03-25T20:45:16Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/hennessy811/build-a-complete-saas-with-nextjs-supabase-creem-subscriptions-credits-licenses-in-30-4jmb",
-      "cover_image": null,
-      "reading_time_minutes": 4,
-      "tags": [
-        "nextjs",
-        "saas",
-        "showdev",
-        "tutorial"
-      ]
-    },
-    {
-      "title": "Mastering Loops and Conditionals in Terraform",
-      "author": "Victor Robin",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F1932178%2F66c98146-53e2-4a02-b8e5-0ec0d0aaa82d.jpg",
-      "description": "When you first start writing Terraform, you declare every resource manually. If you need three...",
-      "publication_date": "2026-03-25T20:31:40Z",
-      "source": "DEV Community",
-      "url": "https://dev.to/ovrobin/mastering-loops-and-conditionals-in-terraform-4351",
-      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Fijav74tudoezhkqh5wuz.png",
-      "reading_time_minutes": 3,
-      "tags": [
-        "automation",
         "devops",
         "terraform",
         "tutorial"
       ]
     },
     {
-      "title": "Deploy Your AI Agent's Wallet in One Docker Command",
+      "title": "Stop Paying for Cloud: Deploy a Highly Available Cluster on Your Own Hardware in Minutes",
+      "author": "Nikoloz Turazashvili (@axrisi)",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3226798%2F0c0a8594-658c-4146-a639-8068ede85f67.jpg",
+      "description": "A 4-node highly available cluster with distributed storage, software-defined networking, and...",
+      "publication_date": "2026-03-26T13:53:03Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/axrisi/stop-paying-for-cloud-deploy-a-highly-available-cluster-on-your-own-hardware-in-minutes-14f0",
+      "cover_image": null,
+      "reading_time_minutes": 4,
+      "tags": [
+        "linux",
+        "devops",
+        "cloud",
+        "tutorial"
+      ]
+    },
+    {
+      "title": "I Stopped Memorizing LaTeX Math Commands. Here's What I Use Instead.",
+      "author": "TeX64",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3815949%2Fbdc08292-f5ed-44ac-b198-997aaa83d8b2.jpg",
+      "description": "The confession   I've been using LaTeX for four years. I still can't type \\begin{pmatrix}...",
+      "publication_date": "2026-03-27T02:05:32Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/tex64/i-stopped-memorizing-latex-math-commands-heres-what-i-use-instead-2mp",
+      "cover_image": null,
+      "reading_time_minutes": 4,
+      "tags": [
+        "productivity",
+        "writing",
+        "ai",
+        "tutorial"
+      ]
+    },
+    {
+      "title": "I Audited My Team's .env Practices. Here's What I Found.",
+      "author": "Ivan Annovazzi",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3789934%2Ffb65f389-caa7-4b5e-9a49-9dd4c8e4c1c0.jpeg",
+      "description": "Last month I did something uncomfortable: I spent a Friday afternoon auditing how my team actually...",
+      "publication_date": "2026-03-26T21:04:25Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/ivannovazzi/i-audited-my-teams-env-practices-heres-what-i-found-k56",
+      "cover_image": null,
+      "reading_time_minutes": 4,
+      "tags": [
+        "security",
+        "productivity",
+        "devops",
+        "tutorial"
+      ]
+    },
+    {
+      "title": "Getting Started with Seal Report: Static and Dynamic Select Lists",
+      "author": "Vlad Ganușceac",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3834141%2Fcf0348a9-b9e3-4aae-9580-40f14c497a0c.png",
+      "description": "This is the third post in the series.  In the previous post, we created a pivot table with custom...",
+      "publication_date": "2026-03-26T22:33:48Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/vladg_dev/getting-started-with-seal-report-static-and-dynamic-select-lists-36o",
+      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Farticles%2Flztvr6nisi9dz4mngvqg.png",
+      "reading_time_minutes": 4,
+      "tags": [
+        "sealreport",
+        "tutorial",
+        "analytics",
+        "sqlserver"
+      ]
+    },
+    {
+      "title": "Add DeFi Superpowers to Claude with MCP Skills",
       "author": "Wallet Guy",
       "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3839576%2Fca8024e8-c8ac-4f6a-845c-e8ad44732a67.jpeg",
-      "description": "Your AI agent can analyze market data, execute trading strategies, and make complex financial...",
-      "publication_date": "2026-03-26T03:29:46Z",
+      "description": "You've built an AI agent using Claude's Model Context Protocol (MCP). It can browse the web, analyze...",
+      "publication_date": "2026-03-27T00:43:49Z",
       "source": "DEV Community",
-      "url": "https://dev.to/walletguy/deploy-your-ai-agents-wallet-in-one-docker-command-2bie",
-      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fi.imgur.com%2FbmEba5v.png",
-      "reading_time_minutes": 5,
+      "url": "https://dev.to/walletguy/add-defi-superpowers-to-claude-with-mcp-skills-147g",
+      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fi.imgur.com%2FRskF0jz.png",
+      "reading_time_minutes": 4,
       "tags": [
         "web3",
         "ai",
@@ -47039,37 +46927,139 @@
       ]
     },
     {
-      "title": "A Simple Way to Track Website Uptime Without Paying",
-      "author": "Lightning Developer",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F2757052%2F987f57b6-be53-4d74-9893-755596ff93c5.png",
-      "description": "There’s a familiar moment many developers have faced. You find out your website or app was down not...",
-      "publication_date": "2026-03-26T06:04:01Z",
+      "title": "I Built My First AI Agent That Understands Bitcoin -- Here's How",
+      "author": "Andrew Barnes",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3811087%2F1895b112-6ae9-4e20-b060-e83c7a100972.jpeg",
+      "description": "I Built My First AI Agent That Understands Bitcoin -- Here's How   A beginner's guide to...",
+      "publication_date": "2026-03-26T23:59:38Z",
       "source": "DEV Community",
-      "url": "https://dev.to/lightningdev123/a-simple-way-to-track-website-uptime-without-paying-bfe",
+      "url": "https://dev.to/bortlesboat/i-built-my-first-ai-agent-that-understands-bitcoin-heres-how-4aoj",
+      "cover_image": null,
+      "reading_time_minutes": 4,
+      "tags": [
+        "mcp",
+        "bitcoin",
+        "ai",
+        "tutorial"
+      ]
+    },
+    {
+      "title": "I Replaced Zapier with n8n for 12 Clients — Here's What Actually Happened",
+      "author": "אחיה כהן",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3810102%2Fefb43e59-992c-4f8b-91df-ee602c7c853f.jpg",
+      "description": "I moved 12 small business clients from Zapier to self-hosted n8n in 2025. Total savings:...",
+      "publication_date": "2026-03-26T18:49:14Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/achiya-automation/i-replaced-zapier-with-n8n-for-12-clients-heres-what-actually-happened-5546",
+      "cover_image": null,
+      "reading_time_minutes": 4,
+      "tags": [
+        "automation",
+        "n8n",
+        "zapier",
+        "tutorial"
+      ]
+    },
+    {
+      "title": "45 MCP Tools: Everything Your Claude Agent Can Do with a Wallet",
+      "author": "Wallet Guy",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3839576%2Fca8024e8-c8ac-4f6a-845c-e8ad44732a67.jpeg",
+      "description": "Ever tried asking Claude to check your crypto balance or swap tokens? You probably got a polite \"I...",
+      "publication_date": "2026-03-26T22:53:00Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/walletguy/45-mcp-tools-everything-your-claude-agent-can-do-with-a-wallet-cdf",
+      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fi.imgur.com%2Fjk5VYlM.png",
+      "reading_time_minutes": 4,
+      "tags": [
+        "web3",
+        "ai",
+        "opensource",
+        "tutorial"
+      ]
+    },
+    {
+      "title": "BiRefNet vs rembg vs U2Net: Which Background Removal Model Actually Works in Production?",
+      "author": "Om Prakash",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3780500%2Fdd7e92b2-bbce-47ac-a78d-c20e5467037f.jpg",
+      "description": "BiRefNet vs rembg vs U2Net: Which Background Removal Model Actually Works in...",
+      "publication_date": "2026-03-27T01:56:41Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/om_prakash_3311f8a4576605/birefnet-vs-rembg-vs-u2net-which-background-removal-model-actually-works-in-production-1hpd",
       "cover_image": null,
       "reading_time_minutes": 3,
       "tags": [
-        "webdev",
+        "api",
         "ai",
-        "tutorial",
-        "productivity"
+        "webdev",
+        "tutorial"
       ]
     },
     {
-      "title": "39 REST API Routes: Complete Wallet Control for Your Trading Bot",
-      "author": "Wallet Guy",
-      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3839576%2Fca8024e8-c8ac-4f6a-845c-e8ad44732a67.jpeg",
-      "description": "Your arbitrage bot spotted a 2% price difference between Solana and Ethereum. The window's closing...",
-      "publication_date": "2026-03-26T04:51:53Z",
+      "title": "Zero Knowledge Proof (ZKP): qué es y cómo funciona — guía completa 2026",
+      "author": "Beltsys Labs",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3824312%2F80dabf73-98a0-4b88-804a-fec1c90217a1.jpg",
+      "description": "Guía completa sobre zero knowledge proof (ZKP): qué es, cómo funciona, zk-SNARKs vs zk-STARKs, zk-rollups, ecosistema de $11.7B, GDPR, MiCA y casos enterprise.",
+      "publication_date": "2026-03-27T03:23:58Z",
       "source": "DEV Community",
-      "url": "https://dev.to/walletguy/39-rest-api-routes-complete-wallet-control-for-your-trading-bot-189m",
-      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fi.imgur.com%2FuN1Ox2M.png",
+      "url": "https://dev.to/beltsys-labs/zero-knowledge-proof-zkp-que-es-y-como-funciona-guia-completa-2026-3ika",
+      "cover_image": "https://media2.dev.to/dynamic/image/width=1000,height=420,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fbeltsys-labs-web.pages.dev%2Fassets%2Fimages%2Fblog%2Fque-es-zero-knowledge-proof.webp",
+      "reading_time_minutes": 8,
+      "tags": [
+        "blockchain",
+        "ethereum",
+        "privacy",
+        "tutorial"
+      ]
+    },
+    {
+      "title": "Build a SMART on FHIR App in 30 Minutes",
+      "author": "mock health",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3838912%2F91ebfbe2-b5be-4786-8f4c-cf10f617d99c.png",
+      "description": "A step-by-step guide to building a standalone SMART on FHIR app — OAuth 2.0 + PKCE auth, patient context, and live vital signs charts — in a single HTML file with zero build tools.",
+      "publication_date": "2026-03-26T20:55:05Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/mockhealth/build-a-smart-on-fhir-app-in-30-minutes-3g39",
+      "cover_image": null,
       "reading_time_minutes": 6,
       "tags": [
-        "web3",
-        "ai",
-        "opensource",
-        "tutorial"
+        "fhir",
+        "healthtech",
+        "tutorial",
+        "oauth"
+      ]
+    },
+    {
+      "title": "How to Scrape Conference Speaker Lineups for Trend Detection",
+      "author": "agenthustler",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3810515%2F33856722-1a98-4563-ba8b-622b5fddcf7e.png",
+      "description": "How to Scrape Conference Speaker Lineups for Trend Detection   Conference speaker lineups...",
+      "publication_date": "2026-03-27T03:11:49Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/agenthustler/how-to-scrape-conference-speaker-lineups-for-trend-detection-5col",
+      "cover_image": null,
+      "reading_time_minutes": 3,
+      "tags": [
+        "python",
+        "webdev",
+        "tutorial",
+        "programming"
+      ]
+    },
+    {
+      "title": "Building a Real Estate Foreclosure Tracker with Public Records",
+      "author": "agenthustler",
+      "author_profile_image": "https://media2.dev.to/dynamic/image/width=640,height=640,fit=cover,gravity=auto,format=auto/https%3A%2F%2Fdev-to-uploads.s3.amazonaws.com%2Fuploads%2Fuser%2Fprofile_image%2F3810515%2F33856722-1a98-4563-ba8b-622b5fddcf7e.png",
+      "description": "Building a Real Estate Foreclosure Tracker with Public Records   Foreclosure data is public...",
+      "publication_date": "2026-03-27T03:11:42Z",
+      "source": "DEV Community",
+      "url": "https://dev.to/agenthustler/building-a-real-estate-foreclosure-tracker-with-public-records-2dn8",
+      "cover_image": null,
+      "reading_time_minutes": 3,
+      "tags": [
+        "python",
+        "webdev",
+        "tutorial",
+        "programming"
       ]
     }
   ]
