@@ -1,6 +1,6 @@
 {
   "participantCount": 200,
-  "totalPRs": 2637,
+  "totalPRs": 2639,
   "mergedPRs": 1650,
   "totalIssues": 804,
   "repositories": 53,
@@ -25,6 +25,26 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "Fix anchor scroll offset for \"How It Works\" section",
+      "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/45",
+      "username": "aimaan-ayaz",
+      "avatar": "https://avatars.githubusercontent.com/u/89684960?v=4",
+      "state": "open",
+      "created_at": "2026-03-27T18:23:55Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-SafeCloak"
+    },
+    {
+      "title": "Normalize authentication controls across pages for consistent behavior",
+      "url": "https://github.com/OWASP-BLT/BLT-Next/pull/145",
+      "username": "sushantkhemalapure",
+      "avatar": "https://avatars.githubusercontent.com/u/185216857?v=4",
+      "state": "open",
+      "created_at": "2026-03-27T17:34:06Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-Next"
+    },
     {
       "title": "Removing Ahmed from Mentor Pool due to forfieting mentorship",
       "url": "https://github.com/OWASP-BLT/BLT-Pool/pull/102",
@@ -102,26 +122,6 @@
       "avatar": "https://avatars.githubusercontent.com/u/190632977?v=4",
       "state": "open",
       "created_at": "2026-03-26T20:31:51Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-Next"
-    },
-    {
-      "title": "Enhance stats section with refresh functionality and improved UX states.",
-      "url": "https://github.com/OWASP-BLT/BLT-Next/pull/138",
-      "username": "aniruddhsinh16",
-      "avatar": "https://avatars.githubusercontent.com/u/190632977?v=4",
-      "state": "open",
-      "created_at": "2026-03-26T20:03:04Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-Next"
-    },
-    {
-      "title": "Added empty state handling for stats section.",
-      "url": "https://github.com/OWASP-BLT/BLT-Next/pull/137",
-      "username": "aniruddhsinh16",
-      "avatar": "https://avatars.githubusercontent.com/u/190632977?v=4",
-      "state": "open",
-      "created_at": "2026-03-26T19:40:11Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT-Next"
     }
