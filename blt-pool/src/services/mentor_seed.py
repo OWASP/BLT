@@ -65,15 +65,6 @@ INITIAL_MENTORS = [
         "referred_by": "",
     },
     {
-        "github_username": "elsheik21",
-        "name": "Ahmed ElSheik",
-        "specialties": [],
-        "max_mentees": 3,
-        "active": True,
-        "timezone": "",
-        "referred_by": "",
-    },
-    {
         "github_username": "Kunal1522",
         "name": "Kunal Kashyap",
         "specialties": [],
