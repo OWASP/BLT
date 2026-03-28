@@ -1,6 +1,6 @@
 {
   "participantCount": 200,
-  "totalPRs": 2650,
+  "totalPRs": 2651,
   "mergedPRs": 1652,
   "totalIssues": 814,
   "repositories": 53,
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "a11y: add aria-labels to footer social icon links",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6095",
+      "username": "mkamrul9",
+      "avatar": "https://avatars.githubusercontent.com/u/96786626?v=4",
+      "state": "closed",
+      "created_at": "2026-03-28T03:31:35Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT"
+    },
     {
       "title": "chore: delete unused index3 template",
       "url": "https://github.com/OWASP-BLT/BLT/pull/6094",
@@ -112,16 +122,6 @@
       "avatar": "https://avatars.githubusercontent.com/u/118156935?v=4",
       "state": "open",
       "created_at": "2026-03-27T19:15:40Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/owasp-blt.github.io"
-    },
-    {
-      "title": "ci: add concurrency control to screenshot workflow",
-      "url": "https://github.com/OWASP-BLT/owasp-blt.github.io/pull/87",
-      "username": "Ankitsinghsisodya",
-      "avatar": "https://avatars.githubusercontent.com/u/118156935?v=4",
-      "state": "open",
-      "created_at": "2026-03-27T19:14:28Z",
       "merged_at": null,
       "repository": "OWASP-BLT/owasp-blt.github.io"
     }
