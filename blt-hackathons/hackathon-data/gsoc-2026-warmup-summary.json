@@ -1,7 +1,7 @@
 {
-  "participantCount": 202,
-  "totalPRs": 2658,
-  "mergedPRs": 1655,
+  "participantCount": 184,
+  "totalPRs": 2565,
+  "mergedPRs": 1620,
   "totalIssues": 825,
   "repositories": 53,
   "topContributors": [
@@ -9,13 +9,13 @@
       "username": "Nachiket-Roy",
       "avatar": "https://avatars.githubusercontent.com/u/204239697?v=4",
       "url": "https://github.com/Nachiket-Roy",
-      "mergedCount": 72
+      "mergedCount": 70
     },
     {
       "username": "mdkaifansari04",
       "avatar": "https://avatars.githubusercontent.com/u/117475603?v=4",
       "url": "https://github.com/mdkaifansari04",
-      "mergedCount": 58
+      "mergedCount": 56
     },
     {
       "username": "Pritz395",
@@ -86,44 +86,44 @@
       "repository": "OWASP-BLT/BLT"
     },
     {
-      "title": "chore: add Dependabot config for GitHub Actions version updates",
-      "url": "https://github.com/OWASP-BLT/BLT-Next/pull/157",
+      "title": "ci: add set -euo pipefail to screenshot commit step",
+      "url": "https://github.com/OWASP-BLT/owasp-blt.github.io/pull/89",
       "username": "Ankitsinghsisodya",
       "avatar": "https://avatars.githubusercontent.com/u/118156935?v=4",
       "state": "open",
-      "created_at": "2026-03-27T19:28:04Z",
+      "created_at": "2026-03-27T19:16:38Z",
       "merged_at": null,
-      "repository": "OWASP-BLT/BLT-Next"
+      "repository": "OWASP-BLT/owasp-blt.github.io"
     },
     {
-      "title": "ci: fix misleading step name for Python setup",
-      "url": "https://github.com/OWASP-BLT/BLT-Next/pull/156",
+      "title": "ci: skip Pages deployment when data.json has no meaningful changes",
+      "url": "https://github.com/OWASP-BLT/owasp-blt.github.io/pull/88",
       "username": "Ankitsinghsisodya",
       "avatar": "https://avatars.githubusercontent.com/u/118156935?v=4",
       "state": "open",
-      "created_at": "2026-03-27T19:27:16Z",
+      "created_at": "2026-03-27T19:15:40Z",
       "merged_at": null,
-      "repository": "OWASP-BLT/BLT-Next"
+      "repository": "OWASP-BLT/owasp-blt.github.io"
     },
     {
-      "title": "chore: update minimum Node.js engine requirement to 20",
-      "url": "https://github.com/OWASP-BLT/BLT-Next/pull/155",
+      "title": "ci: add concurrency control to screenshot workflow",
+      "url": "https://github.com/OWASP-BLT/owasp-blt.github.io/pull/87",
       "username": "Ankitsinghsisodya",
       "avatar": "https://avatars.githubusercontent.com/u/118156935?v=4",
       "state": "open",
-      "created_at": "2026-03-27T19:26:38Z",
+      "created_at": "2026-03-27T19:14:28Z",
       "merged_at": null,
-      "repository": "OWASP-BLT/BLT-Next"
+      "repository": "OWASP-BLT/owasp-blt.github.io"
     },
     {
-      "title": "ci: add concurrency group to check-pr-conflicts workflow",
-      "url": "https://github.com/OWASP-BLT/BLT-Next/pull/154",
+      "title": "ci: add timeout-minutes to screenshot job",
+      "url": "https://github.com/OWASP-BLT/owasp-blt.github.io/pull/86",
       "username": "Ankitsinghsisodya",
       "avatar": "https://avatars.githubusercontent.com/u/118156935?v=4",
       "state": "open",
-      "created_at": "2026-03-27T19:26:02Z",
+      "created_at": "2026-03-27T19:13:51Z",
       "merged_at": null,
-      "repository": "OWASP-BLT/BLT-Next"
+      "repository": "OWASP-BLT/owasp-blt.github.io"
     }
   ]
 }
