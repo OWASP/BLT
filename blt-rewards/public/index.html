@@ -147,7 +147,10 @@
                             .then(function (r) { return r.json(); })
                             .then(function (data) {
                                 if (data.supply !== null && data.supply !== undefined) {
-                                    supplyEl.textContent = Number(data.supply).toLocaleString();
+                                    // Use string-based formatting to avoid Number() precision loss on large supplies
+                                    var parts = String(data.supply).split('.');
+                                    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                                    supplyEl.textContent = parts.join('.');
                                 } else {
                                     supplyEl.textContent = 'N/A';
                                 }

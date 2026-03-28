@@ -5,7 +5,6 @@ compatibility_flags = ["python_workers"]
 
 [vars]
 ENVIRONMENT = "production"
-SOLANA_WALLET_ADDRESS = ""
 
 # Configure assets (static files)
 # All files in ./public are automatically served by Cloudflare
