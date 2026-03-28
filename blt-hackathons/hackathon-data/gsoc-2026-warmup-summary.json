@@ -1,6 +1,6 @@
 {
   "participantCount": 184,
-  "totalPRs": 2567,
+  "totalPRs": 2568,
   "mergedPRs": 1620,
   "totalIssues": 825,
   "repositories": 53,
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "Fix typos: recieve -> receive, enviroment -> environment",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6097",
+      "username": "gargi-birwatkar",
+      "avatar": "https://avatars.githubusercontent.com/u/147988352?v=4",
+      "state": "closed",
+      "created_at": "2026-03-28T19:13:24Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT"
+    },
     {
       "title": "Add BLT Welcome Video Contest",
       "url": "https://github.com/OWASP-BLT/BLT-Design-Contest/pull/103",
@@ -112,16 +122,6 @@
       "avatar": "https://avatars.githubusercontent.com/u/118156935?v=4",
       "state": "open",
       "created_at": "2026-03-27T19:16:38Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/owasp-blt.github.io"
-    },
-    {
-      "title": "ci: skip Pages deployment when data.json has no meaningful changes",
-      "url": "https://github.com/OWASP-BLT/owasp-blt.github.io/pull/88",
-      "username": "Ankitsinghsisodya",
-      "avatar": "https://avatars.githubusercontent.com/u/118156935?v=4",
-      "state": "open",
-      "created_at": "2026-03-27T19:15:40Z",
       "merged_at": null,
       "repository": "OWASP-BLT/owasp-blt.github.io"
     }
