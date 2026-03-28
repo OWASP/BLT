@@ -91,7 +91,7 @@
                 </div>
 
                 <!-- Stats -->
-                <div class="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-3xl mx-auto">
+                <div class="mt-16 grid grid-cols-1 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
                     <div class="text-center">
                         <div class="text-3xl font-bold text-blt-red mb-2">
                             <i class="fab fa-bitcoin"></i> + <i class="fas fa-circle text-purple-500"></i>
@@ -110,7 +110,32 @@
                         </div>
                         <p class="text-sm text-gray-600">Easy Integration</p>
                     </div>
+                    <!-- SOL Wallet Balance -->
+                    <div class="text-center">
+                        <div class="text-3xl font-bold text-purple-600 mb-2">
+                            <span id="sol-balance">…</span>
+                            <span class="text-lg font-semibold">SOL</span>
+                        </div>
+                        <p class="text-sm text-gray-600">Treasury SOL Balance</p>
+                    </div>
                 </div>
+                <script>
+                    (function () {
+                        var el = document.getElementById('sol-balance');
+                        fetch('/api/sol-balance')
+                            .then(function (r) { return r.json(); })
+                            .then(function (data) {
+                                if (data.balance !== null && data.balance !== undefined) {
+                                    el.textContent = parseFloat(data.balance).toFixed(4);
+                                } else {
+                                    el.textContent = 'N/A';
+                                }
+                            })
+                            .catch(function () {
+                                el.textContent = 'N/A';
+                            });
+                    })();
+                </script>
             </div>
         </div>
     </section>
