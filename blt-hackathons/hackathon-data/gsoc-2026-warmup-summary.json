@@ -1,6 +1,6 @@
 {
   "participantCount": 184,
-  "totalPRs": 2565,
+  "totalPRs": 2567,
   "mergedPRs": 1620,
   "totalIssues": 825,
   "repositories": 53,
@@ -25,6 +25,26 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "Add BLT Welcome Video Contest",
+      "url": "https://github.com/OWASP-BLT/BLT-Design-Contest/pull/103",
+      "username": "ananya-09",
+      "avatar": "https://avatars.githubusercontent.com/u/175581593?v=4",
+      "state": "open",
+      "created_at": "2026-03-28T17:50:28Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-Design-Contest"
+    },
+    {
+      "title": "Improve URL join handling to prevent invalid peer initialization",
+      "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/46",
+      "username": "aimaan-ayaz",
+      "avatar": "https://avatars.githubusercontent.com/u/89684960?v=4",
+      "state": "open",
+      "created_at": "2026-03-28T17:23:21Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-SafeCloak"
+    },
     {
       "title": "fix: implement ISO-8601 timestamps in health and review endpoints",
       "url": "https://github.com/OWASP-BLT/BLT-Toasty/pull/40",
@@ -102,26 +122,6 @@
       "avatar": "https://avatars.githubusercontent.com/u/118156935?v=4",
       "state": "open",
       "created_at": "2026-03-27T19:15:40Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/owasp-blt.github.io"
-    },
-    {
-      "title": "ci: add concurrency control to screenshot workflow",
-      "url": "https://github.com/OWASP-BLT/owasp-blt.github.io/pull/87",
-      "username": "Ankitsinghsisodya",
-      "avatar": "https://avatars.githubusercontent.com/u/118156935?v=4",
-      "state": "open",
-      "created_at": "2026-03-27T19:14:28Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/owasp-blt.github.io"
-    },
-    {
-      "title": "ci: add timeout-minutes to screenshot job",
-      "url": "https://github.com/OWASP-BLT/owasp-blt.github.io/pull/86",
-      "username": "Ankitsinghsisodya",
-      "avatar": "https://avatars.githubusercontent.com/u/118156935?v=4",
-      "state": "open",
-      "created_at": "2026-03-27T19:13:51Z",
       "merged_at": null,
       "repository": "OWASP-BLT/owasp-blt.github.io"
     }
