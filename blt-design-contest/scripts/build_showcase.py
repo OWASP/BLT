@@ -87,12 +87,12 @@ CONTESTS = [
         "deadline_display": "April 15, 2026",
         "icon": "fa-solid fa-circle-play",
     },
-     {
+    {
         "id": "blt-welcome-video",
         "name": "BLT Welcome Video",
         "label": "welcome-video-submission",
         "title_prefix": "[Welcome Video]",
-        "template": "video-meme-submission.yml",
+        "template": "welcome-video-submission.yml",
         "description": "Design a welcome video for beginners giving a walkthrough explanation of the OWASP BLT ecosystem.",
         "prize": "$20",
         "deadline": "2026-04-15T00:00:00Z",
