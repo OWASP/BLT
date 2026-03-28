@@ -91,7 +91,7 @@
                 </div>
 
                 <!-- Stats -->
-                <div class="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-3xl mx-auto">
+                <div class="mt-16 grid grid-cols-1 md:grid-cols-5 gap-8 max-w-5xl mx-auto">
                     <div class="text-center">
                         <div class="text-3xl font-bold text-blt-red mb-2">
                             <i class="fab fa-bitcoin"></i> + <i class="fas fa-circle text-purple-500"></i>
@@ -110,7 +110,56 @@
                         </div>
                         <p class="text-sm text-gray-600">Easy Integration</p>
                     </div>
+                    <!-- SOL Wallet Balance -->
+                    <div class="text-center">
+                        <div class="text-3xl font-bold text-purple-600 mb-2">
+                            <span id="sol-balance">…</span>
+                            <span class="text-lg font-semibold">SOL</span>
+                        </div>
+                        <p class="text-sm text-gray-600">Treasury SOL Balance</p>
+                    </div>
+                    <!-- BACON Token Supply -->
+                    <div class="text-center">
+                        <div class="text-3xl font-bold text-yellow-600 mb-2">
+                            <span id="bacon-supply">…</span>
+                        </div>
+                        <p class="text-sm text-gray-600">BACON Token Supply</p>
+                    </div>
                 </div>
+                <script>
+                    (function () {
+                        var solEl = document.getElementById('sol-balance');
+                        fetch('/api/sol-balance')
+                            .then(function (r) { return r.json(); })
+                            .then(function (data) {
+                                if (data.balance !== null && data.balance !== undefined) {
+                                    solEl.textContent = parseFloat(data.balance).toFixed(4);
+                                } else {
+                                    solEl.textContent = 'N/A';
+                                }
+                            })
+                            .catch(function () {
+                                solEl.textContent = 'N/A';
+                            });
+
+                        var supplyEl = document.getElementById('bacon-supply');
+                        fetch('/api/token-supply')
+                            .then(function (r) { return r.json(); })
+                            .then(function (data) {
+                                if (data.supply !== null && data.supply !== undefined) {
+                                    // Use string-based formatting to avoid Number() precision loss on large supplies
+                                    var parts = String(data.supply).split('.');
+                                    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                                    supplyEl.textContent = parts.join('.');
+                                } else {
+                                    supplyEl.textContent = 'N/A';
+                                }
+                            })
+                            .catch(function () {
+                                supplyEl.textContent = 'N/A';
+                            });
+                    })();
+                </script>
             </div>
         </div>
     </section>
