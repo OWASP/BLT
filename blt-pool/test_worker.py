@@ -5827,6 +5827,84 @@ class TestOnFetchHomepage(unittest.TestCase):
         _run(_inner())
 
 
+class TestCorsPolicyOnFetch(unittest.TestCase):
+    """Minimal regression tests for PR-1 CORS policy on JSON routes."""
+
+    def _make_request(self, method="GET", path="/", body=None, headers=None):
+        req_headers = _HeadersStub(headers or {})
+        if isinstance(body, str):
+            body_text = body
+        elif body is None:
+            body_text = ""
+        else:
+            body_text = json.dumps(body)
+        return types.SimpleNamespace(
+            method=method,
+            url=f"https://example.com{path}",
+            headers=req_headers,
+            text=AsyncMock(return_value=body_text),
+        )
+
+    def test_health_includes_wildcard_cors_header(self):
+        async def _inner():
+            req = self._make_request(method="GET", path="/health")
+            env = types.SimpleNamespace(APP_ID="123", PRIVATE_KEY="pem", WEBHOOK_SECRET="secret")
+
+            with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None)):
+                resp = await _worker.on_fetch(req, env)
+
+            self.assertEqual(resp.status, 200)
+            self.assertEqual(resp.headers.get("Access-Control-Allow-Origin"), "*")
+
+        _run(_inner())
+
+    def test_api_mentors_success_has_no_cors_header(self):
+        async def _inner():
+            req = self._make_request(
+                method="POST",
+                path="/api/mentors",
+                body={"name": "Jane", "github_username": "jane"},
+            )
+            env = types.SimpleNamespace()
+            with patch.object(_worker, "_handle_add_mentor", new=AsyncMock(return_value=_worker._json({"ok": True}, 201))):
+                resp = await _worker.on_fetch(req, env)
+
+            self.assertEqual(resp.status, 201)
+            self.assertIsNone(resp.headers.get("Access-Control-Allow-Origin"))
+
+        _run(_inner())
+
+    def test_webhook_response_has_no_cors_header(self):
+        async def _inner():
+            req = self._make_request(method="POST", path="/api/github/webhooks", body={"action": "opened"})
+            env = types.SimpleNamespace()
+            with patch.object(_worker, "handle_webhook", new=AsyncMock(return_value=_worker._json({"ok": True}, 200))):
+                resp = await _worker.on_fetch(req, env)
+
+            self.assertEqual(resp.status, 200)
+            self.assertIsNone(resp.headers.get("Access-Control-Allow-Origin"))
+
+        _run(_inner())
+
+    def test_admin_reset_unauthorized_has_no_cors_header(self):
+        async def _inner():
+            req = self._make_request(
+                method="POST",
+                path="/admin/reset-leaderboard-month",
+                body={"org": "OWASP-BLT", "month_key": "2026-03"},
+                headers={"Authorization": "Bearer wrong-secret"},
+            )
+            env = types.SimpleNamespace(ADMIN_SECRET="test-secret", LEADERBOARD_DB=MagicMock())
+
+            with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None)):
+                resp = await _worker.on_fetch(req, env)
+
+            self.assertEqual(resp.status, 401)
+            self.assertIsNone(resp.headers.get("Access-Control-Allow-Origin"))
+
+        _run(_inner())
+
+
 class TestHandleAddMentor(unittest.TestCase):
     """POST /api/mentors — inserts a new mentor into D1."""
 
