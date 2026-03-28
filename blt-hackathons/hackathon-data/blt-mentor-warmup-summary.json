@@ -1,8 +1,8 @@
 {
   "participantCount": 17,
-  "totalPRs": 2638,
-  "mergedPRs": 1650,
-  "totalIssues": 804,
+  "totalPRs": 2658,
+  "mergedPRs": 1653,
+  "totalIssues": 825,
   "repositories": 53,
   "topContributors": [
     {
@@ -26,104 +26,104 @@
   ],
   "recentPRs": [
     {
-      "title": "feat: cache database initialization status to improve performance",
-      "url": "https://github.com/OWASP-BLT/BLT-API/pull/81",
-      "username": "ramansh18",
-      "avatar": "https://avatars.githubusercontent.com/u/123497240?v=4",
-      "state": "open",
-      "created_at": "2026-03-26T05:09:22Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-API"
-    },
-    {
-      "title": "Fix: Add strict input validation and length constraints to Auth and User Handlers",
-      "url": "https://github.com/OWASP-BLT/BLT-API/pull/76",
-      "username": "ramansh18",
-      "avatar": "https://avatars.githubusercontent.com/u/123497240?v=4",
-      "state": "closed",
-      "created_at": "2026-03-25T04:54:13Z",
-      "merged_at": "2026-03-25T05:52:13Z",
-      "repository": "OWASP-BLT/BLT-API"
-    },
-    {
-      "title": "Remove trailing whitespace across multiple files",
-      "url": "https://github.com/OWASP-BLT/BLT-Hackathons/pull/83",
+      "title": "chore: add Dependabot config for GitHub Actions version updates",
+      "url": "https://github.com/OWASP-BLT/BLT-Next/pull/157",
       "username": "Ankitsinghsisodya",
       "avatar": "https://avatars.githubusercontent.com/u/118156935?v=4",
       "state": "open",
-      "created_at": "2026-03-23T10:06:55Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-Hackathons"
-    },
-    {
-      "title": "Remove debug traceback code left in exception handler in fetch_stats.py",
-      "url": "https://github.com/OWASP-BLT/BLT-Hackathons/pull/82",
-      "username": "Ankitsinghsisodya",
-      "avatar": "https://avatars.githubusercontent.com/u/118156935?v=4",
-      "state": "open",
-      "created_at": "2026-03-23T10:05:01Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-Hackathons"
-    },
-    {
-      "title": "Fix incorrect example URL in README.md: BLT-Hackathon -> BLT-Hackathons",
-      "url": "https://github.com/OWASP-BLT/BLT-Hackathons/pull/81",
-      "username": "Ankitsinghsisodya",
-      "avatar": "https://avatars.githubusercontent.com/u/118156935?v=4",
-      "state": "closed",
-      "created_at": "2026-03-23T10:04:01Z",
-      "merged_at": "2026-03-24T12:56:19Z",
-      "repository": "OWASP-BLT/BLT-Hackathons"
-    },
-    {
-      "title": "Fix broken links in SETUP.md: BLT-Hackathon -> BLT-Hackathons",
-      "url": "https://github.com/OWASP-BLT/BLT-Hackathons/pull/80",
-      "username": "Ankitsinghsisodya",
-      "avatar": "https://avatars.githubusercontent.com/u/118156935?v=4",
-      "state": "open",
-      "created_at": "2026-03-23T10:03:22Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-Hackathons"
-    },
-    {
-      "title": "Fix typo: 'paticipants' -> 'participants' in fetch_stats.py",
-      "url": "https://github.com/OWASP-BLT/BLT-Hackathons/pull/75",
-      "username": "Ankitsinghsisodya",
-      "avatar": "https://avatars.githubusercontent.com/u/118156935?v=4",
-      "state": "open",
-      "created_at": "2026-03-23T09:55:54Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-Hackathons"
-    },
-    {
-      "title": "feat: Add input validation for signup (username, email, password strength)",
-      "url": "https://github.com/OWASP-BLT/BLT-API/pull/73",
-      "username": "ramansh18",
-      "avatar": "https://avatars.githubusercontent.com/u/123497240?v=4",
-      "state": "closed",
-      "created_at": "2026-03-23T05:44:45Z",
-      "merged_at": "2026-03-24T03:06:26Z",
-      "repository": "OWASP-BLT/BLT-API"
-    },
-    {
-      "title": "fix: add timeout-minutes to CI validate job",
-      "url": "https://github.com/OWASP-BLT/BLT-Next/pull/129",
-      "username": "Ankitsinghsisodya",
-      "avatar": "https://avatars.githubusercontent.com/u/118156935?v=4",
-      "state": "open",
-      "created_at": "2026-03-22T18:25:26Z",
+      "created_at": "2026-03-27T19:28:04Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT-Next"
     },
     {
-      "title": "fix: update actions/setup-node from v5 to v4",
-      "url": "https://github.com/OWASP-BLT/BLT-Next/pull/128",
+      "title": "ci: fix misleading step name for Python setup",
+      "url": "https://github.com/OWASP-BLT/BLT-Next/pull/156",
       "username": "Ankitsinghsisodya",
       "avatar": "https://avatars.githubusercontent.com/u/118156935?v=4",
       "state": "open",
-      "created_at": "2026-03-22T18:25:17Z",
+      "created_at": "2026-03-27T19:27:16Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT-Next"
+    },
+    {
+      "title": "chore: update minimum Node.js engine requirement to 20",
+      "url": "https://github.com/OWASP-BLT/BLT-Next/pull/155",
+      "username": "Ankitsinghsisodya",
+      "avatar": "https://avatars.githubusercontent.com/u/118156935?v=4",
+      "state": "open",
+      "created_at": "2026-03-27T19:26:38Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-Next"
+    },
+    {
+      "title": "ci: add concurrency group to check-pr-conflicts workflow",
+      "url": "https://github.com/OWASP-BLT/BLT-Next/pull/154",
+      "username": "Ankitsinghsisodya",
+      "avatar": "https://avatars.githubusercontent.com/u/118156935?v=4",
+      "state": "open",
+      "created_at": "2026-03-27T19:26:02Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-Next"
+    },
+    {
+      "title": "ci: add workflow_dispatch trigger to CI workflows",
+      "url": "https://github.com/OWASP-BLT/BLT-Next/pull/153",
+      "username": "Ankitsinghsisodya",
+      "avatar": "https://avatars.githubusercontent.com/u/118156935?v=4",
+      "state": "open",
+      "created_at": "2026-03-27T19:25:09Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-Next"
+    },
+    {
+      "title": "ci: add 15-minute timeout to validate job",
+      "url": "https://github.com/OWASP-BLT/BLT-Next/pull/152",
+      "username": "Ankitsinghsisodya",
+      "avatar": "https://avatars.githubusercontent.com/u/118156935?v=4",
+      "state": "open",
+      "created_at": "2026-03-27T19:24:24Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-Next"
+    },
+    {
+      "title": "ci: add set -euo pipefail to screenshot commit step",
+      "url": "https://github.com/OWASP-BLT/owasp-blt.github.io/pull/89",
+      "username": "Ankitsinghsisodya",
+      "avatar": "https://avatars.githubusercontent.com/u/118156935?v=4",
+      "state": "open",
+      "created_at": "2026-03-27T19:16:38Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/owasp-blt.github.io"
+    },
+    {
+      "title": "ci: skip Pages deployment when data.json has no meaningful changes",
+      "url": "https://github.com/OWASP-BLT/owasp-blt.github.io/pull/88",
+      "username": "Ankitsinghsisodya",
+      "avatar": "https://avatars.githubusercontent.com/u/118156935?v=4",
+      "state": "open",
+      "created_at": "2026-03-27T19:15:40Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/owasp-blt.github.io"
+    },
+    {
+      "title": "ci: add concurrency control to screenshot workflow",
+      "url": "https://github.com/OWASP-BLT/owasp-blt.github.io/pull/87",
+      "username": "Ankitsinghsisodya",
+      "avatar": "https://avatars.githubusercontent.com/u/118156935?v=4",
+      "state": "open",
+      "created_at": "2026-03-27T19:14:28Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/owasp-blt.github.io"
+    },
+    {
+      "title": "ci: add timeout-minutes to screenshot job",
+      "url": "https://github.com/OWASP-BLT/owasp-blt.github.io/pull/86",
+      "username": "Ankitsinghsisodya",
+      "avatar": "https://avatars.githubusercontent.com/u/118156935?v=4",
+      "state": "open",
+      "created_at": "2026-03-27T19:13:51Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/owasp-blt.github.io"
     }
   ]
 }
