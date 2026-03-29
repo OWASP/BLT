@@ -20,7 +20,7 @@ _ADMIN_BASIC_PASS_ENV = "ADMIN_BASIC_AUTH_PASSWORD"
 _ADMIN_BASIC_REALM = "BLT-Pool Admin"
 _GH_USERNAME_RE = re.compile(r"^[a-zA-Z0-9](?:[a-zA-Z0-9\-]{0,37}[a-zA-Z0-9])?$")
 _EMAIL_RE = re.compile(r"^[A-Za-z0-9._%+\-]{1,64}@[A-Za-z0-9.\-]{1,190}\.[A-Za-z]{2,}$")
-_SLACK_USERNAME_RE = re.compile(r"^[A-Za-z0-9._\-]{1,80}$")
+_SLACK_USERNAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._\- ]{0,79}$")
 _ASSIGNMENT_REF_RE = re.compile(r"^(?:(?P<org>[A-Za-z0-9_.-]+)/)?(?P<repo>[A-Za-z0-9_.-]+)#(?P<number>\d+)$")
 
 
