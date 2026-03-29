@@ -4976,6 +4976,7 @@ def _github_app_html(app_slug: str, env=None) -> str:
     return (
         GITHUB_PAGE_HTML
         .replace("{{INSTALL_URL}}", install_url)
+        .replace("{{ADMIN_PATH}}", _admin_path(env))
         .replace("{{YEAR}}", str(year))
         .replace("{{SECRET_VARS_STATUS}}", secret_vars_html)
     )
@@ -4984,6 +4985,17 @@ def _github_app_html(app_slug: str, env=None) -> str:
 def _landing_html(app_slug: str, env=None) -> str:
     """Alias for _github_app_html; renders the landing page with secret-var status."""
     return _github_app_html(app_slug, env)
+
+
+def _admin_path(env) -> str:
+    """Return normalized admin path from ADMIN_PATH env var."""
+    raw = str(getattr(env, "ADMIN_PATH", "/admin") or "").strip() if env else "/admin"
+    if not raw:
+        return "/admin"
+    if not raw.startswith("/"):
+        raw = "/" + raw
+    normalized = raw.rstrip("/")
+    return normalized or "/admin"
 
 
 def _callback_html() -> str:
@@ -5173,7 +5185,7 @@ def _build_referral_leaderboard(mentors: list) -> list:
     return sorted(counts.items(), key=lambda x: x[1], reverse=True)
 
 
-def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, active_assignments: Optional[list] = None, assignment_comment_stats: Optional[dict] = None) -> str:
+def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, active_assignments: Optional[list] = None, assignment_comment_stats: Optional[dict] = None, admin_path: str = "/admin") -> str:
     """Generate the BLT-Pool mentor directory homepage.
 
     Args:
@@ -5385,7 +5397,7 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
           <i class="fa-solid fa-circle text-[0.4rem]" aria-hidden="true"></i>
           Live
         </span>
-        <a href="/admin"
+        <a href="{admin_path}"
            class="inline-flex items-center gap-1.5 rounded-md border border-[#E5E5E5] px-3 py-2 text-xs font-semibold text-gray-700 transition hover:border-[#E10101] hover:bg-[#feeae9] hover:text-[#E10101] focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2">
           <i class="fa-solid fa-shield-halved text-[#E10101]" aria-hidden="true"></i>
           Admin
@@ -5973,7 +5985,7 @@ async def on_fetch(request, env) -> Response:
                     assignment_comment_stats = await _d1_get_user_comment_totals(db, org, all_logins)
                 except Exception as exc:
                     console.error(f"[MentorPool] Failed to fetch assignment comment stats: {exc}")
-        return _html(_index_html(mentors, mentor_stats, active_assignments, assignment_comment_stats))
+        return _html(_index_html(mentors, mentor_stats, active_assignments, assignment_comment_stats, _admin_path(env)))
 
     if method == "GET" and path == "/github-app":
         app_slug = getattr(env, "GITHUB_APP_SLUG", "")
@@ -6003,7 +6015,7 @@ async def on_fetch(request, env) -> Response:
 
     # Admin: reset corrupted leaderboard data for a given org/month so a fresh
     # backfill can re-populate it.  Requires ADMIN_SECRET env variable.
-    if method == "POST" and path == "/admin/reset-leaderboard-month":
+    if method == "POST" and path in {"/admin/reset-leaderboard-month", f"{_admin_path(env)}/reset-leaderboard-month"}:
         admin_secret = getattr(env, "ADMIN_SECRET", "")
         if not admin_secret:
             return _json({"error": "Admin endpoint not configured"}, 403)

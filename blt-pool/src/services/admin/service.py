@@ -23,24 +23,38 @@ def _escape(value: str) -> str:
     return _html.escape(value or "", quote=True)
 
 
+def _normalize_admin_path(raw_path: str) -> str:
+    value = (raw_path or "").strip()
+    if not value:
+        return "/admin"
+    if not value.startswith("/"):
+        value = "/" + value
+    value = value.rstrip("/")
+    return value or "/admin"
+
+
 def _parse_basic_auth_header(auth_header: str) -> Tuple[str, str]:
-  """Parse a Basic auth header and return (username, password)."""
-  if not auth_header:
-    return "", ""
-  prefix = "Basic "
-  if not auth_header.startswith(prefix):
-    return "", ""
-  encoded = auth_header[len(prefix):].strip()
-  if not encoded:
-    return "", ""
+    """Parse a Basic auth header and return (username, password)."""
+    if not auth_header:
+        return "", ""
+    prefix = "Basic "
+    if not auth_header.startswith(prefix):
+        return "", ""
+
+    encoded = auth_header[len(prefix):].strip()
+    if not encoded:
+        return "", ""
+
     try:
-    decoded = base64.b64decode(encoded, validate=True).decode("utf-8")
-  except (binascii.Error, UnicodeDecodeError):
-    return "", ""
-  if ":" not in decoded:
-    return "", ""
-  username, password = decoded.split(":", 1)
-  return username, password
+        decoded = base64.b64decode(encoded, validate=True).decode("utf-8")
+    except (binascii.Error, UnicodeDecodeError):
+        return "", ""
+
+    if ":" not in decoded:
+        return "", ""
+
+    username, password = decoded.split(":", 1)
+    return username, password
 
 
 def _github_headers(token: str = "") -> Headers:
@@ -83,14 +97,20 @@ class AdminService:
     def __init__(self, env):
         self.env = env
         self.db = getattr(env, "LEADERBOARD_DB", None) if env else None
+        self.admin_path = _normalize_admin_path(getattr(env, "ADMIN_PATH", "/admin") if env else "/admin")
+        self.mentor_action_path = f"{self.admin_path}/mentors/action"
 
     async def handle(self, request):
         """Handle admin routes, or return None when the path is not for this service."""
         path = urlparse(str(request.url)).path.rstrip("/") or "/"
-        if path == "/admin/reset-leaderboard-month":
+
+        # Reset endpoint is handled in worker.py.
+        if path in {"/admin/reset-leaderboard-month", f"{self.admin_path}/reset-leaderboard-month"}:
             return None
-        if not path.startswith("/admin"):
+
+        if not (path == self.admin_path or path.startswith(f"{self.admin_path}/")):
             return None
+
         if not self.db:
             return self._html(
                 self._shell(
@@ -102,29 +122,34 @@ class AdminService:
 
         await self._ensure_tables()
 
-        if path in {"/admin/login", "/admin/signup", "/admin/logout"}:
-          return self._redirect("/admin")
+        if path in {
+            f"{self.admin_path}/login",
+            f"{self.admin_path}/signup",
+            f"{self.admin_path}/logout",
+        }:
+            return self._redirect(self.admin_path)
 
         configured_user, configured_pass = self._configured_basic_auth()
         if not configured_user or not configured_pass:
-          return self._html(
-            self._shell(
-              "Admin unavailable",
-              "<p class='text-sm text-gray-600'>"
-              f"Set {_ADMIN_BASIC_USER_ENV} and {_ADMIN_BASIC_PASS_ENV} "
-              "to enable Basic Auth for /admin routes.</p>",
-            ),
-            500,
-          )
+            return self._html(
+                self._shell(
+                    "Admin unavailable",
+                    "<p class='text-sm text-gray-600'>"
+                    f"Set {_ADMIN_BASIC_USER_ENV} and {_ADMIN_BASIC_PASS_ENV} "
+                    f"to enable Basic Auth for {self.admin_path}.</p>",
+                ),
+                500,
+            )
+
         request_user = self._authorized_admin(request, configured_user, configured_pass)
         if not request_user:
-          return self._basic_auth_challenge()
+            return self._basic_auth_challenge()
 
-        if path == "/admin/mentors/action" and request.method == "POST":
-          return await self._handle_mentor_action(request, request_user)
+        if path == self.mentor_action_path and request.method == "POST":
+            return await self._handle_mentor_action(request, request_user)
 
-        if path == "/admin":
-          return await self._handle_dashboard(request_user)
+        if path == self.admin_path:
+            return await self._handle_dashboard(request_user)
 
         return self._json({"error": "Not found"}, 404)
 
@@ -201,32 +226,32 @@ class AdminService:
             """
         )
 
-          def _configured_basic_auth(self) -> Tuple[str, str]:
-            username = str(getattr(self.env, _ADMIN_BASIC_USER_ENV, "") or "").strip()
-            password = str(getattr(self.env, _ADMIN_BASIC_PASS_ENV, "") or "")
-            return username, password
+    def _configured_basic_auth(self) -> Tuple[str, str]:
+        username = str(getattr(self.env, _ADMIN_BASIC_USER_ENV, "") or "").strip()
+        password = str(getattr(self.env, _ADMIN_BASIC_PASS_ENV, "") or "")
+        return username, password
 
-          def _authorized_admin(self, request, expected_user: str, expected_pass: str) -> Optional[str]:
-            supplied_user, supplied_pass = _parse_basic_auth_header(request.headers.get("Authorization") or "")
-            if not supplied_user and not supplied_pass:
-              return None
-            if not hmac.compare_digest(supplied_user, expected_user):
-              return None
-            if not hmac.compare_digest(supplied_pass, expected_pass):
-              return None
-            return supplied_user
+    def _authorized_admin(self, request, expected_user: str, expected_pass: str) -> Optional[str]:
+        supplied_user, supplied_pass = _parse_basic_auth_header(request.headers.get("Authorization") or "")
+        if not supplied_user and not supplied_pass:
+            return None
+        if not hmac.compare_digest(supplied_user, expected_user):
+            return None
+        if not hmac.compare_digest(supplied_pass, expected_pass):
+            return None
+        return supplied_user
 
-          def _basic_auth_challenge(self):
-            return Response.new(
-              "Authentication required",
-              status=401,
-              headers=Headers.new(
+    def _basic_auth_challenge(self):
+        return Response.new(
+            "Authentication required",
+            status=401,
+            headers=Headers.new(
                 {
-                  "Content-Type": "text/plain; charset=utf-8",
-                  "WWW-Authenticate": f'Basic realm="{_ADMIN_BASIC_REALM}", charset="UTF-8"',
+                    "Content-Type": "text/plain; charset=utf-8",
+                    "WWW-Authenticate": f'Basic realm="{_ADMIN_BASIC_REALM}", charset="UTF-8"',
                 }.items()
-              ),
-            )
+            ),
+        )
 
     async def _form_data(self, request) -> dict:
         body = await request.text()
@@ -241,20 +266,20 @@ class AdminService:
         )
 
     def _html(self, body: str, status: int = 200):
-      headers = {"Content-Type": "text/html; charset=utf-8"}
+        headers = {"Content-Type": "text/html; charset=utf-8"}
         return Response.new(body, status=status, headers=Headers.new(headers.items()))
 
     def _redirect(self, location: str):
-      headers = {"Location": location}
+        headers = {"Location": location}
         return Response.new("", status=302, headers=Headers.new(headers.items()))
 
     def _shell(self, title: str, content: str, user: str = "", subtitle: str = "") -> str:
-      auth_chip = (
-        f'<div class="inline-flex items-center gap-2 rounded-full border border-[#E5E5E5] '
-        f'bg-white px-3 py-1 text-xs font-semibold text-gray-600">Basic Auth as @{_escape(user)}</div>'
-        if user
-        else ""
-      )
+        auth_chip = (
+            f'<div class="inline-flex items-center gap-2 rounded-full border border-[#E5E5E5] '
+            f'bg-white px-3 py-1 text-xs font-semibold text-gray-600">Basic Auth as @{_escape(user)}</div>'
+            if user
+            else ""
+        )
         subtitle_html = f"<p class='mt-3 text-sm leading-relaxed text-gray-600'>{subtitle}</p>" if subtitle else ""
         return f"""<!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
@@ -294,7 +319,7 @@ class AdminService:
 <body class="min-h-screen font-sans text-gray-900 antialiased">
   <header class="sticky top-0 z-40 border-b border-[#E5E5E5] bg-white/90 backdrop-blur">
     <div class="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:px-8">
-      <a href="/admin" class="flex items-center gap-3" aria-label="BLT-Pool admin home">
+      <a href="{self.admin_path}" class="flex items-center gap-3" aria-label="BLT-Pool admin home">
         <img src="/logo-sm.png" alt="OWASP BLT logo" class="h-10 w-10 rounded-xl border border-[#E5E5E5] bg-white object-contain p-1">
         <div>
           <p class="text-sm font-semibold uppercase tracking-wide text-gray-500">OWASP BLT</p>
@@ -422,8 +447,7 @@ class AdminService:
 </body>
 </html>"""
 
-  async def _handle_dashboard(self, username: str):
-
+    async def _handle_dashboard(self, username: str):
         mentors = await self._mentor_rows()
         counts = {
             "total": len(mentors),
@@ -565,7 +589,7 @@ class AdminService:
           <td class="px-4 py-4 text-gray-600">{int(mentor.get('assignment_count') or 0)}</td>
           <td class="px-4 py-4">
             <div class="flex flex-wrap gap-2">
-              <form method="POST" action="/admin/mentors/action">
+              <form method="POST" action="{self.mentor_action_path}">
                 <input type="hidden" name="github_username" value="{_escape(username)}">
                 <input type="hidden" name="action" value="{primary_action}">
                 <button
@@ -577,7 +601,7 @@ class AdminService:
                   {primary_label}
                 </button>
               </form>
-              <form method="POST" action="/admin/mentors/action">
+              <form method="POST" action="{self.mentor_action_path}">
                 <input type="hidden" name="github_username" value="{_escape(username)}">
                 <input type="hidden" name="action" value="delete">
                 <button
@@ -595,13 +619,14 @@ class AdminService:
         """
 
     async def _handle_mentor_action(self, request, username: str):
-      if not username:
-        return self._basic_auth_challenge()
+        if not username:
+            return self._basic_auth_challenge()
+
         form = await self._form_data(request)
         github_username = (form.get("github_username") or "").strip().lstrip("@")
         action = (form.get("action") or "").strip().lower()
         if not github_username or action not in {"publish", "block", "delete"}:
-            return self._redirect("/admin")
+            return self._redirect(self.admin_path)
 
         try:
             if action == "publish":
@@ -613,4 +638,5 @@ class AdminService:
                 await self._d1_run("DELETE FROM mentors WHERE github_username = ?", (github_username,))
         except Exception as exc:
             console.error(f"[AdminService] Mentor action '{action}' failed for {github_username}: {exc}")
-        return self._redirect("/admin")
+
+        return self._redirect(self.admin_path)

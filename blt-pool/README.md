@@ -105,6 +105,7 @@ Fill in:
 | `GITHUB_ORG` | Optional org used for homepage mentor stats, defaults to `OWASP-BLT` |
 | `ADMIN_BASIC_AUTH_USERNAME` | Required username for `/admin` HTTP Basic Auth |
 | `ADMIN_BASIC_AUTH_PASSWORD` | Required password for `/admin` HTTP Basic Auth |
+| `ADMIN_PATH` | Optional custom admin route path, defaults to `/admin` |
 
 ### D1 Setup
 

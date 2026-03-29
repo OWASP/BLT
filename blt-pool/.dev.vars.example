@@ -22,3 +22,6 @@ GITHUB_APP_SLUG=blt-github-app
 # Required for /admin Basic Auth protection
 ADMIN_BASIC_AUTH_USERNAME=
 ADMIN_BASIC_AUTH_PASSWORD=
+
+# Optional: change admin route (default: /admin)
+ADMIN_PATH=/admin
