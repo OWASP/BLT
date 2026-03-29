@@ -429,7 +429,7 @@ class AdminService:
     </div>
   </header>
   <main class="mx-auto w-full max-w-[98vw] px-4 py-8 sm:px-6 lg:px-8">
-    <section class="overflow-hidden rounded-3xl border border-[#E5E5E5] bg-white p-5 shadow-[0_14px_40px_rgba(225,1,1,0.10)] sm:p-6 lg:p-7">
+    <section class="overflow-visible rounded-3xl border border-[#E5E5E5] bg-white p-5 shadow-[0_14px_40px_rgba(225,1,1,0.10)] sm:p-6 lg:p-7">
       <div class="mb-8">
         <span class="inline-flex items-center gap-2 rounded-full border border-[#E5E5E5] bg-gray-50 px-3 py-1 text-xs font-semibold text-gray-700">
           <i class="fa-solid fa-shield-halved text-[#E10101]" aria-hidden="true"></i>
