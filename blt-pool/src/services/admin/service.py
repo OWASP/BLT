@@ -440,6 +440,31 @@ class AdminService:
         openDialog(button, form);
       }});
 
+      document.addEventListener('click', (event) => {{
+        const toggle = event.target.closest('button[data-editor-target]');
+        if (!toggle) {{
+          return;
+        }}
+        const targetId = toggle.dataset.editorTarget;
+        const panel = targetId ? document.getElementById(targetId) : null;
+        if (!panel) {{
+          return;
+        }}
+        const isHidden = panel.classList.contains('hidden');
+        document.querySelectorAll('[data-editor-row]').forEach((row) => {{
+          row.classList.add('hidden');
+        }});
+        document.querySelectorAll('button[data-editor-target]').forEach((btn) => {{
+          btn.dataset.expanded = 'false';
+          btn.innerHTML = '<i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>Edit';
+        }});
+        if (isHidden) {{
+          panel.classList.remove('hidden');
+          toggle.dataset.expanded = 'true';
+          toggle.innerHTML = '<i class="fa-solid fa-chevron-up" aria-hidden="true"></i>Close';
+        }}
+      }});
+
       cancelBtn.addEventListener('click', closeDialog);
 
       confirmBtn.addEventListener('click', () => {{
@@ -481,8 +506,8 @@ class AdminService:
         mentor_rows = "\n".join(self._mentor_row_html(row) for row in mentors)
         if not mentor_rows:
             mentor_rows = (
-                "<tr><td colspan='8' class='px-4 py-6 text-center text-sm text-gray-500'>"
-                "No mentors found in D1 yet.</td></tr>"
+                "<div class='rounded-2xl border border-dashed border-[#E5E5E5] bg-gray-50 px-6 py-10 text-center text-sm text-gray-500'>"
+                "No mentors found in D1 yet.</div>"
             )
 
         content = f"""
@@ -508,26 +533,10 @@ class AdminService:
         <div class="mt-8 rounded-2xl border border-[#E5E5E5] bg-white">
           <div class="border-b border-[#E5E5E5] px-5 py-4">
             <h3 class="text-lg font-bold text-[#111827]">Mentor management</h3>
-            <p class="mt-1 text-sm text-gray-600">Edit mentor profile fields, publish state, or delete mentors from the pool.</p>
+            <p class="mt-1 text-sm text-gray-600">Every card is the edit form. Update fields inline, then save.</p>
           </div>
-          <div class="overflow-x-auto">
-            <table class="min-w-full text-left text-sm">
-              <thead class="bg-gray-50 text-xs font-semibold uppercase tracking-wide text-gray-500">
-                <tr>
-                  <th class="px-4 py-3">Mentor</th>
-                  <th class="px-4 py-3">Status</th>
-                  <th class="px-4 py-3">Specialties</th>
-                  <th class="px-4 py-3">Cap</th>
-                  <th class="px-4 py-3">Timezone</th>
-                  <th class="px-4 py-3">Referral</th>
-                  <th class="px-4 py-3">Assignments</th>
-                  <th class="px-4 py-3">Actions</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-[#E5E5E5]">
-                {mentor_rows}
-              </tbody>
-            </table>
+          <div class="space-y-4 p-4 sm:p-5">
+            {mentor_rows}
           </div>
         </div>
         """
@@ -578,10 +587,7 @@ class AdminService:
         name = mentor.get("name", "")
         active = int(mentor.get("active") or 0) == 1
         specialties = mentor.get("specialties_list") or []
-        specialty_html = " ".join(
-            f'<span class="rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-600">{_escape(str(item))}</span>'
-            for item in specialties
-        ) or '<span class="text-xs text-gray-400">-</span>'
+        specialties_value = ", ".join(str(item) for item in specialties)
         badge = (
             '<span class="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700">Published</span>'
             if active
@@ -590,67 +596,72 @@ class AdminService:
         email = mentor.get("email") or ""
         slack_username = mentor.get("slack_username") or ""
         return f"""
-        <tr>
-          <td class="px-4 py-4">
-            <div class="flex items-center gap-3">
-              <img src="https://github.com/{_escape(username)}.png" alt="{_escape(name)}" class="h-9 w-9 rounded-full border border-[#E5E5E5] bg-white object-cover">
-              <div>
-                <p class="font-semibold text-[#111827]">{_escape(name)}</p>
-                <a href="https://github.com/{_escape(username)}" target="_blank" rel="noopener" class="text-xs text-red-600 hover:underline">@{_escape(username)}</a>
+        <form method="POST" action="{self.mentor_action_path}" class="rounded-2xl border border-[#E5E5E5] bg-white p-4 shadow-sm">
+          <input type="hidden" name="action" value="save">
+          <input type="hidden" name="original_github_username" value="{_escape(username)}">
+
+          <div class="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+            <div class="flex min-w-0 items-center gap-3">
+              <img src="https://github.com/{_escape(username)}.png" alt="{_escape(name)}" class="h-11 w-11 rounded-full border border-[#E5E5E5] bg-white object-cover">
+              <div class="min-w-0">
+                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Mentor</p>
+                <div class="mt-1 flex flex-wrap items-center gap-2">
+                  {badge}
+                  <span class="inline-flex items-center rounded-full border border-[#E5E5E5] bg-gray-50 px-2 py-0.5 text-xs font-semibold text-gray-600">{int(mentor.get('assignment_count') or 0)} assignments</span>
+                </div>
               </div>
             </div>
-          </td>
-          <td class="px-4 py-4">{badge}</td>
-          <td class="px-4 py-4"><div class="flex flex-wrap gap-1">{specialty_html}</div></td>
-          <td class="px-4 py-4 text-gray-600">{int(mentor.get('max_mentees') or 3)}</td>
-          <td class="px-4 py-4 text-gray-600">{_escape(mentor.get('timezone') or '-')}</td>
-          <td class="px-4 py-4 text-gray-600">{_escape(mentor.get('referred_by') or '-')}</td>
-          <td class="px-4 py-4 text-gray-600">{int(mentor.get('assignment_count') or 0)}</td>
-          <td class="px-4 py-4">
-            <form method="POST" action="{self.mentor_action_path}" class="space-y-2 rounded-lg border border-[#E5E5E5] bg-gray-50 p-3">
-              <input type="hidden" name="action" value="save">
-              <input type="hidden" name="original_github_username" value="{_escape(username)}">
-              <label class="block text-[11px] font-semibold uppercase tracking-wide text-gray-500">GitHub</label>
-              <input name="github_username" value="{_escape(username)}" class="w-full rounded-md border border-gray-300 px-2 py-1.5 text-xs text-gray-800" maxlength="39" required>
 
-              <label class="block text-[11px] font-semibold uppercase tracking-wide text-gray-500">Display name</label>
-              <input name="name" value="{_escape(name)}" class="w-full rounded-md border border-gray-300 px-2 py-1.5 text-xs text-gray-800" maxlength="100" required>
+            <div class="flex flex-wrap items-center gap-2 xl:justify-end">
+              <label class="inline-flex items-center gap-2 rounded-full border border-[#E5E5E5] bg-gray-50 px-3 py-2 text-xs font-semibold text-gray-700">
+                <input name="active" type="checkbox" value="1" {'checked' if active else ''}>
+                Published
+              </label>
+              <button type="submit" class="inline-flex items-center gap-1 rounded-md border border-emerald-200 px-3 py-2 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-50">
+                <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>
+                Save
+              </button>
+            </div>
+          </div>
 
-              <label class="block text-[11px] font-semibold uppercase tracking-wide text-gray-500">Specialties (comma-separated)</label>
-              <input name="specialties" value="{_escape(', '.join(str(s) for s in specialties))}" class="w-full rounded-md border border-gray-300 px-2 py-1.5 text-xs text-gray-800" maxlength="300">
+          <div class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <div>
+              <label class="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-gray-500">GitHub</label>
+              <input name="github_username" value="{_escape(username)}" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-800" maxlength="39" required>
+            </div>
+            <div>
+              <label class="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-gray-500">Display name</label>
+              <input name="name" value="{_escape(name)}" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-800" maxlength="100" required>
+            </div>
+            <div>
+              <label class="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-gray-500">Timezone</label>
+              <input name="timezone" value="{_escape(mentor.get('timezone') or '')}" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-800" maxlength="60">
+            </div>
+            <div>
+              <label class="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-gray-500">Max mentees</label>
+              <input name="max_mentees" type="number" min="1" max="10" value="{int(mentor.get('max_mentees') or 3)}" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-800">
+            </div>
+            <div class="sm:col-span-2 xl:col-span-2">
+              <label class="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-gray-500">Specialties</label>
+              <input name="specialties" value="{_escape(specialties_value)}" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-800" maxlength="300" placeholder="frontend, python, security">
+            </div>
+            <div>
+              <label class="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-gray-500">Referred by</label>
+              <input name="referred_by" value="{_escape(mentor.get('referred_by') or '')}" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-800" maxlength="39">
+            </div>
+            <div>
+              <label class="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-gray-500">Slack username</label>
+              <input name="slack_username" value="{_escape(slack_username)}" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-800" maxlength="80">
+            </div>
+            <div class="sm:col-span-2 xl:col-span-2">
+              <label class="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-gray-500">Email</label>
+              <input name="email" value="{_escape(email)}" type="email" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-800" maxlength="255">
+            </div>
+          </div>
+        </form>
 
-              <div class="grid grid-cols-2 gap-2">
-                <div>
-                  <label class="block text-[11px] font-semibold uppercase tracking-wide text-gray-500">Cap</label>
-                  <input name="max_mentees" type="number" min="1" max="10" value="{int(mentor.get('max_mentees') or 3)}" class="w-full rounded-md border border-gray-300 px-2 py-1.5 text-xs text-gray-800">
-                </div>
-                <div class="flex items-end">
-                  <label class="inline-flex items-center gap-2 text-xs text-gray-700">
-                    <input name="active" type="checkbox" value="1" {'checked' if active else ''}>
-                    Published
-                  </label>
-                </div>
-              </div>
-
-              <label class="block text-[11px] font-semibold uppercase tracking-wide text-gray-500">Timezone</label>
-              <input name="timezone" value="{_escape(mentor.get('timezone') or '')}" class="w-full rounded-md border border-gray-300 px-2 py-1.5 text-xs text-gray-800" maxlength="60">
-
-              <label class="block text-[11px] font-semibold uppercase tracking-wide text-gray-500">Referred by (GitHub)</label>
-              <input name="referred_by" value="{_escape(mentor.get('referred_by') or '')}" class="w-full rounded-md border border-gray-300 px-2 py-1.5 text-xs text-gray-800" maxlength="39">
-
-              <label class="block text-[11px] font-semibold uppercase tracking-wide text-gray-500">Email</label>
-              <input name="email" value="{_escape(email)}" type="email" class="w-full rounded-md border border-gray-300 px-2 py-1.5 text-xs text-gray-800" maxlength="255">
-
-              <label class="block text-[11px] font-semibold uppercase tracking-wide text-gray-500">Slack username</label>
-              <input name="slack_username" value="{_escape(slack_username)}" class="w-full rounded-md border border-gray-300 px-2 py-1.5 text-xs text-gray-800" maxlength="80">
-
-              <div class="flex flex-wrap gap-2 pt-1">
-                <button type="submit" class="inline-flex items-center gap-1 rounded-md border border-emerald-200 px-3 py-2 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-50">
-                  Save
-                </button>
-              </div>
-            </form>
-            <form method="POST" action="{self.mentor_action_path}" class="mt-2">
+        <div class="mt-2 flex justify-end">
+          <form method="POST" action="{self.mentor_action_path}">
               <input type="hidden" name="github_username" value="{_escape(username)}">
               <input type="hidden" name="action" value="delete">
               <button
@@ -659,11 +670,11 @@ class AdminService:
                 data-confirm-message="This permanently removes the mentor record and clears related assignments from the admin panel."
                 data-confirm-cta="<i class=&quot;fa-solid fa-trash&quot; aria-hidden=&quot;true&quot;></i>Delete mentor"
                 class="inline-flex items-center gap-1 rounded-md border border-red-200 px-3 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-50">
+                <i class="fa-solid fa-trash" aria-hidden="true"></i>
                 Delete
               </button>
             </form>
-          </td>
-        </tr>
+        </div>
         """
 
     async def _handle_mentor_action(self, request, username: str):
