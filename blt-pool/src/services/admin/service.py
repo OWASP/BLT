@@ -940,7 +940,9 @@ class AdminService:
         <tr data-mentor-row data-mentor="{_escape(name).lower()}" data-name="{_escape(name).lower()}" data-github_username="{_escape(username).lower()}" data-active="{1 if active else 0}" data-max_mentees="{int(mentor.get('max_mentees') or 3)}" data-assignment_count="{assignment_count}">
           <td class="px-3 py-2">
             <div class="flex items-center gap-2">
-              <img src="https://github.com/{_escape(username)}.png" alt="{_escape(name)}" class="h-8 w-8 rounded-full border border-[#E5E5E5] bg-white object-cover">
+              <a href="https://github.com/{_escape(username)}" target="_blank" rel="noopener noreferrer" aria-label="Open @{_escape(username)} on GitHub" class="inline-flex rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E10101] focus-visible:ring-offset-2">
+                <img src="https://github.com/{_escape(username)}.png" alt="{_escape(name)}" class="h-8 w-8 rounded-full border border-[#E5E5E5] bg-white object-cover transition hover:opacity-90">
+              </a>
               <span data-autosave-status data-state="idle" class="inline-flex items-center rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-[11px] font-semibold text-gray-500">Idle</span>
             </div>
             <form id="{form_id}" method="POST" action="{self.mentor_action_path}">
