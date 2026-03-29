@@ -407,7 +407,7 @@ class AdminService:
 </head>
 <body class="min-h-screen font-sans text-gray-900 antialiased">
   <header class="sticky top-0 z-40 border-b border-[#E5E5E5] bg-white/90 backdrop-blur">
-    <div class="mx-auto flex w-full max-w-[96rem] items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:px-8">
+    <div class="mx-auto flex w-full max-w-[98vw] items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:px-8">
       <a href="{self.admin_path}" class="flex items-center gap-3" aria-label="BLT-Pool admin home">
         <img src="/logo-sm.png" alt="OWASP BLT logo" class="h-10 w-10 rounded-xl border border-[#E5E5E5] bg-white object-contain p-1">
         <div>
@@ -420,7 +420,7 @@ class AdminService:
       </div>
     </div>
   </header>
-  <main class="mx-auto w-full max-w-[96rem] px-4 py-8 sm:px-6 lg:px-8">
+  <main class="mx-auto w-full max-w-[98vw] px-4 py-8 sm:px-6 lg:px-8">
     <section class="overflow-hidden rounded-3xl border border-[#E5E5E5] bg-white p-5 shadow-[0_14px_40px_rgba(225,1,1,0.10)] sm:p-6 lg:p-7">
       <div class="mb-8">
         <span class="inline-flex items-center gap-2 rounded-full border border-[#E5E5E5] bg-gray-50 px-3 py-1 text-xs font-semibold text-gray-700">
@@ -615,7 +615,7 @@ class AdminService:
             )
 
         content = f"""
-        <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div class="mx-auto max-w-6xl grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-4">
             <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Total mentors</p>
             <p class="mt-1 text-2xl font-extrabold text-[#111827]">{counts['total']}</p>
@@ -634,7 +634,7 @@ class AdminService:
           </article>
         </div>
 
-        <div class="mt-8 rounded-2xl border border-[#E5E5E5] bg-white">
+        <div class="mt-8 -mx-5 overflow-hidden border-t border-[#E5E5E5] bg-white sm:-mx-6 lg:-mx-7">
           <div class="border-b border-[#E5E5E5] px-5 py-4">
             <h3 class="text-lg font-bold text-[#111827]">Mentor management</h3>
             <p class="mt-1 text-sm text-gray-600">Inline editable mentor grid with sortable columns.</p>
@@ -643,17 +643,17 @@ class AdminService:
             <table id="admin-mentor-table" class="min-w-full text-left text-sm">
               <thead class="bg-gray-50 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
                 <tr>
-                  <th class="px-3 py-3">Mentor</th>
+                  <th class="px-3 py-3"><button type="button" data-sort-key="mentor" data-sort-direction="desc" class="inline-flex items-center gap-1">Mentor <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
                   <th class="px-3 py-3"><button type="button" data-sort-key="name" data-sort-direction="desc" class="inline-flex items-center gap-1">Name <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
                   <th class="px-3 py-3"><button type="button" data-sort-key="github_username" data-sort-direction="desc" class="inline-flex items-center gap-1">GitHub <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
                   <th class="px-3 py-3"><button type="button" data-sort-key="active" data-sort-direction="desc" class="inline-flex items-center gap-1">Published <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
-                  <th class="px-3 py-3">Specialties</th>
+                  <th class="px-3 py-3"><button type="button" data-sort-key="specialties" data-sort-direction="desc" class="inline-flex items-center gap-1">Specialties <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
                   <th class="px-3 py-3"><button type="button" data-sort-key="max_mentees" data-sort-direction="desc" class="inline-flex items-center gap-1">Cap <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
-                  <th class="px-3 py-3">Timezone</th>
-                  <th class="px-3 py-3">Referral</th>
-                  <th class="px-3 py-3">Slack</th>
-                  <th class="px-3 py-3">Email</th>
-                  <th class="px-3 py-3"><button type="button" data-sort-key="assignment_count" data-sort-direction="desc" class="inline-flex items-center gap-1">Assignments <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="px-3 py-3"><button type="button" data-sort-key="timezone" data-sort-direction="desc" class="inline-flex items-center gap-1">Timezone <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="px-3 py-3"><button type="button" data-sort-key="referred_by" data-sort-direction="desc" class="inline-flex items-center gap-1">Referral <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="px-3 py-3"><button type="button" data-sort-key="slack_username" data-sort-direction="desc" class="inline-flex items-center gap-1">Slack <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="px-3 py-3"><button type="button" data-sort-key="email" data-sort-direction="desc" class="inline-flex items-center gap-1">Email <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="px-3 py-3"><button type="button" data-sort-key="assignments" data-sort-direction="desc" class="inline-flex items-center gap-1">Assignments <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
                   <th class="px-3 py-3 text-right">Actions</th>
                 </tr>
               </thead>
@@ -725,7 +725,7 @@ class AdminService:
         assignment_refs = mentor.get("assignment_refs") or ""
         form_id = f"mentor-form-{username.lower().replace('_', '-')}"
         return f"""
-        <tr data-mentor-row data-name="{_escape(name).lower()}" data-github_username="{_escape(username).lower()}" data-active="{1 if active else 0}" data-max_mentees="{int(mentor.get('max_mentees') or 3)}" data-assignment_count="{int(mentor.get('assignment_count') or 0)}">
+        <tr data-mentor-row data-mentor="{_escape(name).lower()}" data-name="{_escape(name).lower()}" data-github_username="{_escape(username).lower()}" data-active="{1 if active else 0}" data-max_mentees="{int(mentor.get('max_mentees') or 3)}">
           <td class="px-3 py-2">
             <div class="flex items-center gap-2">
               <img src="https://github.com/{_escape(username)}.png" alt="{_escape(name)}" class="h-8 w-8 rounded-full border border-[#E5E5E5] bg-white object-cover">
@@ -743,13 +743,13 @@ class AdminService:
               <input form="{form_id}" data-field="active" name="active" type="checkbox" value="1" {'checked' if active else ''}>
             </label>
           </td>
-          <td class="px-3 py-2"><input form="{form_id}" name="specialties" value="{_escape(specialties_value)}" class="w-48 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" maxlength="300" placeholder="frontend, python"></td>
+          <td class="px-3 py-2"><input form="{form_id}" data-field="specialties" name="specialties" value="{_escape(specialties_value)}" class="w-48 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" maxlength="300" placeholder="frontend, python"></td>
           <td class="px-3 py-2"><input form="{form_id}" data-field="max_mentees" name="max_mentees" type="number" min="1" max="10" value="{int(mentor.get('max_mentees') or 3)}" class="w-20 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800"></td>
-          <td class="px-3 py-2"><input form="{form_id}" name="timezone" value="{_escape(mentor.get('timezone') or '')}" class="w-28 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" maxlength="60"></td>
-          <td class="px-3 py-2"><input form="{form_id}" name="referred_by" value="{_escape(mentor.get('referred_by') or '')}" class="w-28 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" maxlength="39"></td>
-          <td class="px-3 py-2"><input form="{form_id}" name="slack_username" value="{_escape(slack_username)}" class="w-32 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" maxlength="80"></td>
-          <td class="px-3 py-2"><input form="{form_id}" name="email" type="email" value="{_escape(email)}" class="w-56 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" maxlength="255"></td>
-          <td class="px-3 py-2"><input form="{form_id}" name="assignments" value="{_escape(assignment_refs)}" class="w-48 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" placeholder="repo#123, repo#456"></td>
+          <td class="px-3 py-2"><input form="{form_id}" data-field="timezone" name="timezone" value="{_escape(mentor.get('timezone') or '')}" class="w-28 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" maxlength="60"></td>
+          <td class="px-3 py-2"><input form="{form_id}" data-field="referred_by" name="referred_by" value="{_escape(mentor.get('referred_by') or '')}" class="w-28 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" maxlength="39"></td>
+          <td class="px-3 py-2"><input form="{form_id}" data-field="slack_username" name="slack_username" value="{_escape(slack_username)}" class="w-32 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" maxlength="80"></td>
+          <td class="px-3 py-2"><input form="{form_id}" data-field="email" name="email" type="email" value="{_escape(email)}" class="w-56 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" maxlength="255"></td>
+          <td class="px-3 py-2"><input form="{form_id}" data-field="assignments" name="assignments" value="{_escape(assignment_refs)}" class="w-48 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" placeholder="repo#123, repo#456"></td>
           <td class="px-3 py-2">
             <div class="flex items-center justify-end gap-2">
               <button form="{form_id}" type="submit" class="inline-flex items-center gap-1 rounded-md border border-emerald-200 px-2.5 py-2 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-50">
