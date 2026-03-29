@@ -108,12 +108,17 @@ class AdminService:
     async def handle(self, request):
         """Handle admin routes, or return None when the path is not for this service."""
         path = urlparse(str(request.url)).path.rstrip("/") or "/"
+        legacy_mentor_action_path = "/admin/mentors/action"
 
         # Reset endpoint is handled in worker.py.
         if path in {"/admin/reset-leaderboard-month", f"{self.admin_path}/reset-leaderboard-month"}:
             return None
 
-        if not (path == self.admin_path or path.startswith(f"{self.admin_path}/")):
+        if not (
+            path == self.admin_path
+            or path.startswith(f"{self.admin_path}/")
+            or path == legacy_mentor_action_path
+        ):
             return None
 
         if not self.db:
@@ -150,7 +155,7 @@ class AdminService:
         if not request_user:
             return self._basic_auth_challenge()
 
-        if path == self.mentor_action_path and request.method == "POST":
+        if path in {self.mentor_action_path, legacy_mentor_action_path} and request.method == "POST":
             return await self._handle_mentor_action(request, request_user)
 
         if path == self.admin_path:
@@ -615,6 +620,21 @@ class AdminService:
           return;
         }}
         const {{ row, form, params }} = payload;
+        const configuredActionPath = {json.dumps(self.mentor_action_path)};
+        const currentPath = (window.location && window.location.pathname) ? window.location.pathname.replace(/\\/+$/, '') : '';
+        const actionCandidates = [];
+        if (form.action) {{
+          actionCandidates.push(form.action);
+        }}
+        if (configuredActionPath && !actionCandidates.includes(configuredActionPath)) {{
+          actionCandidates.push(configuredActionPath);
+        }}
+        if (currentPath) {{
+          const currentPathAction = `${{currentPath}}/mentors/action`;
+          if (!actionCandidates.includes(currentPathAction)) {{
+            actionCandidates.push(currentPathAction);
+          }}
+        }}
         const timerKey = form.id || form.getAttribute('action') || Math.random().toString(16);
         const existingTimer = autosaveTimers.get(timerKey);
         if (existingTimer) {{
@@ -624,14 +644,24 @@ class AdminService:
 
         const timer = setTimeout(async () => {{
           try {{
-            const response = await fetch(form.action, {{
-              method: 'POST',
-              headers: {{
-                'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
-                'X-Admin-Autosave': '1',
-              }},
-              body: params.toString(),
-            }});
+            let response = null;
+            for (const actionUrl of actionCandidates) {{
+              response = await fetch(actionUrl, {{
+                method: 'POST',
+                headers: {{
+                  'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+                  'X-Admin-Autosave': '1',
+                }},
+                body: params.toString(),
+              }});
+              if (response.status !== 404) {{
+                break;
+              }}
+            }}
+            if (!response) {{
+              markRowStatus(row, 'error', 'Save failed');
+              return;
+            }}
             if (!response.ok) {{
               let errorCode = '';
               try {{
