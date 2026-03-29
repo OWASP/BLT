@@ -103,6 +103,8 @@ Fill in:
 | `GITHUB_CLIENT_ID` | Optional OAuth client ID |
 | `GITHUB_CLIENT_SECRET` | Optional OAuth client secret |
 | `GITHUB_ORG` | Optional org used for homepage mentor stats, defaults to `OWASP-BLT` |
+| `ADMIN_BASIC_AUTH_USERNAME` | Required username for `/admin` HTTP Basic Auth |
+| `ADMIN_BASIC_AUTH_PASSWORD` | Required password for `/admin` HTTP Basic Auth |
 
 ### D1 Setup
 
@@ -135,6 +137,8 @@ npx wrangler deploy
 npx wrangler secret put APP_ID
 npx wrangler secret put PRIVATE_KEY
 npx wrangler secret put WEBHOOK_SECRET
+npx wrangler secret put ADMIN_BASIC_AUTH_USERNAME
+npx wrangler secret put ADMIN_BASIC_AUTH_PASSWORD
 ```
 
 Bulk upload is supported with:

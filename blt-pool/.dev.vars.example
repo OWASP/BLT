@@ -18,3 +18,7 @@ BLT_API_URL=https://blt-api.owasp-blt.workers.dev
 
 # Optional: GitHub App slug (URL-friendly name shown in GitHub App URLs)
 GITHUB_APP_SLUG=blt-github-app
+
+# Required for /admin Basic Auth protection
+ADMIN_BASIC_AUTH_USERNAME=
+ADMIN_BASIC_AUTH_PASSWORD=

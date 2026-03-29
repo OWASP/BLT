@@ -1,58 +1,46 @@
 """Admin service for BLT-Pool.
 
-Keeps admin auth, session handling, and mentor management out of worker.py.
+Keeps admin auth and mentor management out of worker.py.
 """
 
-import hashlib
+import base64
+import binascii
 import hmac
 import html as _html
 import json
-import re
-import secrets
-import time
-from typing import Optional
+from typing import Optional, Tuple
 from urllib.parse import parse_qs, quote_plus, urlparse
 
 from js import Headers, Response, console, fetch
 
 
-_ADMIN_COOKIE = "blt_admin_session"
-_SESSION_TTL_SECONDS = 7 * 24 * 60 * 60
-_ADMIN_USERNAME_RE = r"^[A-Za-z0-9_.-]{3,32}$"
+_ADMIN_BASIC_USER_ENV = "ADMIN_BASIC_AUTH_USERNAME"
+_ADMIN_BASIC_PASS_ENV = "ADMIN_BASIC_AUTH_PASSWORD"
+_ADMIN_BASIC_REALM = "BLT-Pool Admin"
+
+
 def _escape(value: str) -> str:
     return _html.escape(value or "", quote=True)
 
 
-def _cookie_value(cookie_header: str, name: str) -> str:
-    if not cookie_header:
-        return ""
-    for item in cookie_header.split(";"):
-        part = item.strip()
-        if not part or "=" not in part:
-            continue
-        key, value = part.split("=", 1)
-        if key.strip() == name:
-            return value.strip()
-    return ""
-
-
-def _password_hash(password: str, salt: bytes | None = None) -> str:
-    salt = salt or secrets.token_bytes(16)
-    derived = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, 120_000)
-    return f"{salt.hex()}:{derived.hex()}"
-
-
-def _password_matches(password: str, stored_hash: str) -> bool:
+def _parse_basic_auth_header(auth_header: str) -> Tuple[str, str]:
+  """Parse a Basic auth header and return (username, password)."""
+  if not auth_header:
+    return "", ""
+  prefix = "Basic "
+  if not auth_header.startswith(prefix):
+    return "", ""
+  encoded = auth_header[len(prefix):].strip()
+  if not encoded:
+    return "", ""
     try:
-        salt_hex, expected_hex = stored_hash.split(":", 1)
-    except ValueError:
-        return False
-    recalculated = _password_hash(password, bytes.fromhex(salt_hex))
-    return hmac.compare_digest(recalculated, stored_hash)
-
-
-def _session_hash(session_token: str) -> str:
-    return hashlib.sha256(session_token.encode("utf-8")).hexdigest()
+    decoded = base64.b64decode(encoded, validate=True).decode("utf-8")
+  except (binascii.Error, UnicodeDecodeError):
+    return "", ""
+  if ":" not in decoded:
+    return "", ""
+  username, password = decoded.split(":", 1)
+  return username, password
 
 
 def _github_headers(token: str = "") -> Headers:
@@ -114,24 +102,29 @@ class AdminService:
 
         await self._ensure_tables()
 
-        if path == "/admin/signup":
-            if request.method == "POST":
-                return await self._handle_signup_post(request)
-            return await self._handle_signup_get(request)
+        if path in {"/admin/login", "/admin/signup", "/admin/logout"}:
+          return self._redirect("/admin")
 
-        if path == "/admin/login":
-            if request.method == "POST":
-                return await self._handle_login_post(request)
-            return await self._handle_login_get(request)
-
-        if path == "/admin/logout":
-            return await self._handle_logout(request)
+        configured_user, configured_pass = self._configured_basic_auth()
+        if not configured_user or not configured_pass:
+          return self._html(
+            self._shell(
+              "Admin unavailable",
+              "<p class='text-sm text-gray-600'>"
+              f"Set {_ADMIN_BASIC_USER_ENV} and {_ADMIN_BASIC_PASS_ENV} "
+              "to enable Basic Auth for /admin routes.</p>",
+            ),
+            500,
+          )
+        request_user = self._authorized_admin(request, configured_user, configured_pass)
+        if not request_user:
+          return self._basic_auth_challenge()
 
         if path == "/admin/mentors/action" and request.method == "POST":
-            return await self._handle_mentor_action(request)
+          return await self._handle_mentor_action(request, request_user)
 
         if path == "/admin":
-            return await self._handle_dashboard(request)
+          return await self._handle_dashboard(request_user)
 
         return self._json({"error": "Not found"}, 404)
 
@@ -184,26 +177,6 @@ class AdminService:
     async def _ensure_tables(self) -> None:
         await self._d1_run(
             """
-            CREATE TABLE IF NOT EXISTS admin_users (
-                id INTEGER PRIMARY KEY CHECK(id = 1),
-                username TEXT NOT NULL UNIQUE,
-                password_hash TEXT NOT NULL,
-                created_at INTEGER NOT NULL
-            )
-            """
-        )
-        await self._d1_run(
-            """
-            CREATE TABLE IF NOT EXISTS admin_sessions (
-                session_hash TEXT PRIMARY KEY,
-                username TEXT NOT NULL,
-                created_at INTEGER NOT NULL,
-                expires_at INTEGER NOT NULL
-            )
-            """
-        )
-        await self._d1_run(
-            """
             CREATE TABLE IF NOT EXISTS mentors (
                 github_username TEXT NOT NULL PRIMARY KEY,
                 name TEXT NOT NULL,
@@ -227,50 +200,32 @@ class AdminService:
             )
             """
         )
-        await self._d1_run(
-            "DELETE FROM admin_sessions WHERE expires_at <= ?",
-            (int(time.time()),),
-        )
 
+          def _configured_basic_auth(self) -> Tuple[str, str]:
+            username = str(getattr(self.env, _ADMIN_BASIC_USER_ENV, "") or "").strip()
+            password = str(getattr(self.env, _ADMIN_BASIC_PASS_ENV, "") or "")
+            return username, password
 
-    async def _has_admin(self) -> bool:
-        row = await self._d1_first("SELECT username FROM admin_users WHERE id = 1")
-        return bool(row and row.get("username"))
+          def _authorized_admin(self, request, expected_user: str, expected_pass: str) -> Optional[str]:
+            supplied_user, supplied_pass = _parse_basic_auth_header(request.headers.get("Authorization") or "")
+            if not supplied_user and not supplied_pass:
+              return None
+            if not hmac.compare_digest(supplied_user, expected_user):
+              return None
+            if not hmac.compare_digest(supplied_pass, expected_pass):
+              return None
+            return supplied_user
 
-    async def _current_admin(self, request) -> Optional[str]:
-        cookie = _cookie_value(request.headers.get("Cookie") or "", _ADMIN_COOKIE)
-        if not cookie:
-            return None
-        hashed = _session_hash(cookie)
-        row = await self._d1_first(
-            "SELECT username, expires_at FROM admin_sessions WHERE session_hash = ?",
-            (hashed,),
-        )
-        if not row:
-            return None
-        if int(row.get("expires_at") or 0) <= int(time.time()):
-            await self._d1_run("DELETE FROM admin_sessions WHERE session_hash = ?", (hashed,))
-            return None
-        return row.get("username")
-
-    async def _create_session(self, username: str) -> str:
-        token = secrets.token_urlsafe(32)
-        now = int(time.time())
-        await self._d1_run(
-            """
-            INSERT INTO admin_sessions (session_hash, username, created_at, expires_at)
-            VALUES (?, ?, ?, ?)
-            """,
-            (_session_hash(token), username, now, now + _SESSION_TTL_SECONDS),
-        )
-        return token
-
-    async def _delete_session(self, request) -> None:
-        cookie = _cookie_value(request.headers.get("Cookie") or "", _ADMIN_COOKIE)
-        if cookie:
-            await self._d1_run(
-                "DELETE FROM admin_sessions WHERE session_hash = ?",
-                (_session_hash(cookie),),
+          def _basic_auth_challenge(self):
+            return Response.new(
+              "Authentication required",
+              status=401,
+              headers=Headers.new(
+                {
+                  "Content-Type": "text/plain; charset=utf-8",
+                  "WWW-Authenticate": f'Basic realm="{_ADMIN_BASIC_REALM}", charset="UTF-8"',
+                }.items()
+              ),
             )
 
     async def _form_data(self, request) -> dict:
@@ -285,34 +240,21 @@ class AdminService:
             headers=Headers.new({"Content-Type": "application/json"}.items()),
         )
 
-    def _html(self, body: str, status: int = 200, set_cookie: str = ""):
-        headers = {"Content-Type": "text/html; charset=utf-8"}
-        if set_cookie:
-            headers["Set-Cookie"] = set_cookie
+    def _html(self, body: str, status: int = 200):
+      headers = {"Content-Type": "text/html; charset=utf-8"}
         return Response.new(body, status=status, headers=Headers.new(headers.items()))
 
-    def _redirect(self, location: str, set_cookie: str = ""):
-        headers = {"Location": location}
-        if set_cookie:
-            headers["Set-Cookie"] = set_cookie
+    def _redirect(self, location: str):
+      headers = {"Location": location}
         return Response.new("", status=302, headers=Headers.new(headers.items()))
 
-    def _session_cookie(self, token: str) -> str:
-        return (
-            f"{_ADMIN_COOKIE}={token}; Path=/; HttpOnly; SameSite=Lax; "
-            f"Max-Age={_SESSION_TTL_SECONDS}"
-        )
-
-    def _clear_session_cookie(self) -> str:
-        return f"{_ADMIN_COOKIE}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0"
-
     def _shell(self, title: str, content: str, user: str = "", subtitle: str = "") -> str:
-        user_chip = ""
-        if user:
-            user_chip = (
-                f'<div class="inline-flex items-center gap-2 rounded-full border border-[#E5E5E5] '
-                f'bg-white px-3 py-1 text-xs font-semibold text-gray-600">Signed in as @{_escape(user)}</div>'
-            )
+      auth_chip = (
+        f'<div class="inline-flex items-center gap-2 rounded-full border border-[#E5E5E5] '
+        f'bg-white px-3 py-1 text-xs font-semibold text-gray-600">Basic Auth as @{_escape(user)}</div>'
+        if user
+        else ""
+      )
         subtitle_html = f"<p class='mt-3 text-sm leading-relaxed text-gray-600'>{subtitle}</p>" if subtitle else ""
         return f"""<!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
@@ -360,8 +302,7 @@ class AdminService:
         </div>
       </a>
       <div class="flex items-center gap-3">
-        {user_chip}
-        {"<a href='/admin/logout' class='inline-flex items-center gap-2 rounded-md border border-[#E10101] px-4 py-2 text-sm font-semibold text-[#E10101] transition hover:bg-[#E10101] hover:text-white'><i class='fa-solid fa-right-from-bracket' aria-hidden='true'></i>Logout</a>" if user else ""}
+        {auth_chip}
       </div>
     </div>
   </header>
@@ -481,119 +422,7 @@ class AdminService:
 </body>
 </html>"""
 
-    def _auth_form(self, mode: str, error: str = "") -> str:
-        title = "Create the first admin" if mode == "signup" else "Admin login"
-        action = "/admin/signup" if mode == "signup" else "/admin/login"
-        submit = "Create admin" if mode == "signup" else "Login"
-        helper = (
-            "This route only works once. After the first admin is created, future visits go through login."
-            if mode == "signup"
-            else "Use the admin account created during first-time setup."
-        )
-        confirm_field = ""
-        if mode == "signup":
-            confirm_field = """
-            <div>
-              <label for="confirm_password" class="mb-1 block text-sm font-semibold text-gray-700">Confirm password</label>
-              <input id="confirm_password" name="confirm_password" type="password" required class="w-full rounded-md border border-gray-400 px-4 py-2 text-sm text-gray-900 focus:border-red-600 focus:ring-1 focus:ring-red-600 focus:outline-none">
-            </div>
-            """
-        error_html = ""
-        if error:
-            error_html = f"<p class='mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700'>{_escape(error)}</p>"
-        content = f"""
-        <div class="mx-auto max-w-md">
-          <p class="mb-6 text-sm leading-relaxed text-gray-600">{helper}</p>
-          {error_html}
-          <form method="POST" action="{action}" class="space-y-4">
-            <div>
-              <label for="username" class="mb-1 block text-sm font-semibold text-gray-700">Username</label>
-              <input id="username" name="username" type="text" autocomplete="username" required class="w-full rounded-md border border-gray-400 px-4 py-2 text-sm text-gray-900 focus:border-red-600 focus:ring-1 focus:ring-red-600 focus:outline-none">
-            </div>
-            <div>
-              <label for="password" class="mb-1 block text-sm font-semibold text-gray-700">Password</label>
-              <input id="password" name="password" type="password" autocomplete="current-password" required class="w-full rounded-md border border-gray-400 px-4 py-2 text-sm text-gray-900 focus:border-red-600 focus:ring-1 focus:ring-red-600 focus:outline-none">
-            </div>
-            {confirm_field}
-            <button type="submit" class="inline-flex items-center gap-2 rounded-md bg-[#E10101] px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2">
-              <i class="fa-solid fa-lock" aria-hidden="true"></i>
-              {submit}
-            </button>
-          </form>
-        </div>
-        """
-        return self._shell(title, content, subtitle="Simple D1-backed admin auth for mentor management.")
-
-    async def _handle_signup_get(self, request):
-        if await self._has_admin():
-            current = await self._current_admin(request)
-            if current:
-                return self._redirect("/admin")
-            return self._redirect("/admin/login")
-        return self._html(self._auth_form("signup"))
-
-    async def _handle_signup_post(self, request):
-        if await self._has_admin():
-            return self._redirect("/admin/login")
-
-        form = await self._form_data(request)
-        username = form.get("username", "")
-        password = form.get("password", "")
-        confirm = form.get("confirm_password", "")
-
-        if not username or not password:
-            return self._html(self._auth_form("signup", "Username and password are required."), 400)
-        if not re.match(_ADMIN_USERNAME_RE, username):
-            return self._html(self._auth_form("signup", "Username must be 3-32 characters using letters, numbers, dot, underscore, or hyphen."), 400)
-        if len(password) < 8:
-            return self._html(self._auth_form("signup", "Password must be at least 8 characters."), 400)
-        if password != confirm:
-            return self._html(self._auth_form("signup", "Passwords do not match."), 400)
-
-        try:
-            await self._d1_run(
-                "INSERT INTO admin_users (id, username, password_hash, created_at) VALUES (1, ?, ?, ?)",
-                (username, _password_hash(password), int(time.time())),
-            )
-        except Exception as exc:
-            console.error(f"[AdminService] Failed to create first admin: {exc}")
-            return self._html(self._auth_form("signup", "Admin setup is already complete or the account could not be created."), 409)
-
-        token = await self._create_session(username)
-        return self._redirect("/admin", set_cookie=self._session_cookie(token))
-
-    async def _handle_login_get(self, request):
-        if not await self._has_admin():
-            return self._redirect("/admin/signup")
-        current = await self._current_admin(request)
-        if current:
-            return self._redirect("/admin")
-        return self._html(self._auth_form("login"))
-
-    async def _handle_login_post(self, request):
-        if not await self._has_admin():
-            return self._redirect("/admin/signup")
-
-        form = await self._form_data(request)
-        username = form.get("username", "")
-        password = form.get("password", "")
-        row = await self._d1_first("SELECT username, password_hash FROM admin_users WHERE id = 1")
-        if not row or row.get("username") != username or not _password_matches(password, row.get("password_hash", "")):
-            return self._html(self._auth_form("login", "Invalid username or password."), 401)
-
-        token = await self._create_session(username)
-        return self._redirect("/admin", set_cookie=self._session_cookie(token))
-
-    async def _handle_logout(self, request):
-        await self._delete_session(request)
-        return self._redirect("/admin/login", set_cookie=self._clear_session_cookie())
-
-    async def _handle_dashboard(self, request):
-        if not await self._has_admin():
-            return self._redirect("/admin/signup")
-        username = await self._current_admin(request)
-        if not username:
-            return self._redirect("/admin/login")
+  async def _handle_dashboard(self, username: str):
 
         mentors = await self._mentor_rows()
         counts = {
@@ -765,10 +594,9 @@ class AdminService:
         </tr>
         """
 
-    async def _handle_mentor_action(self, request):
-        if not await self._current_admin(request):
-            return self._redirect("/admin/login")
-
+    async def _handle_mentor_action(self, request, username: str):
+      if not username:
+        return self._basic_auth_challenge()
         form = await self._form_data(request)
         github_username = (form.get("github_username") or "").strip().lstrip("@")
         action = (form.get("action") or "").strip().lower()

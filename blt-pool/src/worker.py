@@ -5385,7 +5385,7 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
           <i class="fa-solid fa-circle text-[0.4rem]" aria-hidden="true"></i>
           Live
         </span>
-        <a href="/admin/login"
+        <a href="/admin"
            class="inline-flex items-center gap-1.5 rounded-md border border-[#E5E5E5] px-3 py-2 text-xs font-semibold text-gray-700 transition hover:border-[#E10101] hover:bg-[#feeae9] hover:text-[#E10101] focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2">
           <i class="fa-solid fa-shield-halved text-[#E10101]" aria-hidden="true"></i>
           Admin
