@@ -1,6 +1,6 @@
 {
   "participantCount": 184,
-  "totalPRs": 2572,
+  "totalPRs": 2573,
   "mergedPRs": 1620,
   "totalIssues": 825,
   "repositories": 53,
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "feat: expand REST API for Organizations, Projects, and Hunts to support BLT-Next CRUD",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6099",
+      "username": "Makeepan-dev",
+      "avatar": "https://avatars.githubusercontent.com/u/183580740?v=4",
+      "state": "closed",
+      "created_at": "2026-03-29T09:21:49Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT"
+    },
     {
       "title": "refactor: enhance UI resilience and optimize Tailwind configuration",
       "url": "https://github.com/OWASP-BLT/BLT-Hackathons/pull/86",
@@ -114,16 +124,6 @@
       "created_at": "2026-03-28T11:12:41Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT-API"
-    },
-    {
-      "title": "a11y: add aria-labels to footer social icon links",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6095",
-      "username": "mkamrul9",
-      "avatar": "https://avatars.githubusercontent.com/u/96786626?v=4",
-      "state": "closed",
-      "created_at": "2026-03-28T03:31:35Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT"
     }
   ]
 }
