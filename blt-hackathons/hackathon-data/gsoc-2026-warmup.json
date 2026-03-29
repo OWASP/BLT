@@ -1,71 +1,91 @@
 {
-  "lastUpdated": "2026-03-29T12:19:41.007064+00:00",
+  "lastUpdated": "2026-03-29T13:28:23.238209+00:00",
   "slug": "gsoc-2026-warmup",
   "name": "GSOC 2026 Warmup",
   "startTime": "2025-11-01T00:00:00Z",
   "endTime": "2026-05-09T23:59:59Z",
   "repositories": [
-    "OWASP-BLT/BLT-Next",
-    "OWASP-BLT/BLT-SafeCloak",
-    "OWASP-BLT/BLT-Monitor",
-    "OWASP-BLT/.github",
-    "OWASP-BLT/BLT-Leaf",
-    "OWASP-BLT/owasp-blt.github.io",
-    "OWASP-BLT/BLT-Vanish-Web",
-    "OWASP-BLT/BLT-Start",
-    "OWASP-BLT/BLT-Tomato",
     "OWASP-BLT/BLT-Raven",
-    "OWASP-BLT/BLT-Newsletter",
-    "OWASP-BLT/BLT-Design-Contest",
+    "OWASP-BLT/BLT-Pages",
+    "OWASP-BLT/BLT-GSOC",
+    "OWASP-BLT/BLT-MCP",
+    "OWASP-BLT/BLT-Design",
+    "OWASP-BLT/BLT-OWASP-Wich",
+    "OWASP-BLT/BLT-Preflight",
+    "OWASP-BLT/BLT-Next",
+    "OWASP-BLT/BLT-Jobs",
     "OWASP-BLT/BLT-Pool",
-    "OWASP-BLT/BLT-OWASP-Projects",
-    "OWASP-BLT/BLT-OWASP-metadata",
+    "OWASP-BLT/BLT-Hackathons",
+    "OWASP-BLT/BLT",
+    "OWASP-BLT/BLT-docs",
+    "OWASP-BLT/MY-GSOC-TOOL",
+    "OWASP-BLT/BLT-Vanish-Flutter",
+    "OWASP-BLT/BLT-Enforcement",
+    "OWASP-BLT/BLT-Github-Sportscaster",
+    "OWASP-BLT/BLT-CVE",
+    "OWASP-BLT/BLT-Leaf",
+    "OWASP-BLT/BLT-Tomato",
     "OWASP-BLT/BLT-Sammich",
     "OWASP-BLT/BLT-Ideas",
-    "OWASP-BLT/BLT-Jobs",
-    "OWASP-BLT/BLT-Ketchup",
-    "OWASP-BLT/coderabbit",
-    "OWASP-BLT/BLT-NetGuardian-Client",
-    "OWASP-BLT/BLT-MCP",
-    "OWASP-BLT/MY-GSOC-TOOL",
-    "OWASP-BLT/BLT-OWASP-Wich",
-    "OWASP-BLT/BLT-Hackathons",
-    "OWASP-BLT/BLT-GSOC",
-    "OWASP-BLT/BLT-Sizzle",
-    "OWASP-BLT/BLT-Github-Sportscaster",
-    "OWASP-BLT/BLT-Byte",
-    "OWASP-BLT/BLT-API",
-    "OWASP-BLT/BLT-Preflight",
-    "OWASP-BLT/BLT-Dash",
-    "OWASP-BLT/BLT-CVE",
-    "OWASP-BLT/BLT-Design",
-    "OWASP-BLT/BLT-Enforcement",
-    "OWASP-BLT/BLT-Pages",
-    "OWASP-BLT/BLT-OSSH",
-    "OWASP-BLT/BLT-Timer-Flutter",
-    "OWASP-BLT/BLT-Zero",
-    "OWASP-BLT/BLT-Extension",
-    "OWASP-BLT/BLT-Timer-Web",
-    "OWASP-BLT/BLT-docs",
     "OWASP-BLT/BLT-Rewards",
-    "OWASP-BLT/BLT-Vanish-Flutter",
-    "OWASP-BLT/BLT-Toasty",
-    "OWASP-BLT/BLT-OWASP-Bumper",
+    "OWASP-BLT/BLT-SafeCloak",
+    "OWASP-BLT/owasp-blt.github.io",
+    "OWASP-BLT/BLT-OWASP-Projects",
     "OWASP-BLT/BLT-Action",
-    "OWASP-BLT/BLT-NetGuardian",
     "OWASP-BLT/BLT-University",
+    "OWASP-BLT/BLT-Newsletter",
+    "OWASP-BLT/BLT-Byte",
+    "OWASP-BLT/BLT-OWASP-metadata",
+    "OWASP-BLT/BLT-Lettuce",
+    "OWASP-BLT/BLT-Timer-Flutter",
     "OWASP-BLT/BLT-Flutter",
-    "OWASP-BLT/BLT",
+    "OWASP-BLT/BLT-Ketchup",
+    "OWASP-BLT/BLT-Zero",
+    "OWASP-BLT/BLT-Design-Contest",
+    "OWASP-BLT/BLT-Vanish-Web",
+    "OWASP-BLT/BLT-Extension",
+    "OWASP-BLT/BLT-OWASP-Bumper",
+    "OWASP-BLT/BLT-Start",
+    "OWASP-BLT/BLT-API",
+    "OWASP-BLT/BLT-Timer-Web",
+    "OWASP-BLT/BLT-Sizzle",
     "OWASP-BLT/BLT-Panini",
-    "OWASP-BLT/BLT-Lettuce"
+    "OWASP-BLT/BLT-Toasty",
+    "OWASP-BLT/BLT-NetGuardian",
+    "OWASP-BLT/BLT-Monitor",
+    "OWASP-BLT/BLT-NetGuardian-Client",
+    "OWASP-BLT/BLT-OSSH",
+    "OWASP-BLT/coderabbit",
+    "OWASP-BLT/.github",
+    "OWASP-BLT/BLT-Dash"
   ],
   "stats": {
-    "totalPRs": 2574,
+    "totalPRs": 2576,
     "mergedPRs": 1620,
     "totalIssues": 825,
     "closedIssues": 649,
     "participantCount": 184,
     "recentPRs": [
+      {
+        "title": "Feat/owasp 2025 json update",
+        "url": "https://github.com/OWASP-BLT/BLT-Preflight/pull/23",
+        "username": "gargi-birwatkar",
+        "avatar": "https://avatars.githubusercontent.com/u/147988352?v=4",
+        "state": "closed",
+        "created_at": "2026-03-29T12:58:03Z",
+        "merged_at": null,
+        "repository": "OWASP-BLT/BLT-Preflight"
+      },
+      {
+        "title": "feat: standardize slash commands and sync app manifest for discovery",
+        "url": "https://github.com/OWASP-BLT/BLT-Sammich/pull/72",
+        "username": "Makeepan-dev",
+        "avatar": "https://avatars.githubusercontent.com/u/183580740?v=4",
+        "state": "open",
+        "created_at": "2026-03-29T12:46:12Z",
+        "merged_at": null,
+        "repository": "OWASP-BLT/BLT-Sammich"
+      },
       {
         "title": "docs: modernize README to reflect Cloudflare Workers and D1 architecture",
         "url": "https://github.com/OWASP-BLT/BLT-Sammich/pull/71",
@@ -145,26 +165,6 @@
         "created_at": "2026-03-28T13:41:09Z",
         "merged_at": null,
         "repository": "OWASP-BLT/BLT-Toasty"
-      },
-      {
-        "title": "security(cors): default JSON responses to no CORS; allow wildcard only for GET /health",
-        "url": "https://github.com/OWASP-BLT/BLT-Pool/pull/103",
-        "username": "Rudrawhy",
-        "avatar": "https://avatars.githubusercontent.com/u/154898503?v=4",
-        "state": "open",
-        "created_at": "2026-03-28T13:22:43Z",
-        "merged_at": null,
-        "repository": "OWASP-BLT/BLT-Pool"
-      },
-      {
-        "title": "Removing Ahmed from Mentor list in Hackathon",
-        "url": "https://github.com/OWASP-BLT/BLT-Hackathons/pull/85",
-        "username": "S3DFX-CYBER",
-        "avatar": "https://avatars.githubusercontent.com/u/213652949?v=4",
-        "state": "closed",
-        "created_at": "2026-03-28T12:33:51Z",
-        "merged_at": "2026-03-28T14:20:26Z",
-        "repository": "OWASP-BLT/BLT-Hackathons"
       }
     ],
     "leaderboard": [
@@ -6292,8 +6292,26 @@
         "url": "https://github.com/S3DFX-CYBER",
         "mergedCount": 23,
         "prCount": 53,
-        "reviewCount": 139,
+        "reviewCount": 141,
         "reviews": [
+          {
+            "id": 4026759247,
+            "state": "CHANGES_REQUESTED",
+            "submitted_at": "2026-03-29T13:00:56Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT-Preflight/pull/23#pullrequestreview-4026759247",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT-Preflight/pull/23",
+            "pull_request_title": "Feat/owasp 2025 json update",
+            "pull_request_author": "gargi-birwatkar"
+          },
+          {
+            "id": 4026728806,
+            "state": "APPROVED",
+            "submitted_at": "2026-03-29T12:23:21Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT-Toasty/pull/34#pullrequestreview-4026728806",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT-Toasty/pull/34",
+            "pull_request_title": "feat: add GitHub webhook infrastructure with HMAC validation and event routing",
+            "pull_request_author": "SatishKumar620"
+          },
           {
             "id": 4025745858,
             "state": "APPROVED",
@@ -11560,6 +11578,79 @@
         ]
       },
       {
+        "username": "azizrebhi",
+        "avatar": "https://avatars.githubusercontent.com/u/154744962?v=4",
+        "url": "https://github.com/azizrebhi",
+        "mergedCount": 7,
+        "prCount": 11,
+        "reviewCount": 0,
+        "reviews": []
+      },
+      {
+        "username": "Shhazzz",
+        "avatar": "https://avatars.githubusercontent.com/u/182691106?v=4",
+        "url": "https://github.com/Shhazzz",
+        "mergedCount": 7,
+        "prCount": 10,
+        "reviewCount": 6,
+        "reviews": [
+          {
+            "id": 4022340842,
+            "state": "APPROVED",
+            "submitted_at": "2026-03-27T16:37:59Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT-Pool/pull/102#pullrequestreview-4022340842",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT-Pool/pull/102",
+            "pull_request_title": "Removing Ahmed from Mentor Pool due to forfieting mentorship",
+            "pull_request_author": "S3DFX-CYBER"
+          },
+          {
+            "id": 4022329174,
+            "state": "APPROVED",
+            "submitted_at": "2026-03-27T16:36:35Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT-GSOC/pull/61#pullrequestreview-4022329174",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT-GSOC/pull/61",
+            "pull_request_title": "Removing Ahmed Mentor Card",
+            "pull_request_author": "S3DFX-CYBER"
+          },
+          {
+            "id": 3987997250,
+            "state": "APPROVED",
+            "submitted_at": "2026-03-22T10:32:28Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT-Zero/pull/23#pullrequestreview-3987997250",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT-Zero/pull/23",
+            "pull_request_title": "Removed mailchannels method and added a sendgrid status indicator.",
+            "pull_request_author": "Jayant2908"
+          },
+          {
+            "id": 3986241256,
+            "state": "APPROVED",
+            "submitted_at": "2026-03-21T17:01:52Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT-GSOC/pull/57#pullrequestreview-3986241256",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT-GSOC/pull/57",
+            "pull_request_title": "Added Rudra Sharma gsoc 2026 contributor card",
+            "pull_request_author": "Rudrawhy"
+          },
+          {
+            "id": 3916930044,
+            "state": "APPROVED",
+            "submitted_at": "2026-03-09T17:08:39Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT-GSOC/pull/37#pullrequestreview-3916930044",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT-GSOC/pull/37",
+            "pull_request_title": "Adding Karuna gsoc-2026 card",
+            "pull_request_author": "karunarapolu"
+          },
+          {
+            "id": 3937783853,
+            "state": "APPROVED",
+            "submitted_at": "2026-03-12T15:53:11Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT-GSOC/pull/44#pullrequestreview-3937783853",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT-GSOC/pull/44",
+            "pull_request_title": "Adding ojaswa-gsoc-2026-card",
+            "pull_request_author": "ojaswa072"
+          }
+        ]
+      },
+      {
         "username": "karunarapolu",
         "avatar": "https://avatars.githubusercontent.com/u/165272362?v=4",
         "url": "https://github.com/karunarapolu",
@@ -11651,52 +11742,6 @@
         ]
       },
       {
-        "username": "tejeshvenkat",
-        "avatar": "https://avatars.githubusercontent.com/u/210394948?v=4",
-        "url": "https://github.com/tejeshvenkat",
-        "mergedCount": 7,
-        "prCount": 20,
-        "reviewCount": 4,
-        "reviews": [
-          {
-            "id": 3976533138,
-            "state": "COMMENTED",
-            "submitted_at": "2026-03-19T16:50:55Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT-OSSH/pull/8#pullrequestreview-3976533138",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT-OSSH/pull/8",
-            "pull_request_title": "Fix home link navigation",
-            "pull_request_author": "Jayant2908"
-          },
-          {
-            "id": 3976685824,
-            "state": "APPROVED",
-            "submitted_at": "2026-03-19T17:16:22Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT-OSSH/pull/8#pullrequestreview-3976685824",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT-OSSH/pull/8",
-            "pull_request_title": "Fix home link navigation",
-            "pull_request_author": "Jayant2908"
-          },
-          {
-            "id": 3976670122,
-            "state": "APPROVED",
-            "submitted_at": "2026-03-19T17:13:53Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT-OSSH/pull/32#pullrequestreview-3976670122",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT-OSSH/pull/32",
-            "pull_request_title": "Extract inline JS from index.html into js/app.js",
-            "pull_request_author": "stealthwhizz"
-          },
-          {
-            "id": 3976661369,
-            "state": "APPROVED",
-            "submitted_at": "2026-03-19T17:12:37Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT-OSSH/pull/31#pullrequestreview-3976661369",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT-OSSH/pull/31",
-            "pull_request_title": "Add standalone fetch scripts and GitHub Action for catalog data",
-            "pull_request_author": "stealthwhizz"
-          }
-        ]
-      },
-      {
         "username": "Rudra-rps",
         "avatar": "https://avatars.githubusercontent.com/u/199046682?v=4",
         "url": "https://github.com/Rudra-rps",
@@ -11732,79 +11777,6 @@
             "pull_request_author": "Kunal241207"
           }
         ]
-      },
-      {
-        "username": "Shhazzz",
-        "avatar": "https://avatars.githubusercontent.com/u/182691106?v=4",
-        "url": "https://github.com/Shhazzz",
-        "mergedCount": 7,
-        "prCount": 10,
-        "reviewCount": 6,
-        "reviews": [
-          {
-            "id": 4022340842,
-            "state": "APPROVED",
-            "submitted_at": "2026-03-27T16:37:59Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT-Pool/pull/102#pullrequestreview-4022340842",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT-Pool/pull/102",
-            "pull_request_title": "Removing Ahmed from Mentor Pool due to forfieting mentorship",
-            "pull_request_author": "S3DFX-CYBER"
-          },
-          {
-            "id": 4022329174,
-            "state": "APPROVED",
-            "submitted_at": "2026-03-27T16:36:35Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT-GSOC/pull/61#pullrequestreview-4022329174",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT-GSOC/pull/61",
-            "pull_request_title": "Removing Ahmed Mentor Card",
-            "pull_request_author": "S3DFX-CYBER"
-          },
-          {
-            "id": 3987997250,
-            "state": "APPROVED",
-            "submitted_at": "2026-03-22T10:32:28Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT-Zero/pull/23#pullrequestreview-3987997250",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT-Zero/pull/23",
-            "pull_request_title": "Removed mailchannels method and added a sendgrid status indicator.",
-            "pull_request_author": "Jayant2908"
-          },
-          {
-            "id": 3986241256,
-            "state": "APPROVED",
-            "submitted_at": "2026-03-21T17:01:52Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT-GSOC/pull/57#pullrequestreview-3986241256",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT-GSOC/pull/57",
-            "pull_request_title": "Added Rudra Sharma gsoc 2026 contributor card",
-            "pull_request_author": "Rudrawhy"
-          },
-          {
-            "id": 3916930044,
-            "state": "APPROVED",
-            "submitted_at": "2026-03-09T17:08:39Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT-GSOC/pull/37#pullrequestreview-3916930044",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT-GSOC/pull/37",
-            "pull_request_title": "Adding Karuna gsoc-2026 card",
-            "pull_request_author": "karunarapolu"
-          },
-          {
-            "id": 3937783853,
-            "state": "APPROVED",
-            "submitted_at": "2026-03-12T15:53:11Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT-GSOC/pull/44#pullrequestreview-3937783853",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT-GSOC/pull/44",
-            "pull_request_title": "Adding ojaswa-gsoc-2026-card",
-            "pull_request_author": "ojaswa072"
-          }
-        ]
-      },
-      {
-        "username": "azizrebhi",
-        "avatar": "https://avatars.githubusercontent.com/u/154744962?v=4",
-        "url": "https://github.com/azizrebhi",
-        "mergedCount": 7,
-        "prCount": 11,
-        "reviewCount": 0,
-        "reviews": []
       },
       {
         "username": "stealthwhizz",
@@ -11889,11 +11861,66 @@
         ]
       },
       {
+        "username": "tejeshvenkat",
+        "avatar": "https://avatars.githubusercontent.com/u/210394948?v=4",
+        "url": "https://github.com/tejeshvenkat",
+        "mergedCount": 7,
+        "prCount": 20,
+        "reviewCount": 4,
+        "reviews": [
+          {
+            "id": 3976533138,
+            "state": "COMMENTED",
+            "submitted_at": "2026-03-19T16:50:55Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT-OSSH/pull/8#pullrequestreview-3976533138",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT-OSSH/pull/8",
+            "pull_request_title": "Fix home link navigation",
+            "pull_request_author": "Jayant2908"
+          },
+          {
+            "id": 3976685824,
+            "state": "APPROVED",
+            "submitted_at": "2026-03-19T17:16:22Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT-OSSH/pull/8#pullrequestreview-3976685824",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT-OSSH/pull/8",
+            "pull_request_title": "Fix home link navigation",
+            "pull_request_author": "Jayant2908"
+          },
+          {
+            "id": 3976670122,
+            "state": "APPROVED",
+            "submitted_at": "2026-03-19T17:13:53Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT-OSSH/pull/32#pullrequestreview-3976670122",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT-OSSH/pull/32",
+            "pull_request_title": "Extract inline JS from index.html into js/app.js",
+            "pull_request_author": "stealthwhizz"
+          },
+          {
+            "id": 3976661369,
+            "state": "APPROVED",
+            "submitted_at": "2026-03-19T17:12:37Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT-OSSH/pull/31#pullrequestreview-3976661369",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT-OSSH/pull/31",
+            "pull_request_title": "Add standalone fetch scripts and GitHub Action for catalog data",
+            "pull_request_author": "stealthwhizz"
+          }
+        ]
+      },
+      {
         "username": "SomyaBaran",
         "avatar": "https://avatars.githubusercontent.com/u/116670796?v=4",
         "url": "https://github.com/SomyaBaran",
         "mergedCount": 7,
         "prCount": 9,
+        "reviewCount": 0,
+        "reviews": []
+      },
+      {
+        "username": "ramansh18",
+        "avatar": "https://avatars.githubusercontent.com/u/123497240?v=4",
+        "url": "https://github.com/ramansh18",
+        "mergedCount": 6,
+        "prCount": 7,
         "reviewCount": 0,
         "reviews": []
       },
@@ -12080,15 +12107,6 @@
         ]
       },
       {
-        "username": "ramansh18",
-        "avatar": "https://avatars.githubusercontent.com/u/123497240?v=4",
-        "url": "https://github.com/ramansh18",
-        "mergedCount": 6,
-        "prCount": 7,
-        "reviewCount": 0,
-        "reviews": []
-      },
-      {
         "username": "Jozz77",
         "avatar": "https://avatars.githubusercontent.com/u/104347137?v=4",
         "url": "https://github.com/Jozz77",
@@ -12098,20 +12116,20 @@
         "reviews": []
       },
       {
+        "username": "Manahil-Afzal",
+        "avatar": "https://avatars.githubusercontent.com/u/207878232?v=4",
+        "url": "https://github.com/Manahil-Afzal",
+        "mergedCount": 4,
+        "prCount": 12,
+        "reviewCount": 0,
+        "reviews": []
+      },
+      {
         "username": "Ankit-singh-dot",
         "avatar": "https://avatars.githubusercontent.com/u/183590562?v=4",
         "url": "https://github.com/Ankit-singh-dot",
         "mergedCount": 4,
         "prCount": 8,
-        "reviewCount": 0,
-        "reviews": []
-      },
-      {
-        "username": "AdityaGupta716",
-        "avatar": "https://avatars.githubusercontent.com/u/222836259?v=4",
-        "url": "https://github.com/AdityaGupta716",
-        "mergedCount": 4,
-        "prCount": 7,
         "reviewCount": 0,
         "reviews": []
       },
@@ -12387,11 +12405,11 @@
         ]
       },
       {
-        "username": "Manahil-Afzal",
-        "avatar": "https://avatars.githubusercontent.com/u/207878232?v=4",
-        "url": "https://github.com/Manahil-Afzal",
+        "username": "AdityaGupta716",
+        "avatar": "https://avatars.githubusercontent.com/u/222836259?v=4",
+        "url": "https://github.com/AdityaGupta716",
         "mergedCount": 4,
-        "prCount": 12,
+        "prCount": 7,
         "reviewCount": 0,
         "reviews": []
       },
@@ -12651,38 +12669,11 @@
         "reviews": []
       },
       {
-        "username": "nytrixis",
-        "avatar": "https://avatars.githubusercontent.com/u/80510308?v=4",
-        "url": "https://github.com/nytrixis",
-        "mergedCount": 2,
-        "prCount": 2,
-        "reviewCount": 0,
-        "reviews": []
-      },
-      {
-        "username": "aimaan-ayaz",
-        "avatar": "https://avatars.githubusercontent.com/u/89684960?v=4",
-        "url": "https://github.com/aimaan-ayaz",
-        "mergedCount": 2,
-        "prCount": 4,
-        "reviewCount": 0,
-        "reviews": []
-      },
-      {
         "username": "snk-git-hub",
         "avatar": "https://avatars.githubusercontent.com/u/179336928?v=4",
         "url": "https://github.com/snk-git-hub",
         "mergedCount": 2,
         "prCount": 3,
-        "reviewCount": 0,
-        "reviews": []
-      },
-      {
-        "username": "Neurvinch",
-        "avatar": "https://avatars.githubusercontent.com/u/149451318?v=4",
-        "url": "https://github.com/Neurvinch",
-        "mergedCount": 2,
-        "prCount": 16,
         "reviewCount": 0,
         "reviews": []
       },
@@ -12708,6 +12699,33 @@
         "username": "btwshivam",
         "avatar": "https://avatars.githubusercontent.com/u/127589548?v=4",
         "url": "https://github.com/btwshivam",
+        "mergedCount": 2,
+        "prCount": 2,
+        "reviewCount": 0,
+        "reviews": []
+      },
+      {
+        "username": "aimaan-ayaz",
+        "avatar": "https://avatars.githubusercontent.com/u/89684960?v=4",
+        "url": "https://github.com/aimaan-ayaz",
+        "mergedCount": 2,
+        "prCount": 4,
+        "reviewCount": 0,
+        "reviews": []
+      },
+      {
+        "username": "Neurvinch",
+        "avatar": "https://avatars.githubusercontent.com/u/149451318?v=4",
+        "url": "https://github.com/Neurvinch",
+        "mergedCount": 2,
+        "prCount": 16,
+        "reviewCount": 0,
+        "reviews": []
+      },
+      {
+        "username": "nytrixis",
+        "avatar": "https://avatars.githubusercontent.com/u/80510308?v=4",
+        "url": "https://github.com/nytrixis",
         "mergedCount": 2,
         "prCount": 2,
         "reviewCount": 0,
@@ -12824,11 +12842,11 @@
         ]
       },
       {
-        "username": "ANIRUDH-SJ",
-        "avatar": "https://avatars.githubusercontent.com/u/95867819?v=4",
-        "url": "https://github.com/ANIRUDH-SJ",
+        "username": "koushikmahadev",
+        "avatar": "https://avatars.githubusercontent.com/u/238824162?v=4",
+        "url": "https://github.com/koushikmahadev",
         "mergedCount": 1,
-        "prCount": 2,
+        "prCount": 4,
         "reviewCount": 0,
         "reviews": []
       },
@@ -12842,47 +12860,38 @@
         "reviews": []
       },
       {
-        "username": "rahulnegi20",
-        "avatar": "https://avatars.githubusercontent.com/u/36270407?v=4",
-        "url": "https://github.com/rahulnegi20",
+        "username": "srinithivijayakumars139-wq",
+        "avatar": "https://avatars.githubusercontent.com/u/231679195?v=4",
+        "url": "https://github.com/srinithivijayakumars139-wq",
         "mergedCount": 1,
-        "prCount": 3,
+        "prCount": 2,
         "reviewCount": 0,
         "reviews": []
       },
       {
-        "username": "Aashik1701",
-        "avatar": "https://avatars.githubusercontent.com/u/135402409?v=4",
-        "url": "https://github.com/Aashik1701",
+        "username": "AB527",
+        "avatar": "https://avatars.githubusercontent.com/u/67513487?v=4",
+        "url": "https://github.com/AB527",
         "mergedCount": 1,
         "prCount": 1,
         "reviewCount": 0,
         "reviews": []
       },
       {
-        "username": "Sumit6307",
-        "avatar": "https://avatars.githubusercontent.com/u/167127879?v=4",
-        "url": "https://github.com/Sumit6307",
+        "username": "Varshith2403315",
+        "avatar": "https://avatars.githubusercontent.com/u/179364262?v=4",
+        "url": "https://github.com/Varshith2403315",
         "mergedCount": 1,
-        "prCount": 6,
+        "prCount": 3,
         "reviewCount": 0,
         "reviews": []
       },
       {
-        "username": "koushikmahadev",
-        "avatar": "https://avatars.githubusercontent.com/u/238824162?v=4",
-        "url": "https://github.com/koushikmahadev",
+        "username": "khushal-winner",
+        "avatar": "https://avatars.githubusercontent.com/u/175409209?v=4",
+        "url": "https://github.com/khushal-winner",
         "mergedCount": 1,
-        "prCount": 4,
-        "reviewCount": 0,
-        "reviews": []
-      },
-      {
-        "username": "srinithivijayakumars139-wq",
-        "avatar": "https://avatars.githubusercontent.com/u/231679195?v=4",
-        "url": "https://github.com/srinithivijayakumars139-wq",
-        "mergedCount": 1,
-        "prCount": 2,
+        "prCount": 1,
         "reviewCount": 0,
         "reviews": []
       },
@@ -12996,33 +13005,6 @@
         ]
       },
       {
-        "username": "AB527",
-        "avatar": "https://avatars.githubusercontent.com/u/67513487?v=4",
-        "url": "https://github.com/AB527",
-        "mergedCount": 1,
-        "prCount": 1,
-        "reviewCount": 0,
-        "reviews": []
-      },
-      {
-        "username": "Varshith2403315",
-        "avatar": "https://avatars.githubusercontent.com/u/179364262?v=4",
-        "url": "https://github.com/Varshith2403315",
-        "mergedCount": 1,
-        "prCount": 3,
-        "reviewCount": 0,
-        "reviews": []
-      },
-      {
-        "username": "khushal-winner",
-        "avatar": "https://avatars.githubusercontent.com/u/175409209?v=4",
-        "url": "https://github.com/khushal-winner",
-        "mergedCount": 1,
-        "prCount": 1,
-        "reviewCount": 0,
-        "reviews": []
-      },
-      {
         "username": "gitsofaryan",
         "avatar": "https://avatars.githubusercontent.com/u/117700812?v=4",
         "url": "https://github.com/gitsofaryan",
@@ -13051,11 +13033,47 @@
         ]
       },
       {
+        "username": "rahulnegi20",
+        "avatar": "https://avatars.githubusercontent.com/u/36270407?v=4",
+        "url": "https://github.com/rahulnegi20",
+        "mergedCount": 1,
+        "prCount": 3,
+        "reviewCount": 0,
+        "reviews": []
+      },
+      {
+        "username": "ANIRUDH-SJ",
+        "avatar": "https://avatars.githubusercontent.com/u/95867819?v=4",
+        "url": "https://github.com/ANIRUDH-SJ",
+        "mergedCount": 1,
+        "prCount": 2,
+        "reviewCount": 0,
+        "reviews": []
+      },
+      {
         "username": "DrGalio",
         "avatar": "https://avatars.githubusercontent.com/u/269968451?v=4",
         "url": "https://github.com/DrGalio",
         "mergedCount": 1,
         "prCount": 3,
+        "reviewCount": 0,
+        "reviews": []
+      },
+      {
+        "username": "Aashik1701",
+        "avatar": "https://avatars.githubusercontent.com/u/135402409?v=4",
+        "url": "https://github.com/Aashik1701",
+        "mergedCount": 1,
+        "prCount": 1,
+        "reviewCount": 0,
+        "reviews": []
+      },
+      {
+        "username": "Sumit6307",
+        "avatar": "https://avatars.githubusercontent.com/u/167127879?v=4",
+        "url": "https://github.com/Sumit6307",
+        "mergedCount": 1,
+        "prCount": 6,
         "reviewCount": 0,
         "reviews": []
       },
@@ -20155,8 +20173,26 @@
         "url": "https://github.com/S3DFX-CYBER",
         "mergedCount": 23,
         "prCount": 53,
-        "reviewCount": 139,
+        "reviewCount": 141,
         "reviews": [
+          {
+            "id": 4026759247,
+            "state": "CHANGES_REQUESTED",
+            "submitted_at": "2026-03-29T13:00:56Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT-Preflight/pull/23#pullrequestreview-4026759247",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT-Preflight/pull/23",
+            "pull_request_title": "Feat/owasp 2025 json update",
+            "pull_request_author": "gargi-birwatkar"
+          },
+          {
+            "id": 4026728806,
+            "state": "APPROVED",
+            "submitted_at": "2026-03-29T12:23:21Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT-Toasty/pull/34#pullrequestreview-4026728806",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT-Toasty/pull/34",
+            "pull_request_title": "feat: add GitHub webhook infrastructure with HMAC validation and event routing",
+            "pull_request_author": "SatishKumar620"
+          },
           {
             "id": 4025745858,
             "state": "APPROVED",
@@ -25761,43 +25797,6 @@
         ]
       },
       {
-        "username": "Rudra-rps",
-        "avatar": "https://avatars.githubusercontent.com/u/199046682?v=4",
-        "url": "https://github.com/Rudra-rps",
-        "mergedCount": 7,
-        "prCount": 16,
-        "reviewCount": 3,
-        "reviews": [
-          {
-            "id": 3998627394,
-            "state": "APPROVED",
-            "submitted_at": "2026-03-24T12:10:16Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT-Jobs/pull/64#pullrequestreview-3998627394",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT-Jobs/pull/64",
-            "pull_request_title": "Fix: Navigation bar positioning and mobile menu overlay behavior",
-            "pull_request_author": "Jozz77"
-          },
-          {
-            "id": 3955721171,
-            "state": "APPROVED",
-            "submitted_at": "2026-03-16T18:07:16Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT-Pool/pull/77#pullrequestreview-3955721171",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT-Pool/pull/77",
-            "pull_request_title": "Fix/webhook fail closed health guard",
-            "pull_request_author": "aryanghai12"
-          },
-          {
-            "id": 3949856087,
-            "state": "COMMENTED",
-            "submitted_at": "2026-03-15T08:01:00Z",
-            "html_url": "https://github.com/OWASP-BLT/BLT-Byte/pull/12#pullrequestreview-3949856087",
-            "pull_request_url": "https://github.com/OWASP-BLT/BLT-Byte/pull/12",
-            "pull_request_title": "Fix invisible button text and logo visibility issue",
-            "pull_request_author": "Kunal241207"
-          }
-        ]
-      },
-      {
         "username": "Kunal241207",
         "avatar": "https://avatars.githubusercontent.com/u/224205062?v=4",
         "url": "https://github.com/Kunal241207",
@@ -25831,6 +25830,43 @@
             "pull_request_url": "https://github.com/OWASP-BLT/BLT/pull/5984",
             "pull_request_title": "chore(ci): update github-script action versions in workflows",
             "pull_request_author": "DevalPrime"
+          }
+        ]
+      },
+      {
+        "username": "Rudra-rps",
+        "avatar": "https://avatars.githubusercontent.com/u/199046682?v=4",
+        "url": "https://github.com/Rudra-rps",
+        "mergedCount": 7,
+        "prCount": 16,
+        "reviewCount": 3,
+        "reviews": [
+          {
+            "id": 3998627394,
+            "state": "APPROVED",
+            "submitted_at": "2026-03-24T12:10:16Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT-Jobs/pull/64#pullrequestreview-3998627394",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT-Jobs/pull/64",
+            "pull_request_title": "Fix: Navigation bar positioning and mobile menu overlay behavior",
+            "pull_request_author": "Jozz77"
+          },
+          {
+            "id": 3955721171,
+            "state": "APPROVED",
+            "submitted_at": "2026-03-16T18:07:16Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT-Pool/pull/77#pullrequestreview-3955721171",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT-Pool/pull/77",
+            "pull_request_title": "Fix/webhook fail closed health guard",
+            "pull_request_author": "aryanghai12"
+          },
+          {
+            "id": 3949856087,
+            "state": "COMMENTED",
+            "submitted_at": "2026-03-15T08:01:00Z",
+            "html_url": "https://github.com/OWASP-BLT/BLT-Byte/pull/12#pullrequestreview-3949856087",
+            "pull_request_url": "https://github.com/OWASP-BLT/BLT-Byte/pull/12",
+            "pull_request_title": "Fix invisible button text and logo visibility issue",
+            "pull_request_author": "Kunal241207"
           }
         ]
       },
@@ -26146,77 +26182,59 @@
       }
     ],
     "repoStats": {
-      "OWASP-BLT/BLT-Next": {
-        "total": 0,
-        "merged": 0,
-        "issues": 64,
-        "closedIssues": 28
-      },
-      "OWASP-BLT/BLT-SafeCloak": {
-        "total": 37,
-        "merged": 16,
-        "issues": 9,
-        "closedIssues": 5
-      },
-      "OWASP-BLT/BLT-Monitor": {
-        "total": 29,
-        "merged": 19,
-        "issues": 5,
-        "closedIssues": 5
-      },
-      "OWASP-BLT/.github": {
-        "total": 38,
-        "merged": 35,
-        "issues": 0,
-        "closedIssues": 0
-      },
-      "OWASP-BLT/BLT-Leaf": {
-        "total": 220,
-        "merged": 166,
-        "issues": 72,
-        "closedIssues": 61
-      },
-      "OWASP-BLT/owasp-blt.github.io": {
-        "total": 80,
-        "merged": 72,
-        "issues": 8,
-        "closedIssues": 4
-      },
-      "OWASP-BLT/BLT-Vanish-Web": {
-        "total": 7,
-        "merged": 4,
-        "issues": 4,
-        "closedIssues": 3
-      },
-      "OWASP-BLT/BLT-Start": {
-        "total": 3,
-        "merged": 1,
-        "issues": 0,
-        "closedIssues": 0
-      },
-      "OWASP-BLT/BLT-Tomato": {
-        "total": 2,
-        "merged": 1,
-        "issues": 1,
-        "closedIssues": 0
-      },
       "OWASP-BLT/BLT-Raven": {
         "total": 0,
         "merged": 0,
         "issues": 0,
         "closedIssues": 0
       },
-      "OWASP-BLT/BLT-Newsletter": {
-        "total": 4,
-        "merged": 4,
+      "OWASP-BLT/BLT-Pages": {
+        "total": 75,
+        "merged": 62,
+        "issues": 23,
+        "closedIssues": 16
+      },
+      "OWASP-BLT/BLT-GSOC": {
+        "total": 50,
+        "merged": 43,
+        "issues": 11,
+        "closedIssues": 9
+      },
+      "OWASP-BLT/BLT-MCP": {
+        "total": 24,
+        "merged": 8,
+        "issues": 3,
+        "closedIssues": 1
+      },
+      "OWASP-BLT/BLT-Design": {
+        "total": 5,
+        "merged": 3,
         "issues": 3,
         "closedIssues": 2
       },
-      "OWASP-BLT/BLT-Design-Contest": {
-        "total": 53,
-        "merged": 49,
-        "issues": 47,
+      "OWASP-BLT/BLT-OWASP-Wich": {
+        "total": 8,
+        "merged": 5,
+        "issues": 3,
+        "closedIssues": 1
+      },
+      "OWASP-BLT/BLT-Preflight": {
+        "total": 17,
+        "merged": 7,
+        "issues": 6,
         "closedIssues": 3
+      },
+      "OWASP-BLT/BLT-Next": {
+        "total": 0,
+        "merged": 0,
+        "issues": 64,
+        "closedIssues": 28
+      },
+      "OWASP-BLT/BLT-Jobs": {
+        "total": 38,
+        "merged": 33,
+        "issues": 27,
+        "closedIssues": 23
       },
       "OWASP-BLT/BLT-Pool": {
         "total": 85,
@@ -26224,20 +26242,68 @@
         "issues": 18,
         "closedIssues": 13
       },
-      "OWASP-BLT/BLT-OWASP-Projects": {
-        "total": 10,
-        "merged": 7,
+      "OWASP-BLT/BLT-Hackathons": {
+        "total": 73,
+        "merged": 61,
+        "issues": 13,
+        "closedIssues": 8
+      },
+      "OWASP-BLT/BLT": {
+        "total": 1156,
+        "merged": 618,
+        "issues": 357,
+        "closedIssues": 357
+      },
+      "OWASP-BLT/BLT-docs": {
+        "total": 6,
+        "merged": 3,
+        "issues": 1,
+        "closedIssues": 1
+      },
+      "OWASP-BLT/MY-GSOC-TOOL": {
+        "total": 17,
+        "merged": 15,
+        "issues": 5,
+        "closedIssues": 5
+      },
+      "OWASP-BLT/BLT-Vanish-Flutter": {
+        "total": 2,
+        "merged": 2,
         "issues": 0,
         "closedIssues": 0
       },
-      "OWASP-BLT/BLT-OWASP-metadata": {
+      "OWASP-BLT/BLT-Enforcement": {
+        "total": 1,
+        "merged": 1,
+        "issues": 0,
+        "closedIssues": 0
+      },
+      "OWASP-BLT/BLT-Github-Sportscaster": {
         "total": 19,
         "merged": 15,
-        "issues": 3,
-        "closedIssues": 3
+        "issues": 2,
+        "closedIssues": 2
+      },
+      "OWASP-BLT/BLT-CVE": {
+        "total": 7,
+        "merged": 3,
+        "issues": 1,
+        "closedIssues": 1
+      },
+      "OWASP-BLT/BLT-Leaf": {
+        "total": 220,
+        "merged": 166,
+        "issues": 72,
+        "closedIssues": 61
+      },
+      "OWASP-BLT/BLT-Tomato": {
+        "total": 2,
+        "merged": 1,
+        "issues": 1,
+        "closedIssues": 0
       },
       "OWASP-BLT/BLT-Sammich": {
-        "total": 22,
+        "total": 23,
         "merged": 5,
         "issues": 13,
         "closedIssues": 2
@@ -26248,70 +26314,46 @@
         "issues": 3,
         "closedIssues": 2
       },
-      "OWASP-BLT/BLT-Jobs": {
-        "total": 38,
-        "merged": 33,
-        "issues": 27,
-        "closedIssues": 23
-      },
-      "OWASP-BLT/BLT-Ketchup": {
-        "total": 2,
-        "merged": 1,
-        "issues": 0,
-        "closedIssues": 0
-      },
-      "OWASP-BLT/coderabbit": {
-        "total": 2,
-        "merged": 2,
-        "issues": 1,
-        "closedIssues": 1
-      },
-      "OWASP-BLT/BLT-NetGuardian-Client": {
-        "total": 4,
-        "merged": 4,
-        "issues": 0,
-        "closedIssues": 0
-      },
-      "OWASP-BLT/BLT-MCP": {
-        "total": 24,
-        "merged": 8,
-        "issues": 3,
-        "closedIssues": 1
-      },
-      "OWASP-BLT/MY-GSOC-TOOL": {
-        "total": 17,
-        "merged": 15,
+      "OWASP-BLT/BLT-Rewards": {
+        "total": 25,
+        "merged": 10,
         "issues": 5,
+        "closedIssues": 2
+      },
+      "OWASP-BLT/BLT-SafeCloak": {
+        "total": 37,
+        "merged": 16,
+        "issues": 9,
         "closedIssues": 5
       },
-      "OWASP-BLT/BLT-OWASP-Wich": {
-        "total": 8,
-        "merged": 5,
-        "issues": 3,
-        "closedIssues": 1
+      "OWASP-BLT/owasp-blt.github.io": {
+        "total": 80,
+        "merged": 72,
+        "issues": 8,
+        "closedIssues": 4
       },
-      "OWASP-BLT/BLT-Hackathons": {
-        "total": 73,
-        "merged": 61,
-        "issues": 13,
-        "closedIssues": 8
+      "OWASP-BLT/BLT-OWASP-Projects": {
+        "total": 10,
+        "merged": 7,
+        "issues": 0,
+        "closedIssues": 0
       },
-      "OWASP-BLT/BLT-GSOC": {
-        "total": 50,
-        "merged": 43,
-        "issues": 11,
-        "closedIssues": 9
-      },
-      "OWASP-BLT/BLT-Sizzle": {
-        "total": 8,
-        "merged": 5,
-        "issues": 3,
-        "closedIssues": 3
-      },
-      "OWASP-BLT/BLT-Github-Sportscaster": {
-        "total": 19,
+      "OWASP-BLT/BLT-Action": {
+        "total": 32,
         "merged": 15,
-        "issues": 2,
+        "issues": 11,
+        "closedIssues": 10
+      },
+      "OWASP-BLT/BLT-University": {
+        "total": 25,
+        "merged": 20,
+        "issues": 15,
+        "closedIssues": 12
+      },
+      "OWASP-BLT/BLT-Newsletter": {
+        "total": 4,
+        "merged": 4,
+        "issues": 3,
         "closedIssues": 2
       },
       "OWASP-BLT/BLT-Byte": {
@@ -26320,52 +26362,16 @@
         "issues": 3,
         "closedIssues": 2
       },
-      "OWASP-BLT/BLT-API": {
-        "total": 57,
-        "merged": 32,
-        "issues": 25,
-        "closedIssues": 17
-      },
-      "OWASP-BLT/BLT-Preflight": {
-        "total": 16,
-        "merged": 7,
-        "issues": 6,
+      "OWASP-BLT/BLT-OWASP-metadata": {
+        "total": 19,
+        "merged": 15,
+        "issues": 3,
         "closedIssues": 3
       },
-      "OWASP-BLT/BLT-Dash": {
-        "total": 1,
-        "merged": 1,
-        "issues": 1,
-        "closedIssues": 1
-      },
-      "OWASP-BLT/BLT-CVE": {
-        "total": 7,
-        "merged": 3,
-        "issues": 1,
-        "closedIssues": 1
-      },
-      "OWASP-BLT/BLT-Design": {
-        "total": 5,
-        "merged": 3,
-        "issues": 3,
-        "closedIssues": 2
-      },
-      "OWASP-BLT/BLT-Enforcement": {
-        "total": 1,
-        "merged": 1,
-        "issues": 0,
-        "closedIssues": 0
-      },
-      "OWASP-BLT/BLT-Pages": {
-        "total": 75,
-        "merged": 62,
-        "issues": 23,
-        "closedIssues": 16
-      },
-      "OWASP-BLT/BLT-OSSH": {
-        "total": 22,
-        "merged": 14,
-        "issues": 10,
+      "OWASP-BLT/BLT-Lettuce": {
+        "total": 48,
+        "merged": 23,
+        "issues": 6,
         "closedIssues": 5
       },
       "OWASP-BLT/BLT-Timer-Flutter": {
@@ -26374,11 +26380,35 @@
         "issues": 1,
         "closedIssues": 1
       },
+      "OWASP-BLT/BLT-Flutter": {
+        "total": 13,
+        "merged": 6,
+        "issues": 10,
+        "closedIssues": 9
+      },
+      "OWASP-BLT/BLT-Ketchup": {
+        "total": 2,
+        "merged": 1,
+        "issues": 0,
+        "closedIssues": 0
+      },
       "OWASP-BLT/BLT-Zero": {
         "total": 21,
         "merged": 11,
         "issues": 3,
         "closedIssues": 2
+      },
+      "OWASP-BLT/BLT-Design-Contest": {
+        "total": 53,
+        "merged": 49,
+        "issues": 47,
+        "closedIssues": 3
+      },
+      "OWASP-BLT/BLT-Vanish-Web": {
+        "total": 7,
+        "merged": 4,
+        "issues": 4,
+        "closedIssues": 3
       },
       "OWASP-BLT/BLT-Extension": {
         "total": 21,
@@ -26386,71 +26416,35 @@
         "issues": 5,
         "closedIssues": 5
       },
-      "OWASP-BLT/BLT-Timer-Web": {
-        "total": 16,
-        "merged": 10,
-        "issues": 3,
-        "closedIssues": 3
-      },
-      "OWASP-BLT/BLT-docs": {
-        "total": 6,
-        "merged": 3,
-        "issues": 1,
-        "closedIssues": 1
-      },
-      "OWASP-BLT/BLT-Rewards": {
-        "total": 25,
-        "merged": 10,
-        "issues": 5,
-        "closedIssues": 2
-      },
-      "OWASP-BLT/BLT-Vanish-Flutter": {
-        "total": 2,
-        "merged": 2,
-        "issues": 0,
-        "closedIssues": 0
-      },
-      "OWASP-BLT/BLT-Toasty": {
-        "total": 25,
-        "merged": 8,
-        "issues": 7,
-        "closedIssues": 1
-      },
       "OWASP-BLT/BLT-OWASP-Bumper": {
         "total": 26,
         "merged": 24,
         "issues": 4,
         "closedIssues": 4
       },
-      "OWASP-BLT/BLT-Action": {
-        "total": 32,
-        "merged": 15,
-        "issues": 11,
-        "closedIssues": 10
+      "OWASP-BLT/BLT-Start": {
+        "total": 3,
+        "merged": 1,
+        "issues": 0,
+        "closedIssues": 0
       },
-      "OWASP-BLT/BLT-NetGuardian": {
-        "total": 29,
-        "merged": 13,
+      "OWASP-BLT/BLT-API": {
+        "total": 57,
+        "merged": 32,
+        "issues": 25,
+        "closedIssues": 17
+      },
+      "OWASP-BLT/BLT-Timer-Web": {
+        "total": 16,
+        "merged": 10,
         "issues": 3,
         "closedIssues": 3
       },
-      "OWASP-BLT/BLT-University": {
-        "total": 25,
-        "merged": 20,
-        "issues": 15,
-        "closedIssues": 12
-      },
-      "OWASP-BLT/BLT-Flutter": {
-        "total": 13,
-        "merged": 6,
-        "issues": 10,
-        "closedIssues": 9
-      },
-      "OWASP-BLT/BLT": {
-        "total": 1156,
-        "merged": 618,
-        "issues": 357,
-        "closedIssues": 357
+      "OWASP-BLT/BLT-Sizzle": {
+        "total": 8,
+        "merged": 5,
+        "issues": 3,
+        "closedIssues": 3
       },
       "OWASP-BLT/BLT-Panini": {
         "total": 15,
@@ -26458,11 +26452,53 @@
         "issues": 4,
         "closedIssues": 3
       },
-      "OWASP-BLT/BLT-Lettuce": {
-        "total": 48,
-        "merged": 23,
-        "issues": 6,
+      "OWASP-BLT/BLT-Toasty": {
+        "total": 25,
+        "merged": 8,
+        "issues": 7,
+        "closedIssues": 1
+      },
+      "OWASP-BLT/BLT-NetGuardian": {
+        "total": 29,
+        "merged": 13,
+        "issues": 3,
+        "closedIssues": 3
+      },
+      "OWASP-BLT/BLT-Monitor": {
+        "total": 29,
+        "merged": 19,
+        "issues": 5,
         "closedIssues": 5
+      },
+      "OWASP-BLT/BLT-NetGuardian-Client": {
+        "total": 4,
+        "merged": 4,
+        "issues": 0,
+        "closedIssues": 0
+      },
+      "OWASP-BLT/BLT-OSSH": {
+        "total": 22,
+        "merged": 14,
+        "issues": 10,
+        "closedIssues": 5
+      },
+      "OWASP-BLT/coderabbit": {
+        "total": 2,
+        "merged": 2,
+        "issues": 1,
+        "closedIssues": 1
+      },
+      "OWASP-BLT/.github": {
+        "total": 38,
+        "merged": 35,
+        "issues": 0,
+        "closedIssues": 0
+      },
+      "OWASP-BLT/BLT-Dash": {
+        "total": 1,
+        "merged": 1,
+        "issues": 1,
+        "closedIssues": 1
       }
     },
     "dailyActivity": {
@@ -27059,7 +27095,7 @@
         "merged": 5
       },
       "2026-03-29": {
-        "total": 4,
+        "total": 6,
         "merged": 0
       },
       "2026-03-30": {
@@ -27228,87 +27264,87 @@
       }
     },
     "dailyMergedPRs": {
-      "2026-03-15": 16,
-      "2025-11-02": 11,
-      "2026-03-02": 56,
-      "2026-02-19": 39,
-      "2025-11-16": 47,
-      "2026-03-01": 123,
-      "2026-02-22": 57,
-      "2026-02-20": 16,
-      "2026-03-23": 7,
-      "2026-03-22": 6,
-      "2026-03-24": 13,
-      "2026-03-21": 24,
-      "2026-03-03": 47,
-      "2026-03-14": 59,
+      "2026-03-20": 12,
+      "2026-02-21": 18,
+      "2026-02-14": 22,
       "2026-03-07": 22,
+      "2026-03-01": 123,
+      "2026-02-15": 39,
+      "2025-11-17": 36,
+      "2026-03-24": 13,
+      "2026-03-14": 59,
+      "2026-03-10": 6,
+      "2026-03-02": 56,
       "2026-02-28": 45,
       "2026-02-27": 35,
-      "2026-02-15": 39,
-      "2025-12-05": 2,
-      "2025-12-04": 8,
-      "2025-12-11": 9,
-      "2025-11-20": 6,
-      "2026-03-13": 29,
-      "2026-03-11": 14,
-      "2026-02-23": 47,
-      "2026-02-16": 51,
-      "2026-02-12": 21,
-      "2026-02-10": 13,
-      "2025-12-14": 13,
-      "2025-11-27": 53,
-      "2025-11-17": 36,
-      "2025-11-01": 5,
-      "2026-02-18": 30,
-      "2026-02-17": 30,
-      "2026-03-20": 12,
-      "2026-03-19": 11,
-      "2026-03-17": 14,
-      "2026-03-04": 18,
-      "2026-02-26": 8,
       "2026-02-25": 13,
       "2026-02-24": 32,
-      "2025-11-28": 18,
-      "2026-03-05": 8,
-      "2026-02-21": 18,
-      "2026-03-06": 14,
-      "2025-12-15": 22,
-      "2026-02-09": 13,
-      "2026-03-28": 5,
-      "2026-03-26": 7,
+      "2026-02-22": 57,
+      "2026-02-18": 30,
+      "2026-02-17": 30,
+      "2026-02-16": 51,
+      "2026-03-23": 7,
+      "2026-03-13": 29,
+      "2026-02-23": 47,
+      "2025-11-16": 47,
+      "2026-03-17": 14,
+      "2026-03-03": 47,
+      "2026-02-19": 39,
+      "2026-01-21": 1,
+      "2026-01-28": 1,
+      "2026-01-12": 19,
+      "2025-12-11": 9,
+      "2025-12-03": 14,
+      "2025-11-09": 5,
+      "2026-03-22": 6,
+      "2026-03-21": 24,
+      "2026-03-19": 11,
       "2026-03-18": 8,
       "2026-03-16": 6,
+      "2026-03-11": 14,
+      "2026-03-06": 14,
+      "2026-03-05": 8,
+      "2026-02-26": 8,
+      "2025-11-24": 13,
+      "2026-03-28": 5,
+      "2026-03-15": 16,
+      "2026-03-09": 5,
+      "2026-02-12": 21,
+      "2025-11-02": 11,
+      "2026-03-08": 2,
+      "2026-03-04": 18,
+      "2025-11-27": 53,
+      "2026-03-26": 7,
       "2026-03-12": 2,
-      "2026-03-10": 6,
+      "2025-12-15": 22,
+      "2026-02-20": 16,
       "2026-02-07": 13,
       "2026-02-04": 11,
       "2026-02-02": 16,
       "2026-01-29": 2,
-      "2026-01-21": 1,
-      "2026-01-28": 1,
-      "2026-01-12": 19,
-      "2025-12-03": 14,
-      "2025-11-09": 5,
-      "2026-02-14": 22,
-      "2025-11-24": 13,
-      "2026-03-09": 5,
+      "2025-11-28": 18,
+      "2026-02-09": 13,
+      "2026-01-10": 1,
+      "2025-11-01": 5,
+      "2025-12-02": 16,
+      "2025-11-25": 11,
+      "2025-11-15": 7,
+      "2025-12-18": 1,
+      "2025-11-30": 3,
+      "2025-11-29": 6,
       "2026-03-25": 4,
       "2026-02-11": 9,
       "2026-02-08": 9,
-      "2025-12-02": 16,
-      "2025-11-15": 7,
-      "2025-11-25": 11,
-      "2026-03-08": 2,
-      "2026-02-13": 3,
       "2025-12-12": 2,
       "2025-11-26": 26,
       "2025-11-22": 18,
       "2025-12-13": 3,
-      "2026-01-10": 1,
-      "2025-12-18": 1,
-      "2025-11-30": 3,
-      "2025-11-29": 6,
+      "2025-12-05": 2,
+      "2025-12-04": 8,
+      "2025-11-20": 6,
+      "2026-02-13": 3,
+      "2026-02-10": 13,
+      "2025-12-14": 13,
       "2026-02-06": 2,
       "2026-02-03": 1,
       "2026-02-01": 2,
@@ -27342,36 +27378,148 @@
     },
     "repoData": [
       {
-        "full_name": "OWASP-BLT/.github",
-        "description": "Info on the BLT Repos",
-        "stargazers_count": 2,
-        "forks_count": 0,
+        "full_name": "OWASP-BLT/BLT-GSOC",
+        "description": "GSOC related",
+        "stargazers_count": 4,
+        "forks_count": 34,
+        "language": "HTML",
+        "html_url": "https://github.com/OWASP-BLT/BLT-GSOC"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-Pages",
+        "description": "Pages Based UI issue reporting platform",
+        "stargazers_count": 4,
+        "forks_count": 11,
+        "language": "HTML",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Pages"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-Pool",
+        "description": "BLT GitHub App that integrates BLT services into GitHub",
+        "stargazers_count": 4,
+        "forks_count": 16,
         "language": "Python",
-        "html_url": "https://github.com/OWASP-BLT/.github"
+        "html_url": "https://github.com/OWASP-BLT/BLT-Pool"
       },
       {
-        "full_name": "OWASP-BLT/BLT-SafeCloak",
-        "description": "secure video chat and voice protection with secure AI notes and consent protection",
+        "full_name": "OWASP-BLT/BLT-Design",
+        "description": "Our design system light and dark mode, logos, colors etc. ",
         "stargazers_count": 1,
-        "forks_count": 14,
+        "forks_count": 3,
         "language": "HTML",
-        "html_url": "https://github.com/OWASP-BLT/BLT-SafeCloak"
+        "html_url": "https://github.com/OWASP-BLT/BLT-Design"
       },
       {
-        "full_name": "OWASP-BLT/BLT-Monitor",
-        "description": "Monitors a website using Github Actions",
+        "full_name": "OWASP-BLT/BLT-OWASP-Wich",
+        "description": "OWASP Project compliance checker can be used on other repos too ",
+        "stargazers_count": 1,
+        "forks_count": 2,
+        "language": "JavaScript",
+        "html_url": "https://github.com/OWASP-BLT/BLT-OWASP-Wich"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-MCP",
+        "description": "An interface to the BLT ecosystem enabling AI agents and developers to log bugs, triage issues, query data, and manage workflows from IDEs or chat interfaces",
+        "stargazers_count": 9,
+        "forks_count": 26,
+        "language": "JavaScript",
+        "html_url": "https://github.com/OWASP-BLT/BLT-MCP"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-Jobs",
+        "description": "A community-driven job board for the OWASP BLT ecosystem, deployed on GitHub Pages.",
         "stargazers_count": 2,
-        "forks_count": 12,
-        "language": "HTML",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Monitor"
+        "forks_count": 4,
+        "language": "JavaScript",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Jobs"
       },
       {
-        "full_name": "OWASP-BLT/BLT-Start",
-        "description": "A github pages start page to orientate contributors and mentors guiding for good first issues and direction on creating PRs",
-        "stargazers_count": 1,
-        "forks_count": 1,
+        "full_name": "OWASP-BLT/BLT-Preflight",
+        "description": "Provide security intent and risk guidance before contributors submit code to prevent common mistakes and improve contributor understanding",
+        "stargazers_count": 3,
+        "forks_count": 18,
+        "language": "Python",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Preflight"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-Next",
+        "description": "a fresh, modern design by removing non-core components to create a clear, enjoyable user experience focused on core value",
+        "stargazers_count": 14,
+        "forks_count": 51,
         "language": "HTML",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Start"
+        "html_url": "https://github.com/OWASP-BLT/BLT-Next"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-Hackathons",
+        "description": "a self hosted github project to let you conduct a hackthon on your project with charts and leaderboards and prizes ",
+        "stargazers_count": 9,
+        "forks_count": 15,
+        "language": "JavaScript",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Hackathons"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT",
+        "description": "A community-driven OWASP Foundation project building open-source tools for vulnerability reporting, bug tracking, security automation & contributor engagement.",
+        "stargazers_count": 309,
+        "forks_count": 424,
+        "language": "HTML",
+        "html_url": "https://github.com/OWASP-BLT/BLT"
+      },
+      {
+        "full_name": "OWASP-BLT/MY-GSOC-TOOL",
+        "description": "Allows students to keep track of their voyage through a dashboard of contributions, feedback and documentation ",
+        "stargazers_count": 8,
+        "forks_count": 34,
+        "language": "JavaScript",
+        "html_url": "https://github.com/OWASP-BLT/MY-GSOC-TOOL"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-docs",
+        "description": "Official documentation for the OWASP Bug Logging Tool (BLT) project",
+        "stargazers_count": 1,
+        "forks_count": 3,
+        "language": null,
+        "html_url": "https://github.com/OWASP-BLT/BLT-docs"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-Enforcement",
+        "description": "IP / Trademarks defense tools related to Cybersecurity  and keeping organizations save by enforcement",
+        "stargazers_count": 1,
+        "forks_count": 3,
+        "language": "HTML",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Enforcement"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-CVE",
+        "description": "A decentralized CVE database that stays online and offers a backup to CVE and a way to keep it online",
+        "stargazers_count": 1,
+        "forks_count": 2,
+        "language": "Python",
+        "html_url": "https://github.com/OWASP-BLT/BLT-CVE"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-Vanish-Flutter",
+        "description": "Flutter app for Vanish to help people remove themselves off the web, monitor links for removal and send requests ",
+        "stargazers_count": 1,
+        "forks_count": 0,
+        "language": "Dart",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Vanish-Flutter"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-Sammich",
+        "description": "The Slack bot for BLT",
+        "stargazers_count": 2,
+        "forks_count": 9,
+        "language": "Python",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Sammich"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-Github-Sportscaster",
+        "description": "A real-time, AI-powered leaderboard of GitHub repository activity with live play-by-play commentary! Watch as repositories compete for the top spots with an animated sportscaster announcing each event.",
+        "stargazers_count": 1,
+        "forks_count": 2,
+        "language": "JavaScript",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Github-Sportscaster"
       },
       {
         "full_name": "OWASP-BLT/BLT-Tomato",
@@ -27390,284 +27538,12 @@
         "html_url": "https://github.com/OWASP-BLT/BLT-Leaf"
       },
       {
-        "full_name": "OWASP-BLT/owasp-blt.github.io",
-        "description": "OWASP BLT Main Github Page and Waypoint ",
-        "stargazers_count": 2,
-        "forks_count": 5,
-        "language": "JavaScript",
-        "html_url": "https://github.com/OWASP-BLT/owasp-blt.github.io"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-Vanish-Web",
-        "description": "An open-source, hybrid local+edge privacy toolkit for managing and deleting personal data online.",
-        "stargazers_count": 4,
-        "forks_count": 3,
-        "language": "Dart",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Vanish-Web"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-Next",
-        "description": "a fresh, modern design by removing non-core components to create a clear, enjoyable user experience focused on core value",
-        "stargazers_count": 14,
-        "forks_count": 51,
-        "language": "HTML",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Next"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-Newsletter",
-        "description": "The BLT Newsletter",
-        "stargazers_count": 1,
-        "forks_count": 3,
-        "language": "HTML",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Newsletter"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-Design-Contest",
-        "description": "Design Contest Website",
-        "stargazers_count": 1,
-        "forks_count": 2,
-        "language": "HTML",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Design-Contest"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-Pool",
-        "description": "BLT GitHub App that integrates BLT services into GitHub",
-        "stargazers_count": 4,
-        "forks_count": 16,
-        "language": "Python",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Pool"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-OWASP-Projects",
-        "description": "A comprehensive dashboard for tracking and visualizing OWASP (Open Web Application Security Project) repositories and their statistics.",
-        "stargazers_count": 1,
-        "forks_count": 0,
-        "language": "HTML",
-        "html_url": "https://github.com/OWASP-BLT/BLT-OWASP-Projects"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-Jobs",
-        "description": "A community-driven job board for the OWASP BLT ecosystem, deployed on GitHub Pages.",
-        "stargazers_count": 2,
-        "forks_count": 4,
-        "language": "JavaScript",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Jobs"
-      },
-      {
         "full_name": "OWASP-BLT/BLT-Ideas",
         "description": "BLT Ideas",
         "stargazers_count": 14,
         "forks_count": 16,
         "language": "Python",
         "html_url": "https://github.com/OWASP-BLT/BLT-Ideas"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-OWASP-metadata",
-        "description": "metadata aggregation system for OWASP projects ",
-        "stargazers_count": 2,
-        "forks_count": 4,
-        "language": "JavaScript",
-        "html_url": "https://github.com/OWASP-BLT/BLT-OWASP-metadata"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-Sammich",
-        "description": "The Slack bot for BLT",
-        "stargazers_count": 2,
-        "forks_count": 9,
-        "language": "Python",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Sammich"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-Ketchup",
-        "description": "BLT Penetration Testing Collaboration Workspace A real-time collaboration environment for red-team engagements where multiple pentesters can share findings, tag team members, and escalate issues directly to BLT. Think \"Google Docs for pentest reports\" with built-in CVSS scoring and evidence management.",
-        "stargazers_count": 0,
-        "forks_count": 0,
-        "language": "HTML",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Ketchup"
-      },
-      {
-        "full_name": "OWASP-BLT/coderabbit",
-        "description": "Coderabbit settings ",
-        "stargazers_count": 0,
-        "forks_count": 0,
-        "language": null,
-        "html_url": "https://github.com/OWASP-BLT/coderabbit"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-NetGuardian-Client",
-        "description": "The client run on your computer to make the web safer",
-        "stargazers_count": 1,
-        "forks_count": 0,
-        "language": "Dart",
-        "html_url": "https://github.com/OWASP-BLT/BLT-NetGuardian-Client"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-MCP",
-        "description": "An interface to the BLT ecosystem enabling AI agents and developers to log bugs, triage issues, query data, and manage workflows from IDEs or chat interfaces",
-        "stargazers_count": 9,
-        "forks_count": 26,
-        "language": "JavaScript",
-        "html_url": "https://github.com/OWASP-BLT/BLT-MCP"
-      },
-      {
-        "full_name": "OWASP-BLT/MY-GSOC-TOOL",
-        "description": "Allows students to keep track of their voyage through a dashboard of contributions, feedback and documentation ",
-        "stargazers_count": 8,
-        "forks_count": 34,
-        "language": "JavaScript",
-        "html_url": "https://github.com/OWASP-BLT/MY-GSOC-TOOL"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-OWASP-Wich",
-        "description": "OWASP Project compliance checker can be used on other repos too ",
-        "stargazers_count": 1,
-        "forks_count": 2,
-        "language": "JavaScript",
-        "html_url": "https://github.com/OWASP-BLT/BLT-OWASP-Wich"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-Hackathons",
-        "description": "a self hosted github project to let you conduct a hackthon on your project with charts and leaderboards and prizes ",
-        "stargazers_count": 9,
-        "forks_count": 15,
-        "language": "JavaScript",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Hackathons"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-Byte",
-        "description": "AI assistant, orchestrator and agent",
-        "stargazers_count": 1,
-        "forks_count": 5,
-        "language": "Python",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Byte"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-API",
-        "description": "Full-featured REST API for OWASP BLT",
-        "stargazers_count": 1,
-        "forks_count": 15,
-        "language": "Python",
-        "html_url": "https://github.com/OWASP-BLT/BLT-API"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-Sizzle",
-        "description": "A simple, secure daily check-in application built as a Cloudflare Python Worker. Track your progress, plan your day, and share your mood with your team via Slack or email notifications.",
-        "stargazers_count": 2,
-        "forks_count": 7,
-        "language": "HTML",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Sizzle"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-GSOC",
-        "description": "GSOC related",
-        "stargazers_count": 4,
-        "forks_count": 34,
-        "language": "HTML",
-        "html_url": "https://github.com/OWASP-BLT/BLT-GSOC"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-Github-Sportscaster",
-        "description": "A real-time, AI-powered leaderboard of GitHub repository activity with live play-by-play commentary! Watch as repositories compete for the top spots with an animated sportscaster announcing each event.",
-        "stargazers_count": 1,
-        "forks_count": 2,
-        "language": "JavaScript",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Github-Sportscaster"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-Preflight",
-        "description": "Provide security intent and risk guidance before contributors submit code to prevent common mistakes and improve contributor understanding",
-        "stargazers_count": 3,
-        "forks_count": 18,
-        "language": "Python",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Preflight"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-Dash",
-        "description": "A company cybersecurity dashboard that integrates with everything and gives a heads up display single page of everything you need to see",
-        "stargazers_count": 0,
-        "forks_count": 0,
-        "language": "HTML",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Dash"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-CVE",
-        "description": "A decentralized CVE database that stays online and offers a backup to CVE and a way to keep it online",
-        "stargazers_count": 1,
-        "forks_count": 2,
-        "language": "Python",
-        "html_url": "https://github.com/OWASP-BLT/BLT-CVE"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-Design",
-        "description": "Our design system light and dark mode, logos, colors etc. ",
-        "stargazers_count": 1,
-        "forks_count": 3,
-        "language": "HTML",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Design"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-Enforcement",
-        "description": "IP / Trademarks defense tools related to Cybersecurity  and keeping organizations save by enforcement",
-        "stargazers_count": 1,
-        "forks_count": 3,
-        "language": "HTML",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Enforcement"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-OSSH",
-        "description": "a magical hat that reads your GitHub profile and suggests blogs or projects you might like ",
-        "stargazers_count": 1,
-        "forks_count": 8,
-        "language": "HTML",
-        "html_url": "https://github.com/OWASP-BLT/BLT-OSSH"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-Pages",
-        "description": "Pages Based UI issue reporting platform",
-        "stargazers_count": 4,
-        "forks_count": 11,
-        "language": "HTML",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Pages"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-Timer-Flutter",
-        "description": "Flutter App for local time tracking",
-        "stargazers_count": 1,
-        "forks_count": 0,
-        "language": "Dart",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Timer-Flutter"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-Zero",
-        "description": "Zero Trust Bug Reporting without a trace",
-        "stargazers_count": 1,
-        "forks_count": 7,
-        "language": "HTML",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Zero"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-Extension",
-        "description": "The chrome extension to BLT that allows you to take screenshots of websites and report them",
-        "stargazers_count": 3,
-        "forks_count": 15,
-        "language": "JavaScript",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Extension"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-Timer-Web",
-        "description": "Privacy-focused time tracking system for developers with GitHub integration and local LLM analysis",
-        "stargazers_count": 2,
-        "forks_count": 2,
-        "language": "HTML",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Timer-Web"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-docs",
-        "description": "Official documentation for the OWASP Bug Logging Tool (BLT) project",
-        "stargazers_count": 1,
-        "forks_count": 3,
-        "language": null,
-        "html_url": "https://github.com/OWASP-BLT/BLT-docs"
       },
       {
         "full_name": "OWASP-BLT/BLT-Rewards",
@@ -27678,60 +27554,12 @@
         "html_url": "https://github.com/OWASP-BLT/BLT-Rewards"
       },
       {
-        "full_name": "OWASP-BLT/BLT-Vanish-Flutter",
-        "description": "Flutter app for Vanish to help people remove themselves off the web, monitor links for removal and send requests ",
+        "full_name": "OWASP-BLT/BLT-SafeCloak",
+        "description": "secure video chat and voice protection with secure AI notes and consent protection",
         "stargazers_count": 1,
-        "forks_count": 0,
-        "language": "Dart",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Vanish-Flutter"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-Toasty",
-        "description": "The BLT AI bot that checks your code, updates your priorities and looks at issues through a magnifying glass",
-        "stargazers_count": 5,
-        "forks_count": 11,
-        "language": "Python",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Toasty"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-University",
-        "description": "Security related courses and knowledge transfer",
-        "stargazers_count": 4,
-        "forks_count": 12,
+        "forks_count": 14,
         "language": "HTML",
-        "html_url": "https://github.com/OWASP-BLT/BLT-University"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-OWASP-Bumper",
-        "description": "OWASP repo dashboard with smart insights & metrics",
-        "stargazers_count": 3,
-        "forks_count": 2,
-        "language": "HTML",
-        "html_url": "https://github.com/OWASP-BLT/BLT-OWASP-Bumper"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-NetGuardian",
-        "description": "an agent that continually scans the web making it secure by reporting bugs",
-        "stargazers_count": 4,
-        "forks_count": 13,
-        "language": "Python",
-        "html_url": "https://github.com/OWASP-BLT/BLT-NetGuardian"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT-Flutter",
-        "description": "The official OWASP BLT App repository",
-        "stargazers_count": 26,
-        "forks_count": 40,
-        "language": "Dart",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Flutter"
-      },
-      {
-        "full_name": "OWASP-BLT/BLT",
-        "description": "A community-driven OWASP Foundation project building open-source tools for vulnerability reporting, bug tracking, security automation & contributor engagement.",
-        "stargazers_count": 309,
-        "forks_count": 424,
-        "language": "HTML",
-        "html_url": "https://github.com/OWASP-BLT/BLT"
+        "html_url": "https://github.com/OWASP-BLT/BLT-SafeCloak"
       },
       {
         "full_name": "OWASP-BLT/BLT-Action",
@@ -27742,12 +27570,44 @@
         "html_url": "https://github.com/OWASP-BLT/BLT-Action"
       },
       {
-        "full_name": "OWASP-BLT/BLT-Panini",
-        "description": "App Security Ratings",
+        "full_name": "OWASP-BLT/owasp-blt.github.io",
+        "description": "OWASP BLT Main Github Page and Waypoint ",
         "stargazers_count": 2,
-        "forks_count": 3,
+        "forks_count": 5,
         "language": "JavaScript",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Panini"
+        "html_url": "https://github.com/OWASP-BLT/owasp-blt.github.io"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-OWASP-Projects",
+        "description": "A comprehensive dashboard for tracking and visualizing OWASP (Open Web Application Security Project) repositories and their statistics.",
+        "stargazers_count": 1,
+        "forks_count": 0,
+        "language": "HTML",
+        "html_url": "https://github.com/OWASP-BLT/BLT-OWASP-Projects"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-OWASP-metadata",
+        "description": "metadata aggregation system for OWASP projects ",
+        "stargazers_count": 2,
+        "forks_count": 4,
+        "language": "JavaScript",
+        "html_url": "https://github.com/OWASP-BLT/BLT-OWASP-metadata"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-Byte",
+        "description": "AI assistant, orchestrator and agent",
+        "stargazers_count": 1,
+        "forks_count": 5,
+        "language": "Python",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Byte"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-University",
+        "description": "Security related courses and knowledge transfer",
+        "stargazers_count": 4,
+        "forks_count": 12,
+        "language": "HTML",
+        "html_url": "https://github.com/OWASP-BLT/BLT-University"
       },
       {
         "full_name": "OWASP-BLT/BLT-Lettuce",
@@ -27756,6 +27616,182 @@
         "forks_count": 16,
         "language": "Python",
         "html_url": "https://github.com/OWASP-BLT/BLT-Lettuce"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-Newsletter",
+        "description": "The BLT Newsletter",
+        "stargazers_count": 1,
+        "forks_count": 3,
+        "language": "HTML",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Newsletter"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-Flutter",
+        "description": "The official OWASP BLT App repository",
+        "stargazers_count": 26,
+        "forks_count": 40,
+        "language": "Dart",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Flutter"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-Timer-Flutter",
+        "description": "Flutter App for local time tracking",
+        "stargazers_count": 1,
+        "forks_count": 0,
+        "language": "Dart",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Timer-Flutter"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-Ketchup",
+        "description": "BLT Penetration Testing Collaboration Workspace A real-time collaboration environment for red-team engagements where multiple pentesters can share findings, tag team members, and escalate issues directly to BLT. Think \"Google Docs for pentest reports\" with built-in CVSS scoring and evidence management.",
+        "stargazers_count": 0,
+        "forks_count": 0,
+        "language": "HTML",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Ketchup"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-Zero",
+        "description": "Zero Trust Bug Reporting without a trace",
+        "stargazers_count": 1,
+        "forks_count": 7,
+        "language": "HTML",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Zero"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-Design-Contest",
+        "description": "Design Contest Website",
+        "stargazers_count": 1,
+        "forks_count": 2,
+        "language": "HTML",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Design-Contest"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-Vanish-Web",
+        "description": "An open-source, hybrid local+edge privacy toolkit for managing and deleting personal data online.",
+        "stargazers_count": 4,
+        "forks_count": 3,
+        "language": "Dart",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Vanish-Web"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-Extension",
+        "description": "The chrome extension to BLT that allows you to take screenshots of websites and report them",
+        "stargazers_count": 3,
+        "forks_count": 15,
+        "language": "JavaScript",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Extension"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-OWASP-Bumper",
+        "description": "OWASP repo dashboard with smart insights & metrics",
+        "stargazers_count": 3,
+        "forks_count": 2,
+        "language": "HTML",
+        "html_url": "https://github.com/OWASP-BLT/BLT-OWASP-Bumper"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-Start",
+        "description": "A github pages start page to orientate contributors and mentors guiding for good first issues and direction on creating PRs",
+        "stargazers_count": 1,
+        "forks_count": 1,
+        "language": "HTML",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Start"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-API",
+        "description": "Full-featured REST API for OWASP BLT",
+        "stargazers_count": 1,
+        "forks_count": 15,
+        "language": "Python",
+        "html_url": "https://github.com/OWASP-BLT/BLT-API"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-Timer-Web",
+        "description": "Privacy-focused time tracking system for developers with GitHub integration and local LLM analysis",
+        "stargazers_count": 2,
+        "forks_count": 2,
+        "language": "HTML",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Timer-Web"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-Sizzle",
+        "description": "A simple, secure daily check-in application built as a Cloudflare Python Worker. Track your progress, plan your day, and share your mood with your team via Slack or email notifications.",
+        "stargazers_count": 2,
+        "forks_count": 7,
+        "language": "HTML",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Sizzle"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-Toasty",
+        "description": "The BLT AI bot that checks your code, updates your priorities and looks at issues through a magnifying glass",
+        "stargazers_count": 5,
+        "forks_count": 11,
+        "language": "Python",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Toasty"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-Monitor",
+        "description": "Monitors a website using Github Actions",
+        "stargazers_count": 2,
+        "forks_count": 12,
+        "language": "HTML",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Monitor"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-Panini",
+        "description": "App Security Ratings",
+        "stargazers_count": 2,
+        "forks_count": 3,
+        "language": "JavaScript",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Panini"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-NetGuardian-Client",
+        "description": "The client run on your computer to make the web safer",
+        "stargazers_count": 1,
+        "forks_count": 0,
+        "language": "Dart",
+        "html_url": "https://github.com/OWASP-BLT/BLT-NetGuardian-Client"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-NetGuardian",
+        "description": "an agent that continually scans the web making it secure by reporting bugs",
+        "stargazers_count": 4,
+        "forks_count": 13,
+        "language": "Python",
+        "html_url": "https://github.com/OWASP-BLT/BLT-NetGuardian"
+      },
+      {
+        "full_name": "OWASP-BLT/coderabbit",
+        "description": "Coderabbit settings ",
+        "stargazers_count": 0,
+        "forks_count": 0,
+        "language": null,
+        "html_url": "https://github.com/OWASP-BLT/coderabbit"
+      },
+      {
+        "full_name": "OWASP-BLT/.github",
+        "description": "Info on the BLT Repos",
+        "stargazers_count": 2,
+        "forks_count": 0,
+        "language": "Python",
+        "html_url": "https://github.com/OWASP-BLT/.github"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-Dash",
+        "description": "A company cybersecurity dashboard that integrates with everything and gives a heads up display single page of everything you need to see",
+        "stargazers_count": 0,
+        "forks_count": 0,
+        "language": "HTML",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Dash"
+      },
+      {
+        "full_name": "OWASP-BLT/BLT-OSSH",
+        "description": "a magical hat that reads your GitHub profile and suggests blogs or projects you might like ",
+        "stargazers_count": 1,
+        "forks_count": 8,
+        "language": "HTML",
+        "html_url": "https://github.com/OWASP-BLT/BLT-OSSH"
       }
     ]
   }

@@ -1,6 +1,6 @@
 {
   "participantCount": 184,
-  "totalPRs": 2574,
+  "totalPRs": 2576,
   "mergedPRs": 1620,
   "totalIssues": 825,
   "repositories": 53,
@@ -25,6 +25,26 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "Feat/owasp 2025 json update",
+      "url": "https://github.com/OWASP-BLT/BLT-Preflight/pull/23",
+      "username": "gargi-birwatkar",
+      "avatar": "https://avatars.githubusercontent.com/u/147988352?v=4",
+      "state": "closed",
+      "created_at": "2026-03-29T12:58:03Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-Preflight"
+    },
+    {
+      "title": "feat: standardize slash commands and sync app manifest for discovery",
+      "url": "https://github.com/OWASP-BLT/BLT-Sammich/pull/72",
+      "username": "Makeepan-dev",
+      "avatar": "https://avatars.githubusercontent.com/u/183580740?v=4",
+      "state": "open",
+      "created_at": "2026-03-29T12:46:12Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-Sammich"
+    },
     {
       "title": "docs: modernize README to reflect Cloudflare Workers and D1 architecture",
       "url": "https://github.com/OWASP-BLT/BLT-Sammich/pull/71",
@@ -104,26 +124,6 @@
       "created_at": "2026-03-28T13:41:09Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT-Toasty"
-    },
-    {
-      "title": "security(cors): default JSON responses to no CORS; allow wildcard only for GET /health",
-      "url": "https://github.com/OWASP-BLT/BLT-Pool/pull/103",
-      "username": "Rudrawhy",
-      "avatar": "https://avatars.githubusercontent.com/u/154898503?v=4",
-      "state": "open",
-      "created_at": "2026-03-28T13:22:43Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-Pool"
-    },
-    {
-      "title": "Removing Ahmed from Mentor list in Hackathon",
-      "url": "https://github.com/OWASP-BLT/BLT-Hackathons/pull/85",
-      "username": "S3DFX-CYBER",
-      "avatar": "https://avatars.githubusercontent.com/u/213652949?v=4",
-      "state": "closed",
-      "created_at": "2026-03-28T12:33:51Z",
-      "merged_at": "2026-03-28T14:20:26Z",
-      "repository": "OWASP-BLT/BLT-Hackathons"
     }
   ]
 }
