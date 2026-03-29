@@ -1,8 +1,8 @@
 {
   "participantCount": 184,
-  "totalPRs": 2576,
+  "totalPRs": 2577,
   "mergedPRs": 1620,
-  "totalIssues": 825,
+  "totalIssues": 826,
   "repositories": 53,
   "topContributors": [
     {
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "fix: harden /ghissue logic and modernize architecture documentation",
+      "url": "https://github.com/OWASP-BLT/BLT-Sammich/pull/73",
+      "username": "Makeepan-dev",
+      "avatar": "https://avatars.githubusercontent.com/u/183580740?v=4",
+      "state": "open",
+      "created_at": "2026-03-29T14:05:20Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-Sammich"
+    },
     {
       "title": "Feat/owasp 2025 json update",
       "url": "https://github.com/OWASP-BLT/BLT-Preflight/pull/23",
@@ -114,16 +124,6 @@
       "created_at": "2026-03-28T17:23:21Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT-SafeCloak"
-    },
-    {
-      "title": "fix: implement ISO-8601 timestamps in health and review endpoints",
-      "url": "https://github.com/OWASP-BLT/BLT-Toasty/pull/40",
-      "username": "JessCode-TheRedumption",
-      "avatar": "https://avatars.githubusercontent.com/u/234758609?v=4",
-      "state": "open",
-      "created_at": "2026-03-28T13:41:09Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-Toasty"
     }
   ]
 }
