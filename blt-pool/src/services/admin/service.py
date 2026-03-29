@@ -849,7 +849,7 @@ class AdminService:
           </div>
           <div class="overflow-x-auto">
             <table id="admin-mentor-table" class="min-w-full text-left text-sm">
-              <thead class="bg-gray-50 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+              <thead class="sticky top-20 z-20 bg-gray-50 text-[11px] font-semibold uppercase tracking-wide text-gray-500 shadow-sm">
                 <tr>
                   <th class="px-3 py-3"><button type="button" data-sort-key="mentor" data-sort-direction="desc" class="inline-flex items-center gap-1">Mentor <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
                   <th class="px-3 py-3"><button type="button" data-sort-key="name" data-sort-direction="desc" class="inline-flex items-center gap-1">Name <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
@@ -923,11 +923,6 @@ class AdminService:
         active = int(mentor.get("active") or 0) == 1
         specialties = mentor.get("specialties_list") or []
         specialties_value = ", ".join(str(item) for item in specialties)
-        badge = (
-            '<span class="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700">Published</span>'
-            if active
-            else '<span class="inline-flex items-center rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-xs font-semibold text-gray-600">Blocked</span>'
-        )
         email = mentor.get("email") or ""
         slack_username = mentor.get("slack_username") or ""
         assignment_refs = mentor.get("assignment_refs") or ""
@@ -938,7 +933,7 @@ class AdminService:
           <td class="px-3 py-2">
             <div class="flex items-center gap-2">
               <img src="https://github.com/{_escape(username)}.png" alt="{_escape(name)}" class="h-8 w-8 rounded-full border border-[#E5E5E5] bg-white object-cover">
-              {badge}
+              <span data-autosave-status data-state="idle" class="inline-flex items-center rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-[11px] font-semibold text-gray-500">Idle</span>
             </div>
             <form id="{form_id}" method="POST" action="{self.mentor_action_path}">
               <input type="hidden" name="action" value="save">
@@ -966,7 +961,6 @@ class AdminService:
           </td>
           <td class="px-3 py-2">
             <div class="flex items-center justify-end gap-2">
-              <span data-autosave-status data-state="idle" class="text-xs font-semibold text-gray-500">Idle</span>
               <form method="POST" action="{self.mentor_action_path}">
                 <input type="hidden" name="github_username" value="{_escape(username)}">
                 <input type="hidden" name="action" value="delete">
