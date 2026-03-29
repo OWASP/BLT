@@ -1,6 +1,6 @@
 {
   "participantCount": 184,
-  "totalPRs": 2577,
+  "totalPRs": 2580,
   "mergedPRs": 1620,
   "totalIssues": 826,
   "repositories": 53,
@@ -25,6 +25,36 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "Revamping the footer with a fresh, modern and clean look",
+      "url": "https://github.com/OWASP-BLT/BLT-Pages/pull/101",
+      "username": "ananya-09",
+      "avatar": "https://avatars.githubusercontent.com/u/175581593?v=4",
+      "state": "open",
+      "created_at": "2026-03-29T14:50:02Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-Pages"
+    },
+    {
+      "title": "feat: synchronize slash command registrations and standardize /stats alias",
+      "url": "https://github.com/OWASP-BLT/BLT-Sammich/pull/74",
+      "username": "Makeepan-dev",
+      "avatar": "https://avatars.githubusercontent.com/u/183580740?v=4",
+      "state": "open",
+      "created_at": "2026-03-29T14:43:52Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-Sammich"
+    },
+    {
+      "title": "Revamp Footer Experience",
+      "url": "https://github.com/OWASP-BLT/BLT-Pages/pull/100",
+      "username": "ananya-09",
+      "avatar": "https://avatars.githubusercontent.com/u/175581593?v=4",
+      "state": "closed",
+      "created_at": "2026-03-29T14:17:07Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-Pages"
+    },
     {
       "title": "fix: harden /ghissue logic and modernize architecture documentation",
       "url": "https://github.com/OWASP-BLT/BLT-Sammich/pull/73",
@@ -94,36 +124,6 @@
       "created_at": "2026-03-28T21:11:53Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "Fix typos: recieve -> receive, enviroment -> environment",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6097",
-      "username": "gargi-birwatkar",
-      "avatar": "https://avatars.githubusercontent.com/u/147988352?v=4",
-      "state": "closed",
-      "created_at": "2026-03-28T19:13:24Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "Add BLT Welcome Video Contest",
-      "url": "https://github.com/OWASP-BLT/BLT-Design-Contest/pull/103",
-      "username": "ananya-09",
-      "avatar": "https://avatars.githubusercontent.com/u/175581593?v=4",
-      "state": "open",
-      "created_at": "2026-03-28T17:50:28Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-Design-Contest"
-    },
-    {
-      "title": "Improve URL join handling to prevent invalid peer initialization",
-      "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/46",
-      "username": "aimaan-ayaz",
-      "avatar": "https://avatars.githubusercontent.com/u/89684960?v=4",
-      "state": "open",
-      "created_at": "2026-03-28T17:23:21Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-SafeCloak"
     }
   ]
 }
