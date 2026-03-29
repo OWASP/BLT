@@ -8,6 +8,7 @@ import binascii
 import hmac
 import html as _html
 import json
+import re
 from typing import Optional, Tuple
 from urllib.parse import parse_qs, quote_plus, urlparse
 
@@ -17,6 +18,9 @@ from js import Headers, Response, console, fetch
 _ADMIN_BASIC_USER_ENV = "ADMIN_BASIC_AUTH_USERNAME"
 _ADMIN_BASIC_PASS_ENV = "ADMIN_BASIC_AUTH_PASSWORD"
 _ADMIN_BASIC_REALM = "BLT-Pool Admin"
+_GH_USERNAME_RE = re.compile(r"^[a-zA-Z0-9](?:[a-zA-Z0-9\-]{0,37}[a-zA-Z0-9])?$")
+_EMAIL_RE = re.compile(r"^[A-Za-z0-9._%+\-]{1,64}@[A-Za-z0-9.\-]{1,190}\.[A-Za-z]{2,}$")
+_SLACK_USERNAME_RE = re.compile(r"^[A-Za-z0-9._\-]{1,80}$")
 
 
 def _escape(value: str) -> str:
@@ -209,10 +213,20 @@ class AdminService:
                 max_mentees INTEGER NOT NULL DEFAULT 3,
                 active INTEGER NOT NULL DEFAULT 1,
                 timezone TEXT NOT NULL DEFAULT '',
-                referred_by TEXT NOT NULL DEFAULT ''
+            referred_by TEXT NOT NULL DEFAULT '',
+            email TEXT NOT NULL DEFAULT '',
+            slack_username TEXT NOT NULL DEFAULT ''
             )
             """
         )
+        if not await self._d1_has_column("mentors", "email"):
+          await self._d1_run(
+            "ALTER TABLE mentors ADD COLUMN email TEXT NOT NULL DEFAULT ''"
+          )
+        if not await self._d1_has_column("mentors", "slack_username"):
+          await self._d1_run(
+            "ALTER TABLE mentors ADD COLUMN slack_username TEXT NOT NULL DEFAULT ''"
+          )
         await self._d1_run(
             """
             CREATE TABLE IF NOT EXISTS mentor_assignments (
@@ -225,6 +239,14 @@ class AdminService:
             )
             """
         )
+
+        async def _d1_has_column(self, table_name: str, column_name: str) -> bool:
+          rows = await self._d1_all(f"PRAGMA table_info({table_name})")
+          target = (column_name or "").strip().lower()
+          for row in rows:
+            if str(row.get("name") or "").strip().lower() == target:
+              return True
+          return False
 
     def _configured_basic_auth(self) -> Tuple[str, str]:
         username = str(getattr(self.env, _ADMIN_BASIC_USER_ENV, "") or "").strip()
@@ -529,6 +551,8 @@ class AdminService:
                 m.active,
                 m.timezone,
                 m.referred_by,
+              m.email,
+              m.slack_username,
                 COALESCE(a.assignment_count, 0) AS assignment_count
             FROM mentors m
             LEFT JOIN (
@@ -563,13 +587,8 @@ class AdminService:
             if active
             else '<span class="inline-flex items-center rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-xs font-semibold text-gray-600">Blocked</span>'
         )
-        primary_action = "block" if active else "publish"
-        primary_label = "Block" if active else "Publish"
-        primary_class = (
-            "border-gray-300 text-gray-700 hover:bg-gray-50"
-            if active
-            else "border-emerald-200 text-emerald-700 hover:bg-emerald-50"
-        )
+        email = mentor.get("email") or ""
+        slack_username = mentor.get("slack_username") or ""
         return f"""
         <tr>
           <td class="px-4 py-4">
@@ -588,32 +607,61 @@ class AdminService:
           <td class="px-4 py-4 text-gray-600">{_escape(mentor.get('referred_by') or '-')}</td>
           <td class="px-4 py-4 text-gray-600">{int(mentor.get('assignment_count') or 0)}</td>
           <td class="px-4 py-4">
-            <div class="flex flex-wrap gap-2">
-              <form method="POST" action="{self.mentor_action_path}">
-                <input type="hidden" name="github_username" value="{_escape(username)}">
-                <input type="hidden" name="action" value="{primary_action}">
-                <button
-                  type="submit"
-                  data-confirm-title="{('Block mentor?' if active else 'Publish mentor?')}"
-                  data-confirm-message="{('This will hide the mentor from the public mentor pool until you publish them again.' if active else 'This will make the mentor visible in the public mentor pool again.')}"
-                  data-confirm-cta="{('<i class=&quot;fa-solid fa-ban&quot; aria-hidden=&quot;true&quot;></i>Block mentor' if active else '<i class=&quot;fa-solid fa-bullhorn&quot; aria-hidden=&quot;true&quot;></i>Publish mentor')}"
-                  class="inline-flex items-center gap-1 rounded-md border px-3 py-2 text-xs font-semibold transition {primary_class}">
-                  {primary_label}
+            <form method="POST" action="{self.mentor_action_path}" class="space-y-2 rounded-lg border border-[#E5E5E5] bg-gray-50 p-3">
+              <input type="hidden" name="action" value="save">
+              <input type="hidden" name="original_github_username" value="{_escape(username)}">
+              <label class="block text-[11px] font-semibold uppercase tracking-wide text-gray-500">GitHub</label>
+              <input name="github_username" value="{_escape(username)}" class="w-full rounded-md border border-gray-300 px-2 py-1.5 text-xs text-gray-800" maxlength="39" required>
+
+              <label class="block text-[11px] font-semibold uppercase tracking-wide text-gray-500">Display name</label>
+              <input name="name" value="{_escape(name)}" class="w-full rounded-md border border-gray-300 px-2 py-1.5 text-xs text-gray-800" maxlength="100" required>
+
+              <label class="block text-[11px] font-semibold uppercase tracking-wide text-gray-500">Specialties (comma-separated)</label>
+              <input name="specialties" value="{_escape(', '.join(str(s) for s in specialties))}" class="w-full rounded-md border border-gray-300 px-2 py-1.5 text-xs text-gray-800" maxlength="300">
+
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block text-[11px] font-semibold uppercase tracking-wide text-gray-500">Cap</label>
+                  <input name="max_mentees" type="number" min="1" max="10" value="{int(mentor.get('max_mentees') or 3)}" class="w-full rounded-md border border-gray-300 px-2 py-1.5 text-xs text-gray-800">
+                </div>
+                <div class="flex items-end">
+                  <label class="inline-flex items-center gap-2 text-xs text-gray-700">
+                    <input name="active" type="checkbox" value="1" {'checked' if active else ''}>
+                    Published
+                  </label>
+                </div>
+              </div>
+
+              <label class="block text-[11px] font-semibold uppercase tracking-wide text-gray-500">Timezone</label>
+              <input name="timezone" value="{_escape(mentor.get('timezone') or '')}" class="w-full rounded-md border border-gray-300 px-2 py-1.5 text-xs text-gray-800" maxlength="60">
+
+              <label class="block text-[11px] font-semibold uppercase tracking-wide text-gray-500">Referred by (GitHub)</label>
+              <input name="referred_by" value="{_escape(mentor.get('referred_by') or '')}" class="w-full rounded-md border border-gray-300 px-2 py-1.5 text-xs text-gray-800" maxlength="39">
+
+              <label class="block text-[11px] font-semibold uppercase tracking-wide text-gray-500">Email</label>
+              <input name="email" value="{_escape(email)}" type="email" class="w-full rounded-md border border-gray-300 px-2 py-1.5 text-xs text-gray-800" maxlength="255">
+
+              <label class="block text-[11px] font-semibold uppercase tracking-wide text-gray-500">Slack username</label>
+              <input name="slack_username" value="{_escape(slack_username)}" class="w-full rounded-md border border-gray-300 px-2 py-1.5 text-xs text-gray-800" maxlength="80">
+
+              <div class="flex flex-wrap gap-2 pt-1">
+                <button type="submit" class="inline-flex items-center gap-1 rounded-md border border-emerald-200 px-3 py-2 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-50">
+                  Save
                 </button>
-              </form>
-              <form method="POST" action="{self.mentor_action_path}">
-                <input type="hidden" name="github_username" value="{_escape(username)}">
-                <input type="hidden" name="action" value="delete">
-                <button
-                  type="submit"
-                  data-confirm-title="Delete mentor?"
-                  data-confirm-message="This permanently removes the mentor record and clears related assignments from the admin panel."
-                  data-confirm-cta="<i class=&quot;fa-solid fa-trash&quot; aria-hidden=&quot;true&quot;></i>Delete mentor"
-                  class="inline-flex items-center gap-1 rounded-md border border-red-200 px-3 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-50">
-                  Delete
-                </button>
-              </form>
-            </div>
+              </div>
+            </form>
+            <form method="POST" action="{self.mentor_action_path}" class="mt-2">
+              <input type="hidden" name="github_username" value="{_escape(username)}">
+              <input type="hidden" name="action" value="delete">
+              <button
+                type="submit"
+                data-confirm-title="Delete mentor?"
+                data-confirm-message="This permanently removes the mentor record and clears related assignments from the admin panel."
+                data-confirm-cta="<i class=&quot;fa-solid fa-trash&quot; aria-hidden=&quot;true&quot;></i>Delete mentor"
+                class="inline-flex items-center gap-1 rounded-md border border-red-200 px-3 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-50">
+                Delete
+              </button>
+            </form>
           </td>
         </tr>
         """
@@ -625,15 +673,75 @@ class AdminService:
         form = await self._form_data(request)
         github_username = (form.get("github_username") or "").strip().lstrip("@")
         action = (form.get("action") or "").strip().lower()
-        if not github_username or action not in {"publish", "block", "delete"}:
+        if action not in {"save", "delete"}:
             return self._redirect(self.admin_path)
 
         try:
-            if action == "publish":
-                await self._d1_run("UPDATE mentors SET active = 1 WHERE github_username = ?", (github_username,))
-            elif action == "block":
-                await self._d1_run("UPDATE mentors SET active = 0 WHERE github_username = ?", (github_username,))
-            else:
+          if action == "save":
+            original_github_username = (form.get("original_github_username") or "").strip().lstrip("@")
+            new_github_username = (form.get("github_username") or "").strip().lstrip("@")
+            name = (form.get("name") or "").strip()
+            specialties_raw = (form.get("specialties") or "").strip()
+            timezone = (form.get("timezone") or "").strip()
+            referred_by = (form.get("referred_by") or "").strip().lstrip("@")
+            email = (form.get("email") or "").strip().lower()
+            slack_username = (form.get("slack_username") or "").strip().lstrip("@")
+            active = 1 if (form.get("active") or "") == "1" else 0
+
+            if not original_github_username:
+              return self._redirect(self.admin_path)
+            if not _GH_USERNAME_RE.match(new_github_username):
+              return self._redirect(self.admin_path)
+            if referred_by and not _GH_USERNAME_RE.match(referred_by):
+              return self._redirect(self.admin_path)
+            if email and not _EMAIL_RE.match(email):
+              return self._redirect(self.admin_path)
+            if slack_username and not _SLACK_USERNAME_RE.match(slack_username):
+              return self._redirect(self.admin_path)
+            specialties_list = [
+              item.strip().lower()
+              for item in specialties_raw.split(",")
+              if item.strip()
+            ]
+            try:
+              max_mentees = int(form.get("max_mentees") or 3)
+            except Exception:
+              max_mentees = 3
+            max_mentees = max(1, min(10, max_mentees))
+
+            await self._d1_run(
+              """
+              UPDATE mentors
+              SET github_username = ?,
+                name = ?,
+                specialties = ?,
+                max_mentees = ?,
+                active = ?,
+                timezone = ?,
+                referred_by = ?,
+                email = ?,
+                slack_username = ?
+              WHERE github_username = ?
+              """,
+              (
+                new_github_username,
+                name,
+                json.dumps(specialties_list),
+                max_mentees,
+                active,
+                timezone,
+                referred_by,
+                email,
+                slack_username,
+                original_github_username,
+              ),
+            )
+            if new_github_username != original_github_username:
+              await self._d1_run(
+                "UPDATE mentor_assignments SET mentor_login = ? WHERE mentor_login = ?",
+                (new_github_username, original_github_username),
+              )
+          else:
                 await self._d1_run("DELETE FROM mentor_assignments WHERE mentor_login = ?", (github_username,))
                 await self._d1_run("DELETE FROM mentors WHERE github_username = ?", (github_username,))
         except Exception as exc:

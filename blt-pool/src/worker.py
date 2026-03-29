@@ -672,10 +672,22 @@ async def _ensure_leaderboard_schema(db) -> None:
             max_mentees INTEGER NOT NULL DEFAULT 3,
             active INTEGER NOT NULL DEFAULT 1,
             timezone TEXT NOT NULL DEFAULT '',
-            referred_by TEXT NOT NULL DEFAULT ''
+            referred_by TEXT NOT NULL DEFAULT '',
+            email TEXT NOT NULL DEFAULT '',
+            slack_username TEXT NOT NULL DEFAULT ''
         )
         """,
     )
+    if not await _d1_has_column(db, "mentors", "email"):
+        await _d1_run(
+            db,
+            "ALTER TABLE mentors ADD COLUMN email TEXT NOT NULL DEFAULT ''",
+        )
+    if not await _d1_has_column(db, "mentors", "slack_username"):
+        await _d1_run(
+            db,
+            "ALTER TABLE mentors ADD COLUMN slack_username TEXT NOT NULL DEFAULT ''",
+        )
     await _d1_run(
         db,
         """
@@ -708,8 +720,8 @@ async def _populate_mentors_table(db) -> None:
                 db,
                 """
                 INSERT OR IGNORE INTO mentors
-                    (github_username, name, specialties, max_mentees, active, timezone, referred_by)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                    (github_username, name, specialties, max_mentees, active, timezone, referred_by, email, slack_username)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     m["github_username"],
@@ -719,6 +731,8 @@ async def _populate_mentors_table(db) -> None:
                     1 if m.get("active", True) else 0,
                     m.get("timezone", "") or "",
                     m.get("referred_by", "") or "",
+                    m.get("email", "") or "",
+                    m.get("slack_username", "") or "",
                 ),
             )
         except Exception as exc:
@@ -735,7 +749,7 @@ async def _load_mentors_from_d1(db) -> list:
         await _ensure_leaderboard_schema(db)
         rows = await _d1_all(
             db,
-            "SELECT github_username, name, specialties, max_mentees, active, timezone, referred_by FROM mentors",
+            "SELECT github_username, name, specialties, max_mentees, active, timezone, referred_by, email, slack_username FROM mentors",
         )
         mentors = []
         for row in rows:
@@ -751,6 +765,8 @@ async def _load_mentors_from_d1(db) -> list:
                 "active": bool(row.get("active", 1)),
                 "timezone": row.get("timezone") or "",
                 "referred_by": row.get("referred_by") or "",
+                "email": row.get("email") or "",
+                "slack_username": row.get("slack_username") or "",
             })
         console.log(f"[MentorPool] Loaded {len(mentors)} mentors from D1")
         return mentors
@@ -768,21 +784,25 @@ async def _d1_add_mentor(
     active: bool = True,
     timezone: str = "",
     referred_by: str = "",
+    email: str = "",
+    slack_username: str = "",
 ) -> None:
     """Insert or replace a mentor row in the D1 ``mentors`` table."""
     await _d1_run(
         db,
         """
         INSERT INTO mentors
-            (github_username, name, specialties, max_mentees, active, timezone, referred_by)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+            (github_username, name, specialties, max_mentees, active, timezone, referred_by, email, slack_username)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(github_username) DO UPDATE SET
             name        = excluded.name,
             specialties = excluded.specialties,
             max_mentees = excluded.max_mentees,
             active      = excluded.active,
             timezone    = excluded.timezone,
-            referred_by = excluded.referred_by
+            referred_by = excluded.referred_by,
+            email = excluded.email,
+            slack_username = excluded.slack_username
         """,
         (
             github_username,
@@ -792,6 +812,8 @@ async def _d1_add_mentor(
             1 if active else 0,
             timezone or "",
             referred_by or "",
+            email or "",
+            slack_username or "",
         ),
     )
 
@@ -5588,6 +5610,22 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
                  maxlength="60"
                  class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#E10101] focus:ring-1 focus:ring-[#E10101] focus:outline-none">
         </div>
+                <div>
+                    <label for="mf-email" class="mb-1 block text-sm font-semibold text-gray-700">
+                        Email <span class="text-xs font-normal text-gray-400">(optional)</span>
+                    </label>
+                    <input id="mf-email" type="email" placeholder="e.g. mentor@example.com"
+                                 maxlength="255"
+                                 class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#E10101] focus:ring-1 focus:ring-[#E10101] focus:outline-none">
+                </div>
+                <div>
+                    <label for="mf-slack" class="mb-1 block text-sm font-semibold text-gray-700">
+                        Slack Username <span class="text-xs font-normal text-gray-400">(optional)</span>
+                    </label>
+                    <input id="mf-slack" type="text" placeholder="e.g. janedoe"
+                                 maxlength="80"
+                                 class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#E10101] focus:ring-1 focus:ring-[#E10101] focus:outline-none">
+                </div>
         <div class="sm:col-span-2">
           <label for="mf-referral" class="mb-1 block text-sm font-semibold text-gray-700">
             Referred By <span class="text-xs font-normal text-gray-400">(optional — GitHub username of who invited you)</span>
@@ -5612,6 +5650,8 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
           var GH_USERNAME_RE = /^[a-zA-Z0-9](?:[a-zA-Z0-9\\-]{{0,37}}[a-zA-Z0-9])?$/;
           // Regex matching each specialty tag (identical to server-side _SPECIALTY_RE).
           var SPECIALTY_RE = /^[a-z0-9][a-z0-9+#.\\-]{{0,29}}$/;
+          var EMAIL_RE = /^[A-Za-z0-9._%+-]{{1,64}}@[A-Za-z0-9.-]{{1,190}}[.][A-Za-z]{{2,}}$/;
+          var SLACK_RE = /^[A-Za-z0-9._-]{{1,80}}$/;
 
           /**
            * Return true if the value contains HTML angle brackets, raw ampersands,
@@ -5631,6 +5671,8 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
             var specs    = document.getElementById('mf-specialties').value.trim();
             var maxM     = parseInt(document.getElementById('mf-max').value.trim(), 10);
             var tz       = document.getElementById('mf-tz').value.trim();
+            var email    = document.getElementById('mf-email').value.trim().toLowerCase();
+            var slack    = document.getElementById('mf-slack').value.trim().replace(/^@/, '');
             var referral = document.getElementById('mf-referral').value.trim().replace(/^@/, '');
             var errEl    = document.getElementById('mf-error');
             var okEl     = document.getElementById('mf-success');
@@ -5661,6 +5703,11 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
               errEl.classList.remove('hidden');
               return;
             }}
+                        if (email.length > 255) {{
+                            errEl.textContent = 'Email must be 255 characters or fewer.';
+                            errEl.classList.remove('hidden');
+                            return;
+                        }}
 
             // Script / HTML injection checks on free-text fields.
             if (containsScripting(name)) {{
@@ -5678,6 +5725,16 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
               errEl.classList.remove('hidden');
               return;
             }}
+                        if (containsScripting(email)) {{
+                            errEl.textContent = 'Email contains invalid characters. HTML and scripting are not allowed.';
+                            errEl.classList.remove('hidden');
+                            return;
+                        }}
+                        if (containsScripting(slack)) {{
+                            errEl.textContent = 'Slack username contains invalid characters. HTML and scripting are not allowed.';
+                            errEl.classList.remove('hidden');
+                            return;
+                        }}
 
             // GitHub username format validation.
             if (!GH_USERNAME_RE.test(github)) {{
@@ -5690,6 +5747,16 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
               errEl.classList.remove('hidden');
               return;
             }}
+                        if (email && !EMAIL_RE.test(email)) {{
+                            errEl.textContent = 'Email format is invalid.';
+                            errEl.classList.remove('hidden');
+                            return;
+                        }}
+                        if (slack && !SLACK_RE.test(slack)) {{
+                            errEl.textContent = 'Slack username may only use letters, numbers, dot, underscore, and hyphen (max 80 characters).';
+                            errEl.classList.remove('hidden');
+                            return;
+                        }}
 
             // Validate each specialty tag format.
             var specialties = specs ? specs.split(',').map(function(s) {{ return s.trim(); }}).filter(Boolean) : [];
@@ -5718,7 +5785,9 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
                 specialties: specialties,
                 max_mentees: maxM,
                 timezone: tz,
-                referred_by: referral
+                                referred_by: referral,
+                                email: email,
+                                slack_username: slack
               }})
             }})
             .then(function(res) {{
@@ -5779,6 +5848,10 @@ _SPECIALTY_RE = re.compile(r"^[a-z0-9][a-z0-9+#.\-]{0,29}$")
 _NAME_RE = re.compile(r"^[^<>&\"\x00-\x1f]{1,100}$")
 # Timezone: optional free-form label, same restrictions as name but max 60 chars.
 _TIMEZONE_RE = re.compile(r"^[^<>&\"\x00-\x1f]{1,60}$")
+# Email format and bounds for mentor contact details.
+_EMAIL_RE = re.compile(r"^[A-Za-z0-9._%+\-]{1,64}@[A-Za-z0-9.\-]{1,190}\.[A-Za-z]{2,}$")
+# Slack username without @, lower/upper letters, digits, dot, underscore, hyphen.
+_SLACK_USERNAME_RE = re.compile(r"^[A-Za-z0-9._\-]{1,80}$")
 # Bounds for the max_mentees field in the mentor form.
 _MENTOR_MIN_MENTEES_CAP = 1
 _MENTOR_MAX_MENTEES_CAP = 10
@@ -5811,7 +5884,9 @@ async def _handle_add_mentor(request, env) -> "Response":
             "specialties": ["frontend", "python"],   // optional
             "max_mentees": 3,                         // optional, 1-10
             "timezone": "UTC+5:30",                   // optional
-            "referred_by": "referrer"                 // optional
+            "referred_by": "referrer",                // optional
+            "email": "mentor@example.com",             // optional
+            "slack_username": "mentor-handle"          // optional
         }
 
     Returns 201 on success, 400 on validation failure, 500 on DB error.
@@ -5827,6 +5902,8 @@ async def _handle_add_mentor(request, env) -> "Response":
     max_mentees = body.get("max_mentees", 3)
     timezone = (body.get("timezone") or "").strip()
     referred_by = (body.get("referred_by") or "").strip().lstrip("@")
+    email = (body.get("email") or "").strip().lower()
+    slack_username = (body.get("slack_username") or "").strip().lstrip("@")
 
     if not name:
         return _json({"error": "Field 'name' is required"}, 400)
@@ -5863,6 +5940,10 @@ async def _handle_add_mentor(request, env) -> "Response":
 
     if referred_by and not _GH_USERNAME_RE.match(referred_by):
         return _json({"error": "Invalid referred_by username format"}, 400)
+    if email and not _EMAIL_RE.match(email):
+        return _json({"error": "Invalid email format"}, 400)
+    if slack_username and not _SLACK_USERNAME_RE.match(slack_username):
+        return _json({"error": "Invalid Slack username format"}, 400)
 
     # Verify the referrer's GitHub username exists (if provided).
     if referred_by and not await _verify_gh_user_exists(referred_by, env):
@@ -5901,6 +5982,8 @@ async def _handle_add_mentor(request, env) -> "Response":
             active=mentor_is_active,
             timezone=timezone,
             referred_by=referred_by,
+            email=email,
+            slack_username=slack_username,
         )
     except Exception as exc:
         console.error(f"[MentorPool] Failed to add mentor {github_username}: {exc}")
