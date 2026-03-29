@@ -213,20 +213,20 @@ class AdminService:
                 max_mentees INTEGER NOT NULL DEFAULT 3,
                 active INTEGER NOT NULL DEFAULT 1,
                 timezone TEXT NOT NULL DEFAULT '',
-            referred_by TEXT NOT NULL DEFAULT '',
-            email TEXT NOT NULL DEFAULT '',
-            slack_username TEXT NOT NULL DEFAULT ''
+                referred_by TEXT NOT NULL DEFAULT '',
+                email TEXT NOT NULL DEFAULT '',
+                slack_username TEXT NOT NULL DEFAULT ''
             )
             """
         )
         if not await self._d1_has_column("mentors", "email"):
-          await self._d1_run(
-            "ALTER TABLE mentors ADD COLUMN email TEXT NOT NULL DEFAULT ''"
-          )
+            await self._d1_run(
+                "ALTER TABLE mentors ADD COLUMN email TEXT NOT NULL DEFAULT ''"
+            )
         if not await self._d1_has_column("mentors", "slack_username"):
-          await self._d1_run(
-            "ALTER TABLE mentors ADD COLUMN slack_username TEXT NOT NULL DEFAULT ''"
-          )
+            await self._d1_run(
+                "ALTER TABLE mentors ADD COLUMN slack_username TEXT NOT NULL DEFAULT ''"
+            )
         await self._d1_run(
             """
             CREATE TABLE IF NOT EXISTS mentor_assignments (
@@ -240,13 +240,13 @@ class AdminService:
             """
         )
 
-        async def _d1_has_column(self, table_name: str, column_name: str) -> bool:
-          rows = await self._d1_all(f"PRAGMA table_info({table_name})")
-          target = (column_name or "").strip().lower()
-          for row in rows:
+    async def _d1_has_column(self, table_name: str, column_name: str) -> bool:
+        rows = await self._d1_all(f"PRAGMA table_info({table_name})")
+        target = (column_name or "").strip().lower()
+        for row in rows:
             if str(row.get("name") or "").strip().lower() == target:
-              return True
-          return False
+                return True
+        return False
 
     def _configured_basic_auth(self) -> Tuple[str, str]:
         username = str(getattr(self.env, _ADMIN_BASIC_USER_ENV, "") or "").strip()
@@ -508,7 +508,7 @@ class AdminService:
         <div class="mt-8 rounded-2xl border border-[#E5E5E5] bg-white">
           <div class="border-b border-[#E5E5E5] px-5 py-4">
             <h3 class="text-lg font-bold text-[#111827]">Mentor management</h3>
-            <p class="mt-1 text-sm text-gray-600">Publish, block, or delete mentors from the pool.</p>
+            <p class="mt-1 text-sm text-gray-600">Edit mentor profile fields, publish state, or delete mentors from the pool.</p>
           </div>
           <div class="overflow-x-auto">
             <table class="min-w-full text-left text-sm">
@@ -677,71 +677,74 @@ class AdminService:
             return self._redirect(self.admin_path)
 
         try:
-          if action == "save":
-            original_github_username = (form.get("original_github_username") or "").strip().lstrip("@")
-            new_github_username = (form.get("github_username") or "").strip().lstrip("@")
-            name = (form.get("name") or "").strip()
-            specialties_raw = (form.get("specialties") or "").strip()
-            timezone = (form.get("timezone") or "").strip()
-            referred_by = (form.get("referred_by") or "").strip().lstrip("@")
-            email = (form.get("email") or "").strip().lower()
-            slack_username = (form.get("slack_username") or "").strip().lstrip("@")
-            active = 1 if (form.get("active") or "") == "1" else 0
+            if action == "save":
+                original_github_username = (form.get("original_github_username") or "").strip().lstrip("@")
+                new_github_username = (form.get("github_username") or "").strip().lstrip("@")
+                name = (form.get("name") or "").strip()
+                specialties_raw = (form.get("specialties") or "").strip()
+                timezone = (form.get("timezone") or "").strip()
+                referred_by = (form.get("referred_by") or "").strip().lstrip("@")
+                email = (form.get("email") or "").strip().lower()
+                slack_username = (form.get("slack_username") or "").strip().lstrip("@")
+                active = 1 if (form.get("active") or "") == "1" else 0
 
-            if not original_github_username:
-              return self._redirect(self.admin_path)
-            if not _GH_USERNAME_RE.match(new_github_username):
-              return self._redirect(self.admin_path)
-            if referred_by and not _GH_USERNAME_RE.match(referred_by):
-              return self._redirect(self.admin_path)
-            if email and not _EMAIL_RE.match(email):
-              return self._redirect(self.admin_path)
-            if slack_username and not _SLACK_USERNAME_RE.match(slack_username):
-              return self._redirect(self.admin_path)
-            specialties_list = [
-              item.strip().lower()
-              for item in specialties_raw.split(",")
-              if item.strip()
-            ]
-            try:
-              max_mentees = int(form.get("max_mentees") or 3)
-            except Exception:
-              max_mentees = 3
-            max_mentees = max(1, min(10, max_mentees))
+                if not original_github_username or not name:
+                    return self._redirect(self.admin_path)
+                if not _GH_USERNAME_RE.match(new_github_username):
+                    return self._redirect(self.admin_path)
+                if referred_by and not _GH_USERNAME_RE.match(referred_by):
+                    return self._redirect(self.admin_path)
+                if email and not _EMAIL_RE.match(email):
+                    return self._redirect(self.admin_path)
+                if slack_username and not _SLACK_USERNAME_RE.match(slack_username):
+                    return self._redirect(self.admin_path)
 
-            await self._d1_run(
-              """
-              UPDATE mentors
-              SET github_username = ?,
-                name = ?,
-                specialties = ?,
-                max_mentees = ?,
-                active = ?,
-                timezone = ?,
-                referred_by = ?,
-                email = ?,
-                slack_username = ?
-              WHERE github_username = ?
-              """,
-              (
-                new_github_username,
-                name,
-                json.dumps(specialties_list),
-                max_mentees,
-                active,
-                timezone,
-                referred_by,
-                email,
-                slack_username,
-                original_github_username,
-              ),
-            )
-            if new_github_username != original_github_username:
-              await self._d1_run(
-                "UPDATE mentor_assignments SET mentor_login = ? WHERE mentor_login = ?",
-                (new_github_username, original_github_username),
-              )
-          else:
+                specialties_list = [
+                    item.strip().lower()
+                    for item in specialties_raw.split(",")
+                    if item.strip()
+                ]
+                try:
+                    max_mentees = int(form.get("max_mentees") or 3)
+                except Exception:
+                    max_mentees = 3
+                max_mentees = max(1, min(10, max_mentees))
+
+                await self._d1_run(
+                    """
+                    UPDATE mentors
+                    SET github_username = ?,
+                        name = ?,
+                        specialties = ?,
+                        max_mentees = ?,
+                        active = ?,
+                        timezone = ?,
+                        referred_by = ?,
+                        email = ?,
+                        slack_username = ?
+                    WHERE github_username = ?
+                    """,
+                    (
+                        new_github_username,
+                        name,
+                        json.dumps(specialties_list),
+                        max_mentees,
+                        active,
+                        timezone,
+                        referred_by,
+                        email,
+                        slack_username,
+                        original_github_username,
+                    ),
+                )
+                if new_github_username != original_github_username:
+                    await self._d1_run(
+                        "UPDATE mentor_assignments SET mentor_login = ? WHERE mentor_login = ?",
+                        (new_github_username, original_github_username),
+                    )
+            else:
+                if not github_username:
+                    return self._redirect(self.admin_path)
                 await self._d1_run("DELETE FROM mentor_assignments WHERE mentor_login = ?", (github_username,))
                 await self._d1_run("DELETE FROM mentors WHERE github_username = ?", (github_username,))
         except Exception as exc:
