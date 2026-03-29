@@ -640,13 +640,13 @@ class AdminService:
               }} catch (_parseError) {{
                 errorCode = '';
               }}
-              markRowStatus(row, 'error', errorCode ? `Save failed (${errorCode})` : 'Save failed');
+              markRowStatus(row, 'error', errorCode ? `Save failed (${{errorCode}})` : 'Save failed');
               return;
             }}
             const data = await response.json();
             if (!data || data.ok !== true) {{
               const errorCode = (data && data.error) ? String(data.error) : '';
-              markRowStatus(row, 'error', errorCode ? `Save failed (${errorCode})` : 'Save failed');
+              markRowStatus(row, 'error', errorCode ? `Save failed (${{errorCode}})` : 'Save failed');
               return;
             }}
 
