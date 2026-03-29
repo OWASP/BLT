@@ -344,8 +344,11 @@ class AdminService:
 
     async def _form_data(self, request) -> dict:
         body = await request.text()
-        parsed = parse_qs(body, keep_blank_values=False)
+        parsed = parse_qs(body, keep_blank_values=True)
         return {key: values[0].strip() if values else "" for key, values in parsed.items()}
+
+    def _is_autosave_request(self, request) -> bool:
+        return (request.headers.get("X-Admin-Autosave") or "").strip().lower() == "1"
 
     def _json(self, payload, status: int = 200):
         return Response.new(
@@ -557,6 +560,132 @@ class AdminService:
         }}
       }});
 
+      const autosaveTimers = new Map();
+
+      const markRowStatus = (row, status, text) => {{
+        const statusEl = row ? row.querySelector('[data-autosave-status]') : null;
+        if (!statusEl) {{
+          return;
+        }}
+        statusEl.dataset.state = status;
+        statusEl.textContent = text;
+        statusEl.classList.remove('text-gray-500', 'text-emerald-700', 'text-red-700');
+        if (status === 'saved') {{
+          statusEl.classList.add('text-emerald-700');
+        }} else if (status === 'error') {{
+          statusEl.classList.add('text-red-700');
+        }} else {{
+          statusEl.classList.add('text-gray-500');
+        }}
+      }};
+
+      const buildAutosaveParams = (field) => {{
+        const row = field.closest('tr[data-mentor-row]');
+        const form = field.form;
+        if (!row || !form) {{
+          return null;
+        }}
+        const originalField = form.querySelector('input[name="original_github_username"]');
+        if (!originalField || !originalField.value.trim()) {{
+          return null;
+        }}
+
+        const params = new URLSearchParams();
+        params.set('action', 'save');
+        params.set('original_github_username', originalField.value.trim());
+
+        const githubField = form.querySelector('[data-field="github_username"]');
+        params.set('github_username', githubField ? githubField.value.trim() : originalField.value.trim());
+
+        const key = field.dataset.field;
+        if (!key) {{
+          return null;
+        }}
+        if (field.type === 'checkbox') {{
+          params.set(key, field.checked ? '1' : '0');
+        }} else {{
+          params.set(key, field.value);
+        }}
+        return {{ row, form, params }};
+      }};
+
+      const queueAutosave = (field, delayMs) => {{
+        const payload = buildAutosaveParams(field);
+        if (!payload) {{
+          return;
+        }}
+        const {{ row, form, params }} = payload;
+        const timerKey = form.id || form.getAttribute('action') || Math.random().toString(16);
+        const existingTimer = autosaveTimers.get(timerKey);
+        if (existingTimer) {{
+          clearTimeout(existingTimer);
+        }}
+        markRowStatus(row, 'saving', 'Saving...');
+
+        const timer = setTimeout(async () => {{
+          try {{
+            const response = await fetch(form.action, {{
+              method: 'POST',
+              headers: {{
+                'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+                'X-Admin-Autosave': '1',
+              }},
+              body: params.toString(),
+            }});
+            if (!response.ok) {{
+              markRowStatus(row, 'error', 'Save failed');
+              return;
+            }}
+            const data = await response.json();
+            if (!data || data.ok !== true) {{
+              markRowStatus(row, 'error', 'Save failed');
+              return;
+            }}
+
+            const nextUsername = (data.github_username || '').trim();
+            if (nextUsername) {{
+              const originalField = form.querySelector('input[name="original_github_username"]');
+              const githubField = form.querySelector('[data-field="github_username"]');
+              if (originalField) {{
+                originalField.value = nextUsername;
+              }}
+              if (githubField) {{
+                githubField.value = nextUsername;
+              }}
+              row.dataset.github_username = nextUsername.toLowerCase();
+            }}
+            markRowStatus(row, 'saved', 'Saved');
+          }} catch (_error) {{
+            markRowStatus(row, 'error', 'Network error');
+          }} finally {{
+            autosaveTimers.delete(timerKey);
+          }}
+        }}, delayMs);
+
+        autosaveTimers.set(timerKey, timer);
+      }};
+
+      document.querySelectorAll('tr[data-mentor-row] [data-field]').forEach((field) => {{
+        const isToggle = field.type === 'checkbox';
+        field.addEventListener(isToggle ? 'change' : 'input', () => {{
+          queueAutosave(field, isToggle ? 0 : 320);
+        }});
+        field.addEventListener('blur', () => {{
+          queueAutosave(field, 0);
+        }});
+      }});
+
+      const getSortableValue = (row, key) => {{
+        const field = row.querySelector(`[data-field="${{key}}"]`);
+        if (field) {{
+          if (field.type === 'checkbox') {{
+            return field.checked ? '1' : '0';
+          }}
+          return (field.value || '').toString().trim().toLowerCase();
+        }}
+        return ((row.dataset[key] || '') + '').trim().toLowerCase();
+      }};
+
       document.querySelectorAll('[data-sort-key]').forEach((button) => {{
         button.addEventListener('click', () => {{
           const table = button.closest('table');
@@ -576,10 +705,8 @@ class AdminService:
 
           const rows = Array.from(tbody.querySelectorAll('tr[data-mentor-row]'));
           rows.sort((left, right) => {{
-            const leftField = left.querySelector(`[data-field="${{key}}"]`);
-            const rightField = right.querySelector(`[data-field="${{key}}"]`);
-            const leftValue = ((leftField && ('checked' in leftField) ? (leftField.checked ? '1' : '0') : leftField && leftField.value) || left.dataset[key] || '').toString().toLowerCase();
-            const rightValue = ((rightField && ('checked' in rightField) ? (rightField.checked ? '1' : '0') : rightField && rightField.value) || right.dataset[key] || '').toString().toLowerCase();
+            const leftValue = getSortableValue(left, key);
+            const rightValue = getSortableValue(right, key);
             const leftNumber = Number(leftValue);
             const rightNumber = Number(rightValue);
             let result = 0;
@@ -752,10 +879,7 @@ class AdminService:
           <td class="px-3 py-2"><input form="{form_id}" data-field="assignments" name="assignments" value="{_escape(assignment_refs)}" class="w-48 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" placeholder="repo#123, repo#456"></td>
           <td class="px-3 py-2">
             <div class="flex items-center justify-end gap-2">
-              <button form="{form_id}" type="submit" class="inline-flex items-center gap-1 rounded-md border border-emerald-200 px-2.5 py-2 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-50">
-                <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>
-                Save
-              </button>
+              <span data-autosave-status data-state="idle" class="text-xs font-semibold text-gray-500">Idle</span>
               <form method="POST" action="{self.mentor_action_path}">
                 <input type="hidden" name="github_username" value="{_escape(username)}">
                 <input type="hidden" name="action" value="delete">
@@ -781,34 +905,91 @@ class AdminService:
         form = await self._form_data(request)
         github_username = (form.get("github_username") or "").strip().lstrip("@")
         action = (form.get("action") or "").strip().lower()
+        autosave = self._is_autosave_request(request)
         if action not in {"save", "delete"}:
+            if autosave:
+                return self._json({"ok": False, "error": "invalid_action"}, 400)
             return self._redirect(self.admin_path)
 
         try:
             if action == "save":
                 original_github_username = (form.get("original_github_username") or "").strip().lstrip("@")
-                new_github_username = (form.get("github_username") or "").strip().lstrip("@")
-                name = (form.get("name") or "").strip()
-                specialties_raw = (form.get("specialties") or "").strip()
-                timezone = (form.get("timezone") or "").strip()
-                referred_by = (form.get("referred_by") or "").strip().lstrip("@")
-                email = (form.get("email") or "").strip().lower()
-                slack_username = (form.get("slack_username") or "").strip().lstrip("@")
-                assignments_value = (form.get("assignments") or "").strip()
-                active = 1 if (form.get("active") or "") == "1" else 0
+                if not original_github_username:
+                    if autosave:
+                        return self._json({"ok": False, "error": "missing_original_github_username"}, 400)
+                    return self._redirect(self.admin_path)
 
-                if not original_github_username or not name:
+                existing = await self._d1_first(
+                    """
+                    SELECT github_username, name, specialties, max_mentees, active, timezone, referred_by, email, slack_username
+                    FROM mentors
+                    WHERE github_username = ?
+                    """,
+                    (original_github_username,),
+                )
+                if not existing:
+                    if autosave:
+                        return self._json({"ok": False, "error": "mentor_not_found"}, 404)
+                    return self._redirect(self.admin_path)
+
+                try:
+                    existing_specialties = json.loads(existing.get("specialties") or "[]")
+                except Exception:
+                    existing_specialties = []
+
+                new_github_username = (
+                    (form.get("github_username") if "github_username" in form else existing.get("github_username") or "")
+                    .strip()
+                    .lstrip("@")
+                )
+                name = (form.get("name") if "name" in form else existing.get("name") or "").strip()
+                specialties_raw = (
+                    form.get("specialties")
+                    if "specialties" in form
+                    else ", ".join(str(item) for item in existing_specialties)
+                ).strip()
+                timezone = (form.get("timezone") if "timezone" in form else existing.get("timezone") or "").strip()
+                referred_by = (
+                    (form.get("referred_by") if "referred_by" in form else existing.get("referred_by") or "")
+                    .strip()
+                    .lstrip("@")
+                )
+                email = (form.get("email") if "email" in form else existing.get("email") or "").strip().lower()
+                slack_username = (
+                    (form.get("slack_username") if "slack_username" in form else existing.get("slack_username") or "")
+                    .strip()
+                    .lstrip("@")
+                )
+                assignments_value = (form.get("assignments") if "assignments" in form else "").strip()
+                if "active" in form:
+                    active = 1 if (form.get("active") or "") == "1" else 0
+                else:
+                    active = 1 if int(existing.get("active") or 0) == 1 else 0
+
+                if not name:
+                    if autosave:
+                        return self._json({"ok": False, "error": "name_required"}, 400)
                     return self._redirect(self.admin_path)
                 if not _GH_USERNAME_RE.match(new_github_username):
+                    if autosave:
+                        return self._json({"ok": False, "error": "invalid_github_username"}, 400)
                     return self._redirect(self.admin_path)
                 if referred_by and not _GH_USERNAME_RE.match(referred_by):
+                    if autosave:
+                        return self._json({"ok": False, "error": "invalid_referred_by"}, 400)
                     return self._redirect(self.admin_path)
                 if email and not _EMAIL_RE.match(email):
+                    if autosave:
+                        return self._json({"ok": False, "error": "invalid_email"}, 400)
                     return self._redirect(self.admin_path)
                 if slack_username and not _SLACK_USERNAME_RE.match(slack_username):
+                    if autosave:
+                        return self._json({"ok": False, "error": "invalid_slack_username"}, 400)
                     return self._redirect(self.admin_path)
-                if self._parse_assignment_refs(assignments_value) is None:
-                  return self._redirect(self.admin_path)
+                if "assignments" in form and self._parse_assignment_refs(assignments_value) is None:
+                    if autosave:
+                        return self._json({"ok": False, "error": "invalid_assignments"}, 400)
+                    return self._redirect(self.admin_path)
 
                 specialties_list = [
                     item.strip().lower()
@@ -816,7 +997,9 @@ class AdminService:
                     if item.strip()
                 ]
                 try:
-                    max_mentees = int(form.get("max_mentees") or 3)
+                    max_mentees = int(
+                        form.get("max_mentees") if "max_mentees" in form else existing.get("max_mentees") or 3
+                    )
                 except Exception:
                     max_mentees = 3
                 max_mentees = max(1, min(10, max_mentees))
@@ -853,14 +1036,26 @@ class AdminService:
                         "UPDATE mentor_assignments SET mentor_login = ? WHERE mentor_login = ?",
                         (new_github_username, original_github_username),
                     )
-                if not await self._sync_assignments(original_github_username, new_github_username, assignments_value):
-                  return self._redirect(self.admin_path)
+                if "assignments" in form:
+                    if not await self._sync_assignments(original_github_username, new_github_username, assignments_value):
+                        if autosave:
+                            return self._json({"ok": False, "error": "assignment_sync_failed"}, 400)
+                        return self._redirect(self.admin_path)
+
+                if autosave:
+                    return self._json({"ok": True, "github_username": new_github_username})
             else:
                 if not github_username:
+                    if autosave:
+                        return self._json({"ok": False, "error": "missing_github_username"}, 400)
                     return self._redirect(self.admin_path)
                 await self._d1_run("DELETE FROM mentor_assignments WHERE mentor_login = ?", (github_username,))
                 await self._d1_run("DELETE FROM mentors WHERE github_username = ?", (github_username,))
+                if autosave:
+                    return self._json({"ok": True})
         except Exception as exc:
             console.error(f"[AdminService] Mentor action '{action}' failed for {github_username}: {exc}")
+            if autosave:
+                return self._json({"ok": False, "error": "internal_error"}, 500)
 
         return self._redirect(self.admin_path)
