@@ -633,12 +633,20 @@ class AdminService:
               body: params.toString(),
             }});
             if (!response.ok) {{
-              markRowStatus(row, 'error', 'Save failed');
+              let errorCode = '';
+              try {{
+                const errorData = await response.json();
+                errorCode = (errorData && errorData.error) ? String(errorData.error) : '';
+              }} catch (_parseError) {{
+                errorCode = '';
+              }}
+              markRowStatus(row, 'error', errorCode ? `Save failed (${errorCode})` : 'Save failed');
               return;
             }}
             const data = await response.json();
             if (!data || data.ok !== true) {{
-              markRowStatus(row, 'error', 'Save failed');
+              const errorCode = (data && data.error) ? String(data.error) : '';
+              markRowStatus(row, 'error', errorCode ? `Save failed (${errorCode})` : 'Save failed');
               return;
             }}
 
@@ -1015,26 +1023,32 @@ class AdminService:
                 else:
                     active = 1 if int(existing.get("active") or 0) == 1 else 0
 
-                if not name:
-                    if autosave:
-                        return self._json({"ok": False, "error": "name_required"}, 400)
-                    return self._redirect(self.admin_path)
-                if not _GH_USERNAME_RE.match(new_github_username):
-                    if autosave:
-                        return self._json({"ok": False, "error": "invalid_github_username"}, 400)
-                    return self._redirect(self.admin_path)
-                if referred_by and not _GH_USERNAME_RE.match(referred_by):
-                    if autosave:
-                        return self._json({"ok": False, "error": "invalid_referred_by"}, 400)
-                    return self._redirect(self.admin_path)
-                if email and not _EMAIL_RE.match(email):
-                    if autosave:
-                        return self._json({"ok": False, "error": "invalid_email"}, 400)
-                    return self._redirect(self.admin_path)
-                if slack_username and not _SLACK_USERNAME_RE.match(slack_username):
-                    if autosave:
-                        return self._json({"ok": False, "error": "invalid_slack_username"}, 400)
-                    return self._redirect(self.admin_path)
+                validate_name = (not autosave) or ("name" in form)
+                validate_github_username = (not autosave) or ("github_username" in form)
+                validate_referred_by = (not autosave) or ("referred_by" in form)
+                validate_email = (not autosave) or ("email" in form)
+                validate_slack_username = (not autosave) or ("slack_username" in form)
+
+                if validate_name and not name:
+                  if autosave:
+                    return self._json({"ok": False, "error": "name_required"}, 400)
+                  return self._redirect(self.admin_path)
+                if validate_github_username and not _GH_USERNAME_RE.match(new_github_username):
+                  if autosave:
+                    return self._json({"ok": False, "error": "invalid_github_username"}, 400)
+                  return self._redirect(self.admin_path)
+                if validate_referred_by and referred_by and not _GH_USERNAME_RE.match(referred_by):
+                  if autosave:
+                    return self._json({"ok": False, "error": "invalid_referred_by"}, 400)
+                  return self._redirect(self.admin_path)
+                if validate_email and email and not _EMAIL_RE.match(email):
+                  if autosave:
+                    return self._json({"ok": False, "error": "invalid_email"}, 400)
+                  return self._redirect(self.admin_path)
+                if validate_slack_username and slack_username and not _SLACK_USERNAME_RE.match(slack_username):
+                  if autosave:
+                    return self._json({"ok": False, "error": "invalid_slack_username"}, 400)
+                  return self._redirect(self.admin_path)
                 if "assignments" in form and self._parse_assignment_refs(assignments_value) is None:
                     if autosave:
                         return self._json({"ok": False, "error": "invalid_assignments"}, 400)
