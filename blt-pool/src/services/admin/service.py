@@ -470,6 +470,14 @@ class AdminService:
   </div>
   <script>
     (() => {{
+      const syncStickyHeaderOffset = () => {{
+        const headerEl = document.querySelector('body > header.sticky');
+        const offsetPx = headerEl ? Math.ceil(headerEl.getBoundingClientRect().height) : 80;
+        document.documentElement.style.setProperty('--admin-header-offset', `${{offsetPx}}px`);
+      }};
+      syncStickyHeaderOffset();
+      window.addEventListener('resize', syncStickyHeaderOffset);
+
       const overlay = document.getElementById('admin-confirm-overlay');
       const titleEl = document.getElementById('admin-confirm-title');
       const messageEl = document.getElementById('admin-confirm-message');
@@ -851,18 +859,18 @@ class AdminService:
             <table id="admin-mentor-table" class="min-w-full text-left text-sm">
               <thead class="bg-gray-50 text-[11px] font-semibold uppercase tracking-wide text-gray-500 shadow-sm">
                 <tr>
-                  <th class="sticky top-20 z-20 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="mentor" data-sort-direction="desc" class="inline-flex items-center gap-1">Mentor <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
-                  <th class="sticky top-20 z-20 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="name" data-sort-direction="desc" class="inline-flex items-center gap-1">Name <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
-                  <th class="sticky top-20 z-20 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="github_username" data-sort-direction="desc" class="inline-flex items-center gap-1">GitHub <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
-                  <th class="sticky top-20 z-20 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="active" data-sort-direction="desc" class="inline-flex items-center gap-1">Published <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
-                  <th class="sticky top-20 z-20 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="specialties" data-sort-direction="desc" class="inline-flex items-center gap-1">Specialties <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
-                  <th class="sticky top-20 z-20 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="max_mentees" data-sort-direction="desc" class="inline-flex items-center gap-1">Cap <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
-                  <th class="sticky top-20 z-20 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="timezone" data-sort-direction="desc" class="inline-flex items-center gap-1">Timezone <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
-                  <th class="sticky top-20 z-20 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="referred_by" data-sort-direction="desc" class="inline-flex items-center gap-1">Referral <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
-                  <th class="sticky top-20 z-20 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="slack_username" data-sort-direction="desc" class="inline-flex items-center gap-1">Slack <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
-                  <th class="sticky top-20 z-20 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="email" data-sort-direction="desc" class="inline-flex items-center gap-1">Email <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
-                  <th class="sticky top-20 z-20 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="assignments" data-sort-direction="desc" class="inline-flex items-center gap-1">Assignments (count) <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
-                  <th class="sticky top-20 z-20 bg-gray-50 px-3 py-3 text-right"><button type="button" data-sort-key="actions" data-sort-direction="desc" class="inline-flex items-center gap-1">Actions <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="sticky z-20 bg-gray-50 px-3 py-3" style="top: var(--admin-header-offset, 80px)"><button type="button" data-sort-key="mentor" data-sort-direction="desc" class="inline-flex items-center gap-1">Mentor <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="sticky z-20 bg-gray-50 px-3 py-3" style="top: var(--admin-header-offset, 80px)"><button type="button" data-sort-key="name" data-sort-direction="desc" class="inline-flex items-center gap-1">Name <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="sticky z-20 bg-gray-50 px-3 py-3" style="top: var(--admin-header-offset, 80px)"><button type="button" data-sort-key="github_username" data-sort-direction="desc" class="inline-flex items-center gap-1">GitHub <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="sticky z-20 bg-gray-50 px-3 py-3" style="top: var(--admin-header-offset, 80px)"><button type="button" data-sort-key="active" data-sort-direction="desc" class="inline-flex items-center gap-1">Published <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="sticky z-20 bg-gray-50 px-3 py-3" style="top: var(--admin-header-offset, 80px)"><button type="button" data-sort-key="specialties" data-sort-direction="desc" class="inline-flex items-center gap-1">Specialties <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="sticky z-20 bg-gray-50 px-3 py-3" style="top: var(--admin-header-offset, 80px)"><button type="button" data-sort-key="max_mentees" data-sort-direction="desc" class="inline-flex items-center gap-1">Cap <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="sticky z-20 bg-gray-50 px-3 py-3" style="top: var(--admin-header-offset, 80px)"><button type="button" data-sort-key="timezone" data-sort-direction="desc" class="inline-flex items-center gap-1">Timezone <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="sticky z-20 bg-gray-50 px-3 py-3" style="top: var(--admin-header-offset, 80px)"><button type="button" data-sort-key="referred_by" data-sort-direction="desc" class="inline-flex items-center gap-1">Referral <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="sticky z-20 bg-gray-50 px-3 py-3" style="top: var(--admin-header-offset, 80px)"><button type="button" data-sort-key="slack_username" data-sort-direction="desc" class="inline-flex items-center gap-1">Slack <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="sticky z-20 bg-gray-50 px-3 py-3" style="top: var(--admin-header-offset, 80px)"><button type="button" data-sort-key="email" data-sort-direction="desc" class="inline-flex items-center gap-1">Email <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="sticky z-20 bg-gray-50 px-3 py-3" style="top: var(--admin-header-offset, 80px)"><button type="button" data-sort-key="assignments" data-sort-direction="desc" class="inline-flex items-center gap-1">Assignments (count) <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="sticky z-20 bg-gray-50 px-3 py-3 text-right" style="top: var(--admin-header-offset, 80px)"><button type="button" data-sort-key="actions" data-sort-direction="desc" class="inline-flex items-center gap-1">Actions <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-[#E5E5E5]">
