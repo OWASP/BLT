@@ -20,15 +20,15 @@ binding = "ASSETS"
 # ---------------------------------------------------------------------------
 [vars]
 # BLT API base URL
-BLT_API_URL = "https://github-app.owaspblt.org"
+# BLT_API_URL = "https://github-app.owaspblt.org"
 
 # GitHub organization — used for D1 leaderboard and mentor stats queries.
-GITHUB_ORG = "OWASP-BLT"
+# GITHUB_ORG = "OWASP-BLT"
 
 # GitHub App slug — the URL-friendly name shown in GitHub App URLs.
 # Example: if your app lives at https://github.com/apps/my-blt-app
 # then set this to "my-blt-app".
-GITHUB_APP_SLUG = "blt-github-app"
+# GITHUB_APP_SLUG = "blt-github-app"
 
 # ---------------------------------------------------------------------------
 # Secrets — set these with:  wrangler secret put <NAME>

@@ -544,6 +544,19 @@ async def _d1_first(db, sql: str, params: tuple = ()):
     return rows[0] if rows else None
 
 
+async def _d1_has_column(db, table_name: str, column_name: str) -> bool:
+    """Return True when the table already contains the given column."""
+    try:
+        rows = await _d1_all(db, f"PRAGMA table_info({table_name})")
+    except Exception:
+        return False
+    normalized = (column_name or "").strip().lower()
+    for row in rows:
+        if str(row.get("name") or "").strip().lower() == normalized:
+            return True
+    return False
+
+
 async def _ensure_leaderboard_schema(db) -> None:
     """Create leaderboard tables if they do not exist."""
     await _d1_run(
@@ -643,14 +656,12 @@ async def _ensure_leaderboard_schema(db) -> None:
         )
         """,
     )
-    # Migration: add mentee_login column to existing tables that pre-date this field.
-    try:
+    # Migration: add mentee_login only when missing to avoid duplicate-column errors.
+    if not await _d1_has_column(db, "mentor_assignments", "mentee_login"):
         await _d1_run(
             db,
             "ALTER TABLE mentor_assignments ADD COLUMN mentee_login TEXT NOT NULL DEFAULT ''",
         )
-    except Exception:
-        pass  # Column already exists — ignore the error.
     await _d1_run(
         db,
         """
@@ -5397,11 +5408,6 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
           <i class="fa-solid fa-circle text-[0.4rem]" aria-hidden="true"></i>
           Live
         </span>
-        <a href="{admin_path}"
-           class="inline-flex items-center gap-1.5 rounded-md border border-[#E5E5E5] px-3 py-2 text-xs font-semibold text-gray-700 transition hover:border-[#E10101] hover:bg-[#feeae9] hover:text-[#E10101] focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2">
-          <i class="fa-solid fa-shield-halved text-[#E10101]" aria-hidden="true"></i>
-          Admin
-        </a>
       </div>
     </div>
   </header>
