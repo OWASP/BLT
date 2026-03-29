@@ -1,6 +1,6 @@
 {
   "participantCount": 184,
-  "totalPRs": 2571,
+  "totalPRs": 2572,
   "mergedPRs": 1620,
   "totalIssues": 825,
   "repositories": 53,
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "refactor: enhance UI resilience and optimize Tailwind configuration",
+      "url": "https://github.com/OWASP-BLT/BLT-Hackathons/pull/86",
+      "username": "JessCode-TheRedumption",
+      "avatar": "https://avatars.githubusercontent.com/u/234758609?v=4",
+      "state": "open",
+      "created_at": "2026-03-29T05:10:54Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-Hackathons"
+    },
     {
       "title": "chore: automated cleanup of redundant import",
       "url": "https://github.com/OWASP-BLT/BLT/pull/6098",
@@ -113,16 +123,6 @@
       "state": "closed",
       "created_at": "2026-03-28T03:31:35Z",
       "merged_at": null,
-      "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "chore: delete unused index3 template",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6094",
-      "username": "mkamrul9",
-      "avatar": "https://avatars.githubusercontent.com/u/96786626?v=4",
-      "state": "closed",
-      "created_at": "2026-03-28T01:35:28Z",
-      "merged_at": "2026-03-28T02:14:31Z",
       "repository": "OWASP-BLT/BLT"
     }
   ]
