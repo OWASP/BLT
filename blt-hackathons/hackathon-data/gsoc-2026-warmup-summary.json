@@ -1,9 +1,9 @@
 {
-  "participantCount": 184,
-  "totalPRs": 2581,
+  "participantCount": 185,
+  "totalPRs": 2583,
   "mergedPRs": 1620,
   "totalIssues": 833,
-  "repositories": 53,
+  "repositories": 54,
   "topContributors": [
     {
       "username": "Nachiket-Roy",
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "Add unsubscribe and privacy links to newsletter template",
+      "url": "https://github.com/OWASP-BLT/BLT-Newsletter/pull/8",
+      "username": "Ishitadubeyy",
+      "avatar": "https://avatars.githubusercontent.com/u/176868945?v=4",
+      "state": "open",
+      "created_at": "2026-03-29T17:22:13Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-Newsletter"
+    },
     {
       "title": "feat: implement /setreminder with Cloudflare D1 and Cron Triggers",
       "url": "https://github.com/OWASP-BLT/BLT-Sammich/pull/75",
@@ -114,16 +124,6 @@
       "created_at": "2026-03-29T09:21:49Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "refactor: enhance UI resilience and optimize Tailwind configuration",
-      "url": "https://github.com/OWASP-BLT/BLT-Hackathons/pull/86",
-      "username": "JessCode-TheRedumption",
-      "avatar": "https://avatars.githubusercontent.com/u/234758609?v=4",
-      "state": "open",
-      "created_at": "2026-03-29T05:10:54Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-Hackathons"
     }
   ]
 }
