@@ -665,17 +665,60 @@ class AdminService:
         autosaveTimers.set(timerKey, timer);
       }};
 
+      const assignmentCountFromValue = (value) => {{
+        const raw = (value || '').toString().trim();
+        if (!raw) {{
+          return 0;
+        }}
+        return raw.split(',').map((item) => item.trim()).filter((item) => item.length > 0).length;
+      }};
+
+      const updateAssignmentCountBadge = (row) => {{
+        if (!row) {{
+          return;
+        }}
+        const assignmentField = row.querySelector('[data-field="assignments"]');
+        const countBadge = row.querySelector('[data-assignment-count]');
+        if (!assignmentField || !countBadge) {{
+          return;
+        }}
+        const count = assignmentCountFromValue(assignmentField.value);
+        row.dataset.assignment_count = String(count);
+        countBadge.textContent = `${{count}} total`;
+      }};
+
+      document.querySelectorAll('tr[data-mentor-row]').forEach((row) => {{
+        updateAssignmentCountBadge(row);
+      }});
+
       document.querySelectorAll('tr[data-mentor-row] [data-field]').forEach((field) => {{
         const isToggle = field.type === 'checkbox';
         field.addEventListener(isToggle ? 'change' : 'input', () => {{
           queueAutosave(field, isToggle ? 0 : 320);
+          if (field.dataset.field === 'assignments') {{
+            updateAssignmentCountBadge(field.closest('tr[data-mentor-row]'));
+          }}
         }});
         field.addEventListener('blur', () => {{
           queueAutosave(field, 0);
+          if (field.dataset.field === 'assignments') {{
+            updateAssignmentCountBadge(field.closest('tr[data-mentor-row]'));
+          }}
         }});
       }});
 
       const getSortableValue = (row, key) => {{
+        if (key === 'assignments') {{
+          const assignmentField = row.querySelector('[data-field="assignments"]');
+          if (assignmentField) {{
+            return String(assignmentCountFromValue(assignmentField.value));
+          }}
+          return ((row.dataset.assignment_count || '0') + '').trim();
+        }}
+        if (key === 'actions') {{
+          const statusEl = row.querySelector('[data-autosave-status]');
+          return ((statusEl ? statusEl.textContent : '') || '').toString().trim().toLowerCase();
+        }}
         const field = row.querySelector(`[data-field="${{key}}"]`);
         if (field) {{
           if (field.type === 'checkbox') {{
@@ -756,7 +799,7 @@ class AdminService:
             <p class="mt-1 text-2xl font-extrabold text-[#111827]">{counts['inactive']}</p>
           </article>
           <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-4">
-            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Active assignments</p>
+            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Total assignments</p>
             <p class="mt-1 text-2xl font-extrabold text-[#111827]">{counts['assignments']}</p>
           </article>
         </div>
@@ -780,8 +823,8 @@ class AdminService:
                   <th class="px-3 py-3"><button type="button" data-sort-key="referred_by" data-sort-direction="desc" class="inline-flex items-center gap-1">Referral <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
                   <th class="px-3 py-3"><button type="button" data-sort-key="slack_username" data-sort-direction="desc" class="inline-flex items-center gap-1">Slack <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
                   <th class="px-3 py-3"><button type="button" data-sort-key="email" data-sort-direction="desc" class="inline-flex items-center gap-1">Email <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
-                  <th class="px-3 py-3"><button type="button" data-sort-key="assignments" data-sort-direction="desc" class="inline-flex items-center gap-1">Assignments <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
-                  <th class="px-3 py-3 text-right">Actions</th>
+                  <th class="px-3 py-3"><button type="button" data-sort-key="assignments" data-sort-direction="desc" class="inline-flex items-center gap-1">Assignments (count) <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="px-3 py-3 text-right"><button type="button" data-sort-key="actions" data-sort-direction="desc" class="inline-flex items-center gap-1">Actions <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-[#E5E5E5]">
@@ -850,9 +893,10 @@ class AdminService:
         email = mentor.get("email") or ""
         slack_username = mentor.get("slack_username") or ""
         assignment_refs = mentor.get("assignment_refs") or ""
+        assignment_count = int(mentor.get("assignment_count") or 0)
         form_id = f"mentor-form-{username.lower().replace('_', '-')}"
         return f"""
-        <tr data-mentor-row data-mentor="{_escape(name).lower()}" data-name="{_escape(name).lower()}" data-github_username="{_escape(username).lower()}" data-active="{1 if active else 0}" data-max_mentees="{int(mentor.get('max_mentees') or 3)}">
+        <tr data-mentor-row data-mentor="{_escape(name).lower()}" data-name="{_escape(name).lower()}" data-github_username="{_escape(username).lower()}" data-active="{1 if active else 0}" data-max_mentees="{int(mentor.get('max_mentees') or 3)}" data-assignment_count="{assignment_count}">
           <td class="px-3 py-2">
             <div class="flex items-center gap-2">
               <img src="https://github.com/{_escape(username)}.png" alt="{_escape(name)}" class="h-8 w-8 rounded-full border border-[#E5E5E5] bg-white object-cover">
@@ -876,7 +920,12 @@ class AdminService:
           <td class="px-3 py-2"><input form="{form_id}" data-field="referred_by" name="referred_by" value="{_escape(mentor.get('referred_by') or '')}" class="w-28 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" maxlength="39"></td>
           <td class="px-3 py-2"><input form="{form_id}" data-field="slack_username" name="slack_username" value="{_escape(slack_username)}" class="w-32 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" maxlength="80"></td>
           <td class="px-3 py-2"><input form="{form_id}" data-field="email" name="email" type="email" value="{_escape(email)}" class="w-56 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" maxlength="255"></td>
-          <td class="px-3 py-2"><input form="{form_id}" data-field="assignments" name="assignments" value="{_escape(assignment_refs)}" class="w-48 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" placeholder="repo#123, repo#456"></td>
+          <td class="px-3 py-2">
+            <div class="space-y-1">
+              <span data-assignment-count class="inline-flex items-center rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-[11px] font-semibold text-gray-600">{assignment_count} total</span>
+              <input form="{form_id}" data-field="assignments" name="assignments" value="{_escape(assignment_refs)}" class="w-48 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" placeholder="repo#123, repo#456">
+            </div>
+          </td>
           <td class="px-3 py-2">
             <div class="flex items-center justify-end gap-2">
               <span data-autosave-status data-state="idle" class="text-xs font-semibold text-gray-500">Idle</span>
