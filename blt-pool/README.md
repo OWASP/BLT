@@ -1,6 +1,6 @@
 # BLT-Pool
 
-BLT-Pool is the main product for the OWASP BLT contributor experience.
+BLT-Pool is the main product for the OWASP BLT pool system experience.
 
 This repository now serves two connected surfaces:
 
