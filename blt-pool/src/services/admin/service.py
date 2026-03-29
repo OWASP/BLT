@@ -21,6 +21,7 @@ _ADMIN_BASIC_REALM = "BLT-Pool Admin"
 _GH_USERNAME_RE = re.compile(r"^[a-zA-Z0-9](?:[a-zA-Z0-9\-]{0,37}[a-zA-Z0-9])?$")
 _EMAIL_RE = re.compile(r"^[A-Za-z0-9._%+\-]{1,64}@[A-Za-z0-9.\-]{1,190}\.[A-Za-z]{2,}$")
 _SLACK_USERNAME_RE = re.compile(r"^[A-Za-z0-9._\-]{1,80}$")
+_ASSIGNMENT_REF_RE = re.compile(r"^(?:(?P<org>[A-Za-z0-9_.-]+)/)?(?P<repo>[A-Za-z0-9_.-]+)#(?P<number>\d+)$")
 
 
 def _escape(value: str) -> str:
@@ -235,10 +236,15 @@ class AdminService:
                 issue_repo TEXT NOT NULL,
                 issue_number INTEGER NOT NULL,
                 assigned_at INTEGER NOT NULL,
+            mentee_login TEXT NOT NULL DEFAULT '',
                 PRIMARY KEY (org, issue_repo, issue_number)
             )
             """
         )
+        if not await self._d1_has_column("mentor_assignments", "mentee_login"):
+          await self._d1_run(
+            "ALTER TABLE mentor_assignments ADD COLUMN mentee_login TEXT NOT NULL DEFAULT ''"
+          )
 
     async def _d1_has_column(self, table_name: str, column_name: str) -> bool:
         rows = await self._d1_all(f"PRAGMA table_info({table_name})")
@@ -247,6 +253,67 @@ class AdminService:
             if str(row.get("name") or "").strip().lower() == target:
                 return True
         return False
+
+    def _parse_assignment_refs(self, assignment_value: str) -> Optional[list]:
+        org = str(getattr(self.env, "GITHUB_ORG", "OWASP-BLT") or "OWASP-BLT").strip() or "OWASP-BLT"
+        refs = []
+        seen = set()
+        for raw_item in [item.strip() for item in (assignment_value or "").split(",") if item.strip()]:
+            match = _ASSIGNMENT_REF_RE.match(raw_item)
+            if not match:
+                return None
+            item_org = (match.group("org") or org).strip()
+            repo = match.group("repo").strip()
+            issue_number = int(match.group("number"))
+            if item_org != org:
+                return None
+            key = (item_org, repo, issue_number)
+            if key in seen:
+                continue
+            seen.add(key)
+            refs.append(key)
+        return refs
+
+    async def _sync_assignments(self, original_login: str, new_login: str, assignment_value: str) -> bool:
+        desired = self._parse_assignment_refs(assignment_value)
+        if desired is None:
+            return False
+
+        org = str(getattr(self.env, "GITHUB_ORG", "OWASP-BLT") or "OWASP-BLT").strip() or "OWASP-BLT"
+        current_rows = await self._d1_all(
+            """
+            SELECT org, issue_repo, issue_number
+            FROM mentor_assignments
+            WHERE org = ? AND mentor_login IN (?, ?)
+            """,
+            (org, original_login, new_login),
+        )
+        current = {
+            (str(row.get("org") or org), str(row.get("issue_repo") or ""), int(row.get("issue_number") or 0))
+            for row in current_rows
+            if row.get("issue_repo") and int(row.get("issue_number") or 0) > 0
+        }
+        desired_set = set(desired)
+
+        for item_org, repo, issue_number in current - desired_set:
+            await self._d1_run(
+                "DELETE FROM mentor_assignments WHERE org = ? AND issue_repo = ? AND issue_number = ?",
+                (item_org, repo, issue_number),
+            )
+
+        for item_org, repo, issue_number in desired_set:
+            await self._d1_run(
+                """
+                INSERT INTO mentor_assignments (org, mentor_login, issue_repo, issue_number, assigned_at, mentee_login)
+                VALUES (?, ?, ?, ?, strftime('%s','now'), '')
+                ON CONFLICT(org, issue_repo, issue_number) DO UPDATE SET
+                    mentor_login = excluded.mentor_login,
+                    assigned_at = excluded.assigned_at,
+                    mentee_login = excluded.mentee_login
+                """,
+                (item_org, new_login, repo, issue_number),
+            )
+        return True
 
     def _configured_basic_auth(self) -> Tuple[str, str]:
         username = str(getattr(self.env, _ADMIN_BASIC_USER_ENV, "") or "").strip()
@@ -340,7 +407,7 @@ class AdminService:
 </head>
 <body class="min-h-screen font-sans text-gray-900 antialiased">
   <header class="sticky top-0 z-40 border-b border-[#E5E5E5] bg-white/90 backdrop-blur">
-    <div class="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:px-8">
+    <div class="mx-auto flex w-full max-w-[96rem] items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:px-8">
       <a href="{self.admin_path}" class="flex items-center gap-3" aria-label="BLT-Pool admin home">
         <img src="/logo-sm.png" alt="OWASP BLT logo" class="h-10 w-10 rounded-xl border border-[#E5E5E5] bg-white object-contain p-1">
         <div>
@@ -353,8 +420,8 @@ class AdminService:
       </div>
     </div>
   </header>
-  <main class="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-    <section class="overflow-hidden rounded-3xl border border-[#E5E5E5] bg-white p-7 shadow-[0_14px_40px_rgba(225,1,1,0.10)] sm:p-10">
+  <main class="mx-auto w-full max-w-[96rem] px-4 py-8 sm:px-6 lg:px-8">
+    <section class="overflow-hidden rounded-3xl border border-[#E5E5E5] bg-white p-5 shadow-[0_14px_40px_rgba(225,1,1,0.10)] sm:p-6 lg:p-7">
       <div class="mb-8">
         <span class="inline-flex items-center gap-2 rounded-full border border-[#E5E5E5] bg-gray-50 px-3 py-1 text-xs font-semibold text-gray-700">
           <i class="fa-solid fa-shield-halved text-[#E10101]" aria-hidden="true"></i>
@@ -489,6 +556,43 @@ class AdminService:
           closeDialog();
         }}
       }});
+
+      document.querySelectorAll('[data-sort-key]').forEach((button) => {{
+        button.addEventListener('click', () => {{
+          const table = button.closest('table');
+          const tbody = table ? table.querySelector('tbody') : null;
+          if (!tbody) {{
+            return;
+          }}
+          const key = button.dataset.sortKey;
+          const currentDirection = button.dataset.sortDirection === 'asc' ? 'asc' : 'desc';
+          const nextDirection = currentDirection === 'asc' ? 'desc' : 'asc';
+          document.querySelectorAll('[data-sort-key]').forEach((other) => {{
+            other.dataset.sortDirection = 'desc';
+            other.classList.remove('text-[#111827]');
+          }});
+          button.dataset.sortDirection = nextDirection;
+          button.classList.add('text-[#111827]');
+
+          const rows = Array.from(tbody.querySelectorAll('tr[data-mentor-row]'));
+          rows.sort((left, right) => {{
+            const leftField = left.querySelector(`[data-field="${{key}}"]`);
+            const rightField = right.querySelector(`[data-field="${{key}}"]`);
+            const leftValue = ((leftField && ('checked' in leftField) ? (leftField.checked ? '1' : '0') : leftField && leftField.value) || left.dataset[key] || '').toString().toLowerCase();
+            const rightValue = ((rightField && ('checked' in rightField) ? (rightField.checked ? '1' : '0') : rightField && rightField.value) || right.dataset[key] || '').toString().toLowerCase();
+            const leftNumber = Number(leftValue);
+            const rightNumber = Number(rightValue);
+            let result = 0;
+            if (!Number.isNaN(leftNumber) && !Number.isNaN(rightNumber) && leftValue !== '' && rightValue !== '') {{
+              result = leftNumber - rightNumber;
+            }} else {{
+              result = leftValue.localeCompare(rightValue);
+            }}
+            return nextDirection === 'asc' ? result : -result;
+          }});
+          rows.forEach((row) => tbody.appendChild(row));
+        }});
+      }});
     }})();
   </script>
 </body>
@@ -533,10 +637,30 @@ class AdminService:
         <div class="mt-8 rounded-2xl border border-[#E5E5E5] bg-white">
           <div class="border-b border-[#E5E5E5] px-5 py-4">
             <h3 class="text-lg font-bold text-[#111827]">Mentor management</h3>
-            <p class="mt-1 text-sm text-gray-600">Every card is the edit form. Update fields inline, then save.</p>
+            <p class="mt-1 text-sm text-gray-600">Inline editable mentor grid with sortable columns.</p>
           </div>
-          <div class="space-y-4 p-4 sm:p-5">
-            {mentor_rows}
+          <div class="overflow-x-auto">
+            <table id="admin-mentor-table" class="min-w-full text-left text-sm">
+              <thead class="bg-gray-50 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
+                <tr>
+                  <th class="px-3 py-3">Mentor</th>
+                  <th class="px-3 py-3"><button type="button" data-sort-key="name" data-sort-direction="desc" class="inline-flex items-center gap-1">Name <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="px-3 py-3"><button type="button" data-sort-key="github_username" data-sort-direction="desc" class="inline-flex items-center gap-1">GitHub <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="px-3 py-3"><button type="button" data-sort-key="active" data-sort-direction="desc" class="inline-flex items-center gap-1">Published <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="px-3 py-3">Specialties</th>
+                  <th class="px-3 py-3"><button type="button" data-sort-key="max_mentees" data-sort-direction="desc" class="inline-flex items-center gap-1">Cap <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="px-3 py-3">Timezone</th>
+                  <th class="px-3 py-3">Referral</th>
+                  <th class="px-3 py-3">Slack</th>
+                  <th class="px-3 py-3">Email</th>
+                  <th class="px-3 py-3"><button type="button" data-sort-key="assignment_count" data-sort-direction="desc" class="inline-flex items-center gap-1">Assignments <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="px-3 py-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-[#E5E5E5]">
+                {mentor_rows}
+              </tbody>
+            </table>
           </div>
         </div>
         """
@@ -560,12 +684,15 @@ class AdminService:
                 m.active,
                 m.timezone,
                 m.referred_by,
-              m.email,
-              m.slack_username,
+                m.email,
+                m.slack_username,
+                COALESCE(a.assignment_refs, '') AS assignment_refs,
                 COALESCE(a.assignment_count, 0) AS assignment_count
             FROM mentors m
             LEFT JOIN (
-                SELECT mentor_login, COUNT(*) AS assignment_count
+                SELECT mentor_login,
+                       COUNT(*) AS assignment_count,
+                       GROUP_CONCAT(issue_repo || '#' || issue_number, ', ') AS assignment_refs
                 FROM mentor_assignments
                 GROUP BY mentor_login
             ) a
@@ -595,86 +722,56 @@ class AdminService:
         )
         email = mentor.get("email") or ""
         slack_username = mentor.get("slack_username") or ""
+        assignment_refs = mentor.get("assignment_refs") or ""
+        form_id = f"mentor-form-{username.lower().replace('_', '-')}"
         return f"""
-        <form method="POST" action="{self.mentor_action_path}" class="rounded-2xl border border-[#E5E5E5] bg-white p-4 shadow-sm">
-          <input type="hidden" name="action" value="save">
-          <input type="hidden" name="original_github_username" value="{_escape(username)}">
-
-          <div class="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-            <div class="flex min-w-0 items-center gap-3">
-              <img src="https://github.com/{_escape(username)}.png" alt="{_escape(name)}" class="h-11 w-11 rounded-full border border-[#E5E5E5] bg-white object-cover">
-              <div class="min-w-0">
-                <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Mentor</p>
-                <div class="mt-1 flex flex-wrap items-center gap-2">
-                  {badge}
-                  <span class="inline-flex items-center rounded-full border border-[#E5E5E5] bg-gray-50 px-2 py-0.5 text-xs font-semibold text-gray-600">{int(mentor.get('assignment_count') or 0)} assignments</span>
-                </div>
-              </div>
+        <tr data-mentor-row data-name="{_escape(name).lower()}" data-github_username="{_escape(username).lower()}" data-active="{1 if active else 0}" data-max_mentees="{int(mentor.get('max_mentees') or 3)}" data-assignment_count="{int(mentor.get('assignment_count') or 0)}">
+          <td class="px-3 py-2">
+            <div class="flex items-center gap-2">
+              <img src="https://github.com/{_escape(username)}.png" alt="{_escape(name)}" class="h-8 w-8 rounded-full border border-[#E5E5E5] bg-white object-cover">
+              {badge}
             </div>
-
-            <div class="flex flex-wrap items-center gap-2 xl:justify-end">
-              <label class="inline-flex items-center gap-2 rounded-full border border-[#E5E5E5] bg-gray-50 px-3 py-2 text-xs font-semibold text-gray-700">
-                <input name="active" type="checkbox" value="1" {'checked' if active else ''}>
-                Published
-              </label>
-              <button type="submit" class="inline-flex items-center gap-1 rounded-md border border-emerald-200 px-3 py-2 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-50">
+            <form id="{form_id}" method="POST" action="{self.mentor_action_path}">
+              <input type="hidden" name="action" value="save">
+              <input type="hidden" name="original_github_username" value="{_escape(username)}">
+            </form>
+          </td>
+          <td class="px-3 py-2"><input form="{form_id}" data-field="name" name="name" value="{_escape(name)}" class="w-40 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" maxlength="100" required></td>
+          <td class="px-3 py-2"><input form="{form_id}" data-field="github_username" name="github_username" value="{_escape(username)}" class="w-36 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" maxlength="39" required></td>
+          <td class="px-3 py-2 text-center">
+            <label class="inline-flex items-center justify-center">
+              <input form="{form_id}" data-field="active" name="active" type="checkbox" value="1" {'checked' if active else ''}>
+            </label>
+          </td>
+          <td class="px-3 py-2"><input form="{form_id}" name="specialties" value="{_escape(specialties_value)}" class="w-48 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" maxlength="300" placeholder="frontend, python"></td>
+          <td class="px-3 py-2"><input form="{form_id}" data-field="max_mentees" name="max_mentees" type="number" min="1" max="10" value="{int(mentor.get('max_mentees') or 3)}" class="w-20 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800"></td>
+          <td class="px-3 py-2"><input form="{form_id}" name="timezone" value="{_escape(mentor.get('timezone') or '')}" class="w-28 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" maxlength="60"></td>
+          <td class="px-3 py-2"><input form="{form_id}" name="referred_by" value="{_escape(mentor.get('referred_by') or '')}" class="w-28 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" maxlength="39"></td>
+          <td class="px-3 py-2"><input form="{form_id}" name="slack_username" value="{_escape(slack_username)}" class="w-32 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" maxlength="80"></td>
+          <td class="px-3 py-2"><input form="{form_id}" name="email" type="email" value="{_escape(email)}" class="w-56 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" maxlength="255"></td>
+          <td class="px-3 py-2"><input form="{form_id}" name="assignments" value="{_escape(assignment_refs)}" class="w-48 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" placeholder="repo#123, repo#456"></td>
+          <td class="px-3 py-2">
+            <div class="flex items-center justify-end gap-2">
+              <button form="{form_id}" type="submit" class="inline-flex items-center gap-1 rounded-md border border-emerald-200 px-2.5 py-2 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-50">
                 <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>
                 Save
               </button>
+              <form method="POST" action="{self.mentor_action_path}">
+                <input type="hidden" name="github_username" value="{_escape(username)}">
+                <input type="hidden" name="action" value="delete">
+                <button
+                  type="submit"
+                  data-confirm-title="Delete mentor?"
+                  data-confirm-message="This permanently removes the mentor record and clears related assignments from the admin panel."
+                  data-confirm-cta="<i class=&quot;fa-solid fa-trash&quot; aria-hidden=&quot;true&quot;></i>Delete mentor"
+                  class="inline-flex items-center gap-1 rounded-md border border-red-200 px-2.5 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-50">
+                  <i class="fa-solid fa-trash" aria-hidden="true"></i>
+                  Delete
+                </button>
+              </form>
             </div>
-          </div>
-
-          <div class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            <div>
-              <label class="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-gray-500">GitHub</label>
-              <input name="github_username" value="{_escape(username)}" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-800" maxlength="39" required>
-            </div>
-            <div>
-              <label class="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-gray-500">Display name</label>
-              <input name="name" value="{_escape(name)}" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-800" maxlength="100" required>
-            </div>
-            <div>
-              <label class="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-gray-500">Timezone</label>
-              <input name="timezone" value="{_escape(mentor.get('timezone') or '')}" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-800" maxlength="60">
-            </div>
-            <div>
-              <label class="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-gray-500">Max mentees</label>
-              <input name="max_mentees" type="number" min="1" max="10" value="{int(mentor.get('max_mentees') or 3)}" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-800">
-            </div>
-            <div class="sm:col-span-2 xl:col-span-2">
-              <label class="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-gray-500">Specialties</label>
-              <input name="specialties" value="{_escape(specialties_value)}" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-800" maxlength="300" placeholder="frontend, python, security">
-            </div>
-            <div>
-              <label class="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-gray-500">Referred by</label>
-              <input name="referred_by" value="{_escape(mentor.get('referred_by') or '')}" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-800" maxlength="39">
-            </div>
-            <div>
-              <label class="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-gray-500">Slack username</label>
-              <input name="slack_username" value="{_escape(slack_username)}" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-800" maxlength="80">
-            </div>
-            <div class="sm:col-span-2 xl:col-span-2">
-              <label class="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-gray-500">Email</label>
-              <input name="email" value="{_escape(email)}" type="email" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-800" maxlength="255">
-            </div>
-          </div>
-        </form>
-
-        <div class="mt-2 flex justify-end">
-          <form method="POST" action="{self.mentor_action_path}">
-              <input type="hidden" name="github_username" value="{_escape(username)}">
-              <input type="hidden" name="action" value="delete">
-              <button
-                type="submit"
-                data-confirm-title="Delete mentor?"
-                data-confirm-message="This permanently removes the mentor record and clears related assignments from the admin panel."
-                data-confirm-cta="<i class=&quot;fa-solid fa-trash&quot; aria-hidden=&quot;true&quot;></i>Delete mentor"
-                class="inline-flex items-center gap-1 rounded-md border border-red-200 px-3 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-50">
-                <i class="fa-solid fa-trash" aria-hidden="true"></i>
-                Delete
-              </button>
-            </form>
-        </div>
+          </td>
+        </tr>
         """
 
     async def _handle_mentor_action(self, request, username: str):
@@ -697,6 +794,7 @@ class AdminService:
                 referred_by = (form.get("referred_by") or "").strip().lstrip("@")
                 email = (form.get("email") or "").strip().lower()
                 slack_username = (form.get("slack_username") or "").strip().lstrip("@")
+                assignments_value = (form.get("assignments") or "").strip()
                 active = 1 if (form.get("active") or "") == "1" else 0
 
                 if not original_github_username or not name:
@@ -709,6 +807,8 @@ class AdminService:
                     return self._redirect(self.admin_path)
                 if slack_username and not _SLACK_USERNAME_RE.match(slack_username):
                     return self._redirect(self.admin_path)
+                if self._parse_assignment_refs(assignments_value) is None:
+                  return self._redirect(self.admin_path)
 
                 specialties_list = [
                     item.strip().lower()
@@ -753,6 +853,8 @@ class AdminService:
                         "UPDATE mentor_assignments SET mentor_login = ? WHERE mentor_login = ?",
                         (new_github_username, original_github_username),
                     )
+                if not await self._sync_assignments(original_github_username, new_github_username, assignments_value):
+                  return self._redirect(self.admin_path)
             else:
                 if not github_username:
                     return self._redirect(self.admin_path)
