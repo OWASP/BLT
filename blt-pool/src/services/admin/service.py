@@ -414,7 +414,7 @@ class AdminService:
   </style>
 </head>
 <body class="min-h-screen font-sans text-gray-900 antialiased">
-  <header class="sticky top-0 z-40 border-b border-[#E5E5E5] bg-white/90 backdrop-blur">
+  <header data-admin-topbar class="sticky top-0 z-40 border-b border-[#E5E5E5] bg-white/90 backdrop-blur">
     <div class="mx-auto flex w-full max-w-[98vw] items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:px-8">
       <a href="{self.admin_path}" class="flex items-center gap-3" aria-label="BLT-Pool admin home">
         <img src="/logo-sm.png" alt="OWASP BLT logo" class="h-10 w-10 rounded-xl border border-[#E5E5E5] bg-white object-contain p-1">
@@ -471,12 +471,24 @@ class AdminService:
   <script>
     (() => {{
       const syncStickyHeaderOffset = () => {{
-        const headerEl = document.querySelector('body > header.sticky');
-        const offsetPx = headerEl ? Math.ceil(headerEl.getBoundingClientRect().height) : 80;
+        const headerEl = document.querySelector('[data-admin-topbar]');
+        const rect = headerEl ? headerEl.getBoundingClientRect() : null;
+        const navHeight = rect ? rect.height : 80;
+        const navTop = rect ? rect.top : 0;
+        const offsetPx = Math.max(0, Math.ceil(navHeight + navTop + 1));
         document.documentElement.style.setProperty('--admin-header-offset', `${{offsetPx}}px`);
       }};
       syncStickyHeaderOffset();
+      requestAnimationFrame(syncStickyHeaderOffset);
       window.addEventListener('resize', syncStickyHeaderOffset);
+      window.addEventListener('load', syncStickyHeaderOffset);
+      if (window.ResizeObserver) {{
+        const headerEl = document.querySelector('[data-admin-topbar]');
+        if (headerEl) {{
+          const headerResizeObserver = new ResizeObserver(() => syncStickyHeaderOffset());
+          headerResizeObserver.observe(headerEl);
+        }}
+      }}
 
       const overlay = document.getElementById('admin-confirm-overlay');
       const titleEl = document.getElementById('admin-confirm-title');
@@ -592,6 +604,25 @@ class AdminService:
         }}
       }};
 
+      const getFieldAutosaveValue = (field) => {{
+        if (!field) {{
+          return '';
+        }}
+        if (field.type === 'checkbox') {{
+          return field.checked ? '1' : '0';
+        }}
+        return (field.value || '').toString();
+      }};
+
+      const hasFieldChanged = (field) => {{
+        const currentValue = getFieldAutosaveValue(field);
+        if (!Object.prototype.hasOwnProperty.call(field.dataset, 'savedValue')) {{
+          field.dataset.savedValue = currentValue;
+          return false;
+        }}
+        return field.dataset.savedValue !== currentValue;
+      }};
+
       const buildAutosaveParams = (field) => {{
         const row = field.closest('tr[data-mentor-row]');
         const form = field.form;
@@ -623,6 +654,9 @@ class AdminService:
       }};
 
       const queueAutosave = (field, delayMs) => {{
+        if (!hasFieldChanged(field)) {{
+          return;
+        }}
         const payload = buildAutosaveParams(field);
         if (!payload) {{
           return;
@@ -697,8 +731,12 @@ class AdminService:
               }}
               if (githubField) {{
                 githubField.value = nextUsername;
+                githubField.dataset.savedValue = nextUsername;
               }}
               row.dataset.github_username = nextUsername.toLowerCase();
+            }}
+            if (field.dataset.field !== 'github_username') {{
+              field.dataset.savedValue = getFieldAutosaveValue(field);
             }}
             markRowStatus(row, 'saved', 'Saved');
           }} catch (_error) {{
@@ -738,6 +776,7 @@ class AdminService:
       }});
 
       document.querySelectorAll('tr[data-mentor-row] [data-field]').forEach((field) => {{
+        field.dataset.savedValue = getFieldAutosaveValue(field);
         const isToggle = field.type === 'checkbox';
         field.addEventListener(isToggle ? 'change' : 'input', () => {{
           queueAutosave(field, isToggle ? 0 : 320);
