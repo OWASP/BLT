@@ -411,6 +411,13 @@ class AdminService:
         radial-gradient(circle at 95% 4%, rgba(225, 1, 1, 0.05), transparent 28%),
         #f8fafc;
     }}
+
+    #admin-mentor-table thead th {{
+      position: sticky;
+      top: var(--admin-header-offset, 80px);
+      z-index: 30;
+      background: #f9fafb;
+    }}
   </style>
 </head>
 <body class="min-h-screen font-sans text-gray-900 antialiased">
@@ -889,33 +896,59 @@ class AdminService:
           </article>
         </div>
 
-        <div class="mt-8 -mx-5 overflow-hidden border-t border-[#E5E5E5] bg-white sm:-mx-6 lg:-mx-7">
+        <div class="mt-8 -mx-5 overflow-visible border-t border-[#E5E5E5] bg-white sm:-mx-6 lg:-mx-7">
           <div class="border-b border-[#E5E5E5] px-5 py-4">
             <h3 class="text-lg font-bold text-[#111827]">Mentor management</h3>
             <p class="mt-1 text-sm text-gray-600">Inline editable mentor grid with sortable columns.</p>
           </div>
-          <div class="overflow-x-auto">
+          <div class="relative overflow-x-auto overflow-y-visible">
             <table id="admin-mentor-table" class="min-w-full text-left text-sm">
               <thead class="bg-gray-50 text-[11px] font-semibold uppercase tracking-wide text-gray-500 shadow-sm">
                 <tr>
-                  <th class="sticky z-20 bg-gray-50 px-3 py-3" style="top: var(--admin-header-offset, 80px)"><button type="button" data-sort-key="mentor" data-sort-direction="desc" class="inline-flex items-center gap-1">Mentor <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
-                  <th class="sticky z-20 bg-gray-50 px-3 py-3" style="top: var(--admin-header-offset, 80px)"><button type="button" data-sort-key="name" data-sort-direction="desc" class="inline-flex items-center gap-1">Name <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
-                  <th class="sticky z-20 bg-gray-50 px-3 py-3" style="top: var(--admin-header-offset, 80px)"><button type="button" data-sort-key="github_username" data-sort-direction="desc" class="inline-flex items-center gap-1">GitHub <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
-                  <th class="sticky z-20 bg-gray-50 px-3 py-3" style="top: var(--admin-header-offset, 80px)"><button type="button" data-sort-key="active" data-sort-direction="desc" class="inline-flex items-center gap-1">Published <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
-                  <th class="sticky z-20 bg-gray-50 px-3 py-3" style="top: var(--admin-header-offset, 80px)"><button type="button" data-sort-key="specialties" data-sort-direction="desc" class="inline-flex items-center gap-1">Specialties <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
-                  <th class="sticky z-20 bg-gray-50 px-3 py-3" style="top: var(--admin-header-offset, 80px)"><button type="button" data-sort-key="max_mentees" data-sort-direction="desc" class="inline-flex items-center gap-1">Cap <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
-                  <th class="sticky z-20 bg-gray-50 px-3 py-3" style="top: var(--admin-header-offset, 80px)"><button type="button" data-sort-key="timezone" data-sort-direction="desc" class="inline-flex items-center gap-1">Timezone <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
-                  <th class="sticky z-20 bg-gray-50 px-3 py-3" style="top: var(--admin-header-offset, 80px)"><button type="button" data-sort-key="referred_by" data-sort-direction="desc" class="inline-flex items-center gap-1">Referral <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
-                  <th class="sticky z-20 bg-gray-50 px-3 py-3" style="top: var(--admin-header-offset, 80px)"><button type="button" data-sort-key="slack_username" data-sort-direction="desc" class="inline-flex items-center gap-1">Slack <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
-                  <th class="sticky z-20 bg-gray-50 px-3 py-3" style="top: var(--admin-header-offset, 80px)"><button type="button" data-sort-key="email" data-sort-direction="desc" class="inline-flex items-center gap-1">Email <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
-                  <th class="sticky z-20 bg-gray-50 px-3 py-3" style="top: var(--admin-header-offset, 80px)"><button type="button" data-sort-key="assignments" data-sort-direction="desc" class="inline-flex items-center gap-1">Assignments (count) <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
-                  <th class="sticky z-20 bg-gray-50 px-3 py-3 text-right" style="top: var(--admin-header-offset, 80px)"><button type="button" data-sort-key="actions" data-sort-direction="desc" class="inline-flex items-center gap-1">Actions <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="sticky z-30 bg-gray-50 px-3 py-3" style="top: var(--admin-header-offset, 80px)"><button type="button" data-sort-key="mentor" data-sort-direction="desc" class="inline-flex items-center gap-1">Mentor <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="sticky z-30 bg-gray-50 px-3 py-3" style="top: var(--admin-header-offset, 80px)"><button type="button" data-sort-key="name" data-sort-direction="desc" class="inline-flex items-center gap-1">Name <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="sticky z-30 bg-gray-50 px-3 py-3" style="top: var(--admin-header-offset, 80px)"><button type="button" data-sort-key="github_username" data-sort-direction="desc" class="inline-flex items-center gap-1">GitHub <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="sticky z-30 bg-gray-50 px-3 py-3" style="top: var(--admin-header-offset, 80px)"><button type="button" data-sort-key="active" data-sort-direction="desc" class="inline-flex items-center gap-1">Published <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="sticky z-30 bg-gray-50 px-3 py-3" style="top: var(--admin-header-offset, 80px)"><button type="button" data-sort-key="specialties" data-sort-direction="desc" class="inline-flex items-center gap-1">Specialties <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="sticky z-30 bg-gray-50 px-3 py-3" style="top: var(--admin-header-offset, 80px)"><button type="button" data-sort-key="max_mentees" data-sort-direction="desc" class="inline-flex items-center gap-1">Cap <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="sticky z-30 bg-gray-50 px-3 py-3" style="top: var(--admin-header-offset, 80px)"><button type="button" data-sort-key="timezone" data-sort-direction="desc" class="inline-flex items-center gap-1">Timezone <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="sticky z-30 bg-gray-50 px-3 py-3" style="top: var(--admin-header-offset, 80px)"><button type="button" data-sort-key="referred_by" data-sort-direction="desc" class="inline-flex items-center gap-1">Referral <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="sticky z-30 bg-gray-50 px-3 py-3" style="top: var(--admin-header-offset, 80px)"><button type="button" data-sort-key="slack_username" data-sort-direction="desc" class="inline-flex items-center gap-1">Slack <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="sticky z-30 bg-gray-50 px-3 py-3" style="top: var(--admin-header-offset, 80px)"><button type="button" data-sort-key="email" data-sort-direction="desc" class="inline-flex items-center gap-1">Email <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="sticky z-30 bg-gray-50 px-3 py-3" style="top: var(--admin-header-offset, 80px)"><button type="button" data-sort-key="assignments" data-sort-direction="desc" class="inline-flex items-center gap-1">Assignments (count) <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="sticky z-30 bg-gray-50 px-3 py-3 text-right" style="top: var(--admin-header-offset, 80px)"><button type="button" data-sort-key="actions" data-sort-direction="desc" class="inline-flex items-center gap-1">Actions <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-[#E5E5E5]">
                 {mentor_rows}
               </tbody>
             </table>
+          </div>
+
+          <div class="border-t border-[#E5E5E5] bg-gray-50/60 px-5 py-4">
+            <h3 class="text-sm font-bold uppercase tracking-wide text-[#111827]">Add mentor</h3>
+            <form method="POST" action="{self.mentor_action_path}" class="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-5 xl:grid-cols-10">
+              <input type="hidden" name="action" value="create">
+              <input name="name" required maxlength="100" placeholder="Name" class="rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800">
+              <input name="github_username" required maxlength="39" placeholder="GitHub username" class="rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800">
+              <input name="specialties" maxlength="300" placeholder="specialty1, specialty2" class="rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800">
+              <input name="max_mentees" type="number" min="1" max="10" value="3" class="rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800">
+              <input name="timezone" maxlength="60" placeholder="Timezone" class="rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800">
+              <input name="referred_by" maxlength="39" placeholder="Referral" class="rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800">
+              <input name="slack_username" maxlength="80" placeholder="Slack" class="rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800">
+              <input name="email" type="email" maxlength="255" placeholder="Email" class="rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800">
+              <input name="assignments" placeholder="repo#123, repo#456" class="rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800">
+              <div class="flex items-center justify-between gap-3 rounded-md border border-gray-300 bg-white px-3 py-2">
+                <label class="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-gray-600">
+                  <input name="active" type="checkbox" value="1" checked>
+                  Published
+                </label>
+                <button type="submit" class="inline-flex items-center gap-2 rounded-md bg-[#E10101] px-3 py-2 text-xs font-semibold text-white transition hover:bg-red-700">
+                  <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                  Add mentor
+                </button>
+              </div>
+            </form>
           </div>
         </div>
         """
@@ -979,8 +1012,8 @@ class AdminService:
         <tr data-mentor-row data-mentor="{_escape(name).lower()}" data-name="{_escape(name).lower()}" data-github_username="{_escape(username).lower()}" data-active="{1 if active else 0}" data-max_mentees="{int(mentor.get('max_mentees') or 3)}" data-assignment_count="{assignment_count}">
           <td class="px-3 py-2">
             <div class="flex items-center gap-2">
-              <a href="https://github.com/{_escape(username)}" target="_blank" rel="noopener noreferrer" aria-label="Open @{_escape(username)} on GitHub" class="inline-flex rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E10101] focus-visible:ring-offset-2">
-                <img src="https://github.com/{_escape(username)}.png" alt="{_escape(name)}" class="h-8 w-8 rounded-full border border-[#E5E5E5] bg-white object-cover transition hover:opacity-90">
+              <a href="https://github.com/{_escape(username)}" target="_blank" rel="noopener noreferrer" aria-label="Open @{_escape(username)} on GitHub" class="inline-flex h-8 w-8 shrink-0 overflow-hidden rounded-full border border-[#E5E5E5] bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E10101] focus-visible:ring-offset-2">
+                <img src="https://github.com/{_escape(username)}.png" alt="{_escape(name)}" class="h-full w-full shrink-0 object-cover transition hover:opacity-90">
               </a>
               <span data-autosave-status data-state="idle" class="inline-flex items-center rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-[11px] font-semibold text-gray-500">Idle</span>
             </div>
@@ -1036,13 +1069,106 @@ class AdminService:
         github_username = (form.get("github_username") or "").strip().lstrip("@")
         action = (form.get("action") or "").strip().lower()
         autosave = self._is_autosave_request(request)
-        if action not in {"save", "delete"}:
+        if action not in {"save", "delete", "create"}:
             if autosave:
                 return self._json({"ok": False, "error": "invalid_action"}, 400)
             return self._redirect(self.admin_path)
 
         try:
-            if action == "save":
+            if action == "create":
+              name = (form.get("name") or "").strip()
+              new_github_username = (form.get("github_username") or "").strip().lstrip("@")
+              specialties_raw = (form.get("specialties") or "").strip()
+              timezone = (form.get("timezone") or "").strip()
+              referred_by = (form.get("referred_by") or "").strip().lstrip("@")
+              email = (form.get("email") or "").strip().lower()
+              slack_username = (form.get("slack_username") or "").strip().lstrip("@")
+              assignments_value = (form.get("assignments") or "").strip()
+              active = 1 if (form.get("active") or "") == "1" else 0
+
+              if not name:
+                if autosave:
+                  return self._json({"ok": False, "error": "name_required"}, 400)
+                return self._redirect(self.admin_path)
+              if not _GH_USERNAME_RE.match(new_github_username):
+                if autosave:
+                  return self._json({"ok": False, "error": "invalid_github_username"}, 400)
+                return self._redirect(self.admin_path)
+              if referred_by and not _GH_USERNAME_RE.match(referred_by):
+                if autosave:
+                  return self._json({"ok": False, "error": "invalid_referred_by"}, 400)
+                return self._redirect(self.admin_path)
+              if email and not _EMAIL_RE.match(email):
+                if autosave:
+                  return self._json({"ok": False, "error": "invalid_email"}, 400)
+                return self._redirect(self.admin_path)
+              if slack_username and not _SLACK_USERNAME_RE.match(slack_username):
+                if autosave:
+                  return self._json({"ok": False, "error": "invalid_slack_username"}, 400)
+                return self._redirect(self.admin_path)
+              if assignments_value and self._parse_assignment_refs(assignments_value) is None:
+                if autosave:
+                  return self._json({"ok": False, "error": "invalid_assignments"}, 400)
+                return self._redirect(self.admin_path)
+
+              existing = await self._d1_first(
+                "SELECT github_username FROM mentors WHERE github_username = ?",
+                (new_github_username,),
+              )
+              if existing:
+                if autosave:
+                  return self._json({"ok": False, "error": "mentor_exists"}, 409)
+                return self._redirect(self.admin_path)
+
+              specialties_list = [
+                item.strip().lower()
+                for item in specialties_raw.split(",")
+                if item.strip()
+              ]
+              try:
+                max_mentees = int(form.get("max_mentees") or 3)
+              except Exception:
+                max_mentees = 3
+              max_mentees = max(1, min(10, max_mentees))
+
+              await self._d1_run(
+                """
+                INSERT INTO mentors (
+                  github_username,
+                  name,
+                  specialties,
+                  max_mentees,
+                  active,
+                  timezone,
+                  referred_by,
+                  email,
+                  slack_username
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                  new_github_username,
+                  name,
+                  json.dumps(specialties_list),
+                  max_mentees,
+                  active,
+                  timezone,
+                  referred_by,
+                  email,
+                  slack_username,
+                ),
+              )
+
+              if assignments_value:
+                if not await self._sync_assignments(new_github_username, new_github_username, assignments_value):
+                  if autosave:
+                    return self._json({"ok": False, "error": "assignment_sync_failed"}, 400)
+                  return self._redirect(self.admin_path)
+
+              if autosave:
+                return self._json({"ok": True, "github_username": new_github_username})
+
+            elif action == "save":
                 original_github_username = (form.get("original_github_username") or "").strip().lstrip("@")
                 if not original_github_username:
                     if autosave:

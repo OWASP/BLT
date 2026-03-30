@@ -5103,8 +5103,8 @@ def _generate_mentor_row(mentor: dict, stats: Optional[dict] = None) -> str:
         avatar_block = (
             f'<div class="relative shrink-0" title="{dot_title}">'
             f'<a href="https://github.com/{github}" target="_blank" rel="noopener" aria-label="{name} GitHub profile">'
-            f'<img src="{avatar_url}" alt="{name}" '
-            f'class="h-11 w-11 rounded-full border border-[#E5E5E5] bg-white object-cover">'
+            f'<img src="{avatar_url}" alt="{name}" width="44" height="44" '
+            f'class="h-11 w-11 aspect-square rounded-full border border-[#E5E5E5] bg-white object-cover">'
             f'</a>'
             f'<span class="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white {dot_color}"></span>'
             f'</div>'
@@ -5112,8 +5112,8 @@ def _generate_mentor_row(mentor: dict, stats: Optional[dict] = None) -> str:
     else:
         avatar_block = (
             f'<div class="relative shrink-0" title="{dot_title}">'
-            f'<img src="{avatar_url}" alt="{name}" '
-            f'class="h-11 w-11 rounded-full border border-[#E5E5E5] bg-white object-cover">'
+            f'<img src="{avatar_url}" alt="{name}" width="44" height="44" '
+            f'class="h-11 w-11 aspect-square rounded-full border border-[#E5E5E5] bg-white object-cover">'
             f'<span class="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white {dot_color}"></span>'
             f'</div>'
         )
@@ -5158,8 +5158,8 @@ def _generate_mentor_row(mentor: dict, stats: Optional[dict] = None) -> str:
             f'<a href="https://github.com/{ref_escaped}" target="_blank" rel="noopener" '
             f'class="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-[#E10101] whitespace-nowrap" '
             f'title="Referred by @{ref_escaped}">'
-            f'<img src="https://github.com/{ref_escaped}.png" alt="{ref_escaped}" '
-            f'class="h-4 w-4 rounded-full border border-gray-200 object-cover">'
+            f'<img src="https://github.com/{ref_escaped}.png" alt="{ref_escaped}" width="16" height="16" '
+            f'class="h-4 w-4 aspect-square rounded-full border border-gray-200 object-cover">'
             f'@{ref_escaped}'
             f'</a>'
         )
