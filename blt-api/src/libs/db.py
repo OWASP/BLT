@@ -1,3 +1,11 @@
+import asyncio
+
+# Global cache for database initialization status.
+# In Cloudflare Workers, global variables persist between requests on the same isolate.
+_DB_INITIALIZED_CACHE: bool = False
+_DB_INITIALIZED_LOCK = asyncio.Lock()
+
+
 def get_db(env):
     """Helper to get DB binding from env, handling different env types.
     
@@ -58,14 +66,6 @@ async def check_db_initialized(db):
         
     except Exception as e:
         raise Exception(f"Failed to check database initialization: {str(e)}")
-
-
-import asyncio
-
-# Global cache for database initialization status.
-# In Cloudflare Workers, global variables persist between requests on the same isolate.
-_DB_INITIALIZED_CACHE: bool = False
-_DB_INITIALIZED_LOCK = asyncio.Lock()
 
 
 async def get_db_safe(env):
