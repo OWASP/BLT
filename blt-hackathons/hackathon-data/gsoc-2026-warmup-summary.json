@@ -1,6 +1,6 @@
 {
   "participantCount": 185,
-  "totalPRs": 2583,
+  "totalPRs": 2584,
   "mergedPRs": 1620,
   "totalIssues": 770,
   "repositories": 54,
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "refactor: migrate to Tailwind CLI and synchronize test data with encrypted schema",
+      "url": "https://github.com/OWASP-BLT/BLT-API/pull/84",
+      "username": "JessCode-TheRedumption",
+      "avatar": "https://avatars.githubusercontent.com/u/234758609?v=4",
+      "state": "open",
+      "created_at": "2026-03-30T18:06:44Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-API"
+    },
     {
       "title": "Add unsubscribe and privacy links to newsletter template",
       "url": "https://github.com/OWASP-BLT/BLT-Newsletter/pull/8",
@@ -114,16 +124,6 @@
       "created_at": "2026-03-29T11:54:59Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT-Sammich"
-    },
-    {
-      "title": "feat: expand REST API for Organizations, Projects, and Hunts to support BLT-Next CRUD",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6099",
-      "username": "Makeepan-dev",
-      "avatar": "https://avatars.githubusercontent.com/u/183580740?v=4",
-      "state": "closed",
-      "created_at": "2026-03-29T09:21:49Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT"
     }
   ]
 }
