@@ -1,9 +1,22 @@
 import asyncio
+import weakref
 
 # Global cache for database initialization status.
 # In Cloudflare Workers, global variables persist between requests on the same isolate.
 _DB_INITIALIZED_CACHE: bool = False
-_DB_INITIALIZED_LOCK = asyncio.Lock()
+_DB_INITIALIZED_LOCKS: "weakref.WeakKeyDictionary[asyncio.AbstractEventLoop, asyncio.Lock]" = (
+    weakref.WeakKeyDictionary()
+)
+
+
+def get_db_initialized_lock() -> asyncio.Lock:
+    """Gets or creates an asyncio.Lock bound to the current running event loop."""
+    loop = asyncio.get_running_loop()
+    lock = _DB_INITIALIZED_LOCKS.get(loop)
+    if lock is None:
+        lock = asyncio.Lock()
+        _DB_INITIALIZED_LOCKS[loop] = lock
+    return lock
 
 
 def get_db(env):
@@ -89,7 +102,7 @@ async def get_db_safe(env):
         return db
         
     # Slow path: need to check initialization, guarded by a lock to prevent race conditions
-    async with _DB_INITIALIZED_LOCK:
+    async with get_db_initialized_lock():
         # Double-check after acquiring lock
         if not _DB_INITIALIZED_CACHE:
             is_initialized, missing_tables = await check_db_initialized(db)
