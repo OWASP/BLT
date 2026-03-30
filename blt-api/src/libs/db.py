@@ -1,5 +1,6 @@
 import asyncio
 import weakref
+from typing import Optional
 
 # Global cache for database initialization status.
 # In Cloudflare Workers, global variables persist between requests on the same isolate.
@@ -17,6 +18,21 @@ def get_db_initialized_lock() -> asyncio.Lock:
         lock = asyncio.Lock()
         _DB_INITIALIZED_LOCKS[loop] = lock
     return lock
+
+
+def reset_db_cache(loop: "Optional[asyncio.AbstractEventLoop]" = None) -> None:
+    """Resets the database initialization cache state.
+    
+    If *loop* is provided, ONLY the lock for that specific loop is removed.
+    The global cache flag is always reset to False to force a re-check.
+    """
+    global _DB_INITIALIZED_CACHE
+    _DB_INITIALIZED_CACHE = False
+    
+    if loop is not None:
+        _DB_INITIALIZED_LOCKS.pop(loop, None)
+    else:
+        _DB_INITIALIZED_LOCKS.clear()
 
 
 def get_db(env):
