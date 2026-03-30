@@ -54,10 +54,10 @@
 
 | Field | Count |
 |---|---|
-| audience | 294 |
+| audience | 293 |
 | code_repositories | 181 |
-| download_links | 264 |
-| leaders_list | 764 |
+| download_links | 263 |
+| leaders_list | 762 |
 | license | 60 |
 | project_classification | 303 |
 | sidebar_type | 108 |
