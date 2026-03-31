@@ -399,9 +399,9 @@ class BLTWorker:
                 result_id=self.generate_id(f"result-{task_id}-{agent_type}"),
                 task_id=task_id,
                 agent_type=agent_type,
-                findings=results.get('findings', []),
-                vulnerabilities=results.get('vulnerabilities', []),
-                metadata=results.get('metadata', {}),
+                findings=findings,
+                vulnerabilities=vulnerabilities,
+                metadata=metadata,
                 timestamp=datetime.now(timezone.utc).isoformat()
             )
 

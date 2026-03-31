@@ -235,6 +235,10 @@ async def test_handle_result_ingestion_updates_state_and_notifies():
     worker.task_queue.update_task.assert_awaited_once()
     worker.job_store.update_job_progress.assert_awaited_once_with("job-1")
     assert worker.notifier.notify_vulnerability.await_args.kwargs["target"] == "https://example.com"
+    stored_vulnerability = worker.vuln_db.store_vulnerability.await_args.args[1]
+    updated_task = worker.task_queue.update_task.await_args.args[1]
+    assert stored_vulnerability["discovered_at"].endswith("+00:00")
+    assert updated_task["completed_at"].endswith("+00:00")
 
 
 @pytest.mark.asyncio
