@@ -78,6 +78,20 @@ document.addEventListener("click", (e) => {
   }
 });
 
+/* ── HTML escaping ── */
+function escHtml(str) {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function capitalise(s) {
+  return s ? s[0].toUpperCase() + s.slice(1) : "";
+}
+
 /* ── Copy to clipboard ── */
 async function copyToClipboard(text, label = "Copied") {
   try {
