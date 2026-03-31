@@ -1,6 +1,6 @@
 {
   "participantCount": 186,
-  "totalPRs": 2593,
+  "totalPRs": 2594,
   "mergedPRs": 1620,
   "totalIssues": 771,
   "repositories": 54,
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "fix: correct license field and setup script typo in package.json",
+      "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/51",
+      "username": "ANIRUDH-SJ",
+      "avatar": "https://avatars.githubusercontent.com/u/95867819?v=4",
+      "state": "open",
+      "created_at": "2026-03-31T11:11:20Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-SafeCloak"
+    },
     {
       "title": "Fix/toast warning style",
       "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/50",
@@ -80,7 +90,7 @@
       "url": "https://github.com/OWASP-BLT/BLT-University/pull/43",
       "username": "hhyags",
       "avatar": "https://avatars.githubusercontent.com/u/128780393?v=4",
-      "state": "open",
+      "state": "closed",
       "created_at": "2026-03-31T08:16:15Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT-University"
@@ -114,16 +124,6 @@
       "created_at": "2026-03-30T18:49:18Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "refactor: migrate to Tailwind CLI and synchronize test data with encrypted schema",
-      "url": "https://github.com/OWASP-BLT/BLT-API/pull/84",
-      "username": "JessCode-TheRedumption",
-      "avatar": "https://avatars.githubusercontent.com/u/234758609?v=4",
-      "state": "open",
-      "created_at": "2026-03-30T18:06:44Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-API"
     }
   ]
 }
