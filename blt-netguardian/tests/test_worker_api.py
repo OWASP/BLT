@@ -312,6 +312,51 @@ async def test_handle_result_ingestion_accepts_legacy_flat_payload():
 
 
 @pytest.mark.asyncio
+async def test_handle_result_ingestion_skips_job_progress_without_job_id():
+    worker = BLTWorker(SimpleNamespace(DB=None))
+    worker.vuln_db = SimpleNamespace(store_vulnerability=AsyncMock())
+    worker.task_queue = SimpleNamespace(
+        get_task=AsyncMock(return_value={"target_id": "target-1"}),
+        update_task=AsyncMock(),
+    )
+    worker.job_store = SimpleNamespace(update_job_progress=AsyncMock())
+    worker.target_registry = SimpleNamespace(
+        get_target=AsyncMock(return_value={"target_url": "https://example.com"})
+    )
+    worker.notifier = SimpleNamespace(
+        notify_vulnerability=AsyncMock(return_value={"successful_contacts": 1})
+    )
+
+    response = await worker.handle_result_ingestion(
+        FakeRequest(
+            "https://api.example.com/api/results/ingest",
+            method="POST",
+            payload={
+                "task_id": "task-1",
+                "agent_type": "static_analyzer",
+                "results": {
+                    "vulnerabilities": [
+                        {
+                            "type": "xss",
+                            "severity": "high",
+                            "title": "Reflected XSS",
+                            "affected_component": "/search",
+                        }
+                    ],
+                },
+            },
+        )
+    )
+    payload = parse_json(response)
+
+    assert response.status == 200
+    assert payload["success"] is True
+    worker.task_queue.get_task.assert_awaited_once_with("task-1")
+    worker.task_queue.update_task.assert_awaited_once()
+    worker.job_store.update_job_progress.assert_not_awaited()
+
+
+@pytest.mark.asyncio
 async def test_handle_result_ingestion_returns_success_when_notifier_fails():
     worker = BLTWorker(SimpleNamespace(DB=None))
     worker.vuln_db = SimpleNamespace(store_vulnerability=AsyncMock())

@@ -424,7 +424,9 @@ class BLTWorker:
             })
 
             # Update job progress
-            await self.job_store.update_job_progress(task['job_id'])
+            job_id = task.get('job_id') if isinstance(task, dict) else None
+            if job_id:
+                await self.job_store.update_job_progress(job_id)
 
             # Automatically contact stakeholders if vulnerabilities found
             contact_result = None
