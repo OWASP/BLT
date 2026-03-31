@@ -80,7 +80,8 @@ document.addEventListener("click", (e) => {
 
 /* ── HTML escaping ── */
 function escHtml(str) {
-  return str
+  const s = String(str);
+  return s
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
@@ -89,7 +90,8 @@ function escHtml(str) {
 }
 
 function capitalise(s) {
-  return s ? s[0].toUpperCase() + s.slice(1) : "";
+  const v = String(s || "");
+  return v ? v[0].toUpperCase() + v.slice(1) : "";
 }
 
 /* ── Copy to clipboard ── */
