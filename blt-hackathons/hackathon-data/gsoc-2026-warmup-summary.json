@@ -1,6 +1,6 @@
 {
-  "participantCount": 185,
-  "totalPRs": 2586,
+  "participantCount": 186,
+  "totalPRs": 2589,
   "mergedPRs": 1620,
   "totalIssues": 771,
   "repositories": 54,
@@ -25,6 +25,36 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "fix: add version constraints, fix avatar path and nested code block",
+      "url": "https://github.com/OWASP-BLT/BLT-University/pull/44",
+      "username": "hhyags",
+      "avatar": "https://avatars.githubusercontent.com/u/128780393?v=4",
+      "state": "open",
+      "created_at": "2026-03-31T08:22:49Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-University"
+    },
+    {
+      "title": "fix: correct localhost URL, email addresses and course proposal link",
+      "url": "https://github.com/OWASP-BLT/BLT-University/pull/43",
+      "username": "hhyags",
+      "avatar": "https://avatars.githubusercontent.com/u/128780393?v=4",
+      "state": "open",
+      "created_at": "2026-03-31T08:16:15Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-University"
+    },
+    {
+      "title": "docs: improve contributing guidelines - checklist, LICENSE link, grammar fixesdocs: improve contributing guidelines - add checklist items, fix LICE\u2026",
+      "url": "https://github.com/OWASP-BLT/BLT-University/pull/42",
+      "username": "hhyags",
+      "avatar": "https://avatars.githubusercontent.com/u/128780393?v=4",
+      "state": "open",
+      "created_at": "2026-03-31T08:05:52Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-University"
+    },
     {
       "title": "chore: remove unused legacy image asset (bch gold block.png)",
       "url": "https://github.com/OWASP-BLT/BLT/pull/6103",
@@ -94,36 +124,6 @@
       "created_at": "2026-03-29T14:43:52Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT-Sammich"
-    },
-    {
-      "title": "Revamp Footer Experience",
-      "url": "https://github.com/OWASP-BLT/BLT-Pages/pull/100",
-      "username": "ananya-09",
-      "avatar": "https://avatars.githubusercontent.com/u/175581593?v=4",
-      "state": "closed",
-      "created_at": "2026-03-29T14:17:07Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-Pages"
-    },
-    {
-      "title": "fix: harden /ghissue logic and modernize architecture documentation",
-      "url": "https://github.com/OWASP-BLT/BLT-Sammich/pull/73",
-      "username": "Makeepan-dev",
-      "avatar": "https://avatars.githubusercontent.com/u/183580740?v=4",
-      "state": "open",
-      "created_at": "2026-03-29T14:05:20Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-Sammich"
-    },
-    {
-      "title": "Feat/owasp 2025 json update",
-      "url": "https://github.com/OWASP-BLT/BLT-Preflight/pull/23",
-      "username": "gargi-birwatkar",
-      "avatar": "https://avatars.githubusercontent.com/u/147988352?v=4",
-      "state": "closed",
-      "created_at": "2026-03-29T12:58:03Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-Preflight"
     }
   ]
 }
