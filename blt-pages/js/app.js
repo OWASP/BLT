@@ -192,7 +192,7 @@ function getLeaderboardData() {
 let currentLeaderboardData = null;
 
 async function loadLeaderboardFromAPI(container, statBugs, statDomains, statReporters, limit = 0) {
-  // Fetch all pages so open/closed counts are accurate when there are >100 issues
+
   const issues = [];
   let page = 1;
   while (true) {
