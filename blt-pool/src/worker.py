@@ -1453,6 +1453,7 @@ _DEFAULT_REFERRAL_BLOCKLIST = {
     'owasp-blt', 'openai', 'anthropic', 'claude',
     'google', 'microsoft', 'github', 'github-actions[bot]',
     'dependabot[bot]', 'coderabbitai[bot]', 'owasp-blt[bot]',
+    'copilot[bot]', 'sentry[bot]',
 }
 
 async def _github_user(login: str, token: str) -> dict | None:
