@@ -1,7 +1,7 @@
 {
   "participantCount": 187,
-  "totalPRs": 2579,
-  "mergedPRs": 1615,
+  "totalPRs": 2580,
+  "mergedPRs": 1616,
   "totalIssues": 771,
   "repositories": 54,
   "topContributors": [
@@ -26,13 +26,23 @@
   ],
   "recentPRs": [
     {
+      "title": "Fix: broken Details link for PUBG Mobile card",
+      "url": "https://github.com/OWASP-BLT/BLT-Panini/pull/20",
+      "username": "Riya-Jain-here",
+      "avatar": "https://avatars.githubusercontent.com/u/120404043?v=4",
+      "state": "open",
+      "created_at": "2026-04-01T17:08:11Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-Panini"
+    },
+    {
       "title": "Fix: Org-wide Contributor Detection for Referral System",
       "url": "https://github.com/OWASP-BLT/BLT-Pool/pull/107",
       "username": "Jayant2908",
       "avatar": "https://avatars.githubusercontent.com/u/200989760?v=4",
-      "state": "open",
+      "state": "closed",
       "created_at": "2026-04-01T14:11:31Z",
-      "merged_at": null,
+      "merged_at": "2026-04-01T17:01:19Z",
       "repository": "OWASP-BLT/BLT-Pool"
     },
     {
@@ -112,16 +122,6 @@
       "avatar": "https://avatars.githubusercontent.com/u/95867819?v=4",
       "state": "open",
       "created_at": "2026-03-31T09:57:09Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-SafeCloak"
-    },
-    {
-      "title": "fix(security): add SRI integrity hashes for CDN assets and noreferrer on external links",
-      "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/49",
-      "username": "ANIRUDH-SJ",
-      "avatar": "https://avatars.githubusercontent.com/u/95867819?v=4",
-      "state": "open",
-      "created_at": "2026-03-31T09:41:29Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT-SafeCloak"
     }
