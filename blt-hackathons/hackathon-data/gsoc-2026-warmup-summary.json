@@ -1,6 +1,6 @@
 {
-  "participantCount": 186,
-  "totalPRs": 2575,
+  "participantCount": 187,
+  "totalPRs": 2576,
   "mergedPRs": 1612,
   "totalIssues": 768,
   "repositories": 54,
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": " hidden bugs exposed via search and direct lookup endpoints",
+      "url": "https://github.com/OWASP-BLT/BLT-API/pull/85",
+      "username": "BharathC0",
+      "avatar": "https://avatars.githubusercontent.com/u/211328860?v=4",
+      "state": "open",
+      "created_at": "2026-04-01T08:44:50Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-API"
+    },
     {
       "title": " paginate GitHub API calls to get correct open/closed bug counts",
       "url": "https://github.com/OWASP-BLT/BLT-Pages/pull/102",
@@ -112,16 +122,6 @@
       "avatar": "https://avatars.githubusercontent.com/u/95867819?v=4",
       "state": "open",
       "created_at": "2026-03-31T09:32:06Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-SafeCloak"
-    },
-    {
-      "title": "fix(video): use Font Awesome icon classes for mic/camera toggle",
-      "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/47",
-      "username": "ANIRUDH-SJ",
-      "avatar": "https://avatars.githubusercontent.com/u/95867819?v=4",
-      "state": "open",
-      "created_at": "2026-03-31T09:17:55Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT-SafeCloak"
     }
