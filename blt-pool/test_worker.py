@@ -6025,5 +6025,231 @@ class TestTimeAgo(unittest.TestCase):
         self.assertIn("year", result)
 
 
+# ---------------------------------------------------------------------------
+# Contributor Referral System tests
+# ---------------------------------------------------------------------------
+
+class TestExtractMentions(unittest.TestCase):
+    """_extract_mentions — parse @usernames from comment bodies."""
+
+    def test_single_mention(self):
+        result = _worker._extract_mentions("Hey @alice, can you look at this?")
+        self.assertEqual(result, ["alice"])
+
+    def test_multiple_mentions(self):
+        result = _worker._extract_mentions("@alice and @bob should review.")
+        self.assertEqual(result, ["alice", "bob"])
+
+    def test_deduplicates(self):
+        result = _worker._extract_mentions("@alice is great, thanks @alice!")
+        self.assertEqual(result, ["alice"])
+
+    def test_lowercases(self):
+        result = _worker._extract_mentions("Hello @Alice")
+        self.assertEqual(result, ["alice"])
+
+    def test_empty_body(self):
+        result = _worker._extract_mentions("")
+        self.assertEqual(result, [])
+
+    def test_no_mentions(self):
+        result = _worker._extract_mentions("No mentions here.")
+        self.assertEqual(result, [])
+
+    def test_ignores_email_addresses(self):
+        # email addresses should not be captured as mentions
+        result = _worker._extract_mentions("Contact user@example.com for help.")
+        self.assertEqual(result, [])
+
+    def test_valid_username_with_hyphens(self):
+        result = _worker._extract_mentions("Thanks @jane-doe for the PR!")
+        self.assertEqual(result, ["jane-doe"])
+
+
+class TestFormatReferralRankComment(unittest.TestCase):
+    """_format_referral_rank_comment — builds congratulation comment body."""
+
+    def _leaderboard(self):
+        return [
+            ("alice", 5),
+            ("bob", 4),
+            ("carol", 3),
+            ("dave", 2),
+            ("eve", 1),
+        ]
+
+    def test_contains_referral_marker(self):
+        body = _worker._format_referral_rank_comment("alice", 5, self._leaderboard())
+        self.assertIn(_worker.REFERRAL_MARKER, body)
+
+    def test_contains_total_and_rank(self):
+        body = _worker._format_referral_rank_comment("alice", 5, self._leaderboard())
+        self.assertIn("Total referrals: **5**", body)
+        self.assertIn("Current rank: **#1**", body)
+
+    def test_rank_3_shows_neighbours(self):
+        body = _worker._format_referral_rank_comment("carol", 3, self._leaderboard())
+        self.assertIn("carol", body.lower())
+        # 2 above carol (alice, bob) and 2 below (dave, eve) should all appear
+        self.assertIn("@alice", body)
+        self.assertIn("@bob", body)
+        self.assertIn("@dave", body)
+        self.assertIn("@eve", body)
+
+    def test_rank_1_shows_top_rows_only(self):
+        body = _worker._format_referral_rank_comment("alice", 5, self._leaderboard())
+        # alice is first; only rows 1-3 expected in the window
+        self.assertIn("@alice", body)
+        self.assertIn("@bob", body)
+        self.assertIn("@carol", body)
+
+    def test_you_marker_on_referrer_row(self):
+        body = _worker._format_referral_rank_comment("carol", 3, self._leaderboard())
+        self.assertIn("← you", body)
+
+    def test_empty_leaderboard(self):
+        # Should not crash with an empty leaderboard
+        body = _worker._format_referral_rank_comment("alice", 1, [("alice", 1)])
+        self.assertIn("alice", body)
+
+
+class TestProcessReferralMentions(unittest.TestCase):
+    """_process_referral_mentions — integration of mention detection + D1 + comment."""
+
+    def _make_db(self):
+        """Return a simple in-memory dict-based D1 mock."""
+        db = MagicMock()
+        db._store = []
+        return db
+
+    def _make_env(self, db):
+        env = MagicMock()
+        env.LEADERBOARD_DB = db
+        return env
+
+    def test_posts_comment_when_new_contributor_mentioned(self):
+        """When a mentioned user has no prior activity, a referral comment is posted."""
+        comments = []
+        db = self._make_db()
+        env = self._make_env(db)
+
+        async def mock_activity(owner, repo, username, token):
+            return False  # no prior activity
+
+        async def mock_record_referral(db_, org, referrer, referred, repo, number, mk):
+            return True  # successfully recorded
+
+        async def mock_count(db_, org, referrer, mk):
+            return 1
+
+        async def mock_leaderboard(db_, org, mk):
+            return [(referrer.lower(), 1)]
+
+        referrer = "alice"
+
+        async def _inner():
+            with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
+                with patch.object(_worker, "_user_has_prior_activity", new=mock_activity):
+                    with patch.object(_worker, "_d1_record_referral", new=mock_record_referral):
+                        with patch.object(_worker, "_d1_get_referral_count", new=mock_count):
+                            with patch.object(_worker, "_d1_get_referral_leaderboard", new=mock_leaderboard):
+                                with patch.object(_worker, "create_comment",
+                                                  new=AsyncMock(side_effect=lambda o, r, n, b, t: comments.append(b))):
+                                    await _worker._process_referral_mentions(
+                                        "OWASP-BLT", "BLT", 42, referrer,
+                                        "Welcome @newbie to the project!", "tok", env
+                                    )
+
+        _run(_inner())
+        self.assertEqual(len(comments), 1)
+        self.assertIn(":tada:", comments[0])
+        self.assertIn("alice", comments[0])
+
+    def test_no_comment_when_user_has_prior_activity(self):
+        """When the mentioned user is already active, no referral comment is posted."""
+        comments = []
+        db = self._make_db()
+        env = self._make_env(db)
+
+        async def mock_activity(owner, repo, username, token):
+            return True  # already has activity
+
+        async def _inner():
+            with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
+                with patch.object(_worker, "_user_has_prior_activity", new=mock_activity):
+                    with patch.object(_worker, "create_comment",
+                                      new=AsyncMock(side_effect=lambda o, r, n, b, t: comments.append(b))):
+                        await _worker._process_referral_mentions(
+                            "OWASP-BLT", "BLT", 42, "alice",
+                            "Hey @existinguser, check this out!", "tok", env
+                        )
+
+        _run(_inner())
+        self.assertEqual(comments, [])
+
+    def test_no_comment_when_no_env(self):
+        """Without an env, _process_referral_mentions should be a no-op."""
+        comments = []
+        called = []
+
+        async def _inner():
+            with patch.object(_worker, "create_comment",
+                              new=AsyncMock(side_effect=lambda o, r, n, b, t: comments.append(b))):
+                with patch.object(_worker, "_user_has_prior_activity",
+                                  new=AsyncMock(side_effect=lambda *a: called.append(True) or False)):
+                    await _worker._process_referral_mentions(
+                        "OWASP-BLT", "BLT", 42, "alice",
+                        "Hello @newbie!", "tok", None  # env=None
+                    )
+
+        _run(_inner())
+        self.assertEqual(comments, [])
+        self.assertEqual(called, [])
+
+    def test_self_mention_is_ignored(self):
+        """A commenter mentioning themselves should not count as a referral."""
+        comments = []
+        db = self._make_db()
+        env = self._make_env(db)
+        activity_checks = []
+
+        async def mock_activity(owner, repo, username, token):
+            activity_checks.append(username)
+            return False
+
+        async def _inner():
+            with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
+                with patch.object(_worker, "_user_has_prior_activity", new=mock_activity):
+                    with patch.object(_worker, "create_comment",
+                                      new=AsyncMock(side_effect=lambda o, r, n, b, t: comments.append(b))):
+                        await _worker._process_referral_mentions(
+                            "OWASP-BLT", "BLT", 42, "alice",
+                            "I am @alice and I rock!", "tok", env
+                        )
+
+        _run(_inner())
+        # alice mentioning herself should not trigger activity check
+        self.assertNotIn("alice", activity_checks)
+        self.assertEqual(comments, [])
+
+    def test_no_comment_when_no_mentions(self):
+        """A comment with no @-mentions should not trigger any referral logic."""
+        comments = []
+        db = self._make_db()
+        env = self._make_env(db)
+
+        async def _inner():
+            with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
+                with patch.object(_worker, "create_comment",
+                                  new=AsyncMock(side_effect=lambda o, r, n, b, t: comments.append(b))):
+                    await _worker._process_referral_mentions(
+                        "OWASP-BLT", "BLT", 42, "alice",
+                        "No mentions in this comment.", "tok", env
+                    )
+
+        _run(_inner())
+        self.assertEqual(comments, [])
+
+
 if __name__ == "__main__":
     unittest.main()

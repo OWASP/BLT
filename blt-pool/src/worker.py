@@ -701,6 +701,21 @@ async def _ensure_leaderboard_schema(db) -> None:
         )
         """,
     )
+    await _d1_run(
+        db,
+        """
+        CREATE TABLE IF NOT EXISTS contributor_referrals (
+            org TEXT NOT NULL,
+            month_key TEXT NOT NULL,
+            referrer_login TEXT NOT NULL,
+            referred_login TEXT NOT NULL,
+            repo TEXT NOT NULL,
+            issue_number INTEGER NOT NULL,
+            created_at INTEGER NOT NULL,
+            PRIMARY KEY (org, month_key, referrer_login, referred_login)
+        )
+        """,
+    )
     await _populate_mentors_table(db)
 
 
@@ -1249,6 +1264,222 @@ async def _track_review_in_d1(payload: dict, env) -> None:
         (org, repo, pr_number, mk, reviewer_login, int(time.time())),
     )
     await _d1_inc_monthly(db, org, mk, reviewer_login, "reviews", 1)
+
+
+# ---------------------------------------------------------------------------
+# Contributor Referral System
+# ---------------------------------------------------------------------------
+
+#: Regex that matches GitHub @mention tokens in comment bodies.
+_MENTION_RE = re.compile(r"(?<![`\w])@([A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?)")
+
+#: HTML comment marker used to identify referral congratulation comments so
+#: they are never duplicated on the same issue.
+REFERRAL_MARKER = "<!-- blt-referral-bot -->"
+
+
+def _extract_mentions(body: str) -> list:
+    """Return a deduplicated list of @-mentioned GitHub usernames from *body*.
+
+    Usernames inside inline code spans (backtick-quoted) are excluded because
+    the regex lookbehind for a backtick character filters them out.
+    """
+    return list(dict.fromkeys(m.lower() for m in _MENTION_RE.findall(body)))
+
+
+async def _user_has_prior_activity(owner: str, repo: str, username: str, token: str) -> bool:
+    """Return True if *username* has any prior activity in *owner*/*repo*.
+
+    Checks (in order, stopping early):
+    1. Issues or PRs authored by the user (search API).
+    2. Comments on issues/PRs authored by the user (search API).
+    """
+    # Search issues/PRs created by the user in this repo.
+    search_path = (
+        f"/search/issues?q=repo:{owner}/{repo}+author:{username}&per_page=1"
+    )
+    resp = await github_api("GET", search_path, token)
+    if resp.status == 200:
+        data = json.loads(await resp.text())
+        if int(data.get("total_count") or 0) > 0:
+            return True
+
+    # Search comments created by the user in this repo.
+    comment_path = (
+        f"/search/issues?q=repo:{owner}/{repo}+commenter:{username}&per_page=1"
+    )
+    resp2 = await github_api("GET", comment_path, token)
+    if resp2.status == 200:
+        data2 = json.loads(await resp2.text())
+        if int(data2.get("total_count") or 0) > 0:
+            return True
+
+    return False
+
+
+async def _d1_record_referral(
+    db, org: str, referrer: str, referred: str, repo: str, issue_number: int, month_key: str
+) -> bool:
+    """Insert a referral record.  Returns True when inserted, False when it already existed."""
+    now = int(time.time())
+    try:
+        existing = await _d1_first(
+            db,
+            """
+            SELECT 1 FROM contributor_referrals
+            WHERE org = ? AND month_key = ? AND referrer_login = ? AND referred_login = ?
+            """,
+            (org, month_key, referrer.lower(), referred.lower()),
+        )
+        if existing:
+            return False
+        await _d1_run(
+            db,
+            """
+            INSERT INTO contributor_referrals
+                (org, month_key, referrer_login, referred_login, repo, issue_number, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (org, month_key, referrer.lower(), referred.lower(), repo, issue_number, now),
+        )
+        return True
+    except Exception as exc:
+        console.error(f"[Referral] Failed to record referral {referrer}->{referred}: {exc}")
+        return False
+
+
+async def _d1_get_referral_count(db, org: str, referrer: str, month_key: str) -> int:
+    """Return the total number of successful referrals made by *referrer* in *month_key*."""
+    try:
+        row = await _d1_first(
+            db,
+            """
+            SELECT COUNT(*) AS cnt FROM contributor_referrals
+            WHERE org = ? AND month_key = ? AND referrer_login = ?
+            """,
+            (org, month_key, referrer.lower()),
+        )
+        return int((row or {}).get("cnt") or 0)
+    except Exception as exc:
+        console.error(f"[Referral] Failed to get referral count for {referrer}: {exc}")
+        return 0
+
+
+async def _d1_get_referral_leaderboard(db, org: str, month_key: str) -> list:
+    """Return list of (login, count) tuples sorted descending by referral count."""
+    try:
+        rows = await _d1_all(
+            db,
+            """
+            SELECT referrer_login, COUNT(*) AS cnt
+            FROM contributor_referrals
+            WHERE org = ? AND month_key = ?
+            GROUP BY referrer_login
+            ORDER BY cnt DESC
+            """,
+            (org, month_key),
+        )
+        return [(r["referrer_login"], int(r["cnt"])) for r in rows]
+    except Exception as exc:
+        console.error(f"[Referral] Failed to get leaderboard for {org}/{month_key}: {exc}")
+        return []
+
+
+def _format_referral_rank_comment(
+    referrer: str,
+    total: int,
+    leaderboard: list,
+) -> str:
+    """Build the congratulation comment body for a successful referral.
+
+    Shows the referrer's rank along with 2 users above and 2 below in the
+    monthly leaderboard.
+    """
+    # Find rank (1-based, lower is better). Falls back to one beyond last place
+    # when the referrer is not yet present in the leaderboard.
+    rank = next(
+        (i + 1 for i, (login, _) in enumerate(leaderboard) if login == referrer.lower()),
+        len(leaderboard) + 1,
+    )
+
+    lines = [
+        REFERRAL_MARKER,
+        f":tada: @{referrer} You referred a new contributor! "
+        f"Total referrals: **{total}**. Current rank: **#{rank}**.",
+        "",
+        "**Monthly Referral Leaderboard (your neighborhood)**",
+        "",
+        "| Rank | Contributor | Referrals |",
+        "| ---: | :---------- | --------: |",
+    ]
+
+    # Show 2 above + self + 2 below (clamped to list bounds).
+    start = max(0, rank - 3)
+    end = min(len(leaderboard), rank + 2)
+    for i in range(start, end):
+        entry_login, entry_count = leaderboard[i]
+        pos = i + 1
+        marker = " ← you" if entry_login == referrer.lower() else ""
+        lines.append(f"| {pos} | @{entry_login}{marker} | {entry_count} |")
+
+    return "\n".join(lines)
+
+
+async def _process_referral_mentions(
+    owner: str,
+    repo: str,
+    issue_number: int,
+    commenter: str,
+    body: str,
+    token: str,
+    env,
+) -> None:
+    """Detect @-mentions of new contributors and record referrals in D1.
+
+    For each mentioned username that has no prior activity in the repo, a
+    referral is recorded and the commenter receives a congratulation comment.
+    """
+    db = _d1_binding(env)
+    if not db:
+        return
+
+    mentions = _extract_mentions(body)
+    if not mentions:
+        return
+
+    # Strip the commenter themselves from mentions.
+    mentions = [m for m in mentions if m != commenter.lower()]
+    if not mentions:
+        return
+
+    await _ensure_leaderboard_schema(db)
+    mk = _month_key()
+    new_referrals = []
+
+    for mentioned in mentions:
+        try:
+            already_active = await _user_has_prior_activity(owner, repo, mentioned, token)
+            if already_active:
+                continue
+            recorded = await _d1_record_referral(
+                db, owner, commenter, mentioned, repo, issue_number, mk
+            )
+            if recorded:
+                new_referrals.append(mentioned)
+        except Exception as exc:
+            console.error(f"[Referral] Error processing mention @{mentioned}: {exc}")
+
+    if not new_referrals:
+        return
+
+    # Post one congrats comment covering all newly referred users.
+    try:
+        total = await _d1_get_referral_count(db, owner, commenter, mk)
+        leaderboard = await _d1_get_referral_leaderboard(db, owner, mk)
+        comment_body = _format_referral_rank_comment(commenter, total, leaderboard)
+        await create_comment(owner, repo, issue_number, comment_body, token)
+    except Exception as exc:
+        console.error(f"[Referral] Failed to post congratulation comment: {exc}")
 
 
 async def _calculate_leaderboard_stats_from_d1(owner: str, env) -> Optional[dict]:
@@ -3475,6 +3706,13 @@ async def handle_issue_comment(payload: dict, token: str, env=None) -> None:
     login = comment["user"]["login"]
     issue_number = issue["number"]
     comment_id = comment.get("id")
+
+    # Process @-mentions for the contributor referral system.
+    if env is not None:
+        try:
+            await _process_referral_mentions(owner, repo, issue_number, login, body, token, env)
+        except Exception as exc:
+            console.error(f"[Referral] Failed to process mentions: {exc}")
 
     # Add eyes reaction immediately to acknowledge command receipt
     if comment_id and command:
