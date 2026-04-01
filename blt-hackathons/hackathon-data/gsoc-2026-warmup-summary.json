@@ -1,6 +1,6 @@
 {
   "participantCount": 187,
-  "totalPRs": 2578,
+  "totalPRs": 2579,
   "mergedPRs": 1615,
   "totalIssues": 771,
   "repositories": 54,
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "Fix: Org-wide Contributor Detection for Referral System",
+      "url": "https://github.com/OWASP-BLT/BLT-Pool/pull/107",
+      "username": "Jayant2908",
+      "avatar": "https://avatars.githubusercontent.com/u/200989760?v=4",
+      "state": "open",
+      "created_at": "2026-04-01T14:11:31Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-Pool"
+    },
     {
       "title": " hidden bugs exposed via search and direct lookup endpoints",
       "url": "https://github.com/OWASP-BLT/BLT-API/pull/85",
@@ -112,16 +122,6 @@
       "avatar": "https://avatars.githubusercontent.com/u/95867819?v=4",
       "state": "open",
       "created_at": "2026-03-31T09:41:29Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-SafeCloak"
-    },
-    {
-      "title": "refactor: consolidate   duplicate escHtml into shared   ui.js",
-      "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/48",
-      "username": "ANIRUDH-SJ",
-      "avatar": "https://avatars.githubusercontent.com/u/95867819?v=4",
-      "state": "open",
-      "created_at": "2026-03-31T09:32:06Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT-SafeCloak"
     }
