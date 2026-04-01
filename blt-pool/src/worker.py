@@ -1528,7 +1528,7 @@ async def _process_referral_mentions(
         except Exception:
             # Fail-closed for referrals: if we cannot verify, do not award
             # Log for operability and incident triage.
-            console.error(f"[Referral] Failed to verify mention @{m}: {exc}")
+            pass
     mentions = list(dict.fromkeys(filtered))
     if not mentions:
         return
