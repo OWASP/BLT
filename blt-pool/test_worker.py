@@ -6390,10 +6390,15 @@ class TestProcessReferralMentions(unittest.TestCase):
         async def _inner():
             with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
                 with patch.object(_worker, "_is_valid_human_referree", new=AsyncMock(return_value=False)):
-                    await _worker._process_referral_mentions(
-                        "OWASP-BLT", "BLT", 42, "alice",
-                        "Hey @google check this", "tok", env
-                    )
+                    with patch.object(
+                        _worker,
+                        "create_comment",
+                        new=AsyncMock(side_effect=lambda *a: comments.append(a)),
+                    ):
+                        await _worker._process_referral_mentions(
+                            "OWASP-BLT", "BLT", 42, "alice",
+                            "Hey `@google` check this", "tok", env
+                        )
 
         _run(_inner())
         self.assertEqual(comments, [])

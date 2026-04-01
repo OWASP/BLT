@@ -1511,6 +1511,14 @@ async def _process_referral_mentions(
     if not mentions:
         return
 
+    # Cap the number of mentions inspected per comment to avoid rate-limit bursts.
+    if len(mentions) > MAX_REFERRAL_MENTIONS_PER_COMMENT:
+        console.log(
+            f"[Referral] Capping mentions from {len(mentions)} to "
+            f"{MAX_REFERRAL_MENTIONS_PER_COMMENT} in {owner}/{repo}#{issue_number}"
+        )
+        mentions = mentions[:MAX_REFERRAL_MENTIONS_PER_COMMENT]
+
     # Keep only valid human users (not orgs/teams/bots/AI/service accounts)
     filtered = []
     for m in mentions:
