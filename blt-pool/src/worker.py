@@ -3262,6 +3262,14 @@ async def _assign_mentor_to_issue(
         {"labels": [MENTOR_ASSIGNED_LABEL]},
     )
 
+    # Step 5: Add the mentor as a GitHub assignee.
+    await github_api(
+        "POST",
+        f"/repos/{owner}/{repo}/issues/{issue_number}/assignees",
+        token,
+        {"assignees": [mentor_username]},
+    )
+
     specialties_info = ""
     if mentor.get("specialties"):
         specialties_info = f" (specialties: {', '.join(mentor['specialties'])})"
