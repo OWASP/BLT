@@ -1445,6 +1445,44 @@ def _format_referral_rank_comment(
 
     return "\n".join(lines)
 
+_user_cache: dict[str, dict] = {}
+_MAX = 1000  # optional cap
+
+# --- Referral human gate -------------------------------------------------
+_DEFAULT_REFERRAL_BLOCKLIST = {
+    'owasp-blt', 'openai', 'anthropic', 'claude',
+    'google', 'microsoft', 'github', 'github-actions[bot]',
+    'dependabot[bot]', 'coderabbitai[bot]', 'owasp-blt[bot]',
+}
+
+async def _github_user(login: str, token: str) -> dict | None:
+    key = (login or "").strip().lower()
+    if not key:
+        return None
+
+    if key in _user_cache:
+        return _user_cache[key]
+
+    resp = await github_api("GET", f"/users/{key}", token)
+    if resp.status != 200:
+        return None  # don't cache failures to avoid sticky errors
+
+    data = json.loads(await resp.text() or "{}")
+    if len(_user_cache) >= _MAX:  # simple FIFO eviction
+        _user_cache.pop(next(iter(_user_cache)))
+    _user_cache[key] = data
+    return data
+
+async def _is_valid_human_referree(login: str, token: str,
+                                   block: set[str] = _DEFAULT_REFERRAL_BLOCKLIST) -> bool:
+    """Return True only for real human GitHub users (not orgs/teams/bots/service accts)."""
+    l = (login or "").strip().lower()
+    if not l or '/' in l:            # team mention like `@org/team`
+        return False
+    if l.endswith('[bot]') or l in block:
+        return False
+    user = await _github_user(l, token)
+    return bool(user) and (user.get('type', '').lower() == 'user')
 
 async def _process_referral_mentions(
     owner: str,
@@ -1470,6 +1508,19 @@ async def _process_referral_mentions(
 
     # Strip the commenter themselves from mentions.
     mentions = [m for m in mentions if m != commenter.lower()]
+    if not mentions:
+        return
+
+    # Keep only valid human users (not orgs/teams/bots/AI/service accounts)
+    filtered = []
+    for m in mentions:
+        try:
+            if await _is_valid_human_referree(m, token):
+                filtered.append(m)
+        except Exception:
+            # Fail-closed for referrals: if we cannot verify, do not award
+            pass
+    mentions = list(dict.fromkeys(filtered))
     if not mentions:
         return
 
@@ -3719,7 +3770,8 @@ async def _check_stale_mentor_assignments(owner: str, repo: str, token: str) -> 
 async def handle_issue_comment(payload: dict, token: str, env=None) -> None:
     comment = payload["comment"]
     issue = payload["issue"]
-    if not _is_human(comment["user"]):
+    # Require a human AND not a bot account (covers [bot] suffix, service users)
+    if (not _is_human(comment["user"])) or _is_bot(comment["user"]):
         return
 
     # Persist comments to D1 for leaderboard scoring.
