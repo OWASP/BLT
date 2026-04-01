@@ -1273,16 +1273,21 @@ async def _track_review_in_d1(payload: dict, env) -> None:
 #: Regex that matches GitHub @mention tokens in comment bodies.
 _MENTION_RE = re.compile(r"(?<![`\w])@([A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?)")
 
-#: HTML comment marker used to identify referral congratulation comments so
-#: they are never duplicated on the same issue.
+#: HTML comment marker attached to referral congratulation comments so they
+#: can be programmatically identified (for example by tooling or future code).
 REFERRAL_MARKER = "<!-- blt-referral-bot -->"
+
+#: Maximum number of @-mentions inspected for referrals in a single comment.
+#: Caps the number of GitHub search API calls triggered per comment.
+MAX_REFERRAL_MENTIONS_PER_COMMENT = 5
 
 
 def _extract_mentions(body: str) -> list:
     """Return a deduplicated list of @-mentioned GitHub usernames from *body*.
 
-    Usernames inside inline code spans (backtick-quoted) are excluded because
-    the regex lookbehind for a backtick character filters them out.
+    Mentions immediately preceded by a backtick or word character are excluded
+    by the regex lookbehind, but this does not robustly skip all usernames
+    that appear inside inline or fenced code spans.
     """
     return list(dict.fromkeys(m.lower() for m in _MENTION_RE.findall(body)))
 
@@ -1293,26 +1298,40 @@ async def _user_has_prior_activity(owner: str, repo: str, username: str, token: 
     Checks (in order, stopping early):
     1. Issues or PRs authored by the user (search API).
     2. Comments on issues/PRs authored by the user (search API).
+
+    Fails closed: a non-200 response (rate limit, permission error, network
+    failure) is treated as "activity present" so that transient API errors
+    never inflate referral counts or trigger spurious congratulation comments.
     """
     # Search issues/PRs created by the user in this repo.
     search_path = (
         f"/search/issues?q=repo:{owner}/{repo}+author:{username}&per_page=1"
     )
     resp = await github_api("GET", search_path, token)
-    if resp.status == 200:
-        data = json.loads(await resp.text())
-        if int(data.get("total_count") or 0) > 0:
-            return True
+    if resp.status != 200:
+        console.error(
+            f"[Referral] Search API returned {resp.status} for {username} in {owner}/{repo}; "
+            "treating as active to fail closed"
+        )
+        return True
+    data = json.loads(await resp.text())
+    if int(data.get("total_count") or 0) > 0:
+        return True
 
     # Search comments created by the user in this repo.
     comment_path = (
         f"/search/issues?q=repo:{owner}/{repo}+commenter:{username}&per_page=1"
     )
     resp2 = await github_api("GET", comment_path, token)
-    if resp2.status == 200:
-        data2 = json.loads(await resp2.text())
-        if int(data2.get("total_count") or 0) > 0:
-            return True
+    if resp2.status != 200:
+        console.error(
+            f"[Referral] Comment-search API returned {resp2.status} for {username} in {owner}/{repo}; "
+            "treating as active to fail closed"
+        )
+        return True
+    data2 = json.loads(await resp2.text())
+    if int(data2.get("total_count") or 0) > 0:
+        return True
 
     return False
 
@@ -1323,26 +1342,28 @@ async def _d1_record_referral(
     """Insert a referral record.  Returns True when inserted, False when it already existed."""
     now = int(time.time())
     try:
-        existing = await _d1_first(
-            db,
-            """
-            SELECT 1 FROM contributor_referrals
-            WHERE org = ? AND month_key = ? AND referrer_login = ? AND referred_login = ?
-            """,
-            (org, month_key, referrer.lower(), referred.lower()),
-        )
-        if existing:
-            return False
-        await _d1_run(
+        # Use a single INSERT with ON CONFLICT DO NOTHING for atomic idempotency,
+        # avoiding a SELECT→INSERT race under concurrent webhook deliveries.
+        result = await _d1_run(
             db,
             """
             INSERT INTO contributor_referrals
                 (org, month_key, referrer_login, referred_login, repo, issue_number, created_at)
             VALUES (?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT (org, month_key, referrer_login, referred_login) DO NOTHING
             """,
             (org, month_key, referrer.lower(), referred.lower(), repo, issue_number, now),
         )
-        return True
+        # Determine whether a row was actually inserted from the reported change count.
+        changes = 0
+        if isinstance(result, dict):
+            meta = result.get("meta") or {}
+            changes = int(meta.get("changes") or 0)
+        else:
+            meta = getattr(result, "meta", None)
+            if meta is not None:
+                changes = int(getattr(meta, "changes", 0) or 0)
+        return changes > 0
     except Exception as exc:
         console.error(f"[Referral] Failed to record referral {referrer}->{referred}: {exc}")
         return False
@@ -1375,7 +1396,7 @@ async def _d1_get_referral_leaderboard(db, org: str, month_key: str) -> list:
             FROM contributor_referrals
             WHERE org = ? AND month_key = ?
             GROUP BY referrer_login
-            ORDER BY cnt DESC
+            ORDER BY cnt DESC, referrer_login ASC
             """,
             (org, month_key),
         )
@@ -1451,6 +1472,14 @@ async def _process_referral_mentions(
     mentions = [m for m in mentions if m != commenter.lower()]
     if not mentions:
         return
+
+    # Cap the number of mentions processed per comment to avoid rate-limit bursts.
+    if len(mentions) > MAX_REFERRAL_MENTIONS_PER_COMMENT:
+        console.log(
+            f"[Referral] Capping mentions from {len(mentions)} to "
+            f"{MAX_REFERRAL_MENTIONS_PER_COMMENT} in {owner}/{repo}#{issue_number}"
+        )
+        mentions = mentions[:MAX_REFERRAL_MENTIONS_PER_COMMENT]
 
     await _ensure_leaderboard_schema(db)
     mk = _month_key()
@@ -5593,6 +5622,10 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
           <ol class="space-y-0">
             {lb_items}
           </ol>
+          <div class="mt-4 rounded-lg bg-gray-50 border border-[#E5E5E5] px-3 py-2">
+            <p class="text-xs font-semibold text-gray-600 mb-1"><i class="fa-solid fa-circle-info mr-1 text-[#E10101]" aria-hidden="true"></i>How to refer a friend</p>
+            <p class="text-xs text-gray-500">Mention them in any issue or PR comment, e.g. <code class="rounded bg-gray-200 px-1 py-0.5 text-xs font-mono text-gray-700">Hey @username, check this out!</code> — if they have no prior activity, it counts as a referral.</p>
+          </div>
         </section>'''
     else:
         leaderboard_html = '''
@@ -5603,7 +5636,11 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
             </div>
             <h3 class="text-lg font-bold text-[#111827]">Referral Leaderboard</h3>
           </div>
-          <p class="text-sm text-gray-500">No referrals yet — be the first to invite a mentor!</p>
+          <p class="mb-4 text-sm text-gray-500">No referrals yet — be the first to invite a friend!</p>
+          <div class="rounded-lg bg-gray-50 border border-[#E5E5E5] px-3 py-2">
+            <p class="text-xs font-semibold text-gray-600 mb-1"><i class="fa-solid fa-circle-info mr-1 text-[#E10101]" aria-hidden="true"></i>How to refer a friend</p>
+            <p class="text-xs text-gray-500">Mention them in any issue or PR comment, e.g. <code class="rounded bg-gray-200 px-1 py-0.5 text-xs font-mono text-gray-700">Hey @username, check this out!</code> — if they have no prior activity, it counts as a referral.</p>
+          </div>
         </section>'''
 
     return f'''<!DOCTYPE html>
