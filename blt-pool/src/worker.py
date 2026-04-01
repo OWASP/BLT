@@ -1292,8 +1292,8 @@ def _extract_mentions(body: str) -> list:
     return list(dict.fromkeys(m.lower() for m in _MENTION_RE.findall(body)))
 
 
-async def _user_has_prior_activity(owner: str, repo: str, username: str, token: str) -> bool:
-    """Return True if *username* has any prior activity in *owner*/*repo*.
+async def _user_has_prior_activity(owner: str, username: str, token: str) -> bool:
+    """Return True if *username* has any prior across the entire *owner* org.
 
     Checks (in order, stopping early):
     1. Issues or PRs authored by the user (search API).
@@ -1303,14 +1303,16 @@ async def _user_has_prior_activity(owner: str, repo: str, username: str, token: 
     failure) is treated as "activity present" so that transient API errors
     never inflate referral counts or trigger spurious congratulation comments.
     """
-    # Search issues/PRs created by the user in this repo.
-    search_path = (
-        f"/search/issues?q=repo:{owner}/{repo}+author:{username}&per_page=1"
-    )
-    resp = await github_api("GET", search_path, token)
+    
+    base = f"org:{owner}+fork:false"
+    u = username  # GitHub treats logins case-insensitively
+
+    # 1) Authored issues/PRs anywhere in the org.
+    authored_q = f"/search/issues?q={base}+author:{u}&per_page=1"
+    resp = await github_api("GET", authored_q, token)
     if resp.status != 200:
         console.error(
-            f"[Referral] Search API returned {resp.status} for {username} in {owner}/{repo}; "
+            f"[Referral] Search API returned {resp.status} for {u} in {base}; "
             "treating as active to fail closed"
         )
         return True
@@ -1318,14 +1320,12 @@ async def _user_has_prior_activity(owner: str, repo: str, username: str, token: 
     if int(data.get("total_count") or 0) > 0:
         return True
 
-    # Search comments created by the user in this repo.
-    comment_path = (
-        f"/search/issues?q=repo:{owner}/{repo}+commenter:{username}&per_page=1"
-    )
-    resp2 = await github_api("GET", comment_path, token)
+    # 2) Comments authored anywhere in the org.
+    comments_q = f"/search/issues?q={base}+commenter:{u}&per_page=1"
+    resp2 = await github_api("GET", comments_q, token)
     if resp2.status != 200:
         console.error(
-            f"[Referral] Comment-search API returned {resp2.status} for {username} in {owner}/{repo}; "
+            f"[Referral] Comment-search API returned {resp2.status} for {u} in {base}; "
             "treating as active to fail closed"
         )
         return True
@@ -1487,7 +1487,7 @@ async def _process_referral_mentions(
 
     for mentioned in mentions:
         try:
-            already_active = await _user_has_prior_activity(owner, repo, mentioned, token)
+            already_active = await _user_has_prior_activity(owner, mentioned, token)
             if already_active:
                 continue
             recorded = await _d1_record_referral(
