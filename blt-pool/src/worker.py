@@ -3262,13 +3262,21 @@ async def _assign_mentor_to_issue(
         {"labels": [MENTOR_ASSIGNED_LABEL]},
     )
 
-    # Step 5: Add the mentor as a GitHub assignee.
-    await github_api(
+    # Step 5: Add the mentor as a GitHub assignee (best-effort).
+    assignee_resp = await github_api(
         "POST",
         f"/repos/{owner}/{repo}/issues/{issue_number}/assignees",
         token,
         {"assignees": [mentor_username]},
     )
+    assignee_status = getattr(assignee_resp, "status", None)
+    if assignee_status not in (200, 201):
+        console.error(
+            f"[MentorPool] Failed to add @{mentor_username} as GitHub assignee "
+            f"for {owner}/{repo}#{issue_number} (status={assignee_status}). "
+            "Mentor lacks repo collaborator access or the token is insufficient. "
+            "Label and comment were still applied."
+        )
 
     specialties_info = ""
     if mentor.get("specialties"):
