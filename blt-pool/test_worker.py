@@ -446,6 +446,94 @@ class TestHandleUnassign(unittest.TestCase):
         self.assertTrue(any("not currently assigned" in c for c in comments))
 
 
+class TestGetLastAssignRequester(unittest.TestCase):
+    """_get_last_assign_requester — finds the last human /assign commenter"""
+
+    def _run(self, api_pages, *, expected):
+        """Helper: pages is a list of comment lists returned page by page.
+        Each entry in api_pages is the list of comment dicts for that page.
+        """
+        page_index = [0]
+
+        async def _fake_api(method, path, token, body=None):
+            idx = page_index[0]
+            page_index[0] += 1
+            mock = MagicMock()
+            mock.status = 200
+            if idx < len(api_pages):
+                mock.text = AsyncMock(return_value=json.dumps(api_pages[idx]))
+            else:
+                mock.text = AsyncMock(return_value=json.dumps([]))
+            return mock
+
+        async def _inner():
+            with patch.object(_worker, "github_api", new=AsyncMock(side_effect=_fake_api)):
+                return await _worker._get_last_assign_requester("owner", "repo", 1, "tok")
+
+        result = _run(_inner())
+        self.assertEqual(result, expected)
+
+    def test_returns_login_of_last_assign_commenter(self):
+        comments = [
+            {"user": {"login": "bob", "type": "User"}, "body": "/assign"},
+        ]
+        self._run([comments], expected="bob")
+
+    def test_returns_first_match_on_descending_page(self):
+        # Comments are returned newest-first; the first /assign found is the latest one.
+        comments = [
+            {"user": {"login": "charlie", "type": "User"}, "body": "/assign"},
+            {"user": {"login": "alice", "type": "User"}, "body": "/assign"},
+        ]
+        self._run([comments], expected="charlie")
+
+    def test_skips_bot_comments(self):
+        comments = [
+            {"user": {"login": "some-bot[bot]", "type": "Bot"}, "body": "/assign"},
+            {"user": {"login": "alice", "type": "User"}, "body": "/assign"},
+        ]
+        self._run([comments], expected="alice")
+
+    def test_skips_non_assign_comments(self):
+        comments = [
+            {"user": {"login": "alice", "type": "User"}, "body": "Just a comment"},
+            {"user": {"login": "bob", "type": "User"}, "body": "/assign"},
+        ]
+        self._run([comments], expected="bob")
+
+    def test_returns_none_when_no_assign_comment(self):
+        comments = [
+            {"user": {"login": "alice", "type": "User"}, "body": "Just a comment"},
+        ]
+        self._run([comments], expected=None)
+
+    def test_returns_none_for_empty_comment_list(self):
+        self._run([[]], expected=None)
+
+    def test_paginates_until_assign_found(self):
+        # First page has 100 comments with no /assign; second page has one.
+        page1 = [
+            {"user": {"login": f"user{i}", "type": "User"}, "body": "hello"}
+            for i in range(100)
+        ]
+        page2 = [
+            {"user": {"login": "lateuser", "type": "User"}, "body": "/assign"},
+        ]
+        self._run([page1, page2], expected="lateuser")
+
+    def test_returns_none_on_api_error(self):
+        async def _fail_api(*a, **kw):
+            mock = MagicMock()
+            mock.status = 500
+            return mock
+
+        async def _inner():
+            with patch.object(_worker, "github_api", new=AsyncMock(side_effect=_fail_api)):
+                return await _worker._get_last_assign_requester("owner", "repo", 1, "tok")
+
+        self.assertIsNone(_run(_inner()))
+
+
 class TestHandleApprove(unittest.TestCase):
     """_approve — triage reviewer approves an issue for assignment"""
 

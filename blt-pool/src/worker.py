@@ -3600,22 +3600,31 @@ async def _get_last_assign_requester(
 ) -> Optional[str]:
     """Return the login of the last human who commented ``/assign`` on the issue, or None."""
     try:
-        resp = await github_api(
-            "GET",
-            f"/repos/{owner}/{repo}/issues/{num}/comments?per_page=100&direction=desc",
-            token,
-        )
-        if resp.status != 200:
-            return None
-        comments = json.loads(await resp.text())
-        for c in comments:
-            user = c.get("user") or {}
-            body = (c.get("body") or "").strip()
-            login = user.get("login", "")
-            if not login or not _is_human(user):
-                continue
-            if _extract_command(body) == ASSIGN_COMMAND:
-                return login
+        page = 1
+        per_page = 100
+        while True:
+            resp = await github_api(
+                "GET",
+                f"/repos/{owner}/{repo}/issues/{num}/comments"
+                f"?per_page={per_page}&page={page}&sort=created&direction=desc",
+                token,
+            )
+            if resp.status != 200:
+                return None
+            comments = json.loads(await resp.text())
+            if not comments:
+                break
+            for c in comments:
+                user = c.get("user") or {}
+                body = (c.get("body") or "").strip()
+                login = user.get("login", "")
+                if not login or not _is_human(user):
+                    continue
+                if _extract_command(body) == ASSIGN_COMMAND:
+                    return login
+            if len(comments) < per_page:
+                break
+            page += 1
     except Exception:
         pass
     return None
@@ -3655,7 +3664,7 @@ async def _approve(
     opener = issue.get("user", {}).get("login", "")
     last_requester = await _get_last_assign_requester(owner, repo, num, token)
     assignee = last_requester or opener
-    opener_assigned = False
+    assignee_was_assigned = False
     assignment_note = ""
     if assignee:
         assignees = issue.get("assignees") or []
@@ -3666,7 +3675,7 @@ async def _approve(
         }
         # If the chosen assignee is already assigned, we don't need to call the API again.
         if assignee in assignee_logins:
-            opener_assigned = True
+            assignee_was_assigned = True
         # If we've reached the maximum number of assignees, do not add another.
         elif len(assignee_logins) >= MAX_ASSIGNEES:
             assignment_note = (
@@ -3686,8 +3695,8 @@ async def _approve(
                 token,
                 {"assignees": [assignee]},
             )
-            opener_assigned = True
-    if assignee and opener_assigned:
+            assignee_was_assigned = True
+    if assignee and assignee_was_assigned:
         assignment_text = f"@{assignee} You have been assigned — good luck! 🚀\n\n"
     elif assignment_note:
         assignment_text = assignment_note + "\n\n"
