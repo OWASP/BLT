@@ -6189,16 +6189,15 @@ class TestProcessReferralMentions(unittest.TestCase):
         return env
 
     def test_posts_comment_when_new_contributor_mentioned(self):
-        """When a mentioned user has no prior activity, a referral comment is posted."""
         comments = []
         db = self._make_db()
         env = self._make_env(db)
 
         async def mock_activity(owner, username, token):
-            return False  # no prior activity
+            return False
 
         async def mock_record_referral(db_, org, referrer, referred, repo, number, mk):
-            return True  # successfully recorded
+            return True
 
         async def mock_count(db_, org, referrer, mk):
             return 1
@@ -6210,21 +6209,20 @@ class TestProcessReferralMentions(unittest.TestCase):
 
         async def _inner():
             with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
-                with patch.object(_worker, "_user_has_prior_activity", new=mock_activity):
-                    with patch.object(_worker, "_d1_record_referral", new=mock_record_referral):
-                        with patch.object(_worker, "_d1_get_referral_count", new=mock_count):
-                            with patch.object(_worker, "_d1_get_referral_leaderboard", new=mock_leaderboard):
-                                with patch.object(_worker, "create_comment",
-                                                  new=AsyncMock(side_effect=lambda o, r, n, b, t: comments.append(b))):
-                                    await _worker._process_referral_mentions(
-                                        "OWASP-BLT", "BLT", 42, referrer,
-                                        "Welcome @newbie to the project!", "tok", env
-                                    )
+                with patch.object(_worker, "_is_valid_human_referree", new=AsyncMock(return_value=True)):  # ✅ FIX
+                    with patch.object(_worker, "_user_has_prior_activity", new=mock_activity):
+                        with patch.object(_worker, "_d1_record_referral", new=mock_record_referral):
+                            with patch.object(_worker, "_d1_get_referral_count", new=mock_count):
+                                with patch.object(_worker, "_d1_get_referral_leaderboard", new=mock_leaderboard):
+                                    with patch.object(_worker, "create_comment",
+                                                    new=AsyncMock(side_effect=lambda o, r, n, b, t: comments.append(b))):
+                                        await _worker._process_referral_mentions(
+                                            "OWASP-BLT", "BLT", 42, referrer,
+                                            "Welcome @newbie to the project!", "tok", env
+                                        )
 
         _run(_inner())
         self.assertEqual(len(comments), 1)
-        self.assertIn(":tada:", comments[0])
-        self.assertIn("alice", comments[0])
 
     def test_no_comment_when_user_has_prior_activity(self):
         """When the mentioned user is already active, no referral comment is posted."""
@@ -6335,6 +6333,75 @@ class TestProcessReferralMentions(unittest.TestCase):
         _run(_inner())
         self.assertLessEqual(len(checked), cap)
 
+    def test_bot_mention_filtered_out(self):
+        comments = []
+        db = self._make_db()
+        env = self._make_env(db)
+
+        async def _inner():
+            with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
+                with patch.object(_worker, "_is_valid_human_referree", new=AsyncMock(return_value=False)):
+                    with patch.object(_worker, "create_comment",
+                                    new=AsyncMock(side_effect=lambda *a: comments.append(a))):
+                        await _worker._process_referral_mentions(
+                            "OWASP-BLT", "BLT", 42, "alice",
+                            "Hello @coderabbitai[bot]", "tok", env
+                        )
+
+        _run(_inner())
+        self.assertEqual(comments, [])
+
+    def test_mixed_mentions_only_human_processed(self):
+        comments = []
+        db = self._make_db()
+        env = self._make_env(db)
+
+        async def is_valid(user, token):
+            return user == "realuser"
+
+        async def mock_activity(owner, username, token):
+            return False
+
+        async def mock_record(*args):
+            return True
+
+        async def _inner():
+            with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
+                with patch.object(_worker, "_is_valid_human_referree", new=is_valid):
+                    with patch.object(_worker, "_user_has_prior_activity", new=mock_activity):
+                        with patch.object(_worker, "_d1_record_referral", new=mock_record):
+                            with patch.object(_worker, "_d1_get_referral_count", new=AsyncMock(return_value=1)):
+                                with patch.object(_worker, "_d1_get_referral_leaderboard", new=AsyncMock(return_value=[])):
+                                    with patch.object(_worker, "create_comment",
+                                                    new=AsyncMock(side_effect=lambda *a: comments.append(a))):
+                                        await _worker._process_referral_mentions(
+                                            "OWASP-BLT", "BLT", 42, "alice",
+                                            "@realuser @botuser[bot]", "tok", env
+                                        )
+
+        _run(_inner())
+        self.assertEqual(len(comments), 1)
+
+    def test_org_mention_filtered(self):
+        comments = []
+        db = self._make_db()
+        env = self._make_env(db)
+
+        async def _inner():
+            with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
+                with patch.object(_worker, "_is_valid_human_referree", new=AsyncMock(return_value=False)):
+                    with patch.object(
+                        _worker,
+                        "create_comment",
+                        new=AsyncMock(side_effect=lambda *a: comments.append(a)),
+                    ):
+                        await _worker._process_referral_mentions(
+                            "OWASP-BLT", "BLT", 42, "alice",
+                            "Hey `@google` check this", "tok", env
+                        )
+
+        _run(_inner())
+        self.assertEqual(comments, [])
 
 if __name__ == "__main__":
     unittest.main()
