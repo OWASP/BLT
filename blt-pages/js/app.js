@@ -192,10 +192,29 @@ function getLeaderboardData() {
 let currentLeaderboardData = null;
 
 async function loadLeaderboardFromAPI(container, statBugs, statDomains, statReporters, limit = 0) {
-  const url = `https://api.github.com/repos/${BLT_CONFIG.REPO_OWNER}/${BLT_CONFIG.REPO_NAME}/issues?state=all&labels=bug&per_page=100`;
-  const res = await fetch(url, { headers: { Accept: "application/vnd.github+json" } });
-  if (!res.ok) throw new Error(`GitHub API error ${res.status}`);
-  const issues = await res.json();
+  const perPage = 100;
+  const MAX_PAGES = 20;
+  const issues = [];
+  let page = 1;
+  while (page <= MAX_PAGES) {
+    const url = `https://api.github.com/repos/${BLT_CONFIG.REPO_OWNER}/${BLT_CONFIG.REPO_NAME}/issues?state=all&labels=bug&per_page=${perPage}&page=${page}`;
+    const res = await fetch(url, { headers: { Accept: "application/vnd.github+json" } });
+    if (res.status === 403) {
+      console.warn("GitHub API rate limit reached; counts may reflect partial data.");
+      break;
+    }
+    if (!res.ok) throw new Error(`GitHub API error ${res.status}`);
+    const pageIssues = await res.json();
+    if (!Array.isArray(pageIssues) || pageIssues.length === 0) break;
+    issues.push(...pageIssues);
+    const linkHeader = res.headers.get("Link") || "";
+    const hasNextPage = linkHeader.includes('rel="next"');
+    if (!hasNextPage || pageIssues.length < perPage) break;
+    page++;
+  }
+  if (page > MAX_PAGES) {
+    console.warn(`Pagination capped at ${MAX_PAGES} pages; counts may be incomplete.`);
+  }
 
   // Build counts map
   const counts = {};
