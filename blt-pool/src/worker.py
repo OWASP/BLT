@@ -1476,12 +1476,12 @@ async def _github_user(login: str, token: str) -> dict | None:
 async def _is_valid_human_referree(login: str, token: str,
                                    block: set[str] = _DEFAULT_REFERRAL_BLOCKLIST) -> bool:
     """Return True only for real human GitHub users (not orgs/teams/bots/service accts)."""
-    l = (login or "").strip().lower()
-    if not l or '/' in l:            # team mention like `@org/team`
+    login_lower = (login or "").strip().lower()
+    if not login_lower or '/' in login_lower:            # team mention like `@org/team`
         return False
-    if l.endswith('[bot]') or l in block:
+    if login_lower.endswith('[bot]') or login_lower in block:
         return False
-    user = await _github_user(l, token)
+    user = await _github_user(login_lower, token)
     return bool(user) and (user.get('type', '').lower() == 'user')
 
 async def _process_referral_mentions(
@@ -1527,7 +1527,8 @@ async def _process_referral_mentions(
                 filtered.append(m)
         except Exception:
             # Fail-closed for referrals: if we cannot verify, do not award
-            pass
+            # Log for operability and incident triage.
+            console.error(f"[Referral] Failed to verify mention @{m}: {exc}")
     mentions = list(dict.fromkeys(filtered))
     if not mentions:
         return
