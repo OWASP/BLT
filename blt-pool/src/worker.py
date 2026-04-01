@@ -1292,7 +1292,7 @@ def _extract_mentions(body: str) -> list:
     return list(dict.fromkeys(m.lower() for m in _MENTION_RE.findall(body)))
 
 
-async def _user_has_prior_activity(owner: str, repo: str, username: str, token: str) -> bool:
+async def _user_has_prior_activity(owner: str, username: str, token: str) -> bool:
     """Return True if *username* has any prior across the entire *owner* org.
 
     Checks (in order, stopping early):
@@ -1304,7 +1304,7 @@ async def _user_has_prior_activity(owner: str, repo: str, username: str, token: 
     never inflate referral counts or trigger spurious congratulation comments.
     """
     # NOTE: 'repo' is intentionally unused; we want org-wide scope.
-    base = f"org:{owner}"
+    base = f"org:{owner}+fork:false"
     u = username  # GitHub treats logins case-insensitively
 
     # 1) Authored issues/PRs anywhere in the org.
@@ -1316,7 +1316,7 @@ async def _user_has_prior_activity(owner: str, repo: str, username: str, token: 
             "treating as active to fail closed"
         )
         return True
-    data = json.loads(await resp.text() or "{}")
+    data = json.loads(await resp.text())
     if int(data.get("total_count") or 0) > 0:
         return True
 
@@ -1329,7 +1329,7 @@ async def _user_has_prior_activity(owner: str, repo: str, username: str, token: 
             "treating as active to fail closed"
         )
         return True
-    data2 = json.loads(await resp2.text() or "{}")
+    data2 = json.loads(await resp2.text())
     if int(data2.get("total_count") or 0) > 0:
         return True
 
@@ -1487,7 +1487,7 @@ async def _process_referral_mentions(
 
     for mentioned in mentions:
         try:
-            already_active = await _user_has_prior_activity(owner, repo, mentioned, token)
+            already_active = await _user_has_prior_activity(owner, mentioned, token)
             if already_active:
                 continue
             recorded = await _d1_record_referral(
