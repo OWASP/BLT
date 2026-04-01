@@ -192,10 +192,19 @@ function getLeaderboardData() {
 let currentLeaderboardData = null;
 
 async function loadLeaderboardFromAPI(container, statBugs, statDomains, statReporters, limit = 0) {
-  const url = `https://api.github.com/repos/${BLT_CONFIG.REPO_OWNER}/${BLT_CONFIG.REPO_NAME}/issues?state=all&labels=bug&per_page=100`;
-  const res = await fetch(url, { headers: { Accept: "application/vnd.github+json" } });
-  if (!res.ok) throw new Error(`GitHub API error ${res.status}`);
-  const issues = await res.json();
+  // Fetch all pages so open/closed counts are accurate when there are >100 issues
+  const issues = [];
+  let page = 1;
+  while (true) {
+    const url = `https://api.github.com/repos/${BLT_CONFIG.REPO_OWNER}/${BLT_CONFIG.REPO_NAME}/issues?state=all&labels=bug&per_page=100&page=${page}`;
+    const res = await fetch(url, { headers: { Accept: "application/vnd.github+json" } });
+    if (!res.ok) throw new Error(`GitHub API error ${res.status}`);
+    const page_issues = await res.json();
+    if (!Array.isArray(page_issues) || page_issues.length === 0) break;
+    issues.push(...page_issues);
+    if (page_issues.length < 100) break;
+    page++;
+  }
 
   // Build counts map
   const counts = {};
