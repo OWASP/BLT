@@ -1,8 +1,8 @@
 {
-  "participantCount": 189,
-  "totalPRs": 2597,
-  "mergedPRs": 1620,
-  "totalIssues": 773,
+  "participantCount": 185,
+  "totalPRs": 2573,
+  "mergedPRs": 1612,
+  "totalIssues": 768,
   "repositories": 54,
   "topContributors": [
     {
@@ -26,14 +26,14 @@
   ],
   "recentPRs": [
     {
-      "title": " missing resource cases, input validation, URL encoding, and 28 unit tests",
-      "url": "https://github.com/OWASP-BLT/BLT-MCP/pull/30",
-      "username": "BharathC0",
-      "avatar": "https://avatars.githubusercontent.com/u/211328860?v=4",
+      "title": "feat: add Bitcoin Runes balance display to homepage (#33)",
+      "url": "https://github.com/OWASP-BLT/BLT-Rewards/pull/49",
+      "username": "hopkdj",
+      "avatar": "https://avatars.githubusercontent.com/u/272520789?v=4",
       "state": "open",
-      "created_at": "2026-04-01T02:49:28Z",
+      "created_at": "2026-04-01T03:57:13Z",
       "merged_at": null,
-      "repository": "OWASP-BLT/BLT-MCP"
+      "repository": "OWASP-BLT/BLT-Rewards"
     },
     {
       "title": "fix: capture exception details in error responses (#46)",
