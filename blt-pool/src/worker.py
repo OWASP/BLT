@@ -1303,7 +1303,7 @@ async def _user_has_prior_activity(owner: str, username: str, token: str) -> boo
     failure) is treated as "activity present" so that transient API errors
     never inflate referral counts or trigger spurious congratulation comments.
     """
-    # NOTE: 'repo' is intentionally unused; we want org-wide scope.
+    
     base = f"org:{owner}+fork:false"
     u = username  # GitHub treats logins case-insensitively
 

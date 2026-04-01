@@ -6081,7 +6081,7 @@ class TestUserHasPriorActivity(unittest.TestCase):
             with patch.object(_worker, "github_api", new=AsyncMock(
                 return_value=self._make_resp(200, '{"total_count": 0, "items": []}')
             )):
-                return await _worker._user_has_prior_activity("acme", "repo", "newbie", "tok")
+                return await _worker._user_has_prior_activity("acme", "newbie", "tok")
         self.assertFalse(_run(_inner()))
 
     def test_returns_true_when_author_has_issues(self):
@@ -6090,7 +6090,7 @@ class TestUserHasPriorActivity(unittest.TestCase):
             with patch.object(_worker, "github_api", new=AsyncMock(
                 return_value=self._make_resp(200, '{"total_count": 1, "items": [{}]}')
             )):
-                return await _worker._user_has_prior_activity("acme", "repo", "veteran", "tok")
+                return await _worker._user_has_prior_activity("acme", "veteran", "tok")
         self.assertTrue(_run(_inner()))
 
     def test_fails_closed_on_403_first_call(self):
@@ -6099,7 +6099,7 @@ class TestUserHasPriorActivity(unittest.TestCase):
 
         async def _inner():
             with patch.object(_worker, "github_api", new=AsyncMock(side_effect=responses)):
-                return await _worker._user_has_prior_activity("acme", "repo", "somebody", "tok")
+                return await _worker._user_has_prior_activity("acme", "somebody", "tok")
         self.assertTrue(_run(_inner()))
 
     def test_fails_closed_on_403_second_call(self):
@@ -6111,7 +6111,7 @@ class TestUserHasPriorActivity(unittest.TestCase):
 
         async def _inner():
             with patch.object(_worker, "github_api", new=AsyncMock(side_effect=responses)):
-                return await _worker._user_has_prior_activity("acme", "repo", "somebody", "tok")
+                return await _worker._user_has_prior_activity("acme", "somebody", "tok")
         self.assertTrue(_run(_inner()))
 
     def test_fails_closed_on_429_rate_limit(self):
@@ -6120,7 +6120,7 @@ class TestUserHasPriorActivity(unittest.TestCase):
 
         async def _inner():
             with patch.object(_worker, "github_api", new=AsyncMock(side_effect=responses)):
-                return await _worker._user_has_prior_activity("acme", "repo", "somebody", "tok")
+                return await _worker._user_has_prior_activity("acme", "somebody", "tok")
         self.assertTrue(_run(_inner()))
 
 
@@ -6194,7 +6194,7 @@ class TestProcessReferralMentions(unittest.TestCase):
         db = self._make_db()
         env = self._make_env(db)
 
-        async def mock_activity(owner, repo, username, token):
+        async def mock_activity(owner, username, token):
             return False  # no prior activity
 
         async def mock_record_referral(db_, org, referrer, referred, repo, number, mk):
