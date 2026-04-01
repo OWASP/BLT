@@ -1,9 +1,9 @@
 {
-  "updated_at": "2026-03-27T12:41:26.804299Z",
-  "commit_sha": "c23492195d61212379c8e00d6b41b0bc8bd495bc",
+  "updated_at": "2026-04-01T09:54:47.074949Z",
+  "commit_sha": "656bb76ca32e9e82400ce33191c65564fe0e8cde",
   "total_bugs": 18,
-  "open_bugs": 5,
-  "closed_bugs": 13,
+  "open_bugs": 4,
+  "closed_bugs": 14,
   "total_domains": 5,
   "total_orgs": 0,
   "leaderboard": [
@@ -227,33 +227,6 @@
       }
     },
     {
-      "number": 87,
-      "title": "[BUG] open / closed count is not showing correct open counts",
-      "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/87",
-      "created_at": "2026-03-11T08:09:43Z",
-      "comment_count": 11,
-      "user": {
-        "login": "DonnieBLT",
-        "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
-        "profile_url": "https://github.com/DonnieBLT"
-      },
-      "image_url": "https://github.com/user-attachments/assets/5730ec94-d7c8-4c49-ab5c-f8bdf9493486",
-      "domain": "github.com",
-      "reactions": {
-        "eyes": 1
-      },
-      "latest_comment": {
-        "body": "<img width=\"1290\" height=\"1068\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/11620dda-f40e-4808-91e2-3373897d6517\" /> Also count is inaccurate on the agents page in this case I had one completed task ",
-        "created_at": "2026-03-24T12:54:01Z",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/87#issuecomment-4118022589",
-        "user": {
-          "login": "DonnieBLT",
-          "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
-          "profile_url": "https://github.com/DonnieBLT"
-        }
-      }
-    },
-    {
       "number": 81,
       "title": "[BUG] whole div \"Chapters\", should be clickable and remove test data",
       "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/81",
@@ -273,6 +246,34 @@
         "body": "@tiggachris This issue already has the maximum number of assignees (1). Please work on a different issue.",
         "created_at": "2026-03-11T06:13:06Z",
         "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/81#issuecomment-4036768843",
+        "user": {
+          "login": "owasp-blt[bot]",
+          "avatar_url": "https://avatars.githubusercontent.com/in/1159228?v=4",
+          "profile_url": "https://github.com/apps/owasp-blt"
+        }
+      }
+    },
+    {
+      "number": 17,
+      "title": "[BUG] video bugs are not showing up",
+      "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/17",
+      "created_at": "2026-03-02T20:50:49Z",
+      "comment_count": 4,
+      "user": {
+        "login": "DonnieBLT",
+        "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
+        "profile_url": "https://github.com/DonnieBLT"
+      },
+      "image_url": "https://github.com/user-attachments/assets/6c188f2b-5aab-4aad-94f3-d7c540518d45",
+      "domain": "owaspblt.org",
+      "reactions": {
+        "+1": 1,
+        "eyes": 1
+      },
+      "latest_comment": {
+        "body": "@Sub-allllllllllll This issue already has the maximum number of assignees (1). Please work on a different issue.",
+        "created_at": "2026-03-11T13:44:40Z",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/17#issuecomment-4039326491",
         "user": {
           "login": "owasp-blt[bot]",
           "avatar_url": "https://avatars.githubusercontent.com/in/1159228?v=4",
