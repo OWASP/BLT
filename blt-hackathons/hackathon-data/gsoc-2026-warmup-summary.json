@@ -1,6 +1,6 @@
 {
   "participantCount": 188,
-  "totalPRs": 2580,
+  "totalPRs": 2582,
   "mergedPRs": 1616,
   "totalIssues": 772,
   "repositories": 54,
@@ -25,6 +25,26 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "Harden referral system: filter bots/orgs and enforce human-only mentions",
+      "url": "https://github.com/OWASP-BLT/BLT-Pool/pull/110",
+      "username": "Jayant2908",
+      "avatar": "https://avatars.githubusercontent.com/u/200989760?v=4",
+      "state": "open",
+      "created_at": "2026-04-01T19:09:34Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-Pool"
+    },
+    {
+      "title": "fix: add mentor as GitHub assignee in _assign_mentor_to_issue",
+      "url": "https://github.com/OWASP-BLT/BLT-Pool/pull/109",
+      "username": "SatishKumar620",
+      "avatar": "https://avatars.githubusercontent.com/u/168626374?v=4",
+      "state": "open",
+      "created_at": "2026-04-01T18:29:43Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-Pool"
+    },
     {
       "title": "Fix: broken Details link for PUBG Mobile card",
       "url": "https://github.com/OWASP-BLT/BLT-Panini/pull/20",
@@ -104,26 +124,6 @@
       "created_at": "2026-03-31T12:46:55Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT-Rewards"
-    },
-    {
-      "title": "fix: correct license field and setup script typo in package.json",
-      "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/51",
-      "username": "ANIRUDH-SJ",
-      "avatar": "https://avatars.githubusercontent.com/u/95867819?v=4",
-      "state": "open",
-      "created_at": "2026-03-31T11:11:20Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-SafeCloak"
-    },
-    {
-      "title": "Fix/toast warning style",
-      "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/50",
-      "username": "ANIRUDH-SJ",
-      "avatar": "https://avatars.githubusercontent.com/u/95867819?v=4",
-      "state": "open",
-      "created_at": "2026-03-31T09:57:09Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-SafeCloak"
     }
   ]
 }
