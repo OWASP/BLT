@@ -2273,13 +2273,14 @@ class TestTrackingOperations(unittest.TestCase):
         mock_db = MagicMock()
         mock_stmt = AsyncMock()
         mock_stmt.bind = MagicMock(return_value=mock_stmt)
-        mock_stmt.run = AsyncMock(return_value={"success": True})
+        mock_stmt.run = AsyncMock(return_value={"meta": {"changes": 1}})
         mock_db.prepare.return_value = mock_stmt
         
         env = types.SimpleNamespace(LEADERBOARD_DB=mock_db)
         payload = {
             "repository": {"owner": {"login": "OWASP-BLT"}},
             "comment": {
+                "id": 98765,
                 "user": {"login": "alice", "type": "User"},
                 "body": "Great work!",
                 "created_at": "2024-03-05T12:00:00Z",
