@@ -1324,7 +1324,7 @@ async def _user_has_prior_activity(owner: str, username: str, token: str) -> boo
 
     # 2) Comments authored anywhere in the org.
     comments_q = f"/search/issues?q={base}+commenter:{u}&per_page=1&sort=updated&order=desc"
-    for _ in range(2):  # retry here as well
+    for attempt in range(2):  # retry here as well
         resp2 = await github_api("GET", comments_q, token)
         if resp2.status != 200:
             console.error(
