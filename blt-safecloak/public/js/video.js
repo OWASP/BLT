@@ -12,8 +12,8 @@ const VideoChat = (() => {
   let audioContext = null;
   let analyser = null;
   let voiceAnimFrame = null;
-  let micMuted = false;
-  let camOff = false;
+  let micMuted = true;
+  let camOff = true;
   let consentGiven = false;
   let screenSharing = false;
   let initialMediaPreferences = { mic: true, cam: true };
@@ -608,96 +608,122 @@ const VideoChat = (() => {
     broadcastProfile(true);
   }
 
+  let mediaPromise = null;
+
   async function startLocalMedia() {
-    // 1. Try full video + audio
-    try {
-      localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-      await attachStream(localStream);
-      applyInitialMediaPreferences();
-      return true;
-    } catch (err) {
-      if (
-        err.name === "NotAllowedError" ||
-        err.name === "PermissionDeniedError" ||
-        err.name === "SecurityError"
-      ) {
-        showCameraDenied();
-        return false;
+    if (mediaPromise) return mediaPromise;
+    mediaPromise = (async () => {
+      // 1. Try full video + audio
+      try {
+        localStream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: true,
+        });
+        await attachStream(localStream);
+        applyInitialMediaPreferences();
+        return true;
+      } catch (err) {
+        if (
+          err.name === "NotAllowedError" ||
+          err.name === "PermissionDeniedError" ||
+          err.name === "SecurityError"
+        ) {
+          showCameraDenied();
+          return false;
+        }
+
+        if (err.name === "NotReadableError" || err.name === "TrackStartError") {
+          showToast(
+            "Camera or microphone is already in use by another application. Please close it and reload.",
+            "error"
+          );
+          return false;
+        }
+
+        // For NotFoundError / DevicesNotFoundError try partial fallbacks below.
+        if (err.name !== "NotFoundError" && err.name !== "DevicesNotFoundError") {
+          showToast("Could not access camera/microphone: " + err.message, "error");
+          return false;
+        }
       }
 
-      if (err.name === "NotReadableError" || err.name === "TrackStartError") {
-        showToast(
-          "Camera or microphone is already in use by another application. Please close it and reload.",
-          "error"
-        );
-        return false;
+      // 2. No combined device found — try audio-only
+      try {
+        localStream = await navigator.mediaDevices.getUserMedia({
+          video: false,
+          audio: true,
+        });
+        await attachStream(localStream);
+        applyInitialMediaPreferences();
+        showToast("No camera found — joining with audio only", "warning");
+        return true;
+      } catch (audioErr) {
+        if (
+          audioErr.name === "NotAllowedError" ||
+          audioErr.name === "PermissionDeniedError" ||
+          audioErr.name === "SecurityError"
+        ) {
+          showCameraDenied();
+          return false;
+        }
+        if (
+          audioErr.name !== "NotFoundError" &&
+          audioErr.name !== "DevicesNotFoundError"
+        ) {
+          showToast("Could not access microphone: " + audioErr.message, "error");
+          return false;
+        }
       }
 
-      // For NotFoundError / DevicesNotFoundError try partial fallbacks below.
-      // For any other unexpected error fall through to the generic handler at the end.
-      if (err.name !== "NotFoundError" && err.name !== "DevicesNotFoundError") {
-        showToast("Could not access camera/microphone: " + err.message, "error");
-        return false;
+      // 3. No microphone either — try video-only
+      try {
+        localStream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: false,
+        });
+        await attachStream(localStream);
+        applyInitialMediaPreferences();
+        showToast("No microphone found — joining with video only", "warning");
+        return true;
+      } catch (videoErr) {
+        if (
+          videoErr.name === "NotAllowedError" ||
+          videoErr.name === "PermissionDeniedError" ||
+          videoErr.name === "SecurityError"
+        ) {
+          showCameraDenied();
+          return false;
+        }
+        if (
+          videoErr.name === "NotReadableError" ||
+          videoErr.name === "TrackStartError"
+        ) {
+          showToast(
+            "Camera is already in use by another application. Please close it and reload.",
+            "error"
+          );
+          return false;
+        }
+        if (
+          videoErr.name !== "NotFoundError" &&
+          videoErr.name !== "DevicesNotFoundError"
+        ) {
+          showToast("Could not access camera: " + videoErr.message, "error");
+          return false;
+        }
       }
-    }
 
-    // 2. No combined device found — try audio-only
-    try {
-      localStream = await navigator.mediaDevices.getUserMedia({ video: false, audio: true });
-      await attachStream(localStream);
-      applyInitialMediaPreferences();
-      showToast("No camera found — joining with audio only", "warning");
-      return true;
-    } catch (audioErr) {
-      if (
-        audioErr.name === "NotAllowedError" ||
-        audioErr.name === "PermissionDeniedError" ||
-        audioErr.name === "SecurityError"
-      ) {
-        showCameraDenied();
-        return false;
-      }
-      if (audioErr.name !== "NotFoundError" && audioErr.name !== "DevicesNotFoundError") {
-        showToast("Could not access microphone: " + audioErr.message, "error");
-        return false;
-      }
-    }
+      // 4. No devices at all
+      showToast(
+        "No camera or microphone found. Please connect a device and try reloading the page.",
+        "error"
+      );
+      return false;
+    })();
 
-    // 3. No microphone either — try video-only
-    try {
-      localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-      await attachStream(localStream);
-      applyInitialMediaPreferences();
-      showToast("No microphone found — joining with video only", "warning");
-      return true;
-    } catch (videoErr) {
-      if (
-        videoErr.name === "NotAllowedError" ||
-        videoErr.name === "PermissionDeniedError" ||
-        videoErr.name === "SecurityError"
-      ) {
-        showCameraDenied();
-        return false;
-      }
-      if (videoErr.name === "NotReadableError" || videoErr.name === "TrackStartError") {
-        showToast(
-          "Camera is already in use by another application. Please close it and reload.",
-          "error"
-        );
-        return false;
-      }
-      if (videoErr.name !== "NotFoundError" && videoErr.name !== "DevicesNotFoundError") {
-        showToast("Could not access camera: " + videoErr.message, "error");
-        return false;
-      }
-    }
-
-    // 4. No devices at all
-    showToast(
-      "No camera or microphone found. Please connect a device and try reloading the page.",
-      "error"
-    );
-    return false;
+    const result = await mediaPromise;
+    if (!result) mediaPromise = null; // Allow retry if it failed
+    return result;
   }
 
   function startVoiceMeter(stream) {
@@ -804,7 +830,22 @@ const VideoChat = (() => {
       }
       activeCalls.set(incomingCall.peer, incomingCall);
       updateParticipantsList();
+<<<<<<< HEAD
       incomingCall.answer(voiceStream || localStream);
+=======
+
+      if (!localStream) {
+        micMuted = false;
+        camOff = false;
+        const ok = await startLocalMedia();
+        if (!ok) {
+          incomingCall.close();
+          return;
+        }
+      }
+
+      incomingCall.answer(localStream);
+>>>>>>> 747222e (Delayed Media Permissions)
       handleCallStream(incomingCall);
       ensureDataConn(incomingCall.peer);
       sendPeerListTo(incomingCall.peer);
@@ -903,6 +944,15 @@ const VideoChat = (() => {
         "success"
       );
       setDotStatus("online");
+<<<<<<< HEAD
+=======
+      if ($("call-controls")) {
+        $("call-controls").classList.remove("hidden");
+        $("btn-noise") && $("btn-noise").classList.remove("hidden");
+        $("btn-screen") && $("btn-screen").classList.remove("hidden");
+        $("btn-end") && $("btn-end").classList.remove("hidden");
+      }
+>>>>>>> 747222e (Delayed Media Permissions)
       updateParticipantsList();
       sendProfileTo(remotePeerId, true);
     });
@@ -926,6 +976,14 @@ const VideoChat = (() => {
         state.connected = false;
         updateStatus("Call ended", "muted");
         setDotStatus("offline");
+<<<<<<< HEAD
+=======
+        if ($("call-controls")) {
+          $("btn-noise") && $("btn-noise").classList.add("hidden");
+          $("btn-screen") && $("btn-screen").classList.add("hidden");
+          $("btn-end") && $("btn-end").classList.add("hidden");
+        }
+>>>>>>> 747222e (Delayed Media Permissions)
       } else {
         const count = activeCalls.size;
         updateStatus(
@@ -1013,8 +1071,11 @@ const VideoChat = (() => {
       return;
     }
     if (!localStream) {
-      showToast("No local stream — allow camera/mic first", "error");
-      return;
+      // If joining a call directly, enable both by default
+      micMuted = false;
+      camOff = false;
+      const ok = await startLocalMedia();
+      if (!ok) return;
     }
     if (!remotePeerId) {
       showToast("Enter a Room ID to call", "warning");
@@ -1066,30 +1127,36 @@ const VideoChat = (() => {
   }
 
   /* ── Controls ── */
-  function toggleMic() {
-    if (!localStream) return;
-    if (localStream.getAudioTracks().length === 0) {
-      showToast("No microphone available", "warning");
-      return;
+  async function toggleMic() {
+    micMuted = !micMuted;
+    if (!localStream) {
+      const ok = await startLocalMedia();
+      if (!ok) {
+        micMuted = true; // reset state
+        return;
+      }
+    } else {
+      localStream.getAudioTracks().forEach((t) => (t.enabled = !micMuted));
     }
 
-    micMuted = !micMuted;
-    localStream.getAudioTracks().forEach((track) => (track.enabled = !micMuted));
     syncControlButtons();
     updateLocalTilePresentation();
     broadcastProfile(true);
     showToast(micMuted ? "Microphone muted" : "Microphone unmuted", "info");
   }
 
-  function toggleCamera() {
-    if (!localStream) return;
-    if (localStream.getVideoTracks().length === 0) {
-      showToast("No camera available", "warning");
-      return;
+  async function toggleCamera() {
+    camOff = !camOff;
+    if (!localStream) {
+      const ok = await startLocalMedia();
+      if (!ok) {
+        camOff = true; // reset state
+        return;
+      }
+    } else {
+      localStream.getVideoTracks().forEach((t) => (t.enabled = !camOff));
     }
 
-    camOff = !camOff;
-    localStream.getVideoTracks().forEach((track) => (track.enabled = !camOff));
     syncControlButtons();
     updateLocalTilePresentation();
     broadcastProfile(true);
@@ -1121,6 +1188,11 @@ const VideoChat = (() => {
       videoGrid.querySelectorAll(".video-wrapper:not(:first-child)").forEach((w) => w.remove());
     }
     updateLocalTilePresentation();
+    if ($("call-controls")) {
+      $("btn-noise") && $("btn-noise").classList.add("hidden");
+      $("btn-screen") && $("btn-screen").classList.add("hidden");
+      $("btn-end") && $("btn-end").classList.add("hidden");
+    }
     updateParticipantsList();
     showToast("Call ended", "info");
     // Record consent end
@@ -1638,20 +1710,22 @@ const VideoChat = (() => {
   }
 
   /* ── Init ── */
-  async function init() {
     state.displayName = resolveDisplayName();
     state.displayInitials = makeInitials(state.displayName);
 
     readInitialMediaPreferencesFromUrl();
     updateLocalTilePresentation();
+    
+    // We try to start media immediately if we have preferences from the lobby
     const ok = await startLocalMedia();
     if (ok) {
       updateLocalTilePresentation();
       _applyStoredVoicePreferences();
-      await initPeer();
     }
-    return ok;
-  }
+    
+    // Always init peer regardless of success of startLocalMedia (can join without media)
+    await initPeer();
+    return true;
 
   return {
     init,
