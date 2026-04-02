@@ -1341,9 +1341,6 @@ async def _user_has_prior_activity(owner: str, username: str, token: str) -> boo
     base = f"org:{owner}+fork:false"
     u = username  # GitHub treats logins case-insensitively
 
-    # Allow GitHub Search indexing to catch up before querying.
-    await asyncio.sleep(5)
-
     # 1) Authored issues/PRs anywhere in the org.
     authored_q = f"/search/issues?q={base}+author:{u}&per_page=1"
     resp = await github_api("GET", authored_q, token)
@@ -1583,6 +1580,9 @@ async def _process_referral_mentions(
     mk = _month_key()
     new_referrals = []
 
+    # Allow GitHub Search indexing to catch up before querying.
+    await asyncio.sleep(5)
+    
     for mentioned in mentions:
         try:
             already_active = await _user_has_prior_activity(owner, mentioned, token)
