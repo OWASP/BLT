@@ -1,6 +1,6 @@
 {
-  "participantCount": 189,
-  "totalPRs": 2587,
+  "participantCount": 190,
+  "totalPRs": 2588,
   "mergedPRs": 1618,
   "totalIssues": 800,
   "repositories": 54,
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "Remove unused standalone lecture template (fixes #6134)",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6137",
+      "username": "Aarush289",
+      "avatar": "https://avatars.githubusercontent.com/u/196346534?v=4",
+      "state": "open",
+      "created_at": "2026-04-02T10:00:45Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT"
+    },
     {
       "title": "Fix race condition in contributor activity detection",
       "url": "https://github.com/OWASP-BLT/BLT-Pool/pull/112",
@@ -114,16 +124,6 @@
       "created_at": "2026-04-01T08:44:50Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT-API"
-    },
-    {
-      "title": " paginate GitHub API calls to get correct open/closed bug counts",
-      "url": "https://github.com/OWASP-BLT/BLT-Pages/pull/102",
-      "username": "BharathC0",
-      "avatar": "https://avatars.githubusercontent.com/u/211328860?v=4",
-      "state": "closed",
-      "created_at": "2026-04-01T07:49:25Z",
-      "merged_at": "2026-04-01T09:54:33Z",
-      "repository": "OWASP-BLT/BLT-Pages"
     }
   ]
 }
