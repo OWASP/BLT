@@ -33,7 +33,7 @@ import re
 import time
 from typing import Optional, Tuple
 from urllib.parse import quote, urlparse
-
+import asyncio
 from js import Headers, Response, console, fetch  # Cloudflare Workers JS bindings
 from index_template import GITHUB_PAGE_HTML  # Landing page HTML template
 from services.check_orchestrator import (
@@ -1290,10 +1290,6 @@ def _extract_mentions(body: str) -> list:
     that appear inside inline or fenced code spans.
     """
     return list(dict.fromkeys(m.lower() for m in _MENTION_RE.findall(body)))
-
-
-import asyncio
-import json
 
 async def _user_has_prior_activity(owner: str, username: str, token: str) -> bool:
     """Return True if *username* has any prior across the entire *owner* org.
