@@ -1034,6 +1034,7 @@ async def _d1_inc_monthly(db, org: str, month_key: str, user_login: str, field: 
         console.log(f"[D1] Updated {field} org={org} month={month_key} user={user_login} +{delta}")
     except Exception as e:
         console.error(f"[D1] Failed to update {field} org={org} month={month_key} user={user_login}: {e}")
+        raise
 
 
 async def _track_pr_opened_in_d1(payload: dict, env) -> None:
@@ -1237,7 +1238,16 @@ async def _track_comment_in_d1(payload: dict, env) -> None:
         return
 
     mk = _month_key(_parse_github_timestamp(created_at) if created_at else int(time.time()))
-    await _d1_inc_monthly(db, org, mk, login, "comments", 1)
+    try:
+        await _d1_inc_monthly(db, org, mk, login, "comments", 1)
+    except Exception:
+        # Compensate so a redelivery can retry counting this comment.
+        await _d1_run(
+            db,
+            "DELETE FROM leaderboard_processed_comments WHERE comment_id = ?",
+            (comment_id,),
+        )
+        raise
 
 
 async def _track_review_in_d1(payload: dict, env) -> None:
@@ -1582,7 +1592,7 @@ async def _process_referral_mentions(
 
     # Allow GitHub Search indexing to catch up before querying.
     await asyncio.sleep(5)
-    
+
     for mentioned in mentions:
         try:
             already_active = await _user_has_prior_activity(owner, mentioned, token)
