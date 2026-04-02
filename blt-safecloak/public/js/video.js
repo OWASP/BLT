@@ -1701,12 +1701,12 @@ const VideoChat = (() => {
       const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
       const screenTrack = screenStream.getVideoTracks()[0];
       for (const call of activeCalls.values()) {
-        if (call.peerConnection) {
-          const sender = call.peerConnection
-            .getSenders()
-            .find((s) => s.track && s.track.kind === "video");
-          if (sender) await sender.replaceTrack(screenTrack);
+        // Use cached sender reference (robust against null tracks)
+        let sender = call.sendersByKind ? call.sendersByKind.video : null;
+        if (!sender && call.peerConnection) {
+          sender = call.peerConnection.getSenders().find((s) => s.track && s.track.kind === "video");
         }
+        if (sender) await sender.replaceTrack(screenTrack);
       }
       const localVideo = $("local-video");
       if (localVideo) localVideo.srcObject = screenStream;
