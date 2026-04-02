@@ -446,20 +446,109 @@ class TestHandleUnassign(unittest.TestCase):
         self.assertTrue(any("not currently assigned" in c for c in comments))
 
 
+class TestGetLastAssignRequester(unittest.TestCase):
+    """_get_last_assign_requester — finds the last human /assign commenter"""
+
+    def _run(self, api_pages, *, expected):
+        """Helper: pages is a list of comment lists returned page by page.
+        Each entry in api_pages is the list of comment dicts for that page.
+        """
+        page_index = [0]
+
+        async def _fake_api(method, path, token, body=None):
+            idx = page_index[0]
+            page_index[0] += 1
+            mock = MagicMock()
+            mock.status = 200
+            if idx < len(api_pages):
+                mock.text = AsyncMock(return_value=json.dumps(api_pages[idx]))
+            else:
+                mock.text = AsyncMock(return_value=json.dumps([]))
+            return mock
+
+        async def _inner():
+            with patch.object(_worker, "github_api", new=AsyncMock(side_effect=_fake_api)):
+                return await _worker._get_last_assign_requester("owner", "repo", 1, "tok")
+
+        result = _run(_inner())
+        self.assertEqual(result, expected)
+
+    def test_returns_login_of_last_assign_commenter(self):
+        comments = [
+            {"user": {"login": "bob", "type": "User"}, "body": "/assign"},
+        ]
+        self._run([comments], expected="bob")
+
+    def test_returns_first_match_on_descending_page(self):
+        # Comments are returned newest-first; the first /assign found is the latest one.
+        comments = [
+            {"user": {"login": "charlie", "type": "User"}, "body": "/assign"},
+            {"user": {"login": "alice", "type": "User"}, "body": "/assign"},
+        ]
+        self._run([comments], expected="charlie")
+
+    def test_skips_bot_comments(self):
+        comments = [
+            {"user": {"login": "some-bot[bot]", "type": "Bot"}, "body": "/assign"},
+            {"user": {"login": "alice", "type": "User"}, "body": "/assign"},
+        ]
+        self._run([comments], expected="alice")
+
+    def test_skips_non_assign_comments(self):
+        comments = [
+            {"user": {"login": "alice", "type": "User"}, "body": "Just a comment"},
+            {"user": {"login": "bob", "type": "User"}, "body": "/assign"},
+        ]
+        self._run([comments], expected="bob")
+
+    def test_returns_none_when_no_assign_comment(self):
+        comments = [
+            {"user": {"login": "alice", "type": "User"}, "body": "Just a comment"},
+        ]
+        self._run([comments], expected=None)
+
+    def test_returns_none_for_empty_comment_list(self):
+        self._run([[]], expected=None)
+
+    def test_paginates_until_assign_found(self):
+        # First page has 100 comments with no /assign; second page has one.
+        page1 = [
+            {"user": {"login": f"user{i}", "type": "User"}, "body": "hello"}
+            for i in range(100)
+        ]
+        page2 = [
+            {"user": {"login": "lateuser", "type": "User"}, "body": "/assign"},
+        ]
+        self._run([page1, page2], expected="lateuser")
+
+    def test_returns_none_on_api_error(self):
+        async def _fail_api(*a, **kw):
+            mock = MagicMock()
+            mock.status = 500
+            return mock
+
+        async def _inner():
+            with patch.object(_worker, "github_api", new=AsyncMock(side_effect=_fail_api)):
+                return await _worker._get_last_assign_requester("owner", "repo", 1, "tok")
+
+        self.assertIsNone(_run(_inner()))
+
+
 class TestHandleApprove(unittest.TestCase):
     """_approve — triage reviewer approves an issue for assignment"""
 
-    def _run_approve(self, payload, comments, github_calls, *, commenter="donnieblt"):
+    def _run_approve(self, payload, comments, github_calls, *, commenter="donnieblt", last_requester=None):
         async def _inner():
             with patch.object(_worker, "create_comment", new=AsyncMock(side_effect=lambda o, r, n, b, t: comments.append(b))):
                 with patch.object(_worker, "github_api", new=AsyncMock(side_effect=lambda *a, **kw: github_calls.append(a))):
-                    await _worker._approve(
-                        payload["repository"]["owner"]["login"],
-                        payload["repository"]["name"],
-                        payload["issue"],
-                        commenter,
-                        "tok",
-                    )
+                    with patch.object(_worker, "_get_last_assign_requester", new=AsyncMock(return_value=last_requester)):
+                        await _worker._approve(
+                            payload["repository"]["owner"]["login"],
+                            payload["repository"]["name"],
+                            payload["issue"],
+                            commenter,
+                            "tok",
+                        )
         _run(_inner())
 
     def test_approve_adds_help_wanted_label_and_assigns_opener(self):
@@ -477,6 +566,21 @@ class TestHandleApprove(unittest.TestCase):
             for method, path, *_ in calls
         ))
         self.assertTrue(any("approved" in c for c in comments))
+
+    def test_approve_assigns_last_assign_requester_over_opener(self):
+        # When someone already said /assign before the approve, they should be
+        # assigned instead of the issue opener.
+        payload = _make_issue_payload(issue_user={"login": "alice", "type": "User"})
+        comments, calls = [], []
+        self._run_approve(payload, comments, calls, last_requester="bob")
+        # bob (last requester) should be assigned, not alice (opener)
+        assign_calls = [
+            body for method, path, _tok, body in calls
+            if method == "POST" and "assignees" in path
+        ]
+        self.assertTrue(any("bob" in body.get("assignees", []) for body in assign_calls))
+        self.assertFalse(any("alice" in body.get("assignees", []) for body in assign_calls))
+        self.assertTrue(any("@bob" in c and "assigned" in c for c in comments))
 
     def test_approve_rejected_for_non_reviewer(self):
         payload = _make_issue_payload()
@@ -503,7 +607,7 @@ class TestHandleApprove(unittest.TestCase):
             method == "POST" and "labels" in path
             for method, path, *_ in calls
         ))
-        # No assignees POST since opener is unknown
+        # No assignees POST since opener is unknown and no prior /assign
         self.assertFalse(any(
             method == "POST" and "assignees" in path
             for method, path, *_ in calls
