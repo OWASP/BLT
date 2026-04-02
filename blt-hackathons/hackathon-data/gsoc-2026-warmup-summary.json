@@ -1,6 +1,6 @@
 {
   "participantCount": 190,
-  "totalPRs": 2589,
+  "totalPRs": 2592,
   "mergedPRs": 1619,
   "totalIssues": 801,
   "repositories": 54,
@@ -25,6 +25,36 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "Delayed Media Permissions",
+      "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/52",
+      "username": "Nachiket-Roy",
+      "avatar": "https://avatars.githubusercontent.com/u/204239697?v=4",
+      "state": "open",
+      "created_at": "2026-04-02T16:57:40Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-SafeCloak"
+    },
+    {
+      "title": "Remove course form and related UI #6132",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6139",
+      "username": "Ravitheja1289-dot",
+      "avatar": "https://avatars.githubusercontent.com/u/176792762?v=4",
+      "state": "closed",
+      "created_at": "2026-04-02T16:53:43Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT"
+    },
+    {
+      "title": "Remove standalone lecture list template #6134",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6138",
+      "username": "Ravitheja1289-dot",
+      "avatar": "https://avatars.githubusercontent.com/u/176792762?v=4",
+      "state": "closed",
+      "created_at": "2026-04-02T16:40:57Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT"
+    },
     {
       "title": "Remove unused standalone lecture template (fixes #6134)",
       "url": "https://github.com/OWASP-BLT/BLT/pull/6137",
@@ -94,36 +124,6 @@
       "created_at": "2026-04-01T18:29:43Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT-Pool"
-    },
-    {
-      "title": "Fix: broken Details link for PUBG Mobile card",
-      "url": "https://github.com/OWASP-BLT/BLT-Panini/pull/20",
-      "username": "Riya-Jain-here",
-      "avatar": "https://avatars.githubusercontent.com/u/120404043?v=4",
-      "state": "open",
-      "created_at": "2026-04-01T17:08:11Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-Panini"
-    },
-    {
-      "title": "Fix: Org-wide Contributor Detection for Referral System",
-      "url": "https://github.com/OWASP-BLT/BLT-Pool/pull/107",
-      "username": "Jayant2908",
-      "avatar": "https://avatars.githubusercontent.com/u/200989760?v=4",
-      "state": "closed",
-      "created_at": "2026-04-01T14:11:31Z",
-      "merged_at": "2026-04-01T17:01:19Z",
-      "repository": "OWASP-BLT/BLT-Pool"
-    },
-    {
-      "title": " hidden bugs exposed via search and direct lookup endpoints",
-      "url": "https://github.com/OWASP-BLT/BLT-API/pull/85",
-      "username": "BharathC0",
-      "avatar": "https://avatars.githubusercontent.com/u/211328860?v=4",
-      "state": "open",
-      "created_at": "2026-04-01T08:44:50Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-API"
     }
   ]
 }
