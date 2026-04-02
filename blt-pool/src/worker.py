@@ -1985,14 +1985,17 @@ async def _backfill_repo_month_if_needed(
     # Also include webhook-tracked merged PRs whose review webhooks may have been missed
     # (e.g. during app downtime). The leaderboard_review_credits idempotency guard ensures
     # no duplicate credits are awarded even if a PR is processed again.
+    # Only include PRs merged within the current month window to avoid crediting reviews
+    # from previous months to the current month's leaderboard.
     if len(merged_prs_for_review) < MAX_REVIEW_BACKFILL:
         tracked_merged_rows = await _d1_all(
             db,
             """
             SELECT pr_number, author_login FROM leaderboard_pr_state
             WHERE org = ? AND repo = ? AND merged = 1
+              AND closed_at >= ? AND closed_at <= ?
             """,
-            (owner, repo_name),
+            (owner, repo_name, start_ts, end_ts),
         )
         newly_added = {pr_num for pr_num, _ in merged_prs_for_review}
         for row in (tracked_merged_rows or []):
