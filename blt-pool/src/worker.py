@@ -1292,6 +1292,9 @@ def _extract_mentions(body: str) -> list:
     return list(dict.fromkeys(m.lower() for m in _MENTION_RE.findall(body)))
 
 
+import asyncio
+import json
+
 async def _user_has_prior_activity(owner: str, username: str, token: str) -> bool:
     """Return True if *username* has any prior across the entire *owner* org.
 
@@ -1307,31 +1310,38 @@ async def _user_has_prior_activity(owner: str, username: str, token: str) -> boo
     base = f"org:{owner}+fork:false"
     u = username  # GitHub treats logins case-insensitively
 
+    # Small delay to avoid search indexing race
+    await asyncio.sleep(3)
+
     # 1) Authored issues/PRs anywhere in the org.
     authored_q = f"/search/issues?q={base}+author:{u}&per_page=1"
-    resp = await github_api("GET", authored_q, token)
-    if resp.status != 200:
-        console.error(
-            f"[Referral] Search API returned {resp.status} for {u} in {base}; "
-            "treating as active to fail closed"
-        )
-        return True
-    data = json.loads(await resp.text())
-    if int(data.get("total_count") or 0) > 0:
-        return True
+    for _ in range(3):  # retry to handle eventual consistency
+        resp = await github_api("GET", authored_q, token)
+        if resp.status != 200:
+            console.error(
+                f"[Referral] Search API returned {resp.status} for {u} in {base}; "
+                "treating as active to fail closed"
+            )
+            return True
+        data = json.loads(await resp.text())
+        if int(data.get("total_count") or 0) > 0:
+            return True
+        await asyncio.sleep(2)
 
     # 2) Comments authored anywhere in the org.
-    comments_q = f"/search/issues?q={base}+commenter:{u}&per_page=1"
-    resp2 = await github_api("GET", comments_q, token)
-    if resp2.status != 200:
-        console.error(
-            f"[Referral] Comment-search API returned {resp2.status} for {u} in {base}; "
-            "treating as active to fail closed"
-        )
-        return True
-    data2 = json.loads(await resp2.text())
-    if int(data2.get("total_count") or 0) > 0:
-        return True
+    comments_q = f"/search/issues?q={base}+commenter:{u}&per_page=1&sort=updated&order=desc"
+    for _ in range(3):  # retry here as well
+        resp2 = await github_api("GET", comments_q, token)
+        if resp2.status != 200:
+            console.error(
+                f"[Referral] Comment-search API returned {resp2.status} for {u} in {base}; "
+                "treating as active to fail closed"
+            )
+            return True
+        data2 = json.loads(await resp2.text())
+        if int(data2.get("total_count") or 0) > 0:
+            return True
+        await asyncio.sleep(2)
 
     return False
 
