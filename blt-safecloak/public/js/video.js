@@ -45,13 +45,20 @@ const VideoChat = (() => {
   function updateStatus(text, type = "muted") {
     const el = $("connection-status");
     if (!el) return;
-    el.textContent = text;
+    el.innerHTML = text;
     el.className = `text-${type}`;
   }
 
-  function setDotStatus(status) {
-    const dot = $("status-dot");
-    if (dot) dot.className = `status-dot ${status}`;
+  function setStatusIcon(status) {
+    const icon = $("status-icon");
+    if (!icon) return;
+    if (status === "online") {
+      icon.className = "fa-solid fa-circle text-green-500";
+    } else if (status === "offline") {
+      icon.className = "fa-solid fa-circle text-gray-400";
+    } else if (status === "connecting") {
+      icon.className = "fa-solid fa-circle text-amber-500 fa-fade";
+    }
   }
 
   function normalizeDisplayName(value) {
@@ -473,17 +480,17 @@ const VideoChat = (() => {
   function getCameraInstructions(browser) {
     const steps = {
       chrome: `<strong>Google Chrome:</strong><ol style="margin:0.5rem 0 0 1.25rem;display:flex;flex-direction:column;gap:0.3rem">
-        <li>Click the <strong>camera blocked</strong> icon (🔒 or 📷) in the address bar.</li>
+        <li>Click the <strong>camera/lock</strong> icon in the address bar.</li>
         <li>Select <strong>Always allow</strong> for the camera and microphone, then click <strong>Done</strong>.</li>
         <li>Or go to <strong>Settings → Privacy and security → Site settings → Camera</strong> and allow this site.</li>
         <li>Reload the page and click <em>Try Again</em>.</li></ol>`,
       edge: `<strong>Microsoft Edge:</strong><ol style="margin:0.5rem 0 0 1.25rem;display:flex;flex-direction:column;gap:0.3rem">
-        <li>Click the <strong>camera blocked</strong> icon (🔒 or 📷) in the address bar.</li>
+        <li>Click the <strong>camera/lock</strong> icon in the address bar.</li>
         <li>Set Camera and Microphone permissions to <strong>Allow</strong>, then click <strong>Save</strong>.</li>
         <li>Or go to <strong>Settings → Cookies and site permissions → Camera</strong> and add this site to the allow list.</li>
         <li>Reload the page and click <em>Try Again</em>.</li></ol>`,
       firefox: `<strong>Mozilla Firefox:</strong><ol style="margin:0.5rem 0 0 1.25rem;display:flex;flex-direction:column;gap:0.3rem">
-        <li>Click the <strong>camera blocked</strong> icon (🎥 with a slash) in the address bar.</li>
+        <li>Click the <strong>permissions icon</strong> (camera icon with a slash) in the address bar.</li>
         <li>Click <strong>Blocked Temporarily</strong> or <strong>Blocked</strong> next to Camera and Microphone and choose <strong>Allow</strong>.</li>
         <li>Or go to <strong>about:preferences#privacy</strong> → Permissions → Camera → Settings, and allow this site.</li>
         <li>Reload the page and click <em>Try Again</em>.</li></ol>`,
@@ -492,7 +499,7 @@ const VideoChat = (() => {
         <li>Set Camera and Microphone to <strong>Allow</strong>.</li>
         <li>Reload the page and click <em>Try Again</em>.</li></ol>`,
       opera: `<strong>Opera:</strong><ol style="margin:0.5rem 0 0 1.25rem;display:flex;flex-direction:column;gap:0.3rem">
-        <li>Click the <strong>camera blocked</strong> icon (🔒 or 📷) in the address bar.</li>
+        <li>Click the <strong>camera/lock</strong> icon in the address bar.</li>
         <li>Select <strong>Always allow</strong> for the camera and microphone, then click <strong>Done</strong>.</li>
         <li>Or go to <strong>Settings → Privacy &amp; security → Site settings → Camera</strong> and allow this site.</li>
         <li>Reload the page and click <em>Try Again</em>.</li></ol>`,
@@ -610,17 +617,46 @@ const VideoChat = (() => {
 
   let mediaPromise = null;
 
-  async function startLocalMedia() {
+  async function ensureLocalStream() {
+    if (!localStream) {
+      localStream = new MediaStream();
+      attachStream(localStream);
+    }
+    return localStream;
+  }
+
+  async function startLocalMedia(constraints = { video: true, audio: true }) {
     if (mediaPromise) return mediaPromise;
     mediaPromise = (async () => {
-      // 1. Try full video + audio
       try {
+<<<<<<< HEAD
         localStream = await navigator.mediaDevices.getUserMedia({
           video: true,
           audio: true,
         });
         await attachStream(localStream);
         applyInitialMediaPreferences();
+=======
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        const ls = await ensureLocalStream();
+
+        if (constraints.audio) {
+          stream.getAudioTracks().forEach((t) => {
+            t.enabled = !micMuted;
+            ls.addTrack(t);
+            updateTracksInCalls(t, "audio");
+          });
+        }
+        if (constraints.video) {
+          stream.getVideoTracks().forEach((t) => {
+            t.enabled = !camOff;
+            ls.addTrack(t);
+            updateTracksInCalls(t, "video");
+            const localVideo = $("local-video");
+            if (localVideo) localVideo.srcObject = ls;
+          });
+        }
+>>>>>>> bf0030e (fix toggle)
         return true;
       } catch (err) {
         if (
@@ -631,21 +667,10 @@ const VideoChat = (() => {
           showCameraDenied();
           return false;
         }
-
-        if (err.name === "NotReadableError" || err.name === "TrackStartError") {
-          showToast(
-            "Camera or microphone is already in use by another application. Please close it and reload.",
-            "error"
-          );
-          return false;
-        }
-
-        // For NotFoundError / DevicesNotFoundError try partial fallbacks below.
-        if (err.name !== "NotFoundError" && err.name !== "DevicesNotFoundError") {
-          showToast("Could not access camera/microphone: " + err.message, "error");
-          return false;
-        }
+        showToast("Access error: " + err.message, "error");
+        return false;
       }
+<<<<<<< HEAD
 
       // 2. No combined device found — try audio-only
       try {
@@ -719,10 +744,12 @@ const VideoChat = (() => {
         "error"
       );
       return false;
+=======
+>>>>>>> bf0030e (fix toggle)
     })();
 
     const result = await mediaPromise;
-    if (!result) mediaPromise = null; // Allow retry if it failed
+    mediaPromise = null; 
     return result;
   }
 
@@ -800,11 +827,16 @@ const VideoChat = (() => {
 
     peer.on("open", (id) => {
       $("my-peer-id") && ($("my-peer-id").textContent = id);
+<<<<<<< HEAD
       updateStatus("Ready — share your Room ID", "secondary");
       setDotStatus("online");
       updateLocalTilePresentation();
+=======
+      updateStatus(`<i class="fa-solid fa-share-nodes mr-1"></i> Ready — share your Room ID`, "secondary");
+      setStatusIcon("online");
+>>>>>>> bf0030e (fix toggle)
       showToast("Connected to signaling server", "success");
-      // Auto-connect if a room ID was passed in the URL
+      // Populate room ID if passed in URL, but wait for user to click "Add Participant"
       const params = new URLSearchParams(window.location.search);
       const joinId = params.get("room");
       if (joinId && joinId !== state.peerId) {
@@ -812,7 +844,7 @@ const VideoChat = (() => {
         if (remoteInput) {
           remoteInput.value = joinId;
         }
-        callPeer(joinId);
+        showToast("Room ID loaded from link — click Add Participant to join", "info");
       }
     });
 
@@ -834,6 +866,7 @@ const VideoChat = (() => {
       incomingCall.answer(voiceStream || localStream);
 =======
 
+<<<<<<< HEAD
       if (!localStream) {
         micMuted = false;
         camOff = false;
@@ -846,6 +879,13 @@ const VideoChat = (() => {
 
       incomingCall.answer(localStream);
 >>>>>>> 747222e (Delayed Media Permissions)
+=======
+      const ls = await ensureLocalStream();
+      micMuted = false;
+      camOff = false;
+      updateMediaButtons();
+      incomingCall.answer(ls);
+>>>>>>> bf0030e (fix toggle)
       handleCallStream(incomingCall);
       ensureDataConn(incomingCall.peer);
       sendPeerListTo(incomingCall.peer);
@@ -856,14 +896,14 @@ const VideoChat = (() => {
     });
 
     peer.on("error", (err) => {
-      updateStatus("Error: " + err.message, "danger");
-      setDotStatus("offline");
+      updateStatus(`<i class="fa-solid fa-circle-exclamation mr-1"></i> Error: ` + err.message, "danger");
+      setStatusIcon("offline");
       showToast("Connection error: " + err.type, "error");
     });
 
     peer.on("disconnected", () => {
-      updateStatus("Disconnected", "warning");
-      setDotStatus("offline");
+      updateStatus(`<i class="fa-solid fa-plug-circle-xmark mr-1"></i> Disconnected`, "warning");
+      setStatusIcon("offline");
     });
   }
 
@@ -889,8 +929,8 @@ const VideoChat = (() => {
       const nameSpan = document.createElement("span");
       nameSpan.className = "flex min-w-0 items-center gap-2";
 
-      const dot = document.createElement("span");
-      dot.className = "status-dot online";
+      const dot = document.createElement("i");
+      dot.className = "fa-solid fa-circle text-green-500 text-[10px]";
       dot.setAttribute("aria-hidden", "true");
 
       const textWrap = document.createElement("span");
@@ -927,6 +967,7 @@ const VideoChat = (() => {
 
   function handleCallStream(call) {
     const remotePeerId = call.peer;
+<<<<<<< HEAD
     const tile = ensureRemoteTile(remotePeerId);
     const videoEl = tile ? tile.video : null;
     updateTilePresentation(remotePeerId);
@@ -937,15 +978,58 @@ const VideoChat = (() => {
       }
       attachRemoteSpeakingMonitor(remotePeerId, remoteStream);
       updateTilePresentation(remotePeerId);
+=======
+
+    const videoWrapper = document.createElement("div");
+    videoWrapper.className = "video-wrapper bg-gray-900";
+    videoWrapper.id = `wrapper-${remotePeerId}`;
+
+    const videoEl = document.createElement("video");
+    videoEl.autoplay = true;
+    videoEl.playsInline = true;
+    videoEl.setAttribute("aria-label", `Participant ${remotePeerId} video`);
+
+    const label = document.createElement("div");
+    label.className = "video-label";
+    label.id = `label-${remotePeerId}`;
+
+    const labelDot = document.createElement("i");
+    labelDot.className = "fa-solid fa-circle text-amber-500 fa-fade text-[10px]";
+    labelDot.setAttribute("aria-hidden", "true");
+    labelDot.id = `dot-${remotePeerId}`;
+
+    const labelText = document.createElement("span");
+    labelText.className = "font-mono font-bold";
+    labelText.title = remotePeerId;
+    labelText.textContent = remotePeerId;
+
+    label.appendChild(labelDot);
+    label.appendChild(labelText);
+
+    videoWrapper.appendChild(videoEl);
+    videoWrapper.appendChild(label);
+
+    const videoGrid = $("video-grid");
+    if (videoGrid) videoGrid.appendChild(videoWrapper);
+
+    call.on("stream", (remoteStream) => {
+      videoEl.srcObject = remoteStream;
+      const dot = $(`dot-${remotePeerId}`);
+      if (dot) dot.className = "fa-solid fa-circle text-green-500 text-[10px]";
+>>>>>>> bf0030e (fix toggle)
       state.connected = true;
       const count = activeCalls.size;
       updateStatus(
-        `🔒 Encrypted call active (${count} participant${count !== 1 ? "s" : ""})`,
+        `<i class="fa-solid fa-lock text-primary mr-1"></i> Encrypted call active (${count} participant${count !== 1 ? "s" : ""})`,
         "success"
       );
+<<<<<<< HEAD
       setDotStatus("online");
 <<<<<<< HEAD
 =======
+=======
+      setStatusIcon("online");
+>>>>>>> bf0030e (fix toggle)
       if ($("call-controls")) {
         $("call-controls").classList.remove("hidden");
         $("btn-noise") && $("btn-noise").classList.remove("hidden");
@@ -974,10 +1058,15 @@ const VideoChat = (() => {
       if (wrapper) wrapper.remove();
       if (activeCalls.size === 0) {
         state.connected = false;
+<<<<<<< HEAD
         updateStatus("Call ended", "muted");
         setDotStatus("offline");
 <<<<<<< HEAD
 =======
+=======
+        updateStatus(`<i class="fa-solid fa-phone-slash mr-1"></i> Call ended`, "muted");
+        setStatusIcon("offline");
+>>>>>>> bf0030e (fix toggle)
         if ($("call-controls")) {
           $("btn-noise") && $("btn-noise").classList.add("hidden");
           $("btn-screen") && $("btn-screen").classList.add("hidden");
@@ -1070,19 +1159,18 @@ const VideoChat = (() => {
       showToast("Not connected to server", "error");
       return;
     }
-    if (!localStream) {
-      // If joining a call directly, enable both by default
-      micMuted = false;
-      camOff = false;
-      const ok = await startLocalMedia();
-      if (!ok) return;
-    }
     if (!remotePeerId) {
       showToast("Enter a Room ID to call", "warning");
       return;
     }
 
-    // Ensure remotePeerId is a string before trimming (defensive against network data)
+    const ls = await ensureLocalStream();
+    if (!ls) return;
+    micMuted = false;
+    camOff = false;
+    updateMediaButtons();
+
+    // Ensure remotePeerId is a string before trimming
     if (typeof remotePeerId !== "string") {
       showToast("Invalid Room ID format", "error");
       return;
@@ -1090,11 +1178,6 @@ const VideoChat = (() => {
 
     // Normalize the peer ID by trimming whitespace
     remotePeerId = remotePeerId.trim();
-
-    if (!remotePeerId) {
-      showToast("Enter a Room ID to call", "warning");
-      return;
-    }
 
     if (!isValidRoomId(remotePeerId)) {
       showToast(
@@ -1127,16 +1210,94 @@ const VideoChat = (() => {
   }
 
   /* ── Controls ── */
+  async function updateTracksInCalls(newTrack, kind) {
+    for (const call of activeCalls.values()) {
+      const pc = call.peerConnection;
+      if (!pc) continue;
+      const senders = pc.getSenders();
+      const sender = senders.find((s) => s.track && s.track.kind === kind);
+      if (sender) {
+        try {
+          await sender.replaceTrack(newTrack);
+        } catch (err) {
+          console.error(`Failed to replace ${kind} track:`, err);
+        }
+      }
+    }
+  }
+
+  function updateMediaButtons() {
+    const micBtn = $("btn-mic");
+    if (micBtn) {
+      micBtn.innerHTML = micMuted
+        ? '<i class="fa-solid fa-microphone-slash" aria-hidden="true"></i>'
+        : '<i class="fa-solid fa-microphone" aria-hidden="true"></i>';
+      micBtn.title = micMuted ? "Unmute mic" : "Mute mic";
+      micBtn.classList.toggle("active", micMuted);
+    }
+    const camBtn = $("btn-cam");
+    if (camBtn) {
+      camBtn.innerHTML = camOff
+        ? '<i class="fa-solid fa-video-slash" aria-hidden="true"></i>'
+        : '<i class="fa-solid fa-video" aria-hidden="true"></i>';
+      camBtn.title = camOff ? "Enable camera" : "Disable camera";
+      camBtn.classList.toggle("active", camOff);
+    }
+  }
+
+  /* ── Initial Permission Helper ── */
+  async function checkInitialPermissions() {
+    if (!navigator.permissions || !navigator.permissions.query) return;
+    try {
+      // Check camera & mic state without requesting them
+      const camStatus = await navigator.permissions.query({ name: "camera" });
+      const micStatus = await navigator.permissions.query({ name: "microphone" });
+
+      const updateHint = () => {
+        const isBlocked = camStatus.state === "denied" || micStatus.state === "denied";
+        const hint = $("permission-hint");
+        if (hint) {
+          if (isBlocked) hint.classList.remove("hidden");
+          else hint.classList.add("hidden");
+        }
+      };
+
+      updateHint();
+      camStatus.onchange = updateHint;
+      micStatus.onchange = updateHint;
+    } catch (e) {
+      console.warn("Permissions API not supported for media:", e);
+    }
+  }
+
   async function toggleMic() {
     micMuted = !micMuted;
-    if (!localStream) {
-      const ok = await startLocalMedia();
-      if (!ok) {
-        micMuted = true; // reset state
-        return;
+    updateMediaButtons(); // Update instantly for zero delay UI
+    if (!localStream || localStream.getAudioTracks().length === 0) {
+      if (!micMuted) {
+        const ok = await startLocalMedia({ audio: true, video: false });
+        if (!ok) {
+          micMuted = true;
+          updateMediaButtons();
+          return;
+        }
       }
     } else {
-      localStream.getAudioTracks().forEach((t) => (t.enabled = !micMuted));
+      if (micMuted) {
+        // Turning OFF: Stop hardware
+        localStream.getAudioTracks().forEach((t) => {
+          t.stop();
+          localStream.removeTrack(t);
+        });
+        await updateTracksInCalls(null, "audio");
+      } else {
+        // Turning ON
+        const ok = await startLocalMedia({ audio: true, video: false });
+        if (!ok) {
+          micMuted = true;
+          updateMediaButtons();
+        }
+      }
     }
 
     syncControlButtons();
@@ -1147,14 +1308,32 @@ const VideoChat = (() => {
 
   async function toggleCamera() {
     camOff = !camOff;
-    if (!localStream) {
-      const ok = await startLocalMedia();
-      if (!ok) {
-        camOff = true; // reset state
-        return;
+    updateMediaButtons(); // Update instantly
+    if (!localStream || localStream.getVideoTracks().length === 0) {
+      if (!camOff) {
+        const ok = await startLocalMedia({ video: true, audio: false });
+        if (!ok) {
+          camOff = true;
+          updateMediaButtons();
+          return;
+        }
       }
     } else {
-      localStream.getVideoTracks().forEach((t) => (t.enabled = !camOff));
+      if (camOff) {
+        // Turning OFF: Stop hardware
+        localStream.getVideoTracks().forEach((t) => {
+          t.stop();
+          localStream.removeTrack(t);
+        });
+        await updateTracksInCalls(null, "video");
+      } else {
+        // Turning ON
+        const ok = await startLocalMedia({ video: true, audio: false });
+        if (!ok) {
+          camOff = true;
+          updateMediaButtons();
+        }
+      }
     }
 
     syncControlButtons();
@@ -1181,8 +1360,8 @@ const VideoChat = (() => {
     localSpeakingUntil = 0;
     setTileSpeakingIndicator("local", false);
     state.connected = false;
-    updateStatus("Call ended", "muted");
-    setDotStatus("offline");
+    updateStatus(`<i class="fa-solid fa-phone-slash mr-1"></i> Call ended`, "muted");
+    setStatusIcon("offline");
     const videoGrid = $("video-grid");
     if (videoGrid) {
       videoGrid.querySelectorAll(".video-wrapper:not(:first-child)").forEach((w) => w.remove());
@@ -1215,6 +1394,7 @@ const VideoChat = (() => {
       localStream.getTracks().forEach((t) => t.stop());
       localStream = null;
     }
+<<<<<<< HEAD
     voiceStream = null;
     if (voiceAnimFrame) {
       cancelAnimationFrame(voiceAnimFrame);
@@ -1249,6 +1429,12 @@ const VideoChat = (() => {
     updateLocalTilePresentation();
     setDotStatus("offline");
     updateStatus("Disconnected", "muted");
+=======
+    if (voiceAnimFrame) cancelAnimationFrame(voiceAnimFrame);
+    if (audioContext) audioContext.close();
+    setStatusIcon("offline");
+    updateStatus(`<i class="fa-solid fa-power-off mr-1"></i> Disconnected`, "muted");
+>>>>>>> bf0030e (fix toggle)
     showToast("Session ended and media released", "success");
   }
 
@@ -1586,10 +1772,17 @@ const VideoChat = (() => {
       overlay.style.display = "flex";
       overlay.innerHTML = `
         <div class="modal" style="max-width:440px">
+<<<<<<< HEAD
           <h3 style="display:flex;align-items:center;gap:0.5rem"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i>Recording Consent Required</h3>
           <p>This call may be recorded for AI notes and security purposes. Do you consent to participate in this secure call with <strong>${callerName}</strong>?</p>
           <div class="alert alert-info" style="margin-bottom:1rem">
             <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+=======
+          <h3><i class="fa-solid fa-shield-halved text-primary mr-2"></i>Recording Consent Required</h3>
+          <p>This call may be recorded for AI notes and security purposes. Do you consent to participate in this secure call with <strong style="color:#fff">${callerName}</strong>?</p>
+          <div class="alert alert-info" style="margin-bottom:1rem">
+            <i class="fa-solid fa-circle-info text-primary mr-2"></i>
+>>>>>>> bf0030e (fix toggle)
             <span>Consent is cryptographically timestamped and stored locally. You can withdraw at any time.</span>
           </div>
           <div style="display:flex;gap:0.75rem;justify-content:flex-end">
@@ -1725,6 +1918,10 @@ const VideoChat = (() => {
     
     // Always init peer regardless of success of startLocalMedia (can join without media)
     await initPeer();
+    checkInitialPermissions();
+    window.addEventListener("beforeunload", () => {
+      hangup();
+    });
     return true;
 
   return {
