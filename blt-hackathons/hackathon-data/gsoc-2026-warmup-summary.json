@@ -1,8 +1,8 @@
 {
   "participantCount": 190,
-  "totalPRs": 2588,
-  "mergedPRs": 1618,
-  "totalIssues": 800,
+  "totalPRs": 2589,
+  "mergedPRs": 1619,
+  "totalIssues": 801,
   "repositories": 54,
   "topContributors": [
     {
@@ -40,9 +40,9 @@
       "url": "https://github.com/OWASP-BLT/BLT-Pool/pull/112",
       "username": "Jayant2908",
       "avatar": "https://avatars.githubusercontent.com/u/200989760?v=4",
-      "state": "open",
+      "state": "closed",
       "created_at": "2026-04-02T05:12:10Z",
-      "merged_at": null,
+      "merged_at": "2026-04-02T14:47:49Z",
       "repository": "OWASP-BLT/BLT-Pool"
     },
     {
