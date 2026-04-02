@@ -1,6 +1,6 @@
 {
   "participantCount": 189,
-  "totalPRs": 2586,
+  "totalPRs": 2587,
   "mergedPRs": 1618,
   "totalIssues": 800,
   "repositories": 54,
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "Fix race condition in contributor activity detection",
+      "url": "https://github.com/OWASP-BLT/BLT-Pool/pull/112",
+      "username": "Jayant2908",
+      "avatar": "https://avatars.githubusercontent.com/u/200989760?v=4",
+      "state": "open",
+      "created_at": "2026-04-02T05:12:10Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-Pool"
+    },
     {
       "title": "Remove study_course.html template",
       "url": "https://github.com/OWASP-BLT/BLT/pull/6136",
@@ -114,16 +124,6 @@
       "created_at": "2026-04-01T07:49:25Z",
       "merged_at": "2026-04-01T09:54:33Z",
       "repository": "OWASP-BLT/BLT-Pages"
-    },
-    {
-      "title": " add BLT mega menu drop-in JS script",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6104",
-      "username": "BharathC0",
-      "avatar": "https://avatars.githubusercontent.com/u/211328860?v=4",
-      "state": "closed",
-      "created_at": "2026-04-01T07:39:27Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT"
     }
   ]
 }
