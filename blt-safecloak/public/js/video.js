@@ -637,9 +637,32 @@ const VideoChat = (() => {
     if (mediaPromise) return mediaPromise;
     mediaPromise = (async () => {
       try {
-        localStream = await navigator.mediaDevices.getUserMedia(constraints);
-        await attachStream(localStream);
-        applyInitialMediaPreferences();
+        const ls = await ensureLocalStream();
+        const request = {
+          audio: !!constraints.audio && ls.getAudioTracks().length === 0,
+          video: !!constraints.video && ls.getVideoTracks().length === 0,
+        };
+        if (!request.audio && !request.video) return true;
+
+        const stream = await navigator.mediaDevices.getUserMedia(request);
+
+        if (constraints.audio) {
+          stream.getAudioTracks().forEach((t) => {
+            t.enabled = !micMuted;
+            ls.addTrack(t);
+            updateTracksInCalls(t, "audio");
+          });
+          startVoiceMeter(ls);
+        }
+        if (constraints.video) {
+          stream.getVideoTracks().forEach((t) => {
+            t.enabled = !camOff;
+            ls.addTrack(t);
+            updateTracksInCalls(t, "video");
+            const localVideo = $("local-video");
+            if (localVideo) localVideo.srcObject = ls;
+          });
+        }
         return true;
       } catch (err) {
         if (
@@ -763,18 +786,15 @@ const VideoChat = (() => {
           return;
         }
       }
-      activeCalls.set(incomingCall.peer, incomingCall);
-      updateParticipantsList();
-      
-      micMuted = false;
-      camOff = false;
-      updateMediaButtons();
-      
-      const ok = await startLocalMedia();
-      if (!ok) {
+
+      const mediaOk = await startLocalMedia();
+      if (!mediaOk) {
         incomingCall.close();
         return;
       }
+
+      activeCalls.set(incomingCall.peer, incomingCall);
+      updateParticipantsList();
       
       incomingCall.answer(voiceStream || localStream);
       handleCallStream(incomingCall);
@@ -858,6 +878,15 @@ const VideoChat = (() => {
 
   function handleCallStream(call) {
     const remotePeerId = call.peer;
+    // Persist sender references here to ensure replaceTrack works even if s.track is switched to null later
+    call.sendersByKind = {};
+    const pc = call.peerConnection;
+    if (pc) {
+      pc.getSenders().forEach((s) => {
+        if (s.track) call.sendersByKind[s.track.kind] = s;
+      });
+    }
+
     const tile = ensureRemoteTile(remotePeerId);
     const videoEl = tile ? tile.video : null;
     updateTilePresentation(remotePeerId);
@@ -1002,22 +1031,6 @@ const VideoChat = (() => {
       return;
     }
 
-    if (!consentGiven) {
-      const ok = await askConsent("the remote participant");
-      if (!ok) return;
-    }
-
-    // Acquire media tracks BEFORE calling to ensure senders are created
-    micMuted = false;
-    camOff = false;
-    updateMediaButtons();
-
-    const ok = await startLocalMedia();
-    if (!ok) return; // User denied or error
-
-    const ls = await ensureLocalStream();
-    if (!ls) return;
-
     // Ensure remotePeerId is a string before trimming
     if (typeof remotePeerId !== "string") {
       showToast("Invalid Room ID format", "error");
@@ -1048,6 +1061,13 @@ const VideoChat = (() => {
       if (!ok) return;
     }
 
+    micMuted = false;
+    camOff = false;
+    updateMediaButtons();
+
+    const ok = await startLocalMedia();
+    if (!ok) return;
+
     updateStatus("fa-solid fa-spinner fa-spin", "Calling...", "warning");
     setStatusIcon("connecting");
     const call = peer.call(remotePeerId, voiceStream || localStream);
@@ -1060,10 +1080,18 @@ const VideoChat = (() => {
   /* ── Controls ── */
   async function updateTracksInCalls(newTrack, kind) {
     for (const call of activeCalls.values()) {
-      const pc = call.peerConnection;
-      if (!pc) continue;
-      const senders = pc.getSenders();
-      const sender = senders.find((s) => s.track && s.track.kind === kind);
+      // 1. Check saved senders first (robust against null tracks)
+      let sender = call.sendersByKind ? call.sendersByKind[kind] : null;
+      
+      // 2. Fallback to lookup if not saved yet
+      if (!sender) {
+        const pc = call.peerConnection;
+        if (!pc) continue;
+        sender = pc.getSenders().find((s) => s.track && s.track.kind === kind);
+        // Cache it for next time
+        if (sender && call.sendersByKind) call.sendersByKind[kind] = sender;
+      }
+
       if (sender) {
         try {
           await sender.replaceTrack(newTrack);
@@ -1616,7 +1644,7 @@ const VideoChat = (() => {
       overlay.innerHTML = `
         <div class="modal" style="max-width:440px">
           <h3 style="display:flex;align-items:center;gap:0.5rem"><i class="fa-solid fa-shield-halved text-primary" aria-hidden="true"></i>Recording Consent Required</h3>
-          <p>This call may be recorded for AI notes and security purposes. Do you consent to participate in this secure call with <strong>${callerName}</strong>?</p>
+          <p>This call may be recorded for AI notes and security purposes. Do you consent to participate in this secure call with <strong id="consent-caller-name" style="color:#fff"></strong>?</p>
           <div class="alert alert-info" style="margin-bottom:1rem">
             <i class="fa-solid fa-circle-info text-primary" aria-hidden="true"></i>
             <span>Consent is cryptographically timestamped and stored locally. You can withdraw at any time.</span>
@@ -1627,6 +1655,8 @@ const VideoChat = (() => {
           </div>
         </div>
       `;
+      const callerNameEl = overlay.querySelector("#consent-caller-name");
+      if (callerNameEl) callerNameEl.textContent = callerName;
       document.body.appendChild(overlay);
 
       overlay.querySelector("#consent-allow").onclick = () => {
