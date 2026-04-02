@@ -33,7 +33,7 @@ import re
 import time
 from typing import Optional, Tuple
 from urllib.parse import quote, urlparse
-
+import asyncio
 from js import Headers, Response, console, fetch  # Cloudflare Workers JS bindings
 from index_template import GITHUB_PAGE_HTML  # Landing page HTML template
 from services.check_orchestrator import (
@@ -716,6 +716,15 @@ async def _ensure_leaderboard_schema(db) -> None:
         )
         """,
     )
+    await _d1_run(
+        db,
+        """
+        CREATE TABLE IF NOT EXISTS leaderboard_processed_comments (
+            comment_id INTEGER NOT NULL PRIMARY KEY,
+            processed_at INTEGER NOT NULL
+        )
+        """,
+    )
     await _populate_mentors_table(db)
 
 
@@ -1025,6 +1034,7 @@ async def _d1_inc_monthly(db, org: str, month_key: str, user_login: str, field: 
         console.log(f"[D1] Updated {field} org={org} month={month_key} user={user_login} +{delta}")
     except Exception as e:
         console.error(f"[D1] Failed to update {field} org={org} month={month_key} user={user_login}: {e}")
+        raise
 
 
 async def _track_pr_opened_in_d1(payload: dict, env) -> None:
@@ -1196,13 +1206,48 @@ async def _track_comment_in_d1(payload: dict, env) -> None:
         return
     org = (payload.get("repository") or {}).get("owner", {}).get("login", "")
     login = user.get("login", "")
+    comment_id = comment.get("id")
     created_at = comment.get("created_at")
-    if not (org and login):
+    if not (org and login and comment_id):
         return
 
     await _ensure_leaderboard_schema(db)
+    
+    # Atomic dedup — only increment if this comment_id has never been processed.
+    # Mirrors the INSERT OR IGNORE + changes pattern already used in _d1_record_referral.
+    result = await _d1_run(
+        db,
+        """
+        INSERT INTO leaderboard_processed_comments (comment_id, processed_at)
+        VALUES (?, ?)
+        ON CONFLICT (comment_id) DO NOTHING
+        """,
+        (comment_id, int(time.time())),
+    )
+    changes = 0
+    if isinstance(result, dict):
+        changes = int((result.get("meta") or {}).get("changes") or 0)
+    else:
+        meta = getattr(result, "meta", None)
+        if meta is not None:
+            changes = int(getattr(meta, "changes", 0) or 0)
+
+    if changes == 0:
+        # Already processed — skip to prevent double-counting on redelivery.
+        console.log(f"[D1] Skipping duplicate comment_id={comment_id}")
+        return
+
     mk = _month_key(_parse_github_timestamp(created_at) if created_at else int(time.time()))
-    await _d1_inc_monthly(db, org, mk, login, "comments", 1)
+    try:
+        await _d1_inc_monthly(db, org, mk, login, "comments", 1)
+    except Exception:
+        # Compensate so a redelivery can retry counting this comment.
+        await _d1_run(
+            db,
+            "DELETE FROM leaderboard_processed_comments WHERE comment_id = ?",
+            (comment_id,),
+        )
+        raise
 
 
 async def _track_review_in_d1(payload: dict, env) -> None:
@@ -1290,7 +1335,6 @@ def _extract_mentions(body: str) -> list:
     that appear inside inline or fenced code spans.
     """
     return list(dict.fromkeys(m.lower() for m in _MENTION_RE.findall(body)))
-
 
 async def _user_has_prior_activity(owner: str, username: str, token: str) -> bool:
     """Return True if *username* has any prior across the entire *owner* org.
@@ -1545,6 +1589,9 @@ async def _process_referral_mentions(
     await _ensure_leaderboard_schema(db)
     mk = _month_key()
     new_referrals = []
+
+    # Allow GitHub Search indexing to catch up before querying.
+    await asyncio.sleep(5)
 
     for mentioned in mentions:
         try:
@@ -3777,7 +3824,7 @@ async def _check_stale_mentor_assignments(owner: str, repo: str, token: str) -> 
 # ---------------------------------------------------------------------------
 
 
-async def handle_issue_comment(payload: dict, token: str, env=None) -> None:
+async def handle_issue_comment(payload: dict, token: str, env=None, ctx=None) -> None:
     comment = payload["comment"]
     issue = payload["issue"]
     # Require a human AND not a bot account (covers [bot] suffix, service users)
@@ -3800,10 +3847,20 @@ async def handle_issue_comment(payload: dict, token: str, env=None) -> None:
 
     # Process @-mentions for the contributor referral system.
     if env is not None:
-        try:
-            await _process_referral_mentions(owner, repo, issue_number, login, body, token, env)
-        except Exception as exc:
-            console.error(f"[Referral] Failed to process mentions: {exc}")
+        async def _deferred_referral():
+            try:
+                await _process_referral_mentions(
+                    owner, repo, issue_number, login, body, token, env
+                )
+            except Exception as exc:
+                console.error(f"[Referral] Failed to process mentions: {exc}")
+
+        if ctx is not None:
+            # Cloudflare Workers: runs after 200 OK is sent — no redelivery risk.
+            ctx.waitUntil(_deferred_referral())
+        else:
+            # Fallback for local tests / non-CW runtimes.
+            await _deferred_referral()
 
     # Add eyes reaction immediately to acknowledge command receipt
     if comment_id and command:
@@ -5138,7 +5195,7 @@ async def handle_pull_request_for_review(payload: dict, token: str) -> None:
 # ---------------------------------------------------------------------------
 
 
-async def handle_webhook(request, env) -> Response:
+async def handle_webhook(request, env, ctx=None) -> Response:
     """Verify the GitHub webhook signature and route to the correct handler."""
     body_text = await request.text()
     payload_bytes = body_text.encode("utf-8")
@@ -5229,7 +5286,7 @@ async def handle_webhook(request, env) -> Response:
                 )
 
         if event == "issue_comment" and action == "created":
-            await handle_issue_comment(payload, token, env)
+            await handle_issue_comment(payload, token, env, ctx=ctx)
         elif event == "issues":
             if action == "opened":
                 await handle_issue_opened(payload, token, blt_api_url)
@@ -6402,7 +6459,7 @@ def _html(html: str, status: int = 200) -> Response:
 # ---------------------------------------------------------------------------
 
 
-async def on_fetch(request, env) -> Response:
+async def on_fetch(request, env, ctx=None) -> Response:
     method = request.method
     path = urlparse(str(request.url)).path.rstrip("/") or "/"
 
@@ -6471,7 +6528,7 @@ async def on_fetch(request, env) -> Response:
         return await _handle_add_mentor(request, env)
 
     if method == "POST" and path == "/api/github/webhooks":
-        return await handle_webhook(request, env)
+        return await handle_webhook(request, env, ctx=ctx)
 
     # GitHub redirects here after a successful installation
     if method == "GET" and path == "/callback":

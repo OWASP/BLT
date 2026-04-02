@@ -2273,13 +2273,14 @@ class TestTrackingOperations(unittest.TestCase):
         mock_db = MagicMock()
         mock_stmt = AsyncMock()
         mock_stmt.bind = MagicMock(return_value=mock_stmt)
-        mock_stmt.run = AsyncMock(return_value={"success": True})
+        mock_stmt.run = AsyncMock(return_value={"meta": {"changes": 1}})
         mock_db.prepare.return_value = mock_stmt
         
         env = types.SimpleNamespace(LEADERBOARD_DB=mock_db)
         payload = {
             "repository": {"owner": {"login": "OWASP-BLT"}},
             "comment": {
+                "id": 98765,
                 "user": {"login": "alice", "type": "User"},
                 "body": "Great work!",
                 "created_at": "2024-03-05T12:00:00Z",
@@ -2291,6 +2292,96 @@ class TestTrackingOperations(unittest.TestCase):
         
         # Should have called prepare for monthly increment
         self.assertGreater(mock_db.prepare.call_count, 0)
+
+    async def _test_track_comment_redelivery_no_double_increment(self):
+        """Webhook redelivery with the same comment_id must NOT produce a second increment.
+
+        Delivery 1: INSERT reports changes=1  → _d1_inc_monthly is called once.
+        Delivery 2: INSERT reports changes=0  → function exits early; no second increment.
+        """
+        payload = {
+            "repository": {"owner": {"login": "OWASP-BLT"}},
+            "comment": {
+                "id": 11111,
+                "user": {"login": "alice", "type": "User"},
+                "body": "Great work!",
+                "created_at": "2024-03-05T12:00:00Z",
+            },
+        }
+        # First delivery inserts a new row; second delivery hits the ON CONFLICT guard.
+        d1_run_mock = AsyncMock(side_effect=[
+            {"meta": {"changes": 1}},   # delivery 1 — INSERT succeeds
+            {"meta": {"changes": 0}},   # delivery 2 — INSERT ignored (duplicate)
+        ])
+        inc_mock = AsyncMock()
+
+        with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
+            with patch.object(_worker, "_d1_run", new=d1_run_mock):
+                with patch.object(_worker, "_d1_inc_monthly", new=inc_mock):
+                    with patch.object(_worker, "console",
+                                      new=types.SimpleNamespace(log=lambda x: None,
+                                                                 error=lambda x: None)):
+                        env = types.SimpleNamespace(LEADERBOARD_DB=object())
+                        await _worker._track_comment_in_d1(payload, env)   # delivery 1
+                        await _worker._track_comment_in_d1(payload, env)   # simulated redelivery
+
+        # Despite two deliveries, the counter must only increment once.
+        self.assertEqual(inc_mock.await_count, 1)
+
+    def test_track_comment_redelivery_no_double_increment(self):
+        _run(self._test_track_comment_redelivery_no_double_increment())
+
+    async def _test_track_comment_inc_monthly_failure_then_retry_succeeds(self):
+        """When _d1_inc_monthly raises, the compensation DELETE unblocks the next delivery.
+
+        Delivery 1: INSERT succeeds → _d1_inc_monthly raises
+                    → compensation DELETE restores the row → exception re-raised.
+        Delivery 2: INSERT succeeds again (row was deleted) → _d1_inc_monthly succeeds.
+
+        Net result: exactly one successful increment despite the transient failure.
+        """
+        payload = {
+            "repository": {"owner": {"login": "OWASP-BLT"}},
+            "comment": {
+                "id": 22222,
+                "user": {"login": "bob", "type": "User"},
+                "body": "Nice fix!",
+                "created_at": "2024-04-01T10:00:00Z",
+            },
+        }
+        # _d1_run call order across both deliveries:
+        #   call 1 — delivery 1 INSERT (changes=1)
+        #   call 2 — compensation DELETE after _d1_inc_monthly raises
+        #   call 3 — delivery 2 INSERT (changes=1, since row was deleted)
+        d1_run_mock = AsyncMock(side_effect=[
+            {"meta": {"changes": 1}},   # delivery 1 INSERT
+            {"meta": {"changes": 1}},   # compensation DELETE
+            {"meta": {"changes": 1}},   # delivery 2 INSERT
+        ])
+        inc_mock = AsyncMock(side_effect=[Exception("transient DB error"), None])
+
+        with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
+            with patch.object(_worker, "_d1_run", new=d1_run_mock):
+                with patch.object(_worker, "_d1_inc_monthly", new=inc_mock):
+                    with patch.object(_worker, "console",
+                                      new=types.SimpleNamespace(log=lambda x: None,
+                                                                 error=lambda x: None)):
+                        env = types.SimpleNamespace(LEADERBOARD_DB=object())
+
+                        # Delivery 1 — _d1_inc_monthly raises; compensation DELETE must run.
+                        with self.assertRaises(Exception, msg="transient DB error"):
+                            await _worker._track_comment_in_d1(payload, env)
+
+                        # Delivery 2 (simulated redelivery) — must succeed end-to-end.
+                        await _worker._track_comment_in_d1(payload, env)
+
+        # Two _d1_inc_monthly calls: one failing, one succeeding.
+        self.assertEqual(inc_mock.await_count, 2)
+        # Three _d1_run calls: INSERT → compensation DELETE → INSERT.
+        self.assertEqual(d1_run_mock.await_count, 3)
+
+    def test_track_comment_inc_monthly_failure_then_retry_succeeds(self):
+        _run(self._test_track_comment_inc_monthly_failure_then_retry_succeeds())
 
     async def _test_track_comment_ignores_commands(self):
         """Slash commands should not be counted as comment leaderboard activity."""
@@ -2372,6 +2463,68 @@ class TestTrackingOperations(unittest.TestCase):
     def test_track_pr_reopened_idempotent_when_already_open(self):
         _run(self._test_track_pr_reopened_idempotent_when_already_open())
 
+class TestHandleIssueCommentCtxDefer(unittest.TestCase):
+    """handle_issue_comment — referral deferral: ctx=None (inline) and ctx provided (waitUntil)."""
+
+    def _make_referral_payload(self):
+        """Payload with a non-command body and an explicit comment id."""
+        payload = _make_issue_payload(comment_body="Hey `@carol` great contribution!")
+        payload["comment"]["id"] = 77777
+        return payload
+
+    async def _test_ctx_none_awaits_referral_inline(self):
+        """When ctx=None, _process_referral_mentions is awaited directly before returning.
+
+        This is the local-test / non-Cloudflare fallback path.
+        """
+        payload = self._make_referral_payload()
+        env = types.SimpleNamespace(LEADERBOARD_DB=object())
+        referral_mock = AsyncMock()
+
+        with patch.object(_worker, "_track_comment_in_d1", new=AsyncMock()):
+            with patch.object(_worker, "_process_referral_mentions", new=referral_mock):
+                with patch.object(_worker, "console",
+                                  new=types.SimpleNamespace(log=lambda x: None,
+                                                             error=lambda x: None)):
+                    # Explicit ctx=None — must fall through to the inline await branch.
+                    await _worker.handle_issue_comment(payload, "tok", env=env, ctx=None)
+
+        # Referral processing must have been awaited synchronously.
+        referral_mock.assert_awaited_once()
+
+    async def _test_ctx_provided_schedules_waituntil(self):
+        """When ctx is provided, _process_referral_mentions is handed to ctx.waitUntil().
+
+        The referral coroutine must NOT have been awaited during the handler call itself —
+        it runs post-response in the Cloudflare Workers runtime.
+        """
+        payload = self._make_referral_payload()
+        env = types.SimpleNamespace(LEADERBOARD_DB=object())
+        referral_mock = AsyncMock()
+
+        wait_until_calls = []
+        mock_ctx = types.SimpleNamespace(
+            waitUntil=lambda coro: wait_until_calls.append(coro)
+        )
+
+        with patch.object(_worker, "_track_comment_in_d1", new=AsyncMock()):
+            with patch.object(_worker, "_process_referral_mentions", new=referral_mock):
+                with patch.object(_worker, "console",
+                                  new=types.SimpleNamespace(log=lambda x: None,
+                                                             error=lambda x: None)):
+                    await _worker.handle_issue_comment(payload, "tok", env=env, ctx=mock_ctx)
+
+        # ctx.waitUntil must have been called exactly once …
+        self.assertEqual(len(wait_until_calls), 1,
+                         "ctx.waitUntil should be called once for the deferred referral coroutine")
+        # … and the referral mock must NOT have been awaited yet (deferred to post-response).
+        referral_mock.assert_not_awaited()
+
+    def test_ctx_none_awaits_referral_inline(self):
+        _run(self._test_ctx_none_awaits_referral_inline())
+
+    def test_ctx_provided_schedules_waituntil(self):
+        _run(self._test_ctx_provided_schedules_waituntil())
 
 # ---------------------------------------------------------------------------
 # Backfill double-counting prevention tests
