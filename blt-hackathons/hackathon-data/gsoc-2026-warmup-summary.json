@@ -1,6 +1,6 @@
 {
   "participantCount": 191,
-  "totalPRs": 2599,
+  "totalPRs": 2600,
   "mergedPRs": 1619,
   "totalIssues": 801,
   "repositories": 54,
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": " split leaderboard into blt_rewards and assign/labeling into blt\u2026",
+      "url": "https://github.com/OWASP-BLT/BLT-Pool/pull/115",
+      "username": "BharathC0",
+      "avatar": "https://avatars.githubusercontent.com/u/211328860?v=4",
+      "state": "open",
+      "created_at": "2026-04-03T05:18:13Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-Pool"
+    },
     {
       "title": " collision-safe consent entry ids and reliable notes save",
       "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/55",
@@ -112,16 +122,6 @@
       "avatar": "https://avatars.githubusercontent.com/u/176792762?v=4",
       "state": "closed",
       "created_at": "2026-04-02T16:53:43Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "Remove standalone lecture list template #6134",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6138",
-      "username": "Ravitheja1289-dot",
-      "avatar": "https://avatars.githubusercontent.com/u/176792762?v=4",
-      "state": "closed",
-      "created_at": "2026-04-02T16:40:57Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT"
     }
