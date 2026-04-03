@@ -103,7 +103,15 @@ async function loadData() {
             title: item.title,
             type: (item.type || '').toLowerCase(),
             level: item.level || 0,
-            tags: (Array.isArray(item.tags) ? item.tags.join(", "): (item.tags || '')).toLowerCase(),
+            tags: (
+                Array.isArray(item.tags)
+                ? item.tags.join(", ")
+                : typeof item.tags === "string"
+                ? item.tags
+                : item.tags != null
+                ? String(item.tags)
+                : ""
+            ).toLowerCase(),
             pitch: item.pitch || ''
         }));
         
