@@ -1,7 +1,7 @@
 {
   "participantCount": 191,
-  "totalPRs": 2600,
-  "mergedPRs": 1620,
+  "totalPRs": 2573,
+  "mergedPRs": 1607,
   "totalIssues": 802,
   "repositories": 54,
   "topContributors": [
@@ -15,7 +15,7 @@
       "username": "mdkaifansari04",
       "avatar": "https://avatars.githubusercontent.com/u/117475603?v=4",
       "url": "https://github.com/mdkaifansari04",
-      "mergedCount": 56
+      "mergedCount": 55
     },
     {
       "username": "Pritz395",
@@ -25,6 +25,26 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "fix: resolve last updated loading issue caused by tags type error",
+      "url": "https://github.com/OWASP-BLT/BLT-OWASP-metadata/pull/24",
+      "username": "Riya-Jain-here",
+      "avatar": "https://avatars.githubusercontent.com/u/120404043?v=4",
+      "state": "open",
+      "created_at": "2026-04-03T18:14:42Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-OWASP-metadata"
+    },
+    {
+      "title": "feat(api): add health and room validation endpoints",
+      "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/56",
+      "username": "Rudrawhy",
+      "avatar": "https://avatars.githubusercontent.com/u/154898503?v=4",
+      "state": "open",
+      "created_at": "2026-04-03T17:31:26Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-SafeCloak"
+    },
     {
       "title": " split leaderboard into blt_rewards and assign/labeling into blt\u2026",
       "url": "https://github.com/OWASP-BLT/BLT-Pool/pull/115",
@@ -102,26 +122,6 @@
       "avatar": "https://avatars.githubusercontent.com/u/83544797?v=4",
       "state": "open",
       "created_at": "2026-04-02T18:08:16Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "Delayed Media Permissions",
-      "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/52",
-      "username": "Nachiket-Roy",
-      "avatar": "https://avatars.githubusercontent.com/u/204239697?v=4",
-      "state": "open",
-      "created_at": "2026-04-02T16:57:40Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-SafeCloak"
-    },
-    {
-      "title": "Remove course form and related UI #6132",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6139",
-      "username": "Ravitheja1289-dot",
-      "avatar": "https://avatars.githubusercontent.com/u/176792762?v=4",
-      "state": "closed",
-      "created_at": "2026-04-02T16:53:43Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT"
     }
