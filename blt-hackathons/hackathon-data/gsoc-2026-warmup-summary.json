@@ -1,6 +1,6 @@
 {
   "participantCount": 191,
-  "totalPRs": 2598,
+  "totalPRs": 2599,
   "mergedPRs": 1619,
   "totalIssues": 801,
   "repositories": 54,
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": " collision-safe consent entry ids and reliable notes save",
+      "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/55",
+      "username": "BharathC0",
+      "avatar": "https://avatars.githubusercontent.com/u/211328860?v=4",
+      "state": "open",
+      "created_at": "2026-04-03T01:18:30Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-SafeCloak"
+    },
     {
       "title": "add backend API endpoints with health, features, notes, and consent",
       "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/54",
@@ -112,16 +122,6 @@
       "avatar": "https://avatars.githubusercontent.com/u/176792762?v=4",
       "state": "closed",
       "created_at": "2026-04-02T16:40:57Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "Remove unused standalone lecture template (fixes #6134)",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6137",
-      "username": "Aarush289",
-      "avatar": "https://avatars.githubusercontent.com/u/196346534?v=4",
-      "state": "open",
-      "created_at": "2026-04-02T10:00:45Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT"
     }
