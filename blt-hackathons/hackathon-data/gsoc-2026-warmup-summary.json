@@ -1,6 +1,6 @@
 {
-  "participantCount": 191,
-  "totalPRs": 2573,
+  "participantCount": 192,
+  "totalPRs": 2574,
   "mergedPRs": 1607,
   "totalIssues": 802,
   "repositories": 54,
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "chore: delete unused notification_signals.py",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6144",
+      "username": "one-kash",
+      "avatar": "https://avatars.githubusercontent.com/u/26795040?v=4",
+      "state": "open",
+      "created_at": "2026-04-03T21:09:09Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT"
+    },
     {
       "title": "fix: resolve last updated loading issue caused by tags type error",
       "url": "https://github.com/OWASP-BLT/BLT-OWASP-metadata/pull/24",
@@ -112,16 +122,6 @@
       "avatar": "https://avatars.githubusercontent.com/u/83544797?v=4",
       "state": "open",
       "created_at": "2026-04-02T18:39:04Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "Delete `education.html` (Fixes #6120)",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6140",
-      "username": "JitPatro",
-      "avatar": "https://avatars.githubusercontent.com/u/83544797?v=4",
-      "state": "open",
-      "created_at": "2026-04-02T18:08:16Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT"
     }
