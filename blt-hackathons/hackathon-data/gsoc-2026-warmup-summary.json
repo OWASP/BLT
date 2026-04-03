@@ -1,6 +1,6 @@
 {
   "participantCount": 192,
-  "totalPRs": 2574,
+  "totalPRs": 2575,
   "mergedPRs": 1607,
   "totalIssues": 802,
   "repositories": 54,
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "Replace npx/npm wrangler usage with pywrangler for Python Workers",
+      "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/57",
+      "username": "Jayant2908",
+      "avatar": "https://avatars.githubusercontent.com/u/200989760?v=4",
+      "state": "open",
+      "created_at": "2026-04-03T21:42:57Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-SafeCloak"
+    },
     {
       "title": "chore: delete unused notification_signals.py",
       "url": "https://github.com/OWASP-BLT/BLT/pull/6144",
@@ -112,16 +122,6 @@
       "avatar": "https://avatars.githubusercontent.com/u/83544797?v=4",
       "state": "open",
       "created_at": "2026-04-02T18:51:41Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "Delete `instructor_dashboard.html` (Fixes #6124)",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6141",
-      "username": "JitPatro",
-      "avatar": "https://avatars.githubusercontent.com/u/83544797?v=4",
-      "state": "open",
-      "created_at": "2026-04-02T18:39:04Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT"
     }
