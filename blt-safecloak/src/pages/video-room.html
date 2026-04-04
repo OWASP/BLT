@@ -303,15 +303,16 @@
 
         const callBtn = document.getElementById("btn-call");
         const input = document.getElementById("remote-id");
+        const normalizeRemoteId = (value) => value.trim().toUpperCase();
         if (callBtn && input) {
           callBtn.addEventListener("click", () => {
-            VideoChat.callPeer(input.value.trim());
+            VideoChat.callPeer(normalizeRemoteId(input.value));
             input.value = "";
           });
 
           input.addEventListener("keydown", (event) => {
             if (event.key === "Enter") {
-              VideoChat.callPeer(event.target.value.trim());
+              VideoChat.callPeer(normalizeRemoteId(event.target.value));
               event.target.value = "";
             }
           });
