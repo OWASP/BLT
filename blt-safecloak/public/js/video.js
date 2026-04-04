@@ -89,10 +89,12 @@ const VideoChat = (() => {
     const instructions = $("camera-denied-instructions");
     const mainGrid = $("main-grid");
     const permAlert = $("perm-alert");
+    const callControls = $("call-controls");
     if (instructions) instructions.innerHTML = getCameraInstructions(detectBrowser());
     if (denied) denied.style.display = "flex";
     if (mainGrid) mainGrid.style.display = "none";
     if (permAlert) permAlert.style.display = "none";
+    if (callControls) callControls.style.display = "none";
     const retryBtn = $("btn-camera-retry");
     if (retryBtn) retryBtn.addEventListener("click", () => location.reload());
   }
@@ -347,7 +349,7 @@ const VideoChat = (() => {
     const remotePeerId = call.peer;
 
     const videoWrapper = document.createElement("div");
-    videoWrapper.className = "video-wrapper bg-gray-900";
+    videoWrapper.className = "video-wrapper rounded-xl bg-gray-900";
     videoWrapper.id = `wrapper-${remotePeerId}`;
 
     const videoEl = document.createElement("video");
@@ -389,7 +391,6 @@ const VideoChat = (() => {
         "success"
       );
       setDotStatus("online");
-      $("call-controls") && $("call-controls").classList.remove("hidden");
       updateParticipantsList();
     });
 
@@ -401,7 +402,6 @@ const VideoChat = (() => {
         state.connected = false;
         updateStatus("Call ended", "muted");
         setDotStatus("offline");
-        $("call-controls") && $("call-controls").classList.add("hidden");
       } else {
         const count = activeCalls.size;
         updateStatus(
@@ -516,8 +516,11 @@ const VideoChat = (() => {
     localStream.getAudioTracks().forEach((t) => (t.enabled = !micMuted));
     const btn = $("btn-mic");
     if (btn) {
-      btn.textContent = micMuted ? "🔇" : "🎙️";
+      btn.innerHTML = micMuted
+        ? '<i class="fa-solid fa-microphone-slash" aria-hidden="true"></i>'
+        : '<i class="fa-solid fa-microphone" aria-hidden="true"></i>';
       btn.title = micMuted ? "Unmute mic" : "Mute mic";
+      btn.setAttribute("aria-pressed", micMuted ? "true" : "false");
       btn.classList.toggle("active", micMuted);
     }
     showToast(micMuted ? "Microphone muted" : "Microphone unmuted", "info");
@@ -529,8 +532,11 @@ const VideoChat = (() => {
     localStream.getVideoTracks().forEach((t) => (t.enabled = !camOff));
     const btn = $("btn-cam");
     if (btn) {
-      btn.textContent = camOff ? "📷" : "🎥";
+      btn.innerHTML = camOff
+        ? '<i class="fa-solid fa-video-slash" aria-hidden="true"></i>'
+        : '<i class="fa-solid fa-video" aria-hidden="true"></i>';
       btn.title = camOff ? "Enable camera" : "Disable camera";
+      btn.setAttribute("aria-pressed", camOff ? "true" : "false");
       btn.classList.toggle("active", camOff);
     }
     showToast(camOff ? "Camera disabled" : "Camera enabled", "info");
@@ -555,7 +561,6 @@ const VideoChat = (() => {
     if (videoGrid) {
       videoGrid.querySelectorAll(".video-wrapper:not(:first-child)").forEach((w) => w.remove());
     }
-    $("call-controls") && $("call-controls").classList.add("hidden");
     updateParticipantsList();
     showToast("Call ended", "info");
     // Record consent end
@@ -652,7 +657,7 @@ const VideoChat = (() => {
       showToast("Room not ready yet — please wait", "warning");
       return;
     }
-    const url = `${window.location.origin}${window.location.pathname}?room=${encodeURIComponent(state.peerId)}`;
+    const url = `${window.location.origin}/video-chat?room=${encodeURIComponent(state.peerId)}`;
     copyToClipboard(url, "Room link");
   }
 

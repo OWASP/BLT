@@ -77,7 +77,8 @@ src/
     utils.py        # Utility functions (html_response, json_response, etc.)
   pages/            # HTML pages
     index.html      # Landing page
-    video-chat.html # Video chat interface
+    video-chat.html # Video chat lobby (create/join)
+    video-room.html # In-call meeting interface
     notes.html      # Notes interface
     consent.html    # Consent management
 public/
@@ -85,6 +86,7 @@ public/
   js/               # Client-side JavaScript
     crypto.js       # Cryptography utilities
     video.js        # WebRTC implementation
+    video-lobby.js  # Lobby create/join flow
     notes.js        # Notes functionality
     consent.js      # Consent logic
     ui.js           # UI components and utilities
@@ -98,7 +100,8 @@ package.json        # NPM scripts and dependencies
 All pages use clean URLs without `.html` extensions:
 
 - `/` - Home page
-- `/video-chat` - Video chat interface
+- `/video-chat` - Video chat lobby (create or join)
+- `/video-room` - In-call meeting interface
 - `/notes` - Secure notes
 - `/consent` - Consent management
 

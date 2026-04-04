@@ -67,6 +67,7 @@ _PEERJS_STARTUP_TIMEOUT = 15
 _PAGES = {
     "/": "src/pages/index.html",
     "/video-chat": "src/pages/video-chat.html",
+    "/video-room": "src/pages/video-room.html",
     "/notes": "src/pages/notes.html",
     "/consent": "src/pages/consent.html",
 }
@@ -252,10 +253,10 @@ class _AppHandler(http.server.BaseHTTPRequestHandler):
             self._respond(200, "application/javascript", self.__class__.peerjs_js)
             return
 
-        # Serve HTML pages (video-chat is patched to use local signaling).
+        # Serve HTML pages (video-room is patched to use local signaling).
         if path in _PAGES:
             data = (ROOT / _PAGES[path]).read_bytes()
-            if path == "/video-chat":
+            if path == "/video-room":
                 data = _patch_video_chat_html(data, self.__class__.peerjs_port)
             self._respond(200, "text/html; charset=utf-8", data)
             return
@@ -459,7 +460,7 @@ def test_three_clients_connect_and_see_cameras(base_url):
             p2 = ctx2.new_page()
             p3 = ctx3.new_page()
 
-            video_url = f"{base_url}/video-chat"
+            video_url = f"{base_url}/video-room"
             for page in (p1, p2, p3):
                 page.goto(video_url)
 
