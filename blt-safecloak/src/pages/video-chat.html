@@ -133,13 +133,61 @@
           Secure Video Chat Lobby
         </h1>
         <p class="mx-auto mt-2 max-w-2xl text-sm text-gray-600 sm:text-base">
-          Create a new room or join an existing one. Your actual video call opens on a dedicated
-          meeting page.
+          Preview your camera and microphone, then create a room or join with an existing ID.
         </p>
       </header>
 
       <main class="grid gap-6 lg:grid-cols-[1fr_320px]" id="voice">
         <section class="space-y-4" aria-label="Create or join a room">
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">
+                <i class="fa-solid fa-user-check text-primary" aria-hidden="true"></i>
+                Preview &amp; Devices
+              </h2>
+            </div>
+            <div class="card-body">
+              <p class="text-sm text-gray-600">
+                Set camera and microphone state before entering the call. These settings apply only
+                to your next room entry.
+              </p>
+
+              <div class="video-wrapper mt-3 rounded-xl border border-neutral-border bg-gray-900">
+                <video id="prejoin-video" autoplay muted playsinline aria-label="Local preview"></video>
+                <div
+                  id="prejoin-placeholder"
+                  class="absolute inset-0 flex items-center justify-center text-sm font-semibold text-gray-300"
+                >
+                  Camera preview unavailable
+                </div>
+                <div class="video-label rounded-md bg-black/65 px-2 py-1 text-xs text-white">
+                  <span class="status-dot online" aria-hidden="true"></span>
+                  Local Preview
+                </div>
+              </div>
+
+              <div class="mt-3 flex items-center gap-2">
+                <button
+                  class="control-btn rounded-full border border-neutral-border bg-white text-gray-700"
+                  id="btn-preview-mic"
+                  type="button"
+                  aria-label="Toggle microphone before joining"
+                >
+                  <i class="fa-solid fa-microphone" aria-hidden="true"></i>
+                </button>
+                <button
+                  class="control-btn rounded-full border border-neutral-border bg-white text-gray-700"
+                  id="btn-preview-cam"
+                  type="button"
+                  aria-label="Toggle camera before joining"
+                >
+                  <i class="fa-solid fa-video" aria-hidden="true"></i>
+                </button>
+                <p id="prejoin-status" class="text-xs text-gray-600">Initializing devices...</p>
+              </div>
+            </div>
+          </div>
+
           <div class="card">
             <div class="card-header">
               <h2 class="card-title">

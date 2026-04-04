@@ -15,6 +15,7 @@ const VideoChat = (() => {
   let camOff = false;
   let consentGiven = false;
   let screenSharing = false;
+  let initialMediaPreferences = { mic: true, cam: true };
 
   const state = {
     peerId: null,
@@ -109,11 +110,74 @@ const VideoChat = (() => {
     startVoiceMeter(stream);
   }
 
+  function syncControlButtons() {
+    const hasAudioTrack = Boolean(localStream && localStream.getAudioTracks().length);
+    const hasVideoTrack = Boolean(localStream && localStream.getVideoTracks().length);
+
+    const micBtn = $("btn-mic");
+    if (micBtn) {
+      if (!hasAudioTrack) {
+        micBtn.innerHTML = '<i class="fa-solid fa-microphone-slash" aria-hidden="true"></i>';
+        micBtn.title = "Microphone not available";
+        micBtn.disabled = true;
+        micBtn.classList.add("opacity-50", "cursor-not-allowed");
+      } else {
+        micBtn.innerHTML = micMuted
+          ? '<i class="fa-solid fa-microphone-slash" aria-hidden="true"></i>'
+          : '<i class="fa-solid fa-microphone" aria-hidden="true"></i>';
+        micBtn.title = micMuted ? "Unmute mic" : "Mute mic";
+        micBtn.disabled = false;
+        micBtn.classList.remove("opacity-50", "cursor-not-allowed");
+      }
+      micBtn.setAttribute("aria-pressed", micMuted ? "true" : "false");
+      micBtn.classList.toggle("active", micMuted);
+    }
+
+    const camBtn = $("btn-cam");
+    if (camBtn) {
+      if (!hasVideoTrack) {
+        camBtn.innerHTML = '<i class="fa-solid fa-video-slash" aria-hidden="true"></i>';
+        camBtn.title = "Camera not available";
+        camBtn.disabled = true;
+        camBtn.classList.add("opacity-50", "cursor-not-allowed");
+      } else {
+        camBtn.innerHTML = camOff
+          ? '<i class="fa-solid fa-video-slash" aria-hidden="true"></i>'
+          : '<i class="fa-solid fa-video" aria-hidden="true"></i>';
+        camBtn.title = camOff ? "Enable camera" : "Disable camera";
+        camBtn.disabled = false;
+        camBtn.classList.remove("opacity-50", "cursor-not-allowed");
+      }
+      camBtn.setAttribute("aria-pressed", camOff ? "true" : "false");
+      camBtn.classList.toggle("active", camOff);
+    }
+  }
+
+  function applyInitialMediaPreferences() {
+    if (!localStream) return;
+
+    const hasAudioTrack = localStream.getAudioTracks().length > 0;
+    const hasVideoTrack = localStream.getVideoTracks().length > 0;
+
+    micMuted = hasAudioTrack ? !initialMediaPreferences.mic : false;
+    camOff = hasVideoTrack ? !initialMediaPreferences.cam : false;
+
+    if (hasAudioTrack) {
+      localStream.getAudioTracks().forEach((track) => (track.enabled = !micMuted));
+    }
+    if (hasVideoTrack) {
+      localStream.getVideoTracks().forEach((track) => (track.enabled = !camOff));
+    }
+
+    syncControlButtons();
+  }
+
   async function startLocalMedia() {
     // 1. Try full video + audio
     try {
       localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
       await attachStream(localStream);
+      applyInitialMediaPreferences();
       return true;
     } catch (err) {
       if (
@@ -145,6 +209,7 @@ const VideoChat = (() => {
     try {
       localStream = await navigator.mediaDevices.getUserMedia({ video: false, audio: true });
       await attachStream(localStream);
+      applyInitialMediaPreferences();
       showToast("No camera found — joining with audio only", "warning");
       return true;
     } catch (audioErr) {
@@ -166,6 +231,7 @@ const VideoChat = (() => {
     try {
       localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
       await attachStream(localStream);
+      applyInitialMediaPreferences();
       showToast("No microphone found — joining with video only", "warning");
       return true;
     } catch (videoErr) {
@@ -512,33 +578,27 @@ const VideoChat = (() => {
   /* ── Controls ── */
   function toggleMic() {
     if (!localStream) return;
-    micMuted = !micMuted;
-    localStream.getAudioTracks().forEach((t) => (t.enabled = !micMuted));
-    const btn = $("btn-mic");
-    if (btn) {
-      btn.innerHTML = micMuted
-        ? '<i class="fa-solid fa-microphone-slash" aria-hidden="true"></i>'
-        : '<i class="fa-solid fa-microphone" aria-hidden="true"></i>';
-      btn.title = micMuted ? "Unmute mic" : "Mute mic";
-      btn.setAttribute("aria-pressed", micMuted ? "true" : "false");
-      btn.classList.toggle("active", micMuted);
+    if (localStream.getAudioTracks().length === 0) {
+      showToast("No microphone available", "warning");
+      return;
     }
+
+    micMuted = !micMuted;
+    localStream.getAudioTracks().forEach((track) => (track.enabled = !micMuted));
+    syncControlButtons();
     showToast(micMuted ? "Microphone muted" : "Microphone unmuted", "info");
   }
 
   function toggleCamera() {
     if (!localStream) return;
-    camOff = !camOff;
-    localStream.getVideoTracks().forEach((t) => (t.enabled = !camOff));
-    const btn = $("btn-cam");
-    if (btn) {
-      btn.innerHTML = camOff
-        ? '<i class="fa-solid fa-video-slash" aria-hidden="true"></i>'
-        : '<i class="fa-solid fa-video" aria-hidden="true"></i>';
-      btn.title = camOff ? "Enable camera" : "Disable camera";
-      btn.setAttribute("aria-pressed", camOff ? "true" : "false");
-      btn.classList.toggle("active", camOff);
+    if (localStream.getVideoTracks().length === 0) {
+      showToast("No camera available", "warning");
+      return;
     }
+
+    camOff = !camOff;
+    localStream.getVideoTracks().forEach((track) => (track.enabled = !camOff));
+    syncControlButtons();
     showToast(camOff ? "Camera disabled" : "Camera enabled", "info");
   }
 
@@ -619,10 +679,10 @@ const VideoChat = (() => {
       overlay.style.display = "flex";
       overlay.innerHTML = `
         <div class="modal" style="max-width:440px">
-          <h3>🔒 Recording Consent Required</h3>
-          <p>This call may be recorded for AI notes and security purposes. Do you consent to participate in this secure call with <strong style="color:#fff">${callerName}</strong>?</p>
+          <h3 style="display:flex;align-items:center;gap:0.5rem"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i>Recording Consent Required</h3>
+          <p>This call may be recorded for AI notes and security purposes. Do you consent to participate in this secure call with <strong>${callerName}</strong>?</p>
           <div class="alert alert-info" style="margin-bottom:1rem">
-            <span>ℹ️</span>
+            <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
             <span>Consent is cryptographically timestamped and stored locally. You can withdraw at any time.</span>
           </div>
           <div style="display:flex;gap:0.75rem;justify-content:flex-end">
@@ -706,8 +766,31 @@ const VideoChat = (() => {
     showToast("Screen sharing stopped", "info");
   }
 
+  function readInitialMediaPreferencesFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const mic = params.get("mic");
+    const cam = params.get("cam");
+
+    if (mic === "off" || mic === "on") {
+      initialMediaPreferences.mic = mic === "on";
+    }
+    if (cam === "off" || cam === "on") {
+      initialMediaPreferences.cam = cam === "on";
+    }
+
+    if (params.get("prejoin") === "1") {
+      params.delete("prejoin");
+      params.delete("mic");
+      params.delete("cam");
+      const query = params.toString();
+      const cleanUrl = window.location.pathname + (query ? "?" + query : "");
+      window.history.replaceState({}, "", cleanUrl);
+    }
+  }
+
   /* ── Init ── */
   async function init() {
+    readInitialMediaPreferencesFromUrl();
     const ok = await startLocalMedia();
     if (ok) await initPeer();
   }
