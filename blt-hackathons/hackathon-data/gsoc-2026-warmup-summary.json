@@ -1,6 +1,6 @@
 {
   "participantCount": 192,
-  "totalPRs": 2575,
+  "totalPRs": 2577,
   "mergedPRs": 1607,
   "totalIssues": 802,
   "repositories": 54,
@@ -25,6 +25,26 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "feat: port /assign and labeling handlers from BLT-Pool",
+      "url": "https://github.com/OWASP-BLT/BLT-Action/pull/119",
+      "username": "BharathC0",
+      "avatar": "https://avatars.githubusercontent.com/u/211328860?v=4",
+      "state": "open",
+      "created_at": "2026-04-04T02:14:38Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-Action"
+    },
+    {
+      "title": " port leaderboard tracking from BLT-Pool",
+      "url": "https://github.com/OWASP-BLT/BLT-Rewards/pull/50",
+      "username": "BharathC0",
+      "avatar": "https://avatars.githubusercontent.com/u/211328860?v=4",
+      "state": "open",
+      "created_at": "2026-04-04T02:14:00Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-Rewards"
+    },
     {
       "title": "Replace npx/npm wrangler usage with pywrangler for Python Workers",
       "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/57",
@@ -104,26 +124,6 @@
       "created_at": "2026-04-02T19:18:40Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT-SafeCloak"
-    },
-    {
-      "title": "Refine contributor gate: count only open + merged PRs (org-wide)",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6143",
-      "username": "Jayant2908",
-      "avatar": "https://avatars.githubusercontent.com/u/200989760?v=4",
-      "state": "closed",
-      "created_at": "2026-04-02T18:57:25Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "Delete `content_management.html` (Fixes #6125)",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6142",
-      "username": "JitPatro",
-      "avatar": "https://avatars.githubusercontent.com/u/83544797?v=4",
-      "state": "open",
-      "created_at": "2026-04-02T18:51:41Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT"
     }
   ]
 }
