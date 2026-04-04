@@ -1,6 +1,6 @@
 {
   "participantCount": 191,
-  "totalPRs": 2550,
+  "totalPRs": 2551,
   "mergedPRs": 1587,
   "totalIssues": 788,
   "repositories": 54,
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "Refactor/update video room layout",
+      "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/59",
+      "username": "mdkaifansari04",
+      "avatar": "https://avatars.githubusercontent.com/u/117475603?v=4",
+      "state": "open",
+      "created_at": "2026-04-04T18:32:07Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-SafeCloak"
+    },
     {
       "title": "feat: port /assign and labeling handlers from BLT-Pool",
       "url": "https://github.com/OWASP-BLT/BLT-Action/pull/119",
@@ -112,16 +122,6 @@
       "avatar": "https://avatars.githubusercontent.com/u/199046682?v=4",
       "state": "open",
       "created_at": "2026-04-02T19:35:53Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-SafeCloak"
-    },
-    {
-      "title": "# feat(notes): add secure recovery key suite and stabilize python worker infrastructure",
-      "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/53",
-      "username": "ojaswa072",
-      "avatar": "https://avatars.githubusercontent.com/u/230836303?v=4",
-      "state": "open",
-      "created_at": "2026-04-02T19:18:40Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT-SafeCloak"
     }
