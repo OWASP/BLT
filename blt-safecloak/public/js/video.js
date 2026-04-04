@@ -793,6 +793,7 @@ const VideoChat = (() => {
     readInitialMediaPreferencesFromUrl();
     const ok = await startLocalMedia();
     if (ok) await initPeer();
+    return ok;
   }
 
   return {
