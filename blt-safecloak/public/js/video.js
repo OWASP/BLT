@@ -712,6 +712,14 @@ const VideoChat = (() => {
   }
 
   /* ── Share link ── */
+  function copyRoomId() {
+    if (!state.peerId) {
+      showToast("Room not ready yet — please wait", "warning");
+      return;
+    }
+    copyToClipboard(state.peerId, "Room ID");
+  }
+
   function copyRoomLink() {
     if (!state.peerId) {
       showToast("Room not ready yet — please wait", "warning");
@@ -806,6 +814,7 @@ const VideoChat = (() => {
     toggleNoiseSuppression,
     shareScreen,
     stopScreenShare,
+    copyRoomId,
     copyRoomLink,
     state,
   };

@@ -13,11 +13,11 @@
       href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><path fill='%23E10101' d='M32 4l22 8v17c0 14-9.7 26.3-22 30C19.7 55.3 10 43 10 29V12z'/><path fill='white' d='M32 16l12 4v9c0 7.9-5.2 14.9-12 17-6.8-2.1-12-9.1-12-17v-9z'/></svg>"
     />
 
-    <script 
-      src="https://cdn.tailwindcss.com" 
-      integrity="sha384-C3BiWfmJF/eT56Ug4hxVQ9pX6dMmxGWNgVLuKvVLauwQYYkuiDsUDl12nGbvGTlF" 
-      crossorigin="anonymous">
-    </script>
+    <script
+      src="https://cdn.tailwindcss.com"
+      integrity="sha384-C3BiWfmJF/eT56Ug4hxVQ9pX6dMmxGWNgVLuKvVLauwQYYkuiDsUDl12nGbvGTlF"
+      crossorigin="anonymous"
+    ></script>
     <script>
       tailwind.config = {
         theme: {
@@ -53,7 +53,7 @@
   <body class="font-sans antialiased">
     <div class="pointer-events-none fixed inset-x-0 top-0 -z-10 h-full hero-glow"></div>
 
-    <div class="mx-auto flex min-h-screen w-full flex-col ">
+    <div class="mx-auto flex min-h-screen w-full flex-col">
       <header
         class="mb-4 flex items-center justify-between border border-neutral-border bg-white/95 px-4 py-3 shadow-sm backdrop-blur"
       >
@@ -129,9 +129,14 @@
               </div>
             </div>
 
-            <div class="rounded-2xl border border-neutral-border bg-white p-4 shadow-sm" aria-label="Voice activity meter">
+            <div
+              class="rounded-2xl border border-neutral-border bg-white p-4 shadow-sm"
+              aria-label="Voice activity meter"
+            >
               <div class="flex flex-wrap items-center gap-3">
-                <span class="text-xs font-bold uppercase tracking-wide text-gray-500">Voice Activity</span>
+                <span class="text-xs font-bold uppercase tracking-wide text-gray-500"
+                  >Voice Activity</span
+                >
                 <div class="voice-meter" aria-hidden="true">
                   <div class="voice-bar"></div>
                   <div class="voice-bar"></div>
@@ -143,7 +148,9 @@
                   <div class="voice-bar"></div>
                 </div>
                 <div class="ml-auto flex flex-wrap gap-2 text-xs">
-                  <span class="badge badge-success" id="badge-noise-suppression">Noise Suppression</span>
+                  <span class="badge badge-success" id="badge-noise-suppression"
+                    >Noise Suppression</span
+                  >
                   <span class="badge badge-success">Echo Cancel</span>
                   <span class="badge badge-primary">Auto Gain</span>
                 </div>
@@ -153,7 +160,9 @@
 
           <aside aria-label="Room setup and connection info" class="space-y-4">
             <div class="rounded-2xl border border-neutral-border bg-white p-4 shadow-sm">
-              <h2 class="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-gray-700">
+              <h2
+                class="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-gray-700"
+              >
                 <i class="fa-solid fa-key text-primary" aria-hidden="true"></i>
                 Your Room ID
               </h2>
@@ -166,7 +175,7 @@
               </div>
               <button
                 class="btn btn-secondary mt-3 w-full"
-                onclick="copyToClipboard(document.getElementById('my-peer-id').textContent, 'Room ID')"
+                onclick="VideoChat.copyRoomId()"
                 aria-label="Copy room ID to clipboard"
               >
                 <i class="fa-regular fa-copy" aria-hidden="true"></i>
@@ -183,12 +192,19 @@
               </button>
             </div>
 
-            <div id="add-participant-card" class="rounded-2xl border border-neutral-border bg-white p-4 shadow-sm">
-              <h2 class="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-gray-700">
+            <div
+              id="add-participant-card"
+              class="rounded-2xl border border-neutral-border bg-white p-4 shadow-sm"
+            >
+              <h2
+                class="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-gray-700"
+              >
                 <i class="fa-solid fa-phone text-primary" aria-hidden="true"></i>
                 Add Participant
               </h2>
-              <label class="mb-2 block text-sm font-semibold text-gray-700" for="remote-id">Remote Room ID</label>
+              <label class="mb-2 block text-sm font-semibold text-gray-700" for="remote-id"
+                >Remote Room ID</label
+              >
               <input
                 type="text"
                 class="w-full rounded-md border border-neutral-border px-4 py-2 text-gray-900 placeholder-gray-500 transition-colors focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
@@ -201,14 +217,20 @@
                 inputmode="text"
                 required
               />
-              <button class="btn btn-primary mt-3 w-full" id="btn-call" aria-label="Add participant to room">
+              <button
+                class="btn btn-primary mt-3 w-full"
+                id="btn-call"
+                aria-label="Add participant to room"
+              >
                 <i class="fa-solid fa-user-plus" aria-hidden="true"></i>
                 Add Participant
               </button>
             </div>
 
             <div class="rounded-2xl border border-neutral-border bg-white p-4 shadow-sm">
-              <h2 class="mb-3 flex items-center text-sm font-bold uppercase tracking-wide text-gray-700">
+              <h2
+                class="mb-3 flex items-center text-sm font-bold uppercase tracking-wide text-gray-700"
+              >
                 <i class="fa-solid fa-users mr-2 text-primary" aria-hidden="true"></i>
                 Participants
                 <span
@@ -282,11 +304,11 @@
 
     <div id="toast-container" role="status" aria-live="polite"></div>
 
-    <sintegrity="sha384-HZ3t0aGHOu4P0OskaP9HLUkiwzFaY2TKNbzBkmYYVyed7nK0KtkVzU2dLSVVW44k"
-      cript
+    <script
       src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"
+      integrity="sha384-HZ3t0aGHOu4P0OskaP9HLUkiwzFaY2TKNbzBkmYYVyed7nK0KtkVzU2dLSVVW44k"
       crossorigin="anonymous"
-    ></sintegrity=>
+    ></script>
     <script src="js/crypto.js"></script>
     <script src="js/ui.js"></script>
     <script src="js/consent.js"></script>
