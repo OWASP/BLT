@@ -245,9 +245,7 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
       </div>
       <p class="text-sm text-gray-600 dark:text-gray-300 mb-5 leading-relaxed">{cdesc}</p>
       <div class="flex items-center gap-4 text-sm font-medium mb-5 flex-wrap">
-        <span class="inline-flex items-center gap-1.5 text-[#E10101]">
-        <i class="fa-solid fa-trophy" aria-hidden="true"></i> {cprize} prize
-        </span>
+        {'<span class="inline-flex items-center gap-1.5 text-[#E10101]"><i class="fa-solid fa-trophy" aria-hidden="true"></i> ' + cprize + ' prize</span>' if cprize else ''}
         <span class="inline-flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
         <i class="fa-solid fa-calendar-day" aria-hidden="true"></i> {ends_text}
         </span>
@@ -655,6 +653,20 @@ def build_contest_section(contest: dict, cards: list[str], total: int,
     ends_label = "Ended" if cstatus == "selecting_winner" else "Ends"
     google_form_url = html.escape(contest.get("google_form_url", ""))
 
+    prize_html = (
+        f'<span class="inline-flex items-center gap-1 text-[#E10101]">'
+        f'<i class="fa-solid fa-trophy" aria-hidden="true"></i> {prize} prize</span>'
+        if prize else ""
+    )
+    google_form_html = (
+        f'<div class="mt-3 text-sm text-gray-500 dark:text-gray-400">'
+        f'Submit via BLT below, or use the '
+        f'<a href="{google_form_url}" target="_blank" rel="noopener"'
+        f' class="text-[#E10101] hover:underline font-medium">official Google Form</a>'
+        f" as an alternative.</div>"
+        if google_form_url else ""
+    )
+
     if cards:
         cards_html = "\n".join(cards)
     else:
@@ -696,7 +708,7 @@ def build_contest_section(contest: dict, cards: list[str], total: int,
             </h2>
             <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{description}</p>
             <div class="mt-2 flex items-center gap-4 text-sm font-medium flex-wrap">
-              {'<span class="inline-flex items-center gap-1 text-[#E10101]"><i class="fa-solid fa-trophy" aria-hidden="true"></i> ' + prize + ' prize</span>' if prize else ''}
+              {prize_html}
               <span class="inline-flex items-center gap-1 text-[#E10101]">
                 <i class="fa-solid fa-calendar-day" aria-hidden="true"></i> {ends_label} {deadline_display}
               </span>
@@ -705,7 +717,7 @@ def build_contest_section(contest: dict, cards: list[str], total: int,
                 {total} submission{'' if total == 1 else 's'}
               </span>
             </div>
-            {('<div class="mt-3 text-sm text-gray-500 dark:text-gray-400">Submit via BLT below, or use the <a href="' + google_form_url + '" target="_blank" rel="noopener" class="text-[#E10101] hover:underline font-medium">official Google Form</a> as an alternative.</div>') if google_form_url else ''}
+            {google_form_html}
           </div>
           <a href="{submit_url}"
              target="_blank" rel="noopener"
@@ -811,9 +823,7 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
             </div>
             <p class="text-sm text-gray-600 dark:text-gray-300 mb-5 leading-relaxed">{cdesc}</p>
             <div class="flex items-center gap-4 text-sm font-medium mb-5 flex-wrap">
-              <span class="inline-flex items-center gap-1.5 text-[#E10101]">
-                <i class="fa-solid fa-trophy" aria-hidden="true"></i> {cprize} prize
-              </span>
+              {'<span class="inline-flex items-center gap-1.5 text-[#E10101]"><i class="fa-solid fa-trophy" aria-hidden="true"></i> ' + cprize + ' prize</span>' if cprize else ''}
               <span class="inline-flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
                 <i class="fa-solid fa-calendar-day" aria-hidden="true"></i> {ends_text}
               </span>
@@ -1776,7 +1786,7 @@ def build_contest_page_html(contest_data: dict, last_updated: str) -> str:
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <meta name="description" content="{cname} — community showcase of design submissions. Rate your favourites with a thumbs up!" />
+  <meta name="description" content="{cname} — open design showcase for BLT and the broader open source security community. Browse entries, vote for your favourites, and submit your own!" />
   <title>{cname} — BLT Design Contests</title>
 
   <!-- Tailwind CSS (CDN) -->
