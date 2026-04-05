@@ -1,6 +1,6 @@
 {
-  "participantCount": 192,
-  "totalPRs": 2555,
+  "participantCount": 193,
+  "totalPRs": 2557,
   "mergedPRs": 1588,
   "totalIssues": 791,
   "repositories": 54,
@@ -25,6 +25,26 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "Remove deprecated standalone lecture editing feature v2",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6148",
+      "username": "Prachi9506",
+      "avatar": "https://avatars.githubusercontent.com/u/174894162?v=4",
+      "state": "closed",
+      "created_at": "2026-04-05T15:43:44Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT"
+    },
+    {
+      "title": "Remove deprecated standalone lecture editing feature",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6147",
+      "username": "Prachi9506",
+      "avatar": "https://avatars.githubusercontent.com/u/174894162?v=4",
+      "state": "closed",
+      "created_at": "2026-04-05T15:33:32Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT"
+    },
     {
       "title": "feat: add manifest and service worker for PWA",
       "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/60",
@@ -104,26 +124,6 @@
       "created_at": "2026-04-03T18:14:42Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT-OWASP-metadata"
-    },
-    {
-      "title": "feat(api): add  room validation endpoints",
-      "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/56",
-      "username": "Rudrawhy",
-      "avatar": "https://avatars.githubusercontent.com/u/154898503?v=4",
-      "state": "open",
-      "created_at": "2026-04-03T17:31:26Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-SafeCloak"
-    },
-    {
-      "title": " split leaderboard into blt_rewards and assign/labeling into blt\u2026",
-      "url": "https://github.com/OWASP-BLT/BLT-Pool/pull/115",
-      "username": "BharathC0",
-      "avatar": "https://avatars.githubusercontent.com/u/211328860?v=4",
-      "state": "closed",
-      "created_at": "2026-04-03T05:18:13Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-Pool"
     }
   ]
 }
