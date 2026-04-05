@@ -63,6 +63,7 @@ jobs:
               { name: 'winner-announcement',  color: '10b981', description: 'Pending winner announcement',     titlePrefix: null         },
               { name: 'video-meme-submission',  color: 'f97316', description: 'BLT Video Meme submission',    titlePrefix: '[Video Meme]'     },
               { name: 'welcome-video-submission',  color: '5d17b3', description: 'BLT Welcome Video submission',    titlePrefix: '[Welcome Video]'     },
+              { name: 'appsecil-tshirt-submission', color: '0ea5e9', description: 'AppSecIL T-Shirt Design submission', titlePrefix: '[AppSecIL]' },
             ];
 
             // Ensure each label exists

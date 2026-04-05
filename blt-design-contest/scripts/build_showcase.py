@@ -99,6 +99,31 @@ CONTESTS = [
         "deadline_display": "April 15, 2026",
         "icon": "fa-solid fa-photo-film",
     },
+    {
+        "id": "appsecil-tshirt",
+        "name": "AppSecIL 2026 T-Shirt Design Contest",
+        "label": "appsecil-tshirt-submission",
+        "title_prefix": "[AppSecIL]",
+        "template": "appsecil-tshirt-submission.yml",
+        "description": "Design a T-shirt for OWASP AppSec Israel — one of the region's leading cybersecurity conferences, bringing together 1,000+ security professionals, developers, and open source contributors.",
+        "long_description": (
+            "Israel's premier application security event is back! "
+            "OWASP AppSec Israel is one of the leading cybersecurity conferences in the region, "
+            "bringing together experts, professionals, and enthusiasts from around the world. "
+            "Join 1,000+ developers, DevOps engineers, architects, security specialists, product leaders, "
+            "and other industry professionals dedicated to advancing the future of application security. "
+            "Whether you build, secure, or manage software, this event is designed for you. "
+            "Hear from top speakers sharing the latest security insights. "
+            "Join hands-on sessions and network with leading industry experts. "
+            "A diverse audience awaits you: security and cyber defense professionals, developers, "
+            "software engineers, researchers, industry leaders, and executives."
+        ),
+        "prize": "",
+        "deadline": "2026-04-12T00:00:00Z",
+        "deadline_display": "April 12, 2026",
+        "icon": "fa-solid fa-shirt",
+        "google_form_url": "https://docs.google.com/forms/d/e/1FAIpQLSej8eFeNBeUhOyKmDffvv9y0QLIoWCgt6szrFVZjxDaY-8VOw/viewform",
+    },
 ]
 
 # Backward-compatible aliases (used by helpers that pre-date multi-contest support)
@@ -220,9 +245,7 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
       </div>
       <p class="text-sm text-gray-600 dark:text-gray-300 mb-5 leading-relaxed">{cdesc}</p>
       <div class="flex items-center gap-4 text-sm font-medium mb-5 flex-wrap">
-        <span class="inline-flex items-center gap-1.5 text-[#E10101]">
-        <i class="fa-solid fa-trophy" aria-hidden="true"></i> {cprize} prize
-        </span>
+        {'<span class="inline-flex items-center gap-1.5 text-[#E10101]"><i class="fa-solid fa-trophy" aria-hidden="true"></i> ' + cprize + ' prize</span>' if cprize else ''}
         <span class="inline-flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
         <i class="fa-solid fa-calendar-day" aria-hidden="true"></i> {ends_text}
         </span>
@@ -619,7 +642,7 @@ def build_contest_section(contest: dict, cards: list[str], total: int,
     """Return the HTML panel for one contest tab (without wrapping <main>)."""
     cid = html.escape(contest["id"])
     name = html.escape(contest["name"])
-    description = html.escape(contest["description"])
+    description = html.escape(contest.get("long_description") or contest["description"])
     prize = html.escape(contest["prize"])
     deadline_display = html.escape(contest["deadline_display"])
     submit_url = html.escape(
@@ -628,6 +651,21 @@ def build_contest_section(contest: dict, cards: list[str], total: int,
     icon = contest["icon"]
     cstatus = contest.get("status", "active")
     ends_label = "Ended" if cstatus == "selecting_winner" else "Ends"
+    google_form_url = html.escape(contest.get("google_form_url", ""))
+
+    prize_html = (
+        f'<span class="inline-flex items-center gap-1 text-[#E10101]">'
+        f'<i class="fa-solid fa-trophy" aria-hidden="true"></i> {prize} prize</span>'
+        if prize else ""
+    )
+    google_form_html = (
+        f'<div class="mt-3 text-sm text-gray-500 dark:text-gray-400">'
+        f'Submit via BLT below, or use the '
+        f'<a href="{google_form_url}" target="_blank" rel="noopener"'
+        f' class="text-[#E10101] hover:underline font-medium">official Google Form</a>'
+        f" as an alternative.</div>"
+        if google_form_url else ""
+    )
 
     if cards:
         cards_html = "\n".join(cards)
@@ -670,9 +708,7 @@ def build_contest_section(contest: dict, cards: list[str], total: int,
             </h2>
             <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{description}</p>
             <div class="mt-2 flex items-center gap-4 text-sm font-medium flex-wrap">
-              <span class="inline-flex items-center gap-1 text-[#E10101]">
-                <i class="fa-solid fa-trophy" aria-hidden="true"></i> {prize} prize
-              </span>
+              {prize_html}
               <span class="inline-flex items-center gap-1 text-[#E10101]">
                 <i class="fa-solid fa-calendar-day" aria-hidden="true"></i> {ends_label} {deadline_display}
               </span>
@@ -681,6 +717,7 @@ def build_contest_section(contest: dict, cards: list[str], total: int,
                 {total} submission{'' if total == 1 else 's'}
               </span>
             </div>
+            {google_form_html}
           </div>
           <a href="{submit_url}"
              target="_blank" rel="noopener"
@@ -786,9 +823,7 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
             </div>
             <p class="text-sm text-gray-600 dark:text-gray-300 mb-5 leading-relaxed">{cdesc}</p>
             <div class="flex items-center gap-4 text-sm font-medium mb-5 flex-wrap">
-              <span class="inline-flex items-center gap-1.5 text-[#E10101]">
-                <i class="fa-solid fa-trophy" aria-hidden="true"></i> {cprize} prize
-              </span>
+              {'<span class="inline-flex items-center gap-1.5 text-[#E10101]"><i class="fa-solid fa-trophy" aria-hidden="true"></i> ' + cprize + ' prize</span>' if cprize else ''}
               <span class="inline-flex items-center gap-1.5 text-gray-500 dark:text-gray-400">
                 <i class="fa-solid fa-calendar-day" aria-hidden="true"></i> {ends_text}
               </span>
@@ -967,7 +1002,7 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <meta name="description" content="BLT Design Contest — community showcase of design submissions. Rate your favourites with a thumbs up!" />
+  <meta name="description" content="BLT Design Contest — open design showcases for BLT and the broader open source security community. Browse entries, vote for your favourites, and submit your own!" />
   <title>BLT Design Contests</title>
 
   <!-- Tailwind CSS (CDN) -->
@@ -1076,14 +1111,14 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
       <span class="inline-block mb-4 bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]
                    text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wide">
-        Open Design Contests
+        Open to Everyone
       </span>
       <h1 class="text-4xl sm:text-5xl font-black text-gray-900 dark:text-gray-50 leading-tight mb-4">
-        BLT Design Showcases
+        BLT Design Contests
       </h1>
       <p class="max-w-2xl mx-auto text-lg text-gray-600 dark:text-gray-300 mb-8">
-        Community-driven design submissions for OWASP BLT.
-        Browse entries, react with 👍 on GitHub, and submit your own work.
+        Anyone passionate about BLT, open source, and application security is welcome to participate.
+        Browse entries, share your appreciation with a 👍 on GitHub, and submit your own design.
       </p>
     </div>
   </section>
@@ -1100,19 +1135,19 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
         <li class="flex flex-col items-center text-center gap-3">
           <span class="w-12 h-12 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]
                        flex items-center justify-center text-xl font-black">1</span>
-          <h3 class="font-semibold text-gray-900 dark:text-gray-100">Submit via GitHub</h3>
+          <h3 class="font-semibold text-gray-900 dark:text-gray-100">Submit your design</h3>
           <p class="text-sm text-gray-500 dark:text-gray-400">
-            Open a new issue using the <em>Design Submission</em> template.
-            Upload your preview image, add a description and a link to your design.
+            Open a new GitHub issue using the contest's submission template — no prior experience needed.
+            Upload a preview image, add a short description, and link to your design.
           </p>
         </li>
         <li class="flex flex-col items-center text-center gap-3">
           <span class="w-12 h-12 rounded-full bg-[#feeae9] dark:bg-red-900/30 text-[#E10101]
                        flex items-center justify-center text-xl font-black">2</span>
-          <h3 class="font-semibold text-gray-900 dark:text-gray-100">Community rates it</h3>
+          <h3 class="font-semibold text-gray-900 dark:text-gray-100">Everyone votes</h3>
           <p class="text-sm text-gray-500 dark:text-gray-400">
-            Anyone can leave a 👍 reaction on your issue to show appreciation.
-            The showcase automatically reflects the current reaction counts.
+            Anyone — from seasoned security pros to open source newcomers — can leave a 👍 reaction
+            to show appreciation. The showcase reflects live reaction counts.
           </p>
         </li>
         <li class="flex flex-col items-center text-center gap-3">
@@ -1120,7 +1155,7 @@ def build_html(contests_data: list[dict], last_updated: str) -> str:
                        flex items-center justify-center text-xl font-black">3</span>
           <h3 class="font-semibold text-gray-900 dark:text-gray-100">Showcase updates</h3>
           <p class="text-sm text-gray-500 dark:text-gray-400">
-            GitHub Actions rebuilds this page whenever a submission issue is
+            GitHub Actions rebuilds this page whenever a submission is
             opened or edited, keeping the showcase always up to date.
           </p>
         </li>
@@ -1751,7 +1786,7 @@ def build_contest_page_html(contest_data: dict, last_updated: str) -> str:
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <meta name="description" content="{cname} — community showcase of design submissions. Rate your favourites with a thumbs up!" />
+  <meta name="description" content="{cname} — open design showcase for BLT and the broader open source security community. Browse entries, vote for your favourites, and submit your own!" />
   <title>{cname} — BLT Design Contests</title>
 
   <!-- Tailwind CSS (CDN) -->
