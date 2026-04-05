@@ -1,6 +1,6 @@
 {
   "participantCount": 193,
-  "totalPRs": 2557,
+  "totalPRs": 2559,
   "mergedPRs": 1588,
   "totalIssues": 791,
   "repositories": 54,
@@ -25,6 +25,26 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "Delete edit_standalone_lecture.html (Fixes #6128)",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6149",
+      "username": "Prachi9506",
+      "avatar": "https://avatars.githubusercontent.com/u/174894162?v=4",
+      "state": "open",
+      "created_at": "2026-04-05T17:06:32Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT"
+    },
+    {
+      "title": "fix: Harden the FAQ system to prevent jailbreaks and prompt injections ",
+      "url": "https://github.com/OWASP-BLT/BLT-Byte/pull/16",
+      "username": "S3DFX-CYBER",
+      "avatar": "https://avatars.githubusercontent.com/u/213652949?v=4",
+      "state": "open",
+      "created_at": "2026-04-05T16:40:34Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-Byte"
+    },
     {
       "title": "Remove deprecated standalone lecture editing feature v2",
       "url": "https://github.com/OWASP-BLT/BLT/pull/6148",
@@ -104,26 +124,6 @@
       "created_at": "2026-04-03T21:42:57Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT-SafeCloak"
-    },
-    {
-      "title": "chore: delete unused notification_signals.py",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6144",
-      "username": "one-kash",
-      "avatar": "https://avatars.githubusercontent.com/u/26795040?v=4",
-      "state": "open",
-      "created_at": "2026-04-03T21:09:09Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "fix: resolve last updated loading issue caused by tags type error",
-      "url": "https://github.com/OWASP-BLT/BLT-OWASP-metadata/pull/24",
-      "username": "Riya-Jain-here",
-      "avatar": "https://avatars.githubusercontent.com/u/120404043?v=4",
-      "state": "open",
-      "created_at": "2026-04-03T18:14:42Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-OWASP-metadata"
     }
   ]
 }
