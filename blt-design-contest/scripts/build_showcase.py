@@ -101,7 +101,7 @@ CONTESTS = [
     },
     {
         "id": "appsecil-tshirt",
-        "name": "AppSecIL 2024 T-Shirt Design Contest",
+        "name": "AppSecIL 2026 T-Shirt Design Contest",
         "label": "appsecil-tshirt-submission",
         "title_prefix": "[AppSecIL]",
         "template": "appsecil-tshirt-submission.yml",
