@@ -908,13 +908,13 @@ class AdminService:
                   <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="mentor" data-sort-direction="desc" class="inline-flex items-center gap-1">Mentor <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
                   <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="name" data-sort-direction="desc" class="inline-flex items-center gap-1">Name <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
                   <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="github_username" data-sort-direction="desc" class="inline-flex items-center gap-1">GitHub <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
-                  <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="active" data-sort-direction="desc" class="inline-flex items-center gap-1">Published <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
-                  <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="specialties" data-sort-direction="desc" class="inline-flex items-center gap-1">Specialties <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
                   <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="max_mentees" data-sort-direction="desc" class="inline-flex items-center gap-1">Cap <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
-                  <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="timezone" data-sort-direction="desc" class="inline-flex items-center gap-1">Timezone <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
-                  <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="referred_by" data-sort-direction="desc" class="inline-flex items-center gap-1">Referral <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
                   <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="slack_username" data-sort-direction="desc" class="inline-flex items-center gap-1">Slack <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
                   <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="email" data-sort-direction="desc" class="inline-flex items-center gap-1">Email <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="specialties" data-sort-direction="desc" class="inline-flex items-center gap-1">Specialties <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="active" data-sort-direction="desc" class="inline-flex items-center gap-1">Published <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="timezone" data-sort-direction="desc" class="inline-flex items-center gap-1">Timezone <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="referred_by" data-sort-direction="desc" class="inline-flex items-center gap-1">Referral <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
                   <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="assignments" data-sort-direction="desc" class="inline-flex items-center gap-1">Assignments (count) <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
                   <th class="sticky z-30 bg-gray-50 px-3 py-3 text-right"><button type="button" data-sort-key="actions" data-sort-direction="desc" class="inline-flex items-center gap-1">Actions <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
                 </tr>
@@ -1024,17 +1024,17 @@ class AdminService:
           </td>
           <td class="px-3 py-2"><input form="{form_id}" data-field="name" name="name" value="{_escape(name)}" class="w-40 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" maxlength="100" required></td>
           <td class="px-3 py-2"><input form="{form_id}" data-field="github_username" name="github_username" value="{_escape(username)}" class="w-36 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" maxlength="39" required></td>
+          <td class="px-3 py-2"><input form="{form_id}" data-field="max_mentees" name="max_mentees" type="number" min="1" max="10" value="{int(mentor.get('max_mentees') or 3)}" class="w-20 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800"></td>
+          <td class="px-3 py-2"><input form="{form_id}" data-field="slack_username" name="slack_username" value="{_escape(slack_username)}" class="w-32 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" maxlength="80"></td>
+          <td class="px-3 py-2"><input form="{form_id}" data-field="email" name="email" type="email" value="{_escape(email)}" class="w-56 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" maxlength="255"></td>
+          <td class="px-3 py-2"><input form="{form_id}" data-field="specialties" name="specialties" value="{_escape(specialties_value)}" class="w-48 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" maxlength="300" placeholder="frontend, python"></td>
           <td class="px-3 py-2 text-center">
             <label class="inline-flex items-center justify-center">
               <input form="{form_id}" data-field="active" name="active" type="checkbox" value="1" {'checked' if active else ''}>
             </label>
           </td>
-          <td class="px-3 py-2"><input form="{form_id}" data-field="specialties" name="specialties" value="{_escape(specialties_value)}" class="w-48 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" maxlength="300" placeholder="frontend, python"></td>
-          <td class="px-3 py-2"><input form="{form_id}" data-field="max_mentees" name="max_mentees" type="number" min="1" max="10" value="{int(mentor.get('max_mentees') or 3)}" class="w-20 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800"></td>
           <td class="px-3 py-2"><input form="{form_id}" data-field="timezone" name="timezone" value="{_escape(mentor.get('timezone') or '')}" class="w-28 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" maxlength="60"></td>
           <td class="px-3 py-2"><input form="{form_id}" data-field="referred_by" name="referred_by" value="{_escape(mentor.get('referred_by') or '')}" class="w-28 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" maxlength="39"></td>
-          <td class="px-3 py-2"><input form="{form_id}" data-field="slack_username" name="slack_username" value="{_escape(slack_username)}" class="w-32 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" maxlength="80"></td>
-          <td class="px-3 py-2"><input form="{form_id}" data-field="email" name="email" type="email" value="{_escape(email)}" class="w-56 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" maxlength="255"></td>
           <td class="px-3 py-2">
             <div class="space-y-1">
               <span data-assignment-count class="inline-flex items-center rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-[11px] font-semibold text-gray-600">{assignment_count} total</span>
