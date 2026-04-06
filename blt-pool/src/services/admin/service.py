@@ -273,26 +273,88 @@ class AdminService:
             )
 
     async def _count_user_prs_in_org(self, github_username: str, org: str) -> int:
-        """Count all PRs authored by github_username in org using paginated search."""
+        """Count all PRs authored by github_username across all repos in org.
+
+        Uses GraphQL cursor pagination to avoid Search API's practical result caps.
+        """
         username = (github_username or "").strip().lstrip("@")
         if not username:
             return 0
 
         token = getattr(self.env, "GITHUB_TOKEN", "") if self.env else ""
-        query = quote_plus(f"is:pr org:{org} author:{username}")
-        next_url = f"https://api.github.com/search/issues?q={query}&per_page=100"
+        org_login = (org or "").strip().lower()
+        if not token:
+            # GraphQL requires auth; fallback keeps behavior predictable if token is missing.
+            query = quote_plus(f"is:pr org:{org} author:{username}")
+            url = f"https://api.github.com/search/issues?q={query}&per_page=1"
+            try:
+                resp = await fetch(url, method="GET", headers=_github_headers(token))
+                if resp.status != 200:
+                    return 0
+                payload = json.loads(await resp.text())
+                return int(payload.get("total_count") or 0)
+            except Exception:
+                return 0
+
+        graphql_query = """
+        query($login: String!, $cursor: String) {
+          user(login: $login) {
+            pullRequests(
+              first: 100,
+              after: $cursor,
+              orderBy: {field: CREATED_AT, direction: DESC},
+              states: [OPEN, CLOSED, MERGED]
+            ) {
+              pageInfo {
+                hasNextPage
+                endCursor
+              }
+              nodes {
+                repository {
+                  owner {
+                    login
+                  }
+                }
+              }
+            }
+          }
+        }
+        """
+
+        cursor = None
         total = 0
 
-        while next_url:
+        while True:
+            body = json.dumps(
+                {
+                    "query": graphql_query,
+                    "variables": {
+                        "login": username,
+                        "cursor": cursor,
+                    },
+                }
+            )
             try:
-                resp = await fetch(next_url, method="GET", headers=_github_headers(token))
+                headers = {
+                    "Accept": "application/vnd.github+json",
+                    "Authorization": f"Bearer {token}",
+                    "Content-Type": "application/json",
+                    "User-Agent": "BLT-Pool/1.0",
+                    "X-GitHub-Api-Version": "2022-11-28",
+                }
+                resp = await fetch(
+                    "https://api.github.com/graphql",
+                    method="POST",
+                    headers=Headers.new(headers.items()),
+                    body=body,
+                )
             except Exception as exc:
                 console.error(f"[AdminService] PR lookup error for {username}: {exc}")
                 break
 
             if resp.status != 200:
                 console.error(
-                    f"[AdminService] PR lookup failed for {username}: status={resp.status} url={next_url}"
+                    f"[AdminService] PR lookup failed for {username}: status={resp.status} (graphql)"
                 )
                 break
 
@@ -302,13 +364,31 @@ class AdminService:
                 console.error(f"[AdminService] PR lookup parse failure for {username}: {exc}")
                 break
 
-            items = payload.get("items") if isinstance(payload, dict) else []
-            if not isinstance(items, list):
-                items = []
-            total += len(items)
+            if isinstance(payload, dict) and payload.get("errors"):
+                console.error(f"[AdminService] PR lookup graphql errors for {username}: {payload.get('errors')}")
+                break
 
-            link_header = resp.headers.get("Link") or ""
-            next_url = _github_next_link(link_header)
+            user_data = ((payload.get("data") or {}).get("user") if isinstance(payload, dict) else None) or {}
+            pr_connection = user_data.get("pullRequests") if isinstance(user_data, dict) else None
+            if not isinstance(pr_connection, dict):
+                break
+
+            nodes = pr_connection.get("nodes") if isinstance(pr_connection, dict) else []
+            if not isinstance(nodes, list):
+                nodes = []
+
+            for node in nodes:
+                repo = (node or {}).get("repository") if isinstance(node, dict) else None
+                owner = (repo or {}).get("owner") if isinstance(repo, dict) else None
+                owner_login = ((owner or {}).get("login") or "").strip().lower() if isinstance(owner, dict) else ""
+                if owner_login == org_login:
+                    total += 1
+
+            page_info = pr_connection.get("pageInfo") if isinstance(pr_connection, dict) else {}
+            has_next = bool((page_info or {}).get("hasNextPage")) if isinstance(page_info, dict) else False
+            cursor = (page_info or {}).get("endCursor") if isinstance(page_info, dict) else None
+            if not has_next:
+                break
 
         return total
 
