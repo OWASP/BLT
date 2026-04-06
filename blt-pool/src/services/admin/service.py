@@ -73,20 +73,20 @@ def _github_headers(token: str = "") -> Headers:
     return Headers.new(headers.items())
 
 
-  def _github_next_link(link_header: str) -> str:
+def _github_next_link(link_header: str) -> str:
     """Extract the next-page URL from a GitHub Link header."""
     if not link_header:
-      return ""
+        return ""
     for part in link_header.split(","):
-      segment = part.strip()
-      if 'rel="next"' not in segment:
-        continue
-      if not segment.startswith("<"):
-        continue
-      end = segment.find(">")
-      if end <= 1:
-        continue
-      return segment[1:end]
+        segment = part.strip()
+        if 'rel="next"' not in segment:
+            continue
+        if not segment.startswith("<"):
+            continue
+        end = segment.find(">")
+        if end <= 1:
+            continue
+        return segment[1:end]
     return ""
 
 
@@ -251,9 +251,9 @@ class AdminService:
                 "ALTER TABLE mentors ADD COLUMN slack_username TEXT NOT NULL DEFAULT ''"
             )
         if not await self._d1_has_column("mentors", "total_prs"):
-          await self._d1_run(
-            "ALTER TABLE mentors ADD COLUMN total_prs INTEGER NOT NULL DEFAULT 0"
-          )
+            await self._d1_run(
+                "ALTER TABLE mentors ADD COLUMN total_prs INTEGER NOT NULL DEFAULT 0"
+            )
         await self._d1_run(
             """
             CREATE TABLE IF NOT EXISTS mentor_assignments (
@@ -268,15 +268,15 @@ class AdminService:
             """
         )
         if not await self._d1_has_column("mentor_assignments", "mentee_login"):
-          await self._d1_run(
-            "ALTER TABLE mentor_assignments ADD COLUMN mentee_login TEXT NOT NULL DEFAULT ''"
-          )
+            await self._d1_run(
+                "ALTER TABLE mentor_assignments ADD COLUMN mentee_login TEXT NOT NULL DEFAULT ''"
+            )
 
-      async def _count_user_prs_in_org(self, github_username: str, org: str) -> int:
+    async def _count_user_prs_in_org(self, github_username: str, org: str) -> int:
         """Count all PRs authored by github_username in org using paginated search."""
         username = (github_username or "").strip().lstrip("@")
         if not username:
-          return 0
+            return 0
 
         token = getattr(self.env, "GITHUB_TOKEN", "") if self.env else ""
         query = quote_plus(f"is:pr org:{org} author:{username}")
@@ -284,51 +284,51 @@ class AdminService:
         total = 0
 
         while next_url:
-          try:
-            resp = await fetch(next_url, method="GET", headers=_github_headers(token))
-          except Exception as exc:
-            console.error(f"[AdminService] PR lookup error for {username}: {exc}")
-            break
+            try:
+                resp = await fetch(next_url, method="GET", headers=_github_headers(token))
+            except Exception as exc:
+                console.error(f"[AdminService] PR lookup error for {username}: {exc}")
+                break
 
-          if resp.status != 200:
-            console.error(
-              f"[AdminService] PR lookup failed for {username}: status={resp.status} url={next_url}"
-            )
-            break
+            if resp.status != 200:
+                console.error(
+                    f"[AdminService] PR lookup failed for {username}: status={resp.status} url={next_url}"
+                )
+                break
 
-          try:
-            payload = json.loads(await resp.text())
-          except Exception as exc:
-            console.error(f"[AdminService] PR lookup parse failure for {username}: {exc}")
-            break
+            try:
+                payload = json.loads(await resp.text())
+            except Exception as exc:
+                console.error(f"[AdminService] PR lookup parse failure for {username}: {exc}")
+                break
 
-          items = payload.get("items") if isinstance(payload, dict) else []
-          if not isinstance(items, list):
-            items = []
-          total += len(items)
+            items = payload.get("items") if isinstance(payload, dict) else []
+            if not isinstance(items, list):
+                items = []
+            total += len(items)
 
-          link_header = resp.headers.get("Link") or ""
-          next_url = _github_next_link(link_header)
+            link_header = resp.headers.get("Link") or ""
+            next_url = _github_next_link(link_header)
 
         return total
 
-      async def _recalculate_all_mentor_pr_counts(self, clear_first: bool = False) -> int:
+    async def _recalculate_all_mentor_pr_counts(self, clear_first: bool = False) -> int:
         org = str(getattr(self.env, "GITHUB_ORG", "OWASP-BLT") or "OWASP-BLT").strip() or "OWASP-BLT"
         if clear_first:
-          await self._d1_run("UPDATE mentors SET total_prs = 0")
+            await self._d1_run("UPDATE mentors SET total_prs = 0")
 
         mentors = await self._d1_all("SELECT github_username FROM mentors")
         refreshed = 0
         for row in mentors:
-          username = (row.get("github_username") or "").strip().lstrip("@")
-          if not username:
-            continue
-          pr_count = await self._count_user_prs_in_org(username, org)
-          await self._d1_run(
-            "UPDATE mentors SET total_prs = ? WHERE github_username = ?",
-            (int(pr_count), username),
-          )
-          refreshed += 1
+            username = (row.get("github_username") or "").strip().lstrip("@")
+            if not username:
+                continue
+            pr_count = await self._count_user_prs_in_org(username, org)
+            await self._d1_run(
+                "UPDATE mentors SET total_prs = ? WHERE github_username = ?",
+                (int(pr_count), username),
+            )
+            refreshed += 1
 
         return refreshed
 
@@ -512,6 +512,10 @@ class AdminService:
         </div>
       </a>
       <div class="flex items-center gap-3">
+        <a href="/" class="inline-flex items-center gap-1.5 rounded-md border border-[#E5E5E5] bg-white px-3 py-2 text-xs font-semibold text-gray-700 transition hover:border-[#E10101] hover:bg-[#feeae9] hover:text-[#E10101]">
+          <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+          Back to Pool
+        </a>
         {auth_chip}
       </div>
     </div>
@@ -1422,14 +1426,14 @@ class AdminService:
 
                 if autosave:
                     return self._json({"ok": True, "github_username": new_github_username})
-              elif action == "refresh_pr_counts":
+            elif action == "refresh_pr_counts":
                 await self._recalculate_all_mentor_pr_counts(clear_first=False)
                 if autosave:
-                  return self._json({"ok": True})
-              elif action == "clear_and_refresh_pr_counts":
+                    return self._json({"ok": True})
+            elif action == "clear_and_refresh_pr_counts":
                 await self._recalculate_all_mentor_pr_counts(clear_first=True)
                 if autosave:
-                  return self._json({"ok": True})
+                    return self._json({"ok": True})
             else:
                 if not github_username:
                     if autosave:
