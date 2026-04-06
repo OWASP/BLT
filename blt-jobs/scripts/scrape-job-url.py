@@ -429,6 +429,7 @@ def scrape_url(url: str) -> tuple[dict, str]:
         "location":                fm_partial.get("location", ""),
         "job_type":                fm_partial.get("job_type", "full-time"),
         "salary_range":            fm_partial.get("salary_range", ""),
+        "date_posted":             created,
         "expires_at":              "",
         "application_email":       "",
         "application_url":         fm_partial.get("application_url", url),
