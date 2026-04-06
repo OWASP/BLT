@@ -1,6 +1,6 @@
 {
   "participantCount": 194,
-  "totalPRs": 2562,
+  "totalPRs": 2564,
   "mergedPRs": 1592,
   "totalIssues": 793,
   "repositories": 54,
@@ -25,6 +25,26 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "test: add comprehensive Playwright test suite for Notes module ",
+      "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/62",
+      "username": "BharathC0",
+      "avatar": "https://avatars.githubusercontent.com/u/211328860?v=4",
+      "state": "open",
+      "created_at": "2026-04-06T15:16:09Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-SafeCloak"
+    },
+    {
+      "title": "fix: store encryption passphrase in sessionStorage instead of localSt\u2026",
+      "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/61",
+      "username": "BharathC0",
+      "avatar": "https://avatars.githubusercontent.com/u/211328860?v=4",
+      "state": "open",
+      "created_at": "2026-04-06T15:07:57Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-SafeCloak"
+    },
     {
       "title": "Feat: Job expiry system + scheduled crawling pipeline for fresh listings",
       "url": "https://github.com/OWASP-BLT/BLT-Jobs/pull/68",
@@ -104,26 +124,6 @@
       "created_at": "2026-04-05T00:40:12Z",
       "merged_at": "2026-04-05T20:12:34Z",
       "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "Refactor/update video room layout",
-      "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/59",
-      "username": "mdkaifansari04",
-      "avatar": "https://avatars.githubusercontent.com/u/117475603?v=4",
-      "state": "open",
-      "created_at": "2026-04-04T18:32:07Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-SafeCloak"
-    },
-    {
-      "title": "feat: port /assign and labeling handlers from BLT-Pool",
-      "url": "https://github.com/OWASP-BLT/BLT-Action/pull/119",
-      "username": "BharathC0",
-      "avatar": "https://avatars.githubusercontent.com/u/211328860?v=4",
-      "state": "open",
-      "created_at": "2026-04-04T02:14:38Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-Action"
     }
   ]
 }
