@@ -303,36 +303,36 @@ class AdminService:
                 "ALTER TABLE mentors ADD COLUMN total_prs INTEGER NOT NULL DEFAULT 0"
             )
         if not await self._d1_has_column("mentors", "total_reviews"):
-          await self._d1_run(
-            "ALTER TABLE mentors ADD COLUMN total_reviews INTEGER NOT NULL DEFAULT 0"
-          )
+            await self._d1_run(
+                "ALTER TABLE mentors ADD COLUMN total_reviews INTEGER NOT NULL DEFAULT 0"
+            )
         if not await self._d1_has_column("mentors", "total_comments"):
-          await self._d1_run(
-            "ALTER TABLE mentors ADD COLUMN total_comments INTEGER NOT NULL DEFAULT 0"
-          )
+            await self._d1_run(
+                "ALTER TABLE mentors ADD COLUMN total_comments INTEGER NOT NULL DEFAULT 0"
+            )
         if not await self._d1_has_column("mentors", "last_rate_limit"):
-          await self._d1_run(
-            "ALTER TABLE mentors ADD COLUMN last_rate_limit INTEGER NOT NULL DEFAULT 0"
-          )
+            await self._d1_run(
+                "ALTER TABLE mentors ADD COLUMN last_rate_limit INTEGER NOT NULL DEFAULT 0"
+            )
         if not await self._d1_has_column("mentors", "last_rate_remaining"):
-          await self._d1_run(
-            "ALTER TABLE mentors ADD COLUMN last_rate_remaining INTEGER NOT NULL DEFAULT 0"
-          )
+            await self._d1_run(
+                "ALTER TABLE mentors ADD COLUMN last_rate_remaining INTEGER NOT NULL DEFAULT 0"
+            )
         if not await self._d1_has_column("mentors", "last_rate_used"):
-          await self._d1_run(
-            "ALTER TABLE mentors ADD COLUMN last_rate_used INTEGER NOT NULL DEFAULT 0"
-          )
+            await self._d1_run(
+                "ALTER TABLE mentors ADD COLUMN last_rate_used INTEGER NOT NULL DEFAULT 0"
+            )
         if not await self._d1_has_column("mentors", "last_rate_reset_at"):
-          await self._d1_run(
-            "ALTER TABLE mentors ADD COLUMN last_rate_reset_at INTEGER NOT NULL DEFAULT 0"
-          )
+            await self._d1_run(
+                "ALTER TABLE mentors ADD COLUMN last_rate_reset_at INTEGER NOT NULL DEFAULT 0"
+            )
         if not await self._d1_has_column("mentors", "created_at"):
-          await self._d1_run(
-            "ALTER TABLE mentors ADD COLUMN created_at INTEGER NOT NULL DEFAULT 0"
-          )
-          await self._d1_run(
-            "UPDATE mentors SET created_at = strftime('%s','now') WHERE created_at = 0"
-          )
+            await self._d1_run(
+                "ALTER TABLE mentors ADD COLUMN created_at INTEGER NOT NULL DEFAULT 0"
+            )
+            await self._d1_run(
+                "UPDATE mentors SET created_at = strftime('%s','now') WHERE created_at = 0"
+            )
         await self._d1_run(
             """
             CREATE TABLE IF NOT EXISTS mentor_assignments (
@@ -428,12 +428,12 @@ class AdminService:
                 console.error(f"[AdminService] PR lookup error for {username}: {exc}")
                 break
 
+            last_snapshot = _github_rate_limit_snapshot(resp)
             if resp.status != 200:
                 console.error(
                     f"[AdminService] PR lookup failed for {username}: status={resp.status} (graphql)"
                 )
                 break
-            last_snapshot = _github_rate_limit_snapshot(resp)
 
             try:
                 payload = json.loads(await resp.text())
@@ -469,97 +469,147 @@ class AdminService:
 
         return total, last_snapshot
 
+    async def _github_graphql(self, query: str, variables: dict, token: str) -> Tuple[Optional[dict], dict]:
+        """Execute a GitHub GraphQL request and return (data, rate_limit_snapshot)."""
+        body = json.dumps({"query": query, "variables": variables or {}})
+        last_snapshot: dict = {}
+
+        try:
+            resp = await fetch(
+                "https://api.github.com/graphql",
+                method="POST",
+                headers=_github_headers(token),
+                body=body,
+            )
+        except Exception as exc:
+            console.error(f"[AdminService] GraphQL lookup error: {exc}")
+            return None, last_snapshot
+
+        last_snapshot = _github_rate_limit_snapshot(resp)
+        if resp.status != 200:
+            console.error(f"[AdminService] GraphQL lookup failed: status={resp.status}")
+            return None, last_snapshot
+
+        try:
+            payload = json.loads(await resp.text())
+        except Exception as exc:
+            console.error(f"[AdminService] GraphQL lookup parse error: {exc}")
+            return None, last_snapshot
+
+        if not isinstance(payload, dict):
+            return None, last_snapshot
+
+        errors = payload.get("errors")
+        if isinstance(errors, list) and errors:
+            console.error(f"[AdminService] GraphQL lookup returned errors: {errors}")
+            return None, last_snapshot
+
+        data = payload.get("data")
+        return data if isinstance(data, dict) else None, last_snapshot
+
+    async def _github_org_id(self, org: str, token: str) -> Tuple[str, dict]:
+        """Return the GraphQL node ID for a GitHub org."""
+        org_login = (org or "").strip()
+        if not org_login:
+            return "", {}
+
+        query = """
+        query($org: String!) {
+          organization(login: $org) {
+            id
+          }
+        }
+        """
+        data, snapshot = await self._github_graphql(query, {"org": org_login}, token)
+        organization = (data or {}).get("organization") if isinstance(data, dict) else None
+        if not isinstance(organization, dict):
+            return "", snapshot
+        return str(organization.get("id") or ""), snapshot
+
     async def _count_user_reviews_in_org(self, github_username: str, org: str) -> Tuple[int, dict]:
-        """Count PR reviews in org where state is APPROVED or CHANGES_REQUESTED."""
+        """Count PR review contributions by the user within the org via GraphQL.
+
+        Uses contributionsCollection.pullRequestReviewContributions.totalCount so each
+        reviewed PR is counted at most once, avoiding double-counts from the Search API.
+        """
         username = (github_username or "").strip().lstrip("@")
-        if not username:
+        org_login = (org or "").strip()
+        if not username or not org_login:
             return 0, {}
 
         token = getattr(self.env, "GITHUB_TOKEN", "") if self.env else ""
         if not token:
             return 0, {}
 
-        total = 0
-        last_snapshot = {}
-        qualifiers = ("review:approved", "review:changes_requested")
-        for qualifier in qualifiers:
-            query = quote_plus(f"is:pr org:{org} reviewed-by:{username} {qualifier}")
-            url = f"https://api.github.com/search/issues?q={query}&per_page=1"
-            try:
-                resp = await fetch(url, method="GET", headers=_github_headers(token))
-            except Exception as exc:
-                console.error(f"[AdminService] Review lookup error for {username}: {exc}")
-                continue
+        org_id, org_snapshot = await self._github_org_id(org_login, token)
+        if not org_id:
+            return 0, org_snapshot
 
-            last_snapshot = _github_rate_limit_snapshot(resp)
-            if resp.status != 200:
-                console.error(
-                    f"[AdminService] Review lookup failed for {username}: status={resp.status}"
-                )
-                continue
+        query = """
+        query($username: String!, $orgId: ID!) {
+          user(login: $username) {
+            contributionsCollection(organizationID: $orgId) {
+              pullRequestReviewContributions {
+                totalCount
+              }
+            }
+          }
+        }
+        """
+        data, snapshot = await self._github_graphql(query, {"username": username, "orgId": org_id}, token)
+        user = (data or {}).get("user") if isinstance(data, dict) else None
+        contributions = (user or {}).get("contributionsCollection") if isinstance(user, dict) else None
+        if not isinstance(contributions, dict):
+            return 0, (snapshot or org_snapshot)
 
-            try:
-                payload = json.loads(await resp.text())
-                total += int(payload.get("total_count") or 0)
-            except Exception as exc:
-                console.error(f"[AdminService] Review lookup parse error for {username}: {exc}")
-
-        return total, last_snapshot
-
-    async def _count_user_comment_endpoint_in_org(self, url: str, org: str, token: str) -> Tuple[int, dict]:
-        org_login = (org or "").strip().lower()
-        next_url = url
-        total = 0
-        last_snapshot = {}
-
-        while next_url:
-            try:
-                resp = await fetch(next_url, method="GET", headers=_github_headers(token))
-            except Exception as exc:
-                console.error(f"[AdminService] Comment lookup error: {exc}")
-                break
-
-            last_snapshot = _github_rate_limit_snapshot(resp)
-            if resp.status != 200:
-                console.error(
-                    f"[AdminService] Comment lookup failed: status={resp.status} url={next_url}"
-                )
-                break
-
-            try:
-                payload = json.loads(await resp.text())
-            except Exception as exc:
-                console.error(f"[AdminService] Comment lookup parse error: {exc}")
-                break
-
-            if not isinstance(payload, list):
-                break
-
-            for comment in payload:
-                repo_api_url = (comment or {}).get("repository_url") if isinstance(comment, dict) else ""
-                owner_login = _github_owner_from_repo_api_url(repo_api_url).strip().lower()
-                if owner_login == org_login:
-                    total += 1
-
-            next_url = _github_next_link(resp.headers.get("Link") or "")
-
-        return total, last_snapshot
+        pr_reviews = contributions.get("pullRequestReviewContributions")
+        total = int((pr_reviews or {}).get("totalCount") or 0) if isinstance(pr_reviews, dict) else 0
+        return total, (snapshot or org_snapshot)
 
     async def _count_user_comments_in_org(self, github_username: str, org: str) -> Tuple[int, dict]:
-        """Count issue comments + PR review comments left by user within org repos."""
+        """Count issue comments + PR review comments left by user within org repos via GraphQL.
+
+        Uses contributionsCollection scoped to the org so only a single API call is needed
+        per mentor, avoiding the multi-page REST pagination that risks rate-limit exhaustion.
+        """
         username = (github_username or "").strip().lstrip("@")
-        if not username:
+        org_login = (org or "").strip()
+        if not username or not org_login:
             return 0, {}
 
         token = getattr(self.env, "GITHUB_TOKEN", "") if self.env else ""
         if not token:
             return 0, {}
 
-        issue_comments_url = f"https://api.github.com/users/{quote_plus(username)}/issues/comments?per_page=100"
-        pr_review_comments_url = f"https://api.github.com/users/{quote_plus(username)}/pulls/comments?per_page=100"
-        issue_total, issue_snapshot = await self._count_user_comment_endpoint_in_org(issue_comments_url, org, token)
-        pr_total, pr_snapshot = await self._count_user_comment_endpoint_in_org(pr_review_comments_url, org, token)
-        return issue_total + pr_total, (pr_snapshot or issue_snapshot)
+        org_id, org_snapshot = await self._github_org_id(org_login, token)
+        if not org_id:
+            return 0, org_snapshot
+
+        query = """
+        query($username: String!, $orgId: ID!) {
+          user(login: $username) {
+            contributionsCollection(organizationID: $orgId) {
+              issueCommentContributions {
+                totalCount
+              }
+              pullRequestReviewCommentContributions {
+                totalCount
+              }
+            }
+          }
+        }
+        """
+        data, snapshot = await self._github_graphql(query, {"username": username, "orgId": org_id}, token)
+        user = (data or {}).get("user") if isinstance(data, dict) else None
+        contributions = (user or {}).get("contributionsCollection") if isinstance(user, dict) else None
+        if not isinstance(contributions, dict):
+            return 0, (snapshot or org_snapshot)
+
+        issue_comments = contributions.get("issueCommentContributions")
+        pr_review_comments = contributions.get("pullRequestReviewCommentContributions")
+        issue_total = int((issue_comments or {}).get("totalCount") or 0) if isinstance(issue_comments, dict) else 0
+        pr_total = int((pr_review_comments or {}).get("totalCount") or 0) if isinstance(pr_review_comments, dict) else 0
+        return issue_total + pr_total, (snapshot or org_snapshot)
 
     def _rate_limit_db_values(self, snapshot: dict) -> tuple:
         return (
