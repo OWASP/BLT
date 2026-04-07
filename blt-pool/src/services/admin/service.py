@@ -5,6 +5,7 @@ Keeps admin auth and mentor management out of worker.py.
 
 import base64
 import binascii
+from datetime import datetime, timezone as dt_timezone
 import hmac
 import html as _html
 import json
@@ -87,6 +88,45 @@ def _github_next_link(link_header: str) -> str:
         if end <= 1:
             continue
         return segment[1:end]
+    return ""
+
+
+def _int_or_default(value, default: int = 0) -> int:
+    try:
+        return int(value)
+    except Exception:
+        return default
+
+
+def _github_rate_limit_snapshot(resp) -> dict:
+    """Return normalized GitHub rate-limit data from a response."""
+    if not resp:
+        return {}
+    headers = getattr(resp, "headers", None)
+    if not headers:
+        return {}
+    limit = _int_or_default(headers.get("X-RateLimit-Limit"), 0)
+    remaining = _int_or_default(headers.get("X-RateLimit-Remaining"), 0)
+    used = _int_or_default(headers.get("X-RateLimit-Used"), max(limit - remaining, 0))
+    reset_at = _int_or_default(headers.get("X-RateLimit-Reset"), 0)
+    return {
+        "limit": limit,
+        "remaining": remaining,
+        "used": used,
+        "reset_at": reset_at,
+    }
+
+
+def _github_owner_from_repo_api_url(repo_api_url: str) -> str:
+    """Parse owner from URLs like https://api.github.com/repos/{owner}/{repo}."""
+    if not repo_api_url:
+        return ""
+    try:
+        path_parts = [p for p in urlparse(str(repo_api_url)).path.split("/") if p]
+    except Exception:
+        return ""
+    if len(path_parts) >= 3 and path_parts[0].lower() == "repos":
+        return path_parts[1]
     return ""
 
 
@@ -238,7 +278,15 @@ class AdminService:
                 timezone TEXT NOT NULL DEFAULT '',
                 referred_by TEXT NOT NULL DEFAULT '',
                 email TEXT NOT NULL DEFAULT '',
-                slack_username TEXT NOT NULL DEFAULT ''
+              slack_username TEXT NOT NULL DEFAULT '',
+              total_prs INTEGER NOT NULL DEFAULT 0,
+              total_reviews INTEGER NOT NULL DEFAULT 0,
+              total_comments INTEGER NOT NULL DEFAULT 0,
+              last_rate_limit INTEGER NOT NULL DEFAULT 0,
+              last_rate_remaining INTEGER NOT NULL DEFAULT 0,
+              last_rate_used INTEGER NOT NULL DEFAULT 0,
+              last_rate_reset_at INTEGER NOT NULL DEFAULT 0,
+              created_at INTEGER NOT NULL DEFAULT (strftime('%s','now'))
             )
             """
         )
@@ -254,6 +302,37 @@ class AdminService:
             await self._d1_run(
                 "ALTER TABLE mentors ADD COLUMN total_prs INTEGER NOT NULL DEFAULT 0"
             )
+        if not await self._d1_has_column("mentors", "total_reviews"):
+          await self._d1_run(
+            "ALTER TABLE mentors ADD COLUMN total_reviews INTEGER NOT NULL DEFAULT 0"
+          )
+        if not await self._d1_has_column("mentors", "total_comments"):
+          await self._d1_run(
+            "ALTER TABLE mentors ADD COLUMN total_comments INTEGER NOT NULL DEFAULT 0"
+          )
+        if not await self._d1_has_column("mentors", "last_rate_limit"):
+          await self._d1_run(
+            "ALTER TABLE mentors ADD COLUMN last_rate_limit INTEGER NOT NULL DEFAULT 0"
+          )
+        if not await self._d1_has_column("mentors", "last_rate_remaining"):
+          await self._d1_run(
+            "ALTER TABLE mentors ADD COLUMN last_rate_remaining INTEGER NOT NULL DEFAULT 0"
+          )
+        if not await self._d1_has_column("mentors", "last_rate_used"):
+          await self._d1_run(
+            "ALTER TABLE mentors ADD COLUMN last_rate_used INTEGER NOT NULL DEFAULT 0"
+          )
+        if not await self._d1_has_column("mentors", "last_rate_reset_at"):
+          await self._d1_run(
+            "ALTER TABLE mentors ADD COLUMN last_rate_reset_at INTEGER NOT NULL DEFAULT 0"
+          )
+        if not await self._d1_has_column("mentors", "created_at"):
+          await self._d1_run(
+            "ALTER TABLE mentors ADD COLUMN created_at INTEGER NOT NULL DEFAULT 0"
+          )
+          await self._d1_run(
+            "UPDATE mentors SET created_at = strftime('%s','now') WHERE created_at = 0"
+          )
         await self._d1_run(
             """
             CREATE TABLE IF NOT EXISTS mentor_assignments (
@@ -272,29 +351,27 @@ class AdminService:
                 "ALTER TABLE mentor_assignments ADD COLUMN mentee_login TEXT NOT NULL DEFAULT ''"
             )
 
-    async def _count_user_prs_in_org(self, github_username: str, org: str) -> int:
-        """Count all PRs authored by github_username across all repos in org.
-
-        Uses GraphQL cursor pagination to avoid Search API's practical result caps.
-        """
+    async def _count_user_prs_in_org(self, github_username: str, org: str) -> Tuple[int, dict]:
+        """Count all PRs authored by github_username across all repos in org."""
         username = (github_username or "").strip().lstrip("@")
         if not username:
-            return 0
+            return 0, {}
 
         token = getattr(self.env, "GITHUB_TOKEN", "") if self.env else ""
         org_login = (org or "").strip().lower()
+        last_snapshot = {}
         if not token:
-            # GraphQL requires auth; fallback keeps behavior predictable if token is missing.
             query = quote_plus(f"is:pr org:{org} author:{username}")
             url = f"https://api.github.com/search/issues?q={query}&per_page=1"
             try:
                 resp = await fetch(url, method="GET", headers=_github_headers(token))
+                last_snapshot = _github_rate_limit_snapshot(resp)
                 if resp.status != 200:
-                    return 0
+                    return 0, last_snapshot
                 payload = json.loads(await resp.text())
-                return int(payload.get("total_count") or 0)
+                return int(payload.get("total_count") or 0), last_snapshot
             except Exception:
-                return 0
+                return 0, last_snapshot
 
         graphql_query = """
         query($login: String!, $cursor: String) {
@@ -323,7 +400,6 @@ class AdminService:
 
         cursor = None
         total = 0
-
         while True:
             body = json.dumps(
                 {
@@ -357,6 +433,7 @@ class AdminService:
                     f"[AdminService] PR lookup failed for {username}: status={resp.status} (graphql)"
                 )
                 break
+            last_snapshot = _github_rate_limit_snapshot(resp)
 
             try:
                 payload = json.loads(await resp.text())
@@ -390,7 +467,107 @@ class AdminService:
             if not has_next:
                 break
 
-        return total
+        return total, last_snapshot
+
+    async def _count_user_reviews_in_org(self, github_username: str, org: str) -> Tuple[int, dict]:
+        """Count PR reviews in org where state is APPROVED or CHANGES_REQUESTED."""
+        username = (github_username or "").strip().lstrip("@")
+        if not username:
+            return 0, {}
+
+        token = getattr(self.env, "GITHUB_TOKEN", "") if self.env else ""
+        if not token:
+            return 0, {}
+
+        total = 0
+        last_snapshot = {}
+        qualifiers = ("review:approved", "review:changes_requested")
+        for qualifier in qualifiers:
+            query = quote_plus(f"is:pr org:{org} reviewed-by:{username} {qualifier}")
+            url = f"https://api.github.com/search/issues?q={query}&per_page=1"
+            try:
+                resp = await fetch(url, method="GET", headers=_github_headers(token))
+            except Exception as exc:
+                console.error(f"[AdminService] Review lookup error for {username}: {exc}")
+                continue
+
+            last_snapshot = _github_rate_limit_snapshot(resp)
+            if resp.status != 200:
+                console.error(
+                    f"[AdminService] Review lookup failed for {username}: status={resp.status}"
+                )
+                continue
+
+            try:
+                payload = json.loads(await resp.text())
+                total += int(payload.get("total_count") or 0)
+            except Exception as exc:
+                console.error(f"[AdminService] Review lookup parse error for {username}: {exc}")
+
+        return total, last_snapshot
+
+    async def _count_user_comment_endpoint_in_org(self, url: str, org: str, token: str) -> Tuple[int, dict]:
+        org_login = (org or "").strip().lower()
+        next_url = url
+        total = 0
+        last_snapshot = {}
+
+        while next_url:
+            try:
+                resp = await fetch(next_url, method="GET", headers=_github_headers(token))
+            except Exception as exc:
+                console.error(f"[AdminService] Comment lookup error: {exc}")
+                break
+
+            last_snapshot = _github_rate_limit_snapshot(resp)
+            if resp.status != 200:
+                console.error(
+                    f"[AdminService] Comment lookup failed: status={resp.status} url={next_url}"
+                )
+                break
+
+            try:
+                payload = json.loads(await resp.text())
+            except Exception as exc:
+                console.error(f"[AdminService] Comment lookup parse error: {exc}")
+                break
+
+            if not isinstance(payload, list):
+                break
+
+            for comment in payload:
+                repo_api_url = (comment or {}).get("repository_url") if isinstance(comment, dict) else ""
+                owner_login = _github_owner_from_repo_api_url(repo_api_url).strip().lower()
+                if owner_login == org_login:
+                    total += 1
+
+            next_url = _github_next_link(resp.headers.get("Link") or "")
+
+        return total, last_snapshot
+
+    async def _count_user_comments_in_org(self, github_username: str, org: str) -> Tuple[int, dict]:
+        """Count issue comments + PR review comments left by user within org repos."""
+        username = (github_username or "").strip().lstrip("@")
+        if not username:
+            return 0, {}
+
+        token = getattr(self.env, "GITHUB_TOKEN", "") if self.env else ""
+        if not token:
+            return 0, {}
+
+        issue_comments_url = f"https://api.github.com/users/{quote_plus(username)}/issues/comments?per_page=100"
+        pr_review_comments_url = f"https://api.github.com/users/{quote_plus(username)}/pulls/comments?per_page=100"
+        issue_total, issue_snapshot = await self._count_user_comment_endpoint_in_org(issue_comments_url, org, token)
+        pr_total, pr_snapshot = await self._count_user_comment_endpoint_in_org(pr_review_comments_url, org, token)
+        return issue_total + pr_total, (pr_snapshot or issue_snapshot)
+
+    def _rate_limit_db_values(self, snapshot: dict) -> tuple:
+        return (
+            int((snapshot or {}).get("limit") or 0),
+            int((snapshot or {}).get("remaining") or 0),
+            int((snapshot or {}).get("used") or 0),
+            int((snapshot or {}).get("reset_at") or 0),
+        )
 
     async def _recalculate_all_mentor_pr_counts(self, clear_first: bool = False) -> int:
         org = str(getattr(self.env, "GITHUB_ORG", "OWASP-BLT") or "OWASP-BLT").strip() or "OWASP-BLT"
@@ -403,10 +580,77 @@ class AdminService:
             username = (row.get("github_username") or "").strip().lstrip("@")
             if not username:
                 continue
-            pr_count = await self._count_user_prs_in_org(username, org)
+            pr_count, snapshot = await self._count_user_prs_in_org(username, org)
+            rate_limit, rate_remaining, rate_used, rate_reset_at = self._rate_limit_db_values(snapshot)
             await self._d1_run(
-                "UPDATE mentors SET total_prs = ? WHERE github_username = ?",
-                (int(pr_count), username),
+                """
+                UPDATE mentors
+                SET total_prs = ?,
+                    last_rate_limit = ?,
+                    last_rate_remaining = ?,
+                    last_rate_used = ?,
+                    last_rate_reset_at = ?
+                WHERE github_username = ?
+                """,
+                (int(pr_count), rate_limit, rate_remaining, rate_used, rate_reset_at, username),
+            )
+            refreshed += 1
+
+        return refreshed
+
+    async def _recalculate_all_mentor_review_counts(self, clear_first: bool = False) -> int:
+        org = str(getattr(self.env, "GITHUB_ORG", "OWASP-BLT") or "OWASP-BLT").strip() or "OWASP-BLT"
+        if clear_first:
+            await self._d1_run("UPDATE mentors SET total_reviews = 0")
+
+        mentors = await self._d1_all("SELECT github_username FROM mentors")
+        refreshed = 0
+        for row in mentors:
+            username = (row.get("github_username") or "").strip().lstrip("@")
+            if not username:
+                continue
+            review_count, snapshot = await self._count_user_reviews_in_org(username, org)
+            rate_limit, rate_remaining, rate_used, rate_reset_at = self._rate_limit_db_values(snapshot)
+            await self._d1_run(
+                """
+                UPDATE mentors
+                SET total_reviews = ?,
+                    last_rate_limit = ?,
+                    last_rate_remaining = ?,
+                    last_rate_used = ?,
+                    last_rate_reset_at = ?
+                WHERE github_username = ?
+                """,
+                (int(review_count), rate_limit, rate_remaining, rate_used, rate_reset_at, username),
+            )
+            refreshed += 1
+
+        return refreshed
+
+    async def _recalculate_all_mentor_comment_counts(self, clear_first: bool = False) -> int:
+        org = str(getattr(self.env, "GITHUB_ORG", "OWASP-BLT") or "OWASP-BLT").strip() or "OWASP-BLT"
+        if clear_first:
+            await self._d1_run("UPDATE mentors SET total_comments = 0")
+
+        mentors = await self._d1_all("SELECT github_username FROM mentors")
+        refreshed = 0
+        for row in mentors:
+            username = (row.get("github_username") or "").strip().lstrip("@")
+            if not username:
+                continue
+            comment_count, snapshot = await self._count_user_comments_in_org(username, org)
+            rate_limit, rate_remaining, rate_used, rate_reset_at = self._rate_limit_db_values(snapshot)
+            await self._d1_run(
+                """
+                UPDATE mentors
+                SET total_comments = ?,
+                    last_rate_limit = ?,
+                    last_rate_remaining = ?,
+                    last_rate_used = ?,
+                    last_rate_reset_at = ?
+                WHERE github_username = ?
+                """,
+                (int(comment_count), rate_limit, rate_remaining, rate_used, rate_reset_at, username),
             )
             refreshed += 1
 
@@ -1093,6 +1337,54 @@ class AdminService:
                     Clear + recalculate
                   </button>
                 </form>
+                <form method="POST" action="{self.mentor_action_path}">
+                  <input type="hidden" name="action" value="refresh_review_counts">
+                  <button
+                    type="submit"
+                    data-confirm-title="Refresh review totals?"
+                    data-confirm-message="This will recalculate total approved/changes-requested review counts for all mentors in OWASP-BLT."
+                    data-confirm-cta="<i class=&quot;fa-solid fa-rotate&quot; aria-hidden=&quot;true&quot;></i>Refresh reviews"
+                    class="inline-flex items-center gap-2 rounded-md border border-[#E5E5E5] bg-white px-3 py-2 text-xs font-semibold text-gray-700 transition hover:border-[#E10101] hover:text-[#E10101]">
+                    <i class="fa-solid fa-rotate" aria-hidden="true"></i>
+                    Refresh reviews
+                  </button>
+                </form>
+                <form method="POST" action="{self.mentor_action_path}">
+                  <input type="hidden" name="action" value="clear_and_refresh_review_counts">
+                  <button
+                    type="submit"
+                    data-confirm-title="Clear and recalculate review totals?"
+                    data-confirm-message="This will reset mentor review totals to zero and fully recalculate approved and changes-requested PR review counts."
+                    data-confirm-cta="<i class=&quot;fa-solid fa-arrows-rotate&quot; aria-hidden=&quot;true&quot;></i>Clear + recalculate reviews"
+                    class="inline-flex items-center gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-100">
+                    <i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i>
+                    Clear + recalculate reviews
+                  </button>
+                </form>
+                <form method="POST" action="{self.mentor_action_path}">
+                  <input type="hidden" name="action" value="refresh_comment_counts">
+                  <button
+                    type="submit"
+                    data-confirm-title="Refresh comment totals?"
+                    data-confirm-message="This will recalculate total issue and PR comment counts for all mentors across OWASP-BLT repositories."
+                    data-confirm-cta="<i class=&quot;fa-solid fa-rotate&quot; aria-hidden=&quot;true&quot;></i>Refresh comments"
+                    class="inline-flex items-center gap-2 rounded-md border border-[#E5E5E5] bg-white px-3 py-2 text-xs font-semibold text-gray-700 transition hover:border-[#E10101] hover:text-[#E10101]">
+                    <i class="fa-solid fa-rotate" aria-hidden="true"></i>
+                    Refresh comments
+                  </button>
+                </form>
+                <form method="POST" action="{self.mentor_action_path}">
+                  <input type="hidden" name="action" value="clear_and_refresh_comment_counts">
+                  <button
+                    type="submit"
+                    data-confirm-title="Clear and recalculate comment totals?"
+                    data-confirm-message="This will reset mentor comment totals to zero and then fully recalculate issue and PR comments from GitHub."
+                    data-confirm-cta="<i class=&quot;fa-solid fa-arrows-rotate&quot; aria-hidden=&quot;true&quot;></i>Clear + recalculate comments"
+                    class="inline-flex items-center gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-100">
+                    <i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i>
+                    Clear + recalculate comments
+                  </button>
+                </form>
               </div>
             </div>
           </div>
@@ -1103,7 +1395,11 @@ class AdminService:
                   <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="mentor" data-sort-direction="desc" class="inline-flex items-center gap-1">Mentor <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
                   <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="name" data-sort-direction="desc" class="inline-flex items-center gap-1">Name <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
                   <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="github_username" data-sort-direction="desc" class="inline-flex items-center gap-1">GitHub <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="created_at" data-sort-direction="desc" class="inline-flex items-center gap-1">Added <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
                   <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="total_prs" data-sort-direction="desc" class="inline-flex items-center gap-1">PRs (all-time) <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="total_reviews" data-sort-direction="desc" class="inline-flex items-center gap-1">Reviews (all-time) <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="total_comments" data-sort-direction="desc" class="inline-flex items-center gap-1">Comments (all-time) <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="last_rate_used" data-sort-direction="desc" class="inline-flex items-center gap-1">GitHub API limit <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
                   <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="max_mentees" data-sort-direction="desc" class="inline-flex items-center gap-1">Cap <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
                   <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="slack_username" data-sort-direction="desc" class="inline-flex items-center gap-1">Slack <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
                   <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="email" data-sort-direction="desc" class="inline-flex items-center gap-1">Email <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
@@ -1171,6 +1467,13 @@ class AdminService:
                 m.email,
                 m.slack_username,
                 m.total_prs,
+                m.total_reviews,
+                m.total_comments,
+                m.last_rate_limit,
+                m.last_rate_remaining,
+                m.last_rate_used,
+                m.last_rate_reset_at,
+                m.created_at,
                 COALESCE(a.assignment_refs, '') AS assignment_refs,
                 COALESCE(a.assignment_count, 0) AS assignment_count
             FROM mentors m
@@ -1194,6 +1497,15 @@ class AdminService:
             parsed.append({**row, "specialties_list": specialties})
         return parsed
 
+    def _format_timestamp(self, value, with_time: bool = False) -> str:
+        ts = _int_or_default(value, 0)
+        if ts <= 0:
+            return "n/a"
+        dt = datetime.fromtimestamp(ts, tz=dt_timezone.utc)
+        if with_time:
+            return dt.strftime("%Y-%m-%d %H:%M UTC")
+        return dt.strftime("%Y-%m-%d")
+
     def _mentor_row_html(self, mentor: dict) -> str:
         username = mentor.get("github_username", "")
         name = mentor.get("name", "")
@@ -1204,9 +1516,18 @@ class AdminService:
         slack_username = mentor.get("slack_username") or ""
         assignment_refs = mentor.get("assignment_refs") or ""
         assignment_count = int(mentor.get("assignment_count") or 0)
+        total_prs = int(mentor.get("total_prs") or 0)
+        total_reviews = int(mentor.get("total_reviews") or 0)
+        total_comments = int(mentor.get("total_comments") or 0)
+        last_rate_limit = int(mentor.get("last_rate_limit") or 0)
+        last_rate_remaining = int(mentor.get("last_rate_remaining") or 0)
+        last_rate_used = int(mentor.get("last_rate_used") or 0)
+        rate_usage_label = f"{last_rate_used}/{last_rate_limit}" if last_rate_limit > 0 else "n/a"
+        rate_reset_label = self._format_timestamp(mentor.get("last_rate_reset_at"), with_time=True)
+        added_label = self._format_timestamp(mentor.get("created_at"), with_time=False)
         form_id = f"mentor-form-{username.lower().replace('_', '-')}"
         return f"""
-        <tr data-mentor-row data-mentor="{_escape(name).lower()}" data-name="{_escape(name).lower()}" data-github_username="{_escape(username).lower()}" data-active="{1 if active else 0}" data-total_prs="{int(mentor.get('total_prs') or 0)}" data-max_mentees="{int(mentor.get('max_mentees') or 3)}" data-assignment_count="{assignment_count}">
+        <tr data-mentor-row data-mentor="{_escape(name).lower()}" data-name="{_escape(name).lower()}" data-github_username="{_escape(username).lower()}" data-active="{1 if active else 0}" data-created_at="{int(mentor.get('created_at') or 0)}" data-total_prs="{total_prs}" data-total_reviews="{total_reviews}" data-total_comments="{total_comments}" data-last_rate_used="{last_rate_used}" data-max_mentees="{int(mentor.get('max_mentees') or 3)}" data-assignment_count="{assignment_count}">
           <td class="px-3 py-2">
             <div class="flex items-center gap-2">
               <a href="https://github.com/{_escape(username)}" target="_blank" rel="noopener noreferrer" aria-label="Open @{_escape(username)} on GitHub" class="inline-flex h-8 w-8 shrink-0 overflow-hidden rounded-full border border-[#E5E5E5] bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E10101] focus-visible:ring-offset-2">
@@ -1222,7 +1543,22 @@ class AdminService:
           <td class="px-3 py-2"><input form="{form_id}" data-field="name" name="name" value="{_escape(name)}" class="w-40 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" maxlength="100" required></td>
           <td class="px-3 py-2"><input form="{form_id}" data-field="github_username" name="github_username" value="{_escape(username)}" class="w-36 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" maxlength="39" required></td>
           <td class="px-3 py-2">
-            <span class="inline-flex items-center rounded-full border border-gray-200 bg-gray-50 px-2 py-1 text-xs font-semibold text-gray-700">{int(mentor.get('total_prs') or 0)}</span>
+            <span class="inline-flex items-center rounded-full border border-gray-200 bg-gray-50 px-2 py-1 text-xs font-semibold text-gray-700">{_escape(added_label)}</span>
+          </td>
+          <td class="px-3 py-2">
+            <span class="inline-flex items-center rounded-full border border-gray-200 bg-gray-50 px-2 py-1 text-xs font-semibold text-gray-700">{total_prs}</span>
+          </td>
+          <td class="px-3 py-2">
+            <span class="inline-flex items-center rounded-full border border-gray-200 bg-gray-50 px-2 py-1 text-xs font-semibold text-gray-700">{total_reviews}</span>
+          </td>
+          <td class="px-3 py-2">
+            <span class="inline-flex items-center rounded-full border border-gray-200 bg-gray-50 px-2 py-1 text-xs font-semibold text-gray-700">{total_comments}</span>
+          </td>
+          <td class="px-3 py-2">
+            <div class="space-y-1">
+              <span class="inline-flex items-center rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-[11px] font-semibold text-gray-700">Used {rate_usage_label}</span>
+              <p class="text-[11px] font-medium text-gray-500">Reset: {_escape(rate_reset_label)} | Remaining: {last_rate_remaining}</p>
+            </div>
           </td>
           <td class="px-3 py-2"><input form="{form_id}" data-field="max_mentees" name="max_mentees" type="number" min="1" max="10" value="{int(mentor.get('max_mentees') or 3)}" class="w-20 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800"></td>
           <td class="px-3 py-2"><input form="{form_id}" data-field="slack_username" name="slack_username" value="{_escape(slack_username)}" class="w-32 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" maxlength="80"></td>
@@ -1269,7 +1605,17 @@ class AdminService:
         github_username = (form.get("github_username") or "").strip().lstrip("@")
         action = (form.get("action") or "").strip().lower()
         autosave = self._is_autosave_request(request)
-        if action not in {"save", "delete", "create", "refresh_pr_counts", "clear_and_refresh_pr_counts"}:
+        if action not in {
+          "save",
+          "delete",
+          "create",
+          "refresh_pr_counts",
+          "clear_and_refresh_pr_counts",
+          "refresh_review_counts",
+          "clear_and_refresh_review_counts",
+          "refresh_comment_counts",
+          "clear_and_refresh_comment_counts",
+        }:
             if autosave:
                 return self._json({"ok": False, "error": "invalid_action"}, 400)
             return self._redirect(self.admin_path)
@@ -1342,9 +1688,10 @@ class AdminService:
                   timezone,
                   referred_by,
                   email,
-                  slack_username
+                  slack_username,
+                  created_at
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                   new_github_username,
@@ -1356,6 +1703,7 @@ class AdminService:
                   referred_by,
                   email,
                   slack_username,
+                  int(datetime.now(tz=dt_timezone.utc).timestamp()),
                 ),
               )
 
@@ -1514,6 +1862,22 @@ class AdminService:
                 await self._recalculate_all_mentor_pr_counts(clear_first=True)
                 if autosave:
                     return self._json({"ok": True})
+            elif action == "refresh_review_counts":
+              await self._recalculate_all_mentor_review_counts(clear_first=False)
+              if autosave:
+                return self._json({"ok": True})
+            elif action == "clear_and_refresh_review_counts":
+              await self._recalculate_all_mentor_review_counts(clear_first=True)
+              if autosave:
+                return self._json({"ok": True})
+            elif action == "refresh_comment_counts":
+              await self._recalculate_all_mentor_comment_counts(clear_first=False)
+              if autosave:
+                return self._json({"ok": True})
+            elif action == "clear_and_refresh_comment_counts":
+              await self._recalculate_all_mentor_comment_counts(clear_first=True)
+              if autosave:
+                return self._json({"ok": True})
             else:
                 if not github_username:
                     if autosave:
