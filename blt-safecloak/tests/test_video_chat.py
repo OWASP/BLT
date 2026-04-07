@@ -628,13 +628,13 @@ _VOICE_CHANGER_IGNORE_UNKNOWN_MODE_JS = """
 
 @pytest.fixture(scope="module")
 def voice_changer_page(base_url):
-    """Open a single video-chat page for VoiceChanger unit tests."""
+    """Open a single in-call page for VoiceChanger unit tests."""
     with sync_playwright() as pw:
         browser = pw.chromium.launch(args=_BROWSER_ARGS)
         try:
             ctx = _new_context(browser)
             page = ctx.new_page()
-            page.goto(f"{base_url}/video-chat")
+            page.goto(f"{base_url}/video-room")
             # Wait for VoiceChanger to be defined (scripts loaded)
             page.wait_for_function("typeof VoiceChanger !== 'undefined'", timeout=TIMEOUT_MS)
             yield page
