@@ -669,7 +669,7 @@
         let activePrId = null; // Track the currently active/selected PR
 
         // Auto-refresh state
-        let autoRefreshEnabled = localStorage.getItem('autoRefreshEnabled') !== 'false'; // enabled by default
+        let autoRefreshEnabled = localStorage.getItem('autoRefreshEnabled') === 'true'; // disabled by default
         let autoRefreshInterval = null;
         let prUpdateTimestamps = {}; // Track PR update timestamps for change detection
         const AUTO_REFRESH_INTERVAL = 30000; // 30 seconds
