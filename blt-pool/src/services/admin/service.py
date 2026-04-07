@@ -682,95 +682,137 @@ class AdminService:
 
         return total, last_snapshot
 
-    async def _count_user_graphql_comments_in_org(self, github_username: str, org: str, token: str) -> Tuple[int, dict]:
-        """Count all-time comments in org using GraphQL comment connections."""
-        username = (github_username or "").strip().lstrip("@")
-        org_login = (org or "").strip().lower()
-        if not username or not org_login:
-            return 0, {}
+    async def _count_user_graphql_comments_in_org(self, github_username: str, org: str, token: str) -> Tuple[Optional[int], dict]:
+      """Count all-time comments in org using GraphQL comment connections."""
+      username = (github_username or "").strip().lstrip("@")
+      org_login = (org or "").strip().lower()
+      if not username or not org_login:
+        return 0, {}
 
-        query = """
-        query($username: String!, $issueCursor: String, $reviewCursor: String) {
-          user(login: $username) {
-            issueComments(first: 100, after: $issueCursor) {
-              pageInfo { hasNextPage endCursor }
-              nodes {
-                repository {
-                  owner { login }
-                }
-              }
-            }
-            pullRequestReviewComments(first: 100, after: $reviewCursor) {
-              pageInfo { hasNextPage endCursor }
-              nodes {
-                repository {
-                  owner { login }
-                }
-              }
-            }
+      query = """
+      query($username: String!, $issueCursor: String, $reviewCursor: String) {
+        user(login: $username) {
+        issueComments(first: 100, after: $issueCursor) {
+          pageInfo { hasNextPage endCursor }
+          nodes {
+          repository {
+            owner { login }
+          }
           }
         }
-        """
+        pullRequestReviewComments(first: 100, after: $reviewCursor) {
+          pageInfo { hasNextPage endCursor }
+          nodes {
+          repository {
+            owner { login }
+          }
+          }
+        }
+        }
+      }
+      """
 
-        issue_cursor = None
-        review_cursor = None
-        issue_done = False
-        review_done = False
-        total = 0
-        last_snapshot = {}
+      issue_cursor = None
+      review_cursor = None
+      issue_done = False
+      review_done = False
+      total = 0
+      last_snapshot = {}
+      had_valid_connection = False
 
-        while not (issue_done and review_done):
-            variables = {
-                "username": username,
-                "issueCursor": issue_cursor,
-                "reviewCursor": review_cursor,
-            }
-            data, snapshot = await self._github_graphql(query, variables, token)
-            if snapshot:
-                last_snapshot = snapshot
-            user = (data or {}).get("user") if isinstance(data, dict) else None
-            if not isinstance(user, dict):
-                break
+      while not (issue_done and review_done):
+        variables = {
+          "username": username,
+          "issueCursor": issue_cursor,
+          "reviewCursor": review_cursor,
+        }
+        data, snapshot = await self._github_graphql(query, variables, token)
+        if snapshot:
+          last_snapshot = snapshot
+        user = (data or {}).get("user") if isinstance(data, dict) else None
+        if not isinstance(user, dict):
+          break
 
-            if not issue_done:
-                issue_connection = user.get("issueComments") if isinstance(user, dict) else None
-                if not isinstance(issue_connection, dict):
-                    issue_done = True
-                else:
-                    issue_nodes = issue_connection.get("nodes") if isinstance(issue_connection, dict) else []
-                    if not isinstance(issue_nodes, list):
-                        issue_nodes = []
-                    for node in issue_nodes:
-                        repo = (node or {}).get("repository") if isinstance(node, dict) else None
-                        owner = (repo or {}).get("owner") if isinstance(repo, dict) else None
-                        owner_login = ((owner or {}).get("login") or "").strip().lower() if isinstance(owner, dict) else ""
-                        if owner_login == org_login:
-                            total += 1
-                    issue_page_info = issue_connection.get("pageInfo") if isinstance(issue_connection, dict) else {}
-                    issue_has_next = bool((issue_page_info or {}).get("hasNextPage")) if isinstance(issue_page_info, dict) else False
-                    issue_cursor = (issue_page_info or {}).get("endCursor") if isinstance(issue_page_info, dict) else None
-                    issue_done = not issue_has_next
+        if not issue_done:
+          issue_connection = user.get("issueComments") if isinstance(user, dict) else None
+          if not isinstance(issue_connection, dict):
+            issue_done = True
+          else:
+            had_valid_connection = True
+            issue_nodes = issue_connection.get("nodes") if isinstance(issue_connection, dict) else []
+            if not isinstance(issue_nodes, list):
+              issue_nodes = []
+            for node in issue_nodes:
+              repo = (node or {}).get("repository") if isinstance(node, dict) else None
+              owner = (repo or {}).get("owner") if isinstance(repo, dict) else None
+              owner_login = ((owner or {}).get("login") or "").strip().lower() if isinstance(owner, dict) else ""
+              if owner_login == org_login:
+                total += 1
+            issue_page_info = issue_connection.get("pageInfo") if isinstance(issue_connection, dict) else {}
+            issue_has_next = bool((issue_page_info or {}).get("hasNextPage")) if isinstance(issue_page_info, dict) else False
+            issue_cursor = (issue_page_info or {}).get("endCursor") if isinstance(issue_page_info, dict) else None
+            issue_done = not issue_has_next
 
-            if not review_done:
-                review_connection = user.get("pullRequestReviewComments") if isinstance(user, dict) else None
-                if not isinstance(review_connection, dict):
-                    review_done = True
-                else:
-                    review_nodes = review_connection.get("nodes") if isinstance(review_connection, dict) else []
-                    if not isinstance(review_nodes, list):
-                        review_nodes = []
-                    for node in review_nodes:
-                        repo = (node or {}).get("repository") if isinstance(node, dict) else None
-                        owner = (repo or {}).get("owner") if isinstance(repo, dict) else None
-                        owner_login = ((owner or {}).get("login") or "").strip().lower() if isinstance(owner, dict) else ""
-                        if owner_login == org_login:
-                            total += 1
-                    review_page_info = review_connection.get("pageInfo") if isinstance(review_connection, dict) else {}
-                    review_has_next = bool((review_page_info or {}).get("hasNextPage")) if isinstance(review_page_info, dict) else False
-                    review_cursor = (review_page_info or {}).get("endCursor") if isinstance(review_page_info, dict) else None
-                    review_done = not review_has_next
+        if not review_done:
+          review_connection = user.get("pullRequestReviewComments") if isinstance(user, dict) else None
+          if not isinstance(review_connection, dict):
+            review_done = True
+          else:
+            had_valid_connection = True
+            review_nodes = review_connection.get("nodes") if isinstance(review_connection, dict) else []
+            if not isinstance(review_nodes, list):
+              review_nodes = []
+            for node in review_nodes:
+              repo = (node or {}).get("repository") if isinstance(node, dict) else None
+              owner = (repo or {}).get("owner") if isinstance(repo, dict) else None
+              owner_login = ((owner or {}).get("login") or "").strip().lower() if isinstance(owner, dict) else ""
+              if owner_login == org_login:
+                total += 1
+            review_page_info = review_connection.get("pageInfo") if isinstance(review_connection, dict) else {}
+            review_has_next = bool((review_page_info or {}).get("hasNextPage")) if isinstance(review_page_info, dict) else False
+            review_cursor = (review_page_info or {}).get("endCursor") if isinstance(review_page_info, dict) else None
+            review_done = not review_has_next
 
-        return total, last_snapshot
+      if not had_valid_connection:
+        return None, last_snapshot
+      return total, last_snapshot
+
+    async def _count_user_comments_via_search_in_org(self, github_username: str, org: str, token: str) -> Tuple[int, dict]:
+      """Fallback comment estimate via GitHub Search API commenter qualifiers."""
+      username = (github_username or "").strip().lstrip("@")
+      org_login = (org or "").strip()
+      if not username or not org_login:
+        return 0, {}
+
+      last_snapshot = {}
+      total = 0
+      queries = (
+        f"org:{org_login} is:issue commenter:{username}",
+        f"org:{org_login} is:pr commenter:{username}",
+      )
+
+      for raw_query in queries:
+        q = quote_plus(raw_query)
+        url = f"https://api.github.com/search/issues?q={q}&per_page=1"
+        try:
+          resp = await fetch(url, method="GET", headers=_github_headers(token))
+        except Exception as exc:
+          console.error(f"[AdminService] Search comment fallback error for {username}: {exc}")
+          continue
+
+        snapshot = _github_rate_limit_snapshot(resp)
+        if snapshot:
+          last_snapshot = snapshot
+        if resp.status != 200:
+          continue
+
+        try:
+          payload = json.loads(await resp.text())
+        except Exception:
+          continue
+        total += int(payload.get("total_count") or 0)
+
+      return total, last_snapshot
 
     async def _count_user_comments_in_org(self, github_username: str, org: str) -> Tuple[int, dict]:
         """Count all-time issue comments + PR review comments left by user in org repos."""
@@ -783,16 +825,21 @@ class AdminService:
 
         if token:
           gql_total, gql_snapshot = await self._count_user_graphql_comments_in_org(username, org_login, token)
-          # Prefer GraphQL when at least one response was observed.
-          if gql_snapshot:
-            return gql_total, gql_snapshot
+          if gql_total is not None:
+            return int(gql_total), gql_snapshot
 
         issue_comments_url = f"https://api.github.com/users/{quote_plus(username)}/issues/comments?per_page=100"
         pr_review_comments_url = f"https://api.github.com/users/{quote_plus(username)}/pulls/comments?per_page=100"
 
         issue_total, issue_snapshot = await self._count_user_comment_endpoint_in_org(issue_comments_url, org_login, token)
         pr_total, pr_snapshot = await self._count_user_comment_endpoint_in_org(pr_review_comments_url, org_login, token)
-        return issue_total + pr_total, (pr_snapshot or issue_snapshot)
+        rest_total = issue_total + pr_total
+        rest_snapshot = (pr_snapshot or issue_snapshot)
+        if rest_total > 0:
+          return rest_total, rest_snapshot
+
+        search_total, search_snapshot = await self._count_user_comments_via_search_in_org(username, org_login, token)
+        return search_total, (search_snapshot or rest_snapshot)
 
     def _rate_limit_db_values(self, snapshot: dict) -> tuple:
         return (
@@ -1531,47 +1578,21 @@ class AdminService:
             )
 
         content = f"""
-        <div class="mx-auto max-w-6xl grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-4">
-            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Total mentors</p>
-            <p class="mt-1 text-2xl font-extrabold text-[#111827]">{counts['total']}</p>
-          </article>
-          <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-4">
-            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Published</p>
-            <p class="mt-1 text-2xl font-extrabold text-[#111827]">{counts['active']}</p>
-          </article>
-          <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-4">
-            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Blocked / pending</p>
-            <p class="mt-1 text-2xl font-extrabold text-[#111827]">{counts['inactive']}</p>
-          </article>
-          <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-4">
-            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Total assignments</p>
-            <p class="mt-1 text-2xl font-extrabold text-[#111827]">{counts['assignments']}</p>
-          </article>
-          <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-4">
-            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Total PRs</p>
-            <p class="mt-1 text-2xl font-extrabold text-[#111827]">{counts['total_prs']}</p>
-          </article>
-          <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-4">
-            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Total reviews</p>
-            <p class="mt-1 text-2xl font-extrabold text-[#111827]">{counts['total_reviews']}</p>
-          </article>
-          <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-4">
-            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Total comments</p>
-            <p class="mt-1 text-2xl font-extrabold text-[#111827]">{counts['total_comments']}</p>
-          </article>
-          <article class="rounded-xl border border-[#E5E5E5] bg-[#111827] p-4 text-white sm:col-span-2 xl:col-span-1">
-            <p class="text-xs font-semibold uppercase tracking-wide text-gray-300">Pool version</p>
-            <p class="mt-1 text-3xl font-extrabold leading-none">v{_escape(APP_VERSION)}</p>
-            <p class="mt-1 text-xs font-medium text-gray-300">Update this on every code change.</p>
-          </article>
-          <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-4 sm:col-span-2 xl:col-span-1">
-            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">GitHub API rate limit</p>
-            <p class="mt-1 text-xl font-extrabold text-[#111827]">{dashboard_rate_used}/{dashboard_rate_limit if dashboard_rate_limit > 0 else 'n/a'}</p>
-            <p class="mt-1 text-xs font-medium text-gray-600">Remaining: {dashboard_rate_remaining}</p>
-            <p class="text-xs font-medium text-gray-600">Resets: {dashboard_rate_reset_label}</p>
-            <p class="text-xs font-medium text-gray-600">Time remaining: {dashboard_rate_remaining_label}</p>
-          </article>
+        <div class="mx-auto max-w-6xl">
+          <div class="flex flex-wrap items-center gap-2 rounded-xl border border-[#E5E5E5] bg-gray-50 p-2 text-xs font-semibold text-gray-700">
+            <span class="rounded-md bg-white px-2.5 py-1">Mentors: <strong class="text-[#111827]">{counts['total']}</strong></span>
+            <span class="rounded-md bg-white px-2.5 py-1">Published: <strong class="text-[#111827]">{counts['active']}</strong></span>
+            <span class="rounded-md bg-white px-2.5 py-1">Blocked: <strong class="text-[#111827]">{counts['inactive']}</strong></span>
+            <span class="rounded-md bg-white px-2.5 py-1">Assignments: <strong class="text-[#111827]">{counts['assignments']}</strong></span>
+            <span class="rounded-md bg-white px-2.5 py-1">PRs: <strong class="text-[#111827]">{counts['total_prs']}</strong></span>
+            <span class="rounded-md bg-white px-2.5 py-1">Reviews: <strong class="text-[#111827]">{counts['total_reviews']}</strong></span>
+            <span class="rounded-md bg-white px-2.5 py-1">Comments: <strong class="text-[#111827]">{counts['total_comments']}</strong></span>
+            <span class="rounded-md bg-[#111827] px-2.5 py-1 text-white">Version: <strong>v{_escape(APP_VERSION)}</strong></span>
+            <span class="rounded-md bg-white px-2.5 py-1">API: <strong class="text-[#111827]">{dashboard_rate_used}/{dashboard_rate_limit if dashboard_rate_limit > 0 else 'n/a'}</strong></span>
+            <span class="rounded-md bg-white px-2.5 py-1">Remaining: <strong class="text-[#111827]">{dashboard_rate_remaining}</strong></span>
+            <span class="rounded-md bg-white px-2.5 py-1">Reset: <strong class="text-[#111827]">{dashboard_rate_reset_label}</strong></span>
+            <span class="rounded-md bg-white px-2.5 py-1">Time left: <strong class="text-[#111827]">{dashboard_rate_remaining_label}</strong></span>
+          </div>
         </div>
 
         <div class="mt-8 -mx-5 overflow-visible border-t border-[#E5E5E5] bg-white sm:-mx-6 lg:-mx-7">
