@@ -73,6 +73,23 @@ def _github_headers(token: str = "") -> Headers:
     return Headers.new(headers.items())
 
 
+def _github_next_link(link_header: str) -> str:
+    """Extract the next-page URL from a GitHub Link header."""
+    if not link_header:
+        return ""
+    for part in link_header.split(","):
+        segment = part.strip()
+        if 'rel="next"' not in segment:
+            continue
+        if not segment.startswith("<"):
+            continue
+        end = segment.find(">")
+        if end <= 1:
+            continue
+        return segment[1:end]
+    return ""
+
+
 async def has_merged_pr_in_org(env, github_username: str, org: str = "OWASP-BLT") -> bool:
     """Return True when the user has at least one merged PR in the org."""
     if not github_username:
@@ -233,6 +250,10 @@ class AdminService:
             await self._d1_run(
                 "ALTER TABLE mentors ADD COLUMN slack_username TEXT NOT NULL DEFAULT ''"
             )
+        if not await self._d1_has_column("mentors", "total_prs"):
+            await self._d1_run(
+                "ALTER TABLE mentors ADD COLUMN total_prs INTEGER NOT NULL DEFAULT 0"
+            )
         await self._d1_run(
             """
             CREATE TABLE IF NOT EXISTS mentor_assignments (
@@ -247,9 +268,149 @@ class AdminService:
             """
         )
         if not await self._d1_has_column("mentor_assignments", "mentee_login"):
-          await self._d1_run(
-            "ALTER TABLE mentor_assignments ADD COLUMN mentee_login TEXT NOT NULL DEFAULT ''"
-          )
+            await self._d1_run(
+                "ALTER TABLE mentor_assignments ADD COLUMN mentee_login TEXT NOT NULL DEFAULT ''"
+            )
+
+    async def _count_user_prs_in_org(self, github_username: str, org: str) -> int:
+        """Count all PRs authored by github_username across all repos in org.
+
+        Uses GraphQL cursor pagination to avoid Search API's practical result caps.
+        """
+        username = (github_username or "").strip().lstrip("@")
+        if not username:
+            return 0
+
+        token = getattr(self.env, "GITHUB_TOKEN", "") if self.env else ""
+        org_login = (org or "").strip().lower()
+        if not token:
+            # GraphQL requires auth; fallback keeps behavior predictable if token is missing.
+            query = quote_plus(f"is:pr org:{org} author:{username}")
+            url = f"https://api.github.com/search/issues?q={query}&per_page=1"
+            try:
+                resp = await fetch(url, method="GET", headers=_github_headers(token))
+                if resp.status != 200:
+                    return 0
+                payload = json.loads(await resp.text())
+                return int(payload.get("total_count") or 0)
+            except Exception:
+                return 0
+
+        graphql_query = """
+        query($login: String!, $cursor: String) {
+          user(login: $login) {
+            pullRequests(
+              first: 100,
+              after: $cursor,
+              orderBy: {field: CREATED_AT, direction: DESC},
+              states: [OPEN, CLOSED, MERGED]
+            ) {
+              pageInfo {
+                hasNextPage
+                endCursor
+              }
+              nodes {
+                repository {
+                  owner {
+                    login
+                  }
+                }
+              }
+            }
+          }
+        }
+        """
+
+        cursor = None
+        total = 0
+
+        while True:
+            body = json.dumps(
+                {
+                    "query": graphql_query,
+                    "variables": {
+                        "login": username,
+                        "cursor": cursor,
+                    },
+                }
+            )
+            try:
+                headers = {
+                    "Accept": "application/vnd.github+json",
+                    "Authorization": f"Bearer {token}",
+                    "Content-Type": "application/json",
+                    "User-Agent": "BLT-Pool/1.0",
+                    "X-GitHub-Api-Version": "2022-11-28",
+                }
+                resp = await fetch(
+                    "https://api.github.com/graphql",
+                    method="POST",
+                    headers=Headers.new(headers.items()),
+                    body=body,
+                )
+            except Exception as exc:
+                console.error(f"[AdminService] PR lookup error for {username}: {exc}")
+                break
+
+            if resp.status != 200:
+                console.error(
+                    f"[AdminService] PR lookup failed for {username}: status={resp.status} (graphql)"
+                )
+                break
+
+            try:
+                payload = json.loads(await resp.text())
+            except Exception as exc:
+                console.error(f"[AdminService] PR lookup parse failure for {username}: {exc}")
+                break
+
+            if isinstance(payload, dict) and payload.get("errors"):
+                console.error(f"[AdminService] PR lookup graphql errors for {username}: {payload.get('errors')}")
+                break
+
+            user_data = ((payload.get("data") or {}).get("user") if isinstance(payload, dict) else None) or {}
+            pr_connection = user_data.get("pullRequests") if isinstance(user_data, dict) else None
+            if not isinstance(pr_connection, dict):
+                break
+
+            nodes = pr_connection.get("nodes") if isinstance(pr_connection, dict) else []
+            if not isinstance(nodes, list):
+                nodes = []
+
+            for node in nodes:
+                repo = (node or {}).get("repository") if isinstance(node, dict) else None
+                owner = (repo or {}).get("owner") if isinstance(repo, dict) else None
+                owner_login = ((owner or {}).get("login") or "").strip().lower() if isinstance(owner, dict) else ""
+                if owner_login == org_login:
+                    total += 1
+
+            page_info = pr_connection.get("pageInfo") if isinstance(pr_connection, dict) else {}
+            has_next = bool((page_info or {}).get("hasNextPage")) if isinstance(page_info, dict) else False
+            cursor = (page_info or {}).get("endCursor") if isinstance(page_info, dict) else None
+            if not has_next:
+                break
+
+        return total
+
+    async def _recalculate_all_mentor_pr_counts(self, clear_first: bool = False) -> int:
+        org = str(getattr(self.env, "GITHUB_ORG", "OWASP-BLT") or "OWASP-BLT").strip() or "OWASP-BLT"
+        if clear_first:
+            await self._d1_run("UPDATE mentors SET total_prs = 0")
+
+        mentors = await self._d1_all("SELECT github_username FROM mentors")
+        refreshed = 0
+        for row in mentors:
+            username = (row.get("github_username") or "").strip().lstrip("@")
+            if not username:
+                continue
+            pr_count = await self._count_user_prs_in_org(username, org)
+            await self._d1_run(
+                "UPDATE mentors SET total_prs = ? WHERE github_username = ?",
+                (int(pr_count), username),
+            )
+            refreshed += 1
+
+        return refreshed
 
     async def _d1_has_column(self, table_name: str, column_name: str) -> bool:
         rows = await self._d1_all(f"PRAGMA table_info({table_name})")
@@ -414,7 +575,7 @@ class AdminService:
 
     #admin-mentor-table thead th {{
       position: sticky;
-      top: var(--admin-header-offset, 80px);
+      top: 0;
       z-index: 30;
       background: #f9fafb;
     }}
@@ -431,6 +592,10 @@ class AdminService:
         </div>
       </a>
       <div class="flex items-center gap-3">
+        <a href="/" class="inline-flex items-center gap-1.5 rounded-md border border-[#E5E5E5] bg-white px-3 py-2 text-xs font-semibold text-gray-700 transition hover:border-[#E10101] hover:bg-[#feeae9] hover:text-[#E10101]">
+          <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+          Back to Pool
+        </a>
         {auth_chip}
       </div>
     </div>
@@ -898,25 +1063,56 @@ class AdminService:
 
         <div class="mt-8 -mx-5 overflow-visible border-t border-[#E5E5E5] bg-white sm:-mx-6 lg:-mx-7">
           <div class="border-b border-[#E5E5E5] px-5 py-4">
-            <h3 class="text-lg font-bold text-[#111827]">Mentor management</h3>
-            <p class="mt-1 text-sm text-gray-600">Inline editable mentor grid with sortable columns.</p>
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h3 class="text-lg font-bold text-[#111827]">Mentor management</h3>
+                <p class="mt-1 text-sm text-gray-600">Inline editable mentor grid with sortable columns.</p>
+              </div>
+              <div class="flex flex-wrap items-center gap-2">
+                <form method="POST" action="{self.mentor_action_path}">
+                  <input type="hidden" name="action" value="refresh_pr_counts">
+                  <button
+                    type="submit"
+                    data-confirm-title="Refresh PR counts?"
+                    data-confirm-message="This will recalculate total lifetime PR counts for all mentors across OWASP-BLT repositories."
+                    data-confirm-cta="<i class=&quot;fa-solid fa-rotate&quot; aria-hidden=&quot;true&quot;></i>Refresh counts"
+                    class="inline-flex items-center gap-2 rounded-md border border-[#E5E5E5] bg-white px-3 py-2 text-xs font-semibold text-gray-700 transition hover:border-[#E10101] hover:text-[#E10101]">
+                    <i class="fa-solid fa-rotate" aria-hidden="true"></i>
+                    Refresh PR counts
+                  </button>
+                </form>
+                <form method="POST" action="{self.mentor_action_path}">
+                  <input type="hidden" name="action" value="clear_and_refresh_pr_counts">
+                  <button
+                    type="submit"
+                    data-confirm-title="Clear and recalculate PR counts?"
+                    data-confirm-message="This will reset all mentor PR totals to zero and then fully recalculate them from GitHub with pagination."
+                    data-confirm-cta="<i class=&quot;fa-solid fa-arrows-rotate&quot; aria-hidden=&quot;true&quot;></i>Clear + recalculate"
+                    class="inline-flex items-center gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-100">
+                    <i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i>
+                    Clear + recalculate
+                  </button>
+                </form>
+              </div>
+            </div>
           </div>
           <div class="relative overflow-x-auto overflow-y-visible">
             <table id="admin-mentor-table" class="min-w-full text-left text-sm">
               <thead class="bg-gray-50 text-[11px] font-semibold uppercase tracking-wide text-gray-500 shadow-sm">
                 <tr>
-                  <th class="sticky z-30 bg-gray-50 px-3 py-3" style="top: var(--admin-header-offset, 80px)"><button type="button" data-sort-key="mentor" data-sort-direction="desc" class="inline-flex items-center gap-1">Mentor <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
-                  <th class="sticky z-30 bg-gray-50 px-3 py-3" style="top: var(--admin-header-offset, 80px)"><button type="button" data-sort-key="name" data-sort-direction="desc" class="inline-flex items-center gap-1">Name <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
-                  <th class="sticky z-30 bg-gray-50 px-3 py-3" style="top: var(--admin-header-offset, 80px)"><button type="button" data-sort-key="github_username" data-sort-direction="desc" class="inline-flex items-center gap-1">GitHub <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
-                  <th class="sticky z-30 bg-gray-50 px-3 py-3" style="top: var(--admin-header-offset, 80px)"><button type="button" data-sort-key="active" data-sort-direction="desc" class="inline-flex items-center gap-1">Published <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
-                  <th class="sticky z-30 bg-gray-50 px-3 py-3" style="top: var(--admin-header-offset, 80px)"><button type="button" data-sort-key="specialties" data-sort-direction="desc" class="inline-flex items-center gap-1">Specialties <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
-                  <th class="sticky z-30 bg-gray-50 px-3 py-3" style="top: var(--admin-header-offset, 80px)"><button type="button" data-sort-key="max_mentees" data-sort-direction="desc" class="inline-flex items-center gap-1">Cap <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
-                  <th class="sticky z-30 bg-gray-50 px-3 py-3" style="top: var(--admin-header-offset, 80px)"><button type="button" data-sort-key="timezone" data-sort-direction="desc" class="inline-flex items-center gap-1">Timezone <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
-                  <th class="sticky z-30 bg-gray-50 px-3 py-3" style="top: var(--admin-header-offset, 80px)"><button type="button" data-sort-key="referred_by" data-sort-direction="desc" class="inline-flex items-center gap-1">Referral <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
-                  <th class="sticky z-30 bg-gray-50 px-3 py-3" style="top: var(--admin-header-offset, 80px)"><button type="button" data-sort-key="slack_username" data-sort-direction="desc" class="inline-flex items-center gap-1">Slack <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
-                  <th class="sticky z-30 bg-gray-50 px-3 py-3" style="top: var(--admin-header-offset, 80px)"><button type="button" data-sort-key="email" data-sort-direction="desc" class="inline-flex items-center gap-1">Email <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
-                  <th class="sticky z-30 bg-gray-50 px-3 py-3" style="top: var(--admin-header-offset, 80px)"><button type="button" data-sort-key="assignments" data-sort-direction="desc" class="inline-flex items-center gap-1">Assignments (count) <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
-                  <th class="sticky z-30 bg-gray-50 px-3 py-3 text-right" style="top: var(--admin-header-offset, 80px)"><button type="button" data-sort-key="actions" data-sort-direction="desc" class="inline-flex items-center gap-1">Actions <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="mentor" data-sort-direction="desc" class="inline-flex items-center gap-1">Mentor <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="name" data-sort-direction="desc" class="inline-flex items-center gap-1">Name <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="github_username" data-sort-direction="desc" class="inline-flex items-center gap-1">GitHub <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="total_prs" data-sort-direction="desc" class="inline-flex items-center gap-1">PRs (all-time) <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="max_mentees" data-sort-direction="desc" class="inline-flex items-center gap-1">Cap <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="slack_username" data-sort-direction="desc" class="inline-flex items-center gap-1">Slack <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="email" data-sort-direction="desc" class="inline-flex items-center gap-1">Email <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="specialties" data-sort-direction="desc" class="inline-flex items-center gap-1">Specialties <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="active" data-sort-direction="desc" class="inline-flex items-center gap-1">Published <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="timezone" data-sort-direction="desc" class="inline-flex items-center gap-1">Timezone <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="referred_by" data-sort-direction="desc" class="inline-flex items-center gap-1">Referral <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="assignments" data-sort-direction="desc" class="inline-flex items-center gap-1">Assignments (count) <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="sticky z-30 bg-gray-50 px-3 py-3 text-right"><button type="button" data-sort-key="actions" data-sort-direction="desc" class="inline-flex items-center gap-1">Actions <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-[#E5E5E5]">
@@ -974,6 +1170,7 @@ class AdminService:
                 m.referred_by,
                 m.email,
                 m.slack_username,
+                m.total_prs,
                 COALESCE(a.assignment_refs, '') AS assignment_refs,
                 COALESCE(a.assignment_count, 0) AS assignment_count
             FROM mentors m
@@ -1009,7 +1206,7 @@ class AdminService:
         assignment_count = int(mentor.get("assignment_count") or 0)
         form_id = f"mentor-form-{username.lower().replace('_', '-')}"
         return f"""
-        <tr data-mentor-row data-mentor="{_escape(name).lower()}" data-name="{_escape(name).lower()}" data-github_username="{_escape(username).lower()}" data-active="{1 if active else 0}" data-max_mentees="{int(mentor.get('max_mentees') or 3)}" data-assignment_count="{assignment_count}">
+        <tr data-mentor-row data-mentor="{_escape(name).lower()}" data-name="{_escape(name).lower()}" data-github_username="{_escape(username).lower()}" data-active="{1 if active else 0}" data-total_prs="{int(mentor.get('total_prs') or 0)}" data-max_mentees="{int(mentor.get('max_mentees') or 3)}" data-assignment_count="{assignment_count}">
           <td class="px-3 py-2">
             <div class="flex items-center gap-2">
               <a href="https://github.com/{_escape(username)}" target="_blank" rel="noopener noreferrer" aria-label="Open @{_escape(username)} on GitHub" class="inline-flex h-8 w-8 shrink-0 overflow-hidden rounded-full border border-[#E5E5E5] bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E10101] focus-visible:ring-offset-2">
@@ -1024,17 +1221,20 @@ class AdminService:
           </td>
           <td class="px-3 py-2"><input form="{form_id}" data-field="name" name="name" value="{_escape(name)}" class="w-40 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" maxlength="100" required></td>
           <td class="px-3 py-2"><input form="{form_id}" data-field="github_username" name="github_username" value="{_escape(username)}" class="w-36 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" maxlength="39" required></td>
+          <td class="px-3 py-2">
+            <span class="inline-flex items-center rounded-full border border-gray-200 bg-gray-50 px-2 py-1 text-xs font-semibold text-gray-700">{int(mentor.get('total_prs') or 0)}</span>
+          </td>
+          <td class="px-3 py-2"><input form="{form_id}" data-field="max_mentees" name="max_mentees" type="number" min="1" max="10" value="{int(mentor.get('max_mentees') or 3)}" class="w-20 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800"></td>
+          <td class="px-3 py-2"><input form="{form_id}" data-field="slack_username" name="slack_username" value="{_escape(slack_username)}" class="w-32 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" maxlength="80"></td>
+          <td class="px-3 py-2"><input form="{form_id}" data-field="email" name="email" type="email" value="{_escape(email)}" class="w-56 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" maxlength="255"></td>
+          <td class="px-3 py-2"><input form="{form_id}" data-field="specialties" name="specialties" value="{_escape(specialties_value)}" class="w-48 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" maxlength="300" placeholder="frontend, python"></td>
           <td class="px-3 py-2 text-center">
             <label class="inline-flex items-center justify-center">
               <input form="{form_id}" data-field="active" name="active" type="checkbox" value="1" {'checked' if active else ''}>
             </label>
           </td>
-          <td class="px-3 py-2"><input form="{form_id}" data-field="specialties" name="specialties" value="{_escape(specialties_value)}" class="w-48 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" maxlength="300" placeholder="frontend, python"></td>
-          <td class="px-3 py-2"><input form="{form_id}" data-field="max_mentees" name="max_mentees" type="number" min="1" max="10" value="{int(mentor.get('max_mentees') or 3)}" class="w-20 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800"></td>
           <td class="px-3 py-2"><input form="{form_id}" data-field="timezone" name="timezone" value="{_escape(mentor.get('timezone') or '')}" class="w-28 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" maxlength="60"></td>
           <td class="px-3 py-2"><input form="{form_id}" data-field="referred_by" name="referred_by" value="{_escape(mentor.get('referred_by') or '')}" class="w-28 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" maxlength="39"></td>
-          <td class="px-3 py-2"><input form="{form_id}" data-field="slack_username" name="slack_username" value="{_escape(slack_username)}" class="w-32 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" maxlength="80"></td>
-          <td class="px-3 py-2"><input form="{form_id}" data-field="email" name="email" type="email" value="{_escape(email)}" class="w-56 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" maxlength="255"></td>
           <td class="px-3 py-2">
             <div class="space-y-1">
               <span data-assignment-count class="inline-flex items-center rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-[11px] font-semibold text-gray-600">{assignment_count} total</span>
@@ -1069,7 +1269,7 @@ class AdminService:
         github_username = (form.get("github_username") or "").strip().lstrip("@")
         action = (form.get("action") or "").strip().lower()
         autosave = self._is_autosave_request(request)
-        if action not in {"save", "delete", "create"}:
+        if action not in {"save", "delete", "create", "refresh_pr_counts", "clear_and_refresh_pr_counts"}:
             if autosave:
                 return self._json({"ok": False, "error": "invalid_action"}, 400)
             return self._redirect(self.admin_path)
@@ -1306,6 +1506,14 @@ class AdminService:
 
                 if autosave:
                     return self._json({"ok": True, "github_username": new_github_username})
+            elif action == "refresh_pr_counts":
+                await self._recalculate_all_mentor_pr_counts(clear_first=False)
+                if autosave:
+                    return self._json({"ok": True})
+            elif action == "clear_and_refresh_pr_counts":
+                await self._recalculate_all_mentor_pr_counts(clear_first=True)
+                if autosave:
+                    return self._json({"ok": True})
             else:
                 if not github_username:
                     if autosave:
