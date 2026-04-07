@@ -30,7 +30,7 @@ jobs:
         run: |
           RESULT=$(node scripts/expire-jobs.js)
           echo "$RESULT"
-          COUNT=$(echo "$RESULT" | node -e "const data=JSON.parse(require('fs').readFileSync(0,'utf8')); console.log(data.count || 0)")
+          COUNT=$(echo "$RESULT" | jq -r '.count // 0')
           echo "count=$COUNT" >> "$GITHUB_OUTPUT"
 
       - name: Rebuild jobs data
