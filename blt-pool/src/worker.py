@@ -5607,11 +5607,15 @@ def _generate_mentor_row(mentor: dict, stats: Optional[dict] = None) -> str:
         if specialty_chips else ''
     )
 
-    # Frontend PR count uses the same canonical backend source as admin:
-    # mentors.total_prs in D1. Reviews still come from mentor_stats cache.
+    # PR count: prefer stats["merged_prs"] when a stats dict is supplied, then
+    # fall back to mentor["total_prs"] which comes directly from D1.
+    has_stats = stats is not None
     has_total_prs = "total_prs" in mentor and mentor.get("total_prs") is not None
-    if stats or has_total_prs:
-        total_prs = int(mentor.get("total_prs") or 0)
+    if has_stats or has_total_prs:
+        if has_stats and stats.get("merged_prs") is not None:
+            total_prs = int(stats["merged_prs"])
+        else:
+            total_prs = int(mentor.get("total_prs") or 0)
         reviews = int((stats or {}).get("reviews") or 0)
         stats_row = (
             f'<div class="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-0.5">'
