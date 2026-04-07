@@ -7,7 +7,10 @@ const JOBS_DIR = path.join(__dirname, '..', 'jobs');
 const DEFAULT_EXPIRY_DAYS = 60;
 
 function parseDate(value) {
-  if (!value || typeof value !== 'string') return null;
+  if (!value) return null;
+  // Handle native Date objects returned by gray-matter for YAML date fields
+  if (value instanceof Date) return Number.isNaN(value.getTime()) ? null : value;
+  if (typeof value !== 'string') return null;
   const d = new Date(value);
   return Number.isNaN(d.getTime()) ? null : d;
 }
