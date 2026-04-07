@@ -544,8 +544,6 @@ class AdminService:
     async def _github_rate_limit_status(self) -> dict:
         """Return current core rate-limit details and seconds until reset."""
         token = getattr(self.env, "GITHUB_TOKEN", "") if self.env else ""
-        if not token:
-            return {}
 
         snapshot = {}
         try:
@@ -604,64 +602,36 @@ class AdminService:
             return 0, {}
 
         token = getattr(self.env, "GITHUB_TOKEN", "") if self.env else ""
-        if not token:
-            return 0, {}
 
-        query = """
-        query($username: String!, $cursor: String) {
-          user(login: $username) {
-            pullRequestReviews(
-              first: 100,
-              after: $cursor,
-              states: [APPROVED, CHANGES_REQUESTED]
-            ) {
-              pageInfo {
-                hasNextPage
-                endCursor
-              }
-              nodes {
-                pullRequest {
-                  repository {
-                    owner {
-                      login
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-        """
         total = 0
-        cursor = None
         last_snapshot = {}
 
-        while True:
-            data, snapshot = await self._github_graphql(query, {"username": username, "cursor": cursor}, token)
+        # Two search queries mirror requested review outcomes.
+        for qualifier in ("review:approved", "review:changes_requested"):
+            query = quote_plus(f"is:pr org:{org_login} reviewed-by:{username} {qualifier}")
+            url = f"https://api.github.com/search/issues?q={query}&per_page=1"
+            try:
+                resp = await fetch(url, method="GET", headers=_github_headers(token))
+            except Exception as exc:
+                console.error(f"[AdminService] Review lookup error for {username}: {exc}")
+                continue
+
+            snapshot = _github_rate_limit_snapshot(resp)
             if snapshot:
                 last_snapshot = snapshot
-            user = (data or {}).get("user") if isinstance(data, dict) else None
-            reviews = (user or {}).get("pullRequestReviews") if isinstance(user, dict) else None
-            if not isinstance(reviews, dict):
-                break
+            if resp.status != 200:
+                console.error(
+                    f"[AdminService] Review lookup failed for {username}: status={resp.status}"
+                )
+                continue
 
-            nodes = reviews.get("nodes") if isinstance(reviews, dict) else []
-            if not isinstance(nodes, list):
-                nodes = []
+            try:
+                payload = json.loads(await resp.text())
+            except Exception as exc:
+                console.error(f"[AdminService] Review lookup parse error for {username}: {exc}")
+                continue
 
-            for node in nodes:
-                pr = (node or {}).get("pullRequest") if isinstance(node, dict) else None
-                repo = (pr or {}).get("repository") if isinstance(pr, dict) else None
-                owner = (repo or {}).get("owner") if isinstance(repo, dict) else None
-                owner_login = ((owner or {}).get("login") or "").strip().lower() if isinstance(owner, dict) else ""
-                if owner_login == org_login:
-                    total += 1
-
-            page_info = reviews.get("pageInfo") if isinstance(reviews, dict) else {}
-            has_next = bool((page_info or {}).get("hasNextPage")) if isinstance(page_info, dict) else False
-            cursor = (page_info or {}).get("endCursor") if isinstance(page_info, dict) else None
-            if not has_next:
-                break
+            total += int(payload.get("total_count") or 0)
 
         return total, last_snapshot
 
@@ -719,8 +689,6 @@ class AdminService:
             return 0, {}
 
         token = getattr(self.env, "GITHUB_TOKEN", "") if self.env else ""
-        if not token:
-            return 0, {}
 
         issue_comments_url = f"https://api.github.com/users/{quote_plus(username)}/issues/comments?per_page=100"
         pr_review_comments_url = f"https://api.github.com/users/{quote_plus(username)}/pulls/comments?per_page=100"
