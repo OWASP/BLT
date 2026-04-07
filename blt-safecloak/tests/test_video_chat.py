@@ -1116,7 +1116,7 @@ def test_video_room_peerjs_script_has_no_sri_integrity():
     """PeerJS CDN script should not use stale SRI that can block script execution in production."""
     html = (ROOT / "src/pages/video-room.html").read_text(encoding="utf-8")
     match = re.search(
-        r'<script\\b[^>]*src=\"https://unpkg\\.com/peerjs@1\\.5\\.2/dist/peerjs\\.min\\.js\"[^>]*>',
+        r'<script\b[^>]*src="https://unpkg\.com/peerjs@1\.5\.2/dist/peerjs\.min\.js"[^>]*>',
         html,
     )
     assert match, "PeerJS script tag missing in video-room.html"
