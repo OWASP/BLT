@@ -688,6 +688,11 @@ async def _ensure_leaderboard_schema(db) -> None:
             db,
             "ALTER TABLE mentors ADD COLUMN slack_username TEXT NOT NULL DEFAULT ''",
         )
+    if not await _d1_has_column(db, "mentors", "total_prs"):
+        await _d1_run(
+            db,
+            "ALTER TABLE mentors ADD COLUMN total_prs INTEGER NOT NULL DEFAULT 0",
+        )
     await _d1_run(
         db,
         """
@@ -773,7 +778,7 @@ async def _load_mentors_from_d1(db) -> list:
         await _ensure_leaderboard_schema(db)
         rows = await _d1_all(
             db,
-            "SELECT github_username, name, specialties, max_mentees, active, timezone, referred_by, email, slack_username FROM mentors",
+            "SELECT github_username, name, specialties, max_mentees, active, timezone, referred_by, email, slack_username, total_prs FROM mentors",
         )
         mentors = []
         for row in rows:
@@ -791,6 +796,7 @@ async def _load_mentors_from_d1(db) -> list:
                 "referred_by": row.get("referred_by") or "",
                 "email": row.get("email") or "",
                 "slack_username": row.get("slack_username") or "",
+                "total_prs": int(row.get("total_prs") or 0),
             })
         console.log(f"[MentorPool] Loaded {len(mentors)} mentors from D1")
         return mentors
@@ -5598,15 +5604,17 @@ def _generate_mentor_row(mentor: dict, stats: Optional[dict] = None) -> str:
         if specialty_chips else ''
     )
 
-    # Compact stats row — shown only when D1 data is available.
-    if stats:
-        merged_prs = int(stats.get("merged_prs") or 0)
-        reviews = int(stats.get("reviews") or 0)
+    # Frontend PR count uses the same canonical backend source as admin:
+    # mentors.total_prs in D1. Reviews still come from mentor_stats cache.
+    has_total_prs = "total_prs" in mentor and mentor.get("total_prs") is not None
+    if stats or has_total_prs:
+        total_prs = int(mentor.get("total_prs") or 0)
+        reviews = int((stats or {}).get("reviews") or 0)
         stats_row = (
             f'<div class="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-0.5">'
             f'<span class="text-xs text-gray-400 whitespace-nowrap">'
             f'<i class="fa-solid fa-code-pull-request mr-0.5 text-gray-300" aria-hidden="true"></i>'
-            f'<span class="font-semibold text-gray-600">{merged_prs}</span> PRs</span>'
+            f'<span class="font-semibold text-gray-600">{total_prs}</span> PRs</span>'
             f'<span class="text-xs text-gray-400 whitespace-nowrap">'
             f'<i class="fa-solid fa-magnifying-glass-chart mr-0.5 text-gray-300" aria-hidden="true"></i>'
             f'<span class="font-semibold text-gray-600">{reviews}</span> reviews</span>'
