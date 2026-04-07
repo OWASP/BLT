@@ -95,7 +95,11 @@ function renderJob(job) {
   const canApply = Boolean(job.application_email || job.application_url);
   const hasEmail = Boolean(job.application_email);
   const hasUrl = Boolean(job.application_url);
-  const expiryDate = job.expires_at || job.effective_expires_at;
+  const expiryDate = [job.expires_at, job.effective_expires_at].find((value) => {
+    if (!value) return false;
+    const parsed = new Date(value);
+    return !Number.isNaN(parsed.getTime());
+  }) || null;
   const expired = isExpired(expiryDate);
   const expiringSoon = isExpiringSoon(expiryDate);
   const expiryText = formatExpiryDate(expiryDate);
