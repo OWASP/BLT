@@ -1,8 +1,8 @@
 {
   "participantCount": 194,
-  "totalPRs": 2567,
-  "mergedPRs": 1595,
-  "totalIssues": 798,
+  "totalPRs": 2569,
+  "mergedPRs": 1596,
+  "totalIssues": 799,
   "repositories": 54,
   "topContributors": [
     {
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "fix: remove CI matrix, pin Python 3.12, fix broken mentor row test",
+      "url": "https://github.com/OWASP-BLT/BLT-Pool/pull/117",
+      "username": "DonnieBLT",
+      "avatar": "https://avatars.githubusercontent.com/u/128622481?v=4",
+      "state": "closed",
+      "created_at": "2026-04-07T19:51:15Z",
+      "merged_at": "2026-04-07T20:02:43Z",
+      "repository": "OWASP-BLT/BLT-Pool"
+    },
     {
       "title": "fix: add admin endpoint to backfill referred_by data for mentors ",
       "url": "https://github.com/OWASP-BLT/BLT-Pool/pull/116",
@@ -112,16 +122,6 @@
       "avatar": "https://avatars.githubusercontent.com/u/174894162?v=4",
       "state": "closed",
       "created_at": "2026-04-05T15:43:44Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "Remove deprecated standalone lecture editing feature",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6147",
-      "username": "Prachi9506",
-      "avatar": "https://avatars.githubusercontent.com/u/174894162?v=4",
-      "state": "closed",
-      "created_at": "2026-04-05T15:33:32Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT"
     }
