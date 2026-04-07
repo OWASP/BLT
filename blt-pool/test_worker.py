@@ -5751,7 +5751,7 @@ class TestGenerateMentorRow(unittest.TestCase):
 
     def test_stats_prs_shown_when_provided(self):
         html = _worker._generate_mentor_row(
-            self._make_mentor(), stats={"merged_prs": 42, "reviews": 7}
+            self._make_mentor(total_prs=42), stats={"reviews": 7}
         )
         self.assertIn("42", html)
         self.assertIn("7", html)
