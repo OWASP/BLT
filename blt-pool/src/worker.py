@@ -5787,10 +5787,6 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
           <ol class="space-y-0">
             {lb_items}
           </ol>
-          <div class="mt-4 rounded-lg bg-gray-50 border border-[#E5E5E5] px-3 py-2">
-            <p class="text-xs font-semibold text-gray-600 mb-1"><i class="fa-solid fa-circle-info mr-1 text-[#E10101]" aria-hidden="true"></i>How to refer a friend</p>
-            <p class="text-xs text-gray-500">Mention them in any issue or PR comment, e.g. <code class="rounded bg-gray-200 px-1 py-0.5 text-xs font-mono text-gray-700">Hey @username, check this out!</code> — if they have no prior activity, it counts as a referral.</p>
-          </div>
         </section>'''
     else:
         leaderboard_html = '''
@@ -5802,10 +5798,6 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
             <h3 class="text-lg font-bold text-[#111827]">Referral Leaderboard</h3>
           </div>
           <p class="mb-4 text-sm text-gray-500">No referrals yet — be the first to invite a friend!</p>
-          <div class="rounded-lg bg-gray-50 border border-[#E5E5E5] px-3 py-2">
-            <p class="text-xs font-semibold text-gray-600 mb-1"><i class="fa-solid fa-circle-info mr-1 text-[#E10101]" aria-hidden="true"></i>How to refer a friend</p>
-            <p class="text-xs text-gray-500">Mention them in any issue or PR comment, e.g. <code class="rounded bg-gray-200 px-1 py-0.5 text-xs font-mono text-gray-700">Hey @username, check this out!</code> — if they have no prior activity, it counts as a referral.</p>
-          </div>
         </section>'''
 
     return f'''<!DOCTYPE html>
