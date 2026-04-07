@@ -1110,3 +1110,16 @@ def test_video_chat_includes_prejoin_voice_controller_ui():
     ]
     for snippet in required_snippets:
         assert snippet in html, f"Expected snippet missing in video-chat.html: {snippet}"
+
+
+def test_video_room_peerjs_script_has_no_sri_integrity():
+    """PeerJS CDN script should not use stale SRI that can block script execution in production."""
+    html = (ROOT / "src/pages/video-room.html").read_text(encoding="utf-8")
+    match = re.search(
+        r'<script\\b[^>]*src=\"https://unpkg\\.com/peerjs@1\\.5\\.2/dist/peerjs\\.min\\.js\"[^>]*>',
+        html,
+    )
+    assert match, "PeerJS script tag missing in video-room.html"
+    assert "integrity=" not in match.group(0), (
+        "PeerJS script tag should not include integrity attribute; stale SRI breaks production loading"
+    )
