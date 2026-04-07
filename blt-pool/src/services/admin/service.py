@@ -1762,7 +1762,6 @@ class AdminService:
                   <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="total_prs" data-sort-direction="desc" class="inline-flex items-center gap-1">PRs (all-time) <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
                   <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="total_reviews" data-sort-direction="desc" class="inline-flex items-center gap-1">Reviews (all-time) <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
                   <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="total_comments" data-sort-direction="desc" class="inline-flex items-center gap-1">Comments (all-time) <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
-                  <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="last_rate_used" data-sort-direction="desc" class="inline-flex items-center gap-1">GitHub API limit <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
                   <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="max_mentees" data-sort-direction="desc" class="inline-flex items-center gap-1">Cap <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
                   <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="slack_username" data-sort-direction="desc" class="inline-flex items-center gap-1">Slack <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
                   <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="email" data-sort-direction="desc" class="inline-flex items-center gap-1">Email <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
@@ -1832,10 +1831,6 @@ class AdminService:
                 m.total_prs,
                 m.total_reviews,
                 m.total_comments,
-                m.last_rate_limit,
-                m.last_rate_remaining,
-                m.last_rate_used,
-                m.last_rate_reset_at,
                 m.created_at,
                 COALESCE(a.assignment_refs, '') AS assignment_refs,
                 COALESCE(a.assignment_count, 0) AS assignment_count
@@ -1882,18 +1877,10 @@ class AdminService:
         total_prs = int(mentor.get("total_prs") or 0)
         total_reviews = int(mentor.get("total_reviews") or 0)
         total_comments = int(mentor.get("total_comments") or 0)
-        last_rate_limit = int(mentor.get("last_rate_limit") or 0)
-        last_rate_remaining = int(mentor.get("last_rate_remaining") or 0)
-        last_rate_used = int(mentor.get("last_rate_used") or 0)
-        rate_usage_label = f"{last_rate_used}/{last_rate_limit}" if last_rate_limit > 0 else "n/a"
-        rate_reset_label = self._format_timestamp(mentor.get("last_rate_reset_at"), with_time=True)
-        rate_time_remaining = self._format_seconds_remaining(
-          self._seconds_until_timestamp(int(mentor.get("last_rate_reset_at") or 0))
-        )
         added_label = self._format_timestamp(mentor.get("created_at"), with_time=False)
         form_id = f"mentor-form-{username.lower().replace('_', '-')}"
         return f"""
-        <tr data-mentor-row data-mentor="{_escape(name).lower()}" data-name="{_escape(name).lower()}" data-github_username="{_escape(username).lower()}" data-active="{1 if active else 0}" data-created_at="{int(mentor.get('created_at') or 0)}" data-total_prs="{total_prs}" data-total_reviews="{total_reviews}" data-total_comments="{total_comments}" data-last_rate_used="{last_rate_used}" data-max_mentees="{int(mentor.get('max_mentees') or 3)}" data-assignment_count="{assignment_count}">
+        <tr data-mentor-row data-mentor="{_escape(name).lower()}" data-name="{_escape(name).lower()}" data-github_username="{_escape(username).lower()}" data-active="{1 if active else 0}" data-created_at="{int(mentor.get('created_at') or 0)}" data-total_prs="{total_prs}" data-total_reviews="{total_reviews}" data-total_comments="{total_comments}" data-max_mentees="{int(mentor.get('max_mentees') or 3)}" data-assignment_count="{assignment_count}">
           <td class="px-3 py-2">
             <div class="flex items-center gap-2">
               <a href="https://github.com/{_escape(username)}" target="_blank" rel="noopener noreferrer" aria-label="Open @{_escape(username)} on GitHub" class="inline-flex h-8 w-8 shrink-0 overflow-hidden rounded-full border border-[#E5E5E5] bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E10101] focus-visible:ring-offset-2">
@@ -1919,13 +1906,6 @@ class AdminService:
           </td>
           <td class="px-3 py-2">
             <span class="inline-flex items-center rounded-full border border-gray-200 bg-gray-50 px-2 py-1 text-xs font-semibold text-gray-700">{total_comments}</span>
-          </td>
-          <td class="px-3 py-2">
-            <div class="space-y-1">
-              <span class="inline-flex items-center rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-[11px] font-semibold text-gray-700">Used {rate_usage_label}</span>
-              <p class="text-[11px] font-medium text-gray-500">Reset: {_escape(rate_reset_label)} | Remaining: {last_rate_remaining}</p>
-              <p class="text-[11px] font-medium text-gray-500">Time remaining: {_escape(rate_time_remaining)}</p>
-            </div>
           </td>
           <td class="px-3 py-2"><input form="{form_id}" data-field="max_mentees" name="max_mentees" type="number" min="1" max="10" value="{int(mentor.get('max_mentees') or 3)}" class="w-20 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800"></td>
           <td class="px-3 py-2"><input form="{form_id}" data-field="slack_username" name="slack_username" value="{_escape(slack_username)}" class="w-32 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" maxlength="80"></td>
