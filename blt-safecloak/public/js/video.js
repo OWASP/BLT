@@ -6,6 +6,7 @@
 const VideoChat = (() => {
   let peer = null;
   let localStream = null;
+  let voiceStream = null; /* localStream video + processed audio for WebRTC */
   const activeCalls = new Map(); // peerId -> MediaConnection
   const activeDataConns = new Map(); // peerId -> DataConnection
   let audioContext = null;
@@ -107,6 +108,18 @@ const VideoChat = (() => {
       localVideo.srcObject = stream;
       localVideo.muted = true;
     }
+
+    /* Build a separate stream for WebRTC: original video + voice-changed audio */
+    if (typeof VoiceChanger !== "undefined") {
+      const processedAudio = VoiceChanger.init(stream);
+      const videoTrack = stream.getVideoTracks()[0];
+      const audioTrack = processedAudio.getAudioTracks()[0];
+      const tracks = [videoTrack, audioTrack].filter(Boolean);
+      voiceStream = tracks.length ? new MediaStream(tracks) : stream;
+    } else {
+      voiceStream = stream;
+    }
+
     startVoiceMeter(stream);
   }
 
@@ -303,13 +316,19 @@ const VideoChat = (() => {
     state.sessionKey = await Crypto.generateKey();
     state.sessionId = state.peerId;
 
-    peer = new Peer(state.peerId, Object.assign({
-      host: "0.peerjs.com",
-      port: 443,
-      secure: true,
-      path: "/",
-      debug: 0,
-    }, window.__PEERJS_CONFIG__ || {}));
+    peer = new Peer(
+      state.peerId,
+      Object.assign(
+        {
+          host: "0.peerjs.com",
+          port: 443,
+          secure: true,
+          path: "/",
+          debug: 0,
+        },
+        window.__PEERJS_CONFIG__ || {}
+      )
+    );
 
     peer.on("open", (id) => {
       $("my-peer-id") && ($("my-peer-id").textContent = id);
@@ -342,7 +361,7 @@ const VideoChat = (() => {
       }
       activeCalls.set(incomingCall.peer, incomingCall);
       updateParticipantsList();
-      incomingCall.answer(localStream);
+      incomingCall.answer(voiceStream || localStream);
       handleCallStream(incomingCall);
       sendPeerListTo(incomingCall.peer);
     });
@@ -550,7 +569,10 @@ const VideoChat = (() => {
     }
 
     if (!isValidRoomId(remotePeerId)) {
-      showToast("Room ID must be exactly 6 characters using only uppercase letters (A-Z except I,O) and digits (2-9)", "error");
+      showToast(
+        "Room ID must be exactly 6 characters using only uppercase letters (A-Z except I,O) and digits (2-9)",
+        "error"
+      );
       return;
     }
     if (remotePeerId === state.peerId) {
@@ -569,7 +591,7 @@ const VideoChat = (() => {
 
     updateStatus("Calling…", "warning");
     setDotStatus("connecting");
-    const call = peer.call(remotePeerId, localStream);
+    const call = peer.call(remotePeerId, voiceStream || localStream);
     activeCalls.set(remotePeerId, call);
     updateParticipantsList();
     handleCallStream(call);
@@ -643,11 +665,250 @@ const VideoChat = (() => {
       localStream.getTracks().forEach((t) => t.stop());
       localStream = null;
     }
+    voiceStream = null;
     if (voiceAnimFrame) cancelAnimationFrame(voiceAnimFrame);
     if (audioContext) audioContext.close();
+    if (typeof VoiceChanger !== "undefined") VoiceChanger.destroy();
+    /* Reset monitor button state */
+    const monitorBtn = $("btn-monitor");
+    if (monitorBtn) {
+      monitorBtn.classList.remove("active");
+      monitorBtn.setAttribute("aria-pressed", "false");
+    }
+    /* Reset voice mode buttons to normal, clear all per-effect slider rows */
+    document.querySelectorAll("[data-voice-mode]").forEach((btn) => {
+      const isNormal = btn.dataset.voiceMode === "normal";
+      btn.classList.toggle("active", isNormal);
+      btn.setAttribute("aria-pressed", String(isNormal));
+    });
+    const effectSlidersContainer = document.getElementById("effect-sliders-container");
+    if (effectSlidersContainer) effectSlidersContainer.innerHTML = "";
     setDotStatus("offline");
     updateStatus("Disconnected", "muted");
     showToast("Session ended and media released", "success");
+  }
+
+  /* ── Voice changer ── */
+
+  /** Push current processed stream track to all active calls. */
+  function _replaceVoiceTrack() {
+    if (typeof VoiceChanger === "undefined") return;
+    const newTrack =
+      VoiceChanger.getProcessedStream() && VoiceChanger.getProcessedStream().getAudioTracks()[0];
+    if (!newTrack) return;
+    activeCalls.forEach((call) => {
+      if (call.peerConnection) {
+        const sender = call.peerConnection
+          .getSenders()
+          .find((s) => s.track && s.track.kind === "audio");
+        if (sender) sender.replaceTrack(newTrack);
+      }
+    });
+  }
+
+  /** Update the fill gradient of a range input to reflect its current value. */
+  function _syncSliderFill(el) {
+    if (!el) return;
+    const min = parseFloat(el.min) || 0;
+    const max = parseFloat(el.max) || 100;
+    const pct = (((parseFloat(el.value) || 0) - min) / (max - min)) * 100;
+    el.style.background = `linear-gradient(to right, #e10101 ${pct}%, #e5e7eb ${pct}%)`;
+  }
+
+  /** Update the Normal chip state based on whether any effects are active. */
+  function _syncNormalChip() {
+    const levels = typeof VoiceChanger !== "undefined" ? VoiceChanger.getEffectLevels() : {};
+    const anyActive = Object.values(levels).some((v) => v > 0);
+    const normalBtn = document.querySelector('[data-voice-mode="normal"]');
+    if (normalBtn) {
+      normalBtn.classList.toggle("active", !anyActive);
+      normalBtn.setAttribute("aria-pressed", String(!anyActive));
+    }
+  }
+
+  /**
+   * Dynamically create and append an effect-level slider row to #effect-sliders-container.
+   * @param {string} mode  - effect key
+   * @param {number} level - initial level 0–1
+   */
+  function _addEffectSliderRow(mode, level) {
+    const container = document.getElementById("effect-sliders-container");
+    if (!container) return;
+    if (container.querySelector(`[data-effect-slider="${mode}"]`)) return; /* already exists */
+
+    const modes = typeof VoiceChanger !== "undefined" ? VoiceChanger.getModes() : {};
+    const modeInfo = modes[mode] || { label: mode, icon: "fa-music" };
+    const initialPct = Math.round(level * 100);
+
+    const row = document.createElement("div");
+    row.className = "flex items-center gap-2 mt-1.5";
+    row.setAttribute("data-effect-slider", mode);
+
+    /* Label */
+    const lbl = document.createElement("span");
+    lbl.className = "flex-none text-[11px] font-semibold text-gray-500 flex items-center gap-1";
+    lbl.style.minWidth = "4.5rem";
+    lbl.innerHTML = `<i class="fa-solid ${modeInfo.icon} text-[10px]" aria-hidden="true"></i>${modeInfo.label}`;
+    row.appendChild(lbl);
+
+    /* Slider */
+    const slider = document.createElement("input");
+    slider.type = "range";
+    slider.className = "voice-slider flex-1 min-w-0";
+    slider.min = "0";
+    slider.max = "100";
+    slider.step = "1";
+    slider.value = String(initialPct);
+    slider.setAttribute("aria-label", `${modeInfo.label} effect level`);
+    /* Sync fill on creation */
+    slider.style.background = `linear-gradient(to right, #e10101 ${initialPct}%, #e5e7eb ${initialPct}%)`;
+    row.appendChild(slider);
+
+    /* Value label */
+    const valLbl = document.createElement("span");
+    valLbl.className = "flex-none w-7 text-right text-[11px] font-semibold text-primary";
+    valLbl.textContent = `${initialPct}%`;
+    row.appendChild(valLbl);
+
+    /* Bind input event */
+    slider.addEventListener("input", () => {
+      const v = parseInt(slider.value, 10);
+      valLbl.textContent = `${v}%`;
+      _syncSliderFill(slider);
+      setVoiceLevel(mode, v / 100);
+    });
+
+    container.appendChild(row);
+  }
+
+  /** Remove the effect-level slider row for a mode (if present). */
+  function _removeEffectSliderRow(mode) {
+    const container = document.getElementById("effect-sliders-container");
+    if (!container) return;
+    const row = container.querySelector(`[data-effect-slider="${mode}"]`);
+    if (row) row.remove();
+  }
+
+  /**
+   * Set the "Normal" mode — clears all active effects and removes all slider rows.
+   * Called by the Normal chip button.
+   */
+  function setVoiceMode(mode) {
+    if (typeof VoiceChanger === "undefined") return;
+
+    if (mode === "normal") {
+      const levels = VoiceChanger.getEffectLevels();
+      Object.keys(levels).forEach((m) => VoiceChanger.setEffectLevel(m, 0));
+      _replaceVoiceTrack();
+
+      /* Clear all per-effect slider rows */
+      const container = document.getElementById("effect-sliders-container");
+      if (container) container.innerHTML = "";
+
+      /* Update chip states */
+      document.querySelectorAll("[data-voice-mode]").forEach((btn) => {
+        const isNormal = btn.dataset.voiceMode === "normal";
+        btn.classList.toggle("active", isNormal);
+        btn.setAttribute("aria-pressed", String(isNormal));
+      });
+
+      showToast("Voice effect: Normal", "info");
+    } else {
+      /* Backward-compat path (used by tests / old callers) */
+      VoiceChanger.setMode(mode);
+      _replaceVoiceTrack();
+
+      /* Show single slider row for this mode */
+      const container = document.getElementById("effect-sliders-container");
+      if (container) container.innerHTML = "";
+      const level = VoiceChanger.getEffectLevels()[mode] || 0;
+      if (level > 0) _addEffectSliderRow(mode, level);
+
+      document.querySelectorAll("[data-voice-mode]").forEach((btn) => {
+        const isActive = btn.dataset.voiceMode === mode;
+        btn.classList.toggle("active", isActive);
+        btn.setAttribute("aria-pressed", String(isActive));
+      });
+
+      const modeName = VoiceChanger.getModes()[mode] ? VoiceChanger.getModes()[mode].label : mode;
+      showToast(`Voice effect: ${modeName}`, "info");
+    }
+  }
+
+  /**
+   * Toggle a single voice effect on/off independently of other effects.
+   * Called by non-Normal chip buttons for combined-effects mode.
+   */
+  function toggleEffectMode(mode) {
+    if (typeof VoiceChanger === "undefined") return;
+
+    const newLevel = VoiceChanger.toggleEffect(mode);
+    _replaceVoiceTrack();
+
+    /* Update this chip's active state */
+    const btn = document.querySelector(`[data-voice-mode="${mode}"]`);
+    if (btn) {
+      btn.classList.toggle("active", newLevel > 0);
+      btn.setAttribute("aria-pressed", String(newLevel > 0));
+    }
+
+    /* Show or remove the effect's slider row */
+    if (newLevel > 0) {
+      _addEffectSliderRow(mode, newLevel);
+    } else {
+      _removeEffectSliderRow(mode);
+    }
+
+    _syncNormalChip();
+
+    const modeInfo = VoiceChanger.getModes()[mode];
+    const modeName = modeInfo ? modeInfo.label : mode;
+    showToast(newLevel > 0 ? `Effect added: ${modeName}` : `Effect removed: ${modeName}`, "info");
+  }
+
+  /**
+   * Update the level of a single active effect (called from per-effect sliders).
+   * If level reaches 0 the effect is removed and the slider row is destroyed.
+   */
+  function setVoiceLevel(mode, level) {
+    if (typeof VoiceChanger === "undefined") return;
+
+    VoiceChanger.setEffectLevel(mode, level);
+    _replaceVoiceTrack();
+
+    const on = level > 0;
+    const btn = document.querySelector(`[data-voice-mode="${mode}"]`);
+    if (btn) {
+      btn.classList.toggle("active", on);
+      btn.setAttribute("aria-pressed", String(on));
+    }
+
+    if (!on) {
+      /* Effect fully removed — destroy its slider row */
+      _removeEffectSliderRow(mode);
+    }
+
+    _syncNormalChip();
+  }
+
+  function toggleVoiceEffectsPanel() {
+    const panel = $("voice-effects-panel");
+    const btn = $("btn-voice-changer");
+    if (!panel) return;
+    const isHidden = panel.classList.toggle("hidden");
+    if (btn) btn.setAttribute("aria-expanded", isHidden ? "false" : "true");
+  }
+
+  /** Toggle the "Hear Yourself" monitor on/off and sync the UI button state. */
+  function toggleMonitor() {
+    if (typeof VoiceChanger === "undefined") return;
+    VoiceChanger.toggleMonitor();
+    const on = VoiceChanger.getMonitorEnabled();
+    const btn = $("btn-monitor");
+    if (btn) {
+      btn.classList.toggle("active", on);
+      btn.setAttribute("aria-pressed", String(on));
+    }
   }
 
   /* ── Noise suppression hint ── */
@@ -813,6 +1074,11 @@ const VideoChat = (() => {
     endCall,
     hangup,
     toggleNoiseSuppression,
+    setVoiceMode,
+    toggleEffectMode,
+    setVoiceLevel,
+    toggleVoiceEffectsPanel,
+    toggleMonitor,
     shareScreen,
     stopScreenShare,
     copyRoomId,

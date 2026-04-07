@@ -205,6 +205,84 @@ body {
   color: #ffffff;
 }
 
+/* === Compact Voice Effect Chips === */
+.voice-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 0.4rem 0.25rem;
+  border-radius: 0.5rem;
+  border: 1.5px solid var(--blt-neutral-border);
+  background: #ffffff;
+  color: #374151;
+  cursor: pointer;
+  font-size: 0.7rem;
+  min-height: 44px; /* accessible touch target */
+  width: 100%;
+  text-align: center;
+  touch-action: manipulation; /* prevent double-tap zoom on mobile */
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.voice-chip:hover {
+  border-color: var(--blt-primary);
+  background: #fff5f5;
+  color: var(--blt-primary);
+}
+
+.voice-chip.active {
+  border-color: var(--blt-primary);
+  background: #feeae9;
+  color: var(--blt-primary);
+  font-weight: 700;
+}
+
+/* === Voice Monitor Sliders === */
+.voice-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px; /* slightly taller track for easier touch interaction */
+  border-radius: 9999px;
+  /* Base gradient — overridden inline by JS to show fill progress */
+  background: linear-gradient(to right, #e10101 50%, #e5e7eb 50%);
+  outline: none;
+  cursor: pointer;
+  display: block;
+  touch-action: manipulation; /* prevent double-tap zoom on mobile */
+}
+
+.voice-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px; /* larger thumb for mobile touch */
+  height: 22px;
+  border-radius: 50%;
+  background: var(--blt-primary);
+  cursor: pointer;
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 0 1px var(--blt-primary);
+}
+
+.voice-slider::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--blt-primary);
+  cursor: pointer;
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 0 1px var(--blt-primary);
+}
+
+.voice-slider:focus {
+  background: #e5e7eb;
+}
+
 /* === Voice Meter === */
 .voice-meter {
   display: flex;

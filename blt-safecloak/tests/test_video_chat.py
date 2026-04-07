@@ -517,3 +517,562 @@ def test_three_clients_connect_and_see_cameras(base_url):
                 )
         finally:
             browser.close()
+
+
+# ---------------------------------------------------------------------------
+# VoiceChanger unit tests (run in a headless browser page)
+# ---------------------------------------------------------------------------
+
+# JavaScript that exercises VoiceChanger in the browser context.
+_VOICE_CHANGER_MODES_JS = """
+() => {
+    /* VoiceChanger must be defined */
+    if (typeof VoiceChanger === 'undefined') return {ok: false, error: 'VoiceChanger not defined'};
+
+    const modes = VoiceChanger.getModes();
+    const expected = ['normal', 'deep', 'chipmunk', 'robot', 'echo', 'voice1', 'voice2', 'voice3'];
+    for (const m of expected) {
+        if (!modes[m]) return {ok: false, error: 'Missing mode: ' + m};
+        if (!modes[m].label) return {ok: false, error: 'Missing label for: ' + m};
+        if (!modes[m].icon) return {ok: false, error: 'Missing icon for: ' + m};
+    }
+    return {ok: true};
+}
+"""
+
+_VOICE_CHANGER_INIT_JS = """
+async () => {
+    if (typeof VoiceChanger === 'undefined') return {ok: false, error: 'VoiceChanger not defined'};
+
+    /* Build a minimal fake audio stream via AudioContext */
+    let stream;
+    try {
+        const ac = new AudioContext();
+        const osc = ac.createOscillator();
+        const dest = ac.createMediaStreamDestination();
+        osc.connect(dest);
+        osc.start();
+        stream = dest.stream;
+    } catch (e) {
+        return {ok: false, error: 'AudioContext unavailable: ' + e.message};
+    }
+
+    const processed = VoiceChanger.init(stream);
+    if (!processed) return {ok: false, error: 'init() returned falsy'};
+
+    /* Processed stream should have at least one audio track */
+    const audioTracks = processed.getAudioTracks ? processed.getAudioTracks() : [];
+    if (audioTracks.length === 0) return {ok: false, error: 'No audio tracks in processed stream'};
+
+    /* Default mode should still be normal */
+    if (VoiceChanger.getMode() !== 'normal') return {ok: false, error: 'Default mode is not normal'};
+
+    VoiceChanger.destroy();
+    return {ok: true};
+}
+"""
+
+_VOICE_CHANGER_SET_MODE_JS = """
+async () => {
+    if (typeof VoiceChanger === 'undefined') return {ok: false, error: 'VoiceChanger not defined'};
+
+    /* Build a fake stream */
+    let stream;
+    try {
+        const ac = new AudioContext();
+        const osc = ac.createOscillator();
+        const dest = ac.createMediaStreamDestination();
+        osc.connect(dest);
+        osc.start();
+        stream = dest.stream;
+    } catch (e) {
+        return {ok: false, error: 'AudioContext unavailable: ' + e.message};
+    }
+
+    VoiceChanger.init(stream);
+
+    const modes = ['normal', 'deep', 'chipmunk', 'robot', 'echo', 'voice1', 'voice2', 'voice3'];
+    for (const mode of modes) {
+        VoiceChanger.setMode(mode);
+        if (VoiceChanger.getMode() !== mode) {
+            VoiceChanger.destroy();
+            return {ok: false, error: 'setMode(' + mode + ') did not update getMode()'};
+        }
+        /* getProcessedStream() must remain valid after a mode switch */
+        const ps = VoiceChanger.getProcessedStream();
+        if (!ps) {
+            VoiceChanger.destroy();
+            return {ok: false, error: 'getProcessedStream() returned null after setMode(' + mode + ')'};
+        }
+    }
+
+    VoiceChanger.destroy();
+    /* After destroy, getMode resets to normal */
+    if (VoiceChanger.getMode() !== 'normal') return {ok: false, error: 'getMode() after destroy() is not normal'};
+    return {ok: true};
+}
+"""
+
+_VOICE_CHANGER_IGNORE_UNKNOWN_MODE_JS = """
+() => {
+    if (typeof VoiceChanger === 'undefined') return {ok: false, error: 'VoiceChanger not defined'};
+    /* setMode with an unknown key must be a no-op */
+    const before = VoiceChanger.getMode();
+    VoiceChanger.setMode('__unknown__');
+    const after = VoiceChanger.getMode();
+    if (before !== after) return {ok: false, error: 'setMode(unknown) changed mode to: ' + after};
+    return {ok: true};
+}
+"""
+
+
+@pytest.fixture(scope="module")
+def voice_changer_page(base_url):
+    """Open a single video-chat page for VoiceChanger unit tests."""
+    with sync_playwright() as pw:
+        browser = pw.chromium.launch(args=_BROWSER_ARGS)
+        try:
+            ctx = _new_context(browser)
+            page = ctx.new_page()
+            page.goto(f"{base_url}/video-chat")
+            # Wait for VoiceChanger to be defined (scripts loaded)
+            page.wait_for_function("typeof VoiceChanger !== 'undefined'", timeout=TIMEOUT_MS)
+            yield page
+        finally:
+            browser.close()
+
+
+def test_voice_changer_modes_defined(voice_changer_page):
+    """VoiceChanger.getModes() must expose all five required effect keys."""
+    result = voice_changer_page.evaluate(_VOICE_CHANGER_MODES_JS)
+    assert result["ok"], result.get("error", "unknown error")
+
+
+def test_voice_changer_init_returns_processed_stream(voice_changer_page):
+    """VoiceChanger.init() must return a MediaStream with at least one audio track."""
+    result = voice_changer_page.evaluate(_VOICE_CHANGER_INIT_JS)
+    assert result["ok"], result.get("error", "unknown error")
+
+
+def test_voice_changer_set_mode_cycles_all_effects(voice_changer_page):
+    """setMode() must switch the active mode and keep getProcessedStream() valid."""
+    result = voice_changer_page.evaluate(_VOICE_CHANGER_SET_MODE_JS)
+    assert result["ok"], result.get("error", "unknown error")
+
+
+def test_voice_changer_ignores_unknown_mode(voice_changer_page):
+    """setMode() with an unrecognised key must not change the current mode."""
+    result = voice_changer_page.evaluate(_VOICE_CHANGER_IGNORE_UNKNOWN_MODE_JS)
+    assert result["ok"], result.get("error", "unknown error")
+
+
+# ---------------------------------------------------------------------------
+# VoiceChanger monitor / mic-gain tests
+# ---------------------------------------------------------------------------
+
+_VOICE_CHANGER_MONITOR_JS = """
+async () => {
+    if (typeof VoiceChanger === 'undefined') return {ok: false, error: 'VoiceChanger not defined'};
+
+    /* Build a fake stream */
+    let stream;
+    try {
+        const ac = new AudioContext();
+        const osc = ac.createOscillator();
+        const dest = ac.createMediaStreamDestination();
+        osc.connect(dest);
+        osc.start();
+        stream = dest.stream;
+    } catch (e) {
+        return {ok: false, error: 'AudioContext unavailable: ' + e.message};
+    }
+
+    VoiceChanger.init(stream);
+
+    /* Monitor must start disabled */
+    if (VoiceChanger.getMonitorEnabled()) {
+        VoiceChanger.destroy();
+        return {ok: false, error: 'monitor should be disabled after init'};
+    }
+
+    /* Toggle on */
+    const enabled = VoiceChanger.toggleMonitor();
+    if (!enabled) {
+        VoiceChanger.destroy();
+        return {ok: false, error: 'toggleMonitor() should return true after first toggle'};
+    }
+    if (!VoiceChanger.getMonitorEnabled()) {
+        VoiceChanger.destroy();
+        return {ok: false, error: 'getMonitorEnabled() should be true after toggle'};
+    }
+
+    /* Toggle off */
+    VoiceChanger.toggleMonitor();
+    if (VoiceChanger.getMonitorEnabled()) {
+        VoiceChanger.destroy();
+        return {ok: false, error: 'getMonitorEnabled() should be false after second toggle'};
+    }
+
+    VoiceChanger.destroy();
+    return {ok: true};
+}
+"""
+
+_VOICE_CHANGER_VOLUME_GAIN_JS = """
+async () => {
+    if (typeof VoiceChanger === 'undefined') return {ok: false, error: 'VoiceChanger not defined'};
+
+    /* Build a fake stream */
+    let stream;
+    try {
+        const ac = new AudioContext();
+        const osc = ac.createOscillator();
+        const dest = ac.createMediaStreamDestination();
+        osc.connect(dest);
+        osc.start();
+        stream = dest.stream;
+    } catch (e) {
+        return {ok: false, error: 'AudioContext unavailable: ' + e.message};
+    }
+
+    VoiceChanger.init(stream);
+
+    /* setMonitorVolume clamps to [0, 1] */
+    VoiceChanger.setMonitorVolume(0.75);
+    if (Math.abs(VoiceChanger.getMonitorVolume() - 0.75) > 0.001) {
+        VoiceChanger.destroy();
+        return {ok: false, error: 'setMonitorVolume(0.75) not stored correctly'};
+    }
+    VoiceChanger.setMonitorVolume(5); /* above max */
+    if (VoiceChanger.getMonitorVolume() !== 1) {
+        VoiceChanger.destroy();
+        return {ok: false, error: 'setMonitorVolume(5) should clamp to 1, got ' + VoiceChanger.getMonitorVolume()};
+    }
+    VoiceChanger.setMonitorVolume(-1); /* below min */
+    if (VoiceChanger.getMonitorVolume() !== 0) {
+        VoiceChanger.destroy();
+        return {ok: false, error: 'setMonitorVolume(-1) should clamp to 0, got ' + VoiceChanger.getMonitorVolume()};
+    }
+
+    /* setMicGain clamps to [0, 2] */
+    VoiceChanger.setMicGain(1.5);
+    if (Math.abs(VoiceChanger.getMicGain() - 1.5) > 0.001) {
+        VoiceChanger.destroy();
+        return {ok: false, error: 'setMicGain(1.5) not stored correctly'};
+    }
+    VoiceChanger.setMicGain(10); /* above max */
+    if (VoiceChanger.getMicGain() !== 2) {
+        VoiceChanger.destroy();
+        return {ok: false, error: 'setMicGain(10) should clamp to 2, got ' + VoiceChanger.getMicGain()};
+    }
+    VoiceChanger.setMicGain(-1); /* below min */
+    if (VoiceChanger.getMicGain() !== 0) {
+        VoiceChanger.destroy();
+        return {ok: false, error: 'setMicGain(-1) should clamp to 0, got ' + VoiceChanger.getMicGain()};
+    }
+
+    VoiceChanger.destroy();
+    return {ok: true};
+}
+"""
+
+_VOICE_CHANGER_INIT_IDEMPOTENT_JS = """
+async () => {
+    if (typeof VoiceChanger === 'undefined') return {ok: false, error: 'VoiceChanger not defined'};
+
+    function makeStream() {
+        const ac = new AudioContext();
+        const osc = ac.createOscillator();
+        const dest = ac.createMediaStreamDestination();
+        osc.connect(dest);
+        osc.start();
+        return dest.stream;
+    }
+
+    /* Call init twice — the second call must not throw and must return a valid stream */
+    try {
+        const s1 = VoiceChanger.init(makeStream());
+        if (!s1) return {ok: false, error: 'First init() returned falsy'};
+
+        const s2 = VoiceChanger.init(makeStream());
+        if (!s2) return {ok: false, error: 'Second init() returned falsy'};
+
+        const tracks = s2.getAudioTracks ? s2.getAudioTracks() : [];
+        if (tracks.length === 0) return {ok: false, error: 'Second init() stream has no audio tracks'};
+    } catch (e) {
+        VoiceChanger.destroy();
+        return {ok: false, error: 'init() threw on second call: ' + e.message};
+    }
+
+    VoiceChanger.destroy();
+    return {ok: true};
+}
+"""
+
+_VOICE_CHANGER_INTENSITY_JS = """
+async () => {
+    if (typeof VoiceChanger === 'undefined') return {ok: false, error: 'VoiceChanger not defined'};
+    if (typeof VoiceChanger.setEffectIntensity !== 'function')
+        return {ok: false, error: 'setEffectIntensity not defined'};
+    if (typeof VoiceChanger.getEffectIntensity !== 'function')
+        return {ok: false, error: 'getEffectIntensity not defined'};
+
+    /* Build a fake stream */
+    let stream;
+    try {
+        const ac = new AudioContext();
+        const osc = ac.createOscillator();
+        const dest = ac.createMediaStreamDestination();
+        osc.connect(dest);
+        osc.start();
+        stream = dest.stream;
+    } catch (e) {
+        return {ok: false, error: 'AudioContext unavailable: ' + e.message};
+    }
+
+    VoiceChanger.init(stream);
+
+    /* setEffectIntensity clamps to [0, 1] */
+    VoiceChanger.setEffectIntensity(0.75);
+    if (Math.abs(VoiceChanger.getEffectIntensity() - 0.75) > 0.001) {
+        VoiceChanger.destroy();
+        return {ok: false, error: 'setEffectIntensity(0.75) not stored correctly'};
+    }
+    VoiceChanger.setEffectIntensity(5);
+    if (VoiceChanger.getEffectIntensity() !== 1) {
+        VoiceChanger.destroy();
+        return {ok: false, error: 'setEffectIntensity(5) should clamp to 1, got ' + VoiceChanger.getEffectIntensity()};
+    }
+    VoiceChanger.setEffectIntensity(-1);
+    if (VoiceChanger.getEffectIntensity() !== 0) {
+        VoiceChanger.destroy();
+        return {ok: false, error: 'setEffectIntensity(-1) should clamp to 0, got ' + VoiceChanger.getEffectIntensity()};
+    }
+
+    /* Switching intensity on persona modes must not throw */
+    VoiceChanger.setEffectIntensity(0.5);
+    const personaModes = ['voice1', 'voice2', 'voice3'];
+    for (const m of personaModes) {
+        try {
+            VoiceChanger.setMode(m);
+            VoiceChanger.setEffectIntensity(0.8);
+        } catch (e) {
+            VoiceChanger.destroy();
+            return {ok: false, error: 'setEffectIntensity threw on mode ' + m + ': ' + e.message};
+        }
+    }
+
+    VoiceChanger.destroy();
+    return {ok: true};
+}
+"""
+
+
+def test_voice_changer_monitor_toggle(voice_changer_page):
+    """toggleMonitor() must enable/disable the monitor and getMonitorEnabled() must reflect it."""
+    result = voice_changer_page.evaluate(_VOICE_CHANGER_MONITOR_JS)
+    assert result["ok"], result.get("error", "unknown error")
+
+
+def test_voice_changer_volume_and_mic_gain(voice_changer_page):
+    """setMonitorVolume() and setMicGain() must clamp values and persist them."""
+    result = voice_changer_page.evaluate(_VOICE_CHANGER_VOLUME_GAIN_JS)
+    assert result["ok"], result.get("error", "unknown error")
+
+
+def test_voice_changer_init_idempotent(voice_changer_page):
+    """Calling init() twice must not throw and must return a valid processed stream."""
+    result = voice_changer_page.evaluate(_VOICE_CHANGER_INIT_IDEMPOTENT_JS)
+    assert result["ok"], result.get("error", "unknown error")
+
+
+def test_voice_changer_effect_intensity(voice_changer_page):
+    """setEffectIntensity() must clamp to [0,1], persist, and not throw on persona modes."""
+    result = voice_changer_page.evaluate(_VOICE_CHANGER_INTENSITY_JS)
+    assert result["ok"], result.get("error", "unknown error")
+
+
+# ---------------------------------------------------------------------------
+# Combined-effects API tests
+# ---------------------------------------------------------------------------
+
+_VOICE_CHANGER_COMBINED_EFFECTS_JS = """
+async () => {
+    if (typeof VoiceChanger === 'undefined') return {ok: false, error: 'VoiceChanger not defined'};
+    if (typeof VoiceChanger.setEffectLevel !== 'function')
+        return {ok: false, error: 'setEffectLevel not defined'};
+    if (typeof VoiceChanger.getEffectLevels !== 'function')
+        return {ok: false, error: 'getEffectLevels not defined'};
+    if (typeof VoiceChanger.toggleEffect !== 'function')
+        return {ok: false, error: 'toggleEffect not defined'};
+
+    let stream;
+    try {
+        const ac = new AudioContext();
+        const osc = ac.createOscillator();
+        const dest = ac.createMediaStreamDestination();
+        osc.connect(dest);
+        osc.start();
+        stream = dest.stream;
+    } catch (e) {
+        return {ok: false, error: 'AudioContext unavailable: ' + e.message};
+    }
+
+    VoiceChanger.init(stream);
+
+    /* All levels should start at 0 */
+    const initial = VoiceChanger.getEffectLevels();
+    const nonZero = Object.values(initial).filter(v => v !== 0);
+    if (nonZero.length > 0) {
+        VoiceChanger.destroy();
+        return {ok: false, error: 'Expected all effectLevels to be 0 after init, got: ' + JSON.stringify(initial)};
+    }
+
+    /* setEffectLevel(mode, level) updates only that mode */
+    VoiceChanger.setEffectLevel('deep', 0.6);
+    const levels1 = VoiceChanger.getEffectLevels();
+    if (Math.abs(levels1['deep'] - 0.6) > 0.001) {
+        VoiceChanger.destroy();
+        return {ok: false, error: 'setEffectLevel deep 0.6 not stored; got ' + levels1['deep']};
+    }
+    if (levels1['echo'] !== 0) {
+        VoiceChanger.destroy();
+        return {ok: false, error: 'setEffectLevel deep should not affect echo; echo=' + levels1['echo']};
+    }
+
+    /* Two effects can be active simultaneously */
+    VoiceChanger.setEffectLevel('echo', 0.4);
+    const levels2 = VoiceChanger.getEffectLevels();
+    if (Math.abs(levels2['deep'] - 0.6) > 0.001 || Math.abs(levels2['echo'] - 0.4) > 0.001) {
+        VoiceChanger.destroy();
+        return {ok: false, error: 'Expected deep=0.6 and echo=0.4, got: ' + JSON.stringify(levels2)};
+    }
+
+    /* setEffectLevel clamps to [0,1] */
+    VoiceChanger.setEffectLevel('deep', 5);
+    if (VoiceChanger.getEffectLevels()['deep'] !== 1) {
+        VoiceChanger.destroy();
+        return {ok: false, error: 'setEffectLevel(5) should clamp to 1'};
+    }
+    VoiceChanger.setEffectLevel('deep', -1);
+    if (VoiceChanger.getEffectLevels()['deep'] !== 0) {
+        VoiceChanger.destroy();
+        return {ok: false, error: 'setEffectLevel(-1) should clamp to 0'};
+    }
+
+    /* toggleEffect: off → on at globalIntensity */
+    VoiceChanger.setEffectLevel('robot', 0);
+    const toggled = VoiceChanger.toggleEffect('robot');
+    if (toggled <= 0) {
+        VoiceChanger.destroy();
+        return {ok: false, error: 'toggleEffect on robot (off→on) should return > 0, got ' + toggled};
+    }
+    if (VoiceChanger.getEffectLevels()['robot'] !== toggled) {
+        VoiceChanger.destroy();
+        return {ok: false, error: 'toggleEffect did not update effectLevels.robot'};
+    }
+
+    /* toggleEffect: on → off */
+    const toggled2 = VoiceChanger.toggleEffect('robot');
+    if (toggled2 !== 0) {
+        VoiceChanger.destroy();
+        return {ok: false, error: 'toggleEffect on robot (on→off) should return 0, got ' + toggled2};
+    }
+
+    /* setEffectLevel(mode, 0) bypasses that effect; getProcessedStream still valid */
+    VoiceChanger.setEffectLevel('echo', 0);
+    const ps = VoiceChanger.getProcessedStream();
+    if (!ps || (ps.getAudioTracks && ps.getAudioTracks().length === 0)) {
+        VoiceChanger.destroy();
+        return {ok: false, error: 'getProcessedStream() invalid after setEffectLevel to 0'};
+    }
+
+    /* destroy() resets all effectLevels to 0 */
+    VoiceChanger.setEffectLevel('chipmunk', 0.7);
+    VoiceChanger.destroy();
+    const afterDestroy = VoiceChanger.getEffectLevels();
+    const nonZeroAfter = Object.values(afterDestroy).filter(v => v !== 0);
+    if (nonZeroAfter.length > 0) {
+        return {ok: false, error: 'effectLevels not reset to 0 after destroy: ' + JSON.stringify(afterDestroy)};
+    }
+
+    return {ok: true};
+}
+"""
+
+_VOICE_CHANGER_ALL_EFFECTS_COMBINED_JS = """
+async () => {
+    if (typeof VoiceChanger === 'undefined') return {ok: false, error: 'VoiceChanger not defined'};
+
+    let stream;
+    try {
+        const ac = new AudioContext();
+        const osc = ac.createOscillator();
+        const dest = ac.createMediaStreamDestination();
+        osc.connect(dest);
+        osc.start();
+        stream = dest.stream;
+    } catch (e) {
+        return {ok: false, error: 'AudioContext unavailable: ' + e.message};
+    }
+
+    VoiceChanger.init(stream);
+
+    /* Enable all 7 effects simultaneously — must not throw */
+    const effectModes = ['deep', 'chipmunk', 'robot', 'echo', 'voice1', 'voice2', 'voice3'];
+    try {
+        for (const m of effectModes) {
+            VoiceChanger.setEffectLevel(m, 0.5);
+        }
+    } catch (e) {
+        VoiceChanger.destroy();
+        return {ok: false, error: 'setEffectLevel threw when combining all effects: ' + e.message};
+    }
+
+    /* All levels should be 0.5 */
+    const levels = VoiceChanger.getEffectLevels();
+    for (const m of effectModes) {
+        if (Math.abs(levels[m] - 0.5) > 0.001) {
+            VoiceChanger.destroy();
+            return {ok: false, error: 'Expected level 0.5 for ' + m + ', got ' + levels[m]};
+        }
+    }
+
+    /* Processed stream must still be valid */
+    const ps = VoiceChanger.getProcessedStream();
+    if (!ps) {
+        VoiceChanger.destroy();
+        return {ok: false, error: 'getProcessedStream() null with all effects combined'};
+    }
+    const tracks = ps.getAudioTracks ? ps.getAudioTracks() : [];
+    if (tracks.length === 0) {
+        VoiceChanger.destroy();
+        return {ok: false, error: 'getProcessedStream() has no audio tracks with all effects combined'};
+    }
+
+    /* Disabling one effect at a time down to 0 should not throw */
+    try {
+        for (const m of effectModes) {
+            VoiceChanger.setEffectLevel(m, 0);
+        }
+    } catch (e) {
+        VoiceChanger.destroy();
+        return {ok: false, error: 'setEffectLevel(0) threw when removing effects: ' + e.message};
+    }
+
+    VoiceChanger.destroy();
+    return {ok: true};
+}
+"""
+
+
+def test_voice_changer_combined_effects_api(voice_changer_page):
+    """setEffectLevel/getEffectLevels/toggleEffect must support independent per-effect levels."""
+    result = voice_changer_page.evaluate(_VOICE_CHANGER_COMBINED_EFFECTS_JS)
+    assert result["ok"], result.get("error", "unknown error")
+
+
+def test_voice_changer_all_effects_combined(voice_changer_page):
+    """All 7 effects active simultaneously must not throw and keep the stream valid."""
+    result = voice_changer_page.evaluate(_VOICE_CHANGER_ALL_EFFECTS_COMBINED_JS)
+    assert result["ok"], result.get("error", "unknown error")
