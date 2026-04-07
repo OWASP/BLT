@@ -191,6 +191,164 @@
                 </button>
                 <p id="prejoin-status" class="text-xs text-gray-600">Initializing devices...</p>
               </div>
+
+              <div
+                class="mt-4 rounded-xl border border-neutral-border bg-white p-3"
+                id="prejoin-voice-panel"
+                aria-label="Pre-join voice effects"
+                aria-live="polite"
+              >
+                <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  Voice Effects Preview
+                </p>
+                <div
+                  class="grid grid-cols-4 gap-1.5"
+                  role="group"
+                  aria-label="Pre-join voice effect options"
+                >
+                  <button
+                    class="voice-chip active"
+                    data-lobby-voice-mode="normal"
+                    type="button"
+                    aria-pressed="true"
+                    title="Clear all voice effects"
+                  >
+                    <i class="fa-solid fa-microphone" aria-hidden="true"></i>
+                    <span>Normal</span>
+                  </button>
+                  <button
+                    class="voice-chip"
+                    data-lobby-voice-mode="deep"
+                    type="button"
+                    aria-pressed="false"
+                    title="Toggle deep voice"
+                  >
+                    <i class="fa-solid fa-down-long" aria-hidden="true"></i>
+                    <span>Deep</span>
+                  </button>
+                  <button
+                    class="voice-chip"
+                    data-lobby-voice-mode="chipmunk"
+                    type="button"
+                    aria-pressed="false"
+                    title="Toggle chipmunk voice"
+                  >
+                    <i class="fa-solid fa-up-long" aria-hidden="true"></i>
+                    <span>Chipmunk</span>
+                  </button>
+                  <button
+                    class="voice-chip"
+                    data-lobby-voice-mode="robot"
+                    type="button"
+                    aria-pressed="false"
+                    title="Toggle robot voice"
+                  >
+                    <i class="fa-solid fa-robot" aria-hidden="true"></i>
+                    <span>Robot</span>
+                  </button>
+                  <button
+                    class="voice-chip"
+                    data-lobby-voice-mode="echo"
+                    type="button"
+                    aria-pressed="false"
+                    title="Toggle echo effect"
+                  >
+                    <i class="fa-solid fa-wave-square" aria-hidden="true"></i>
+                    <span>Echo</span>
+                  </button>
+                  <button
+                    class="voice-chip"
+                    data-lobby-voice-mode="voice1"
+                    type="button"
+                    aria-pressed="false"
+                    title="Toggle telephone voice"
+                  >
+                    <i class="fa-solid fa-phone" aria-hidden="true"></i>
+                    <span>Phone</span>
+                  </button>
+                  <button
+                    class="voice-chip"
+                    data-lobby-voice-mode="voice2"
+                    type="button"
+                    aria-pressed="false"
+                    title="Toggle alien voice"
+                  >
+                    <i class="fa-solid fa-user-astronaut" aria-hidden="true"></i>
+                    <span>Alien</span>
+                  </button>
+                  <button
+                    class="voice-chip"
+                    data-lobby-voice-mode="voice3"
+                    type="button"
+                    aria-pressed="false"
+                    title="Toggle monster voice"
+                  >
+                    <i class="fa-solid fa-skull" aria-hidden="true"></i>
+                    <span>Monster</span>
+                  </button>
+                </div>
+
+                <div id="prejoin-effect-sliders-container" aria-live="polite"></div>
+
+                <div class="mt-2 flex flex-wrap items-center gap-2 border-t border-neutral-border pt-2">
+                  <button
+                    class="voice-chip flex-none"
+                    id="btn-preview-monitor"
+                    type="button"
+                    title="Hear yourself with the selected voice effect"
+                    aria-pressed="false"
+                  >
+                    <i class="fa-solid fa-headphones" aria-hidden="true"></i>
+                    <span>Monitor</span>
+                  </button>
+
+                  <div class="flex min-w-0 flex-1 items-center gap-1" style="min-width: 7rem">
+                    <i
+                      class="fa-solid fa-volume-high flex-none text-[11px] text-gray-400"
+                      aria-hidden="true"
+                    ></i>
+                    <input
+                      type="range"
+                      class="voice-slider min-w-0 flex-1"
+                      id="slider-preview-monitor-volume"
+                      min="0"
+                      max="100"
+                      step="1"
+                      value="50"
+                      aria-label="Preview monitor volume"
+                      style="background: linear-gradient(to right, #e10101 50%, #e5e7eb 50%)"
+                    />
+                    <span
+                      id="label-preview-monitor-volume"
+                      class="w-6 flex-none text-right text-[10px] font-semibold text-primary"
+                      >50%</span
+                    >
+                  </div>
+
+                  <div class="flex min-w-0 flex-1 items-center gap-1" style="min-width: 7rem">
+                    <i
+                      class="fa-solid fa-microphone flex-none text-[11px] text-gray-400"
+                      aria-hidden="true"
+                    ></i>
+                    <input
+                      type="range"
+                      class="voice-slider min-w-0 flex-1"
+                      id="slider-preview-mic-gain"
+                      min="0"
+                      max="200"
+                      step="1"
+                      value="100"
+                      aria-label="Preview microphone input level"
+                      style="background: linear-gradient(to right, #e10101 50%, #e5e7eb 50%)"
+                    />
+                    <span
+                      id="label-preview-mic-gain"
+                      class="w-8 flex-none text-right text-[10px] font-semibold text-primary"
+                      >100%</span
+                    >
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -320,6 +478,7 @@
     <div id="toast-container" role="status" aria-live="polite"></div>
 
     <script src="js/ui.js"></script>
+    <script src="js/voice-changer.js"></script>
     <script src="js/video-lobby.js"></script>
   </body>
 </html>

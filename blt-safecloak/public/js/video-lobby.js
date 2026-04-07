@@ -5,10 +5,13 @@
 
 (() => {
   const ROOM_ID_RE = /^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{6}$/;
+  const VOICE_PREFS_STORAGE_KEY = "blt-safecloak-voice-preferences";
+  const LOBBY_EFFECT_ORDER = ["deep", "chipmunk", "robot", "echo", "voice1", "voice2", "voice3"];
 
   let previewStream = null;
   let micEnabled = true;
   let camEnabled = true;
+  let voiceUiBound = false;
 
   const $ = (id) => document.getElementById(id);
 
@@ -28,10 +31,393 @@
     return Boolean(previewStream && previewStream.getVideoTracks().length > 0);
   }
 
+  function _syncSliderFill(el) {
+    if (!el) return;
+    const min = parseFloat(el.min) || 0;
+    const max = parseFloat(el.max) || 100;
+    const pct = (((parseFloat(el.value) || 0) - min) / (max - min)) * 100;
+    el.style.background = `linear-gradient(to right, #e10101 ${pct}%, #e5e7eb ${pct}%)`;
+  }
+
+  function getStoredVoicePreferences() {
+    try {
+      const raw = window.sessionStorage.getItem(VOICE_PREFS_STORAGE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      return parsed && typeof parsed === "object" ? parsed : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function persistVoicePreferences() {
+    if (typeof VoiceChanger === "undefined") return;
+    try {
+      const payload = {
+        effectLevels: VoiceChanger.getEffectLevels(),
+        monitorVolume: VoiceChanger.getMonitorVolume(),
+        micGain: VoiceChanger.getMicGain(),
+      };
+      window.sessionStorage.setItem(VOICE_PREFS_STORAGE_KEY, JSON.stringify(payload));
+    } catch {
+      /* ignore storage failures */
+    }
+  }
+
+  function _syncPreviewNormalChip() {
+    if (typeof VoiceChanger === "undefined") return;
+
+    const levels = VoiceChanger.getEffectLevels();
+    const anyActive = Object.values(levels).some((v) => v > 0);
+    const normalBtn = document.querySelector('[data-lobby-voice-mode="normal"]');
+    if (normalBtn) {
+      normalBtn.classList.toggle("active", !anyActive);
+      normalBtn.setAttribute("aria-pressed", String(!anyActive));
+    }
+  }
+
+  function _addPreviewEffectSliderRow(mode, level) {
+    const container = $("prejoin-effect-sliders-container");
+    if (!container || typeof VoiceChanger === "undefined") return;
+    if (container.querySelector(`[data-prejoin-effect-slider="${mode}"]`)) return;
+
+    const modes = VoiceChanger.getModes();
+    const modeInfo = modes[mode] || { label: mode, icon: "fa-music" };
+    const initialPct = Math.round(level * 100);
+
+    const row = document.createElement("div");
+    row.className = "mt-1.5 flex items-center gap-2";
+    row.setAttribute("data-prejoin-effect-slider", mode);
+
+    const lbl = document.createElement("span");
+    lbl.className = "flex-none flex items-center gap-1 text-[11px] font-semibold text-gray-500";
+    lbl.style.minWidth = "4.5rem";
+    lbl.innerHTML = `<i class="fa-solid ${modeInfo.icon} text-[10px]" aria-hidden="true"></i>${modeInfo.label}`;
+    row.appendChild(lbl);
+
+    const slider = document.createElement("input");
+    slider.type = "range";
+    slider.className = "voice-slider min-w-0 flex-1";
+    slider.min = "0";
+    slider.max = "100";
+    slider.step = "1";
+    slider.value = String(initialPct);
+    slider.setAttribute("aria-label", `${modeInfo.label} effect level`);
+    _syncSliderFill(slider);
+    row.appendChild(slider);
+
+    const valueLabel = document.createElement("span");
+    valueLabel.className = "w-7 flex-none text-right text-[11px] font-semibold text-primary";
+    valueLabel.textContent = `${initialPct}%`;
+    row.appendChild(valueLabel);
+
+    slider.addEventListener("input", () => {
+      const value = parseInt(slider.value, 10);
+      valueLabel.textContent = `${value}%`;
+      _syncSliderFill(slider);
+      setPreviewVoiceLevel(mode, value / 100);
+    });
+
+    container.appendChild(row);
+  }
+
+  function _removePreviewEffectSliderRow(mode) {
+    const container = $("prejoin-effect-sliders-container");
+    if (!container) return;
+    const row = container.querySelector(`[data-prejoin-effect-slider="${mode}"]`);
+    if (row) row.remove();
+  }
+
+  function _clearPreviewEffectSliders() {
+    const container = $("prejoin-effect-sliders-container");
+    if (container) container.innerHTML = "";
+  }
+
+  function _syncMonitorButton() {
+    if (typeof VoiceChanger === "undefined") return;
+    const btn = $("btn-preview-monitor");
+    if (!btn) return;
+    const enabled = VoiceChanger.getMonitorEnabled();
+    btn.classList.toggle("active", enabled);
+    btn.setAttribute("aria-pressed", String(enabled));
+  }
+
+  function _syncPreviewVoiceAvailability() {
+    const audioAvailable = hasAudioTrack();
+
+    document.querySelectorAll("[data-lobby-voice-mode]").forEach((btn) => {
+      const mode = btn.dataset.lobbyVoiceMode;
+      const disable = !audioAvailable && mode !== "normal";
+      btn.disabled = disable;
+      btn.classList.toggle("opacity-50", disable);
+      btn.classList.toggle("cursor-not-allowed", disable);
+    });
+
+    const monitorBtn = $("btn-preview-monitor");
+    if (monitorBtn) {
+      monitorBtn.disabled = !audioAvailable;
+      monitorBtn.classList.toggle("opacity-50", !audioAvailable);
+      monitorBtn.classList.toggle("cursor-not-allowed", !audioAvailable);
+    }
+
+    const monitorSlider = $("slider-preview-monitor-volume");
+    const micSlider = $("slider-preview-mic-gain");
+    [monitorSlider, micSlider].forEach((slider) => {
+      if (!slider) return;
+      slider.disabled = !audioAvailable;
+      slider.classList.toggle("opacity-50", !audioAvailable);
+      slider.classList.toggle("cursor-not-allowed", !audioAvailable);
+    });
+  }
+
+  function _syncPreviewVoiceSliders() {
+    if (typeof VoiceChanger === "undefined") return;
+
+    const monitorSlider = $("slider-preview-monitor-volume");
+    const monitorLabel = $("label-preview-monitor-volume");
+    if (monitorSlider && monitorLabel) {
+      const value = Math.round(VoiceChanger.getMonitorVolume() * 100);
+      monitorSlider.value = String(value);
+      monitorLabel.textContent = `${value}%`;
+      _syncSliderFill(monitorSlider);
+    }
+
+    const micSlider = $("slider-preview-mic-gain");
+    const micLabel = $("label-preview-mic-gain");
+    if (micSlider && micLabel) {
+      const value = Math.round(VoiceChanger.getMicGain() * 100);
+      micSlider.value = String(value);
+      micLabel.textContent = `${value}%`;
+      _syncSliderFill(micSlider);
+    }
+  }
+
+  function _syncPreviewEffectButtonsAndRows() {
+    if (typeof VoiceChanger === "undefined") return;
+
+    _clearPreviewEffectSliders();
+    const levels = VoiceChanger.getEffectLevels();
+
+    LOBBY_EFFECT_ORDER.forEach((mode) => {
+      const level = Number(levels[mode]) || 0;
+      const btn = document.querySelector(`[data-lobby-voice-mode="${mode}"]`);
+      if (btn) {
+        const active = level > 0;
+        btn.classList.toggle("active", active);
+        btn.setAttribute("aria-pressed", String(active));
+      }
+      if (level > 0) {
+        _addPreviewEffectSliderRow(mode, level);
+      }
+    });
+
+    _syncPreviewNormalChip();
+  }
+
+  function applyStoredPreviewVoicePreferences() {
+    if (typeof VoiceChanger === "undefined") return;
+
+    const saved = getStoredVoicePreferences();
+    if (!saved) {
+      _syncPreviewEffectButtonsAndRows();
+      _syncPreviewVoiceSliders();
+      _syncMonitorButton();
+      return;
+    }
+
+    const levels = saved.effectLevels && typeof saved.effectLevels === "object" ? saved.effectLevels : {};
+    LOBBY_EFFECT_ORDER.forEach((mode) => {
+      const raw = Number(levels[mode]);
+      const value = Number.isFinite(raw) ? Math.max(0, Math.min(1, raw)) : 0;
+      VoiceChanger.setEffectLevel(mode, value);
+    });
+
+    if (Number.isFinite(Number(saved.monitorVolume))) {
+      VoiceChanger.setMonitorVolume(Math.max(0, Math.min(1, Number(saved.monitorVolume))));
+    }
+
+    if (Number.isFinite(Number(saved.micGain))) {
+      VoiceChanger.setMicGain(Math.max(0, Math.min(2, Number(saved.micGain))));
+    }
+
+    _syncPreviewEffectButtonsAndRows();
+    _syncPreviewVoiceSliders();
+    _syncMonitorButton();
+  }
+
+  function setPreviewVoiceMode(mode) {
+    if (typeof VoiceChanger === "undefined") return;
+
+    if (mode === "normal") {
+      const levels = VoiceChanger.getEffectLevels();
+      Object.keys(levels).forEach((effectMode) => VoiceChanger.setEffectLevel(effectMode, 0));
+      _clearPreviewEffectSliders();
+      document.querySelectorAll("[data-lobby-voice-mode]").forEach((btn) => {
+        const isNormal = btn.dataset.lobbyVoiceMode === "normal";
+        btn.classList.toggle("active", isNormal);
+        btn.setAttribute("aria-pressed", String(isNormal));
+      });
+      persistVoicePreferences();
+      return;
+    }
+
+    VoiceChanger.setMode(mode);
+    _syncPreviewEffectButtonsAndRows();
+    persistVoicePreferences();
+  }
+
+  function togglePreviewEffectMode(mode) {
+    if (typeof VoiceChanger === "undefined") return;
+
+    const newLevel = VoiceChanger.toggleEffect(mode);
+    const btn = document.querySelector(`[data-lobby-voice-mode="${mode}"]`);
+    if (btn) {
+      btn.classList.toggle("active", newLevel > 0);
+      btn.setAttribute("aria-pressed", String(newLevel > 0));
+    }
+
+    if (newLevel > 0) {
+      _addPreviewEffectSliderRow(mode, newLevel);
+    } else {
+      _removePreviewEffectSliderRow(mode);
+    }
+
+    _syncPreviewNormalChip();
+    persistVoicePreferences();
+  }
+
+  function setPreviewVoiceLevel(mode, level) {
+    if (typeof VoiceChanger === "undefined") return;
+
+    VoiceChanger.setEffectLevel(mode, level);
+
+    const enabled = level > 0;
+    const btn = document.querySelector(`[data-lobby-voice-mode="${mode}"]`);
+    if (btn) {
+      btn.classList.toggle("active", enabled);
+      btn.setAttribute("aria-pressed", String(enabled));
+    }
+
+    if (!enabled) {
+      _removePreviewEffectSliderRow(mode);
+    }
+
+    _syncPreviewNormalChip();
+    persistVoicePreferences();
+  }
+
+  function togglePreviewMonitor() {
+    if (typeof VoiceChanger === "undefined") return;
+    VoiceChanger.toggleMonitor();
+    _syncMonitorButton();
+    persistVoicePreferences();
+  }
+
+  function resetPreviewVoiceUi() {
+    _clearPreviewEffectSliders();
+    document.querySelectorAll("[data-lobby-voice-mode]").forEach((btn) => {
+      const isNormal = btn.dataset.lobbyVoiceMode === "normal";
+      btn.classList.toggle("active", isNormal);
+      btn.setAttribute("aria-pressed", String(isNormal));
+    });
+
+    const monitorBtn = $("btn-preview-monitor");
+    if (monitorBtn) {
+      monitorBtn.classList.remove("active");
+      monitorBtn.setAttribute("aria-pressed", "false");
+    }
+  }
+
+  function initPreviewVoiceEngine() {
+    if (typeof VoiceChanger === "undefined") return;
+
+    if (!previewStream || !hasAudioTrack()) {
+      resetPreviewVoiceUi();
+      _syncPreviewVoiceAvailability();
+      return;
+    }
+
+    VoiceChanger.init(previewStream);
+    applyStoredPreviewVoicePreferences();
+    _syncPreviewVoiceAvailability();
+  }
+
+  function bindPreviewVoiceControls() {
+    if (voiceUiBound) return;
+
+    document.querySelectorAll("[data-lobby-voice-mode]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const mode = btn.dataset.lobbyVoiceMode;
+        if (!mode) return;
+
+        if (!hasAudioTrack()) {
+          showToast("Microphone required for voice effects", "warning");
+          return;
+        }
+
+        if (mode === "normal") {
+          setPreviewVoiceMode("normal");
+        } else {
+          togglePreviewEffectMode(mode);
+        }
+      });
+    });
+
+    const monitorBtn = $("btn-preview-monitor");
+    if (monitorBtn) {
+      monitorBtn.addEventListener("click", () => {
+        if (!hasAudioTrack()) {
+          showToast("Microphone required for monitor", "warning");
+          return;
+        }
+        togglePreviewMonitor();
+      });
+    }
+
+    const monitorSlider = $("slider-preview-monitor-volume");
+    const monitorLabel = $("label-preview-monitor-volume");
+    if (monitorSlider && monitorLabel) {
+      monitorSlider.addEventListener("input", () => {
+        const value = parseInt(monitorSlider.value, 10);
+        monitorLabel.textContent = `${value}%`;
+        _syncSliderFill(monitorSlider);
+        if (typeof VoiceChanger !== "undefined") {
+          VoiceChanger.setMonitorVolume(value / 100);
+          persistVoicePreferences();
+        }
+      });
+      _syncSliderFill(monitorSlider);
+    }
+
+    const micSlider = $("slider-preview-mic-gain");
+    const micLabel = $("label-preview-mic-gain");
+    if (micSlider && micLabel) {
+      micSlider.addEventListener("input", () => {
+        const value = parseInt(micSlider.value, 10);
+        micLabel.textContent = `${value}%`;
+        _syncSliderFill(micSlider);
+        if (typeof VoiceChanger !== "undefined") {
+          VoiceChanger.setMicGain(value / 100);
+          persistVoicePreferences();
+        }
+      });
+      _syncSliderFill(micSlider);
+    }
+
+    voiceUiBound = true;
+  }
+
   function stopPreviewStream() {
-    if (!previewStream) return;
-    previewStream.getTracks().forEach((track) => track.stop());
-    previewStream = null;
+    if (previewStream) {
+      previewStream.getTracks().forEach((track) => track.stop());
+      previewStream = null;
+    }
+
+    if (typeof VoiceChanger !== "undefined") {
+      VoiceChanger.destroy();
+    }
+
+    resetPreviewVoiceUi();
   }
 
   function updatePreviewUI() {
@@ -94,6 +480,8 @@
       camBtn.classList.toggle("opacity-50", !videoAvailable);
       camBtn.classList.toggle("cursor-not-allowed", !videoAvailable);
     }
+
+    _syncPreviewVoiceAvailability();
   }
 
   function setTrackEnabled(kind, enabled) {
@@ -118,6 +506,7 @@
         micEnabled = hasAudioTrack();
         camEnabled = hasVideoTrack();
         updatePreviewUI();
+        initPreviewVoiceEngine();
         return;
       } catch {
         // Try next fallback profile.
@@ -127,6 +516,7 @@
     micEnabled = false;
     camEnabled = false;
     updatePreviewUI();
+    resetPreviewVoiceUi();
     showToast("Could not access camera/microphone preview", "warning");
   }
 
@@ -146,6 +536,7 @@
   }
 
   function goToRoom(roomId = "") {
+    persistVoicePreferences();
     const target = buildRoomUrl(roomId);
     stopPreviewStream();
     window.location.href = target.toString();
@@ -202,6 +593,8 @@
     const roomInput = $("room-id-input");
     const micBtn = $("btn-preview-mic");
     const camBtn = $("btn-preview-cam");
+
+    bindPreviewVoiceControls();
 
     if (createBtn) {
       createBtn.addEventListener("click", () => {

@@ -17,6 +17,7 @@ const VideoChat = (() => {
   let consentGiven = false;
   let screenSharing = false;
   let initialMediaPreferences = { mic: true, cam: true };
+  const VOICE_PREFS_STORAGE_KEY = "blt-safecloak-voice-preferences";
 
   const state = {
     peerId: null,
@@ -715,6 +716,88 @@ const VideoChat = (() => {
     el.style.background = `linear-gradient(to right, #e10101 ${pct}%, #e5e7eb ${pct}%)`;
   }
 
+  function _readStoredVoicePreferences() {
+    try {
+      const raw = window.sessionStorage.getItem(VOICE_PREFS_STORAGE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      return parsed && typeof parsed === "object" ? parsed : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function _applyStoredVoicePreferences() {
+    if (typeof VoiceChanger === "undefined") return;
+
+    const saved = _readStoredVoicePreferences();
+    if (!saved) return;
+
+    const savedLevels =
+      saved.effectLevels && typeof saved.effectLevels === "object" ? saved.effectLevels : {};
+    const currentLevels = VoiceChanger.getEffectLevels();
+    Object.keys(currentLevels).forEach((mode) => {
+      const raw = Number(savedLevels[mode]);
+      const value = Number.isFinite(raw) ? Math.max(0, Math.min(1, raw)) : 0;
+      VoiceChanger.setEffectLevel(mode, value);
+    });
+
+    if (Number.isFinite(Number(saved.monitorVolume))) {
+      VoiceChanger.setMonitorVolume(Math.max(0, Math.min(1, Number(saved.monitorVolume))));
+    }
+    if (Number.isFinite(Number(saved.micGain))) {
+      VoiceChanger.setMicGain(Math.max(0, Math.min(2, Number(saved.micGain))));
+    }
+
+    if (VoiceChanger.getMonitorEnabled()) {
+      VoiceChanger.toggleMonitor();
+    }
+
+    const monitorSlider = $("slider-monitor-volume");
+    const monitorLabel = $("label-monitor-volume");
+    if (monitorSlider && monitorLabel) {
+      const value = Math.round(VoiceChanger.getMonitorVolume() * 100);
+      monitorSlider.value = String(value);
+      monitorLabel.textContent = `${value}%`;
+      _syncSliderFill(monitorSlider);
+    }
+
+    const micGainSlider = $("slider-mic-gain");
+    const micGainLabel = $("label-mic-gain");
+    if (micGainSlider && micGainLabel) {
+      const value = Math.round(VoiceChanger.getMicGain() * 100);
+      micGainSlider.value = String(value);
+      micGainLabel.textContent = `${value}%`;
+      _syncSliderFill(micGainSlider);
+    }
+
+    const effectSlidersContainer = document.getElementById("effect-sliders-container");
+    if (effectSlidersContainer) {
+      effectSlidersContainer.innerHTML = "";
+    }
+
+    const levels = VoiceChanger.getEffectLevels();
+    Object.entries(levels).forEach(([mode, level]) => {
+      const isOn = level > 0;
+      const btn = document.querySelector(`[data-voice-mode="${mode}"]`);
+      if (btn) {
+        btn.classList.toggle("active", isOn);
+        btn.setAttribute("aria-pressed", String(isOn));
+      }
+      if (isOn) {
+        _addEffectSliderRow(mode, level);
+      }
+    });
+
+    _syncNormalChip();
+    const monitorBtn = $("btn-monitor");
+    if (monitorBtn) {
+      monitorBtn.classList.remove("active");
+      monitorBtn.setAttribute("aria-pressed", "false");
+    }
+    _replaceVoiceTrack();
+  }
+
   /** Update the Normal chip state based on whether any effects are active. */
   function _syncNormalChip() {
     const levels = typeof VoiceChanger !== "undefined" ? VoiceChanger.getEffectLevels() : {};
@@ -1061,7 +1144,10 @@ const VideoChat = (() => {
   async function init() {
     readInitialMediaPreferencesFromUrl();
     const ok = await startLocalMedia();
-    if (ok) await initPeer();
+    if (ok) {
+      _applyStoredVoicePreferences();
+      await initPeer();
+    }
     return ok;
   }
 

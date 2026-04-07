@@ -1076,3 +1076,37 @@ def test_voice_changer_all_effects_combined(voice_changer_page):
     """All 7 effects active simultaneously must not throw and keep the stream valid."""
     result = voice_changer_page.evaluate(_VOICE_CHANGER_ALL_EFFECTS_COMBINED_JS)
     assert result["ok"], result.get("error", "unknown error")
+
+
+def test_video_room_includes_voice_controller_ui():
+    """Video room page should include the in-call voice controller UI and script wiring."""
+    html = (ROOT / "src/pages/video-room.html").read_text(encoding="utf-8")
+
+    required_snippets = [
+        'id="btn-voice-changer"',
+        'id="voice-effects-panel"',
+        'id="effect-sliders-container"',
+        'id="btn-monitor"',
+        'id="slider-monitor-volume"',
+        'id="slider-mic-gain"',
+        'src="js/voice-changer.js"',
+    ]
+    for snippet in required_snippets:
+        assert snippet in html, f"Expected snippet missing in video-room.html: {snippet}"
+
+
+def test_video_chat_includes_prejoin_voice_controller_ui():
+    """Video chat lobby should include a pre-join voice controller and VoiceChanger script."""
+    html = (ROOT / "src/pages/video-chat.html").read_text(encoding="utf-8")
+
+    required_snippets = [
+        'id="prejoin-voice-panel"',
+        'data-lobby-voice-mode="normal"',
+        'id="prejoin-effect-sliders-container"',
+        'id="btn-preview-monitor"',
+        'id="slider-preview-monitor-volume"',
+        'id="slider-preview-mic-gain"',
+        'src="js/voice-changer.js"',
+    ]
+    for snippet in required_snippets:
+        assert snippet in html, f"Expected snippet missing in video-chat.html: {snippet}"
