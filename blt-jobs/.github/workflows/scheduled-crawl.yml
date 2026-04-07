@@ -33,6 +33,8 @@ jobs:
         run: |
           node - <<'NODE'
           const fs = require('fs');
+          const os = require('os');
+          const path = require('path');
           const { execSync } = require('child_process');
 
           const file = 'data/scheduled-crawl-candidates.json';
@@ -48,7 +50,9 @@ jobs:
             const url = String(job.url || '').trim();
             if (!url) continue;
 
-            const title = `${url}`;
+            // Use a human-readable title instead of the raw URL
+            const issueTitle = `[Job Crawl] ${job.title || 'Untitled'} at ${job.organization_name || 'Unknown'}`;
+
             const body = [
               '### Job Posting URL',
               url,
@@ -58,13 +62,18 @@ jobs:
               `Title: ${job.title || 'Untitled'}`,
             ].join('\n');
 
+            // Write body to a temp file to avoid shell quoting / newline issues
+            const tmpFile = path.join(os.tmpdir(), `blt-job-issue-${Date.now()}.txt`);
             try {
+              fs.writeFileSync(tmpFile, body, 'utf8');
               execSync(
-                `gh issue create --title ${JSON.stringify(title)} --body ${JSON.stringify(body)} --label job-posting-from-link`,
+                `gh issue create --title ${JSON.stringify(issueTitle)} --body-file ${JSON.stringify(tmpFile)} --label job-posting-from-link`,
                 { stdio: 'inherit' }
               );
             } catch (e) {
               console.error(`Failed to open issue for ${url}: ${e.message}`);
+            } finally {
+              try { fs.unlinkSync(tmpFile); } catch (_) {}
             }
           }
           NODE
