@@ -130,6 +130,21 @@ def _github_owner_from_repo_api_url(repo_api_url: str) -> str:
     return ""
 
 
+def _github_owner_from_any_url(raw_url: str) -> str:
+    """Parse owner from API or html URL forms that include /owner/repo."""
+    if not raw_url:
+        return ""
+    try:
+        path_parts = [p for p in urlparse(str(raw_url)).path.split("/") if p]
+    except Exception:
+        return ""
+    if len(path_parts) >= 3 and path_parts[0].lower() == "repos":
+        return path_parts[1]
+    if len(path_parts) >= 2:
+        return path_parts[0]
+    return ""
+
+
 async def has_merged_pr_in_org(env, github_username: str, org: str = "OWASP-BLT") -> bool:
     """Return True when the user has at least one merged PR in the org."""
     if not github_username:
@@ -526,14 +541,65 @@ class AdminService:
             return "", snapshot
         return str(organization.get("id") or ""), snapshot
 
-    async def _count_user_reviews_in_org(self, github_username: str, org: str) -> Tuple[int, dict]:
-        """Count PR review contributions by the user within the org via GraphQL.
+    async def _github_rate_limit_status(self) -> dict:
+        """Return current core rate-limit details and seconds until reset."""
+        token = getattr(self.env, "GITHUB_TOKEN", "") if self.env else ""
+        if not token:
+            return {}
 
-        Uses contributionsCollection.pullRequestReviewContributions.totalCount so each
-        reviewed PR is counted at most once, avoiding double-counts from the Search API.
-        """
+        snapshot = {}
+        try:
+            resp = await fetch(
+                "https://api.github.com/rate_limit",
+                method="GET",
+                headers=_github_headers(token),
+            )
+            snapshot = _github_rate_limit_snapshot(resp)
+            if resp.status != 200:
+                return snapshot
+
+            payload = json.loads(await resp.text())
+            core = ((payload.get("resources") or {}).get("core") if isinstance(payload, dict) else None) or {}
+            if isinstance(core, dict):
+                limit = _int_or_default(core.get("limit"), snapshot.get("limit") or 0)
+                remaining = _int_or_default(core.get("remaining"), snapshot.get("remaining") or 0)
+                used = _int_or_default(core.get("used"), snapshot.get("used") or max(limit - remaining, 0))
+                reset_at = _int_or_default(core.get("reset"), snapshot.get("reset_at") or 0)
+                snapshot = {
+                    "limit": limit,
+                    "remaining": remaining,
+                    "used": used,
+                    "reset_at": reset_at,
+                }
+        except Exception as exc:
+            console.error(f"[AdminService] Rate limit lookup failed: {exc}")
+            return snapshot
+
+        now_ts = int(datetime.now(tz=dt_timezone.utc).timestamp())
+        reset_at = _int_or_default(snapshot.get("reset_at"), 0)
+        snapshot["seconds_remaining"] = max(0, reset_at - now_ts) if reset_at > 0 else 0
+        return snapshot
+
+    def _format_seconds_remaining(self, seconds_remaining: int) -> str:
+        total = max(0, _int_or_default(seconds_remaining, 0))
+        hours = total // 3600
+        minutes = (total % 3600) // 60
+        seconds = total % 60
+        if hours > 0:
+            return f"{hours}h {minutes}m {seconds}s"
+        return f"{minutes}m {seconds}s"
+
+    def _seconds_until_timestamp(self, reset_at: int) -> int:
+        ts = _int_or_default(reset_at, 0)
+        if ts <= 0:
+            return 0
+        now_ts = int(datetime.now(tz=dt_timezone.utc).timestamp())
+        return max(0, ts - now_ts)
+
+    async def _count_user_reviews_in_org(self, github_username: str, org: str) -> Tuple[int, dict]:
+        """Count all-time PR reviews in org with APPROVED or CHANGES_REQUESTED states."""
         username = (github_username or "").strip().lstrip("@")
-        org_login = (org or "").strip()
+        org_login = (org or "").strip().lower()
         if not username or not org_login:
             return 0, {}
 
@@ -541,37 +607,112 @@ class AdminService:
         if not token:
             return 0, {}
 
-        org_id, org_snapshot = await self._github_org_id(org_login, token)
-        if not org_id:
-            return 0, org_snapshot
-
         query = """
-        query($username: String!, $orgId: ID!) {
+        query($username: String!, $cursor: String) {
           user(login: $username) {
-            contributionsCollection(organizationID: $orgId) {
-              pullRequestReviewContributions {
-                totalCount
+            pullRequestReviews(
+              first: 100,
+              after: $cursor,
+              states: [APPROVED, CHANGES_REQUESTED]
+            ) {
+              pageInfo {
+                hasNextPage
+                endCursor
+              }
+              nodes {
+                pullRequest {
+                  repository {
+                    owner {
+                      login
+                    }
+                  }
+                }
               }
             }
           }
         }
         """
-        data, snapshot = await self._github_graphql(query, {"username": username, "orgId": org_id}, token)
-        user = (data or {}).get("user") if isinstance(data, dict) else None
-        contributions = (user or {}).get("contributionsCollection") if isinstance(user, dict) else None
-        if not isinstance(contributions, dict):
-            return 0, (snapshot or org_snapshot)
+        total = 0
+        cursor = None
+        last_snapshot = {}
 
-        pr_reviews = contributions.get("pullRequestReviewContributions")
-        total = int((pr_reviews or {}).get("totalCount") or 0) if isinstance(pr_reviews, dict) else 0
-        return total, (snapshot or org_snapshot)
+        while True:
+            data, snapshot = await self._github_graphql(query, {"username": username, "cursor": cursor}, token)
+            if snapshot:
+                last_snapshot = snapshot
+            user = (data or {}).get("user") if isinstance(data, dict) else None
+            reviews = (user or {}).get("pullRequestReviews") if isinstance(user, dict) else None
+            if not isinstance(reviews, dict):
+                break
+
+            nodes = reviews.get("nodes") if isinstance(reviews, dict) else []
+            if not isinstance(nodes, list):
+                nodes = []
+
+            for node in nodes:
+                pr = (node or {}).get("pullRequest") if isinstance(node, dict) else None
+                repo = (pr or {}).get("repository") if isinstance(pr, dict) else None
+                owner = (repo or {}).get("owner") if isinstance(repo, dict) else None
+                owner_login = ((owner or {}).get("login") or "").strip().lower() if isinstance(owner, dict) else ""
+                if owner_login == org_login:
+                    total += 1
+
+            page_info = reviews.get("pageInfo") if isinstance(reviews, dict) else {}
+            has_next = bool((page_info or {}).get("hasNextPage")) if isinstance(page_info, dict) else False
+            cursor = (page_info or {}).get("endCursor") if isinstance(page_info, dict) else None
+            if not has_next:
+                break
+
+        return total, last_snapshot
+
+    async def _count_user_comment_endpoint_in_org(self, url: str, org: str, token: str) -> Tuple[int, dict]:
+        org_login = (org or "").strip().lower()
+        next_url = url
+        total = 0
+        last_snapshot = {}
+
+        while next_url:
+            try:
+                resp = await fetch(next_url, method="GET", headers=_github_headers(token))
+            except Exception as exc:
+                console.error(f"[AdminService] Comment lookup error: {exc}")
+                break
+
+            last_snapshot = _github_rate_limit_snapshot(resp)
+            if resp.status != 200:
+                console.error(
+                    f"[AdminService] Comment lookup failed: status={resp.status} url={next_url}"
+                )
+                break
+
+            try:
+                payload = json.loads(await resp.text())
+            except Exception as exc:
+                console.error(f"[AdminService] Comment lookup parse error: {exc}")
+                break
+
+            if not isinstance(payload, list):
+                break
+
+            for comment in payload:
+                if not isinstance(comment, dict):
+                    continue
+                owner_login = _github_owner_from_repo_api_url(str(comment.get("repository_url") or ""))
+                if not owner_login:
+                    owner_login = _github_owner_from_any_url(str(comment.get("issue_url") or ""))
+                if not owner_login:
+                    owner_login = _github_owner_from_any_url(str(comment.get("pull_request_url") or ""))
+                if not owner_login:
+                    owner_login = _github_owner_from_any_url(str(comment.get("html_url") or ""))
+                if owner_login.strip().lower() == org_login:
+                    total += 1
+
+            next_url = _github_next_link(resp.headers.get("Link") or "")
+
+        return total, last_snapshot
 
     async def _count_user_comments_in_org(self, github_username: str, org: str) -> Tuple[int, dict]:
-        """Count issue comments + PR review comments left by user within org repos via GraphQL.
-
-        Uses contributionsCollection scoped to the org so only a single API call is needed
-        per mentor, avoiding the multi-page REST pagination that risks rate-limit exhaustion.
-        """
+        """Count all-time issue comments + PR review comments left by user in org repos."""
         username = (github_username or "").strip().lstrip("@")
         org_login = (org or "").strip()
         if not username or not org_login:
@@ -581,35 +722,12 @@ class AdminService:
         if not token:
             return 0, {}
 
-        org_id, org_snapshot = await self._github_org_id(org_login, token)
-        if not org_id:
-            return 0, org_snapshot
+        issue_comments_url = f"https://api.github.com/users/{quote_plus(username)}/issues/comments?per_page=100"
+        pr_review_comments_url = f"https://api.github.com/users/{quote_plus(username)}/pulls/comments?per_page=100"
 
-        query = """
-        query($username: String!, $orgId: ID!) {
-          user(login: $username) {
-            contributionsCollection(organizationID: $orgId) {
-              issueCommentContributions {
-                totalCount
-              }
-              pullRequestReviewCommentContributions {
-                totalCount
-              }
-            }
-          }
-        }
-        """
-        data, snapshot = await self._github_graphql(query, {"username": username, "orgId": org_id}, token)
-        user = (data or {}).get("user") if isinstance(data, dict) else None
-        contributions = (user or {}).get("contributionsCollection") if isinstance(user, dict) else None
-        if not isinstance(contributions, dict):
-            return 0, (snapshot or org_snapshot)
-
-        issue_comments = contributions.get("issueCommentContributions")
-        pr_review_comments = contributions.get("pullRequestReviewCommentContributions")
-        issue_total = int((issue_comments or {}).get("totalCount") or 0) if isinstance(issue_comments, dict) else 0
-        pr_total = int((pr_review_comments or {}).get("totalCount") or 0) if isinstance(pr_review_comments, dict) else 0
-        return issue_total + pr_total, (snapshot or org_snapshot)
+        issue_total, issue_snapshot = await self._count_user_comment_endpoint_in_org(issue_comments_url, org_login, token)
+        pr_total, pr_snapshot = await self._count_user_comment_endpoint_in_org(pr_review_comments_url, org_login, token)
+        return issue_total + pr_total, (pr_snapshot or issue_snapshot)
 
     def _rate_limit_db_values(self, snapshot: dict) -> tuple:
         return (
@@ -1321,12 +1439,24 @@ class AdminService:
 
     async def _handle_dashboard(self, username: str):
         mentors = await self._mentor_rows()
+        rate_status = await self._github_rate_limit_status()
         counts = {
             "total": len(mentors),
             "active": len([m for m in mentors if int(m.get("active") or 0) == 1]),
             "inactive": len([m for m in mentors if int(m.get("active") or 0) != 1]),
             "assignments": sum(int(m.get("assignment_count") or 0) for m in mentors),
+            "total_prs": sum(int(m.get("total_prs") or 0) for m in mentors),
+            "total_reviews": sum(int(m.get("total_reviews") or 0) for m in mentors),
+            "total_comments": sum(int(m.get("total_comments") or 0) for m in mentors),
         }
+        dashboard_rate_limit = int((rate_status or {}).get("limit") or 0)
+        dashboard_rate_used = int((rate_status or {}).get("used") or 0)
+        dashboard_rate_remaining = int((rate_status or {}).get("remaining") or 0)
+        dashboard_rate_reset_at = int((rate_status or {}).get("reset_at") or 0)
+        dashboard_rate_reset_label = self._format_timestamp(dashboard_rate_reset_at, with_time=True)
+        dashboard_rate_remaining_label = self._format_seconds_remaining(
+            int((rate_status or {}).get("seconds_remaining") or 0)
+        )
 
         mentor_rows = "\n".join(self._mentor_row_html(row) for row in mentors)
         if not mentor_rows:
@@ -1352,6 +1482,25 @@ class AdminService:
           <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-4">
             <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Total assignments</p>
             <p class="mt-1 text-2xl font-extrabold text-[#111827]">{counts['assignments']}</p>
+          </article>
+          <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-4">
+            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Total PRs</p>
+            <p class="mt-1 text-2xl font-extrabold text-[#111827]">{counts['total_prs']}</p>
+          </article>
+          <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-4">
+            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Total reviews</p>
+            <p class="mt-1 text-2xl font-extrabold text-[#111827]">{counts['total_reviews']}</p>
+          </article>
+          <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-4">
+            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Total comments</p>
+            <p class="mt-1 text-2xl font-extrabold text-[#111827]">{counts['total_comments']}</p>
+          </article>
+          <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-4 sm:col-span-2 xl:col-span-1">
+            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">GitHub API rate limit</p>
+            <p class="mt-1 text-xl font-extrabold text-[#111827]">{dashboard_rate_used}/{dashboard_rate_limit if dashboard_rate_limit > 0 else 'n/a'}</p>
+            <p class="mt-1 text-xs font-medium text-gray-600">Remaining: {dashboard_rate_remaining}</p>
+            <p class="text-xs font-medium text-gray-600">Resets: {dashboard_rate_reset_label}</p>
+            <p class="text-xs font-medium text-gray-600">Time remaining: {dashboard_rate_remaining_label}</p>
           </article>
         </div>
 
@@ -1574,6 +1723,9 @@ class AdminService:
         last_rate_used = int(mentor.get("last_rate_used") or 0)
         rate_usage_label = f"{last_rate_used}/{last_rate_limit}" if last_rate_limit > 0 else "n/a"
         rate_reset_label = self._format_timestamp(mentor.get("last_rate_reset_at"), with_time=True)
+        rate_time_remaining = self._format_seconds_remaining(
+          self._seconds_until_timestamp(int(mentor.get("last_rate_reset_at") or 0))
+        )
         added_label = self._format_timestamp(mentor.get("created_at"), with_time=False)
         form_id = f"mentor-form-{username.lower().replace('_', '-')}"
         return f"""
@@ -1608,6 +1760,7 @@ class AdminService:
             <div class="space-y-1">
               <span class="inline-flex items-center rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-[11px] font-semibold text-gray-700">Used {rate_usage_label}</span>
               <p class="text-[11px] font-medium text-gray-500">Reset: {_escape(rate_reset_label)} | Remaining: {last_rate_remaining}</p>
+              <p class="text-[11px] font-medium text-gray-500">Time remaining: {_escape(rate_time_remaining)}</p>
             </div>
           </td>
           <td class="px-3 py-2"><input form="{form_id}" data-field="max_mentees" name="max_mentees" type="number" min="1" max="10" value="{int(mentor.get('max_mentees') or 3)}" class="w-20 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800"></td>
