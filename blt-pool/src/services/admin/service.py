@@ -14,6 +14,7 @@ from typing import Optional, Tuple
 from urllib.parse import parse_qs, quote_plus, urlparse
 
 from js import Headers, Response, console, fetch
+from version import APP_VERSION
 
 
 _ADMIN_BASIC_USER_ENV = "ADMIN_BASIC_AUTH_USERNAME"
@@ -66,7 +67,7 @@ def _parse_basic_auth_header(auth_header: str) -> Tuple[str, str]:
 def _github_headers(token: str = "") -> Headers:
     headers = {
         "Accept": "application/vnd.github+json",
-        "User-Agent": "BLT-Pool/1.0",
+    "User-Agent": f"BLT-Pool/{APP_VERSION}",
         "X-GitHub-Api-Version": "2022-11-28",
     }
     if token:
@@ -430,7 +431,7 @@ class AdminService:
                     "Accept": "application/vnd.github+json",
                     "Authorization": f"Bearer {token}",
                     "Content-Type": "application/json",
-                    "User-Agent": "BLT-Pool/1.0",
+                  "User-Agent": f"BLT-Pool/{APP_VERSION}",
                     "X-GitHub-Api-Version": "2022-11-28",
                 }
                 resp = await fetch(
@@ -681,6 +682,96 @@ class AdminService:
 
         return total, last_snapshot
 
+    async def _count_user_graphql_comments_in_org(self, github_username: str, org: str, token: str) -> Tuple[int, dict]:
+        """Count all-time comments in org using GraphQL comment connections."""
+        username = (github_username or "").strip().lstrip("@")
+        org_login = (org or "").strip().lower()
+        if not username or not org_login:
+            return 0, {}
+
+        query = """
+        query($username: String!, $issueCursor: String, $reviewCursor: String) {
+          user(login: $username) {
+            issueComments(first: 100, after: $issueCursor) {
+              pageInfo { hasNextPage endCursor }
+              nodes {
+                repository {
+                  owner { login }
+                }
+              }
+            }
+            pullRequestReviewComments(first: 100, after: $reviewCursor) {
+              pageInfo { hasNextPage endCursor }
+              nodes {
+                repository {
+                  owner { login }
+                }
+              }
+            }
+          }
+        }
+        """
+
+        issue_cursor = None
+        review_cursor = None
+        issue_done = False
+        review_done = False
+        total = 0
+        last_snapshot = {}
+
+        while not (issue_done and review_done):
+            variables = {
+                "username": username,
+                "issueCursor": issue_cursor,
+                "reviewCursor": review_cursor,
+            }
+            data, snapshot = await self._github_graphql(query, variables, token)
+            if snapshot:
+                last_snapshot = snapshot
+            user = (data or {}).get("user") if isinstance(data, dict) else None
+            if not isinstance(user, dict):
+                break
+
+            if not issue_done:
+                issue_connection = user.get("issueComments") if isinstance(user, dict) else None
+                if not isinstance(issue_connection, dict):
+                    issue_done = True
+                else:
+                    issue_nodes = issue_connection.get("nodes") if isinstance(issue_connection, dict) else []
+                    if not isinstance(issue_nodes, list):
+                        issue_nodes = []
+                    for node in issue_nodes:
+                        repo = (node or {}).get("repository") if isinstance(node, dict) else None
+                        owner = (repo or {}).get("owner") if isinstance(repo, dict) else None
+                        owner_login = ((owner or {}).get("login") or "").strip().lower() if isinstance(owner, dict) else ""
+                        if owner_login == org_login:
+                            total += 1
+                    issue_page_info = issue_connection.get("pageInfo") if isinstance(issue_connection, dict) else {}
+                    issue_has_next = bool((issue_page_info or {}).get("hasNextPage")) if isinstance(issue_page_info, dict) else False
+                    issue_cursor = (issue_page_info or {}).get("endCursor") if isinstance(issue_page_info, dict) else None
+                    issue_done = not issue_has_next
+
+            if not review_done:
+                review_connection = user.get("pullRequestReviewComments") if isinstance(user, dict) else None
+                if not isinstance(review_connection, dict):
+                    review_done = True
+                else:
+                    review_nodes = review_connection.get("nodes") if isinstance(review_connection, dict) else []
+                    if not isinstance(review_nodes, list):
+                        review_nodes = []
+                    for node in review_nodes:
+                        repo = (node or {}).get("repository") if isinstance(node, dict) else None
+                        owner = (repo or {}).get("owner") if isinstance(repo, dict) else None
+                        owner_login = ((owner or {}).get("login") or "").strip().lower() if isinstance(owner, dict) else ""
+                        if owner_login == org_login:
+                            total += 1
+                    review_page_info = review_connection.get("pageInfo") if isinstance(review_connection, dict) else {}
+                    review_has_next = bool((review_page_info or {}).get("hasNextPage")) if isinstance(review_page_info, dict) else False
+                    review_cursor = (review_page_info or {}).get("endCursor") if isinstance(review_page_info, dict) else None
+                    review_done = not review_has_next
+
+        return total, last_snapshot
+
     async def _count_user_comments_in_org(self, github_username: str, org: str) -> Tuple[int, dict]:
         """Count all-time issue comments + PR review comments left by user in org repos."""
         username = (github_username or "").strip().lstrip("@")
@@ -689,6 +780,12 @@ class AdminService:
             return 0, {}
 
         token = getattr(self.env, "GITHUB_TOKEN", "") if self.env else ""
+
+        if token:
+          gql_total, gql_snapshot = await self._count_user_graphql_comments_in_org(username, org_login, token)
+          # Prefer GraphQL when at least one response was observed.
+          if gql_snapshot:
+            return gql_total, gql_snapshot
 
         issue_comments_url = f"https://api.github.com/users/{quote_plus(username)}/issues/comments?per_page=100"
         pr_review_comments_url = f"https://api.github.com/users/{quote_plus(username)}/pulls/comments?per_page=100"
@@ -1462,6 +1559,11 @@ class AdminService:
           <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-4">
             <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Total comments</p>
             <p class="mt-1 text-2xl font-extrabold text-[#111827]">{counts['total_comments']}</p>
+          </article>
+          <article class="rounded-xl border border-[#E5E5E5] bg-[#111827] p-4 text-white sm:col-span-2 xl:col-span-1">
+            <p class="text-xs font-semibold uppercase tracking-wide text-gray-300">Pool version</p>
+            <p class="mt-1 text-3xl font-extrabold leading-none">v{_escape(APP_VERSION)}</p>
+            <p class="mt-1 text-xs font-medium text-gray-300">Update this on every code change.</p>
           </article>
           <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-4 sm:col-span-2 xl:col-span-1">
             <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">GitHub API rate limit</p>
