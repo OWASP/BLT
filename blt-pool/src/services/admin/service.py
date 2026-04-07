@@ -1510,40 +1510,105 @@ class AdminService:
         return ((row.dataset[key] || '') + '').trim().toLowerCase();
       }};
 
-      document.querySelectorAll('[data-sort-key]').forEach((button) => {{
-        button.addEventListener('click', () => {{
-          const table = button.closest('table');
-          const tbody = table ? table.querySelector('tbody') : null;
-          if (!tbody) {{
-            return;
-          }}
-          const key = button.dataset.sortKey;
-          const currentDirection = button.dataset.sortDirection === 'asc' ? 'asc' : 'desc';
-          const nextDirection = currentDirection === 'asc' ? 'desc' : 'asc';
-          document.querySelectorAll('[data-sort-key]').forEach((other) => {{
-            other.dataset.sortDirection = 'desc';
-            other.classList.remove('text-[#111827]');
-          }});
-          button.dataset.sortDirection = nextDirection;
-          button.classList.add('text-[#111827]');
+      const sortButtons = Array.from(document.querySelectorAll('[data-sort-key]'));
+      const mentorTable = document.getElementById('admin-mentor-table');
+      const mentorTbody = mentorTable ? mentorTable.querySelector('tbody') : null;
+      const resetSortingButton = document.getElementById('admin-reset-sorting');
+      let sortCriteria = [];
 
-          const rows = Array.from(tbody.querySelectorAll('tr[data-mentor-row]'));
-          rows.sort((left, right) => {{
-            const leftValue = getSortableValue(left, key);
-            const rightValue = getSortableValue(right, key);
-            const leftNumber = Number(leftValue);
-            const rightNumber = Number(rightValue);
-            let result = 0;
-            if (!Number.isNaN(leftNumber) && !Number.isNaN(rightNumber) && leftValue !== '' && rightValue !== '') {{
-              result = leftNumber - rightNumber;
-            }} else {{
-              result = leftValue.localeCompare(rightValue);
+      if (mentorTbody) {{
+        Array.from(mentorTbody.querySelectorAll('tr[data-mentor-row]')).forEach((row, index) => {{
+          row.dataset.originalIndex = String(index);
+        }});
+      }}
+
+      const compareValues = (leftValue, rightValue) => {{
+        const leftNumber = Number(leftValue);
+        const rightNumber = Number(rightValue);
+        if (!Number.isNaN(leftNumber) && !Number.isNaN(rightNumber) && leftValue !== '' && rightValue !== '') {{
+          return leftNumber - rightNumber;
+        }}
+        return String(leftValue).localeCompare(String(rightValue));
+      }};
+
+      const syncSortButtonState = () => {{
+        sortButtons.forEach((button) => {{
+          const key = button.dataset.sortKey;
+          const criteriaIndex = sortCriteria.findIndex((item) => item.key === key);
+          if (criteriaIndex === -1) {{
+            button.dataset.sortDirection = 'desc';
+            button.classList.remove('text-[#111827]');
+            button.title = 'Click to sort';
+          }} else {{
+            const direction = sortCriteria[criteriaIndex].direction;
+            button.dataset.sortDirection = direction;
+            button.classList.add('text-[#111827]');
+            button.title = `Sort priority ${{criteriaIndex + 1}} (${{direction}})`;
+          }}
+        }});
+      }};
+
+      const applySortCriteria = () => {{
+        if (!mentorTbody) {{
+          return;
+        }}
+        const rows = Array.from(mentorTbody.querySelectorAll('tr[data-mentor-row]'));
+
+        if (sortCriteria.length === 0) {{
+          rows
+            .sort((left, right) => Number(left.dataset.originalIndex || '0') - Number(right.dataset.originalIndex || '0'))
+            .forEach((row) => mentorTbody.appendChild(row));
+          syncSortButtonState();
+          return;
+        }}
+
+        rows.sort((left, right) => {{
+          for (const criterion of sortCriteria) {{
+            const leftValue = getSortableValue(left, criterion.key);
+            const rightValue = getSortableValue(right, criterion.key);
+            const result = compareValues(leftValue, rightValue);
+            if (result !== 0) {{
+              return criterion.direction === 'asc' ? result : -result;
             }}
-            return nextDirection === 'asc' ? result : -result;
-          }});
-          rows.forEach((row) => tbody.appendChild(row));
+          }}
+          return Number(left.dataset.originalIndex || '0') - Number(right.dataset.originalIndex || '0');
+        }});
+
+        rows.forEach((row) => mentorTbody.appendChild(row));
+        syncSortButtonState();
+      }};
+
+      sortButtons.forEach((button) => {{
+        button.addEventListener('click', (event) => {{
+          const key = button.dataset.sortKey;
+          const existingIndex = sortCriteria.findIndex((item) => item.key === key);
+
+          if (!event.shiftKey) {{
+            if (existingIndex >= 0) {{
+              const currentDirection = sortCriteria[existingIndex].direction;
+              sortCriteria = [{{ key, direction: currentDirection === 'asc' ? 'desc' : 'asc' }}];
+            }} else {{
+              sortCriteria = [{{ key, direction: 'asc' }}];
+            }}
+          }} else if (existingIndex >= 0) {{
+            const currentDirection = sortCriteria[existingIndex].direction;
+            sortCriteria[existingIndex].direction = currentDirection === 'asc' ? 'desc' : 'asc';
+          }} else {{
+            sortCriteria.push({{ key, direction: 'asc' }});
+          }}
+
+          applySortCriteria();
         }});
       }});
+
+      if (resetSortingButton) {{
+        resetSortingButton.addEventListener('click', () => {{
+          sortCriteria = [];
+          applySortCriteria();
+        }});
+      }}
+
+      syncSortButtonState();
     }})();
   </script>
 </body>
@@ -1600,9 +1665,17 @@ class AdminService:
             <div class="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <h3 class="text-lg font-bold text-[#111827]">Mentor management</h3>
-                <p class="mt-1 text-sm text-gray-600">Inline editable mentor grid with sortable columns.</p>
+                <p class="mt-1 text-sm text-gray-600">Inline editable mentor grid with sortable columns. Click to sort one column, Shift+click to add secondary columns.</p>
               </div>
               <div class="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  id="admin-reset-sorting"
+                  class="inline-flex items-center gap-2 rounded-md border border-[#E5E5E5] bg-white px-3 py-2 text-xs font-semibold text-gray-700 transition hover:border-[#E10101] hover:text-[#E10101]"
+                  title="Reset table sorting to original order">
+                  <i class="fa-solid fa-arrow-rotate-left" aria-hidden="true"></i>
+                  Reset sorting
+                </button>
                 <form method="POST" action="{self.mentor_action_path}">
                   <input type="hidden" name="action" value="refresh_pr_counts">
                   <button
