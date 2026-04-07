@@ -67,6 +67,7 @@ _PEERJS_STARTUP_TIMEOUT = 15
 _PAGES = {
     "/": "src/pages/index.html",
     "/video-chat": "src/pages/video-chat.html",
+    "/video-room": "src/pages/video-room.html",
     "/notes": "src/pages/notes.html",
     "/consent": "src/pages/consent.html",
 }
@@ -252,10 +253,10 @@ class _AppHandler(http.server.BaseHTTPRequestHandler):
             self._respond(200, "application/javascript", self.__class__.peerjs_js)
             return
 
-        # Serve HTML pages (video-chat is patched to use local signaling).
+        # Serve HTML pages (video-room is patched to use local signaling).
         if path in _PAGES:
             data = (ROOT / _PAGES[path]).read_bytes()
-            if path == "/video-chat":
+            if path == "/video-room":
                 data = _patch_video_chat_html(data, self.__class__.peerjs_port)
             self._respond(200, "text/html; charset=utf-8", data)
             return
@@ -459,7 +460,7 @@ def test_three_clients_connect_and_see_cameras(base_url):
             p2 = ctx2.new_page()
             p3 = ctx3.new_page()
 
-            video_url = f"{base_url}/video-chat"
+            video_url = f"{base_url}/video-room"
             for page in (p1, p2, p3):
                 page.goto(video_url)
 
@@ -627,13 +628,13 @@ _VOICE_CHANGER_IGNORE_UNKNOWN_MODE_JS = """
 
 @pytest.fixture(scope="module")
 def voice_changer_page(base_url):
-    """Open a single video-chat page for VoiceChanger unit tests."""
+    """Open a single in-call page for VoiceChanger unit tests."""
     with sync_playwright() as pw:
         browser = pw.chromium.launch(args=_BROWSER_ARGS)
         try:
             ctx = _new_context(browser)
             page = ctx.new_page()
-            page.goto(f"{base_url}/video-chat")
+            page.goto(f"{base_url}/video-room")
             # Wait for VoiceChanger to be defined (scripts loaded)
             page.wait_for_function("typeof VoiceChanger !== 'undefined'", timeout=TIMEOUT_MS)
             yield page
@@ -1075,3 +1076,50 @@ def test_voice_changer_all_effects_combined(voice_changer_page):
     """All 7 effects active simultaneously must not throw and keep the stream valid."""
     result = voice_changer_page.evaluate(_VOICE_CHANGER_ALL_EFFECTS_COMBINED_JS)
     assert result["ok"], result.get("error", "unknown error")
+
+
+def test_video_room_includes_voice_controller_ui():
+    """Video room page should include the in-call voice controller UI and script wiring."""
+    html = (ROOT / "src/pages/video-room.html").read_text(encoding="utf-8")
+
+    required_snippets = [
+        'id="btn-voice-changer"',
+        'id="voice-effects-panel"',
+        'id="effect-sliders-container"',
+        'id="btn-monitor"',
+        'id="slider-monitor-volume"',
+        'id="slider-mic-gain"',
+        'src="js/voice-changer.js"',
+    ]
+    for snippet in required_snippets:
+        assert snippet in html, f"Expected snippet missing in video-room.html: {snippet}"
+
+
+def test_video_chat_includes_prejoin_voice_controller_ui():
+    """Video chat lobby should include a pre-join voice controller and VoiceChanger script."""
+    html = (ROOT / "src/pages/video-chat.html").read_text(encoding="utf-8")
+
+    required_snippets = [
+        'id="prejoin-voice-panel"',
+        'data-lobby-voice-mode="normal"',
+        'id="prejoin-effect-sliders-container"',
+        'id="btn-preview-monitor"',
+        'id="slider-preview-monitor-volume"',
+        'id="slider-preview-mic-gain"',
+        'src="js/voice-changer.js"',
+    ]
+    for snippet in required_snippets:
+        assert snippet in html, f"Expected snippet missing in video-chat.html: {snippet}"
+
+
+def test_video_room_peerjs_script_has_no_sri_integrity():
+    """PeerJS CDN script should not use stale SRI that can block script execution in production."""
+    html = (ROOT / "src/pages/video-room.html").read_text(encoding="utf-8")
+    match = re.search(
+        r'<script\b[^>]*src="https://unpkg\.com/peerjs@1\.5\.2/dist/peerjs\.min\.js"[^>]*>',
+        html,
+    )
+    assert match, "PeerJS script tag missing in video-room.html"
+    assert "integrity=" not in match.group(0), (
+        "PeerJS script tag should not include integrity attribute; stale SRI breaks production loading"
+    )

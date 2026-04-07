@@ -1,0 +1,524 @@
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Secure Video Room - BLT-SafeCloak</title>
+    <meta
+      name="description"
+      content="In-call secure meeting workspace for BLT-SafeCloak peer-to-peer encrypted video chat."
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><path fill='%23E10101' d='M32 4l22 8v17c0 14-9.7 26.3-22 30C19.7 55.3 10 43 10 29V12z'/><path fill='white' d='M32 16l12 4v9c0 7.9-5.2 14.9-12 17-6.8-2.1-12-9.1-12-17v-9z'/></svg>"
+    />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: "#E10101",
+              "primary-hover": "#b91c1c",
+              "neutral-border": "#E5E5E5",
+            },
+            fontFamily: {
+              sans: ["Manrope", "ui-sans-serif", "system-ui", "sans-serif"],
+            },
+          },
+        },
+      };
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+      integrity="sha384-PPIZEGYM1v8zp5Py7UjFb79S58UeqCL9pYVnVPURKEqvioPROaVAJKKLzvH2rDnI"
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <link rel="stylesheet" href="css/main.css" />
+  </head>
+  <body class="font-sans antialiased">
+    <div class="pointer-events-none fixed inset-x-0 top-0 -z-10 h-full hero-glow"></div>
+
+    <div class="mx-auto flex min-h-screen w-full flex-col">
+      <header
+        class="mb-4 flex items-center justify-between border border-neutral-border bg-white/95 px-4 py-3 shadow-sm backdrop-blur"
+      >
+        <a class="flex items-center gap-3" href="/" aria-label="BLT-SafeCloak Home">
+          <img
+            src="img/logo.png"
+            alt="BLT-SafeCloak logo"
+            class="h-10 w-10 rounded-md object-contain"
+            onerror="
+              this.style.display = 'none';
+              this.nextElementSibling.style.display = 'flex';
+            "
+          />
+          <div>
+            <p class="text-sm font-extrabold leading-none sm:text-base">BLT-SafeCloak</p>
+            <p class="text-xs font-medium text-gray-500">OWASP BLT Extension</p>
+          </div>
+        </a>
+
+        <div
+          class="inline-flex items-center gap-2 rounded-full border border-neutral-border bg-white px-3 py-1.5 text-xs shadow-sm sm:text-sm"
+        >
+          <span class="status-dot connecting" id="status-dot" aria-label="Connection status"></span>
+          <span id="connection-status" class="text-muted">Initializing...</span>
+        </div>
+      </header>
+
+      <main id="voice" class="flex-1 px-10">
+        <div class="alert alert-info mb-4" id="perm-alert">
+          <i class="fa-solid fa-circle-info mt-0.5" aria-hidden="true"></i>
+          <span
+            >Allow camera and microphone access when prompted. Your media stays peer-to-peer and is
+            only shared with selected participants.</span
+          >
+        </div>
+
+        <div
+          id="camera-denied"
+          style="display: none; flex-direction: column; gap: 0.85rem"
+          class="mb-5 rounded-lg border border-red-200 bg-red-50 p-4 text-gray-900"
+          role="alert"
+          aria-live="assertive"
+        >
+          <div class="flex items-center gap-2 text-base font-bold text-red-700">
+            <i class="fa-solid fa-video-slash" aria-hidden="true"></i>
+            Camera &amp; microphone access was blocked
+          </div>
+          <div id="camera-denied-instructions" class="text-sm leading-relaxed"></div>
+          <div>
+            <button
+              id="btn-camera-retry"
+              class="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary-hover"
+            >
+              <i class="fa-solid fa-rotate-right" aria-hidden="true"></i>
+              Try Again
+            </button>
+          </div>
+        </div>
+
+        <div class="grid gap-4 xl:grid-cols-[1fr_320px]" id="main-grid">
+          <section class="flex min-h-[64vh] flex-col gap-4 pb-24">
+            <div
+              class="video-grid rounded-2xl border border-neutral-border bg-white p-3 shadow-sm"
+              id="video-grid"
+              aria-label="Video feeds"
+            >
+              <div class="video-wrapper rounded-xl bg-gray-900">
+                <video id="local-video" autoplay muted playsinline aria-label="Your video"></video>
+                <div class="video-label rounded-md bg-black/65 px-2 py-1 text-xs text-white">
+                  <span class="status-dot online" aria-hidden="true"></span>
+                  You (Local)
+                </div>
+              </div>
+            </div>
+
+            <div
+              class="rounded-2xl border border-neutral-border bg-white p-4 shadow-sm"
+              aria-label="Voice activity meter"
+            >
+              <div class="flex flex-wrap items-center gap-3">
+                <span class="text-xs font-bold uppercase tracking-wide text-gray-500"
+                  >Voice Activity</span
+                >
+                <div class="voice-meter" aria-hidden="true">
+                  <div class="voice-bar"></div>
+                  <div class="voice-bar"></div>
+                  <div class="voice-bar"></div>
+                  <div class="voice-bar"></div>
+                  <div class="voice-bar"></div>
+                  <div class="voice-bar"></div>
+                  <div class="voice-bar"></div>
+                  <div class="voice-bar"></div>
+                </div>
+                <div class="ml-auto flex flex-wrap gap-2 text-xs">
+                  <span class="badge badge-success" id="badge-noise-suppression"
+                    >Noise Suppression</span
+                  >
+                  <span class="badge badge-success">Echo Cancel</span>
+                  <span class="badge badge-primary">Auto Gain</span>
+                </div>
+              </div>
+            </div>
+
+            <div
+              class="rounded-2xl border border-neutral-border bg-white p-4 shadow-sm"
+              id="voice-effects-panel"
+              aria-label="Voice effects"
+              aria-live="polite"
+            >
+              <div class="grid grid-cols-4 gap-1.5" role="group" aria-label="Voice effect options">
+                <button
+                  class="voice-chip active"
+                  data-voice-mode="normal"
+                  onclick="VideoChat.setVoiceMode('normal')"
+                  title="Clear all voice effects"
+                  aria-pressed="true"
+                >
+                  <i class="fa-solid fa-microphone" aria-hidden="true"></i>
+                  <span>Normal</span>
+                </button>
+                <button
+                  class="voice-chip"
+                  data-voice-mode="deep"
+                  onclick="VideoChat.toggleEffectMode('deep')"
+                  title="Toggle deep voice"
+                  aria-pressed="false"
+                >
+                  <i class="fa-solid fa-down-long" aria-hidden="true"></i>
+                  <span>Deep</span>
+                </button>
+                <button
+                  class="voice-chip"
+                  data-voice-mode="chipmunk"
+                  onclick="VideoChat.toggleEffectMode('chipmunk')"
+                  title="Toggle chipmunk voice"
+                  aria-pressed="false"
+                >
+                  <i class="fa-solid fa-up-long" aria-hidden="true"></i>
+                  <span>Chipmunk</span>
+                </button>
+                <button
+                  class="voice-chip"
+                  data-voice-mode="robot"
+                  onclick="VideoChat.toggleEffectMode('robot')"
+                  title="Toggle robot voice"
+                  aria-pressed="false"
+                >
+                  <i class="fa-solid fa-robot" aria-hidden="true"></i>
+                  <span>Robot</span>
+                </button>
+                <button
+                  class="voice-chip"
+                  data-voice-mode="echo"
+                  onclick="VideoChat.toggleEffectMode('echo')"
+                  title="Toggle echo effect"
+                  aria-pressed="false"
+                >
+                  <i class="fa-solid fa-wave-square" aria-hidden="true"></i>
+                  <span>Echo</span>
+                </button>
+                <button
+                  class="voice-chip"
+                  data-voice-mode="voice1"
+                  onclick="VideoChat.toggleEffectMode('voice1')"
+                  title="Toggle telephone voice"
+                  aria-pressed="false"
+                >
+                  <i class="fa-solid fa-phone" aria-hidden="true"></i>
+                  <span>Phone</span>
+                </button>
+                <button
+                  class="voice-chip"
+                  data-voice-mode="voice2"
+                  onclick="VideoChat.toggleEffectMode('voice2')"
+                  title="Toggle alien voice"
+                  aria-pressed="false"
+                >
+                  <i class="fa-solid fa-user-astronaut" aria-hidden="true"></i>
+                  <span>Alien</span>
+                </button>
+                <button
+                  class="voice-chip"
+                  data-voice-mode="voice3"
+                  onclick="VideoChat.toggleEffectMode('voice3')"
+                  title="Toggle monster voice"
+                  aria-pressed="false"
+                >
+                  <i class="fa-solid fa-skull" aria-hidden="true"></i>
+                  <span>Monster</span>
+                </button>
+              </div>
+
+              <div id="effect-sliders-container" aria-live="polite"></div>
+
+              <div class="mt-2 flex flex-wrap items-center gap-2 border-t border-neutral-border pt-2">
+                <button
+                  class="voice-chip flex-none"
+                  id="btn-monitor"
+                  title="Hear yourself with the selected voice effect"
+                  aria-pressed="false"
+                  onclick="VideoChat.toggleMonitor()"
+                >
+                  <i class="fa-solid fa-headphones" aria-hidden="true"></i>
+                  <span id="lbl-monitor-btn">Monitor</span>
+                </button>
+
+                <div class="flex min-w-0 flex-1 items-center gap-1" style="min-width: 7rem">
+                  <i
+                    class="fa-solid fa-volume-high flex-none text-[11px] text-gray-400"
+                    aria-hidden="true"
+                  ></i>
+                  <input
+                    type="range"
+                    class="voice-slider min-w-0 flex-1"
+                    id="slider-monitor-volume"
+                    min="0"
+                    max="100"
+                    step="1"
+                    value="50"
+                    aria-label="Monitor volume"
+                    style="background: linear-gradient(to right, #e10101 50%, #e5e7eb 50%)"
+                    oninput="
+                      const p = (((this.value - this.min) / (this.max - this.min)) * 100).toFixed(1);
+                      this.style.background =
+                        'linear-gradient(to right,#e10101 ' + p + '%,#e5e7eb ' + p + '%)';
+                      VoiceChanger.setMonitorVolume(this.value / 100);
+                      document.getElementById('label-monitor-volume').textContent = this.value + '%';
+                    "
+                  />
+                  <span
+                    id="label-monitor-volume"
+                    class="w-6 flex-none text-right text-[10px] font-semibold text-primary"
+                    >50%</span
+                  >
+                </div>
+
+                <div class="flex min-w-0 flex-1 items-center gap-1" style="min-width: 7rem">
+                  <i
+                    class="fa-solid fa-microphone flex-none text-[11px] text-gray-400"
+                    aria-hidden="true"
+                  ></i>
+                  <input
+                    type="range"
+                    class="voice-slider min-w-0 flex-1"
+                    id="slider-mic-gain"
+                    min="0"
+                    max="200"
+                    step="1"
+                    value="100"
+                    aria-label="Microphone input level"
+                    style="background: linear-gradient(to right, #e10101 50%, #e5e7eb 50%)"
+                    oninput="
+                      const p = (((this.value - this.min) / (this.max - this.min)) * 100).toFixed(1);
+                      this.style.background =
+                        'linear-gradient(to right,#e10101 ' + p + '%,#e5e7eb ' + p + '%)';
+                      VoiceChanger.setMicGain(this.value / 100);
+                      document.getElementById('label-mic-gain').textContent = this.value + '%';
+                    "
+                  />
+                  <span
+                    id="label-mic-gain"
+                    class="w-8 flex-none text-right text-[10px] font-semibold text-primary"
+                    >100%</span
+                  >
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <aside aria-label="Room setup and connection info" class="space-y-4">
+            <div class="rounded-2xl border border-neutral-border bg-white p-4 shadow-sm">
+              <h2
+                class="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-gray-700"
+              >
+                <i class="fa-solid fa-key text-primary" aria-hidden="true"></i>
+                Your Room ID
+              </h2>
+              <div
+                class="rounded-lg border border-neutral-border bg-gray-50 px-3 py-3 text-center font-mono text-lg font-bold tracking-widest text-gray-900"
+                id="my-peer-id"
+                aria-label="Your room ID"
+              >
+                Connecting...
+              </div>
+              <button
+                class="btn btn-secondary mt-3 w-full"
+                onclick="VideoChat.copyRoomId()"
+                aria-label="Copy room ID to clipboard"
+              >
+                <i class="fa-regular fa-copy" aria-hidden="true"></i>
+                Copy Room ID
+              </button>
+              <button
+                class="btn btn-primary mt-2 w-full"
+                id="btn-copy-link"
+                onclick="VideoChat.copyRoomLink()"
+                aria-label="Copy shareable room link to clipboard"
+              >
+                <i class="fa-solid fa-link" aria-hidden="true"></i>
+                Copy Room Link
+              </button>
+            </div>
+
+            <div
+              id="add-participant-card"
+              class="rounded-2xl border border-neutral-border bg-white p-4 shadow-sm"
+            >
+              <h2
+                class="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-gray-700"
+              >
+                <i class="fa-solid fa-phone text-primary" aria-hidden="true"></i>
+                Add Participant
+              </h2>
+              <label class="mb-2 block text-sm font-semibold text-gray-700" for="remote-id"
+                >Remote Room ID</label
+              >
+              <input
+                type="text"
+                class="w-full rounded-md border border-neutral-border px-4 py-2 text-gray-900 placeholder-gray-500 transition-colors focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                id="remote-id"
+                placeholder="Enter Room ID..."
+                autocomplete="off"
+                aria-label="Remote room ID"
+                pattern="[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{6}"
+                maxlength="6"
+                inputmode="text"
+                required
+              />
+              <button
+                class="btn btn-primary mt-3 w-full"
+                id="btn-call"
+                aria-label="Add participant to room"
+              >
+                <i class="fa-solid fa-user-plus" aria-hidden="true"></i>
+                Add Participant
+              </button>
+            </div>
+
+            <div class="rounded-2xl border border-neutral-border bg-white p-4 shadow-sm">
+              <h2
+                class="mb-3 flex items-center text-sm font-bold uppercase tracking-wide text-gray-700"
+              >
+                <i class="fa-solid fa-users mr-2 text-primary" aria-hidden="true"></i>
+                Participants
+                <span
+                  id="participant-count"
+                  class="ml-auto text-xs font-bold text-gray-500"
+                  aria-live="polite"
+                  >0 connected</span
+                >
+              </h2>
+              <div id="participants-list">
+                <p class="py-2 text-center text-sm text-gray-500">No participants connected</p>
+              </div>
+            </div>
+          </aside>
+        </div>
+
+        <div
+          class="video-controls fixed bottom-4 left-1/2 z-40 flex -translate-x-1/2 justify-center gap-2 rounded-2xl border border-neutral-border bg-white/95 p-3 shadow-xl backdrop-blur"
+          id="call-controls"
+          role="toolbar"
+          aria-label="Call controls"
+        >
+          <button
+            class="control-btn rounded-full border border-neutral-border bg-white text-gray-700"
+            id="btn-mic"
+            title="Mute mic"
+            onclick="VideoChat.toggleMic()"
+            aria-label="Toggle microphone"
+          >
+            <i class="fa-solid fa-microphone" aria-hidden="true"></i>
+          </button>
+          <button
+            class="control-btn rounded-full border border-neutral-border bg-white text-gray-700"
+            id="btn-cam"
+            title="Disable camera"
+            onclick="VideoChat.toggleCamera()"
+            aria-label="Toggle camera"
+          >
+            <i class="fa-solid fa-video" aria-hidden="true"></i>
+          </button>
+          <button
+            class="control-btn rounded-full border border-neutral-border bg-white text-gray-700"
+            id="btn-noise"
+            title="Toggle noise suppression"
+            onclick="VideoChat.toggleNoiseSuppression()"
+            aria-label="Toggle noise suppression"
+          >
+            <i class="fa-solid fa-volume-high" aria-hidden="true"></i>
+          </button>
+          <button
+            class="control-btn rounded-full border border-neutral-border bg-white text-gray-700"
+            id="btn-screen"
+            title="Share screen"
+            onclick="VideoChat.shareScreen()"
+            aria-label="Share screen"
+          >
+            <i class="fa-solid fa-display" aria-hidden="true"></i>
+          </button>
+          <button
+            class="control-btn rounded-full border border-neutral-border bg-white text-gray-700"
+            id="btn-voice-changer"
+            title="Voice effects"
+            onclick="VideoChat.toggleVoiceEffectsPanel()"
+            aria-label="Toggle voice effects panel"
+            aria-controls="voice-effects-panel"
+            aria-expanded="true"
+          >
+            <i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>
+          </button>
+          <button
+            class="control-btn end-call rounded-full border border-red-600 bg-red-600 text-white"
+            id="btn-end"
+            title="End call"
+            onclick="VideoChat.hangup()"
+            aria-label="End call"
+          >
+            <i class="fa-solid fa-phone-slash" aria-hidden="true"></i>
+          </button>
+        </div>
+      </main>
+    </div>
+
+    <div id="toast-container" role="status" aria-live="polite"></div>
+
+    <script
+      src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"
+      crossorigin="anonymous"
+    ></script>
+    <script src="js/crypto.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/consent.js"></script>
+    <script src="js/voice-changer.js"></script>
+    <script src="js/video.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", async () => {
+        const params = new URLSearchParams(window.location.search);
+        const isJoiner = Boolean((params.get("room") || "").trim());
+        const addParticipantCard = document.getElementById("add-participant-card");
+        if (isJoiner && addParticipantCard) {
+          addParticipantCard.style.display = "none";
+        }
+
+        const ok = await VideoChat.init();
+        const alert = document.getElementById("perm-alert");
+        if (ok && alert) {
+          setTimeout(() => {
+            alert.style.display = "none";
+          }, 5000);
+        }
+
+        const callBtn = document.getElementById("btn-call");
+        const input = document.getElementById("remote-id");
+        const normalizeRemoteId = (value) => value.trim().toUpperCase();
+        if (callBtn && input) {
+          callBtn.addEventListener("click", () => {
+            VideoChat.callPeer(normalizeRemoteId(input.value));
+            input.value = "";
+          });
+
+          input.addEventListener("keydown", (event) => {
+            if (event.key === "Enter") {
+              VideoChat.callPeer(normalizeRemoteId(event.target.value));
+              event.target.value = "";
+            }
+          });
+        }
+      });
+    </script>
+  </body>
+</html>
