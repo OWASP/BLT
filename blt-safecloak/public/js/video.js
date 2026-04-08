@@ -120,7 +120,7 @@ const VideoChat = (() => {
       name: state.displayName,
       initials: state.displayInitials,
       micMuted: isLocalMicMutedState(),
-      camOff: isLocalCamOffState(),
+      camOff: screenSharing ? false : isLocalCamOffState(),
     };
   }
 
@@ -130,6 +130,7 @@ const VideoChat = (() => {
   }
 
   function isLocalCamOffState() {
+    if (screenSharing) return false;
     const hasVideoTrack = Boolean(localStream && localStream.getVideoTracks().length);
     return !hasVideoTrack || camOff;
   }
@@ -1581,6 +1582,8 @@ const VideoChat = (() => {
       showToast("Screen sharing started", "success");
       screenSharing = true;
       $("btn-screen") && $("btn-screen").classList.add("active");
+      updateLocalTilePresentation();
+      broadcastProfile(true);
       screenTrack.onended = () => {
         if (screenSharing) stopScreenShare();
       };
@@ -1590,14 +1593,15 @@ const VideoChat = (() => {
   }
 
   function stopScreenShare() {
-    if (!localStream || activeCalls.size === 0) return;
+    if (!localStream) return;
     const videoTrack = localStream.getVideoTracks()[0];
-    if (!videoTrack) return;
-    for (const call of activeCalls.values()) {
-      const sender =
-        call.peerConnection &&
-        call.peerConnection.getSenders().find((s) => s.track && s.track.kind === "video");
-      if (sender) sender.replaceTrack(videoTrack);
+    if (videoTrack && activeCalls.size > 0) {
+      for (const call of activeCalls.values()) {
+        const sender =
+          call.peerConnection &&
+          call.peerConnection.getSenders().find((s) => s.track && s.track.kind === "video");
+        if (sender) sender.replaceTrack(videoTrack);
+      }
     }
     const localVideo = $("local-video");
     if (localVideo) {
@@ -1605,6 +1609,8 @@ const VideoChat = (() => {
     }
     $("btn-screen") && $("btn-screen").classList.remove("active");
     screenSharing = false;
+    updateLocalTilePresentation();
+    broadcastProfile(true);
     showToast("Screen sharing stopped", "info");
   }
 

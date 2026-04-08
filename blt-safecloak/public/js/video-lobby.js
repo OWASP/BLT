@@ -40,11 +40,20 @@
     const fromUrl = normalizeDisplayName(params.get("name"));
     if (fromUrl) {
       input.value = fromUrl;
-      window.sessionStorage.setItem(DISPLAY_NAME_STORAGE_KEY, fromUrl);
+      try {
+        window.sessionStorage.setItem(DISPLAY_NAME_STORAGE_KEY, fromUrl);
+      } catch {
+        /* ignore storage failures */
+      }
       return;
     }
 
-    const fromStorage = normalizeDisplayName(window.sessionStorage.getItem(DISPLAY_NAME_STORAGE_KEY));
+    let fromStorage = "";
+    try {
+      fromStorage = normalizeDisplayName(window.sessionStorage.getItem(DISPLAY_NAME_STORAGE_KEY));
+    } catch {
+      /* ignore storage failures */
+    }
     if (fromStorage) {
       input.value = fromStorage;
     }
@@ -62,7 +71,11 @@
       return null;
     }
 
-    window.sessionStorage.setItem(DISPLAY_NAME_STORAGE_KEY, name);
+    try {
+      window.sessionStorage.setItem(DISPLAY_NAME_STORAGE_KEY, name);
+    } catch {
+      /* ignore storage failures */
+    }
     return name;
   }
 
@@ -563,13 +576,10 @@
     showToast("Could not access camera/microphone preview", "warning");
   }
 
-  function buildRoomUrl(roomId = "", displayName = "") {
+  function buildRoomUrl(roomId = "") {
     const target = new URL(`${window.location.origin}/video-room`);
     if (roomId) {
       target.searchParams.set("room", roomId);
-    }
-    if (displayName) {
-      target.searchParams.set("name", displayName);
     }
 
     const micPref = hasAudioTrack() ? (micEnabled ? "on" : "off") : "off";
@@ -582,8 +592,15 @@
   }
 
   function goToRoom(roomId = "", displayName = "") {
+    if (displayName) {
+      try {
+        window.sessionStorage.setItem(DISPLAY_NAME_STORAGE_KEY, displayName);
+      } catch {
+        /* ignore storage failures */
+      }
+    }
     persistVoicePreferences();
-    const target = buildRoomUrl(roomId, displayName);
+    const target = buildRoomUrl(roomId);
     stopPreviewStream();
     window.location.href = target.toString();
   }
