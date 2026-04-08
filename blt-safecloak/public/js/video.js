@@ -18,12 +18,25 @@ const VideoChat = (() => {
   let screenSharing = false;
   let initialMediaPreferences = { mic: true, cam: true };
   const VOICE_PREFS_STORAGE_KEY = "blt-safecloak-voice-preferences";
+  const DISPLAY_NAME_STORAGE_KEY = "blt-safecloak-display-name";
+  const PROFILE_BROADCAST_THROTTLE_MS = 220;
+  const SPEAKING_THRESHOLD = 28;
+  const SPEAKING_HOLD_MS = 260;
+
+  const peerProfiles = new Map(); // peerId -> { name, initials, micMuted, camOff }
+  const remoteSpeakingMonitors = new Map(); // peerId -> { analyser, data, source, activeUntil }
+  let speakingLoopFrame = null;
+  let speakingAudioContext = null;
+  let localSpeakingUntil = 0;
+  const lastProfileBroadcastAt = new Map(); // peerId -> timestamp
 
   const state = {
     peerId: null,
     connected: false,
     sessionId: null,
     sessionKey: null,
+    displayName: "You",
+    displayInitials: "YU",
   };
 
   /* ── DOM helpers ── */
@@ -39,6 +52,410 @@ const VideoChat = (() => {
   function setDotStatus(status) {
     const dot = $("status-dot");
     if (dot) dot.className = `status-dot ${status}`;
+  }
+
+  function normalizeDisplayName(value) {
+    return (value || "").trim().replace(/\s+/g, " ").slice(0, 40);
+  }
+
+  function makeInitials(name) {
+    const words = normalizeDisplayName(name).split(" ").filter(Boolean);
+    if (words.length >= 2) {
+      return `${words[0][0] || ""}${words[1][0] || ""}`.toUpperCase();
+    }
+    const first = words[0] || "";
+    return first.slice(0, 2).toUpperCase() || "NA";
+  }
+
+  function resolveDisplayName() {
+    const params = new URLSearchParams(window.location.search);
+    const fromUrl = normalizeDisplayName(params.get("name"));
+    if (fromUrl) {
+      try {
+        window.sessionStorage.setItem(DISPLAY_NAME_STORAGE_KEY, fromUrl);
+      } catch {
+        /* ignore storage failures */
+      }
+      return fromUrl;
+    }
+
+    try {
+      const fromStorage = normalizeDisplayName(window.sessionStorage.getItem(DISPLAY_NAME_STORAGE_KEY));
+      if (fromStorage) return fromStorage;
+    } catch {
+      /* ignore storage failures */
+    }
+
+    return "Guest";
+  }
+
+  function getProfileForPeer(peerId) {
+    if (peerId === state.peerId || peerId === "local") {
+      return {
+        name: state.displayName,
+        initials: state.displayInitials,
+        micMuted: isLocalMicMutedState(),
+        camOff: isLocalCamOffState(),
+      };
+    }
+    const profile = peerProfiles.get(peerId);
+    if (profile) return profile;
+    return {
+      name: peerId,
+      initials: makeInitials(peerId),
+      micMuted: false,
+      camOff: false,
+    };
+  }
+
+  function getDisplayLabel(peerId) {
+    if (peerId === state.peerId || peerId === "local") return "You";
+    return getProfileForPeer(peerId).name || peerId;
+  }
+
+  function getSelfProfilePayload() {
+    return {
+      type: "profile",
+      id: state.peerId,
+      name: state.displayName,
+      initials: state.displayInitials,
+      micMuted: isLocalMicMutedState(),
+      camOff: isLocalCamOffState(),
+    };
+  }
+
+  function isLocalMicMutedState() {
+    const hasAudioTrack = Boolean(localStream && localStream.getAudioTracks().length);
+    return !hasAudioTrack || micMuted;
+  }
+
+  function isLocalCamOffState() {
+    const hasVideoTrack = Boolean(localStream && localStream.getVideoTracks().length);
+    return !hasVideoTrack || camOff;
+  }
+
+  function setAvatarVisibility(avatarEl, visible) {
+    if (!avatarEl) return;
+    avatarEl.classList.toggle("hidden", !visible);
+    avatarEl.style.display = visible ? "flex" : "none";
+  }
+
+  function getTileElements(peerId) {
+    const isLocal = peerId === "local" || peerId === state.peerId;
+    const wrapper = isLocal ? $("wrapper-local") : $(`wrapper-${peerId}`);
+    if (!wrapper) return null;
+
+    return {
+      wrapper,
+      dot: wrapper.querySelector(".status-dot"),
+      video: wrapper.querySelector("video"),
+      avatar: wrapper.querySelector(".video-avatar"),
+      avatarInitials: wrapper.querySelector(".video-avatar-initials"),
+      avatarName: wrapper.querySelector(".video-avatar-name"),
+      speaking: wrapper.querySelector(".video-speaking-indicator"),
+      stateMic:
+        wrapper.querySelector('[data-state="mic"]') || (isLocal ? $("state-icon-local-mic") : null),
+      stateCam:
+        wrapper.querySelector('[data-state="cam"]') || (isLocal ? $("state-icon-local-cam") : null),
+      labelName:
+        wrapper.querySelector('[data-role="label-name"]') || (isLocal ? $("label-local-name") : null),
+    };
+  }
+
+  function setTileStateIcon(iconEl, kind, isOff) {
+    if (!iconEl) return;
+    iconEl.classList.toggle("off", Boolean(isOff));
+    if (kind === "mic") {
+      iconEl.innerHTML = isOff
+        ? '<i class="fa-solid fa-microphone-slash" aria-hidden="true"></i>'
+        : '<i class="fa-solid fa-microphone" aria-hidden="true"></i>';
+      return;
+    }
+    if (kind === "cam") {
+      iconEl.innerHTML = isOff
+        ? '<i class="fa-solid fa-video-slash" aria-hidden="true"></i>'
+        : '<i class="fa-solid fa-video" aria-hidden="true"></i>';
+    }
+  }
+
+  function setTileSpeakingIndicator(peerId, active) {
+    const tile = getTileElements(peerId);
+    if (!tile || !tile.speaking) return;
+    tile.speaking.classList.toggle("active", Boolean(active));
+  }
+
+  function ensureRemoteTile(peerId) {
+    const existing = getTileElements(peerId);
+    if (existing) return existing;
+
+    const profile = getProfileForPeer(peerId);
+    const videoWrapper = document.createElement("div");
+    videoWrapper.className = "video-wrapper rounded-xl bg-gray-900";
+    videoWrapper.id = `wrapper-${peerId}`;
+
+    const videoEl = document.createElement("video");
+    videoEl.autoplay = true;
+    videoEl.playsInline = true;
+    videoEl.setAttribute("aria-label", `Participant ${profile.name} video`);
+    videoWrapper.appendChild(videoEl);
+
+    const avatar = document.createElement("div");
+    avatar.className = "video-avatar hidden";
+    avatar.style.display = "none";
+    avatar.setAttribute("aria-hidden", "true");
+
+    const avatarInitials = document.createElement("div");
+    avatarInitials.className = "video-avatar-initials";
+    avatarInitials.textContent = profile.initials;
+
+    const avatarName = document.createElement("div");
+    avatarName.className = "video-avatar-name";
+    avatarName.textContent = profile.name;
+
+    avatar.appendChild(avatarInitials);
+    avatar.appendChild(avatarName);
+    videoWrapper.appendChild(avatar);
+
+    const speaking = document.createElement("div");
+    speaking.className = "video-speaking-indicator";
+    speaking.setAttribute("aria-hidden", "true");
+    speaking.innerHTML = '<i class="fa-solid fa-volume-high" aria-hidden="true"></i>';
+    videoWrapper.appendChild(speaking);
+
+    const stateIcons = document.createElement("div");
+    stateIcons.className = "video-state-icons";
+    stateIcons.setAttribute("aria-hidden", "true");
+
+    const micIcon = document.createElement("span");
+    micIcon.className = "video-state-icon";
+    micIcon.dataset.state = "mic";
+    micIcon.innerHTML = '<i class="fa-solid fa-microphone" aria-hidden="true"></i>';
+
+    const camIcon = document.createElement("span");
+    camIcon.className = "video-state-icon";
+    camIcon.dataset.state = "cam";
+    camIcon.innerHTML = '<i class="fa-solid fa-video" aria-hidden="true"></i>';
+
+    stateIcons.appendChild(micIcon);
+    stateIcons.appendChild(camIcon);
+    videoWrapper.appendChild(stateIcons);
+
+    const label = document.createElement("div");
+    label.className =
+      "video-label rounded-md bg-black/65 px-2 py-1 text-xs text-white flex items-center gap-2";
+    label.id = `label-${peerId}`;
+
+    const labelDot = document.createElement("span");
+    labelDot.className = "status-dot connecting";
+    labelDot.setAttribute("aria-hidden", "true");
+    labelDot.id = `dot-${peerId}`;
+
+    const labelText = document.createElement("span");
+    labelText.className = "max-w-[145px] truncate font-semibold";
+    labelText.dataset.role = "label-name";
+    labelText.textContent = profile.name;
+
+    label.appendChild(labelDot);
+    label.appendChild(labelText);
+    videoWrapper.appendChild(label);
+
+    const videoGrid = $("video-grid");
+    if (videoGrid) {
+      videoGrid.appendChild(videoWrapper);
+    }
+
+    return getTileElements(peerId);
+  }
+
+  function updateTilePresentation(peerId) {
+    const tile = getTileElements(peerId);
+    if (!tile) return;
+
+    const isLocal = peerId === "local" || peerId === state.peerId;
+    const profile = getProfileForPeer(peerId);
+    const displayName = isLocal ? state.displayName : profile.name;
+    const initials = profile.initials || makeInitials(displayName);
+    const micIsMuted = isLocal ? isLocalMicMutedState() : Boolean(profile.micMuted);
+    const cameraIsOff = isLocal ? isLocalCamOffState() : Boolean(profile.camOff);
+
+    if (tile.dot) {
+      tile.dot.className = `status-dot ${isLocal || activeCalls.has(peerId) ? "online" : "connecting"}`;
+    }
+    if (tile.labelName) {
+      tile.labelName.textContent = isLocal ? "You" : displayName;
+      tile.labelName.title = displayName;
+    }
+    if (tile.video) {
+      tile.video.setAttribute("aria-label", isLocal ? "Your video" : `Participant ${displayName} video`);
+    }
+    if (tile.avatarInitials) {
+      tile.avatarInitials.textContent = initials;
+    }
+    if (tile.avatarName) {
+      tile.avatarName.textContent = displayName;
+    }
+
+    setAvatarVisibility(tile.avatar, cameraIsOff);
+    setTileStateIcon(tile.stateMic, "mic", micIsMuted);
+    setTileStateIcon(tile.stateCam, "cam", cameraIsOff);
+
+    if (micIsMuted) {
+      setTileSpeakingIndicator(peerId, false);
+    }
+  }
+
+  function updateLocalTilePresentation() {
+    updateTilePresentation("local");
+  }
+
+  function ensureSpeakingAudioContext() {
+    if (speakingAudioContext) return speakingAudioContext;
+    try {
+      speakingAudioContext = new (window.AudioContext || window.webkitAudioContext)();
+      return speakingAudioContext;
+    } catch {
+      return null;
+    }
+  }
+
+  function stopRemoteSpeakingMonitor(peerId) {
+    const monitor = remoteSpeakingMonitors.get(peerId);
+    if (!monitor) return;
+    try {
+      monitor.source.disconnect();
+    } catch {
+      /* ignore disconnect failures */
+    }
+    remoteSpeakingMonitors.delete(peerId);
+    setTileSpeakingIndicator(peerId, false);
+  }
+
+  function stopAllRemoteSpeakingMonitors() {
+    Array.from(remoteSpeakingMonitors.keys()).forEach((peerId) => stopRemoteSpeakingMonitor(peerId));
+    if (speakingLoopFrame) {
+      cancelAnimationFrame(speakingLoopFrame);
+      speakingLoopFrame = null;
+    }
+  }
+
+  function runSpeakingLoop() {
+    if (speakingLoopFrame) return;
+
+    const step = () => {
+      const now = performance.now();
+
+      remoteSpeakingMonitors.forEach((monitor, peerId) => {
+        try {
+          monitor.analyser.getByteFrequencyData(monitor.data);
+          const sum = monitor.data.reduce((acc, value) => acc + value, 0);
+          const avg = monitor.data.length ? sum / monitor.data.length : 0;
+          if (avg >= SPEAKING_THRESHOLD) {
+            monitor.activeUntil = now + SPEAKING_HOLD_MS;
+          }
+          const profile = getProfileForPeer(peerId);
+          const speakingNow = monitor.activeUntil > now && !Boolean(profile.micMuted);
+          setTileSpeakingIndicator(peerId, speakingNow);
+        } catch {
+          stopRemoteSpeakingMonitor(peerId);
+        }
+      });
+
+      if (remoteSpeakingMonitors.size === 0) {
+        speakingLoopFrame = null;
+        return;
+      }
+      speakingLoopFrame = requestAnimationFrame(step);
+    };
+
+    speakingLoopFrame = requestAnimationFrame(step);
+  }
+
+  function attachRemoteSpeakingMonitor(peerId, stream) {
+    stopRemoteSpeakingMonitor(peerId);
+    if (!stream || !stream.getAudioTracks || stream.getAudioTracks().length === 0) {
+      return;
+    }
+
+    const ctx = ensureSpeakingAudioContext();
+    if (!ctx) return;
+    if (ctx.state === "suspended") {
+      ctx.resume().catch(() => {});
+    }
+
+    try {
+      const source = ctx.createMediaStreamSource(stream);
+      const analyserNode = ctx.createAnalyser();
+      analyserNode.fftSize = 256;
+      source.connect(analyserNode);
+      remoteSpeakingMonitors.set(peerId, {
+        analyser: analyserNode,
+        data: new Uint8Array(analyserNode.frequencyBinCount),
+        source,
+        activeUntil: 0,
+      });
+      runSpeakingLoop();
+    } catch {
+      /* audio monitor not available for this stream */
+    }
+  }
+
+  function upsertRemoteProfile(peerId, payload) {
+    if (!peerId || peerId === state.peerId) return;
+
+    const prev = peerProfiles.get(peerId) || {
+      name: peerId,
+      initials: makeInitials(peerId),
+      micMuted: false,
+      camOff: false,
+    };
+    const normalizedName = normalizeDisplayName(payload && payload.name);
+
+    const profile = {
+      name: normalizedName || prev.name,
+      initials: makeInitials(normalizedName || prev.name),
+      micMuted:
+        payload && typeof payload.micMuted === "boolean" ? payload.micMuted : Boolean(prev.micMuted),
+      camOff: payload && typeof payload.camOff === "boolean" ? payload.camOff : Boolean(prev.camOff),
+    };
+
+    peerProfiles.set(peerId, profile);
+    updateTilePresentation(peerId);
+    updateParticipantsList();
+  }
+
+  function sendProfileTo(peerId, force = false) {
+    const conn = activeDataConns.get(peerId);
+    if (!conn || !conn.open || !state.peerId) return;
+
+    const now = Date.now();
+    const lastAt = lastProfileBroadcastAt.get(peerId) || 0;
+    if (!force && now - lastAt < PROFILE_BROADCAST_THROTTLE_MS) {
+      return;
+    }
+
+    conn.send(getSelfProfilePayload());
+    lastProfileBroadcastAt.set(peerId, now);
+  }
+
+  function broadcastProfile(force = false) {
+    activeDataConns.forEach((_conn, peerId) => {
+      sendProfileTo(peerId, force);
+    });
+  }
+
+  function ensureDataConn(remotePeerId) {
+    if (!peer || !remotePeerId || remotePeerId === state.peerId) {
+      return null;
+    }
+
+    const existing = activeDataConns.get(remotePeerId);
+    if (existing) {
+      return existing;
+    }
+
+    const conn = peer.connect(remotePeerId);
+    setupDataConn(conn);
+    return conn;
   }
 
   /* ── Browser detection ── */
@@ -122,6 +539,8 @@ const VideoChat = (() => {
     }
 
     startVoiceMeter(stream);
+    updateLocalTilePresentation();
+    broadcastProfile(true);
   }
 
   function syncControlButtons() {
@@ -184,6 +603,8 @@ const VideoChat = (() => {
     }
 
     syncControlButtons();
+    updateLocalTilePresentation();
+    broadcastProfile(true);
   }
 
   async function startLocalMedia() {
@@ -280,6 +701,13 @@ const VideoChat = (() => {
 
   function startVoiceMeter(stream) {
     try {
+      if (voiceAnimFrame) {
+        cancelAnimationFrame(voiceAnimFrame);
+        voiceAnimFrame = null;
+      }
+      if (audioContext) {
+        audioContext.close().catch(() => {});
+      }
       audioContext = new (window.AudioContext || window.webkitAudioContext)();
       analyser = audioContext.createAnalyser();
       analyser.fftSize = 256;
@@ -293,15 +721,27 @@ const VideoChat = (() => {
 
   function animateVoiceMeter() {
     const bars = document.querySelectorAll(".voice-bar");
-    if (!bars.length || !analyser) return;
+    if (!analyser) return;
     const data = new Uint8Array(analyser.frequencyBinCount);
     function frame() {
       analyser.getByteFrequencyData(data);
-      const slice = Math.floor(data.length / bars.length);
-      bars.forEach((bar, i) => {
-        const avg = data.slice(i * slice, (i + 1) * slice).reduce((a, b) => a + b, 0) / slice;
-        bar.style.height = `${Math.max(4, (avg / 255) * 24)}px`;
-      });
+
+      if (bars.length) {
+        const slice = Math.floor(data.length / bars.length);
+        bars.forEach((bar, i) => {
+          const avg = data.slice(i * slice, (i + 1) * slice).reduce((a, b) => a + b, 0) / slice;
+          bar.style.height = `${Math.max(4, (avg / 255) * 24)}px`;
+        });
+      }
+
+      const now = performance.now();
+      const sum = data.reduce((acc, value) => acc + value, 0);
+      const avg = data.length ? sum / data.length : 0;
+      if (avg >= SPEAKING_THRESHOLD) {
+        localSpeakingUntil = now + SPEAKING_HOLD_MS;
+      }
+      setTileSpeakingIndicator("local", localSpeakingUntil > now && !isLocalMicMutedState());
+
       voiceAnimFrame = requestAnimationFrame(frame);
     }
     frame();
@@ -335,6 +775,7 @@ const VideoChat = (() => {
       $("my-peer-id") && ($("my-peer-id").textContent = id);
       updateStatus("Ready — share your Room ID", "secondary");
       setDotStatus("online");
+      updateLocalTilePresentation();
       showToast("Connected to signaling server", "success");
       // Auto-connect if a room ID was passed in the URL
       const params = new URLSearchParams(window.location.search);
@@ -364,6 +805,7 @@ const VideoChat = (() => {
       updateParticipantsList();
       incomingCall.answer(voiceStream || localStream);
       handleCallStream(incomingCall);
+      ensureDataConn(incomingCall.peer);
       sendPeerListTo(incomingCall.peer);
     });
 
@@ -400,28 +842,38 @@ const VideoChat = (() => {
     }
     activeCalls.forEach((_call, peerId) => {
       const item = document.createElement("div");
-      item.className = "flex items-center justify-between py-1 text-sm";
+      item.className = "flex items-center justify-between gap-2 py-1 text-sm";
 
       const nameSpan = document.createElement("span");
-      nameSpan.className = "flex items-center gap-2";
+      nameSpan.className = "flex min-w-0 items-center gap-2";
 
       const dot = document.createElement("span");
       dot.className = "status-dot online";
       dot.setAttribute("aria-hidden", "true");
 
+      const textWrap = document.createElement("span");
+      textWrap.className = "flex min-w-0 flex-col";
+
+      const nameLabel = document.createElement("span");
+      nameLabel.className = "truncate font-semibold text-gray-900";
+      nameLabel.title = getDisplayLabel(peerId);
+      nameLabel.textContent = getDisplayLabel(peerId);
+
       const idLabel = document.createElement("span");
-      idLabel.className = "font-mono font-bold truncate max-w-[120px]";
+      idLabel.className = "truncate font-mono text-[11px] text-gray-500";
       idLabel.title = peerId;
       idLabel.textContent = peerId;
 
       nameSpan.appendChild(dot);
-      nameSpan.appendChild(idLabel);
+      textWrap.appendChild(nameLabel);
+      textWrap.appendChild(idLabel);
+      nameSpan.appendChild(textWrap);
 
       const disconnectBtn = document.createElement("button");
       disconnectBtn.className = "control-btn";
       disconnectBtn.style.cssText = "width:32px;height:32px;font-size:0.75rem";
-      disconnectBtn.title = `Disconnect ${peerId}`;
-      disconnectBtn.setAttribute("aria-label", `Disconnect ${peerId}`);
+      disconnectBtn.title = `Disconnect ${getDisplayLabel(peerId)}`;
+      disconnectBtn.setAttribute("aria-label", `Disconnect ${getDisplayLabel(peerId)}`);
       disconnectBtn.innerHTML = '<i class="fa-solid fa-phone-slash" aria-hidden="true"></i>';
       disconnectBtn.addEventListener("click", () => VideoChat.disconnectPeer(peerId));
 
@@ -433,43 +885,16 @@ const VideoChat = (() => {
 
   function handleCallStream(call) {
     const remotePeerId = call.peer;
-
-    const videoWrapper = document.createElement("div");
-    videoWrapper.className = "video-wrapper rounded-xl bg-gray-900";
-    videoWrapper.id = `wrapper-${remotePeerId}`;
-
-    const videoEl = document.createElement("video");
-    videoEl.autoplay = true;
-    videoEl.playsInline = true;
-    videoEl.setAttribute("aria-label", `Participant ${remotePeerId} video`);
-
-    const label = document.createElement("div");
-    label.className = "video-label";
-    label.id = `label-${remotePeerId}`;
-
-    const labelDot = document.createElement("span");
-    labelDot.className = "status-dot connecting";
-    labelDot.setAttribute("aria-hidden", "true");
-    labelDot.id = `dot-${remotePeerId}`;
-
-    const labelText = document.createElement("span");
-    labelText.className = "font-mono font-bold";
-    labelText.title = remotePeerId;
-    labelText.textContent = remotePeerId;
-
-    label.appendChild(labelDot);
-    label.appendChild(labelText);
-
-    videoWrapper.appendChild(videoEl);
-    videoWrapper.appendChild(label);
-
-    const videoGrid = $("video-grid");
-    if (videoGrid) videoGrid.appendChild(videoWrapper);
+    const tile = ensureRemoteTile(remotePeerId);
+    const videoEl = tile ? tile.video : null;
+    updateTilePresentation(remotePeerId);
 
     call.on("stream", (remoteStream) => {
-      videoEl.srcObject = remoteStream;
-      const dot = $(`dot-${remotePeerId}`);
-      if (dot) dot.className = "status-dot online";
+      if (videoEl) {
+        videoEl.srcObject = remoteStream;
+      }
+      attachRemoteSpeakingMonitor(remotePeerId, remoteStream);
+      updateTilePresentation(remotePeerId);
       state.connected = true;
       const count = activeCalls.size;
       updateStatus(
@@ -478,10 +903,22 @@ const VideoChat = (() => {
       );
       setDotStatus("online");
       updateParticipantsList();
+      sendProfileTo(remotePeerId, true);
     });
 
     call.on("close", () => {
       activeCalls.delete(remotePeerId);
+      const dataConn = activeDataConns.get(remotePeerId);
+      if (dataConn) {
+        try {
+          dataConn.close();
+        } catch {
+          /* ignore close failures */
+        }
+      }
+      stopRemoteSpeakingMonitor(remotePeerId);
+      peerProfiles.delete(remotePeerId);
+      lastProfileBroadcastAt.delete(remotePeerId);
       const wrapper = $(`wrapper-${remotePeerId}`);
       if (wrapper) wrapper.remove();
       if (activeCalls.size === 0) {
@@ -499,39 +936,67 @@ const VideoChat = (() => {
     });
 
     call.on("error", (err) => {
+      updateTilePresentation(remotePeerId);
       showToast("Call error: " + err.message, "error");
     });
   }
 
   /* ── Full-mesh helpers ── */
   function setupDataConn(conn) {
+    if (!conn || !conn.peer) return;
     activeDataConns.set(conn.peer, conn);
+
+    conn.on("open", () => {
+      sendProfileTo(conn.peer, true);
+    });
+
     conn.on("data", (data) => {
       if (data && data.type === "peers" && Array.isArray(data.ids)) {
         data.ids.forEach((id) => {
-          if (id !== state.peerId && !activeCalls.has(id)) {
-            callPeer(id);
+          const peerId = typeof id === "string" ? id.trim() : "";
+          if (peerId && peerId !== state.peerId && !activeCalls.has(peerId)) {
+            callPeer(peerId);
           }
         });
+        return;
+      }
+
+      if (data && data.type === "profile") {
+        const incomingPeerId =
+          typeof data.id === "string" && data.id.trim() ? data.id.trim() : conn.peer;
+        if (incomingPeerId === conn.peer) {
+          upsertRemoteProfile(conn.peer, data);
+        }
       }
     });
-    conn.on("close", () => activeDataConns.delete(conn.peer));
-    conn.on("error", () => activeDataConns.delete(conn.peer));
+
+    const cleanup = () => {
+      if (activeDataConns.get(conn.peer) === conn) {
+        activeDataConns.delete(conn.peer);
+      }
+      lastProfileBroadcastAt.delete(conn.peer);
+    };
+    conn.on("close", cleanup);
+    conn.on("error", cleanup);
   }
 
   function sendPeerListTo(remotePeerId) {
     const peerList = Array.from(activeCalls.keys()).filter((id) => id !== remotePeerId);
     if (peerList.length === 0) return;
-    if (activeDataConns.has(remotePeerId)) {
-      const existing = activeDataConns.get(remotePeerId);
-      if (existing.open) {
-        existing.send({ type: "peers", ids: peerList });
-        return;
-      }
+    const conn = ensureDataConn(remotePeerId);
+    if (!conn) return;
+
+    const payload = { type: "peers", ids: peerList };
+    const sendPayload = () => {
+      if (conn.open) conn.send(payload);
+    };
+    if (conn.open) {
+      sendPayload();
+    } else {
+      conn.on("open", sendPayload);
     }
-    const conn = peer.connect(remotePeerId);
-    setupDataConn(conn);
-    conn.on("open", () => conn.send({ type: "peers", ids: peerList }));
+
+    sendProfileTo(remotePeerId, true);
   }
 
   /* ── Input validation ── */
@@ -596,6 +1061,7 @@ const VideoChat = (() => {
     activeCalls.set(remotePeerId, call);
     updateParticipantsList();
     handleCallStream(call);
+    ensureDataConn(remotePeerId);
   }
 
   /* ── Controls ── */
@@ -609,6 +1075,8 @@ const VideoChat = (() => {
     micMuted = !micMuted;
     localStream.getAudioTracks().forEach((track) => (track.enabled = !micMuted));
     syncControlButtons();
+    updateLocalTilePresentation();
+    broadcastProfile(true);
     showToast(micMuted ? "Microphone muted" : "Microphone unmuted", "info");
   }
 
@@ -622,6 +1090,8 @@ const VideoChat = (() => {
     camOff = !camOff;
     localStream.getVideoTracks().forEach((track) => (track.enabled = !camOff));
     syncControlButtons();
+    updateLocalTilePresentation();
+    broadcastProfile(true);
     showToast(camOff ? "Camera disabled" : "Camera enabled", "info");
   }
 
@@ -637,6 +1107,11 @@ const VideoChat = (() => {
     activeCalls.clear();
     activeDataConns.forEach((conn) => conn.close());
     activeDataConns.clear();
+    lastProfileBroadcastAt.clear();
+    peerProfiles.clear();
+    stopAllRemoteSpeakingMonitors();
+    localSpeakingUntil = 0;
+    setTileSpeakingIndicator("local", false);
     state.connected = false;
     updateStatus("Call ended", "muted");
     setDotStatus("offline");
@@ -644,6 +1119,7 @@ const VideoChat = (() => {
     if (videoGrid) {
       videoGrid.querySelectorAll(".video-wrapper:not(:first-child)").forEach((w) => w.remove());
     }
+    updateLocalTilePresentation();
     updateParticipantsList();
     showToast("Call ended", "info");
     // Record consent end
@@ -667,8 +1143,21 @@ const VideoChat = (() => {
       localStream = null;
     }
     voiceStream = null;
-    if (voiceAnimFrame) cancelAnimationFrame(voiceAnimFrame);
-    if (audioContext) audioContext.close();
+    if (voiceAnimFrame) {
+      cancelAnimationFrame(voiceAnimFrame);
+      voiceAnimFrame = null;
+    }
+    if (audioContext) {
+      audioContext.close().catch(() => {});
+      audioContext = null;
+    }
+    stopAllRemoteSpeakingMonitors();
+    if (speakingAudioContext) {
+      speakingAudioContext.close().catch(() => {});
+      speakingAudioContext = null;
+    }
+    localSpeakingUntil = 0;
+    setTileSpeakingIndicator("local", false);
     if (typeof VoiceChanger !== "undefined") VoiceChanger.destroy();
     /* Reset monitor button state */
     const monitorBtn = $("btn-monitor");
@@ -684,6 +1173,7 @@ const VideoChat = (() => {
     });
     const effectSlidersContainer = document.getElementById("effect-sliders-container");
     if (effectSlidersContainer) effectSlidersContainer.innerHTML = "";
+    updateLocalTilePresentation();
     setDotStatus("offline");
     updateStatus("Disconnected", "muted");
     showToast("Session ended and media released", "success");
@@ -1134,6 +1624,7 @@ const VideoChat = (() => {
       params.delete("prejoin");
       params.delete("mic");
       params.delete("cam");
+      params.delete("name");
       const query = params.toString();
       const cleanUrl = window.location.pathname + (query ? "?" + query : "");
       window.history.replaceState({}, "", cleanUrl);
@@ -1142,9 +1633,14 @@ const VideoChat = (() => {
 
   /* ── Init ── */
   async function init() {
+    state.displayName = resolveDisplayName();
+    state.displayInitials = makeInitials(state.displayName);
+
     readInitialMediaPreferencesFromUrl();
+    updateLocalTilePresentation();
     const ok = await startLocalMedia();
     if (ok) {
+      updateLocalTilePresentation();
       _applyStoredVoicePreferences();
       await initPeer();
     }

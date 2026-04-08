@@ -6,6 +6,7 @@
 (() => {
   const ROOM_ID_RE = /^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{6}$/;
   const VOICE_PREFS_STORAGE_KEY = "blt-safecloak-voice-preferences";
+  const DISPLAY_NAME_STORAGE_KEY = "blt-safecloak-display-name";
   const LOBBY_EFFECT_ORDER = ["deep", "chipmunk", "robot", "echo", "voice1", "voice2", "voice3"];
 
   let previewStream = null;
@@ -19,8 +20,50 @@
     return (value || "").trim().toUpperCase();
   }
 
+  function normalizeDisplayName(value) {
+    return (value || "").trim().replace(/\s+/g, " ").slice(0, 40);
+  }
+
   function isValidRoomId(value) {
     return ROOM_ID_RE.test(value);
+  }
+
+  function getDisplayNameInput() {
+    return $("display-name-input");
+  }
+
+  function restoreDisplayNameFromStorage() {
+    const input = getDisplayNameInput();
+    if (!input) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const fromUrl = normalizeDisplayName(params.get("name"));
+    if (fromUrl) {
+      input.value = fromUrl;
+      window.sessionStorage.setItem(DISPLAY_NAME_STORAGE_KEY, fromUrl);
+      return;
+    }
+
+    const fromStorage = normalizeDisplayName(window.sessionStorage.getItem(DISPLAY_NAME_STORAGE_KEY));
+    if (fromStorage) {
+      input.value = fromStorage;
+    }
+  }
+
+  function getValidatedDisplayName() {
+    const input = getDisplayNameInput();
+    if (!input) return "";
+
+    const name = normalizeDisplayName(input.value);
+    input.value = name;
+    if (!name) {
+      showToast("Enter your display name before continuing", "warning");
+      input.focus();
+      return null;
+    }
+
+    window.sessionStorage.setItem(DISPLAY_NAME_STORAGE_KEY, name);
+    return name;
   }
 
   function hasAudioTrack() {
@@ -520,10 +563,13 @@
     showToast("Could not access camera/microphone preview", "warning");
   }
 
-  function buildRoomUrl(roomId = "") {
+  function buildRoomUrl(roomId = "", displayName = "") {
     const target = new URL(`${window.location.origin}/video-room`);
     if (roomId) {
       target.searchParams.set("room", roomId);
+    }
+    if (displayName) {
+      target.searchParams.set("name", displayName);
     }
 
     const micPref = hasAudioTrack() ? (micEnabled ? "on" : "off") : "off";
@@ -535,9 +581,9 @@
     return target;
   }
 
-  function goToRoom(roomId = "") {
+  function goToRoom(roomId = "", displayName = "") {
     persistVoicePreferences();
-    const target = buildRoomUrl(roomId);
+    const target = buildRoomUrl(roomId, displayName);
     stopPreviewStream();
     window.location.href = target.toString();
   }
@@ -567,6 +613,8 @@
   function joinRoom() {
     const roomInput = $("room-id-input");
     if (!roomInput) return;
+    const displayName = getValidatedDisplayName();
+    if (!displayName) return;
 
     const roomId = normalizeRoomId(roomInput.value);
     roomInput.value = roomId;
@@ -584,21 +632,25 @@
       return;
     }
 
-    goToRoom(roomId);
+    goToRoom(roomId, displayName);
   }
 
   document.addEventListener("DOMContentLoaded", async () => {
     const createBtn = $("btn-create-room");
     const joinBtn = $("btn-join-room");
     const roomInput = $("room-id-input");
+    const displayNameInput = getDisplayNameInput();
     const micBtn = $("btn-preview-mic");
     const camBtn = $("btn-preview-cam");
 
     bindPreviewVoiceControls();
+    restoreDisplayNameFromStorage();
 
     if (createBtn) {
       createBtn.addEventListener("click", () => {
-        goToRoom();
+        const displayName = getValidatedDisplayName();
+        if (!displayName) return;
+        goToRoom("", displayName);
       });
     }
 
@@ -621,6 +673,22 @@
           showToast("Room ID loaded from share link", "info");
         }
       }
+    }
+
+    if (displayNameInput) {
+      displayNameInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          const hasRoom = normalizeRoomId(roomInput ? roomInput.value : "");
+          if (hasRoom) {
+            joinRoom();
+            return;
+          }
+          const displayName = getValidatedDisplayName();
+          if (!displayName) return;
+          goToRoom("", displayName);
+        }
+      });
     }
 
     if (micBtn) micBtn.addEventListener("click", toggleMicPreview);

@@ -116,11 +116,26 @@
               id="video-grid"
               aria-label="Video feeds"
             >
-              <div class="video-wrapper rounded-xl bg-gray-900">
+              <div class="video-wrapper rounded-xl bg-gray-900" id="wrapper-local">
                 <video id="local-video" autoplay muted playsinline aria-label="Your video"></video>
+                <div class="video-avatar hidden" id="avatar-local" aria-hidden="true">
+                  <div class="video-avatar-initials" id="avatar-local-initials">YU</div>
+                  <div class="video-avatar-name" id="avatar-local-name">You</div>
+                </div>
+                <div class="video-speaking-indicator" id="speaking-local" aria-hidden="true">
+                  <i class="fa-solid fa-volume-high"></i>
+                </div>
+                <div class="video-state-icons" id="state-icons-local" aria-hidden="true">
+                  <span class="video-state-icon" id="state-icon-local-mic">
+                    <i class="fa-solid fa-microphone"></i>
+                  </span>
+                  <span class="video-state-icon" id="state-icon-local-cam">
+                    <i class="fa-solid fa-video"></i>
+                  </span>
+                </div>
                 <div class="video-label rounded-md bg-black/65 px-2 py-1 text-xs text-white">
                   <span class="status-dot online" aria-hidden="true"></span>
-                  You (Local)
+                  <span id="label-local-name">You</span>
                 </div>
               </div>
             </div>
