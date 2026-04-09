@@ -1,7 +1,7 @@
 {
   "participantCount": 195,
-  "totalPRs": 2575,
-  "mergedPRs": 1598,
+  "totalPRs": 2576,
+  "mergedPRs": 1599,
   "totalIssues": 806,
   "repositories": 54,
   "topContributors": [
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "fix: add backfill_referrer script with data for issue #52",
+      "url": "https://github.com/OWASP-BLT/BLT-Pool/pull/118",
+      "username": "BharathC0",
+      "avatar": "https://avatars.githubusercontent.com/u/211328860?v=4",
+      "state": "open",
+      "created_at": "2026-04-09T18:23:19Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-Pool"
+    },
     {
       "title": "Delete ossh python file",
       "url": "https://github.com/OWASP-BLT/BLT/pull/6154",
@@ -70,7 +80,7 @@
       "url": "https://github.com/OWASP-BLT/BLT-Pool/pull/116",
       "username": "BharathC0",
       "avatar": "https://avatars.githubusercontent.com/u/211328860?v=4",
-      "state": "open",
+      "state": "closed",
       "created_at": "2026-04-07T06:36:16Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT-Pool"
@@ -114,16 +124,6 @@
       "created_at": "2026-04-06T14:06:13Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT-Jobs"
-    },
-    {
-      "title": "Delete course_list.html",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6150",
-      "username": "py-huang",
-      "avatar": "https://avatars.githubusercontent.com/u/90824390?v=4",
-      "state": "open",
-      "created_at": "2026-04-05T18:46:25Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT"
     }
   ]
 }
