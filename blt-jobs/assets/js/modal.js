@@ -6,6 +6,7 @@ const Modal = (function() {
     let focusableElements = [];
     let firstFocusableElement = null;
     let lastFocusableElement = null;
+    let previouslyFocusedElement = null;
     let onConfirmCallback = null;
     let onCancelCallback = null;
 
@@ -42,12 +43,12 @@ const Modal = (function() {
         document.body.appendChild(overlay);
 
         // Event Listeners
-        overlay.querySelector('#modal-close-btn').addEventListener('click', hide);
+        overlay.querySelector('#modal-close-btn').addEventListener('click', handleCancel);
         overlay.querySelector('#modal-cancel-btn').addEventListener('click', handleCancel);
         overlay.querySelector('#modal-confirm-btn').addEventListener('click', handleConfirm);
         
         overlay.addEventListener('click', (e) => {
-            if (e.target === overlay) hide();
+            if (e.target === overlay) handleCancel();
         });
 
         window.addEventListener('keydown', handleKeyDown);
@@ -57,7 +58,7 @@ const Modal = (function() {
         if (!overlay || !overlay.classList.contains('active')) return;
 
         if (e.key === 'Escape') {
-            hide();
+            handleCancel();
         }
 
         if (e.key === 'Tab') {
@@ -87,6 +88,7 @@ const Modal = (function() {
 
     function show(options = {}) {
         createModal();
+         previouslyFocusedElement = document.activeElement instanceof HTMLElement ? document.activeElement : null;
         
         const titleEl = overlay.querySelector('#modal-title');
         const messageEl = overlay.querySelector('#modal-message');
@@ -122,6 +124,16 @@ const Modal = (function() {
         overlay.classList.remove('active');
         overlay.setAttribute('aria-hidden', 'true');
         document.body.style.overflow = '';
+
+        if (
+            previouslyFocusedElement &&
+            previouslyFocusedElement.isConnected &&
+            previouslyFocusedElement.getClientRects().length > 0
+        ) {
+            previouslyFocusedElement.focus();
+        }
+
+       previouslyFocusedElement = null;
     }
 
     return {
