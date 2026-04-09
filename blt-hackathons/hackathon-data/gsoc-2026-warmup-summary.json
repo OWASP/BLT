@@ -1,7 +1,7 @@
 {
-  "participantCount": 194,
-  "totalPRs": 2574,
-  "mergedPRs": 1596,
+  "participantCount": 195,
+  "totalPRs": 2575,
+  "mergedPRs": 1598,
   "totalIssues": 806,
   "repositories": 54,
   "topContributors": [
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "Delete ossh python file",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6154",
+      "username": "anukalp2804",
+      "avatar": "https://avatars.githubusercontent.com/u/225702675?v=4",
+      "state": "open",
+      "created_at": "2026-04-09T17:02:37Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT"
+    },
     {
       "title": "Replace Native JS Confirm with Custom Modal in Saved jobs page",
       "url": "https://github.com/OWASP-BLT/BLT-Jobs/pull/70",
@@ -112,16 +122,6 @@
       "avatar": "https://avatars.githubusercontent.com/u/90824390?v=4",
       "state": "open",
       "created_at": "2026-04-05T18:46:25Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "Delete edit_standalone_lecture.html (Fixes #6128)",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6149",
-      "username": "Prachi9506",
-      "avatar": "https://avatars.githubusercontent.com/u/174894162?v=4",
-      "state": "open",
-      "created_at": "2026-04-05T17:06:32Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT"
     }
