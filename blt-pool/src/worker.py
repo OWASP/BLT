@@ -669,6 +669,8 @@ async def _ensure_leaderboard_schema(db) -> None:
         CREATE TABLE IF NOT EXISTS mentors (
             github_username TEXT NOT NULL PRIMARY KEY,
             name TEXT NOT NULL,
+            title TEXT NOT NULL DEFAULT '',
+            bio TEXT NOT NULL DEFAULT '',
             specialties TEXT NOT NULL DEFAULT '[]',
             max_mentees INTEGER NOT NULL DEFAULT 3,
             active INTEGER NOT NULL DEFAULT 1,
@@ -679,6 +681,16 @@ async def _ensure_leaderboard_schema(db) -> None:
         )
         """,
     )
+    if not await _d1_has_column(db, "mentors", "title"):
+        await _d1_run(
+            db,
+            "ALTER TABLE mentors ADD COLUMN title TEXT NOT NULL DEFAULT ''",
+        )
+    if not await _d1_has_column(db, "mentors", "bio"):
+        await _d1_run(
+            db,
+            "ALTER TABLE mentors ADD COLUMN bio TEXT NOT NULL DEFAULT ''",
+        )
     if not await _d1_has_column(db, "mentors", "email"):
         await _d1_run(
             db,
@@ -750,12 +762,14 @@ async def _populate_mentors_table(db) -> None:
                 db,
                 """
                 INSERT OR IGNORE INTO mentors
-                    (github_username, name, specialties, max_mentees, active, timezone, referred_by, email, slack_username)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    (github_username, name, title, bio, specialties, max_mentees, active, timezone, referred_by, email, slack_username)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     m["github_username"],
                     m["name"],
+                    m.get("title", "") or "",
+                    m.get("bio", "") or "",
                     json.dumps(m.get("specialties") or []),
                     m.get("max_mentees", 3),
                     1 if m.get("active", True) else 0,
@@ -779,7 +793,7 @@ async def _load_mentors_from_d1(db) -> list:
         await _ensure_leaderboard_schema(db)
         rows = await _d1_all(
             db,
-            "SELECT github_username, name, specialties, max_mentees, active, timezone, referred_by, email, slack_username, total_prs FROM mentors",
+            "SELECT github_username, name, title, bio, specialties, max_mentees, active, timezone, referred_by, email, slack_username, total_prs FROM mentors",
         )
         mentors = []
         for row in rows:
@@ -790,6 +804,8 @@ async def _load_mentors_from_d1(db) -> list:
             mentors.append({
                 "github_username": row["github_username"],
                 "name": row["name"],
+                "title": row.get("title") or "",
+                "bio": row.get("bio") or "",
                 "specialties": specialties,
                 "max_mentees": int(row.get("max_mentees") or 3),
                 "active": bool(row.get("active", 1)),
@@ -810,7 +826,9 @@ async def _d1_add_mentor(
     db,
     github_username: str,
     name: str,
-    specialties: list,
+    specialties: Optional[list] = None,
+    title: str = "",
+    bio: str = "",
     max_mentees: int = 3,
     active: bool = True,
     timezone: str = "",
@@ -823,10 +841,12 @@ async def _d1_add_mentor(
         db,
         """
         INSERT INTO mentors
-            (github_username, name, specialties, max_mentees, active, timezone, referred_by, email, slack_username)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (github_username, name, title, bio, specialties, max_mentees, active, timezone, referred_by, email, slack_username)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(github_username) DO UPDATE SET
             name        = excluded.name,
+            title       = excluded.title,
+            bio         = excluded.bio,
             specialties = excluded.specialties,
             max_mentees = excluded.max_mentees,
             active      = excluded.active,
@@ -838,7 +858,9 @@ async def _d1_add_mentor(
         (
             github_username,
             name,
-            json.dumps(specialties),
+            title or "",
+            bio or "",
+            json.dumps(specialties or []),
             max_mentees,
             1 if active else 0,
             timezone or "",
@@ -5504,6 +5526,8 @@ def _generate_mentor_row(mentor: dict, stats: Optional[dict] = None) -> str:
                 When provided, totals are shown on the card.
     """
     name = _html_mod.escape(mentor.get("name", "Unknown"))
+    title = _html_mod.escape((mentor.get("title") or "").strip())
+    bio = _html_mod.escape((mentor.get("bio") or "").strip())
     github = mentor.get("github_username", "")
     specialties = mentor.get("specialties", [])
     max_mentees = mentor.get("max_mentees", 3)
@@ -5518,7 +5542,6 @@ def _generate_mentor_row(mentor: dict, stats: Optional[dict] = None) -> str:
         else "https://api.dicebear.com/7.x/initials/svg?seed=" + quote(name)
     )
 
-    # Status dot color: green = available, blue = mentoring, gray = inactive.
     if not active or status == "inactive":
         dot_color = "bg-gray-300"
         dot_title = "Inactive"
@@ -5529,7 +5552,6 @@ def _generate_mentor_row(mentor: dict, stats: Optional[dict] = None) -> str:
         dot_color = "bg-emerald-400"
         dot_title = "Available"
 
-    # Avatar wrapped in a GitHub profile link; status dot overlaid bottom-right.
     if github:
         avatar_block = (
             f'<div class="relative shrink-0" title="{dot_title}">'
@@ -5550,11 +5572,10 @@ def _generate_mentor_row(mentor: dict, stats: Optional[dict] = None) -> str:
         )
 
     specialty_chips = " ".join(
-        f'<span class="rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-600">{s}</span>'
+        f'<span class="rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-600">{_html_mod.escape(str(s))}</span>'
         for s in specialties
     ) if specialties else ""
 
-    # Visible status chip — used instead of a tooltip so mobile users can read status.
     if not active or status == "inactive":
         status_chip = (
             '<span class="inline-flex items-center gap-1 text-xs text-gray-400 whitespace-nowrap">'
@@ -5571,7 +5592,6 @@ def _generate_mentor_row(mentor: dict, stats: Optional[dict] = None) -> str:
             '<span class="h-2 w-2 rounded-full bg-emerald-400 shrink-0"></span>Available</span>'
         )
 
-    # Compact meta items — each is its own flex child so they can wrap independently on mobile.
     sep = '<span class="text-gray-300 select-none text-xs" aria-hidden="true">·</span>'
     meta_parts = [status_chip]
     if timezone:
@@ -5600,19 +5620,20 @@ def _generate_mentor_row(mentor: dict, stats: Optional[dict] = None) -> str:
         + '</div>'
     )
 
+    title_row = f'<p class="mt-1 text-sm font-semibold text-[#E10101]">{title}</p>' if title else ''
+    bio_row = f'<p class="mt-3 text-sm leading-relaxed text-gray-600">{bio}</p>' if bio else ''
     skills_row = (
-        '<div class="mt-1.5 flex flex-wrap gap-1">' + specialty_chips + '</div>'
-        if specialty_chips else ''
+        '<div class="mt-3 flex flex-wrap gap-1">' + specialty_chips + '</div>'
+        if specialty_chips
+        else '<div class="mt-3 text-xs text-gray-400">—</div>'
     )
 
-    # Frontend PR count uses the same canonical backend source as admin:
-    # mentors.total_prs in D1. Reviews still come from mentor_stats cache.
     has_total_prs = "total_prs" in mentor and mentor.get("total_prs") is not None
     if stats or has_total_prs:
         total_prs = int(mentor.get("total_prs") or 0)
         reviews = int((stats or {}).get("reviews") or 0)
         stats_row = (
-            f'<div class="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-0.5">'
+            f'<div class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-0.5">'
             f'<span class="text-xs text-gray-400 whitespace-nowrap">'
             f'<i class="fa-solid fa-code-pull-request mr-0.5 text-gray-300" aria-hidden="true"></i>'
             f'<span class="font-semibold text-gray-600">{total_prs}</span> PRs</span>'
@@ -5625,18 +5646,18 @@ def _generate_mentor_row(mentor: dict, stats: Optional[dict] = None) -> str:
         stats_row = ""
 
     return f'''
-    <li class="flex items-start gap-3 rounded-xl border border-[#E5E5E5] bg-white px-4 py-3 transition hover:shadow-sm">
-      {avatar_block}
-      <div class="min-w-0 flex-1">
-        <!-- Row 1: name -->
-        <p class="font-semibold text-[#111827] text-sm leading-snug">{name}</p>
-        <!-- Row 2: status + meta — each item wraps independently on narrow screens -->
-        {meta_row}
-        <!-- Row 3: skills — full width -->
-        {skills_row}
-        <!-- Row 4: compact stats -->
-        {stats_row}
+    <li class="rounded-2xl border border-[#E5E5E5] bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+      <div class="flex items-start gap-3">
+        {avatar_block}
+        <div class="min-w-0 flex-1">
+          <p class="font-semibold text-[#111827] text-base leading-snug">{name}</p>
+          {title_row}
+          {meta_row}
+        </div>
       </div>
+      {bio_row}
+      {skills_row}
+      {stats_row}
     </li>
     '''
 
@@ -5923,7 +5944,7 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
             Mentor Pool <span class="text-base font-medium text-gray-500">({mentor_count} total, {available_count} available)</span>
           </h3>
         </div>
-        <ul class="space-y-2" aria-label="Mentor list">
+                <ul class="grid grid-cols-1 gap-4 sm:grid-cols-2" aria-label="Mentor list">
           {mentor_rows_html}
         </ul>
       </section>
@@ -6020,6 +6041,22 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
                  maxlength="39" pattern="[a-zA-Z0-9]([a-zA-Z0-9\\-]{{0,37}}[a-zA-Z0-9])?"
                  class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#E10101] focus:ring-1 focus:ring-[#E10101] focus:outline-none">
         </div>
+                <div>
+                    <label for="mf-title" class="mb-1 block text-sm font-semibold text-gray-700">
+                        Title <span class="text-xs font-normal text-gray-400">(optional)</span>
+                    </label>
+                    <input id="mf-title" type="text" placeholder="e.g. Senior Security Engineer"
+                                 maxlength="120"
+                                 class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#E10101] focus:ring-1 focus:ring-[#E10101] focus:outline-none">
+                </div>
+                <div>
+                    <label for="mf-bio" class="mb-1 block text-sm font-semibold text-gray-700">
+                        Bio <span class="text-xs font-normal text-gray-400">(optional)</span>
+                    </label>
+                    <textarea id="mf-bio" rows="3" placeholder="What do you mentor people on?"
+                                        maxlength="500"
+                                        class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#E10101] focus:ring-1 focus:ring-[#E10101] focus:outline-none"></textarea>
+                </div>
         <div class="sm:col-span-2">
           <label for="mf-specialties" class="mb-1 block text-sm font-semibold text-gray-700">
             Specialties <span class="text-xs font-normal text-gray-400">(optional — comma-separated)</span>
@@ -6101,6 +6138,8 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
             e.preventDefault();
             var name     = document.getElementById('mf-name').value.trim();
             var github   = document.getElementById('mf-github').value.trim().replace(/^@/, '');
+                        var title    = document.getElementById('mf-title').value.trim();
+                        var bio      = document.getElementById('mf-bio').value.trim();
             var specs    = document.getElementById('mf-specialties').value.trim();
             var maxM     = parseInt(document.getElementById('mf-max').value.trim(), 10);
             var tz       = document.getElementById('mf-tz').value.trim();
@@ -6131,6 +6170,16 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
               errEl.classList.remove('hidden');
               return;
             }}
+                        if (title.length > 120) {{
+                            errEl.textContent = 'Title must be 120 characters or fewer.';
+                            errEl.classList.remove('hidden');
+                            return;
+                        }}
+                        if (bio.length > 500) {{
+                            errEl.textContent = 'Bio must be 500 characters or fewer.';
+                            errEl.classList.remove('hidden');
+                            return;
+                        }}
             if (tz.length > 60) {{
               errEl.textContent = 'Timezone must be 60 characters or fewer.';
               errEl.classList.remove('hidden');
@@ -6148,6 +6197,16 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
               errEl.classList.remove('hidden');
               return;
             }}
+                        if (containsScripting(title)) {{
+                            errEl.textContent = 'Title contains invalid characters. HTML and scripting are not allowed.';
+                            errEl.classList.remove('hidden');
+                            return;
+                        }}
+                        if (containsScripting(bio)) {{
+                            errEl.textContent = 'Bio contains invalid characters. HTML and scripting are not allowed.';
+                            errEl.classList.remove('hidden');
+                            return;
+                        }}
             if (containsScripting(tz)) {{
               errEl.textContent = 'Timezone contains invalid characters. HTML and scripting are not allowed.';
               errEl.classList.remove('hidden');
@@ -6215,6 +6274,8 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
               body: JSON.stringify({{
                 name: name,
                 github_username: github,
+                                title: title,
+                                bio: bio,
                 specialties: specialties,
                 max_mentees: maxM,
                 timezone: tz,
@@ -6279,8 +6340,12 @@ _SPECIALTY_RE = re.compile(r"^[a-z0-9][a-z0-9+#.\-]{0,29}$")
 # Display name: 1-100 printable characters, no HTML angle brackets, ampersands,
 # double quotes, or ASCII control characters (prevents script injection).
 _NAME_RE = re.compile(r"^[^<>&\"\x00-\x1f]{1,100}$")
+# Mentor title: optional short free-form role label.
+_TITLE_RE = re.compile(r"^[^<>&\"\x00-\x1f]{1,120}$")
 # Timezone: optional free-form label, same restrictions as name but max 60 chars.
 _TIMEZONE_RE = re.compile(r"^[^<>&\"\x00-\x1f]{1,60}$")
+# Mentor bio: optional paragraph-length plain text.
+_BIO_RE = re.compile(r"^[^<>&\"\x00-\x1f]{1,500}$")
 # Email format and bounds for mentor contact details.
 _EMAIL_RE = re.compile(r"^[A-Za-z0-9._%+\-]{1,64}@[A-Za-z0-9.\-]{1,190}\.[A-Za-z]{2,}$")
 # Slack username without @, lower/upper letters, digits, dot, underscore, hyphen.
@@ -6314,6 +6379,8 @@ async def _handle_add_mentor(request, env) -> "Response":
         {
             "name": "Jane Doe",
             "github_username": "janedoe",
+            "title": "Senior Security Engineer",    // optional
+            "bio": "I mentor first-time contributors in appsec and triage.",  // optional
             "specialties": ["frontend", "python"],   // optional
             "max_mentees": 3,                         // optional, 1-10
             "timezone": "UTC+5:30",                   // optional
@@ -6331,6 +6398,8 @@ async def _handle_add_mentor(request, env) -> "Response":
 
     name = (body.get("name") or "").strip()
     github_username = (body.get("github_username") or "").strip().lstrip("@")
+    title = (body.get("title") or "").strip()
+    bio = (body.get("bio") or "").strip()
     specialties_raw = body.get("specialties") or []
     max_mentees = body.get("max_mentees", 3)
     timezone = (body.get("timezone") or "").strip()
@@ -6342,6 +6411,10 @@ async def _handle_add_mentor(request, env) -> "Response":
         return _json({"error": "Field 'name' is required"}, 400)
     if not _NAME_RE.match(name):
         return _json({"error": "Display name contains invalid characters (HTML and scripting are not allowed)"}, 400)
+    if title and not _TITLE_RE.match(title):
+        return _json({"error": "Title contains invalid characters (HTML and scripting are not allowed)"}, 400)
+    if bio and not _BIO_RE.match(bio):
+        return _json({"error": "Bio contains invalid characters (HTML and scripting are not allowed)"}, 400)
     if not github_username:
         return _json({"error": "Field 'github_username' is required"}, 400)
     if not _GH_USERNAME_RE.match(github_username):
@@ -6410,6 +6483,8 @@ async def _handle_add_mentor(request, env) -> "Response":
             db,
             github_username=github_username,
             name=name,
+            title=title,
+            bio=bio,
             specialties=specialties,
             max_mentees=max_mentees,
             active=mentor_is_active,

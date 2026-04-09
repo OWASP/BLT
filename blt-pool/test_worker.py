@@ -5714,6 +5714,13 @@ class TestGenerateMentorRow(unittest.TestCase):
         html = _worker._generate_mentor_row(self._make_mentor(name="Alice Smith"))
         self.assertIn("Alice Smith", html)
 
+    def test_title_and_bio_rendered(self):
+        html = _worker._generate_mentor_row(
+            self._make_mentor(title="Security Mentor", bio="Helps with triage and first PRs.")
+        )
+        self.assertIn("Security Mentor", html)
+        self.assertIn("Helps with triage and first PRs.", html)
+
     def test_xss_in_name_escaped(self):
         # Verify that HTML special characters in name are escaped to prevent XSS.
         html = _worker._generate_mentor_row(self._make_mentor(name='<script>xss</script>'))
@@ -5793,6 +5800,19 @@ class TestIndexHtml(unittest.TestCase):
         mentors = [{"name": "Bob Smith", "github_username": "bobsmith", "active": True, "status": "available"}]
         html = _worker._index_html(mentors)
         self.assertIn("Bob Smith", html)
+
+    def test_mentor_title_and_bio_appear_in_html(self):
+        mentors = [{
+            "name": "Bob Smith",
+            "github_username": "bobsmith",
+            "title": "AppSec Mentor",
+            "bio": "Focuses on secure code review and onboarding.",
+            "active": True,
+            "status": "available",
+        }]
+        html = _worker._index_html(mentors)
+        self.assertIn("AppSec Mentor", html)
+        self.assertIn("Focuses on secure code review and onboarding.", html)
 
     def test_referral_leaderboard_shown_when_referrals_exist(self):
         mentors = [
@@ -6159,6 +6179,18 @@ class TestHandleAddMentor(unittest.TestCase):
         data = _json.loads(resp.body)
         self.assertEqual(data["github_username"], "janedoe")
 
+    def test_title_and_bio_forwarded_to_d1(self):
+        resp, captured = self._run_add({
+            "name": "Jane Doe",
+            "github_username": "janedoe",
+            "title": "Security Mentor",
+            "bio": "Helps first-time contributors ship safely.",
+        })
+        self.assertEqual(resp.status, 201)
+        kwargs = captured["add_args"].kwargs
+        self.assertEqual(kwargs["title"], "Security Mentor")
+        self.assertEqual(kwargs["bio"], "Helps first-time contributors ship safely.")
+
     # --- New strict-validation tests ---
 
     def test_name_with_html_tag_returns_400(self):
@@ -6187,6 +6219,14 @@ class TestHandleAddMentor(unittest.TestCase):
 
     def test_name_too_long_returns_400(self):
         resp, _ = self._run_add({"name": "A" * 101, "github_username": "janedoe"})
+        self.assertEqual(resp.status, 400)
+
+    def test_title_with_html_returns_400(self):
+        resp, _ = self._run_add({"name": "Jane Doe", "github_username": "janedoe", "title": "<bad>"})
+        self.assertEqual(resp.status, 400)
+
+    def test_bio_with_html_returns_400(self):
+        resp, _ = self._run_add({"name": "Jane Doe", "github_username": "janedoe", "bio": "<script>bad</script>"})
         self.assertEqual(resp.status, 400)
 
     def test_name_exactly_100_chars_accepted(self):

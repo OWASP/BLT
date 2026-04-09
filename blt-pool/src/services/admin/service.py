@@ -288,24 +288,34 @@ class AdminService:
             CREATE TABLE IF NOT EXISTS mentors (
                 github_username TEXT NOT NULL PRIMARY KEY,
                 name TEXT NOT NULL,
+                title TEXT NOT NULL DEFAULT '',
+                bio TEXT NOT NULL DEFAULT '',
                 specialties TEXT NOT NULL DEFAULT '[]',
                 max_mentees INTEGER NOT NULL DEFAULT 3,
                 active INTEGER NOT NULL DEFAULT 1,
                 timezone TEXT NOT NULL DEFAULT '',
                 referred_by TEXT NOT NULL DEFAULT '',
                 email TEXT NOT NULL DEFAULT '',
-              slack_username TEXT NOT NULL DEFAULT '',
-              total_prs INTEGER NOT NULL DEFAULT 0,
-              total_reviews INTEGER NOT NULL DEFAULT 0,
-              total_comments INTEGER NOT NULL DEFAULT 0,
-              last_rate_limit INTEGER NOT NULL DEFAULT 0,
-              last_rate_remaining INTEGER NOT NULL DEFAULT 0,
-              last_rate_used INTEGER NOT NULL DEFAULT 0,
-              last_rate_reset_at INTEGER NOT NULL DEFAULT 0,
-              created_at INTEGER NOT NULL DEFAULT (strftime('%s','now'))
+                slack_username TEXT NOT NULL DEFAULT '',
+                total_prs INTEGER NOT NULL DEFAULT 0,
+                total_reviews INTEGER NOT NULL DEFAULT 0,
+                total_comments INTEGER NOT NULL DEFAULT 0,
+                last_rate_limit INTEGER NOT NULL DEFAULT 0,
+                last_rate_remaining INTEGER NOT NULL DEFAULT 0,
+                last_rate_used INTEGER NOT NULL DEFAULT 0,
+                last_rate_reset_at INTEGER NOT NULL DEFAULT 0,
+                created_at INTEGER NOT NULL DEFAULT (strftime('%s','now'))
             )
             """
         )
+        if not await self._d1_has_column("mentors", "title"):
+            await self._d1_run(
+                "ALTER TABLE mentors ADD COLUMN title TEXT NOT NULL DEFAULT ''"
+            )
+        if not await self._d1_has_column("mentors", "bio"):
+            await self._d1_run(
+                "ALTER TABLE mentors ADD COLUMN bio TEXT NOT NULL DEFAULT ''"
+            )
         if not await self._d1_has_column("mentors", "email"):
             await self._d1_run(
                 "ALTER TABLE mentors ADD COLUMN email TEXT NOT NULL DEFAULT ''"
@@ -1758,6 +1768,8 @@ class AdminService:
                   <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="mentor" data-sort-direction="desc" class="inline-flex items-center gap-1">Mentor <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
                   <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="name" data-sort-direction="desc" class="inline-flex items-center gap-1">Name <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
                   <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="github_username" data-sort-direction="desc" class="inline-flex items-center gap-1">GitHub <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="title" data-sort-direction="desc" class="inline-flex items-center gap-1">Title <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="bio" data-sort-direction="desc" class="inline-flex items-center gap-1">Bio <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
                   <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="created_at" data-sort-direction="desc" class="inline-flex items-center gap-1">Added <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
                   <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="total_prs" data-sort-direction="desc" class="inline-flex items-center gap-1">PRs (all-time) <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
                   <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="total_reviews" data-sort-direction="desc" class="inline-flex items-center gap-1">Reviews (all-time) <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
@@ -1785,6 +1797,8 @@ class AdminService:
               <input type="hidden" name="action" value="create">
               <input name="name" required maxlength="100" placeholder="Name" class="rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800">
               <input name="github_username" required maxlength="39" placeholder="GitHub username" class="rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800">
+              <input name="title" maxlength="120" placeholder="Title" class="rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800">
+              <input name="bio" maxlength="500" placeholder="Short bio" class="rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800 sm:col-span-2 lg:col-span-2 xl:col-span-3">
               <input name="specialties" maxlength="300" placeholder="specialty1, specialty2" class="rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800">
               <input name="max_mentees" type="number" min="1" max="10" value="3" class="rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800">
               <input name="timezone" maxlength="60" placeholder="Timezone" class="rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800">
@@ -1821,6 +1835,8 @@ class AdminService:
             SELECT
                 m.github_username,
                 m.name,
+              m.title,
+              m.bio,
                 m.specialties,
                 m.max_mentees,
                 m.active,
@@ -1867,6 +1883,8 @@ class AdminService:
     def _mentor_row_html(self, mentor: dict) -> str:
         username = mentor.get("github_username", "")
         name = mentor.get("name", "")
+        title = mentor.get("title") or ""
+        bio = mentor.get("bio") or ""
         active = int(mentor.get("active") or 0) == 1
         specialties = mentor.get("specialties_list") or []
         specialties_value = ", ".join(str(item) for item in specialties)
@@ -1880,7 +1898,7 @@ class AdminService:
         added_label = self._format_timestamp(mentor.get("created_at"), with_time=False)
         form_id = f"mentor-form-{username.lower().replace('_', '-')}"
         return f"""
-        <tr data-mentor-row data-mentor="{_escape(name).lower()}" data-name="{_escape(name).lower()}" data-github_username="{_escape(username).lower()}" data-active="{1 if active else 0}" data-created_at="{int(mentor.get('created_at') or 0)}" data-total_prs="{total_prs}" data-total_reviews="{total_reviews}" data-total_comments="{total_comments}" data-max_mentees="{int(mentor.get('max_mentees') or 3)}" data-assignment_count="{assignment_count}">
+        <tr data-mentor-row data-mentor="{_escape(name).lower()}" data-name="{_escape(name).lower()}" data-github_username="{_escape(username).lower()}" data-title="{_escape(title).lower()}" data-bio="{_escape(bio).lower()}" data-active="{1 if active else 0}" data-created_at="{int(mentor.get('created_at') or 0)}" data-total_prs="{total_prs}" data-total_reviews="{total_reviews}" data-total_comments="{total_comments}" data-max_mentees="{int(mentor.get('max_mentees') or 3)}" data-assignment_count="{assignment_count}">
           <td class="px-3 py-2">
             <div class="flex items-center gap-2">
               <a href="https://github.com/{_escape(username)}" target="_blank" rel="noopener noreferrer" aria-label="Open @{_escape(username)} on GitHub" class="inline-flex h-8 w-8 shrink-0 overflow-hidden rounded-full border border-[#E5E5E5] bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E10101] focus-visible:ring-offset-2">
@@ -1895,6 +1913,8 @@ class AdminService:
           </td>
           <td class="px-3 py-2"><input form="{form_id}" data-field="name" name="name" value="{_escape(name)}" class="w-40 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" maxlength="100" required></td>
           <td class="px-3 py-2"><input form="{form_id}" data-field="github_username" name="github_username" value="{_escape(username)}" class="w-36 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" maxlength="39" required></td>
+          <td class="px-3 py-2"><input form="{form_id}" data-field="title" name="title" value="{_escape(title)}" class="w-44 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" maxlength="120"></td>
+          <td class="px-3 py-2"><input form="{form_id}" data-field="bio" name="bio" value="{_escape(bio)}" class="w-72 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" maxlength="500"></td>
           <td class="px-3 py-2">
             <span class="inline-flex items-center rounded-full border border-gray-200 bg-gray-50 px-2 py-1 text-xs font-semibold text-gray-700">{_escape(added_label)}</span>
           </td>
@@ -1971,6 +1991,8 @@ class AdminService:
             if action == "create":
               name = (form.get("name") or "").strip()
               new_github_username = (form.get("github_username") or "").strip().lstrip("@")
+              title = (form.get("title") or "").strip()
+              bio = (form.get("bio") or "").strip()
               specialties_raw = (form.get("specialties") or "").strip()
               timezone = (form.get("timezone") or "").strip()
               referred_by = (form.get("referred_by") or "").strip().lstrip("@")
@@ -2029,6 +2051,8 @@ class AdminService:
                 INSERT INTO mentors (
                   github_username,
                   name,
+                  title,
+                  bio,
                   specialties,
                   max_mentees,
                   active,
@@ -2038,11 +2062,13 @@ class AdminService:
                   slack_username,
                   created_at
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                   new_github_username,
                   name,
+                  title,
+                  bio,
                   json.dumps(specialties_list),
                   max_mentees,
                   active,
@@ -2072,7 +2098,7 @@ class AdminService:
 
                 existing = await self._d1_first(
                     """
-                    SELECT github_username, name, specialties, max_mentees, active, timezone, referred_by, email, slack_username
+                  SELECT github_username, name, title, bio, specialties, max_mentees, active, timezone, referred_by, email, slack_username
                     FROM mentors
                     WHERE github_username = ?
                     """,
@@ -2094,6 +2120,8 @@ class AdminService:
                     .lstrip("@")
                 )
                 name = (form.get("name") if "name" in form else existing.get("name") or "").strip()
+                title = (form.get("title") if "title" in form else existing.get("title") or "").strip()
+                bio = (form.get("bio") if "bio" in form else existing.get("bio") or "").strip()
                 specialties_raw = (
                     form.get("specialties")
                     if "specialties" in form
@@ -2166,6 +2194,8 @@ class AdminService:
                     UPDATE mentors
                     SET github_username = ?,
                         name = ?,
+                      title = ?,
+                      bio = ?,
                         specialties = ?,
                         max_mentees = ?,
                         active = ?,
@@ -2178,6 +2208,8 @@ class AdminService:
                     (
                         new_github_username,
                         name,
+                      title,
+                      bio,
                         json.dumps(specialties_list),
                         max_mentees,
                         active,
