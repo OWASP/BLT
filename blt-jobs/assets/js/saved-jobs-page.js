@@ -194,10 +194,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (clearAllButton) {
     clearAllButton.addEventListener("click", () => {
-      if (confirm("Are you sure you want to remove all saved jobs?")) {
-        SavedJobs.clear();
-        renderSavedJobs();
-      }
+      BLTModal.confirm({
+        title: "Clear All Saved Jobs",
+        message: "Are you sure you want to remove all saved jobs? This action cannot be undone.",
+        confirmText: "Clear All",
+        cancelText: "Cancel",
+        onConfirm: () => {
+          SavedJobs.clear();
+          renderSavedJobs();
+        }
+      });
     });
   }
 
