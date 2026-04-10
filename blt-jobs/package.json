@@ -4,7 +4,9 @@
   "scripts": {
     "build:jobs": "node scripts/build-jobs.js",
     "validate:jobs": "node scripts/validate-jobs.js",
-    "list:jobs": "node scripts/list-jobs-status.js"
+    "list:jobs": "node scripts/list-jobs-status.js",
+    "expire:jobs": "node scripts/expire-jobs.js",
+    "crawl:jobs": "node scripts/scheduled-crawl.js"
   },
   "dependencies": {
     "gray-matter": "^4.0.3"

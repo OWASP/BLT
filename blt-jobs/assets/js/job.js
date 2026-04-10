@@ -95,9 +95,14 @@ function renderJob(job) {
   const canApply = Boolean(job.application_email || job.application_url);
   const hasEmail = Boolean(job.application_email);
   const hasUrl = Boolean(job.application_url);
-  const expired = isExpired(job.expires_at);
-  const expiringSoon = isExpiringSoon(job.expires_at);
-  const expiryText = formatExpiryDate(job.expires_at);
+  const expiryDate = [job.expires_at, job.effective_expires_at].find((value) => {
+    if (!value) return false;
+    const parsed = new Date(value);
+    return !Number.isNaN(parsed.getTime());
+  }) || null;
+  const expired = isExpired(expiryDate);
+  const expiringSoon = isExpiringSoon(expiryDate);
+  const expiryText = formatExpiryDate(expiryDate);
   let faviconDomain = "";
   if (job.application_url) {
     try { faviconDomain = new URL(job.application_url).hostname; } catch (e) {}
@@ -162,7 +167,7 @@ function renderJob(job) {
                        <span class="font-semibold">${expiryText}</span>
                      </div>
                    </div>`
-                : job.expires_at
+                : expiryDate
                 ? `<div class="mb-6 text-sm text-gray-600 dark:text-gray-400">
                      <span class="flex items-center gap-1">
                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

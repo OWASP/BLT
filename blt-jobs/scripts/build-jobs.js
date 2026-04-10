@@ -8,6 +8,35 @@ const JOBS_DIR = path.join(__dirname, "..", "jobs");
 const OUT_FILE = path.join(__dirname, "..", "data", "jobs.json");
 const SEEKERS_DIR = path.join(__dirname, "..", "seekers");
 const SEEKERS_OUT_FILE = path.join(__dirname, "..", "data", "seekers.json");
+const DEFAULT_EXPIRY_DAYS = 60;
+
+function parseDate(value) {
+  if (!value) return null;
+  // Handle native Date objects (gray-matter parses YAML dates into Date)
+  if (value instanceof Date) return Number.isNaN(value.getTime()) ? null : value;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function addDays(date, days) {
+  const d = new Date(date.getTime());
+  d.setUTCDate(d.getUTCDate() + days);
+  return d;
+}
+
+function resolveExpiry(frontmatter) {
+  const explicitExpiry = parseDate(frontmatter.expires_at);
+  if (explicitExpiry) return explicitExpiry;
+
+  const postedAt =
+    parseDate(frontmatter.date_posted) ||
+    parseDate(frontmatter.created_at) ||
+    parseDate(frontmatter.created) ||
+    null;
+
+  if (!postedAt) return null;
+  return addDays(postedAt, DEFAULT_EXPIRY_DAYS);
+}
 
 function mdToJob(filePath) {
   const content = fs.readFileSync(filePath, "utf8");
@@ -15,16 +44,17 @@ function mdToJob(filePath) {
   const { data: fm, content: body } = matter(content);
   const get = (k, def = null) => (fm[k] !== undefined && fm[k] !== "" ? fm[k] : def);
 
-  // Extract salary from description if not in frontmatter
   const description = (body || get("description") || "").trim();
   let salaryRange = get("salary_range") || null;
   if (!salaryRange && description) {
     salaryRange = extractSalary(description);
   }
-  
-  
+
   const needsReview = get("needs_manual_review") === true || get("needs_manual_review") === "true";
-  
+
+  // FIX: compute effective_expires_at here so the filter below actually works
+  const effectiveExpiry = resolveExpiry(fm);
+
   return {
     id: stem,
     organization_name: get("organization_name", "Unknown organization"),
@@ -36,6 +66,7 @@ function mdToJob(filePath) {
     job_type: get("job_type", "full-time"),
     salary_range: salaryRange,
     expires_at: get("expires_at") || null,
+    effective_expires_at: effectiveExpiry ? effectiveExpiry.toISOString() : null,
     application_email: get("application_email") || null,
     application_url: get("application_url") || null,
     application_instructions: get("application_instructions") || null,
@@ -121,13 +152,9 @@ function buildJobs() {
 
     const now = new Date();
     const activeJobs = jobs.filter((job) => {
-      if (!job.expires_at) return true;
-      try {
-        const expiryDate = new Date(job.expires_at);
-        return expiryDate > now;
-      } catch (e) {
-        return true;
-      }
+      if (!job.effective_expires_at) return true;
+      const expiryDate = parseDate(job.effective_expires_at);
+      return expiryDate ? expiryDate > now : true;
     });
 
     const expiredCount = jobs.length - activeJobs.length;
@@ -135,17 +162,15 @@ function buildJobs() {
       console.log(`Filtered out ${expiredCount} expired job(s)`);
     }
 
-    
-    // Warn about jobs needing manual review
-    const needsReview = jobs.filter(j => j.needs_manual_review);
+    const needsReview = jobs.filter((j) => j.needs_manual_review);
     if (needsReview.length > 0) {
       console.warn("\n⚠️  WARNING: The following jobs need manual review (possible scrape failures):");
-      needsReview.forEach(j => {
+      needsReview.forEach((j) => {
         console.warn(`   - ${j.id}: ${j.title} (${j.organization_name})`);
       });
       console.warn(`\nTotal jobs needing review: ${needsReview.length}\n`);
     }
-    
+
     const out = {
       jobs: activeJobs,
       count: activeJobs.length,
@@ -158,7 +183,6 @@ function buildJobs() {
 
 function buildSeekers() {
   if (!fs.existsSync(SEEKERS_DIR)) {
-    // If there are no seekers yet, still write an empty JSON so the frontend has a stable shape.
     fs.mkdirSync(path.dirname(SEEKERS_OUT_FILE), { recursive: true });
     fs.writeFileSync(
       SEEKERS_OUT_FILE,

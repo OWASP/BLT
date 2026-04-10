@@ -71,6 +71,7 @@ function main() {
     location: location || "",
     job_type: jobType || "full-time",
     salary_range: salaryRange || "",
+    date_posted: created,
     expires_at: "",
     application_email: "",
     application_url: applicationUrl || "",

@@ -1,0 +1,79 @@
+name: Scheduled job crawl
+
+on:
+  schedule:
+    - cron: "0 4 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Pull fresh job candidates
+        run: node scripts/scheduled-crawl.js
+
+      - name: Open submission issues for candidates
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const os = require('os');
+          const path = require('path');
+          const { execSync } = require('child_process');
+
+          const file = 'data/scheduled-crawl-candidates.json';
+          if (!fs.existsSync(file)) {
+            console.log('No candidate file generated.');
+            process.exit(0);
+          }
+
+          const parsed = JSON.parse(fs.readFileSync(file, 'utf8'));
+          const candidates = parsed.candidates || [];
+
+          for (const job of candidates) {
+            const url = String(job.url || '').trim();
+            if (!url) continue;
+
+            // Use a human-readable title instead of the raw URL
+            const issueTitle = `[Job Crawl] ${job.title || 'Untitled'} at ${job.organization_name || 'Unknown'}`;
+
+            const body = [
+              '### Job Posting URL',
+              url,
+              '',
+              `Source: ${job.source || 'unknown'}`,
+              `Company: ${job.organization_name || 'Unknown'}`,
+              `Title: ${job.title || 'Untitled'}`,
+            ].join('\n');
+
+            // Write body to a temp file to avoid shell quoting / newline issues
+            const tmpFile = path.join(os.tmpdir(), `blt-job-issue-${Date.now()}.txt`);
+            try {
+              fs.writeFileSync(tmpFile, body, 'utf8');
+              execSync(
+                `gh issue create --title ${JSON.stringify(issueTitle)} --body-file ${JSON.stringify(tmpFile)} --label job-posting-from-link`,
+                { stdio: 'inherit' }
+              );
+            } catch (e) {
+              console.error(`Failed to open issue for ${url}: ${e.message}`);
+            } finally {
+              try { fs.unlinkSync(tmpFile); } catch (_) {}
+            }
+          }
+          NODE

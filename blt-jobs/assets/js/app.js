@@ -98,9 +98,14 @@ function renderJobs(jobs) {
       const createdAt = job.created_at || "";
       const addedBy = job.added_by || "";
       
-      const expired = isExpired(job.expires_at);
-      const expiringSoon = isExpiringSoon(job.expires_at);
-      const expiryText = formatExpiryDate(job.expires_at);
+      const expiryDate = [job.expires_at, job.effective_expires_at].find((value) => {
+        if (!value) return false;
+        const parsed = new Date(value);
+        return !Number.isNaN(parsed.getTime());
+      }) || null;
+      const expired = isExpired(expiryDate);
+      const expiringSoon = isExpiringSoon(expiryDate);
+      const expiryText = formatExpiryDate(expiryDate);
 
       let faviconDomain = "";
       if (job.application_url) {
