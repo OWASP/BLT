@@ -1,8 +1,8 @@
 {
   "participantCount": 194,
-  "totalPRs": 2579,
+  "totalPRs": 2580,
   "mergedPRs": 1604,
-  "totalIssues": 809,
+  "totalIssues": 813,
   "repositories": 54,
   "topContributors": [
     {
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "remove: delete Bitcoin node setup scripts",
+      "url": "https://github.com/OWASP-BLT/BLT-Rewards/pull/53",
+      "username": "Neurvinch",
+      "avatar": "https://avatars.githubusercontent.com/u/149451318?v=4",
+      "state": "open",
+      "created_at": "2026-04-10T18:05:54Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-Rewards"
+    },
     {
       "title": "Cleanup file fetch devto",
       "url": "https://github.com/OWASP-BLT/BLT/pull/6155",
@@ -113,16 +123,6 @@
       "state": "closed",
       "created_at": "2026-04-07T19:51:15Z",
       "merged_at": "2026-04-07T20:02:43Z",
-      "repository": "OWASP-BLT/BLT-Pool"
-    },
-    {
-      "title": "fix: add admin endpoint to backfill referred_by data for mentors ",
-      "url": "https://github.com/OWASP-BLT/BLT-Pool/pull/116",
-      "username": "BharathC0",
-      "avatar": "https://avatars.githubusercontent.com/u/211328860?v=4",
-      "state": "closed",
-      "created_at": "2026-04-07T06:36:16Z",
-      "merged_at": null,
       "repository": "OWASP-BLT/BLT-Pool"
     }
   ]
