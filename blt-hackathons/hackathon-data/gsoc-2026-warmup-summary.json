@@ -1,6 +1,6 @@
 {
   "participantCount": 194,
-  "totalPRs": 2577,
+  "totalPRs": 2578,
   "mergedPRs": 1599,
   "totalIssues": 809,
   "repositories": 54,
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "remove: delete Solana blockchain integration",
+      "url": "https://github.com/OWASP-BLT/BLT-Rewards/pull/52",
+      "username": "Neurvinch",
+      "avatar": "https://avatars.githubusercontent.com/u/149451318?v=4",
+      "state": "open",
+      "created_at": "2026-04-10T13:58:42Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-Rewards"
+    },
     {
       "title": "fix: backfill referred_by data for mentors on startup (closes #52)",
       "url": "https://github.com/OWASP-BLT/BLT-Pool/pull/119",
@@ -114,16 +124,6 @@
       "created_at": "2026-04-07T04:05:33Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT-Rewards"
-    },
-    {
-      "title": "test: add comprehensive Playwright test suite for Notes module ",
-      "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/62",
-      "username": "BharathC0",
-      "avatar": "https://avatars.githubusercontent.com/u/211328860?v=4",
-      "state": "open",
-      "created_at": "2026-04-06T15:16:09Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-SafeCloak"
     }
   ]
 }
