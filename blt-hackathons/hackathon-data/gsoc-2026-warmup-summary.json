@@ -1,7 +1,7 @@
 {
   "participantCount": 194,
-  "totalPRs": 2578,
-  "mergedPRs": 1599,
+  "totalPRs": 2579,
+  "mergedPRs": 1603,
   "totalIssues": 809,
   "repositories": 54,
   "topContributors": [
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "Cleanup file fetch devto",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6155",
+      "username": "anukalp2804",
+      "avatar": "https://avatars.githubusercontent.com/u/225702675?v=4",
+      "state": "open",
+      "created_at": "2026-04-10T14:33:07Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT"
+    },
     {
       "title": "remove: delete Solana blockchain integration",
       "url": "https://github.com/OWASP-BLT/BLT-Rewards/pull/52",
@@ -114,16 +124,6 @@
       "created_at": "2026-04-07T06:36:16Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT-Pool"
-    },
-    {
-      "title": "remove: delete ord-server Bitcoin backend directory",
-      "url": "https://github.com/OWASP-BLT/BLT-Rewards/pull/51",
-      "username": "Neurvinch",
-      "avatar": "https://avatars.githubusercontent.com/u/149451318?v=4",
-      "state": "open",
-      "created_at": "2026-04-07T04:05:33Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-Rewards"
     }
   ]
 }
