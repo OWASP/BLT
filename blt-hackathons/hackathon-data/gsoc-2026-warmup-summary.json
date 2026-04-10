@@ -1,6 +1,6 @@
 {
   "participantCount": 194,
-  "totalPRs": 2576,
+  "totalPRs": 2577,
   "mergedPRs": 1599,
   "totalIssues": 807,
   "repositories": 54,
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "fix: backfill referred_by data for mentors on startup (closes #52)",
+      "url": "https://github.com/OWASP-BLT/BLT-Pool/pull/119",
+      "username": "BharathC0",
+      "avatar": "https://avatars.githubusercontent.com/u/211328860?v=4",
+      "state": "open",
+      "created_at": "2026-04-10T08:49:43Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-Pool"
+    },
     {
       "title": "Mirror camera",
       "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/66",
@@ -112,16 +122,6 @@
       "avatar": "https://avatars.githubusercontent.com/u/211328860?v=4",
       "state": "open",
       "created_at": "2026-04-06T15:16:09Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-SafeCloak"
-    },
-    {
-      "title": "fix: store encryption passphrase in sessionStorage instead of localSt\u2026",
-      "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/61",
-      "username": "BharathC0",
-      "avatar": "https://avatars.githubusercontent.com/u/211328860?v=4",
-      "state": "open",
-      "created_at": "2026-04-06T15:07:57Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT-SafeCloak"
     }
