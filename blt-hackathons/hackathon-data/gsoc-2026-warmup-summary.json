@@ -1,6 +1,6 @@
 {
   "participantCount": 195,
-  "totalPRs": 2583,
+  "totalPRs": 2584,
   "mergedPRs": 1604,
   "totalIssues": 813,
   "repositories": 54,
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "fix: backfill referred_by for all 13 mentors via D1 migration (closes\u2026",
+      "url": "https://github.com/OWASP-BLT/BLT-Pool/pull/120",
+      "username": "BharathC0",
+      "avatar": "https://avatars.githubusercontent.com/u/211328860?v=4",
+      "state": "open",
+      "created_at": "2026-04-11T02:40:01Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-Pool"
+    },
     {
       "title": "chore: delete view_lecture.html",
       "url": "https://github.com/OWASP-BLT/BLT/pull/6162",
@@ -114,16 +124,6 @@
       "created_at": "2026-04-09T18:23:19Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT-Pool"
-    },
-    {
-      "title": "Delete ossh python file",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6154",
-      "username": "anukalp2804",
-      "avatar": "https://avatars.githubusercontent.com/u/225702675?v=4",
-      "state": "open",
-      "created_at": "2026-04-09T17:02:37Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT"
     }
   ]
 }
