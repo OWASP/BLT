@@ -1,6 +1,6 @@
 {
-  "participantCount": 194,
-  "totalPRs": 2580,
+  "participantCount": 195,
+  "totalPRs": 2583,
   "mergedPRs": 1604,
   "totalIssues": 813,
   "repositories": 54,
@@ -25,6 +25,36 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "chore: delete view_lecture.html",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6162",
+      "username": "aoi-dev-0411",
+      "avatar": "https://avatars.githubusercontent.com/u/275152799?v=4",
+      "state": "open",
+      "created_at": "2026-04-11T01:18:16Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT"
+    },
+    {
+      "title": "chore: delete dashboard_edit_course.html",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6161",
+      "username": "aoi-dev-0411",
+      "avatar": "https://avatars.githubusercontent.com/u/275152799?v=4",
+      "state": "open",
+      "created_at": "2026-04-11T01:18:15Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT"
+    },
+    {
+      "title": "chore: delete create_standalone_lecture.html",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6160",
+      "username": "aoi-dev-0411",
+      "avatar": "https://avatars.githubusercontent.com/u/275152799?v=4",
+      "state": "open",
+      "created_at": "2026-04-11T01:18:03Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT"
+    },
     {
       "title": "remove: delete Bitcoin node setup scripts",
       "url": "https://github.com/OWASP-BLT/BLT-Rewards/pull/53",
@@ -94,36 +124,6 @@
       "created_at": "2026-04-09T17:02:37Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "Replace Native JS Confirm with Custom Modal in Saved jobs page",
-      "url": "https://github.com/OWASP-BLT/BLT-Jobs/pull/70",
-      "username": "Jozz77",
-      "avatar": "https://avatars.githubusercontent.com/u/104347137?v=4",
-      "state": "open",
-      "created_at": "2026-04-09T16:15:54Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-Jobs"
-    },
-    {
-      "title": "feat: add display name input and avatar elements for video chat",
-      "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/65",
-      "username": "mdkaifansari04",
-      "avatar": "https://avatars.githubusercontent.com/u/117475603?v=4",
-      "state": "open",
-      "created_at": "2026-04-08T18:12:10Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-SafeCloak"
-    },
-    {
-      "title": "fix: remove CI matrix, pin Python 3.12, fix broken mentor row test",
-      "url": "https://github.com/OWASP-BLT/BLT-Pool/pull/117",
-      "username": "DonnieBLT",
-      "avatar": "https://avatars.githubusercontent.com/u/128622481?v=4",
-      "state": "closed",
-      "created_at": "2026-04-07T19:51:15Z",
-      "merged_at": "2026-04-07T20:02:43Z",
-      "repository": "OWASP-BLT/BLT-Pool"
     }
   ]
 }
