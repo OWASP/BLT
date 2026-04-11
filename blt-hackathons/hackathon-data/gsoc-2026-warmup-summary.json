@@ -1,6 +1,6 @@
 {
-  "participantCount": 195,
-  "totalPRs": 2584,
+  "participantCount": 196,
+  "totalPRs": 2585,
   "mergedPRs": 1606,
   "totalIssues": 813,
   "repositories": 54,
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "Delete recommended_repos.html file",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6163",
+      "username": "Neel-Pandya",
+      "avatar": "https://avatars.githubusercontent.com/u/73536156?v=4",
+      "state": "open",
+      "created_at": "2026-04-11T08:35:04Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT"
+    },
     {
       "title": "fix: backfill referred_by for all  mentors via D1 migration ",
       "url": "https://github.com/OWASP-BLT/BLT-Pool/pull/120",
@@ -114,16 +124,6 @@
       "created_at": "2026-04-09T18:28:19Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT-SafeCloak"
-    },
-    {
-      "title": "fix: add backfill_referrer script with data for issue #52",
-      "url": "https://github.com/OWASP-BLT/BLT-Pool/pull/118",
-      "username": "BharathC0",
-      "avatar": "https://avatars.githubusercontent.com/u/211328860?v=4",
-      "state": "closed",
-      "created_at": "2026-04-09T18:23:19Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-Pool"
     }
   ]
 }
