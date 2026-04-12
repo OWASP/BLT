@@ -43,33 +43,50 @@ def slugify(s: str) -> str:
 
 
 def detect_failed_scrape(description: str, title: str) -> bool:
-    """Detect if a scrape failed based on common failure patterns."""
+    """Detect if a scrape failed based on common failure patterns.
+
+    Patterns are chosen to avoid false positives on legitimate job posts
+    (e.g. employers named Cloudflare or copy that mentions security checks).
+    """
     if not description or len(description.strip()) < 50:
         return True
-    
-    # Common failure indicators
-    failure_patterns = [
-        r"warning.*captcha",
-        r"please.*verify.*human",
-        r"access.*denied",
-        r"cloudflare",
-        r"security.*check",
-        r"enable.*javascript",
-        r"403.*forbidden",
-        r"401.*unauthorized",
-        r"page.*not.*found",
-        r"error.*occurred",
-    ]
-    
+
     desc_lower = description.lower()
+
+    # Bot / WAF / interstitial pages (avoid bare "cloudflare" — matches real job descriptions).
+    failure_patterns = [
+        r"checking your browser before accessing",
+        # CF interstitial title usually appears near the start when the scrape never reached the JD.
+        r"^[\s\S]{0,800}just a moment",
+        r"ddos protection by cloudflare",
+        r"attention required!\s*\|\s*cloudflare",
+        r"sorry,?\s+you have been blocked",
+        r"cf-ray|ray id:\s*[0-9a-f]{16}",
+        r"cloudflare.{0,160}(ray id|you have been blocked|checking your browser|additional verification)",
+        r"(ray id|you have been blocked|checking your browser).{0,160}cloudflare",
+        r"warning.*captcha",
+        r"recaptcha|hcaptcha|turnstile",
+        r"please\s+(confirm|verify)\s+(that\s+)?you\s+are\s+(a\s+)?human",
+        r"verify you are (not )?a?\s*robot",
+        r"enable javascript (and cookies )?to continue",
+        r"please enable javascript",
+        r"access (was )?denied",
+        r"403\s*forbidden|forbidden\s*\(403\)|\b403\b.{0,40}\bforbidden\b",
+        r"401\s*unauthorized|\b401\b.{0,40}\bunauthorized\b",
+        r"page (not found|could not be found|does not exist)|\b404\b.{0,30}\bnot found\b",
+        r"please complete the security check",
+        r"one more step|prove your humanity",  # common challenge microcopy
+        r"something went wrong.{0,80}(try again|reload|refresh)",
+    ]
+
     for pattern in failure_patterns:
         if re.search(pattern, desc_lower, re.IGNORECASE):
             return True
-    
+
     # Generic title with minimal content suggests failure
     if title.lower() in ("job listing", "untitled") and len(description.strip()) < 200:
         return True
-    
+
     return False
 
 
