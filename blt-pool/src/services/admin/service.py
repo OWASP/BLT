@@ -14,6 +14,7 @@ from typing import Optional, Tuple
 from urllib.parse import parse_qs, quote_plus, urlparse
 
 from js import Headers, Response, console, fetch
+from version import APP_VERSION
 
 
 _ADMIN_BASIC_USER_ENV = "ADMIN_BASIC_AUTH_USERNAME"
@@ -66,7 +67,7 @@ def _parse_basic_auth_header(auth_header: str) -> Tuple[str, str]:
 def _github_headers(token: str = "") -> Headers:
     headers = {
         "Accept": "application/vnd.github+json",
-        "User-Agent": "BLT-Pool/1.0",
+    "User-Agent": f"BLT-Pool/{APP_VERSION}",
         "X-GitHub-Api-Version": "2022-11-28",
     }
     if token:
@@ -127,6 +128,21 @@ def _github_owner_from_repo_api_url(repo_api_url: str) -> str:
         return ""
     if len(path_parts) >= 3 and path_parts[0].lower() == "repos":
         return path_parts[1]
+    return ""
+
+
+def _github_owner_from_any_url(raw_url: str) -> str:
+    """Parse owner from API or html URL forms that include /owner/repo."""
+    if not raw_url:
+        return ""
+    try:
+        path_parts = [p for p in urlparse(str(raw_url)).path.split("/") if p]
+    except Exception:
+        return ""
+    if len(path_parts) >= 3 and path_parts[0].lower() == "repos":
+        return path_parts[1]
+    if len(path_parts) >= 2:
+        return path_parts[0]
     return ""
 
 
@@ -272,24 +288,34 @@ class AdminService:
             CREATE TABLE IF NOT EXISTS mentors (
                 github_username TEXT NOT NULL PRIMARY KEY,
                 name TEXT NOT NULL,
+                title TEXT NOT NULL DEFAULT '',
+                bio TEXT NOT NULL DEFAULT '',
                 specialties TEXT NOT NULL DEFAULT '[]',
                 max_mentees INTEGER NOT NULL DEFAULT 3,
                 active INTEGER NOT NULL DEFAULT 1,
                 timezone TEXT NOT NULL DEFAULT '',
                 referred_by TEXT NOT NULL DEFAULT '',
                 email TEXT NOT NULL DEFAULT '',
-              slack_username TEXT NOT NULL DEFAULT '',
-              total_prs INTEGER NOT NULL DEFAULT 0,
-              total_reviews INTEGER NOT NULL DEFAULT 0,
-              total_comments INTEGER NOT NULL DEFAULT 0,
-              last_rate_limit INTEGER NOT NULL DEFAULT 0,
-              last_rate_remaining INTEGER NOT NULL DEFAULT 0,
-              last_rate_used INTEGER NOT NULL DEFAULT 0,
-              last_rate_reset_at INTEGER NOT NULL DEFAULT 0,
-              created_at INTEGER NOT NULL DEFAULT (strftime('%s','now'))
+                slack_username TEXT NOT NULL DEFAULT '',
+                total_prs INTEGER NOT NULL DEFAULT 0,
+                total_reviews INTEGER NOT NULL DEFAULT 0,
+                total_comments INTEGER NOT NULL DEFAULT 0,
+                last_rate_limit INTEGER NOT NULL DEFAULT 0,
+                last_rate_remaining INTEGER NOT NULL DEFAULT 0,
+                last_rate_used INTEGER NOT NULL DEFAULT 0,
+                last_rate_reset_at INTEGER NOT NULL DEFAULT 0,
+                created_at INTEGER NOT NULL DEFAULT (strftime('%s','now'))
             )
             """
         )
+        if not await self._d1_has_column("mentors", "title"):
+            await self._d1_run(
+                "ALTER TABLE mentors ADD COLUMN title TEXT NOT NULL DEFAULT ''"
+            )
+        if not await self._d1_has_column("mentors", "bio"):
+            await self._d1_run(
+                "ALTER TABLE mentors ADD COLUMN bio TEXT NOT NULL DEFAULT ''"
+            )
         if not await self._d1_has_column("mentors", "email"):
             await self._d1_run(
                 "ALTER TABLE mentors ADD COLUMN email TEXT NOT NULL DEFAULT ''"
@@ -415,7 +441,7 @@ class AdminService:
                     "Accept": "application/vnd.github+json",
                     "Authorization": f"Bearer {token}",
                     "Content-Type": "application/json",
-                    "User-Agent": "BLT-Pool/1.0",
+                  "User-Agent": f"BLT-Pool/{APP_VERSION}",
                     "X-GitHub-Api-Version": "2022-11-28",
                 }
                 resp = await fetch(
@@ -526,90 +552,304 @@ class AdminService:
             return "", snapshot
         return str(organization.get("id") or ""), snapshot
 
-    async def _count_user_reviews_in_org(self, github_username: str, org: str) -> Tuple[int, dict]:
-        """Count PR review contributions by the user within the org via GraphQL.
+    async def _github_rate_limit_status(self) -> dict:
+        """Return current core rate-limit details and seconds until reset."""
+        token = getattr(self.env, "GITHUB_TOKEN", "") if self.env else ""
 
-        Uses contributionsCollection.pullRequestReviewContributions.totalCount so each
-        reviewed PR is counted at most once, avoiding double-counts from the Search API.
-        """
+        snapshot = {}
+        try:
+            resp = await fetch(
+                "https://api.github.com/rate_limit",
+                method="GET",
+                headers=_github_headers(token),
+            )
+            snapshot = _github_rate_limit_snapshot(resp)
+            if resp.status != 200:
+                return snapshot
+
+            payload = json.loads(await resp.text())
+            core = ((payload.get("resources") or {}).get("core") if isinstance(payload, dict) else None) or {}
+            if isinstance(core, dict):
+                limit = _int_or_default(core.get("limit"), snapshot.get("limit") or 0)
+                remaining = _int_or_default(core.get("remaining"), snapshot.get("remaining") or 0)
+                used = _int_or_default(core.get("used"), snapshot.get("used") or max(limit - remaining, 0))
+                reset_at = _int_or_default(core.get("reset"), snapshot.get("reset_at") or 0)
+                snapshot = {
+                    "limit": limit,
+                    "remaining": remaining,
+                    "used": used,
+                    "reset_at": reset_at,
+                }
+        except Exception as exc:
+            console.error(f"[AdminService] Rate limit lookup failed: {exc}")
+            return snapshot
+
+        now_ts = int(datetime.now(tz=dt_timezone.utc).timestamp())
+        reset_at = _int_or_default(snapshot.get("reset_at"), 0)
+        snapshot["seconds_remaining"] = max(0, reset_at - now_ts) if reset_at > 0 else 0
+        return snapshot
+
+    def _format_seconds_remaining(self, seconds_remaining: int) -> str:
+        total = max(0, _int_or_default(seconds_remaining, 0))
+        hours = total // 3600
+        minutes = (total % 3600) // 60
+        seconds = total % 60
+        if hours > 0:
+            return f"{hours}h {minutes}m {seconds}s"
+        return f"{minutes}m {seconds}s"
+
+    def _seconds_until_timestamp(self, reset_at: int) -> int:
+        ts = _int_or_default(reset_at, 0)
+        if ts <= 0:
+            return 0
+        now_ts = int(datetime.now(tz=dt_timezone.utc).timestamp())
+        return max(0, ts - now_ts)
+
+    async def _count_user_reviews_in_org(self, github_username: str, org: str) -> Tuple[int, dict]:
+        """Count all-time PR reviews in org with APPROVED or CHANGES_REQUESTED states."""
         username = (github_username or "").strip().lstrip("@")
-        org_login = (org or "").strip()
+        org_login = (org or "").strip().lower()
         if not username or not org_login:
             return 0, {}
 
         token = getattr(self.env, "GITHUB_TOKEN", "") if self.env else ""
-        if not token:
-            return 0, {}
 
-        org_id, org_snapshot = await self._github_org_id(org_login, token)
-        if not org_id:
-            return 0, org_snapshot
+        total = 0
+        last_snapshot = {}
 
-        query = """
-        query($username: String!, $orgId: ID!) {
-          user(login: $username) {
-            contributionsCollection(organizationID: $orgId) {
-              pullRequestReviewContributions {
-                totalCount
-              }
-            }
+        # Two search queries mirror requested review outcomes.
+        for qualifier in ("review:approved", "review:changes_requested"):
+            query = quote_plus(f"is:pr org:{org_login} reviewed-by:{username} {qualifier}")
+            url = f"https://api.github.com/search/issues?q={query}&per_page=1"
+            try:
+                resp = await fetch(url, method="GET", headers=_github_headers(token))
+            except Exception as exc:
+                console.error(f"[AdminService] Review lookup error for {username}: {exc}")
+                continue
+
+            snapshot = _github_rate_limit_snapshot(resp)
+            if snapshot:
+                last_snapshot = snapshot
+            if resp.status != 200:
+                console.error(
+                    f"[AdminService] Review lookup failed for {username}: status={resp.status}"
+                )
+                continue
+
+            try:
+                payload = json.loads(await resp.text())
+            except Exception as exc:
+                console.error(f"[AdminService] Review lookup parse error for {username}: {exc}")
+                continue
+
+            total += int(payload.get("total_count") or 0)
+
+        return total, last_snapshot
+
+    async def _count_user_comment_endpoint_in_org(self, url: str, org: str, token: str) -> Tuple[int, dict]:
+        org_login = (org or "").strip().lower()
+        next_url = url
+        total = 0
+        last_snapshot = {}
+
+        while next_url:
+            try:
+                resp = await fetch(next_url, method="GET", headers=_github_headers(token))
+            except Exception as exc:
+                console.error(f"[AdminService] Comment lookup error: {exc}")
+                break
+
+            last_snapshot = _github_rate_limit_snapshot(resp)
+            if resp.status != 200:
+                console.error(
+                    f"[AdminService] Comment lookup failed: status={resp.status} url={next_url}"
+                )
+                break
+
+            try:
+                payload = json.loads(await resp.text())
+            except Exception as exc:
+                console.error(f"[AdminService] Comment lookup parse error: {exc}")
+                break
+
+            if not isinstance(payload, list):
+                break
+
+            for comment in payload:
+                if not isinstance(comment, dict):
+                    continue
+                owner_login = _github_owner_from_repo_api_url(str(comment.get("repository_url") or ""))
+                if not owner_login:
+                    owner_login = _github_owner_from_any_url(str(comment.get("issue_url") or ""))
+                if not owner_login:
+                    owner_login = _github_owner_from_any_url(str(comment.get("pull_request_url") or ""))
+                if not owner_login:
+                    owner_login = _github_owner_from_any_url(str(comment.get("html_url") or ""))
+                if owner_login.strip().lower() == org_login:
+                    total += 1
+
+            next_url = _github_next_link(resp.headers.get("Link") or "")
+
+        return total, last_snapshot
+
+    async def _count_user_graphql_comments_in_org(self, github_username: str, org: str, token: str) -> Tuple[Optional[int], dict]:
+      """Count all-time comments in org using GraphQL comment connections."""
+      username = (github_username or "").strip().lstrip("@")
+      org_login = (org or "").strip().lower()
+      if not username or not org_login:
+        return 0, {}
+
+      query = """
+      query($username: String!, $issueCursor: String, $reviewCursor: String) {
+        user(login: $username) {
+        issueComments(first: 100, after: $issueCursor) {
+          pageInfo { hasNextPage endCursor }
+          nodes {
+          repository {
+            owner { login }
+          }
           }
         }
-        """
-        data, snapshot = await self._github_graphql(query, {"username": username, "orgId": org_id}, token)
-        user = (data or {}).get("user") if isinstance(data, dict) else None
-        contributions = (user or {}).get("contributionsCollection") if isinstance(user, dict) else None
-        if not isinstance(contributions, dict):
-            return 0, (snapshot or org_snapshot)
+        pullRequestReviewComments(first: 100, after: $reviewCursor) {
+          pageInfo { hasNextPage endCursor }
+          nodes {
+          repository {
+            owner { login }
+          }
+          }
+        }
+        }
+      }
+      """
 
-        pr_reviews = contributions.get("pullRequestReviewContributions")
-        total = int((pr_reviews or {}).get("totalCount") or 0) if isinstance(pr_reviews, dict) else 0
-        return total, (snapshot or org_snapshot)
+      issue_cursor = None
+      review_cursor = None
+      issue_done = False
+      review_done = False
+      total = 0
+      last_snapshot = {}
+      had_valid_connection = False
+
+      while not (issue_done and review_done):
+        variables = {
+          "username": username,
+          "issueCursor": issue_cursor,
+          "reviewCursor": review_cursor,
+        }
+        data, snapshot = await self._github_graphql(query, variables, token)
+        if snapshot:
+          last_snapshot = snapshot
+        user = (data or {}).get("user") if isinstance(data, dict) else None
+        if not isinstance(user, dict):
+          break
+
+        if not issue_done:
+          issue_connection = user.get("issueComments") if isinstance(user, dict) else None
+          if not isinstance(issue_connection, dict):
+            issue_done = True
+          else:
+            had_valid_connection = True
+            issue_nodes = issue_connection.get("nodes") if isinstance(issue_connection, dict) else []
+            if not isinstance(issue_nodes, list):
+              issue_nodes = []
+            for node in issue_nodes:
+              repo = (node or {}).get("repository") if isinstance(node, dict) else None
+              owner = (repo or {}).get("owner") if isinstance(repo, dict) else None
+              owner_login = ((owner or {}).get("login") or "").strip().lower() if isinstance(owner, dict) else ""
+              if owner_login == org_login:
+                total += 1
+            issue_page_info = issue_connection.get("pageInfo") if isinstance(issue_connection, dict) else {}
+            issue_has_next = bool((issue_page_info or {}).get("hasNextPage")) if isinstance(issue_page_info, dict) else False
+            issue_cursor = (issue_page_info or {}).get("endCursor") if isinstance(issue_page_info, dict) else None
+            issue_done = not issue_has_next
+
+        if not review_done:
+          review_connection = user.get("pullRequestReviewComments") if isinstance(user, dict) else None
+          if not isinstance(review_connection, dict):
+            review_done = True
+          else:
+            had_valid_connection = True
+            review_nodes = review_connection.get("nodes") if isinstance(review_connection, dict) else []
+            if not isinstance(review_nodes, list):
+              review_nodes = []
+            for node in review_nodes:
+              repo = (node or {}).get("repository") if isinstance(node, dict) else None
+              owner = (repo or {}).get("owner") if isinstance(repo, dict) else None
+              owner_login = ((owner or {}).get("login") or "").strip().lower() if isinstance(owner, dict) else ""
+              if owner_login == org_login:
+                total += 1
+            review_page_info = review_connection.get("pageInfo") if isinstance(review_connection, dict) else {}
+            review_has_next = bool((review_page_info or {}).get("hasNextPage")) if isinstance(review_page_info, dict) else False
+            review_cursor = (review_page_info or {}).get("endCursor") if isinstance(review_page_info, dict) else None
+            review_done = not review_has_next
+
+      if not had_valid_connection:
+        return None, last_snapshot
+      return total, last_snapshot
+
+    async def _count_user_comments_via_search_in_org(self, github_username: str, org: str, token: str) -> Tuple[int, dict]:
+      """Fallback comment estimate via GitHub Search API commenter qualifiers."""
+      username = (github_username or "").strip().lstrip("@")
+      org_login = (org or "").strip()
+      if not username or not org_login:
+        return 0, {}
+
+      last_snapshot = {}
+      total = 0
+      queries = (
+        f"org:{org_login} is:issue commenter:{username}",
+        f"org:{org_login} is:pr commenter:{username}",
+      )
+
+      for raw_query in queries:
+        q = quote_plus(raw_query)
+        url = f"https://api.github.com/search/issues?q={q}&per_page=1"
+        try:
+          resp = await fetch(url, method="GET", headers=_github_headers(token))
+        except Exception as exc:
+          console.error(f"[AdminService] Search comment fallback error for {username}: {exc}")
+          continue
+
+        snapshot = _github_rate_limit_snapshot(resp)
+        if snapshot:
+          last_snapshot = snapshot
+        if resp.status != 200:
+          continue
+
+        try:
+          payload = json.loads(await resp.text())
+        except Exception:
+          continue
+        total += int(payload.get("total_count") or 0)
+
+      return total, last_snapshot
 
     async def _count_user_comments_in_org(self, github_username: str, org: str) -> Tuple[int, dict]:
-        """Count issue comments + PR review comments left by user within org repos via GraphQL.
-
-        Uses contributionsCollection scoped to the org so only a single API call is needed
-        per mentor, avoiding the multi-page REST pagination that risks rate-limit exhaustion.
-        """
+        """Count all-time issue comments + PR review comments left by user in org repos."""
         username = (github_username or "").strip().lstrip("@")
         org_login = (org or "").strip()
         if not username or not org_login:
             return 0, {}
 
         token = getattr(self.env, "GITHUB_TOKEN", "") if self.env else ""
-        if not token:
-            return 0, {}
 
-        org_id, org_snapshot = await self._github_org_id(org_login, token)
-        if not org_id:
-            return 0, org_snapshot
+        if token:
+          gql_total, gql_snapshot = await self._count_user_graphql_comments_in_org(username, org_login, token)
+          if gql_total is not None:
+            return int(gql_total), gql_snapshot
 
-        query = """
-        query($username: String!, $orgId: ID!) {
-          user(login: $username) {
-            contributionsCollection(organizationID: $orgId) {
-              issueCommentContributions {
-                totalCount
-              }
-              pullRequestReviewCommentContributions {
-                totalCount
-              }
-            }
-          }
-        }
-        """
-        data, snapshot = await self._github_graphql(query, {"username": username, "orgId": org_id}, token)
-        user = (data or {}).get("user") if isinstance(data, dict) else None
-        contributions = (user or {}).get("contributionsCollection") if isinstance(user, dict) else None
-        if not isinstance(contributions, dict):
-            return 0, (snapshot or org_snapshot)
+        issue_comments_url = f"https://api.github.com/users/{quote_plus(username)}/issues/comments?per_page=100"
+        pr_review_comments_url = f"https://api.github.com/users/{quote_plus(username)}/pulls/comments?per_page=100"
 
-        issue_comments = contributions.get("issueCommentContributions")
-        pr_review_comments = contributions.get("pullRequestReviewCommentContributions")
-        issue_total = int((issue_comments or {}).get("totalCount") or 0) if isinstance(issue_comments, dict) else 0
-        pr_total = int((pr_review_comments or {}).get("totalCount") or 0) if isinstance(pr_review_comments, dict) else 0
-        return issue_total + pr_total, (snapshot or org_snapshot)
+        issue_total, issue_snapshot = await self._count_user_comment_endpoint_in_org(issue_comments_url, org_login, token)
+        pr_total, pr_snapshot = await self._count_user_comment_endpoint_in_org(pr_review_comments_url, org_login, token)
+        rest_total = issue_total + pr_total
+        rest_snapshot = (pr_snapshot or issue_snapshot)
+        if rest_total > 0:
+          return rest_total, rest_snapshot
+
+        search_total, search_snapshot = await self._count_user_comments_via_search_in_org(username, org_login, token)
+        return search_total, (search_snapshot or rest_snapshot)
 
     def _rate_limit_db_values(self, snapshot: dict) -> tuple:
         return (
@@ -1280,40 +1520,105 @@ class AdminService:
         return ((row.dataset[key] || '') + '').trim().toLowerCase();
       }};
 
-      document.querySelectorAll('[data-sort-key]').forEach((button) => {{
-        button.addEventListener('click', () => {{
-          const table = button.closest('table');
-          const tbody = table ? table.querySelector('tbody') : null;
-          if (!tbody) {{
-            return;
-          }}
-          const key = button.dataset.sortKey;
-          const currentDirection = button.dataset.sortDirection === 'asc' ? 'asc' : 'desc';
-          const nextDirection = currentDirection === 'asc' ? 'desc' : 'asc';
-          document.querySelectorAll('[data-sort-key]').forEach((other) => {{
-            other.dataset.sortDirection = 'desc';
-            other.classList.remove('text-[#111827]');
-          }});
-          button.dataset.sortDirection = nextDirection;
-          button.classList.add('text-[#111827]');
+      const sortButtons = Array.from(document.querySelectorAll('[data-sort-key]'));
+      const mentorTable = document.getElementById('admin-mentor-table');
+      const mentorTbody = mentorTable ? mentorTable.querySelector('tbody') : null;
+      const resetSortingButton = document.getElementById('admin-reset-sorting');
+      let sortCriteria = [];
 
-          const rows = Array.from(tbody.querySelectorAll('tr[data-mentor-row]'));
-          rows.sort((left, right) => {{
-            const leftValue = getSortableValue(left, key);
-            const rightValue = getSortableValue(right, key);
-            const leftNumber = Number(leftValue);
-            const rightNumber = Number(rightValue);
-            let result = 0;
-            if (!Number.isNaN(leftNumber) && !Number.isNaN(rightNumber) && leftValue !== '' && rightValue !== '') {{
-              result = leftNumber - rightNumber;
-            }} else {{
-              result = leftValue.localeCompare(rightValue);
+      if (mentorTbody) {{
+        Array.from(mentorTbody.querySelectorAll('tr[data-mentor-row]')).forEach((row, index) => {{
+          row.dataset.originalIndex = String(index);
+        }});
+      }}
+
+      const compareValues = (leftValue, rightValue) => {{
+        const leftNumber = Number(leftValue);
+        const rightNumber = Number(rightValue);
+        if (!Number.isNaN(leftNumber) && !Number.isNaN(rightNumber) && leftValue !== '' && rightValue !== '') {{
+          return leftNumber - rightNumber;
+        }}
+        return String(leftValue).localeCompare(String(rightValue));
+      }};
+
+      const syncSortButtonState = () => {{
+        sortButtons.forEach((button) => {{
+          const key = button.dataset.sortKey;
+          const criteriaIndex = sortCriteria.findIndex((item) => item.key === key);
+          if (criteriaIndex === -1) {{
+            button.dataset.sortDirection = 'desc';
+            button.classList.remove('text-[#111827]');
+            button.title = 'Click to sort';
+          }} else {{
+            const direction = sortCriteria[criteriaIndex].direction;
+            button.dataset.sortDirection = direction;
+            button.classList.add('text-[#111827]');
+            button.title = `Sort priority ${{criteriaIndex + 1}} (${{direction}})`;
+          }}
+        }});
+      }};
+
+      const applySortCriteria = () => {{
+        if (!mentorTbody) {{
+          return;
+        }}
+        const rows = Array.from(mentorTbody.querySelectorAll('tr[data-mentor-row]'));
+
+        if (sortCriteria.length === 0) {{
+          rows
+            .sort((left, right) => Number(left.dataset.originalIndex || '0') - Number(right.dataset.originalIndex || '0'))
+            .forEach((row) => mentorTbody.appendChild(row));
+          syncSortButtonState();
+          return;
+        }}
+
+        rows.sort((left, right) => {{
+          for (const criterion of sortCriteria) {{
+            const leftValue = getSortableValue(left, criterion.key);
+            const rightValue = getSortableValue(right, criterion.key);
+            const result = compareValues(leftValue, rightValue);
+            if (result !== 0) {{
+              return criterion.direction === 'asc' ? result : -result;
             }}
-            return nextDirection === 'asc' ? result : -result;
-          }});
-          rows.forEach((row) => tbody.appendChild(row));
+          }}
+          return Number(left.dataset.originalIndex || '0') - Number(right.dataset.originalIndex || '0');
+        }});
+
+        rows.forEach((row) => mentorTbody.appendChild(row));
+        syncSortButtonState();
+      }};
+
+      sortButtons.forEach((button) => {{
+        button.addEventListener('click', (event) => {{
+          const key = button.dataset.sortKey;
+          const existingIndex = sortCriteria.findIndex((item) => item.key === key);
+
+          if (!event.shiftKey) {{
+            if (existingIndex >= 0) {{
+              const currentDirection = sortCriteria[existingIndex].direction;
+              sortCriteria = [{{ key, direction: currentDirection === 'asc' ? 'desc' : 'asc' }}];
+            }} else {{
+              sortCriteria = [{{ key, direction: 'asc' }}];
+            }}
+          }} else if (existingIndex >= 0) {{
+            const currentDirection = sortCriteria[existingIndex].direction;
+            sortCriteria[existingIndex].direction = currentDirection === 'asc' ? 'desc' : 'asc';
+          }} else {{
+            sortCriteria.push({{ key, direction: 'asc' }});
+          }}
+
+          applySortCriteria();
         }});
       }});
+
+      if (resetSortingButton) {{
+        resetSortingButton.addEventListener('click', () => {{
+          sortCriteria = [];
+          applySortCriteria();
+        }});
+      }}
+
+      syncSortButtonState();
     }})();
   </script>
 </body>
@@ -1321,12 +1626,24 @@ class AdminService:
 
     async def _handle_dashboard(self, username: str):
         mentors = await self._mentor_rows()
+        rate_status = await self._github_rate_limit_status()
         counts = {
             "total": len(mentors),
             "active": len([m for m in mentors if int(m.get("active") or 0) == 1]),
             "inactive": len([m for m in mentors if int(m.get("active") or 0) != 1]),
             "assignments": sum(int(m.get("assignment_count") or 0) for m in mentors),
+            "total_prs": sum(int(m.get("total_prs") or 0) for m in mentors),
+            "total_reviews": sum(int(m.get("total_reviews") or 0) for m in mentors),
+            "total_comments": sum(int(m.get("total_comments") or 0) for m in mentors),
         }
+        dashboard_rate_limit = int((rate_status or {}).get("limit") or 0)
+        dashboard_rate_used = int((rate_status or {}).get("used") or 0)
+        dashboard_rate_remaining = int((rate_status or {}).get("remaining") or 0)
+        dashboard_rate_reset_at = int((rate_status or {}).get("reset_at") or 0)
+        dashboard_rate_reset_label = self._format_timestamp(dashboard_rate_reset_at, with_time=True)
+        dashboard_rate_remaining_label = self._format_seconds_remaining(
+            int((rate_status or {}).get("seconds_remaining") or 0)
+        )
 
         mentor_rows = "\n".join(self._mentor_row_html(row) for row in mentors)
         if not mentor_rows:
@@ -1336,23 +1653,21 @@ class AdminService:
             )
 
         content = f"""
-        <div class="mx-auto max-w-6xl grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-4">
-            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Total mentors</p>
-            <p class="mt-1 text-2xl font-extrabold text-[#111827]">{counts['total']}</p>
-          </article>
-          <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-4">
-            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Published</p>
-            <p class="mt-1 text-2xl font-extrabold text-[#111827]">{counts['active']}</p>
-          </article>
-          <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-4">
-            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Blocked / pending</p>
-            <p class="mt-1 text-2xl font-extrabold text-[#111827]">{counts['inactive']}</p>
-          </article>
-          <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-4">
-            <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Total assignments</p>
-            <p class="mt-1 text-2xl font-extrabold text-[#111827]">{counts['assignments']}</p>
-          </article>
+        <div class="mx-auto max-w-6xl">
+          <div class="flex flex-wrap items-center gap-2 rounded-xl border border-[#E5E5E5] bg-gray-50 p-2 text-xs font-semibold text-gray-700">
+            <span class="rounded-md bg-white px-2.5 py-1">Mentors: <strong class="text-[#111827]">{counts['total']}</strong></span>
+            <span class="rounded-md bg-white px-2.5 py-1">Published: <strong class="text-[#111827]">{counts['active']}</strong></span>
+            <span class="rounded-md bg-white px-2.5 py-1">Blocked: <strong class="text-[#111827]">{counts['inactive']}</strong></span>
+            <span class="rounded-md bg-white px-2.5 py-1">Assignments: <strong class="text-[#111827]">{counts['assignments']}</strong></span>
+            <span class="rounded-md bg-white px-2.5 py-1">PRs: <strong class="text-[#111827]">{counts['total_prs']}</strong></span>
+            <span class="rounded-md bg-white px-2.5 py-1">Reviews: <strong class="text-[#111827]">{counts['total_reviews']}</strong></span>
+            <span class="rounded-md bg-white px-2.5 py-1">Comments: <strong class="text-[#111827]">{counts['total_comments']}</strong></span>
+            <span class="rounded-md bg-[#111827] px-2.5 py-1 text-white">Version: <strong>v{_escape(APP_VERSION)}</strong></span>
+            <span class="rounded-md bg-white px-2.5 py-1">API: <strong class="text-[#111827]">{dashboard_rate_used}/{dashboard_rate_limit if dashboard_rate_limit > 0 else 'n/a'}</strong></span>
+            <span class="rounded-md bg-white px-2.5 py-1">Remaining: <strong class="text-[#111827]">{dashboard_rate_remaining}</strong></span>
+            <span class="rounded-md bg-white px-2.5 py-1">Reset: <strong class="text-[#111827]">{dashboard_rate_reset_label}</strong></span>
+            <span class="rounded-md bg-white px-2.5 py-1">Time left: <strong class="text-[#111827]">{dashboard_rate_remaining_label}</strong></span>
+          </div>
         </div>
 
         <div class="mt-8 -mx-5 overflow-visible border-t border-[#E5E5E5] bg-white sm:-mx-6 lg:-mx-7">
@@ -1360,9 +1675,17 @@ class AdminService:
             <div class="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <h3 class="text-lg font-bold text-[#111827]">Mentor management</h3>
-                <p class="mt-1 text-sm text-gray-600">Inline editable mentor grid with sortable columns.</p>
+                <p class="mt-1 text-sm text-gray-600">Inline editable mentor grid with sortable columns. Click to sort one column, Shift+click to add secondary columns.</p>
               </div>
               <div class="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  id="admin-reset-sorting"
+                  class="inline-flex items-center gap-2 rounded-md border border-[#E5E5E5] bg-white px-3 py-2 text-xs font-semibold text-gray-700 transition hover:border-[#E10101] hover:text-[#E10101]"
+                  title="Reset table sorting to original order">
+                  <i class="fa-solid fa-arrow-rotate-left" aria-hidden="true"></i>
+                  Reset sorting
+                </button>
                 <form method="POST" action="{self.mentor_action_path}">
                   <input type="hidden" name="action" value="refresh_pr_counts">
                   <button
@@ -1445,11 +1768,12 @@ class AdminService:
                   <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="mentor" data-sort-direction="desc" class="inline-flex items-center gap-1">Mentor <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
                   <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="name" data-sort-direction="desc" class="inline-flex items-center gap-1">Name <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
                   <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="github_username" data-sort-direction="desc" class="inline-flex items-center gap-1">GitHub <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="title" data-sort-direction="desc" class="inline-flex items-center gap-1">Title <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="bio" data-sort-direction="desc" class="inline-flex items-center gap-1">Bio <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
                   <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="created_at" data-sort-direction="desc" class="inline-flex items-center gap-1">Added <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
                   <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="total_prs" data-sort-direction="desc" class="inline-flex items-center gap-1">PRs (all-time) <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
                   <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="total_reviews" data-sort-direction="desc" class="inline-flex items-center gap-1">Reviews (all-time) <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
                   <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="total_comments" data-sort-direction="desc" class="inline-flex items-center gap-1">Comments (all-time) <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
-                  <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="last_rate_used" data-sort-direction="desc" class="inline-flex items-center gap-1">GitHub API limit <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
                   <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="max_mentees" data-sort-direction="desc" class="inline-flex items-center gap-1">Cap <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
                   <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="slack_username" data-sort-direction="desc" class="inline-flex items-center gap-1">Slack <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
                   <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="email" data-sort-direction="desc" class="inline-flex items-center gap-1">Email <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
@@ -1473,6 +1797,8 @@ class AdminService:
               <input type="hidden" name="action" value="create">
               <input name="name" required maxlength="100" placeholder="Name" class="rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800">
               <input name="github_username" required maxlength="39" placeholder="GitHub username" class="rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800">
+              <input name="title" maxlength="120" placeholder="Title" class="rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800">
+              <input name="bio" maxlength="500" placeholder="Short bio" class="rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800 sm:col-span-2 lg:col-span-2 xl:col-span-3">
               <input name="specialties" maxlength="300" placeholder="specialty1, specialty2" class="rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800">
               <input name="max_mentees" type="number" min="1" max="10" value="3" class="rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800">
               <input name="timezone" maxlength="60" placeholder="Timezone" class="rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800">
@@ -1509,6 +1835,8 @@ class AdminService:
             SELECT
                 m.github_username,
                 m.name,
+              m.title,
+              m.bio,
                 m.specialties,
                 m.max_mentees,
                 m.active,
@@ -1519,10 +1847,6 @@ class AdminService:
                 m.total_prs,
                 m.total_reviews,
                 m.total_comments,
-                m.last_rate_limit,
-                m.last_rate_remaining,
-                m.last_rate_used,
-                m.last_rate_reset_at,
                 m.created_at,
                 COALESCE(a.assignment_refs, '') AS assignment_refs,
                 COALESCE(a.assignment_count, 0) AS assignment_count
@@ -1559,6 +1883,8 @@ class AdminService:
     def _mentor_row_html(self, mentor: dict) -> str:
         username = mentor.get("github_username", "")
         name = mentor.get("name", "")
+        title = mentor.get("title") or ""
+        bio = mentor.get("bio") or ""
         active = int(mentor.get("active") or 0) == 1
         specialties = mentor.get("specialties_list") or []
         specialties_value = ", ".join(str(item) for item in specialties)
@@ -1569,15 +1895,10 @@ class AdminService:
         total_prs = int(mentor.get("total_prs") or 0)
         total_reviews = int(mentor.get("total_reviews") or 0)
         total_comments = int(mentor.get("total_comments") or 0)
-        last_rate_limit = int(mentor.get("last_rate_limit") or 0)
-        last_rate_remaining = int(mentor.get("last_rate_remaining") or 0)
-        last_rate_used = int(mentor.get("last_rate_used") or 0)
-        rate_usage_label = f"{last_rate_used}/{last_rate_limit}" if last_rate_limit > 0 else "n/a"
-        rate_reset_label = self._format_timestamp(mentor.get("last_rate_reset_at"), with_time=True)
         added_label = self._format_timestamp(mentor.get("created_at"), with_time=False)
         form_id = f"mentor-form-{username.lower().replace('_', '-')}"
         return f"""
-        <tr data-mentor-row data-mentor="{_escape(name).lower()}" data-name="{_escape(name).lower()}" data-github_username="{_escape(username).lower()}" data-active="{1 if active else 0}" data-created_at="{int(mentor.get('created_at') or 0)}" data-total_prs="{total_prs}" data-total_reviews="{total_reviews}" data-total_comments="{total_comments}" data-last_rate_used="{last_rate_used}" data-max_mentees="{int(mentor.get('max_mentees') or 3)}" data-assignment_count="{assignment_count}">
+        <tr data-mentor-row data-mentor="{_escape(name).lower()}" data-name="{_escape(name).lower()}" data-github_username="{_escape(username).lower()}" data-title="{_escape(title).lower()}" data-bio="{_escape(bio).lower()}" data-active="{1 if active else 0}" data-created_at="{int(mentor.get('created_at') or 0)}" data-total_prs="{total_prs}" data-total_reviews="{total_reviews}" data-total_comments="{total_comments}" data-max_mentees="{int(mentor.get('max_mentees') or 3)}" data-assignment_count="{assignment_count}">
           <td class="px-3 py-2">
             <div class="flex items-center gap-2">
               <a href="https://github.com/{_escape(username)}" target="_blank" rel="noopener noreferrer" aria-label="Open @{_escape(username)} on GitHub" class="inline-flex h-8 w-8 shrink-0 overflow-hidden rounded-full border border-[#E5E5E5] bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E10101] focus-visible:ring-offset-2">
@@ -1592,6 +1913,8 @@ class AdminService:
           </td>
           <td class="px-3 py-2"><input form="{form_id}" data-field="name" name="name" value="{_escape(name)}" class="w-40 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" maxlength="100" required></td>
           <td class="px-3 py-2"><input form="{form_id}" data-field="github_username" name="github_username" value="{_escape(username)}" class="w-36 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" maxlength="39" required></td>
+          <td class="px-3 py-2"><input form="{form_id}" data-field="title" name="title" value="{_escape(title)}" class="w-44 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" maxlength="120"></td>
+          <td class="px-3 py-2"><input form="{form_id}" data-field="bio" name="bio" value="{_escape(bio)}" class="w-72 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" maxlength="500"></td>
           <td class="px-3 py-2">
             <span class="inline-flex items-center rounded-full border border-gray-200 bg-gray-50 px-2 py-1 text-xs font-semibold text-gray-700">{_escape(added_label)}</span>
           </td>
@@ -1603,12 +1926,6 @@ class AdminService:
           </td>
           <td class="px-3 py-2">
             <span class="inline-flex items-center rounded-full border border-gray-200 bg-gray-50 px-2 py-1 text-xs font-semibold text-gray-700">{total_comments}</span>
-          </td>
-          <td class="px-3 py-2">
-            <div class="space-y-1">
-              <span class="inline-flex items-center rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-[11px] font-semibold text-gray-700">Used {rate_usage_label}</span>
-              <p class="text-[11px] font-medium text-gray-500">Reset: {_escape(rate_reset_label)} | Remaining: {last_rate_remaining}</p>
-            </div>
           </td>
           <td class="px-3 py-2"><input form="{form_id}" data-field="max_mentees" name="max_mentees" type="number" min="1" max="10" value="{int(mentor.get('max_mentees') or 3)}" class="w-20 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800"></td>
           <td class="px-3 py-2"><input form="{form_id}" data-field="slack_username" name="slack_username" value="{_escape(slack_username)}" class="w-32 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" maxlength="80"></td>
@@ -1674,6 +1991,8 @@ class AdminService:
             if action == "create":
               name = (form.get("name") or "").strip()
               new_github_username = (form.get("github_username") or "").strip().lstrip("@")
+              title = (form.get("title") or "").strip()
+              bio = (form.get("bio") or "").strip()
               specialties_raw = (form.get("specialties") or "").strip()
               timezone = (form.get("timezone") or "").strip()
               referred_by = (form.get("referred_by") or "").strip().lstrip("@")
@@ -1732,6 +2051,8 @@ class AdminService:
                 INSERT INTO mentors (
                   github_username,
                   name,
+                  title,
+                  bio,
                   specialties,
                   max_mentees,
                   active,
@@ -1741,11 +2062,13 @@ class AdminService:
                   slack_username,
                   created_at
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                   new_github_username,
                   name,
+                  title,
+                  bio,
                   json.dumps(specialties_list),
                   max_mentees,
                   active,
@@ -1775,7 +2098,7 @@ class AdminService:
 
                 existing = await self._d1_first(
                     """
-                    SELECT github_username, name, specialties, max_mentees, active, timezone, referred_by, email, slack_username
+                  SELECT github_username, name, title, bio, specialties, max_mentees, active, timezone, referred_by, email, slack_username
                     FROM mentors
                     WHERE github_username = ?
                     """,
@@ -1797,6 +2120,8 @@ class AdminService:
                     .lstrip("@")
                 )
                 name = (form.get("name") if "name" in form else existing.get("name") or "").strip()
+                title = (form.get("title") if "title" in form else existing.get("title") or "").strip()
+                bio = (form.get("bio") if "bio" in form else existing.get("bio") or "").strip()
                 specialties_raw = (
                     form.get("specialties")
                     if "specialties" in form
@@ -1869,6 +2194,8 @@ class AdminService:
                     UPDATE mentors
                     SET github_username = ?,
                         name = ?,
+                      title = ?,
+                      bio = ?,
                         specialties = ?,
                         max_mentees = ?,
                         active = ?,
@@ -1881,6 +2208,8 @@ class AdminService:
                     (
                         new_github_username,
                         name,
+                      title,
+                      bio,
                         json.dumps(specialties_list),
                         max_mentees,
                         active,

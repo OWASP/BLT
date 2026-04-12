@@ -1742,6 +1742,11 @@ class TestPostMergedPrCombinedComment(unittest.TestCase):
         self._run(self._make_leaderboard_data(), "alice", [], posted, deleted)
         self.assertIn("pool.owaspblt.org", posted[0])
 
+    def test_combined_comment_contains_current_repository_link(self):
+        posted, deleted = [], []
+        self._run(self._make_leaderboard_data(), "alice", [], posted, deleted)
+        self.assertIn("[test-org/test-repo](https://github.com/test-org/test-repo)", posted[0])
+
     def test_combined_comment_contains_contributor_leaderboard(self):
         posted, deleted = [], []
         self._run(self._make_leaderboard_data(), "alice", [], posted, deleted)
@@ -4195,6 +4200,7 @@ class TestCheckUnresolvedConversations(unittest.TestCase):
         _run(_inner())
         self.assertTrue(len(comment_bodies) >= 1, "Expected a comment to be posted")
         self.assertIn(_worker.UNRESOLVED_CONVERSATIONS_MARKER, comment_bodies[0])
+        self.assertIn("@alice", comment_bodies[0])
         self.assertIn("1", comment_bodies[0])
 
     def test_updates_existing_comment_when_unresolved(self):
@@ -5081,6 +5087,21 @@ class TestHandleMentorUnassign(unittest.TestCase):
         self.assertTrue(any("assignees" in e for e in endpoints_called))
         self.assertTrue(any("cancelled" in c.lower() for c in comments))
 
+    def test_current_assignee_can_unmentor(self):
+        issue = {
+            "number": 7,
+            "labels": [{"name": "mentor-assigned"}],
+            "assignees": [{"login": "dave"}],
+            "user": {"login": "alice"},
+        }
+        api_calls, comments = [], []
+        # dave is an assignee but not the author or the mentor
+        self._run_unmentor(issue, "dave", "bob", api_calls, comments)
+        endpoints_called = [str(call) for call in api_calls]
+        self.assertTrue(any("labels/mentor-assigned" in e for e in endpoints_called))
+        self.assertTrue(any("assignees" in e for e in endpoints_called))
+        self.assertTrue(any("cancelled" in c.lower() for c in comments))
+
     def test_unrelated_user_cannot_unmentor(self):
         issue = {
             "number": 5,
@@ -5836,6 +5857,13 @@ class TestGenerateMentorRow(unittest.TestCase):
         html = _worker._generate_mentor_row(self._make_mentor(name="Alice Smith"))
         self.assertIn("Alice Smith", html)
 
+    def test_title_and_bio_rendered(self):
+        html = _worker._generate_mentor_row(
+            self._make_mentor(title="Security Mentor", bio="Helps with triage and first PRs.")
+        )
+        self.assertIn("Security Mentor", html)
+        self.assertIn("Helps with triage and first PRs.", html)
+
     def test_xss_in_name_escaped(self):
         # Verify that HTML special characters in name are escaped to prevent XSS.
         html = _worker._generate_mentor_row(self._make_mentor(name='<script>xss</script>'))
@@ -5915,6 +5943,19 @@ class TestIndexHtml(unittest.TestCase):
         mentors = [{"name": "Bob Smith", "github_username": "bobsmith", "active": True, "status": "available"}]
         html = _worker._index_html(mentors)
         self.assertIn("Bob Smith", html)
+
+    def test_mentor_title_and_bio_appear_in_html(self):
+        mentors = [{
+            "name": "Bob Smith",
+            "github_username": "bobsmith",
+            "title": "AppSec Mentor",
+            "bio": "Focuses on secure code review and onboarding.",
+            "active": True,
+            "status": "available",
+        }]
+        html = _worker._index_html(mentors)
+        self.assertIn("AppSec Mentor", html)
+        self.assertIn("Focuses on secure code review and onboarding.", html)
 
     def test_referral_leaderboard_shown_when_referrals_exist(self):
         mentors = [
@@ -6281,6 +6322,18 @@ class TestHandleAddMentor(unittest.TestCase):
         data = _json.loads(resp.body)
         self.assertEqual(data["github_username"], "janedoe")
 
+    def test_title_and_bio_forwarded_to_d1(self):
+        resp, captured = self._run_add({
+            "name": "Jane Doe",
+            "github_username": "janedoe",
+            "title": "Security Mentor",
+            "bio": "Helps first-time contributors ship safely.",
+        })
+        self.assertEqual(resp.status, 201)
+        kwargs = captured["add_args"].kwargs
+        self.assertEqual(kwargs["title"], "Security Mentor")
+        self.assertEqual(kwargs["bio"], "Helps first-time contributors ship safely.")
+
     # --- New strict-validation tests ---
 
     def test_name_with_html_tag_returns_400(self):
@@ -6309,6 +6362,14 @@ class TestHandleAddMentor(unittest.TestCase):
 
     def test_name_too_long_returns_400(self):
         resp, _ = self._run_add({"name": "A" * 101, "github_username": "janedoe"})
+        self.assertEqual(resp.status, 400)
+
+    def test_title_with_html_returns_400(self):
+        resp, _ = self._run_add({"name": "Jane Doe", "github_username": "janedoe", "title": "<bad>"})
+        self.assertEqual(resp.status, 400)
+
+    def test_bio_with_html_returns_400(self):
+        resp, _ = self._run_add({"name": "Jane Doe", "github_username": "janedoe", "bio": "<script>bad</script>"})
         self.assertEqual(resp.status, 400)
 
     def test_name_exactly_100_chars_accepted(self):
