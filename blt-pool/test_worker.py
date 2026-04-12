@@ -1742,6 +1742,11 @@ class TestPostMergedPrCombinedComment(unittest.TestCase):
         self._run(self._make_leaderboard_data(), "alice", [], posted, deleted)
         self.assertIn("pool.owaspblt.org", posted[0])
 
+    def test_combined_comment_contains_current_repository_link(self):
+        posted, deleted = [], []
+        self._run(self._make_leaderboard_data(), "alice", [], posted, deleted)
+        self.assertIn("[test-org/test-repo](https://github.com/test-org/test-repo)", posted[0])
+
     def test_combined_comment_contains_contributor_leaderboard(self):
         posted, deleted = [], []
         self._run(self._make_leaderboard_data(), "alice", [], posted, deleted)
