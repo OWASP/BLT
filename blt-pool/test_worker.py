@@ -3612,10 +3612,6 @@ class TestBackfillReviewCredits(unittest.TestCase):
                     ])
                 return self._make_api_response([])
 
-            # Simulate a PR from a previous month in leaderboard_pr_state.
-            prev_month_start_ts, prev_month_end_ts = _worker._month_window("2026-02")
-            prev_month_closed_at = prev_month_start_ts + 100  # somewhere in Feb 2026
-
             monthly_inc_calls = []
 
             async def _capturing_d1_all(db, sql, params=()):
