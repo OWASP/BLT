@@ -51,7 +51,7 @@ def detect_failed_scrape(description: str, title: str) -> bool:
     if not description or len(description.strip()) < 50:
         return True
 
-    desc_lower = description.lower()
+    desc_lower = re.sub(r"\s+", " ", description).strip().lower()
 
     # Bot / WAF / interstitial pages (avoid bare "cloudflare" — matches real job descriptions).
     failure_patterns = [
