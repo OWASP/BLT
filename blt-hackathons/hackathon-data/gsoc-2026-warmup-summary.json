@@ -1,8 +1,8 @@
 {
   "participantCount": 196,
-  "totalPRs": 2597,
+  "totalPRs": 2599,
   "mergedPRs": 1616,
-  "totalIssues": 820,
+  "totalIssues": 821,
   "repositories": 54,
   "topContributors": [
     {
@@ -25,6 +25,26 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "Remove unused adblock_16x16.png asset",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6175",
+      "username": "Prachi9506",
+      "avatar": "https://avatars.githubusercontent.com/u/174894162?v=4",
+      "state": "open",
+      "created_at": "2026-04-12T14:37:31Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT"
+    },
+    {
+      "title": "Remove unused adblock_24x24.png asset",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6174",
+      "username": "Prachi9506",
+      "avatar": "https://avatars.githubusercontent.com/u/174894162?v=4",
+      "state": "open",
+      "created_at": "2026-04-12T14:19:07Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT"
+    },
     {
       "title": "fix: enforce domain boundary in OWASP hostname check CWE-183",
       "url": "https://github.com/OWASP-BLT/BLT/pull/6173",
@@ -104,26 +124,6 @@
       "created_at": "2026-04-11T16:55:59Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "Delete recommended_repos.html file",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6163",
-      "username": "Neel-Pandya",
-      "avatar": "https://avatars.githubusercontent.com/u/73536156?v=4",
-      "state": "closed",
-      "created_at": "2026-04-11T08:35:04Z",
-      "merged_at": "2026-04-12T00:08:21Z",
-      "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "fix: backfill referred_by for all  mentors via D1 migration ",
-      "url": "https://github.com/OWASP-BLT/BLT-Pool/pull/120",
-      "username": "BharathC0",
-      "avatar": "https://avatars.githubusercontent.com/u/211328860?v=4",
-      "state": "open",
-      "created_at": "2026-04-11T02:40:01Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-Pool"
     }
   ]
 }
