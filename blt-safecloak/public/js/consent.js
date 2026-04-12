@@ -204,17 +204,19 @@ const ConsentManager = (() => {
     if (form) {
       form.addEventListener("submit", async (e) => {
         e.preventDefault();
-        const confirmed = document.getElementById("confirm-legal").checked;
-        if (!confirmed) {
-          showToast("Please confirm the legal attestation before recording.", "warning");
+        const legalCheckbox = document.getElementById("confirm-legal");
+        if (!legalCheckbox || !legalCheckbox.checked) {
+          showToast("Please confirm the legal attestation before recording.", "error");
           return;
         }
 
         const fd = new FormData(form);
-        const name = fd.get("participant-name").trim();
+        const nameField = fd.get("participant-name");
+        const name = (nameField || "").trim();
         if (!name) {
           showToast("Participant name is required.", "error");
-          document.getElementById("participant-name").focus();
+          const nameInput = document.getElementById("participant-name");
+          if (nameInput) nameInput.focus();
           return;
         }
         const entry = await record({
