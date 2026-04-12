@@ -4584,10 +4584,12 @@ async def _post_merged_pr_combined_comment(
     # ---------------------------------------------------------------------------
     # 2. Build the combined comment body
     # ---------------------------------------------------------------------------
+    repo_full_name = f"{owner}/{repo}"
+    repo_url = f"https://github.com/{owner}/{repo}"
     thanks_section = (
         f"🎉 PR merged! Thanks for your contribution, @{author_login}!\n\n"
         "Your work is now part of the project. Keep contributing to "
-        "[OWASP BLT-Pool](https://pool.owaspblt.org) and help make the web a safer place! 🛡️\n\n"
+        f"[{repo_full_name}]({repo_url}) and help make the web a safer place! 🛡️\n\n"
         "Visit [pool.owaspblt.org](https://pool.owaspblt.org) to explore the mentor pool and connect with contributors."
     )
 
