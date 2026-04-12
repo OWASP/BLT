@@ -286,7 +286,7 @@
           if (seekers.length > 0) {
             html += '<div><h3 class="font-semibold mb-2 dark:text-white">Recent Job Seekers</h3><div class="space-y-2">';
             seekers.forEach(function (s) {
-              html += '<div class="rounded-lg border border-slate-200 dark:border-gray-700 p-3"><a href="seekers.html" class="font-medium text-red-600 hover:text-red-700 dark:text-red-400">' + esc(s.name || 'Anonymous') + (s.headline ? ' – ' + esc(s.headline) : '') + '</a></div>';
+              html += '<div class="rounded-lg border border-slate-200 dark:border-gray-700 p-3"><a href="seeker.html?id=' + encodeURIComponent(s.id || '') + '" class="font-medium text-red-600 hover:text-red-700 dark:text-red-400">' + esc(s.name || 'Anonymous') + (s.headline ? ' – ' + esc(s.headline) : '') + '</a></div>';
             });
             html += '</div></div>';
           }
