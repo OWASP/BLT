@@ -1,6 +1,6 @@
 {
   "participantCount": 196,
-  "totalPRs": 2596,
+  "totalPRs": 2597,
   "mergedPRs": 1613,
   "totalIssues": 820,
   "repositories": 54,
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "fix: enforce domain boundary in OWASP hostname check CWE-183",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6173",
+      "username": "S3DFX-CYBER",
+      "avatar": "https://avatars.githubusercontent.com/u/213652949?v=4",
+      "state": "closed",
+      "created_at": "2026-04-12T10:01:05Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT"
+    },
     {
       "title": "Feat/sort work arrangement filters badges",
       "url": "https://github.com/OWASP-BLT/BLT-Jobs/pull/73",
@@ -114,16 +124,6 @@
       "created_at": "2026-04-11T02:40:01Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT-Pool"
-    },
-    {
-      "title": "chore: delete view_lecture.html",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6162",
-      "username": "Ai-chan-0411",
-      "avatar": "https://avatars.githubusercontent.com/u/275152799?v=4",
-      "state": "closed",
-      "created_at": "2026-04-11T01:18:16Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT"
     }
   ]
 }
