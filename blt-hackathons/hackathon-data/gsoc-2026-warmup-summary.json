@@ -1,6 +1,6 @@
 {
   "participantCount": 196,
-  "totalPRs": 2592,
+  "totalPRs": 2596,
   "mergedPRs": 1613,
   "totalIssues": 820,
   "repositories": 54,
@@ -25,6 +25,36 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "Feat/sort work arrangement filters badges",
+      "url": "https://github.com/OWASP-BLT/BLT-Jobs/pull/73",
+      "username": "sidd190",
+      "avatar": "https://avatars.githubusercontent.com/u/73955358?v=4",
+      "state": "open",
+      "created_at": "2026-04-12T08:41:42Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-Jobs"
+    },
+    {
+      "title": "Fix/scrape heuristics tightening",
+      "url": "https://github.com/OWASP-BLT/BLT-Jobs/pull/72",
+      "username": "sidd190",
+      "avatar": "https://avatars.githubusercontent.com/u/73955358?v=4",
+      "state": "open",
+      "created_at": "2026-04-12T08:29:03Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-Jobs"
+    },
+    {
+      "title": "[Fix] Seeker links fixed, added saved expiry mechanism and refactored listeners",
+      "url": "https://github.com/OWASP-BLT/BLT-Jobs/pull/71",
+      "username": "sidd190",
+      "avatar": "https://avatars.githubusercontent.com/u/73955358?v=4",
+      "state": "open",
+      "created_at": "2026-04-12T08:23:22Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-Jobs"
+    },
     {
       "title": "fix: validate confirm-legal checkbox before consent form submission",
       "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/68",
@@ -94,36 +124,6 @@
       "created_at": "2026-04-11T01:18:16Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "chore: delete dashboard_edit_course.html",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6161",
-      "username": "Ai-chan-0411",
-      "avatar": "https://avatars.githubusercontent.com/u/275152799?v=4",
-      "state": "closed",
-      "created_at": "2026-04-11T01:18:15Z",
-      "merged_at": "2026-04-12T00:05:50Z",
-      "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "chore: delete create_standalone_lecture.html",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6160",
-      "username": "Ai-chan-0411",
-      "avatar": "https://avatars.githubusercontent.com/u/275152799?v=4",
-      "state": "closed",
-      "created_at": "2026-04-11T01:18:03Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "remove: delete Bitcoin node setup scripts",
-      "url": "https://github.com/OWASP-BLT/BLT-Rewards/pull/53",
-      "username": "Neurvinch",
-      "avatar": "https://avatars.githubusercontent.com/u/149451318?v=4",
-      "state": "open",
-      "created_at": "2026-04-10T18:05:54Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-Rewards"
     }
   ]
 }
