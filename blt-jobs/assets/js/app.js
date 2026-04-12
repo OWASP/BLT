@@ -4,6 +4,85 @@ function normalizeString(value) {
   return (value || "").toString().toLowerCase();
 }
 
+/** Infer remote / hybrid / onsite from location, title, and start of description. */
+function inferWorkMode(job) {
+  const loc = normalizeString(job.location || "");
+  const title = normalizeString(job.title || "");
+  const desc = normalizeString((job.description || "").slice(0, 4000));
+  const hay = `${loc}\n${title}\n${desc}`;
+
+  if (
+    /\bhybrid\b|\bremote\s*\/\s*office\b|\boffice\s*\/\s*remote\b|on-?site.{0,50}remote|remote.{0,50}on-?site|split\s+between|partial(ly)?\s+remote|mix\s+of\s+(remote|on-?site)/i.test(
+      hay
+    ) ||
+    /home.{0,80}office|office.{0,80}(at\s+)?home|flexible\s+work\s+(model|location|arrangement)/i.test(hay)
+  ) {
+    return "hybrid";
+  }
+
+  const negRemote =
+    /\bnot\s+(an?\s+)?remote\b|\bno\s+remote\b|\bnon[-\s]?remote\b|\bon[-\s]?site\s+only\b|\bin[-\s]?person\s+only\b|\bnot\s+available\s+for\s+remote\b|\bunfortunately.{0,40}not\s+remote/i.test(
+      hay
+    );
+  const remoteStrong =
+    /\b(100%|fully?|all)[\s-]*remote\b|\bremote[\s-]?(only|global|worldwide|world[\s-]wide|first|eligible)\b|\bwork\s+from\s+(anywhere|home)\b|\bdistributed\s+(across|team|company|worldwide)\b|\banywhere\s+in\s+(the\s+)?(world|us|u\.?s\.?|usa|uk|europe)\b|\bremote[\s-]?within\b|\bfully?\s+distributed\b/i.test(
+      hay
+    );
+  const remoteSoft = /\bremote\b|\bwfh\b|\btelecommut/i.test(hay);
+  if (!negRemote && (remoteStrong || remoteSoft)) return "remote";
+
+  return "onsite";
+}
+
+function workModeBadgeHtml(mode) {
+  if (mode === "remote") {
+    return `<span class="inline-flex shrink-0 items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300"><i class="fa-solid fa-house-laptop" aria-hidden="true"></i> Remote</span>`;
+  }
+  if (mode === "hybrid") {
+    return `<span class="inline-flex shrink-0 items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-900 dark:bg-amber-900/40 dark:text-amber-200"><i class="fa-solid fa-shuffle" aria-hidden="true"></i> Hybrid</span>`;
+  }
+  return `<span class="inline-flex shrink-0 items-center gap-1 rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700 dark:bg-gray-700 dark:text-gray-300"><i class="fa-solid fa-building-user" aria-hidden="true"></i> On-site</span>`;
+}
+
+function sortJobs(jobs, sortKey) {
+  const sorted = jobs.slice();
+  const t = (sortKey || "newest").toString();
+
+  function createdMs(job) {
+    const d = new Date(job.created_at || 0);
+    return Number.isNaN(d.getTime()) ? 0 : d.getTime();
+  }
+
+  if (t === "newest") sorted.sort((a, b) => createdMs(b) - createdMs(a));
+  else if (t === "oldest") sorted.sort((a, b) => createdMs(a) - createdMs(b));
+  else if (t === "title-asc")
+    sorted.sort((a, b) => (a.title || "").localeCompare(b.title || "", undefined, { sensitivity: "base" }));
+  else if (t === "title-desc")
+    sorted.sort((a, b) => (b.title || "").localeCompare(a.title || "", undefined, { sensitivity: "base" }));
+  else if (t === "company-asc")
+    sorted.sort((a, b) =>
+      (a.organization_name || "").localeCompare(b.organization_name || "", undefined, { sensitivity: "base" })
+    );
+  else if (t === "company-desc")
+    sorted.sort((a, b) =>
+      (b.organization_name || "").localeCompare(a.organization_name || "", undefined, { sensitivity: "base" })
+    );
+
+  return sorted;
+}
+
+function filtersAreActive() {
+  const sortVal = document.getElementById("sortSelect")?.value || "newest";
+  return !!(
+    (document.getElementById("searchInput")?.value || "").trim() ||
+    (document.getElementById("typeFilter")?.value || "") ||
+    (document.getElementById("locationFilter")?.value || "").trim() ||
+    (document.getElementById("workModeFilter")?.value || "") ||
+    (document.getElementById("salaryFilter")?.value || "") ||
+    sortVal !== "newest"
+  );
+}
+
 function isExpiringSoon(expiresAt) {
   if (!expiresAt) return false;
   try {
@@ -32,7 +111,7 @@ function formatExpiryDate(expiresAt) {
     const expiryDate = new Date(expiresAt);
     const now = new Date();
     const daysUntilExpiry = Math.ceil((expiryDate - now) / (1000 * 60 * 60 * 24));
-    
+
     if (daysUntilExpiry < 0) return "Expired";
     if (daysUntilExpiry === 0) return "Expires today";
     if (daysUntilExpiry === 1) return "Expires tomorrow";
@@ -61,19 +140,11 @@ function renderJobs(jobs) {
   if (!jobs || jobs.length === 0) {
     resultsSummary.classList.add("hidden");
     emptyState.classList.remove("hidden");
-    emptyStateMessage.textContent =
-      document.getElementById("searchInput").value ||
-      document.getElementById("typeFilter").value ||
-      document.getElementById("locationFilter").value
-        ? "Try adjusting your search terms or filters"
-        : "Check back later for new opportunities";
+    emptyStateMessage.textContent = filtersAreActive()
+      ? "Try adjusting your search terms or filters"
+      : "Check back later for new opportunities";
 
-    const anyFilterActive =
-      document.getElementById("searchInput").value ||
-      document.getElementById("typeFilter").value ||
-      document.getElementById("locationFilter").value;
-
-    if (anyFilterActive) {
+    if (filtersAreActive()) {
       clearFiltersButton.classList.remove("hidden");
     } else {
       clearFiltersButton.classList.add("hidden");
@@ -84,6 +155,14 @@ function renderJobs(jobs) {
 
   resultsSummary.classList.remove("hidden");
   emptyState.classList.add("hidden");
+
+  if (clearFiltersButton) {
+    if (filtersAreActive()) {
+      clearFiltersButton.classList.remove("hidden");
+    } else {
+      clearFiltersButton.classList.add("hidden");
+    }
+  }
 
   resultsCount.textContent = jobs.length.toString();
   resultsLabel.textContent = jobs.length === 1 ? " job found" : " jobs found";
@@ -97,12 +176,15 @@ function renderJobs(jobs) {
       const salary = job.salary_range || "";
       const createdAt = job.created_at || "";
       const addedBy = job.added_by || "";
-      
-      const expiryDate = [job.expires_at, job.effective_expires_at].find((value) => {
-        if (!value) return false;
-        const parsed = new Date(value);
-        return !Number.isNaN(parsed.getTime());
-      }) || null;
+      const workMode = inferWorkMode(job);
+      const workBadge = workModeBadgeHtml(workMode);
+
+      const expiryDate =
+        [job.expires_at, job.effective_expires_at].find((value) => {
+          if (!value) return false;
+          const parsed = new Date(value);
+          return !Number.isNaN(parsed.getTime());
+        }) || null;
       const expired = isExpired(expiryDate);
       const expiringSoon = isExpiringSoon(expiryDate);
       const expiryText = formatExpiryDate(expiryDate);
@@ -162,9 +244,12 @@ function renderJobs(jobs) {
         <div class="rounded-xl border ${borderClass} bg-white p-6 shadow-sm transition hover:border-red-600/30 hover:shadow dark:bg-gray-800 dark:hover:border-red-500/50">
           <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div class="flex-1">
-              <div class="flex items-start justify-between gap-2 mb-2">
-                <h3 class="text-xl font-semibold dark:text-gray-100 flex-1">${faviconImg}${title}</h3>
-                ${expiryBadge}
+              <div class="flex flex-wrap items-start justify-between gap-2 mb-2">
+                <h3 class="text-xl font-semibold dark:text-gray-100 flex min-w-0 flex-1 flex-wrap items-center gap-2">${faviconImg}<span class="min-w-0">${title}</span></h3>
+                <div class="flex flex-wrap items-center justify-end gap-2">
+                  ${workBadge}
+                  ${expiryBadge}
+                </div>
               </div>
               <div class="mt-2 flex flex-wrap gap-3 text-sm text-slate-600 dark:text-gray-400">
                 ${companySpan}
@@ -194,7 +279,6 @@ function renderJobs(jobs) {
 
   jobList.innerHTML = cardsHtml;
 
-  // Add bookmark buttons
   jobs.forEach((job) => {
     const container = document.getElementById(`bookmark-${job.id}`);
     if (container && window.SavedJobs) {
@@ -208,10 +292,16 @@ function applyFilters() {
   const searchInput = document.getElementById("searchInput");
   const typeFilter = document.getElementById("typeFilter");
   const locationFilter = document.getElementById("locationFilter");
+  const workModeFilter = document.getElementById("workModeFilter");
+  const salaryFilter = document.getElementById("salaryFilter");
+  const sortSelect = document.getElementById("sortSelect");
 
-  const q = normalizeString(searchInput.value);
-  const type = (typeFilter.value || "").toString();
-  const location = normalizeString(locationFilter.value);
+  const q = normalizeString(searchInput?.value);
+  const type = (typeFilter?.value || "").toString();
+  const location = normalizeString(locationFilter?.value);
+  const workMode = (workModeFilter?.value || "").toString();
+  const salaryOpt = (salaryFilter?.value || "").toString();
+  const sortKey = (sortSelect?.value || "newest").toString();
 
   const filtered = allJobs.filter((job) => {
     const title = normalizeString(job.title);
@@ -231,10 +321,18 @@ function applyFilters() {
 
     const matchesLocation = !location || jobLocation.includes(location);
 
-    return matchesSearch && matchesType && matchesLocation;
+    const mode = inferWorkMode(job);
+    const matchesWorkMode = !workMode || mode === workMode;
+
+    const hasSalaryListed = !!(job.salary_range && String(job.salary_range).trim());
+    const matchesSalary =
+      !salaryOpt || (salaryOpt === "listed" && hasSalaryListed) || (salaryOpt === "none" && !hasSalaryListed);
+
+    return matchesSearch && matchesType && matchesLocation && matchesWorkMode && matchesSalary;
   });
 
-  renderJobs(filtered);
+  const sorted = sortJobs(filtered, sortKey);
+  renderJobs(sorted);
 }
 
 async function loadJobs() {
@@ -247,7 +345,6 @@ async function loadJobs() {
     allJobs = Array.isArray(data.jobs) ? data.jobs : [];
     applyFilters();
   } catch (error) {
-    // If jobs cannot be loaded, show empty state
     console.error("Error loading jobs:", error);
     allJobs = [];
     renderJobs([]);
@@ -259,6 +356,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const searchInput = document.getElementById("searchInput");
   const typeFilter = document.getElementById("typeFilter");
   const locationFilter = document.getElementById("locationFilter");
+  const workModeFilter = document.getElementById("workModeFilter");
+  const salaryFilter = document.getElementById("salaryFilter");
+  const sortSelect = document.getElementById("sortSelect");
   const clearFiltersButton = document.getElementById("clearFiltersButton");
 
   if (filtersForm) {
@@ -286,15 +386,35 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  if (workModeFilter) {
+    workModeFilter.addEventListener("change", () => {
+      applyFilters();
+    });
+  }
+
+  if (salaryFilter) {
+    salaryFilter.addEventListener("change", () => {
+      applyFilters();
+    });
+  }
+
+  if (sortSelect) {
+    sortSelect.addEventListener("change", () => {
+      applyFilters();
+    });
+  }
+
   if (clearFiltersButton) {
     clearFiltersButton.addEventListener("click", () => {
       if (searchInput) searchInput.value = "";
       if (typeFilter) typeFilter.value = "";
       if (locationFilter) locationFilter.value = "";
+      if (workModeFilter) workModeFilter.value = "";
+      if (salaryFilter) salaryFilter.value = "";
+      if (sortSelect) sortSelect.value = "newest";
       applyFilters();
     });
   }
 
   loadJobs();
 });
-

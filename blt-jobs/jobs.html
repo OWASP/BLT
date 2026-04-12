@@ -46,8 +46,8 @@
           </a>
         </div>
 
-        <form id="filtersForm" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <div class="relative">
+        <form id="filtersForm" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+          <div class="relative sm:col-span-2 xl:col-span-2">
             <label for="searchInput" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Search</label>
             <i class="fa-solid fa-search absolute left-3 top-9 text-slate-400 dark:text-gray-500" aria-hidden="true"></i>
             <input
@@ -83,13 +83,53 @@
             />
           </div>
 
-          <div class="flex items-end gap-2">
+          <div>
+            <label for="workModeFilter" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Work arrangement</label>
+            <select
+              id="workModeFilter"
+              class="w-full rounded-lg border border-slate-200 bg-white py-2 px-4 text-sm shadow-sm transition focus:border-red-600 focus:outline-none focus:ring-1 focus:ring-red-600 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
+            >
+              <option value="">All arrangements</option>
+              <option value="remote">Remote</option>
+              <option value="hybrid">Hybrid</option>
+              <option value="onsite">On-site</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="salaryFilter" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Compensation</label>
+            <select
+              id="salaryFilter"
+              class="w-full rounded-lg border border-slate-200 bg-white py-2 px-4 text-sm shadow-sm transition focus:border-red-600 focus:outline-none focus:ring-1 focus:ring-red-600 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
+            >
+              <option value="">Any</option>
+              <option value="listed">Salary listed</option>
+              <option value="none">No salary listed</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="sortSelect" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Sort by</label>
+            <select
+              id="sortSelect"
+              class="w-full rounded-lg border border-slate-200 bg-white py-2 px-4 text-sm shadow-sm transition focus:border-red-600 focus:outline-none focus:ring-1 focus:ring-red-600 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
+            >
+              <option value="newest">Newest listed</option>
+              <option value="oldest">Oldest listed</option>
+              <option value="title-asc">Title (A–Z)</option>
+              <option value="title-desc">Title (Z–A)</option>
+              <option value="company-asc">Company (A–Z)</option>
+              <option value="company-desc">Company (Z–A)</option>
+            </select>
+          </div>
+
+          <div class="flex items-end sm:col-span-2 lg:col-span-1 xl:col-span-1">
             <button
               type="button"
               id="clearFiltersButton"
-              class="hidden flex-1 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+              class="hidden w-full rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
             >
-              Clear Filters
+              Clear filters
             </button>
           </div>
         </form>
