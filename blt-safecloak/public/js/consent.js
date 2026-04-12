@@ -204,6 +204,12 @@ const ConsentManager = (() => {
     if (form) {
       form.addEventListener("submit", async (e) => {
         e.preventDefault();
+        const confirmed = document.getElementById("confirm-legal").checked;
+        if (!confirmed) {
+          showToast("Please confirm the legal statement before recording.", "error");
+          return;
+        }
+
         const fd = new FormData(form);
         const entry = await record({
           type: fd.get("consent-type"),
