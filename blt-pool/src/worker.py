@@ -4836,9 +4836,11 @@ async def check_unresolved_conversations(payload, token):
         page += 1
 
     if unresolved:
+        pr_author_login = (pr.get("user") or {}).get("login", "")
+        username_block = f"@{pr_author_login}\n\n" if pr_author_login else ""
         comment_body = (
             f"{marker}\n"
-            f"⚠️ This pull request has **{unresolved_count} unresolved review "
+            f"{username_block}⚠️ This pull request has **{unresolved_count} unresolved review "
             f"{noun}** that must be resolved before merging."
         )
         if existing_comment_id is not None:

@@ -4073,6 +4073,7 @@ class TestCheckUnresolvedConversations(unittest.TestCase):
         _run(_inner())
         self.assertTrue(len(comment_bodies) >= 1, "Expected a comment to be posted")
         self.assertIn(_worker.UNRESOLVED_CONVERSATIONS_MARKER, comment_bodies[0])
+        self.assertIn("@alice", comment_bodies[0])
         self.assertIn("1", comment_bodies[0])
 
     def test_updates_existing_comment_when_unresolved(self):
