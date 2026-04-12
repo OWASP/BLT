@@ -8,6 +8,17 @@ function normalizeString(value) {
   return (value || "").toString().toLowerCase();
 }
 
+/** Same effective date as jobs list / build (explicit expires_at or effective_expires_at). */
+function resolveExpiryDate(job) {
+  const values = [job.expires_at, job.effective_expires_at];
+  for (const value of values) {
+    if (!value) continue;
+    const parsed = new Date(value);
+    if (!Number.isNaN(parsed.getTime())) return value;
+  }
+  return null;
+}
+
 function isExpired(expiresAt) {
   if (!expiresAt) return false;
   try {
@@ -78,10 +89,11 @@ function renderSavedJobs() {
       const jobType = job.job_type || "";
       const salary = job.salary_range || "";
       const createdAt = job.created_at || "";
-      
-      const expired = isExpired(job.expires_at);
-      const expiringSoon = isExpiringSoon(job.expires_at);
-      const expiryText = formatExpiryDate(job.expires_at);
+
+      const expiryForUi = resolveExpiryDate(job);
+      const expired = isExpired(expiryForUi);
+      const expiringSoon = isExpiringSoon(expiryForUi);
+      const expiryText = formatExpiryDate(expiryForUi);
 
       let faviconDomain = "";
       if (job.application_url) {

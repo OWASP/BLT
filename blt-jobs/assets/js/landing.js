@@ -43,7 +43,7 @@
           const name = escapeHtml(s.name || "Anonymous");
           const headline = escapeHtml(s.headline || "");
           html += `<li>
-            <a href="seekers.html" class="block rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 shadow-sm transition hover:border-red-500/70 hover:bg-red-50/60 dark:border-slate-700/60 dark:bg-slate-900/40 dark:text-slate-100 dark:hover:border-red-500/70 dark:hover:bg-slate-900/70">
+            <a href="seeker.html?id=${encodeURIComponent(s.id || "")}" class="block rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 shadow-sm transition hover:border-red-500/70 hover:bg-red-50/60 dark:border-slate-700/60 dark:bg-slate-900/40 dark:text-slate-100 dark:hover:border-red-500/70 dark:hover:bg-slate-900/70">
               <span class="font-medium">${name}</span>${
                 headline ? ` <span class="text-slate-500 dark:text-slate-400">– ${headline}</span>` : ""
               }

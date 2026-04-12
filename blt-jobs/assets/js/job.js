@@ -362,22 +362,6 @@ function renderJob(job) {
     const button = window.SavedJobs.createButton(job.id, { showLabel: true, size: "lg" });
     bookmarkContainer.appendChild(button);
   }
-
-  // Update saved count badge
-  updateSavedCountBadge();
-}
-
-function updateSavedCountBadge() {
-  const badge = document.getElementById("saved-count-badge");
-  if (badge && window.SavedJobs) {
-    const count = window.SavedJobs.count();
-    if (count > 0) {
-      badge.textContent = count;
-      badge.classList.remove("hidden");
-    } else {
-      badge.classList.add("hidden");
-    }
-  }
 }
 
 function initJobDetail() {
@@ -409,22 +393,6 @@ function initJobDetail() {
       }
 
       renderJob(job);
-
-      // Update saved jobs count badge
-      const updateBadge = () => {
-        const badge = document.getElementById("saved-count-badge");
-        if (badge && typeof SavedJobs !== "undefined") {
-          const count = SavedJobs.count();
-          if (count > 0) {
-            badge.textContent = count;
-            badge.classList.remove("hidden");
-          } else {
-            badge.classList.add("hidden");
-          }
-        }
-      };
-      updateBadge();
-      window.addEventListener("savedJobsChanged", updateBadge);
     })
     .catch((err) => {
       console.error("Error loading job details:", err);
@@ -433,14 +401,3 @@ function initJobDetail() {
 }
 
 document.addEventListener("DOMContentLoaded", initJobDetail);
-
-// Update badge when saved jobs change
-window.addEventListener("savedJobsChanged", updateSavedCountBadge);
-
-// Initial badge update
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", updateSavedCountBadge);
-} else {
-  updateSavedCountBadge();
-}
-

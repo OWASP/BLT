@@ -261,26 +261,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const locationFilter = document.getElementById("locationFilter");
   const clearFiltersButton = document.getElementById("clearFiltersButton");
 
-  // Update saved count badge
-  function updateSavedCountBadge() {
-    const badge = document.getElementById("saved-count-badge");
-    if (badge && window.SavedJobs) {
-      const count = window.SavedJobs.count();
-      if (count > 0) {
-        badge.textContent = count;
-        badge.classList.remove("hidden");
-      } else {
-        badge.classList.add("hidden");
-      }
-    }
-  }
-
-  // Initial update
-  updateSavedCountBadge();
-
-  // Listen for changes
-  window.addEventListener("savedJobsChanged", updateSavedCountBadge);
-
   if (filtersForm) {
     filtersForm.addEventListener("submit", (event) => {
       event.preventDefault();
@@ -316,23 +296,5 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   loadJobs();
-
-  // Update saved jobs count badge
-  function updateSavedCountBadge() {
-    const badge = document.getElementById("saved-count-badge");
-    if (badge && typeof SavedJobs !== "undefined") {
-      const count = SavedJobs.count();
-      if (count > 0) {
-        badge.textContent = count;
-        badge.classList.remove("hidden");
-      } else {
-        badge.classList.add("hidden");
-      }
-    }
-  }
-
-  // Update badge on load and when saved jobs change
-  updateSavedCountBadge();
-  window.addEventListener("savedJobsChanged", updateSavedCountBadge);
 });
 
