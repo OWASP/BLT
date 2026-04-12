@@ -3529,7 +3529,7 @@ async def handle_mentor_unassign(
                 owner,
                 repo,
                 issue_number,
-                f"@{login} Only the issue author, the current assignee, the assigned mentor, "
+                f"@{login} Only the issue author, a current assignee, the assigned mentor, "
                 "or a repo maintainer can remove a mentor assignment. "
                 "Use `/rematch` if you'd like a different mentor.\n\n"
                 "— [OWASP BLT-Pool](https://pool.owaspblt.org)",
