@@ -206,11 +206,17 @@ const ConsentManager = (() => {
         e.preventDefault();
         const confirmed = document.getElementById("confirm-legal").checked;
         if (!confirmed) {
-          showToast("Please confirm the legal statement before recording.", "error");
+          showToast("Please confirm the legal attestation before recording.", "warning");
           return;
         }
 
         const fd = new FormData(form);
+        const name = fd.get("participant-name").trim();
+        if (!name) {
+          showToast("Participant name is required.", "error");
+          document.getElementById("participant-name").focus();
+          return;
+        }
         const entry = await record({
           type: fd.get("consent-type"),
           name: fd.get("participant-name"),
