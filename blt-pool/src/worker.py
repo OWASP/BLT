@@ -4728,6 +4728,7 @@ async def check_unresolved_conversations(payload, token):
     unresolved = any(not t.get("isResolved", True) for t in threads)
 
     unresolved_count = sum(not t.get("isResolved", True) for t in threads)
+    pr_author_login = (pr.get("user") or {}).get("login", "")
 
     # Remove any existing unresolved-conversations labels
     resp_labels = await github_api(
@@ -4836,9 +4837,10 @@ async def check_unresolved_conversations(payload, token):
         page += 1
 
     if unresolved:
+        username_prefix = f"@{pr_author_login} " if pr_author_login else ""
         comment_body = (
             f"{marker}\n"
-            f"⚠️ This pull request has **{unresolved_count} unresolved review "
+            f"{username_prefix}⚠️ This pull request has **{unresolved_count} unresolved review "
             f"{noun}** that must be resolved before merging."
         )
         if existing_comment_id is not None:
