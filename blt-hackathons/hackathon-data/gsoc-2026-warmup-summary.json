@@ -1,6 +1,6 @@
 {
   "participantCount": 198,
-  "totalPRs": 2609,
+  "totalPRs": 2610,
   "mergedPRs": 1617,
   "totalIssues": 822,
   "repositories": 54,
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "add PATCH /bugs/{id} endpoint for updating bugs",
+      "url": "https://github.com/OWASP-BLT/BLT-API/pull/86",
+      "username": "azizrebhi",
+      "avatar": "https://avatars.githubusercontent.com/u/154744962?v=4",
+      "state": "open",
+      "created_at": "2026-04-13T21:07:47Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-API"
+    },
     {
       "title": "feat(submit): add screenshot preview grid with remove + live size/count checks",
       "url": "https://github.com/OWASP-BLT/BLT-Zero/pull/28",
@@ -113,16 +123,6 @@
       "state": "closed",
       "created_at": "2026-04-12T17:39:11Z",
       "merged_at": "2026-04-13T13:42:28Z",
-      "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "Remove unused adblock_16x16.png asset",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6175",
-      "username": "Prachi9506",
-      "avatar": "https://avatars.githubusercontent.com/u/174894162?v=4",
-      "state": "open",
-      "created_at": "2026-04-12T14:37:31Z",
-      "merged_at": null,
       "repository": "OWASP-BLT/BLT"
     }
   ]
