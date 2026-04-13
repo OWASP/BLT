@@ -405,12 +405,10 @@ async def handle_bugs(
 async def update_bug(db: Any, request: Any, env: Any, bug_id_str: str, logger: Any) -> Any:
     """Update a bug. Requires JWT authentication. Only the bug owner can update."""
     try:
-        # Validate bug ID
         if not bug_id_str.isdigit():
             return error_response("Invalid bug ID", status=400)
         bug_id = int(bug_id_str)
 
-        # Authenticate
         auth_header = _get_header(request, "Authorization")
         if not auth_header or not auth_header.startswith("Bearer "):
             return error_response("Authentication required", status=401)
@@ -427,21 +425,17 @@ async def update_bug(db: Any, request: Any, env: Any, bug_id_str: str, logger: A
         except (ValueError, TypeError):
             return error_response("Invalid or expired token", status=401)
 
-        # Check bug exists
         bug = await Bug.objects(db).get(id=bug_id)
         if not bug:
             return error_response("Bug not found", status=404)
 
-        # Authorization: only the bug owner can update
         if bug.get("user") is not None and bug["user"] != user_id:
             return error_response("You can only update your own bugs", status=403)
 
-        # Parse request body
         body = await parse_json_body(request)
         if not body:
             return error_response("Request body is required", status=400)
 
-        # Build updates from allowed fields only
         updates = {}
         for field in body:
             if field not in _UPDATABLE_FIELDS:
@@ -449,7 +443,6 @@ async def update_bug(db: Any, request: Any, env: Any, bug_id_str: str, logger: A
 
             value = body[field]
 
-            # Validate status
             if field == "status":
                 if not isinstance(value, str) or value not in _VALID_STATUSES:
                     return error_response(
@@ -458,19 +451,16 @@ async def update_bug(db: Any, request: Any, env: Any, bug_id_str: str, logger: A
                     )
                 updates["status"] = value
 
-            # Validate boolean fields (SQLite stores as 0/1)
             elif field in ("verified", "is_hidden"):
                 if not isinstance(value, bool):
                     return error_response(f"{field} must be a boolean", status=400)
                 updates[field] = 1 if value else 0
 
-            # Validate integer fields
             elif field in ("score", "closed_by", "label"):
-                if not isinstance(value, int):
+                if isinstance(value, bool) or not isinstance(value, int):
                     return error_response(f"{field} must be an integer", status=400)
                 updates[field] = value
 
-            # Validate string fields
             elif field in ("markdown_description", "description", "github_url", "cve_id", "cve_score", "closed_date"):
                 if value is not None and not isinstance(value, str):
                     return error_response(f"{field} must be a string or null", status=400)
@@ -479,10 +469,8 @@ async def update_bug(db: Any, request: Any, env: Any, bug_id_str: str, logger: A
         if not updates:
             return error_response("No valid fields to update", status=400)
 
-        # Perform update
         await Bug.objects(db).filter(id=bug_id).update(**updates)
 
-        # Fetch and return the updated bug
         updated_bug = await Bug.objects(db).get(id=bug_id)
 
         return Response.json({

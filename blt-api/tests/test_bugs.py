@@ -454,6 +454,18 @@ class TestUpdateBug:
             )
         assert resp.status == 400
 
+    async def test_bool_as_score_returns_400(self):
+        bug = {"id": 1, "user": 1, "status": "open"}
+        mock_bug, _ = _make_mock_bug_qs(get_return=bug)
+        db = MockDB()
+        with patch("handlers.bugs.get_db_safe", AsyncMock(return_value=db)), \
+             patch("handlers.bugs.Bug", mock_bug):
+            resp = await handle_bugs(
+                MockRequest(method="PATCH", body={"score": True}, headers=_make_auth_header(1)),
+                MockEnv(), {"id": "1"}, {}, "/bugs/1",
+            )
+        assert resp.status == 400
+
     # -- Not found / authorization tests --
 
     async def test_bug_not_found_returns_404(self):
