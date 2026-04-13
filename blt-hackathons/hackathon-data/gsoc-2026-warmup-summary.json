@@ -1,6 +1,6 @@
 {
   "participantCount": 198,
-  "totalPRs": 2605,
+  "totalPRs": 2606,
   "mergedPRs": 1616,
   "totalIssues": 822,
   "repositories": 54,
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "Remove unused adblock.png asset",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6179",
+      "username": "Prachi9506",
+      "avatar": "https://avatars.githubusercontent.com/u/174894162?v=4",
+      "state": "open",
+      "created_at": "2026-04-13T10:05:19Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT"
+    },
     {
       "title": "feat(optimization): SEO, Open Graph Metadata & Accessibility",
       "url": "https://github.com/OWASP-BLT/BLT-Jobs/pull/76",
@@ -113,16 +123,6 @@
       "state": "closed",
       "created_at": "2026-04-12T08:41:42Z",
       "merged_at": "2026-04-12T13:14:49Z",
-      "repository": "OWASP-BLT/BLT-Jobs"
-    },
-    {
-      "title": "Fix/scrape heuristics tightening",
-      "url": "https://github.com/OWASP-BLT/BLT-Jobs/pull/72",
-      "username": "sidd190",
-      "avatar": "https://avatars.githubusercontent.com/u/73955358?v=4",
-      "state": "closed",
-      "created_at": "2026-04-12T08:29:03Z",
-      "merged_at": "2026-04-12T13:11:46Z",
       "repository": "OWASP-BLT/BLT-Jobs"
     }
   ]
