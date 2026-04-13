@@ -26,7 +26,7 @@ sys.modules["workers"] = _mock_workers
 
 # Removed sys.modules.js mock for same reason as test_auth
 
-from handlers.bugs import handle_bugs  # noqa: E402
+from handlers.bugs import handle_bugs, update_bug  # noqa: E402
 
 
 @pytest.fixture(autouse=True)
@@ -97,9 +97,10 @@ class MockDB:
 
 
 class MockRequest:
-    def __init__(self, method="GET", body=None):
+    def __init__(self, method="GET", body=None, headers=None):
         self.method = method
         self._body = body
+        self.headers = headers or {}
 
     async def text(self):
         if self._body is None:
@@ -110,7 +111,7 @@ class MockRequest:
 
 
 class MockEnv:
-    pass
+    JWT_SECRET = "test-secret-key"
 
 
 def _make_mock_bug_class(count=0):
@@ -328,4 +329,256 @@ class TestDatabaseConnectionErrors:
     async def test_db_error_on_create_returns_500(self):
         with patch("handlers.bugs.get_db_safe", AsyncMock(side_effect=Exception("DB down"))):
             resp = await handle_bugs(MockRequest(method="POST", body={"url": "https://x.com", "description": "d"}), MockEnv(), {}, {}, "/bugs")
+        assert resp.status == 500
+
+
+def _make_auth_header(user_id=1):
+    """Create a valid Bearer token for testing."""
+    from libs.jwt_utils import encode_jwt
+    token = encode_jwt({"user_id": user_id}, MockEnv.JWT_SECRET)
+    return {"Authorization": f"Bearer {token}"}
+
+
+def _make_mock_bug_qs(get_return=None, first_return=None, update_side_effect=None):
+    """Build a mock Bug ORM queryset for PATCH tests."""
+    mock_qs = MagicMock()
+    mock_qs.filter.return_value = mock_qs
+    mock_qs.get = AsyncMock(return_value=get_return)
+    mock_qs.first = AsyncMock(return_value=first_return)
+    mock_qs.update = AsyncMock(side_effect=update_side_effect)
+    mock_bug = MagicMock()
+    mock_bug.objects.return_value = mock_qs
+    return mock_bug, mock_qs
+
+
+class TestUpdateBug:
+    """Tests for PATCH /bugs/{id}."""
+
+    # -- Auth tests --
+
+    async def test_no_auth_header_returns_401(self):
+        db = MockDB()
+        with patch("handlers.bugs.get_db_safe", AsyncMock(return_value=db)):
+            resp = await handle_bugs(
+                MockRequest(method="PATCH", body={"status": "closed"}),
+                MockEnv(), {"id": "1"}, {}, "/bugs/1",
+            )
+        assert resp.status == 401
+
+    async def test_invalid_token_returns_401(self):
+        db = MockDB()
+        with patch("handlers.bugs.get_db_safe", AsyncMock(return_value=db)):
+            resp = await handle_bugs(
+                MockRequest(method="PATCH", body={"status": "closed"}, headers={"Authorization": "Bearer bad-token"}),
+                MockEnv(), {"id": "1"}, {}, "/bugs/1",
+            )
+        assert resp.status == 401
+
+    async def test_missing_bearer_prefix_returns_401(self):
+        db = MockDB()
+        with patch("handlers.bugs.get_db_safe", AsyncMock(return_value=db)):
+            resp = await handle_bugs(
+                MockRequest(method="PATCH", body={"status": "closed"}, headers={"Authorization": "Token abc"}),
+                MockEnv(), {"id": "1"}, {}, "/bugs/1",
+            )
+        assert resp.status == 401
+
+    # -- Validation tests --
+
+    async def test_non_integer_id_returns_400(self):
+        db = MockDB()
+        with patch("handlers.bugs.get_db_safe", AsyncMock(return_value=db)):
+            resp = await handle_bugs(
+                MockRequest(method="PATCH", body={"status": "closed"}, headers=_make_auth_header()),
+                MockEnv(), {"id": "abc"}, {}, "/bugs/abc",
+            )
+        assert resp.status == 400
+
+    async def test_empty_body_returns_400(self):
+        bug = {"id": 1, "user": 1, "status": "open"}
+        mock_bug, _ = _make_mock_bug_qs(get_return=bug)
+        db = MockDB()
+        with patch("handlers.bugs.get_db_safe", AsyncMock(return_value=db)), \
+             patch("handlers.bugs.Bug", mock_bug):
+            resp = await handle_bugs(
+                MockRequest(method="PATCH", body=None, headers=_make_auth_header(1)),
+                MockEnv(), {"id": "1"}, {}, "/bugs/1",
+            )
+        assert resp.status == 400
+
+    async def test_no_valid_fields_returns_400(self):
+        bug = {"id": 1, "user": 1, "status": "open"}
+        mock_bug, _ = _make_mock_bug_qs(get_return=bug)
+        db = MockDB()
+        with patch("handlers.bugs.get_db_safe", AsyncMock(return_value=db)), \
+             patch("handlers.bugs.Bug", mock_bug):
+            resp = await handle_bugs(
+                MockRequest(method="PATCH", body={"id": 999, "created": "2020-01-01"}, headers=_make_auth_header(1)),
+                MockEnv(), {"id": "1"}, {}, "/bugs/1",
+            )
+        assert resp.status == 400
+
+    async def test_invalid_status_returns_400(self):
+        bug = {"id": 1, "user": 1, "status": "open"}
+        mock_bug, _ = _make_mock_bug_qs(get_return=bug)
+        db = MockDB()
+        with patch("handlers.bugs.get_db_safe", AsyncMock(return_value=db)), \
+             patch("handlers.bugs.Bug", mock_bug):
+            resp = await handle_bugs(
+                MockRequest(method="PATCH", body={"status": "banana"}, headers=_make_auth_header(1)),
+                MockEnv(), {"id": "1"}, {}, "/bugs/1",
+            )
+        assert resp.status == 400
+
+    async def test_verified_not_bool_returns_400(self):
+        bug = {"id": 1, "user": 1, "status": "open"}
+        mock_bug, _ = _make_mock_bug_qs(get_return=bug)
+        db = MockDB()
+        with patch("handlers.bugs.get_db_safe", AsyncMock(return_value=db)), \
+             patch("handlers.bugs.Bug", mock_bug):
+            resp = await handle_bugs(
+                MockRequest(method="PATCH", body={"verified": "yes"}, headers=_make_auth_header(1)),
+                MockEnv(), {"id": "1"}, {}, "/bugs/1",
+            )
+        assert resp.status == 400
+
+    async def test_score_not_int_returns_400(self):
+        bug = {"id": 1, "user": 1, "status": "open"}
+        mock_bug, _ = _make_mock_bug_qs(get_return=bug)
+        db = MockDB()
+        with patch("handlers.bugs.get_db_safe", AsyncMock(return_value=db)), \
+             patch("handlers.bugs.Bug", mock_bug):
+            resp = await handle_bugs(
+                MockRequest(method="PATCH", body={"score": "high"}, headers=_make_auth_header(1)),
+                MockEnv(), {"id": "1"}, {}, "/bugs/1",
+            )
+        assert resp.status == 400
+
+    # -- Not found / authorization tests --
+
+    async def test_bug_not_found_returns_404(self):
+        mock_bug, _ = _make_mock_bug_qs(get_return=None)
+        db = MockDB()
+        with patch("handlers.bugs.get_db_safe", AsyncMock(return_value=db)), \
+             patch("handlers.bugs.Bug", mock_bug):
+            resp = await handle_bugs(
+                MockRequest(method="PATCH", body={"status": "closed"}, headers=_make_auth_header(1)),
+                MockEnv(), {"id": "999"}, {}, "/bugs/999",
+            )
+        assert resp.status == 404
+
+    async def test_non_owner_returns_403(self):
+        bug = {"id": 1, "user": 42, "status": "open"}  # owned by user 42
+        mock_bug, _ = _make_mock_bug_qs(get_return=bug)
+        db = MockDB()
+        with patch("handlers.bugs.get_db_safe", AsyncMock(return_value=db)), \
+             patch("handlers.bugs.Bug", mock_bug):
+            resp = await handle_bugs(
+                MockRequest(method="PATCH", body={"status": "closed"}, headers=_make_auth_header(1)),  # user 1 trying
+                MockEnv(), {"id": "1"}, {}, "/bugs/1",
+            )
+        assert resp.status == 403
+
+    # -- Success tests --
+
+    async def test_update_status_success(self):
+        bug = {"id": 1, "user": 1, "status": "open"}
+        updated = {"id": 1, "user": 1, "status": "closed"}
+        mock_bug, mock_qs = _make_mock_bug_qs()
+        mock_qs.get = AsyncMock(side_effect=[bug, updated])
+        db = MockDB()
+        with patch("handlers.bugs.get_db_safe", AsyncMock(return_value=db)), \
+             patch("handlers.bugs.Bug", mock_bug):
+            resp = await handle_bugs(
+                MockRequest(method="PATCH", body={"status": "closed"}, headers=_make_auth_header(1)),
+                MockEnv(), {"id": "1"}, {}, "/bugs/1",
+            )
+        assert resp.status == 200
+        assert resp.data["success"] is True
+        assert resp.data["data"]["status"] == "closed"
+        mock_qs.update.assert_called_once_with(status="closed")
+
+    async def test_update_verified_converts_to_int(self):
+        bug = {"id": 1, "user": 1, "status": "open", "verified": 0}
+        updated = {"id": 1, "user": 1, "status": "open", "verified": 1}
+        mock_bug, mock_qs = _make_mock_bug_qs()
+        mock_qs.get = AsyncMock(side_effect=[bug, updated])
+        db = MockDB()
+        with patch("handlers.bugs.get_db_safe", AsyncMock(return_value=db)), \
+             patch("handlers.bugs.Bug", mock_bug):
+            resp = await handle_bugs(
+                MockRequest(method="PATCH", body={"verified": True}, headers=_make_auth_header(1)),
+                MockEnv(), {"id": "1"}, {}, "/bugs/1",
+            )
+        assert resp.status == 200
+        mock_qs.update.assert_called_once_with(verified=1)
+
+    async def test_update_multiple_fields(self):
+        bug = {"id": 1, "user": 1, "status": "open", "score": 10}
+        updated = {"id": 1, "user": 1, "status": "closed", "score": 90}
+        mock_bug, mock_qs = _make_mock_bug_qs()
+        mock_qs.get = AsyncMock(side_effect=[bug, updated])
+        db = MockDB()
+        with patch("handlers.bugs.get_db_safe", AsyncMock(return_value=db)), \
+             patch("handlers.bugs.Bug", mock_bug):
+            resp = await handle_bugs(
+                MockRequest(method="PATCH", body={"status": "closed", "score": 90}, headers=_make_auth_header(1)),
+                MockEnv(), {"id": "1"}, {}, "/bugs/1",
+            )
+        assert resp.status == 200
+        mock_qs.update.assert_called_once_with(status="closed", score=90)
+
+    async def test_immutable_fields_ignored(self):
+        """Fields like id, created, user should be silently ignored."""
+        bug = {"id": 1, "user": 1, "status": "open"}
+        updated = {"id": 1, "user": 1, "status": "closed"}
+        mock_bug, mock_qs = _make_mock_bug_qs()
+        mock_qs.get = AsyncMock(side_effect=[bug, updated])
+        db = MockDB()
+        with patch("handlers.bugs.get_db_safe", AsyncMock(return_value=db)), \
+             patch("handlers.bugs.Bug", mock_bug):
+            resp = await handle_bugs(
+                MockRequest(method="PATCH", body={"status": "closed", "id": 999, "created": "2020-01-01", "user": 99}, headers=_make_auth_header(1)),
+                MockEnv(), {"id": "1"}, {}, "/bugs/1",
+            )
+        assert resp.status == 200
+        # Only status should be in the update call, not id/created/user
+        mock_qs.update.assert_called_once_with(status="closed")
+
+    async def test_null_string_field_accepted(self):
+        bug = {"id": 1, "user": 1, "github_url": "https://old.com"}
+        updated = {"id": 1, "user": 1, "github_url": None}
+        mock_bug, mock_qs = _make_mock_bug_qs()
+        mock_qs.get = AsyncMock(side_effect=[bug, updated])
+        db = MockDB()
+        with patch("handlers.bugs.get_db_safe", AsyncMock(return_value=db)), \
+             patch("handlers.bugs.Bug", mock_bug):
+            resp = await handle_bugs(
+                MockRequest(method="PATCH", body={"github_url": None}, headers=_make_auth_header(1)),
+                MockEnv(), {"id": "1"}, {}, "/bugs/1",
+            )
+        assert resp.status == 200
+        mock_qs.update.assert_called_once_with(github_url=None)
+
+    async def test_bug_with_null_user_allows_any_authenticated_user(self):
+        """Bugs with no owner (user=None) can be updated by any authenticated user."""
+        bug = {"id": 1, "user": None, "status": "open"}
+        updated = {"id": 1, "user": None, "status": "closed"}
+        mock_bug, mock_qs = _make_mock_bug_qs()
+        mock_qs.get = AsyncMock(side_effect=[bug, updated])
+        db = MockDB()
+        with patch("handlers.bugs.get_db_safe", AsyncMock(return_value=db)), \
+             patch("handlers.bugs.Bug", mock_bug):
+            resp = await handle_bugs(
+                MockRequest(method="PATCH", body={"status": "closed"}, headers=_make_auth_header(5)),
+                MockEnv(), {"id": "1"}, {}, "/bugs/1",
+            )
+        assert resp.status == 200
+
+    async def test_db_error_returns_500(self):
+        with patch("handlers.bugs.get_db_safe", AsyncMock(side_effect=Exception("DB down"))):
+            resp = await handle_bugs(
+                MockRequest(method="PATCH", body={"status": "closed"}, headers=_make_auth_header()),
+                MockEnv(), {"id": "1"}, {}, "/bugs/1",
+            )
         assert resp.status == 500

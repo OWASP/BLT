@@ -50,6 +50,7 @@ router.add_route("GET", "/health", handle_health)
 router.add_route("GET", "/bugs/search", handle_bugs)
 router.add_route("GET", "/bugs", handle_bugs)
 router.add_route("POST", "/bugs", handle_bugs)
+router.add_route("PATCH", "/bugs/{id}", handle_bugs)
 router.add_route("GET", "/bugs/{id}", handle_bugs)
 
 # Users API
@@ -126,6 +127,7 @@ _add_v2_route("GET", "/health", handle_health)
 _add_v2_route("GET", "/bugs/search", handle_bugs)
 _add_v2_route("GET", "/bugs", handle_bugs)
 _add_v2_route("POST", "/bugs", handle_bugs)
+_add_v2_route("PATCH", "/bugs/{id}", handle_bugs)
 _add_v2_route("GET", "/bugs/{id}", handle_bugs)
 
 _add_v2_route("GET", "/users", handle_users)
