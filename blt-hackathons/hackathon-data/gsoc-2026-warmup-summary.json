@@ -1,6 +1,6 @@
 {
   "participantCount": 198,
-  "totalPRs": 2608,
+  "totalPRs": 2609,
   "mergedPRs": 1617,
   "totalIssues": 822,
   "repositories": 54,
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "feat(submit): add screenshot preview grid with remove + live size/count checks",
+      "url": "https://github.com/OWASP-BLT/BLT-Zero/pull/28",
+      "username": "Jayant2908",
+      "avatar": "https://avatars.githubusercontent.com/u/200989760?v=4",
+      "state": "open",
+      "created_at": "2026-04-13T18:47:24Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-Zero"
+    },
     {
       "title": "fix: derive notes encryption key via PBKDF2 instead of storing raw pa\u2026",
       "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/69",
@@ -112,16 +122,6 @@
       "avatar": "https://avatars.githubusercontent.com/u/174894162?v=4",
       "state": "open",
       "created_at": "2026-04-12T14:37:31Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "Remove unused adblock_24x24.png asset ",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6174",
-      "username": "Prachi9506",
-      "avatar": "https://avatars.githubusercontent.com/u/174894162?v=4",
-      "state": "closed",
-      "created_at": "2026-04-12T14:19:07Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT"
     }
