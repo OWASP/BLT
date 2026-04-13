@@ -1,6 +1,6 @@
 {
   "participantCount": 198,
-  "totalPRs": 2603,
+  "totalPRs": 2605,
   "mergedPRs": 1616,
   "totalIssues": 822,
   "repositories": 54,
@@ -25,6 +25,26 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "feat(optimization): SEO, Open Graph Metadata & Accessibility",
+      "url": "https://github.com/OWASP-BLT/BLT-Jobs/pull/76",
+      "username": "sidd190",
+      "avatar": "https://avatars.githubusercontent.com/u/73955358?v=4",
+      "state": "open",
+      "created_at": "2026-04-13T08:25:14Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-Jobs"
+    },
+    {
+      "title": "Add custom 404 page over the default github pages one",
+      "url": "https://github.com/OWASP-BLT/BLT-Jobs/pull/75",
+      "username": "sidd190",
+      "avatar": "https://avatars.githubusercontent.com/u/73955358?v=4",
+      "state": "open",
+      "created_at": "2026-04-13T08:24:53Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-Jobs"
+    },
     {
       "title": "feat(seo): meta tags, open graph, robots.txt and generated sitemap",
       "url": "https://github.com/OWASP-BLT/BLT-Jobs/pull/74",
@@ -104,26 +124,6 @@
       "created_at": "2026-04-12T08:29:03Z",
       "merged_at": "2026-04-12T13:11:46Z",
       "repository": "OWASP-BLT/BLT-Jobs"
-    },
-    {
-      "title": "[Fix] Seeker links fixed, added saved expiry mechanism and refactored listeners",
-      "url": "https://github.com/OWASP-BLT/BLT-Jobs/pull/71",
-      "username": "sidd190",
-      "avatar": "https://avatars.githubusercontent.com/u/73955358?v=4",
-      "state": "closed",
-      "created_at": "2026-04-12T08:23:22Z",
-      "merged_at": "2026-04-12T13:10:11Z",
-      "repository": "OWASP-BLT/BLT-Jobs"
-    },
-    {
-      "title": "fix: validate confirm-legal checkbox before consent form submission",
-      "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/68",
-      "username": "SatishKumar620",
-      "avatar": "https://avatars.githubusercontent.com/u/168626374?v=4",
-      "state": "open",
-      "created_at": "2026-04-12T03:00:15Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-SafeCloak"
     }
   ]
 }
