@@ -42,7 +42,7 @@ async def handle_bugs(
         GET /bugs - List bugs with pagination and optional filters (status, domain, verified)
         GET /bugs/{id} - Get detailed bug info with screenshots and tags
         POST /bugs - Create a new bug report (requires url and description)
-        PATCH /bugs/{id} - Update a bug (auth required, owner or admin)
+        PATCH /bugs/{id} - Update a bug (auth required, owner only)
         GET /bugs/search - Search bugs by URL or description text (requires 'q' param)
     
     Query parameters for listing:

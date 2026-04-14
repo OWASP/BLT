@@ -584,7 +584,7 @@ class TestUpdateBug:
         assert resp.status == 200
         mock_qs.update.assert_called_once_with(github_url=None)
 
-    async def test_bug_with_null_user_allows_any_authenticated_user(self):
+    async def test_null_owner_denies_any_authenticated_user(self):
         """Bugs with no owner (user=None) cannot be updated by anyone."""
         bug = {"id": 1, "user": None, "status": "open"}
         mock_bug, _ = _make_mock_bug_qs(get_return=bug)
