@@ -1,6 +1,6 @@
 {
   "participantCount": 200,
-  "totalPRs": 2620,
+  "totalPRs": 2622,
   "mergedPRs": 1619,
   "totalIssues": 829,
   "repositories": 54,
@@ -25,6 +25,26 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "Remove unused android_16x16.png asset",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6192",
+      "username": "rimjhim-codes",
+      "avatar": "https://avatars.githubusercontent.com/u/253708920?v=4",
+      "state": "open",
+      "created_at": "2026-04-14T22:02:48Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT"
+    },
+    {
+      "title": "Remove android 16x16",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6191",
+      "username": "rimjhim-codes",
+      "avatar": "https://avatars.githubusercontent.com/u/253708920?v=4",
+      "state": "closed",
+      "created_at": "2026-04-14T21:53:29Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT"
+    },
     {
       "title": "Add workflow to generate first-time contributors report",
       "url": "https://github.com/OWASP-BLT/BLT/pull/6190",
@@ -104,26 +124,6 @@
       "created_at": "2026-04-14T05:25:17Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT-Zero"
-    },
-    {
-      "title": "fix: include purpose and participants in consent integrity hash (#70)",
-      "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/71",
-      "username": "BharathC0",
-      "avatar": "https://avatars.githubusercontent.com/u/211328860?v=4",
-      "state": "open",
-      "created_at": "2026-04-14T02:43:00Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-SafeCloak"
-    },
-    {
-      "title": "add PATCH /bugs/{id} endpoint for updating bugs",
-      "url": "https://github.com/OWASP-BLT/BLT-API/pull/86",
-      "username": "azizrebhi",
-      "avatar": "https://avatars.githubusercontent.com/u/154744962?v=4",
-      "state": "open",
-      "created_at": "2026-04-13T21:07:47Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-API"
     }
   ]
 }
