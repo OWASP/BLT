@@ -115,7 +115,9 @@ async def on_fetch(request, env):
         if path == '/' or path == '/index.html':
             # Use env.ASSETS to serve static files if available
             if hasattr(env, 'ASSETS'): 
-                req_root = Request.new(path, request)
+                root_url = URL.new(request.url)
+                root_url.pathname = path
+                req_root = Request.new(root_url.toString(), request)
                 return await env.ASSETS.fetch(req_root)
             # Fallback: return simple message
             return Response.new('Please configure assets in wrangler.toml', 
@@ -356,6 +358,14 @@ async def on_fetch(request, env):
         
         # Final fallback: If no API route matched and Wrangler didn't find a static asset
         if response is None:
+            if hasattr(env, 'ASSETS'):
+                asset_response = await env.ASSETS.fetch(request)
+                if asset_response.status != 404:
+                    return asset_response
+
+            if path.startswith('/api/'):
+                return json_response({'error': 'Not Found'}, 404, extra_headers=cors_headers)
+
             headers = {**cors_headers, 'Content-Type': 'text/html'}
             init = to_js({'status': 404, 'headers': headers}, dict_converter=Object.fromEntries)
             return Response.new(get_404_html(), init)

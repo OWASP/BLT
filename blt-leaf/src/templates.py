@@ -7,31 +7,9 @@ def get_404_html():
     <title>404 - Page Not Found | BLT-Leaf</title>
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        window.tailwind = {
-            config: {
-                darkMode: 'class'
-            }
-        };
 
-        // Initialize theme immediately to prevent FOUC
-        (function () {
-            const savedTheme = localStorage.getItem('theme');
-            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            const theme = savedTheme || (prefersDark ? 'dark' : 'light');
-
-            if (theme === 'dark') {
-                document.documentElement.classList.add('dark');
-            }
-        })();
-    </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <style>
-        .dark body {
-            background-color: #0f172a !important;
-            color: #f1f5f9 !important;
-        }
-    </style>
+
 </head>
 <body class="flex h-screen flex-col bg-slate-50 text-slate-900 antialiased dark:bg-slate-900 dark:text-slate-100 transition-colors duration-300">
    
