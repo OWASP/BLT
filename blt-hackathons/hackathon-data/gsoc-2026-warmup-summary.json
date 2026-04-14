@@ -1,8 +1,8 @@
 {
-  "participantCount": 198,
-  "totalPRs": 2615,
-  "mergedPRs": 1617,
-  "totalIssues": 825,
+  "participantCount": 199,
+  "totalPRs": 2617,
+  "mergedPRs": 1618,
+  "totalIssues": 829,
   "repositories": 54,
   "topContributors": [
     {
@@ -25,6 +25,26 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "Delete website/templates/education/instructor_dashboard.html (Fixes #6123)",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6187",
+      "username": "Samarth1907",
+      "avatar": "https://avatars.githubusercontent.com/u/117087974?v=4",
+      "state": "open",
+      "created_at": "2026-04-14T14:21:06Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT"
+    },
+    {
+      "title": "Remove unused adblock_24x24.png",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6182",
+      "username": "rimjhim-codes",
+      "avatar": "https://avatars.githubusercontent.com/u/253708920?v=4",
+      "state": "closed",
+      "created_at": "2026-04-14T13:56:03Z",
+      "merged_at": "2026-04-14T14:15:29Z",
+      "repository": "OWASP-BLT/BLT"
+    },
     {
       "title": "feat: added custom 404 error page",
       "url": "https://github.com/OWASP-BLT/BLT-Leaf/pull/299",
@@ -104,26 +124,6 @@
       "created_at": "2026-04-13T12:45:33Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "Remove unused adblock.png asset",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6179",
-      "username": "Prachi9506",
-      "avatar": "https://avatars.githubusercontent.com/u/174894162?v=4",
-      "state": "closed",
-      "created_at": "2026-04-13T10:05:19Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "feat(optimization): SEO, Open Graph Metadata & Accessibility",
-      "url": "https://github.com/OWASP-BLT/BLT-Jobs/pull/76",
-      "username": "sidd190",
-      "avatar": "https://avatars.githubusercontent.com/u/73955358?v=4",
-      "state": "open",
-      "created_at": "2026-04-13T08:25:14Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-Jobs"
     }
   ]
 }
