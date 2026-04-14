@@ -315,44 +315,78 @@
         <div class="mx-auto px-4 sm:px-6 lg:px-8">
             <!-- Mobile: Compact two-line layout -->
             <div class="flex flex-col gap-1.5 py-2 md:hidden">
-                <!-- First line: Logo, title, and essential buttons -->
+                <!-- First line: Logo and Hamburger Menu -->
                 <div class="flex items-center justify-between">
                     <a href="/" class="flex shrink-0 items-center gap-1.5 hover:opacity-80 transition-opacity">
                         <img width="20" src="./static/logo.png" alt="Logo" onerror="this.style.display='none'" />
                         <h1 class="text-xs font-bold text-slate-900 dark:text-white">BLT-LEAF</h1>
                     </a>
                     
-                    <div class="flex items-center gap-1.5">
-                        <div id="authControlsMobile" class="flex items-center gap-1.5"></div>
-                        <button id="autoRefreshToggle"
-                            class="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700"
-                            title="Toggle auto-refresh">
-                            <i class="fas fa-sync-alt text-xs" id="autoRefreshIcon"></i>
-                        </button>
-                        <button id="themeToggle"
-                            class="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700">
-                            <i class="fas fa-moon text-xs" id="themeIcon"></i>
-                        </button>
-                        <a href="/how-it-works.html"
-                            class="inline-flex items-center rounded-lg p-1.5 text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700"
-                            title="How It Works">
-                            <i class="fas fa-question-circle text-xs"></i>
-                        </a>
-                        <a href="/diagnostics.html"
-                            class="inline-flex items-center rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700"
-                            title="API Diagnostics">
-                            <i class="fas fa-stethoscope text-xs"></i>
-                        </a>
-                        <a href="https://github.com/OWASP-BLT/BLT-Leaf" target="_blank" rel="noopener noreferrer"
-                            class="rounded-lg bg-red-600 p-1.5 text-white hover:bg-red-700"
-                            title="Contribute">
-                            <i class="fab fa-github text-xs"></i>
-                        </a>
-                        <a href="https://github.com/OWASP-BLT/BLT-Leaf/issues/new?template=feedback.yml" target="_blank" rel="noopener noreferrer"
-                            class="rounded-lg bg-slate-600 p-1.5 text-white hover:bg-slate-700"
-                            title="Send Feedback">
-                            <i class="fas fa-comment-alt text-xs"></i>
-                        </a>
+                    <button id="mobileMenuBtn" 
+                        class="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 focus:outline-none dark:text-slate-400 dark:hover:bg-slate-700" 
+                        aria-label="Toggle Menu">
+                        <i class="fas fa-bars text-lg" id="menuIcon"></i>
+                    </button>
+                </div>
+
+                <!-- Mobile Drawer (Initially Hidden) -->
+                <div id="mobileDrawer" 
+                    class="hidden absolute top-full left-0 right-0 z-40 bg-white border-b border-slate-200 shadow-xl dark:bg-slate-800 dark:border-slate-700 transition-all duration-300 origin-top overflow-y-auto max-h-[70vh]">
+                    <div class="flex flex-col p-4 gap-4">
+                        <!-- Auth Controls Injection Point -->
+                        <div id="authControlsMobile" class="flex flex-col gap-2"></div>
+                        
+                        <div class="grid grid-cols-2 gap-2">
+                             <button id="autoRefreshToggleMobile" 
+                                class="flex flex-col items-center justify-center gap-2 rounded-xl p-3 text-sm font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 dark:text-slate-300 dark:bg-slate-900/50 dark:hover:bg-slate-900 transition-colors">
+                                <i class="fas fa-sync-alt" id="autoRefreshIconMobile"></i>
+                                <span class="text-[10px] uppercase tracking-wider">Sync</span>
+                            </button>
+                            <button id="themeToggleMobile" 
+                                class="flex flex-col items-center justify-center gap-2 rounded-xl p-3 text-sm font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 dark:text-slate-300 dark:bg-slate-900/50 dark:hover:bg-slate-900 transition-colors">
+                                <i class="fas fa-moon" id="themeIconMobile"></i>
+                                <span class="text-[10px] uppercase tracking-wider">Theme</span>
+                            </button>
+                        </div>
+
+                        <div class="flex flex-col gap-2">
+                            <a href="/how-it-works.html" class="flex items-center justify-between rounded-xl p-4 text-sm font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 dark:text-slate-300 dark:bg-slate-900/50 dark:hover:bg-slate-900 transition-colors border border-transparent hover:border-slate-200 dark:hover:border-slate-700">
+                                <div class="flex items-center gap-3">
+                                    <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
+                                        <i class="fas fa-question-circle"></i>
+                                    </div>
+                                    <span>How It Works</span>
+                                </div>
+                                <i class="fas fa-chevron-right text-xs text-slate-400"></i>
+                            </a>
+                            <a href="/diagnostics.html" class="flex items-center justify-between rounded-xl p-4 text-sm font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 dark:text-slate-300 dark:bg-slate-900/50 dark:hover:bg-slate-900 transition-colors border border-transparent hover:border-slate-200 dark:hover:border-slate-700">
+                                <div class="flex items-center gap-3">
+                                    <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400">
+                                        <i class="fas fa-stethoscope"></i>
+                                    </div>
+                                    <span>API Diagnostics</span>
+                                </div>
+                                <i class="fas fa-chevron-right text-xs text-slate-400"></i>
+                            </a>
+                            <a href="https://github.com/OWASP-BLT/BLT-Leaf" target="_blank" rel="noopener noreferrer" class="flex items-center justify-between rounded-xl p-4 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 transition-colors shadow-md shadow-red-500/20">
+                                <div class="flex items-center gap-3">
+                                    <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-white/20">
+                                        <i class="fab fa-github"></i>
+                                    </div>
+                                    <span>Contribute on GitHub</span>
+                                </div>
+                                <i class="fas fa-external-link-alt text-xs opacity-70"></i>
+                            </a>
+                            <a href="https://github.com/OWASP-BLT/BLT-Leaf/issues/new?template=feedback.yml" target="_blank" rel="noopener noreferrer" class="flex items-center justify-between rounded-xl p-4 text-sm font-semibold text-white bg-slate-600 hover:bg-slate-700 transition-colors shadow-md shadow-slate-500/20">
+                                <div class="flex items-center gap-3">
+                                    <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-white/20">
+                                        <i class="fas fa-comment-alt"></i>
+                                    </div>
+                                    <span>Send Feedback</span>
+                                </div>
+                                <i class="fas fa-external-link-alt text-xs opacity-70"></i>
+                            </a>
+                        </div>
                     </div>
                 </div>
                 
@@ -362,15 +396,15 @@
                         <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2">
                             <i class="fas fa-search text-slate-400 text-xs"></i>
                         </div>
-                        <input type="text" id="prSearchInput"
+                        <input type="text" id="prSearchInputMobile"
                             class="block w-full rounded-md border border-[#e74c3c] bg-slate-50 py-1.5 pl-7 pr-2 text-xs text-slate-900 placeholder:text-slate-500 dark:border-[#e74c3c] dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-400"
                             placeholder="Search PRs..." autocomplete="off">
                     </div>
-                    <button id="searchBtn"
+                    <button id="searchBtnMobile"
                         class="rounded-md bg-red-600 px-2 py-1.5 text-xs font-semibold text-white hover:bg-red-700 whitespace-nowrap">
                         <i class="fas fa-search"></i>
                     </button>
-                    <button id="clearSearchBtn"
+                    <button id="clearSearchBtnMobile"
                         class="rounded-md bg-slate-500 px-2 py-1.5 text-xs font-semibold text-white hover:bg-slate-600 whitespace-nowrap">
                         <i class="fas fa-times"></i>
                     </button>
@@ -973,64 +1007,53 @@
                 return escapeHtml(avatar);
             }
             return 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2220%22 height=%2220%22%3E%3Crect width=%2220%22 height=%2220%22 fill=%22%23E2E8F0%22/%3E%3C/svg%3E';
-        }
-
         function renderAuthControls() {
             const mobileEl = document.getElementById('authControlsMobile');
             const desktopEl = document.getElementById('authControlsDesktop');
             if (!mobileEl || !desktopEl) return;
 
-            if (authState.authenticated && authState.user?.login) {
-                const safeLogin = escapeHtml(authState.user.login);
-                const safeAvatar = getSafeAuthAvatarUrl(authState.user);
+            const renderContent = (isMobile) => {
+                const textSize = isMobile ? 'text-xs' : 'text-sm';
+                const padding = isMobile ? 'px-4 py-2' : 'px-3 py-2';
+                const avatarSize = isMobile ? 'h-8 w-8' : 'h-6 w-6';
 
-                mobileEl.innerHTML = `
-                    <img src="${safeAvatar}" alt="${safeLogin}" title="${safeLogin}" class="h-6 w-6 rounded-full border border-slate-300 dark:border-slate-600">
-                    <button type="button" data-auth-action="logout"
-                        class="rounded-lg bg-slate-600 px-2 py-1.5 text-[10px] font-semibold text-white hover:bg-slate-700">
-                        Sign Out
-                    </button>
-                `;
+                if (authState.authenticated && authState.user?.login) {
+                    const safeLogin = escapeHtml(authState.user.login);
+                    const safeAvatar = getSafeAuthAvatarUrl(authState.user);
 
-                desktopEl.innerHTML = `
-                    <div class="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-2 py-1.5 dark:border-slate-700 dark:bg-slate-800">
-                        <img src="${safeAvatar}" alt="${safeLogin}" title="${safeLogin}" class="h-6 w-6 rounded-full border border-slate-300 dark:border-slate-600">
-                        <span class="text-xs font-medium text-slate-700 dark:text-slate-300">${safeLogin}</span>
-                    </div>
-                    <button type="button" data-auth-action="logout"
-                        class="rounded-lg bg-slate-600 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-700">
-                        Sign Out
-                    </button>
-                `;
-            } else if (authState.oauth_enabled) {
-                mobileEl.innerHTML = `
-                    <a href="/api/auth/login"
-                        class="rounded-lg bg-slate-600 px-2 py-1.5 text-[10px] font-semibold text-white hover:bg-slate-700">
-                        Sign In
-                    </a>
-                `;
+                    return `
+                        <div class="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 p-2 dark:border-slate-700 dark:bg-slate-900/50">
+                            <img src="${safeAvatar}" alt="${safeLogin}" title="${safeLogin}" class="${avatarSize} rounded-full border border-slate-300 dark:border-slate-600">
+                            <div class="flex flex-col">
+                                <span class="text-xs font-bold text-slate-900 dark:text-white">${safeLogin}</span>
+                                <button type="button" data-auth-action="logout" class="text-left text-[10px] font-semibold text-red-600 hover:text-red-700 dark:text-red-400">
+                                    Sign Out
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                } else if (authState.oauth_enabled) {
+                    return `
+                        <a href="/api/auth/login"
+                            class="flex items-center justify-center gap-2 rounded-xl bg-slate-700 ${padding} ${textSize} font-semibold text-white hover:bg-slate-800 transition-colors shadow-sm">
+                            <i class="fab fa-github"></i>
+                            Sign In with GitHub
+                        </a>
+                    `;
+                } else {
+                    return `
+                        <div class="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 ${padding} ${textSize} text-slate-500 dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-400">
+                            <i class="fas fa-lock text-xs opacity-50"></i>
+                            OAuth Not Configured
+                        </div>
+                    `;
+                }
+            };
 
-                desktopEl.innerHTML = `
-                    <a href="/api/auth/login"
-                        class="rounded-lg bg-slate-600 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-700">
-                        Sign In
-                    </a>
-                `;
-            } else {
-                mobileEl.innerHTML = `
-                    <span class="rounded-lg border border-slate-300 px-2 py-1 text-[10px] text-slate-500 dark:border-slate-600 dark:text-slate-400" title="OAuth not configured">
-                        OAuth Off
-                    </span>
-                `;
+            mobileEl.innerHTML = renderContent(true);
+            desktopEl.innerHTML = renderContent(false);
 
-                desktopEl.innerHTML = `
-                    <span class="rounded-lg border border-slate-300 px-2 py-1 text-xs text-slate-500 dark:border-slate-600 dark:text-slate-400" title="OAuth not configured">
-                        OAuth Off
-                    </span>
-                `;
-            }
-
-            document.querySelectorAll('[data-auth-action=\"logout\"]').forEach((button) => {
+            document.querySelectorAll('[data-auth-action="logout"]').forEach((button) => {
                 button.addEventListener('click', async () => {
                     try {
                         await fetch('/api/auth/logout', {
@@ -1045,6 +1068,8 @@
                     await loadRateLimit(true);
                 });
             });
+        }
+
         }
 
         async function loadAuthState() {
@@ -2108,13 +2133,13 @@
          * Update the auto-refresh button appearance
          */
         function updateAutoRefreshUI() {
-            const buttons = document.querySelectorAll('#autoRefreshToggle');
-            const icons = document.querySelectorAll('#autoRefreshIcon');
+            const buttons = document.querySelectorAll('#autoRefreshToggle, #autoRefreshToggleMobile');
+            const icons = document.querySelectorAll('#autoRefreshIcon, #autoRefreshIconMobile');
 
             if (autoRefreshEnabled) {
                 buttons.forEach(button => {
                     button.classList.add('text-green-600', 'dark:text-green-400');
-                    button.classList.remove('text-slate-500', 'dark:text-slate-400');
+                    button.classList.remove('text-slate-500', 'dark:text-slate-400', 'text-slate-700', 'dark:text-slate-300');
                     button.title = 'Auto-refresh enabled (click to disable)';
                 });
                 icons.forEach(icon => {
@@ -3289,22 +3314,22 @@
         }
 
         // Theme toggle - handle both mobile and desktop buttons
-        document.querySelectorAll('#themeToggle').forEach(btn => {
+        document.querySelectorAll('#themeToggle, #themeToggleMobile').forEach(btn => {
             btn.addEventListener('click', toggleTheme);
         });
         
         // Auto-refresh toggle - handle both mobile and desktop buttons
-        document.querySelectorAll('#autoRefreshToggle').forEach(btn => {
+        document.querySelectorAll('#autoRefreshToggle, #autoRefreshToggleMobile').forEach(btn => {
             btn.addEventListener('click', toggleAutoRefresh);
         });
         
         // Search input - sync both mobile and desktop inputs
-        document.querySelectorAll('#prSearchInput').forEach(input => {
+        document.querySelectorAll('#prSearchInput, #prSearchInputMobile').forEach(input => {
             input.addEventListener('input', (e) => {
                 currentPage = 1;
                 filterPrs(e.target.value);
                 // Sync the other input
-                document.querySelectorAll('#prSearchInput').forEach(otherInput => {
+                document.querySelectorAll('#prSearchInput, #prSearchInputMobile').forEach(otherInput => {
                     if (otherInput !== e.target) {
                         otherInput.value = e.target.value;
                     }
@@ -3321,17 +3346,18 @@
         });
 
         // Search button - handle both mobile and desktop buttons
-        document.querySelectorAll('#searchBtn').forEach(btn => {
+        document.querySelectorAll('#searchBtn, #searchBtnMobile').forEach(btn => {
             btn.addEventListener('click', () => {
-                const searchTerm = document.querySelector('#prSearchInput').value;
+                const searchInput = document.querySelector('#prSearchInput:not([id*="Mobile"])') || document.querySelector('#prSearchInputMobile');
+                const searchTerm = searchInput.value;
                 filterPrs(searchTerm);
             });
         });
 
         // Clear button - handle both mobile and desktop buttons
-        document.querySelectorAll('#clearSearchBtn').forEach(btn => {
+        document.querySelectorAll('#clearSearchBtn, #clearSearchBtnMobile').forEach(btn => {
             btn.addEventListener('click', () => {
-                document.querySelectorAll('#prSearchInput').forEach(input => {
+                document.querySelectorAll('#prSearchInput, #prSearchInputMobile').forEach(input => {
                     input.value = '';
                 });
                 filterPrs('');
@@ -3354,51 +3380,54 @@
             loadPrs();
         });
 
-        // Mobile dropdown functionality
-        const repoDropdownButton = document.getElementById('repoDropdownButton');
-        const repoDropdownMenu = document.getElementById('repoDropdownMenu');
-        const repoSearchInput = document.getElementById('repoSearchInput');
-        
-        if (repoDropdownButton && repoDropdownMenu) {
-            // Toggle dropdown on button click
-            repoDropdownButton.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const isHidden = repoDropdownMenu.classList.contains('hidden');
-                if (isHidden) {
-                    repoDropdownMenu.classList.remove('hidden');
-                    updateMobileDropdown();
-                    // Focus search input after opening
-                    setTimeout(() => repoSearchInput?.focus(), 100);
-                } else {
-                    closeDropdown();
-                }
-            });
+        // Mobile Menu / Drawer Functionality
+        (function initMobileDrawer() {
+            const menuBtn = document.getElementById('mobileMenuBtn');
+            const drawer = document.getElementById('mobileDrawer');
+            const menuIcon = document.getElementById('menuIcon');
             
-            // Handle search input
-            if (repoSearchInput) {
-                repoSearchInput.addEventListener('input', (e) => {
-                    updateMobileDropdown(e.target.value);
-                });
-                
-                // Prevent dropdown from closing when clicking search input
-                repoSearchInput.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                });
+            if (!menuBtn || !drawer) return;
+            
+            function toggleDrawer() {
+                const isOpen = !drawer.classList.contains('hidden');
+                if (isOpen) {
+                    drawer.classList.add('hidden');
+                    menuIcon.classList.replace('fa-times', 'fa-bars');
+                    document.body.style.overflow = '';
+                } else {
+                    drawer.classList.remove('hidden');
+                    menuIcon.classList.replace('fa-bars', 'fa-times');
+                    document.body.style.overflow = 'hidden';
+                }
             }
             
-            // Close dropdown when clicking outside
+            menuBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                toggleDrawer();
+            });
+            
+            // Close drawer when clicking outside
             document.addEventListener('click', (e) => {
-                if (!repoDropdownButton.contains(e.target) && !repoDropdownMenu.contains(e.target)) {
-                    closeDropdown();
+                if (!drawer.classList.contains('hidden') && !drawer.contains(e.target) && !menuBtn.contains(e.target)) {
+                    toggleDrawer();
                 }
             });
-        }
+            
+            // Close drawer on navigation within the page
+            drawer.querySelectorAll('a, button').forEach(el => {
+                el.addEventListener('click', () => {
+                    setTimeout(() => {
+                        if (!drawer.classList.contains('hidden')) toggleDrawer();
+                    }, 150);
+                });
+            });
+        })();
 
         // Theme toggle functionality
         function initTheme() {
             // Theme class is already set in the head, just update the icon
             const isDark = document.documentElement.classList.contains('dark');
-            const themeIcons = document.querySelectorAll('#themeIcon');
+            const themeIcons = document.querySelectorAll('#themeIcon, #themeIconMobile');
 
             if (isDark) {
                 themeIcons.forEach(icon => {
@@ -3413,20 +3442,20 @@
 
         function toggleTheme() {
             const isDark = document.documentElement.classList.contains('dark');
-            const themeIcons = document.querySelectorAll('#themeIcon');
-
+            const themeIcons = document.querySelectorAll('#themeIcon, #themeIconMobile');
+            
             if (isDark) {
                 document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
                 themeIcons.forEach(icon => {
                     icon.className = 'fas fa-moon' + (icon.classList.contains('text-xs') ? ' text-xs' : '');
                 });
-                localStorage.setItem('theme', 'light');
             } else {
                 document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
                 themeIcons.forEach(icon => {
                     icon.className = 'fas fa-sun' + (icon.classList.contains('text-xs') ? ' text-xs' : '');
                 });
-                localStorage.setItem('theme', 'dark');
             }
         }
 
