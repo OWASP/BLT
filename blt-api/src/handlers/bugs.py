@@ -410,9 +410,9 @@ async def update_bug(db: Any, request: Any, env: Any, bug_id_str: str, logger: A
         bug_id = int(bug_id_str)
 
         auth_header = _get_header(request, "Authorization")
-        if not auth_header or not auth_header.startswith("Bearer "):
+        if not auth_header or not auth_header[:7].lower() == "bearer ":
             return error_response("Authentication required", status=401)
-        token = auth_header[7:]
+        token = auth_header[7:].strip()
         if not token:
             return error_response("Authentication required", status=401)
 
