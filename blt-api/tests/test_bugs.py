@@ -491,6 +491,18 @@ class TestUpdateBug:
             )
         assert resp.status == 403
 
+    async def test_null_owner_returns_403(self):
+        bug = {"id": 1, "user": None, "status": "open"}
+        mock_bug, _ = _make_mock_bug_qs(get_return=bug)
+        db = MockDB()
+        with patch("handlers.bugs.get_db_safe", AsyncMock(return_value=db)), \
+             patch("handlers.bugs.Bug", mock_bug):
+            resp = await handle_bugs(
+                MockRequest(method="PATCH", body={"status": "closed"}, headers=_make_auth_header(1)),
+                MockEnv(), {"id": "1"}, {}, "/bugs/1",
+            )
+        assert resp.status == 403
+
     # -- Success tests --
 
     async def test_update_status_success(self):
@@ -573,11 +585,9 @@ class TestUpdateBug:
         mock_qs.update.assert_called_once_with(github_url=None)
 
     async def test_bug_with_null_user_allows_any_authenticated_user(self):
-        """Bugs with no owner (user=None) can be updated by any authenticated user."""
+        """Bugs with no owner (user=None) cannot be updated by anyone."""
         bug = {"id": 1, "user": None, "status": "open"}
-        updated = {"id": 1, "user": None, "status": "closed"}
-        mock_bug, mock_qs = _make_mock_bug_qs()
-        mock_qs.get = AsyncMock(side_effect=[bug, updated])
+        mock_bug, _ = _make_mock_bug_qs(get_return=bug)
         db = MockDB()
         with patch("handlers.bugs.get_db_safe", AsyncMock(return_value=db)), \
              patch("handlers.bugs.Bug", mock_bug):
@@ -585,7 +595,7 @@ class TestUpdateBug:
                 MockRequest(method="PATCH", body={"status": "closed"}, headers=_make_auth_header(5)),
                 MockEnv(), {"id": "1"}, {}, "/bugs/1",
             )
-        assert resp.status == 200
+        assert resp.status == 403
 
     async def test_db_error_returns_500(self):
         with patch("handlers.bugs.get_db_safe", AsyncMock(side_effect=Exception("DB down"))):

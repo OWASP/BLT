@@ -429,7 +429,7 @@ async def update_bug(db: Any, request: Any, env: Any, bug_id_str: str, logger: A
         if not bug:
             return error_response("Bug not found", status=404)
 
-        if bug.get("user") is not None and bug["user"] != user_id:
+        if bug.get("user") is None or bug["user"] != user_id:
             return error_response("You can only update your own bugs", status=403)
 
         body = await parse_json_body(request)
