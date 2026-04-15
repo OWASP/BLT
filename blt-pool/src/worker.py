@@ -94,8 +94,6 @@ _MENTOR_STATS_CACHE_TTL = 86400
 # This default can also be overridden at runtime by setting the Cloudflare
 # Worker environment variable ``MENTOR_AUTO_PR_REVIEWER_ENABLED=true``.
 MENTOR_AUTO_PR_REVIEWER_ENABLED = False
-_MENTOR_SEED_LOCK = asyncio.Lock()
-_MENTORS_SEEDED = False
 
 # Unresolved conversations check — check-run name and HTML comment marker used
 # to identify the bot comment so it can be updated rather than duplicated.
@@ -553,14 +551,7 @@ async def _ensure_leaderboard_schema(db) -> None:
     Schema is managed via Wrangler D1 migrations under `migrations/`.
     This helper now only ensures mentor seed data exists.
     """
-    global _MENTORS_SEEDED
-    if _MENTORS_SEEDED:
-        return
-    async with _MENTOR_SEED_LOCK:
-        if _MENTORS_SEEDED:
-            return
-        await _populate_mentors_table(db)
-        _MENTORS_SEEDED = True
+    await _populate_mentors_table(db)
 
 
 # ---------------------------------------------------------------------------
