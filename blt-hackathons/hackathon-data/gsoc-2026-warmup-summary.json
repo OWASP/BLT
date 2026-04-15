@@ -1,7 +1,7 @@
 {
   "participantCount": 200,
-  "totalPRs": 2625,
-  "mergedPRs": 1622,
+  "totalPRs": 2626,
+  "mergedPRs": 1624,
   "totalIssues": 829,
   "repositories": 54,
   "topContributors": [
@@ -26,13 +26,23 @@
   ],
   "recentPRs": [
     {
+      "title": "Revert \"fix: new contributors workflow logic and runtime issues\"",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6195",
+      "username": "DonnieBLT",
+      "avatar": "https://avatars.githubusercontent.com/u/128622481?v=4",
+      "state": "closed",
+      "created_at": "2026-04-15T07:29:01Z",
+      "merged_at": "2026-04-15T07:29:11Z",
+      "repository": "OWASP-BLT/BLT"
+    },
+    {
       "title": "fix: new contributors workflow logic and runtime issues",
       "url": "https://github.com/OWASP-BLT/BLT/pull/6194",
       "username": "Jayant2908",
       "avatar": "https://avatars.githubusercontent.com/u/200989760?v=4",
       "state": "closed",
       "created_at": "2026-04-15T04:50:18Z",
-      "merged_at": null,
+      "merged_at": "2026-04-15T07:22:12Z",
       "repository": "OWASP-BLT/BLT"
     },
     {
@@ -112,16 +122,6 @@
       "avatar": "https://avatars.githubusercontent.com/u/104347137?v=4",
       "state": "open",
       "created_at": "2026-04-14T11:15:26Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-Leaf"
-    },
-    {
-      "title": "feat(mobile-ui): implement hamburger menu and vertical navigation drawer",
-      "url": "https://github.com/OWASP-BLT/BLT-Leaf/pull/297",
-      "username": "Jozz77",
-      "avatar": "https://avatars.githubusercontent.com/u/104347137?v=4",
-      "state": "open",
-      "created_at": "2026-04-14T08:58:03Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT-Leaf"
     }
