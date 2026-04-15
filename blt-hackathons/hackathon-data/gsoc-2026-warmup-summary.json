@@ -1,6 +1,6 @@
 {
   "participantCount": 201,
-  "totalPRs": 2631,
+  "totalPRs": 2632,
   "mergedPRs": 1627,
   "totalIssues": 830,
   "repositories": 54,
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "fix(security): harden Django settings for production readiness",
+      "url": "https://github.com/OWASP-BLT/BLT-Toasty/pull/41",
+      "username": "ojaswa072",
+      "avatar": "https://avatars.githubusercontent.com/u/230836303?v=4",
+      "state": "open",
+      "created_at": "2026-04-15T18:26:19Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-Toasty"
+    },
     {
       "title": "Remove unused static asset: adblock_256x256.png",
       "url": "https://github.com/OWASP-BLT/BLT/pull/6198",
@@ -112,16 +122,6 @@
       "avatar": "https://avatars.githubusercontent.com/u/104347137?v=4",
       "state": "closed",
       "created_at": "2026-04-14T17:03:51Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "delete github_stats.html page",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6188",
-      "username": "Jozz77",
-      "avatar": "https://avatars.githubusercontent.com/u/104347137?v=4",
-      "state": "closed",
-      "created_at": "2026-04-14T16:28:39Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT"
     }
