@@ -1,6 +1,6 @@
 {
   "participantCount": 200,
-  "totalPRs": 2627,
+  "totalPRs": 2628,
   "mergedPRs": 1625,
   "totalIssues": 829,
   "repositories": 54,
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "Poc/final rce verification",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6196",
+      "username": "SatishKumar620",
+      "avatar": "https://avatars.githubusercontent.com/u/168626374?v=4",
+      "state": "closed",
+      "created_at": "2026-04-15T09:42:37Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT"
+    },
     {
       "title": "Revert \"fix: new contributors workflow logic and runtime issues\"",
       "url": "https://github.com/OWASP-BLT/BLT/pull/6195",
@@ -114,16 +124,6 @@
       "created_at": "2026-04-14T13:56:03Z",
       "merged_at": "2026-04-14T14:15:29Z",
       "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "feat: added custom 404 error page",
-      "url": "https://github.com/OWASP-BLT/BLT-Leaf/pull/299",
-      "username": "Jozz77",
-      "avatar": "https://avatars.githubusercontent.com/u/104347137?v=4",
-      "state": "open",
-      "created_at": "2026-04-14T11:15:26Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-Leaf"
     }
   ]
 }
