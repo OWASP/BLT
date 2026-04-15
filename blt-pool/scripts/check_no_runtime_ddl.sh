@@ -3,7 +3,7 @@
 set -euo pipefail
 
 SEARCH_DIRS=("src")
-VIOLATION_PATTERN='[[:<:]](create[[:space:]]+table|alter[[:space:]]+table|drop[[:space:]]+table)[[:>:]]'
+VIOLATION_PATTERN='(^|[^[:alnum:]_])(create[[:space:]]+table|alter[[:space:]]+table|drop[[:space:]]+table)([^[:alnum:]_]|$)'
 IGNORE_COMMENT_PATTERN='^[[:space:]]*#'
 
 found=0
