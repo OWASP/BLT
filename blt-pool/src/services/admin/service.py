@@ -283,99 +283,11 @@ class AdminService:
         return rows[0] if rows else None
 
     async def _ensure_tables(self) -> None:
-        await self._d1_run(
-            """
-            CREATE TABLE IF NOT EXISTS mentors (
-                github_username TEXT NOT NULL PRIMARY KEY,
-                name TEXT NOT NULL,
-                title TEXT NOT NULL DEFAULT '',
-                bio TEXT NOT NULL DEFAULT '',
-                specialties TEXT NOT NULL DEFAULT '[]',
-                max_mentees INTEGER NOT NULL DEFAULT 3,
-                active INTEGER NOT NULL DEFAULT 1,
-                timezone TEXT NOT NULL DEFAULT '',
-                referred_by TEXT NOT NULL DEFAULT '',
-                email TEXT NOT NULL DEFAULT '',
-                slack_username TEXT NOT NULL DEFAULT '',
-                total_prs INTEGER NOT NULL DEFAULT 0,
-                total_reviews INTEGER NOT NULL DEFAULT 0,
-                total_comments INTEGER NOT NULL DEFAULT 0,
-                last_rate_limit INTEGER NOT NULL DEFAULT 0,
-                last_rate_remaining INTEGER NOT NULL DEFAULT 0,
-                last_rate_used INTEGER NOT NULL DEFAULT 0,
-                last_rate_reset_at INTEGER NOT NULL DEFAULT 0,
-                created_at INTEGER NOT NULL DEFAULT (strftime('%s','now'))
-            )
-            """
-        )
-        if not await self._d1_has_column("mentors", "title"):
-            await self._d1_run(
-                "ALTER TABLE mentors ADD COLUMN title TEXT NOT NULL DEFAULT ''"
-            )
-        if not await self._d1_has_column("mentors", "bio"):
-            await self._d1_run(
-                "ALTER TABLE mentors ADD COLUMN bio TEXT NOT NULL DEFAULT ''"
-            )
-        if not await self._d1_has_column("mentors", "email"):
-            await self._d1_run(
-                "ALTER TABLE mentors ADD COLUMN email TEXT NOT NULL DEFAULT ''"
-            )
-        if not await self._d1_has_column("mentors", "slack_username"):
-            await self._d1_run(
-                "ALTER TABLE mentors ADD COLUMN slack_username TEXT NOT NULL DEFAULT ''"
-            )
-        if not await self._d1_has_column("mentors", "total_prs"):
-            await self._d1_run(
-                "ALTER TABLE mentors ADD COLUMN total_prs INTEGER NOT NULL DEFAULT 0"
-            )
-        if not await self._d1_has_column("mentors", "total_reviews"):
-            await self._d1_run(
-                "ALTER TABLE mentors ADD COLUMN total_reviews INTEGER NOT NULL DEFAULT 0"
-            )
-        if not await self._d1_has_column("mentors", "total_comments"):
-            await self._d1_run(
-                "ALTER TABLE mentors ADD COLUMN total_comments INTEGER NOT NULL DEFAULT 0"
-            )
-        if not await self._d1_has_column("mentors", "last_rate_limit"):
-            await self._d1_run(
-                "ALTER TABLE mentors ADD COLUMN last_rate_limit INTEGER NOT NULL DEFAULT 0"
-            )
-        if not await self._d1_has_column("mentors", "last_rate_remaining"):
-            await self._d1_run(
-                "ALTER TABLE mentors ADD COLUMN last_rate_remaining INTEGER NOT NULL DEFAULT 0"
-            )
-        if not await self._d1_has_column("mentors", "last_rate_used"):
-            await self._d1_run(
-                "ALTER TABLE mentors ADD COLUMN last_rate_used INTEGER NOT NULL DEFAULT 0"
-            )
-        if not await self._d1_has_column("mentors", "last_rate_reset_at"):
-            await self._d1_run(
-                "ALTER TABLE mentors ADD COLUMN last_rate_reset_at INTEGER NOT NULL DEFAULT 0"
-            )
-        if not await self._d1_has_column("mentors", "created_at"):
-            await self._d1_run(
-                "ALTER TABLE mentors ADD COLUMN created_at INTEGER NOT NULL DEFAULT 0"
-            )
-            await self._d1_run(
-                "UPDATE mentors SET created_at = strftime('%s','now') WHERE created_at = 0"
-            )
-        await self._d1_run(
-            """
-            CREATE TABLE IF NOT EXISTS mentor_assignments (
-                org TEXT NOT NULL,
-                mentor_login TEXT NOT NULL,
-                issue_repo TEXT NOT NULL,
-                issue_number INTEGER NOT NULL,
-                assigned_at INTEGER NOT NULL,
-            mentee_login TEXT NOT NULL DEFAULT '',
-                PRIMARY KEY (org, issue_repo, issue_number)
-            )
-            """
-        )
-        if not await self._d1_has_column("mentor_assignments", "mentee_login"):
-            await self._d1_run(
-                "ALTER TABLE mentor_assignments ADD COLUMN mentee_login TEXT NOT NULL DEFAULT ''"
-            )
+        """Compatibility shim for existing call-sites.
+
+        D1 schema is managed by Wrangler migrations under `migrations/`.
+        """
+        return None
 
     async def _count_user_prs_in_org(self, github_username: str, org: str) -> Tuple[int, dict]:
         """Count all PRs authored by github_username across all repos in org."""

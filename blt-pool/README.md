@@ -49,7 +49,7 @@ The app runs as a Python Cloudflare Worker. D1 is used for both the leaderboard 
 
 ### D1 Data Model
 
-The worker creates and uses several D1 tables at runtime:
+The worker uses D1 tables managed through Wrangler SQL migrations under `migrations/`:
 
 - `mentors` stores mentor profile records such as name, GitHub username, specialties, timezone, max mentees, and referral source.
 - `mentor_assignments` stores active mentor-to-issue assignments so the homepage can show current load.
@@ -131,6 +131,8 @@ npx wrangler dev
 ```bash
 npx wrangler deploy
 ```
+
+`wrangler.toml` runs `scripts/run-migrations.sh` automatically during `wrangler deploy`.
 
 ### Production Secrets
 
@@ -219,7 +221,6 @@ The worker currently seeds an initial mentor pool in code so the homepage is pop
 - Vinamra Vaswani
 - Carla Voorhees
 - Akshay Behl
-- Ahmed ElSheik
 - Kunal Kashyap
 - Rudra Bhaskar
 - Sanidhya Shishodia
