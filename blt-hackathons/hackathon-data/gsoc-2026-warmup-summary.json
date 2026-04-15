@@ -1,6 +1,6 @@
 {
-  "participantCount": 201,
-  "totalPRs": 2632,
+  "participantCount": 202,
+  "totalPRs": 2634,
   "mergedPRs": 1628,
   "totalIssues": 830,
   "repositories": 54,
@@ -25,6 +25,26 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "docs: remove deprecated android.png per #6167",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6200",
+      "username": "Chaimaekit",
+      "avatar": "https://avatars.githubusercontent.com/u/96260441?v=4",
+      "state": "closed",
+      "created_at": "2026-04-15T22:09:41Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT"
+    },
+    {
+      "title": "Add GitHub Sponsors check for new contributors",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6199",
+      "username": "Jayant2908",
+      "avatar": "https://avatars.githubusercontent.com/u/200989760?v=4",
+      "state": "closed",
+      "created_at": "2026-04-15T21:29:32Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT"
+    },
     {
       "title": "fix(security): harden Django settings for production readiness",
       "url": "https://github.com/OWASP-BLT/BLT-Toasty/pull/41",
@@ -102,26 +122,6 @@
       "avatar": "https://avatars.githubusercontent.com/u/253708920?v=4",
       "state": "closed",
       "created_at": "2026-04-14T21:53:29Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "Add workflow to generate first-time contributors report",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6190",
-      "username": "Jayant2908",
-      "avatar": "https://avatars.githubusercontent.com/u/200989760?v=4",
-      "state": "closed",
-      "created_at": "2026-04-14T17:59:18Z",
-      "merged_at": "2026-04-15T03:29:25Z",
-      "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "delete github_stats.html page",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6189",
-      "username": "Jozz77",
-      "avatar": "https://avatars.githubusercontent.com/u/104347137?v=4",
-      "state": "closed",
-      "created_at": "2026-04-14T17:03:51Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT"
     }
