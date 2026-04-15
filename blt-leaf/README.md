@@ -603,4 +603,4 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-This project is part of the OWASP Bug Logging Tool (BLT) project. 
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
