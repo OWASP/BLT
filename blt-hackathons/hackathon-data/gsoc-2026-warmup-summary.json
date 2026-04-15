@@ -1,8 +1,8 @@
 {
   "participantCount": 200,
   "totalPRs": 2630,
-  "mergedPRs": 1626,
-  "totalIssues": 829,
+  "mergedPRs": 1627,
+  "totalIssues": 830,
   "repositories": 54,
   "topContributors": [
     {
@@ -32,7 +32,7 @@
       "avatar": "https://avatars.githubusercontent.com/u/200989760?v=4",
       "state": "closed",
       "created_at": "2026-04-15T14:21:29Z",
-      "merged_at": null,
+      "merged_at": "2026-04-15T14:47:34Z",
       "repository": "OWASP-BLT/BLT"
     },
     {
