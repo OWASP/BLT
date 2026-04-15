@@ -133,12 +133,6 @@ bash scripts/run-migrations.sh
 npx wrangler deploy
 ```
 
-To enforce migration-only schema changes:
-
-```bash
-bash scripts/check_no_runtime_ddl.sh
-```
-
 ### Production Secrets
 
 ```bash
