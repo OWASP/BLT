@@ -3,13 +3,14 @@
 ## Deploying to Cloudflare
 
 ```bash
-bash scripts/run-migrations.sh
 npx wrangler deploy
 ```
 
-## Why this order matters
+`wrangler.toml` runs `scripts/run-migrations.sh` automatically during `wrangler deploy`.
 
-Schema is now managed via Wrangler migrations. Apply migrations first, then deploy worker code.
+## Why this matters
+
+Schema is managed via Wrangler migrations, and deploy now applies migrations through Wrangler config before publishing worker code.
 
 ## Other useful commands
 

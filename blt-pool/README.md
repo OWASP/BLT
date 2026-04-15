@@ -129,9 +129,10 @@ npx wrangler dev
 ### Deploy
 
 ```bash
-bash scripts/run-migrations.sh
 npx wrangler deploy
 ```
+
+`wrangler.toml` runs `scripts/run-migrations.sh` automatically during `wrangler deploy`.
 
 ### Production Secrets
 
