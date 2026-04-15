@@ -3537,6 +3537,128 @@ class TestBackfillReviewCredits(unittest.TestCase):
 
         _run(_inner())
 
+    def test_tracked_merged_prs_filtered_to_current_month(self):
+        """leaderboard_pr_state query for tracked merged PRs must include the month window filter."""
+        async def _inner():
+            mock_db = self._make_mock_db()
+            env = types.SimpleNamespace(LEADERBOARD_DB=mock_db)
+            start_ts, end_ts = _worker._month_window("2026-03")
+
+            # No PRs from the GitHub API for the current month.
+            open_prs = []
+            closed_prs = []
+
+            d1_all_calls = []  # (sql, params) tuples
+
+            async def _capturing_d1_all(db, sql, params=()):
+                d1_all_calls.append((sql, params))
+                return []
+
+            async def _mock_api(method, path, token, body=None):
+                if "state=open" in path:
+                    return self._make_api_response(open_prs)
+                if "state=closed" in path:
+                    return self._make_api_response(closed_prs)
+                return self._make_api_response([])
+
+            with patch.object(_worker, "github_api", new=_mock_api):
+                with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
+                    with patch.object(_worker, "_d1_all", new=_capturing_d1_all):
+                        with patch.object(_worker, "_d1_run", new=AsyncMock(return_value={"success": True})):
+                            with patch.object(_worker, "_d1_inc_monthly", new=AsyncMock()):
+                                with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None)):
+                                    await _worker._backfill_repo_month_if_needed(
+                                        "OWASP-BLT", "test-repo", "tok", env,
+                                        month_key="2026-03", start_ts=start_ts, end_ts=end_ts,
+                                    )
+
+            # Find the _d1_all call for leaderboard_pr_state merged PR lookup.
+            pr_state_calls = [
+                (sql, params)
+                for sql, params in d1_all_calls
+                if "leaderboard_pr_state" in sql and "merged = 1" in sql
+            ]
+            self.assertTrue(
+                len(pr_state_calls) > 0,
+                "Expected a _d1_all call for leaderboard_pr_state merged PR lookup",
+            )
+            for sql, params in pr_state_calls:
+                self.assertIn(
+                    "closed_at", sql,
+                    "leaderboard_pr_state merged PR query must filter by closed_at",
+                )
+                self.assertIn(start_ts, params, "start_ts must be a param in the merged PR query")
+                self.assertIn(end_ts, params, "end_ts must be a param in the merged PR query")
+
+        _run(_inner())
+
+    def test_previous_month_tracked_prs_not_credited_in_current_month(self):
+        """PRs merged in a previous month must not generate review credits in the current month."""
+        async def _inner():
+            mock_db = self._make_mock_db()
+            env = types.SimpleNamespace(LEADERBOARD_DB=mock_db)
+            start_ts, end_ts = _worker._month_window("2026-03")
+
+            # No PRs visible from the GitHub API for the current month window.
+            open_prs = []
+            closed_prs = []  # No current-month merged PRs returned by API.
+
+            review_api_calls = []
+
+            async def _mock_api(method, path, token, body=None):
+                if "state=open" in path:
+                    return self._make_api_response(open_prs)
+                if "state=closed" in path:
+                    return self._make_api_response(closed_prs)
+                if "/reviews" in path:
+                    review_api_calls.append(path)
+                    return self._make_api_response([
+                        {"user": {"login": "bob", "type": "User"}, "state": "APPROVED"},
+                    ])
+                return self._make_api_response([])
+
+            monthly_inc_calls = []
+
+            async def _capturing_d1_all(db, sql, params=()):
+                # Return a previous-month merged PR only for the pr_state lookup.
+                if "leaderboard_pr_state" in sql and "merged = 1" in sql:
+                    # With the fix, start_ts/end_ts are passed so this row
+                    # would be excluded by the real D1 query.  Simulate correct
+                    # behaviour: the DB would return nothing for out-of-window rows.
+                    if start_ts in params and end_ts in params:
+                        return []
+                    # Without the fix the query had no date params; return the
+                    # out-of-window row to expose the bug.
+                    return [{"pr_number": 99, "author_login": "alice"}]
+                return []
+
+            with patch.object(_worker, "github_api", new=_mock_api):
+                with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
+                    with patch.object(_worker, "_d1_all", new=_capturing_d1_all):
+                        with patch.object(_worker, "_d1_run", new=AsyncMock(return_value={"success": True})):
+                            with patch.object(_worker, "_d1_inc_monthly", new=AsyncMock(
+                                side_effect=lambda db, org, mk, login, field, delta=1: monthly_inc_calls.append((login, field))
+                            )):
+                                with patch.object(_worker, "console", new=types.SimpleNamespace(error=lambda x: None, log=lambda x: None)):
+                                    await _worker._backfill_repo_month_if_needed(
+                                        "OWASP-BLT", "test-repo", "tok", env,
+                                        month_key="2026-03", start_ts=start_ts, end_ts=end_ts,
+                                    )
+
+            # With the fix applied, the previous-month PR should NOT generate review
+            # API calls or review credits because the DB query excludes it.
+            self.assertEqual(
+                len(review_api_calls), 0,
+                "Reviews must not be fetched for PRs merged outside the current month",
+            )
+            review_credits = [login for login, field in monthly_inc_calls if field == "reviews"]
+            self.assertEqual(
+                len(review_credits), 0,
+                "No review credits should be awarded for PRs from a previous month",
+            )
+
+        _run(_inner())
+
 
 # ---------------------------------------------------------------------------
 # Admin reset endpoint tests

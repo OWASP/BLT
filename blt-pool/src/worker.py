@@ -2014,14 +2014,17 @@ async def _backfill_repo_month_if_needed(
     # Also include webhook-tracked merged PRs whose review webhooks may have been missed
     # (e.g. during app downtime). The leaderboard_review_credits idempotency guard ensures
     # no duplicate credits are awarded even if a PR is processed again.
+    # Only include PRs merged within the current month window to avoid crediting reviews
+    # from previous months to the current month's leaderboard.
     if len(merged_prs_for_review) < MAX_REVIEW_BACKFILL:
         tracked_merged_rows = await _d1_all(
             db,
             """
             SELECT pr_number, author_login FROM leaderboard_pr_state
             WHERE org = ? AND repo = ? AND merged = 1
+              AND closed_at >= ? AND closed_at <= ?
             """,
-            (owner, repo_name),
+            (owner, repo_name, start_ts, end_ts),
         )
         newly_added = {pr_num for pr_num, _ in merged_prs_for_review}
         for row in (tracked_merged_rows or []):
@@ -5653,9 +5656,13 @@ def _generate_mentor_row(mentor: dict, stats: Optional[dict] = None) -> str:
         else '<div class="mt-3 text-xs text-gray-400">—</div>'
     )
 
+    has_stats = stats is not None
     has_total_prs = "total_prs" in mentor and mentor.get("total_prs") is not None
-    if stats or has_total_prs:
-        total_prs = int(mentor.get("total_prs") or 0)
+    if has_stats or has_total_prs:
+        if has_stats and stats.get("merged_prs") is not None:
+            total_prs = int(stats["merged_prs"])
+        else:
+            total_prs = int(mentor.get("total_prs") or 0)
         reviews = int((stats or {}).get("reviews") or 0)
         stats_row = (
             f'<div class="mt-3 flex flex-wrap items-center gap-x-3 gap-y-0.5">'
