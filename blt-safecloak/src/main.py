@@ -30,7 +30,7 @@ class Default(WorkerEntrypoint):
         # Handle GET requests for HTML pages
         if request.method == 'GET' and path in PAGES_MAP:
             html_path = Path(__file__).parent / 'pages' / PAGES_MAP[path]
-            html_content = html_path.read_text()
+            html_content = html_path.read_text(encoding='utf-8')
             return html_response(html_content)
 
         # Serving static files from the 'public' directory
