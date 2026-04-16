@@ -1,7 +1,7 @@
 {
   "participantCount": 202,
   "totalPRs": 2635,
-  "mergedPRs": 1628,
+  "mergedPRs": 1629,
   "totalIssues": 830,
   "repositories": 54,
   "topContributors": [
@@ -30,9 +30,9 @@
       "url": "https://github.com/OWASP-BLT/BLT/pull/6201",
       "username": "Chaimaekit",
       "avatar": "https://avatars.githubusercontent.com/u/96260441?v=4",
-      "state": "open",
+      "state": "closed",
       "created_at": "2026-04-15T23:12:12Z",
-      "merged_at": null,
+      "merged_at": "2026-04-16T01:32:44Z",
       "repository": "OWASP-BLT/BLT"
     },
     {
