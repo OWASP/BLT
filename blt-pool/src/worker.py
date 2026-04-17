@@ -6351,14 +6351,17 @@ async def _handle_add_mentor(request, env) -> "Response":
 # ---------------------------------------------------------------------------
 
 
-def _json(data, status: int = 200) -> Response:
+def _json(data, status: int = 200, allow_cors: bool = False) -> Response:
+    headers = {
+        "Content-Type": "application/json",
+    }
+    if allow_cors:
+        headers["Access-Control-Allow-Origin"] = "*"
+    
     return Response.new(
         json.dumps(data),
         status=status,
-        headers=Headers.new({
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-        }.items()),
+        headers=Headers.new(headers.items()),
     )
 
 
@@ -6457,7 +6460,8 @@ async def on_fetch(request, env, ctx=None) -> Response:
                 "checks": {
                     "webhook_security": webhook_security,
                 },
-            }
+            },
+            allow_cors=True,
         )
 
     if method == "POST" and path == "/api/mentors":
