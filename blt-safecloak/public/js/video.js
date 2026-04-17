@@ -1768,7 +1768,7 @@ const VideoChat = (() => {
     }
   }
 
-  /* ── Init ── */
+  async function init() {
     state.displayName = resolveDisplayName();
     state.displayInitials = makeInitials(state.displayName);
 
@@ -1789,6 +1789,7 @@ const VideoChat = (() => {
       hangup();
     });
     return true;
+  }
 
   return {
     init,
