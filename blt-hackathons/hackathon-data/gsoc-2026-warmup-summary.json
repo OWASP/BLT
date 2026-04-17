@@ -1,6 +1,6 @@
 {
-  "participantCount": 202,
-  "totalPRs": 2646,
+  "participantCount": 203,
+  "totalPRs": 2647,
   "mergedPRs": 1640,
   "totalIssues": 830,
   "repositories": 54,
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "delete recommended_discussion_channels.html",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6208",
+      "username": "mystic-06",
+      "avatar": "https://avatars.githubusercontent.com/u/167615519?v=4",
+      "state": "open",
+      "created_at": "2026-04-17T17:29:33Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT"
+    },
     {
       "title": "poc: verify pre-commit-fix",
       "url": "https://github.com/OWASP-BLT/BLT/pull/6207",
@@ -113,16 +123,6 @@
       "state": "closed",
       "created_at": "2026-04-15T22:09:41Z",
       "merged_at": null,
-      "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "Add GitHub Sponsors check for new contributors",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6199",
-      "username": "Jayant2908",
-      "avatar": "https://avatars.githubusercontent.com/u/200989760?v=4",
-      "state": "closed",
-      "created_at": "2026-04-15T21:29:32Z",
-      "merged_at": "2026-04-17T04:56:05Z",
       "repository": "OWASP-BLT/BLT"
     }
   ]
