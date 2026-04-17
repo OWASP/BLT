@@ -21,7 +21,7 @@ async def notify_slack_error(webhook_url, error_type, error_message, context=Non
         stack_trace: Optional stack trace string.
     """
     if not webhook_url:
-        return
+        return False
 
     lines = [f"*{error_type}*: {error_message}"]
 
@@ -47,9 +47,11 @@ async def notify_slack_error(webhook_url, error_type, error_message, context=Non
         response = await fetch(webhook_url, options)
         if not response.ok:
             print(f'Slack: webhook returned HTTP {response.status}')
+            return False
+        return True
     except Exception as err:
-        # Never let Slack notification errors bubble up and mask the original error
         print(f'Slack: failed to send error notification: {err}')
+        return False     
 
 
 async def notify_slack_exception(webhook_url, exc, context=None):
