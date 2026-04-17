@@ -1,7 +1,7 @@
 {
   "participantCount": 202,
-  "totalPRs": 2645,
-  "mergedPRs": 1636,
+  "totalPRs": 2646,
+  "mergedPRs": 1640,
   "totalIssues": 830,
   "repositories": 54,
   "topContributors": [
@@ -9,7 +9,7 @@
       "username": "Nachiket-Roy",
       "avatar": "https://avatars.githubusercontent.com/u/204239697?v=4",
       "url": "https://github.com/Nachiket-Roy",
-      "mergedCount": 70
+      "mergedCount": 71
     },
     {
       "username": "mdkaifansari04",
@@ -60,7 +60,7 @@
       "url": "https://github.com/OWASP-BLT/BLT-Rewards/pull/54",
       "username": "Neurvinch",
       "avatar": "https://avatars.githubusercontent.com/u/149451318?v=4",
-      "state": "open",
+      "state": "closed",
       "created_at": "2026-04-17T09:19:36Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT-Rewards"
