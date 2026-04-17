@@ -29,36 +29,25 @@
           },
         },
       };
-    </script>
+  </script>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
-      rel="stylesheet"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
-      referrerpolicy="no-referrer"
-    />
-    <link rel="stylesheet" href="css/main.css" />
-  </head>
-  <body class="font-sans antialiased">
-    <div class="pointer-events-none fixed inset-x-0 top-0 -z-10 h-full hero-glow"></div>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="css/main.css" />
+</head>
 
-    <nav
-      class="sticky top-0 z-50 border-b border-neutral-border bg-white/95 backdrop-blur"
-      role="navigation"
-      aria-label="Main navigation"
-    >
-      <div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <a class="flex items-center gap-3" href="/" aria-label="BLT-SafeCloak Home">
-          <img
-            src="img/logo.png"
-            alt="BLT-SafeCloak logo"
-            class="h-10 w-10 rounded-md object-contain"
-            onerror="
+<body class="font-sans antialiased">
+  <div class="pointer-events-none fixed inset-x-0 top-0 -z-10 h-full hero-glow"></div>
+
+  <nav class="sticky top-0 z-50 border-b border-neutral-border bg-white/95 backdrop-blur" role="navigation"
+    aria-label="Main navigation">
+    <div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8">
+      <a class="flex items-center gap-3" href="/" aria-label="BLT-SafeCloak Home">
+        <img src="img/logo.png" alt="BLT-SafeCloak logo" class="h-10 w-10 rounded-md object-contain" onerror="
               this.style.display = 'none';
               this.nextElementSibling.style.display = 'flex';
             "
@@ -483,20 +472,134 @@
       </main>
     </div>
 
-    <footer class="border-t border-neutral-border bg-white py-7" role="contentinfo">
-      <div class="mx-auto max-w-6xl px-4 text-center text-sm text-gray-600 sm:px-6 lg:px-8">
-        BLT-SafeCloak -
-        <a
-          href="https://github.com/OWASP-BLT/BLT-SafeCloak"
-          target="_blank"
-          rel="noopener"
-          class="text-red-600 hover:underline"
-          >OWASP BLT Project</a
-        >
-      </div>
-    </footer>
+        <aside aria-label="Room setup and connection info" class="space-y-4">
+          <!-- Privacy & Permissions Hint (Visible when blocked) -->
+          <div id="permission-hint" class="surface-card p-4 rounded-xl mb-4 hidden border-amber-200 bg-amber-50">
+            <div class="flex gap-3">
+              <i class="fa-solid fa-triangle-exclamation text-amber-500 mt-1"></i>
+              <div>
+                <h4 class="text-sm font-bold text-amber-900 mb-1">Permissions Blocked</h4>
+                <p class="text-xs text-amber-800 leading-relaxed">
+                  Your browser is preventing <b>Microphone/Camera</b> access. Click the <b>Lock Icon</b> next to the
+                  URL, toggle <b>On</b>, and refresh the page.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">
+                <i class="fa-solid fa-key text-primary" aria-hidden="true"></i>
+                Your Room ID
+              </h2>
+            </div>
+            <div class="card-body">
+              <div
+                class="rounded-md border border-neutral-border bg-gray-50 px-3 py-3 text-center font-mono text-lg font-bold tracking-widest text-gray-900"
+                id="my-peer-id" aria-label="Your room ID">
+                Connecting...
+              </div>
+              <button class="btn btn-secondary mt-3 w-full" onclick="
+                    copyToClipboard(document.getElementById('my-peer-id').textContent, 'Room ID')
+                  " aria-label="Copy room ID to clipboard">
+                <i class="fa-regular fa-copy" aria-hidden="true"></i>
+                Copy Room ID
+              </button>
+              <button class="btn btn-primary mt-2 w-full" id="btn-copy-link" onclick="VideoChat.copyRoomLink()"
+                aria-label="Copy shareable room link to clipboard">
+                <i class="fa-solid fa-link" aria-hidden="true"></i>
+                Copy Room Link
+              </button>
+            </div>
+          </div>
 
-    <div id="toast-container" role="status" aria-live="polite"></div>
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">
+                <i class="fa-solid fa-phone text-primary" aria-hidden="true"></i>
+                Join a Room
+              </h2>
+            </div>
+            <div class="card-body">
+              <label class="block text-sm font-semibold text-gray-700 mb-2" for="remote-id">Remote Room ID</label>
+              <input type="text"
+                class="w-full border border-neutral-border rounded-md px-4 py-2 text-gray-900 placeholder-gray-500 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-colors"
+                id="remote-id" placeholder="Enter Room ID..." autocomplete="off" aria-label="Remote room ID"
+                pattern="[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{6}" maxlength="6" inputmode="text" required />
+              <button class="btn btn-primary mt-3 w-full" id="btn-call" aria-label="Add participant to room">
+                <i class="fa-solid fa-user-plus" aria-hidden="true"></i>
+                Add Participant
+              </button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">
+                <i class="fa-solid fa-users text-primary" aria-hidden="true"></i>
+                Participants
+                <span id="participant-count" class="ml-auto text-xs font-bold text-gray-500" aria-live="polite">0
+                  connected</span>
+              </h2>
+            </div>
+            <div class="card-body" id="participants-list">
+              <p class="text-sm text-gray-500 text-center py-2">No participants connected</p>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h2 class="card-title">
+                <i class="fa-solid fa-shield-halved text-primary" aria-hidden="true"></i>
+                Security
+              </h2>
+            </div>
+            <div class="card-body text-sm text-gray-600">
+              <ul class="space-y-1" role="list">
+                <li>
+                  <i class="fa-solid fa-check mr-2 text-primary" aria-hidden="true"></i>DTLS/SRTP
+                  transport
+                </li>
+                <li>
+                  <i class="fa-solid fa-check mr-2 text-primary" aria-hidden="true"></i>Peer-to-peer (no relay)
+                </li>
+                <li>
+                  <i class="fa-solid fa-check mr-2 text-primary" aria-hidden="true"></i>Consent
+                  timestamped
+                </li>
+                <li>
+                  <i class="fa-solid fa-check mr-2 text-primary" aria-hidden="true"></i>No server
+                  recording
+                </li>
+                <li>
+                  <i class="fa-solid fa-check mr-2 text-primary" aria-hidden="true"></i>Open-source
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="grid gap-2">
+            <a href="/notes" class="btn btn-secondary" aria-label="Open secure notes">
+              <i class="fa-solid fa-note-sticky" aria-hidden="true"></i>
+              Open Secure Notes
+            </a>
+            <a href="/consent" class="btn btn-secondary" aria-label="View consent log">
+              <i class="fa-solid fa-scale-balanced" aria-hidden="true"></i>
+              View Consent Log
+            </a>
+          </div>
+        </aside>
+      </div>
+    </main>
+  </div>
+
+  <footer class="border-t border-neutral-border bg-white py-7" role="contentinfo">
+    <div class="mx-auto max-w-6xl px-4 text-center text-sm text-gray-600 sm:px-6 lg:px-8">
+      BLT-SafeCloak -
+      <a href="https://github.com/OWASP-BLT/BLT-SafeCloak" target="_blank" rel="noopener"
+        class="text-red-600 hover:underline">OWASP BLT Project</a>
+    </div>
+  </footer>
 
     <script src="js/ui.js"></script>
     <script src="js/voice-changer.js"></script>

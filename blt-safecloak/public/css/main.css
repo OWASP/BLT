@@ -116,39 +116,6 @@ body {
    ============================================ */
 
 /* === Status Indicators === */
-.status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 9999px;
-  display: inline-block;
-  flex-shrink: 0;
-}
-
-.status-dot.online {
-  background: #16a34a;
-  box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.2);
-}
-
-.status-dot.offline {
-  background: #9ca3af;
-}
-
-.status-dot.connecting {
-  background: #f59e0b;
-  animation: pulse-dot 1.4s infinite;
-}
-
-@keyframes pulse-dot {
-  0%,
-  100% {
-    opacity: 1;
-  }
-
-  50% {
-    opacity: 0.45;
-  }
-}
-
 /* === Video Grid (multi-participant) === */
 .video-grid {
   display: grid;
