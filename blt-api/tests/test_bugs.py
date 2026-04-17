@@ -255,9 +255,13 @@ class TestCreateBug:
         assert resp.status == 201
         assert resp.data["success"] is True
 
-    async def test_create_bug_is_rate_limited_after_burst(self):
+    async def test_create_bug_is_rate_limited_after_burst(self, monkeypatch):
+        monkeypatch.setattr("handlers.bugs._RATE_LIMIT_MAX_REQUESTS", 2)
         db = MockDB()
-        db.queue_first({"id": 1}, {"id": 1, "url": "https://example.com", "description": "d"})
+        db.queue_first(
+            {"id": 1}, {"id": 1, "url": "https://example.com", "description": "d"},
+            {"id": 2}, {"id": 2, "url": "https://example.com", "description": "d"},
+        )
         request = MockRequest(method="POST", body={"url": "https://example.com", "description": "d"})
 
         with patch("handlers.bugs.get_db_safe", AsyncMock(return_value=db)):

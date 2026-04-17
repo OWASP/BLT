@@ -57,16 +57,17 @@ def is_rate_limited(client_key: str, rate_limit_dict: Dict[str, list], rate_limi
     attempts = rate_limit_dict.get(client_key, [])
     attempts = [ts for ts in attempts if ts >= window_start]
 
-    last_sweep = rate_limit_dict.get("__last_sweep__", [0.0])
+    _SWEEP_KEY = "\x00__last_sweep__"
+    last_sweep = rate_limit_dict.get(_SWEEP_KEY, [0.0])
     if now - last_sweep[0] >= rate_limit_window_seconds:
         stale_keys = [
             key for key, timestamps in rate_limit_dict.items()
-            if key != "__last_sweep__" and key != client_key
+            if key != _SWEEP_KEY and key != client_key
             and (not timestamps or timestamps[-1] < window_start)
         ]
         for key in stale_keys:
             rate_limit_dict.pop(key, None)
-        rate_limit_dict["__last_sweep__"] = [now]
+        rate_limit_dict[_SWEEP_KEY] = [now]
 
     if len(attempts) >= rate_limit_max_requests:
         rate_limit_dict[client_key] = attempts

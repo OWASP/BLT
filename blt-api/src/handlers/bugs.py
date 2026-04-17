@@ -13,7 +13,7 @@ from libs.rate_limit import get_client_ip, is_rate_limited
 
 BUG_RATE_LIMIT: Dict[str, list] = {}
 _RATE_LIMIT_WINDOW_SECONDS = 60
-_RATE_LIMIT_MAX_REQUESTS = 2
+_RATE_LIMIT_MAX_REQUESTS = 10
 
 
 _UPDATABLE_FIELDS = {

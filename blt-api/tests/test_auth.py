@@ -241,7 +241,8 @@ class TestSigninValidation:
         assert resp.status == 500
 
     @pytest.mark.asyncio
-    async def test_signin_is_rate_limited_after_burst(self):
+    async def test_signin_is_rate_limited_after_burst(self, monkeypatch):
+        monkeypatch.setattr("handlers.auth._SIGNIN_MAX_REQUESTS", 2)
         user = _make_mock_user(is_active=True)
         mock_user_cls = MagicMock()
         mock_qs = MagicMock()
@@ -291,7 +292,8 @@ class TestSignupValidation:
         assert resp.status == 400
 
     @pytest.mark.asyncio
-    async def test_signup_is_rate_limited_after_burst(self):
+    async def test_signup_is_rate_limited_after_burst(self, monkeypatch):
+        monkeypatch.setattr("handlers.auth._SIGNUP_MAX_REQUESTS", 2)
         body = {"username": "user123", "password": "Testpass123456!", "email": "user@example.com"}
         request = MockRequest(method="POST", body=body)
 
