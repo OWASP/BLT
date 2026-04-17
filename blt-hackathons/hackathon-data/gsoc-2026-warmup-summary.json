@@ -1,6 +1,6 @@
 {
   "participantCount": 202,
-  "totalPRs": 2643,
+  "totalPRs": 2645,
   "mergedPRs": 1636,
   "totalIssues": 830,
   "repositories": 54,
@@ -25,6 +25,26 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "poc: verify pre-commit-fix",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6207",
+      "username": "SatishKumar620",
+      "avatar": "https://avatars.githubusercontent.com/u/168626374?v=4",
+      "state": "closed",
+      "created_at": "2026-04-17T13:14:47Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT"
+    },
+    {
+      "title": "test: verify pre-commit hook execution",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6206",
+      "username": "SatishKumar620",
+      "avatar": "https://avatars.githubusercontent.com/u/168626374?v=4",
+      "state": "closed",
+      "created_at": "2026-04-17T12:52:28Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT"
+    },
     {
       "title": "docs: remove deprecated android_128x128.png per #6167",
       "url": "https://github.com/OWASP-BLT/BLT/pull/6205",
@@ -103,26 +123,6 @@
       "state": "closed",
       "created_at": "2026-04-15T21:29:32Z",
       "merged_at": "2026-04-17T04:56:05Z",
-      "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "fix(security): harden Django settings for production readiness",
-      "url": "https://github.com/OWASP-BLT/BLT-Toasty/pull/41",
-      "username": "ojaswa072",
-      "avatar": "https://avatars.githubusercontent.com/u/230836303?v=4",
-      "state": "open",
-      "created_at": "2026-04-15T18:26:19Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-Toasty"
-    },
-    {
-      "title": "Remove unused static asset: adblock_256x256.png",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6198",
-      "username": "Mberic",
-      "avatar": "https://avatars.githubusercontent.com/u/51446308?v=4",
-      "state": "closed",
-      "created_at": "2026-04-15T15:38:53Z",
-      "merged_at": "2026-04-17T02:17:19Z",
       "repository": "OWASP-BLT/BLT"
     }
   ]
