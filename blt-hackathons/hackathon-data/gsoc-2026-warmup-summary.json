@@ -1,6 +1,6 @@
 {
   "participantCount": 202,
-  "totalPRs": 2640,
+  "totalPRs": 2642,
   "mergedPRs": 1636,
   "totalIssues": 830,
   "repositories": 54,
@@ -25,6 +25,26 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "remove: delete Bitcoin node data directories and config",
+      "url": "https://github.com/OWASP-BLT/BLT-Rewards/pull/54",
+      "username": "Neurvinch",
+      "avatar": "https://avatars.githubusercontent.com/u/149451318?v=4",
+      "state": "open",
+      "created_at": "2026-04-17T09:19:36Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-Rewards"
+    },
+    {
+      "title": "feat: implement rate limiting for auth and bugs handlers",
+      "url": "https://github.com/OWASP-BLT/BLT-API/pull/87",
+      "username": "swaparup36",
+      "avatar": "https://avatars.githubusercontent.com/u/82692857?v=4",
+      "state": "open",
+      "created_at": "2026-04-17T08:41:52Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-API"
+    },
     {
       "title": "Add explicit UTF-8 encoding to HTML file reading",
       "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/72",
@@ -103,26 +123,6 @@
       "state": "closed",
       "created_at": "2026-04-15T14:21:29Z",
       "merged_at": "2026-04-15T14:47:34Z",
-      "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "Poc/final rce verification",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6196",
-      "username": "SatishKumar620",
-      "avatar": "https://avatars.githubusercontent.com/u/168626374?v=4",
-      "state": "closed",
-      "created_at": "2026-04-15T09:42:37Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "Revert \"fix: new contributors workflow logic and runtime issues\"",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6195",
-      "username": "DonnieBLT",
-      "avatar": "https://avatars.githubusercontent.com/u/128622481?v=4",
-      "state": "closed",
-      "created_at": "2026-04-15T07:29:01Z",
-      "merged_at": "2026-04-15T07:29:11Z",
       "repository": "OWASP-BLT/BLT"
     }
   ]
