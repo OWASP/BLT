@@ -16,6 +16,11 @@ command = "bash scripts/migration.sh"
 ENVIRONMENT = "production"
 # Set SLACK_ERROR_WEBHOOK as a Cloudflare secret (wrangler secret put SLACK_ERROR_WEBHOOK)
 # See .env.example for details.
+# Optional OAuth secrets for per-user GitHub tokens:
+# wrangler secret put GITHUB_OAUTH_CLIENT_ID
+# wrangler secret put GITHUB_OAUTH_CLIENT_SECRET
+# wrangler secret put ENCRYPTION_KEY
+# Optional: wrangler secret put GITHUB_TOKEN (shared fallback token)
 
 # Cron Trigger: refresh all tracked PRs every hour
 [triggers]

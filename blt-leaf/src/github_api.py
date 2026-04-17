@@ -181,6 +181,9 @@ async def fetch_pr_data(owner, repo, pr_number, token=None, etag=None):
             print(f"GitHub API: PR #{pr_number} returned 304 Not Modified (Fast-path)")
             return {'not_modified': True}
             
+        if pr_response.status == 404:
+            return {'not_found': True}
+
         if pr_response.status != 200:
             return None
             
@@ -315,6 +318,7 @@ async def fetch_pr_data(owner, repo, pr_number, token=None, etag=None):
             'title': pr_data.get('title', ''),
             'state': pr_data.get('state', ''),
             'is_merged': 1 if pr_data.get('merged', False) else 0,
+            'repo_private': bool(pr_data.get('base', {}).get('repo', {}).get('private', False)),
             'mergeable_state': pr_data.get('mergeable_state', ''),
             'files_changed': pr_data.get('changed_files', 0),  # Use changed_files from PR data instead of fetching files list
             'author_login': user.get('login', 'ghost'),
