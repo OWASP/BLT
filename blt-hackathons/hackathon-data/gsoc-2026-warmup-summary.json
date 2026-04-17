@@ -1,6 +1,6 @@
 {
   "participantCount": 202,
-  "totalPRs": 2642,
+  "totalPRs": 2643,
   "mergedPRs": 1636,
   "totalIssues": 830,
   "repositories": 54,
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "docs: remove deprecated android_128x128.png per #6167",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6205",
+      "username": "Chaimaekit",
+      "avatar": "https://avatars.githubusercontent.com/u/96260441?v=4",
+      "state": "closed",
+      "created_at": "2026-04-17T10:14:22Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT"
+    },
     {
       "title": "remove: delete Bitcoin node data directories and config",
       "url": "https://github.com/OWASP-BLT/BLT-Rewards/pull/54",
@@ -113,16 +123,6 @@
       "state": "closed",
       "created_at": "2026-04-15T15:38:53Z",
       "merged_at": "2026-04-17T02:17:19Z",
-      "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "fix: refine contributor workflows and PR eligibility checks",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6197",
-      "username": "Jayant2908",
-      "avatar": "https://avatars.githubusercontent.com/u/200989760?v=4",
-      "state": "closed",
-      "created_at": "2026-04-15T14:21:29Z",
-      "merged_at": "2026-04-15T14:47:34Z",
       "repository": "OWASP-BLT/BLT"
     }
   ]
