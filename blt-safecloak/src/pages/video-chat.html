@@ -192,6 +192,27 @@
                 <p id="prejoin-status" class="text-xs text-gray-600">Initializing devices...</p>
               </div>
 
+              <div class="mt-4">
+                <label
+                  class="mb-2 block text-sm font-semibold text-gray-700"
+                  for="display-name-input"
+                  >Display Name</label
+                >
+                <input
+                  type="text"
+                  id="display-name-input"
+                  class="w-full rounded-md border border-neutral-border px-4 py-2 text-gray-900 placeholder-gray-500 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-colors"
+                  placeholder="Enter your name to continue"
+                  autocomplete="name"
+                  maxlength="40"
+                  aria-label="Display name"
+                  required
+                />
+                <p class="mt-1 text-xs text-gray-500">
+                  Required before entering a room. Your name will be shown to participants.
+                </p>
+              </div>
+
               <div
                 class="mt-4 rounded-xl border border-neutral-border bg-white p-3"
                 id="prejoin-voice-panel"
