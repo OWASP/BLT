@@ -26,7 +26,7 @@ sys.modules["workers"] = _mock_workers
 
 # Removed sys.modules.js mock for same reason as test_auth
 
-from handlers.bugs import handle_bugs, update_bug  # noqa: E402
+from handlers.bugs import handle_bugs, BUG_RATE_LIMIT  # noqa: E402
 
 
 @pytest.fixture(autouse=True)
@@ -112,6 +112,13 @@ class MockRequest:
 
 class MockEnv:
     JWT_SECRET = "test-secret-key"
+
+
+@pytest.fixture(autouse=True)
+def reset_rate_limits():
+    BUG_RATE_LIMIT.clear()
+    yield
+    BUG_RATE_LIMIT.clear()
 
 
 def _make_mock_bug_class(count=0):
@@ -247,6 +254,20 @@ class TestCreateBug:
             resp = await handle_bugs(MockRequest(method="POST", body={"url": "https://example.com", "description": "d"}), MockEnv(), {}, {}, "/bugs")
         assert resp.status == 201
         assert resp.data["success"] is True
+
+    async def test_create_bug_is_rate_limited_after_burst(self):
+        db = MockDB()
+        db.queue_first({"id": 1}, {"id": 1, "url": "https://example.com", "description": "d"})
+        request = MockRequest(method="POST", body={"url": "https://example.com", "description": "d"})
+
+        with patch("handlers.bugs.get_db_safe", AsyncMock(return_value=db)):
+            first = await handle_bugs(request, MockEnv(), {}, {}, "/bugs")
+            second = await handle_bugs(request, MockEnv(), {}, {}, "/bugs")
+            third = await handle_bugs(request, MockEnv(), {}, {}, "/bugs")
+
+        assert first.status == 201
+        assert second.status == 201
+        assert third.status == 429
 
 
 class TestListBugs:

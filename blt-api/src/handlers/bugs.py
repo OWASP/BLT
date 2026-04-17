@@ -9,6 +9,11 @@ from libs.jwt_utils import decode_jwt
 from models import Bug
 from workers import Response
 import logging
+from libs.rate_limit import get_client_ip, is_rate_limited
+
+BUG_RATE_LIMIT: Dict[str, list] = {}
+_RATE_LIMIT_WINDOW_SECONDS = 60
+_RATE_LIMIT_MAX_REQUESTS = 2
 
 
 _UPDATABLE_FIELDS = {
@@ -67,6 +72,8 @@ async def handle_bugs(
     except Exception as e:
         logger.error(f"Database connection error: {str(e)}")
         return error_response(f"Database connection error: {str(e)}", status=500)
+
+    client_ip = get_client_ip(request)
     
     if path.endswith("/search"):
         query = query_params.get("q", "")
@@ -202,6 +209,9 @@ async def handle_bugs(
     
     # Create bug
     if method == "POST":
+        if is_rate_limited(client_ip, BUG_RATE_LIMIT, _RATE_LIMIT_WINDOW_SECONDS, _RATE_LIMIT_MAX_REQUESTS):
+            return error_response("Too many requests. Please try again later.", status=429)
+
         body = await parse_json_body(request)
         
         if not body:

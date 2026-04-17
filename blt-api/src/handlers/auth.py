@@ -13,11 +13,18 @@ from libs.data_protection import encrypt_sensitive, decrypt_sensitive, blind_ind
 from services.email_service import EmailService
 from workers import Response
 from models import User
+from libs.rate_limit import get_client_ip, is_rate_limited
 
 import logging
 
 _USERNAME_RE = re.compile(r'^[a-zA-Z0-9_.-]{3,30}$')
 _EMAIL_RE = re.compile(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
+
+AUTH_RATE_LIMIT: Dict[str, list] = {}
+_RATE_LIMIT_WINDOW_SECONDS = 60
+_RATE_LIMIT_MAX_REQUESTS = 2
+
+
 def generate_jwt_token(user_id: int, secret: str, expires_in: int = 3600) -> str:
     """
     Generate a JWT authentication token for a user.
@@ -76,6 +83,10 @@ async def handle_signup(
     if method != "POST":
         return error_response( "Method Not Allowed", 405, headers={"Allow": "POST"})
     try: 
+        client_ip = get_client_ip(request)
+        if is_rate_limited(client_ip, AUTH_RATE_LIMIT, _RATE_LIMIT_WINDOW_SECONDS, _RATE_LIMIT_MAX_REQUESTS):
+            return error_response("Too many requests. Please try again later.", status=429)
+
         body = await parse_json_body(request)
         if not body:
             return error_response("Invalid JSON body", 400)
@@ -247,6 +258,11 @@ async def handle_signin(request: Any, env: Any, path_params: Dict[str, str], que
         method = str(request.method).upper()
         if method != "POST":
             return error_response("Method Not Allowed", 405, headers={"Allow": "POST"})
+
+        client_ip = get_client_ip(request)
+        if is_rate_limited(client_ip, AUTH_RATE_LIMIT, _RATE_LIMIT_WINDOW_SECONDS, _RATE_LIMIT_MAX_REQUESTS):
+            return error_response("Too many requests. Please try again later.", status=429)
+
         body = await parse_json_body(request)
         if not body:
             return error_response("Invalid JSON body", 400) 
