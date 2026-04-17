@@ -36,7 +36,7 @@ sys.modules["workers"] = _mock_workers
 # Removed sys.modules.js mock to allow utils.py fallback
 
 
-from handlers.auth import handle_signin, handle_signup, handle_verify_email, AUTH_RATE_LIMIT  # noqa: E402
+from handlers.auth import handle_signin, handle_signup, handle_verify_email, SIGNUP_RATE_LIMIT, SIGNIN_RATE_LIMIT  # noqa: E402
 
 
 @pytest.fixture(autouse=True)
@@ -82,9 +82,11 @@ class MockEnv:
 
 @pytest.fixture(autouse=True)
 def reset_rate_limits():
-    AUTH_RATE_LIMIT.clear()
+    SIGNUP_RATE_LIMIT.clear()
+    SIGNIN_RATE_LIMIT.clear()
     yield
-    AUTH_RATE_LIMIT.clear()
+    SIGNUP_RATE_LIMIT.clear()
+    SIGNIN_RATE_LIMIT.clear()
 
 
 def _make_mock_user(is_active=True, password="testpass123456"):

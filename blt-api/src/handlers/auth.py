@@ -20,9 +20,11 @@ import logging
 _USERNAME_RE = re.compile(r'^[a-zA-Z0-9_.-]{3,30}$')
 _EMAIL_RE = re.compile(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
 
-AUTH_RATE_LIMIT: Dict[str, list] = {}
+SIGNUP_RATE_LIMIT: Dict[str, list] = {}
+SIGNIN_RATE_LIMIT: Dict[str, list] = {}
 _RATE_LIMIT_WINDOW_SECONDS = 60
-_RATE_LIMIT_MAX_REQUESTS = 2
+_SIGNUP_MAX_REQUESTS = 5
+_SIGNIN_MAX_REQUESTS = 10
 
 
 def generate_jwt_token(user_id: int, secret: str, expires_in: int = 3600) -> str:
@@ -84,7 +86,7 @@ async def handle_signup(
         return error_response( "Method Not Allowed", 405, headers={"Allow": "POST"})
     try: 
         client_ip = get_client_ip(request)
-        if is_rate_limited(client_ip, AUTH_RATE_LIMIT, _RATE_LIMIT_WINDOW_SECONDS, _RATE_LIMIT_MAX_REQUESTS):
+        if is_rate_limited(client_ip, SIGNUP_RATE_LIMIT, _RATE_LIMIT_WINDOW_SECONDS, _SIGNUP_MAX_REQUESTS):
             return error_response("Too many requests. Please try again later.", status=429)
 
         body = await parse_json_body(request)
@@ -260,7 +262,7 @@ async def handle_signin(request: Any, env: Any, path_params: Dict[str, str], que
             return error_response("Method Not Allowed", 405, headers={"Allow": "POST"})
 
         client_ip = get_client_ip(request)
-        if is_rate_limited(client_ip, AUTH_RATE_LIMIT, _RATE_LIMIT_WINDOW_SECONDS, _RATE_LIMIT_MAX_REQUESTS):
+        if is_rate_limited(client_ip, SIGNIN_RATE_LIMIT, _RATE_LIMIT_WINDOW_SECONDS, _SIGNIN_MAX_REQUESTS):
             return error_response("Too many requests. Please try again later.", status=429)
 
         body = await parse_json_body(request)

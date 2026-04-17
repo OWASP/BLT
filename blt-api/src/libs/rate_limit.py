@@ -1,5 +1,10 @@
 from typing import Any, Dict
+import logging
 import time
+import uuid
+
+
+logger = logging.getLogger(__name__)
 
 def get_header(request: Any, name: str) -> str:
     """Safely read a request header in Workers and tests"""
@@ -16,7 +21,33 @@ def get_client_ip(request: Any) -> str:
     if not ip:
         xff = get_header(request, "X-Forwarded-For")
         ip = xff.split(",")[0].strip() if xff else ""
-    return ip or "unknown"
+    if ip:
+        return ip
+
+    # Avoid a shared fallback bucket when IP headers are unavailable.
+    request_id = get_header(request, "X-Request-ID").strip()
+    remote_addr = str(getattr(request, "remote_addr", "") or "").strip()
+
+    logger.warning(
+        "Missing client IP headers: CF-Connecting-IP and X-Forwarded-For are absent"
+    )
+
+    if request_id:
+        return request_id
+    if remote_addr:
+        return remote_addr
+
+    existing_fallback = str(getattr(request, "_rate_limit_fallback_key", "") or "").strip()
+    if existing_fallback:
+        return existing_fallback
+
+    fallback = f"anon-{uuid.uuid4().hex[:10]}"
+    try:
+        setattr(request, "_rate_limit_fallback_key", fallback)
+    except Exception:
+        # Some request implementations may not allow dynamic attributes.
+        pass
+    return fallback
 
 def is_rate_limited(client_key: str, rate_limit_dict: Dict[str, list], rate_limit_window_seconds: int, rate_limit_max_requests: int) -> bool:
     """Sliding-window in-memory rate limiter"""
@@ -26,10 +57,16 @@ def is_rate_limited(client_key: str, rate_limit_dict: Dict[str, list], rate_limi
     attempts = rate_limit_dict.get(client_key, [])
     attempts = [ts for ts in attempts if ts >= window_start]
 
-    stale_keys = [key for key, timestamps in rate_limit_dict.items() if not timestamps or timestamps[-1] < window_start]
-    for key in stale_keys:
-        if key != client_key:
+    last_sweep = rate_limit_dict.get("__last_sweep__", [0.0])
+    if now - last_sweep[0] >= rate_limit_window_seconds:
+        stale_keys = [
+            key for key, timestamps in rate_limit_dict.items()
+            if key != "__last_sweep__" and key != client_key
+            and (not timestamps or timestamps[-1] < window_start)
+        ]
+        for key in stale_keys:
             rate_limit_dict.pop(key, None)
+        rate_limit_dict["__last_sweep__"] = [now]
 
     if len(attempts) >= rate_limit_max_requests:
         rate_limit_dict[client_key] = attempts
