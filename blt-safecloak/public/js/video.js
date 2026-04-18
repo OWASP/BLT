@@ -16,7 +16,8 @@ const VideoChat = (() => {
   let camOff = true;
   let consentGiven = false;
   let screenSharing = false;
-  let initialMediaPreferences = { mic: true, cam: true };
+  let initialMediaPreferences = { mic: false, cam: false };
+  const MEDIA_PREFS_STORAGE_KEY = "blt-safecloak-media-preferences";
   const VOICE_PREFS_STORAGE_KEY = "blt-safecloak-voice-preferences";
   const DISPLAY_NAME_STORAGE_KEY = "blt-safecloak-display-name";
   const PROFILE_BROADCAST_THROTTLE_MS = 220;
@@ -571,9 +572,9 @@ const VideoChat = (() => {
       const micUnavailable = !hasAudioTrack && !micMuted;
       if (micUnavailable) {
         micBtn.innerHTML = '<i class="fa-solid fa-microphone-slash" aria-hidden="true"></i>';
-        micBtn.title = "Microphone not available";
-        micBtn.disabled = true;
-        micBtn.classList.add("opacity-50", "cursor-not-allowed");
+        micBtn.title = micMuted ? "Unmute mic" : "Mute mic";
+        micBtn.disabled = false;
+        micBtn.classList.remove("opacity-50", "cursor-not-allowed");
       } else {
         micBtn.innerHTML = micMuted
           ? '<i class="fa-solid fa-microphone-slash" aria-hidden="true"></i>'
@@ -592,9 +593,9 @@ const VideoChat = (() => {
       const camUnavailable = !hasVideoTrack && !camOff;
       if (camUnavailable) {
         camBtn.innerHTML = '<i class="fa-solid fa-video-slash" aria-hidden="true"></i>';
-        camBtn.title = "Camera not available";
-        camBtn.disabled = true;
-        camBtn.classList.add("opacity-50", "cursor-not-allowed");
+        camBtn.title = camOff ? "Enable camera" : "Disable camera";
+        camBtn.disabled = false;
+        camBtn.classList.remove("opacity-50", "cursor-not-allowed");
       } else {
         camBtn.innerHTML = camOff
           ? '<i class="fa-solid fa-video-slash" aria-hidden="true"></i>'
@@ -609,13 +610,17 @@ const VideoChat = (() => {
   }
 
   function applyInitialMediaPreferences() {
-    if (!localStream) return;
+    micMuted = !initialMediaPreferences.mic;
+    camOff = !initialMediaPreferences.cam;
+
+    if (!localStream) {
+      syncControlButtons();
+      updateLocalTilePresentation();
+      return;
+    }
 
     const hasAudioTrack = localStream.getAudioTracks().length > 0;
     const hasVideoTrack = localStream.getVideoTracks().length > 0;
-
-    micMuted = hasAudioTrack ? !initialMediaPreferences.mic : false;
-    camOff = hasVideoTrack ? !initialMediaPreferences.cam : false;
 
     if (hasAudioTrack) {
       localStream.getAudioTracks().forEach((track) => (track.enabled = !micMuted));
@@ -1087,10 +1092,6 @@ const VideoChat = (() => {
       if (!ok) return;
     }
 
-    micMuted = false;
-    camOff = false;
-    updateMediaButtons();
-
     const ok = await startLocalMedia();
     if (!ok) return;
 
@@ -1144,6 +1145,7 @@ const VideoChat = (() => {
         : '<i class="fa-solid fa-microphone" aria-hidden="true"></i>';
       micBtn.title = micMuted ? "Unmute mic" : "Mute mic";
       micBtn.classList.toggle("active", micMuted);
+      micBtn.setAttribute("aria-pressed", micMuted ? "true" : "false");
     }
     const camBtn = $("btn-cam");
     if (camBtn) {
@@ -1152,6 +1154,7 @@ const VideoChat = (() => {
         : '<i class="fa-solid fa-video" aria-hidden="true"></i>';
       camBtn.title = camOff ? "Enable camera" : "Disable camera";
       camBtn.classList.toggle("active", camOff);
+      camBtn.setAttribute("aria-pressed", camOff ? "true" : "false");
     }
   }
 
@@ -1828,6 +1831,8 @@ const VideoChat = (() => {
     const params = new URLSearchParams(window.location.search);
     const mic = params.get("mic");
     const cam = params.get("cam");
+    const isPrejoin = params.get("prejoin") === "1";
+    const hasUrlPrefs = mic !== null || cam !== null;
 
     if (mic === "off" || mic === "on") {
       initialMediaPreferences.mic = mic === "on";
@@ -1836,7 +1841,38 @@ const VideoChat = (() => {
       initialMediaPreferences.cam = cam === "on";
     }
 
-    if (params.get("prejoin") === "1") {
+    if (hasUrlPrefs) {
+      try {
+        window.sessionStorage.setItem(
+          MEDIA_PREFS_STORAGE_KEY,
+          JSON.stringify({
+            mic: Boolean(initialMediaPreferences.mic),
+            cam: Boolean(initialMediaPreferences.cam),
+          })
+        );
+      } catch {
+        /* ignore storage failures */
+      }
+    } else {
+      try {
+        const raw = window.sessionStorage.getItem(MEDIA_PREFS_STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && typeof parsed === "object") {
+            if (typeof parsed.mic === "boolean") {
+              initialMediaPreferences.mic = parsed.mic;
+            }
+            if (typeof parsed.cam === "boolean") {
+              initialMediaPreferences.cam = parsed.cam;
+            }
+          }
+        }
+      } catch {
+        /* ignore storage failures */
+      }
+    }
+
+    if (isPrejoin) {
       params.delete("prejoin");
       params.delete("mic");
       params.delete("cam");
@@ -1852,14 +1888,19 @@ const VideoChat = (() => {
     state.displayInitials = makeInitials(state.displayName);
 
     readInitialMediaPreferencesFromUrl();
+    applyInitialMediaPreferences();
     updateLocalTilePresentation();
     
-    // We try to start media immediately if we have preferences from the lobby
-    const ok = await startLocalMedia();
-    if (ok) {
-      updateLocalTilePresentation();
-      _applyStoredVoicePreferences();
+    // Start media eagerly only when the initial preference explicitly enables mic/camera.
+    if (initialMediaPreferences.mic || initialMediaPreferences.cam) {
+      const ok = await startLocalMedia();
+      if (ok) {
+        applyInitialMediaPreferences();
+        updateLocalTilePresentation();
+      }
     }
+
+    _applyStoredVoicePreferences();
     
     // Always init peer regardless of success of startLocalMedia (can join without media)
     await initPeer();
