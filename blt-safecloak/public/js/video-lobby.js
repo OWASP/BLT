@@ -7,11 +7,12 @@
   const ROOM_ID_RE = /^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{6}$/;
   const VOICE_PREFS_STORAGE_KEY = "blt-safecloak-voice-preferences";
   const DISPLAY_NAME_STORAGE_KEY = "blt-safecloak-display-name";
+  const MEDIA_PREFS_STORAGE_KEY = "blt-safecloak-media-preferences";
   const LOBBY_EFFECT_ORDER = ["deep", "chipmunk", "robot", "echo", "voice1", "voice2", "voice3"];
 
   let previewStream = null;
-  let micEnabled = true;
-  let camEnabled = true;
+  let micEnabled = false;
+  let camEnabled = false;
   let voiceUiBound = false;
 
   const $ = (id) => document.getElementById(id);
@@ -559,8 +560,10 @@
     for (const mediaConstraints of constraints) {
       try {
         previewStream = await navigator.mediaDevices.getUserMedia(mediaConstraints);
-        micEnabled = hasAudioTrack();
-        camEnabled = hasVideoTrack();
+        micEnabled = false;
+        camEnabled = false;
+        setTrackEnabled("audio", false);
+        setTrackEnabled("video", false);
         updatePreviewUI();
         initPreviewVoiceEngine();
         return;
@@ -591,6 +594,20 @@
     return target;
   }
 
+  function persistMediaPreferences() {
+    const micPref = hasAudioTrack() ? micEnabled : false;
+    const camPref = hasVideoTrack() ? camEnabled : false;
+
+    try {
+      window.sessionStorage.setItem(
+        MEDIA_PREFS_STORAGE_KEY,
+        JSON.stringify({ mic: micPref, cam: camPref })
+      );
+    } catch {
+      /* ignore storage failures */
+    }
+  }
+
   function goToRoom(roomId = "", displayName = "") {
     if (displayName) {
       try {
@@ -600,6 +617,7 @@
       }
     }
     persistVoicePreferences();
+    persistMediaPreferences();
     const target = buildRoomUrl(roomId);
     stopPreviewStream();
     window.location.href = target.toString();

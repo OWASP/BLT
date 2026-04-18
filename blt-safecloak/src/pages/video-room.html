@@ -432,20 +432,22 @@
           <button
             class="control-btn rounded-full border border-neutral-border bg-white text-gray-700"
             id="btn-mic"
-            title="Mute mic"
+            title="Unmute mic"
             onclick="VideoChat.toggleMic()"
             aria-label="Toggle microphone"
+            aria-pressed="true"
           >
-            <i class="fa-solid fa-microphone" aria-hidden="true"></i>
+            <i class="fa-solid fa-microphone-slash" aria-hidden="true"></i>
           </button>
           <button
             class="control-btn rounded-full border border-neutral-border bg-white text-gray-700"
             id="btn-cam"
-            title="Disable camera"
+            title="Enable camera"
             onclick="VideoChat.toggleCamera()"
             aria-label="Toggle camera"
+            aria-pressed="true"
           >
-            <i class="fa-solid fa-video" aria-hidden="true"></i>
+            <i class="fa-solid fa-video-slash" aria-hidden="true"></i>
           </button>
           <button
             class="control-btn rounded-full border border-neutral-border bg-white text-gray-700"
