@@ -677,6 +677,7 @@
     const displayNameInput = getDisplayNameInput();
     const micBtn = $("btn-preview-mic");
     const camBtn = $("btn-preview-cam");
+    let shouldAutoJoinFromInvite = false;
 
     bindPreviewVoiceControls();
     restoreDisplayNameFromStorage();
@@ -705,6 +706,7 @@
       if (sharedRoomId) {
         roomInput.value = sharedRoomId;
         if (isValidRoomId(sharedRoomId)) {
+          shouldAutoJoinFromInvite = true;
           showToast("Room ID loaded from share link", "info");
         }
       }
@@ -730,6 +732,13 @@
     if (camBtn) camBtn.addEventListener("click", toggleCamPreview);
 
     await initPreviewStream();
+
+    if (shouldAutoJoinFromInvite) {
+      const existingName = normalizeDisplayName(displayNameInput ? displayNameInput.value : "");
+      if (existingName) {
+        joinRoom();
+      }
+    }
   });
 
   window.addEventListener("beforeunload", stopPreviewStream);

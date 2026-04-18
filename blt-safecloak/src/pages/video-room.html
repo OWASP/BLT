@@ -504,8 +504,11 @@
     <script src="js/video.js"></script>
     <script>
       document.addEventListener("DOMContentLoaded", async () => {
+        const roomIdRe = /^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{6}$/;
+        const normalizeRemoteId = (value) => (value || "").trim().toUpperCase();
         const params = new URLSearchParams(window.location.search);
-        const isJoiner = Boolean((params.get("room") || "").trim());
+        const inviteRoomId = normalizeRemoteId(params.get("room"));
+        const isJoiner = roomIdRe.test(inviteRoomId);
         const addParticipantCard = document.getElementById("add-participant-card");
         if (isJoiner && addParticipantCard) {
           addParticipantCard.style.display = "none";
@@ -521,16 +524,15 @@
 
         const callBtn = document.getElementById("btn-call");
         const input = document.getElementById("remote-id");
-        const normalizeRemoteId = (value) => value.trim().toUpperCase();
         if (callBtn && input) {
-          callBtn.addEventListener("click", () => {
-            VideoChat.callPeer(normalizeRemoteId(input.value));
+          callBtn.addEventListener("click", async () => {
+            await VideoChat.callPeer(normalizeRemoteId(input.value));
             input.value = "";
           });
 
-          input.addEventListener("keydown", (event) => {
+          input.addEventListener("keydown", async (event) => {
             if (event.key === "Enter") {
-              VideoChat.callPeer(normalizeRemoteId(event.target.value));
+              await VideoChat.callPeer(normalizeRemoteId(event.target.value));
               event.target.value = "";
             }
           });
