@@ -17,6 +17,7 @@ const VideoChat = (() => {
   let consentGiven = false;
   let screenSharing = false;
   let initialMediaPreferences = { mic: true, cam: true };
+  const MEDIA_PREFS_STORAGE_KEY = "blt-safecloak-media-preferences";
   const VOICE_PREFS_STORAGE_KEY = "blt-safecloak-voice-preferences";
   const DISPLAY_NAME_STORAGE_KEY = "blt-safecloak-display-name";
   const PROFILE_BROADCAST_THROTTLE_MS = 220;
@@ -603,13 +604,17 @@ const VideoChat = (() => {
   }
 
   function applyInitialMediaPreferences() {
-    if (!localStream) return;
+    micMuted = !initialMediaPreferences.mic;
+    camOff = !initialMediaPreferences.cam;
+
+    if (!localStream) {
+      syncControlButtons();
+      updateLocalTilePresentation();
+      return;
+    }
 
     const hasAudioTrack = localStream.getAudioTracks().length > 0;
     const hasVideoTrack = localStream.getVideoTracks().length > 0;
-
-    micMuted = hasAudioTrack ? !initialMediaPreferences.mic : false;
-    camOff = hasVideoTrack ? !initialMediaPreferences.cam : false;
 
     if (hasAudioTrack) {
       localStream.getAudioTracks().forEach((track) => (track.enabled = !micMuted));
@@ -1061,10 +1066,6 @@ const VideoChat = (() => {
       if (!ok) return;
     }
 
-    micMuted = false;
-    camOff = false;
-    updateMediaButtons();
-
     const ok = await startLocalMedia();
     if (!ok) return;
 
@@ -1110,6 +1111,7 @@ const VideoChat = (() => {
         : '<i class="fa-solid fa-microphone" aria-hidden="true"></i>';
       micBtn.title = micMuted ? "Unmute mic" : "Mute mic";
       micBtn.classList.toggle("active", micMuted);
+      micBtn.setAttribute("aria-pressed", micMuted ? "true" : "false");
     }
     const camBtn = $("btn-cam");
     if (camBtn) {
@@ -1118,6 +1120,7 @@ const VideoChat = (() => {
         : '<i class="fa-solid fa-video" aria-hidden="true"></i>';
       camBtn.title = camOff ? "Enable camera" : "Disable camera";
       camBtn.classList.toggle("active", camOff);
+      camBtn.setAttribute("aria-pressed", camOff ? "true" : "false");
     }
   }
 
@@ -1749,15 +1752,51 @@ const VideoChat = (() => {
     const params = new URLSearchParams(window.location.search);
     const mic = params.get("mic");
     const cam = params.get("cam");
+    const isPrejoin = params.get("prejoin") === "1";
+
+    let parsedFromUrl = false;
 
     if (mic === "off" || mic === "on") {
       initialMediaPreferences.mic = mic === "on";
+      parsedFromUrl = true;
     }
     if (cam === "off" || cam === "on") {
       initialMediaPreferences.cam = cam === "on";
+      parsedFromUrl = true;
     }
 
-    if (params.get("prejoin") === "1") {
+    if (!parsedFromUrl) {
+      try {
+        const raw = window.sessionStorage.getItem(MEDIA_PREFS_STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && typeof parsed === "object") {
+            if (typeof parsed.mic === "boolean") {
+              initialMediaPreferences.mic = parsed.mic;
+            }
+            if (typeof parsed.cam === "boolean") {
+              initialMediaPreferences.cam = parsed.cam;
+            }
+          }
+        }
+      } catch {
+        /* ignore storage failures */
+      }
+    }
+
+    try {
+      window.sessionStorage.setItem(
+        MEDIA_PREFS_STORAGE_KEY,
+        JSON.stringify({
+          mic: Boolean(initialMediaPreferences.mic),
+          cam: Boolean(initialMediaPreferences.cam),
+        })
+      );
+    } catch {
+      /* ignore storage failures */
+    }
+
+    if (isPrejoin) {
       params.delete("prejoin");
       params.delete("mic");
       params.delete("cam");
@@ -1773,11 +1812,13 @@ const VideoChat = (() => {
     state.displayInitials = makeInitials(state.displayName);
 
     readInitialMediaPreferencesFromUrl();
+    applyInitialMediaPreferences();
     updateLocalTilePresentation();
     
     // We try to start media immediately if we have preferences from the lobby
     const ok = await startLocalMedia();
     if (ok) {
+      applyInitialMediaPreferences();
       updateLocalTilePresentation();
       _applyStoredVoicePreferences();
     }
