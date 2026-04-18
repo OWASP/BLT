@@ -2042,7 +2042,6 @@ const VideoChat = (() => {
           /* ignore VoiceChanger destroy failures */
         }
       }
-      }
     });
 
     // pagehide is more reliable than beforeunload for cleanup across mobile and desktop.

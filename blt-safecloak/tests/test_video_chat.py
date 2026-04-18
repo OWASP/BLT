@@ -460,7 +460,7 @@ def test_three_clients_connect_and_see_cameras(app_server_url):
             p2 = ctx2.new_page()
             p3 = ctx3.new_page()
 
-            video_url = f"{app_server_url}/video-room"
+            video_url = f"{app_server_url}/video-room?mic=on&cam=on"
             for page in (p1, p2, p3):
                 page.goto(video_url)
 
@@ -634,7 +634,7 @@ def voice_changer_page(app_server_url):
         try:
             ctx = _new_context(browser)
             page = ctx.new_page()
-            page.goto(f"{app_server_url}/video-room")
+            page.goto(f"{app_server_url}/video-room?mic=on&cam=on")
             # Wait for VoiceChanger to be defined (scripts loaded)
             page.wait_for_function("typeof VoiceChanger !== 'undefined'", timeout=TIMEOUT_MS)
             yield page
