@@ -11,8 +11,8 @@
   const LOBBY_EFFECT_ORDER = ["deep", "chipmunk", "robot", "echo", "voice1", "voice2", "voice3"];
 
   let previewStream = null;
-  let micEnabled = true;
-  let camEnabled = true;
+  let micEnabled = false;
+  let camEnabled = false;
   let voiceUiBound = false;
 
   const $ = (id) => document.getElementById(id);
@@ -560,8 +560,10 @@
     for (const mediaConstraints of constraints) {
       try {
         previewStream = await navigator.mediaDevices.getUserMedia(mediaConstraints);
-        micEnabled = hasAudioTrack();
-        camEnabled = hasVideoTrack();
+        micEnabled = false;
+        camEnabled = false;
+        setTrackEnabled("audio", false);
+        setTrackEnabled("video", false);
         updatePreviewUI();
         initPreviewVoiceEngine();
         return;

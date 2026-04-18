@@ -16,7 +16,7 @@ const VideoChat = (() => {
   let camOff = true;
   let consentGiven = false;
   let screenSharing = false;
-  let initialMediaPreferences = { mic: true, cam: true };
+  let initialMediaPreferences = { mic: false, cam: false };
   const MEDIA_PREFS_STORAGE_KEY = "blt-safecloak-media-preferences";
   const VOICE_PREFS_STORAGE_KEY = "blt-safecloak-voice-preferences";
   const DISPLAY_NAME_STORAGE_KEY = "blt-safecloak-display-name";
@@ -1754,34 +1754,11 @@ const VideoChat = (() => {
     const cam = params.get("cam");
     const isPrejoin = params.get("prejoin") === "1";
 
-    let parsedFromUrl = false;
-
     if (mic === "off" || mic === "on") {
       initialMediaPreferences.mic = mic === "on";
-      parsedFromUrl = true;
     }
     if (cam === "off" || cam === "on") {
       initialMediaPreferences.cam = cam === "on";
-      parsedFromUrl = true;
-    }
-
-    if (!parsedFromUrl) {
-      try {
-        const raw = window.sessionStorage.getItem(MEDIA_PREFS_STORAGE_KEY);
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          if (parsed && typeof parsed === "object") {
-            if (typeof parsed.mic === "boolean") {
-              initialMediaPreferences.mic = parsed.mic;
-            }
-            if (typeof parsed.cam === "boolean") {
-              initialMediaPreferences.cam = parsed.cam;
-            }
-          }
-        }
-      } catch {
-        /* ignore storage failures */
-      }
     }
 
     try {
