@@ -1040,7 +1040,7 @@ const VideoChat = (() => {
   function isValidRoomId(roomId) {
     if (!roomId || typeof roomId !== "string") return false;
     // Match the same character set used by Crypto.randomId(): uppercase A-Z (except I,O) + digits 2-9
-    return /^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{6}$/.test(normalizeRoomId(roomId));
+    return /^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{6}$/.test(roomId);
   }
 
   async function autoJoinFromInvite(roomId) {

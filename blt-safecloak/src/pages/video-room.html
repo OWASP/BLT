@@ -520,16 +520,6 @@
           }, 5000);
         }
 
-        if (ok && isJoiner) {
-          try {
-            await VideoChat.autoJoinFromInvite(inviteRoomId);
-          } catch {
-            if (typeof showToast === "function") {
-              showToast("Unable to auto-join from invite link", "error");
-            }
-          }
-        }
-
         const callBtn = document.getElementById("btn-call");
         const input = document.getElementById("remote-id");
         if (callBtn && input) {
