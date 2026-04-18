@@ -16,6 +16,8 @@ const VideoChat = (() => {
   let camOff = true;
   let consentGiven = false;
   let screenSharing = false;
+  let inviteAutoJoinAttempted = false;
+  let inviteAutoJoinRoomId = "";
   let initialMediaPreferences = { mic: false, cam: false };
   const MEDIA_PREFS_STORAGE_KEY = "blt-safecloak-media-preferences";
   const VOICE_PREFS_STORAGE_KEY = "blt-safecloak-voice-preferences";
@@ -127,6 +129,22 @@ const VideoChat = (() => {
   function getDisplayLabel(peerId) {
     if (peerId === state.peerId || peerId === "local") return "You";
     return getProfileForPeer(peerId).name || peerId;
+  }
+
+  function normalizeRoomId(value) {
+    return (value || "").trim().toUpperCase();
+  }
+
+  function getInviteRoomIdFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    return normalizeRoomId(params.get("room"));
+  }
+
+  function populateRemoteIdInput(roomId) {
+    const remoteInput = $("remote-id");
+    if (remoteInput) {
+      remoteInput.value = roomId;
+    }
   }
 
   function getSelfProfilePayload() {
@@ -786,16 +804,20 @@ const VideoChat = (() => {
       setStatusIcon("online");
       updateLocalTilePresentation();
       showToast("Connected to signaling server", "success");
-      // Populate room ID if passed in URL, but wait for user to click "Add Participant"
-      const params = new URLSearchParams(window.location.search);
-      const joinId = params.get("room");
-      if (joinId && joinId !== state.peerId) {
-        const remoteInput = $("remote-id");
-        if (remoteInput) {
-          remoteInput.value = joinId;
-        }
-        showToast("Room ID loaded from link — click Add Participant to join", "info");
+      const inviteRoomId = inviteAutoJoinRoomId || getInviteRoomIdFromUrl();
+      if (!inviteRoomId) {
+        return;
       }
+
+      if (!isValidRoomId(inviteRoomId)) {
+        showToast("Invite link contains an invalid Room ID", "warning");
+        return;
+      }
+
+      populateRemoteIdInput(inviteRoomId);
+      void autoJoinFromInvite(inviteRoomId).catch(() => {
+        showToast("Unable to auto-join from invite link", "error");
+      });
     });
 
     peer.on("call", async (incomingCall) => {
@@ -1049,7 +1071,42 @@ const VideoChat = (() => {
   function isValidRoomId(roomId) {
     if (!roomId || typeof roomId !== "string") return false;
     // Match the same character set used by Crypto.randomId(): uppercase A-Z (except I,O) + digits 2-9
-    return /^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{6}$/.test(roomId.trim());
+    return /^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{6}$/.test(roomId);
+  }
+
+  async function autoJoinFromInvite(roomId) {
+    const normalizedRoomId = normalizeRoomId(roomId);
+    if (!normalizedRoomId || !isValidRoomId(normalizedRoomId)) {
+      return false;
+    }
+
+    populateRemoteIdInput(normalizedRoomId);
+
+    if (!peer || !state.peerId) {
+      inviteAutoJoinRoomId = normalizedRoomId;
+      return false;
+    }
+
+    if (normalizedRoomId === state.peerId) {
+      showToast("Invite link points to your own Room ID", "warning");
+      return false;
+    }
+
+    if (activeCalls.has(normalizedRoomId)) {
+      inviteAutoJoinAttempted = true;
+      inviteAutoJoinRoomId = normalizedRoomId;
+      return true;
+    }
+
+    if (inviteAutoJoinAttempted && inviteAutoJoinRoomId === normalizedRoomId) {
+      return false;
+    }
+
+    inviteAutoJoinAttempted = true;
+    inviteAutoJoinRoomId = normalizedRoomId;
+    showToast("Joining room from invite link...", "info");
+    await callPeer(normalizedRoomId);
+    return true;
   }
 
   async function callPeer(remotePeerId) {
@@ -1068,8 +1125,8 @@ const VideoChat = (() => {
       return;
     }
 
-    // Normalize the peer ID by trimming whitespace
-    remotePeerId = remotePeerId.trim();
+    // Normalize the peer ID to avoid whitespace/case mismatches
+    remotePeerId = normalizeRoomId(remotePeerId);
 
     if (!isValidRoomId(remotePeerId)) {
       showToast(
@@ -1914,6 +1971,7 @@ const VideoChat = (() => {
   return {
     init,
     callPeer,
+    autoJoinFromInvite,
     disconnectPeer,
     toggleMic,
     toggleCamera,
