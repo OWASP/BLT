@@ -323,7 +323,7 @@ def _patch_video_chat_html(data: bytes, peerjs_port: int) -> bytes:
     return html.encode("utf-8")
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def peerjs_server():
     """Start a local PeerJS signaling server and yield its port number.
 
@@ -374,7 +374,7 @@ def peerjs_server():
             proc.kill()
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def base_url(peerjs_server):
     """Start a local HTTP server and return its base URL."""
     if not _PEERJS_MIN_JS.exists():

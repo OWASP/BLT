@@ -29,6 +29,8 @@ const VideoChat = (() => {
   let speakingAudioContext = null;
   let localSpeakingUntil = 0;
   const lastProfileBroadcastAt = new Map(); // peerId -> timestamp
+  let navigationInProgress = false;
+  let isEndingCall = false;
 
   const state = {
     peerId: null,
@@ -55,6 +57,16 @@ const VideoChat = (() => {
     const textNode = document.createTextNode(text);
     el.appendChild(textNode);
     el.className = `text-${type}`;
+  }
+
+  function navigateToHome() {
+    if (navigationInProgress) return;
+    navigationInProgress = true;
+    try {
+      window.location.assign("/");
+    } catch {
+      window.location.href = "/";
+    }
   }
 
   function setStatusIcon(status) {
@@ -932,12 +944,16 @@ const VideoChat = (() => {
       if (wrapper) wrapper.remove();
       if (activeCalls.size === 0) {
         state.connected = false;
-        updateStatus("fa-solid fa-phone-slash", "Call ended", "muted");
-        setStatusIcon("offline");
-        if ($("call-controls")) {
-          $("btn-noise") && $("btn-noise").classList.add("hidden");
-          $("btn-screen") && $("btn-screen").classList.add("hidden");
-          $("btn-end") && $("btn-end").classList.add("hidden");
+        // Only show remote-disconnect UI if this is not a local teardown
+        if (!isEndingCall) {
+          updateStatus("fa-solid fa-phone-slash", "Call ended", "muted");
+          setStatusIcon("offline");
+          if ($("call-controls")) {
+            $("btn-noise") && $("btn-noise").classList.add("hidden");
+            $("btn-screen") && $("btn-screen").classList.add("hidden");
+            $("btn-end") && $("btn-end").classList.remove("hidden");
+          }
+          showToast("Participant disconnected. Use End Call to return home.", "info");
         }
       } else {
         const count = activeCalls.size;
@@ -1225,10 +1241,25 @@ const VideoChat = (() => {
     }
   }
 
-  function endCall() {
-    activeCalls.forEach((call) => call.close());
+  async function endCall(options = {}) {
+    const { keepEndControlVisible = false } = options;
+    isEndingCall = true;
+
+    activeCalls.forEach((call) => {
+      try {
+        call.close();
+      } catch {
+        /* ignore close failures */
+      }
+    });
     activeCalls.clear();
-    activeDataConns.forEach((conn) => conn.close());
+    activeDataConns.forEach((conn) => {
+      try {
+        conn.close();
+      } catch {
+        /* ignore close failures */
+      }
+    });
     activeDataConns.clear();
     lastProfileBroadcastAt.clear();
     peerProfiles.clear();
@@ -1246,7 +1277,11 @@ const VideoChat = (() => {
     if ($("call-controls")) {
       $("btn-noise") && $("btn-noise").classList.add("hidden");
       $("btn-screen") && $("btn-screen").classList.add("hidden");
-      $("btn-end") && $("btn-end").classList.add("hidden");
+      if (keepEndControlVisible) {
+        $("btn-end") && $("btn-end").classList.remove("hidden");
+      } else {
+        $("btn-end") && $("btn-end").classList.add("hidden");
+      }
     }
     updateParticipantsList();
     showToast("Call ended", "info");
@@ -1257,13 +1292,24 @@ const VideoChat = (() => {
         name: "Call session ended",
         details: `Session ID: ${state.sessionId} — ended at ${new Date().toISOString()}`,
       });
+    isEndingCall = false;
   }
 
-  function hangup() {
-    endCall();
+  async function hangup(options = {}) {
+    const { navigateHome = true } = options;
+
+    await endCall();
     if (peer) {
-      peer.disconnect();
-      peer.destroy();
+      try {
+        peer.disconnect();
+      } catch {
+        /* ignore disconnect failures */
+      }
+      try {
+        peer.destroy();
+      } catch {
+        /* ignore destroy failures */
+      }
       peer = null;
     }
     if (localStream) {
@@ -1276,12 +1322,20 @@ const VideoChat = (() => {
       voiceAnimFrame = null;
     }
     if (audioContext) {
-      audioContext.close().catch(() => {});
+      try {
+        await audioContext.close();
+      } catch {
+        /* ignore close failures */
+      }
       audioContext = null;
     }
     stopAllRemoteSpeakingMonitors();
     if (speakingAudioContext) {
-      speakingAudioContext.close().catch(() => {});
+      try {
+        await speakingAudioContext.close();
+      } catch {
+        /* ignore close failures */
+      }
       speakingAudioContext = null;
     }
     localSpeakingUntil = 0;
@@ -1307,6 +1361,9 @@ const VideoChat = (() => {
     setStatusIcon("offline");
     updateStatus("fa-solid fa-power-off", "Disconnected", "muted");
     showToast("Session ended and media released", "success");
+    if (navigateHome) {
+      navigateToHome();
+    }
   }
 
   /* ── Voice changer ── */
@@ -1786,7 +1843,27 @@ const VideoChat = (() => {
     await initPeer();
     checkInitialPermissions();
     window.addEventListener("beforeunload", () => {
-      hangup();
+      // Inline synchronous teardown for unload – browsers don't wait for Promises
+      try {
+        if (peer) {
+          peer.disconnect();
+          peer.destroy();
+        }
+      } catch {
+        /* ignore sync disconnect/destroy failures */
+      }
+      if (localStream) {
+        localStream.getTracks().forEach((t) => t.stop());
+      }
+      if (typeof VoiceChanger !== "undefined") {
+        try {
+          VoiceChanger.destroy();
+        } catch {
+          /* ignore VoiceChanger destroy failures */
+        }
+      }
+      // Fire-and-forget: schedule full async cleanup without waiting
+      Promise.resolve().then(() => hangup({ navigateHome: false })).catch(() => {});
     });
     return true;
   }
