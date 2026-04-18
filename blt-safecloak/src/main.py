@@ -40,7 +40,9 @@ class Default(WorkerEntrypoint):
 
             return Response('Not Found', status=404)
 
-        except FileNotFoundError:
+        except FileNotFoundError as exc:
+            print(f'[404] Page file not found: {exc}')
             return Response('Not Found', status=404)
-        except Exception:
+        except Exception as exc:
+            print(f'[500] Unexpected error: {exc}')
             return Response('Internal Server Error', status=500)
