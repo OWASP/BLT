@@ -235,7 +235,7 @@ class _ThreadingTCPServer(socketserver.ThreadingTCPServer):
 class _AppHandler(http.server.BaseHTTPRequestHandler):
     """Minimal HTTP handler that serves app pages and public assets.
 
-    Two class-level attributes are populated by the ``base_url`` fixture
+    Two class-level attributes are populated by the ``app_server_url`` fixture
     before the server starts:
 
     * ``peerjs_port`` – port of the local PeerJS signaling server
@@ -375,7 +375,7 @@ def peerjs_server():
 
 
 @pytest.fixture(scope="module")
-def base_url(peerjs_server):
+def app_server_url(peerjs_server):
     """Start a local HTTP server and return its base URL."""
     if not _PEERJS_MIN_JS.exists():
         raise FileNotFoundError(
@@ -444,7 +444,7 @@ _STREAM_CHECK_JS = """
 # ---------------------------------------------------------------------------
 
 
-def test_three_clients_connect_and_see_cameras(base_url):
+def test_three_clients_connect_and_see_cameras(app_server_url):
     """
     Three clients join the same room.  Assert each client can see the
     other two participants' camera streams (srcObject != null).
@@ -460,7 +460,7 @@ def test_three_clients_connect_and_see_cameras(base_url):
             p2 = ctx2.new_page()
             p3 = ctx3.new_page()
 
-            video_url = f"{base_url}/video-room"
+            video_url = f"{app_server_url}/video-room"
             for page in (p1, p2, p3):
                 page.goto(video_url)
 
@@ -627,14 +627,14 @@ _VOICE_CHANGER_IGNORE_UNKNOWN_MODE_JS = """
 
 
 @pytest.fixture(scope="module")
-def voice_changer_page(base_url):
+def voice_changer_page(app_server_url):
     """Open a single in-call page for VoiceChanger unit tests."""
     with sync_playwright() as pw:
         browser = pw.chromium.launch(args=_BROWSER_ARGS)
         try:
             ctx = _new_context(browser)
             page = ctx.new_page()
-            page.goto(f"{base_url}/video-room")
+            page.goto(f"{app_server_url}/video-room")
             # Wait for VoiceChanger to be defined (scripts loaded)
             page.wait_for_function("typeof VoiceChanger !== 'undefined'", timeout=TIMEOUT_MS)
             yield page
