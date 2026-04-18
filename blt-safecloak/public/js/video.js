@@ -1323,6 +1323,9 @@ const VideoChat = (() => {
       }
     });
     activeDataConns.clear();
+    // Yield to allow any microtasks/event handlers triggered by close() to run while
+    // isEndingCall is still true and connections are known to be closing.
+    await Promise.resolve();
     lastProfileBroadcastAt.clear();
     peerProfiles.clear();
     stopAllRemoteSpeakingMonitors();
@@ -1982,8 +1985,14 @@ const VideoChat = (() => {
           /* ignore VoiceChanger destroy failures */
         }
       }
-      // Fire-and-forget: schedule full async cleanup without waiting
-      Promise.resolve().then(() => hangup({ navigateHome: false })).catch(() => {});
+      }
+    });
+
+    // pagehide is more reliable than beforeunload for cleanup across mobile and desktop.
+    window.addEventListener("pagehide", (event) => {
+      if (!event.persisted) {
+        hangup({ navigateHome: false }).catch(() => {});
+      }
     });
     return true;
   }
