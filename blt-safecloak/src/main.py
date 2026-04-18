@@ -1,9 +1,12 @@
 # pylint: disable=too-few-public-methods
+import asyncio
+import traceback
+
 from workers import WorkerEntrypoint, Response
 from urllib.parse import urlparse
 from pathlib import Path
 
-from libs.utils import html_response, cors_response
+from libs.utils import html_response, cors_response, base_headers
 
 # Route to HTML page mapping
 PAGES_MAP = {
@@ -42,7 +45,17 @@ class Default(WorkerEntrypoint):
 
         except FileNotFoundError as exc:
             print(f'[404] Page file not found: {exc}')
-            return Response('Not Found', status=404)
+            return Response(
+                'Not Found',
+                status=404,
+                headers=base_headers('text/plain; charset=utf-8')
+            )
+        except asyncio.CancelledError:
+            raise
         except Exception as exc:
-            print(f'[500] Unexpected error: {exc}')
-            return Response('Internal Server Error', status=500)
+            traceback.print_exc()
+            return Response(
+                'Internal Server Error',
+                status=500,
+                headers=base_headers('text/plain; charset=utf-8')
+            )
