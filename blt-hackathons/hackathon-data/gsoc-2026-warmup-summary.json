@@ -1,7 +1,7 @@
 {
   "participantCount": 203,
-  "totalPRs": 2652,
-  "mergedPRs": 1644,
+  "totalPRs": 2653,
+  "mergedPRs": 1645,
   "totalIssues": 830,
   "repositories": 54,
   "topContributors": [
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "fix(video): preserve Room ID input field on call failure",
+      "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/79",
+      "username": "ojaswa072",
+      "avatar": "https://avatars.githubusercontent.com/u/230836303?v=4",
+      "state": "open",
+      "created_at": "2026-04-18T22:04:25Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-SafeCloak"
+    },
     {
       "title": "Add error handling for unhandled exceptions in worker entrypoint",
       "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/78",
@@ -50,9 +60,9 @@
       "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/76",
       "username": "ojaswa072",
       "avatar": "https://avatars.githubusercontent.com/u/230836303?v=4",
-      "state": "open",
+      "state": "closed",
       "created_at": "2026-04-18T14:09:31Z",
-      "merged_at": null,
+      "merged_at": "2026-04-18T21:29:46Z",
       "repository": "OWASP-BLT/BLT-SafeCloak"
     },
     {
@@ -114,16 +124,6 @@
       "created_at": "2026-04-17T10:14:22Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "remove: delete Bitcoin node data directories and config",
-      "url": "https://github.com/OWASP-BLT/BLT-Rewards/pull/54",
-      "username": "Neurvinch",
-      "avatar": "https://avatars.githubusercontent.com/u/149451318?v=4",
-      "state": "closed",
-      "created_at": "2026-04-17T09:19:36Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-Rewards"
     }
   ]
 }
