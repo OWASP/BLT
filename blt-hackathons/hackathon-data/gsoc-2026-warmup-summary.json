@@ -1,6 +1,6 @@
 {
   "participantCount": 203,
-  "totalPRs": 2647,
+  "totalPRs": 2648,
   "mergedPRs": 1640,
   "totalIssues": 830,
   "repositories": 54,
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "fix(video): harden mute/unmute track toggle reliability",
+      "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/74",
+      "username": "ojaswa072",
+      "avatar": "https://avatars.githubusercontent.com/u/230836303?v=4",
+      "state": "open",
+      "created_at": "2026-04-18T09:31:51Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-SafeCloak"
+    },
     {
       "title": "delete recommended_discussion_channels.html",
       "url": "https://github.com/OWASP-BLT/BLT/pull/6208",
@@ -113,16 +123,6 @@
       "state": "closed",
       "created_at": "2026-04-15T23:12:12Z",
       "merged_at": "2026-04-16T01:32:44Z",
-      "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "docs: remove deprecated android.png per #6167",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6200",
-      "username": "Chaimaekit",
-      "avatar": "https://avatars.githubusercontent.com/u/96260441?v=4",
-      "state": "closed",
-      "created_at": "2026-04-15T22:09:41Z",
-      "merged_at": null,
       "repository": "OWASP-BLT/BLT"
     }
   ]
