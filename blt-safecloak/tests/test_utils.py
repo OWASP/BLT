@@ -3,8 +3,9 @@ import os
 import json
 import pytest
 import ast
+import asyncio
 from datetime import datetime
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch, AsyncMock
 
 # --- THE CLOUDFLARE MOCK ---
 # This creates a "fake" Cloudflare workers module so local Python doesn't crash.
@@ -17,6 +18,7 @@ class FakeResponse:
         self.headers = headers or {}
 
 mock_workers.Response = FakeResponse
+mock_workers.WorkerEntrypoint = type('WorkerEntrypoint', (), {})
 sys.modules['workers'] = mock_workers
 # ---------------------------
 
@@ -77,3 +79,87 @@ def test_json_response_default_str_fallback():
     assert response_data["timestamp"] == "2026-03-22 12:00:00"
     actual_set = set(ast.literal_eval(response_data["unique_items"]))
     assert actual_set == {1, 2, 3}
+
+
+# --- on_fetch error handling tests ---
+# main.py uses 'from libs.utils import ...' (Cloudflare Workers path),
+# so we register src/libs as 'libs' before importing main.
+import src.libs.utils as _utils_mod
+sys.modules['libs'] = type(sys)('libs')
+sys.modules['libs.utils'] = _utils_mod
+
+from src.main import Default
+
+
+def _make_request(method='GET', path='/'):
+    """Create a fake request object for testing."""
+    req = MagicMock()
+    req.method = method
+    req.url = f'http://localhost:8787{path}'
+    return req
+
+
+def _make_env(has_assets=False):
+    """Create a fake env object for testing."""
+    env = MagicMock(spec=[])
+    if has_assets:
+        env.ASSETS = AsyncMock()
+    return env
+
+
+def test_on_fetch_missing_page_returns_404():
+    """Verify that a missing page file returns a clean 404, not an unhandled exception."""
+    worker = Default()
+    req = _make_request('GET', '/consent')
+    env = _make_env()
+
+    with patch('src.main.Path') as mock_path:
+        mock_path.return_value = mock_path
+        mock_path.__truediv__ = MagicMock(return_value=mock_path)
+        instance = mock_path.return_value
+        instance.parent.__truediv__ = MagicMock(return_value=instance)
+        # Simulate read_text raising FileNotFoundError
+        instance.read_text.side_effect = FileNotFoundError('consent.html not found')
+
+        # Patch Path(__file__).parent / 'pages' / ... to raise
+        with patch.object(Default, 'on_fetch', wraps=worker.on_fetch):
+            response = asyncio.run(worker.on_fetch(req, env))
+
+    assert response.status_code == 404
+    assert b'Not Found' in response.body
+
+
+def test_on_fetch_unexpected_error_returns_500():
+    """Verify that an unexpected exception returns a clean 500, not a stack trace."""
+    worker = Default()
+    req = _make_request('GET', '/notes')
+    env = _make_env()
+
+    with patch('src.main.Path') as mock_path:
+        mock_instance = MagicMock()
+        mock_path.return_value = mock_instance
+        mock_instance.parent.__truediv__ = MagicMock(return_value=mock_instance)
+        mock_instance.__truediv__ = MagicMock(return_value=mock_instance)
+        mock_instance.read_text.side_effect = RuntimeError('disk I/O error')
+
+        response = asyncio.run(worker.on_fetch(req, env))
+
+    assert response.status_code == 500
+    assert b'Internal Server Error' in response.body
+
+
+def test_on_fetch_cancelled_error_is_reraised():
+    """Verify that asyncio.CancelledError is not swallowed by the error handler."""
+    worker = Default()
+    req = _make_request('GET', '/notes')
+    env = _make_env()
+
+    with patch('src.main.Path') as mock_path:
+        mock_instance = MagicMock()
+        mock_path.return_value = mock_instance
+        mock_instance.parent.__truediv__ = MagicMock(return_value=mock_instance)
+        mock_instance.__truediv__ = MagicMock(return_value=mock_instance)
+        mock_instance.read_text.side_effect = asyncio.CancelledError()
+
+        with pytest.raises(asyncio.CancelledError):
+            asyncio.run(worker.on_fetch(req, env))
