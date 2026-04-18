@@ -23,18 +23,24 @@ class Default(WorkerEntrypoint):
         url = urlparse(request.url)
         path = url.path
 
-        # Handle CORS preflight
-        if request.method == 'OPTIONS':
-            return cors_response()
+        try:
+            # Handle CORS preflight
+            if request.method == 'OPTIONS':
+                return cors_response()
 
-        # Handle GET requests for HTML pages
-        if request.method == 'GET' and path in PAGES_MAP:
-            html_path = Path(__file__).parent / 'pages' / PAGES_MAP[path]
-            html_content = html_path.read_text(encoding='utf-8')
-            return html_response(html_content)
+            # Handle GET requests for HTML pages
+            if request.method == 'GET' and path in PAGES_MAP:
+                html_path = Path(__file__).parent / 'pages' / PAGES_MAP[path]
+                html_content = html_path.read_text(encoding='utf-8')
+                return html_response(html_content)
 
-        # Serving static files from the 'public' directory
-        if hasattr(env, 'ASSETS'):
-            return await env.ASSETS.fetch(request)
+            # Serving static files from the 'public' directory
+            if hasattr(env, 'ASSETS'):
+                return await env.ASSETS.fetch(request)
 
-        return Response('Not Found', status=404)
+            return Response('Not Found', status=404)
+
+        except FileNotFoundError:
+            return Response('Not Found', status=404)
+        except Exception:
+            return Response('Internal Server Error', status=500)
