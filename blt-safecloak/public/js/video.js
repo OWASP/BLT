@@ -16,7 +16,8 @@ const VideoChat = (() => {
   let camOff = true;
   let consentGiven = false;
   let screenSharing = false;
-  let initialMediaPreferences = { mic: true, cam: true };
+  let initialMediaPreferences = { mic: false, cam: false };
+  const MEDIA_PREFS_STORAGE_KEY = "blt-safecloak-media-preferences";
   const VOICE_PREFS_STORAGE_KEY = "blt-safecloak-voice-preferences";
   const DISPLAY_NAME_STORAGE_KEY = "blt-safecloak-display-name";
   const PROFILE_BROADCAST_THROTTLE_MS = 220;
@@ -577,11 +578,15 @@ const VideoChat = (() => {
 
     const micBtn = $("btn-mic");
     if (micBtn) {
-      if (!hasAudioTrack) {
+      // Disable only when the device is genuinely unavailable: user wants mic on
+      // but there is no track. When micMuted=true the track was intentionally
+      // stopped — keep the button enabled so the user can re-enable.
+      const micUnavailable = !hasAudioTrack && !micMuted;
+      if (micUnavailable) {
         micBtn.innerHTML = '<i class="fa-solid fa-microphone-slash" aria-hidden="true"></i>';
-        micBtn.title = "Microphone not available";
-        micBtn.disabled = true;
-        micBtn.classList.add("opacity-50", "cursor-not-allowed");
+        micBtn.title = micMuted ? "Unmute mic" : "Mute mic";
+        micBtn.disabled = false;
+        micBtn.classList.remove("opacity-50", "cursor-not-allowed");
       } else {
         micBtn.innerHTML = micMuted
           ? '<i class="fa-solid fa-microphone-slash" aria-hidden="true"></i>'
@@ -596,11 +601,13 @@ const VideoChat = (() => {
 
     const camBtn = $("btn-cam");
     if (camBtn) {
-      if (!hasVideoTrack) {
+      // Same logic: disable only when user wants cam on but no track exists.
+      const camUnavailable = !hasVideoTrack && !camOff;
+      if (camUnavailable) {
         camBtn.innerHTML = '<i class="fa-solid fa-video-slash" aria-hidden="true"></i>';
-        camBtn.title = "Camera not available";
-        camBtn.disabled = true;
-        camBtn.classList.add("opacity-50", "cursor-not-allowed");
+        camBtn.title = camOff ? "Enable camera" : "Disable camera";
+        camBtn.disabled = false;
+        camBtn.classList.remove("opacity-50", "cursor-not-allowed");
       } else {
         camBtn.innerHTML = camOff
           ? '<i class="fa-solid fa-video-slash" aria-hidden="true"></i>'
@@ -615,13 +622,17 @@ const VideoChat = (() => {
   }
 
   function applyInitialMediaPreferences() {
-    if (!localStream) return;
+    micMuted = !initialMediaPreferences.mic;
+    camOff = !initialMediaPreferences.cam;
+
+    if (!localStream) {
+      syncControlButtons();
+      updateLocalTilePresentation();
+      return;
+    }
 
     const hasAudioTrack = localStream.getAudioTracks().length > 0;
     const hasVideoTrack = localStream.getVideoTracks().length > 0;
-
-    micMuted = hasAudioTrack ? !initialMediaPreferences.mic : false;
-    camOff = hasVideoTrack ? !initialMediaPreferences.cam : false;
 
     if (hasAudioTrack) {
       localStream.getAudioTracks().forEach((track) => (track.enabled = !micMuted));
@@ -635,7 +646,9 @@ const VideoChat = (() => {
     broadcastProfile(true);
   }
 
-  let mediaPromise = null;
+  // Per-kind in-flight acquisition guards — prevents double getUserMedia for
+  // the same track kind when toggle is called rapidly.
+  const _mediaPromise = { audio: null, video: null };
 
   async function ensureLocalStream() {
     if (!localStream) {
@@ -646,8 +659,11 @@ const VideoChat = (() => {
   }
 
   async function startLocalMedia(constraints = { video: true, audio: true }) {
-    if (mediaPromise) return mediaPromise;
-    mediaPromise = (async () => {
+    // Return an in-flight promise if the requested track kind is already being acquired.
+    if (constraints.audio && _mediaPromise.audio) return _mediaPromise.audio;
+    if (constraints.video && _mediaPromise.video) return _mediaPromise.video;
+
+    const run = (async () => {
       try {
         const ls = await ensureLocalStream();
         const request = {
@@ -658,22 +674,26 @@ const VideoChat = (() => {
 
         const stream = await navigator.mediaDevices.getUserMedia(request);
 
-        if (constraints.audio) {
+        if (constraints.audio && stream.getAudioTracks().length > 0) {
           stream.getAudioTracks().forEach((t) => {
             t.enabled = !micMuted;
             ls.addTrack(t);
-            updateTracksInCalls(t, "audio");
           });
+          // Replace track in all active calls with the fresh audio track.
+          const freshAudio = ls.getAudioTracks()[ls.getAudioTracks().length - 1];
+          await updateTracksInCalls(freshAudio, "audio");
           startVoiceMeter(ls);
         }
-        if (constraints.video) {
+        if (constraints.video && stream.getVideoTracks().length > 0) {
           stream.getVideoTracks().forEach((t) => {
             t.enabled = !camOff;
             ls.addTrack(t);
-            updateTracksInCalls(t, "video");
-            const localVideo = $("local-video");
-            if (localVideo) localVideo.srcObject = ls;
           });
+          // Replace track in all active calls with the fresh video track.
+          const freshVideo = ls.getVideoTracks()[ls.getVideoTracks().length - 1];
+          await updateTracksInCalls(freshVideo, "video");
+          const localVideo = $("local-video");
+          if (localVideo) localVideo.srcObject = ls;
         }
         return true;
       } catch (err) {
@@ -687,12 +707,16 @@ const VideoChat = (() => {
         }
         showToast("Access error: " + err.message, "error");
         return false;
+      } finally {
+        if (constraints.audio) _mediaPromise.audio = null;
+        if (constraints.video) _mediaPromise.video = null;
       }
     })();
 
-    const result = await mediaPromise;
-    mediaPromise = null; 
-    return result;
+    if (constraints.audio) _mediaPromise.audio = run;
+    if (constraints.video) _mediaPromise.video = run;
+
+    return run;
   }
 
   function startVoiceMeter(stream) {
@@ -893,7 +917,14 @@ const VideoChat = (() => {
     // Persist sender references here to ensure replaceTrack works even if s.track is switched to null later
     call.sendersByKind = {};
     const pc = call.peerConnection;
-    if (pc) {
+    if (pc && typeof pc.getTransceivers === "function") {
+      pc.getTransceivers().forEach((tr) => {
+        if (tr.sender && tr.receiver && tr.receiver.track) {
+          call.sendersByKind[tr.receiver.track.kind] = tr.sender;
+        }
+      });
+    } else if (pc) {
+      // Fallback for browsers without full transceiver support
       pc.getSenders().forEach((s) => {
         if (s.track) call.sendersByKind[s.track.kind] = s;
       });
@@ -1077,10 +1108,6 @@ const VideoChat = (() => {
       if (!ok) return;
     }
 
-    micMuted = false;
-    camOff = false;
-    updateMediaButtons();
-
     const ok = await startLocalMedia();
     if (!ok) return;
 
@@ -1096,23 +1123,31 @@ const VideoChat = (() => {
   /* ── Controls ── */
   async function updateTracksInCalls(newTrack, kind) {
     for (const call of activeCalls.values()) {
-      // 1. Check saved senders first (robust against null tracks)
+      // 1. Check saved senders first (robust against null tracks after mute).
       let sender = call.sendersByKind ? call.sendersByKind[kind] : null;
-      
-      // 2. Fallback to lookup if not saved yet
+
+      // 2. Fallback: scan transceivers by kind — also matches senders whose
+      //    current track may be null (e.g. after a prior replaceTrack(null)).
       if (!sender) {
         const pc = call.peerConnection;
         if (!pc) continue;
-        sender = pc.getSenders().find((s) => s.track && s.track.kind === kind);
-        // Cache it for next time
+        if (typeof pc.getTransceivers === "function") {
+          const tr = pc.getTransceivers().find((t) => t.receiver && t.receiver.track && t.receiver.track.kind === kind);
+          sender = tr ? tr.sender : null;
+        }
+        if (!sender) {
+          sender = pc.getSenders().find((s) => s.track && s.track.kind === kind);
+        }
         if (sender && call.sendersByKind) call.sendersByKind[kind] = sender;
       }
 
       if (sender) {
         try {
           await sender.replaceTrack(newTrack);
+          // Keep the cache fresh so subsequent toggles find the correct sender.
+          if (call.sendersByKind) call.sendersByKind[kind] = sender;
         } catch (err) {
-          console.error(`Failed to replace ${kind} track:`, err);
+          console.warn(`[VideoChat] replaceTrack failed for kind=${kind} on peer=${call.peer}:`, err);
         }
       }
     }
@@ -1126,6 +1161,7 @@ const VideoChat = (() => {
         : '<i class="fa-solid fa-microphone" aria-hidden="true"></i>';
       micBtn.title = micMuted ? "Unmute mic" : "Mute mic";
       micBtn.classList.toggle("active", micMuted);
+      micBtn.setAttribute("aria-pressed", micMuted ? "true" : "false");
     }
     const camBtn = $("btn-cam");
     if (camBtn) {
@@ -1134,6 +1170,7 @@ const VideoChat = (() => {
         : '<i class="fa-solid fa-video" aria-hidden="true"></i>';
       camBtn.title = camOff ? "Enable camera" : "Disable camera";
       camBtn.classList.toggle("active", camOff);
+      camBtn.setAttribute("aria-pressed", camOff ? "true" : "false");
     }
   }
 
@@ -1176,18 +1213,33 @@ const VideoChat = (() => {
       }
     } else {
       if (micMuted) {
-        // Turning OFF: Stop hardware
+        // Turning OFF: stop hardware and remove track so next unmute re-acquires.
         localStream.getAudioTracks().forEach((t) => {
           t.stop();
           localStream.removeTrack(t);
         });
         await updateTracksInCalls(null, "audio");
       } else {
-        // Turning ON
-        const ok = await startLocalMedia({ audio: true, video: false });
-        if (!ok) {
-          micMuted = true;
-          updateMediaButtons();
+        // Turning ON: re-enable any still-present (but disabled) track first.
+        // This handles the initial-load case where tracks were acquired with
+        // enabled=false. Only call startLocalMedia when there is truly no track.
+        const existing = localStream.getAudioTracks();
+        if (existing.length > 0) {
+          existing.forEach((t) => (t.enabled = true));
+          await updateTracksInCalls(existing[existing.length - 1], "audio");
+          if (typeof VoiceChanger !== "undefined" && voiceStream) {
+            _replaceVoiceTrack();
+          }
+        } else {
+          const ok = await startLocalMedia({ audio: true, video: false });
+          if (ok) {
+            if (typeof VoiceChanger !== "undefined" && voiceStream) {
+              _replaceVoiceTrack();
+            }
+          } else {
+            micMuted = true;
+            updateMediaButtons();
+          }
         }
       }
     }
@@ -1212,18 +1264,28 @@ const VideoChat = (() => {
       }
     } else {
       if (camOff) {
-        // Turning OFF: Stop hardware
+        // Turning OFF: stop hardware and remove track so next enable re-acquires.
         localStream.getVideoTracks().forEach((t) => {
           t.stop();
           localStream.removeTrack(t);
         });
         await updateTracksInCalls(null, "video");
       } else {
-        // Turning ON
-        const ok = await startLocalMedia({ video: true, audio: false });
-        if (!ok) {
-          camOff = true;
-          updateMediaButtons();
+        // Turning ON: re-enable any still-present (but disabled) track first.
+        // This handles the initial-load case where tracks were acquired with
+        // enabled=false. Only call startLocalMedia when there is truly no track.
+        const existing = localStream.getVideoTracks();
+        if (existing.length > 0) {
+          existing.forEach((t) => (t.enabled = true));
+          await updateTracksInCalls(existing[existing.length - 1], "video");
+          const localVideo = $("local-video");
+          if (localVideo) localVideo.srcObject = localStream;
+        } else {
+          const ok = await startLocalMedia({ video: true, audio: false });
+          if (!ok) {
+            camOff = true;
+            updateMediaButtons();
+          }
         }
       }
     }
@@ -1371,15 +1433,23 @@ const VideoChat = (() => {
   /** Push current processed stream track to all active calls. */
   function _replaceVoiceTrack() {
     if (typeof VoiceChanger === "undefined") return;
-    const newTrack =
-      VoiceChanger.getProcessedStream() && VoiceChanger.getProcessedStream().getAudioTracks()[0];
+    const processedStream = VoiceChanger.getProcessedStream();
+    const newTrack = processedStream && processedStream.getAudioTracks()[0];
     if (!newTrack) return;
     activeCalls.forEach((call) => {
-      if (call.peerConnection) {
-        const sender = call.peerConnection
+      // Prefer the cached sender reference — it remains valid even if the
+      // sender's current track has been set to null by a mute cycle.
+      let sender = call.sendersByKind ? call.sendersByKind["audio"] : null;
+      if (!sender && call.peerConnection) {
+        sender = call.peerConnection
           .getSenders()
           .find((s) => s.track && s.track.kind === "audio");
-        if (sender) sender.replaceTrack(newTrack);
+        if (sender && call.sendersByKind) call.sendersByKind["audio"] = sender;
+      }
+      if (sender) {
+        sender.replaceTrack(newTrack).catch(() => {
+          /* non-fatal — voice track replacement failed */
+        });
       }
     });
   }
@@ -1785,10 +1855,22 @@ const VideoChat = (() => {
     const videoTrack = localStream.getVideoTracks()[0];
     if (videoTrack && activeCalls.size > 0) {
       for (const call of activeCalls.values()) {
-        const sender =
-          call.peerConnection &&
-          call.peerConnection.getSenders().find((s) => s.track && s.track.kind === "video");
-        if (sender) sender.replaceTrack(videoTrack);
+        // Use the cached sender reference so we reliably find the video sender
+        // even when transitioning from a screen track (whose kind is also video)
+        // back to the camera track.
+        let sender = call.sendersByKind ? call.sendersByKind["video"] : null;
+        if (!sender && call.peerConnection) {
+          sender = call.peerConnection
+            .getSenders()
+            .find((s) => s.track && s.track.kind === "video");
+        }
+        if (sender) {
+          sender.replaceTrack(videoTrack).catch(() => {
+            /* non-fatal — camera track restoration failed */
+          });
+          // Keep the cache pointing at this sender for future toggles.
+          if (call.sendersByKind) call.sendersByKind["video"] = sender;
+        }
       }
     }
     const localVideo = $("local-video");
@@ -1806,6 +1888,8 @@ const VideoChat = (() => {
     const params = new URLSearchParams(window.location.search);
     const mic = params.get("mic");
     const cam = params.get("cam");
+    const isPrejoin = params.get("prejoin") === "1";
+    const hasUrlPrefs = mic !== null || cam !== null;
 
     if (mic === "off" || mic === "on") {
       initialMediaPreferences.mic = mic === "on";
@@ -1814,7 +1898,38 @@ const VideoChat = (() => {
       initialMediaPreferences.cam = cam === "on";
     }
 
-    if (params.get("prejoin") === "1") {
+    if (hasUrlPrefs) {
+      try {
+        window.sessionStorage.setItem(
+          MEDIA_PREFS_STORAGE_KEY,
+          JSON.stringify({
+            mic: Boolean(initialMediaPreferences.mic),
+            cam: Boolean(initialMediaPreferences.cam),
+          })
+        );
+      } catch {
+        /* ignore storage failures */
+      }
+    } else {
+      try {
+        const raw = window.sessionStorage.getItem(MEDIA_PREFS_STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && typeof parsed === "object") {
+            if (typeof parsed.mic === "boolean") {
+              initialMediaPreferences.mic = parsed.mic;
+            }
+            if (typeof parsed.cam === "boolean") {
+              initialMediaPreferences.cam = parsed.cam;
+            }
+          }
+        }
+      } catch {
+        /* ignore storage failures */
+      }
+    }
+
+    if (isPrejoin) {
       params.delete("prejoin");
       params.delete("mic");
       params.delete("cam");
@@ -1830,14 +1945,19 @@ const VideoChat = (() => {
     state.displayInitials = makeInitials(state.displayName);
 
     readInitialMediaPreferencesFromUrl();
+    applyInitialMediaPreferences();
     updateLocalTilePresentation();
     
-    // We try to start media immediately if we have preferences from the lobby
-    const ok = await startLocalMedia();
-    if (ok) {
-      updateLocalTilePresentation();
-      _applyStoredVoicePreferences();
+    // Start media eagerly only when the initial preference explicitly enables mic/camera.
+    if (initialMediaPreferences.mic || initialMediaPreferences.cam) {
+      const ok = await startLocalMedia();
+      if (ok) {
+        applyInitialMediaPreferences();
+        updateLocalTilePresentation();
+      }
     }
+
+    _applyStoredVoicePreferences();
     
     // Always init peer regardless of success of startLocalMedia (can join without media)
     await initPeer();
