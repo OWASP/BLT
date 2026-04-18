@@ -526,14 +526,18 @@
         const input = document.getElementById("remote-id");
         if (callBtn && input) {
           callBtn.addEventListener("click", async () => {
-            await VideoChat.callPeer(normalizeRemoteId(input.value));
-            input.value = "";
+            const success = await VideoChat.callPeer(normalizeRemoteId(input.value));
+            if (success) {
+              input.value = "";
+            }
           });
 
           input.addEventListener("keydown", async (event) => {
             if (event.key === "Enter") {
-              await VideoChat.callPeer(normalizeRemoteId(event.target.value));
-              event.target.value = "";
+              const success = await VideoChat.callPeer(normalizeRemoteId(event.target.value));
+              if (success) {
+                event.target.value = "";
+              }
             }
           });
         }
