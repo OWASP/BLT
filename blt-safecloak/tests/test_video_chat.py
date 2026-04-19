@@ -1074,6 +1074,15 @@ _VIDEO_CHAT_PERSISTS_VOICE_PREFS_JS = """
     sessionStorage.removeItem(voicePrefsKey);
 
     VideoChat.setVoiceMode('normal');
+    const rawBaseline = sessionStorage.getItem(voicePrefsKey);
+    if (!rawBaseline) return {ok: false, error: 'Baseline voice preferences not stored after normal mode'};
+    const parsedBaseline = JSON.parse(rawBaseline);
+    const baselineLevels = parsedBaseline && parsedBaseline.effectLevels ? parsedBaseline.effectLevels : {};
+    const baselineActive = Object.values(baselineLevels).some((v) => Number(v) > 0);
+    if (baselineActive) {
+        return {ok: false, error: 'Baseline normal mode should persist with all effects disabled'};
+    }
+
     VideoChat.toggleEffectMode('robot');
 
     const rawOn = sessionStorage.getItem(voicePrefsKey);
