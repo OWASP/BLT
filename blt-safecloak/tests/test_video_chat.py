@@ -1193,6 +1193,38 @@ def test_video_room_includes_voice_controller_ui():
         assert snippet in html, f"Expected snippet missing in video-room.html: {snippet}"
 
 
+def test_video_room_includes_group_chat_ui():
+    """Video room page should include in-room group chat controls."""
+    html = (ROOT / "src/pages/video-room.html").read_text(encoding="utf-8")
+
+    required_snippets = [
+        'id="chat-messages"',
+        'id="chat-empty-state"',
+        'id="chat-form"',
+        'id="chat-input"',
+        'id="btn-send-chat"',
+        "Group Chat",
+    ]
+    for snippet in required_snippets:
+        assert snippet in html, f"Expected snippet missing in video-room.html: {snippet}"
+
+
+def test_video_room_wires_group_chat_submission():
+    """Room page script should wire chat form submission to VideoChat.sendChatMessage."""
+    html = (ROOT / "src/pages/video-room.html").read_text(encoding="utf-8")
+    assert 'document.getElementById("chat-form")' in html
+    assert "VideoChat.sendChatMessage(chatInput.value)" in html
+
+
+def test_video_js_supports_group_chat_data_messages():
+    """video.js should expose sendChatMessage and process incoming chat payloads."""
+    js = (ROOT / "public/js/video.js").read_text(encoding="utf-8")
+    assert "function sendChatMessage(rawText)" in js
+    assert "if (data && data.type === \"chat\")" in js
+    assert "handleIncomingChatMessage(data, conn.peer);" in js
+    assert "sendChatMessage," in js
+
+
 def test_video_chat_includes_prejoin_voice_controller_ui():
     """Video chat lobby should include a pre-join voice controller and VoiceChanger script."""
     html = (ROOT / "src/pages/video-chat.html").read_text(encoding="utf-8")

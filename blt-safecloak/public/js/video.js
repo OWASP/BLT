@@ -26,9 +26,11 @@ const VideoChat = (() => {
   const PROFILE_BROADCAST_THROTTLE_MS = 220;
   const SPEAKING_THRESHOLD = 28;
   const SPEAKING_HOLD_MS = 260;
+  const MAX_CHAT_MESSAGE_LENGTH = 500;
 
   const peerProfiles = new Map(); // peerId -> { name, initials, micMuted, camOff }
   const remoteSpeakingMonitors = new Map(); // peerId -> { analyser, data, source, activeUntil }
+  const seenChatMessageIds = new Set();
   let speakingLoopFrame = null;
   let speakingAudioContext = null;
   let localSpeakingUntil = 0;
@@ -111,7 +113,9 @@ const VideoChat = (() => {
     }
 
     try {
-      const fromStorage = normalizeDisplayName(window.sessionStorage.getItem(DISPLAY_NAME_STORAGE_KEY));
+      const fromStorage = normalizeDisplayName(
+        window.sessionStorage.getItem(DISPLAY_NAME_STORAGE_KEY)
+      );
       if (fromStorage) return fromStorage;
     } catch {
       /* ignore storage failures */
@@ -248,7 +252,8 @@ const VideoChat = (() => {
       stateCam:
         wrapper.querySelector('[data-state="cam"]') || (isLocal ? $("state-icon-local-cam") : null),
       labelName:
-        wrapper.querySelector('[data-role="label-name"]') || (isLocal ? $("label-local-name") : null),
+        wrapper.querySelector('[data-role="label-name"]') ||
+        (isLocal ? $("label-local-name") : null),
     };
   }
 
@@ -376,7 +381,10 @@ const VideoChat = (() => {
       tile.labelName.title = displayName;
     }
     if (tile.video) {
-      tile.video.setAttribute("aria-label", isLocal ? "Your video" : `Participant ${displayName} video`);
+      tile.video.setAttribute(
+        "aria-label",
+        isLocal ? "Your video" : `Participant ${displayName} video`
+      );
     }
     if (tile.avatarInitials) {
       tile.avatarInitials.textContent = initials;
@@ -421,7 +429,9 @@ const VideoChat = (() => {
   }
 
   function stopAllRemoteSpeakingMonitors() {
-    Array.from(remoteSpeakingMonitors.keys()).forEach((peerId) => stopRemoteSpeakingMonitor(peerId));
+    Array.from(remoteSpeakingMonitors.keys()).forEach((peerId) =>
+      stopRemoteSpeakingMonitor(peerId)
+    );
     if (speakingLoopFrame) {
       cancelAnimationFrame(speakingLoopFrame);
       speakingLoopFrame = null;
@@ -504,8 +514,11 @@ const VideoChat = (() => {
       name: normalizedName || prev.name,
       initials: makeInitials(normalizedName || prev.name),
       micMuted:
-        payload && typeof payload.micMuted === "boolean" ? payload.micMuted : Boolean(prev.micMuted),
-      camOff: payload && typeof payload.camOff === "boolean" ? payload.camOff : Boolean(prev.camOff),
+        payload && typeof payload.micMuted === "boolean"
+          ? payload.micMuted
+          : Boolean(prev.micMuted),
+      camOff:
+        payload && typeof payload.camOff === "boolean" ? payload.camOff : Boolean(prev.camOff),
     };
 
     peerProfiles.set(peerId, profile);
@@ -546,6 +559,110 @@ const VideoChat = (() => {
     const conn = peer.connect(remotePeerId);
     setupDataConn(conn);
     return conn;
+  }
+
+  function normalizeChatMessageText(value) {
+    return typeof value === "string" ? value.trim().slice(0, MAX_CHAT_MESSAGE_LENGTH) : "";
+  }
+
+  function createChatMessageElement({ sender, text, isLocal, timestamp }) {
+    const row = document.createElement("div");
+    row.className = "rounded-md border border-neutral-border bg-white px-3 py-2 text-sm";
+
+    const header = document.createElement("div");
+    header.className = "mb-1 flex items-center gap-2 text-xs text-gray-500";
+
+    const senderEl = document.createElement("span");
+    senderEl.className = "font-semibold text-gray-700";
+    senderEl.textContent = sender;
+
+    const timeEl = document.createElement("span");
+    timeEl.className = "ml-auto";
+    timeEl.textContent = new Date(timestamp).toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    const badge = document.createElement("span");
+    badge.className =
+      "rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide";
+    badge.textContent = isLocal ? "You" : "Peer";
+
+    header.appendChild(senderEl);
+    header.appendChild(timeEl);
+    header.appendChild(badge);
+
+    const textEl = document.createElement("p");
+    textEl.className = "whitespace-pre-wrap break-words text-gray-900";
+    textEl.textContent = text;
+
+    row.appendChild(header);
+    row.appendChild(textEl);
+    return row;
+  }
+
+  function appendChatMessage({ sender, text, isLocal, timestamp }) {
+    const list = $("chat-messages");
+    if (!list) return;
+    const emptyState = $("chat-empty-state");
+    if (emptyState) emptyState.remove();
+    list.appendChild(createChatMessageElement({ sender, text, isLocal, timestamp }));
+    list.scrollTop = list.scrollHeight;
+  }
+
+  function handleIncomingChatMessage(payload, connPeerId) {
+    const text = normalizeChatMessageText(payload && payload.text);
+    if (!text) return;
+
+    const payloadId = payload && typeof payload.id === "string" ? payload.id.trim() : "";
+    if (payloadId && seenChatMessageIds.has(payloadId)) return;
+    if (payloadId) seenChatMessageIds.add(payloadId);
+
+    const fromPeerId = payload && typeof payload.from === "string" ? payload.from.trim() : "";
+    if (fromPeerId && fromPeerId !== connPeerId) return;
+
+    const senderName = normalizeDisplayName(payload && payload.name) || getDisplayLabel(connPeerId);
+    appendChatMessage({
+      sender: senderName,
+      text,
+      isLocal: false,
+      timestamp:
+        payload && typeof payload.timestamp === "number" && Number.isFinite(payload.timestamp)
+          ? payload.timestamp
+          : Date.now(),
+    });
+  }
+
+  function sendChatMessage(rawText) {
+    const text = normalizeChatMessageText(rawText);
+    if (!text) return false;
+
+    const payload = {
+      type: "chat",
+      id: `${state.peerId || "local"}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+      from: state.peerId,
+      name: state.displayName,
+      text,
+      timestamp: Date.now(),
+    };
+    seenChatMessageIds.add(payload.id);
+
+    appendChatMessage({
+      sender: "You",
+      text,
+      isLocal: true,
+      timestamp: payload.timestamp,
+    });
+
+    activeDataConns.forEach((conn) => {
+      if (!conn || !conn.open) return;
+      try {
+        conn.send(payload);
+      } catch {
+        /* ignore transient data-channel send failures */
+      }
+    });
+    return true;
   }
 
   /* ── Browser detection ── */
@@ -902,7 +1019,7 @@ const VideoChat = (() => {
 
       activeCalls.set(incomingCall.peer, incomingCall);
       updateParticipantsList();
-      
+
       incomingCall.answer(voiceStream || localStream);
       handleCallStream(incomingCall);
       ensureDataConn(incomingCall.peer);
@@ -1100,6 +1217,11 @@ const VideoChat = (() => {
         if (incomingPeerId === conn.peer) {
           upsertRemoteProfile(conn.peer, data);
         }
+        return;
+      }
+
+      if (data && data.type === "chat") {
+        handleIncomingChatMessage(data, conn.peer);
       }
     });
 
@@ -1239,7 +1361,9 @@ const VideoChat = (() => {
         const pc = call.peerConnection;
         if (!pc) continue;
         if (typeof pc.getTransceivers === "function") {
-          const tr = pc.getTransceivers().find((t) => t.receiver && t.receiver.track && t.receiver.track.kind === kind);
+          const tr = pc
+            .getTransceivers()
+            .find((t) => t.receiver && t.receiver.track && t.receiver.track.kind === kind);
           sender = tr ? tr.sender : null;
         }
         if (!sender) {
@@ -1254,7 +1378,10 @@ const VideoChat = (() => {
           // Keep the cache fresh so subsequent toggles find the correct sender.
           if (call.sendersByKind) call.sendersByKind[kind] = sender;
         } catch (err) {
-          console.warn(`[VideoChat] replaceTrack failed for kind=${kind} on peer=${call.peer}:`, err);
+          console.warn(
+            `[VideoChat] replaceTrack failed for kind=${kind} on peer=${call.peer}:`,
+            err
+          );
         }
       }
     }
@@ -1513,14 +1640,14 @@ const VideoChat = (() => {
     localSpeakingUntil = 0;
     setTileSpeakingIndicator("local", false);
     if (typeof VoiceChanger !== "undefined") VoiceChanger.destroy();
-    
+
     /* Reset monitor button state */
     const monitorBtn = $("btn-monitor");
     if (monitorBtn) {
       monitorBtn.classList.remove("active");
       monitorBtn.setAttribute("aria-pressed", "false");
     }
-    
+
     /* Reset voice mode buttons to normal, clear all per-effect slider rows */
     document.querySelectorAll("[data-voice-mode]").forEach((btn) => {
       const isNormal = btn.dataset.voiceMode === "normal";
@@ -1551,9 +1678,7 @@ const VideoChat = (() => {
       // sender's current track has been set to null by a mute cycle.
       let sender = call.sendersByKind ? call.sendersByKind["audio"] : null;
       if (!sender && call.peerConnection) {
-        sender = call.peerConnection
-          .getSenders()
-          .find((s) => s.track && s.track.kind === "audio");
+        sender = call.peerConnection.getSenders().find((s) => s.track && s.track.kind === "audio");
         if (sender && call.sendersByKind) call.sendersByKind["audio"] = sender;
       }
       if (sender) {
@@ -1961,7 +2086,9 @@ const VideoChat = (() => {
         // Use cached sender reference (robust against null tracks)
         let sender = call.sendersByKind ? call.sendersByKind.video : null;
         if (!sender && call.peerConnection) {
-          sender = call.peerConnection.getSenders().find((s) => s.track && s.track.kind === "video");
+          sender = call.peerConnection
+            .getSenders()
+            .find((s) => s.track && s.track.kind === "video");
         }
         if (sender) await sender.replaceTrack(screenTrack);
       }
@@ -2077,7 +2204,7 @@ const VideoChat = (() => {
     readInitialMediaPreferencesFromUrl();
     applyInitialMediaPreferences();
     updateLocalTilePresentation();
-    
+
     // Start media eagerly only when the initial preference explicitly enables mic/camera.
     if (initialMediaPreferences.mic || initialMediaPreferences.cam) {
       const ok = await startLocalMedia();
@@ -2088,7 +2215,7 @@ const VideoChat = (() => {
     }
 
     _applyStoredVoicePreferences();
-    
+
     // Always init peer regardless of success of startLocalMedia (can join without media)
     await initPeer();
     checkInitialPermissions();
@@ -2142,6 +2269,7 @@ const VideoChat = (() => {
     stopScreenShare,
     copyRoomId,
     copyRoomLink,
+    sendChatMessage,
     state,
   };
 })();
