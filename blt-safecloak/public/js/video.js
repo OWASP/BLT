@@ -36,6 +36,9 @@ const VideoChat = (() => {
   const lastProfileBroadcastAt = new Map(); // peerId -> timestamp
   let navigationInProgress = false;
   let isEndingCall = false;
+  let reconnectAttempts = 0;
+  const MAX_RECONNECT_ATTEMPTS = 3;
+  const RECONNECT_BASE_DELAY_MS = 1000;
 
   const state = {
     peerId: null,
@@ -884,6 +887,7 @@ const VideoChat = (() => {
     );
 
     peer.on("open", (id) => {
+      reconnectAttempts = 0;
       $("my-peer-id") && ($("my-peer-id").textContent = id);
       persistOwnRoomId(id);
       ensureRoomIdInUrl(id);
@@ -948,8 +952,27 @@ const VideoChat = (() => {
     });
 
     peer.on("disconnected", () => {
-      updateStatus("fa-solid fa-plug-circle-xmark", "Disconnected", "warning");
-      setStatusIcon("offline");
+      if (peer.destroyed || isEndingCall) {
+        updateStatus("fa-solid fa-plug-circle-xmark", "Disconnected", "warning");
+        setStatusIcon("offline");
+        return;
+      }
+      if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+        reconnectAttempts++;
+        const delay = RECONNECT_BASE_DELAY_MS * Math.pow(2, reconnectAttempts - 1);
+        updateStatus("fa-solid fa-arrows-rotate fa-spin", `Reconnecting (${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})…`, "warning");
+        setStatusIcon("offline");
+        const currentPeer = peer;
+        setTimeout(() => {
+          if (currentPeer === peer && !isEndingCall && !currentPeer.destroyed && !currentPeer.open) {
+            currentPeer.reconnect();
+          }
+        }, delay);
+      } else {
+        updateStatus("fa-solid fa-plug-circle-xmark", "Disconnected — could not reconnect", "danger");
+        setStatusIcon("offline");
+        showToast("Lost connection to signaling server. Please rejoin.", "error");
+      }
     });
   }
 
