@@ -1115,6 +1115,48 @@ async () => {
 }
 """
 
+_VIDEO_CHAT_PERSISTS_VOICE_PREFS_JS = """
+() => {
+    if (typeof VideoChat === 'undefined') return {ok: false, error: 'VideoChat not defined'};
+    if (typeof VoiceChanger === 'undefined') return {ok: false, error: 'VoiceChanger not defined'};
+
+    const voicePrefsKey = 'blt-safecloak-voice-preferences';
+    sessionStorage.removeItem(voicePrefsKey);
+
+    VideoChat.setVoiceMode('normal');
+    const rawBaseline = sessionStorage.getItem(voicePrefsKey);
+    if (!rawBaseline) return {ok: false, error: 'Baseline voice preferences not stored after normal mode'};
+    const parsedBaseline = JSON.parse(rawBaseline);
+    const baselineLevels = parsedBaseline && parsedBaseline.effectLevels ? parsedBaseline.effectLevels : {};
+    const baselineActive = Object.values(baselineLevels).some((v) => Number(v) > 0);
+    if (baselineActive) {
+        return {ok: false, error: 'Baseline normal mode should persist with all effects disabled'};
+    }
+
+    VideoChat.toggleEffectMode('robot');
+
+    const rawOn = sessionStorage.getItem(voicePrefsKey);
+    if (!rawOn) return {ok: false, error: 'Voice preferences not stored after toggling effect'};
+    const parsedOn = JSON.parse(rawOn);
+    const robotLevel = Number(parsedOn?.effectLevels?.robot || 0);
+    if (!(robotLevel > 0)) {
+        return {ok: false, error: 'Robot level not persisted as active'};
+    }
+
+    VideoChat.setVoiceMode('normal');
+    const rawOff = sessionStorage.getItem(voicePrefsKey);
+    if (!rawOff) return {ok: false, error: 'Voice preferences missing after resetting to normal'};
+    const parsedOff = JSON.parse(rawOff);
+    const levels = parsedOff && parsedOff.effectLevels ? parsedOff.effectLevels : {};
+    const anyActive = Object.values(levels).some((v) => Number(v) > 0);
+    if (anyActive) {
+        return {ok: false, error: 'Normal mode should persist with all effects disabled'};
+    }
+
+    return {ok: true};
+}
+"""
+
 
 def test_voice_changer_combined_effects_api(voice_changer_page):
     """setEffectLevel/getEffectLevels/toggleEffect must support independent per-effect levels."""
@@ -1125,6 +1167,12 @@ def test_voice_changer_combined_effects_api(voice_changer_page):
 def test_voice_changer_all_effects_combined(voice_changer_page):
     """All 7 effects active simultaneously must not throw and keep the stream valid."""
     result = voice_changer_page.evaluate(_VOICE_CHANGER_ALL_EFFECTS_COMBINED_JS)
+    assert result["ok"], result.get("error", "unknown error")
+
+
+def test_voice_preferences_persistence_from_room_controls(voice_changer_page):
+    """In-room voice control changes should persist immediately for reload-safe UI state."""
+    result = voice_changer_page.evaluate(_VIDEO_CHAT_PERSISTS_VOICE_PREFS_JS)
     assert result["ok"], result.get("error", "unknown error")
 
 
