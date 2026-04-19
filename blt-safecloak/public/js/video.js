@@ -741,8 +741,18 @@ const VideoChat = (() => {
             t.enabled = !micMuted;
             ls.addTrack(t);
           });
+          
+          let freshAudio = ls.getAudioTracks()[ls.getAudioTracks().length - 1];
+          if (typeof VoiceChanger !== "undefined") {
+            const processedAudio = VoiceChanger.init(ls);
+            freshAudio = processedAudio.getAudioTracks()[0] || freshAudio;
+            
+            const videoTrack = ls.getVideoTracks()[0];
+            const tracks = [videoTrack, freshAudio].filter(Boolean);
+            voiceStream = tracks.length ? new MediaStream(tracks) : ls;
+          }
+
           // Replace track in all active calls with the fresh audio track.
-          const freshAudio = ls.getAudioTracks()[ls.getAudioTracks().length - 1];
           await updateTracksInCalls(freshAudio, "audio");
           startVoiceMeter(ls);
         }
@@ -751,8 +761,16 @@ const VideoChat = (() => {
             t.enabled = !camOff;
             ls.addTrack(t);
           });
-          // Replace track in all active calls with the fresh video track.
           const freshVideo = ls.getVideoTracks()[ls.getVideoTracks().length - 1];
+          
+          if (voiceStream && voiceStream !== ls) {
+             const freshAudio = voiceStream.getAudioTracks()[0];
+             voiceStream = new MediaStream([freshVideo, freshAudio].filter(Boolean));
+          } else {
+             voiceStream = ls;
+          }
+
+          // Replace track in all active calls with the fresh video track.
           await updateTracksInCalls(freshVideo, "video");
           const localVideo = $("local-video");
           if (localVideo) localVideo.srcObject = ls;
