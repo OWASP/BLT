@@ -174,7 +174,12 @@ const VideoChat = (() => {
   function shouldReuseInviteRoomAsPeerId(inviteRoomId) {
     const normalizedInviteRoomId = normalizeRoomId(inviteRoomId);
     if (!isValidRoomId(normalizedInviteRoomId)) return false;
-    return normalizedInviteRoomId === getStoredOwnRoomId();
+    if (normalizedInviteRoomId !== getStoredOwnRoomId()) return false;
+    const navEntries =
+      typeof performance !== "undefined" && performance.getEntriesByType
+        ? performance.getEntriesByType("navigation")
+        : [];
+    return Boolean(navEntries.length && navEntries[0] && navEntries[0].type === "reload");
   }
 
   function ensureRoomIdInUrl(roomId) {
@@ -859,7 +864,8 @@ const VideoChat = (() => {
       updateLocalTilePresentation();
       showToast("Connected to signaling server", "success");
       const inviteRoomId = inviteAutoJoinRoomId || getInviteRoomIdFromUrl();
-      if (!inviteRoomId || inviteRoomId === state.peerId) {
+      // Skip auto-join when this tab is the host for the room ID in the URL.
+      if (!inviteRoomId || inviteRoomId === id) {
         return;
       }
 
