@@ -709,6 +709,25 @@
           shouldAutoJoinFromInvite = true;
           showToast("Room ID loaded from share link", "info");
         }
+        
+        try {
+          const createCard = $("card-create-room");
+          const joinCard = $("card-join-room");
+          const createBtn = $("btn-create-room");
+          const joinBtn = $("btn-join-room");
+
+          if (createCard && joinCard && createBtn && joinBtn && createCard.parentNode === joinCard.parentNode) {
+            joinCard.parentNode.insertBefore(joinCard, createCard);
+
+            const createClasses = createBtn.className;
+            const joinClasses = joinBtn.className;
+
+            createBtn.className = joinClasses;
+            joinBtn.className = createClasses;
+          }
+        } catch (e) {
+          // Handled silently in production
+        }
       }
     }
 
@@ -731,7 +750,11 @@
     if (micBtn) micBtn.addEventListener("click", toggleMicPreview);
     if (camBtn) camBtn.addEventListener("click", toggleCamPreview);
 
-    await initPreviewStream();
+    try {
+      await initPreviewStream();
+    } catch (e) {
+      // Handled silently
+    }
 
     if (shouldAutoJoinFromInvite) {
       const existingName = normalizeDisplayName(displayNameInput ? displayNameInput.value : "");
