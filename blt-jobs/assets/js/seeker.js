@@ -4,21 +4,8 @@ function stripHtmlComments(str) {
   return str.replace(/<!--[\s\S]*?-->/g, "").replace(/<!--[\s\S]*/g, "").trim();
 }
 
-function esc(s) {
-  const d = document.createElement("div");
-  d.textContent = s == null ? "" : String(s);
-  return d.innerHTML;
-}
-
-function safeUrl(url) {
-  if (!url) return "";
-  try {
-    const u = new URL(url);
-    return u.protocol === "https:" || u.protocol === "http:" ? url : "";
-  } catch (e) {
-    return "";
-  }
-}
+function esc(s) { return window.Sanitize.esc(s); }
+function safeUrl(url) { return window.Sanitize.safeUrl(url); }
 
 function parseSeekerContent(seeker) {
   const availability = seeker.availability || "";
@@ -116,7 +103,8 @@ function getInitials(name) {
 function renderMarkdown(text) {
   if (!text) return "";
   if (typeof marked !== "undefined") {
-    return marked.parse(text);
+    const html = marked.parse(text);
+    return typeof DOMPurify !== "undefined" ? DOMPurify.sanitize(html) : html;
   }
   return text.replace(/\n/g, "<br />");
 }

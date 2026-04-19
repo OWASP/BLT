@@ -2,21 +2,8 @@ function normalizeString(value) {
   return (value || "").toString().trim();
 }
 
-function esc(s) {
-  const d = document.createElement("div");
-  d.textContent = s == null ? "" : String(s);
-  return d.innerHTML;
-}
-
-function safeUrl(url) {
-  if (!url) return "";
-  try {
-    const u = new URL(url);
-    return u.protocol === "https:" || u.protocol === "http:" ? url : "";
-  } catch (e) {
-    return "";
-  }
-}
+function esc(s) { return window.Sanitize.esc(s); }
+function safeUrl(url) { return window.Sanitize.safeUrl(url); }
 
 function isExpiringSoon(expiresAt) {
   if (!expiresAt) return false;
@@ -131,7 +118,7 @@ function renderJob(job) {
   const applicationInstructions = job.application_instructions || "";
   const addedBy = esc(normalizeString(job.added_by));
 
-  const flagIssueTitle = encodeURIComponent(`[FLAG] ${job.title || "Untitled"} @ ${orgName}`);
+  const flagIssueTitle = encodeURIComponent(`[FLAG] ${job.title || "Untitled"} @ ${job.organization_name || "Unknown organization"}`);
   const flagUrl = `https://github.com/OWASP-BLT/BLT-Jobs/issues/new?template=flag-job-posting.yml&title=${flagIssueTitle}&job_id=${encodeURIComponent(job.id)}`;
 
   root.innerHTML = `
@@ -161,7 +148,7 @@ function renderJob(job) {
             <!-- Job Title -->
             <h1 class="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-6 flex items-center gap-3">
               ${faviconUrl ? `<img src="${faviconUrl}" alt="" width="32" height="32" class="w-8 h-8 rounded" aria-hidden="true" />` : ""}
-              ${job.title || "Untitled job"}
+              ${esc(job.title) || "Untitled job"}
             </h1>
 
             ${
@@ -328,7 +315,7 @@ function renderJob(job) {
           <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8 transition-colors duration-200">
             <h3 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Job Description</h3>
             <div class="prose max-w-none text-gray-700 dark:text-gray-300 prose-headings:text-gray-900 prose-headings:dark:text-gray-100 prose-strong:text-gray-900 prose-strong:dark:text-gray-100 prose-a:text-[#e74c3c] prose-a:dark:text-[#e74c3c] prose-a:hover:text-red-700 prose-a:dark:hover:text-[#f8c471] prose-ul:text-gray-700 prose-ul:dark:text-gray-300 prose-ol:text-gray-700 prose-ol:dark:text-gray-300 prose-li:text-gray-700 prose-li:dark:text-gray-300">
-              ${typeof marked !== "undefined" ? marked.parse(description) : description.replace(/\n/g, "<br />")}
+              ${typeof marked !== "undefined" ? (typeof DOMPurify !== "undefined" ? DOMPurify.sanitize(marked.parse(description)) : marked.parse(description)) : description.replace(/\n/g, "<br />")}
             </div>
           </div>
 
@@ -338,7 +325,7 @@ function renderJob(job) {
               ? `<div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8 transition-colors duration-200">
                    <h3 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Requirements</h3>
                    <div class="prose max-w-none text-gray-700 dark:text-gray-300 prose-headings:text-gray-900 prose-headings:dark:text-gray-100 prose-strong:text-gray-900 prose-strong:dark:text-gray-100 prose-a:text-[#e74c3c] prose-a:dark:text-[#e74c3c] prose-a:hover:text-red-700 prose-a:dark:hover:text-[#f8c471] prose-ul:text-gray-700 prose-ul:dark:text-gray-300 prose-ol:text-gray-700 prose-ol:dark:text-gray-300 prose-li:text-gray-700 prose-li:dark:text-gray-300">
-                     ${typeof marked !== "undefined" ? marked.parse(requirements) : requirements.replace(/\n/g, "<br />")}
+                     ${typeof marked !== "undefined" ? (typeof DOMPurify !== "undefined" ? DOMPurify.sanitize(marked.parse(requirements)) : marked.parse(requirements)) : requirements.replace(/\n/g, "<br />")}
                    </div>
                  </div>`
               : ""

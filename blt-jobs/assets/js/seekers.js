@@ -1,10 +1,7 @@
 let allSeekers = [];
 
-function esc(s) {
-  const d = document.createElement("div");
-  d.textContent = s == null ? "" : String(s);
-  return d.innerHTML;
-}
+function esc(s) { return window.Sanitize.esc(s); }
+function safeUrl(url) { return window.Sanitize.safeUrl(url); }
 
 function normalizeSeekerString(value) {
   return (value || "").toString().toLowerCase();
@@ -73,17 +70,6 @@ function renderSeekers(seekers) {
       const twitter = s.twitter || "";
       const resumeUrl = s.resume_url || "";
       
-      // Sanitize a URL: only allow http/https, return empty string otherwise
-      function safeUrl(url) {
-        if (!url) return "";
-        try {
-          const u = new URL(url);
-          return u.protocol === "https:" || u.protocol === "http:" ? url : "";
-        } catch (e) {
-          return "";
-        }
-      }
-
       // Build social links
       const socialLinks = [];
       if (safeUrl(linkedin)) socialLinks.push(`<a href="${esc(linkedin)}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600" title="LinkedIn Profile"><i class="fa-brands fa-linkedin" aria-hidden="true"></i></a>`);
@@ -96,7 +82,7 @@ function renderSeekers(seekers) {
       return `
         <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-red-600/30 hover:shadow-md dark:border-gray-700 dark:bg-gray-800 dark:hover:border-red-500/50">
           <a href="seeker.html?id=${encodeURIComponent(s.id)}" class="block mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-red-500 to-red-600 text-white text-xl font-bold select-none shadow-lg" aria-hidden="true">
-            ${(name.split(/\s+/).slice(0, 2).map((w) => w.charAt(0).toUpperCase()).join(""))}
+            ${esc(name.split(/\s+/).slice(0, 2).map((w) => w.charAt(0).toUpperCase()).join(""))}
           </a>
           <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100"><a href="seeker.html?id=${encodeURIComponent(s.id)}" class="hover:text-red-600 dark:hover:text-red-400 transition">${esc(name)}</a></h3>
           ${headline ? `<p class="mt-1 text-sm font-medium text-slate-600 dark:text-gray-400">${esc(headline)}</p>` : ""}

@@ -1,10 +1,6 @@
 let allJobs = [];
 
-function esc(s) {
-  const d = document.createElement("div");
-  d.textContent = s == null ? "" : String(s);
-  return d.innerHTML;
-}
+function esc(s) { return window.Sanitize.esc(s); }
 
 function normalizeString(value) {
   return (value || "").toString().toLowerCase();
