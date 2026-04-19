@@ -761,8 +761,16 @@ const VideoChat = (() => {
             t.enabled = !camOff;
             ls.addTrack(t);
           });
-          // Replace track in all active calls with the fresh video track.
           const freshVideo = ls.getVideoTracks()[ls.getVideoTracks().length - 1];
+          
+          if (voiceStream && voiceStream !== ls) {
+             const freshAudio = voiceStream.getAudioTracks()[0];
+             voiceStream = new MediaStream([freshVideo, freshAudio].filter(Boolean));
+          } else {
+             voiceStream = ls;
+          }
+
+          // Replace track in all active calls with the fresh video track.
           await updateTracksInCalls(freshVideo, "video");
           const localVideo = $("local-video");
           if (localVideo) localVideo.srcObject = ls;

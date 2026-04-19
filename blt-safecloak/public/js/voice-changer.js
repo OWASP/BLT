@@ -151,6 +151,9 @@ const VoiceChanger = (() => {
         lowpass.type = "lowpass";
         lowpass.frequency.value = 1000; // Heavily muffle normal voice highs
         lowpass.Q.value = 0.5;
+        
+        const preTrim = audioCtx.createGain();
+        preTrim.gain.value = 0.5; // Prevent clipping from sub-bass boost
 
         const lowshelf = audioCtx.createBiquadFilter();
         lowshelf.type = "lowshelf";
@@ -158,7 +161,8 @@ const VoiceChanger = (() => {
         lowshelf.gain.value = lerp(5, 12, t); // Boost the artificially created low end
 
         amGain.connect(lowpass);
-        lowpass.connect(lowshelf);
+        lowpass.connect(preTrim);
+        preTrim.connect(lowshelf);
         return { inputNode: amGain, outputNode: lowshelf };
       }
 
@@ -211,7 +215,7 @@ const VoiceChanger = (() => {
         activeOscillators.push(oscillator);
 
         const makeUpGain = audioCtx.createGain();
-        makeUpGain.gain.value = 1.5; 
+        makeUpGain.gain.value = 1.0; 
 
         bandpass.connect(amGain);
         amGain.connect(makeUpGain);
@@ -281,19 +285,34 @@ const VoiceChanger = (() => {
         // Shimmering comb resonance (Reverb/Metallic Sheen)
         const delay = audioCtx.createDelay();
         delay.delayTime.value = lerp(0.005, 0.012, t); 
-        const feedback = audioCtx.createGain();
-        feedback.gain.value = lerp(0.7, 0.85, t);
         
-        delay.connect(feedback);
+        const feedback = audioCtx.createGain();
+        feedback.gain.value = lerp(0.5, 0.70, t);
+        
+        const damping = audioCtx.createBiquadFilter();
+        damping.type = "lowpass";
+        damping.frequency.value = 4000;
+        
+        delay.connect(damping);
+        damping.connect(feedback);
         feedback.connect(delay);
 
         const delayMix = audioCtx.createGain();
+        delayMix.gain.value = 0.5;
+
+        const dryMix = audioCtx.createGain();
+        dryMix.gain.value = 0.5;
+        
         rmGain.connect(delay);
         delay.connect(delayMix);
-        rmGain.connect(delayMix); // Mix dry + comb
+        rmGain.connect(dryMix); 
+        
+        const finalMix = audioCtx.createGain();
+        delayMix.connect(finalMix);
+        dryMix.connect(finalMix);
 
         highpass.connect(rmGain);
-        return { inputNode: highpass, outputNode: delayMix };
+        return { inputNode: highpass, outputNode: finalMix };
       }
 
       case "voice3": {
@@ -377,10 +396,19 @@ const VoiceChanger = (() => {
     sourceNode.connect(inputGainNode);
 
     const activeEffects = EFFECT_ORDER.filter((m) => effectLevels[m] > 0);
+    
+    // Global Compressor to prevent clipping transients
+    const compressor = audioCtx.createDynamicsCompressor();
+    compressor.threshold.value = -3;
+    compressor.knee.value = 10;
+    compressor.ratio.value = 12;
+    compressor.attack.value = 0.003;
+    compressor.release.value = 0.25;
+    compressor.connect(destinationNode);
 
     if (activeEffects.length === 0) {
       /* No effects active — plain passthrough */
-      inputGainNode.connect(destinationNode);
+      inputGainNode.connect(compressor);
       return;
     }
 
@@ -388,7 +416,7 @@ const VoiceChanger = (() => {
     for (const mode of activeEffects) {
       prevNode = buildEffectSegment(mode, effectLevels[mode], prevNode);
     }
-    prevNode.connect(destinationNode);
+    prevNode.connect(compressor);
   }
 
   /* ── Public API ── */
