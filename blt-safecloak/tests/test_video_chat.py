@@ -519,6 +519,56 @@ def test_three_clients_connect_and_see_cameras(app_server_url):
             browser.close()
 
 
+def test_room_url_persists_on_refresh_and_shared_link_joins_same_room(app_server_url):
+    """Host room ID should be written into URL, survive refresh, and be joinable via shared URL."""
+    with sync_playwright() as pw:
+        browser = pw.chromium.launch(args=_BROWSER_ARGS)
+        try:
+            host_ctx = _new_context(browser)
+            joiner_ctx = _new_context(browser)
+            host_page = host_ctx.new_page()
+            joiner_page = joiner_ctx.new_page()
+
+            host_page.goto(f"{app_server_url}/video-room?mic=on&cam=on")
+            host_room_id = _peer_id(host_page)
+
+            host_page.wait_for_function(
+                "() => {"
+                "  const id = document.getElementById('my-peer-id')?.textContent?.trim();"
+                "  const room = new URLSearchParams(window.location.search).get('room');"
+                "  return Boolean(id && room && id === room);"
+                "}",
+                timeout=TIMEOUT_MS,
+            )
+            assert f"room={host_room_id}" in host_page.url, "Host URL should include its room ID"
+
+            shared_url = host_page.url
+            host_page.reload()
+
+            refreshed_host_room_id = _peer_id(host_page)
+            assert refreshed_host_room_id == host_room_id, (
+                "Refreshing should keep host in the same room ID"
+            )
+            assert f"room={host_room_id}" in host_page.url, "Room ID should remain in URL after refresh"
+
+            joiner_page.goto(shared_url)
+            joiner_id = _peer_id(joiner_page)
+            assert joiner_id != host_room_id, "Joiner should get a unique peer ID"
+            _accept_consent(joiner_page)
+            _accept_consent(host_page)
+
+            host_page.wait_for_function(
+                "document.querySelectorAll('.video-wrapper').length >= 2",
+                timeout=TIMEOUT_MS,
+            )
+            joiner_page.wait_for_function(
+                "document.querySelectorAll('.video-wrapper').length >= 2",
+                timeout=TIMEOUT_MS,
+            )
+        finally:
+            browser.close()
+
+
 # ---------------------------------------------------------------------------
 # VoiceChanger unit tests (run in a headless browser page)
 # ---------------------------------------------------------------------------

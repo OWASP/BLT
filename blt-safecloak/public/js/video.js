@@ -22,6 +22,7 @@ const VideoChat = (() => {
   const MEDIA_PREFS_STORAGE_KEY = "blt-safecloak-media-preferences";
   const VOICE_PREFS_STORAGE_KEY = "blt-safecloak-voice-preferences";
   const DISPLAY_NAME_STORAGE_KEY = "blt-safecloak-display-name";
+  const ROOM_ID_STORAGE_KEY = "blt-safecloak-room-id";
   const PROFILE_BROADCAST_THROTTLE_MS = 220;
   const SPEAKING_THRESHOLD = 28;
   const SPEAKING_HOLD_MS = 260;
@@ -150,6 +151,48 @@ const VideoChat = (() => {
   function getInviteRoomIdFromUrl() {
     const params = new URLSearchParams(window.location.search);
     return normalizeRoomId(params.get("room"));
+  }
+
+  function getStoredOwnRoomId() {
+    try {
+      return normalizeRoomId(window.sessionStorage.getItem(ROOM_ID_STORAGE_KEY));
+    } catch {
+      return "";
+    }
+  }
+
+  function persistOwnRoomId(roomId) {
+    const normalizedRoomId = normalizeRoomId(roomId);
+    if (!isValidRoomId(normalizedRoomId)) return;
+    try {
+      window.sessionStorage.setItem(ROOM_ID_STORAGE_KEY, normalizedRoomId);
+    } catch {
+      /* ignore storage failures */
+    }
+  }
+
+  function shouldReuseInviteRoomAsPeerId(inviteRoomId) {
+    const normalizedInviteRoomId = normalizeRoomId(inviteRoomId);
+    if (!isValidRoomId(normalizedInviteRoomId)) return false;
+    if (normalizedInviteRoomId !== getStoredOwnRoomId()) return false;
+    const navEntries =
+      typeof performance !== "undefined" && performance.getEntriesByType
+        ? performance.getEntriesByType("navigation")
+        : [];
+    return Boolean(navEntries.length && navEntries[0] && navEntries[0].type === "reload");
+  }
+
+  function ensureRoomIdInUrl(roomId) {
+    const normalizedRoomId = normalizeRoomId(roomId);
+    if (!isValidRoomId(normalizedRoomId)) return;
+    try {
+      const url = new URL(window.location.href);
+      if (url.searchParams.get("room")) return;
+      url.searchParams.set("room", normalizedRoomId);
+      window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
+    } catch {
+      /* ignore URL update failures */
+    }
   }
 
   function populateRemoteIdInput(roomId) {
@@ -792,7 +835,9 @@ const VideoChat = (() => {
       showToast("PeerJS not loaded", "error");
       return;
     }
-    state.peerId = Crypto.randomId(6);
+    const inviteRoomId = getInviteRoomIdFromUrl();
+    state.peerId = shouldReuseInviteRoomAsPeerId(inviteRoomId) ? inviteRoomId : Crypto.randomId(6);
+    persistOwnRoomId(state.peerId);
     state.sessionKey = await Crypto.generateKey();
     state.sessionId = state.peerId;
 
@@ -812,12 +857,15 @@ const VideoChat = (() => {
 
     peer.on("open", (id) => {
       $("my-peer-id") && ($("my-peer-id").textContent = id);
+      persistOwnRoomId(id);
+      ensureRoomIdInUrl(id);
       updateStatus("fa-solid fa-share-nodes", "Ready — share your Room ID", "secondary");
       setStatusIcon("online");
       updateLocalTilePresentation();
       showToast("Connected to signaling server", "success");
       const inviteRoomId = inviteAutoJoinRoomId || getInviteRoomIdFromUrl();
-      if (!inviteRoomId) {
+      // Skip auto-join when this tab is the host for the room ID in the URL.
+      if (!inviteRoomId || inviteRoomId === id) {
         return;
       }
 
