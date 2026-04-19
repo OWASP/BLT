@@ -1111,7 +1111,7 @@ def test_voice_changer_all_effects_combined(voice_changer_page):
     assert result["ok"], result.get("error", "unknown error")
 
 
-def test_video_chat_persists_voice_preferences_on_room_controls(voice_changer_page):
+def test_voice_preferences_persistence_from_room_controls(voice_changer_page):
     """In-room voice control changes should persist immediately for reload-safe UI state."""
     result = voice_changer_page.evaluate(_VIDEO_CHAT_PERSISTS_VOICE_PREFS_JS)
     assert result["ok"], result.get("error", "unknown error")
