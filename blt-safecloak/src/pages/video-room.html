@@ -351,7 +351,7 @@
               </div>
               <button
                 class="btn btn-secondary mt-3 w-full"
-                onclick="VideoChat.copyRoomId()"
+                id="btn-copy-room-id"
                 aria-label="Copy room ID to clipboard"
               >
                 <i class="fa-regular fa-copy" aria-hidden="true"></i>
@@ -360,7 +360,6 @@
               <button
                 class="btn btn-primary mt-2 w-full"
                 id="btn-copy-link"
-                onclick="VideoChat.copyRoomLink()"
                 aria-label="Copy shareable room link to clipboard"
               >
                 <i class="fa-solid fa-link" aria-hidden="true"></i>
@@ -524,6 +523,21 @@
 
         const callBtn = document.getElementById("btn-call");
         const input = document.getElementById("remote-id");
+        const copyRoomIdBtn = document.getElementById("btn-copy-room-id");
+        const copyRoomLinkBtn = document.getElementById("btn-copy-link");
+
+        if (copyRoomIdBtn) {
+          copyRoomIdBtn.addEventListener("click", () => {
+            VideoChat.copyRoomId();
+          });
+        }
+
+        if (copyRoomLinkBtn) {
+          copyRoomLinkBtn.addEventListener("click", () => {
+            VideoChat.copyRoomLink();
+          });
+        }
+
         if (callBtn && input) {
           callBtn.addEventListener("click", async () => {
             const success = await VideoChat.callPeer(normalizeRemoteId(input.value));
