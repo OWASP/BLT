@@ -753,7 +753,30 @@
     try {
       await initPreviewStream();
     } catch (e) {
-      // Handled silently
+      // Fallback if initPreviewVoiceEngine(), VoiceChanger.init(), or updatePreviewUI() fails
+      // inside initPreviewStream(). We reset to a safe "null" state so the UI reflects a 
+      // non-previewable state and users can still proceed.
+      micEnabled = false;
+      camEnabled = false;
+      updatePreviewUI();
+      resetPreviewVoiceUi();
+
+      const status = $("prejoin-status");
+      if (status) {
+        status.textContent = "Preview unavailable";
+      }
+
+      const micBtn = $("btn-preview-mic");
+      if (micBtn) {
+        micBtn.disabled = false;
+        micBtn.classList.remove("opacity-50", "cursor-not-allowed");
+      }
+
+      const camBtn = $("btn-preview-cam");
+      if (camBtn) {
+        camBtn.disabled = false;
+        camBtn.classList.remove("opacity-50", "cursor-not-allowed");
+      }
     }
 
     if (shouldAutoJoinFromInvite) {
