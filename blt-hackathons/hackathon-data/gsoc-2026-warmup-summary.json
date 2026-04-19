@@ -1,6 +1,6 @@
 {
   "participantCount": 203,
-  "totalPRs": 2659,
+  "totalPRs": 2660,
   "mergedPRs": 1653,
   "totalIssues": 834,
   "repositories": 54,
@@ -18,13 +18,23 @@
       "mergedCount": 57
     },
     {
-      "username": "Pritz395",
-      "avatar": "https://avatars.githubusercontent.com/u/146115505?v=4",
-      "url": "https://github.com/Pritz395",
+      "username": "Jayant2908",
+      "avatar": "https://avatars.githubusercontent.com/u/200989760?v=4",
+      "url": "https://github.com/Jayant2908",
       "mergedCount": 39
     }
   ],
   "recentPRs": [
+    {
+      "title": "fix(video): Overhaul voice changer DSP algorithms and resolve initialization bugs",
+      "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/88",
+      "username": "ojaswa072",
+      "avatar": "https://avatars.githubusercontent.com/u/230836303?v=4",
+      "state": "open",
+      "created_at": "2026-04-19T08:06:29Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-SafeCloak"
+    },
     {
       "title": "Fix: update first-time-contributors workflow",
       "url": "https://github.com/OWASP-BLT/BLT/pull/6209",
@@ -112,16 +122,6 @@
       "avatar": "https://avatars.githubusercontent.com/u/168626374?v=4",
       "state": "closed",
       "created_at": "2026-04-17T13:14:47Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "test: verify pre-commit hook execution",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6206",
-      "username": "SatishKumar620",
-      "avatar": "https://avatars.githubusercontent.com/u/168626374?v=4",
-      "state": "closed",
-      "created_at": "2026-04-17T12:52:28Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT"
     }
