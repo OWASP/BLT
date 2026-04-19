@@ -1070,13 +1070,13 @@ _VIDEO_CHAT_PERSISTS_VOICE_PREFS_JS = """
     if (typeof VideoChat === 'undefined') return {ok: false, error: 'VideoChat not defined'};
     if (typeof VoiceChanger === 'undefined') return {ok: false, error: 'VoiceChanger not defined'};
 
-    const key = 'blt-safecloak-voice-preferences';
-    sessionStorage.removeItem(key);
+    const voicePrefsKey = 'blt-safecloak-voice-preferences';
+    sessionStorage.removeItem(voicePrefsKey);
 
     VideoChat.setVoiceMode('normal');
     VideoChat.toggleEffectMode('robot');
 
-    const rawOn = sessionStorage.getItem(key);
+    const rawOn = sessionStorage.getItem(voicePrefsKey);
     if (!rawOn) return {ok: false, error: 'Voice preferences not stored after toggling effect'};
     const parsedOn = JSON.parse(rawOn);
     const robotLevel = Number(parsedOn?.effectLevels?.robot || 0);
@@ -1085,7 +1085,7 @@ _VIDEO_CHAT_PERSISTS_VOICE_PREFS_JS = """
     }
 
     VideoChat.setVoiceMode('normal');
-    const rawOff = sessionStorage.getItem(key);
+    const rawOff = sessionStorage.getItem(voicePrefsKey);
     if (!rawOff) return {ok: false, error: 'Voice preferences missing after resetting to normal'};
     const parsedOff = JSON.parse(rawOff);
     const levels = parsedOff && parsedOff.effectLevels ? parsedOff.effectLevels : {};

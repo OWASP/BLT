@@ -1536,6 +1536,7 @@ const VideoChat = (() => {
     }
   }
 
+  /** Persist current in-room voice settings for reload-safe UI restoration. */
   function _persistVoicePreferences() {
     if (typeof VoiceChanger === "undefined") return;
     try {
