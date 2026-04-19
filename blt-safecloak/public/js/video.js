@@ -16,6 +16,7 @@ const VideoChat = (() => {
   let camOff = true;
   let consentGiven = false;
   let screenSharing = false;
+  let localHandRaised = false;
   let inviteAutoJoinAttempted = false;
   let inviteAutoJoinRoomId = "";
   let initialMediaPreferences = { mic: false, cam: false };
@@ -27,7 +28,7 @@ const VideoChat = (() => {
   const SPEAKING_THRESHOLD = 28;
   const SPEAKING_HOLD_MS = 260;
 
-  const peerProfiles = new Map(); // peerId -> { name, initials, micMuted, camOff }
+  const peerProfiles = new Map(); // peerId -> { name, initials, micMuted, camOff, handRaised }
   const remoteSpeakingMonitors = new Map(); // peerId -> { analyser, data, source, activeUntil }
   let speakingLoopFrame = null;
   let speakingAudioContext = null;
@@ -127,6 +128,7 @@ const VideoChat = (() => {
         initials: state.displayInitials,
         micMuted: isLocalMicMutedState(),
         camOff: isLocalCamOffState(),
+        handRaised: localHandRaised,
       };
     }
     const profile = peerProfiles.get(peerId);
@@ -136,6 +138,7 @@ const VideoChat = (() => {
       initials: makeInitials(peerId),
       micMuted: false,
       camOff: false,
+      handRaised: false,
     };
   }
 
@@ -210,6 +213,7 @@ const VideoChat = (() => {
       initials: state.displayInitials,
       micMuted: isLocalMicMutedState(),
       camOff: screenSharing ? false : isLocalCamOffState(),
+      handRaised: localHandRaised,
     };
   }
 
@@ -497,6 +501,7 @@ const VideoChat = (() => {
       initials: makeInitials(peerId),
       micMuted: false,
       camOff: false,
+      handRaised: false,
     };
     const normalizedName = normalizeDisplayName(payload && payload.name);
 
@@ -506,6 +511,10 @@ const VideoChat = (() => {
       micMuted:
         payload && typeof payload.micMuted === "boolean" ? payload.micMuted : Boolean(prev.micMuted),
       camOff: payload && typeof payload.camOff === "boolean" ? payload.camOff : Boolean(prev.camOff),
+      handRaised:
+        payload && typeof payload.handRaised === "boolean"
+          ? payload.handRaised
+          : Boolean(prev.handRaised),
     };
 
     peerProfiles.set(peerId, profile);
@@ -863,6 +872,7 @@ const VideoChat = (() => {
       updateStatus("fa-solid fa-share-nodes", "Ready — share your Room ID", "secondary");
       setStatusIcon("online");
       updateLocalTilePresentation();
+      updateParticipantsList();
       showToast("Connected to signaling server", "success");
       const inviteRoomId = inviteAutoJoinRoomId || getInviteRoomIdFromUrl();
       // Skip auto-join when this tab is the host for the room ID in the URL.
@@ -928,18 +938,66 @@ const VideoChat = (() => {
   function updateParticipantsList() {
     const listEl = $("participants-list");
     const countEl = $("participant-count");
+    const isPeerReady = Boolean(peer && peer.open && state.peerId);
     if (countEl) {
-      countEl.textContent = `${activeCalls.size} connected`;
+      countEl.textContent = `${activeCalls.size + (isPeerReady ? 1 : 0)} in room`;
     }
     if (!listEl) return;
     listEl.innerHTML = "";
-    if (activeCalls.size === 0) {
+
+    if (!isPeerReady && activeCalls.size === 0) {
       const empty = document.createElement("p");
       empty.className = "text-sm text-gray-500 text-center py-2";
       empty.textContent = "No participants connected";
       listEl.appendChild(empty);
       return;
     }
+
+    const localItem = document.createElement("div");
+    localItem.className = "flex items-center justify-between gap-2 py-1 text-sm";
+
+    const localNameSpan = document.createElement("span");
+    localNameSpan.className = "flex min-w-0 items-center gap-2";
+
+    const localDot = document.createElement("i");
+    localDot.className = "fa-solid fa-circle text-green-500 text-[10px]";
+    localDot.setAttribute("aria-hidden", "true");
+
+    const localTextWrap = document.createElement("span");
+    localTextWrap.className = "flex min-w-0 flex-col";
+
+    const localNameLabel = document.createElement("span");
+    localNameLabel.className = "truncate font-semibold text-gray-900 flex items-center gap-1.5";
+    localNameLabel.title = state.displayName;
+
+    const localNameText = document.createElement("span");
+    localNameText.className = "truncate";
+    localNameText.textContent = `${state.displayName} (You)`;
+    localNameLabel.appendChild(localNameText);
+
+    if (localHandRaised) {
+      const hand = document.createElement("span");
+      hand.textContent = "✋";
+      hand.className = "leading-none";
+      hand.setAttribute("role", "img");
+      hand.setAttribute("aria-label", "Hand raised");
+      hand.title = "Hand raised";
+      localNameLabel.appendChild(hand);
+    }
+
+    const localIdLabel = document.createElement("span");
+    localIdLabel.className = "truncate font-mono text-[11px] text-gray-500";
+    localIdLabel.title = state.peerId || "Not connected";
+    localIdLabel.textContent = state.peerId || "Not connected";
+
+    localNameSpan.appendChild(localDot);
+    localTextWrap.appendChild(localNameLabel);
+    localTextWrap.appendChild(localIdLabel);
+    localNameSpan.appendChild(localTextWrap);
+
+    localItem.appendChild(localNameSpan);
+    listEl.appendChild(localItem);
+
     activeCalls.forEach((_call, peerId) => {
       const item = document.createElement("div");
       item.className = "flex items-center justify-between gap-2 py-1 text-sm";
@@ -955,9 +1013,24 @@ const VideoChat = (() => {
       textWrap.className = "flex min-w-0 flex-col";
 
       const nameLabel = document.createElement("span");
-      nameLabel.className = "truncate font-semibold text-gray-900";
+      nameLabel.className = "truncate font-semibold text-gray-900 flex items-center gap-1.5";
       nameLabel.title = getDisplayLabel(peerId);
-      nameLabel.textContent = getDisplayLabel(peerId);
+
+      const nameText = document.createElement("span");
+      nameText.className = "truncate";
+      nameText.textContent = getDisplayLabel(peerId);
+      nameLabel.appendChild(nameText);
+
+      const remoteProfile = getProfileForPeer(peerId);
+      if (remoteProfile.handRaised) {
+        const remoteHand = document.createElement("span");
+        remoteHand.textContent = "✋";
+        remoteHand.className = "leading-none";
+        remoteHand.setAttribute("role", "img");
+        remoteHand.setAttribute("aria-label", "Hand raised");
+        remoteHand.title = "Hand raised";
+        nameLabel.appendChild(remoteHand);
+      }
 
       const idLabel = document.createElement("span");
       idLabel.className = "truncate font-mono text-[11px] text-gray-500";
@@ -981,6 +1054,22 @@ const VideoChat = (() => {
       item.appendChild(disconnectBtn);
       listEl.appendChild(item);
     });
+  }
+
+  function syncRaiseHandButton() {
+    const handBtn = $("btn-hand");
+    if (!handBtn) return;
+    handBtn.classList.toggle("active", localHandRaised);
+    handBtn.setAttribute("aria-pressed", localHandRaised ? "true" : "false");
+    handBtn.title = localHandRaised ? "Lower hand" : "Raise hand";
+  }
+
+  function toggleRaiseHand() {
+    localHandRaised = !localHandRaised;
+    syncRaiseHandButton();
+    updateParticipantsList();
+    broadcastProfile(true);
+    showToast(localHandRaised ? "Hand raised" : "Hand lowered", "info");
   }
 
   function handleCallStream(call) {
@@ -1438,6 +1527,8 @@ const VideoChat = (() => {
     stopAllRemoteSpeakingMonitors();
     localSpeakingUntil = 0;
     setTileSpeakingIndicator("local", false);
+    localHandRaised = false;
+    syncRaiseHandButton();
     state.connected = false;
     updateStatus("fa-solid fa-phone-slash", "Call ended", "muted");
     setStatusIcon("offline");
@@ -2088,6 +2179,8 @@ const VideoChat = (() => {
     }
 
     _applyStoredVoicePreferences();
+    syncRaiseHandButton();
+    updateParticipantsList();
     
     // Always init peer regardless of success of startLocalMedia (can join without media)
     await initPeer();
@@ -2133,6 +2226,7 @@ const VideoChat = (() => {
     endCall,
     hangup,
     toggleNoiseSuppression,
+    toggleRaiseHand,
     setVoiceMode,
     toggleEffectMode,
     setVoiceLevel,
