@@ -939,8 +939,9 @@ const VideoChat = (() => {
     const listEl = $("participants-list");
     const countEl = $("participant-count");
     const isPeerReady = Boolean(peer && peer.open && state.peerId);
+    const localVisible = isPeerReady || activeCalls.size > 0;
     if (countEl) {
-      countEl.textContent = `${activeCalls.size + (isPeerReady ? 1 : 0)} in room`;
+      countEl.textContent = `${activeCalls.size + (localVisible ? 1 : 0)} in room`;
     }
     if (!listEl) return;
     listEl.innerHTML = "";
