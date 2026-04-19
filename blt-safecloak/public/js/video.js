@@ -1820,7 +1820,7 @@ const VideoChat = (() => {
       btn.classList.toggle("active", on);
       btn.setAttribute("aria-pressed", String(on));
     }
-    _persistVoicePreferences();
+    /* Monitor enablement is session-local; stored voice preferences do not rehydrate it. */
   }
 
   /* ── Noise suppression hint ── */
