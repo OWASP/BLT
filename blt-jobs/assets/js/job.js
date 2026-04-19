@@ -2,6 +2,22 @@ function normalizeString(value) {
   return (value || "").toString().trim();
 }
 
+function esc(s) {
+  const d = document.createElement("div");
+  d.textContent = s == null ? "" : String(s);
+  return d.innerHTML;
+}
+
+function safeUrl(url) {
+  if (!url) return "";
+  try {
+    const u = new URL(url);
+    return u.protocol === "https:" || u.protocol === "http:" ? url : "";
+  } catch (e) {
+    return "";
+  }
+}
+
 function isExpiringSoon(expiresAt) {
   if (!expiresAt) return false;
   try {
@@ -82,19 +98,19 @@ function renderJob(job) {
   const root = document.getElementById("jobRoot");
   if (!root) return;
 
-  const orgName = job.organization_name || "Unknown organization";
-  const orgLogo = job.organization_logo || "";
-  const orgInitial = orgName.charAt(0).toUpperCase();
-  const location = job.location || "";
-  const jobType = job.job_type || "";
-  const salary = job.salary_range || "";
+  const orgName = esc(job.organization_name || "Unknown organization");
+  const orgLogo = safeUrl(job.organization_logo || "");
+  const orgInitial = esc((job.organization_name || "U").charAt(0).toUpperCase());
+  const location = esc(job.location || "");
+  const jobType = esc(job.job_type || "");
+  const salary = esc(job.salary_range || "");
   const createdAtRaw = job.created_at || "";
   const createdAt = createdAtRaw
     ? new Date(createdAtRaw).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })
     : "";
   const canApply = Boolean(job.application_email || job.application_url);
   const hasEmail = Boolean(job.application_email);
-  const hasUrl = Boolean(job.application_url);
+  const hasUrl = Boolean(safeUrl(job.application_url || ""));
   const expiryDate = [job.expires_at, job.effective_expires_at].find((value) => {
     if (!value) return false;
     const parsed = new Date(value);
@@ -102,7 +118,7 @@ function renderJob(job) {
   }) || null;
   const expired = isExpired(expiryDate);
   const expiringSoon = isExpiringSoon(expiryDate);
-  const expiryText = formatExpiryDate(expiryDate);
+  const expiryText = esc(formatExpiryDate(expiryDate));
   let faviconDomain = "";
   if (job.application_url) {
     try { faviconDomain = new URL(job.application_url).hostname; } catch (e) {}
@@ -113,7 +129,7 @@ function renderJob(job) {
   const description = job.description || "";
   const requirements = job.requirements || "";
   const applicationInstructions = job.application_instructions || "";
-  const addedBy = normalizeString(job.added_by);
+  const addedBy = esc(normalizeString(job.added_by));
 
   const flagIssueTitle = encodeURIComponent(`[FLAG] ${job.title || "Untitled"} @ ${orgName}`);
   const flagUrl = `https://github.com/OWASP-BLT/BLT-Jobs/issues/new?template=flag-job-posting.yml&title=${flagIssueTitle}&job_id=${encodeURIComponent(job.id)}`;
@@ -237,7 +253,7 @@ function renderJob(job) {
                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                        </svg>
-                       <span>Added by <a href="https://github.com/${addedBy}" target="_blank" rel="noopener noreferrer" class="font-medium text-[#e74c3c] hover:text-red-700 dark:hover:text-red-400">@${addedBy}</a></span>
+                       <span>Added by <a href="https://github.com/${encodeURIComponent(job.added_by)}" target="_blank" rel="noopener noreferrer" class="font-medium text-[#e74c3c] hover:text-red-700 dark:hover:text-red-400">@${addedBy}</a></span>
                      </div>`
                   : ""
               }
@@ -259,7 +275,7 @@ function renderJob(job) {
                 ? `<div class="flex flex-wrap gap-4">
                      ${
                        hasEmail
-                         ? `<a href="mailto:${job.application_email}"
+                         ? `<a href="mailto:${esc(job.application_email)}"
                                 class="inline-flex items-center px-8 py-3 bg-[#e74c3c] text-white rounded-xl font-medium hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#e74c3c] transition-all duration-200 transform hover:scale-105">
                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
@@ -270,7 +286,7 @@ function renderJob(job) {
                      }
                      ${
                        hasUrl
-                         ? `<a href="${job.application_url}"
+                         ? `<a href="${esc(safeUrl(job.application_url))}"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 class="inline-flex items-center px-8 py-3 bg-[#e74c3c] text-white rounded-xl font-medium hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#e74c3c] transition-all duration-200 transform hover:scale-105">

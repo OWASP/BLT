@@ -4,6 +4,22 @@ function stripHtmlComments(str) {
   return str.replace(/<!--[\s\S]*?-->/g, "").replace(/<!--[\s\S]*/g, "").trim();
 }
 
+function esc(s) {
+  const d = document.createElement("div");
+  d.textContent = s == null ? "" : String(s);
+  return d.innerHTML;
+}
+
+function safeUrl(url) {
+  if (!url) return "";
+  try {
+    const u = new URL(url);
+    return u.protocol === "https:" || u.protocol === "http:" ? url : "";
+  } catch (e) {
+    return "";
+  }
+}
+
 function parseSeekerContent(seeker) {
   const availability = seeker.availability || "";
   const aboutBody = seeker.about || "";
@@ -115,7 +131,7 @@ function renderSkillBadges(skillsStr) {
   return skills
     .map(
       (s) =>
-        `<span class="inline-block rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-700 dark:bg-red-900/30 dark:text-red-300">${s}</span>`
+        `<span class="inline-block rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-700 dark:bg-red-900/30 dark:text-red-300">${esc(s)}</span>`
     )
     .join(" ");
 }
@@ -172,12 +188,12 @@ function renderSeeker(seeker) {
 
   // Build contact links
   const contactLinks = [];
-  if (linkedin) contactLinks.push(`<a href="${linkedin}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"><i class="fa-brands fa-linkedin" aria-hidden="true"></i> LinkedIn</a>`);
-  if (github) contactLinks.push(`<a href="${github}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 transition hover:bg-gray-50 dark:hover:bg-gray-700"><i class="fa-brands fa-github" aria-hidden="true"></i> GitHub</a>`);
-  if (portfolio) contactLinks.push(`<a href="${portfolio}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 transition hover:bg-gray-50 dark:hover:bg-gray-700"><i class="fa-solid fa-globe" aria-hidden="true"></i> Portfolio</a>`);
-  if (twitter) contactLinks.push(`<a href="${twitter}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 transition hover:bg-gray-50 dark:hover:bg-gray-700"><i class="fa-brands fa-x-twitter" aria-hidden="true"></i> Twitter</a>`);
-  if (resumeUrl) contactLinks.push(`<a href="${resumeUrl}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700"><i class="fa-solid fa-file-pdf" aria-hidden="true"></i> Resume</a>`);
-  if (email) contactLinks.push(`<a href="mailto:${email}" class="inline-flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 transition hover:bg-gray-50 dark:hover:bg-gray-700"><i class="fa-solid fa-envelope" aria-hidden="true"></i> Email</a>`);
+  if (safeUrl(linkedin)) contactLinks.push(`<a href="${esc(linkedin)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"><i class="fa-brands fa-linkedin" aria-hidden="true"></i> LinkedIn</a>`);
+  if (safeUrl(github)) contactLinks.push(`<a href="${esc(github)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 transition hover:bg-gray-50 dark:hover:bg-gray-700"><i class="fa-brands fa-github" aria-hidden="true"></i> GitHub</a>`);
+  if (safeUrl(portfolio)) contactLinks.push(`<a href="${esc(portfolio)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 transition hover:bg-gray-50 dark:hover:bg-gray-700"><i class="fa-solid fa-globe" aria-hidden="true"></i> Portfolio</a>`);
+  if (safeUrl(twitter)) contactLinks.push(`<a href="${esc(twitter)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 transition hover:bg-gray-50 dark:hover:bg-gray-700"><i class="fa-brands fa-x-twitter" aria-hidden="true"></i> Twitter</a>`);
+  if (safeUrl(resumeUrl)) contactLinks.push(`<a href="${esc(resumeUrl)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700"><i class="fa-solid fa-file-pdf" aria-hidden="true"></i> Resume</a>`);
+  if (email) contactLinks.push(`<a href="mailto:${esc(email)}" class="inline-flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 transition hover:bg-gray-50 dark:hover:bg-gray-700"><i class="fa-solid fa-envelope" aria-hidden="true"></i> Email</a>`);
 
   document.title = `${name} — BLT Jobs`;
 
@@ -195,13 +211,13 @@ function renderSeeker(seeker) {
               </div>
               <!-- Name & Meta -->
               <div class="flex-1 min-w-0">
-                <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">${name}</h1>
-                ${headline ? `<p class="mt-1 text-lg font-medium text-red-600 dark:text-red-400">${headline}</p>` : ""}
+                <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">${esc(name)}</h1>
+                ${headline ? `<p class="mt-1 text-lg font-medium text-red-600 dark:text-red-400">${esc(headline)}</p>` : ""}
                 <div class="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm text-gray-600 dark:text-gray-400">
-                  ${location ? `<span class="flex items-center gap-1.5"><i class="fa-solid fa-location-dot text-gray-400" aria-hidden="true"></i> ${location}</span>` : ""}
-                  ${experienceSummary ? `<span class="flex items-center gap-1.5"><i class="fa-solid fa-briefcase text-gray-400" aria-hidden="true"></i> ${experienceSummary}</span>` : ""}
-                  ${availabilityStatus ? `<span class="flex items-center gap-1.5"><i class="fa-solid fa-circle-check text-green-500" aria-hidden="true"></i> ${availabilityStatus}</span>` : ""}
-                  ${createdAt ? `<span class="flex items-center gap-1.5"><i class="fa-solid fa-calendar text-gray-400" aria-hidden="true"></i> Joined ${createdAt}</span>` : ""}
+                  ${location ? `<span class="flex items-center gap-1.5"><i class="fa-solid fa-location-dot text-gray-400" aria-hidden="true"></i> ${esc(location)}</span>` : ""}
+                  ${experienceSummary ? `<span class="flex items-center gap-1.5"><i class="fa-solid fa-briefcase text-gray-400" aria-hidden="true"></i> ${esc(experienceSummary)}</span>` : ""}
+                  ${availabilityStatus ? `<span class="flex items-center gap-1.5"><i class="fa-solid fa-circle-check text-green-500" aria-hidden="true"></i> ${esc(availabilityStatus)}</span>` : ""}
+                  ${createdAt ? `<span class="flex items-center gap-1.5"><i class="fa-solid fa-calendar text-gray-400" aria-hidden="true"></i> Joined ${esc(createdAt)}</span>` : ""}
                 </div>
               </div>
             </div>
