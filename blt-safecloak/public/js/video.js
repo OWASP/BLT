@@ -1128,17 +1128,17 @@ const VideoChat = (() => {
   async function callPeer(remotePeerId) {
     if (!peer) {
       showToast("Not connected to server", "error");
-      return;
+      return false;
     }
     if (!remotePeerId) {
       showToast("Enter a Room ID to call", "warning");
-      return;
+      return false;
     }
 
     // Ensure remotePeerId is a string before trimming
     if (typeof remotePeerId !== "string") {
       showToast("Invalid Room ID format", "error");
-      return;
+      return false;
     }
 
     // Normalize the peer ID to avoid whitespace/case mismatches
@@ -1149,24 +1149,24 @@ const VideoChat = (() => {
         "Room ID must be exactly 6 characters using only uppercase letters (A-Z except I,O) and digits (2-9)",
         "error"
       );
-      return;
+      return false;
     }
     if (remotePeerId === state.peerId) {
       showToast("You cannot call yourself", "warning");
-      return;
+      return false;
     }
     if (activeCalls.has(remotePeerId)) {
       showToast("Already connected to this participant", "warning");
-      return;
+      return false;
     }
 
     if (!consentGiven) {
       const ok = await askConsent("the remote participant");
-      if (!ok) return;
+      if (!ok) return false;
     }
 
     const ok = await startLocalMedia();
-    if (!ok) return;
+    if (!ok) return false;
 
     updateStatus("fa-solid fa-spinner fa-spin", "Calling...", "warning");
     setStatusIcon("connecting");
@@ -1175,6 +1175,7 @@ const VideoChat = (() => {
     updateParticipantsList();
     handleCallStream(call);
     ensureDataConn(remotePeerId);
+    return true;
   }
 
   /* ── Controls ── */
