@@ -581,6 +581,7 @@ const VideoChat = (() => {
       const audioTrack = processedAudio.getAudioTracks()[0];
       const tracks = [videoTrack, audioTrack].filter(Boolean);
       voiceStream = tracks.length ? new MediaStream(tracks) : stream;
+      _applyStoredVoicePreferences();
     } else {
       voiceStream = stream;
     }
@@ -1535,6 +1536,20 @@ const VideoChat = (() => {
     }
   }
 
+  function _persistVoicePreferences() {
+    if (typeof VoiceChanger === "undefined") return;
+    try {
+      const payload = {
+        effectLevels: VoiceChanger.getEffectLevels(),
+        monitorVolume: VoiceChanger.getMonitorVolume(),
+        micGain: VoiceChanger.getMicGain(),
+      };
+      window.sessionStorage.setItem(VOICE_PREFS_STORAGE_KEY, JSON.stringify(payload));
+    } catch {
+      /* ignore storage failures */
+    }
+  }
+
   function _applyStoredVoicePreferences() {
     if (typeof VoiceChanger === "undefined") return;
 
@@ -1704,6 +1719,7 @@ const VideoChat = (() => {
       });
 
       showToast("Voice effect: Normal", "info");
+      _persistVoicePreferences();
     } else {
       /* Backward-compat path (used by tests / old callers) */
       VoiceChanger.setMode(mode);
@@ -1723,6 +1739,7 @@ const VideoChat = (() => {
 
       const modeName = VoiceChanger.getModes()[mode] ? VoiceChanger.getModes()[mode].label : mode;
       showToast(`Voice effect: ${modeName}`, "info");
+      _persistVoicePreferences();
     }
   }
 
@@ -1755,6 +1772,7 @@ const VideoChat = (() => {
     const modeInfo = VoiceChanger.getModes()[mode];
     const modeName = modeInfo ? modeInfo.label : mode;
     showToast(newLevel > 0 ? `Effect added: ${modeName}` : `Effect removed: ${modeName}`, "info");
+    _persistVoicePreferences();
   }
 
   /**
@@ -1780,6 +1798,7 @@ const VideoChat = (() => {
     }
 
     _syncNormalChip();
+    _persistVoicePreferences();
   }
 
   function toggleVoiceEffectsPanel() {
@@ -1800,6 +1819,7 @@ const VideoChat = (() => {
       btn.classList.toggle("active", on);
       btn.setAttribute("aria-pressed", String(on));
     }
+    _persistVoicePreferences();
   }
 
   /* ── Noise suppression hint ── */

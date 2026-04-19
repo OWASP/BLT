@@ -1065,6 +1065,39 @@ async () => {
 }
 """
 
+_VIDEO_CHAT_PERSISTS_VOICE_PREFS_JS = """
+() => {
+    if (typeof VideoChat === 'undefined') return {ok: false, error: 'VideoChat not defined'};
+    if (typeof VoiceChanger === 'undefined') return {ok: false, error: 'VoiceChanger not defined'};
+
+    const key = 'blt-safecloak-voice-preferences';
+    sessionStorage.removeItem(key);
+
+    VideoChat.setVoiceMode('normal');
+    VideoChat.toggleEffectMode('robot');
+
+    const rawOn = sessionStorage.getItem(key);
+    if (!rawOn) return {ok: false, error: 'Voice preferences not stored after toggling effect'};
+    const parsedOn = JSON.parse(rawOn);
+    const robotLevel = Number(parsedOn?.effectLevels?.robot || 0);
+    if (!(robotLevel > 0)) {
+        return {ok: false, error: 'Robot level not persisted as active'};
+    }
+
+    VideoChat.setVoiceMode('normal');
+    const rawOff = sessionStorage.getItem(key);
+    if (!rawOff) return {ok: false, error: 'Voice preferences missing after resetting to normal'};
+    const parsedOff = JSON.parse(rawOff);
+    const levels = parsedOff && parsedOff.effectLevels ? parsedOff.effectLevels : {};
+    const anyActive = Object.values(levels).some((v) => Number(v) > 0);
+    if (anyActive) {
+        return {ok: false, error: 'Normal mode should persist with all effects disabled'};
+    }
+
+    return {ok: true};
+}
+"""
+
 
 def test_voice_changer_combined_effects_api(voice_changer_page):
     """setEffectLevel/getEffectLevels/toggleEffect must support independent per-effect levels."""
@@ -1075,6 +1108,12 @@ def test_voice_changer_combined_effects_api(voice_changer_page):
 def test_voice_changer_all_effects_combined(voice_changer_page):
     """All 7 effects active simultaneously must not throw and keep the stream valid."""
     result = voice_changer_page.evaluate(_VOICE_CHANGER_ALL_EFFECTS_COMBINED_JS)
+    assert result["ok"], result.get("error", "unknown error")
+
+
+def test_video_chat_persists_voice_preferences_on_room_controls(voice_changer_page):
+    """In-room voice control changes should persist immediately for reload-safe UI state."""
+    result = voice_changer_page.evaluate(_VIDEO_CHAT_PERSISTS_VOICE_PREFS_JS)
     assert result["ok"], result.get("error", "unknown error")
 
 
