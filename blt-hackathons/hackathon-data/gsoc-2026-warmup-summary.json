@@ -1,8 +1,8 @@
 {
   "participantCount": 203,
-  "totalPRs": 2653,
-  "mergedPRs": 1647,
-  "totalIssues": 830,
+  "totalPRs": 2655,
+  "mergedPRs": 1648,
+  "totalIssues": 833,
   "repositories": 54,
   "topContributors": [
     {
@@ -30,9 +30,9 @@
       "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/79",
       "username": "ojaswa072",
       "avatar": "https://avatars.githubusercontent.com/u/230836303?v=4",
-      "state": "open",
+      "state": "closed",
       "created_at": "2026-04-18T22:04:25Z",
-      "merged_at": null,
+      "merged_at": "2026-04-19T03:36:44Z",
       "repository": "OWASP-BLT/BLT-SafeCloak"
     },
     {
