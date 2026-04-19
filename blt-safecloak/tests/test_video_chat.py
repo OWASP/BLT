@@ -323,7 +323,7 @@ def _patch_video_chat_html(data: bytes, peerjs_port: int) -> bytes:
     return html.encode("utf-8")
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def peerjs_server():
     """Start a local PeerJS signaling server and yield its port number.
 
@@ -374,7 +374,7 @@ def peerjs_server():
             proc.kill()
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def app_server_url(peerjs_server):
     """Start a local HTTP server and return its base URL."""
     if not _PEERJS_MIN_JS.exists():
@@ -460,7 +460,7 @@ def test_three_clients_connect_and_see_cameras(app_server_url):
             p2 = ctx2.new_page()
             p3 = ctx3.new_page()
 
-            video_url = f"{app_server_url}/video-room"
+            video_url = f"{app_server_url}/video-room?mic=on&cam=on"
             for page in (p1, p2, p3):
                 page.goto(video_url)
 
@@ -634,7 +634,7 @@ def voice_changer_page(app_server_url):
         try:
             ctx = _new_context(browser)
             page = ctx.new_page()
-            page.goto(f"{app_server_url}/video-room")
+            page.goto(f"{app_server_url}/video-room?mic=on&cam=on")
             # Wait for VoiceChanger to be defined (scripts loaded)
             page.wait_for_function("typeof VoiceChanger !== 'undefined'", timeout=TIMEOUT_MS)
             yield page
