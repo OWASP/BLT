@@ -1112,6 +1112,14 @@ def test_video_chat_includes_prejoin_voice_controller_ui():
         assert snippet in html, f"Expected snippet missing in video-chat.html: {snippet}"
 
 
+def test_video_chat_lobby_hides_in_room_controls():
+    """Lobby page should not render in-room controls like room ID and participant actions."""
+    html = (ROOT / "src/pages/video-chat.html").read_text(encoding="utf-8")
+    assert 'id="my-peer-id"' not in html
+    assert "Copy Room ID" not in html
+    assert "Add Participant" not in html
+
+
 def test_video_room_peerjs_script_has_no_sri_integrity():
     """PeerJS CDN script should not use stale SRI that can block script execution in production."""
     html = (ROOT / "src/pages/video-room.html").read_text(encoding="utf-8")
