@@ -1,8 +1,8 @@
 {
   "participantCount": 203,
-  "totalPRs": 2667,
-  "mergedPRs": 1656,
-  "totalIssues": 836,
+  "totalPRs": 2668,
+  "mergedPRs": 1658,
+  "totalIssues": 837,
   "repositories": 54,
   "topContributors": [
     {
@@ -26,13 +26,23 @@
   ],
   "recentPRs": [
     {
+      "title": "add peer reconnection with exponential backoff on disconnect",
+      "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/97",
+      "username": "azizrebhi",
+      "avatar": "https://avatars.githubusercontent.com/u/154744962?v=4",
+      "state": "open",
+      "created_at": "2026-04-19T21:08:32Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-SafeCloak"
+    },
+    {
       "title": "feat(video-room): add realtime raise-hand in participant list and refine lobby presence UI",
       "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/95",
       "username": "Rudrawhy",
       "avatar": "https://avatars.githubusercontent.com/u/154898503?v=4",
-      "state": "open",
+      "state": "closed",
       "created_at": "2026-04-19T20:02:10Z",
-      "merged_at": null,
+      "merged_at": "2026-04-19T20:49:08Z",
       "repository": "OWASP-BLT/BLT-SafeCloak"
     },
     {
@@ -80,9 +90,9 @@
       "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/90",
       "username": "Rudrawhy",
       "avatar": "https://avatars.githubusercontent.com/u/154898503?v=4",
-      "state": "open",
+      "state": "closed",
       "created_at": "2026-04-19T13:41:47Z",
-      "merged_at": null,
+      "merged_at": "2026-04-19T20:47:57Z",
       "repository": "OWASP-BLT/BLT-SafeCloak"
     },
     {
@@ -114,16 +124,6 @@
       "created_at": "2026-04-19T05:38:21Z",
       "merged_at": "2026-04-19T05:54:03Z",
       "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "fix(video): preserve Room ID input field on call failure",
-      "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/79",
-      "username": "ojaswa072",
-      "avatar": "https://avatars.githubusercontent.com/u/230836303?v=4",
-      "state": "closed",
-      "created_at": "2026-04-18T22:04:25Z",
-      "merged_at": "2026-04-19T03:36:44Z",
-      "repository": "OWASP-BLT/BLT-SafeCloak"
     }
   ]
 }
