@@ -1,5 +1,8 @@
 let allSeekers = [];
 
+function esc(s) { return window.Sanitize.esc(s); }
+function safeUrl(url) { return window.Sanitize.safeUrl(url); }
+
 function normalizeSeekerString(value) {
   return (value || "").toString().toLowerCase();
 }
@@ -69,24 +72,24 @@ function renderSeekers(seekers) {
       
       // Build social links
       const socialLinks = [];
-      if (linkedin) socialLinks.push(`<a href="${linkedin}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600" title="LinkedIn Profile"><i class="fa-brands fa-linkedin" aria-hidden="true"></i></a>`);
-      if (github) socialLinks.push(`<a href="${github}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600" title="GitHub Profile"><i class="fa-brands fa-github" aria-hidden="true"></i></a>`);
-      if (portfolio) socialLinks.push(`<a href="${portfolio}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600" title="Portfolio"><i class="fa-solid fa-globe" aria-hidden="true"></i></a>`);
-      if (twitter) socialLinks.push(`<a href="${twitter}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600" title="Twitter/X"><i class="fa-brands fa-x-twitter" aria-hidden="true"></i></a>`);
-      if (resumeUrl) socialLinks.push(`<a href="${resumeUrl}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 transition hover:bg-red-100 dark:border-red-800 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50" title="Download Resume"><i class="fa-solid fa-file-pdf" aria-hidden="true"></i></a>`);
-      if (email) socialLinks.push(`<a href="mailto:${email}" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600" title="Email"><i class="fa-solid fa-envelope" aria-hidden="true"></i></a>`);
+      if (safeUrl(linkedin)) socialLinks.push(`<a href="${esc(linkedin)}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600" title="LinkedIn Profile"><i class="fa-brands fa-linkedin" aria-hidden="true"></i></a>`);
+      if (safeUrl(github)) socialLinks.push(`<a href="${esc(github)}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600" title="GitHub Profile"><i class="fa-brands fa-github" aria-hidden="true"></i></a>`);
+      if (safeUrl(portfolio)) socialLinks.push(`<a href="${esc(portfolio)}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600" title="Portfolio"><i class="fa-solid fa-globe" aria-hidden="true"></i></a>`);
+      if (safeUrl(twitter)) socialLinks.push(`<a href="${esc(twitter)}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600" title="Twitter/X"><i class="fa-brands fa-x-twitter" aria-hidden="true"></i></a>`);
+      if (safeUrl(resumeUrl)) socialLinks.push(`<a href="${esc(resumeUrl)}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 transition hover:bg-red-100 dark:border-red-800 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50" title="Download Resume"><i class="fa-solid fa-file-pdf" aria-hidden="true"></i></a>`);
+      if (email) socialLinks.push(`<a href="mailto:${esc(email)}" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600" title="Email"><i class="fa-solid fa-envelope" aria-hidden="true"></i></a>`);
 
       return `
         <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-red-600/30 hover:shadow-md dark:border-gray-700 dark:bg-gray-800 dark:hover:border-red-500/50">
-          <a href="seeker.html?id=${s.id}" class="block mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-red-500 to-red-600 text-white text-xl font-bold select-none shadow-lg" aria-hidden="true">
-            ${(name.split(/\s+/).slice(0, 2).map((w) => w.charAt(0).toUpperCase()).join(""))}
+          <a href="seeker.html?id=${encodeURIComponent(s.id)}" class="block mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-red-500 to-red-600 text-white text-xl font-bold select-none shadow-lg" aria-hidden="true">
+            ${esc(name.split(/\s+/).slice(0, 2).map((w) => w.charAt(0).toUpperCase()).join(""))}
           </a>
-          <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100"><a href="seeker.html?id=${s.id}" class="hover:text-red-600 dark:hover:text-red-400 transition">${name}</a></h3>
-          ${headline ? `<p class="mt-1 text-sm font-medium text-slate-600 dark:text-gray-400">${headline}</p>` : ""}
+          <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100"><a href="seeker.html?id=${encodeURIComponent(s.id)}" class="hover:text-red-600 dark:hover:text-red-400 transition">${esc(name)}</a></h3>
+          ${headline ? `<p class="mt-1 text-sm font-medium text-slate-600 dark:text-gray-400">${esc(headline)}</p>` : ""}
           <div class="mt-3 space-y-1.5 text-sm text-slate-600 dark:text-gray-400">
-            ${location ? `<div class="flex items-center gap-2"><i class="fa-solid fa-location-dot w-4 text-slate-400 dark:text-gray-500" aria-hidden="true"></i> <span>${location}</span></div>` : ""}
-            ${experienceSummary ? `<div class="flex items-center gap-2"><i class="fa-solid fa-briefcase w-4 text-slate-400 dark:text-gray-500" aria-hidden="true"></i> <span>${experienceSummary}</span></div>` : ""}
-            ${availability ? `<div class="flex items-center gap-2"><i class="fa-solid fa-clock w-4 text-slate-400 dark:text-gray-500" aria-hidden="true"></i> <span>${availability}</span></div>` : ""}
+            ${location ? `<div class="flex items-center gap-2"><i class="fa-solid fa-location-dot w-4 text-slate-400 dark:text-gray-500" aria-hidden="true"></i> <span>${esc(location)}</span></div>` : ""}
+            ${experienceSummary ? `<div class="flex items-center gap-2"><i class="fa-solid fa-briefcase w-4 text-slate-400 dark:text-gray-500" aria-hidden="true"></i> <span>${esc(experienceSummary)}</span></div>` : ""}
+            ${availability ? `<div class="flex items-center gap-2"><i class="fa-solid fa-clock w-4 text-slate-400 dark:text-gray-500" aria-hidden="true"></i> <span>${esc(availability)}</span></div>` : ""}
           </div>
           ${
             skills.length
@@ -94,7 +97,7 @@ function renderSeekers(seekers) {
             <div class="mt-4">
               <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide dark:text-gray-500 mb-2">Skills</p>
               <div class="flex flex-wrap gap-1.5">
-                ${skills.slice(0, 6).map(skill => `<span class="inline-flex items-center rounded-md bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700 dark:bg-gray-700 dark:text-gray-300">${skill}</span>`).join("")}
+                ${skills.slice(0, 6).map(skill => `<span class="inline-flex items-center rounded-md bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700 dark:bg-gray-700 dark:text-gray-300">${esc(skill)}</span>`).join("")}
                 ${skills.length > 6 ? `<span class="inline-flex items-center rounded-md bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-500 dark:bg-gray-700 dark:text-gray-400">+${skills.length - 6} more</span>` : ""}
               </div>
             </div>
@@ -102,7 +105,7 @@ function renderSeekers(seekers) {
               : ""
           }
           <div class="mt-5 flex flex-wrap gap-2">
-            <a href="seeker.html?id=${s.id}" class="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-red-700"><i class="fa-solid fa-user" aria-hidden="true"></i> View Profile</a>
+            <a href="seeker.html?id=${encodeURIComponent(s.id)}" class="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-red-700"><i class="fa-solid fa-user" aria-hidden="true"></i> View Profile</a>
             ${socialLinks.join("")}
           </div>
         </div>

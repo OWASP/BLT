@@ -1,5 +1,7 @@
 let allJobs = [];
 
+function esc(s) { return window.Sanitize.esc(s); }
+
 function normalizeString(value) {
   return (value || "").toString().toLowerCase();
 }
@@ -169,13 +171,13 @@ function renderJobs(jobs) {
 
   const cardsHtml = jobs
     .map((job) => {
-      const title = job.title || "Untitled";
-      const company = job.organization_name || "";
-      const location = job.location || "";
-      const jobType = job.job_type || "";
-      const salary = job.salary_range || "";
-      const createdAt = job.created_at || "";
-      const addedBy = job.added_by || "";
+      const title = esc(job.title || "Untitled");
+      const company = esc(job.organization_name || "");
+      const location = esc(job.location || "");
+      const jobType = esc(job.job_type || "");
+      const salary = esc(job.salary_range || "");
+      const createdAt = esc(job.created_at || "");
+      const addedBy = esc(job.added_by || "");
       const workMode = inferWorkMode(job);
       const workBadge = workModeBadgeHtml(workMode);
 
@@ -215,7 +217,7 @@ function renderJobs(jobs) {
         ? `<span class="flex items-center gap-1 text-gray-500 dark:text-gray-500"><i class="fa-solid fa-calendar" aria-hidden="true"></i> Posted ${createdAt}</span>`
         : "";
       const addedBySpan = addedBy
-        ? `<span class="flex items-center gap-1"><i class="fa-solid fa-user" aria-hidden="true"></i> Added by <a href="https://github.com/${addedBy}" target="_blank" rel="noopener noreferrer" class="font-medium text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">@${addedBy}</a></span>`
+        ? `<span class="flex items-center gap-1"><i class="fa-solid fa-user" aria-hidden="true"></i> Added by <a href="https://github.com/${encodeURIComponent(job.added_by)}" target="_blank" rel="noopener noreferrer" class="font-medium text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">@${addedBy}</a></span>`
         : "";
 
       const expiryBadge = expired
@@ -230,7 +232,7 @@ function renderJobs(jobs) {
              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
              </svg>
-             ${expiryText}
+             ${esc(expiryText)}
            </span>`
         : "";
 
