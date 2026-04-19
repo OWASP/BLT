@@ -1,8 +1,8 @@
 {
   "participantCount": 203,
-  "totalPRs": 2655,
-  "mergedPRs": 1648,
-  "totalIssues": 833,
+  "totalPRs": 2659,
+  "mergedPRs": 1653,
+  "totalIssues": 834,
   "repositories": 54,
   "topContributors": [
     {
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "Fix: update first-time-contributors workflow",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6209",
+      "username": "Jayant2908",
+      "avatar": "https://avatars.githubusercontent.com/u/200989760?v=4",
+      "state": "closed",
+      "created_at": "2026-04-19T05:38:21Z",
+      "merged_at": "2026-04-19T05:54:03Z",
+      "repository": "OWASP-BLT/BLT"
+    },
     {
       "title": "fix(video): preserve Room ID input field on call failure",
       "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/79",
@@ -112,16 +122,6 @@
       "avatar": "https://avatars.githubusercontent.com/u/168626374?v=4",
       "state": "closed",
       "created_at": "2026-04-17T12:52:28Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "docs: remove deprecated android_128x128.png per #6167",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6205",
-      "username": "Chaimaekit",
-      "avatar": "https://avatars.githubusercontent.com/u/96260441?v=4",
-      "state": "closed",
-      "created_at": "2026-04-17T10:14:22Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT"
     }
