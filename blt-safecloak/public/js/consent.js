@@ -29,7 +29,7 @@ const ConsentManager = (() => {
   async function record(event) {
     const ts = Date.now();
     const entry = {
-      id: ts.toString() + Math.random().toString(36).slice(2, 7),
+      id: ts.toString() + Crypto.randomId(5),
       type: event.type || "recorded", // 'given' | 'withdrawn' | 'recorded'
       name: event.name || "Unnamed event",
       details: event.details || "",
