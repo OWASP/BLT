@@ -1,8 +1,8 @@
 {
-  "updated_at": "2026-04-07T20:48:25.697965Z",
-  "commit_sha": "e833ea0be4770b50fd6c7990084bbae5bcaaa416",
-  "total_bugs": 19,
-  "open_bugs": 5,
+  "updated_at": "2026-04-07T21:21:47.910741Z",
+  "commit_sha": "20a402691ecdd71ee582b864922b58bda0352d6a",
+  "total_bugs": 20,
+  "open_bugs": 6,
   "closed_bugs": 14,
   "total_domains": 5,
   "total_orgs": 0,
@@ -24,7 +24,7 @@
     {
       "rank": 3,
       "login": "Aditya-debugs141",
-      "count": 1,
+      "count": 2,
       "avatar_url": "https://avatars.githubusercontent.com/u/189038846?v=4",
       "profile_url": "https://github.com/Aditya-debugs141"
     },
@@ -186,13 +186,13 @@
     },
     {
       "rank": 2,
-      "domain": "www.owasp.community",
+      "domain": "owasp.org",
       "count": 3
     },
     {
       "rank": 3,
-      "domain": "owasp.org",
-      "count": 2
+      "domain": "www.owasp.community",
+      "count": 3
     },
     {
       "rank": 4,
@@ -207,6 +207,33 @@
   ],
   "recent_bugs": [
     {
+      "number": 105,
+      "title": "[BUG] The code button is not working",
+      "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/105",
+      "created_at": "2026-04-07T21:21:29Z",
+      "comment_count": 1,
+      "user": {
+        "login": "Aditya-debugs141",
+        "avatar_url": "https://avatars.githubusercontent.com/u/189038846?v=4",
+        "profile_url": "https://github.com/Aditya-debugs141"
+      },
+      "image_url": "https://github.com/user-attachments/assets/30dd7c03-da32-4710-aec5-9fd6a0dc4ce0",
+      "domain": "owasp.org",
+      "reactions": {
+        "eyes": 1
+      },
+      "latest_comment": {
+        "body": "👋 Thanks for opening this issue, @Aditya-debugs141!\n\nOur team will review it shortly. In the meantime:\n- If you'd like to work on this issue, comment `/assign` to get assigned.\n- Visit [OWASP BLT-Pool](https://pool.owaspblt.org) for more information about our bug bounty platform.\n",
+        "created_at": "2026-04-07T21:21:35Z",
+        "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/105#issuecomment-4202278194",
+        "user": {
+          "login": "owasp-blt[bot]",
+          "avatar_url": "https://avatars.githubusercontent.com/in/1159228?v=4",
+          "profile_url": "https://github.com/apps/owasp-blt"
+        }
+      }
+    },
+    {
       "number": 104,
       "title": "[BUG]  The  documentation button is  not working",
       "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/104",
@@ -220,6 +247,7 @@
       "image_url": "https://github.com/user-attachments/assets/32af42cc-106c-413d-8296-6cf27ddc21b3",
       "domain": "owasp.org",
       "reactions": {
+        "rocket": 1,
         "eyes": 1
       },
       "latest_comment": {
@@ -253,33 +281,6 @@
         "body": "@Manahil-Afzal This issue is not yet ready for assignment. A maintainer (such as @donnieblt) must first review it and add the \"help wanted\" label before `/assign` can be used.",
         "created_at": "2026-03-27T08:46:30Z",
         "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/95#issuecomment-4141065327",
-        "user": {
-          "login": "owasp-blt[bot]",
-          "avatar_url": "https://avatars.githubusercontent.com/in/1159228?v=4",
-          "profile_url": "https://github.com/apps/owasp-blt"
-        }
-      }
-    },
-    {
-      "number": 81,
-      "title": "[BUG] whole div \"Chapters\", should be clickable and remove test data",
-      "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/81",
-      "created_at": "2026-03-08T23:31:51Z",
-      "comment_count": 7,
-      "user": {
-        "login": "DonnieBLT",
-        "avatar_url": "https://avatars.githubusercontent.com/u/128622481?v=4",
-        "profile_url": "https://github.com/DonnieBLT"
-      },
-      "image_url": "https://github.com/user-attachments/assets/90330d80-7329-4058-941a-4b50b831d9cf",
-      "domain": "www.owasp.community",
-      "reactions": {
-        "eyes": 1
-      },
-      "latest_comment": {
-        "body": "@tiggachris This issue already has the maximum number of assignees (1). Please work on a different issue.",
-        "created_at": "2026-03-11T06:13:06Z",
-        "html_url": "https://github.com/OWASP-BLT/BLT-Pages/issues/81#issuecomment-4036768843",
         "user": {
           "login": "owasp-blt[bot]",
           "avatar_url": "https://avatars.githubusercontent.com/in/1159228?v=4",

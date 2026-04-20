@@ -1,0 +1,705 @@
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="OWASP BLT – Community Leadership Elections. Nominate and vote for project Leads and Co-Leads."
+    />
+    <title>Leaders – OWASP BLT</title>
+    <link rel="icon" type="image/png" href="/static/logo.png" />
+    <script>
+      (function () {
+        try {
+          var s = localStorage.getItem("blt-theme");
+          if (
+            s === "dark" ||
+            (!s && window.matchMedia("(prefers-color-scheme: dark)").matches)
+          )
+            document.documentElement.classList.add("dark");
+        } catch (e) {}
+      })();
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#E10101",
+              "primary-hover": "#B91C1C",
+              "neutral-border": "#E5E5E5",
+              "dark-base": "#111827",
+              "dark-surface": "#1F2937",
+              "active-bg": "#feeae9",
+            },
+            fontFamily: {
+              sans: [
+                "Manrope",
+                "ManropeFallback",
+                "ui-sans-serif",
+                "system-ui",
+                "sans-serif",
+              ],
+            },
+            boxShadow: { soft: "0 14px 40px -28px rgba(17,24,39,0.35)" },
+          },
+        },
+      };
+    </script>
+    <style>
+      .fa-icon {
+        display: inline-block;
+        height: 1em;
+        width: auto;
+        aspect-ratio: 1;
+        vertical-align: -0.125em;
+        fill: currentColor;
+        overflow: visible;
+      }
+      :root {
+        --blt-primary: #e10101;
+        --blt-border: #e5e5e5;
+        --blt-surface: #ffffff;
+        --blt-background: #f8fafc;
+      }
+      .dark {
+        --blt-primary: #ef4444;
+        --blt-border: #374151;
+        --blt-surface: #1f2937;
+        --blt-background: #111827;
+      }
+      body {
+        background: var(--blt-background);
+        transition: background-color 0.3s ease;
+      }
+      .surface-card {
+        background: var(--blt-surface);
+        border: 1px solid var(--blt-border);
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+        transition: all 0.3s ease;
+      }
+      .hero-glow {
+        background:
+          radial-gradient(
+            circle at 18% 8%,
+            rgba(225, 1, 1, 0.14),
+            transparent 40%
+          ),
+          radial-gradient(
+            circle at 78% 0%,
+            rgba(225, 1, 1, 0.1),
+            transparent 28%
+          ),
+          linear-gradient(to bottom, #ffffff 0%, #f8fafc 70%);
+      }
+      .dark .hero-glow {
+        background:
+          radial-gradient(
+            circle at 18% 8%,
+            rgba(239, 68, 68, 0.12),
+            transparent 40%
+          ),
+          radial-gradient(
+            circle at 78% 0%,
+            rgba(239, 68, 68, 0.08),
+            transparent 28%
+          ),
+          linear-gradient(to bottom, #1f2937 0%, #111827 70%);
+      }
+      @font-face {
+        font-family: "Manrope";
+        font-style: normal;
+        font-weight: 400;
+        font-display: swap;
+        src: url("/static/fonts/manrope-latin-400-normal.woff2") format("woff2");
+      }
+      @font-face {
+        font-family: "Manrope";
+        font-style: normal;
+        font-weight: 700;
+        font-display: swap;
+        src: url("/static/fonts/manrope-latin-700-normal.woff2") format("woff2");
+      }
+      @font-face {
+        font-family: "ManropeFallback";
+        src: local("ui-sans-serif"), local("system-ui"), local("Arial");
+        ascent-override: 93%;
+        descent-override: 23%;
+        line-gap-override: 0%;
+        size-adjust: 100%;
+      }
+      .line-clamp-3 {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+  <body
+    class="font-sans text-gray-900 antialiased dark:bg-dark-base dark:text-gray-100"
+  >
+    <!-- SVG sprite (shared icons) -->
+    <svg xmlns="http://www.w3.org/2000/svg" class="hidden" aria-hidden="true">
+      <symbol id="fa-bug" viewBox="0 0 576 512">
+        <path
+          fill="currentColor"
+          d="M192 96c0-53 43-96 96-96s96 43 96 96l0 3.6c0 15.7-12.7 28.4-28.4 28.4l-135.1 0c-15.7 0-28.4-12.7-28.4-28.4l0-3.6zm345.6 12.8c10.6 14.1 7.7 34.2-6.4 44.8l-97.8 73.3c5.3 8.9 9.3 18.7 11.8 29.1l98.8 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-96 0 0 32c0 2.6-.1 5.3-.2 7.9l83.4 62.5c14.1 10.6 17 30.7 6.4 44.8s-30.7 17-44.8 6.4l-63.1-47.3c-23.2 44.2-66.5 76.2-117.7 83.9L312 280c0-13.3-10.7-24-24-24s-24 10.7-24 24l0 230.2c-51.2-7.7-94.5-39.7-117.7-83.9L83.2 473.6c-14.1 10.6-34.2 7.7-44.8-6.4s-7.7-34.2 6.4-44.8l83.4-62.5c-.1-2.6-.2-5.2-.2-7.9l0-32-96 0c-17.7 0-32-14.3-32-32s14.3-32 32-32l98.8 0c2.5-10.4 6.5-20.2 11.8-29.1L44.8 153.6c-14.1-10.6-17-30.7-6.4-44.8s30.7-17 44.8-6.4L192 184c12.3-5.1 25.8-8 40-8l112 0c14.2 0 27.7 2.8 40 8l108.8-81.6c14.1-10.6 34.2-7.7 44.8 6.4z"
+        />
+      </symbol>
+      <symbol id="fa-moon" viewBox="0 0 512 512">
+        <path
+          fill="currentColor"
+          d="M256 0C114.6 0 0 114.6 0 256S114.6 512 256 512c68.8 0 131.3-27.2 177.3-71.4 7.3-7 9.4-17.9 5.3-27.1s-13.7-14.9-23.8-14.1c-4.9 .4-9.8 .6-14.8 .6-101.6 0-184-82.4-184-184 0-72.1 41.5-134.6 102.1-164.8 9.1-4.5 14.3-14.3 13.1-24.4S322.6 8.5 312.7 6.3C294.4 2.2 275.4 0 256 0z"
+        />
+      </symbol>
+      <symbol id="fa-sun" viewBox="0 0 576 512">
+        <path
+          fill="currentColor"
+          d="M288-32c8.4 0 16.3 4.4 20.6 11.7L364.1 72.3 468.9 46c8.2-2 16.9 .4 22.8 6.3S500 67 498 75.1l-26.3 104.7 92.7 55.5c7.2 4.3 11.7 12.2 11.7 20.6s-4.4 16.3-11.7 20.6L471.7 332.1 498 436.8c2 8.2-.4 16.9-6.3 22.8S477 468 468.9 466l-104.7-26.3-55.5 92.7c-4.3 7.2-12.2 11.7-20.6 11.7s-16.3-4.4-20.6-11.7L211.9 439.7 107.2 466c-8.2 2-16.8-.4-22.8-6.3S76 445 78 436.8l26.2-104.7-92.6-55.5C4.4 272.2 0 264.4 0 256s4.4-16.3 11.7-20.6L104.3 179.9 78 75.1c-2-8.2 .3-16.8 6.3-22.8S99 44 107.2 46l104.7 26.2 55.5-92.6 1.8-2.6c4.5-5.7 11.4-9.1 18.8-9.1zm0 144a144 144 0 1 0 0 288 144 144 0 1 0 0-288zm0 240a96 96 0 1 1 0-192 96 96 0 1 1 0 192z"
+        />
+      </symbol>
+      <symbol id="fa-bars" viewBox="0 0 448 512">
+        <path
+          fill="currentColor"
+          d="M0 96C0 78.3 14.3 64 32 64l384 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 128C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32l384 0c17.7 0 32 14.3 32 32s-14.3 32-32 32L32 288c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32L32 448c-17.7 0-32-14.3-32-32s14.3-32 32-32l384 0c17.7 0 32 14.3 32 32z"
+        />
+      </symbol>
+      <symbol id="fa-github" viewBox="0 0 512 512">
+        <path
+          fill="currentColor"
+          d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3 .3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5 .3-6.2 2.3zm44.2-1.7c-2.9 .7-4.9 2.6-4.6 4.9 .3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM252.8 8c-138.7 0-244.8 105.3-244.8 244 0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1 100-33.2 167.8-128.1 167.8-239 0-138.7-112.5-244-251.2-244zM105.2 352.9c-1.3 1-1 3.3 .7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3 .3 2.9 2.3 3.9 1.6 1 3.6 .7 4.3-.7 .7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3 .7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3 .7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"
+        />
+      </symbol>
+      <symbol id="fa-trophy" viewBox="0 0 512 512">
+        <path
+          fill="currentColor"
+          d="M144.3 0l224 0c26.5 0 48.1 21.8 47.1 48.2-.2 5.3-.4 10.6-.7 15.8l49.6 0c26.1 0 49.1 21.6 47.1 49.8-7.5 103.7-60.5 160.7-118 190.5-15.8 8.2-31.9 14.3-47.2 18.8-20.2 28.6-41.2 43.7-57.9 51.8l0 73.1 64 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-192 0c-17.7 0-32-14.3-32-32s14.3-32 32-32l64 0 0-73.1c-16-7.7-35.9-22-55.3-48.3-18.4-4.8-38.4-12.1-57.9-23.1-54.1-30.3-102.9-87.4-109.9-189.9-1.9-28.1 21-49.7 47.1-49.7l49.6 0c-.3-5.2-.5-10.4-.7-15.8-1-26.5 20.6-48.2 47.1-48.2zM101.5 112l-52.4 0c6.2 84.7 45.1 127.1 85.2 149.6-14.4-37.3-26.3-86-32.8-149.6zM380 256.8c40.5-23.8 77.1-66.1 83.3-144.8L411 112c-6.2 60.9-17.4 108.2-31 144.8z"
+        />
+      </symbol>
+      <symbol id="fa-circle-dot" viewBox="0 0 512 512">
+        <path
+          fill="currentColor"
+          d="M256 512a256 256 0 1 0 0-512 256 256 0 1 0 0 512zm0-352a96 96 0 1 1 0 192 96 96 0 1 1 0-192z"
+        />
+      </symbol>
+      <symbol id="fa-code-branch" viewBox="0 0 448 512">
+        <path
+          fill="currentColor"
+          d="M80 104a24 24 0 1 0 0-48 24 24 0 1 0 0 48zm80-24c0 32.8-19.7 61-48 73.3l0 70.7 176 0c26.5 0 48-21.5 48-48l0-22.7c-28.3-12.3-48-40.5-48-73.3 0-44.2 35.8-80 80-80s80 35.8 80 80c0 32.8-19.7 61-48 73.3l0 22.7c0 61.9-50.1 112-112 112l-176 0 0 70.7c28.3 12.3 48 40.5 48 73.3 0 44.2-35.8 80-80 80S0 476.2 0 432c0-32.8 19.7-61 48-73.3l0-205.3C19.7 141 0 112.8 0 80 0 35.8 35.8 0 80 0s80 35.8 80 80zm232 0a24 24 0 1 0 -48 0 24 24 0 1 0 48 0zM80 456a24 24 0 1 0 0-48 24 24 0 1 0 0 48z"
+        />
+      </symbol>
+      <symbol id="fa-arrow-right" viewBox="0 0 512 512">
+        <path
+          fill="currentColor"
+          d="M502.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L402.7 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l370.7 0-105.4 105.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"
+        />
+      </symbol>
+      <symbol id="fa-plus" viewBox="0 0 448 512">
+        <path
+          fill="currentColor"
+          d="M256 64c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 160-160 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l160 0 0 160c0 17.7 14.3 32 32 32s32-14.3 32-32l0-160 160 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-160 0 0-160z"
+        />
+      </symbol>
+      <symbol id="fa-check" viewBox="0 0 448 512">
+        <path
+          fill="currentColor"
+          d="M434.8 70.1c14.3 10.4 17.5 30.4 7.1 44.7l-256 352c-5.5 7.6-14 12.3-23.4 13.1s-18.5-2.7-25.1-9.3l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l101.5 101.5 234-321.7c10.4-14.3 30.4-17.5 44.7-7.1z"
+        />
+      </symbol>
+      <symbol id="fa-circle-info" viewBox="0 0 512 512">
+        <path
+          fill="currentColor"
+          d="M256 512a256 256 0 1 0 0-512 256 256 0 1 0 0 512zM224 160a32 32 0 1 1 64 0 32 32 0 1 1 -64 0zm-8 64l48 0c13.3 0 24 10.7 24 24l0 88 8 0c13.3 0 24 10.7 24 24s-10.7 24-24 24l-80 0c-13.3 0-24-10.7-24-24s10.7-24 24-24l24 0 0-64-24 0c-13.3 0-24-10.7-24-24s10.7-24 24-24z"
+        />
+      </symbol>
+      <symbol id="fa-x-mark" viewBox="0 0 384 512">
+        <path
+          fill="currentColor"
+          d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"
+        />
+      </symbol>
+      <symbol id="fa-shield-halved" viewBox="0 0 512 512">
+        <path
+          fill="currentColor"
+          d="M256 0c4.6 0 9.2 1 13.4 2.9L457.8 82.8c22 9.3 38.4 31 38.3 57.2-.5 99.2-41.3 280.7-213.6 363.2-16.7 8-36.1 8-52.8 0-172.4-82.5-213.1-264-213.6-363.2-.1-26.2 16.3-47.9 38.3-57.2L242.7 2.9C246.9 1 251.4 0 256 0zm0 66.8l0 378.1c138-66.8 175.1-214.8 176-303.4l-176-74.6 0 0z"
+        />
+      </symbol>
+    </svg>
+
+    <!-- Header -->
+    <header
+      class="sticky top-0 z-50 border-b border-neutral-border bg-white/95 backdrop-blur dark:border-gray-700 dark:bg-dark-surface/95"
+    >
+      <div
+        class="mx-auto flex h-16 max-w-7xl items-center justify-between gap-2 px-4 sm:px-6 lg:px-8"
+      >
+        <a
+          href="/"
+          class="flex min-w-0 shrink-0 items-center gap-3"
+          aria-label="OWASP BLT home"
+        >
+          <img
+            src="./static/logo.png"
+            alt="BLT logo"
+            class="h-8 w-8 shrink-0 rounded-md object-contain"
+            style="background-color: transparent"
+            onerror="
+              this.classList.add('hidden');
+              this.nextElementSibling.classList.remove('hidden');
+            "
+          />
+          <span
+            class="hidden h-9 w-9 shrink-0 items-center justify-center rounded-md bg-primary text-sm font-extrabold text-white"
+            >B</span
+          >
+          <div class="min-w-0">
+            <p
+              class="whitespace-nowrap text-sm font-extrabold leading-none dark:text-gray-100"
+            >
+              OWASP BLT
+            </p>
+            <p
+              class="hidden whitespace-nowrap text-xs font-semibold text-gray-500 dark:text-gray-400 xl:block"
+            >
+              OWASP Bug Logging Tool
+            </p>
+          </div>
+        </a>
+
+        <div
+          class="hidden min-w-0 flex-1 items-center justify-end gap-4 lg:flex xl:gap-6"
+        >
+          <nav
+            class="flex shrink-0 items-center gap-4 xl:gap-6"
+            aria-label="Main navigation"
+          >
+            <a
+              href="index.html#features"
+              class="whitespace-nowrap text-sm font-semibold dark:text-gray-200 hover:text-primary transition-colors"
+              >Features</a
+            >
+            <a
+              href="leaderboard.html"
+              class="whitespace-nowrap text-sm font-semibold dark:text-gray-200 hover:text-primary transition-colors"
+              >Leaderboard</a
+            >
+            <a
+              href="leaders.html"
+              class="whitespace-nowrap text-sm font-semibold text-primary underline underline-offset-4"
+              >Leaders</a
+            >
+            <a
+              href="https://github.com/OWASP-BLT/BLT-Pages"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center whitespace-nowrap text-sm font-semibold dark:text-gray-200 hover:text-primary transition-colors"
+            >
+              <svg class="fa-icon mr-1" aria-hidden="true">
+                <use href="#fa-github"></use></svg
+              >GitHub
+            </a>
+          </nav>
+
+          <a
+            href="https://github.com/OWASP-BLT/BLT-Pages/issues/new?template=bug_report.yml"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex shrink-0 items-center whitespace-nowrap rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white transition hover:bg-red-700 dark:bg-red-600 dark:hover:bg-red-700 xl:px-4"
+          >
+            <svg class="fa-icon mr-2" aria-hidden="true">
+              <use href="#fa-bug"></use></svg
+            >Report Bug
+          </a>
+
+          <!-- divider -->
+          <div
+            class="h-6 w-px bg-neutral-border dark:bg-gray-700 shrink-0"
+          ></div>
+
+          <!-- Auth chip -->
+          <div class="flex items-center gap-2 shrink-0">
+            <button
+              id="gh-login-btn"
+              class="inline-flex items-center gap-2 rounded-md border border-neutral-border px-3 py-2 text-sm font-semibold text-gray-700 dark:border-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors whitespace-nowrap"
+            >
+              <svg class="fa-icon" aria-hidden="true">
+                <use href="#fa-github"></use></svg
+              >Sign in
+            </button>
+            <div id="gh-user-chip" class="hidden items-center gap-2">
+              <img
+                id="gh-user-avatar"
+                src=""
+                alt="Your avatar"
+                class="w-7 h-7 rounded-full border border-neutral-border dark:border-gray-700 shrink-0"
+              />
+              <span
+                id="gh-user-login"
+                class="text-sm font-semibold text-gray-800 dark:text-gray-200 whitespace-nowrap"
+              ></span>
+              <button
+                id="gh-logout-btn"
+                class="text-xs text-gray-400 hover:text-primary transition-colors whitespace-nowrap"
+              >
+                Sign out
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex shrink-0 items-center gap-2">
+          <button
+            id="dark-toggle"
+            class="inline-flex h-10 w-10 items-center justify-center rounded-md border border-neutral-border text-gray-700 transition hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+            aria-label="Toggle dark mode"
+            type="button"
+          >
+            <svg class="fa-icon dark:hidden" aria-hidden="true">
+              <use href="#fa-moon"></use>
+            </svg>
+            <svg class="fa-icon hidden dark:inline-block" aria-hidden="true">
+              <use href="#fa-sun"></use>
+            </svg>
+          </button>
+          <button
+            id="mobile-menu-toggle"
+            class="inline-flex h-10 w-10 items-center justify-center rounded-md border border-neutral-border text-gray-700 transition hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 lg:hidden"
+            aria-label="Open navigation menu"
+            aria-expanded="false"
+            type="button"
+          >
+            <svg class="fa-icon" aria-hidden="true">
+              <use href="#fa-bars"></use>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div
+        id="mobile-menu"
+        class="hidden border-t border-neutral-border bg-white px-4 py-4 dark:border-gray-700 dark:bg-dark-surface lg:hidden"
+      >
+        <nav class="space-y-3" aria-label="Mobile navigation">
+          <a
+            href="index.html"
+            class="block text-sm font-semibold dark:text-gray-200"
+            >Home</a
+          >
+          <a
+            href="leaderboard.html"
+            class="block text-sm font-semibold dark:text-gray-200"
+            >Leaderboard</a
+          >
+          <a
+            href="leaders.html"
+            class="block text-sm font-semibold text-primary"
+            >Leaders</a
+          >
+          <a
+            href="https://github.com/OWASP-BLT/BLT-Pages"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="block text-sm font-semibold dark:text-gray-200"
+            >GitHub</a
+          >
+          <button
+            id="gh-login-btn-mobile"
+            class="inline-flex items-center gap-2 rounded-md border border-neutral-border px-3 py-2 text-sm font-semibold text-gray-700 dark:border-gray-600 dark:text-gray-300"
+          >
+            <svg class="fa-icon" aria-hidden="true">
+              <use href="#fa-github"></use></svg
+            >Sign in with GitHub
+          </button>
+        </nav>
+      </div>
+    </header>
+
+    <!-- Hero -->
+    <div
+      class="pointer-events-none fixed inset-x-0 top-0 -z-10 h-[400px] hero-glow"
+    ></div>
+    <section class="pb-8 pt-12 sm:pt-14">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <span
+          class="mb-4 inline-flex items-center rounded-full border border-red-200 bg-active-bg px-3 py-1 text-xs font-semibold text-primary dark:border-red-900 dark:bg-red-950/30 dark:text-red-400"
+        >
+          <svg class="fa-icon mr-2" aria-hidden="true">
+            <use href="#fa-shield-halved"></use>
+          </svg>
+          Community Governance · GitHub-Verified
+        </span>
+        <h1
+          class="max-w-3xl text-4xl font-extrabold leading-tight tracking-tight text-gray-900 sm:text-5xl dark:text-gray-100"
+        >
+          BLT
+          <span class="text-primary dark:text-red-400">Leadership</span>
+          Elections
+        </h1>
+        <p
+          class="mt-4 max-w-2xl text-base leading-relaxed text-gray-600 sm:text-lg dark:text-gray-300"
+        >
+          Nominate contributors and vote for project Leads and Co-Leads.
+          Elections are GitHub-verified, transparent, and community-driven.
+        </p>
+        <div
+          class="mt-6 flex flex-wrap gap-4 text-sm text-gray-500 dark:text-gray-400"
+        >
+          <span class="inline-flex items-center gap-1.5"
+            ><svg class="fa-icon text-primary" aria-hidden="true">
+              <use href="#fa-check"></use></svg
+            >Self-nominations welcome</span
+          >
+          <span class="inline-flex items-center gap-1.5"
+            ><svg class="fa-icon text-primary" aria-hidden="true">
+              <use href="#fa-check"></use></svg
+            >One vote per GitHub account per role</span
+          >
+          <span class="inline-flex items-center gap-1.5"
+            ><svg class="fa-icon text-primary" aria-hidden="true">
+              <use href="#fa-check"></use></svg
+            >Nominations auditable via GitHub Issues</span
+          >
+        </div>
+      </div>
+    </section>
+
+    <!-- Tabs -->
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="border-b border-neutral-border dark:border-gray-700">
+        <nav class="flex gap-0 -mb-px" aria-label="Leaders tabs">
+          <button
+            data-tab="elections"
+            class="border-b-2 border-primary text-primary px-5 py-3 text-sm font-semibold transition-colors whitespace-nowrap"
+          >
+            <svg class="fa-icon mr-1.5" aria-hidden="true">
+              <use href="#fa-circle-dot"></use></svg
+            >Elections
+          </button>
+          <button
+            data-tab="projects"
+            class="border-b-2 border-transparent text-gray-500 dark:text-gray-400 px-5 py-3 text-sm font-semibold transition-colors whitespace-nowrap hover:text-gray-700 dark:hover:text-gray-200"
+          >
+            <svg class="fa-icon mr-1.5" aria-hidden="true">
+              <use href="#fa-code-branch"></use></svg
+            >Projects
+          </button>
+          <button
+            data-tab="winners"
+            class="border-b-2 border-transparent text-gray-500 dark:text-gray-400 px-5 py-3 text-sm font-semibold transition-colors whitespace-nowrap hover:text-gray-700 dark:hover:text-gray-200"
+          >
+            <svg class="fa-icon mr-1.5" aria-hidden="true">
+              <use href="#fa-trophy"></use></svg
+            >Past Winners
+          </button>
+        </nav>
+      </div>
+    </div>
+
+    <!-- Main content -->
+    <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <!-- Elections panel -->
+      <div data-panel="elections">
+        <div class="mb-6 flex items-center justify-between gap-3 flex-wrap">
+          <p class="text-sm text-gray-500 dark:text-gray-400">
+            Active and upcoming elections across all BLT projects.
+          </p>
+          <button
+            id="add-election-btn"
+            class="hidden inline-flex items-center gap-2 rounded-lg border border-primary px-3 py-2 text-sm font-semibold text-primary hover:bg-primary hover:text-white transition-colors"
+          >
+            <svg class="fa-icon" aria-hidden="true">
+              <use href="#fa-plus"></use>
+            </svg>
+            Request Election
+          </button>
+        </div>
+        <div
+          id="elections-list"
+          class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
+        >
+          <div class="col-span-full text-center py-12 text-gray-400">
+            Loading elections…
+          </div>
+        </div>
+      </div>
+
+      <!-- Projects panel -->
+      <div data-panel="projects" class="hidden">
+        <div class="mb-6 flex items-center justify-between gap-3 flex-wrap">
+          <div>
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+              All BLT projects eligible for community leadership. GSoC-tagged
+              repos are excluded.
+            </p>
+            <p
+              id="projects-count"
+              class="text-xs text-gray-400 dark:text-gray-500 mt-1"
+            >
+              Loading…
+            </p>
+          </div>
+        </div>
+        <div
+          id="projects-list"
+          class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
+        >
+          <div class="col-span-full text-center py-12 text-gray-400">
+            Loading projects…
+          </div>
+        </div>
+      </div>
+
+      <!-- Past Winners panel -->
+      <div data-panel="winners" class="hidden">
+        <div class="mb-6">
+          <p class="text-sm text-gray-500 dark:text-gray-400">
+            Finalized elections and elected community leaders.
+          </p>
+        </div>
+        <div id="winners-list" class="grid gap-5 sm:grid-cols-2">
+          <div class="col-span-full text-center py-12 text-gray-400">
+            Loading past winners…
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Election Detail Modal -->
+    <div
+      id="election-modal"
+      class="hidden fixed inset-0 z-[100] items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+    >
+      <div
+        class="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-white dark:bg-dark-surface rounded-2xl shadow-2xl"
+      >
+        <button
+          id="election-modal-close"
+          aria-label="Close"
+          class="absolute top-4 right-4 inline-flex h-8 w-8 items-center justify-center rounded-full text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors z-10"
+        >
+          <svg class="fa-icon" aria-hidden="true">
+            <use href="#fa-x-mark"></use>
+          </svg>
+        </button>
+        <div id="election-modal-body" class="p-6"></div>
+      </div>
+    </div>
+
+    <!-- Nomination Form Modal -->
+    <div
+      id="nomination-modal"
+      class="hidden fixed inset-0 z-[110] items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+    >
+      <div
+        class="relative w-full max-w-lg max-h-[90vh] overflow-y-auto bg-white dark:bg-dark-surface rounded-2xl shadow-2xl"
+      >
+        <button
+          id="nomination-modal-close"
+          aria-label="Close"
+          class="absolute top-4 right-4 inline-flex h-8 w-8 items-center justify-center rounded-full text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors z-10"
+        >
+          <svg class="fa-icon" aria-hidden="true">
+            <use href="#fa-x-mark"></use>
+          </svg>
+        </button>
+        <div id="nomination-modal-body" class="p-6"></div>
+      </div>
+    </div>
+
+    <!-- How it works -->
+    <section
+      class="bg-white dark:bg-dark-surface border-t border-neutral-border dark:border-gray-700 py-12 mt-8"
+    >
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <h2 class="text-2xl font-extrabold text-gray-900 dark:text-white mb-8">
+          How elections work
+        </h2>
+        <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div class="flex flex-col gap-2">
+            <div
+              class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-active-bg text-primary dark:bg-red-950/30 dark:text-red-400 text-lg font-extrabold"
+            >
+              1
+            </div>
+            <h3 class="font-bold text-gray-900 dark:text-white text-sm">
+              Sign in with GitHub
+            </h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+              Your GitHub identity verifies your vote and nomination. One
+              account, one vote per role.
+            </p>
+          </div>
+          <div class="flex flex-col gap-2">
+            <div
+              class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-active-bg text-primary dark:bg-red-950/30 dark:text-red-400 text-lg font-extrabold"
+            >
+              2
+            </div>
+            <h3 class="font-bold text-gray-900 dark:text-white text-sm">
+              Nominate during the window
+            </h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+              Nominate yourself or another contributor. Nominations are
+              submitted as GitHub Issues for full transparency.
+            </p>
+          </div>
+          <div class="flex flex-col gap-2">
+            <div
+              class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-active-bg text-primary dark:bg-red-950/30 dark:text-red-400 text-lg font-extrabold"
+            >
+              3
+            </div>
+            <h3 class="font-bold text-gray-900 dark:text-white text-sm">
+              Community votes
+            </h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+              Once nominations close, voting opens. Sign in and cast your vote
+              directly on this page — one vote per role, per GitHub account.
+            </p>
+          </div>
+          <div class="flex flex-col gap-2">
+            <div
+              class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-active-bg text-primary dark:bg-red-950/30 dark:text-red-400 text-lg font-extrabold"
+            >
+              4
+            </div>
+            <h3 class="font-bold text-gray-900 dark:text-white text-sm">
+              Admin finalizes results
+            </h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+              Donnie (super admin) reviews, removes fraudulent votes, and
+              announces the elected Lead and Co-Lead.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer
+      class="border-t border-neutral-border bg-white py-10 dark:border-gray-700 dark:bg-dark-surface"
+    >
+      <div
+        class="mx-auto max-w-7xl px-4 text-center text-sm text-gray-500 dark:text-gray-400"
+      >
+        <p>
+          &copy; <span id="footer-year"></span> OWASP Foundation and BLT
+          Contributors. Elections are community-governed and GitHub-verified.
+        </p>
+      </div>
+    </footer>
+
+    <script src="js/config.js"></script>
+    <script src="js/leaders.js"></script>
+  </body>
+</html>
