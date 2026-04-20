@@ -1,6 +1,6 @@
 {
   "participantCount": 203,
-  "totalPRs": 2671,
+  "totalPRs": 2673,
   "mergedPRs": 1658,
   "totalIssues": 839,
   "repositories": 54,
@@ -18,13 +18,33 @@
       "mergedCount": 57
     },
     {
-      "username": "Pritz395",
-      "avatar": "https://avatars.githubusercontent.com/u/146115505?v=4",
-      "url": "https://github.com/Pritz395",
+      "username": "Jayant2908",
+      "avatar": "https://avatars.githubusercontent.com/u/200989760?v=4",
+      "url": "https://github.com/Jayant2908",
       "mergedCount": 39
     }
   ],
   "recentPRs": [
+    {
+      "title": "feat(theme): implement manual dark theme across the app",
+      "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/103",
+      "username": "Rudrawhy",
+      "avatar": "https://avatars.githubusercontent.com/u/154898503?v=4",
+      "state": "open",
+      "created_at": "2026-04-20T20:05:23Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-SafeCloak"
+    },
+    {
+      "title": "Feat/leaders page",
+      "url": "https://github.com/OWASP-BLT/BLT-Pages/pull/106",
+      "username": "sidd190",
+      "avatar": "https://avatars.githubusercontent.com/u/73955358?v=4",
+      "state": "open",
+      "created_at": "2026-04-20T19:34:13Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-Pages"
+    },
     {
       "title": "feat(lobby): add individual mute button for participants",
       "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/102",
@@ -104,26 +124,6 @@
       "created_at": "2026-04-19T14:53:46Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "Fix/xss injection prevention",
-      "url": "https://github.com/OWASP-BLT/BLT-Jobs/pull/78",
-      "username": "sidd190",
-      "avatar": "https://avatars.githubusercontent.com/u/73955358?v=4",
-      "state": "closed",
-      "created_at": "2026-04-19T14:03:18Z",
-      "merged_at": "2026-04-19T15:40:03Z",
-      "repository": "OWASP-BLT/BLT-Jobs"
-    },
-    {
-      "title": "refactor: simplify room id copy event handling",
-      "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/90",
-      "username": "Rudrawhy",
-      "avatar": "https://avatars.githubusercontent.com/u/154898503?v=4",
-      "state": "closed",
-      "created_at": "2026-04-19T13:41:47Z",
-      "merged_at": "2026-04-19T20:47:57Z",
-      "repository": "OWASP-BLT/BLT-SafeCloak"
     }
   ]
 }
