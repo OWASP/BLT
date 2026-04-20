@@ -1,6 +1,6 @@
 {
   "participantCount": 203,
-  "totalPRs": 2669,
+  "totalPRs": 2670,
   "mergedPRs": 1658,
   "totalIssues": 839,
   "repositories": 54,
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "feat(video): add deafen control with mic auto-mute and remote audio only playback mute",
+      "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/101",
+      "username": "Rudrawhy",
+      "avatar": "https://avatars.githubusercontent.com/u/154898503?v=4",
+      "state": "open",
+      "created_at": "2026-04-20T18:19:03Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-SafeCloak"
+    },
     {
       "title": "fix: toggle screen share button to stop sharing on second click",
       "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/98",
@@ -113,16 +123,6 @@
       "state": "open",
       "created_at": "2026-04-19T10:14:52Z",
       "merged_at": null,
-      "repository": "OWASP-BLT/BLT-SafeCloak"
-    },
-    {
-      "title": "fix(video): Overhaul voice changer DSP algorithms and resolve initialization bugs",
-      "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/88",
-      "username": "ojaswa072",
-      "avatar": "https://avatars.githubusercontent.com/u/230836303?v=4",
-      "state": "closed",
-      "created_at": "2026-04-19T08:06:29Z",
-      "merged_at": "2026-04-19T19:31:01Z",
       "repository": "OWASP-BLT/BLT-SafeCloak"
     }
   ]
