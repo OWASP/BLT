@@ -1069,12 +1069,13 @@ const VideoChat = (() => {
       muteBtn.style.cssText = "width:32px;height:32px;font-size:0.75rem";
       muteBtn.title = isMuted ? `Unmute ${getDisplayLabel(peerId)}` : `Mute ${getDisplayLabel(peerId)}`;
       muteBtn.setAttribute("aria-label", muteBtn.title);
+      muteBtn.setAttribute("aria-pressed", String(isMuted));
       muteBtn.innerHTML = isMuted ? '<i class="fa-solid fa-microphone-slash" aria-hidden="true"></i>' : '<i class="fa-solid fa-microphone" aria-hidden="true"></i>';
       muteBtn.addEventListener("click", () => {
-        if (typeof window.toggleParticipantMute === 'function') {
+        if (typeof window.toggleParticipantMute === "function") {
           window.toggleParticipantMute(peerId);
         } else {
-          VideoChat.togglePeerAudioMute(peerId);
+          togglePeerAudioMute(peerId);
         }
       });
 
@@ -2296,3 +2297,9 @@ const VideoChat = (() => {
     togglePeerAudioMute,
   };
 })();
+
+window.toggleParticipantMute = (peerId) => {
+  if (typeof VideoChat !== "undefined" && VideoChat.togglePeerAudioMute) {
+    VideoChat.togglePeerAudioMute(peerId);
+  }
+};
