@@ -11,6 +11,7 @@
   /* Background Colors */
   --blt-bg-primary: #f8fafc;
   --blt-bg-secondary: #ffffff;
+  --blt-bg-secondary-translucent: rgba(255, 255, 255, 0.95);
   --blt-bg-surface: #ffffff;
   --blt-bg-hover: #fff5f5;
   --blt-bg-active: #feeae9;
@@ -45,6 +46,7 @@ html.dark {
   /* Background Colors */
   --blt-bg-primary: #0f172a;
   --blt-bg-secondary: #1f2937;
+  --blt-bg-secondary-translucent: rgba(31, 41, 55, 0.86);
   --blt-bg-surface: #1f2937;
   --blt-bg-hover: #2d3748;
   --blt-bg-active: #3d2419;
@@ -813,8 +815,12 @@ html.dark .control-btn.active {
    DARK MODE UTILITY OVERRIDES
    ============================================ */
 
-html.dark :is(.bg-white, .bg-white\/95) {
+html.dark :is(.bg-white) {
   background-color: var(--blt-bg-secondary) !important;
+}
+
+html.dark .bg-white\/95 {
+  background-color: var(--blt-bg-secondary-translucent) !important;
 }
 
 html.dark .bg-gray-50 {

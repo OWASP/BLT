@@ -7,13 +7,32 @@ const ThemeManager = (() => {
   const STORAGE_KEY = 'blt-theme-preference';
   const DARK_CLASS = 'dark';
 
+  function readStoredTheme() {
+    try {
+      return localStorage.getItem(STORAGE_KEY);
+    } catch (error) {
+      return null;
+    }
+  }
+
+  function storeTheme(theme) {
+    try {
+      localStorage.setItem(STORAGE_KEY, theme);
+    } catch (error) {
+      // Ignore storage-unavailable errors.
+    }
+  }
+
   /**
    * Initialize theme from localStorage or default to light
    */
   function init() {
-    const savedTheme = localStorage.getItem(STORAGE_KEY);
-    const theme = savedTheme || 'light'; // Default to light on first visit
-    applyTheme(theme);
+    const savedTheme = readStoredTheme();
+    if (savedTheme === 'dark') {
+      document.documentElement.classList.add(DARK_CLASS);
+    }
+
+    updateToggleButton(getCurrentTheme());
   }
 
   /**
@@ -27,7 +46,7 @@ const ThemeManager = (() => {
     } else {
       html.classList.remove(DARK_CLASS);
     }
-    localStorage.setItem(STORAGE_KEY, theme);
+    storeTheme(theme);
   }
 
   /**
