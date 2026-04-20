@@ -2091,6 +2091,13 @@ const VideoChat = (() => {
   }
 
   function stopScreenShare() {
+    // Always reset UI and state regardless of localStream
+    $("btn-screen") && $("btn-screen").classList.remove("active");
+    screenSharing = false;
+    updateLocalTilePresentation();
+    broadcastProfile(true);
+    showToast("Screen sharing stopped", "info");
+
     if (!localStream) return;
     const videoTrack = localStream.getVideoTracks()[0];
     if (videoTrack && activeCalls.size > 0) {
@@ -2117,12 +2124,16 @@ const VideoChat = (() => {
     if (localVideo) {
       localVideo.srcObject = localStream;
     }
-    $("btn-screen") && $("btn-screen").classList.remove("active");
-    screenSharing = false;
-    updateLocalTilePresentation();
-    broadcastProfile(true);
-    showToast("Screen sharing stopped", "info");
   }
+
+  /* Toggle screen share on/off */
+  function toggleScreenShare() {
+  if (screenSharing) {
+    stopScreenShare();
+  } else {
+    shareScreen();
+  }
+}
 
   function readInitialMediaPreferencesFromUrl() {
     const params = new URLSearchParams(window.location.search);
@@ -2253,6 +2264,7 @@ const VideoChat = (() => {
     toggleMonitor,
     shareScreen,
     stopScreenShare,
+    toggleScreenShare,
     copyRoomId,
     copyRoomLink,
     state,
