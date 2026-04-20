@@ -1,6 +1,6 @@
 {
   "participantCount": 203,
-  "totalPRs": 2670,
+  "totalPRs": 2671,
   "mergedPRs": 1658,
   "totalIssues": 839,
   "repositories": 54,
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "feat(lobby): add individual mute button for participants",
+      "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/102",
+      "username": "ojaswa072",
+      "avatar": "https://avatars.githubusercontent.com/u/230836303?v=4",
+      "state": "open",
+      "created_at": "2026-04-20T18:47:42Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-SafeCloak"
+    },
     {
       "title": "feat(video): add deafen control with mic auto-mute and remote audio only playback mute",
       "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/101",
@@ -113,16 +123,6 @@
       "state": "closed",
       "created_at": "2026-04-19T13:41:47Z",
       "merged_at": "2026-04-19T20:47:57Z",
-      "repository": "OWASP-BLT/BLT-SafeCloak"
-    },
-    {
-      "title": "fix(consent): Use Crypto.randomId() for consent entry IDs",
-      "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/89",
-      "username": "azizrebhi",
-      "avatar": "https://avatars.githubusercontent.com/u/154744962?v=4",
-      "state": "open",
-      "created_at": "2026-04-19T10:14:52Z",
-      "merged_at": null,
       "repository": "OWASP-BLT/BLT-SafeCloak"
     }
   ]
