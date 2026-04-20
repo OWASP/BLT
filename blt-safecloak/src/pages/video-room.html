@@ -45,6 +45,7 @@
       referrerpolicy="no-referrer"
     />
     <link rel="stylesheet" href="css/main.css" />
+    <script defer src="js/theme.js"></script>
   </head>
   <body class="font-sans antialiased">
     <div class="pointer-events-none fixed inset-x-0 top-0 -z-10 h-full hero-glow"></div>
@@ -69,11 +70,23 @@
           </div>
         </a>
 
-        <div
-          class="inline-flex items-center gap-2 rounded-full border border-neutral-border bg-white px-3 py-1.5 text-xs shadow-sm sm:text-sm"
-        >
-          <span class="status-dot connecting" id="status-dot" aria-label="Connection status"></span>
-          <span id="connection-status" class="text-muted">Initializing...</span>
+        <div class="inline-flex items-center gap-2">
+          <button
+            class="rounded-md border border-neutral-border p-2 text-gray-700 transition hover:bg-[#feeae9] hover:text-primary"
+            id="theme-toggle-btn"
+            aria-label="Switch to dark mode"
+            type="button"
+            title="Toggle theme"
+          >
+            <i class="fa-solid fa-moon" aria-hidden="true"></i>
+          </button>
+
+          <div
+            class="inline-flex items-center gap-2 rounded-full border border-neutral-border bg-white px-3 py-1.5 text-xs shadow-sm sm:text-sm"
+          >
+            <span class="status-dot connecting" id="status-dot" aria-label="Connection status"></span>
+            <span id="connection-status" class="text-muted">Initializing...</span>
+          </div>
         </div>
       </header>
 
