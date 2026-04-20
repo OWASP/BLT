@@ -1,8 +1,8 @@
 {
   "participantCount": 203,
-  "totalPRs": 2668,
+  "totalPRs": 2669,
   "mergedPRs": 1658,
-  "totalIssues": 837,
+  "totalIssues": 838,
   "repositories": 54,
   "topContributors": [
     {
@@ -18,13 +18,23 @@
       "mergedCount": 57
     },
     {
-      "username": "Pritz395",
-      "avatar": "https://avatars.githubusercontent.com/u/146115505?v=4",
-      "url": "https://github.com/Pritz395",
+      "username": "Jayant2908",
+      "avatar": "https://avatars.githubusercontent.com/u/200989760?v=4",
+      "url": "https://github.com/Jayant2908",
       "mergedCount": 39
     }
   ],
   "recentPRs": [
+    {
+      "title": "fix: toggle screen share button to stop sharing on second click",
+      "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/98",
+      "username": "Chaimaekit",
+      "avatar": "https://avatars.githubusercontent.com/u/96260441?v=4",
+      "state": "open",
+      "created_at": "2026-04-20T12:32:05Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-SafeCloak"
+    },
     {
       "title": "add peer reconnection with exponential backoff on disconnect",
       "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/97",
@@ -114,16 +124,6 @@
       "created_at": "2026-04-19T08:06:29Z",
       "merged_at": "2026-04-19T19:31:01Z",
       "repository": "OWASP-BLT/BLT-SafeCloak"
-    },
-    {
-      "title": "Fix: update first-time-contributors workflow",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6209",
-      "username": "Jayant2908",
-      "avatar": "https://avatars.githubusercontent.com/u/200989760?v=4",
-      "state": "closed",
-      "created_at": "2026-04-19T05:38:21Z",
-      "merged_at": "2026-04-19T05:54:03Z",
-      "repository": "OWASP-BLT/BLT"
     }
   ]
 }
