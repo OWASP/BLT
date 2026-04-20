@@ -788,4 +788,10 @@
   });
 
   window.addEventListener("beforeunload", stopPreviewStream);
+
+  window.toggleParticipantMute = function(peerId) {
+    if (typeof VideoChat !== "undefined" && VideoChat.togglePeerAudioMute) {
+      VideoChat.togglePeerAudioMute(peerId);
+    }
+  };
 })();

@@ -30,6 +30,7 @@ const VideoChat = (() => {
 
   const peerProfiles = new Map(); // peerId -> { name, initials, micMuted, camOff, handRaised }
   const remoteSpeakingMonitors = new Map(); // peerId -> { analyser, data, source, activeUntil }
+  const mutedPeers = new Set(); // peerId -> locally muted audio
   let speakingLoopFrame = null;
   let speakingAudioContext = null;
   let localSpeakingUntil = 0;
@@ -290,6 +291,7 @@ const VideoChat = (() => {
     const videoEl = document.createElement("video");
     videoEl.autoplay = true;
     videoEl.playsInline = true;
+    videoEl.muted = mutedPeers.has(peerId);
     videoEl.setAttribute("aria-label", `Participant ${profile.name} video`);
     videoWrapper.appendChild(videoEl);
 
@@ -1061,6 +1063,21 @@ const VideoChat = (() => {
       textWrap.appendChild(idLabel);
       nameSpan.appendChild(textWrap);
 
+      const muteBtn = document.createElement("button");
+      const isMuted = mutedPeers.has(peerId);
+      muteBtn.className = "control-btn participant-mute-btn";
+      muteBtn.style.cssText = "width:32px;height:32px;font-size:0.75rem";
+      muteBtn.title = isMuted ? `Unmute ${getDisplayLabel(peerId)}` : `Mute ${getDisplayLabel(peerId)}`;
+      muteBtn.setAttribute("aria-label", muteBtn.title);
+      muteBtn.innerHTML = isMuted ? '<i class="fa-solid fa-microphone-slash" aria-hidden="true"></i>' : '<i class="fa-solid fa-microphone" aria-hidden="true"></i>';
+      muteBtn.addEventListener("click", () => {
+        if (typeof window.toggleParticipantMute === 'function') {
+          window.toggleParticipantMute(peerId);
+        } else {
+          VideoChat.togglePeerAudioMute(peerId);
+        }
+      });
+
       const disconnectBtn = document.createElement("button");
       disconnectBtn.className = "control-btn";
       disconnectBtn.style.cssText = "width:32px;height:32px;font-size:0.75rem";
@@ -1069,8 +1086,13 @@ const VideoChat = (() => {
       disconnectBtn.innerHTML = '<i class="fa-solid fa-phone-slash" aria-hidden="true"></i>';
       disconnectBtn.addEventListener("click", () => VideoChat.disconnectPeer(peerId));
 
+      const actionsSpan = document.createElement("span");
+      actionsSpan.className = "flex items-center gap-1.5";
+      actionsSpan.appendChild(muteBtn);
+      actionsSpan.appendChild(disconnectBtn);
+
       item.appendChild(nameSpan);
-      item.appendChild(disconnectBtn);
+      item.appendChild(actionsSpan);
       listEl.appendChild(item);
     });
   }
@@ -1516,6 +1538,21 @@ const VideoChat = (() => {
     if (call) {
       call.close();
     }
+  }
+
+  function togglePeerAudioMute(peerId) {
+    if (mutedPeers.has(peerId)) {
+      mutedPeers.delete(peerId);
+    } else {
+      mutedPeers.add(peerId);
+    }
+    
+    const tile = getTileElements(peerId);
+    if (tile && tile.video) {
+        tile.video.muted = mutedPeers.has(peerId);
+    }
+    
+    updateParticipantsList();
   }
 
   async function endCall(options = {}) {
@@ -2256,5 +2293,6 @@ const VideoChat = (() => {
     copyRoomId,
     copyRoomLink,
     state,
+    togglePeerAudioMute,
   };
 })();
