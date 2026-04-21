@@ -23,14 +23,17 @@ const VideoChat = (() => {
   const VOICE_PREFS_STORAGE_KEY = "blt-safecloak-voice-preferences";
   const DISPLAY_NAME_STORAGE_KEY = "blt-safecloak-display-name";
   const ROOM_ID_STORAGE_KEY = "blt-safecloak-room-id";
+  const CHAT_HISTORY_STORAGE_KEY_PREFIX = "blt-safecloak-chat-";
   const PROFILE_BROADCAST_THROTTLE_MS = 220;
   const SPEAKING_THRESHOLD = 28;
   const SPEAKING_HOLD_MS = 260;
   const MAX_CHAT_MESSAGE_LENGTH = 500;
+  const MAX_CHAT_HISTORY_MESSAGES = 200;
 
   const peerProfiles = new Map(); // peerId -> { name, initials, micMuted, camOff }
   const remoteSpeakingMonitors = new Map(); // peerId -> { analyser, data, source, activeUntil }
   const seenChatMessageIds = new Set();
+  let chatHistory = []; // in-memory log; persisted to localStorage on every append
   let speakingLoopFrame = null;
   let speakingAudioContext = null;
   let localSpeakingUntil = 0;
@@ -561,6 +564,61 @@ const VideoChat = (() => {
     return conn;
   }
 
+  /* ── Chat history persistence (localStorage, AES-GCM encrypted) ── */
+
+  /** Return the room ID used as the localStorage key suffix and encryption passphrase. */
+  function getChatRoomId() {
+    // After peer.on("open") fires both host and joiner have ?room=<roomId> in the URL.
+    return getInviteRoomIdFromUrl() || normalizeRoomId(state.peerId);
+  }
+
+  /** Persist the in-memory chatHistory to localStorage (fire-and-forget). */
+  function saveChatHistory() {
+    const roomId = getChatRoomId();
+    if (!roomId) return;
+    const storageKey = CHAT_HISTORY_STORAGE_KEY_PREFIX + roomId;
+    // Trim to the most-recent MAX_CHAT_HISTORY_MESSAGES entries before saving.
+    const toSave =
+      chatHistory.length > MAX_CHAT_HISTORY_MESSAGES
+        ? chatHistory.slice(-MAX_CHAT_HISTORY_MESSAGES)
+        : chatHistory.slice();
+    Crypto.saveEncrypted(storageKey, toSave, roomId).catch(() => {
+      /* ignore storage failures */
+    });
+  }
+
+  /** Load chat history for the current room from localStorage and render any entries. */
+  async function loadAndRenderChatHistory() {
+    const roomId = getChatRoomId();
+    if (!roomId) return;
+    const storageKey = CHAT_HISTORY_STORAGE_KEY_PREFIX + roomId;
+    let stored = null;
+    try {
+      stored = await Crypto.loadEncrypted(storageKey, roomId);
+    } catch {
+      /* ignore decryption failures — treat as empty history */
+    }
+    if (!Array.isArray(stored) || stored.length === 0) return;
+    stored.forEach((entry) => {
+      if (!entry || typeof entry.text !== "string") return;
+      const id = typeof entry.id === "string" ? entry.id : "";
+      if (id && seenChatMessageIds.has(id)) return;
+      if (id) seenChatMessageIds.add(id);
+      const text = normalizeChatMessageText(entry.text);
+      if (!text) return;
+      const isLocal = entry.from === state.peerId;
+      const sender = isLocal ? "You" : normalizeDisplayName(entry.name) || entry.from || "Peer";
+      chatHistory.push({ ...entry, text });
+      appendChatMessage({
+        sender,
+        text,
+        isLocal,
+        timestamp: entry.timestamp || Date.now(),
+        historyEntry: true,
+      });
+    });
+  }
+
   function normalizeChatMessageText(value) {
     return typeof value === "string" ? value.trim().slice(0, MAX_CHAT_MESSAGE_LENGTH) : "";
   }
@@ -601,13 +659,18 @@ const VideoChat = (() => {
     return row;
   }
 
-  function appendChatMessage({ sender, text, isLocal, timestamp }) {
+  function appendChatMessage({ sender, text, isLocal, timestamp, historyEntry }) {
     const list = $("chat-messages");
     if (!list) return;
     const emptyState = $("chat-empty-state");
     if (emptyState) emptyState.remove();
     list.appendChild(createChatMessageElement({ sender, text, isLocal, timestamp }));
     list.scrollTop = list.scrollHeight;
+    // Persist to localStorage (skip when called from loadAndRenderChatHistory to avoid
+    // re-saving entries that were already loaded from storage).
+    if (!historyEntry) {
+      saveChatHistory();
+    }
   }
 
   function handleIncomingChatMessage(payload, connPeerId) {
@@ -621,16 +684,22 @@ const VideoChat = (() => {
     const fromPeerId = payload && typeof payload.from === "string" ? payload.from.trim() : "";
     if (fromPeerId && fromPeerId !== connPeerId) return;
 
+    const ts =
+      payload && typeof payload.timestamp === "number" && Number.isFinite(payload.timestamp)
+        ? payload.timestamp
+        : Date.now();
     const senderName = normalizeDisplayName(payload && payload.name) || getDisplayLabel(connPeerId);
-    appendChatMessage({
-      sender: senderName,
+
+    // Persist to in-memory history before rendering.
+    chatHistory.push({
+      id: payloadId || undefined,
+      from: fromPeerId || connPeerId,
+      name: senderName,
       text,
-      isLocal: false,
-      timestamp:
-        payload && typeof payload.timestamp === "number" && Number.isFinite(payload.timestamp)
-          ? payload.timestamp
-          : Date.now(),
+      timestamp: ts,
     });
+
+    appendChatMessage({ sender: senderName, text, isLocal: false, timestamp: ts });
   }
 
   function sendChatMessage(rawText) {
@@ -646,6 +715,15 @@ const VideoChat = (() => {
       timestamp: Date.now(),
     };
     seenChatMessageIds.add(payload.id);
+
+    // Persist to in-memory history before rendering.
+    chatHistory.push({
+      id: payload.id,
+      from: payload.from,
+      name: payload.name,
+      text,
+      timestamp: payload.timestamp,
+    });
 
     appendChatMessage({
       sender: "You",
@@ -981,6 +1059,12 @@ const VideoChat = (() => {
       setStatusIcon("online");
       updateLocalTilePresentation();
       showToast("Connected to signaling server", "success");
+
+      // Load stored chat history for this room now that the room ID is known.
+      void loadAndRenderChatHistory().catch(() => {
+        /* ignore history load failures */
+      });
+
       const inviteRoomId = inviteAutoJoinRoomId || getInviteRoomIdFromUrl();
       // Skip auto-join when this tab is the host for the room ID in the URL.
       if (!inviteRoomId || inviteRoomId === id) {

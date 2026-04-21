@@ -1220,9 +1220,41 @@ def test_video_js_supports_group_chat_data_messages():
     """video.js should expose sendChatMessage and process incoming chat payloads."""
     js = (ROOT / "public/js/video.js").read_text(encoding="utf-8")
     assert "function sendChatMessage(rawText)" in js
-    assert "if (data && data.type === \"chat\")" in js
+    assert 'if (data && data.type === "chat")' in js
     assert "handleIncomingChatMessage(data, conn.peer);" in js
     assert "sendChatMessage," in js
+
+
+def test_video_js_chat_history_persistence_constants():
+    """video.js must declare the chat-history storage key prefix and max-messages cap."""
+    js = (ROOT / "public/js/video.js").read_text(encoding="utf-8")
+    assert 'CHAT_HISTORY_STORAGE_KEY_PREFIX = "blt-safecloak-chat-"' in js
+    assert "MAX_CHAT_HISTORY_MESSAGES" in js
+
+
+def test_video_js_chat_history_save_and_load_functions():
+    """video.js must implement saveChatHistory and loadAndRenderChatHistory."""
+    js = (ROOT / "public/js/video.js").read_text(encoding="utf-8")
+    assert "function saveChatHistory()" in js
+    assert "async function loadAndRenderChatHistory()" in js
+    # Persistence relies on the existing Crypto helpers.
+    assert "Crypto.saveEncrypted" in js
+    assert "Crypto.loadEncrypted" in js
+
+
+def test_video_js_chat_history_loaded_on_peer_open():
+    """loadAndRenderChatHistory should be called inside the peer.on('open') handler."""
+    js = (ROOT / "public/js/video.js").read_text(encoding="utf-8")
+    assert "loadAndRenderChatHistory()" in js
+
+
+def test_video_js_chat_history_messages_pushed_to_array():
+    """Both incoming and outgoing messages must be pushed into chatHistory."""
+    js = (ROOT / "public/js/video.js").read_text(encoding="utf-8")
+    # chatHistory array declared at module level
+    assert "chatHistory = []" in js
+    # push calls inside the message handlers
+    assert "chatHistory.push(" in js
 
 
 def test_video_chat_includes_prejoin_voice_controller_ui():
