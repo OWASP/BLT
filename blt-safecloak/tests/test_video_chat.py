@@ -1259,6 +1259,43 @@ def test_video_js_chat_history_messages_pushed_to_array():
     assert "chatHistory.push(" in js
 
 
+def test_video_js_chat_history_clear_function_exists():
+    """video.js must expose clearChatHistory() that removes the localStorage entry and resets state."""
+    js = (ROOT / "public/js/video.js").read_text(encoding="utf-8")
+    assert "function clearChatHistory()" in js
+    assert "localStorage.removeItem(" in js
+
+
+def test_video_js_chat_history_cleared_on_end_call():
+    """clearChatHistory must be called during endCall() so the local copy is wiped on hangup."""
+    js = (ROOT / "public/js/video.js").read_text(encoding="utf-8")
+    # The call must appear inside the endCall function body — we verify both exist together.
+    assert "async function endCall(" in js
+    assert "clearChatHistory();" in js
+
+
+def test_video_js_chat_history_p2p_sync_send():
+    """video.js must implement sendChatHistoryTo() and call it when a data connection opens."""
+    js = (ROOT / "public/js/video.js").read_text(encoding="utf-8")
+    assert "function sendChatHistoryTo(remotePeerId)" in js
+    # Must be wired into the conn.on("open") handler inside setupDataConn.
+    assert "sendChatHistoryTo(conn.peer)" in js
+
+
+def test_video_js_chat_history_p2p_sync_receive():
+    """video.js must implement handleIncomingChatHistory() and process chat-history data messages."""
+    js = (ROOT / "public/js/video.js").read_text(encoding="utf-8")
+    assert "function handleIncomingChatHistory(" in js
+    assert 'data.type === "chat-history"' in js
+    assert "handleIncomingChatHistory(data.messages)" in js
+
+
+def test_video_js_chat_history_rerender_function():
+    """video.js must expose rerenderChatMessages() used to rebuild the chat panel after a merge."""
+    js = (ROOT / "public/js/video.js").read_text(encoding="utf-8")
+    assert "function rerenderChatMessages()" in js
+
+
 def test_video_chat_includes_prejoin_voice_controller_ui():
     """Video chat lobby should include a pre-join voice controller and VoiceChanger script."""
     html = (ROOT / "src/pages/video-chat.html").read_text(encoding="utf-8")

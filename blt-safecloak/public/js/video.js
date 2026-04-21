@@ -701,6 +701,115 @@ const VideoChat = (() => {
     });
   }
 
+  /**
+   * Remove the encrypted chat history for the current room from localStorage and reset all
+   * in-memory chat state. Called on local hangup and when the last remote peer leaves.
+   */
+  function clearChatHistory() {
+    const roomId = getChatRoomId();
+    if (roomId) {
+      try {
+        localStorage.removeItem(CHAT_HISTORY_STORAGE_KEY_PREFIX + roomId);
+      } catch {
+        /* ignore storage failures */
+      }
+    }
+    chatHistory = [];
+    seenChatMessageIds.clear();
+  }
+
+  /**
+   * Rebuild the #chat-messages DOM list from the current in-memory chatHistory array
+   * (sorted by timestamp). Restores the empty-state placeholder when the array is empty.
+   */
+  function rerenderChatMessages() {
+    const list = $("chat-messages");
+    if (!list) return;
+    list.innerHTML = "";
+    if (chatHistory.length === 0) {
+      const empty = document.createElement("p");
+      empty.id = "chat-empty-state";
+      empty.className = "text-center text-sm text-gray-500";
+      empty.textContent = "No messages yet";
+      list.appendChild(empty);
+      return;
+    }
+    // Sort ascending by timestamp so history always renders chronologically.
+    const sorted = chatHistory.slice().sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+    sorted.forEach((entry) => {
+      const isLocal = entry.from === state.peerId;
+      const sender = isLocal ? "You" : normalizeDisplayName(entry.name) || entry.from || "Peer";
+      list.appendChild(
+        createChatMessageElement({
+          sender,
+          text: entry.text,
+          isLocal,
+          timestamp: entry.timestamp || Date.now(),
+        })
+      );
+    });
+    list.scrollTop = list.scrollHeight;
+  }
+
+  /**
+   * Merge a batch of history messages received from a peer into the local in-memory log.
+   * New (unseen) messages are added, then the list is re-sorted and the UI is refreshed.
+   */
+  function handleIncomingChatHistory(messages) {
+    if (!Array.isArray(messages) || messages.length === 0) return;
+    let added = 0;
+    messages.forEach((entry) => {
+      if (!entry || typeof entry.text !== "string") return;
+      const payloadId = typeof entry.id === "string" ? entry.id.trim() : "";
+      if (payloadId && seenChatMessageIds.has(payloadId)) return;
+      const text = normalizeChatMessageText(entry.text);
+      if (!text) return;
+      const fromPeerId = typeof entry.from === "string" ? entry.from.trim() : "";
+      const ts =
+        typeof entry.timestamp === "number" && Number.isFinite(entry.timestamp)
+          ? entry.timestamp
+          : Date.now();
+      const senderName = normalizeDisplayName(entry.name) || getDisplayLabel(fromPeerId) || "Peer";
+      if (payloadId) seenChatMessageIds.add(payloadId);
+      chatHistory.push({
+        id: payloadId || undefined,
+        from: fromPeerId,
+        name: senderName,
+        text,
+        timestamp: ts,
+      });
+      added++;
+    });
+    if (added > 0) {
+      // Sort the merged history and re-render so messages appear in chronological order.
+      chatHistory.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+      rerenderChatMessages();
+      saveChatHistory();
+    }
+  }
+
+  /**
+   * Send the current in-memory chat history to a specific peer over its open data channel.
+   * This is called when a new data connection opens so late joiners see existing messages.
+   */
+  function sendChatHistoryTo(remotePeerId) {
+    if (chatHistory.length === 0) return;
+    const conn = activeDataConns.get(remotePeerId);
+    if (!conn || !conn.open) return;
+    const payload = {
+      type: "chat-history",
+      messages:
+        chatHistory.length > MAX_CHAT_HISTORY_MESSAGES
+          ? chatHistory.slice(-MAX_CHAT_HISTORY_MESSAGES)
+          : chatHistory.slice(),
+    };
+    try {
+      conn.send(payload);
+    } catch {
+      /* ignore transient send failures */
+    }
+  }
+
   function normalizeChatMessageText(value) {
     return typeof value === "string" ? value.trim().slice(0, MAX_CHAT_MESSAGE_LENGTH) : "";
   }
@@ -1643,6 +1752,9 @@ const VideoChat = (() => {
             $("btn-screen") && $("btn-screen").classList.add("hidden");
             $("btn-end") && $("btn-end").classList.remove("hidden");
           }
+          // All participants have left — wipe the local chat copy.
+          // The next session will pull a fresh copy from peers.
+          clearChatHistory();
           showToast("Participant disconnected. Use End Call to return home.", "info");
         }
       } else {
@@ -1669,6 +1781,8 @@ const VideoChat = (() => {
 
     conn.on("open", () => {
       sendProfileTo(conn.peer, true);
+      // Share the current chat history so late joiners see all prior messages.
+      sendChatHistoryTo(conn.peer);
     });
 
     conn.on("data", (data) => {
@@ -1693,6 +1807,11 @@ const VideoChat = (() => {
 
       if (data && data.type === "chat") {
         handleIncomingChatMessage(data, conn.peer);
+        return;
+      }
+
+      if (data && data.type === "chat-history" && Array.isArray(data.messages)) {
+        handleIncomingChatHistory(data.messages);
         return;
       }
 
@@ -2114,6 +2233,8 @@ const VideoChat = (() => {
     }
     updateParticipantsList();
     showToast("Call ended", "info");
+    // Delete the local copy of chat history — on next join participants pull fresh from peers.
+    clearChatHistory();
     // Record consent end
     ConsentManager &&
       ConsentManager.record({
