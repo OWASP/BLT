@@ -850,6 +850,7 @@ const VideoChat = (() => {
     updateLocalTilePresentation();
     updateParticipantsList();
     broadcastProfile(true);
+    persistCurrentRoomState();
   }
 
   function updateWalkieCueBanner() {
@@ -1221,8 +1222,7 @@ const VideoChat = (() => {
     }
     const participantModeHint = $("participant-mode-hint");
     if (participantModeHint) {
-      participantModeHint.textContent =
-        participantTotal > MAX_VIDEO_PARTICIPANTS ? WALKIE_MODE_HINT : FULL_VIDEO_MODE_HINT;
+      participantModeHint.textContent = walkieTalkieMode ? WALKIE_MODE_HINT : FULL_VIDEO_MODE_HINT;
     }
     if (!listEl) return;
     listEl.innerHTML = "";
@@ -1501,6 +1501,7 @@ const VideoChat = (() => {
       }
 
       if (data && data.type === "floor") {
+        if (!walkieTalkieMode) return;
         const floorPeerId = typeof data.id === "string" ? data.id.trim() : "";
         if (!floorPeerId) return;
         if (floorPeerId !== conn.peer) return;
@@ -1789,6 +1790,7 @@ const VideoChat = (() => {
     syncControlButtons();
     updateLocalTilePresentation();
     broadcastProfile(true);
+    persistCurrentRoomState();
     showToast(micMuted ? "Microphone muted" : "Microphone unmuted", "info");
   }
 
@@ -1839,6 +1841,7 @@ const VideoChat = (() => {
     syncControlButtons();
     updateLocalTilePresentation();
     broadcastProfile(true);
+    persistCurrentRoomState();
     showToast(camOff ? "Camera disabled" : "Camera enabled", "info");
   }
 
@@ -2479,6 +2482,7 @@ const VideoChat = (() => {
     const walkieParam = params.get("walkie");
     const isPrejoin = params.get("prejoin") === "1";
     const hasUrlPrefs = mic !== null || cam !== null;
+    const hasUrlWalkie = walkieParam === "1";
 
     if (mic === "off" || mic === "on") {
       initialMediaPreferences.mic = mic === "on";
@@ -2486,17 +2490,18 @@ const VideoChat = (() => {
     if (cam === "off" || cam === "on") {
       initialMediaPreferences.cam = cam === "on";
     }
-    if (walkieParam === "1") {
+    if (hasUrlWalkie) {
       initialMediaPreferences.walkie = true;
     }
 
-    if (hasUrlPrefs) {
+    if (hasUrlPrefs || hasUrlWalkie) {
       try {
         window.sessionStorage.setItem(
           MEDIA_PREFS_STORAGE_KEY,
           JSON.stringify({
             mic: Boolean(initialMediaPreferences.mic),
             cam: Boolean(initialMediaPreferences.cam),
+            walkie: Boolean(initialMediaPreferences.walkie),
           })
         );
       } catch {
@@ -2514,6 +2519,9 @@ const VideoChat = (() => {
             if (typeof parsed.cam === "boolean") {
               initialMediaPreferences.cam = parsed.cam;
             }
+            if (typeof parsed.walkie === "boolean") {
+              initialMediaPreferences.walkie = parsed.walkie;
+            }
           }
         }
       } catch {
@@ -2530,6 +2538,21 @@ const VideoChat = (() => {
       const query = params.toString();
       const cleanUrl = window.location.pathname + (query ? "?" + query : "");
       window.history.replaceState({}, "", cleanUrl);
+    }
+  }
+
+  function persistCurrentRoomState() {
+    try {
+      window.sessionStorage.setItem(
+        MEDIA_PREFS_STORAGE_KEY,
+        JSON.stringify({
+          mic: !micMuted,
+          cam: !camOff,
+          walkie: walkieTalkieMode,
+        })
+      );
+    } catch {
+      /* ignore storage failures */
     }
   }
 
@@ -2564,23 +2587,39 @@ const VideoChat = (() => {
     checkInitialPermissions();
     const pushToTalkBtn = $("btn-push-to-talk");
     if (pushToTalkBtn) {
-      pushToTalkBtn.addEventListener("mousedown", () => {
+      const isPushToTalkKey = (event) =>
+        event.key === "Enter" || event.key === " " || event.key === "Spacebar";
+
+      const startPushToTalk = () => {
         void onPushToTalkStart();
-      });
-      pushToTalkBtn.addEventListener("mouseup", () => {
+      };
+
+      const endPushToTalk = () => {
         void onPushToTalkEnd();
-      });
-      pushToTalkBtn.addEventListener("mouseleave", () => {
-        void onPushToTalkEnd();
-      });
-      pushToTalkBtn.addEventListener("touchstart", (event) => {
+      };
+
+      pushToTalkBtn.addEventListener("pointerdown", (event) => {
         event.preventDefault();
-        void onPushToTalkStart();
+        startPushToTalk();
       });
-      pushToTalkBtn.addEventListener("touchend", (event) => {
+      pushToTalkBtn.addEventListener("pointerup", endPushToTalk);
+      pushToTalkBtn.addEventListener("pointercancel", endPushToTalk);
+      pushToTalkBtn.addEventListener("pointerleave", endPushToTalk);
+      pushToTalkBtn.addEventListener("keydown", (event) => {
+        if (!isPushToTalkKey(event) || event.repeat) {
+          return;
+        }
         event.preventDefault();
-        void onPushToTalkEnd();
+        startPushToTalk();
       });
+      pushToTalkBtn.addEventListener("keyup", (event) => {
+        if (!isPushToTalkKey(event)) {
+          return;
+        }
+        event.preventDefault();
+        endPushToTalk();
+      });
+      pushToTalkBtn.addEventListener("blur", endPushToTalk);
     }
     window.addEventListener("beforeunload", () => {
       // Inline synchronous teardown for unload – browsers don't wait for Promises

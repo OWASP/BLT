@@ -821,6 +821,11 @@
           input.value = "";
           input.focus();
         }
+        try {
+          window.localStorage.removeItem(DISPLAY_NAME_STORAGE_KEY);
+        } catch {
+          /* ignore storage failures */
+        }
         _updateSavedNameBadge("");
       });
     }
@@ -836,6 +841,9 @@
 
     try {
       await initPreviewStream();
+      if (walkieTalkieEnabled) {
+        await applyWalkieLobbyUi(true);
+      }
     } catch (e) {
       // Fallback if initPreviewVoiceEngine(), VoiceChanger.init(), or updatePreviewUI() fails
       // inside initPreviewStream(). We reset to a safe "null" state so the UI reflects a
