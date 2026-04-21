@@ -1,6 +1,6 @@
 {
   "participantCount": 203,
-  "totalPRs": 2676,
+  "totalPRs": 2677,
   "mergedPRs": 1661,
   "totalIssues": 842,
   "repositories": 54,
@@ -18,13 +18,23 @@
       "mergedCount": 57
     },
     {
-      "username": "Jayant2908",
-      "avatar": "https://avatars.githubusercontent.com/u/200989760?v=4",
-      "url": "https://github.com/Jayant2908",
+      "username": "Pritz395",
+      "avatar": "https://avatars.githubusercontent.com/u/146115505?v=4",
+      "url": "https://github.com/Pritz395",
       "mergedCount": 39
     }
   ],
   "recentPRs": [
+    {
+      "title": "Hybrid Walkie-Talkie Mode with Centralized State & Full Test Coverage",
+      "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/110",
+      "username": "ojaswa072",
+      "avatar": "https://avatars.githubusercontent.com/u/230836303?v=4",
+      "state": "open",
+      "created_at": "2026-04-21T12:35:15Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-SafeCloak"
+    },
     {
       "title": "feat(theme): implement manual dark theme across the app",
       "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/103",
@@ -114,16 +124,6 @@
       "created_at": "2026-04-19T17:05:57Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT-SafeCloak"
-    },
-    {
-      "title": "chore: delete unused ossh include files #6030",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6211",
-      "username": "giftidris4-spec",
-      "avatar": "https://avatars.githubusercontent.com/u/270459024?v=4",
-      "state": "closed",
-      "created_at": "2026-04-19T14:53:46Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT"
     }
   ]
 }
