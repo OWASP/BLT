@@ -16,11 +16,11 @@
     <script>
       (function () {
         try {
-          if (localStorage.getItem('blt-theme-preference') === 'dark') {
-            document.documentElement.classList.add('dark');
+          if (localStorage.getItem("blt-theme-preference") === "dark") {
+            document.documentElement.classList.add("dark");
           }
         } catch (error) {
-          console.warn('[ThemeBootstrap] Failed to read saved theme:', error);
+          console.warn("[ThemeBootstrap] Failed to read saved theme:", error);
         }
       })();
     </script>
@@ -96,7 +96,11 @@
           <div
             class="inline-flex items-center gap-2 rounded-full border border-neutral-border bg-white px-3 py-1.5 text-xs shadow-sm sm:text-sm"
           >
-            <span class="status-dot connecting" id="status-dot" aria-label="Connection status"></span>
+            <span
+              class="status-dot connecting"
+              id="status-dot"
+              aria-label="Connection status"
+            ></span>
             <span id="connection-status" class="text-muted">Initializing...</span>
           </div>
         </div>
@@ -109,6 +113,33 @@
             >Allow camera and microphone access when prompted. Your media stays peer-to-peer and is
             only shared with selected participants.</span
           >
+        </div>
+
+        <div
+          id="walkie-cue-banner"
+          class="hidden mb-4 rounded-2xl border shadow-sm"
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+        >
+          <div class="flex items-center gap-4 p-4">
+            <div
+              id="walkie-cue-icon-wrap"
+              class="flex h-12 w-12 flex-none items-center justify-center rounded-full bg-blue-100"
+            >
+              <i
+                id="walkie-cue-icon"
+                class="fa-solid fa-microphone-slash text-xl text-blue-600"
+                aria-hidden="true"
+              ></i>
+            </div>
+            <div class="min-w-0 flex-1">
+              <p id="walkie-cue-text" class="text-sm font-bold text-gray-800">Floor is free</p>
+              <p id="walkie-cue-sub" class="mt-0.5 text-xs text-gray-500">
+                Hold the Talk button to speak. Release when done.
+              </p>
+            </div>
+          </div>
         </div>
 
         <div
@@ -500,10 +531,10 @@
             <i class="fa-solid fa-hand" aria-hidden="true"></i>
           </button>
           <button
-            class="control-btn hidden rounded-full border border-neutral-border bg-white text-gray-700"
+            class="control-btn hidden rounded-full border-2 border-blue-600 bg-blue-600 text-white"
             id="btn-push-to-talk"
             title="Hold to talk"
-            aria-label="Push to talk"
+            aria-label="Push to talk — hold to speak, release to give the floor"
             aria-pressed="false"
           >
             <i class="fa-solid fa-bullhorn" aria-hidden="true"></i>

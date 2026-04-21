@@ -1207,6 +1207,8 @@ def test_video_chat_includes_prejoin_voice_controller_ui():
         'id="slider-preview-monitor-volume"',
         'id="slider-preview-mic-gain"',
         'id="toggle-walkie-talkie"',
+        'id="preview-video-section"',
+        'id="walkie-lobby-banner"',
         'src="js/voice-changer.js"',
     ]
     for snippet in required_snippets:
@@ -1258,3 +1260,36 @@ def test_video_lobby_js_includes_walkie_param_in_room_url():
     js = (ROOT / "public/js/video-lobby.js").read_text(encoding="utf-8")
     assert "walkieTalkieEnabled" in js
     assert 'target.searchParams.set("walkie", "1")' in js
+
+
+def test_video_room_includes_walkie_cue_banner():
+    """Video room should include the walkie-talkie cue banner for real-time floor status."""
+    html = (ROOT / "src/pages/video-room.html").read_text(encoding="utf-8")
+    required_snippets = [
+        'id="walkie-cue-banner"',
+        'id="walkie-cue-text"',
+        'id="walkie-cue-sub"',
+        'id="walkie-cue-icon"',
+    ]
+    for snippet in required_snippets:
+        assert snippet in html, f"Expected snippet missing in video-room.html: {snippet}"
+
+
+def test_video_js_includes_walkie_cue_banner_logic():
+    """video.js should include updateWalkieCueBanner and call it from floor events."""
+    js = (ROOT / "public/js/video.js").read_text(encoding="utf-8")
+    assert "function updateWalkieCueBanner()" in js
+    assert "updateWalkieCueBanner()" in js
+    # Video/camera UI hidden in walkie mode
+    assert '"video-grid"' in js
+    assert '"btn-cam"' in js
+    assert '"btn-screen"' in js
+
+
+def test_video_lobby_js_hides_video_ui_in_walkie_mode():
+    """video-lobby.js should hide camera preview and button when walkie-talkie mode is enabled."""
+    js = (ROOT / "public/js/video-lobby.js").read_text(encoding="utf-8")
+    assert "applyWalkieLobbyUi" in js
+    assert '"preview-video-section"' in js
+    assert '"walkie-lobby-banner"' in js
+    assert '"btn-preview-cam"' in js

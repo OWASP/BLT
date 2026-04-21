@@ -581,6 +581,44 @@
     showToast("Could not access camera/microphone preview", "warning");
   }
 
+  async function applyWalkieLobbyUi(enabled) {
+    const videoSection = $("preview-video-section");
+    const walkieBanner = $("walkie-lobby-banner");
+    const camBtn = $("btn-preview-cam");
+    const status = $("prejoin-status");
+
+    if (videoSection) videoSection.classList.toggle("hidden", enabled);
+    if (walkieBanner) walkieBanner.classList.toggle("hidden", !enabled);
+    if (camBtn) camBtn.classList.toggle("hidden", enabled);
+
+    if (enabled) {
+      // Stop camera tracks — walkie-talkie is audio-only.
+      if (previewStream) {
+        previewStream.getVideoTracks().forEach((t) => {
+          t.stop();
+          previewStream.removeTrack(t);
+        });
+      }
+      camEnabled = false;
+      if (status) status.textContent = "Walkie-talkie mode: microphone only.";
+    } else {
+      // Attempt to restore camera preview when leaving walkie mode.
+      if (previewStream && previewStream.getVideoTracks().length === 0) {
+        try {
+          const vs = await navigator.mediaDevices.getUserMedia({ video: true });
+          vs.getVideoTracks().forEach((t) => {
+            if (previewStream) previewStream.addTrack(t);
+          });
+          camEnabled = false;
+          setTrackEnabled("video", false);
+        } catch {
+          /* camera unavailable — continue without it */
+        }
+      }
+      updatePreviewUI();
+    }
+  }
+
   function buildRoomUrl(roomId = "") {
     const target = new URL(`${window.location.origin}/video-room`);
     if (roomId) {
@@ -760,9 +798,10 @@
 
     const walkieToggle = $("toggle-walkie-talkie");
     if (walkieToggle) {
-      walkieToggle.addEventListener("change", () => {
+      walkieToggle.addEventListener("change", async () => {
         walkieTalkieEnabled = walkieToggle.checked;
         walkieToggle.setAttribute("aria-checked", String(walkieTalkieEnabled));
+        await applyWalkieLobbyUi(walkieTalkieEnabled);
       });
     }
 

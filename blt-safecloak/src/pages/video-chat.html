@@ -16,11 +16,11 @@
     <script>
       (function () {
         try {
-          if (localStorage.getItem('blt-theme-preference') === 'dark') {
-            document.documentElement.classList.add('dark');
+          if (localStorage.getItem("blt-theme-preference") === "dark") {
+            document.documentElement.classList.add("dark");
           }
         } catch (error) {
-          console.warn('[ThemeBootstrap] Failed to read saved theme:', error);
+          console.warn("[ThemeBootstrap] Failed to read saved theme:", error);
         }
       })();
     </script>
@@ -178,24 +178,44 @@
                 to your next room entry.
               </p>
 
-              <div class="video-wrapper mt-3 rounded-xl border border-neutral-border bg-gray-900">
-                <video
-                  id="prejoin-video"
-                  autoplay
-                  muted
-                  playsinline
-                  aria-label="Local preview"
-                ></video>
+              <div id="preview-video-section">
+                <div class="video-wrapper mt-3 rounded-xl border border-neutral-border bg-gray-900">
+                  <video
+                    id="prejoin-video"
+                    autoplay
+                    muted
+                    playsinline
+                    aria-label="Local preview"
+                  ></video>
+                  <div
+                    id="prejoin-placeholder"
+                    class="absolute inset-0 flex items-center justify-center text-sm font-semibold text-gray-300"
+                  >
+                    Camera preview unavailable
+                  </div>
+                  <div class="video-label rounded-md bg-black/65 px-2 py-1 text-xs text-white">
+                    <span class="status-dot online" aria-hidden="true"></span>
+                    Local Preview
+                  </div>
+                </div>
+              </div>
+
+              <div
+                id="walkie-lobby-banner"
+                class="hidden mt-3 rounded-xl border-2 border-primary/30 bg-red-50 p-5 text-center"
+                aria-label="Walkie-talkie mode illustration"
+              >
                 <div
-                  id="prejoin-placeholder"
-                  class="absolute inset-0 flex items-center justify-center text-sm font-semibold text-gray-300"
+                  class="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10"
                 >
-                  Camera preview unavailable
+                  <i class="fa-solid fa-bullhorn text-2xl text-primary" aria-hidden="true"></i>
                 </div>
-                <div class="video-label rounded-md bg-black/65 px-2 py-1 text-xs text-white">
-                  <span class="status-dot online" aria-hidden="true"></span>
-                  Local Preview
-                </div>
+                <p class="text-sm font-bold text-gray-800">Walkie-Talkie Mode Active</p>
+                <p class="mt-1 text-xs leading-relaxed text-gray-500">
+                  Camera is disabled. In the room,
+                  <strong class="text-gray-700">hold the Talk button to speak</strong> and release
+                  to give the floor back. Only one person can talk at a time.
+                </p>
               </div>
 
               <div class="mt-3 flex items-center gap-2">

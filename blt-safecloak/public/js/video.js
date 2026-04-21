@@ -241,6 +241,7 @@ const VideoChat = (() => {
       });
     }
     micMuted = true;
+    updateWalkieCueBanner();
     syncControlButtons();
     updateLocalTilePresentation();
     broadcastProfile(true);
@@ -269,6 +270,7 @@ const VideoChat = (() => {
         _replaceVoiceTrack();
       }
     }
+    updateWalkieCueBanner();
     syncControlButtons();
     updateLocalTilePresentation();
     broadcastProfile(true);
@@ -776,7 +778,7 @@ const VideoChat = (() => {
     if (pushToTalkBtn) {
       const isSpeaking = walkieTalkieMode && walkieFloorHolder === state.peerId && !micMuted;
       pushToTalkBtn.classList.toggle("hidden", !walkieTalkieMode);
-      pushToTalkBtn.classList.toggle("active", isSpeaking);
+      pushToTalkBtn.classList.toggle("ptt-speaking", isSpeaking);
       pushToTalkBtn.setAttribute("aria-pressed", isSpeaking ? "true" : "false");
       pushToTalkBtn.disabled = !walkieTalkieMode;
     }
@@ -792,6 +794,16 @@ const VideoChat = (() => {
     const participantModeHint = $("participant-mode-hint");
     const inviteRoomId = getInviteRoomIdFromUrl();
     const shouldHideAddParticipant = isValidRoomId(inviteRoomId) && inviteRoomId !== state.peerId;
+
+    // Hide/show video-only UI elements.
+    const videoGrid = $("video-grid");
+    if (videoGrid) videoGrid.classList.toggle("hidden", enabled);
+
+    const camBtn = $("btn-cam");
+    if (camBtn) camBtn.classList.toggle("hidden", enabled);
+
+    const screenBtn = $("btn-screen");
+    if (screenBtn) screenBtn.classList.toggle("hidden", enabled);
 
     if (enabled) {
       wasMicMutedBeforeWalkie = micMuted;
@@ -832,10 +844,55 @@ const VideoChat = (() => {
       showToast("Full video mode restored", "success");
     }
 
+    updateWalkieCueBanner();
     syncControlButtons();
     updateLocalTilePresentation();
     updateParticipantsList();
     broadcastProfile(true);
+  }
+
+  function updateWalkieCueBanner() {
+    const banner = $("walkie-cue-banner");
+    if (!banner) return;
+
+    if (!walkieTalkieMode) {
+      banner.classList.add("hidden");
+      return;
+    }
+
+    banner.classList.remove("hidden");
+
+    const cueText = $("walkie-cue-text");
+    const cueSub = $("walkie-cue-sub");
+    const cueIcon = $("walkie-cue-icon");
+    const cueIconWrap = $("walkie-cue-icon-wrap");
+
+    if (!walkieFloorHolder) {
+      banner.className = "mb-4 rounded-2xl border border-blue-200 bg-blue-50 shadow-sm";
+      if (cueIconWrap)
+        cueIconWrap.className =
+          "flex h-12 w-12 flex-none items-center justify-center rounded-full bg-blue-100";
+      if (cueIcon) cueIcon.className = "fa-solid fa-microphone-slash text-xl text-blue-600";
+      if (cueText) cueText.textContent = "Floor is free";
+      if (cueSub) cueSub.textContent = "Hold the Talk button to speak. Release when done.";
+    } else if (walkieFloorHolder === state.peerId) {
+      banner.className = "mb-4 rounded-2xl border border-green-300 bg-green-50 shadow-sm";
+      if (cueIconWrap)
+        cueIconWrap.className =
+          "flex h-12 w-12 flex-none items-center justify-center rounded-full bg-green-100";
+      if (cueIcon) cueIcon.className = "fa-solid fa-microphone text-xl text-green-600";
+      if (cueText) cueText.textContent = "You have the floor";
+      if (cueSub) cueSub.textContent = "Release the button when you are done speaking.";
+    } else {
+      const name = getDisplayLabel(walkieFloorHolder);
+      banner.className = "mb-4 rounded-2xl border border-amber-300 bg-amber-50 shadow-sm";
+      if (cueIconWrap)
+        cueIconWrap.className =
+          "flex h-12 w-12 flex-none items-center justify-center rounded-full bg-amber-100";
+      if (cueIcon) cueIcon.className = "fa-solid fa-volume-high text-xl text-amber-600";
+      if (cueText) cueText.textContent = `${name} is speaking`;
+      if (cueSub) cueSub.textContent = "Wait for the floor to be released before talking.";
+    }
   }
 
   async function onPushToTalkStart() {
@@ -1121,16 +1178,29 @@ const VideoChat = (() => {
       if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
         reconnectAttempts++;
         const delay = RECONNECT_BASE_DELAY_MS * Math.pow(2, reconnectAttempts - 1);
-        updateStatus("fa-solid fa-arrows-rotate fa-spin", `Reconnecting (${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})…`, "warning");
+        updateStatus(
+          "fa-solid fa-arrows-rotate fa-spin",
+          `Reconnecting (${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})…`,
+          "warning"
+        );
         setStatusIcon("offline");
         const currentPeer = peer;
         setTimeout(() => {
-          if (currentPeer === peer && !isEndingCall && !currentPeer.destroyed && !currentPeer.open) {
+          if (
+            currentPeer === peer &&
+            !isEndingCall &&
+            !currentPeer.destroyed &&
+            !currentPeer.open
+          ) {
             currentPeer.reconnect();
           }
         }, delay);
       } else {
-        updateStatus("fa-solid fa-plug-circle-xmark", "Disconnected — could not reconnect", "danger");
+        updateStatus(
+          "fa-solid fa-plug-circle-xmark",
+          "Disconnected — could not reconnect",
+          "danger"
+        );
         setStatusIcon("offline");
         showToast("Lost connection to signaling server. Please rejoin.", "error");
       }
@@ -1256,10 +1326,14 @@ const VideoChat = (() => {
       const isMuted = mutedPeers.has(peerId);
       muteBtn.className = "control-btn participant-mute-btn";
       muteBtn.style.cssText = "width:32px;height:32px;font-size:0.75rem";
-      muteBtn.title = isMuted ? `Unmute ${getDisplayLabel(peerId)}` : `Mute ${getDisplayLabel(peerId)}`;
+      muteBtn.title = isMuted
+        ? `Unmute ${getDisplayLabel(peerId)}`
+        : `Mute ${getDisplayLabel(peerId)}`;
       muteBtn.setAttribute("aria-label", muteBtn.title);
       muteBtn.setAttribute("aria-pressed", String(isMuted));
-      muteBtn.innerHTML = isMuted ? '<i class="fa-solid fa-microphone-slash" aria-hidden="true"></i>' : '<i class="fa-solid fa-microphone" aria-hidden="true"></i>';
+      muteBtn.innerHTML = isMuted
+        ? '<i class="fa-solid fa-microphone-slash" aria-hidden="true"></i>'
+        : '<i class="fa-solid fa-microphone" aria-hidden="true"></i>';
       muteBtn.addEventListener("click", () => {
         if (typeof window.toggleParticipantMute === "function") {
           window.toggleParticipantMute(peerId);
@@ -1437,6 +1511,7 @@ const VideoChat = (() => {
               });
             }
           }
+          updateWalkieCueBanner();
           syncControlButtons();
           updateLocalTilePresentation();
           broadcastProfile(true);
@@ -1444,6 +1519,7 @@ const VideoChat = (() => {
         }
         if (data.action === "release" && walkieFloorHolder === floorPeerId) {
           walkieFloorHolder = null;
+          updateWalkieCueBanner();
           syncControlButtons();
           return;
         }
@@ -1776,12 +1852,12 @@ const VideoChat = (() => {
     } else {
       mutedPeers.add(peerId);
     }
-    
+
     const tile = getTileElements(peerId);
     if (tile && tile.video) {
-        tile.video.muted = mutedPeers.has(peerId);
+      tile.video.muted = mutedPeers.has(peerId);
     }
-    
+
     updateParticipantsList();
   }
 
