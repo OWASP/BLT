@@ -1752,8 +1752,8 @@ const VideoChat = (() => {
             $("btn-screen") && $("btn-screen").classList.add("hidden");
             $("btn-end") && $("btn-end").classList.remove("hidden");
           }
-          // All participants have left — wipe the local chat copy.
-          // The next session will pull a fresh copy from peers.
+          // The last remote participant has left — wipe the local chat copy so the next
+          // session pulls a fresh history from peers rather than stale localStorage data.
           clearChatHistory();
           showToast("Participant disconnected. Use End Call to return home.", "info");
         }
