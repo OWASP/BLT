@@ -778,6 +778,7 @@ const VideoChat = (() => {
     if (pushToTalkBtn) {
       const isSpeaking = walkieTalkieMode && walkieFloorHolder === state.peerId && !micMuted;
       pushToTalkBtn.classList.toggle("hidden", !walkieTalkieMode);
+      pushToTalkBtn.classList.toggle("ptt-ready", walkieTalkieMode && !isSpeaking);
       pushToTalkBtn.classList.toggle("ptt-speaking", isSpeaking);
       pushToTalkBtn.setAttribute("aria-pressed", isSpeaking ? "true" : "false");
       pushToTalkBtn.disabled = !walkieTalkieMode;

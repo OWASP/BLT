@@ -835,7 +835,24 @@ html.dark .control-btn.active {
   }
 }
 
-/* === Walkie-Talkie Push-To-Talk Speaking Animation === */
+/* === Walkie-Talkie Push-To-Talk Button States === */
+/* "Ready to speak" — walkie mode active, floor is free or held by someone else */
+.ptt-ready {
+  background: #1d4ed8 !important;
+  border-color: #1d4ed8 !important;
+  color: #ffffff !important;
+}
+
+.ptt-ready:hover {
+  background: #1e40af !important;
+  border-color: #1e40af !important;
+}
+
+html.dark .ptt-ready {
+  background: #2563eb !important;
+  border-color: #2563eb !important;
+}
+
 @keyframes ptt-pulse {
   0%,
   100% {
