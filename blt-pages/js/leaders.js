@@ -315,9 +315,10 @@ async function openElectionModal(electionId) {
     <p class="text-sm">Loading nominees and vote counts…</p>
   </div>`;
 
-  // Fetch live 👍 counts from GitHub reactions API
+  // Fetch live 👍 counts from GitHub reactions API for voting_open, closed, and finalized
   const canVote = el.status === 'voting_open';
-  if (canVote) await loadVoteCounts(electionId);
+  const showVotes = ['voting_open', 'closed', 'finalized'].includes(el.status);
+  if (showVotes) await loadVoteCounts(electionId);
 
   const noms = (leadersData.nominations || []).filter(n => n.election_id === electionId && n.status === 'accepted');
   const canNominate = el.status === 'nominations_open';
@@ -333,7 +334,7 @@ async function openElectionModal(electionId) {
         ${escHtml(role)}
       </h4>
       ${roleNoms.length
-        ? roleNoms.map(n => nomineeCard(n, canVote, maxVotes)).join('')
+        ? roleNoms.map(n => nomineeCard(n, canVote, maxVotes, showVotes)).join('')
         : `<p class="text-sm text-gray-400 italic">No nominees yet for this role.</p>`}
     </div>`;
   }).join('');
@@ -368,26 +369,41 @@ async function openElectionModal(electionId) {
     modal.classList.remove('flex');
     openNominationForm(electionId);
   });
+
+  // Event delegation for vote buttons (avoids inline onclick injection risk)
+  body.querySelectorAll('.vote-on-gh').forEach(btn => {
+    btn.addEventListener('click', () => {
+      openVoteIssue(
+        Number(btn.dataset.voteIssue),
+        btn.dataset.voteNominee,
+        btn.dataset.voteRole
+      );
+    });
+  });
 }
 
-function nomineeCard(nom, canVote, maxVotes) {
+function nomineeCard(nom, canVote, maxVotes, showVotes) {
   const pct = Math.round(((nom.votes || 0) / Math.max(maxVotes, 1)) * 100);
   const selfTag = nom.self_nominated
     ? `<span class="ml-2 text-xs bg-active-bg text-primary dark:bg-red-950/30 dark:text-red-400 rounded-full px-2 py-0.5">self-nominated</span>`
     : '';
 
+  // data attributes + event delegation — no inline JS, no injection risk
   let voteBtn = '';
   if (canVote && nom.issue_number) {
     voteBtn = `<button
-      onclick="openVoteIssue(${nom.issue_number}, '${escHtml(nom.nominee_login)}', '${escHtml(nom.role)}')"
-      class="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-primary px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary hover:text-white transition-colors">
+      data-vote-issue="${nom.issue_number}"
+      data-vote-nominee="${escHtml(nom.nominee_login)}"
+      data-vote-role="${escHtml(nom.role)}"
+      class="vote-on-gh mt-3 inline-flex items-center gap-1.5 rounded-lg border border-primary px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary hover:text-white transition-colors">
       👍 Vote on GitHub
     </button>`;
   }
 
-  const voteDisplay = nom.votes != null
-    ? `<p class="text-lg font-extrabold text-primary dark:text-red-400">${nom.votes}</p><p class="text-xs text-gray-400">👍 votes</p>`
-    : `<p class="text-xs text-gray-400 italic">votes loading…</p>`;
+  // Only show vote count when counts were actually fetched; otherwise show dash
+  const voteDisplay = showVotes
+    ? `<p class="text-lg font-extrabold text-primary dark:text-red-400">${nom.votes ?? 0}</p><p class="text-xs text-gray-400">👍 votes</p>`
+    : `<p class="text-xs text-gray-400">—</p>`;
 
   const skills = (nom.skills || []).map(s =>
     `<span class="rounded-full bg-gray-100 dark:bg-gray-700 px-2 py-0.5 text-xs text-gray-600 dark:text-gray-300">${escHtml(s)}</span>`
@@ -556,26 +572,19 @@ function submitNomination(electionId, el, project) {
 // Vote counts are fetched live from the GitHub reactions API.
 
 /**
- * Fetch 👍 reaction count for a single issue number.
+ * Fetch 👍 reaction count for a single issue using the issue endpoint's
+ * built-in reactions summary — one request, no pagination needed.
  * Returns 0 on failure (rate limit, network, etc.)
  */
 async function fetchThumbsUp(issueNumber) {
   try {
     const res = await fetch(
-      `https://api.github.com/repos/${BLT_CONFIG.REPO_OWNER}/${BLT_CONFIG.REPO_NAME}/issues/${issueNumber}/reactions?content=%2B1&per_page=1`,
+      `https://api.github.com/repos/${BLT_CONFIG.REPO_OWNER}/${BLT_CONFIG.REPO_NAME}/issues/${issueNumber}`,
       { headers: { Accept: 'application/vnd.github+json' } }
     );
     if (!res.ok) return 0;
-    // The Link header tells us total pages; count from array length or use total from list
     const data = await res.json();
-    // GitHub doesn't return total count directly — fetch without per_page limit
-    const full = await fetch(
-      `https://api.github.com/repos/${BLT_CONFIG.REPO_OWNER}/${BLT_CONFIG.REPO_NAME}/issues/${issueNumber}/reactions?content=%2B1&per_page=100`,
-      { headers: { Accept: 'application/vnd.github+json' } }
-    );
-    if (!full.ok) return data.length;
-    const all = await full.json();
-    return Array.isArray(all) ? all.length : 0;
+    return data?.reactions?.['+1'] ?? 0;
   } catch {
     return 0;
   }
@@ -851,8 +860,10 @@ function escHtml(str) {
 }
 
 function emptyState(icon, msg) {
+  // Strip any leading 'fa-' so callers can pass either 'trophy' or 'fa-trophy'
+  const id = String(icon || '').replace(/^fa-/, '');
   return `<div class="col-span-full text-center py-16 text-gray-400 dark:text-gray-500">
-    <svg class="fa-icon text-4xl text-gray-300 dark:text-gray-600 block mb-3 mx-auto" aria-hidden="true"><use href="#fa-${icon}"></use></svg>
+    <svg class="fa-icon text-4xl text-gray-300 dark:text-gray-600 block mb-3 mx-auto" aria-hidden="true"><use href="#fa-${id}"></use></svg>
     <p class="text-sm">${escHtml(msg)}</p>
   </div>`;
 }
