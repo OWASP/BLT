@@ -1293,3 +1293,19 @@ def test_video_lobby_js_hides_video_ui_in_walkie_mode():
     assert '"preview-video-section"' in js
     assert '"walkie-lobby-banner"' in js
     assert '"btn-preview-cam"' in js
+
+
+def test_video_js_walkie_lobby_opt_in_is_sticky():
+    """video.js evaluateCommunicationMode must not auto-disable walkie mode when the user
+    explicitly opted in from the lobby (initialMediaPreferences.walkie)."""
+    js = (ROOT / "public/js/video.js").read_text(encoding="utf-8")
+    assert "initialMediaPreferences.walkie" in js
+    # The guard should appear inside evaluateCommunicationMode
+    assert "if (initialMediaPreferences.walkie) return;" in js
+
+
+def test_video_room_has_github_footer_link():
+    """Room page should have a footer link to the GitHub repository."""
+    html = (ROOT / "src/pages/video-room.html").read_text(encoding="utf-8")
+    assert "https://github.com/OWASP-BLT/BLT-SafeCloak" in html
+    assert "fa-brands fa-github" in html

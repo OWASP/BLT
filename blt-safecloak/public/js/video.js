@@ -907,6 +907,8 @@ const VideoChat = (() => {
   }
 
   function evaluateCommunicationMode() {
+    // If the user explicitly opted into walkie-talkie from the lobby, never auto-disable it.
+    if (initialMediaPreferences.walkie) return;
     const totalParticipants = getParticipantTotal();
     const shouldEnableWalkie = totalParticipants > MAX_VIDEO_PARTICIPANTS;
     if (walkieTalkieMode !== shouldEnableWalkie) {
