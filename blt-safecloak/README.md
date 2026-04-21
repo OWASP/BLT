@@ -1,125 +1,190 @@
 # BLT-SafeCloak
 
-Privacy-focused peer-to-peer communication platform built on Cloudflare Workers. Provides secure video chat, voice communication, AI-powered notes, and explicit consent management.
+[![Video Chat E2E Tests](https://github.com/OWASP-BLT/BLT-SafeCloak/actions/workflows/test.yml/badge.svg)](https://github.com/OWASP-BLT/BLT-SafeCloak/actions/workflows/test.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Node >= 18](https://img.shields.io/badge/node-%3E%3D18-339933?logo=node.js&logoColor=white)](package.json)
+[![Python >= 3.11](https://img.shields.io/badge/python-%3E%3D3.11-3776AB?logo=python&logoColor=white)](pyproject.toml)
 
-## Features
+Privacy-focused real-time communication for OWASP BLT, built on Cloudflare Workers with a browser-first security model.
 
-- **P2P Video/Voice Chat**: WebRTC-based communication with end-to-end encryption
-- **Consent Management**: Built-in consent tracking and verification system
-- **Secure Notes**: AI-powered note-taking with client-side encryption
-- **Edge Computing**: Deployed on Cloudflare's global network for low latency
-- **Zero-Knowledge Architecture**: Server never accesses unencrypted content
+## Table of Contents
 
-## Architecture
+- [What is BLT-SafeCloak](#what-is-blt-safecloak)
+- [Core Capabilities](#core-capabilities)
+- [Architecture at a Glance](#architecture-at-a-glance)
+- [Milestones](#milestones)
+- [Key Decisions](#key-decisions)
+- [What We Won't Have (for now)](#what-we-wont-have-for-now)
+- [Quick Start](#quick-start)
+- [Development Commands](#development-commands)
+- [Testing](#testing)
+- [Deployment](#deployment)
+- [Routes](#routes)
+- [Repository Structure](#repository-structure)
+- [Security Notes](#security-notes)
+- [Contributing](#contributing)
+- [License](#license)
 
-- **Backend**: Python Workers on Cloudflare Edge
-- **Frontend**: Vanilla JavaScript with WebRTC
-- **Deployment**: Cloudflare Workers with asset hosting
-- **Encryption**: Client-side cryptography for all sensitive data
+## What is BLT-SafeCloak
 
-## Requirements
+BLT-SafeCloak extends the OWASP BLT ecosystem with secure collaboration primitives:
 
-- Node.js >= 18.0.0
-- Python >= 3.11
-- Cloudflare account (for deployment)
+- live peer-to-peer video/voice communication,
+- privacy controls and explicit consent UX,
+- secure notes and privacy-first browser behavior.
 
-## Installation
+The project prioritizes practical privacy and operational simplicity over heavy backend complexity.
+
+## Core Capabilities
+
+- **Secure video room flow** with a dedicated pre-join lobby and in-room experience.
+- **Adaptive communication mode** that shifts to walkie-talkie behavior when participant count grows.
+- **Voice controls** including effects and persisted user preferences between lobby and room.
+- **Consent-centered UX** integrated directly into call workflows.
+- **Cloudflare Worker delivery model** for low-latency global hosting.
+- **Automated end-to-end validation** for critical real-time paths.
+
+## Architecture at a Glance
+
+- **Runtime:** Cloudflare Python Workers (`src/main.py`)
+- **Frontend:** static HTML + vanilla JavaScript (`src/pages`, `public/js`)
+- **Assets:** served from Worker assets (`public/`)
+- **Signaling in tests:** local PeerJS server for deterministic CI/local E2E runs
+- **Design direction:** browser-first privacy with minimal server-side state
+
+## Milestones
+
+Completed:
+
+- ✅ **M1 — Worker foundation and clean routing** (`/`, `/video-chat`, `/video-room`, `/notes`, `/consent`)
+- ✅ **M2 — Video lobby + in-room collaboration experience**
+- ✅ **M3 — Voice controls, persistence, and adaptive walkie-talkie mode**
+- ✅ **M4 — Stable E2E workflow in CI with local signaling and mocked media**
+
+Current focus:
+
+- 🔄 **Documentation and contributor onboarding hardening**
+- 🔄 **Incremental privacy/UX improvements in real-time flows**
+
+## Key Decisions
+
+- **Separate lobby and room pages** to keep pre-join setup isolated from in-call controls.
+- **Keep content close to the client**: prioritize peer-to-peer media and browser-side protection mechanisms.
+- **Scale behavior by room size**: use walkie-talkie interaction when full video does not scale well.
+- **Favor deterministic testing**: avoid public signaling dependencies in automated tests.
+- **Use minimal backend surface area**: route and serve assets from Workers, keep business logic client-heavy.
+
+## What We Won't Have (for now)
+
+To preserve privacy and keep the project focused, this repository is **not currently targeting**:
+
+- ❌ A centralized account system and full user-profile backend.
+- ❌ Server-side storage of call media/content as a primary workflow.
+- ❌ Heavy, stateful backend orchestration for routine room operation.
+- ❌ A monolithic framework migration away from the current static-pages + Worker model.
+
+## Quick Start
+
+### Requirements
+
+- Node.js **18+**
+- Python **3.11+**
+- Cloudflare account (for deploy)
+
+### Install
 
 ```bash
-# Install Node dependencies
 npm install
-
-# Install Python development tools
 npm run setup
 ```
 
-## Development
+### Run locally
 
 ```bash
-# Start local development server
 npm run dev
-
-# Format all code (Python + HTML/CSS/JS)
-npm run format
-
-# Check code quality (formatting + type checking)
-npm run check
-
-# Type checking only
-npm run typecheck
-
-# Check formatting without modifying
-npm run format:check
 ```
 
-The development server runs on `http://localhost:8787` with hot reload enabled.
+App runs at `http://localhost:8787`.
 
-### Code Formatting
+## Development Commands
 
-- **Python**: yapf (PEP 8 style, 100 char line limit)
-- **HTML/CSS/JS**: Prettier (consistent web formatting)
-- Run `npm run format` to format all files at once
+```bash
+# format Python + frontend files
+npm run format
+
+# check formatting only
+npm run format:check
+
+# static type checks
+npm run typecheck
+
+# main quality gate
+npm run check
+
+# clean __pycache__ directories
+npm run clean
+```
+
+## Testing
+
+Full project test command:
+
+```bash
+pytest tests/ -v --tb=short
+```
+
+For video-chat E2E tests, install Playwright Chromium once:
+
+```bash
+python -m playwright install chromium --with-deps
+```
+
+CI runs the same E2E test path via `.github/workflows/test.yml`.
 
 ## Deployment
-
-Deploy to Cloudflare Workers:
 
 ```bash
 npm run deploy
 ```
 
-### Project Structure
+Wrangler config is defined in `wrangler.toml`.
 
-```
+## Routes
+
+- `/` — home / product overview
+- `/video-chat` — pre-join lobby
+- `/video-room` — secure in-call room
+- `/notes` — secure notes interface
+- `/consent` — consent interface
+
+## Repository Structure
+
+```text
 src/
-  main.py           # Main application entry point
+  main.py              # Worker entrypoint and routing
   libs/
-    utils.py        # Utility functions (html_response, json_response, etc.)
-  pages/            # HTML pages
-    index.html      # Landing page
-    video-chat.html # Video chat lobby (create/join)
-    video-room.html # In-call meeting interface
-    notes.html      # Notes interface
-    consent.html    # Consent management
+    utils.py           # response helper utilities
+  pages/               # HTML pages
 public/
-  css/              # Stylesheets
-  js/               # Client-side JavaScript
-    crypto.js       # Cryptography utilities
-    video.js        # WebRTC implementation
-    video-lobby.js  # Lobby create/join flow
-    notes.js        # Notes functionality
-    consent.js      # Consent logic
-    ui.js           # UI components and utilities
-pyproject.toml      # Python project configuration
-package.json        # NPM scripts and dependencies
-.prettierrc         # Prettier configuration
+  css/                 # styles
+  js/                  # client logic (video, voice, notes, consent, theme)
+  img/                 # static images
+tests/
+  test_video_chat.py   # end-to-end + integration behavior checks
+  test_utils.py        # backend utility and routing tests
+.github/workflows/
+  test.yml             # CI workflow
 ```
 
-### URL Structure
+## Security Notes
 
-All pages use clean URLs without `.html` extensions:
-
-- `/` - Home page
-- `/video-chat` - Video chat lobby (create or join)
-- `/video-room` - In-call meeting interface
-- `/notes` - Secure notes
-- `/consent` - Consent management
-
-## Security
-
-- All sensitive data is encrypted client-side before transmission
-- Server acts as a signaling relay only
-- No persistent storage of communication content
-- Consent verification required before session establishment
+- This project follows a privacy-first architecture and avoids unnecessary server-side handling of sensitive communication data.
+- If you find a vulnerability, please open a private/security-focused report through the OWASP BLT project channels before public disclosure.
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines and resources.
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request.
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) for details.
-
-## OWASP
-
-This project is part of the OWASP Bug Logging Tool (BLT) initiative.
+Licensed under the [MIT License](LICENSE).
