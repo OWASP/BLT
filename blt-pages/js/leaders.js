@@ -6,8 +6,11 @@
 
 /* ── State ── */
 let leadersData = null;
-let currentUser = null; // { login, avatar_url, html_url } from localStorage
+let currentUser = null; // { login, avatar_url, html_url, verified } from localStorage
 let activeTab = 'elections';
+
+/** In-memory cache for reaction sets — avoids re-fetching on repeated modal opens. */
+const reactorsCache = new Map();
 
 /* ── Bootstrap ── */
 document.addEventListener('DOMContentLoaded', () => {
@@ -35,8 +38,8 @@ function initMobileMenu() {
   const menu = document.getElementById('mobile-menu');
   if (!toggle || !menu) return;
   toggle.addEventListener('click', () => {
-    const open = menu.classList.toggle('hidden');
-    toggle.setAttribute('aria-expanded', String(!open));
+    const isNowHidden = menu.classList.toggle('hidden');
+    toggle.setAttribute('aria-expanded', String(!isNowHidden));
   });
   menu.querySelectorAll('a').forEach(l => l.addEventListener('click', () => {
     menu.classList.add('hidden');
@@ -74,54 +77,84 @@ async function loadLeadersData() {
   } catch {
     leadersData = { projects: [], elections: [], nominations: [], past_winners: [] };
   }
-  // Merge org repos from GitHub API (non-GSoC) into projects list
+  reactorsCache.clear(); // clear stale vote cache on each data reload
   await mergeOrgRepos();
   renderAll();
 }
 
 /**
  * Fetches ALL public repos from the OWASP-BLT org via GitHub API (paginated).
+ * Caches results in sessionStorage for 10 minutes to avoid rate-limit exhaustion.
  * Filters out repos tagged with the "gsoc" topic.
- * Merges with manually pinned projects in leaders.json (manual entries take precedence).
  */
 async function mergeOrgRepos() {
-  try {
-    const existing = new Set((leadersData.projects || []).map(p => p.repo_url));
-    const accumulated = [];
-    let page = 1;
+  const CACHE_KEY = 'blt-org-repos-cache';
+  const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
 
-    while (true) {
+  try {
+    const cached = sessionStorage.getItem(CACHE_KEY);
+    if (cached) {
+      const { ts, repos } = JSON.parse(cached);
+      if (Date.now() - ts < CACHE_TTL) {
+        applyFetchedRepos(repos);
+        return;
+      }
+    }
+
+    const allRepos = [];
+    const MAX_PAGES = 20;
+    for (let page = 1; page <= MAX_PAGES; page++) {
       const res = await fetch(
         `https://api.github.com/orgs/${BLT_CONFIG.REPO_OWNER}/repos?per_page=100&page=${page}&sort=updated&type=public`,
         { headers: { Accept: 'application/vnd.github+json' } }
       );
-      if (!res.ok) break; // rate-limited or error — use what we have so far
+      if (!res.ok) {
+        if (res.status === 403 && res.headers.get('X-RateLimit-Remaining') === '0') {
+          showToast('GitHub API rate limit reached — showing cached projects only.');
+        }
+        break;
+      }
       const repos = await res.json();
       if (!Array.isArray(repos) || repos.length === 0) break;
-
-      repos
-        .filter(r => !r.archived && !(r.topics || []).includes('gsoc'))
-        .map(r => ({
-          id: r.name.toLowerCase(),
-          name: r.name,
-          description: r.description || '',
-          repo_url: r.html_url,
-          maintainer: BLT_CONFIG.REPO_OWNER,
-          active: !r.archived,
-          gsoc: false,
-          _fromApi: true
-        }))
-        .filter(r => !existing.has(r.repo_url))
-        .forEach(r => { accumulated.push(r); existing.add(r.repo_url); });
-
-      if (repos.length < 100) break; // last page
-      page++;
+      allRepos.push(...repos);
+      if (repos.length < 100) break;
     }
 
-    leadersData.projects = [...(leadersData.projects || []), ...accumulated];
+    try {
+      sessionStorage.setItem(CACHE_KEY, JSON.stringify({
+        ts: Date.now(),
+        // Only cache the fields applyFetchedRepos needs — avoids storing megabytes
+        repos: allRepos.map(r => ({
+          name: r.name,
+          description: r.description || '',
+          html_url: r.html_url,
+          archived: r.archived,
+          topics: r.topics || []
+        }))
+      }));
+    } catch { /* sessionStorage quota exceeded or unavailable — skip caching */ }
+    applyFetchedRepos(allRepos);
   } catch {
     // GitHub API unavailable — use only leaders.json projects
   }
+}
+
+function applyFetchedRepos(allRepos) {
+  const existing = new Set((leadersData.projects || []).map(p => p.repo_url));
+  const accumulated = allRepos
+    .filter(r => !r.archived && !(r.topics || []).includes('gsoc'))
+    .map(r => ({
+      id: r.name.toLowerCase(),
+      name: r.name,
+      description: r.description || '',
+      repo_url: r.html_url,
+      maintainer: BLT_CONFIG.REPO_OWNER,
+      active: !r.archived,
+      gsoc: false,
+      _fromApi: true
+    }))
+    .filter(r => !existing.has(r.repo_url));
+  leadersData.projects = [...(leadersData.projects || []), ...accumulated];
 }
 
 /**
@@ -129,24 +162,26 @@ async function mergeOrgRepos() {
  * Donnie only needs to set dates — transitions happen automatically.
  *
  * Rules:
- *   before nomination_start          → draft
- *   nomination_start → nomination_end → nominations_open
- *   voting_start → voting_end         → voting_open
- *   after voting_end                  → closed
- *   status === 'finalized' is sticky  → finalized (admin-set, never auto-overridden)
+ *   before nomination_start                    → draft
+ *   nomination_start → nomination_end          → nominations_open
+ *   nomination_end → voting_start              → admin_review
+ *   voting_start → voting_end                  → voting_open
+ *   after voting_end                           → closed
+ *   status === 'finalized' (admin-set, sticky) → finalized
  */
 function deriveStatus(el) {
-  if (el.status === 'finalized') return 'finalized'; // admin locks this manually
+  if (el.status === 'finalized') return 'finalized';
   const now = Date.now();
   const nomStart  = el.nomination_start ? new Date(el.nomination_start).getTime() : null;
   const nomEnd    = el.nomination_end   ? new Date(el.nomination_end).getTime()   : null;
   const voteStart = el.voting_start     ? new Date(el.voting_start).getTime()     : null;
   const voteEnd   = el.voting_end       ? new Date(el.voting_end).getTime()       : null;
 
-  if (voteEnd   && now > voteEnd)   return 'closed';
+  if (voteEnd   && now > voteEnd)    return 'closed';
   if (voteStart && now >= voteStart) return 'voting_open';
-  if (nomEnd    && now > nomEnd)    return 'closed'; // between nom end and vote start
-  if (nomStart  && now >= nomStart) return 'nominations_open';
+  // Between nomination_end and voting_start: admin review window
+  if (nomEnd && now > nomEnd && voteStart && now < voteStart) return 'admin_review';
+  if (nomStart  && now >= nomStart)  return 'nominations_open';
   return 'draft';
 }
 
@@ -223,7 +258,8 @@ document.addEventListener('DOMContentLoaded', () => {
     currentUser = {
       login: params.get('gh_login'),
       avatar_url: params.get('gh_avatar') || `https://github.com/${params.get('gh_login')}.png`,
-      html_url: `https://github.com/${params.get('gh_login')}`
+      html_url: `https://github.com/${params.get('gh_login')}`,
+      verified: false  // URL-param flow is unverified until real OAuth is wired up
     };
     localStorage.setItem('blt-gh-user', JSON.stringify(currentUser));
     window.history.replaceState({}, '', window.location.pathname);
@@ -235,17 +271,43 @@ document.addEventListener('DOMContentLoaded', () => {
   const loginBtnMobile = document.getElementById('gh-login-btn-mobile');
 
   function doLogin() {
-    const login = prompt('Enter your GitHub username (unverified demo — replace with real OAuth):');
-    if (!login || !login.trim()) return;
-    currentUser = {
-      login: login.trim(),
-      avatar_url: `https://github.com/${login.trim()}.png`,
-      html_url: `https://github.com/${login.trim()}`,
-      verified: false  // prompt-entered username is unverified
-    };
-    localStorage.setItem('blt-gh-user', JSON.stringify(currentUser));
-    updateAuthUI();
-    renderAll();
+    // TODO: replace with real GitHub OAuth redirect when a serverless callback is available.
+    // For now, show an inline input rather than a blocking prompt().
+    const existing = document.getElementById('demo-login-input');
+    if (existing) { existing.focus(); return; }
+
+    const wrap = document.createElement('div');
+    wrap.id = 'demo-login-input';
+    wrap.className = 'fixed inset-x-0 bottom-0 z-[300] bg-white dark:bg-dark-surface border-t border-neutral-border dark:border-gray-700 p-4 flex items-center gap-3 shadow-lg';
+    wrap.innerHTML = `
+      <input id="demo-login-field" type="text" placeholder="GitHub username (demo — unverified)"
+        class="flex-1 rounded-xl border border-neutral-border dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+      <button id="demo-login-confirm" class="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 transition-colors">Sign in</button>
+      <button id="demo-login-cancel" class="rounded-xl border border-neutral-border dark:border-gray-600 px-4 py-2 text-sm font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">Cancel</button>`;
+    document.body.appendChild(wrap);
+
+    const field = document.getElementById('demo-login-field');
+    field.focus();
+
+    document.getElementById('demo-login-cancel').addEventListener('click', () => wrap.remove());
+    document.getElementById('demo-login-confirm').addEventListener('click', () => {
+      const login = field.value.trim();
+      if (!login) return;
+      currentUser = {
+        login,
+        avatar_url: `https://github.com/${login}.png`,
+        html_url: `https://github.com/${login}`,
+        verified: false
+      };
+      localStorage.setItem('blt-gh-user', JSON.stringify(currentUser));
+      wrap.remove();
+      updateAuthUI();
+      renderAll();
+    });
+    field.addEventListener('keydown', e => {
+      if (e.key === 'Enter') document.getElementById('demo-login-confirm').click();
+      if (e.key === 'Escape') wrap.remove();
+    });
   }
 
   if (loginBtn) loginBtn.addEventListener('click', doLogin);
@@ -279,6 +341,7 @@ function statusBadge(status) {
   const map = {
     draft:            ['bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300', 'Draft'],
     nominations_open: ['bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400', 'Nominations Open'],
+    admin_review:     ['bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400', 'Admin Review'],
     voting_open:      ['bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400', 'Voting Open'],
     closed:           ['bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400', 'Closed'],
     finalized:        ['bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400', 'Finalized'],
@@ -394,6 +457,13 @@ async function openElectionModal(electionId) {
     openNominationForm(electionId);
   });
 
+  // Safe avatar fallback — avoids inline onerror XSS risk
+  body.querySelectorAll('img[data-fallback-login]').forEach(img => {
+    img.addEventListener('error', () => {
+      img.src = `https://github.com/identicons/${encodeURIComponent(img.dataset.fallbackLogin)}.png`;
+    }, { once: true });
+  });
+
   // Event delegation for vote buttons (avoids inline onclick injection risk)
   body.querySelectorAll('.vote-on-gh').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -444,7 +514,7 @@ function nomineeCard(nom, canVote, maxVotes, showVotes) {
     <div class="flex items-center gap-3 mb-2">
       <img src="${escHtml(nom.nominee_avatar || `https://github.com/${nom.nominee_login}.png`)}"
            alt="${escHtml(nom.nominee_login)}" class="w-9 h-9 rounded-full border border-neutral-border dark:border-gray-700" loading="lazy"
-           onerror="this.src='https://github.com/identicons/${escHtml(nom.nominee_login)}.png'" />
+           data-fallback-login="${escHtml(nom.nominee_login)}" />
       <div class="min-w-0 flex-1">
         <a href="https://github.com/${escHtml(nom.nominee_login)}" target="_blank" rel="noopener noreferrer"
            class="font-bold text-gray-900 dark:text-white hover:text-primary transition-colors text-sm">
@@ -474,7 +544,7 @@ function openNominationForm(electionId) {
   if (!formModal || !formBody) return;
 
   if (!currentUser) {
-    alert('Please sign in with GitHub before nominating.');
+    showToast('Please sign in with GitHub before nominating.');
     return;
   }
 
@@ -550,7 +620,7 @@ function submitNomination(electionId, el, project) {
   const contributions = document.getElementById('nom-contributions').value.trim();
 
   if (!nominee || !statement) {
-    alert('Please fill in the nominee username and statement.');
+    showToast('Please fill in the nominee username and statement.');
     return;
   }
 
@@ -596,21 +666,30 @@ function submitNomination(electionId, el, project) {
 // Vote counts are fetched live from the GitHub reactions API.
 
 /**
- * Fetch the set of GitHub user IDs who 👍'd an issue.
- * Returns a Set of node_ids (stable across renames) for deduplication.
+ * Fetch the set of GitHub user node_ids who 👍'd an issue (paginated).
+ * Null-safe: skips reactions where r.user is null (deleted accounts).
  */
 async function fetchThumbsUpReactors(issueNumber) {
+  if (reactorsCache.has(issueNumber)) return reactorsCache.get(issueNumber);
+
+  const reactors = new Set();
+  const MAX_PAGES = 10;
   try {
-    const res = await fetch(
-      `https://api.github.com/repos/${BLT_CONFIG.REPO_OWNER}/${BLT_CONFIG.REPO_NAME}/issues/${issueNumber}/reactions?content=%2B1&per_page=100`,
-      { headers: { Accept: 'application/vnd.github+json' } }
-    );
-    if (!res.ok) return new Set();
-    const data = await res.json();
-    return new Set(Array.isArray(data) ? data.map(r => r.user.node_id) : []);
-  } catch {
-    return new Set();
-  }
+    for (let page = 1; page <= MAX_PAGES; page++) {
+      const res = await fetch(
+        `https://api.github.com/repos/${BLT_CONFIG.REPO_OWNER}/${BLT_CONFIG.REPO_NAME}/issues/${issueNumber}/reactions?content=%2B1&per_page=100&page=${page}`,
+        { headers: { Accept: 'application/vnd.github+json' } }
+      );
+      if (!res.ok) break;
+      const data = await res.json();
+      if (!Array.isArray(data) || data.length === 0) break;
+      data.forEach(r => { if (r.user?.node_id) reactors.add(r.user.node_id); });
+      if (data.length < 100) break;
+    }
+  } catch { /* network error — return what we have */ }
+
+  reactorsCache.set(issueNumber, reactors);
+  return reactors;
 }
 
 /**
@@ -646,7 +725,7 @@ async function loadVoteCounts(electionId) {
           uniqueVotes++;
         }
       });
-      nom.votes = uniqueVotes;
+      nom.votes = uniqueVotes; // intentional: updates leadersData in-place for UI rendering
     });
   });
 }
@@ -667,7 +746,7 @@ function openVoteIssue(issueNumber, nomineeLogin, role) {
 
 /* ── Request New Election (via GitHub Issue) ── */
 function openRequestElectionForm() {
-  if (!currentUser) { alert('Please sign in with GitHub first.'); return; }
+  if (!currentUser) { showToast('Please sign in with GitHub first.'); return; }
   const formModal = document.getElementById('nomination-modal');
   const formBody = document.getElementById('nomination-modal-body');
   if (!formModal || !formBody) return;
@@ -745,11 +824,16 @@ function submitElectionRequest() {
   const wantColead = document.getElementById('er-role-colead').checked;
   const reason = document.getElementById('er-reason').value.trim();
 
+  if (!projectSel || !term) { showToast('Please select a project and enter a term name.'); return; }
+  if (projectSel === '__other__' && !projectOther) {
+    showToast('Please enter a project name or URL for Other.');
+    return;
+  }
+
   const projectLabel = projectSel === '__other__'
-    ? (projectOther || 'Not specified')
+    ? projectOther
     : ((leadersData.projects || []).find(p => p.id === projectSel)?.name || projectSel);
 
-  if (!projectSel || !term) { alert('Please select a project and enter a term name.'); return; }
   const roles = [wantLead && 'Lead', wantColead && 'Co-Lead'].filter(Boolean).join(', ') || 'Not specified';
 
   const title = `[ELECTION REQUEST] ${term} — ${projectLabel}`;
@@ -792,12 +876,13 @@ function renderProjects() {
   }
   container.innerHTML = projects.map(p => {
     const elections = (leadersData.elections || []).filter(e => e.project_id === p.id);
-    const activeEl = elections.find(e => ['nominations_open','voting_open'].includes(e.status));
+    const activeEl = elections.find(e => ['nominations_open', 'admin_review', 'voting_open'].includes(e.status));
     const winners = getProjectCurrentLeaders(p.id);
     const gsocTag = p.gsoc ? `<span class="ml-2 text-xs bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 rounded-full px-2 py-0.5">GSoC</span>` : '';
     const leadersHtml = winners.length
       ? winners.map(w => `<span class="inline-flex items-center gap-1.5 text-xs font-medium text-gray-700 dark:text-gray-300">
-          <img src="${escHtml(w.avatar || `https://github.com/${w.login}.png`)}" class="w-5 h-5 rounded-full" loading="lazy" />
+          <img src="${escHtml(w.avatar || `https://github.com/${w.login}.png`)}" class="w-5 h-5 rounded-full" loading="lazy"
+               data-fallback-login="${escHtml(w.login)}" />
           ${escHtml(w.login)} <span class="text-gray-400">(${escHtml(w.role)})</span>
         </span>`).join('')
       : `<span class="text-xs text-gray-400 italic">No leaders elected yet</span>`;
@@ -829,13 +914,20 @@ function renderProjects() {
       openElectionModal(btn.dataset.openElection);
     });
   });
+
+  // Safe avatar fallback for project leader chips
+  container.querySelectorAll('img[data-fallback-login]').forEach(img => {
+    img.addEventListener('error', () => {
+      img.src = `https://github.com/identicons/${encodeURIComponent(img.dataset.fallbackLogin)}.png`;
+    }, { once: true });
+  });
 }
 
 function getProjectCurrentLeaders(projectId) {
   const past = leadersData.past_winners || [];
   const projectWins = past.filter(pw => pw.project_id === projectId);
   if (!projectWins.length) return [];
-  const latest = projectWins.sort((a, b) => new Date(b.finalized_at) - new Date(a.finalized_at))[0];
+  const latest = [...projectWins].sort((a, b) => new Date(b.finalized_at) - new Date(a.finalized_at))[0];
   return latest.winners || [];
 }
 
@@ -856,7 +948,7 @@ function renderPastWinners() {
       <div class="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-800">
         <img src="${escHtml(w.avatar || `https://github.com/${w.login}.png`)}"
              alt="${escHtml(w.login)}" class="w-10 h-10 rounded-full border-2 border-primary" loading="lazy"
-             onerror="this.src='https://github.com/identicons/${escHtml(w.login)}.png'" />
+             data-fallback-login="${escHtml(w.login)}" />
         <div class="min-w-0">
           <a href="https://github.com/${escHtml(w.login)}" target="_blank" rel="noopener noreferrer"
              class="font-bold text-gray-900 dark:text-white hover:text-primary transition-colors text-sm">
@@ -877,6 +969,13 @@ function renderPastWinners() {
       <div class="grid gap-2 sm:grid-cols-2">${winnersHtml}</div>
     </article>`;
   }).join('');
+
+  // Safe avatar fallback for past winners
+  container.querySelectorAll('img[data-fallback-login]').forEach(img => {
+    img.addEventListener('error', () => {
+      img.src = `https://github.com/identicons/${encodeURIComponent(img.dataset.fallbackLogin)}.png`;
+    }, { once: true });
+  });
 }
 
 /* ── Modal close handlers ── */
