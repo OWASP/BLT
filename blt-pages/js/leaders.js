@@ -55,6 +55,8 @@ function initTabs() {
         b.classList.toggle('text-primary', active);
         b.classList.toggle('border-transparent', !active);
         b.classList.toggle('text-gray-500', !active);
+        b.setAttribute('aria-selected', String(active));
+        b.setAttribute('tabindex', active ? '0' : '-1');
       });
       document.querySelectorAll('[data-panel]').forEach(p => {
         p.classList.toggle('hidden', p.dataset.panel !== activeTab);
@@ -78,37 +80,45 @@ async function loadLeadersData() {
 }
 
 /**
- * Fetches all public repos from the OWASP-BLT org via GitHub API.
+ * Fetches ALL public repos from the OWASP-BLT org via GitHub API (paginated).
  * Filters out repos tagged with the "gsoc" topic.
  * Merges with manually pinned projects in leaders.json (manual entries take precedence).
  */
 async function mergeOrgRepos() {
   try {
-    const res = await fetch(
-      `https://api.github.com/orgs/${BLT_CONFIG.REPO_OWNER}/repos?per_page=100&sort=updated&type=public`,
-      { headers: { Accept: 'application/vnd.github+json' } }
-    );
-    if (!res.ok) return; // silently skip if rate-limited
-    const repos = await res.json();
-    if (!Array.isArray(repos)) return;
-
     const existing = new Set((leadersData.projects || []).map(p => p.repo_url));
+    const accumulated = [];
+    let page = 1;
 
-    const fetched = repos
-      .filter(r => !r.archived && !(r.topics || []).includes('gsoc'))
-      .map(r => ({
-        id: r.name.toLowerCase(),
-        name: r.name,
-        description: r.description || '',
-        repo_url: r.html_url,
-        maintainer: BLT_CONFIG.REPO_OWNER,
-        active: !r.archived,
-        gsoc: (r.topics || []).includes('gsoc'),
-        _fromApi: true  // flag so we can style these differently
-      }))
-      .filter(r => !existing.has(r.repo_url)); // don't duplicate manually pinned ones
+    while (true) {
+      const res = await fetch(
+        `https://api.github.com/orgs/${BLT_CONFIG.REPO_OWNER}/repos?per_page=100&page=${page}&sort=updated&type=public`,
+        { headers: { Accept: 'application/vnd.github+json' } }
+      );
+      if (!res.ok) break; // rate-limited or error — use what we have so far
+      const repos = await res.json();
+      if (!Array.isArray(repos) || repos.length === 0) break;
 
-    leadersData.projects = [...(leadersData.projects || []), ...fetched];
+      repos
+        .filter(r => !r.archived && !(r.topics || []).includes('gsoc'))
+        .map(r => ({
+          id: r.name.toLowerCase(),
+          name: r.name,
+          description: r.description || '',
+          repo_url: r.html_url,
+          maintainer: BLT_CONFIG.REPO_OWNER,
+          active: !r.archived,
+          gsoc: false,
+          _fromApi: true
+        }))
+        .filter(r => !existing.has(r.repo_url))
+        .forEach(r => { accumulated.push(r); existing.add(r.repo_url); });
+
+      if (repos.length < 100) break; // last page
+      page++;
+    }
+
+    leadersData.projects = [...(leadersData.projects || []), ...accumulated];
   } catch {
     // GitHub API unavailable — use only leaders.json projects
   }
@@ -171,7 +181,20 @@ function updateAuthUI() {
     userChip.classList.remove('hidden');
     userChip.classList.add('flex');  // must be flex, not block
     if (userAvatar) userAvatar.src = currentUser.avatar_url || `https://github.com/${currentUser.login}.png`;
-    if (userLogin) userLogin.textContent = currentUser.login;
+    if (userLogin) {
+      userLogin.textContent = currentUser.login;
+      // Show unverified badge for prompt-entered usernames
+      const badge = userChip.querySelector('.unverified-badge');
+      if (!currentUser.verified && !badge) {
+        const b = document.createElement('span');
+        b.className = 'unverified-badge text-xs bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 rounded-full px-1.5 py-0.5 ml-1';
+        b.title = 'Username entered manually — not verified via OAuth';
+        b.textContent = 'unverified';
+        userLogin.after(b);
+      } else if (currentUser.verified && badge) {
+        badge.remove();
+      }
+    }
   } else {
     loginBtn.classList.remove('hidden');
     userChip.classList.add('hidden');
@@ -212,12 +235,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const loginBtnMobile = document.getElementById('gh-login-btn-mobile');
 
   function doLogin() {
-    const login = prompt('Enter your GitHub username to simulate login (replace with real OAuth):');
+    const login = prompt('Enter your GitHub username (unverified demo — replace with real OAuth):');
     if (!login || !login.trim()) return;
     currentUser = {
       login: login.trim(),
       avatar_url: `https://github.com/${login.trim()}.png`,
-      html_url: `https://github.com/${login.trim()}`
+      html_url: `https://github.com/${login.trim()}`,
+      verified: false  // prompt-entered username is unverified
     };
     localStorage.setItem('blt-gh-user', JSON.stringify(currentUser));
     updateAuthUI();
@@ -539,7 +563,7 @@ function submitNomination(electionId, el, project) {
     `**Project:** ${project.name || el.project_id}`,
     `**Role:** ${role}`,
     `**Nominee:** @${nominee}`,
-    `**Nominator:** @${currentUser.login}`,
+    `**Nominator:** @${currentUser.login}${currentUser.verified === false ? ' _(claimed username — unverified)_' : ''}`,
     `**Self-Nomination:** ${selfNom ? 'Yes' : 'No'}`,
     ``,
     `### Statement`,
@@ -572,35 +596,59 @@ function submitNomination(electionId, el, project) {
 // Vote counts are fetched live from the GitHub reactions API.
 
 /**
- * Fetch 👍 reaction count for a single issue using the issue endpoint's
- * built-in reactions summary — one request, no pagination needed.
- * Returns 0 on failure (rate limit, network, etc.)
+ * Fetch the set of GitHub user IDs who 👍'd an issue.
+ * Returns a Set of node_ids (stable across renames) for deduplication.
  */
-async function fetchThumbsUp(issueNumber) {
+async function fetchThumbsUpReactors(issueNumber) {
   try {
     const res = await fetch(
-      `https://api.github.com/repos/${BLT_CONFIG.REPO_OWNER}/${BLT_CONFIG.REPO_NAME}/issues/${issueNumber}`,
+      `https://api.github.com/repos/${BLT_CONFIG.REPO_OWNER}/${BLT_CONFIG.REPO_NAME}/issues/${issueNumber}/reactions?content=%2B1&per_page=100`,
       { headers: { Accept: 'application/vnd.github+json' } }
     );
-    if (!res.ok) return 0;
+    if (!res.ok) return new Set();
     const data = await res.json();
-    return data?.reactions?.['+1'] ?? 0;
+    return new Set(Array.isArray(data) ? data.map(r => r.user.node_id) : []);
   } catch {
-    return 0;
+    return new Set();
   }
 }
 
 /**
- * Fetch vote counts for all nominations in an election and update in-memory data.
- * Returns a promise that resolves when all counts are loaded.
+ * Fetch vote counts for all nominations in an election.
+ * Deduplicates per (election_id, role): a user's 👍 on multiple nominations
+ * for the same role only counts once — for the nomination they reacted to first
+ * (lowest issue number wins tie). Each nomination's .votes reflects unique voters.
  */
 async function loadVoteCounts(electionId) {
   const noms = (leadersData.nominations || []).filter(
     n => n.election_id === electionId && n.status === 'accepted' && n.issue_number
   );
-  await Promise.all(noms.map(async n => {
-    n.votes = await fetchThumbsUp(n.issue_number);
-  }));
+
+  // Fetch all reactor sets in parallel
+  const reactorSets = await Promise.all(
+    noms.map(n => fetchThumbsUpReactors(n.issue_number))
+  );
+
+  // Group by role and deduplicate: each voter counted once per role
+  const roles = [...new Set(noms.map(n => n.role))];
+  roles.forEach(role => {
+    const roleNoms = noms
+      .map((n, i) => ({ nom: n, reactors: reactorSets[i] }))
+      .filter(x => x.nom.role === role)
+      .sort((a, b) => a.nom.issue_number - b.nom.issue_number); // lower issue = earlier nomination
+
+    const seenVoters = new Set();
+    roleNoms.forEach(({ nom, reactors }) => {
+      let uniqueVotes = 0;
+      reactors.forEach(userId => {
+        if (!seenVoters.has(userId)) {
+          seenVoters.add(userId);
+          uniqueVotes++;
+        }
+      });
+      nom.votes = uniqueVotes;
+    });
+  });
 }
 
 /**
@@ -708,7 +756,7 @@ function submitElectionRequest() {
   const body = [
     `## Election Request`,
     ``,
-    `**Requested by:** @${currentUser.login}`,
+    `**Requested by:** @${currentUser.login}${currentUser.verified === false ? ' _(claimed username — unverified)_' : ''}`,
     `**Project:** ${projectLabel}`,
     `**Term:** ${term}`,
     `**Roles:** ${roles}`,

@@ -339,7 +339,7 @@
             <div id="gh-user-chip" class="hidden items-center gap-2">
               <img
                 id="gh-user-avatar"
-                src=""
+                src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs="
                 alt="Your avatar"
                 class="w-7 h-7 rounded-full border border-neutral-border dark:border-gray-700 shrink-0"
               />
@@ -476,9 +476,14 @@
     <!-- Tabs -->
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
       <div class="border-b border-neutral-border dark:border-gray-700">
-        <nav class="flex gap-0 -mb-px" aria-label="Leaders tabs">
+        <nav class="flex gap-0 -mb-px" aria-label="Leaders tabs" role="tablist">
           <button
             data-tab="elections"
+            id="tab-elections"
+            role="tab"
+            aria-selected="true"
+            aria-controls="panel-elections"
+            tabindex="0"
             class="border-b-2 border-primary text-primary px-5 py-3 text-sm font-semibold transition-colors whitespace-nowrap"
           >
             <svg class="fa-icon mr-1.5" aria-hidden="true">
@@ -487,6 +492,11 @@
           </button>
           <button
             data-tab="projects"
+            id="tab-projects"
+            role="tab"
+            aria-selected="false"
+            aria-controls="panel-projects"
+            tabindex="-1"
             class="border-b-2 border-transparent text-gray-500 dark:text-gray-400 px-5 py-3 text-sm font-semibold transition-colors whitespace-nowrap hover:text-gray-700 dark:hover:text-gray-200"
           >
             <svg class="fa-icon mr-1.5" aria-hidden="true">
@@ -495,6 +505,11 @@
           </button>
           <button
             data-tab="winners"
+            id="tab-winners"
+            role="tab"
+            aria-selected="false"
+            aria-controls="panel-winners"
+            tabindex="-1"
             class="border-b-2 border-transparent text-gray-500 dark:text-gray-400 px-5 py-3 text-sm font-semibold transition-colors whitespace-nowrap hover:text-gray-700 dark:hover:text-gray-200"
           >
             <svg class="fa-icon mr-1.5" aria-hidden="true">
@@ -508,7 +523,7 @@
     <!-- Main content -->
     <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <!-- Elections panel -->
-      <div data-panel="elections">
+      <div data-panel="elections" id="panel-elections" role="tabpanel" aria-labelledby="tab-elections">
         <div class="mb-6 flex items-center justify-between gap-3 flex-wrap">
           <p class="text-sm text-gray-500 dark:text-gray-400">
             Active and upcoming elections across all BLT projects.
@@ -534,7 +549,7 @@
       </div>
 
       <!-- Projects panel -->
-      <div data-panel="projects" class="hidden">
+      <div data-panel="projects" id="panel-projects" role="tabpanel" aria-labelledby="tab-projects" class="hidden">
         <div class="mb-6 flex items-center justify-between gap-3 flex-wrap">
           <div>
             <p class="text-sm text-gray-500 dark:text-gray-400">
@@ -560,7 +575,7 @@
       </div>
 
       <!-- Past Winners panel -->
-      <div data-panel="winners" class="hidden">
+      <div data-panel="winners" id="panel-winners" role="tabpanel" aria-labelledby="tab-winners" class="hidden">
         <div class="mb-6">
           <p class="text-sm text-gray-500 dark:text-gray-400">
             Finalized elections and elected community leaders.
