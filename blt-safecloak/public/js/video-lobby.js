@@ -709,6 +709,25 @@
           shouldAutoJoinFromInvite = true;
           showToast("Room ID loaded from share link", "info");
         }
+        
+        try {
+          const createCard = $("card-create-room");
+          const joinCard = $("card-join-room");
+          const createBtn = $("btn-create-room");
+          const joinBtn = $("btn-join-room");
+
+          if (createCard && joinCard && createBtn && joinBtn && createCard.parentNode === joinCard.parentNode) {
+            joinCard.parentNode.insertBefore(joinCard, createCard);
+
+            const createClasses = createBtn.className;
+            const joinClasses = joinBtn.className;
+
+            createBtn.className = joinClasses;
+            joinBtn.className = createClasses;
+          }
+        } catch (e) {
+          // Handled silently in production
+        }
       }
     }
 
@@ -731,7 +750,34 @@
     if (micBtn) micBtn.addEventListener("click", toggleMicPreview);
     if (camBtn) camBtn.addEventListener("click", toggleCamPreview);
 
-    await initPreviewStream();
+    try {
+      await initPreviewStream();
+    } catch (e) {
+      // Fallback if initPreviewVoiceEngine(), VoiceChanger.init(), or updatePreviewUI() fails
+      // inside initPreviewStream(). We reset to a safe "null" state so the UI reflects a 
+      // non-previewable state and users can still proceed.
+      micEnabled = false;
+      camEnabled = false;
+      updatePreviewUI();
+      resetPreviewVoiceUi();
+
+      const status = $("prejoin-status");
+      if (status) {
+        status.textContent = "Preview unavailable";
+      }
+
+      const micBtn = $("btn-preview-mic");
+      if (micBtn) {
+        micBtn.disabled = false;
+        micBtn.classList.remove("opacity-50", "cursor-not-allowed");
+      }
+
+      const camBtn = $("btn-preview-cam");
+      if (camBtn) {
+        camBtn.disabled = false;
+        camBtn.classList.remove("opacity-50", "cursor-not-allowed");
+      }
+    }
 
     if (shouldAutoJoinFromInvite) {
       const existingName = normalizeDisplayName(displayNameInput ? displayNameInput.value : "");

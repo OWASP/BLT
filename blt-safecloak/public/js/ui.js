@@ -81,7 +81,33 @@ document.addEventListener("click", (e) => {
 /* ── Copy to clipboard ── */
 async function copyToClipboard(text, label = "Copied") {
   try {
-    await navigator.clipboard.writeText(text);
+    let copied = false;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      try {
+        await navigator.clipboard.writeText(text);
+        copied = true;
+      } catch {
+        // Fall through to legacy copy path.
+      }
+    }
+
+    if (!copied) {
+      const fallback = document.createElement("textarea");
+      fallback.value = text;
+      fallback.setAttribute("readonly", "true");
+      fallback.style.position = "fixed";
+      fallback.style.left = "-9999px";
+      document.body.appendChild(fallback);
+      try {
+        fallback.select();
+        copied = document.execCommand("copy");
+      } finally {
+        document.body.removeChild(fallback);
+      }
+      if (!copied) {
+        throw new Error("Clipboard copy fallback failed");
+      }
+    }
     showToast(`${label} copied to clipboard`, "success");
   } catch {
     showToast("Copy failed — please copy manually", "error");
