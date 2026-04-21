@@ -1237,5 +1237,7 @@ def test_video_js_enforces_five_participant_video_cap_and_walkie_mode():
     """Client runtime should cap full-video mode at 5 participants and enable walkie-talkie fallback."""
     js = (ROOT / "public/js/video.js").read_text(encoding="utf-8")
     assert "const MAX_VIDEO_PARTICIPANTS = 5;" in js
+    assert "const shouldEnableWalkie = totalParticipants > MAX_VIDEO_PARTICIPANTS;" in js
+    assert "void setWalkieTalkieMode(shouldEnableWalkie);" in js
     assert "Walkie-talkie mode enabled for large room" in js
     assert "Hold to talk" in (ROOT / "src/pages/video-room.html").read_text(encoding="utf-8")

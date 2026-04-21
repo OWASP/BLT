@@ -28,6 +28,8 @@ const VideoChat = (() => {
   const SPEAKING_THRESHOLD = 28;
   const SPEAKING_HOLD_MS = 260;
   const MAX_VIDEO_PARTICIPANTS = 5;
+  const FULL_VIDEO_MODE_HINT = "Full video chat mode active for rooms with up to 5 participants.";
+  const WALKIE_MODE_HINT = "Walkie-talkie mode active: audio-only with push-to-talk floor control.";
 
   const peerProfiles = new Map(); // peerId -> { name, initials, micMuted, camOff, handRaised }
   const remoteSpeakingMonitors = new Map(); // peerId -> { analyser, data, source, activeUntil }
@@ -244,7 +246,7 @@ const VideoChat = (() => {
   async function claimWalkieFloor() {
     if (!walkieTalkieMode) return false;
     if (walkieFloorHolder && walkieFloorHolder !== state.peerId) {
-      showToast(`${getDisplayLabel(walkieFloorHolder)} is speaking`, "info");
+      showToast(`Cannot speak: ${getDisplayLabel(walkieFloorHolder)} is currently talking`, "info");
       return false;
     }
 
@@ -804,8 +806,7 @@ const VideoChat = (() => {
       await updateTracksInCalls(null, "video");
       if (addParticipantCard) addParticipantCard.style.display = "none";
       if (participantModeHint) {
-        participantModeHint.textContent =
-          "Walkie-talkie mode active: audio-only with push-to-talk floor control.";
+        participantModeHint.textContent = WALKIE_MODE_HINT;
       }
       showToast("Walkie-talkie mode enabled for large room", "info");
     } else {
@@ -821,8 +822,7 @@ const VideoChat = (() => {
       if (addParticipantCard)
         addParticipantCard.style.display = shouldHideAddParticipant ? "none" : "";
       if (participantModeHint) {
-        participantModeHint.textContent =
-          "Full video chat mode active for rooms with up to 5 participants.";
+        participantModeHint.textContent = FULL_VIDEO_MODE_HINT;
       }
       showToast("Full video mode restored", "success");
     }
@@ -1117,16 +1117,14 @@ const VideoChat = (() => {
     const countEl = $("participant-count");
     const isPeerReady = Boolean(peer && peer.open && state.peerId);
     const localVisible = isPeerReady || activeCalls.size > 0;
-    const participantTotal = activeCalls.size + (localVisible ? 1 : 0);
+    const participantTotal = getParticipantTotal();
     if (countEl) {
       countEl.textContent = `${participantTotal} in room`;
     }
     const participantModeHint = $("participant-mode-hint");
     if (participantModeHint) {
       participantModeHint.textContent =
-        participantTotal > MAX_VIDEO_PARTICIPANTS
-          ? "Walkie-talkie mode active: audio-only with push-to-talk floor control."
-          : "Full video chat mode active for rooms with up to 5 participants.";
+        participantTotal > MAX_VIDEO_PARTICIPANTS ? WALKIE_MODE_HINT : FULL_VIDEO_MODE_HINT;
     }
     if (!listEl) return;
     listEl.innerHTML = "";
@@ -1382,6 +1380,7 @@ const VideoChat = (() => {
       if (data && data.type === "floor") {
         const floorPeerId = typeof data.id === "string" ? data.id.trim() : "";
         if (!floorPeerId) return;
+        if (floorPeerId !== conn.peer) return;
         if (data.action === "claim") {
           walkieFloorHolder = floorPeerId;
           if (floorPeerId !== state.peerId) {
@@ -1615,7 +1614,7 @@ const VideoChat = (() => {
 
   async function toggleMic() {
     if (walkieTalkieMode) {
-      showToast("Use Push-to-talk in walkie-talkie mode", "info");
+      showToast("Microphone toggle is disabled. Use the Push-to-Talk button instead.", "info");
       return;
     }
     micMuted = !micMuted;
