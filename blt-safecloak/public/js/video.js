@@ -27,6 +27,7 @@ const VideoChat = (() => {
   const PROFILE_BROADCAST_THROTTLE_MS = 220;
   const SPEAKING_THRESHOLD = 28;
   const SPEAKING_HOLD_MS = 260;
+  const MAX_VIDEO_PARTICIPANTS = 5;
 
   const peerProfiles = new Map(); // peerId -> { name, initials, micMuted, camOff, handRaised }
   const remoteSpeakingMonitors = new Map(); // peerId -> { analyser, data, source, activeUntil }
@@ -36,6 +37,10 @@ const VideoChat = (() => {
   const lastProfileBroadcastAt = new Map(); // peerId -> timestamp
   let navigationInProgress = false;
   let isEndingCall = false;
+  let walkieTalkieMode = false;
+  let walkieFloorHolder = null;
+  let wasMicMutedBeforeWalkie = true;
+  let wasCamOffBeforeWalkie = true;
 
   const state = {
     peerId: null,
@@ -112,7 +117,9 @@ const VideoChat = (() => {
     }
 
     try {
-      const fromStorage = normalizeDisplayName(window.sessionStorage.getItem(DISPLAY_NAME_STORAGE_KEY));
+      const fromStorage = normalizeDisplayName(
+        window.sessionStorage.getItem(DISPLAY_NAME_STORAGE_KEY)
+      );
       if (fromStorage) return fromStorage;
     } catch {
       /* ignore storage failures */
@@ -205,6 +212,64 @@ const VideoChat = (() => {
     }
   }
 
+  function getParticipantTotal() {
+    const isPeerReady = Boolean(peer && peer.open && state.peerId);
+    const localVisible = isPeerReady || activeCalls.size > 0;
+    return activeCalls.size + (localVisible ? 1 : 0);
+  }
+
+  function sendDataToAll(payload) {
+    activeDataConns.forEach((conn) => {
+      if (conn && conn.open) {
+        conn.send(payload);
+      }
+    });
+  }
+
+  async function releaseWalkieFloor() {
+    if (!walkieTalkieMode || walkieFloorHolder !== state.peerId) return;
+    walkieFloorHolder = null;
+    if (localStream) {
+      localStream.getAudioTracks().forEach((track) => {
+        track.enabled = false;
+      });
+    }
+    micMuted = true;
+    syncControlButtons();
+    updateLocalTilePresentation();
+    broadcastProfile(true);
+    sendDataToAll({ type: "floor", action: "release", id: state.peerId });
+  }
+
+  async function claimWalkieFloor() {
+    if (!walkieTalkieMode) return false;
+    if (walkieFloorHolder && walkieFloorHolder !== state.peerId) {
+      showToast(`${getDisplayLabel(walkieFloorHolder)} is speaking`, "info");
+      return false;
+    }
+
+    const ok = await startLocalMedia({ audio: true, video: false });
+    if (!ok || !localStream) return false;
+
+    walkieFloorHolder = state.peerId;
+    localStream.getAudioTracks().forEach((track) => {
+      track.enabled = true;
+    });
+    micMuted = false;
+    const localAudio = localStream.getAudioTracks()[0];
+    if (localAudio) {
+      await updateTracksInCalls(localAudio, "audio");
+      if (typeof VoiceChanger !== "undefined" && voiceStream) {
+        _replaceVoiceTrack();
+      }
+    }
+    syncControlButtons();
+    updateLocalTilePresentation();
+    broadcastProfile(true);
+    sendDataToAll({ type: "floor", action: "claim", id: state.peerId });
+    return true;
+  }
+
   function getSelfProfilePayload() {
     return {
       type: "profile",
@@ -252,7 +317,8 @@ const VideoChat = (() => {
       stateCam:
         wrapper.querySelector('[data-state="cam"]') || (isLocal ? $("state-icon-local-cam") : null),
       labelName:
-        wrapper.querySelector('[data-role="label-name"]') || (isLocal ? $("label-local-name") : null),
+        wrapper.querySelector('[data-role="label-name"]') ||
+        (isLocal ? $("label-local-name") : null),
     };
   }
 
@@ -380,7 +446,10 @@ const VideoChat = (() => {
       tile.labelName.title = displayName;
     }
     if (tile.video) {
-      tile.video.setAttribute("aria-label", isLocal ? "Your video" : `Participant ${displayName} video`);
+      tile.video.setAttribute(
+        "aria-label",
+        isLocal ? "Your video" : `Participant ${displayName} video`
+      );
     }
     if (tile.avatarInitials) {
       tile.avatarInitials.textContent = initials;
@@ -425,7 +494,9 @@ const VideoChat = (() => {
   }
 
   function stopAllRemoteSpeakingMonitors() {
-    Array.from(remoteSpeakingMonitors.keys()).forEach((peerId) => stopRemoteSpeakingMonitor(peerId));
+    Array.from(remoteSpeakingMonitors.keys()).forEach((peerId) =>
+      stopRemoteSpeakingMonitor(peerId)
+    );
     if (speakingLoopFrame) {
       cancelAnimationFrame(speakingLoopFrame);
       speakingLoopFrame = null;
@@ -509,8 +580,11 @@ const VideoChat = (() => {
       name: normalizedName || prev.name,
       initials: makeInitials(normalizedName || prev.name),
       micMuted:
-        payload && typeof payload.micMuted === "boolean" ? payload.micMuted : Boolean(prev.micMuted),
-      camOff: payload && typeof payload.camOff === "boolean" ? payload.camOff : Boolean(prev.camOff),
+        payload && typeof payload.micMuted === "boolean"
+          ? payload.micMuted
+          : Boolean(prev.micMuted),
+      camOff:
+        payload && typeof payload.camOff === "boolean" ? payload.camOff : Boolean(prev.camOff),
       handRaised:
         payload && typeof payload.handRaised === "boolean"
           ? payload.handRaised
@@ -690,6 +764,91 @@ const VideoChat = (() => {
       camBtn.setAttribute("aria-pressed", camOff ? "true" : "false");
       camBtn.classList.toggle("active", camOff);
     }
+
+    const pushToTalkBtn = $("btn-push-to-talk");
+    if (pushToTalkBtn) {
+      const isSpeaking = walkieTalkieMode && walkieFloorHolder === state.peerId && !micMuted;
+      pushToTalkBtn.classList.toggle("hidden", !walkieTalkieMode);
+      pushToTalkBtn.classList.toggle("active", isSpeaking);
+      pushToTalkBtn.setAttribute("aria-pressed", isSpeaking ? "true" : "false");
+      pushToTalkBtn.disabled = !walkieTalkieMode;
+    }
+  }
+
+  async function setWalkieTalkieMode(enabled) {
+    if (walkieTalkieMode === enabled) return;
+    if (!enabled) {
+      await releaseWalkieFloor();
+    }
+    walkieTalkieMode = enabled;
+    const addParticipantCard = $("add-participant-card");
+    const participantModeHint = $("participant-mode-hint");
+    const inviteRoomId = getInviteRoomIdFromUrl();
+    const shouldHideAddParticipant = isValidRoomId(inviteRoomId) && inviteRoomId !== state.peerId;
+
+    if (enabled) {
+      wasMicMutedBeforeWalkie = micMuted;
+      wasCamOffBeforeWalkie = camOff;
+      walkieFloorHolder = null;
+      camOff = true;
+      micMuted = true;
+      if (localStream) {
+        localStream.getVideoTracks().forEach((track) => {
+          track.stop();
+          localStream.removeTrack(track);
+        });
+        localStream.getAudioTracks().forEach((track) => {
+          track.enabled = false;
+        });
+      }
+      await updateTracksInCalls(null, "video");
+      if (addParticipantCard) addParticipantCard.style.display = "none";
+      if (participantModeHint) {
+        participantModeHint.textContent =
+          "Walkie-talkie mode active: audio-only with push-to-talk floor control.";
+      }
+      showToast("Walkie-talkie mode enabled for large room", "info");
+    } else {
+      walkieFloorHolder = null;
+      micMuted = wasMicMutedBeforeWalkie;
+      camOff = wasCamOffBeforeWalkie;
+      if (!camOff) {
+        await startLocalMedia({ video: true, audio: false });
+      }
+      if (!micMuted) {
+        await startLocalMedia({ audio: true, video: false });
+      }
+      if (addParticipantCard)
+        addParticipantCard.style.display = shouldHideAddParticipant ? "none" : "";
+      if (participantModeHint) {
+        participantModeHint.textContent =
+          "Full video chat mode active for rooms with up to 5 participants.";
+      }
+      showToast("Full video mode restored", "success");
+    }
+
+    syncControlButtons();
+    updateLocalTilePresentation();
+    updateParticipantsList();
+    broadcastProfile(true);
+  }
+
+  async function onPushToTalkStart() {
+    if (!walkieTalkieMode) return;
+    await claimWalkieFloor();
+  }
+
+  async function onPushToTalkEnd() {
+    if (!walkieTalkieMode) return;
+    await releaseWalkieFloor();
+  }
+
+  function evaluateCommunicationMode() {
+    const totalParticipants = getParticipantTotal();
+    const shouldEnableWalkie = totalParticipants > MAX_VIDEO_PARTICIPANTS;
+    if (walkieTalkieMode !== shouldEnableWalkie) {
+      void setWalkieTalkieMode(shouldEnableWalkie);
+    }
   }
 
   function applyInitialMediaPreferences() {
@@ -750,12 +909,12 @@ const VideoChat = (() => {
             t.enabled = !micMuted;
             ls.addTrack(t);
           });
-          
+
           let freshAudio = ls.getAudioTracks()[ls.getAudioTracks().length - 1];
           if (typeof VoiceChanger !== "undefined") {
             const processedAudio = VoiceChanger.init(ls);
             freshAudio = processedAudio.getAudioTracks()[0] || freshAudio;
-            
+
             const videoTrack = ls.getVideoTracks()[0];
             const tracks = [videoTrack, freshAudio].filter(Boolean);
             voiceStream = tracks.length ? new MediaStream(tracks) : ls;
@@ -771,12 +930,12 @@ const VideoChat = (() => {
             ls.addTrack(t);
           });
           const freshVideo = ls.getVideoTracks()[ls.getVideoTracks().length - 1];
-          
+
           if (voiceStream && voiceStream !== ls) {
-             const freshAudio = voiceStream.getAudioTracks()[0];
-             voiceStream = new MediaStream([freshVideo, freshAudio].filter(Boolean));
+            const freshAudio = voiceStream.getAudioTracks()[0];
+            voiceStream = new MediaStream([freshVideo, freshAudio].filter(Boolean));
           } else {
-             voiceStream = ls;
+            voiceStream = ls;
           }
 
           // Replace track in all active calls with the fresh video track.
@@ -930,7 +1089,7 @@ const VideoChat = (() => {
 
       activeCalls.set(incomingCall.peer, incomingCall);
       updateParticipantsList();
-      
+
       incomingCall.answer(voiceStream || localStream);
       handleCallStream(incomingCall);
       ensureDataConn(incomingCall.peer);
@@ -958,11 +1117,20 @@ const VideoChat = (() => {
     const countEl = $("participant-count");
     const isPeerReady = Boolean(peer && peer.open && state.peerId);
     const localVisible = isPeerReady || activeCalls.size > 0;
+    const participantTotal = activeCalls.size + (localVisible ? 1 : 0);
     if (countEl) {
-      countEl.textContent = `${activeCalls.size + (localVisible ? 1 : 0)} in room`;
+      countEl.textContent = `${participantTotal} in room`;
+    }
+    const participantModeHint = $("participant-mode-hint");
+    if (participantModeHint) {
+      participantModeHint.textContent =
+        participantTotal > MAX_VIDEO_PARTICIPANTS
+          ? "Walkie-talkie mode active: audio-only with push-to-talk floor control."
+          : "Full video chat mode active for rooms with up to 5 participants.";
     }
     if (!listEl) return;
     listEl.innerHTML = "";
+    evaluateCommunicationMode();
 
     if (!isPeerReady && activeCalls.size === 0) {
       const empty = document.createElement("p");
@@ -1208,6 +1376,32 @@ const VideoChat = (() => {
         if (incomingPeerId === conn.peer) {
           upsertRemoteProfile(conn.peer, data);
         }
+        return;
+      }
+
+      if (data && data.type === "floor") {
+        const floorPeerId = typeof data.id === "string" ? data.id.trim() : "";
+        if (!floorPeerId) return;
+        if (data.action === "claim") {
+          walkieFloorHolder = floorPeerId;
+          if (floorPeerId !== state.peerId) {
+            micMuted = true;
+            if (localStream) {
+              localStream.getAudioTracks().forEach((track) => {
+                track.enabled = false;
+              });
+            }
+          }
+          syncControlButtons();
+          updateLocalTilePresentation();
+          broadcastProfile(true);
+          return;
+        }
+        if (data.action === "release" && walkieFloorHolder === floorPeerId) {
+          walkieFloorHolder = null;
+          syncControlButtons();
+          return;
+        }
       }
     });
 
@@ -1347,7 +1541,9 @@ const VideoChat = (() => {
         const pc = call.peerConnection;
         if (!pc) continue;
         if (typeof pc.getTransceivers === "function") {
-          const tr = pc.getTransceivers().find((t) => t.receiver && t.receiver.track && t.receiver.track.kind === kind);
+          const tr = pc
+            .getTransceivers()
+            .find((t) => t.receiver && t.receiver.track && t.receiver.track.kind === kind);
           sender = tr ? tr.sender : null;
         }
         if (!sender) {
@@ -1362,7 +1558,10 @@ const VideoChat = (() => {
           // Keep the cache fresh so subsequent toggles find the correct sender.
           if (call.sendersByKind) call.sendersByKind[kind] = sender;
         } catch (err) {
-          console.warn(`[VideoChat] replaceTrack failed for kind=${kind} on peer=${call.peer}:`, err);
+          console.warn(
+            `[VideoChat] replaceTrack failed for kind=${kind} on peer=${call.peer}:`,
+            err
+          );
         }
       }
     }
@@ -1415,6 +1614,10 @@ const VideoChat = (() => {
   }
 
   async function toggleMic() {
+    if (walkieTalkieMode) {
+      showToast("Use Push-to-talk in walkie-talkie mode", "info");
+      return;
+    }
     micMuted = !micMuted;
     updateMediaButtons(); // Update instantly for zero delay UI
     if (!localStream || localStream.getAudioTracks().length === 0) {
@@ -1466,6 +1669,10 @@ const VideoChat = (() => {
   }
 
   async function toggleCamera() {
+    if (walkieTalkieMode) {
+      showToast("Camera is disabled in walkie-talkie mode", "info");
+      return;
+    }
     camOff = !camOff;
     updateMediaButtons(); // Update instantly
     if (!localStream || localStream.getVideoTracks().length === 0) {
@@ -1547,6 +1754,8 @@ const VideoChat = (() => {
     localSpeakingUntil = 0;
     setTileSpeakingIndicator("local", false);
     localHandRaised = false;
+    walkieFloorHolder = null;
+    walkieTalkieMode = false;
     syncRaiseHandButton();
     state.connected = false;
     updateStatus("fa-solid fa-phone-slash", "Call ended", "muted");
@@ -1623,14 +1832,14 @@ const VideoChat = (() => {
     localSpeakingUntil = 0;
     setTileSpeakingIndicator("local", false);
     if (typeof VoiceChanger !== "undefined") VoiceChanger.destroy();
-    
+
     /* Reset monitor button state */
     const monitorBtn = $("btn-monitor");
     if (monitorBtn) {
       monitorBtn.classList.remove("active");
       monitorBtn.setAttribute("aria-pressed", "false");
     }
-    
+
     /* Reset voice mode buttons to normal, clear all per-effect slider rows */
     document.querySelectorAll("[data-voice-mode]").forEach((btn) => {
       const isNormal = btn.dataset.voiceMode === "normal";
@@ -1661,9 +1870,7 @@ const VideoChat = (() => {
       // sender's current track has been set to null by a mute cycle.
       let sender = call.sendersByKind ? call.sendersByKind["audio"] : null;
       if (!sender && call.peerConnection) {
-        sender = call.peerConnection
-          .getSenders()
-          .find((s) => s.track && s.track.kind === "audio");
+        sender = call.peerConnection.getSenders().find((s) => s.track && s.track.kind === "audio");
         if (sender && call.sendersByKind) call.sendersByKind["audio"] = sender;
       }
       if (sender) {
@@ -2071,7 +2278,9 @@ const VideoChat = (() => {
         // Use cached sender reference (robust against null tracks)
         let sender = call.sendersByKind ? call.sendersByKind.video : null;
         if (!sender && call.peerConnection) {
-          sender = call.peerConnection.getSenders().find((s) => s.track && s.track.kind === "video");
+          sender = call.peerConnection
+            .getSenders()
+            .find((s) => s.track && s.track.kind === "video");
         }
         if (sender) await sender.replaceTrack(screenTrack);
       }
@@ -2187,7 +2396,7 @@ const VideoChat = (() => {
     readInitialMediaPreferencesFromUrl();
     applyInitialMediaPreferences();
     updateLocalTilePresentation();
-    
+
     // Start media eagerly only when the initial preference explicitly enables mic/camera.
     if (initialMediaPreferences.mic || initialMediaPreferences.cam) {
       const ok = await startLocalMedia();
@@ -2200,10 +2409,30 @@ const VideoChat = (() => {
     _applyStoredVoicePreferences();
     syncRaiseHandButton();
     updateParticipantsList();
-    
+
     // Always init peer regardless of success of startLocalMedia (can join without media)
     await initPeer();
     checkInitialPermissions();
+    const pushToTalkBtn = $("btn-push-to-talk");
+    if (pushToTalkBtn) {
+      pushToTalkBtn.addEventListener("mousedown", () => {
+        void onPushToTalkStart();
+      });
+      pushToTalkBtn.addEventListener("mouseup", () => {
+        void onPushToTalkEnd();
+      });
+      pushToTalkBtn.addEventListener("mouseleave", () => {
+        void onPushToTalkEnd();
+      });
+      pushToTalkBtn.addEventListener("touchstart", (event) => {
+        event.preventDefault();
+        void onPushToTalkStart();
+      });
+      pushToTalkBtn.addEventListener("touchend", (event) => {
+        event.preventDefault();
+        void onPushToTalkEnd();
+      });
+    }
     window.addEventListener("beforeunload", () => {
       // Inline synchronous teardown for unload – browsers don't wait for Promises
       try {

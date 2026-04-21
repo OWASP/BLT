@@ -259,7 +259,9 @@
 
               <div id="effect-sliders-container" aria-live="polite"></div>
 
-              <div class="mt-2 flex flex-wrap items-center gap-2 border-t border-neutral-border pt-2">
+              <div
+                class="mt-2 flex flex-wrap items-center gap-2 border-t border-neutral-border pt-2"
+              >
                 <button
                   class="voice-chip flex-none"
                   id="btn-monitor"
@@ -287,11 +289,14 @@
                     aria-label="Monitor volume"
                     style="background: linear-gradient(to right, #e10101 50%, #e5e7eb 50%)"
                     oninput="
-                      const p = (((this.value - this.min) / (this.max - this.min)) * 100).toFixed(1);
+                      const p = (((this.value - this.min) / (this.max - this.min)) * 100).toFixed(
+                        1
+                      );
                       this.style.background =
                         'linear-gradient(to right,#e10101 ' + p + '%,#e5e7eb ' + p + '%)';
                       VoiceChanger.setMonitorVolume(this.value / 100);
-                      document.getElementById('label-monitor-volume').textContent = this.value + '%';
+                      document.getElementById('label-monitor-volume').textContent =
+                        this.value + '%';
                     "
                   />
                   <span
@@ -317,7 +322,9 @@
                     aria-label="Microphone input level"
                     style="background: linear-gradient(to right, #e10101 50%, #e5e7eb 50%)"
                     oninput="
-                      const p = (((this.value - this.min) / (this.max - this.min)) * 100).toFixed(1);
+                      const p = (((this.value - this.min) / (this.max - this.min)) * 100).toFixed(
+                        1
+                      );
                       this.style.background =
                         'linear-gradient(to right,#e10101 ' + p + '%,#e5e7eb ' + p + '%)';
                       VoiceChanger.setMicGain(this.value / 100);
@@ -418,6 +425,13 @@
               <div id="participants-list">
                 <p class="py-2 text-center text-sm text-gray-500">No participants connected</p>
               </div>
+              <p
+                id="participant-mode-hint"
+                class="mt-3 text-xs font-medium text-gray-500"
+                aria-live="polite"
+              >
+                Full video chat mode active for rooms with up to 5 participants.
+              </p>
             </div>
           </aside>
         </div>
@@ -457,6 +471,15 @@
             aria-pressed="false"
           >
             <i class="fa-solid fa-hand" aria-hidden="true"></i>
+          </button>
+          <button
+            class="control-btn hidden rounded-full border border-neutral-border bg-white text-gray-700"
+            id="btn-push-to-talk"
+            title="Hold to talk"
+            aria-label="Push to talk"
+            aria-pressed="false"
+          >
+            <i class="fa-solid fa-bullhorn" aria-hidden="true"></i>
           </button>
           <button
             class="control-btn rounded-full border border-neutral-border bg-white text-gray-700"

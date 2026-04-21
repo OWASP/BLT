@@ -1182,11 +1182,13 @@ def test_video_room_includes_voice_controller_ui():
 
     required_snippets = [
         'id="btn-voice-changer"',
+        'id="btn-push-to-talk"',
         'id="voice-effects-panel"',
         'id="effect-sliders-container"',
         'id="btn-monitor"',
         'id="slider-monitor-volume"',
         'id="slider-mic-gain"',
+        'id="participant-mode-hint"',
         'src="js/voice-changer.js"',
     ]
     for snippet in required_snippets:
@@ -1229,3 +1231,11 @@ def test_video_room_peerjs_script_has_no_sri_integrity():
     assert "integrity=" not in match.group(0), (
         "PeerJS script tag should not include integrity attribute; stale SRI breaks production loading"
     )
+
+
+def test_video_js_enforces_five_participant_video_cap_and_walkie_mode():
+    """Client runtime should cap full-video mode at 5 participants and enable walkie-talkie fallback."""
+    js = (ROOT / "public/js/video.js").read_text(encoding="utf-8")
+    assert "const MAX_VIDEO_PARTICIPANTS = 5;" in js
+    assert "Walkie-talkie mode enabled for large room" in js
+    assert "Hold to talk" in (ROOT / "src/pages/video-room.html").read_text(encoding="utf-8")
