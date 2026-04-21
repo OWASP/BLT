@@ -91,7 +91,9 @@
     if (name) {
       if (badgeName) badgeName.textContent = name;
       badge.classList.remove("hidden");
+      badge.style.display = "inline-flex";
     } else {
+      badge.style.display = "";
       badge.classList.add("hidden");
     }
   }
@@ -815,12 +817,11 @@
     if (changeNameBtn) {
       changeNameBtn.addEventListener("click", () => {
         const input = getDisplayNameInput();
-        const badge = $("saved-name-badge");
         if (input) {
           input.value = "";
           input.focus();
         }
-        if (badge) badge.classList.add("hidden");
+        _updateSavedNameBadge("");
       });
     }
 
