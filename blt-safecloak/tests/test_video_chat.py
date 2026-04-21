@@ -1182,11 +1182,13 @@ def test_video_room_includes_voice_controller_ui():
 
     required_snippets = [
         'id="btn-voice-changer"',
+        'id="btn-push-to-talk"',
         'id="voice-effects-panel"',
         'id="effect-sliders-container"',
         'id="btn-monitor"',
         'id="slider-monitor-volume"',
         'id="slider-mic-gain"',
+        'id="participant-mode-hint"',
         'src="js/voice-changer.js"',
     ]
     for snippet in required_snippets:
@@ -1204,6 +1206,9 @@ def test_video_chat_includes_prejoin_voice_controller_ui():
         'id="btn-preview-monitor"',
         'id="slider-preview-monitor-volume"',
         'id="slider-preview-mic-gain"',
+        'id="toggle-walkie-talkie"',
+        'id="preview-video-section"',
+        'id="walkie-lobby-banner"',
         'src="js/voice-changer.js"',
     ]
     for snippet in required_snippets:
@@ -1229,3 +1234,107 @@ def test_video_room_peerjs_script_has_no_sri_integrity():
     assert "integrity=" not in match.group(0), (
         "PeerJS script tag should not include integrity attribute; stale SRI breaks production loading"
     )
+
+
+def test_video_js_enforces_five_participant_video_cap_and_walkie_mode():
+    """Client runtime should cap full-video mode at 5 participants and enable walkie-talkie fallback."""
+    js = (ROOT / "public/js/video.js").read_text(encoding="utf-8")
+    assert "const MAX_VIDEO_PARTICIPANTS = 5;" in js
+    assert "const shouldEnableWalkie = totalParticipants > MAX_VIDEO_PARTICIPANTS;" in js
+    assert "void setWalkieTalkieMode(shouldEnableWalkie);" in js
+    assert "Walkie-talkie mode enabled for large room" in js
+    assert "Hold to talk" in (ROOT / "src/pages/video-room.html").read_text(encoding="utf-8")
+
+
+def test_video_js_activates_walkie_mode_from_lobby_param():
+    """video.js should read walkie=1 URL param from lobby and activate walkie-talkie mode early in init."""
+    js = (ROOT / "public/js/video.js").read_text(encoding="utf-8")
+    assert 'params.get("walkie")' in js
+    assert "initialMediaPreferences.walkie = true" in js
+    assert "initialMediaPreferences.walkie" in js
+    assert 'params.delete("walkie")' in js
+
+
+def test_video_lobby_js_includes_walkie_param_in_room_url():
+    """video-lobby.js should append walkie=1 to the room URL when walkie-talkie mode is selected."""
+    js = (ROOT / "public/js/video-lobby.js").read_text(encoding="utf-8")
+    assert "walkieTalkieEnabled" in js
+    assert 'target.searchParams.set("walkie", "1")' in js
+
+
+def test_video_room_includes_walkie_cue_banner():
+    """Video room should include the walkie-talkie cue banner for real-time floor status."""
+    html = (ROOT / "src/pages/video-room.html").read_text(encoding="utf-8")
+    required_snippets = [
+        'id="walkie-cue-banner"',
+        'id="walkie-cue-text"',
+        'id="walkie-cue-sub"',
+        'id="walkie-cue-icon"',
+    ]
+    for snippet in required_snippets:
+        assert snippet in html, f"Expected snippet missing in video-room.html: {snippet}"
+
+
+def test_video_js_includes_walkie_cue_banner_logic():
+    """video.js should include updateWalkieCueBanner and call it from floor events."""
+    js = (ROOT / "public/js/video.js").read_text(encoding="utf-8")
+    assert "function updateWalkieCueBanner()" in js
+    assert "updateWalkieCueBanner()" in js
+    # Video/camera UI hidden in walkie mode
+    assert '"video-grid"' in js
+    assert '"btn-cam"' in js
+    assert '"btn-screen"' in js
+
+
+def test_video_lobby_js_hides_video_ui_in_walkie_mode():
+    """video-lobby.js should hide camera preview and button when walkie-talkie mode is enabled."""
+    js = (ROOT / "public/js/video-lobby.js").read_text(encoding="utf-8")
+    assert "applyWalkieLobbyUi" in js
+    assert '"preview-video-section"' in js
+    assert '"walkie-lobby-banner"' in js
+    assert '"btn-preview-cam"' in js
+
+
+def test_video_js_walkie_lobby_opt_in_is_sticky():
+    """video.js evaluateCommunicationMode must not auto-disable walkie mode when the user
+    explicitly opted in from the lobby (initialMediaPreferences.walkie)."""
+    js = (ROOT / "public/js/video.js").read_text(encoding="utf-8")
+    assert "initialMediaPreferences.walkie" in js
+    # The guard should appear inside evaluateCommunicationMode
+    assert "if (initialMediaPreferences.walkie) return;" in js
+
+
+def test_video_room_has_github_footer_link():
+    """Room page should have a footer link to the GitHub repository."""
+    html = (ROOT / "src/pages/video-room.html").read_text(encoding="utf-8")
+    assert "https://github.com/OWASP-BLT/BLT-SafeCloak" in html
+    assert "fa-brands fa-github" in html
+
+
+def test_display_name_persisted_to_local_storage():
+    """Display name must be persisted to localStorage (not sessionStorage) in both
+    video-lobby.js and video.js so it survives tab/browser restarts."""
+    lobby_js = (ROOT / "public/js/video-lobby.js").read_text(encoding="utf-8")
+    video_js = (ROOT / "public/js/video.js").read_text(encoding="utf-8")
+    # Both files must write the name to localStorage
+    assert "localStorage.setItem(DISPLAY_NAME_STORAGE_KEY" in lobby_js
+    assert "localStorage.setItem(DISPLAY_NAME_STORAGE_KEY" in video_js
+    # Neither file must still read from sessionStorage for the display name key
+    assert "sessionStorage.getItem(DISPLAY_NAME_STORAGE_KEY" not in lobby_js
+    assert "sessionStorage.getItem(DISPLAY_NAME_STORAGE_KEY" not in video_js
+
+
+def test_lobby_html_has_saved_name_badge_and_change_button():
+    """Lobby page must include the saved-name badge and a Change button so returning
+    users can see their stored name and edit it without retyping."""
+    html = (ROOT / "src/pages/video-chat.html").read_text(encoding="utf-8")
+    assert 'id="saved-name-badge"' in html
+    assert 'id="saved-name-text"' in html
+    assert 'id="btn-change-name"' in html
+
+
+def test_video_lobby_js_wires_change_name_button():
+    """video-lobby.js must bind the Change button to clear the display-name input."""
+    js = (ROOT / "public/js/video-lobby.js").read_text(encoding="utf-8")
+    assert "btn-change-name" in js
+    assert "_updateSavedNameBadge" in js
