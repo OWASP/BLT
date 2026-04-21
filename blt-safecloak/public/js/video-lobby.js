@@ -91,9 +91,9 @@
     if (name) {
       if (badgeName) badgeName.textContent = name;
       badge.classList.remove("hidden");
-      badge.style.display = "inline-flex";
+      badge.classList.add("flex");
     } else {
-      badge.style.display = "";
+      badge.classList.remove("flex");
       badge.classList.add("hidden");
     }
   }
