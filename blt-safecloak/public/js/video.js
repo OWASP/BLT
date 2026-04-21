@@ -16,6 +16,7 @@ const VideoChat = (() => {
   let camOff = true;
   let consentGiven = false;
   let screenSharing = false;
+  let activeScreenStream = null;
   let localHandRaised = false;
   let inviteAutoJoinAttempted = false;
   let inviteAutoJoinRoomId = "";
@@ -30,6 +31,9 @@ const VideoChat = (() => {
   const SPEAKING_HOLD_MS = 260;
   const MAX_CHAT_MESSAGE_LENGTH = 500;
   const MAX_CHAT_HISTORY_MESSAGES = 200;
+  const MAX_VIDEO_PARTICIPANTS = 5;
+  const FULL_VIDEO_MODE_HINT = "Full video chat mode active for rooms with up to 5 participants.";
+  const WALKIE_MODE_HINT = "Walkie-talkie mode active: audio-only with push-to-talk floor control.";
 
   const peerProfiles = new Map(); // peerId -> { name, initials, micMuted, camOff, handRaised }
   const remoteSpeakingMonitors = new Map(); // peerId -> { analyser, data, source, activeUntil }
@@ -42,6 +46,10 @@ const VideoChat = (() => {
   const lastProfileBroadcastAt = new Map(); // peerId -> timestamp
   let navigationInProgress = false;
   let isEndingCall = false;
+  let walkieTalkieMode = false;
+  let walkieFloorHolder = null;
+  let wasMicMutedBeforeWalkie = true;
+  let wasCamOffBeforeWalkie = true;
   let reconnectAttempts = 0;
   const MAX_RECONNECT_ATTEMPTS = 3;
   const RECONNECT_BASE_DELAY_MS = 1000;
@@ -113,7 +121,7 @@ const VideoChat = (() => {
     const fromUrl = normalizeDisplayName(params.get("name"));
     if (fromUrl) {
       try {
-        window.sessionStorage.setItem(DISPLAY_NAME_STORAGE_KEY, fromUrl);
+        window.localStorage.setItem(DISPLAY_NAME_STORAGE_KEY, fromUrl);
       } catch {
         /* ignore storage failures */
       }
@@ -122,7 +130,7 @@ const VideoChat = (() => {
 
     try {
       const fromStorage = normalizeDisplayName(
-        window.sessionStorage.getItem(DISPLAY_NAME_STORAGE_KEY)
+        window.localStorage.getItem(DISPLAY_NAME_STORAGE_KEY)
       );
       if (fromStorage) return fromStorage;
     } catch {
@@ -214,6 +222,66 @@ const VideoChat = (() => {
     if (remoteInput) {
       remoteInput.value = roomId;
     }
+  }
+
+  function getParticipantTotal() {
+    const isPeerReady = Boolean(peer && peer.open && state.peerId);
+    const localVisible = isPeerReady || activeCalls.size > 0;
+    return activeCalls.size + (localVisible ? 1 : 0);
+  }
+
+  function sendDataToAll(payload) {
+    activeDataConns.forEach((conn) => {
+      if (conn && conn.open) {
+        conn.send(payload);
+      }
+    });
+  }
+
+  async function releaseWalkieFloor() {
+    if (!walkieTalkieMode || walkieFloorHolder !== state.peerId) return;
+    walkieFloorHolder = null;
+    if (localStream) {
+      localStream.getAudioTracks().forEach((track) => {
+        track.enabled = false;
+      });
+    }
+    micMuted = true;
+    updateWalkieCueBanner();
+    syncControlButtons();
+    updateLocalTilePresentation();
+    broadcastProfile(true);
+    sendDataToAll({ type: "floor", action: "release", id: state.peerId });
+  }
+
+  async function claimWalkieFloor() {
+    if (!walkieTalkieMode) return false;
+    if (walkieFloorHolder && walkieFloorHolder !== state.peerId) {
+      showToast(`Cannot speak: ${getDisplayLabel(walkieFloorHolder)} is currently talking`, "info");
+      return false;
+    }
+
+    const ok = await startLocalMedia({ audio: true, video: false });
+    if (!ok || !localStream) return false;
+
+    walkieFloorHolder = state.peerId;
+    localStream.getAudioTracks().forEach((track) => {
+      track.enabled = true;
+    });
+    micMuted = false;
+    const localAudio = localStream.getAudioTracks()[0];
+    if (localAudio) {
+      await updateTracksInCalls(localAudio, "audio");
+      if (typeof VoiceChanger !== "undefined" && voiceStream) {
+        _replaceVoiceTrack();
+      }
+    }
+    updateWalkieCueBanner();
+    syncControlButtons();
+    updateLocalTilePresentation();
+    broadcastProfile(true);
+    sendDataToAll({ type: "floor", action: "claim", id: state.peerId });
+    return true;
   }
 
   function getSelfProfilePayload() {
@@ -890,6 +958,148 @@ const VideoChat = (() => {
       camBtn.setAttribute("aria-pressed", camOff ? "true" : "false");
       camBtn.classList.toggle("active", camOff);
     }
+
+    const pushToTalkBtn = $("btn-push-to-talk");
+    if (pushToTalkBtn) {
+      const isSpeaking = walkieTalkieMode && walkieFloorHolder === state.peerId && !micMuted;
+      pushToTalkBtn.classList.toggle("hidden", !walkieTalkieMode);
+      pushToTalkBtn.classList.toggle("ptt-ready", walkieTalkieMode && !isSpeaking);
+      pushToTalkBtn.classList.toggle("ptt-speaking", isSpeaking);
+      pushToTalkBtn.setAttribute("aria-pressed", isSpeaking ? "true" : "false");
+      pushToTalkBtn.disabled = !walkieTalkieMode;
+    }
+  }
+
+  async function setWalkieTalkieMode(enabled) {
+    if (walkieTalkieMode === enabled) return;
+    if (!enabled) {
+      await releaseWalkieFloor();
+    }
+    walkieTalkieMode = enabled;
+    const addParticipantCard = $("add-participant-card");
+    const participantModeHint = $("participant-mode-hint");
+    const inviteRoomId = getInviteRoomIdFromUrl();
+    const shouldHideAddParticipant = isValidRoomId(inviteRoomId) && inviteRoomId !== state.peerId;
+
+    // Hide/show video-only UI elements.
+    const videoGrid = $("video-grid");
+    if (videoGrid) videoGrid.classList.toggle("hidden", enabled);
+
+    const camBtn = $("btn-cam");
+    if (camBtn) camBtn.classList.toggle("hidden", enabled);
+
+    const screenBtn = $("btn-screen");
+    if (screenBtn) screenBtn.classList.toggle("hidden", enabled);
+
+    if (enabled) {
+      wasMicMutedBeforeWalkie = micMuted;
+      wasCamOffBeforeWalkie = camOff;
+      walkieFloorHolder = null;
+      camOff = true;
+      micMuted = true;
+      if (localStream) {
+        localStream.getVideoTracks().forEach((track) => {
+          track.stop();
+          localStream.removeTrack(track);
+        });
+        localStream.getAudioTracks().forEach((track) => {
+          track.enabled = false;
+        });
+      }
+      await updateTracksInCalls(null, "video");
+      if (addParticipantCard) addParticipantCard.style.display = "none";
+      if (participantModeHint) {
+        participantModeHint.textContent = WALKIE_MODE_HINT;
+      }
+      showToast("Walkie-talkie mode enabled for large room", "info");
+    } else {
+      walkieFloorHolder = null;
+      micMuted = wasMicMutedBeforeWalkie;
+      camOff = wasCamOffBeforeWalkie;
+      if (!camOff) {
+        await startLocalMedia({ video: true, audio: false });
+      }
+      if (!micMuted) {
+        await startLocalMedia({ audio: true, video: false });
+      }
+      if (addParticipantCard)
+        addParticipantCard.style.display = shouldHideAddParticipant ? "none" : "";
+      if (participantModeHint) {
+        participantModeHint.textContent = FULL_VIDEO_MODE_HINT;
+      }
+      showToast("Full video mode restored", "success");
+    }
+
+    updateWalkieCueBanner();
+    syncControlButtons();
+    updateLocalTilePresentation();
+    updateParticipantsList();
+    broadcastProfile(true);
+    persistCurrentRoomState();
+  }
+
+  function updateWalkieCueBanner() {
+    const banner = $("walkie-cue-banner");
+    if (!banner) return;
+
+    if (!walkieTalkieMode) {
+      banner.classList.add("hidden");
+      return;
+    }
+
+    banner.classList.remove("hidden");
+
+    const cueText = $("walkie-cue-text");
+    const cueSub = $("walkie-cue-sub");
+    const cueIcon = $("walkie-cue-icon");
+    const cueIconWrap = $("walkie-cue-icon-wrap");
+
+    if (!walkieFloorHolder) {
+      banner.className = "mb-4 rounded-2xl border border-blue-200 bg-blue-50 shadow-sm";
+      if (cueIconWrap)
+        cueIconWrap.className =
+          "flex h-12 w-12 flex-none items-center justify-center rounded-full bg-blue-100";
+      if (cueIcon) cueIcon.className = "fa-solid fa-microphone-slash text-xl text-blue-600";
+      if (cueText) cueText.textContent = "Floor is free";
+      if (cueSub) cueSub.textContent = "Hold the Talk button to speak. Release when done.";
+    } else if (walkieFloorHolder === state.peerId) {
+      banner.className = "mb-4 rounded-2xl border border-green-300 bg-green-50 shadow-sm";
+      if (cueIconWrap)
+        cueIconWrap.className =
+          "flex h-12 w-12 flex-none items-center justify-center rounded-full bg-green-100";
+      if (cueIcon) cueIcon.className = "fa-solid fa-microphone text-xl text-green-600";
+      if (cueText) cueText.textContent = "You have the floor";
+      if (cueSub) cueSub.textContent = "Release the button when you are done speaking.";
+    } else {
+      const name = getDisplayLabel(walkieFloorHolder);
+      banner.className = "mb-4 rounded-2xl border border-amber-300 bg-amber-50 shadow-sm";
+      if (cueIconWrap)
+        cueIconWrap.className =
+          "flex h-12 w-12 flex-none items-center justify-center rounded-full bg-amber-100";
+      if (cueIcon) cueIcon.className = "fa-solid fa-volume-high text-xl text-amber-600";
+      if (cueText) cueText.textContent = `${name} is speaking`;
+      if (cueSub) cueSub.textContent = "Wait for the floor to be released before talking.";
+    }
+  }
+
+  async function onPushToTalkStart() {
+    if (!walkieTalkieMode) return;
+    await claimWalkieFloor();
+  }
+
+  async function onPushToTalkEnd() {
+    if (!walkieTalkieMode) return;
+    await releaseWalkieFloor();
+  }
+
+  function evaluateCommunicationMode() {
+    // If the user explicitly opted into walkie-talkie from the lobby, never auto-disable it.
+    if (initialMediaPreferences.walkie) return;
+    const totalParticipants = getParticipantTotal();
+    const shouldEnableWalkie = totalParticipants > MAX_VIDEO_PARTICIPANTS;
+    if (walkieTalkieMode !== shouldEnableWalkie) {
+      void setWalkieTalkieMode(shouldEnableWalkie);
+    }
   }
 
   function applyInitialMediaPreferences() {
@@ -1197,11 +1407,17 @@ const VideoChat = (() => {
     const countEl = $("participant-count");
     const isPeerReady = Boolean(peer && peer.open && state.peerId);
     const localVisible = isPeerReady || activeCalls.size > 0;
+    const participantTotal = getParticipantTotal();
     if (countEl) {
-      countEl.textContent = `${activeCalls.size + (localVisible ? 1 : 0)} in room`;
+      countEl.textContent = `${participantTotal} in room`;
+    }
+    const participantModeHint = $("participant-mode-hint");
+    if (participantModeHint) {
+      participantModeHint.textContent = walkieTalkieMode ? WALKIE_MODE_HINT : FULL_VIDEO_MODE_HINT;
     }
     if (!listEl) return;
     listEl.innerHTML = "";
+    evaluateCommunicationMode();
 
     if (!isPeerReady && activeCalls.size === 0) {
       const empty = document.createElement("p");
@@ -1477,6 +1693,36 @@ const VideoChat = (() => {
 
       if (data && data.type === "chat") {
         handleIncomingChatMessage(data, conn.peer);
+        return;
+      }
+
+      if (data && data.type === "floor") {
+        if (!walkieTalkieMode) return;
+        const floorPeerId = typeof data.id === "string" ? data.id.trim() : "";
+        if (!floorPeerId) return;
+        if (floorPeerId !== conn.peer) return;
+        if (data.action === "claim") {
+          walkieFloorHolder = floorPeerId;
+          if (floorPeerId !== state.peerId) {
+            micMuted = true;
+            if (localStream) {
+              localStream.getAudioTracks().forEach((track) => {
+                track.enabled = false;
+              });
+            }
+          }
+          updateWalkieCueBanner();
+          syncControlButtons();
+          updateLocalTilePresentation();
+          broadcastProfile(true);
+          return;
+        }
+        if (data.action === "release" && walkieFloorHolder === floorPeerId) {
+          walkieFloorHolder = null;
+          updateWalkieCueBanner();
+          syncControlButtons();
+          return;
+        }
       }
     });
 
@@ -1689,6 +1935,10 @@ const VideoChat = (() => {
   }
 
   async function toggleMic() {
+    if (walkieTalkieMode) {
+      showToast("Microphone toggle is disabled. Use the Push-to-Talk button instead.", "info");
+      return;
+    }
     micMuted = !micMuted;
     updateMediaButtons(); // Update instantly for zero delay UI
     if (!localStream || localStream.getAudioTracks().length === 0) {
@@ -1736,10 +1986,15 @@ const VideoChat = (() => {
     syncControlButtons();
     updateLocalTilePresentation();
     broadcastProfile(true);
+    persistCurrentRoomState();
     showToast(micMuted ? "Microphone muted" : "Microphone unmuted", "info");
   }
 
   async function toggleCamera() {
+    if (walkieTalkieMode) {
+      showToast("Camera is disabled in walkie-talkie mode", "info");
+      return;
+    }
     camOff = !camOff;
     updateMediaButtons(); // Update instantly
     if (!localStream || localStream.getVideoTracks().length === 0) {
@@ -1782,6 +2037,7 @@ const VideoChat = (() => {
     syncControlButtons();
     updateLocalTilePresentation();
     broadcastProfile(true);
+    persistCurrentRoomState();
     showToast(camOff ? "Camera disabled" : "Camera enabled", "info");
   }
 
@@ -1836,6 +2092,8 @@ const VideoChat = (() => {
     localSpeakingUntil = 0;
     setTileSpeakingIndicator("local", false);
     localHandRaised = false;
+    walkieFloorHolder = null;
+    walkieTalkieMode = false;
     syncRaiseHandButton();
     state.connected = false;
     updateStatus("fa-solid fa-phone-slash", "Call ended", "muted");
@@ -2349,10 +2607,15 @@ const VideoChat = (() => {
     copyToClipboard(url, "Room link");
   }
 
-  /* ── Screen share ── */
+  /**
+   * Captures the user's screen and replaces the video track in all active peer calls.
+   * @async
+   * @returns {Promise<void>}
+   */
   async function shareScreen() {
     try {
       const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+      activeScreenStream = screenStream;
       const screenTrack = screenStream.getVideoTracks()[0];
       for (const call of activeCalls.values()) {
         // Use cached sender reference (robust against null tracks)
@@ -2379,7 +2642,23 @@ const VideoChat = (() => {
     }
   }
 
+  /**
+   * Stops screen sharing, terminates the screen tracks, and restores the camera stream.
+   * @returns {void}
+   */
   function stopScreenShare() {
+    // Always reset UI and state regardless of localStream
+    $("btn-screen") && $("btn-screen").classList.remove("active");
+    screenSharing = false;
+    updateLocalTilePresentation();
+    broadcastProfile(true);
+    showToast("Screen sharing stopped", "info");
+
+    if (activeScreenStream) {
+      activeScreenStream.getTracks().forEach((track) => track.stop());
+      activeScreenStream = null;
+    }
+
     if (!localStream) return;
     const videoTrack = localStream.getVideoTracks()[0];
     if (videoTrack && activeCalls.size > 0) {
@@ -2406,19 +2685,30 @@ const VideoChat = (() => {
     if (localVideo) {
       localVideo.srcObject = localStream;
     }
-    $("btn-screen") && $("btn-screen").classList.remove("active");
-    screenSharing = false;
-    updateLocalTilePresentation();
-    broadcastProfile(true);
-    showToast("Screen sharing stopped", "info");
+  }
+
+  /**
+   * Toggles between starting and stopping screen share based on current state.
+   * @returns {void}
+   */
+  function toggleScreenShare() {
+    if (screenSharing) {
+      stopScreenShare();
+    } else {
+      shareScreen();
+    }
+    const btn = $("btn-screen");
+    if (btn) btn.setAttribute("aria-pressed", screenSharing.toString());
   }
 
   function readInitialMediaPreferencesFromUrl() {
     const params = new URLSearchParams(window.location.search);
     const mic = params.get("mic");
     const cam = params.get("cam");
+    const walkieParam = params.get("walkie");
     const isPrejoin = params.get("prejoin") === "1";
     const hasUrlPrefs = mic !== null || cam !== null;
+    const hasUrlWalkie = walkieParam === "1";
 
     if (mic === "off" || mic === "on") {
       initialMediaPreferences.mic = mic === "on";
@@ -2426,14 +2716,18 @@ const VideoChat = (() => {
     if (cam === "off" || cam === "on") {
       initialMediaPreferences.cam = cam === "on";
     }
+    if (hasUrlWalkie) {
+      initialMediaPreferences.walkie = true;
+    }
 
-    if (hasUrlPrefs) {
+    if (hasUrlPrefs || hasUrlWalkie) {
       try {
         window.sessionStorage.setItem(
           MEDIA_PREFS_STORAGE_KEY,
           JSON.stringify({
             mic: Boolean(initialMediaPreferences.mic),
             cam: Boolean(initialMediaPreferences.cam),
+            walkie: Boolean(initialMediaPreferences.walkie),
           })
         );
       } catch {
@@ -2451,6 +2745,9 @@ const VideoChat = (() => {
             if (typeof parsed.cam === "boolean") {
               initialMediaPreferences.cam = parsed.cam;
             }
+            if (typeof parsed.walkie === "boolean") {
+              initialMediaPreferences.walkie = parsed.walkie;
+            }
           }
         }
       } catch {
@@ -2463,9 +2760,25 @@ const VideoChat = (() => {
       params.delete("mic");
       params.delete("cam");
       params.delete("name");
+      params.delete("walkie");
       const query = params.toString();
       const cleanUrl = window.location.pathname + (query ? "?" + query : "");
       window.history.replaceState({}, "", cleanUrl);
+    }
+  }
+
+  function persistCurrentRoomState() {
+    try {
+      window.sessionStorage.setItem(
+        MEDIA_PREFS_STORAGE_KEY,
+        JSON.stringify({
+          mic: !micMuted,
+          cam: !camOff,
+          walkie: walkieTalkieMode,
+        })
+      );
+    } catch {
+      /* ignore storage failures */
     }
   }
 
@@ -2477,8 +2790,13 @@ const VideoChat = (() => {
     applyInitialMediaPreferences();
     updateLocalTilePresentation();
 
+    // Activate walkie-talkie mode immediately if the user selected it from the lobby.
+    if (initialMediaPreferences.walkie) {
+      await setWalkieTalkieMode(true);
+    }
+
     // Start media eagerly only when the initial preference explicitly enables mic/camera.
-    if (initialMediaPreferences.mic || initialMediaPreferences.cam) {
+    if (!walkieTalkieMode && (initialMediaPreferences.mic || initialMediaPreferences.cam)) {
       const ok = await startLocalMedia();
       if (ok) {
         applyInitialMediaPreferences();
@@ -2493,6 +2811,42 @@ const VideoChat = (() => {
     // Always init peer regardless of success of startLocalMedia (can join without media)
     await initPeer();
     checkInitialPermissions();
+    const pushToTalkBtn = $("btn-push-to-talk");
+    if (pushToTalkBtn) {
+      const isPushToTalkKey = (event) =>
+        event.key === "Enter" || event.key === " " || event.key === "Spacebar";
+
+      const startPushToTalk = () => {
+        void onPushToTalkStart();
+      };
+
+      const endPushToTalk = () => {
+        void onPushToTalkEnd();
+      };
+
+      pushToTalkBtn.addEventListener("pointerdown", (event) => {
+        event.preventDefault();
+        startPushToTalk();
+      });
+      pushToTalkBtn.addEventListener("pointerup", endPushToTalk);
+      pushToTalkBtn.addEventListener("pointercancel", endPushToTalk);
+      pushToTalkBtn.addEventListener("pointerleave", endPushToTalk);
+      pushToTalkBtn.addEventListener("keydown", (event) => {
+        if (!isPushToTalkKey(event) || event.repeat) {
+          return;
+        }
+        event.preventDefault();
+        startPushToTalk();
+      });
+      pushToTalkBtn.addEventListener("keyup", (event) => {
+        if (!isPushToTalkKey(event)) {
+          return;
+        }
+        event.preventDefault();
+        endPushToTalk();
+      });
+      pushToTalkBtn.addEventListener("blur", endPushToTalk);
+    }
     window.addEventListener("beforeunload", () => {
       // Inline synchronous teardown for unload – browsers don't wait for Promises
       try {
@@ -2542,6 +2896,7 @@ const VideoChat = (() => {
     toggleMonitor,
     shareScreen,
     stopScreenShare,
+    toggleScreenShare,
     copyRoomId,
     copyRoomLink,
     sendChatMessage,

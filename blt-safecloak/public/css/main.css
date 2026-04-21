@@ -7,7 +7,7 @@
   /* Primary Colors */
   --blt-primary: #e10101;
   --blt-primary-hover: #b91c1c;
-  
+
   /* Background Colors */
   --blt-bg-primary: #f8fafc;
   --blt-bg-secondary: #ffffff;
@@ -16,22 +16,22 @@
   --blt-bg-hover: #fff5f5;
   --blt-bg-active: #feeae9;
   --blt-bg-light-panel: #fffafa;
-  
+
   /* Text Colors */
   --blt-text-primary: #111827;
   --blt-text-secondary: #374151;
   --blt-text-tertiary: #6b7280;
   --blt-text-light: #f9fafb;
   --blt-text-lightest: #fef2f2;
-  
+
   /* Border Colors */
   --blt-border: #e5e5e5;
   --blt-border-light: #f1f5f9;
   --blt-border-accent: #fecaca;
-  
+
   /* Neutral Border (legacy) */
   --blt-neutral-border: #e5e5e5;
-  
+
   /* Dark Base (legacy) */
   --blt-dark-base: #111827;
   --blt-dark-surface: #1f2937;
@@ -42,7 +42,7 @@ html.dark {
   /* Primary Colors */
   --blt-primary: #ff4444;
   --blt-primary-hover: #ff6b6b;
-  
+
   /* Background Colors */
   --blt-bg-primary: #0f172a;
   --blt-bg-secondary: #1f2937;
@@ -51,22 +51,22 @@ html.dark {
   --blt-bg-hover: #2d3748;
   --blt-bg-active: #3d2419;
   --blt-bg-light-panel: #111827;
-  
+
   /* Text Colors */
   --blt-text-primary: #f1f5f9;
   --blt-text-secondary: #d1d5db;
   --blt-text-tertiary: #9ca3af;
   --blt-text-light: #e5e7eb;
   --blt-text-lightest: #f1f5f9;
-  
+
   /* Border Colors */
   --blt-border: #374151;
   --blt-border-light: #2d3748;
   --blt-border-accent: #7f1d1d;
-  
+
   /* Neutral Border (legacy) */
   --blt-neutral-border: #374151;
-  
+
   /* Dark Base (legacy) */
   --blt-dark-base: #0f172a;
   --blt-dark-surface: #1f2937;
@@ -76,7 +76,9 @@ html.dark {
 body {
   background-color: var(--blt-bg-primary);
   color: var(--blt-text-primary);
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
 /* === Hero Background === */
@@ -84,7 +86,12 @@ body {
   background:
     radial-gradient(circle at 12% 8%, rgba(225, 1, 1, 0.12), transparent 38%),
     radial-gradient(circle at 84% 10%, rgba(225, 1, 1, 0.09), transparent 30%),
-    linear-gradient(to bottom, var(--blt-bg-secondary) 0%, var(--blt-bg-primary) 72%, var(--blt-bg-secondary) 100%);
+    linear-gradient(
+      to bottom,
+      var(--blt-bg-secondary) 0%,
+      var(--blt-bg-primary) 72%,
+      var(--blt-bg-secondary) 100%
+    );
 }
 
 /* === Navigation === */
@@ -96,7 +103,10 @@ body {
 .nav-link {
   color: var(--blt-text-primary);
   border: 1px solid transparent;
-  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease,
+    border-color 0.3s ease;
 }
 
 .nav-link:hover {
@@ -142,7 +152,9 @@ body {
   background: var(--blt-bg-secondary);
   color: var(--blt-primary);
   border: 1px solid var(--blt-primary);
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
 .btn-outline-blt:hover {
@@ -584,7 +596,10 @@ html.dark .control-btn.active {
   font-weight: 700;
   padding: 0.8rem 1rem;
   outline: none;
-  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease,
+    border-color 0.3s ease;
 }
 
 .editor-title:focus {
@@ -604,7 +619,9 @@ html.dark .control-btn.active {
   resize: none;
   outline: none;
   min-height: 230px;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
 .editor-body:focus {
@@ -616,7 +633,9 @@ html.dark .control-btn.active {
   border-top: 1px solid var(--blt-border-light);
   padding: 0.9rem 1rem;
   background: var(--blt-bg-light-panel);
-  transition: background-color 0.3s ease, border-color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease;
 }
 
 .ai-panel-title {
@@ -641,7 +660,10 @@ html.dark .control-btn.active {
   font-size: 0.84rem;
   line-height: 1.6;
   white-space: pre-wrap;
-  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease,
+    border-color 0.3s ease;
 }
 
 /* === Notes Media Queries === */
@@ -699,7 +721,9 @@ html.dark .control-btn.active {
   padding: 0.9rem;
   margin-bottom: 0.7rem;
   background: var(--blt-bg-secondary);
-  transition: background-color 0.3s ease, border-color 0.3s ease;
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease;
 }
 
 .consent-entry-header {
@@ -811,6 +835,46 @@ html.dark .control-btn.active {
   }
 }
 
+/* === Walkie-Talkie Push-To-Talk Button States === */
+/* "Ready to speak" — walkie mode active, floor is free or held by someone else */
+.ptt-ready {
+  background: #1d4ed8 !important;
+  border-color: #1d4ed8 !important;
+  color: #ffffff !important;
+}
+
+.ptt-ready:hover {
+  background: #1e40af !important;
+  border-color: #1e40af !important;
+}
+
+html.dark .ptt-ready {
+  background: #2563eb !important;
+  border-color: #2563eb !important;
+}
+
+@keyframes ptt-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(22, 163, 74, 0);
+  }
+}
+
+.ptt-speaking {
+  background: #166534 !important;
+  border-color: #16a34a !important;
+  color: #ffffff !important;
+  animation: ptt-pulse 1s ease-in-out infinite;
+}
+
+html.dark .ptt-speaking {
+  background: #166534 !important;
+  border-color: #16a34a !important;
+}
+
 /* ============================================
    DARK MODE UTILITY OVERRIDES
    ============================================ */
@@ -898,4 +962,28 @@ html.dark .hover\:bg-red-50:hover,
 html.dark .hover\:bg-gray-50:hover,
 html.dark .hover\:bg-\[\#feeae9\]:hover {
   background-color: var(--blt-bg-hover) !important;
+}
+
+html.dark .bg-amber-50 {
+  background-color: rgba(120, 53, 15, 0.2) !important;
+}
+
+html.dark .bg-amber-100 {
+  background-color: rgba(120, 53, 15, 0.28) !important;
+}
+
+html.dark .border-amber-300 {
+  border-color: rgba(180, 83, 9, 0.45) !important;
+}
+
+html.dark .text-amber-600 {
+  color: #fbbf24 !important;
+}
+
+html.dark .border-blue-200 {
+  border-color: rgba(37, 99, 235, 0.4) !important;
+}
+
+html.dark .border-green-300 {
+  border-color: rgba(22, 163, 74, 0.4) !important;
 }
