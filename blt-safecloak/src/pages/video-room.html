@@ -13,6 +13,18 @@
       href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><path fill='%23E10101' d='M32 4l22 8v17c0 14-9.7 26.3-22 30C19.7 55.3 10 43 10 29V12z'/><path fill='white' d='M32 16l12 4v9c0 7.9-5.2 14.9-12 17-6.8-2.1-12-9.1-12-17v-9z'/></svg>"
     />
 
+    <script>
+      (function () {
+        try {
+          if (localStorage.getItem('blt-theme-preference') === 'dark') {
+            document.documentElement.classList.add('dark');
+          }
+        } catch (error) {
+          console.warn('[ThemeBootstrap] Failed to read saved theme:', error);
+        }
+      })();
+    </script>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
@@ -45,6 +57,7 @@
       referrerpolicy="no-referrer"
     />
     <link rel="stylesheet" href="css/main.css" />
+    <script defer src="js/theme.js"></script>
   </head>
   <body class="font-sans antialiased">
     <div class="pointer-events-none fixed inset-x-0 top-0 -z-10 h-full hero-glow"></div>
@@ -69,11 +82,23 @@
           </div>
         </a>
 
-        <div
-          class="inline-flex items-center gap-2 rounded-full border border-neutral-border bg-white px-3 py-1.5 text-xs shadow-sm sm:text-sm"
-        >
-          <span class="status-dot connecting" id="status-dot" aria-label="Connection status"></span>
-          <span id="connection-status" class="text-muted">Initializing...</span>
+        <div class="inline-flex items-center gap-2">
+          <button
+            class="rounded-md border border-neutral-border p-2 text-gray-700 transition hover:bg-[#feeae9] hover:text-primary"
+            id="theme-toggle-btn"
+            aria-label="Switch to dark mode"
+            type="button"
+            title="Toggle theme"
+          >
+            <i class="fa-solid fa-moon" aria-hidden="true"></i>
+          </button>
+
+          <div
+            class="inline-flex items-center gap-2 rounded-full border border-neutral-border bg-white px-3 py-1.5 text-xs shadow-sm sm:text-sm"
+          >
+            <span class="status-dot connecting" id="status-dot" aria-label="Connection status"></span>
+            <span id="connection-status" class="text-muted">Initializing...</span>
+          </div>
         </div>
       </header>
 
@@ -423,6 +448,8 @@
                 >
               </h2>
               <div id="participants-list">
+                <!-- Participant list items are dynamically injected here. -->
+                <!-- Each item includes a mute button (for local muting) before the disconnect button. -->
                 <p class="py-2 text-center text-sm text-gray-500">No participants connected</p>
               </div>
               <p

@@ -33,6 +33,7 @@ const VideoChat = (() => {
 
   const peerProfiles = new Map(); // peerId -> { name, initials, micMuted, camOff, handRaised }
   const remoteSpeakingMonitors = new Map(); // peerId -> { analyser, data, source, activeUntil }
+  const mutedPeers = new Set(); // peerId -> locally muted audio
   let speakingLoopFrame = null;
   let speakingAudioContext = null;
   let localSpeakingUntil = 0;
@@ -43,6 +44,9 @@ const VideoChat = (() => {
   let walkieFloorHolder = null;
   let wasMicMutedBeforeWalkie = true;
   let wasCamOffBeforeWalkie = true;
+  let reconnectAttempts = 0;
+  const MAX_RECONNECT_ATTEMPTS = 3;
+  const RECONNECT_BASE_DELAY_MS = 1000;
 
   const state = {
     peerId: null,
@@ -358,6 +362,7 @@ const VideoChat = (() => {
     const videoEl = document.createElement("video");
     videoEl.autoplay = true;
     videoEl.playsInline = true;
+    videoEl.muted = mutedPeers.has(peerId);
     videoEl.setAttribute("aria-label", `Participant ${profile.name} video`);
     videoWrapper.appendChild(videoEl);
 
@@ -1043,6 +1048,7 @@ const VideoChat = (() => {
     );
 
     peer.on("open", (id) => {
+      reconnectAttempts = 0;
       $("my-peer-id") && ($("my-peer-id").textContent = id);
       persistOwnRoomId(id);
       ensureRoomIdInUrl(id);
@@ -1107,8 +1113,27 @@ const VideoChat = (() => {
     });
 
     peer.on("disconnected", () => {
-      updateStatus("fa-solid fa-plug-circle-xmark", "Disconnected", "warning");
-      setStatusIcon("offline");
+      if (peer.destroyed || isEndingCall) {
+        updateStatus("fa-solid fa-plug-circle-xmark", "Disconnected", "warning");
+        setStatusIcon("offline");
+        return;
+      }
+      if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+        reconnectAttempts++;
+        const delay = RECONNECT_BASE_DELAY_MS * Math.pow(2, reconnectAttempts - 1);
+        updateStatus("fa-solid fa-arrows-rotate fa-spin", `Reconnecting (${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})…`, "warning");
+        setStatusIcon("offline");
+        const currentPeer = peer;
+        setTimeout(() => {
+          if (currentPeer === peer && !isEndingCall && !currentPeer.destroyed && !currentPeer.open) {
+            currentPeer.reconnect();
+          }
+        }, delay);
+      } else {
+        updateStatus("fa-solid fa-plug-circle-xmark", "Disconnected — could not reconnect", "danger");
+        setStatusIcon("offline");
+        showToast("Lost connection to signaling server. Please rejoin.", "error");
+      }
     });
   }
 
@@ -1227,6 +1252,22 @@ const VideoChat = (() => {
       textWrap.appendChild(idLabel);
       nameSpan.appendChild(textWrap);
 
+      const muteBtn = document.createElement("button");
+      const isMuted = mutedPeers.has(peerId);
+      muteBtn.className = "control-btn participant-mute-btn";
+      muteBtn.style.cssText = "width:32px;height:32px;font-size:0.75rem";
+      muteBtn.title = isMuted ? `Unmute ${getDisplayLabel(peerId)}` : `Mute ${getDisplayLabel(peerId)}`;
+      muteBtn.setAttribute("aria-label", muteBtn.title);
+      muteBtn.setAttribute("aria-pressed", String(isMuted));
+      muteBtn.innerHTML = isMuted ? '<i class="fa-solid fa-microphone-slash" aria-hidden="true"></i>' : '<i class="fa-solid fa-microphone" aria-hidden="true"></i>';
+      muteBtn.addEventListener("click", () => {
+        if (typeof window.toggleParticipantMute === "function") {
+          window.toggleParticipantMute(peerId);
+        } else {
+          togglePeerAudioMute(peerId);
+        }
+      });
+
       const disconnectBtn = document.createElement("button");
       disconnectBtn.className = "control-btn";
       disconnectBtn.style.cssText = "width:32px;height:32px;font-size:0.75rem";
@@ -1235,8 +1276,13 @@ const VideoChat = (() => {
       disconnectBtn.innerHTML = '<i class="fa-solid fa-phone-slash" aria-hidden="true"></i>';
       disconnectBtn.addEventListener("click", () => VideoChat.disconnectPeer(peerId));
 
+      const actionsSpan = document.createElement("span");
+      actionsSpan.className = "flex items-center gap-1.5";
+      actionsSpan.appendChild(muteBtn);
+      actionsSpan.appendChild(disconnectBtn);
+
       item.appendChild(nameSpan);
-      item.appendChild(disconnectBtn);
+      item.appendChild(actionsSpan);
       listEl.appendChild(item);
     });
   }
@@ -1722,6 +1768,21 @@ const VideoChat = (() => {
     if (call) {
       call.close();
     }
+  }
+
+  function togglePeerAudioMute(peerId) {
+    if (mutedPeers.has(peerId)) {
+      mutedPeers.delete(peerId);
+    } else {
+      mutedPeers.add(peerId);
+    }
+    
+    const tile = getTileElements(peerId);
+    if (tile && tile.video) {
+        tile.video.muted = mutedPeers.has(peerId);
+    }
+    
+    updateParticipantsList();
   }
 
   async function endCall(options = {}) {
@@ -2494,5 +2555,12 @@ const VideoChat = (() => {
     copyRoomId,
     copyRoomLink,
     state,
+    togglePeerAudioMute,
   };
 })();
+
+window.toggleParticipantMute = (peerId) => {
+  if (typeof VideoChat !== "undefined" && VideoChat.togglePeerAudioMute) {
+    VideoChat.togglePeerAudioMute(peerId);
+  }
+};
