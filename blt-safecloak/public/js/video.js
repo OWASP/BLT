@@ -16,6 +16,7 @@ const VideoChat = (() => {
   let camOff = true;
   let consentGiven = false;
   let screenSharing = false;
+  let activeScreenStream = null;
   let localHandRaised = false;
   let inviteAutoJoinAttempted = false;
   let inviteAutoJoinRoomId = "";
@@ -2411,10 +2412,15 @@ const VideoChat = (() => {
     copyToClipboard(url, "Room link");
   }
 
-  /* ── Screen share ── */
+  /**
+   * Captures the user's screen and replaces the video track in all active peer calls.
+   * @async
+   * @returns {Promise<void>}
+   */
   async function shareScreen() {
     try {
       const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+      activeScreenStream = screenStream;
       const screenTrack = screenStream.getVideoTracks()[0];
       for (const call of activeCalls.values()) {
         // Use cached sender reference (robust against null tracks)
@@ -2441,7 +2447,24 @@ const VideoChat = (() => {
     }
   }
 
+
+    /**
+   * Stops screen sharing, terminates the screen tracks, and restores the camera stream.
+   * @returns {void}
+   */
   function stopScreenShare() {
+    // Always reset UI and state regardless of localStream
+    $("btn-screen") && $("btn-screen").classList.remove("active");
+    screenSharing = false;
+    updateLocalTilePresentation();
+    broadcastProfile(true);
+    showToast("Screen sharing stopped", "info");
+
+    if (activeScreenStream) {
+      activeScreenStream.getTracks().forEach(track => track.stop());
+      activeScreenStream = null;
+    }
+
     if (!localStream) return;
     const videoTrack = localStream.getVideoTracks()[0];
     if (videoTrack && activeCalls.size > 0) {
@@ -2468,12 +2491,22 @@ const VideoChat = (() => {
     if (localVideo) {
       localVideo.srcObject = localStream;
     }
-    $("btn-screen") && $("btn-screen").classList.remove("active");
-    screenSharing = false;
-    updateLocalTilePresentation();
-    broadcastProfile(true);
-    showToast("Screen sharing stopped", "info");
   }
+
+
+    /**
+   * Toggles between starting and stopping screen share based on current state.
+   * @returns {void}
+   */
+  function toggleScreenShare() {
+  if (screenSharing) {
+    stopScreenShare();
+  } else {
+    shareScreen();
+  }
+  const btn = $("btn-screen");
+  if (btn) btn.setAttribute("aria-pressed", screenSharing.toString());
+}
 
   function readInitialMediaPreferencesFromUrl() {
     const params = new URLSearchParams(window.location.search);
@@ -2670,6 +2703,7 @@ const VideoChat = (() => {
     toggleMonitor,
     shareScreen,
     stopScreenShare,
+    toggleScreenShare,
     copyRoomId,
     copyRoomLink,
     state,
