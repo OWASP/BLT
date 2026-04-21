@@ -2336,6 +2336,7 @@ const VideoChat = (() => {
     const params = new URLSearchParams(window.location.search);
     const mic = params.get("mic");
     const cam = params.get("cam");
+    const walkieParam = params.get("walkie");
     const isPrejoin = params.get("prejoin") === "1";
     const hasUrlPrefs = mic !== null || cam !== null;
 
@@ -2344,6 +2345,9 @@ const VideoChat = (() => {
     }
     if (cam === "off" || cam === "on") {
       initialMediaPreferences.cam = cam === "on";
+    }
+    if (walkieParam === "1") {
+      initialMediaPreferences.walkie = true;
     }
 
     if (hasUrlPrefs) {
@@ -2382,6 +2386,7 @@ const VideoChat = (() => {
       params.delete("mic");
       params.delete("cam");
       params.delete("name");
+      params.delete("walkie");
       const query = params.toString();
       const cleanUrl = window.location.pathname + (query ? "?" + query : "");
       window.history.replaceState({}, "", cleanUrl);
@@ -2396,8 +2401,13 @@ const VideoChat = (() => {
     applyInitialMediaPreferences();
     updateLocalTilePresentation();
 
+    // Activate walkie-talkie mode immediately if the user selected it from the lobby.
+    if (initialMediaPreferences.walkie) {
+      await setWalkieTalkieMode(true);
+    }
+
     // Start media eagerly only when the initial preference explicitly enables mic/camera.
-    if (initialMediaPreferences.mic || initialMediaPreferences.cam) {
+    if (!walkieTalkieMode && (initialMediaPreferences.mic || initialMediaPreferences.cam)) {
       const ok = await startLocalMedia();
       if (ok) {
         applyInitialMediaPreferences();

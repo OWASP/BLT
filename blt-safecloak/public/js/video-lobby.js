@@ -13,6 +13,7 @@
   let previewStream = null;
   let micEnabled = false;
   let camEnabled = false;
+  let walkieTalkieEnabled = false;
   let voiceUiBound = false;
 
   const $ = (id) => document.getElementById(id);
@@ -282,7 +283,8 @@
       return;
     }
 
-    const levels = saved.effectLevels && typeof saved.effectLevels === "object" ? saved.effectLevels : {};
+    const levels =
+      saved.effectLevels && typeof saved.effectLevels === "object" ? saved.effectLevels : {};
     LOBBY_EFFECT_ORDER.forEach((mode) => {
       const raw = Number(levels[mode]);
       const value = Number.isFinite(raw) ? Math.max(0, Math.min(1, raw)) : 0;
@@ -591,6 +593,9 @@
     target.searchParams.set("prejoin", "1");
     target.searchParams.set("mic", micPref);
     target.searchParams.set("cam", camPref);
+    if (walkieTalkieEnabled) {
+      target.searchParams.set("walkie", "1");
+    }
     return target;
   }
 
@@ -660,10 +665,7 @@
     }
 
     if (!isValidRoomId(roomId)) {
-      showToast(
-        "Room ID must be 6 characters: A-Z (except I,O) and digits 2-9",
-        "error"
-      );
+      showToast("Room ID must be 6 characters: A-Z (except I,O) and digits 2-9", "error");
       return;
     }
 
@@ -709,14 +711,20 @@
           shouldAutoJoinFromInvite = true;
           showToast("Room ID loaded from share link", "info");
         }
-        
+
         try {
           const createCard = $("card-create-room");
           const joinCard = $("card-join-room");
           const createBtn = $("btn-create-room");
           const joinBtn = $("btn-join-room");
 
-          if (createCard && joinCard && createBtn && joinBtn && createCard.parentNode === joinCard.parentNode) {
+          if (
+            createCard &&
+            joinCard &&
+            createBtn &&
+            joinBtn &&
+            createCard.parentNode === joinCard.parentNode
+          ) {
             joinCard.parentNode.insertBefore(joinCard, createCard);
 
             const createClasses = createBtn.className;
@@ -750,11 +758,19 @@
     if (micBtn) micBtn.addEventListener("click", toggleMicPreview);
     if (camBtn) camBtn.addEventListener("click", toggleCamPreview);
 
+    const walkieToggle = $("toggle-walkie-talkie");
+    if (walkieToggle) {
+      walkieToggle.addEventListener("change", () => {
+        walkieTalkieEnabled = walkieToggle.checked;
+        walkieToggle.setAttribute("aria-checked", String(walkieTalkieEnabled));
+      });
+    }
+
     try {
       await initPreviewStream();
     } catch (e) {
       // Fallback if initPreviewVoiceEngine(), VoiceChanger.init(), or updatePreviewUI() fails
-      // inside initPreviewStream(). We reset to a safe "null" state so the UI reflects a 
+      // inside initPreviewStream(). We reset to a safe "null" state so the UI reflects a
       // non-previewable state and users can still proceed.
       micEnabled = false;
       camEnabled = false;

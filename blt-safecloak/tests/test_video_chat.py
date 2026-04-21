@@ -1206,6 +1206,7 @@ def test_video_chat_includes_prejoin_voice_controller_ui():
         'id="btn-preview-monitor"',
         'id="slider-preview-monitor-volume"',
         'id="slider-preview-mic-gain"',
+        'id="toggle-walkie-talkie"',
         'src="js/voice-changer.js"',
     ]
     for snippet in required_snippets:
@@ -1241,3 +1242,19 @@ def test_video_js_enforces_five_participant_video_cap_and_walkie_mode():
     assert "void setWalkieTalkieMode(shouldEnableWalkie);" in js
     assert "Walkie-talkie mode enabled for large room" in js
     assert "Hold to talk" in (ROOT / "src/pages/video-room.html").read_text(encoding="utf-8")
+
+
+def test_video_js_activates_walkie_mode_from_lobby_param():
+    """video.js should read walkie=1 URL param from lobby and activate walkie-talkie mode early in init."""
+    js = (ROOT / "public/js/video.js").read_text(encoding="utf-8")
+    assert 'params.get("walkie")' in js
+    assert "initialMediaPreferences.walkie = true" in js
+    assert "initialMediaPreferences.walkie" in js
+    assert 'params.delete("walkie")' in js
+
+
+def test_video_lobby_js_includes_walkie_param_in_room_url():
+    """video-lobby.js should append walkie=1 to the room URL when walkie-talkie mode is selected."""
+    js = (ROOT / "public/js/video-lobby.js").read_text(encoding="utf-8")
+    assert "walkieTalkieEnabled" in js
+    assert 'target.searchParams.set("walkie", "1")' in js
