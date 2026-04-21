@@ -269,11 +269,27 @@
               </div>
 
               <div class="mt-4">
-                <label
-                  class="mb-2 block text-sm font-semibold text-gray-700"
-                  for="display-name-input"
-                  >Display Name</label
-                >
+                <div class="mb-2 flex items-center justify-between gap-2">
+                  <label class="block text-sm font-semibold text-gray-700" for="display-name-input"
+                    >Display Name</label
+                  >
+                  <span
+                    id="saved-name-badge"
+                    class="hidden flex items-center gap-1.5 text-xs text-gray-500"
+                    aria-live="polite"
+                  >
+                    Saved as&nbsp;<strong id="saved-name-text" class="text-gray-700"></strong>
+                    &middot;
+                    <button
+                      id="btn-change-name"
+                      type="button"
+                      class="font-semibold text-primary underline hover:text-primary-hover focus:outline-none"
+                      aria-label="Change your saved display name"
+                    >
+                      Change
+                    </button>
+                  </span>
+                </div>
                 <input
                   type="text"
                   id="display-name-input"

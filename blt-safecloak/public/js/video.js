@@ -115,7 +115,7 @@ const VideoChat = (() => {
     const fromUrl = normalizeDisplayName(params.get("name"));
     if (fromUrl) {
       try {
-        window.sessionStorage.setItem(DISPLAY_NAME_STORAGE_KEY, fromUrl);
+        window.localStorage.setItem(DISPLAY_NAME_STORAGE_KEY, fromUrl);
       } catch {
         /* ignore storage failures */
       }
@@ -124,7 +124,7 @@ const VideoChat = (() => {
 
     try {
       const fromStorage = normalizeDisplayName(
-        window.sessionStorage.getItem(DISPLAY_NAME_STORAGE_KEY)
+        window.localStorage.getItem(DISPLAY_NAME_STORAGE_KEY)
       );
       if (fromStorage) return fromStorage;
     } catch {

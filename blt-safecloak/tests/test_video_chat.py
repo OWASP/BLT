@@ -1309,3 +1309,32 @@ def test_video_room_has_github_footer_link():
     html = (ROOT / "src/pages/video-room.html").read_text(encoding="utf-8")
     assert "https://github.com/OWASP-BLT/BLT-SafeCloak" in html
     assert "fa-brands fa-github" in html
+
+
+def test_display_name_persisted_to_local_storage():
+    """Display name must be persisted to localStorage (not sessionStorage) in both
+    video-lobby.js and video.js so it survives tab/browser restarts."""
+    lobby_js = (ROOT / "public/js/video-lobby.js").read_text(encoding="utf-8")
+    video_js = (ROOT / "public/js/video.js").read_text(encoding="utf-8")
+    # Both files must write the name to localStorage
+    assert "localStorage.setItem(DISPLAY_NAME_STORAGE_KEY" in lobby_js
+    assert "localStorage.setItem(DISPLAY_NAME_STORAGE_KEY" in video_js
+    # Neither file must still read from sessionStorage for the display name key
+    assert "sessionStorage.getItem(DISPLAY_NAME_STORAGE_KEY" not in lobby_js
+    assert "sessionStorage.getItem(DISPLAY_NAME_STORAGE_KEY" not in video_js
+
+
+def test_lobby_html_has_saved_name_badge_and_change_button():
+    """Lobby page must include the saved-name badge and a Change button so returning
+    users can see their stored name and edit it without retyping."""
+    html = (ROOT / "src/pages/video-chat.html").read_text(encoding="utf-8")
+    assert 'id="saved-name-badge"' in html
+    assert 'id="saved-name-text"' in html
+    assert 'id="btn-change-name"' in html
+
+
+def test_video_lobby_js_wires_change_name_button():
+    """video-lobby.js must bind the Change button to clear the display-name input."""
+    js = (ROOT / "public/js/video-lobby.js").read_text(encoding="utf-8")
+    assert "btn-change-name" in js
+    assert "_updateSavedNameBadge" in js

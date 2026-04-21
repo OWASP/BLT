@@ -43,21 +43,23 @@
     if (fromUrl) {
       input.value = fromUrl;
       try {
-        window.sessionStorage.setItem(DISPLAY_NAME_STORAGE_KEY, fromUrl);
+        window.localStorage.setItem(DISPLAY_NAME_STORAGE_KEY, fromUrl);
       } catch {
         /* ignore storage failures */
       }
+      _updateSavedNameBadge(fromUrl);
       return;
     }
 
     let fromStorage = "";
     try {
-      fromStorage = normalizeDisplayName(window.sessionStorage.getItem(DISPLAY_NAME_STORAGE_KEY));
+      fromStorage = normalizeDisplayName(window.localStorage.getItem(DISPLAY_NAME_STORAGE_KEY));
     } catch {
       /* ignore storage failures */
     }
     if (fromStorage) {
       input.value = fromStorage;
+      _updateSavedNameBadge(fromStorage);
     }
   }
 
@@ -74,11 +76,24 @@
     }
 
     try {
-      window.sessionStorage.setItem(DISPLAY_NAME_STORAGE_KEY, name);
+      window.localStorage.setItem(DISPLAY_NAME_STORAGE_KEY, name);
     } catch {
       /* ignore storage failures */
     }
     return name;
+  }
+
+  /** Show/hide the "saved as … · Change" badge next to the display-name label. */
+  function _updateSavedNameBadge(name) {
+    const badge = $("saved-name-badge");
+    const badgeName = $("saved-name-text");
+    if (!badge) return;
+    if (name) {
+      if (badgeName) badgeName.textContent = name;
+      badge.classList.remove("hidden");
+    } else {
+      badge.classList.add("hidden");
+    }
   }
 
   function hasAudioTrack() {
@@ -654,7 +669,7 @@
   function goToRoom(roomId = "", displayName = "") {
     if (displayName) {
       try {
-        window.sessionStorage.setItem(DISPLAY_NAME_STORAGE_KEY, displayName);
+        window.localStorage.setItem(DISPLAY_NAME_STORAGE_KEY, displayName);
       } catch {
         /* ignore storage failures */
       }
@@ -795,6 +810,19 @@
 
     if (micBtn) micBtn.addEventListener("click", toggleMicPreview);
     if (camBtn) camBtn.addEventListener("click", toggleCamPreview);
+
+    const changeNameBtn = $("btn-change-name");
+    if (changeNameBtn) {
+      changeNameBtn.addEventListener("click", () => {
+        const input = getDisplayNameInput();
+        const badge = $("saved-name-badge");
+        if (input) {
+          input.value = "";
+          input.focus();
+        }
+        if (badge) badge.classList.add("hidden");
+      });
+    }
 
     const walkieToggle = $("toggle-walkie-talkie");
     if (walkieToggle) {
