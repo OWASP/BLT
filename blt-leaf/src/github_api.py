@@ -2,7 +2,7 @@
 
 import json
 import asyncio
-from js import fetch, Headers, Object
+from js import fetch, Object
 from pyodide.ffi import to_js
 from cache import get_timeline_cache, set_timeline_cache, set_rate_limit_data
 
