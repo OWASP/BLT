@@ -144,7 +144,6 @@ const VideoChat = (() => {
         micMuted: isLocalMicMutedState(),
         camOff: isLocalCamOffState(),
         handRaised: localHandRaised,
-        ownerId: state.ownerId,
       };
     }
     const profile = peerProfiles.get(peerId);
@@ -155,7 +154,6 @@ const VideoChat = (() => {
       micMuted: false,
       camOff: false,
       handRaised: false,
-      ownerId: null,
     };
   }
 
@@ -166,9 +164,7 @@ const VideoChat = (() => {
 
   function isPeerOwner(peerId) {
     if (!peerId) return false;
-    const profile = getProfileForPeer(peerId);
-    const ownerId = profile && profile.ownerId ? profile.ownerId : state.ownerId;
-    return Boolean(ownerId && peerId === ownerId);
+    return Boolean(state.ownerId && peerId === state.ownerId);
   }
 
   function createOwnerBadge() {
@@ -305,7 +301,6 @@ const VideoChat = (() => {
       id: state.peerId,
       name: state.displayName,
       initials: state.displayInitials,
-      ownerId: state.ownerId,
       micMuted: isLocalMicMutedState(),
       camOff: screenSharing ? false : isLocalCamOffState(),
       handRaised: localHandRaised,
@@ -604,20 +599,12 @@ const VideoChat = (() => {
       micMuted: false,
       camOff: false,
       handRaised: false,
-      ownerId: null,
     };
     const normalizedName = normalizeDisplayName(payload && payload.name);
-    const incomingOwnerId =
-      payload && typeof payload.ownerId === "string" ? normalizeRoomId(payload.ownerId) : "";
-
-    if (incomingOwnerId && !state.ownerId) {
-      state.ownerId = incomingOwnerId;
-    }
 
     const profile = {
       name: normalizedName || prev.name,
       initials: makeInitials(normalizedName || prev.name),
-      ownerId: incomingOwnerId || prev.ownerId || null,
       micMuted:
         payload && typeof payload.micMuted === "boolean"
           ? payload.micMuted
