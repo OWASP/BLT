@@ -1,6 +1,6 @@
 {
   "participantCount": 203,
-  "totalPRs": 2680,
+  "totalPRs": 2681,
   "mergedPRs": 1671,
   "totalIssues": 843,
   "repositories": 54,
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "Add recommended research papers section and fetching functionality",
+      "url": "https://github.com/OWASP-BLT/BLT-OSSH/pull/33",
+      "username": "Neurvinch",
+      "avatar": "https://avatars.githubusercontent.com/u/149451318?v=4",
+      "state": "open",
+      "created_at": "2026-04-22T16:42:39Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-OSSH"
+    },
     {
       "title": "Hybrid Walkie-Talkie Mode with Centralized State & Full Test Coverage",
       "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/110",
@@ -113,16 +123,6 @@
       "state": "closed",
       "created_at": "2026-04-19T18:11:54Z",
       "merged_at": "2026-04-19T19:49:20Z",
-      "repository": "OWASP-BLT/BLT-SafeCloak"
-    },
-    {
-      "title": "fix(audio): resolve Noise Suppression Button Not Working in Lobby (#91)",
-      "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/92",
-      "username": "ojaswa072",
-      "avatar": "https://avatars.githubusercontent.com/u/230836303?v=4",
-      "state": "open",
-      "created_at": "2026-04-19T17:05:57Z",
-      "merged_at": null,
       "repository": "OWASP-BLT/BLT-SafeCloak"
     }
   ]
