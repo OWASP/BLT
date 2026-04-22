@@ -193,6 +193,7 @@ body {
 
 .toast-info {
   background: var(--blt-bg-light-panel);
+  color: var(--blt-text-primary);
 }
 
 .toast-success {
@@ -710,7 +711,7 @@ html.dark .control-btn.active {
 }
 
 .consent-log {
-  max-height: 760px;
+  max-height: 1160px;
   overflow-y: auto;
 }
 
