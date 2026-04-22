@@ -1317,7 +1317,13 @@ const VideoChat = (() => {
     localItem.appendChild(localNameSpan);
     listEl.appendChild(localItem);
 
-    activeCalls.forEach((_call, peerId) => {
+    const orderedPeerIds = Array.from(activeCalls.keys()).sort((a, b) => {
+      const aRank = isPeerOwner(a) ? 0 : 1;
+      const bRank = isPeerOwner(b) ? 0 : 1;
+      return aRank - bRank;
+    });
+
+    orderedPeerIds.forEach((peerId) => {
       const item = document.createElement("div");
       item.className = "flex items-center justify-between gap-2 py-1 text-sm";
 
