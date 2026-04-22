@@ -335,17 +335,6 @@ def set_rate_limit_data(limit, remaining, reset):
     except (ValueError, TypeError) as e:
         print(f"Error caching rate limit data: {e}")
 
-def get_current_rate_limit():
-    """
-    Returns the current cached GitHub rate limit status for inclusion in 
-    API responses to the frontend.
-    """
-    global _rate_limit_cache
-    return {
-        'limit': _rate_limit_cache['limit'],
-        'remaining': _rate_limit_cache['remaining'],
-        'reset': _rate_limit_cache['reset']
-    }
 # Export cache dict for rate limit handler access
 def get_rate_limit_cache():
     """Get the rate limit cache dict"""
