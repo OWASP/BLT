@@ -1,6 +1,6 @@
 {
   "participantCount": 203,
-  "totalPRs": 2681,
+  "totalPRs": 2684,
   "mergedPRs": 1671,
   "totalIssues": 843,
   "repositories": 54,
@@ -25,6 +25,36 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "Update SECURITY.md with VDP instead of Bug Bounty",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6212",
+      "username": "S3DFX-CYBER",
+      "avatar": "https://avatars.githubusercontent.com/u/213652949?v=4",
+      "state": "closed",
+      "created_at": "2026-04-22T19:26:21Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT"
+    },
+    {
+      "title": "Add Sanidhya Shishodia as Interested Mentor",
+      "url": "https://github.com/OWASP-BLT/BLT-GSOC/pull/62",
+      "username": "dev-sanidhya",
+      "avatar": "https://avatars.githubusercontent.com/u/194255971?v=4",
+      "state": "open",
+      "created_at": "2026-04-22T19:16:46Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-GSOC"
+    },
+    {
+      "title": " fix: white toasts show perfectly in white mode and consent log takes full space",
+      "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/113",
+      "username": "Rudrawhy",
+      "avatar": "https://avatars.githubusercontent.com/u/154898503?v=4",
+      "state": "open",
+      "created_at": "2026-04-22T19:14:19Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-SafeCloak"
+    },
     {
       "title": "Add recommended research papers section and fetching functionality",
       "url": "https://github.com/OWASP-BLT/BLT-OSSH/pull/33",
@@ -93,36 +123,6 @@
       "state": "closed",
       "created_at": "2026-04-20T12:32:05Z",
       "merged_at": "2026-04-21T15:03:42Z",
-      "repository": "OWASP-BLT/BLT-SafeCloak"
-    },
-    {
-      "title": "add peer reconnection with exponential backoff on disconnect",
-      "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/97",
-      "username": "azizrebhi",
-      "avatar": "https://avatars.githubusercontent.com/u/154744962?v=4",
-      "state": "closed",
-      "created_at": "2026-04-19T21:08:32Z",
-      "merged_at": "2026-04-21T05:10:34Z",
-      "repository": "OWASP-BLT/BLT-SafeCloak"
-    },
-    {
-      "title": "feat(video-room): add realtime raise-hand in participant list and refine lobby presence UI",
-      "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/95",
-      "username": "Rudrawhy",
-      "avatar": "https://avatars.githubusercontent.com/u/154898503?v=4",
-      "state": "closed",
-      "created_at": "2026-04-19T20:02:10Z",
-      "merged_at": "2026-04-19T20:49:08Z",
-      "repository": "OWASP-BLT/BLT-SafeCloak"
-    },
-    {
-      "title": "fix(ui): swap join and create room buttons on invite link (#93)",
-      "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/94",
-      "username": "ojaswa072",
-      "avatar": "https://avatars.githubusercontent.com/u/230836303?v=4",
-      "state": "closed",
-      "created_at": "2026-04-19T18:11:54Z",
-      "merged_at": "2026-04-19T19:49:20Z",
       "repository": "OWASP-BLT/BLT-SafeCloak"
     }
   ]
