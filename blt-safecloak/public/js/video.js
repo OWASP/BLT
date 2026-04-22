@@ -51,6 +51,7 @@ const VideoChat = (() => {
 
   const state = {
     peerId: null,
+    ownerId: null,
     connected: false,
     sessionId: null,
     sessionKey: null,
@@ -143,6 +144,7 @@ const VideoChat = (() => {
         micMuted: isLocalMicMutedState(),
         camOff: isLocalCamOffState(),
         handRaised: localHandRaised,
+        ownerId: state.ownerId,
       };
     }
     const profile = peerProfiles.get(peerId);
@@ -153,12 +155,30 @@ const VideoChat = (() => {
       micMuted: false,
       camOff: false,
       handRaised: false,
+      ownerId: null,
     };
   }
 
   function getDisplayLabel(peerId) {
     if (peerId === state.peerId || peerId === "local") return "You";
     return getProfileForPeer(peerId).name || peerId;
+  }
+
+  function isPeerOwner(peerId) {
+    if (!peerId) return false;
+    const profile = getProfileForPeer(peerId);
+    const ownerId = profile && profile.ownerId ? profile.ownerId : state.ownerId;
+    return Boolean(ownerId && peerId === ownerId);
+  }
+
+  function createOwnerBadge() {
+    const badge = document.createElement("span");
+    badge.className =
+      "rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-700";
+    badge.textContent = "Owner";
+    badge.setAttribute("aria-label", "Room owner");
+    badge.title = "Room owner";
+    return badge;
   }
 
   function normalizeRoomId(value) {
@@ -285,6 +305,7 @@ const VideoChat = (() => {
       id: state.peerId,
       name: state.displayName,
       initials: state.displayInitials,
+      ownerId: state.ownerId,
       micMuted: isLocalMicMutedState(),
       camOff: screenSharing ? false : isLocalCamOffState(),
       handRaised: localHandRaised,
@@ -583,12 +604,20 @@ const VideoChat = (() => {
       micMuted: false,
       camOff: false,
       handRaised: false,
+      ownerId: null,
     };
     const normalizedName = normalizeDisplayName(payload && payload.name);
+    const incomingOwnerId =
+      payload && typeof payload.ownerId === "string" ? normalizeRoomId(payload.ownerId) : "";
+
+    if (incomingOwnerId && !state.ownerId) {
+      state.ownerId = incomingOwnerId;
+    }
 
     const profile = {
       name: normalizedName || prev.name,
       initials: makeInitials(normalizedName || prev.name),
+      ownerId: incomingOwnerId || prev.ownerId || null,
       micMuted:
         payload && typeof payload.micMuted === "boolean"
           ? payload.micMuted
@@ -1090,7 +1119,9 @@ const VideoChat = (() => {
       return;
     }
     const inviteRoomId = getInviteRoomIdFromUrl();
-    state.peerId = shouldReuseInviteRoomAsPeerId(inviteRoomId) ? inviteRoomId : Crypto.randomId(6);
+    const shouldReuseRoomId = shouldReuseInviteRoomAsPeerId(inviteRoomId);
+    state.peerId = shouldReuseRoomId ? inviteRoomId : Crypto.randomId(6);
+    state.ownerId = isValidRoomId(inviteRoomId) ? inviteRoomId : state.peerId;
     persistOwnRoomId(state.peerId);
     state.sessionKey = await Crypto.generateKey();
     state.sessionId = state.peerId;
@@ -1259,6 +1290,10 @@ const VideoChat = (() => {
     localNameText.textContent = `${state.displayName} (You)`;
     localNameLabel.appendChild(localNameText);
 
+    if (isPeerOwner(state.peerId)) {
+      localNameLabel.appendChild(createOwnerBadge());
+    }
+
     if (localHandRaised) {
       const hand = document.createElement("span");
       hand.textContent = "✋";
@@ -1304,6 +1339,10 @@ const VideoChat = (() => {
       nameText.className = "truncate";
       nameText.textContent = getDisplayLabel(peerId);
       nameLabel.appendChild(nameText);
+
+      if (isPeerOwner(peerId)) {
+        nameLabel.appendChild(createOwnerBadge());
+      }
 
       const remoteProfile = getProfileForPeer(peerId);
       if (remoteProfile.handRaised) {
