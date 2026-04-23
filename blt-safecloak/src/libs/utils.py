@@ -12,10 +12,24 @@ Key design decisions:
 
 from workers import Response
 import json
-from typing import Any, Dict
+import os
+from typing import Any, Dict, Set
 
 
-def base_headers(content_type: str) -> Dict[str, str]:
+def get_allowed_origins() -> Set[str]:
+    """Return configured allowed CORS origins from env var SAFE_CLOAK_ALLOWED_ORIGINS."""
+    configured = os.getenv('SAFE_CLOAK_ALLOWED_ORIGINS', '')
+    return {origin.strip() for origin in configured.split(',') if origin.strip()}
+
+
+def resolve_allowed_origin(origin: str | None) -> str | None:
+    """Return origin only when it is explicitly allowlisted; otherwise return None."""
+    if not origin:
+        return None
+    return origin if origin in get_allowed_origins() else None
+
+
+def base_headers(content_type: str, origin: str | None = None) -> Dict[str, str]:
     """
     Create a base set of headers for all responses.
 
@@ -31,15 +45,14 @@ def base_headers(content_type: str) -> Dict[str, str]:
     Returns:
         Dictionary of headers
     """
-    return {
-        'Content-Type': content_type,
+    headers = {'Content-Type': content_type}
+    allowed_origin = resolve_allowed_origin(origin)
+    if allowed_origin:
+        headers['Access-Control-Allow-Origin'] = allowed_origin
+    return headers
 
-        # Allows any origin to access the response
-        'Access-Control-Allow-Origin': '*',
-    }
 
-
-def html_response(html_str: str, status: int = 200) -> Response:
+def html_response(html_str: str, status: int = 200, origin: str | None = None) -> Response:
     """
     Create an HTML response.
 
@@ -50,14 +63,12 @@ def html_response(html_str: str, status: int = 200) -> Response:
     Returns:
         Response object with HTML content type and CORS headers
     """
-    return Response(
-        html_str,
-        status=status,
-        headers=base_headers('text/html; charset=utf-8')
-    )
+    return Response(html_str,
+                    status=status,
+                    headers=base_headers('text/html; charset=utf-8', origin=origin))
 
 
-def json_response(data: Any, status: int = 200) -> Response:
+def json_response(data: Any, status: int = 200, origin: str | None = None) -> Response:
     """
     Create a JSON response.
 
@@ -76,14 +87,13 @@ def json_response(data: Any, status: int = 200) -> Response:
         json.dumps(
             data,
             ensure_ascii=False,  # Keeps Unicode readable (e.g., हिंदी)
-            default=str          # Fallback for non-serializable objects
+            default=str  # Fallback for non-serializable objects
         ),
         status=status,
-        headers=base_headers('application/json; charset=utf-8')
-    )
+        headers=base_headers('application/json; charset=utf-8', origin=origin))
 
 
-def cors_response(status: int = 204) -> Response:
+def cors_response(origin: str | None = None, status: int = 204) -> Response:
     """
     Create a CORS preflight (OPTIONS) response.
 
@@ -98,21 +108,16 @@ def cors_response(status: int = 204) -> Response:
     Returns:
         Response object with CORS headers
     """
+    headers = {
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Max-Age': '86400',
+    }
+    allowed_origin = resolve_allowed_origin(origin)
+    if allowed_origin:
+        headers['Access-Control-Allow-Origin'] = allowed_origin
+
     return Response(
         None,  # 204 responses should not include a body
         status=status,
-        headers={
-            # Allow all origins 
-            'Access-Control-Allow-Origin': '*',
-
-            # Allowed HTTP methods
-            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-
-            # Allowed request headers
-            'Access-Control-Allow-Headers': 'Content-Type',
-
-            # Cache preflight response (in seconds basically 1 day)
-            # Reduces repeated OPTIONS requests
-            'Access-Control-Max-Age': '86400',
-        }
-    )
+        headers=headers)
