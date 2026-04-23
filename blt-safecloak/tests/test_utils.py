@@ -28,7 +28,7 @@ sys.modules['workers'] = mock_workers
 # Fix the path so it finds your 'src' folder
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 # Now the import will work perfectly!
-from src.libs.utils import html_response, json_response, cors_response
+from src.libs.utils import html_response, json_response, cors_response, resolve_allowed_origin
 
 
 def test_html_response_sets_cors_for_allowed_origin(monkeypatch):
@@ -41,6 +41,7 @@ def test_html_response_sets_cors_for_allowed_origin(monkeypatch):
     assert response.headers["Content-Type"] == "text/html; charset=utf-8"
     assert "<h1>Test Page</h1>" in response.body.decode('utf-8')
     assert response.headers["Access-Control-Allow-Origin"] == "https://allowed.example"
+    assert response.headers["Vary"] == "Origin"
 
 
 def test_html_response_omits_cors_for_unknown_origin(monkeypatch):
@@ -50,6 +51,7 @@ def test_html_response_omits_cors_for_unknown_origin(monkeypatch):
 
     assert response.status_code == 200
     assert "Access-Control-Allow-Origin" not in response.headers
+    assert response.headers["Vary"] == "Origin"
 
 
 def test_json_response_sets_cors_for_allowed_origin(monkeypatch):
@@ -62,6 +64,7 @@ def test_json_response_sets_cors_for_allowed_origin(monkeypatch):
     assert response.headers["Content-Type"] == "application/json; charset=utf-8"
     assert json.loads(response.body) == data
     assert response.headers["Access-Control-Allow-Origin"] == "https://allowed.example"
+    assert response.headers["Vary"] == "Origin"
 
 
 def test_cors_response_sets_allow_origin_for_allowed_origin(monkeypatch):
@@ -74,6 +77,7 @@ def test_cors_response_sets_allow_origin_for_allowed_origin(monkeypatch):
     assert response.headers["Access-Control-Allow-Methods"] == "GET, POST, OPTIONS"
     assert response.headers["Access-Control-Allow-Headers"] == "Content-Type"
     assert response.headers["Access-Control-Max-Age"] == "86400"
+    assert response.headers["Vary"] == "Origin"
 
 
 def test_cors_response_omits_allow_origin_for_unknown_origin(monkeypatch):
@@ -83,6 +87,14 @@ def test_cors_response_omits_allow_origin_for_unknown_origin(monkeypatch):
 
     assert response.status_code == 204
     assert "Access-Control-Allow-Origin" not in response.headers
+    assert response.headers["Vary"] == "Origin"
+
+
+def test_resolve_allowed_origin_normalizes_case_and_trailing_slash(monkeypatch):
+    """Allowlist checks should ignore host/scheme case and trailing slash differences."""
+    monkeypatch.setenv('SAFE_CLOAK_ALLOWED_ORIGINS', 'https://Allowed.Example.com/')
+
+    assert resolve_allowed_origin('HTTPS://ALLOWED.EXAMPLE.COM') == 'https://allowed.example.com'
 
 
 def test_json_response_default_str_fallback():
