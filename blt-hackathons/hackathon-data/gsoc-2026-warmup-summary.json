@@ -1,7 +1,7 @@
 {
   "participantCount": 203,
-  "totalPRs": 2685,
-  "mergedPRs": 1672,
+  "totalPRs": 2686,
+  "mergedPRs": 1673,
   "totalIssues": 843,
   "repositories": 54,
   "topContributors": [
@@ -50,9 +50,9 @@
       "url": "https://github.com/OWASP-BLT/BLT-GSOC/pull/62",
       "username": "dev-sanidhya",
       "avatar": "https://avatars.githubusercontent.com/u/194255971?v=4",
-      "state": "open",
+      "state": "closed",
       "created_at": "2026-04-22T19:16:46Z",
-      "merged_at": null,
+      "merged_at": "2026-04-23T04:47:22Z",
       "repository": "OWASP-BLT/BLT-GSOC"
     },
     {
