@@ -14,25 +14,28 @@ from workers import Response
 import json
 from typing import Any, Dict
 
+SECURITY_HEADERS: Dict[str, str] = {
+    'X-Content-Type-Options':
+    'nosniff',
+    'X-Frame-Options':
+    'DENY',
+    'Referrer-Policy':
+    'strict-origin-when-cross-origin',
+    'Content-Security-Policy-Report-Only':
+    ("default-src 'self'; base-uri 'self'; object-src 'none'; "
+     "frame-ancestors 'none'; form-action 'self'"),
+}
+
 
 def security_headers() -> Dict[str, str]:
     """
     Return security headers that should be present on every response.
 
     CSP is report-only here to avoid breaking existing inline assets while
-    still surfacing violations during testing and monitoring.
+    still surfacing violations during testing and monitoring. No reporting
+    endpoint is configured, so violations stay local to browser/devtools logs.
     """
-    return {
-        'X-Content-Type-Options':
-        'nosniff',
-        'X-Frame-Options':
-        'DENY',
-        'Referrer-Policy':
-        'strict-origin-when-cross-origin',
-        'Content-Security-Policy-Report-Only':
-        ("default-src 'self'; base-uri 'self'; object-src 'none'; "
-         "frame-ancestors 'none'; form-action 'self'"),
-    }
+    return SECURITY_HEADERS.copy()
 
 
 def base_headers(content_type: str) -> Dict[str, str]:

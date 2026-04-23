@@ -41,21 +41,19 @@ class Default(WorkerEntrypoint):
             if hasattr(env, 'ASSETS'):
                 return await env.ASSETS.fetch(request)
 
-            return Response('Not Found', status=404)
+            return Response('Not Found',
+                            status=404,
+                            headers=base_headers('text/plain; charset=utf-8'))
 
         except FileNotFoundError as exc:
             print(f'[404] Page file not found: {exc}')
-            return Response(
-                'Not Found',
-                status=404,
-                headers=base_headers('text/plain; charset=utf-8')
-            )
+            return Response('Not Found',
+                            status=404,
+                            headers=base_headers('text/plain; charset=utf-8'))
         except asyncio.CancelledError:
             raise
         except Exception as exc:
             traceback.print_exc()
-            return Response(
-                'Internal Server Error',
-                status=500,
-                headers=base_headers('text/plain; charset=utf-8')
-            )
+            return Response('Internal Server Error',
+                            status=500,
+                            headers=base_headers('text/plain; charset=utf-8'))

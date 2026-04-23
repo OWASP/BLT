@@ -29,17 +29,13 @@ sys.modules['workers'] = mock_workers
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 # Now the import will work perfectly!
 from src.libs.utils import html_response, json_response, cors_response
+from src.libs.utils import security_headers
 
-EXPECTED_SECURITY_HEADERS = {
-    "X-Content-Type-Options":
-    "nosniff",
-    "X-Frame-Options":
-    "DENY",
-    "Referrer-Policy":
-    "strict-origin-when-cross-origin",
-    "Content-Security-Policy-Report-Only":
-    ("default-src 'self'; base-uri 'self'; object-src 'none'; "
-     "frame-ancestors 'none'; form-action 'self'"),
+EXPECTED_SECURITY_HEADERS = security_headers()
+CRITICAL_SECURITY_DIRECTIVES = {
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
 }
 
 
@@ -51,7 +47,10 @@ def test_html_response():
     assert response.status_code == 200
     assert response.headers["Content-Type"] == "text/html; charset=utf-8"
     assert response.headers["Access-Control-Allow-Origin"] == "*"
+    assert EXPECTED_SECURITY_HEADERS.items() <= response.headers.items()
     for header_name, expected_value in EXPECTED_SECURITY_HEADERS.items():
+        assert response.headers[header_name] == expected_value
+    for header_name, expected_value in CRITICAL_SECURITY_DIRECTIVES.items():
         assert response.headers[header_name] == expected_value
     assert "<h1>Test Page</h1>" in response.body.decode('utf-8')
 
@@ -64,7 +63,10 @@ def test_json_response():
     assert response.status_code == 200
     assert response.headers["Content-Type"] == "application/json; charset=utf-8"
     assert response.headers["Access-Control-Allow-Origin"] == "*"
+    assert EXPECTED_SECURITY_HEADERS.items() <= response.headers.items()
     for header_name, expected_value in EXPECTED_SECURITY_HEADERS.items():
+        assert response.headers[header_name] == expected_value
+    for header_name, expected_value in CRITICAL_SECURITY_DIRECTIVES.items():
         assert response.headers[header_name] == expected_value
     assert json.loads(response.body) == data
 
@@ -78,7 +80,10 @@ def test_cors_response():
     assert response.headers["Access-Control-Allow-Methods"] == "GET, POST, OPTIONS"
     assert response.headers["Access-Control-Allow-Headers"] == "Content-Type"
     assert response.headers["Access-Control-Max-Age"] == "86400"
+    assert EXPECTED_SECURITY_HEADERS.items() <= response.headers.items()
     for header_name, expected_value in EXPECTED_SECURITY_HEADERS.items():
+        assert response.headers[header_name] == expected_value
+    for header_name, expected_value in CRITICAL_SECURITY_DIRECTIVES.items():
         assert response.headers[header_name] == expected_value
 
 
@@ -146,6 +151,23 @@ def test_on_fetch_missing_page_returns_404():
             response = asyncio.run(worker.on_fetch(req, env))
 
     assert response.status_code == 404
+    assert b'Not Found' in response.body
+
+
+def test_on_fetch_unknown_path_returns_404_with_security_headers():
+    """Verify that a missing route returns a secure 404 response."""
+    worker = Default()
+    req = _make_request('GET', '/missing-route')
+    env = _make_env()
+
+    response = asyncio.run(worker.on_fetch(req, env))
+
+    assert response.status_code == 404
+    assert response.headers["Content-Type"] == "text/plain; charset=utf-8"
+    assert response.headers["Access-Control-Allow-Origin"] == "*"
+    assert EXPECTED_SECURITY_HEADERS.items() <= response.headers.items()
+    for header_name, expected_value in EXPECTED_SECURITY_HEADERS.items():
+        assert response.headers[header_name] == expected_value
     assert b'Not Found' in response.body
 
 
