@@ -850,8 +850,21 @@ html.dark .control-btn.active {
 }
 
 html.dark .ptt-ready {
-  background: #2563eb !important;
-  border-color: #2563eb !important;
+  background: #1d4ed8 !important;
+  background-color: #1d4ed8 !important;
+  border-color: #1d4ed8 !important;
+}
+
+html.dark .control-btn.ptt-ready {
+  background: #1d4ed8 !important;
+  background-color: #1d4ed8 !important;
+  border-color: #1d4ed8 !important;
+}
+
+html.dark .control-btn.ptt-ready:hover {
+  background: #1e40af !important;
+  background-color: #1e40af !important;
+  border-color: #1e40af !important;
 }
 
 @keyframes ptt-pulse {
