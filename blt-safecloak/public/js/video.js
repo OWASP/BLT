@@ -908,6 +908,14 @@ const VideoChat = (() => {
     pushToTalkPressed = true;
     syncControlButtons();
     const claimed = await claimWalkieFloor();
+
+    // If the button was released while claim was pending, immediately relinquish the floor.
+    if (claimed && !pushToTalkPressed) {
+      await releaseWalkieFloor();
+      syncControlButtons();
+      return;
+    }
+
     if (!claimed && walkieFloorHolder !== state.peerId) {
       pushToTalkPressed = false;
       syncControlButtons();
