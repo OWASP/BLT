@@ -1,6 +1,6 @@
 {
-  "participantCount": 203,
-  "totalPRs": 2687,
+  "participantCount": 204,
+  "totalPRs": 2688,
   "mergedPRs": 1673,
   "totalIssues": 844,
   "repositories": 54,
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "feat: remove OSSH module (migrated to BLT-OSSH repo)",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6213",
+      "username": "b-u-g-g",
+      "avatar": "https://avatars.githubusercontent.com/u/147278023?v=4",
+      "state": "closed",
+      "created_at": "2026-04-23T18:07:26Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT"
+    },
     {
       "title": "fix(security): enforce allowlist-based CORS origin validation",
       "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/115",
@@ -114,16 +124,6 @@
       "created_at": "2026-04-20T19:34:13Z",
       "merged_at": "2026-04-21T17:44:07Z",
       "repository": "OWASP-BLT/BLT-Pages"
-    },
-    {
-      "title": "feat(lobby): add individual mute button for participants",
-      "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/102",
-      "username": "ojaswa072",
-      "avatar": "https://avatars.githubusercontent.com/u/230836303?v=4",
-      "state": "closed",
-      "created_at": "2026-04-20T18:47:42Z",
-      "merged_at": "2026-04-21T05:08:55Z",
-      "repository": "OWASP-BLT/BLT-SafeCloak"
     }
   ]
 }
