@@ -1,6 +1,6 @@
 {
   "participantCount": 203,
-  "totalPRs": 2686,
+  "totalPRs": 2687,
   "mergedPRs": 1673,
   "totalIssues": 843,
   "repositories": 54,
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "fix(security): enforce allowlist-based CORS origin validation",
+      "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/115",
+      "username": "ojaswa072",
+      "avatar": "https://avatars.githubusercontent.com/u/230836303?v=4",
+      "state": "open",
+      "created_at": "2026-04-23T16:16:23Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-SafeCloak"
+    },
     {
       "title": "feat(video-chat): add room-owner badge for creator and stop invite-link auto-join from lobby",
       "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/114",
@@ -113,16 +123,6 @@
       "state": "closed",
       "created_at": "2026-04-20T18:47:42Z",
       "merged_at": "2026-04-21T05:08:55Z",
-      "repository": "OWASP-BLT/BLT-SafeCloak"
-    },
-    {
-      "title": "feat(video): add deafen control with mic auto-mute and remote audio only playback mute",
-      "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/101",
-      "username": "Rudrawhy",
-      "avatar": "https://avatars.githubusercontent.com/u/154898503?v=4",
-      "state": "open",
-      "created_at": "2026-04-20T18:19:03Z",
-      "merged_at": null,
       "repository": "OWASP-BLT/BLT-SafeCloak"
     }
   ]
