@@ -15,6 +15,26 @@ import json
 from typing import Any, Dict
 
 
+def security_headers() -> Dict[str, str]:
+    """
+    Return security headers that should be present on every response.
+
+    CSP is report-only here to avoid breaking existing inline assets while
+    still surfacing violations during testing and monitoring.
+    """
+    return {
+        'X-Content-Type-Options':
+        'nosniff',
+        'X-Frame-Options':
+        'DENY',
+        'Referrer-Policy':
+        'strict-origin-when-cross-origin',
+        'Content-Security-Policy-Report-Only':
+        ("default-src 'self'; base-uri 'self'; object-src 'none'; "
+         "frame-ancestors 'none'; form-action 'self'"),
+    }
+
+
 def base_headers(content_type: str) -> Dict[str, str]:
     """
     Create a base set of headers for all responses.
@@ -36,6 +56,7 @@ def base_headers(content_type: str) -> Dict[str, str]:
 
         # Allows any origin to access the response
         'Access-Control-Allow-Origin': '*',
+        **security_headers(),
     }
 
 
@@ -50,11 +71,7 @@ def html_response(html_str: str, status: int = 200) -> Response:
     Returns:
         Response object with HTML content type and CORS headers
     """
-    return Response(
-        html_str,
-        status=status,
-        headers=base_headers('text/html; charset=utf-8')
-    )
+    return Response(html_str, status=status, headers=base_headers('text/html; charset=utf-8'))
 
 
 def json_response(data: Any, status: int = 200) -> Response:
@@ -76,11 +93,10 @@ def json_response(data: Any, status: int = 200) -> Response:
         json.dumps(
             data,
             ensure_ascii=False,  # Keeps Unicode readable (e.g., हिंदी)
-            default=str          # Fallback for non-serializable objects
+            default=str  # Fallback for non-serializable objects
         ),
         status=status,
-        headers=base_headers('application/json; charset=utf-8')
-    )
+        headers=base_headers('application/json; charset=utf-8'))
 
 
 def cors_response(status: int = 204) -> Response:
@@ -102,7 +118,9 @@ def cors_response(status: int = 204) -> Response:
         None,  # 204 responses should not include a body
         status=status,
         headers={
-            # Allow all origins 
+            **security_headers(),
+
+            # Allow all origins
             'Access-Control-Allow-Origin': '*',
 
             # Allowed HTTP methods
@@ -114,5 +132,4 @@ def cors_response(status: int = 204) -> Response:
             # Cache preflight response (in seconds basically 1 day)
             # Reduces repeated OPTIONS requests
             'Access-Control-Max-Age': '86400',
-        }
-    )
+        })
