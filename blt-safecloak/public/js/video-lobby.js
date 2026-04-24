@@ -734,7 +734,14 @@
     const displayNameInput = getDisplayNameInput();
     const micBtn = $("btn-preview-mic");
     const camBtn = $("btn-preview-cam");
+    const params = new URLSearchParams(window.location.search);
+    const sharedRoomId = normalizeRoomId(params.get("room"));
+    const walkieLockedFromInvite = params.get("walkie") === "1" && isValidRoomId(sharedRoomId);
     let shouldAutoJoinFromInvite = false;
+
+    if (walkieLockedFromInvite) {
+      walkieTalkieEnabled = true;
+    }
 
     bindPreviewVoiceControls();
     restoreDisplayNameFromStorage();
@@ -758,8 +765,6 @@
         }
       });
 
-      const params = new URLSearchParams(window.location.search);
-      const sharedRoomId = normalizeRoomId(params.get("room"));
       if (sharedRoomId) {
         roomInput.value = sharedRoomId;
         if (isValidRoomId(sharedRoomId)) {
@@ -832,6 +837,14 @@
 
     const walkieToggle = $("toggle-walkie-talkie");
     if (walkieToggle) {
+      walkieToggle.checked = walkieTalkieEnabled;
+      walkieToggle.setAttribute("aria-checked", String(walkieTalkieEnabled));
+      if (walkieLockedFromInvite) {
+        walkieToggle.disabled = true;
+        walkieToggle.setAttribute("aria-disabled", "true");
+        walkieToggle.title = "Locked by walkie-talkie invite link";
+      }
+
       walkieToggle.addEventListener("change", async () => {
         walkieTalkieEnabled = walkieToggle.checked;
         walkieToggle.setAttribute("aria-checked", String(walkieTalkieEnabled));
