@@ -43,6 +43,7 @@ const VideoChat = (() => {
   let isEndingCall = false;
   let walkieTalkieMode = false;
   let walkieFloorHolder = null;
+  let pushToTalkPressed = false;
   let wasMicMutedBeforeWalkie = true;
   let wasCamOffBeforeWalkie = true;
   let reconnectAttempts = 0;
@@ -778,16 +779,20 @@ const VideoChat = (() => {
     const pushToTalkBtn = $("btn-push-to-talk");
     if (pushToTalkBtn) {
       const isSpeaking = walkieTalkieMode && walkieFloorHolder === state.peerId && !micMuted;
+      const isHeld = walkieTalkieMode && pushToTalkPressed;
+      const isActive = isSpeaking || isHeld;
       pushToTalkBtn.classList.toggle("hidden", !walkieTalkieMode);
-      pushToTalkBtn.classList.toggle("ptt-ready", walkieTalkieMode && !isSpeaking);
-      pushToTalkBtn.classList.toggle("ptt-speaking", isSpeaking);
-      pushToTalkBtn.setAttribute("aria-pressed", isSpeaking ? "true" : "false");
+      pushToTalkBtn.classList.toggle("ptt-ready", walkieTalkieMode && !isActive);
+      pushToTalkBtn.classList.toggle("ptt-speaking", isActive);
+      pushToTalkBtn.classList.toggle("active", isActive);
+      pushToTalkBtn.setAttribute("aria-pressed", isActive ? "true" : "false");
       pushToTalkBtn.disabled = !walkieTalkieMode;
     }
   }
 
   async function setWalkieTalkieMode(enabled) {
     if (walkieTalkieMode === enabled) return;
+    pushToTalkPressed = false;
     if (!enabled) {
       await releaseWalkieFloor();
     }
@@ -900,11 +905,27 @@ const VideoChat = (() => {
 
   async function onPushToTalkStart() {
     if (!walkieTalkieMode) return;
-    await claimWalkieFloor();
+    pushToTalkPressed = true;
+    syncControlButtons();
+    const claimed = await claimWalkieFloor();
+
+    // If the button was released while claim was pending, immediately relinquish the floor.
+    if (claimed && !pushToTalkPressed) {
+      await releaseWalkieFloor();
+      syncControlButtons();
+      return;
+    }
+
+    if (!claimed && walkieFloorHolder !== state.peerId) {
+      pushToTalkPressed = false;
+      syncControlButtons();
+    }
   }
 
   async function onPushToTalkEnd() {
     if (!walkieTalkieMode) return;
+    pushToTalkPressed = false;
+    syncControlButtons();
     await releaseWalkieFloor();
   }
 
@@ -2408,8 +2429,12 @@ const VideoChat = (() => {
       showToast("Room not ready yet — please wait", "warning");
       return;
     }
-    const url = `${window.location.origin}/video-chat?room=${encodeURIComponent(state.peerId)}`;
-    copyToClipboard(url, "Room link");
+    const url = new URL(`${window.location.origin}/video-chat`);
+    url.searchParams.set("room", state.peerId);
+    if (walkieTalkieMode) {
+      url.searchParams.set("walkie", "1");
+    }
+    copyToClipboard(url.toString(), "Room link");
   }
 
   /**

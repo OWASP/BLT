@@ -850,30 +850,43 @@ html.dark .control-btn.active {
 }
 
 html.dark .ptt-ready {
-  background: #2563eb !important;
-  border-color: #2563eb !important;
+  background: #1d4ed8 !important;
+  background-color: #1d4ed8 !important;
+  border-color: #1d4ed8 !important;
+}
+
+html.dark .control-btn.ptt-ready {
+  background: #1d4ed8 !important;
+  background-color: #1d4ed8 !important;
+  border-color: #1d4ed8 !important;
+}
+
+html.dark .control-btn.ptt-ready:hover {
+  background: #1e40af !important;
+  background-color: #1e40af !important;
+  border-color: #1e40af !important;
 }
 
 @keyframes ptt-pulse {
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.4);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
   }
   50% {
-    box-shadow: 0 0 0 10px rgba(22, 163, 74, 0);
+    box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
   }
 }
 
 .ptt-speaking {
-  background: #166534 !important;
-  border-color: #16a34a !important;
+  background: #b91c1c !important;
+  border-color: #ef4444 !important;
   color: #ffffff !important;
   animation: ptt-pulse 1s ease-in-out infinite;
 }
 
 html.dark .ptt-speaking {
-  background: #166534 !important;
-  border-color: #16a34a !important;
+  background: #dc2626 !important;
+  border-color: #ef4444 !important;
 }
 
 /* ============================================
