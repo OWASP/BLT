@@ -25,15 +25,20 @@ const VideoChat = (() => {
   const VOICE_PREFS_STORAGE_KEY = "blt-safecloak-voice-preferences";
   const DISPLAY_NAME_STORAGE_KEY = "blt-safecloak-display-name";
   const ROOM_ID_STORAGE_KEY = "blt-safecloak-room-id";
+  const CHAT_HISTORY_STORAGE_KEY_PREFIX = "blt-safecloak-chat-";
   const PROFILE_BROADCAST_THROTTLE_MS = 220;
   const SPEAKING_THRESHOLD = 28;
   const SPEAKING_HOLD_MS = 260;
+  const MAX_CHAT_MESSAGE_LENGTH = 500;
+  const MAX_CHAT_HISTORY_MESSAGES = 200;
   const MAX_VIDEO_PARTICIPANTS = 5;
   const FULL_VIDEO_MODE_HINT = "Full video chat mode active for rooms with up to 5 participants.";
   const WALKIE_MODE_HINT = "Walkie-talkie mode active: audio-only with push-to-talk floor control.";
 
   const peerProfiles = new Map(); // peerId -> { name, initials, micMuted, camOff, handRaised }
   const remoteSpeakingMonitors = new Map(); // peerId -> { analyser, data, source, activeUntil }
+  const seenChatMessageIds = new Set();
+  let chatHistory = []; // in-memory log; persisted to localStorage on every append
   const mutedPeers = new Set(); // peerId -> locally muted audio
   let speakingLoopFrame = null;
   let speakingAudioContext = null;
@@ -642,6 +647,294 @@ const VideoChat = (() => {
     return conn;
   }
 
+  /* ── Chat history persistence (localStorage, AES-GCM encrypted) ── */
+
+  /** Return the room ID used as the localStorage key suffix and encryption passphrase. */
+  function getChatRoomId() {
+    // After peer.on("open") fires both host and joiner have ?room=<roomId> in the URL.
+    return getInviteRoomIdFromUrl() || normalizeRoomId(state.peerId);
+  }
+
+  /** Persist the in-memory chatHistory to localStorage (fire-and-forget). */
+  function saveChatHistory() {
+    const roomId = getChatRoomId();
+    if (!roomId) return;
+    const storageKey = CHAT_HISTORY_STORAGE_KEY_PREFIX + roomId;
+    // Trim to the most-recent MAX_CHAT_HISTORY_MESSAGES entries before saving.
+    const toSave =
+      chatHistory.length > MAX_CHAT_HISTORY_MESSAGES
+        ? chatHistory.slice(-MAX_CHAT_HISTORY_MESSAGES)
+        : chatHistory.slice();
+    Crypto.saveEncrypted(storageKey, toSave, roomId).catch(() => {
+      /* ignore storage failures */
+    });
+  }
+
+  /** Load chat history for the current room from localStorage and render any entries. */
+  async function loadAndRenderChatHistory() {
+    const roomId = getChatRoomId();
+    if (!roomId) return;
+    const storageKey = CHAT_HISTORY_STORAGE_KEY_PREFIX + roomId;
+    let stored = null;
+    try {
+      stored = await Crypto.loadEncrypted(storageKey, roomId);
+    } catch {
+      /* ignore decryption failures — treat as empty history */
+    }
+    if (!Array.isArray(stored) || stored.length === 0) return;
+    stored.forEach((entry) => {
+      if (!entry || typeof entry.text !== "string") return;
+      const id = typeof entry.id === "string" ? entry.id : "";
+      if (id && seenChatMessageIds.has(id)) return;
+      if (id) seenChatMessageIds.add(id);
+      const text = normalizeChatMessageText(entry.text);
+      if (!text) return;
+      const isLocal = entry.from === state.peerId;
+      const sender = isLocal ? "You" : normalizeDisplayName(entry.name) || entry.from || "Peer";
+      chatHistory.push({ ...entry, text });
+      appendChatMessage({
+        sender,
+        text,
+        isLocal,
+        timestamp: entry.timestamp || Date.now(),
+        historyEntry: true,
+      });
+    });
+  }
+
+  /**
+   * Remove the encrypted chat history for the current room from localStorage and reset all
+   * in-memory chat state. Called on local hangup and when the last remote peer leaves.
+   */
+  function clearChatHistory() {
+    const roomId = getChatRoomId();
+    if (roomId) {
+      try {
+        localStorage.removeItem(CHAT_HISTORY_STORAGE_KEY_PREFIX + roomId);
+      } catch {
+        /* ignore storage failures */
+      }
+    }
+    chatHistory = [];
+    seenChatMessageIds.clear();
+  }
+
+  /**
+   * Rebuild the #chat-messages DOM list from the current in-memory chatHistory array
+   * (sorted by timestamp). Restores the empty-state placeholder when the array is empty.
+   */
+  function rerenderChatMessages() {
+    const list = $("chat-messages");
+    if (!list) return;
+    list.innerHTML = "";
+    if (chatHistory.length === 0) {
+      const empty = document.createElement("p");
+      empty.id = "chat-empty-state";
+      empty.className = "text-center text-sm text-gray-500";
+      empty.textContent = "No messages yet";
+      list.appendChild(empty);
+      return;
+    }
+    // Sort ascending by timestamp so history always renders chronologically.
+    const sorted = chatHistory.slice().sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+    sorted.forEach((entry) => {
+      const isLocal = entry.from === state.peerId;
+      const sender = isLocal ? "You" : normalizeDisplayName(entry.name) || entry.from || "Peer";
+      list.appendChild(
+        createChatMessageElement({
+          sender,
+          text: entry.text,
+          isLocal,
+          timestamp: entry.timestamp || Date.now(),
+        })
+      );
+    });
+    list.scrollTop = list.scrollHeight;
+  }
+
+  /**
+   * Merge a batch of history messages received from a peer into the local in-memory log.
+   * New (unseen) messages are added, then the list is re-sorted and the UI is refreshed.
+   */
+  function handleIncomingChatHistory(messages) {
+    if (!Array.isArray(messages) || messages.length === 0) return;
+    let added = 0;
+    messages.forEach((entry) => {
+      if (!entry || typeof entry.text !== "string") return;
+      const payloadId = typeof entry.id === "string" ? entry.id.trim() : "";
+      if (payloadId && seenChatMessageIds.has(payloadId)) return;
+      const text = normalizeChatMessageText(entry.text);
+      if (!text) return;
+      const fromPeerId = typeof entry.from === "string" ? entry.from.trim() : "";
+      const ts =
+        typeof entry.timestamp === "number" && Number.isFinite(entry.timestamp)
+          ? entry.timestamp
+          : Date.now();
+      const senderName = normalizeDisplayName(entry.name) || getDisplayLabel(fromPeerId) || "Peer";
+      if (payloadId) seenChatMessageIds.add(payloadId);
+      chatHistory.push({
+        id: payloadId || undefined,
+        from: fromPeerId,
+        name: senderName,
+        text,
+        timestamp: ts,
+      });
+      added++;
+    });
+    if (added > 0) {
+      // Sort the merged history and re-render so messages appear in chronological order.
+      chatHistory.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+      rerenderChatMessages();
+      saveChatHistory();
+    }
+  }
+
+  /**
+   * Send the current in-memory chat history to a specific peer over its open data channel.
+   * This is called when a new data connection opens so late joiners see existing messages.
+   */
+  function sendChatHistoryTo(remotePeerId) {
+    if (chatHistory.length === 0) return;
+    const conn = activeDataConns.get(remotePeerId);
+    if (!conn || !conn.open) return;
+    const payload = {
+      type: "chat-history",
+      messages:
+        chatHistory.length > MAX_CHAT_HISTORY_MESSAGES
+          ? chatHistory.slice(-MAX_CHAT_HISTORY_MESSAGES)
+          : chatHistory.slice(),
+    };
+    try {
+      conn.send(payload);
+    } catch {
+      /* ignore transient send failures */
+    }
+  }
+
+  function normalizeChatMessageText(value) {
+    return typeof value === "string" ? value.trim().slice(0, MAX_CHAT_MESSAGE_LENGTH) : "";
+  }
+
+  function createChatMessageElement({ sender, text, isLocal, timestamp }) {
+    const row = document.createElement("div");
+    row.className = "rounded-md border border-neutral-border bg-white px-3 py-2 text-sm";
+
+    const header = document.createElement("div");
+    header.className = "mb-1 flex items-center gap-2 text-xs text-gray-500";
+
+    const senderEl = document.createElement("span");
+    senderEl.className = "font-semibold text-gray-700";
+    senderEl.textContent = sender;
+
+    const timeEl = document.createElement("span");
+    timeEl.className = "ml-auto";
+    timeEl.textContent = new Date(timestamp).toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    const badge = document.createElement("span");
+    badge.className =
+      "rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide";
+    badge.textContent = isLocal ? "You" : "Peer";
+
+    header.appendChild(senderEl);
+    header.appendChild(timeEl);
+    header.appendChild(badge);
+
+    const textEl = document.createElement("p");
+    textEl.className = "whitespace-pre-wrap break-words text-gray-900";
+    textEl.textContent = text;
+
+    row.appendChild(header);
+    row.appendChild(textEl);
+    return row;
+  }
+
+  function appendChatMessage({ sender, text, isLocal, timestamp, historyEntry }) {
+    const list = $("chat-messages");
+    if (!list) return;
+    const emptyState = $("chat-empty-state");
+    if (emptyState) emptyState.remove();
+    list.appendChild(createChatMessageElement({ sender, text, isLocal, timestamp }));
+    list.scrollTop = list.scrollHeight;
+    // Persist to localStorage (skip when called from loadAndRenderChatHistory to avoid
+    // re-saving entries that were already loaded from storage).
+    if (!historyEntry) {
+      saveChatHistory();
+    }
+  }
+
+  function handleIncomingChatMessage(payload, connPeerId) {
+    const text = normalizeChatMessageText(payload && payload.text);
+    if (!text) return;
+
+    const payloadId = payload && typeof payload.id === "string" ? payload.id.trim() : "";
+    if (payloadId && seenChatMessageIds.has(payloadId)) return;
+    if (payloadId) seenChatMessageIds.add(payloadId);
+
+    const fromPeerId = payload && typeof payload.from === "string" ? payload.from.trim() : "";
+    if (fromPeerId && fromPeerId !== connPeerId) return;
+
+    const ts =
+      payload && typeof payload.timestamp === "number" && Number.isFinite(payload.timestamp)
+        ? payload.timestamp
+        : Date.now();
+    const senderName = normalizeDisplayName(payload && payload.name) || getDisplayLabel(connPeerId);
+
+    // Persist to in-memory history before rendering.
+    chatHistory.push({
+      id: payloadId || undefined,
+      from: fromPeerId || connPeerId,
+      name: senderName,
+      text,
+      timestamp: ts,
+    });
+
+    appendChatMessage({ sender: senderName, text, isLocal: false, timestamp: ts });
+  }
+
+  function sendChatMessage(rawText) {
+    const text = normalizeChatMessageText(rawText);
+    if (!text) return false;
+
+    const payload = {
+      type: "chat",
+      id: `${state.peerId || "local"}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+      from: state.peerId,
+      name: state.displayName,
+      text,
+      timestamp: Date.now(),
+    };
+    seenChatMessageIds.add(payload.id);
+
+    // Persist to in-memory history before rendering.
+    chatHistory.push({
+      id: payload.id,
+      from: payload.from,
+      name: payload.name,
+      text,
+      timestamp: payload.timestamp,
+    });
+
+    appendChatMessage({
+      sender: "You",
+      text,
+      isLocal: true,
+      timestamp: payload.timestamp,
+    });
+
+    activeDataConns.forEach((conn) => {
+      if (!conn || !conn.open) return;
+      try {
+        conn.send(payload);
+      } catch {
+        /* ignore transient data-channel send failures */
+      }
+    });
+    return true;
+  }
+
   /* ── Browser detection ── */
   function detectBrowser() {
     const ua = navigator.userAgent;
@@ -1140,6 +1433,12 @@ const VideoChat = (() => {
       updateLocalTilePresentation();
       updateParticipantsList();
       showToast("Connected to signaling server", "success");
+
+      // Load stored chat history for this room now that the room ID is known.
+      void loadAndRenderChatHistory().catch(() => {
+        /* ignore history load failures */
+      });
+
       const inviteRoomId = inviteAutoJoinRoomId || getInviteRoomIdFromUrl();
       // Skip auto-join when this tab is the host for the room ID in the URL.
       if (!inviteRoomId || inviteRoomId === id) {
@@ -1474,6 +1773,9 @@ const VideoChat = (() => {
             $("btn-screen") && $("btn-screen").classList.add("hidden");
             $("btn-end") && $("btn-end").classList.remove("hidden");
           }
+          // The last remote participant has left — wipe the local chat copy so the next
+          // session pulls a fresh history from peers rather than stale localStorage data.
+          clearChatHistory();
           showToast("Participant disconnected. Use End Call to return home.", "info");
         }
       } else {
@@ -1500,6 +1802,8 @@ const VideoChat = (() => {
 
     conn.on("open", () => {
       sendProfileTo(conn.peer, true);
+      // Share the current chat history so late joiners see all prior messages.
+      sendChatHistoryTo(conn.peer);
     });
 
     conn.on("data", (data) => {
@@ -1519,6 +1823,16 @@ const VideoChat = (() => {
         if (incomingPeerId === conn.peer) {
           upsertRemoteProfile(conn.peer, data);
         }
+        return;
+      }
+
+      if (data && data.type === "chat") {
+        handleIncomingChatMessage(data, conn.peer);
+        return;
+      }
+
+      if (data && data.type === "chat-history" && Array.isArray(data.messages)) {
+        handleIncomingChatHistory(data.messages);
         return;
       }
 
@@ -1940,6 +2254,8 @@ const VideoChat = (() => {
     }
     updateParticipantsList();
     showToast("Call ended", "info");
+    // Delete the local copy of chat history — on next join participants pull fresh from peers.
+    clearChatHistory();
     // Record consent end
     ConsentManager &&
       ConsentManager.record({
@@ -2472,8 +2788,7 @@ const VideoChat = (() => {
     }
   }
 
-
-    /**
+  /**
    * Stops screen sharing, terminates the screen tracks, and restores the camera stream.
    * @returns {void}
    */
@@ -2486,7 +2801,7 @@ const VideoChat = (() => {
     showToast("Screen sharing stopped", "info");
 
     if (activeScreenStream) {
-      activeScreenStream.getTracks().forEach(track => track.stop());
+      activeScreenStream.getTracks().forEach((track) => track.stop());
       activeScreenStream = null;
     }
 
@@ -2518,20 +2833,19 @@ const VideoChat = (() => {
     }
   }
 
-
-    /**
+  /**
    * Toggles between starting and stopping screen share based on current state.
    * @returns {void}
    */
   function toggleScreenShare() {
-  if (screenSharing) {
-    stopScreenShare();
-  } else {
-    shareScreen();
+    if (screenSharing) {
+      stopScreenShare();
+    } else {
+      shareScreen();
+    }
+    const btn = $("btn-screen");
+    if (btn) btn.setAttribute("aria-pressed", screenSharing.toString());
   }
-  const btn = $("btn-screen");
-  if (btn) btn.setAttribute("aria-pressed", screenSharing.toString());
-}
 
   function readInitialMediaPreferencesFromUrl() {
     const params = new URLSearchParams(window.location.search);
@@ -2731,6 +3045,7 @@ const VideoChat = (() => {
     toggleScreenShare,
     copyRoomId,
     copyRoomLink,
+    sendChatMessage,
     state,
     togglePeerAudioMute,
   };
