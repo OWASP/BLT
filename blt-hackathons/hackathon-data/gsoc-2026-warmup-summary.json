@@ -1,6 +1,6 @@
 {
   "participantCount": 204,
-  "totalPRs": 2693,
+  "totalPRs": 2696,
   "mergedPRs": 1675,
   "totalIssues": 848,
   "repositories": 54,
@@ -18,13 +18,23 @@
       "mergedCount": 57
     },
     {
-      "username": "Pritz395",
-      "avatar": "https://avatars.githubusercontent.com/u/146115505?v=4",
-      "url": "https://github.com/Pritz395",
+      "username": "Jayant2908",
+      "avatar": "https://avatars.githubusercontent.com/u/200989760?v=4",
+      "url": "https://github.com/Jayant2908",
       "mergedCount": 39
     }
   ],
   "recentPRs": [
+    {
+      "title": "feat: implement resizable sidebar for video room",
+      "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/122",
+      "username": "ojaswa072",
+      "avatar": "https://avatars.githubusercontent.com/u/230836303?v=4",
+      "state": "open",
+      "created_at": "2026-04-25T19:39:48Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-SafeCloak"
+    },
     {
       "title": "fix(security,consent): add response security headers and disable recording on consent decline",
       "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/121",
@@ -114,16 +124,6 @@
       "created_at": "2026-04-22T19:26:21Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "Add Sanidhya Shishodia as Interested Mentor",
-      "url": "https://github.com/OWASP-BLT/BLT-GSOC/pull/62",
-      "username": "dev-sanidhya",
-      "avatar": "https://avatars.githubusercontent.com/u/194255971?v=4",
-      "state": "closed",
-      "created_at": "2026-04-22T19:16:46Z",
-      "merged_at": "2026-04-23T04:47:22Z",
-      "repository": "OWASP-BLT/BLT-GSOC"
     }
   ]
 }
