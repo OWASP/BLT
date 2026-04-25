@@ -491,6 +491,45 @@
                 Full video chat mode active for rooms with up to 5 participants.
               </p>
             </div>
+
+            <div class="rounded-2xl border border-neutral-border bg-white p-4 shadow-sm">
+              <h2
+                class="mb-3 flex items-center text-sm font-bold uppercase tracking-wide text-gray-700"
+              >
+                <i class="fa-solid fa-comments mr-2 text-primary" aria-hidden="true"></i>
+                Group Chat
+              </h2>
+              <div
+                id="chat-messages"
+                class="mb-3 max-h-52 space-y-2 overflow-y-auto rounded-lg border border-neutral-border bg-gray-50 p-3"
+                aria-live="polite"
+                aria-label="Room chat messages"
+              >
+                <p class="text-center text-sm text-gray-500" id="chat-empty-state">
+                  No messages yet
+                </p>
+              </div>
+              <form id="chat-form" class="flex gap-2" aria-label="Send a chat message">
+                <input
+                  type="text"
+                  class="w-full rounded-md border border-neutral-border px-3 py-2 text-sm text-gray-900 placeholder-gray-500 transition-colors focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                  id="chat-input"
+                  placeholder="Type a message..."
+                  autocomplete="off"
+                  maxlength="500"
+                  aria-label="Chat message input"
+                />
+                <button
+                  class="btn btn-primary px-4"
+                  id="btn-send-chat"
+                  type="submit"
+                  aria-label="Send chat message"
+                >
+                  <i class="fa-solid fa-paper-plane" aria-hidden="true"></i>
+                  Send
+                </button>
+              </form>
+            </div>
           </aside>
         </div>
 
@@ -659,6 +698,18 @@
               if (success) {
                 event.target.value = "";
               }
+            }
+          });
+        }
+
+        const chatForm = document.getElementById("chat-form");
+        const chatInput = document.getElementById("chat-input");
+        if (chatForm && chatInput) {
+          chatForm.addEventListener("submit", (event) => {
+            event.preventDefault();
+            const sent = VideoChat.sendChatMessage(chatInput.value);
+            if (sent) {
+              chatInput.value = "";
             }
           });
         }
