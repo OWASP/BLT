@@ -1001,3 +1001,32 @@ html.dark .border-blue-200 {
 html.dark .border-green-300 {
   border-color: rgba(22, 163, 74, 0.4) !important;
 }
+
+/* === Sidebar Splitter === */
+.sidebar-splitter {
+  width: 4px;
+  min-width: 4px;
+  background: var(--blt-border);
+  cursor: col-resize;
+  user-select: none;
+  transition: background 0.2s ease;
+  flex-shrink: 0;
+}
+
+.sidebar-splitter:hover {
+  background: var(--blt-primary);
+  box-shadow: 0 0 8px rgba(225, 1, 1, 0.3);
+}
+
+.sidebar-splitter.active {
+  background: var(--blt-primary);
+}
+
+html.dark .sidebar-splitter {
+  background: var(--blt-border);
+}
+
+html.dark .sidebar-splitter:hover {
+  background: var(--blt-primary);
+  box-shadow: 0 0 8px rgba(225, 1, 1, 0.5);
+}

@@ -135,3 +135,141 @@ function formatDateShort(ts) {
   if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
   return d.toLocaleDateString();
 }
+
+/* ── Sidebar Resize Handler ── */
+class SidebarResize {
+  constructor() {
+    this.splitter = document.getElementById("sidebar-splitter");
+    this.sidebar = document.getElementById("sidebar-content");
+    this.mainGrid = document.getElementById("main-grid");
+
+    // Configuration
+    this.minWidth = 200; // Minimum sidebar width (px)
+    this.maxWidth = 500; // Maximum sidebar width (px)
+    this.isDragging = false;
+    this.startX = 0;
+    this.startWidth = 0;
+
+    if (this.splitter && this.sidebar) {
+      this.init();
+    }
+  }
+
+  init() {
+    // Mouse events
+    this.splitter.addEventListener("mousedown", (e) => this.handleMouseDown(e));
+    document.addEventListener("mousemove", (e) => this.handleMouseMove(e));
+    document.addEventListener("mouseup", () => this.handleMouseUp());
+
+    // Touch events for mobile
+    this.splitter.addEventListener("touchstart", (e) => this.handleTouchStart(e));
+    document.addEventListener("touchmove", (e) => this.handleTouchMove(e));
+    document.addEventListener("touchend", () => this.handleMouseUp());
+
+    // Keyboard support (arrow keys)
+    this.splitter.addEventListener("keydown", (e) => this.handleKeyDown(e));
+
+    // Restore saved width on load
+    this.restoreWidth();
+  }
+
+  handleMouseDown(e) {
+    this.startDrag(e.clientX);
+  }
+
+  handleTouchStart(e) {
+    if (e.touches.length === 1) {
+      this.startDrag(e.touches[0].clientX);
+    }
+  }
+
+  startDrag(clientX) {
+    this.isDragging = true;
+    this.startX = clientX;
+    this.startWidth = this.sidebar.offsetWidth;
+
+    this.splitter.classList.add("active");
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+  }
+
+  handleMouseMove(e) {
+    if (!this.isDragging) return;
+    this.resizeSidebar(e.clientX);
+  }
+
+  handleTouchMove(e) {
+    if (!this.isDragging || e.touches.length !== 1) return;
+    this.resizeSidebar(e.touches[0].clientX);
+  }
+
+  handleMouseUp() {
+    if (!this.isDragging) return;
+
+    this.isDragging = false;
+    this.splitter.classList.remove("active");
+    document.body.style.cursor = "default";
+    document.body.style.userSelect = "auto";
+
+    // Save the current width
+    this.saveWidth();
+  }
+
+  handleKeyDown(e) {
+    if (!["ArrowLeft", "ArrowRight"].includes(e.key)) return;
+
+    e.preventDefault();
+    const step = 20;
+    const delta = e.key === "ArrowLeft" ? -step : step;
+    const newWidth = Math.max(
+      this.minWidth,
+      Math.min(this.maxWidth, this.sidebar.offsetWidth + delta)
+    );
+
+    this.sidebar.style.width = `${newWidth}px`;
+    this.saveWidth();
+  }
+
+  resizeSidebar(clientX) {
+    // Calculate the change in position
+    const delta = clientX - this.startX;
+    const newWidth = this.startWidth - delta; // Negative because splitter is on the left of sidebar
+
+    // Apply constraints
+    const constrainedWidth = Math.max(this.minWidth, Math.min(this.maxWidth, newWidth));
+
+    // Update sidebar width
+    this.sidebar.style.width = `${constrainedWidth}px`;
+  }
+
+  saveWidth() {
+    try {
+      localStorage.setItem("blt-sidebar-width", this.sidebar.offsetWidth);
+    } catch (error) {
+      console.warn("[SidebarResize] Failed to save width:", error);
+    }
+  }
+
+  restoreWidth() {
+    try {
+      const savedWidth = localStorage.getItem("blt-sidebar-width");
+      if (savedWidth) {
+        const width = parseInt(savedWidth, 10);
+        if (width >= this.minWidth && width <= this.maxWidth) {
+          this.sidebar.style.width = `${width}px`;
+        }
+      }
+    } catch (error) {
+      console.warn("[SidebarResize] Failed to restore width:", error);
+    }
+  }
+}
+
+// Initialize when DOM is ready
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", () => {
+    new SidebarResize();
+  });
+} else {
+  new SidebarResize();
+}

@@ -165,8 +165,8 @@
           </div>
         </div>
 
-        <div class="grid gap-4 xl:grid-cols-[1fr_320px]" id="main-grid">
-          <section class="flex min-h-[64vh] flex-col gap-4 pb-52">
+        <div class="flex gap-4" id="main-grid" style="min-height: 0">
+          <section class="flex min-h-[64vh] flex-col gap-4 pb-52 flex-1" style="min-width: 0">
             <div
               class="video-grid rounded-2xl border border-neutral-border bg-white p-3 shadow-sm"
               id="video-grid"
@@ -397,7 +397,9 @@
             </div>
           </section>
 
-          <aside aria-label="Room setup and connection info" class="space-y-4">
+          <div class="sidebar-splitter" id="sidebar-splitter" role="separator" aria-label="Resize sidebar" aria-orientation="vertical" tabindex="0"></div>
+
+          <aside id="sidebar-content" aria-label="Room setup and connection info" class="space-y-4" style="width: 320px; flex-shrink: 0">
             <div class="rounded-2xl border border-neutral-border bg-white p-4 shadow-sm">
               <h2
                 class="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-gray-700"
