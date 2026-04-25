@@ -1275,9 +1275,13 @@ const VideoChat = (() => {
     if (constraints.video && _mediaPromise.video) return _mediaPromise.video;
 
     const run = (async () => {
+      // Hoist ls and request outside the try so the NotFoundError catch handler
+      // can safely reference them even if getUserMedia itself is the thrower.
+      let ls = null;
+      let request = null;
       try {
-        const ls = await ensureLocalStream();
-        const request = {
+        ls = await ensureLocalStream();
+        request = {
           audio: !!constraints.audio && ls.getAudioTracks().length === 0,
           video: !!constraints.video && ls.getVideoTracks().length === 0,
         };
@@ -1336,6 +1340,8 @@ const VideoChat = (() => {
         }
         // Camera not found – fall back to audio-only so the call can still proceed.
         if (
+          ls &&
+          request &&
           (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") &&
           request.video &&
           request.audio
