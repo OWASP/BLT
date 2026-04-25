@@ -1494,20 +1494,27 @@ const VideoChat = (() => {
     peer.on("call", async (incomingCall) => {
       const existingCall = activeCalls.get(incomingCall.peer);
       if (existingCall) {
-        // Call glare: both sides called each other simultaneously.
-        // Use lexicographic peer ID comparison as a deterministic tiebreaker:
-        // the peer with the lower ID keeps the caller role.
-        if (state.peerId < incomingCall.peer) {
-          // We have priority — keep our outgoing call, reject incoming.
+        const existingCallIsPending = existingCall.open !== true;
+        if (existingCallIsPending) {
+          // Call glare: both sides called each other simultaneously.
+          // Use lexicographic peer ID comparison as a deterministic tiebreaker:
+          // the peer with the lower ID keeps the caller role.
+          if (state.peerId < incomingCall.peer) {
+            // We have priority — keep our outgoing call, reject incoming.
+            incomingCall.close();
+            return;
+          }
+          // They have priority — drop our outgoing call, accept incoming.
+          // Mark the peer so its close handler skips destructive cleanup.
+          glareResolvingPeers.add(incomingCall.peer);
+          existingCall.close();
+          activeCalls.delete(incomingCall.peer);
+          glareResolvingPeers.delete(incomingCall.peer);
+        } else {
+          // An established call already exists with this peer; reject duplicate.
           incomingCall.close();
           return;
         }
-        // They have priority — drop our outgoing call, accept incoming.
-        // Mark the peer so its close handler skips destructive cleanup.
-        glareResolvingPeers.add(incomingCall.peer);
-        existingCall.close();
-        activeCalls.delete(incomingCall.peer);
-        glareResolvingPeers.delete(incomingCall.peer);
       }
       if (!consentGiven) {
         const ok = await askConsent(incomingCall.peer);
