@@ -1275,9 +1275,13 @@ const VideoChat = (() => {
     if (constraints.video && _mediaPromise.video) return _mediaPromise.video;
 
     const run = (async () => {
+      // Hoist ls and request outside the try so the NotFoundError catch handler
+      // can safely reference them even if getUserMedia itself is the thrower.
+      let ls = null;
+      let request = null;
       try {
-        const ls = await ensureLocalStream();
-        const request = {
+        ls = await ensureLocalStream();
+        request = {
           audio: !!constraints.audio && ls.getAudioTracks().length === 0,
           video: !!constraints.video && ls.getVideoTracks().length === 0,
         };
@@ -1333,6 +1337,36 @@ const VideoChat = (() => {
         ) {
           showCameraDenied();
           return false;
+        }
+        // Camera not found – fall back to audio-only so the call can still proceed.
+        if (
+          ls &&
+          request &&
+          (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") &&
+          request.video &&
+          request.audio
+        ) {
+          try {
+            const audioOnlyStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const addedTracks = [];
+            audioOnlyStream.getAudioTracks().forEach((t) => {
+              t.enabled = !micMuted;
+              ls.addTrack(t);
+              addedTracks.push(t);
+            });
+            const freshAudio = addedTracks[addedTracks.length - 1];
+            if (typeof VoiceChanger !== "undefined") {
+              const processedAudio = VoiceChanger.init(ls);
+              const processedTrack = processedAudio.getAudioTracks()[0] || freshAudio;
+              voiceStream = new MediaStream([processedTrack].filter(Boolean));
+            }
+            await updateTracksInCalls(freshAudio, "audio");
+            startVoiceMeter(ls);
+            showToast("Camera not found – continuing with audio only", "warning");
+            return true;
+          } catch {
+            /* audio fallback also failed */
+          }
         }
         showToast("Access error: " + err.message, "error");
         return false;
@@ -1469,7 +1503,7 @@ const VideoChat = (() => {
         }
       }
 
-      const mediaOk = await startLocalMedia();
+      const mediaOk = await startLocalMedia(walkieTalkieMode ? { audio: true, video: false } : undefined);
       if (!mediaOk) {
         incomingCall.close();
         return;
@@ -1489,6 +1523,54 @@ const VideoChat = (() => {
     });
 
     peer.on("error", (err) => {
+      if (err.type === "peer-unavailable") {
+        // Non-fatal: the signaling-server connection is still alive; only
+        // the remote peer ID does not exist.  Clean up the pending call and
+        // restore the UI to its previous connected state.
+        showToast(err.message || "Could not connect to peer", "error");
+        // PeerJS formats peer-unavailable messages as "Could not connect to peer <id>".
+        // This regex is intentionally coupled to that well-documented format.
+        const match = err.message && /Could not connect to peer\s+(\S+)/.exec(err.message);
+        if (match) {
+          const failedId = match[1];
+          const failedCall = activeCalls.get(failedId);
+          if (failedCall) {
+            try {
+              failedCall.close();
+            } catch {
+              /* ignore */
+            }
+            activeCalls.delete(failedId);
+          }
+          const failedConn = activeDataConns.get(failedId);
+          if (failedConn) {
+            try {
+              failedConn.close();
+            } catch {
+              /* ignore */
+            }
+            activeDataConns.delete(failedId);
+          }
+          const tile = $(`wrapper-${failedId}`);
+          if (tile) tile.remove();
+        }
+        if (peer && peer.open) {
+          const count = activeCalls.size;
+          if (count > 0) {
+            updateStatus(
+              "fa-solid fa-lock text-primary",
+              `Encrypted call active (${count} participant${count !== 1 ? "s" : ""})`,
+              "success"
+            );
+            setStatusIcon("online");
+          } else {
+            updateStatus("fa-solid fa-share-nodes", "Ready — share your Room ID", "secondary");
+            setStatusIcon("online");
+          }
+        }
+        updateParticipantsList();
+        return;
+      }
       updateStatus("fa-solid fa-circle-exclamation", "Error: " + err.message, "danger");
       setStatusIcon("offline");
       showToast("Connection error: " + err.type, "error");
@@ -1977,7 +2059,7 @@ const VideoChat = (() => {
       if (!ok) return false;
     }
 
-    const ok = await startLocalMedia();
+    const ok = await startLocalMedia(walkieTalkieMode ? { audio: true, video: false } : undefined);
     if (!ok) return false;
 
     updateStatus("fa-solid fa-spinner fa-spin", "Calling...", "warning");
