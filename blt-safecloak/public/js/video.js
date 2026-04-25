@@ -1457,9 +1457,19 @@ const VideoChat = (() => {
     });
 
     peer.on("call", async (incomingCall) => {
-      if (activeCalls.has(incomingCall.peer)) {
-        incomingCall.close();
-        return;
+      const existingCall = activeCalls.get(incomingCall.peer);
+      if (existingCall) {
+        // Call glare: both sides called each other simultaneously.
+        // Use lexicographic peer ID comparison as a deterministic tiebreaker:
+        // the peer with the lower ID keeps the caller role.
+        if (state.peerId < incomingCall.peer) {
+          // We have priority — keep our outgoing call, reject incoming.
+          incomingCall.close();
+          return;
+        }
+        // They have priority — drop our outgoing call, accept incoming.
+        existingCall.close();
+        activeCalls.delete(incomingCall.peer);
       }
       if (!consentGiven) {
         const ok = await askConsent(incomingCall.peer);
@@ -1811,7 +1821,11 @@ const VideoChat = (() => {
         data.ids.forEach((id) => {
           const peerId = typeof id === "string" ? id.trim() : "";
           if (peerId && peerId !== state.peerId && !activeCalls.has(peerId)) {
-            callPeer(peerId);
+            // Only initiate the call if we have the lower peer ID to avoid
+            // call glare (both sides calling simultaneously and deadlocking).
+            if (state.peerId < peerId) {
+              callPeer(peerId);
+            }
           }
         });
         return;
