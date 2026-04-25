@@ -141,7 +141,6 @@ class SidebarResize {
   constructor() {
     this.splitter = document.getElementById("sidebar-splitter");
     this.sidebar = document.getElementById("sidebar-content");
-    this.mainGrid = document.getElementById("main-grid");
 
     // Configuration
     this.minWidth = 200; // Minimum sidebar width (px)
@@ -156,14 +155,22 @@ class SidebarResize {
   }
 
   init() {
+    // Set initial ARIA attributes
+    this.splitter.setAttribute("aria-valuemin", this.minWidth);
+    this.splitter.setAttribute("aria-valuemax", this.maxWidth);
+
     // Mouse events
     this.splitter.addEventListener("mousedown", (e) => this.handleMouseDown(e));
     document.addEventListener("mousemove", (e) => this.handleMouseMove(e));
     document.addEventListener("mouseup", () => this.handleMouseUp());
 
-    // Touch events for mobile
-    this.splitter.addEventListener("touchstart", (e) => this.handleTouchStart(e));
-    document.addEventListener("touchmove", (e) => this.handleTouchMove(e));
+    // Touch events for mobile - non-passive to allow preventDefault
+    this.splitter.addEventListener("touchstart", (e) => this.handleTouchStart(e), {
+      passive: false,
+    });
+    document.addEventListener("touchmove", (e) => this.handleTouchMove(e), {
+      passive: false,
+    });
     document.addEventListener("touchend", () => this.handleMouseUp());
 
     // Keyboard support (arrow keys)
@@ -200,6 +207,8 @@ class SidebarResize {
 
   handleTouchMove(e) {
     if (!this.isDragging || e.touches.length !== 1) return;
+    // Prevent scrolling during drag
+    e.preventDefault();
     this.resizeSidebar(e.touches[0].clientX);
   }
 
@@ -208,38 +217,65 @@ class SidebarResize {
 
     this.isDragging = false;
     this.splitter.classList.remove("active");
-    document.body.style.cursor = "default";
-    document.body.style.userSelect = "auto";
+    // Clear inline styles to restore stylesheet values
+    document.body.style.cursor = "";
+    document.body.style.userSelect = "";
 
-    // Save the current width
+    // Final save (applyWidth already saves, but ensure consistency)
     this.saveWidth();
   }
 
   handleKeyDown(e) {
-    if (!["ArrowLeft", "ArrowRight"].includes(e.key)) return;
+    const keys = ["ArrowLeft", "ArrowRight", "Home", "End", "PageUp", "PageDown"];
+    if (!keys.includes(e.key)) return;
 
     e.preventDefault();
     const step = 20;
-    const delta = e.key === "ArrowLeft" ? -step : step;
-    const newWidth = Math.max(
-      this.minWidth,
-      Math.min(this.maxWidth, this.sidebar.offsetWidth + delta)
-    );
+    let newWidth = this.sidebar.offsetWidth;
 
-    this.sidebar.style.width = `${newWidth}px`;
-    this.saveWidth();
+    switch (e.key) {
+      case "ArrowLeft":
+        newWidth -= step;
+        break;
+      case "ArrowRight":
+        newWidth += step;
+        break;
+      case "Home":
+        newWidth = this.minWidth;
+        break;
+      case "End":
+        newWidth = this.maxWidth;
+        break;
+      case "PageUp":
+        newWidth -= step * 4;
+        break;
+      case "PageDown":
+        newWidth += step * 4;
+        break;
+    }
+
+    this.applyWidth(newWidth);
   }
 
   resizeSidebar(clientX) {
     // Calculate the change in position
     const delta = clientX - this.startX;
     const newWidth = this.startWidth - delta; // Negative because splitter is on the left of sidebar
+    this.applyWidth(newWidth);
+  }
 
+  applyWidth(newWidth) {
     // Apply constraints
     const constrainedWidth = Math.max(this.minWidth, Math.min(this.maxWidth, newWidth));
 
     // Update sidebar width
     this.sidebar.style.width = `${constrainedWidth}px`;
+
+    // Update ARIA for assistive tech
+    this.splitter.setAttribute("aria-valuenow", constrainedWidth);
+
+    // Persist
+    this.saveWidth();
   }
 
   saveWidth() {
@@ -255,9 +291,10 @@ class SidebarResize {
       const savedWidth = localStorage.getItem("blt-sidebar-width");
       if (savedWidth) {
         const width = parseInt(savedWidth, 10);
-        if (width >= this.minWidth && width <= this.maxWidth) {
-          this.sidebar.style.width = `${width}px`;
-        }
+        this.applyWidth(width);
+      } else {
+        // Set initial valuenow if no saved width
+        this.applyWidth(this.sidebar.offsetWidth);
       }
     } catch (error) {
       console.warn("[SidebarResize] Failed to restore width:", error);
