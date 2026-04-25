@@ -46,6 +46,7 @@ const VideoChat = (() => {
   const lastProfileBroadcastAt = new Map(); // peerId -> timestamp
   let navigationInProgress = false;
   let isEndingCall = false;
+  const glareResolvingPeers = new Set();
   let walkieTalkieMode = false;
   let walkieFloorHolder = null;
   let pushToTalkPressed = false;
@@ -1468,8 +1469,11 @@ const VideoChat = (() => {
           return;
         }
         // They have priority — drop our outgoing call, accept incoming.
+        // Mark the peer so its close handler skips destructive cleanup.
+        glareResolvingPeers.add(incomingCall.peer);
         existingCall.close();
         activeCalls.delete(incomingCall.peer);
+        glareResolvingPeers.delete(incomingCall.peer);
       }
       if (!consentGiven) {
         const ok = await askConsent(incomingCall.peer);
@@ -1758,6 +1762,9 @@ const VideoChat = (() => {
     });
 
     call.on("close", () => {
+      // Skip destructive cleanup when closing a call as part of glare resolution,
+      // since we are about to accept a replacement call for the same peer.
+      if (glareResolvingPeers.has(remotePeerId)) return;
       activeCalls.delete(remotePeerId);
       const dataConn = activeDataConns.get(remotePeerId);
       if (dataConn) {
@@ -1821,11 +1828,7 @@ const VideoChat = (() => {
         data.ids.forEach((id) => {
           const peerId = typeof id === "string" ? id.trim() : "";
           if (peerId && peerId !== state.peerId && !activeCalls.has(peerId)) {
-            // Only initiate the call if we have the lower peer ID to avoid
-            // call glare (both sides calling simultaneously and deadlocking).
-            if (state.peerId < peerId) {
-              callPeer(peerId);
-            }
+            callPeer(peerId);
           }
         });
         return;
