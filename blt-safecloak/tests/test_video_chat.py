@@ -1195,6 +1195,107 @@ def test_video_room_includes_voice_controller_ui():
         assert snippet in html, f"Expected snippet missing in video-room.html: {snippet}"
 
 
+def test_video_room_includes_group_chat_ui():
+    """Video room page should include in-room group chat controls."""
+    html = (ROOT / "src/pages/video-room.html").read_text(encoding="utf-8")
+
+    required_snippets = [
+        'id="chat-messages"',
+        'id="chat-empty-state"',
+        'id="chat-form"',
+        'id="chat-input"',
+        'id="btn-send-chat"',
+        "Group Chat",
+    ]
+    for snippet in required_snippets:
+        assert snippet in html, f"Expected snippet missing in video-room.html: {snippet}"
+
+
+def test_video_room_wires_group_chat_submission():
+    """Room page script should wire chat form submission to VideoChat.sendChatMessage."""
+    html = (ROOT / "src/pages/video-room.html").read_text(encoding="utf-8")
+    assert 'document.getElementById("chat-form")' in html
+    assert "VideoChat.sendChatMessage(chatInput.value)" in html
+
+
+def test_video_js_supports_group_chat_data_messages():
+    """video.js should expose sendChatMessage and process incoming chat payloads."""
+    js = (ROOT / "public/js/video.js").read_text(encoding="utf-8")
+    assert "function sendChatMessage(rawText)" in js
+    assert 'if (data && data.type === "chat")' in js
+    assert "handleIncomingChatMessage(data, conn.peer);" in js
+    assert "sendChatMessage," in js
+
+
+def test_video_js_chat_history_persistence_constants():
+    """video.js must declare the chat-history storage key prefix and max-messages cap."""
+    js = (ROOT / "public/js/video.js").read_text(encoding="utf-8")
+    assert 'CHAT_HISTORY_STORAGE_KEY_PREFIX = "blt-safecloak-chat-"' in js
+    assert "MAX_CHAT_HISTORY_MESSAGES" in js
+
+
+def test_video_js_chat_history_save_and_load_functions():
+    """video.js must implement saveChatHistory and loadAndRenderChatHistory."""
+    js = (ROOT / "public/js/video.js").read_text(encoding="utf-8")
+    assert "function saveChatHistory()" in js
+    assert "async function loadAndRenderChatHistory()" in js
+    # Persistence relies on the existing Crypto helpers.
+    assert "Crypto.saveEncrypted" in js
+    assert "Crypto.loadEncrypted" in js
+
+
+def test_video_js_chat_history_loaded_on_peer_open():
+    """loadAndRenderChatHistory should be called inside the peer.on('open') handler."""
+    js = (ROOT / "public/js/video.js").read_text(encoding="utf-8")
+    assert "loadAndRenderChatHistory()" in js
+
+
+def test_video_js_chat_history_messages_pushed_to_array():
+    """Both incoming and outgoing messages must be pushed into chatHistory."""
+    js = (ROOT / "public/js/video.js").read_text(encoding="utf-8")
+    # chatHistory array declared at module level
+    assert "chatHistory = []" in js
+    # push calls inside the message handlers
+    assert "chatHistory.push(" in js
+
+
+def test_video_js_chat_history_clear_function_exists():
+    """video.js must expose clearChatHistory() that removes the localStorage entry and resets state."""
+    js = (ROOT / "public/js/video.js").read_text(encoding="utf-8")
+    assert "function clearChatHistory()" in js
+    assert "localStorage.removeItem(" in js
+
+
+def test_video_js_chat_history_cleared_on_end_call():
+    """clearChatHistory must be called during endCall() so the local copy is wiped on hangup."""
+    js = (ROOT / "public/js/video.js").read_text(encoding="utf-8")
+    # The call must appear inside the endCall function body — we verify both exist together.
+    assert "async function endCall(" in js
+    assert "clearChatHistory();" in js
+
+
+def test_video_js_chat_history_p2p_sync_send():
+    """video.js must implement sendChatHistoryTo() and call it when a data connection opens."""
+    js = (ROOT / "public/js/video.js").read_text(encoding="utf-8")
+    assert "function sendChatHistoryTo(remotePeerId)" in js
+    # Must be wired into the conn.on("open") handler inside setupDataConn.
+    assert "sendChatHistoryTo(conn.peer)" in js
+
+
+def test_video_js_chat_history_p2p_sync_receive():
+    """video.js must implement handleIncomingChatHistory() and process chat-history data messages."""
+    js = (ROOT / "public/js/video.js").read_text(encoding="utf-8")
+    assert "function handleIncomingChatHistory(" in js
+    assert 'data.type === "chat-history"' in js
+    assert "handleIncomingChatHistory(data.messages)" in js
+
+
+def test_video_js_chat_history_rerender_function():
+    """video.js must expose rerenderChatMessages() used to rebuild the chat panel after a merge."""
+    js = (ROOT / "public/js/video.js").read_text(encoding="utf-8")
+    assert "function rerenderChatMessages()" in js
+
+
 def test_video_chat_includes_prejoin_voice_controller_ui():
     """Video chat lobby should include a pre-join voice controller and VoiceChanger script."""
     html = (ROOT / "src/pages/video-chat.html").read_text(encoding="utf-8")
