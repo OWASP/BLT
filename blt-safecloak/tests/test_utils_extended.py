@@ -124,30 +124,27 @@ def test_get_allowed_origins_empty_env_returns_empty_set(monkeypatch):
 def test_get_allowed_origins_single_origin(monkeypatch):
     monkeypatch.setenv('SAFE_CLOAK_ALLOWED_ORIGINS', 'https://single.example')
     result = get_allowed_origins()
-    assert 'https://single.example' in result
+    assert result == {'https://single.example'}
 
 
 def test_get_allowed_origins_multiple_origins(monkeypatch):
     monkeypatch.setenv('SAFE_CLOAK_ALLOWED_ORIGINS',
                        'https://first.example,https://second.example')
     result = get_allowed_origins()
-    assert 'https://first.example' in result
-    assert 'https://second.example' in result
+    assert result == {'https://first.example', 'https://second.example'}
 
 
 def test_get_allowed_origins_normalises_case_in_list(monkeypatch):
     monkeypatch.setenv('SAFE_CLOAK_ALLOWED_ORIGINS', 'HTTPS://UPPER.EXAMPLE')
     result = get_allowed_origins()
-    assert 'https://upper.example' in result
+    assert result == {'https://upper.example'}
 
 
 def test_get_allowed_origins_ignores_blank_entries(monkeypatch):
     monkeypatch.setenv('SAFE_CLOAK_ALLOWED_ORIGINS', 'https://a.example,,https://b.example')
     result = get_allowed_origins()
-    assert 'https://a.example' in result
-    assert 'https://b.example' in result
-    # The blank entry between the commas must not produce an empty string member
-    assert '' not in result
+    # Exact set equality: two origins only, no blank entry
+    assert result == {'https://a.example', 'https://b.example'}
 
 
 # ── resolve_allowed_origin ────────────────────────────────────────────────────
