@@ -306,7 +306,7 @@ public/
   js/                  # client logic (video, voice, notes, consent, ui, crypto)
   img/                 # static images
 tests/
-  test_video_chat.py   # end-to-end + integration behaviour checks
+  test_video_chat.py   # end-to-end + integration behavior checks
   test_utils.py        # backend utility and routing tests
 .github/workflows/
   test.yml             # CI workflow

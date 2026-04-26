@@ -519,7 +519,7 @@ def test_three_clients_connect_and_see_cameras(app_server_url):
             browser.close()
 
 
-# JavaScript predicates reused across walkie-talkie checks.
+# JavaScript predicate reused across walkie-talkie checks.
 _WALKIE_MODE_CHECK_JS = """
 () => {
     const banner = document.getElementById('walkie-cue-banner');
