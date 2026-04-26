@@ -178,7 +178,7 @@ tests/
 ## Security Notes
 
 - This project follows a privacy-first architecture and avoids unnecessary server-side handling of sensitive communication data.
-- If you find a vulnerability, please open a private/security-focused report through the OWASP BLT project channels before public disclosure.
+- If you find a vulnerability, please report it privately to [security@owaspblt.org](mailto:security@owaspblt.org) before public disclosure.
 
 ## Contributing
 
