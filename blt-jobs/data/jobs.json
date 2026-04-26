@@ -1,26 +1,6 @@
 {
   "jobs": [
     {
-      "id": "anthropic-application-security-engineering-manager",
-      "organization_name": "Anthropic",
-      "organization_logo": null,
-      "title": "Application Security Engineering Manager",
-      "description": "About Anthropic\nAnthropic’s mission is to create reliable, interpretable, and steerable AI systems. We want AI to be safe and beneficial for our users and for society as a whole. Our team is a quickly growing group of committed researchers, engineers, policy experts, and business leaders working together to build beneficial AI systems.\nAbout the role\nWe are seeking a Security Engineering Manager to lead our Application Security team in ensuring the security and integrity of our products and third-party software used across all of Anthropic. You will collaborate closely with teams and leaders across Anthropic, providing guidance on security risks and mitigation, and secure development architecture.\nWhat you'll do\nOversee “shift left\" security efforts to build security into the software development lifecycle, with a focus on automation and scalability\nEnsure your team has the right processes and procedures to assist with threat modeling, secure design reviews, risk acceptance and security code reviews\nOperate our vulnerability management, security partnerships, and bug bounty / vulnerability disclosure programs\nHelp to develop security policies, standards, playbooks and secure coding training content\nEncourage automation of applicable security-specific workloads and building tools that enable Anthropic teams to self-serve\nBuild partnerships and collaborate with product and research teams to instill security best practices\nManage and grow a team of Application Security engineers to deliver high-impact projects and experiences to our internal users\nWho you are\n5+ years hands-on application and infrastructure security experience\n3+ years of engineering management experience\nPossesses a deep understanding of security best practices, threat modeling, risk assessment\nExperienced in securing complex cloud environments (Kubernetes, Docker, AWS/GCP)\nKnowledgeable in AI/ML security risks and mitigations\nStrong in verbal and written communication and can distill complex security topics\nSkilled at collaborating cross-functionally and effectively balancing security requirements with business objectives\nAble to drive high-impact work while incorporating feedback\nPassionate about building diverse, high-performing teams and growing engineers in a fast-paced environment\nLow ego, high empathy, and have a track record as a talent magnet\nThe annual compensation range for this role is listed below.\nFor sales roles, the range provided is the role’s On Target Earnings (\"OTE\") range, meaning that the range includes both the sales commissions/sales bonuses target and annual base salary for the role.\nAnnual Salary:\n$405,000\n—\n$485,000 USD\nLogistics\nEducation requirements:\nWe require at least a Bachelor's degree in a related field or equivalent experience.\nLocation-based hybrid policy:\nCurrently, we expect all staff to be in one of our offices at least 25% of the time. However, some roles may require more time in our offices.\nVisa sponsorship:\nWe do sponsor visas! However, we aren't able to successfully sponsor visas for every role and every candidate. But if we make you an offer, we will make every reasonable effort to get you a visa, and we retain an immigration lawyer to help with this.\nWe encourage you to apply even if you do not believe you meet every single qualification.\nNot all strong candidates will meet every single qualification as listed.  Research shows that people who identify as being from underrepresented groups are more prone to experiencing imposter syndrome and doubting the strength of their candidacy, so we urge you not to exclude yourself prematurely and to submit an application if you're interested in this work. We think AI systems like the ones we're building have enormous social and ethical implications. We think this makes representation even more important, and we strive to include a range of diverse perspectives on our team.\nYour safety matters to us.\nTo protect yourself from potential scams, remember that Anthropic recruiters only contact you from @anthropic.com email addresses. In some cases, we may partner with vetted recruiting agencies who will identify themselves as working on behalf of Anthropic. Be cautious of emails from other domains. Legitimate Anthropic recruiters will never ask for money, fees, or banking information before your first day. If you're ever unsure about a communication, don't click any links—visit\nanthropic.com/careers\ndirectly for confirmed position openings.\nHow we're different\nWe believe that the highest-impact AI research will be big science. At Anthropic we work as a single cohesive team on just a few large-scale research efforts. And we value impact — advancing our long-term goals of steerable, trustworthy AI — rather than work on smaller and more specific puzzles. We view AI research as an empirical science, which has as much in common with physics and biology as with traditional efforts in computer science. We're an extremely collaborative group, and we host frequent research discussions to ensure that we are pursuing the highest-impact work at any given time. As such, we greatly value communication skills.\nThe easiest way to understand our research directions is to read our recent research. This research continues many of the directions our team worked on prior to Anthropic, including: GPT-3, Circuit-Based Interpretability, Multimodal Neurons, Scaling Laws, AI & Compute, Concrete Problems in AI Safety, and Learning from Human Preferences.\nCome work with us!\nAnthropic is a public benefit corporation headquartered in San Francisco. We offer competitive compensation and benefits, optional equity donation matching, generous vacation and parental leave, flexible working hours, and a lovely office space in which to collaborate with colleagues.\nGuidance on Candidates' AI Usage:\nLearn about\nour policy\nfor using AI in our application process",
-      "requirements": null,
-      "location": "New York City, NY; San Francisco, CA; Seattle, WA",
-      "job_type": "full-time",
-      "salary_range": "$405,000 - $485,000",
-      "expires_at": null,
-      "effective_expires_at": "2026-04-25T23:45:37.000Z",
-      "application_email": null,
-      "application_url": "https://job-boards.greenhouse.io/anthropic/jobs/4562813008",
-      "application_instructions": null,
-      "created_at": "2026-02-24T23:45:37Z",
-      "views_count": 0,
-      "added_by": null,
-      "needs_manual_review": false
-    },
-    {
       "id": "discord-job-listing",
       "organization_name": "Discord",
       "organization_logo": null,
@@ -121,6 +101,6 @@
       "needs_manual_review": false
     }
   ],
-  "count": 6,
-  "generated_at": "2026-04-24T04:08:47.849Z"
+  "count": 5,
+  "generated_at": "2026-04-26T04:13:02.430Z"
 }
