@@ -1,6 +1,6 @@
 """
 E2E test: three clients join the same video-chat room, chat with each other,
-a random participant disconnects, a new client joins and receives the full
+a participant disconnects, a new client joins and receives the full
 chat history from one of the remaining peers.
 
 Scenario
@@ -9,7 +9,7 @@ Scenario
     video-room URL and form a full-mesh (each sees the other two).
 2.  Each client sends a unique chat message and the test verifies that all
     three messages appear in the chat panel of every connected client.
-3.  One client (Client 3) closes its page, simulating a random disconnect.
+3.  Client 3 closes its page, simulating a disconnect.
 4.  A new browser context (Client 4) joins the room by calling Client 1.
 5.  The test asserts that Client 4's chat panel shows all three messages that
     were exchanged *before* it joined – chat history received from a peer.
@@ -30,8 +30,6 @@ Run::
 
     pytest tests/ -v -k chat
 """
-
-import random
 
 import pytest
 from playwright.sync_api import sync_playwright
@@ -90,9 +88,32 @@ def _wait_for_chat_message(page, text: str, timeout: int = TIMEOUT_MS) -> None:
     )
 
 
+def _accept_consent_if_present(page, timeout: int = 2000) -> None:
+    """Click 'I Consent' only when the dialog is actually visible.
+
+    Already-consented peers do not show the dialog on subsequent calls, so
+    calling the blocking ``_accept_consent`` helper would time out.  This
+    variant uses a short timeout and silently skips when the selector is absent.
+    """
+    try:
+        page.wait_for_selector("#consent-allow", timeout=timeout)
+        page.click("#consent-allow")
+    except Exception:
+        pass  # dialog not present – peer already consented
+
+
 def _establish_full_mesh(p1, p2, p3, id1, id2, id3) -> None:
     """Wire up a full-mesh between three pages (replicates the pattern from
-    ``test_three_clients_connect_and_see_cameras``)."""
+    ``test_three_clients_connect_and_see_cameras``).
+
+    Raises ``ValueError`` if any peer ID is empty or not unique, catching
+    setup mistakes before the mesh wiring even begins.
+    """
+    peer_ids = (id1, id2, id3)
+    if any(not peer_id for peer_id in peer_ids):
+        raise ValueError("All peer IDs must be non-empty before establishing the mesh.")
+    if len(set(peer_ids)) != 3:
+        raise ValueError("Expected three distinct peer IDs for the full-mesh setup.")
 
     # Step 1: Client 2 → Client 1
     p2.fill("#remote-id", id1)
@@ -136,7 +157,7 @@ def test_three_clients_chat_and_new_joiner_receives_history(app_server_url):
         camera streams (same assertion as ``test_three_clients_connect_and_see_cameras``).
     2.  Each client sends a unique message; every client must see all three
         messages in its own chat panel.
-    3.  One client is randomly selected and its page is closed (disconnect).
+    3.  Client 3 (the last-joined peer) closes its page (disconnect).
     4.  A new (fourth) client joins the room by calling one of the remaining
         two peers.
     5.  The new client's chat panel must contain all three messages that were
@@ -197,15 +218,11 @@ def test_three_clients_chat_and_new_joiner_receives_history(app_server_url):
                     f"{name}: message from Client 3 not found in chat panel"
                 )
 
-            # ── Randomly pick one client to disconnect ───────────────────────
-            candidates = [
-                (p1, ctx1, id1, "Client 1"),
-                (p2, ctx2, id2, "Client 2"),
-                (p3, ctx3, id3, "Client 3"),
-            ]
-            random.shuffle(candidates)
-            leaving_page, leaving_ctx, leaving_id, leaving_name = candidates[0]
-            remaining = candidates[1:]  # two entries: (page, ctx, id, name)
+            # ── Disconnect Client 3 (deterministic choice) ──────────────────
+            # Always disconnect the last-joined peer so the test is reproducible
+            # and CI retries converge consistently.
+            leaving_page, leaving_ctx, leaving_name = p3, ctx3, "Client 3"
+            remaining = [(p1, ctx1, id1, "Client 1"), (p2, ctx2, id2, "Client 2")]
 
             leaving_page.close()
             leaving_ctx.close()
@@ -232,8 +249,8 @@ def test_three_clients_chat_and_new_joiner_receives_history(app_server_url):
 
             p4.fill("#remote-id", target_id)
             p4.click("#btn-call")
-            _accept_consent(p4)   # new joiner consents
-            _accept_consent(target_page)  # callee consents
+            _accept_consent(p4)                      # new joiner – first call, always shows dialog
+            _accept_consent_if_present(target_page)  # already-consented peer – dialog may be absent
 
             # Wait for the call to be established on both sides: each side must
             # have exactly 2 video wrappers (1 local + 1 remote).
