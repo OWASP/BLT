@@ -94,7 +94,6 @@ To preserve privacy and keep the project focused, this repository is **not curre
 ### Install
 
 ```bash
-npm install
 npm run setup
 ```
 
