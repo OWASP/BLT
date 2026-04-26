@@ -252,14 +252,21 @@ def test_three_clients_chat_and_new_joiner_receives_history(app_server_url):
             _accept_consent(p4)                      # new joiner – first call, always shows dialog
             _accept_consent_if_present(target_page)  # already-consented peer – dialog may be absent
 
-            # Wait for the call to be established on both sides: each side must
-            # have exactly 2 video wrappers (1 local + 1 remote).
+            # Wait for Client 4 to be connected to at least one peer.
+            # The app's auto-mesh sends Client 1's peer list [id2] to Client 4
+            # immediately after the data channel opens, so Client 4 may quickly
+            # auto-call Client 2 as well and end up with 3 wrappers (itself +
+            # Client 1 + Client 2) rather than pausing at exactly 2.  Use >=
+            # to avoid a race where the brief 2-wrapper state is never polled.
             p4.wait_for_function(
-                "document.querySelectorAll('.video-wrapper').length === 2",
+                "document.querySelectorAll('.video-wrapper').length >= 2",
                 timeout=TIMEOUT_MS,
             )
+            # target_page (Client 1) already has 2 wrappers (itself + Client 2)
+            # before Client 4 joins.  Wait for a third wrapper to confirm that
+            # Client 4's incoming call was actually answered and handled.
             target_page.wait_for_function(
-                "document.querySelectorAll('.video-wrapper').length === 2",
+                "document.querySelectorAll('.video-wrapper').length >= 3",
                 timeout=TIMEOUT_MS,
             )
 
