@@ -37,7 +37,10 @@ import pytest
 from playwright.sync_api import sync_playwright
 
 # Reuse infrastructure constants and helpers from the existing test module.
-from tests.test_video_chat import (
+# Use a bare module name (not ``tests.test_video_chat``) because the tests/
+# directory is not a Python package: pytest's default import mode adds it
+# directly to sys.path, so only the bare name resolves correctly in CI.
+from test_video_chat import (
     TIMEOUT_MS,
     _BROWSER_ARGS,
     _MOCK_GET_USER_MEDIA,
