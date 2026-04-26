@@ -1,7 +1,7 @@
 {
-  "participantCount": 205,
-  "totalPRs": 2700,
-  "mergedPRs": 1677,
+  "participantCount": 206,
+  "totalPRs": 2704,
+  "mergedPRs": 1681,
   "totalIssues": 848,
   "repositories": 54,
   "topContributors": [
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "Delete website/templates/ossh/includes/recommended_communities.html",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6218",
+      "username": "Cypher-CP0",
+      "avatar": "https://avatars.githubusercontent.com/u/146864189?v=4",
+      "state": "open",
+      "created_at": "2026-04-26T06:07:43Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT"
+    },
     {
       "title": "chore: remove unused adblock 16x16 asset",
       "url": "https://github.com/OWASP-BLT/BLT/pull/6217",
@@ -50,9 +60,9 @@
       "url": "https://github.com/OWASP-BLT/BLT/pull/6215",
       "username": "santoslgl01-web",
       "avatar": "https://avatars.githubusercontent.com/u/260164570?v=4",
-      "state": "open",
+      "state": "closed",
       "created_at": "2026-04-26T01:48:33Z",
-      "merged_at": null,
+      "merged_at": "2026-04-26T05:27:53Z",
       "repository": "OWASP-BLT/BLT"
     },
     {
@@ -113,16 +123,6 @@
       "state": "open",
       "created_at": "2026-04-23T19:03:30Z",
       "merged_at": null,
-      "repository": "OWASP-BLT/BLT-SafeCloak"
-    },
-    {
-      "title": "fix(walkie): force walkie invite mode on and locked; preserve walkie in shared room links",
-      "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/119",
-      "username": "Rudrawhy",
-      "avatar": "https://avatars.githubusercontent.com/u/154898503?v=4",
-      "state": "closed",
-      "created_at": "2026-04-23T18:41:46Z",
-      "merged_at": "2026-04-24T15:50:59Z",
       "repository": "OWASP-BLT/BLT-SafeCloak"
     }
   ]
