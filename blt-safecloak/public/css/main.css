@@ -1045,3 +1045,10 @@ html.dark .sidebar-splitter:focus-visible {
   background: var(--blt-primary);
   box-shadow: 0 0 8px rgba(225, 1, 1, 0.5);
 }
+
+/* Responsive overrides for sidebar */
+@media (max-width: 1279px) {
+  #sidebar-content {
+    width: 100% !important;
+  }
+}
