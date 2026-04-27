@@ -1,6 +1,6 @@
 {
-  "participantCount": 207,
-  "totalPRs": 2706,
+  "participantCount": 206,
+  "totalPRs": 2704,
   "mergedPRs": 1681,
   "totalIssues": 848,
   "repositories": 54,
@@ -25,26 +25,6 @@
     }
   ],
   "recentPRs": [
-    {
-      "title": "Education Cleanup",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6220",
-      "username": "carycooper777",
-      "avatar": "https://avatars.githubusercontent.com/u/277006696?v=4",
-      "state": "closed",
-      "created_at": "2026-04-27T00:55:15Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "OSSH Cleanup",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6219",
-      "username": "carycooper777",
-      "avatar": "https://avatars.githubusercontent.com/u/277006696?v=4",
-      "state": "closed",
-      "created_at": "2026-04-27T00:54:45Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT"
-    },
     {
       "title": "Delete website/templates/ossh/includes/recommended_communities.html",
       "url": "https://github.com/OWASP-BLT/BLT/pull/6218",
@@ -124,6 +104,26 @@
       "created_at": "2026-04-24T10:02:12Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT"
+    },
+    {
+      "title": "disable /assign command in BLT-Action (now handled by BLT-Pool)",
+      "url": "https://github.com/OWASP-BLT/BLT-Action/pull/124",
+      "username": "b-u-g-g",
+      "avatar": "https://avatars.githubusercontent.com/u/147278023?v=4",
+      "state": "open",
+      "created_at": "2026-04-24T10:00:20Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-Action"
+    },
+    {
+      "title": "fix(security): add default response security headers",
+      "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/120",
+      "username": "ojaswa072",
+      "avatar": "https://avatars.githubusercontent.com/u/230836303?v=4",
+      "state": "open",
+      "created_at": "2026-04-23T19:03:30Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-SafeCloak"
     }
   ]
 }
