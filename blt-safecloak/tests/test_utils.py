@@ -28,8 +28,7 @@ sys.modules['workers'] = mock_workers
 # Fix the path so it finds your 'src' folder
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 # Now the import will work perfectly!
-from src.libs.utils import html_response, json_response, cors_response
-from src.libs.utils import security_headers
+from src.libs.utils import html_response, json_response, cors_response, security_headers, resolve_allowed_origin
 
 EXPECTED_SECURITY_HEADERS = security_headers()
 CRITICAL_SECURITY_DIRECTIVES = {
@@ -39,8 +38,8 @@ CRITICAL_SECURITY_DIRECTIVES = {
 }
 
 
-def test_html_response():
-    """Test that html_response sets the correct headers and content."""
+def test_html_response_no_origin():
+    """Test that html_response sets the correct headers and content when no origin provided."""
     html_content = "<h1>Test Page</h1>"
     response = html_response(html_content)
 
@@ -55,8 +54,31 @@ def test_html_response():
     assert "<h1>Test Page</h1>" in response.body.decode('utf-8')
 
 
-def test_json_response():
-    """Test that json_response correctly formats a dict to JSON."""
+def test_html_response_sets_cors_for_allowed_origin(monkeypatch):
+    """Test html_response sets CORS header only for allowlisted origins."""
+    monkeypatch.setenv('SAFE_CLOAK_ALLOWED_ORIGINS', 'https://allowed.example')
+    html_content = "<h1>Test Page</h1>"
+    response = html_response(html_content, origin='https://allowed.example')
+
+    assert response.status_code == 200
+    assert response.headers["Content-Type"] == "text/html; charset=utf-8"
+    assert "<h1>Test Page</h1>" in response.body.decode('utf-8')
+    assert response.headers["Access-Control-Allow-Origin"] == "https://allowed.example"
+    assert response.headers["Vary"] == "Origin"
+
+
+def test_html_response_omits_cors_for_unknown_origin(monkeypatch):
+    """Test html_response omits CORS header for non-allowlisted origins."""
+    monkeypatch.setenv('SAFE_CLOAK_ALLOWED_ORIGINS', 'https://allowed.example')
+    response = html_response('<h1>Test Page</h1>', origin='https://unknown.example')
+
+    assert response.status_code == 200
+    assert "Access-Control-Allow-Origin" not in response.headers
+    assert response.headers["Vary"] == "Origin"
+
+
+def test_json_response_no_origin():
+    """Test that json_response sets the correct headers and content when no origin provided."""
     data = {"status": "success"}
     response = json_response(data)
 
@@ -71,8 +93,21 @@ def test_json_response():
     assert json.loads(response.body) == data
 
 
-def test_cors_response():
-    """Test that cors_response injects the correct CORS headers."""
+def test_json_response_sets_cors_for_allowed_origin(monkeypatch):
+    """Test json_response correctly formats JSON and emits CORS for allowlisted origins."""
+    monkeypatch.setenv('SAFE_CLOAK_ALLOWED_ORIGINS', 'https://allowed.example')
+    data = {"status": "success"}
+    response = json_response(data, origin='https://allowed.example')
+
+    assert response.status_code == 200
+    assert response.headers["Content-Type"] == "application/json; charset=utf-8"
+    assert json.loads(response.body) == data
+    assert response.headers["Access-Control-Allow-Origin"] == "https://allowed.example"
+    assert response.headers["Vary"] == "Origin"
+
+
+def test_cors_response_no_origin():
+    """Test that cors_response sets the correct CORS headers when no origin provided."""
     response = cors_response()
 
     assert response.status_code == 204
@@ -85,6 +120,36 @@ def test_cors_response():
         assert response.headers[header_name] == expected_value
     for header_name, expected_value in CRITICAL_SECURITY_DIRECTIVES.items():
         assert response.headers[header_name] == expected_value
+
+
+def test_cors_response_sets_allow_origin_for_allowed_origin(monkeypatch):
+    """Test cors_response injects allowlisted origin and CORS preflight headers."""
+    monkeypatch.setenv('SAFE_CLOAK_ALLOWED_ORIGINS', 'https://allowed.example')
+    response = cors_response(origin='https://allowed.example')
+
+    assert response.status_code == 204
+    assert response.headers["Access-Control-Allow-Origin"] == "https://allowed.example"
+    assert response.headers["Access-Control-Allow-Methods"] == "GET, POST, OPTIONS"
+    assert response.headers["Access-Control-Allow-Headers"] == "Content-Type"
+    assert response.headers["Access-Control-Max-Age"] == "86400"
+    assert response.headers["Vary"] == "Origin"
+
+
+def test_cors_response_omits_allow_origin_for_unknown_origin(monkeypatch):
+    """Test cors_response does not allow unknown origins."""
+    monkeypatch.setenv('SAFE_CLOAK_ALLOWED_ORIGINS', 'https://allowed.example')
+    response = cors_response(origin='https://unknown.example')
+
+    assert response.status_code == 204
+    assert "Access-Control-Allow-Origin" not in response.headers
+    assert response.headers["Vary"] == "Origin"
+
+
+def test_resolve_allowed_origin_normalizes_case_and_trailing_slash(monkeypatch):
+    """Allowlist checks should ignore host/scheme case and trailing slash differences."""
+    monkeypatch.setenv('SAFE_CLOAK_ALLOWED_ORIGINS', 'https://Allowed.Example.com/')
+
+    assert resolve_allowed_origin('HTTPS://ALLOWED.EXAMPLE.COM') == 'https://allowed.example.com'
 
 
 def test_json_response_default_str_fallback():
@@ -121,6 +186,7 @@ def _make_request(method='GET', path='/'):
     req = MagicMock()
     req.method = method
     req.url = f'http://localhost:8787{path}'
+    req.headers = {}
     return req
 
 
