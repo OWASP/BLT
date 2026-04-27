@@ -1505,11 +1505,10 @@ const VideoChat = (() => {
             return;
           }
           // They have priority — drop our outgoing call, accept incoming.
-          // Mark the peer so its close handler skips destructive cleanup.
+          // Guard stays active until the replacement call is fully accepted.
           glareResolvingPeers.add(incomingCall.peer);
           existingCall.close();
           activeCalls.delete(incomingCall.peer);
-          glareResolvingPeers.delete(incomingCall.peer);
         } else {
           // An established call already exists with this peer; reject duplicate.
           incomingCall.close();
@@ -1519,6 +1518,7 @@ const VideoChat = (() => {
       if (!consentGiven) {
         const ok = await askConsent(incomingCall.peer);
         if (!ok) {
+          glareResolvingPeers.delete(incomingCall.peer);
           incomingCall.close();
           return;
         }
@@ -1526,11 +1526,13 @@ const VideoChat = (() => {
 
       const mediaOk = await startLocalMedia(walkieTalkieMode ? { audio: true, video: false } : undefined);
       if (!mediaOk) {
+        glareResolvingPeers.delete(incomingCall.peer);
         incomingCall.close();
         return;
       }
 
       activeCalls.set(incomingCall.peer, incomingCall);
+      glareResolvingPeers.delete(incomingCall.peer);
       updateParticipantsList();
 
       incomingCall.answer(voiceStream || localStream);
