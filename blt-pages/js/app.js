@@ -170,15 +170,33 @@ async function loadLeaderboard() {
   } catch {
     // Fall back to GitHub API (subject to rate limits for unauthenticated calls)
     try {
-      await loadLeaderboardFromAPI(container, statBugs, statDomains, statReporters, limit);
-    } catch (err2) {
-      console.error("API Fallback failed:", { context: "loadLeaderboardFromAPI", error: err2 });
-      container.innerHTML = `<tr><td colspan="4" class="text-center py-8 text-gray-500 dark:text-gray-400">
-        <svg class="fa-icon text-primary mr-2" aria-hidden="true"><use href="#fa-circle-exclamation"></use></svg>
-        Could not load leaderboard. <a href="https://github.com/${BLT_CONFIG.REPO_OWNER}/${BLT_CONFIG.REPO_NAME}/issues" class="text-primary underline" target="_blank" rel="noopener noreferrer">View on GitHub</a>
-      </td></tr>`;
-    }
-  }
+  await loadLeaderboardFromAPI(container, statBugs, statDomains, statReporters, limit);
+} catch (err2) {
+  console.error("API Fallback failed:", { context: "loadLeaderboardFromAPI", error: err2 });
+
+  const errorRow = (cols) => `
+  <tr>
+    <td colspan="${cols}" class="text-center py-8 text-gray-500 dark:text-gray-400">
+      <svg class="fa-icon text-primary mr-2" aria-hidden="true">
+        <use href="#fa-circle-exclamation"></use>
+      </svg>
+      Could not load data.
+      <a href="https://github.com/${BLT_CONFIG.REPO_OWNER}/${BLT_CONFIG.REPO_NAME}/issues"
+         class="text-primary underline" target="_blank" rel="noopener noreferrer">
+         View on GitHub
+      </a>
+    </td>
+  </tr>`;
+
+  // Main table
+  container.innerHTML = errorRow(4);
+
+  // Other tables for commenters and domains
+  const commentersEl = document.getElementById("commenters-rows");
+  if (commentersEl) commentersEl.innerHTML = errorRow(4);
+
+  const domainsEl = document.getElementById("domains-rows");
+  if (domainsEl) domainsEl.innerHTML = errorRow(4);
 }
 
 /**
@@ -237,7 +255,7 @@ async function loadLeaderboardFromAPI(container, statBugs, statDomains, statRepo
         } else if (!rawUrl.startsWith("http://") && !rawUrl.startsWith("https://")) {
           rawUrl = "https://" + rawUrl;
         }
-        const domain = new URL(rawUrl).hostname;
+        const domain = new URL(rawUrl).hostname.replace(/^www\./, "");
         if (domain) {
           domainCounts[domain] = (domainCounts[domain] || 0) + 1;
         }
@@ -468,7 +486,7 @@ async function loadRecentBugsFromAPI(grid) {
             } else if (!rawUrl.startsWith("http://") && !rawUrl.startsWith("https://")) {
               rawUrl = "https://" + rawUrl;
             }
-            domain = new URL(rawUrl).hostname;
+            domain = new URL(rawUrl).hostname.replace(/^www\./, "");
           } catch {
             /* ignore invalid URLs */
           }
