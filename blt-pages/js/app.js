@@ -258,8 +258,11 @@ async function loadLeaderboardFromAPI(container, statBugs, statDomains, statRepo
     const url = `https://api.github.com/repos/${BLT_CONFIG.REPO_OWNER}/${BLT_CONFIG.REPO_NAME}/issues?state=all&labels=bug&per_page=${perPage}&page=${page}`;
     const res = await fetch(url, { headers: { Accept: "application/vnd.github+json" } });
     if (res.status === 403) {
-      console.warn("GitHub API rate limit reached; counts may reflect partial data.");
-      break;
+      if (issues.length === 0) {
+         throw new Error('GitHub API rate limit reached");
+         }
+         console.warn("GitHub API rate limit reached; counts may reflect partial data.");
+         break;
     }
     if (!res.ok) throw new Error(`GitHub API error ${res.status}`);
     const pageIssues = await res.json();
