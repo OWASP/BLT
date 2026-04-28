@@ -97,7 +97,10 @@ def extract_domain(body):
     elif not raw_url.startswith(("http://", "https://")):
         raw_url = "https://" + raw_url
     try:
-        return urlparse(raw_url).hostname or None
+        hostname = urlparse(raw_url).hostname
+        if not hostname:
+            return None
+        return re.sub (r'^www\.', '', hostname)
     except Exception:
         return None
 
