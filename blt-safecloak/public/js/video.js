@@ -632,8 +632,7 @@ const VideoChat = (() => {
     if (
       isPeerOwner(peerId) &&
       !isPeerOwner(state.peerId) &&
-      typeof payload.walkie === "boolean" &&
-      payload.walkie &&
+      payload.walkie === true &&
       !walkieTalkieMode
     ) {
       void setWalkieTalkieMode(true, "host");
