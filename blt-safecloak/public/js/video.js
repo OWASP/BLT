@@ -58,6 +58,7 @@ const VideoChat = (() => {
 
   const state = {
     peerId: null,
+    ownerId: null,
     connected: false,
     sessionId: null,
     sessionKey: null,
@@ -166,6 +167,21 @@ const VideoChat = (() => {
   function getDisplayLabel(peerId) {
     if (peerId === state.peerId || peerId === "local") return "You";
     return getProfileForPeer(peerId).name || peerId;
+  }
+
+  function isPeerOwner(peerId) {
+    if (!peerId) return false;
+    return Boolean(state.ownerId && peerId === state.ownerId);
+  }
+
+  function createOwnerBadge() {
+    const badge = document.createElement("span");
+    badge.className =
+      "rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-700";
+    badge.textContent = "Owner";
+    badge.setAttribute("aria-label", "Room owner");
+    badge.title = "Room owner";
+    return badge;
   }
 
   function normalizeRoomId(value) {
@@ -295,6 +311,7 @@ const VideoChat = (() => {
       micMuted: isLocalMicMutedState(),
       camOff: screenSharing ? false : isLocalCamOffState(),
       handRaised: localHandRaised,
+      walkie: walkieTalkieMode,
     };
   }
 
@@ -611,6 +628,16 @@ const VideoChat = (() => {
     peerProfiles.set(peerId, profile);
     updateTilePresentation(peerId);
     updateParticipantsList();
+
+    // If the host has walkie-talkie enabled, all non-host participants should join in walkie-talkie mode.
+    if (
+      isPeerOwner(peerId) &&
+      !isPeerOwner(state.peerId) &&
+      payload.walkie === true &&
+      !walkieTalkieMode
+    ) {
+      void setWalkieTalkieMode(true, "host");
+    }
   }
 
   function sendProfileTo(peerId, force = false) {
@@ -1084,7 +1111,7 @@ const VideoChat = (() => {
     }
   }
 
-  async function setWalkieTalkieMode(enabled) {
+  async function setWalkieTalkieMode(enabled, reason = "") {
     if (walkieTalkieMode === enabled) return;
     pushToTalkPressed = false;
     if (!enabled) {
@@ -1126,7 +1153,7 @@ const VideoChat = (() => {
       if (participantModeHint) {
         participantModeHint.textContent = WALKIE_MODE_HINT;
       }
-      showToast("Walkie-talkie mode enabled for large room", "info");
+      showToast(reason === "host" ? "Walkie-talkie mode enabled by host" : "Walkie-talkie mode enabled for large room", "info");
     } else {
       walkieFloorHolder = null;
       micMuted = wasMicMutedBeforeWalkie;
@@ -1439,7 +1466,9 @@ const VideoChat = (() => {
       return;
     }
     const inviteRoomId = getInviteRoomIdFromUrl();
-    state.peerId = shouldReuseInviteRoomAsPeerId(inviteRoomId) ? inviteRoomId : Crypto.randomId(6);
+    const shouldReuseRoomId = shouldReuseInviteRoomAsPeerId(inviteRoomId);
+    state.peerId = shouldReuseRoomId ? inviteRoomId : Crypto.randomId(6);
+    state.ownerId = isValidRoomId(inviteRoomId) ? inviteRoomId : state.peerId;
     persistOwnRoomId(state.peerId);
     state.sessionKey = await Crypto.generateKey();
     state.sessionId = state.peerId;
@@ -1684,6 +1713,10 @@ const VideoChat = (() => {
     localNameText.textContent = `${state.displayName} (You)`;
     localNameLabel.appendChild(localNameText);
 
+    if (isPeerOwner(state.peerId)) {
+      localNameLabel.appendChild(createOwnerBadge());
+    }
+
     if (localHandRaised) {
       const hand = document.createElement("span");
       hand.textContent = "✋";
@@ -1707,7 +1740,13 @@ const VideoChat = (() => {
     localItem.appendChild(localNameSpan);
     listEl.appendChild(localItem);
 
-    activeCalls.forEach((_call, peerId) => {
+    const orderedPeerIds = Array.from(activeCalls.keys()).sort((a, b) => {
+      const aRank = isPeerOwner(a) ? 0 : 1;
+      const bRank = isPeerOwner(b) ? 0 : 1;
+      return aRank - bRank;
+    });
+
+    orderedPeerIds.forEach((peerId) => {
       const item = document.createElement("div");
       item.className = "flex items-center justify-between gap-2 py-1 text-sm";
 
@@ -1729,6 +1768,10 @@ const VideoChat = (() => {
       nameText.className = "truncate";
       nameText.textContent = getDisplayLabel(peerId);
       nameLabel.appendChild(nameText);
+
+      if (isPeerOwner(peerId)) {
+        nameLabel.appendChild(createOwnerBadge());
+      }
 
       const remoteProfile = getProfileForPeer(peerId);
       if (remoteProfile.handRaised) {

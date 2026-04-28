@@ -240,8 +240,8 @@ const NotesApp = (() => {
           .reduce((sum, w) => sum + (freq[w] || 0), 0),
       }))
       .sort((a, b) => b.score - a.score);
-    // Top 3 sentences in original order
-    const top = scored.slice(0, Math.min(3, scored.length)).map((x) => x.s.trim());
+    // Top 3 sentences in original order (keep untrimmed for indexOf lookup)
+    const top = scored.slice(0, Math.min(3, scored.length)).map((x) => x.s);
     const indices = top.map((t) => sentences.indexOf(t)).sort((a, b) => a - b);
     return "📝 Summary:\n" + indices.map((i) => sentences[i].trim()).join(" ");
   }
