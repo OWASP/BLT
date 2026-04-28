@@ -69,7 +69,7 @@ jobs:
             if (!match) return;
 
             let hostname = null;
-            try { hostname = new URL(match[1]).hostname; } catch { /* ignore */ }
+            try { hostname = new URL(match[1]).hostname.replace(/^www\./, ''); } catch { /* ignore */ }
             if (!hostname) return;
 
             // Truncate to 50 chars to stay within GitHub's label name limit (50 chars)
