@@ -159,7 +159,7 @@ function applyFetchedRepos(allRepos) {
 
 /**
  * Derives election status from timestamps at runtime.
- * Donnie only needs to set dates — transitions happen automatically.
+ * Only needs dates set — transitions happen automatically.
  *
  * Rules:
  *   before nomination_start                    → draft
@@ -167,7 +167,7 @@ function applyFetchedRepos(allRepos) {
  *   nomination_end → voting_start              → admin_review
  *   voting_start → voting_end                  → voting_open
  *   after voting_end                           → closed
- *   status === 'finalized' (admin-set, sticky) → finalized
+ *   status === 'finalized' (sticky)            → finalized
  */
 function deriveStatus(el) {
   if (el.status === 'finalized') return 'finalized';
@@ -320,11 +320,11 @@ function renderElections() {
   if (!container || !leadersData) return;
   const elections = leadersData.elections || [];
 
-  // Render "Request Election" button for logged-in users
+  // "Start Nomination" button — visible to everyone, no admin required
   const addBtn = document.getElementById('add-election-btn');
   if (addBtn) {
-    addBtn.classList.toggle('hidden', !currentUser);
-    addBtn.onclick = openRequestElectionForm;
+    addBtn.classList.remove('hidden');
+    addBtn.onclick = () => openDirectNominationForm(null);
   }
 
   if (!elections.length) {
@@ -633,7 +633,7 @@ function submitNomination(electionId, el, project) {
     `**Project:** ${project.name || el.project_id}`,
     `**Role:** ${role}`,
     `**Nominee:** @${nominee}`,
-    `**Nominator:** @${currentUser.login}${currentUser.verified === false ? ' _(claimed username — unverified)_' : ''}`,
+    `**Nominator:** @${currentUser.login}${currentUser.verified !== true ? ' _(claimed username — unverified)_' : ''}`,
     `**Self-Nomination:** ${selfNom ? 'Yes' : 'No'}`,
     ``,
     `### Statement`,
@@ -744,58 +744,74 @@ function openVoteIssue(issueNumber, nomineeLogin, role) {
   showToast(`👍 the issue on GitHub to cast your vote for @${nomineeLogin} as ${role}.`);
 }
 
-/* ── Request New Election (via GitHub Issue) ── */
-function openRequestElectionForm() {
-  if (!currentUser) { showToast('Please sign in with GitHub first.'); return; }
+/* ── Direct Nomination (any project, no admin required) ── */
+function openDirectNominationForm(preselectedProjectId) {
   const formModal = document.getElementById('nomination-modal');
   const formBody = document.getElementById('nomination-modal-body');
   if (!formModal || !formBody) return;
 
-  // Build project options from merged list (pinned + API-fetched)
-  const projectOptions = (leadersData.projects || [])
-    .map(p => `<option value="${escHtml(p.id)}">${escHtml(p.name)}</option>`)
+  const projects = leadersData.projects || [];
+  const projectOptions = projects
+    .map(p => `<option value="${escHtml(p.id)}"${p.id === preselectedProjectId ? ' selected' : ''}>${escHtml(p.name)}</option>`)
     .join('');
 
+  const nomineeDefault = currentUser ? escHtml(currentUser.login) : '';
+  const anonNote = currentUser ? '' : `
+    <p class="text-xs text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg px-3 py-2 mb-2">
+      <strong>Note:</strong> You are not signed in. Your GitHub identity won't be recorded as the nominator — sign in with GitHub before submitting if you want to be credited.
+    </p>`;
+
   formBody.innerHTML = `
-    <h3 class="text-xl font-extrabold text-gray-900 dark:text-white mb-1">Request an Election</h3>
-    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">This opens a GitHub Issue for Donnie to review and approve.</p>
-    <form id="election-request-form" class="space-y-4">
+    <h3 class="text-xl font-extrabold text-gray-900 dark:text-white mb-1">Start a Nomination</h3>
+    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Nominate yourself or another contributor for any project leadership role. A GitHub Issue will be created — votes are 👍 reactions on that issue.</p>
+    <form id="direct-nomination-form" class="space-y-4">
+      ${anonNote}
       <div>
-        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1" for="er-project">Project / Repo</label>
-        <select id="er-project" class="w-full rounded-xl border border-neutral-border dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1" for="dn-project">Project / Repo</label>
+        <select id="dn-project" class="w-full rounded-xl border border-neutral-border dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
           <option value="">— select a project —</option>
           ${projectOptions}
-          <option value="__other__">Other (specify below)</option>
         </select>
       </div>
-      <div id="er-other-wrap" class="hidden">
-        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1" for="er-other">Repo URL or name</label>
-        <input id="er-other" type="text" class="w-full rounded-xl border border-neutral-border dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" placeholder="https://github.com/OWASP-BLT/..." />
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1" for="dn-role">Role</label>
+        <select id="dn-role" class="w-full rounded-xl border border-neutral-border dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
+          <option value="Lead">Lead</option>
+          <option value="Co-Lead">Co-Lead</option>
+        </select>
       </div>
       <div>
-        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1" for="er-term">Term name</label>
-        <input id="er-term" type="text" class="w-full rounded-xl border border-neutral-border dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" placeholder="e.g. June 2026 Leadership" />
+        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1" for="dn-nominee">Nominee GitHub Username</label>
+        <input id="dn-nominee" type="text" value="${nomineeDefault}"
+          class="w-full rounded-xl border border-neutral-border dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          placeholder="github-username" />
+        <p class="text-xs text-gray-400 mt-1">Leave as your username to self-nominate.</p>
       </div>
       <div>
-        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Roles needed</label>
-        <div class="flex gap-4">
-          <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
-            <input type="checkbox" id="er-role-lead" checked class="accent-primary" /> Lead
-          </label>
-          <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
-            <input type="checkbox" id="er-role-colead" checked class="accent-primary" /> Co-Lead
-          </label>
-        </div>
+        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1" for="dn-statement">Statement / Manifesto</label>
+        <textarea id="dn-statement" rows="4"
+          class="w-full rounded-xl border border-neutral-border dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+          placeholder="Why should the community elect this person? What will they contribute as Lead/Co-Lead?"></textarea>
       </div>
       <div>
-        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1" for="er-reason">Why now? (optional)</label>
-        <textarea id="er-reason" rows="3" class="w-full rounded-xl border border-neutral-border dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary resize-none" placeholder="Context for the admin..."></textarea>
+        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1" for="dn-skills">Skills (comma-separated)</label>
+        <input id="dn-skills" type="text"
+          class="w-full rounded-xl border border-neutral-border dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          placeholder="JavaScript, Security, Documentation" />
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1" for="dn-contributions">Prior Contributions</label>
+        <input id="dn-contributions" type="text"
+          class="w-full rounded-xl border border-neutral-border dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+          placeholder="e.g. 10 merged PRs, 5 issues resolved" />
       </div>
       <div class="flex gap-3 pt-2">
-        <button type="submit" class="flex-1 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-700 transition-colors">
-          Submit Request via GitHub Issue
+        <button type="submit"
+          class="flex-1 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-700 transition-colors">
+          Submit Nomination via GitHub Issue
         </button>
-        <button type="button" id="er-cancel" class="rounded-xl border border-neutral-border dark:border-gray-600 px-4 py-2.5 text-sm font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+        <button type="button" id="dn-cancel"
+          class="rounded-xl border border-neutral-border dark:border-gray-600 px-4 py-2.5 text-sm font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
           Cancel
         </button>
       </div>
@@ -804,61 +820,65 @@ function openRequestElectionForm() {
   formModal.classList.remove('hidden');
   formModal.classList.add('flex');
 
-  document.getElementById('er-project').addEventListener('change', e => {
-    document.getElementById('er-other-wrap').classList.toggle('hidden', e.target.value !== '__other__');
+  document.getElementById('dn-cancel').addEventListener('click', () => {
+    formModal.classList.add('hidden');
+    formModal.classList.remove('flex');
   });
-  document.getElementById('er-cancel').addEventListener('click', () => {
-    formModal.classList.add('hidden'); formModal.classList.remove('flex');
-  });
-  document.getElementById('election-request-form').addEventListener('submit', e => {
+
+  document.getElementById('direct-nomination-form').addEventListener('submit', e => {
     e.preventDefault();
-    submitElectionRequest();
+    submitDirectNomination();
   });
 }
 
-function submitElectionRequest() {
-  const projectSel = document.getElementById('er-project').value;
-  const projectOther = document.getElementById('er-other').value.trim();
-  const term = document.getElementById('er-term').value.trim();
-  const wantLead = document.getElementById('er-role-lead').checked;
-  const wantColead = document.getElementById('er-role-colead').checked;
-  const reason = document.getElementById('er-reason').value.trim();
+function submitDirectNomination() {
+  const projectSel = document.getElementById('dn-project').value;
+  const role = document.getElementById('dn-role').value.trim();
+  const nominee = document.getElementById('dn-nominee').value.trim();
+  const statement = document.getElementById('dn-statement').value.trim();
+  const skills = document.getElementById('dn-skills').value.trim();
+  const contributions = document.getElementById('dn-contributions').value.trim();
 
-  if (!projectSel || !term) { showToast('Please select a project and enter a term name.'); return; }
-  if (projectSel === '__other__' && !projectOther) {
-    showToast('Please enter a project name or URL for Other.');
-    return;
-  }
+  if (!projectSel) { showToast('Please select a project.'); return; }
+  if (!nominee || !statement) { showToast('Please fill in the nominee username and statement.'); return; }
 
-  const projectLabel = projectSel === '__other__'
-    ? projectOther
-    : ((leadersData.projects || []).find(p => p.id === projectSel)?.name || projectSel);
+  const project = (leadersData.projects || []).find(p => p.id === projectSel) || { name: projectSel };
+  const selfNom = currentUser && nominee.toLowerCase() === currentUser.login.toLowerCase();
+  // Use null (not empty string) so it is filtered without removing intentional blank-line separators
+  const nominatorLine = currentUser
+    ? `**Nominator:** @${currentUser.login}${currentUser.verified !== true ? ' _(claimed username — unverified)_' : ''}`
+    : null;
 
-  const roles = [wantLead && 'Lead', wantColead && 'Co-Lead'].filter(Boolean).join(', ') || 'Not specified';
-
-  const title = `[ELECTION REQUEST] ${term} — ${projectLabel}`;
+  const title = `[NOMINATION] ${project.name} — ${role}: ${nominee}`;
   const body = [
-    `## Election Request`,
+    `## BLT Leadership Nomination`,
     ``,
-    `**Requested by:** @${currentUser.login}${currentUser.verified === false ? ' _(claimed username — unverified)_' : ''}`,
-    `**Project:** ${projectLabel}`,
-    `**Term:** ${term}`,
-    `**Roles:** ${roles}`,
+    `**Project:** ${project.name}`,
+    `**Role:** ${role}`,
+    `**Nominee:** @${nominee}`,
+    nominatorLine,  // null when not signed in — filtered below; blank lines use '' and are kept
+    `**Self-Nomination:** ${selfNom ? 'Yes' : 'No'}`,
     ``,
-    `### Reason / Context`,
-    reason || '_No reason provided_',
+    `### Statement`,
+    statement,
+    ``,
+    `### Skills`,
+    skills || '_Not provided_',
+    ``,
+    `### Prior Contributions`,
+    contributions || '_Not provided_',
     ``,
     `---`,
-    `_Submitted via BLT Leaders page. Admin: please review and update \`data/leaders.json\` to create this election._`
-  ].join('\n');
+    `_Submitted via BLT Leaders page. Vote by reacting with 👍 on this issue._`
+  ].filter(line => line !== null).join('\n');
 
   const issueUrl = `https://github.com/${BLT_CONFIG.REPO_OWNER}/${BLT_CONFIG.REPO_NAME}/issues/new?`
-    + `title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}&labels=election-request,leadership`;
+    + `title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}&labels=nomination,leadership`;
 
   window.open(issueUrl, '_blank', 'noopener,noreferrer');
   document.getElementById('nomination-modal').classList.add('hidden');
   document.getElementById('nomination-modal').classList.remove('flex');
-  showToast('Election request opened as a GitHub Issue. Donnie will review it.');
+  showToast('Nomination opened as a GitHub Issue. Submit it to complete your nomination — votes are 👍 reactions.');
 }
 
 /* ── Projects Panel ── */
@@ -900,10 +920,16 @@ function renderProjects() {
            class="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400 hover:text-primary transition-colors">
           <svg class="fa-icon" aria-hidden="true"><use href="#fa-github"></use></svg>View Repo
         </a>
-        ${activeEl ? `<button data-open-election="${escHtml(activeEl.id)}"
-          class="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline">
-          ${statusBadge(activeEl.status)}
-        </button>` : ''}
+        <div class="flex items-center gap-2 flex-wrap">
+          ${activeEl ? `<button data-open-election="${escHtml(activeEl.id)}"
+            class="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline">
+            ${statusBadge(activeEl.status)}
+          </button>` : ''}
+          <button data-nominate-project="${escHtml(p.id)}"
+            class="inline-flex items-center gap-1.5 rounded-lg border border-primary px-2.5 py-1 text-xs font-semibold text-primary hover:bg-primary hover:text-white transition-colors">
+            <svg class="fa-icon" aria-hidden="true"><use href="#fa-plus"></use></svg>Nominate
+          </button>
+        </div>
       </div>
     </article>`;
   }).join('');
@@ -913,6 +939,10 @@ function renderProjects() {
       document.querySelector('[data-tab="elections"]').click();
       openElectionModal(btn.dataset.openElection);
     });
+  });
+
+  container.querySelectorAll('[data-nominate-project]').forEach(btn => {
+    btn.addEventListener('click', () => openDirectNominationForm(btn.dataset.nominateProject));
   });
 
   // Safe avatar fallback for project leader chips
