@@ -310,6 +310,7 @@ const VideoChat = (() => {
       micMuted: isLocalMicMutedState(),
       camOff: screenSharing ? false : isLocalCamOffState(),
       handRaised: localHandRaised,
+      walkie: walkieTalkieMode,
     };
   }
 
@@ -626,6 +627,16 @@ const VideoChat = (() => {
     peerProfiles.set(peerId, profile);
     updateTilePresentation(peerId);
     updateParticipantsList();
+
+    // If the host has walkie-talkie enabled, all non-host participants should join in walkie-talkie mode.
+    if (
+      isPeerOwner(peerId) &&
+      !isPeerOwner(state.peerId) &&
+      payload.walkie === true &&
+      !walkieTalkieMode
+    ) {
+      void setWalkieTalkieMode(true, "host");
+    }
   }
 
   function sendProfileTo(peerId, force = false) {
@@ -1099,7 +1110,7 @@ const VideoChat = (() => {
     }
   }
 
-  async function setWalkieTalkieMode(enabled) {
+  async function setWalkieTalkieMode(enabled, reason = "") {
     if (walkieTalkieMode === enabled) return;
     pushToTalkPressed = false;
     if (!enabled) {
@@ -1141,7 +1152,7 @@ const VideoChat = (() => {
       if (participantModeHint) {
         participantModeHint.textContent = WALKIE_MODE_HINT;
       }
-      showToast("Walkie-talkie mode enabled for large room", "info");
+      showToast(reason === "host" ? "Walkie-talkie mode enabled by host" : "Walkie-talkie mode enabled for large room", "info");
     } else {
       walkieFloorHolder = null;
       micMuted = wasMicMutedBeforeWalkie;
