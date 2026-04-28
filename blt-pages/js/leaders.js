@@ -633,7 +633,7 @@ function submitNomination(electionId, el, project) {
     `**Project:** ${project.name || el.project_id}`,
     `**Role:** ${role}`,
     `**Nominee:** @${nominee}`,
-    `**Nominator:** @${currentUser.login}${currentUser.verified === false ? ' _(claimed username — unverified)_' : ''}`,
+    `**Nominator:** @${currentUser.login}${currentUser.verified !== true ? ' _(claimed username — unverified)_' : ''}`,
     `**Self-Nomination:** ${selfNom ? 'Yes' : 'No'}`,
     ``,
     `### Statement`,
@@ -846,7 +846,7 @@ function submitDirectNomination() {
   const selfNom = currentUser && nominee.toLowerCase() === currentUser.login.toLowerCase();
   // Use null (not empty string) so it is filtered without removing intentional blank-line separators
   const nominatorLine = currentUser
-    ? `**Nominator:** @${currentUser.login}${currentUser.verified === false ? ' _(claimed username — unverified)_' : ''}`
+    ? `**Nominator:** @${currentUser.login}${currentUser.verified !== true ? ' _(claimed username — unverified)_' : ''}`
     : null;
 
   const title = `[NOMINATION] ${project.name} — ${role}: ${nominee}`;
