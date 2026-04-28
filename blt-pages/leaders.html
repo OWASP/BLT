@@ -530,12 +530,12 @@
           </p>
           <button
             id="add-election-btn"
-            class="hidden inline-flex items-center gap-2 rounded-lg border border-primary px-3 py-2 text-sm font-semibold text-primary hover:bg-primary hover:text-white transition-colors"
+            class="inline-flex items-center gap-2 rounded-lg border border-primary px-3 py-2 text-sm font-semibold text-primary hover:bg-primary hover:text-white transition-colors"
           >
             <svg class="fa-icon" aria-hidden="true">
               <use href="#fa-plus"></use>
             </svg>
-            Request Election
+            Start Nomination
           </button>
         </div>
         <div
@@ -639,7 +639,7 @@
         <h2 class="text-2xl font-extrabold text-gray-900 dark:text-white mb-8">
           How elections work
         </h2>
-        <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="grid gap-6 sm:grid-cols-3">
           <div class="flex flex-col gap-2">
             <div
               class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-active-bg text-primary dark:bg-red-950/30 dark:text-red-400 text-lg font-extrabold"
@@ -647,11 +647,14 @@
               1
             </div>
             <h3 class="font-bold text-gray-900 dark:text-white text-sm">
-              Sign in with GitHub
+              Start a nomination
             </h3>
             <p class="text-sm text-gray-500 dark:text-gray-400">
-              Your GitHub identity verifies your vote and nomination. One
-              account, one vote per role.
+              Anyone can nominate themselves or another contributor for any
+              project. Click <strong>Start Nomination</strong> or the
+              <strong>Nominate</strong> button on a project card — no admin
+              setup required. Sign in with GitHub to have your identity
+              recorded as the nominator.
             </p>
           </div>
           <div class="flex flex-col gap-2">
@@ -661,11 +664,12 @@
               2
             </div>
             <h3 class="font-bold text-gray-900 dark:text-white text-sm">
-              Nominate during the window
+              Nomination becomes a GitHub Issue
             </h3>
             <p class="text-sm text-gray-500 dark:text-gray-400">
-              Nominate yourself or another contributor. Nominations are
-              submitted as GitHub Issues for full transparency.
+              Filling in the form opens a pre-filled GitHub Issue. Submit it to
+              make your nomination public and auditable — your GitHub identity
+              is your credential.
             </p>
           </div>
           <div class="flex flex-col gap-2">
@@ -675,25 +679,12 @@
               3
             </div>
             <h3 class="font-bold text-gray-900 dark:text-white text-sm">
-              Community votes
+              Community votes with 👍
             </h3>
             <p class="text-sm text-gray-500 dark:text-gray-400">
-              Once nominations close, voting opens. Sign in and cast your vote
-              directly on this page — one vote per role, per GitHub account.
-            </p>
-          </div>
-          <div class="flex flex-col gap-2">
-            <div
-              class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-active-bg text-primary dark:bg-red-950/30 dark:text-red-400 text-lg font-extrabold"
-            >
-              4
-            </div>
-            <h3 class="font-bold text-gray-900 dark:text-white text-sm">
-              Admin finalizes results
-            </h3>
-            <p class="text-sm text-gray-500 dark:text-gray-400">
-              Donnie (super admin) reviews, removes fraudulent votes, and
-              announces the elected Lead and Co-Lead.
+              React with 👍 on a nomination issue to cast your vote. GitHub
+              enforces one reaction per account, and vote counts are tallied
+              live on this page.
             </p>
           </div>
         </div>
