@@ -756,11 +756,16 @@ function openDirectNominationForm(preselectedProjectId) {
     .join('');
 
   const nomineeDefault = currentUser ? escHtml(currentUser.login) : '';
+  const anonNote = currentUser ? '' : `
+    <p class="text-xs text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg px-3 py-2 mb-2">
+      <strong>Note:</strong> You are not signed in. Your GitHub identity won't be recorded as the nominator — sign in with GitHub before submitting if you want to be credited.
+    </p>`;
 
   formBody.innerHTML = `
     <h3 class="text-xl font-extrabold text-gray-900 dark:text-white mb-1">Start a Nomination</h3>
     <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Nominate yourself or another contributor for any project leadership role. A GitHub Issue will be created — votes are 👍 reactions on that issue.</p>
     <form id="direct-nomination-form" class="space-y-4">
+      ${anonNote}
       <div>
         <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1" for="dn-project">Project / Repo</label>
         <select id="dn-project" class="w-full rounded-xl border border-neutral-border dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary">
@@ -839,9 +844,10 @@ function submitDirectNomination() {
 
   const project = (leadersData.projects || []).find(p => p.id === projectSel) || { name: projectSel };
   const selfNom = currentUser && nominee.toLowerCase() === currentUser.login.toLowerCase();
+  // Use null (not empty string) so it is filtered without removing intentional blank-line separators
   const nominatorLine = currentUser
     ? `**Nominator:** @${currentUser.login}${currentUser.verified === false ? ' _(claimed username — unverified)_' : ''}`
-    : '';
+    : null;
 
   const title = `[NOMINATION] ${project.name} — ${role}: ${nominee}`;
   const body = [
@@ -850,7 +856,7 @@ function submitDirectNomination() {
     `**Project:** ${project.name}`,
     `**Role:** ${role}`,
     `**Nominee:** @${nominee}`,
-    nominatorLine,
+    nominatorLine,  // null when not signed in — filtered below; blank lines use '' and are kept
     `**Self-Nomination:** ${selfNom ? 'Yes' : 'No'}`,
     ``,
     `### Statement`,
@@ -864,7 +870,7 @@ function submitDirectNomination() {
     ``,
     `---`,
     `_Submitted via BLT Leaders page. Vote by reacting with 👍 on this issue._`
-  ].filter(line => line !== '').join('\n');
+  ].filter(line => line !== null).join('\n');
 
   const issueUrl = `https://github.com/${BLT_CONFIG.REPO_OWNER}/${BLT_CONFIG.REPO_NAME}/issues/new?`
     + `title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}&labels=nomination,leadership`;
