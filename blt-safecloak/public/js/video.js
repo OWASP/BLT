@@ -639,14 +639,21 @@ const VideoChat = (() => {
       void setWalkieTalkieMode(true, "host");
     }
 
-    // Sync floor state from incoming profile so late joiners and stale states
-    // are corrected. Accept any update (including clear-to-free) when the value differs.
-    if (walkieTalkieMode && payload.walkie === true && typeof payload.floorHolder === "string") {
-      const incoming = payload.floorHolder === "" ? null : payload.floorHolder;
-      if (incoming !== walkieFloorHolder) {
+    // Sync floor state from incoming profile for late joiners.
+    // Only adopt a non-null holder when local state is still free — this avoids
+    // a stale profile from one peer clobbering a correct state from another.
+    // Real-time releases are handled by the data-channel "floor" messages, not here.
+    if (
+      walkieTalkieMode &&
+      payload.walkie === true &&
+      (typeof payload.floorHolder === "string" || payload.floorHolder === null)
+    ) {
+      const incoming = payload.floorHolder ?? null;
+      if (incoming !== null && walkieFloorHolder === null) {
         walkieFloorHolder = incoming;
         updateWalkieCueBanner();
         syncControlButtons();
+        updateLocalTilePresentation();
       }
     }
   }
