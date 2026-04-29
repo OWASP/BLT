@@ -97,7 +97,10 @@ def extract_domain(body):
     elif not raw_url.startswith(("http://", "https://")):
         raw_url = "https://" + raw_url
     try:
-        return urlparse(raw_url).hostname or None
+        hostname = urlparse(raw_url).hostname
+        if not hostname:
+            return None
+        return re.sub (r'^www\.', '', hostname)
     except Exception:
         return None
 
@@ -725,15 +728,17 @@ def main():
         fh.write("\n")
     print("  Wrote data/leaderboard.json")
 
-    # ── Patch index.html ──────────────────────────────────────────────────────
-    with open("index.html", encoding="utf-8") as fh:
-        html = fh.read()
-
-    html = patch_html(html, payload)
-
-    with open("index.html", "w", encoding="utf-8") as fh:
-        fh.write(html)
-    print("  Patched index.html")
+    # ── Patch index.html and leaderboard.html ──────────────────────────────────────────────────────
+    for html_file in ["index.html", "leaderboard.html"]:
+        if not os.path.exists(html_file):
+            print(f"  Skipping {html_file} (not found)")
+            continue
+        with open(html_file, encoding="utf-8") as fh:
+            html = fh.read()
+        html = patch_html(html, payload)
+        with open(html_file, "w", encoding="utf-8") as fh:
+            fh.write(html)
+        print(f"  Patched {html_file}")
 
     print(
         f"Done: {len(bug_issues)} bugs, {len(leaderboard)} reporters, "

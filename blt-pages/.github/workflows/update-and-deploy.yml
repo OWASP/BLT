@@ -69,7 +69,7 @@ jobs:
             if (!match) return;
 
             let hostname = null;
-            try { hostname = new URL(match[1]).hostname; } catch { /* ignore */ }
+            try { hostname = new URL(match[1]).hostname.replace(/^www\./, ''); } catch { /* ignore */ }
             if (!hostname) return;
 
             // Truncate to 50 chars to stay within GitHub's label name limit (50 chars)
@@ -138,7 +138,7 @@ jobs:
             const { execSync } = require('child_process');
             execSync('git config user.name "github-actions[bot]"');
             execSync('git config user.email "github-actions[bot]@users.noreply.github.com"');
-            execSync('git add data/leaderboard.json index.html');
+            execSync('git add data/leaderboard.json index.html leaderboard.html');
             let hasChanges = true;
             try { execSync('git diff --quiet --cached'); hasChanges = false; } catch (e) {}
             if (!hasChanges) {
