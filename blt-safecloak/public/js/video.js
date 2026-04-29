@@ -639,18 +639,15 @@ const VideoChat = (() => {
       void setWalkieTalkieMode(true, "host");
     }
 
-    // Sync floor state for late joiners: if the sender reports who holds the floor,
-    // adopt it so the newcomer sees the correct speaker banner immediately.
-    if (
-      walkieTalkieMode &&
-      payload.walkie === true &&
-      typeof payload.floorHolder === "string" &&
-      payload.floorHolder !== "" &&
-      walkieFloorHolder === null
-    ) {
-      walkieFloorHolder = payload.floorHolder;
-      updateWalkieCueBanner();
-      syncControlButtons();
+    // Sync floor state from incoming profile so late joiners and stale states
+    // are corrected. Accept any update (including clear-to-free) when the value differs.
+    if (walkieTalkieMode && payload.walkie === true && typeof payload.floorHolder === "string") {
+      const incoming = payload.floorHolder === "" ? null : payload.floorHolder;
+      if (incoming !== walkieFloorHolder) {
+        walkieFloorHolder = incoming;
+        updateWalkieCueBanner();
+        syncControlButtons();
+      }
     }
   }
 
