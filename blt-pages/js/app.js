@@ -239,7 +239,7 @@ const failSafe = setTimeout(() => {
   if (domainsEl) domainsEl.innerHTML = errorRow(4);
  }
 }
-   
+}   
 /**
  * Centralized data access helper for leaderboard information.
  * Returns either the server-side rendered (SSR) inline data or the latest fetched state.
