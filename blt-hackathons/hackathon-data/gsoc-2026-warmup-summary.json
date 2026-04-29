@@ -1,6 +1,6 @@
 {
-  "participantCount": 206,
-  "totalPRs": 2707,
+  "participantCount": 207,
+  "totalPRs": 2708,
   "mergedPRs": 1684,
   "totalIssues": 849,
   "repositories": 54,
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "fix: restrict bid status changes to authorized users",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6221",
+      "username": "hlora60",
+      "avatar": "https://avatars.githubusercontent.com/u/110014385?v=4",
+      "state": "closed",
+      "created_at": "2026-04-29T05:22:03Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT"
+    },
     {
       "title": "fix: leaderboard empty state: SSR parity + consistent fallback error handling + domain normalization",
       "url": "https://github.com/OWASP-BLT/BLT-Pages/pull/108",
@@ -114,16 +124,6 @@
       "created_at": "2026-04-24T10:02:12Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "disable /assign command in BLT-Action (now handled by BLT-Pool)",
-      "url": "https://github.com/OWASP-BLT/BLT-Action/pull/124",
-      "username": "b-u-g-g",
-      "avatar": "https://avatars.githubusercontent.com/u/147278023?v=4",
-      "state": "closed",
-      "created_at": "2026-04-24T10:00:20Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT-Action"
     }
   ]
 }
