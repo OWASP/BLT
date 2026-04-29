@@ -237,8 +237,9 @@ const failSafe = setTimeout(() => {
 
   const domainsEl = document.getElementById("domains-rows");
   if (domainsEl) domainsEl.innerHTML = errorRow(4);
+ }
 }
-
+   
 /**
  * Centralized data access helper for leaderboard information.
  * Returns either the server-side rendered (SSR) inline data or the latest fetched state.
@@ -259,7 +260,7 @@ async function loadLeaderboardFromAPI(container, statBugs, statDomains, statRepo
     const res = await fetch(url, { headers: { Accept: "application/vnd.github+json" } });
     if (res.status === 403) {
       if (issues.length === 0) {
-         throw new Error('GitHub API rate limit reached");
+         throw new Error("GitHub API rate limit reached");
          }
          console.warn("GitHub API rate limit reached; counts may reflect partial data.");
          break;
