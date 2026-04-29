@@ -1,10 +1,10 @@
 {
-  "updated_at": "2026-04-28T15:06:19.306229Z",
-  "commit_sha": "d513fc347e4aeb1811d554e1fa9d1e93b379016d",
+  "updated_at": "2026-04-29T14:11:54.888160Z",
+  "commit_sha": "6f818a6cdabe751455bd9f4c2bbc538df41119e8",
   "total_bugs": 20,
   "open_bugs": 6,
   "closed_bugs": 14,
-  "total_domains": 5,
+  "total_domains": 4,
   "total_orgs": 0,
   "leaderboard": [
     {
@@ -182,7 +182,7 @@
     {
       "rank": 1,
       "domain": "owaspblt.org",
-      "count": 11
+      "count": 12
     },
     {
       "rank": 2,
@@ -191,18 +191,13 @@
     },
     {
       "rank": 3,
-      "domain": "www.owasp.community",
+      "domain": "owasp.community",
       "count": 3
     },
     {
       "rank": 4,
       "domain": "github.com",
       "count": 2
-    },
-    {
-      "rank": 5,
-      "domain": "www.owaspblt.org",
-      "count": 1
     }
   ],
   "recent_bugs": [
