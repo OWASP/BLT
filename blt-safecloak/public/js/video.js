@@ -311,6 +311,7 @@ const VideoChat = (() => {
       camOff: screenSharing ? false : isLocalCamOffState(),
       handRaised: localHandRaised,
       walkie: walkieTalkieMode,
+      floorHolder: walkieFloorHolder,
     };
   }
 
@@ -636,6 +637,20 @@ const VideoChat = (() => {
       !walkieTalkieMode
     ) {
       void setWalkieTalkieMode(true, "host");
+    }
+
+    // Sync floor state for late joiners: if the sender reports who holds the floor,
+    // adopt it so the newcomer sees the correct speaker banner immediately.
+    if (
+      walkieTalkieMode &&
+      payload.walkie === true &&
+      typeof payload.floorHolder === "string" &&
+      payload.floorHolder !== "" &&
+      walkieFloorHolder === null
+    ) {
+      walkieFloorHolder = payload.floorHolder;
+      updateWalkieCueBanner();
+      syncControlButtons();
     }
   }
 
