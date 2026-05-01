@@ -966,16 +966,24 @@ const VideoChat = (() => {
       const conn = activeDataConns.get(peerId);
       if (conn && conn.open) return; // already sent above
       const newConn = ensureDataConn(peerId);
-      if (newConn && !newConn.open) {
-        const onOpen = () => {
-          newConn.off("open", onOpen);
+      if (newConn) {
+        if (newConn.open) {
           try {
             newConn.send(payload);
           } catch {
             /* ignore transient send failures on reconnect */
           }
-        };
-        newConn.on("open", onOpen);
+        } else {
+          const onOpen = () => {
+            newConn.off("open", onOpen);
+            try {
+              newConn.send(payload);
+            } catch {
+              /* ignore transient send failures on reconnect */
+            }
+          };
+          newConn.on("open", onOpen);
+        }
       }
     });
 
