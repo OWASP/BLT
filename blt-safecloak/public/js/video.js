@@ -475,8 +475,8 @@ const VideoChat = (() => {
       tile.dot.className = `status-dot ${isLocal || activeCalls.has(peerId) ? "online" : "connecting"}`;
     }
     if (tile.labelName) {
-      tile.labelName.textContent = isLocal ? "You" : displayName;
-      tile.labelName.title = displayName;
+      tile.labelName.textContent = isLocal ? `${state.displayName} (You)` : displayName;
+      tile.labelName.title = isLocal ? state.displayName : displayName;
     }
     if (tile.video) {
       tile.video.setAttribute(
@@ -959,6 +959,26 @@ const VideoChat = (() => {
         /* ignore transient data-channel send failures */
       }
     });
+
+    // For peers with an active call but no open data connection, try to re-establish
+    // the channel and queue the message to be sent once it opens.
+    activeCalls.forEach((_call, peerId) => {
+      const conn = activeDataConns.get(peerId);
+      if (conn && conn.open) return; // already sent above
+      const newConn = ensureDataConn(peerId);
+      if (newConn && !newConn.open) {
+        const onOpen = () => {
+          newConn.off("open", onOpen);
+          try {
+            newConn.send(payload);
+          } catch {
+            /* ignore transient send failures on reconnect */
+          }
+        };
+        newConn.on("open", onOpen);
+      }
+    });
+
     return true;
   }
 
@@ -1054,25 +1074,29 @@ const VideoChat = (() => {
 
     const micBtn = $("btn-mic");
     if (micBtn) {
-      // Disable only when the device is genuinely unavailable: user wants mic on
-      // but there is no track. When micMuted=true the track was intentionally
-      // stopped — keep the button enabled so the user can re-enable.
-      const micUnavailable = !hasAudioTrack && !micMuted;
-      if (micUnavailable) {
-        micBtn.innerHTML = '<i class="fa-solid fa-microphone-slash" aria-hidden="true"></i>';
-        micBtn.title = micMuted ? "Unmute mic" : "Mute mic";
-        micBtn.disabled = false;
-        micBtn.classList.remove("opacity-50", "cursor-not-allowed");
-      } else {
-        micBtn.innerHTML = micMuted
-          ? '<i class="fa-solid fa-microphone-slash" aria-hidden="true"></i>'
-          : '<i class="fa-solid fa-microphone" aria-hidden="true"></i>';
-        micBtn.title = micMuted ? "Unmute mic" : "Mute mic";
-        micBtn.disabled = false;
-        micBtn.classList.remove("opacity-50", "cursor-not-allowed");
+      // Hide the mic button in walkie-talkie mode — push-to-talk replaces it.
+      micBtn.classList.toggle("hidden", walkieTalkieMode);
+      if (!walkieTalkieMode) {
+        // Disable only when the device is genuinely unavailable: user wants mic on
+        // but there is no track. When micMuted=true the track was intentionally
+        // stopped — keep the button enabled so the user can re-enable.
+        const micUnavailable = !hasAudioTrack && !micMuted;
+        if (micUnavailable) {
+          micBtn.innerHTML = '<i class="fa-solid fa-microphone-slash" aria-hidden="true"></i>';
+          micBtn.title = micMuted ? "Unmute mic" : "Mute mic";
+          micBtn.disabled = false;
+          micBtn.classList.remove("opacity-50", "cursor-not-allowed");
+        } else {
+          micBtn.innerHTML = micMuted
+            ? '<i class="fa-solid fa-microphone-slash" aria-hidden="true"></i>'
+            : '<i class="fa-solid fa-microphone" aria-hidden="true"></i>';
+          micBtn.title = micMuted ? "Unmute mic" : "Mute mic";
+          micBtn.disabled = false;
+          micBtn.classList.remove("opacity-50", "cursor-not-allowed");
+        }
+        micBtn.setAttribute("aria-pressed", micMuted ? "true" : "false");
+        micBtn.classList.toggle("active", micMuted);
       }
-      micBtn.setAttribute("aria-pressed", micMuted ? "true" : "false");
-      micBtn.classList.toggle("active", micMuted);
     }
 
     const camBtn = $("btn-cam");
@@ -1833,8 +1857,13 @@ const VideoChat = (() => {
     const pc = call.peerConnection;
     if (pc && typeof pc.getTransceivers === "function") {
       pc.getTransceivers().forEach((tr) => {
-        if (tr.sender && tr.receiver && tr.receiver.track) {
-          call.sendersByKind[tr.receiver.track.kind] = tr.sender;
+        if (tr.sender) {
+          // Use sender's track kind when available; fall back to receiver's track kind
+          // (both tracks on the same transceiver always share the same kind).
+          const kind =
+            (tr.sender.track && tr.sender.track.kind) ||
+            (tr.receiver && tr.receiver.track && tr.receiver.track.kind);
+          if (kind) call.sendersByKind[kind] = tr.sender;
         }
       });
     } else if (pc) {
@@ -2129,7 +2158,13 @@ const VideoChat = (() => {
         if (typeof pc.getTransceivers === "function") {
           const tr = pc
             .getTransceivers()
-            .find((t) => t.receiver && t.receiver.track && t.receiver.track.kind === kind);
+            .find((t) => {
+              // Prefer matching on the sender's own track kind; fall back to the
+              // receiver's track kind (same transceiver always handles one kind).
+              const senderKind = t.sender && t.sender.track && t.sender.track.kind;
+              const receiverKind = t.receiver && t.receiver.track && t.receiver.track.kind;
+              return senderKind === kind || receiverKind === kind;
+            });
           sender = tr ? tr.sender : null;
         }
         if (!sender) {

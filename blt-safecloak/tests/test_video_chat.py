@@ -1591,3 +1591,49 @@ def test_video_lobby_js_wires_change_name_button():
     js = (ROOT / "public/js/video-lobby.js").read_text(encoding="utf-8")
     assert "btn-change-name" in js
     assert "_updateSavedNameBadge" in js
+
+
+def test_video_js_local_tile_shows_display_name():
+    """video.js updateTilePresentation must include the user's display name in the local
+    tile label, not just the generic 'You' token, so participants can see their own name."""
+    js = (ROOT / "public/js/video.js").read_text(encoding="utf-8")
+    # The label for the local tile should include state.displayName alongside "(You)"
+    assert "state.displayName} (You)" in js or "`${state.displayName} (You)`" in js
+
+
+def test_video_js_mic_button_hidden_in_walkie_mode():
+    """video.js syncControlButtons must hide the mic button when walkie-talkie mode is
+    active, replacing it with the push-to-talk control to avoid confusion."""
+    js = (ROOT / "public/js/video.js").read_text(encoding="utf-8")
+    # The mic button visibility should be toggled based on walkieTalkieMode
+    assert "micBtn.classList.toggle(\"hidden\", walkieTalkieMode)" in js
+
+
+def test_video_lobby_js_hides_mic_button_in_walkie_mode():
+    """video-lobby.js applyWalkieLobbyUi must also hide the mic preview button when
+    walkie-talkie mode is active, consistent with the in-room behaviour."""
+    js = (ROOT / "public/js/video-lobby.js").read_text(encoding="utf-8")
+    assert '"btn-preview-mic"' in js
+    assert "micBtn.classList.toggle" in js
+
+
+def test_video_js_chat_reconnects_data_channels_on_send():
+    """video.js sendChatMessage must re-establish data connections for active-call peers
+    that have no open data channel, queueing the message for when the channel opens."""
+    js = (ROOT / "public/js/video.js").read_text(encoding="utf-8")
+    # The send function should iterate activeCalls and call ensureDataConn for peers
+    # without an open connection, then queue the payload on the "open" event.
+    assert "activeCalls.forEach" in js
+    assert "ensureDataConn(peerId)" in js
+    assert 'newConn.on("open"' in js
+
+
+def test_video_js_update_tracks_uses_sender_track_kind():
+    """video.js updateTracksInCalls must check the sender's own track kind (not only the
+    receiver's) when locating a transceiver, so track replacement works even before the
+    remote peer starts sending (e.g. when removing video in walkie-talkie mode)."""
+    js = (ROOT / "public/js/video.js").read_text(encoding="utf-8")
+    assert "senderKind" in js
+    assert "sender.track.kind" in js
+    # The transceiver lookup must use both sender and receiver kind as fallback
+    assert "receiverKind" in js
