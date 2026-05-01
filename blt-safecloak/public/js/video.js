@@ -1860,10 +1860,10 @@ const VideoChat = (() => {
         if (tr.sender) {
           // Use sender's track kind when available; fall back to receiver's track kind
           // (both tracks on the same transceiver always share the same kind).
-          const kind =
+          const trackKind =
             (tr.sender.track && tr.sender.track.kind) ||
             (tr.receiver && tr.receiver.track && tr.receiver.track.kind);
-          if (kind) call.sendersByKind[kind] = tr.sender;
+          if (trackKind) call.sendersByKind[trackKind] = tr.sender;
         }
       });
     } else if (pc) {

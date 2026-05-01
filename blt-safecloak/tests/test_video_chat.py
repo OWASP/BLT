@@ -1611,10 +1611,10 @@ def test_video_js_mic_button_hidden_in_walkie_mode():
 
 def test_video_lobby_js_hides_mic_button_in_walkie_mode():
     """video-lobby.js applyWalkieLobbyUi must also hide the mic preview button when
-    walkie-talkie mode is active, consistent with the in-room behaviour."""
+    walkie-talkie mode is active, consistent with the in-room behavior."""
     js = (ROOT / "public/js/video-lobby.js").read_text(encoding="utf-8")
     assert '"btn-preview-mic"' in js
-    assert "micBtn.classList.toggle" in js
+    assert 'micBtn.classList.toggle("hidden", enabled)' in js
 
 
 def test_video_js_chat_reconnects_data_channels_on_send():
