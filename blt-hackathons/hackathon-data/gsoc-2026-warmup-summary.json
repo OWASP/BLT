@@ -1,8 +1,8 @@
 {
   "participantCount": 210,
-  "totalPRs": 2833,
-  "mergedPRs": 1692,
-  "totalIssues": 851,
+  "totalPRs": 2836,
+  "mergedPRs": 1693,
+  "totalIssues": 852,
   "repositories": 56,
   "topContributors": [
     {
@@ -25,6 +25,36 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "fix: dumped.",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6340",
+      "username": "JesesePU",
+      "avatar": "https://avatars.githubusercontent.com/u/271251152?v=4",
+      "state": "closed",
+      "created_at": "2026-05-04T03:04:43Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT"
+    },
+    {
+      "title": "Updated the apply button with email",
+      "url": "https://github.com/OWASP-BLT/BLT-Jobs/pull/81",
+      "username": "ananya-09",
+      "avatar": "https://avatars.githubusercontent.com/u/175581593?v=4",
+      "state": "closed",
+      "created_at": "2026-05-04T02:54:23Z",
+      "merged_at": "2026-05-04T03:05:02Z",
+      "repository": "OWASP-BLT/BLT-Jobs"
+    },
+    {
+      "title": "fix: dumped.",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6339",
+      "username": "JesesePU",
+      "avatar": "https://avatars.githubusercontent.com/u/271251152?v=4",
+      "state": "closed",
+      "created_at": "2026-05-04T01:50:31Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT"
+    },
     {
       "title": "fix: dumped.",
       "url": "https://github.com/OWASP-BLT/BLT/pull/6338",
@@ -92,36 +122,6 @@
       "avatar": "https://avatars.githubusercontent.com/u/271251152?v=4",
       "state": "closed",
       "created_at": "2026-05-03T22:35:44Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "fix: dumped.",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6331",
-      "username": "JesesePU",
-      "avatar": "https://avatars.githubusercontent.com/u/271251152?v=4",
-      "state": "closed",
-      "created_at": "2026-05-03T22:23:21Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "fix: dumped.",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6330",
-      "username": "JesesePU",
-      "avatar": "https://avatars.githubusercontent.com/u/271251152?v=4",
-      "state": "closed",
-      "created_at": "2026-05-03T21:33:12Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "fix: dumped.",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6329",
-      "username": "JesesePU",
-      "avatar": "https://avatars.githubusercontent.com/u/271251152?v=4",
-      "state": "closed",
-      "created_at": "2026-05-03T21:24:12Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT"
     }
