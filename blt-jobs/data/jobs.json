@@ -72,8 +72,8 @@
       "salary_range": "_No response_",
       "expires_at": null,
       "effective_expires_at": "2026-07-03T02:33:25.000Z",
-      "application_email": null,
-      "application_url": "https://owaspblt.org/",
+      "application_email": "linkedin@owaspblt.org,",
+      "application_url": null,
       "application_instructions": "Send your resume to [linkedin@owaspblt.org](mailto:linkedin@owaspblt.org)",
       "created_at": "2026-05-04T02:33:25Z",
       "views_count": 0,
@@ -82,5 +82,5 @@
     }
   ],
   "count": 4,
-  "generated_at": "2026-05-04T02:33:31.044Z"
+  "generated_at": "2026-05-04T02:46:51.880Z"
 }
