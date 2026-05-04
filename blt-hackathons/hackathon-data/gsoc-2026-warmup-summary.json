@@ -1,6 +1,6 @@
 {
   "participantCount": 209,
-  "totalPRs": 2722,
+  "totalPRs": 2723,
   "mergedPRs": 1696,
   "totalIssues": 852,
   "repositories": 56,
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "Add BLT Preflight and myself as an intern for OWASP BLT Internship Program",
+      "url": "https://github.com/OWASP-BLT/BLT-GSOC/pull/67",
+      "username": "S3DFX-CYBER",
+      "avatar": "https://avatars.githubusercontent.com/u/213652949?v=4",
+      "state": "open",
+      "created_at": "2026-05-04T16:38:51Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-GSOC"
+    },
     {
       "title": "Add Amogh Sunil to volunteer mentors list",
       "url": "https://github.com/OWASP-BLT/BLT-GSOC/pull/66",
@@ -114,16 +124,6 @@
       "created_at": "2026-04-28T10:24:24Z",
       "merged_at": "2026-04-29T14:11:34Z",
       "repository": "OWASP-BLT/BLT-Pages"
-    },
-    {
-      "title": "Delete website/templates/ossh/includes/recommended_communities.html",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6218",
-      "username": "Cypher-CP0",
-      "avatar": "https://avatars.githubusercontent.com/u/146864189?v=4",
-      "state": "open",
-      "created_at": "2026-04-26T06:07:43Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT"
     }
   ]
 }
