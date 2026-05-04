@@ -602,11 +602,15 @@
     const videoSection = $("preview-video-section");
     const walkieBanner = $("walkie-lobby-banner");
     const camBtn = $("btn-preview-cam");
+    const micBtn = $("btn-preview-mic");
     const status = $("prejoin-status");
 
     if (videoSection) videoSection.classList.toggle("hidden", enabled);
     if (walkieBanner) walkieBanner.classList.toggle("hidden", !enabled);
     if (camBtn) camBtn.classList.toggle("hidden", enabled);
+    // Hide the mic toggle button in walkie-talkie mode to avoid confusion;
+    // push-to-talk controls audio instead of the toggle.
+    if (micBtn) micBtn.classList.toggle("hidden", enabled);
 
     if (enabled) {
       // Stop camera tracks — walkie-talkie is audio-only.
