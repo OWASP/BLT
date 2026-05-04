@@ -1,6 +1,6 @@
 {
-  "participantCount": 210,
-  "totalPRs": 2841,
+  "participantCount": 209,
+  "totalPRs": 2719,
   "mergedPRs": 1693,
   "totalIssues": 852,
   "repositories": 56,
@@ -26,66 +26,6 @@
   ],
   "recentPRs": [
     {
-      "title": "fix: dumped.",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6345",
-      "username": "JesesePU",
-      "avatar": "https://avatars.githubusercontent.com/u/271251152?v=4",
-      "state": "closed",
-      "created_at": "2026-05-04T05:06:47Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "fix: dumped.",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6344",
-      "username": "JesesePU",
-      "avatar": "https://avatars.githubusercontent.com/u/271251152?v=4",
-      "state": "closed",
-      "created_at": "2026-05-04T04:54:34Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "fix: dumped.",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6343",
-      "username": "JesesePU",
-      "avatar": "https://avatars.githubusercontent.com/u/271251152?v=4",
-      "state": "closed",
-      "created_at": "2026-05-04T04:08:55Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "fix: dumped.",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6342",
-      "username": "JesesePU",
-      "avatar": "https://avatars.githubusercontent.com/u/271251152?v=4",
-      "state": "closed",
-      "created_at": "2026-05-04T03:46:24Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "fix: dumped.",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6341",
-      "username": "JesesePU",
-      "avatar": "https://avatars.githubusercontent.com/u/271251152?v=4",
-      "state": "closed",
-      "created_at": "2026-05-04T03:19:17Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "fix: dumped.",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6340",
-      "username": "JesesePU",
-      "avatar": "https://avatars.githubusercontent.com/u/271251152?v=4",
-      "state": "closed",
-      "created_at": "2026-05-04T03:04:43Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT"
-    },
-    {
       "title": "Updated the apply button with email",
       "url": "https://github.com/OWASP-BLT/BLT-Jobs/pull/81",
       "username": "ananya-09",
@@ -96,32 +36,92 @@
       "repository": "OWASP-BLT/BLT-Jobs"
     },
     {
-      "title": "fix: dumped.",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6339",
-      "username": "JesesePU",
-      "avatar": "https://avatars.githubusercontent.com/u/271251152?v=4",
+      "title": "[fix] Add missing dark mode classes to management commands page",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6307",
+      "username": "Ontiomacer",
+      "avatar": "https://avatars.githubusercontent.com/u/96743995?v=4",
       "state": "closed",
-      "created_at": "2026-05-04T01:50:31Z",
+      "created_at": "2026-05-03T16:42:00Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT"
     },
     {
-      "title": "fix: dumped.",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6338",
-      "username": "JesesePU",
-      "avatar": "https://avatars.githubusercontent.com/u/271251152?v=4",
-      "state": "closed",
-      "created_at": "2026-05-04T01:34:18Z",
+      "title": "Delete course sidebar template only",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6223",
+      "username": "AgentGoose32",
+      "avatar": "https://avatars.githubusercontent.com/u/274045615?v=4",
+      "state": "open",
+      "created_at": "2026-04-30T02:19:06Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT"
     },
     {
-      "title": "fix: dumped.",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6337",
-      "username": "JesesePU",
-      "avatar": "https://avatars.githubusercontent.com/u/271251152?v=4",
+      "title": "Delete course sidebar template",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6222",
+      "username": "AgentGoose32",
+      "avatar": "https://avatars.githubusercontent.com/u/274045615?v=4",
       "state": "closed",
-      "created_at": "2026-05-04T01:23:13Z",
+      "created_at": "2026-04-30T02:17:10Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT"
+    },
+    {
+      "title": "sync walkie-talkie floor state to late joiners",
+      "url": "https://github.com/OWASP-BLT/BLT-SafeCloak/pull/130",
+      "username": "azizrebhi",
+      "avatar": "https://avatars.githubusercontent.com/u/154744962?v=4",
+      "state": "open",
+      "created_at": "2026-04-29T11:07:21Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-SafeCloak"
+    },
+    {
+      "title": "fix: restrict bid status changes to authorized users",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6221",
+      "username": "ghost",
+      "avatar": "https://avatars.githubusercontent.com/u/10137?v=4",
+      "state": "closed",
+      "created_at": "2026-04-29T05:22:03Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT"
+    },
+    {
+      "title": "fix: leaderboard empty state: SSR parity + consistent fallback error handling + domain normalization",
+      "url": "https://github.com/OWASP-BLT/BLT-Pages/pull/108",
+      "username": "S3DFX-CYBER",
+      "avatar": "https://avatars.githubusercontent.com/u/213652949?v=4",
+      "state": "closed",
+      "created_at": "2026-04-28T10:24:24Z",
+      "merged_at": "2026-04-29T14:11:34Z",
+      "repository": "OWASP-BLT/BLT-Pages"
+    },
+    {
+      "title": "Delete website/templates/ossh/includes/recommended_communities.html",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6218",
+      "username": "Cypher-CP0",
+      "avatar": "https://avatars.githubusercontent.com/u/146864189?v=4",
+      "state": "open",
+      "created_at": "2026-04-26T06:07:43Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT"
+    },
+    {
+      "title": "chore: remove unused adblock 16x16 asset",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6217",
+      "username": "santoslgl01-web",
+      "avatar": "https://avatars.githubusercontent.com/u/260164570?v=4",
+      "state": "closed",
+      "created_at": "2026-04-26T02:00:02Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT"
+    },
+    {
+      "title": "chore: remove unused android webview beta asset",
+      "url": "https://github.com/OWASP-BLT/BLT/pull/6216",
+      "username": "santoslgl01-web",
+      "avatar": "https://avatars.githubusercontent.com/u/260164570?v=4",
+      "state": "closed",
+      "created_at": "2026-04-26T01:54:43Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT"
     }
