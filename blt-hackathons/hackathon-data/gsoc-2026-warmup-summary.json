@@ -1,6 +1,6 @@
 {
   "participantCount": 209,
-  "totalPRs": 2721,
+  "totalPRs": 2722,
   "mergedPRs": 1695,
   "totalIssues": 852,
   "repositories": 56,
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "Add Amogh Sunil to volunteer mentors list",
+      "url": "https://github.com/OWASP-BLT/BLT-GSOC/pull/66",
+      "username": "stealthwhizz",
+      "avatar": "https://avatars.githubusercontent.com/u/151893825?v=4",
+      "state": "open",
+      "created_at": "2026-05-04T10:07:12Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-GSOC"
+    },
     {
       "title": "Update GSoC 2026 page with accepted BLT contributors and mentors",
       "url": "https://github.com/OWASP-BLT/BLT-GSOC/pull/64",
@@ -112,16 +122,6 @@
       "avatar": "https://avatars.githubusercontent.com/u/146864189?v=4",
       "state": "open",
       "created_at": "2026-04-26T06:07:43Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "chore: remove unused adblock 16x16 asset",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6217",
-      "username": "santoslgl01-web",
-      "avatar": "https://avatars.githubusercontent.com/u/260164570?v=4",
-      "state": "closed",
-      "created_at": "2026-04-26T02:00:02Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT"
     }
