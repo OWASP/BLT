@@ -1,6 +1,6 @@
 {
   "participantCount": 209,
-  "totalPRs": 2726,
+  "totalPRs": 2727,
   "mergedPRs": 1698,
   "totalIssues": 852,
   "repositories": 56,
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "fix: remove invalid SRI hash blocking Font Awesome CSS",
+      "url": "https://github.com/OWASP-BLT/BLT-Leaf/pull/301",
+      "username": "Ontiomacer",
+      "avatar": "https://avatars.githubusercontent.com/u/96743995?v=4",
+      "state": "open",
+      "created_at": "2026-05-05T10:17:59Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-Leaf"
+    },
     {
       "title": "Update volunteer mentors list with Manahil Afzal",
       "url": "https://github.com/OWASP-BLT/BLT-GSOC/pull/70",
@@ -112,16 +122,6 @@
       "avatar": "https://avatars.githubusercontent.com/u/274045615?v=4",
       "state": "open",
       "created_at": "2026-04-30T02:19:06Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "Delete course sidebar template",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6222",
-      "username": "AgentGoose32",
-      "avatar": "https://avatars.githubusercontent.com/u/274045615?v=4",
-      "state": "closed",
-      "created_at": "2026-04-30T02:17:10Z",
       "merged_at": null,
       "repository": "OWASP-BLT/BLT"
     }
