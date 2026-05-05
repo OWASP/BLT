@@ -1,3 +1,40 @@
+import asyncio
+import weakref
+from typing import Optional
+
+# Global cache for database initialization status.
+# In Cloudflare Workers, global variables persist between requests on the same isolate.
+_DB_INITIALIZED_CACHE: bool = False
+_DB_INITIALIZED_LOCKS: "weakref.WeakKeyDictionary[asyncio.AbstractEventLoop, asyncio.Lock]" = (
+    weakref.WeakKeyDictionary()
+)
+
+
+def get_db_initialized_lock() -> asyncio.Lock:
+    """Gets or creates an asyncio.Lock bound to the current running event loop."""
+    loop = asyncio.get_running_loop()
+    lock = _DB_INITIALIZED_LOCKS.get(loop)
+    if lock is None:
+        lock = asyncio.Lock()
+        _DB_INITIALIZED_LOCKS[loop] = lock
+    return lock
+
+
+def reset_db_cache(loop: "Optional[asyncio.AbstractEventLoop]" = None) -> None:
+    """Resets the database initialization cache state.
+    
+    If *loop* is provided, ONLY the lock for that specific loop is removed.
+    The global cache flag is always reset to False to force a re-check.
+    """
+    global _DB_INITIALIZED_CACHE
+    _DB_INITIALIZED_CACHE = False
+    
+    if loop is not None:
+        _DB_INITIALIZED_LOCKS.pop(loop, None)
+    else:
+        _DB_INITIALIZED_LOCKS.clear()
+
+
 def get_db(env):
     """Helper to get DB binding from env, handling different env types.
     
@@ -72,14 +109,26 @@ async def get_db_safe(env):
     Raises:
         Exception: If database is not configured or not initialized
     """
+    global _DB_INITIALIZED_CACHE
+    
     db = get_db(env)
     
-    is_initialized, missing_tables = await check_db_initialized(db)
-    
-    if not is_initialized:
-        raise Exception(
-            f"Database is not initialized. Missing tables: {', '.join(missing_tables)}. "
-            "Please run migrations first."
-        )
+    # Fast path: already initialized
+    if _DB_INITIALIZED_CACHE:
+        return db
+        
+    # Slow path: need to check initialization, guarded by a lock to prevent race conditions
+    async with get_db_initialized_lock():
+        # Double-check after acquiring lock
+        if not _DB_INITIALIZED_CACHE:
+            is_initialized, missing_tables = await check_db_initialized(db)
+            
+            if not is_initialized:
+                raise Exception(
+                    f"Database is not initialized. Missing tables: {', '.join(missing_tables)}. "
+                    "Please run migrations first."
+                )
+            
+            _DB_INITIALIZED_CACHE = True
     
     return db
