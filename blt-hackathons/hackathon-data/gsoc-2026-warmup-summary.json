@@ -1,8 +1,8 @@
 {
   "participantCount": 209,
   "totalPRs": 2729,
-  "mergedPRs": 1701,
-  "totalIssues": 855,
+  "mergedPRs": 1702,
+  "totalIssues": 856,
   "repositories": 56,
   "topContributors": [
     {
@@ -50,9 +50,9 @@
       "url": "https://github.com/OWASP-BLT/BLT-Leaf/pull/301",
       "username": "Ontiomacer",
       "avatar": "https://avatars.githubusercontent.com/u/96743995?v=4",
-      "state": "open",
+      "state": "closed",
       "created_at": "2026-05-05T10:17:59Z",
-      "merged_at": null,
+      "merged_at": "2026-05-06T19:02:42Z",
       "repository": "OWASP-BLT/BLT-Leaf"
     },
     {
