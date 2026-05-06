@@ -1,6 +1,6 @@
 {
   "participantCount": 209,
-  "totalPRs": 2727,
+  "totalPRs": 2729,
   "mergedPRs": 1700,
   "totalIssues": 855,
   "repositories": 56,
@@ -25,6 +25,26 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "fix: add missing site favicon to head",
+      "url": "https://github.com/OWASP-BLT/BLT-Jobs/pull/85",
+      "username": "c0d3h01",
+      "avatar": "https://avatars.githubusercontent.com/u/109863197?v=4",
+      "state": "open",
+      "created_at": "2026-05-06T13:39:37Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-Jobs"
+    },
+    {
+      "title": "Added myself for BLT-MCP",
+      "url": "https://github.com/OWASP-BLT/BLT-GSOC/pull/71",
+      "username": "Nachiket-Roy",
+      "avatar": "https://avatars.githubusercontent.com/u/204239697?v=4",
+      "state": "open",
+      "created_at": "2026-05-06T12:53:16Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-GSOC"
+    },
     {
       "title": "fix: remove invalid SRI hash blocking Font Awesome CSS",
       "url": "https://github.com/OWASP-BLT/BLT-Leaf/pull/301",
@@ -104,26 +124,6 @@
       "created_at": "2026-05-04T02:54:23Z",
       "merged_at": "2026-05-04T03:05:02Z",
       "repository": "OWASP-BLT/BLT-Jobs"
-    },
-    {
-      "title": "[fix] Add missing dark mode classes to management commands page",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6307",
-      "username": "Ontiomacer",
-      "avatar": "https://avatars.githubusercontent.com/u/96743995?v=4",
-      "state": "closed",
-      "created_at": "2026-05-03T16:42:00Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT"
-    },
-    {
-      "title": "Delete course sidebar template only",
-      "url": "https://github.com/OWASP-BLT/BLT/pull/6223",
-      "username": "AgentGoose32",
-      "avatar": "https://avatars.githubusercontent.com/u/274045615?v=4",
-      "state": "open",
-      "created_at": "2026-04-30T02:19:06Z",
-      "merged_at": null,
-      "repository": "OWASP-BLT/BLT"
     }
   ]
 }
