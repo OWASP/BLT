@@ -1,6 +1,6 @@
 {
   "participantCount": 209,
-  "totalPRs": 2730,
+  "totalPRs": 2731,
   "mergedPRs": 1702,
   "totalIssues": 856,
   "repositories": 56,
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "Fix/navbar consistency static pages",
+      "url": "https://github.com/OWASP-BLT/BLT-Leaf/pull/303",
+      "username": "Ontiomacer",
+      "avatar": "https://avatars.githubusercontent.com/u/96743995?v=4",
+      "state": "open",
+      "created_at": "2026-05-07T15:54:32Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-Leaf"
+    },
     {
       "title": "fix: synchronize theme toggle (dark/white) behavior across static pages",
       "url": "https://github.com/OWASP-BLT/BLT-Leaf/pull/302",
@@ -113,16 +123,6 @@
       "state": "closed",
       "created_at": "2026-05-04T10:07:12Z",
       "merged_at": "2026-05-04T15:07:36Z",
-      "repository": "OWASP-BLT/BLT-GSOC"
-    },
-    {
-      "title": "Update GSoC 2026 page with accepted BLT contributors and mentors",
-      "url": "https://github.com/OWASP-BLT/BLT-GSOC/pull/64",
-      "username": "Pritz395",
-      "avatar": "https://avatars.githubusercontent.com/u/146115505?v=4",
-      "state": "closed",
-      "created_at": "2026-05-04T08:25:58Z",
-      "merged_at": "2026-05-04T08:30:43Z",
       "repository": "OWASP-BLT/BLT-GSOC"
     }
   ]
