@@ -1114,16 +1114,7 @@
             }
         }
 
-        function logThemeState(label) {
-            console.debug('[theme]', label, {
-                localStorageTheme: localStorage.getItem('theme'),
-                documentElementClassName: document.documentElement.className,
-                bodyClassName: document.body ? document.body.className : ''
-            });
-        }
-
         function toggleTheme() {
-            logThemeState('before toggle');
             const isDark = !document.documentElement.classList.contains('dark');
             document.documentElement.classList.toggle('dark', isDark);
             const themeIcon = document.getElementById('themeIcon');
@@ -1135,8 +1126,6 @@
                 if (themeIcon) themeIcon.className = 'fas fa-moon';
                 localStorage.setItem('theme', 'light');
             }
-
-            logThemeState('after toggle');
         }
 
         initTheme();
