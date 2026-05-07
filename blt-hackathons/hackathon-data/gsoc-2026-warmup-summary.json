@@ -1,6 +1,6 @@
 {
   "participantCount": 209,
-  "totalPRs": 2729,
+  "totalPRs": 2730,
   "mergedPRs": 1702,
   "totalIssues": 856,
   "repositories": 56,
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "fix: synchronize theme toggle (dark/white) behavior across static pages",
+      "url": "https://github.com/OWASP-BLT/BLT-Leaf/pull/302",
+      "username": "Ontiomacer",
+      "avatar": "https://avatars.githubusercontent.com/u/96743995?v=4",
+      "state": "open",
+      "created_at": "2026-05-07T13:44:04Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-Leaf"
+    },
     {
       "title": "fix: add missing site favicon to head",
       "url": "https://github.com/OWASP-BLT/BLT-Jobs/pull/85",
@@ -114,16 +124,6 @@
       "created_at": "2026-05-04T08:25:58Z",
       "merged_at": "2026-05-04T08:30:43Z",
       "repository": "OWASP-BLT/BLT-GSOC"
-    },
-    {
-      "title": "Updated the apply button with email",
-      "url": "https://github.com/OWASP-BLT/BLT-Jobs/pull/81",
-      "username": "ananya-09",
-      "avatar": "https://avatars.githubusercontent.com/u/175581593?v=4",
-      "state": "closed",
-      "created_at": "2026-05-04T02:54:23Z",
-      "merged_at": "2026-05-04T03:05:02Z",
-      "repository": "OWASP-BLT/BLT-Jobs"
     }
   ]
 }
