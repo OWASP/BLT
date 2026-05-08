@@ -1,6 +1,6 @@
 {
   "participantCount": 209,
-  "totalPRs": 2732,
+  "totalPRs": 2733,
   "mergedPRs": 1702,
   "totalIssues": 857,
   "repositories": 56,
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "fix : add etag migration",
+      "url": "https://github.com/OWASP-BLT/BLT-Leaf/pull/304",
+      "username": "Ontiomacer",
+      "avatar": "https://avatars.githubusercontent.com/u/96743995?v=4",
+      "state": "open",
+      "created_at": "2026-05-08T12:45:23Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-Leaf"
+    },
     {
       "title": "Fix/navbar consistency static pages",
       "url": "https://github.com/OWASP-BLT/BLT-Leaf/pull/303",
@@ -113,16 +123,6 @@
       "state": "closed",
       "created_at": "2026-05-04T16:38:51Z",
       "merged_at": "2026-05-04T17:35:09Z",
-      "repository": "OWASP-BLT/BLT-GSOC"
-    },
-    {
-      "title": "Add Amogh Sunil to volunteer mentors list",
-      "url": "https://github.com/OWASP-BLT/BLT-GSOC/pull/66",
-      "username": "stealthwhizz",
-      "avatar": "https://avatars.githubusercontent.com/u/151893825?v=4",
-      "state": "closed",
-      "created_at": "2026-05-04T10:07:12Z",
-      "merged_at": "2026-05-04T15:07:36Z",
       "repository": "OWASP-BLT/BLT-GSOC"
     }
   ]
