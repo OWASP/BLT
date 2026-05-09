@@ -1,6 +1,6 @@
 {
   "participantCount": 209,
-  "totalPRs": 2735,
+  "totalPRs": 2736,
   "mergedPRs": 1702,
   "totalIssues": 858,
   "repositories": 56,
@@ -25,6 +25,16 @@
     }
   ],
   "recentPRs": [
+    {
+      "title": "Fix GraphQL batch refresh normalization issues",
+      "url": "https://github.com/OWASP-BLT/BLT-Leaf/pull/305",
+      "username": "Ontiomacer",
+      "avatar": "https://avatars.githubusercontent.com/u/96743995?v=4",
+      "state": "open",
+      "created_at": "2026-05-09T17:40:38Z",
+      "merged_at": null,
+      "repository": "OWASP-BLT/BLT-Leaf"
+    },
     {
       "title": "Revise security patterns and refactor tests for improved practices",
       "url": "https://github.com/OWASP-BLT/BLT-Preflight/pull/24",
@@ -113,16 +123,6 @@
       "state": "closed",
       "created_at": "2026-05-04T18:42:17Z",
       "merged_at": "2026-05-05T18:41:51Z",
-      "repository": "OWASP-BLT/BLT-GSOC"
-    },
-    {
-      "title": "Adding myself as Intern for BLT-Hacker House",
-      "url": "https://github.com/OWASP-BLT/BLT-GSOC/pull/68",
-      "username": "Rudra-rps",
-      "avatar": "https://avatars.githubusercontent.com/u/199046682?v=4",
-      "state": "open",
-      "created_at": "2026-05-04T17:57:23Z",
-      "merged_at": null,
       "repository": "OWASP-BLT/BLT-GSOC"
     }
   ]
