@@ -416,8 +416,10 @@ def _strip_inline_prompt_injection(text: str) -> str:
 
     if not isinstance(text, str):
         return ""
-    cleaned = INLINE_INJECTION_CLAUSE_RE.sub(" ", text)
-    return re.sub(r"\s+", " ", cleaned).strip()
+    cleaned, replacements = INLINE_INJECTION_CLAUSE_RE.subn(" ", text)
+    if replacements:
+        return re.sub(r"\s+", " ", cleaned).strip()
+    return cleaned.strip()
 
 
 def _sanitize_ai_output(text: str) -> str | None:
