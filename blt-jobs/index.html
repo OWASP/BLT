@@ -206,6 +206,22 @@
           </div>
         </div>
       </section>
+
+      <section class="mt-12">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-2xl font-bold dark:text-white">
+            <i class="fa-solid fa-users text-red-600 dark:text-red-400 mr-2" aria-hidden="true"></i>
+            Recent Job Seekers
+          </h2>
+          <a href="./seekers.html" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+            View All Seekers
+            <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+          </a>
+        </div>
+        <div id="recent-seekers" class="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+          <p class="col-span-full text-slate-600 dark:text-gray-400">Loading recent job seekers...</p>
+        </div>
+      </section>
     </main>
 
     <footer class="mt-16 border-t border-slate-200 bg-white py-8 dark:border-gray-700 dark:bg-gray-900">
@@ -226,6 +242,7 @@
     <script src="assets/js/theme.js"></script>
     <script src="assets/js/saved-jobs.js"></script>
     <script src="assets/js/navbar.js"></script>
+    <script src="assets/js/sanitize.js"></script>
     <script>
       (function () {
         var params = new URLSearchParams(window.location.search);
@@ -352,6 +369,65 @@
           })
           .catch(function () {
             container.innerHTML = '<p class="text-slate-600 dark:text-gray-400">Unable to load leaderboard.</p>';
+          });
+      })();
+    </script>
+    <script>
+      (function () {
+        var seekersContainer = document.getElementById('recent-seekers');
+        if (!seekersContainer) return;
+        function esc(s) {
+          var d = document.createElement('div');
+          d.textContent = s;
+          return d.innerHTML;
+        }
+        function githubUsernameFromUrl(url) {
+          if (!url) return '';
+          try {
+            var u = new URL(url);
+            if (u.hostname === 'github.com') {
+              var parts = u.pathname.replace(/^\//, '').split('/');
+              return parts[0] || '';
+            }
+          } catch (e) {}
+          return '';
+        }
+        fetch('data/seekers.json', { cache: 'no-cache' })
+          .then(function (r) { return r.ok ? r.json() : { seekers: [] }; })
+          .then(function (data) {
+            var allSeekers = Array.isArray(data.seekers) ? data.seekers : [];
+            allSeekers.sort(function (a, b) {
+              var ta = a.created_at ? new Date(a.created_at).getTime() : 0;
+              var tb = b.created_at ? new Date(b.created_at).getTime() : 0;
+              return tb - ta;
+            });
+            var seekers = allSeekers.slice(0, 10);
+            if (seekers.length === 0) {
+              seekersContainer.innerHTML = '<p class="col-span-full text-slate-600 dark:text-gray-400">No job seekers yet. Be the first to <a href="./add.html#seekers" class="font-medium text-red-600 hover:text-red-700">create your profile</a>!</p>';
+              return;
+            }
+            var html = '';
+            seekers.forEach(function (s) {
+              var username = githubUsernameFromUrl(s.github || '');
+              var avatarSrc = username
+                ? 'https://github.com/' + esc(username) + '.png?size=80'
+                : 'https://github.com/ghost.png';
+              var name = esc(s.name || 'Anonymous');
+              var headline = esc(s.headline || '');
+              var profileUrl = 'seeker.html?id=' + encodeURIComponent(s.id || '');
+              html += '<a href="' + profileUrl + '" class="flex flex-col items-center gap-3 rounded-xl border border-slate-200 bg-white p-4 text-center shadow-sm transition hover:border-red-400 hover:shadow-md dark:border-gray-700 dark:bg-gray-800 dark:hover:border-red-500">';
+              html += '<img src="' + avatarSrc + '" alt="' + name + '" width="64" height="64" class="h-16 w-16 rounded-full border-2 border-slate-200 dark:border-gray-600 object-cover" loading="lazy" onerror="this.src=\'https://github.com/ghost.png\'" />';
+              html += '<div class="min-w-0 w-full">';
+              html += '<p class="truncate text-sm font-semibold text-slate-900 dark:text-gray-100">' + name + '</p>';
+              if (headline) html += '<p class="truncate text-xs text-slate-500 dark:text-gray-400 mt-0.5">' + headline + '</p>';
+              if (username) html += '<p class="truncate text-xs text-red-600 dark:text-red-400 mt-0.5">@' + esc(username) + '</p>';
+              html += '</div>';
+              html += '</a>';
+            });
+            seekersContainer.innerHTML = html;
+          })
+          .catch(function () {
+            seekersContainer.innerHTML = '<p class="col-span-full text-slate-600 dark:text-gray-400">Unable to load recent job seekers.</p>';
           });
       })();
     </script>
