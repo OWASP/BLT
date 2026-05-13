@@ -49,53 +49,41 @@ mcp = FastMCP(
     lifespan=server_lifespan
 )
 
+async def _fetch(path: str, context: Optional[str] = None) -> str:
+    try:
+        response = await http_client.get(path)
+        response.raise_for_status()
+        return response.text
+    except httpx.HTTPStatusError as e:
+        logger.error(f"Failed to fetch {context or path}: {e}")
+        return f"Error: {str(e)}"
+    except httpx.RequestError as e:
+        logger.error(f"Failed to fetch {context or path}: {e}")
+        return f"Error: {str(e)}"
+
 @mcp.resource("blt://repos")
 async def list_repos() -> str:
     """Get the list of tracked repositories on BLT."""
     logger.info("Fetching repositories list")
-    try:
-        response = await http_client.get("/repos")
-        response.raise_for_status()
-        return response.text
-    except Exception as e:
-        logger.error(f"Failed to fetch repos: {e}")
-        return f"Error: {str(e)}"
+    return await _fetch("/repos", context="repos")
 
 @mcp.resource("blt://issues")
 async def list_issues() -> str:
     """Get the list of all BLT issues."""
     logger.info("Fetching issues list from BLT API")
-    try:
-        response = await http_client.get("/issues")
-        response.raise_for_status()
-        return response.text
-    except Exception as e:
-        logger.error(f"Failed to fetch issues: {e}")
-        return f"Error: {str(e)}"
+    return await _fetch("/issues", context="issues")
 
 @mcp.resource("blt://repos/{repo_id}/issues")
 async def list_repo_issues(repo_id: str) -> str:
     """Get the list of issues for a specific repository."""
     logger.info(f"Fetching issues for repository: {repo_id}")
-    try:
-        response = await http_client.get(f"/repos/{repo_id}/issues")
-        response.raise_for_status()
-        return response.text
-    except Exception as e:
-        logger.error(f"Failed to fetch issues for repo {repo_id}: {e}")
-        return f"Error: {str(e)}"
+    return await _fetch(f"/repos/{repo_id}/issues", context=f"issues for repo {repo_id}")
 
 @mcp.resource("blt://issues/{issue_id}")
 async def get_issue(issue_id: str) -> str:
     """Get details for a specific BLT issue."""
     logger.info(f"Fetching details for issue: {issue_id}")
-    try:
-        response = await http_client.get(f"/issues/{issue_id}")
-        response.raise_for_status()
-        return response.text
-    except Exception as e:
-        logger.error(f"Failed to fetch issue {issue_id}: {e}")
-        return f"Error: {str(e)}"
+    return await _fetch(f"/issues/{issue_id}", context=f"issue {issue_id}")
 
 @mcp.tool()
 async def submit_issue(title: str, description: str, repo_id: Optional[str] = None) -> str:
@@ -117,7 +105,10 @@ async def submit_issue(title: str, description: str, repo_id: Optional[str] = No
         response = await http_client.post("/issues", json=payload)
         response.raise_for_status()
         return f"Successfully submitted issue: {title} (ID: {response.json().get('id')})"
-    except Exception as e:
+    except httpx.HTTPStatusError as e:
+        logger.error(f"Failed to submit issue: {e}")
+        return f"Error: {str(e)}"
+    except httpx.RequestError as e:
         logger.error(f"Failed to submit issue: {e}")
         return f"Error: {str(e)}"
 
@@ -135,7 +126,10 @@ async def add_comment(issue_id: str, content: str) -> str:
         response = await http_client.post(f"/issues/{issue_id}/comments", json={"content": content})
         response.raise_for_status()
         return f"Successfully added comment to issue {issue_id}"
-    except Exception as e:
+    except httpx.HTTPStatusError as e:
+        logger.error(f"Failed to add comment: {e}")
+        return f"Error: {str(e)}"
+    except httpx.RequestError as e:
         logger.error(f"Failed to add comment: {e}")
         return f"Error: {str(e)}"
 

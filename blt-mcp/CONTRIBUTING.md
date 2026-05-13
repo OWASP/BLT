@@ -5,7 +5,7 @@ Thank you for your interest in contributing to the BLT-MCP project! This guide w
 ## Development Environment Setup
 
 1. **Fork and Clone**: Fork the repository on GitHub and clone it to your local machine.
-2. **Python Version**: Ensure you have Python 3.10 or higher installed.
+2. **Python Version**: Ensure you have Python 3.12.x installed.
 3. **Environment**: We recommend using [uv](https://github.com/astral-sh/uv) for dependency management.
    ```bash
    uv venv
