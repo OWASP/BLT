@@ -79,10 +79,17 @@ function renderSeekers(seekers) {
       if (safeUrl(resumeUrl)) socialLinks.push(`<a href="${esc(resumeUrl)}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 transition hover:bg-red-100 dark:border-red-800 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50" title="Download Resume"><i class="fa-solid fa-file-pdf" aria-hidden="true"></i></a>`);
       if (email) socialLinks.push(`<a href="mailto:${esc(email)}" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600" title="Email"><i class="fa-solid fa-envelope" aria-hidden="true"></i></a>`);
 
+      // Build GitHub avatar URL from github profile link
+      const githubUsername = github ? github.replace(/^https?:\/\/github\.com\//i, "").split("/")[0] : "";
+      const avatarHtml = githubUsername
+        ? `<img src="https://avatars.githubusercontent.com/${esc(githubUsername)}?s=80" alt="${esc(name)}" class="h-16 w-16 rounded-full object-cover shadow-lg" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+          + `<span style="display:none" class="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-red-500 to-red-600 text-white text-xl font-bold select-none shadow-lg" aria-hidden="true">${esc(name.split(/\s+/).slice(0, 2).map((w) => w.charAt(0).toUpperCase()).join(""))}</span>`
+        : `<span class="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-red-500 to-red-600 text-white text-xl font-bold select-none shadow-lg" aria-hidden="true">${esc(name.split(/\s+/).slice(0, 2).map((w) => w.charAt(0).toUpperCase()).join(""))}</span>`;
+
       return `
         <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-red-600/30 hover:shadow-md dark:border-gray-700 dark:bg-gray-800 dark:hover:border-red-500/50">
-          <a href="seeker.html?id=${encodeURIComponent(s.id)}" class="block mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-red-500 to-red-600 text-white text-xl font-bold select-none shadow-lg" aria-hidden="true">
-            ${esc(name.split(/\s+/).slice(0, 2).map((w) => w.charAt(0).toUpperCase()).join(""))}
+          <a href="seeker.html?id=${encodeURIComponent(s.id)}" class="block mb-4 w-16" aria-hidden="true">
+            ${avatarHtml}
           </a>
           <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100"><a href="seeker.html?id=${encodeURIComponent(s.id)}" class="hover:text-red-600 dark:hover:text-red-400 transition">${esc(name)}</a></h3>
           ${headline ? `<p class="mt-1 text-sm font-medium text-slate-600 dark:text-gray-400">${esc(headline)}</p>` : ""}
