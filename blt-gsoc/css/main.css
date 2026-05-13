@@ -61,6 +61,283 @@ a {
     transform: translateY(-5px);
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
 }
+
+/* GSoC 2026 cards: contributor/intern first, links/mentors anchored to card bottom */
+#gsoc-student-cards > article,
+#intern-cards > article {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+    border-color: #e6e8ec;
+    background: linear-gradient(180deg, #ffffff 0%, #fcfcfd 100%);
+    box-shadow: 0 16px 30px -24px rgba(15, 23, 42, 0.45);
+}
+
+.dark #gsoc-student-cards > article,
+.dark #intern-cards > article {
+    border-color: #2f3644;
+    background: linear-gradient(180deg, #1f2937 0%, #17202d 100%);
+}
+
+#gsoc-student-cards > article::before,
+#intern-cards > article::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #e10101 0%, #ff7f7f 100%);
+}
+
+#gsoc-student-cards > article:hover,
+#intern-cards > article:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 22px 38px -28px rgba(15, 23, 42, 0.55);
+}
+
+/* Ordering by section meaning (robust even when cards have extra sections) */
+#gsoc-student-cards > article > div:has(> p > i.fa-solid.fa-user),
+#intern-cards > article > div:has(> p > i.fa-solid.fa-users) {
+    order: 1;
+}
+
+#gsoc-student-cards > article > div:has(> h3),
+#intern-cards > article > div:has(> h3) {
+    order: 2;
+    display: block;
+}
+
+#gsoc-student-cards > article > p,
+#intern-cards > article > p {
+    order: 3;
+    display: -webkit-box;
+    -webkit-line-clamp: 5;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+#gsoc-student-cards > article > div:has(> p > i.fa-solid.fa-microchip),
+#intern-cards > article > div:has(> p > i.fa-solid.fa-microchip) {
+    order: 4;
+    margin-top: auto;
+}
+
+#gsoc-student-cards > article > div:has(> p > i.fa-solid.fa-microchip) > p:last-child,
+#intern-cards > article > div:has(> p > i.fa-solid.fa-microchip) > p:last-child {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.card-tagline {
+    margin-top: 0.25rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#gsoc-student-cards > article > div:has(> p > i.fa-solid.fa-chalkboard-user),
+#intern-cards > article > div:has(> p > i.fa-solid.fa-hand-holding-heart) {
+    order: 5;
+}
+
+#gsoc-student-cards > article > div:has(> p > i.fa-solid.fa-link),
+#intern-cards > article > div:has(> p > i.fa-solid.fa-link) {
+    order: 6;
+}
+
+/* Remove contributor/intern heading text; keep only the identity chip */
+#gsoc-student-cards > article > div:has(> p > i.fa-solid.fa-user) > p,
+#intern-cards > article > div:has(> p > i.fa-solid.fa-users) > p {
+    display: none;
+}
+
+/* Contributor/intern identity row */
+.person-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.person-avatar {
+    width: 3rem;
+    height: 3rem;
+    flex-shrink: 0;
+    border-radius: 9999px;
+    object-fit: cover;
+    border: 2px solid #fee2e2;
+}
+
+.dark .person-avatar {
+    border-color: #7f1d1d;
+}
+
+.person-name {
+    margin: 0;
+    font-size: 0.98rem;
+    font-weight: 800;
+    line-height: 1.2;
+    color: #111827;
+}
+
+.dark .person-name {
+    color: #f9fafb;
+}
+
+.person-github {
+    display: inline-block;
+    margin-top: 0.15rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #e10101;
+    text-decoration: none;
+}
+
+.person-github:hover {
+    text-decoration: underline;
+}
+
+.project-compact-stats {
+    order: 7;
+    margin-top: 0.5rem;
+    border-top: 1px dashed #e5e7eb;
+    padding-top: 0.45rem;
+}
+
+.project-stat-pills {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    overflow-x: auto;
+    padding-bottom: 0.1rem;
+    scrollbar-width: none;
+}
+
+.project-stat-pills::-webkit-scrollbar {
+    display: none;
+}
+
+.project-stat-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.22rem;
+    flex-shrink: 0;
+    border: 1px solid #d1d5db;
+    border-radius: 9999px;
+    background: #f9fafb;
+    padding: 0.18rem 0.45rem;
+    font-size: 0.64rem;
+    font-weight: 700;
+    line-height: 1;
+    color: #4b5563;
+}
+
+.project-stat-pill i {
+    color: #e10101;
+}
+
+.project-stat-label {
+    color: #6b7280;
+}
+
+.project-stat-value {
+    color: #111827;
+    font-weight: 800;
+}
+
+.dark .project-compact-stats {
+    border-top-color: #374151;
+}
+
+.dark .project-stat-pill {
+    border-color: #4b5563;
+    background: #1f2937;
+    color: #d1d5db;
+}
+
+.dark .project-stat-label {
+    color: #9ca3af;
+}
+
+.dark .project-stat-value {
+    color: #f3f4f6;
+}
+
+.mini-timeline-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+}
+
+.mini-line {
+    height: 2px;
+    flex: 1 1 0;
+    min-width: 10px;
+    background: linear-gradient(90deg, #ef4444 0%, #fca5a5 100%);
+    border-radius: 9999px;
+}
+
+.mini-node {
+    flex-shrink: 0;
+    padding: 0.2rem 0.45rem;
+    border-radius: 9999px;
+    border: 1px solid #d1d5db;
+    background: #f9fafb;
+    color: #4b5563;
+    font-size: 0.68rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.mini-node-current {
+    border-color: #ef4444;
+    background: #fef2f2;
+    color: #b91c1c;
+}
+
+.mini-node-next {
+    border-color: #ef4444;
+    color: #b91c1c;
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.18);
+}
+
+.dark .mini-line {
+    background: linear-gradient(90deg, #dc2626 0%, #f87171 100%);
+}
+
+.dark .mini-node {
+    border-color: #4b5563;
+    background: #1f2937;
+    color: #d1d5db;
+}
+
+.dark .mini-node-current {
+    border-color: #f87171;
+    background: #3f1f1f;
+    color: #fecaca;
+}
+
+.dark .mini-node-next {
+    border-color: #f87171;
+    color: #fecaca;
+    box-shadow: 0 0 0 2px rgba(248, 113, 113, 0.2);
+}
+
+@media (max-width: 640px) {
+    .mini-timeline-row {
+        gap: 0.3rem;
+    }
+
+    .mini-node {
+        font-size: 0.62rem;
+        padding: 0.18rem 0.38rem;
+    }
+}
+
 /* Scrollbar dark mode compatibility */
 :root {
     --sb-track: #f1f1f1;
@@ -226,7 +503,7 @@ button.inline-flex {
 @media (max-width: 767px) {
     /* Benefits and stories grids */
     #benefits .grid,
-    #success-stories .grid {
+    #related-blog-posts .grid {
         grid-template-columns: 1fr !important;
     }
 
