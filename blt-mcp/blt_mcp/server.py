@@ -56,10 +56,10 @@ async def _fetch(path: str, context: Optional[str] = None) -> str:
         return response.text
     except httpx.HTTPStatusError as e:
         logger.error(f"Failed to fetch {context or path}: {e}")
-        return f"Error: {str(e)}"
+        raise RuntimeError(f"Failed to fetch {context or path}: {e}") from e
     except httpx.RequestError as e:
         logger.error(f"Failed to fetch {context or path}: {e}")
-        return f"Error: {str(e)}"
+        raise RuntimeError(f"Failed to fetch {context or path}: {e}") from e
 
 @mcp.resource("blt://repos")
 async def list_repos() -> str:
@@ -107,10 +107,10 @@ async def submit_issue(title: str, description: str, repo_id: Optional[str] = No
         return f"Successfully submitted issue: {title} (ID: {response.json().get('id')})"
     except httpx.HTTPStatusError as e:
         logger.error(f"Failed to submit issue: {e}")
-        return f"Error: {str(e)}"
+        raise RuntimeError(f"Failed to submit issue: {e}") from e
     except httpx.RequestError as e:
         logger.error(f"Failed to submit issue: {e}")
-        return f"Error: {str(e)}"
+        raise RuntimeError(f"Failed to submit issue: {e}") from e
 
 @mcp.tool()
 async def add_comment(issue_id: str, content: str) -> str:
@@ -128,10 +128,10 @@ async def add_comment(issue_id: str, content: str) -> str:
         return f"Successfully added comment to issue {issue_id}"
     except httpx.HTTPStatusError as e:
         logger.error(f"Failed to add comment: {e}")
-        return f"Error: {str(e)}"
+        raise RuntimeError(f"Failed to add comment: {e}") from e
     except httpx.RequestError as e:
         logger.error(f"Failed to add comment: {e}")
-        return f"Error: {str(e)}"
+        raise RuntimeError(f"Failed to add comment: {e}") from e
 
 @mcp.prompt()
 def triage_vulnerability(description: str) -> str:
