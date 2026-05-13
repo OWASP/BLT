@@ -2,6 +2,7 @@ import asyncio
 import logging
 import sys
 import os
+import json
 from typing import Any, Dict, List, Optional
 import httpx
 from contextlib import asynccontextmanager
@@ -27,20 +28,23 @@ if not BLT_API_KEY:
     logger.warning("BLT_API_KEY not found in environment. Some tools may fail.")
 
 # Shared HTTPX client
-http_client = httpx.AsyncClient(
-    base_url=BLT_API_BASE,
-    headers={"Authorization": f"Bearer {BLT_API_KEY}"} if BLT_API_KEY else {},
-    timeout=30.0
-)
+http_client: Optional[httpx.AsyncClient] = None
 
 @asynccontextmanager
 async def server_lifespan(server: FastMCP):
     """Manage the lifecycle of the HTTP client."""
+    global http_client
+    http_client = httpx.AsyncClient(
+        base_url=BLT_API_BASE,
+        headers={"Authorization": f"Bearer {BLT_API_KEY}"} if BLT_API_KEY else {},
+        timeout=30.0
+    )
     try:
         yield
     finally:
         logger.info("Closing HTTP client...")
-        await http_client.aclose()
+        if http_client:
+            await http_client.aclose()
 
 # Initialize FastMCP server
 mcp = FastMCP(
@@ -99,12 +103,19 @@ async def submit_issue(title: str, description: str, repo_id: Optional[str] = No
     payload = {
         "title": title,
         "description": description,
-        "repo_id": repo_id
     }
+    if repo_id is not None:
+        payload["repo_id"] = repo_id
+
     try:
         response = await http_client.post("/issues", json=payload)
         response.raise_for_status()
-        return f"Successfully submitted issue: {title} (ID: {response.json().get('id')})"
+        try:
+            issue_id = response.json().get('id', 'Unknown')
+        except json.JSONDecodeError:
+            issue_id = response.text or "Unknown"
+            
+        return f"Successfully submitted issue: {title} (ID: {issue_id})"
     except httpx.HTTPStatusError as e:
         logger.error(f"Failed to submit issue: {e}")
         raise RuntimeError(f"Failed to submit issue: {e}") from e
