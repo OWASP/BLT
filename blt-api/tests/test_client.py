@@ -19,6 +19,11 @@ class TestBLTClient:
         """Test client initialization with auth token."""
         client = BLTClient("https://api.example.com", auth_token="test-token")
         assert client.auth_token == "test-token"
+
+    def test_client_init_with_api_key(self):
+        """Test client initialization with shared API key."""
+        client = BLTClient("https://api.example.com", api_key="docs-static-key")
+        assert client.api_key == "docs-static-key"
     
     def test_client_base_url_trailing_slash(self):
         """Test that trailing slash is removed from base URL."""
@@ -43,6 +48,25 @@ class TestBLTClient:
         
         assert "Authorization" in headers
         assert headers["Authorization"] == "Token test-token"
+
+    def test_get_headers_with_api_key(self):
+        """Test headers with shared API key."""
+        client = BLTClient("https://api.example.com", api_key="docs-static-key")
+        headers = client._get_headers()
+
+        assert headers["X-BLT-API-Key"] == "docs-static-key"
+
+    def test_get_headers_with_token_and_api_key(self):
+        """Test shared API key does not replace user auth token."""
+        client = BLTClient(
+            "https://api.example.com",
+            auth_token="test-token",
+            api_key="docs-static-key",
+        )
+        headers = client._get_headers()
+
+        assert headers["Authorization"] == "Token test-token"
+        assert headers["X-BLT-API-Key"] == "docs-static-key"
     
     def test_get_headers_extra(self):
         """Test headers with extra headers."""
