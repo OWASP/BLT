@@ -23,10 +23,12 @@ except ImportError:
     
     class Response:
         @classmethod
-        def new(cls, body, init=None):
+        def new(cls, body, init=None, **kwargs):
             """Mock Response.new() to match Cloudflare Workers API."""
             if init is None:
-                init = {}
+                init = kwargs
+            elif kwargs:
+                init = {**init, **kwargs}
             return MockResponse(body, init.get('status', 200), init.get('headers', {}))
     
     class MockResponse:
@@ -46,7 +48,7 @@ def cors_headers() -> Dict[str, str]:
     return {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization, X-BLT-API-Key, X-Requested-With",
         "Access-Control-Max-Age": "86400",
     }
 

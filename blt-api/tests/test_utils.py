@@ -40,6 +40,7 @@ class TestCorsHeaders:
         assert "Access-Control-Allow-Headers" in headers
         assert "Content-Type" in headers["Access-Control-Allow-Headers"]
         assert "Authorization" in headers["Access-Control-Allow-Headers"]
+        assert "X-BLT-API-Key" in headers["Access-Control-Allow-Headers"]
 
 
 class TestPaginationParams:
