@@ -690,14 +690,14 @@ wrangler deploy --no-build
 Protected endpoints require the shared BLT API key in the `X-BLT-API-Key` request header. Keep user auth separate: routes that need a signed-in user can still use the existing `Authorization` token header in addition to the shared key.
 
 ```bash
-curl -H "X-BLT-API-Key: YOUR_BLT_API_KEY" https://your-worker.workers.dev/bugs
+curl -H "X-BLT-API-Key: f5537412b459790f9fa1cc47b862b9c7016471957178dc9b161d59355b6fd051" https://your-worker.workers.dev/bugs
 ```
 
 For endpoints that also require a user token:
 
 ```bash
 curl \
-  -H "X-BLT-API-Key: YOUR_BLT_API_KEY" \
+  -H "X-BLT-API-Key: f5537412b459790f9fa1cc47b862b9c7016471957178dc9b161d59355b6fd051" \
   -H "Authorization: Token YOUR_API_TOKEN" \
   https://your-worker.workers.dev/bugs
 ```

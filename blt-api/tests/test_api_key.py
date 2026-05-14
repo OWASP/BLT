@@ -6,7 +6,7 @@ import json
 
 import pytest
 
-from libs.api_key import API_KEY_HEADER, is_api_key_required, validate_api_key_request
+from libs.api_key import API_KEY_HEADER, PUBLIC_BLT_API_KEY, is_api_key_required, validate_api_key_request
 
 
 class MockHeaders(dict):
@@ -96,6 +96,14 @@ def test_valid_api_key_allows_request():
     assert response is None
 
 
+def test_public_static_api_key_allows_request_without_env():
+    request = MockRequest(headers={API_KEY_HEADER: PUBLIC_BLT_API_KEY})
+
+    response = validate_api_key_request(request, EmptyEnv())
+
+    assert response is None
+
+
 def test_api_key_header_is_case_insensitive():
     request = MockRequest(headers={"x-blt-api-key": "docs-static-key"})
 
@@ -113,11 +121,9 @@ def test_plain_dict_api_key_header_is_case_insensitive():
     assert response is None
 
 
-def test_missing_server_api_key_returns_500_for_protected_route():
+def test_env_api_key_remains_accepted_for_local_overrides():
     request = MockRequest(headers={API_KEY_HEADER: "docs-static-key"})
 
-    response = validate_api_key_request(request, EmptyEnv())
+    response = validate_api_key_request(request, MockEnv())
 
-    assert response.status == 500
-    data = _response_data(response)
-    assert data["message"] == "API key authentication is not configured"
+    assert response is None

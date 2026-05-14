@@ -6,17 +6,15 @@ import os
 import subprocess
 from pathlib import Path
 
+from libs.api_key import PUBLIC_BLT_API_KEY
 
-def test_smoke_script_loads_api_key_from_env_file(tmp_path):
-    """The smoke script should use BLT_API_KEY from an env file when not exported."""
-    env_file = tmp_path / ".env"
-    env_file.write_text("BLT_API_KEY=from-env-file\n", encoding="utf-8")
 
+def test_smoke_script_uses_public_static_api_key_by_default(tmp_path):
+    """The smoke script should use the public shared API key without local env setup."""
     fake_bin = tmp_path / "bin"
     fake_bin.mkdir()
     fake_curl = fake_bin / "curl"
-    fake_curl.write_text(
-        """#!/usr/bin/env bash
+    fake_curl_source = """#!/usr/bin/env bash
 set -euo pipefail
 
 output_file=""
@@ -54,26 +52,25 @@ if [[ "$url" == */health ]]; then
 elif [[ -z "$api_key" ]]; then
   printf '{"message":"Missing API key"}' > "$output_file"
   printf '401'
-elif [[ "$api_key" == "from-env-file" ]]; then
+elif [[ "$api_key" == "__PUBLIC_BLT_API_KEY__" ]]; then
   printf '{"success":true}' > "$output_file"
   printf '200'
 else
   printf '{"message":"Invalid API key"}' > "$output_file"
   printf '401'
 fi
-""",
-        encoding="utf-8",
-    )
+""".replace("__PUBLIC_BLT_API_KEY__", PUBLIC_BLT_API_KEY)
+    fake_curl.write_text(fake_curl_source, encoding="utf-8")
     fake_curl.chmod(0o755)
 
     env = {
         **os.environ,
         "PATH": f"{fake_bin}{os.pathsep}{os.environ['PATH']}",
-        "API_KEY_ENV_FILE": str(env_file),
         "BASE_URL": "http://localhost:8787",
     }
     env.pop("BLT_API_KEY", None)
     env.pop("API_KEY", None)
+    env.pop("API_KEY_ENV_FILE", None)
 
     result = subprocess.run(
         ["bash", "scripts/test_static_api_key.sh"],
@@ -85,7 +82,6 @@ fi
     )
 
     assert result.returncode == 0
-    assert "API key source:" in result.stdout
-    assert "from-env-file" not in result.stdout
+    assert f"API key: {PUBLIC_BLT_API_KEY}" in result.stdout
     assert "FAIL" not in result.stdout
     assert result.stdout.count("PASS expected HTTP") == 4

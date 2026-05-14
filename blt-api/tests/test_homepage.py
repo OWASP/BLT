@@ -173,6 +173,7 @@ class TestHomepageHandler:
         if hasattr(response, 'body'):
             content = response.body
             assert "getApiKeyHeaders" in content
-            assert "localStorage.getItem(apiKeyStorageKey)" in content
+            assert "sharedApiKey" in content
             assert "fetch(url, { headers: requestHeaders })" in content
             assert "X-BLT-API-Key" in content
+            assert "prompt('Enter BLT API key'" not in content

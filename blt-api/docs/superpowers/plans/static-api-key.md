@@ -4,7 +4,7 @@
 
 **Goal:** Add a shared static API key gate to BLT API so external users include one documented key on API requests to `api.owaspblt.org`.
 
-**Architecture:** Store the expected key in the Worker environment as `BLT_API_KEY`. Clients send it in `X-BLT-API-Key`. The Worker entrypoint validates the key before dispatching to the router, with only docs, health, and CORS preflight left public.
+**Architecture:** Use the public shared key `f5537412b459790f9fa1cc47b862b9c7016471957178dc9b161d59355b6fd051`. Clients send it in `X-BLT-API-Key`. The Worker entrypoint validates the key before dispatching to the router, with only docs, health, and CORS preflight left public.
 
 **Tech Stack:** Python 3.12, Cloudflare Workers Python runtime, existing custom router, pytest.
 
@@ -34,13 +34,13 @@
 Required request header:
 
 ```http
-X-BLT-API-Key: <shared-static-key>
+X-BLT-API-Key: f5537412b459790f9fa1cc47b862b9c7016471957178dc9b161d59355b6fd051
 ```
 
 Expected environment variable:
 
 ```env
-BLT_API_KEY=<shared-static-key>
+BLT_API_KEY=f5537412b459790f9fa1cc47b862b9c7016471957178dc9b161d59355b6fd051
 ```
 
 Public routes that do not require the shared key:
@@ -59,7 +59,7 @@ Failure behavior:
 
 - Missing key: `401` JSON error.
 - Invalid key: `401` JSON error.
-- `BLT_API_KEY` missing from env on a protected route: `500` JSON error, because the server is misconfigured.
+- The public shared key is accepted even when `BLT_API_KEY` is not configured locally.
 
 ## Implementation Checklist
 

@@ -11,6 +11,7 @@ from utils import error_response
 
 API_KEY_HEADER = "X-BLT-API-Key"
 API_KEY_ENV_VAR = "BLT_API_KEY"
+PUBLIC_BLT_API_KEY = "f5537412b459790f9fa1cc47b862b9c7016471957178dc9b161d59355b6fd051"
 PUBLIC_API_KEY_PATHS = {"/", "/v2", "/health", "/v2/health"}
 
 
@@ -55,6 +56,15 @@ def _get_header(request: Any, name: str) -> str:
     return str(value) if value is not None else ""
 
 
+def _accepted_api_keys(env: Any) -> list[str]:
+    """Return public static key plus optional local override for compatibility."""
+    keys = [PUBLIC_BLT_API_KEY]
+    env_key = str(getattr(env, API_KEY_ENV_VAR, "") or "").strip()
+    if env_key and env_key not in keys:
+        keys.append(env_key)
+    return keys
+
+
 def validate_api_key_request(request: Any, env: Any) -> Optional[Any]:
     """Validate the shared API key for protected requests.
 
@@ -66,15 +76,12 @@ def validate_api_key_request(request: Any, env: Any) -> Optional[Any]:
     if not is_api_key_required(method, url):
         return None
 
-    expected_key = str(getattr(env, API_KEY_ENV_VAR, "") or "").strip()
-    if not expected_key:
-        return error_response("API key authentication is not configured", status=500)
-
     provided_key = _get_header(request, API_KEY_HEADER).strip()
     if not provided_key:
         return error_response("Missing API key", status=401)
 
-    if not hmac.compare_digest(provided_key, expected_key):
-        return error_response("Invalid API key", status=401)
+    for expected_key in _accepted_api_keys(env):
+        if hmac.compare_digest(provided_key, expected_key):
+            return None
 
-    return None
+    return error_response("Invalid API key", status=401)
