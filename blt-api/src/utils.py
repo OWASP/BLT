@@ -11,9 +11,11 @@ import json
 # Falls back to mock implementations for testing
 try:
     from js import Response, Headers, JSON, Object
+    from workers import Response as WorkerResponse
     _WORKERS_RUNTIME = True
 except ImportError:
     _WORKERS_RUNTIME = False
+    WorkerResponse = None
     
     # Mock implementations for testing outside Workers runtime
     class Headers:
@@ -76,11 +78,14 @@ def json_response(
     
     if headers:
         response_headers.update(headers)
+
+    if _WORKERS_RUNTIME and WorkerResponse is not None:
+        return WorkerResponse.json(data, status=status, headers=response_headers)
     
     # Convert Python dict to JSON string
     json_body = json.dumps(data)
     
-    # Create Response with proper status code for Cloudflare Workers
+    # Create Response with proper status code for local tests
     response_init = {
         'status': status,
         'headers': response_headers
