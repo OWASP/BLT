@@ -176,4 +176,6 @@ class TestHomepageHandler:
             assert "sharedApiKey" in content
             assert "fetch(url, { headers: requestHeaders })" in content
             assert "X-BLT-API-Key" in content
+            assert "Try it requests use this shared key automatically." in content
+            assert "Using the shared BLT API key shown on this page." in content
             assert "prompt('Enter BLT API key'" not in content
