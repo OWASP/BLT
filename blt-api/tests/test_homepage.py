@@ -112,7 +112,8 @@ class TestHomepageHandler:
         if hasattr(response, 'body'):
             content = response.body
             assert "X-BLT-API-Key" in content
-            assert "BLT_API_KEY" in content
+            assert "BLT_API_KEY" not in content
+            assert "Authorization: Token YOUR_API_TOKEN" not in content
     
     @pytest.mark.asyncio
     async def test_homepage_with_custom_url(self):
