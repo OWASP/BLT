@@ -155,3 +155,24 @@ class TestHomepageHandler:
             
             # Check for security: should use textContent, not innerHTML for responses
             assert "textContent = JSON.stringify" in content
+
+    @pytest.mark.asyncio
+    async def test_homepage_try_it_console_sends_api_key_header(self):
+        """Test that Try it requests include the shared API key when needed."""
+        request = MockRequest()
+        env = MockEnv()
+
+        response = await handle_homepage(
+            request,
+            env,
+            path_params={},
+            query_params={},
+            path="/"
+        )
+
+        if hasattr(response, 'body'):
+            content = response.body
+            assert "getApiKeyHeaders" in content
+            assert "localStorage.getItem(apiKeyStorageKey)" in content
+            assert "fetch(url, { headers: requestHeaders })" in content
+            assert "X-BLT-API-Key" in content

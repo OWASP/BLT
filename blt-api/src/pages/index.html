@@ -758,6 +758,36 @@ Authorization: Token YOUR_API_TOKEN</code></pre>
     <!-- JavaScript for API Testing -->
     <script>
         const baseUrl = '[[API_BASE_URL]]';
+        const apiKeyStorageKey = 'bltApiKey';
+        const publicTryItEndpoints = new Set(['/', '/v2', '/health', '/v2/health']);
+
+        function isPublicTryItEndpoint(endpoint) {
+            return publicTryItEndpoints.has(endpoint.split('?')[0]);
+        }
+
+        function getApiKeyHeaders(endpoint, promptIfMissing = true) {
+            if (isPublicTryItEndpoint(endpoint)) {
+                return {};
+            }
+
+            let apiKey = localStorage.getItem(apiKeyStorageKey) || '';
+            if (!apiKey && promptIfMissing) {
+                apiKey = prompt('Enter BLT API key', '') || '';
+                if (apiKey) {
+                    localStorage.setItem(apiKeyStorageKey, apiKey);
+                }
+            }
+
+            return apiKey ? { 'X-BLT-API-Key': apiKey } : {};
+        }
+
+        function renderRequestHeaders(headers) {
+            const headersEl = document.getElementById('requestHeaders');
+            const entries = Object.entries(headers);
+            headersEl.textContent = entries.length
+                ? entries.map(([key, value]) => `${key}: ${value}`).join('\n')
+                : 'No additional headers';
+        }
         
         function closeModal() {
             document.getElementById('apiTestModal').classList.add('hidden');
@@ -787,10 +817,12 @@ Authorization: Token YOUR_API_TOKEN</code></pre>
             }
             
             document.getElementById('requestUrl').textContent = url;
+            const requestHeaders = getApiKeyHeaders(endpoint);
+            renderRequestHeaders(requestHeaders);
             
             // Make request
             const startTime = performance.now();
-            fetch(url)
+            fetch(url, { headers: requestHeaders })
                 .then(response => {
                     const endTime = performance.now();
                     const duration = Math.round(endTime - startTime);
@@ -912,7 +944,9 @@ Authorization: Token YOUR_API_TOKEN</code></pre>
 
         async function loadSectionCounts() {
             try {
-                const response = await fetch(baseUrl + '/stats');
+                const response = await fetch(baseUrl + '/stats', {
+                    headers: getApiKeyHeaders('/stats', false)
+                });
                 if (!response.ok) throw new Error();
                 const data = await response.json();
                 if (data && data.data) {
