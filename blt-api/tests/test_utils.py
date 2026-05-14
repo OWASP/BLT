@@ -4,8 +4,10 @@ Tests for the utility functions.
 
 import pytest
 import json
+from unittest.mock import patch
 from src.utils import (
     cors_headers,
+    json_response,
     parse_pagination_params,
 )
 
@@ -40,6 +42,31 @@ class TestCorsHeaders:
         assert "Access-Control-Allow-Headers" in headers
         assert "Content-Type" in headers["Access-Control-Allow-Headers"]
         assert "Authorization" in headers["Access-Control-Allow-Headers"]
+        assert "X-BLT-API-Key" in headers["Access-Control-Allow-Headers"]
+
+
+class TestJsonResponse:
+    """Tests for JSON response creation."""
+
+    def test_workers_runtime_uses_workers_response_json(self):
+        """Workers runtime should use workers.Response.json for reliable HTTP status."""
+
+        class MockWorkerResponse:
+            calls = []
+
+            @classmethod
+            def json(cls, data, status=200, headers=None):
+                cls.calls.append((data, status, headers))
+                return {"data": data, "status": status, "headers": headers}
+
+        with patch("src.utils._WORKERS_RUNTIME", True), \
+             patch("src.utils.WorkerResponse", MockWorkerResponse):
+            response = json_response({"ok": True}, status=401)
+
+        assert response["status"] == 401
+        assert MockWorkerResponse.calls[0][0] == {"ok": True}
+        assert MockWorkerResponse.calls[0][1] == 401
+        assert "X-BLT-API-Key" in MockWorkerResponse.calls[0][2]["Access-Control-Allow-Headers"]
 
 
 class TestPaginationParams:

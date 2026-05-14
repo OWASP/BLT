@@ -28,16 +28,23 @@ class BLTClient:
     Django backend API.
     """
     
-    def __init__(self, base_url: str, auth_token: Optional[str] = None):
+    def __init__(
+        self,
+        base_url: str,
+        auth_token: Optional[str] = None,
+        api_key: Optional[str] = None,
+    ):
         """
         Initialize the BLT client.
         
         Args:
             base_url: Base URL of the BLT API
             auth_token: Optional authentication token
+            api_key: Optional shared BLT API key
         """
         self.base_url = base_url.rstrip("/")
         self.auth_token = auth_token
+        self.api_key = api_key
     
     def _get_headers(self, extra_headers: Optional[Dict[str, str]] = None) -> Dict[str, str]:
         """Get default headers for requests."""
@@ -49,6 +56,9 @@ class BLTClient:
         
         if self.auth_token:
             headers["Authorization"] = f"Token {self.auth_token}"
+
+        if self.api_key:
+            headers["X-BLT-API-Key"] = self.api_key
         
         if extra_headers:
             headers.update(extra_headers)

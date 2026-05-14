@@ -36,6 +36,7 @@ from handlers import (
 )
 from utils import json_response, error_response, cors_headers
 from libs.db import get_db_safe 
+from libs.api_key import validate_api_key_request
 
 # Initialize the router
 router = Router()
@@ -201,6 +202,10 @@ class Default(WorkerEntrypoint):
                     status=204,
                     headers=Headers.new(cors_headers())
                 )
+
+            api_key_error = validate_api_key_request(request, self.env)
+            if api_key_error is not None:
+                return api_key_error
 
             await get_db_safe(self.env)  # Ensure database is available and initialized
         

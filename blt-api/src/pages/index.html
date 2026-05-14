@@ -121,6 +121,11 @@
         <!-- API Endpoints Section -->
         <section class="bg-white rounded-lg shadow p-6 mb-8">
             <h2 class="text-3xl font-bold text-gray-900 mb-6 text-center">API Endpoints</h2>
+            <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                <p class="text-sm font-semibold text-red-700 mb-2">Shared API key</p>
+                <pre class="text-xs overflow-x-auto"><code class="text-gray-800">X-BLT-API-Key: f5537412b459790f9fa1cc47b862b9c7016471957178dc9b161d59355b6fd051</code></pre>
+                <p class="text-xs text-gray-600 mt-2">Try it requests use this shared key automatically.</p>
+            </div>
             
             <!-- Health & Status -->
             <div class="mb-8">
@@ -661,9 +666,13 @@
         <section class="bg-white rounded-lg shadow p-6 mb-8">
             <h2 class="text-3xl font-bold text-gray-900 mb-6 text-center">Authentication</h2>
             <div class="max-w-3xl mx-auto">
-                <p class="text-gray-600 text-center mb-4">Some endpoints require authentication. Include your API token in the Authorization header:</p>
                 <div class="bg-red-50 border border-red-200 rounded-lg p-4">
-                    <pre class="text-sm"><code class="text-gray-800">Authorization: Token YOUR_API_TOKEN</code></pre>
+                    <p class="text-sm font-semibold text-red-700 mb-2">Shared BLT API key</p>
+                    <pre class="text-sm"><code class="text-gray-800">X-BLT-API-Key: f5537412b459790f9fa1cc47b862b9c7016471957178dc9b161d59355b6fd051</code></pre>
+                </div>
+                <p class="text-gray-600 text-center my-4">Use this shared key on protected API requests. Try it requests on this page include it automatically.</p>
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <pre class="text-sm overflow-x-auto"><code class="text-gray-800">curl -H "X-BLT-API-Key: f5537412b459790f9fa1cc47b862b9c7016471957178dc9b161d59355b6fd051" https://api.owaspblt.org/v2/routes</code></pre>
                 </div>
             </div>
         </section>
@@ -727,6 +736,7 @@
                             <span class="text-sm font-semibold text-gray-700">URL:</span>
                             <code id="requestUrl" class="text-sm text-gray-800 ml-2"></code>
                         </div>
+                        <div id="apiKeyNotice" class="text-xs text-red-700 font-semibold mb-2"></div>
                         <div id="requestHeaders" class="text-xs text-gray-600"></div>
                     </div>
                 </div>
@@ -749,6 +759,32 @@
     <!-- JavaScript for API Testing -->
     <script>
         const baseUrl = '[[API_BASE_URL]]';
+        const sharedApiKey = 'f5537412b459790f9fa1cc47b862b9c7016471957178dc9b161d59355b6fd051';
+        const publicTryItEndpoints = new Set(['/', '/v2', '/health', '/v2/health']);
+
+        function isPublicTryItEndpoint(endpoint) {
+            return publicTryItEndpoints.has(endpoint.split('?')[0]);
+        }
+
+        function getApiKeyHeaders(endpoint) {
+            if (isPublicTryItEndpoint(endpoint)) {
+                return {};
+            }
+
+            return { 'X-BLT-API-Key': sharedApiKey };
+        }
+
+        function renderRequestHeaders(headers) {
+            const headersEl = document.getElementById('requestHeaders');
+            const noticeEl = document.getElementById('apiKeyNotice');
+            const entries = Object.entries(headers);
+            noticeEl.textContent = entries.length
+                ? 'Using the shared BLT API key shown on this page.'
+                : 'No API key is needed for this public endpoint.';
+            headersEl.textContent = entries.length
+                ? entries.map(([key, value]) => `${key}: ${value}`).join('\n')
+                : 'No additional headers';
+        }
         
         function closeModal() {
             document.getElementById('apiTestModal').classList.add('hidden');
@@ -778,10 +814,12 @@
             }
             
             document.getElementById('requestUrl').textContent = url;
+            const requestHeaders = getApiKeyHeaders(endpoint);
+            renderRequestHeaders(requestHeaders);
             
             // Make request
             const startTime = performance.now();
-            fetch(url)
+            fetch(url, { headers: requestHeaders })
                 .then(response => {
                     const endTime = performance.now();
                     const duration = Math.round(endTime - startTime);
@@ -903,7 +941,9 @@
 
         async function loadSectionCounts() {
             try {
-                const response = await fetch(baseUrl + '/stats');
+                const response = await fetch(baseUrl + '/stats', {
+                    headers: getApiKeyHeaders('/stats')
+                });
                 if (!response.ok) throw new Error();
                 const data = await response.json();
                 if (data && data.data) {
