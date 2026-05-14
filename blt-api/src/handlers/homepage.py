@@ -59,7 +59,7 @@ async def handle_homepage(
         "Content-Type": "text/html; charset=utf-8",
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "GET, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type",
+        "Access-Control-Allow-Headers": "Content-Type, X-BLT-API-Key",
     }
     
     if _WORKERS_RUNTIME:

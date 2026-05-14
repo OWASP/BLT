@@ -94,6 +94,25 @@ class TestHomepageHandler:
             # Check for documentation sections
             assert "Response Format" in content or "response format" in content.lower()
             assert "Authentication" in content or "authentication" in content.lower()
+
+    @pytest.mark.asyncio
+    async def test_homepage_documents_static_api_key_header(self):
+        """Test that homepage documents the shared API key header."""
+        request = MockRequest()
+        env = MockEnv()
+
+        response = await handle_homepage(
+            request,
+            env,
+            path_params={},
+            query_params={},
+            path="/"
+        )
+
+        if hasattr(response, 'body'):
+            content = response.body
+            assert "X-BLT-API-Key" in content
+            assert "BLT_API_KEY" in content
     
     @pytest.mark.asyncio
     async def test_homepage_with_custom_url(self):
@@ -136,4 +155,3 @@ class TestHomepageHandler:
             
             # Check for security: should use textContent, not innerHTML for responses
             assert "textContent = JSON.stringify" in content
-

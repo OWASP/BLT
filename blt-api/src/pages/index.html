@@ -661,9 +661,18 @@
         <section class="bg-white rounded-lg shadow p-6 mb-8">
             <h2 class="text-3xl font-bold text-gray-900 mb-6 text-center">Authentication</h2>
             <div class="max-w-3xl mx-auto">
-                <p class="text-gray-600 text-center mb-4">Some endpoints require authentication. Include your API token in the Authorization header:</p>
+                <p class="text-gray-600 text-center mb-4">Protected endpoints require the shared BLT API key. Include it on API requests:</p>
                 <div class="bg-red-50 border border-red-200 rounded-lg p-4">
-                    <pre class="text-sm"><code class="text-gray-800">Authorization: Token YOUR_API_TOKEN</code></pre>
+                    <pre class="text-sm"><code class="text-gray-800">X-BLT-API-Key: YOUR_BLT_API_KEY</code></pre>
+                </div>
+                <p class="text-gray-600 text-center my-4">Set the same value in the Worker environment:</p>
+                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <pre class="text-sm"><code class="text-gray-800">BLT_API_KEY=YOUR_BLT_API_KEY</code></pre>
+                </div>
+                <p class="text-gray-600 text-center my-4">Routes that also need a signed-in user can include the user token too:</p>
+                <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <pre class="text-sm"><code class="text-gray-800">X-BLT-API-Key: YOUR_BLT_API_KEY
+Authorization: Token YOUR_API_TOKEN</code></pre>
                 </div>
             </div>
         </section>
