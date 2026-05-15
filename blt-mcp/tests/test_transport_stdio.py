@@ -62,6 +62,7 @@ def test_initialize_handshake():
         assert "capabilities" in result
         assert "tools" in result["capabilities"]
         assert "resources" in result["capabilities"]
+        assert "prompts" in result["capabilities"]
     finally:
         process.terminate()
         process.wait(timeout=2)
@@ -171,7 +172,7 @@ def test_malformed_input():
             elif resp1.get("method") == "notifications/message":
                 assert resp1["params"]["level"] == "error", f"Expected error level notification, got: {resp1}"
             else:
-                assert False, f"Expected an error response for malformed JSON, got: {resp1}"
+                raise AssertionError(f"Expected an error response for malformed JSON, got: {resp1}")
             
             # Second line should be our valid request response
             line2 = process.stdout.readline()
