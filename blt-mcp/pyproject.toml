@@ -1,0 +1,31 @@
+[project]
+name = "blt-mcp"
+version = "0.1.0"
+description = "MCP server for OWASP BLT"
+authors = [
+    { name = "OWASP BLT" }
+]
+requires-python = "==3.12.*"
+dependencies = [
+    "mcp",
+    "httpx",
+    "pydantic",
+    "click",
+    "python-dotenv"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-asyncio"
+]
+
+[project.scripts]
+blt-mcp = "blt_mcp.server:main"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
