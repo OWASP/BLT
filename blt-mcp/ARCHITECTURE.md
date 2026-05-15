@@ -70,6 +70,13 @@ The protocol layer handles all MCP-specific communication:
 - **Protocol**: JSON-RPC 2.0 for request/response handling
 - **Schemas**: Type-safe schema validation using Pydantic and FastMCP
 
+#### Supported Capabilities
+During the `initialize` handshake, the server negotiates and advertises the following MCP capabilities:
+- **`tools`**: Supported (`listChanged`: false). Allows the server to expose executable actions like `submit_issue`.
+- **`resources`**: Supported (`subscribe`: false, `listChanged`: false). Allows the server to expose read-only data URIs like `blt://issues`.
+- **`prompts`**: Supported (`listChanged`: false). Allows the server to provide structured interaction templates like `triage_vulnerability`.
+- **`experimental`**: Supported, serving as an extensible base for future experimental MCP features.
+
 ### Resources Layer
 
 Resources provide read-only access to BLT data through URI patterns:
