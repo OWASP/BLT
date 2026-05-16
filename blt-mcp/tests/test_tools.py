@@ -2,6 +2,7 @@ import subprocess
 import json
 import sys
 import os
+from tests.utils import read_jsonrpc_response
 
 def test_tools_list():
     """Test tools/list MCP endpoint."""
@@ -31,7 +32,7 @@ def test_tools_list():
         }
         process.stdin.write(json.dumps(init_request) + "\n")
         process.stdin.flush()
-        process.stdout.readline()
+        read_jsonrpc_response(process, 1)
         
         # 2. Call tools/list
         list_request = {
@@ -43,11 +44,7 @@ def test_tools_list():
         process.stdin.write(json.dumps(list_request) + "\n")
         process.stdin.flush()
         
-        response_line = process.stdout.readline()
-        assert response_line, "Expected a response for tools/list"
-        response = json.loads(response_line)
-        
-        assert response.get("id") == 2
+        response = read_jsonrpc_response(process, 2)
         assert "result" in response
         assert "tools" in response["result"]
         
@@ -88,7 +85,7 @@ def test_tool_call():
         }
         process.stdin.write(json.dumps(init_request) + "\n")
         process.stdin.flush()
-        process.stdout.readline()
+        read_jsonrpc_response(process, 1)
         
         # 2. Call tools/call for submit_issue (will likely fail due to no API key, but verifies protocol)
         call_request = {
@@ -106,11 +103,7 @@ def test_tool_call():
         process.stdin.write(json.dumps(call_request) + "\n")
         process.stdin.flush()
         
-        response_line = process.stdout.readline()
-        assert response_line, "Expected a response for tools/call"
-        response = json.loads(response_line)
-        
-        assert response.get("id") == 2
+        response = read_jsonrpc_response(process, 2)
         assert "result" in response or "error" in response
 
     finally:
@@ -135,13 +128,13 @@ def test_tool_schemas():
             "params": {"protocolVersion": "2024-11-05", "capabilities": {}, "clientInfo": {"name": "test", "version": "1"}}
         }) + "\n")
         process.stdin.flush()
-        process.stdout.readline()
+        read_jsonrpc_response(process, 1)
         
         # Call tools/list
         process.stdin.write(json.dumps({"jsonrpc": "2.0", "id": 2, "method": "tools/list", "params": {}}) + "\n")
         process.stdin.flush()
         
-        response = json.loads(process.stdout.readline())
+        response = read_jsonrpc_response(process, 2)
         tools = response["result"]["tools"]
         
         # Verify submit_issue schema (Issue #12)

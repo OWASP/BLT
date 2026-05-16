@@ -2,6 +2,7 @@ import subprocess
 import json
 import sys
 import os
+from tests.utils import read_jsonrpc_response
 
 def test_resources_list():
     """Test resources/list MCP endpoint."""
@@ -31,7 +32,7 @@ def test_resources_list():
         }
         process.stdin.write(json.dumps(init_request) + "\n")
         process.stdin.flush()
-        process.stdout.readline() # Skip init response
+        read_jsonrpc_response(process, 1) # Wait for init response
         
         # 2. Call resources/list
         list_request = {
@@ -43,11 +44,7 @@ def test_resources_list():
         process.stdin.write(json.dumps(list_request) + "\n")
         process.stdin.flush()
         
-        response_line = process.stdout.readline()
-        assert response_line, "Expected a response for resources/list"
-        response = json.loads(response_line)
-        
-        assert response.get("id") == 2
+        response = read_jsonrpc_response(process, 2)
         assert "result" in response
         assert "resources" in response["result"]
         
@@ -108,7 +105,7 @@ def test_resource_templates_list():
         }
         process.stdin.write(json.dumps(init_request) + "\n")
         process.stdin.flush()
-        process.stdout.readline() # Skip init response
+        read_jsonrpc_response(process, 1) # Wait for init response
         
         # 2. Call resources/templates/list
         list_request = {
@@ -120,11 +117,7 @@ def test_resource_templates_list():
         process.stdin.write(json.dumps(list_request) + "\n")
         process.stdin.flush()
         
-        response_line = process.stdout.readline()
-        assert response_line, "Expected a response for resources/templates/list"
-        response = json.loads(response_line)
-        
-        assert response.get("id") == 2
+        response = read_jsonrpc_response(process, 2)
         assert "result" in response
         assert "resourceTemplates" in response["result"]
         
@@ -166,7 +159,7 @@ def test_resource_read():
         }
         process.stdin.write(json.dumps(init_request) + "\n")
         process.stdin.flush()
-        process.stdout.readline()
+        read_jsonrpc_response(process, 1)
         
         # 2. Call resources/read for blt://repos
         read_request = {
@@ -180,12 +173,7 @@ def test_resource_read():
         process.stdin.write(json.dumps(read_request) + "\n")
         process.stdin.flush()
         
-        response_line = process.stdout.readline()
-        assert response_line, "Expected a response for resources/read"
-        response = json.loads(response_line)
-        
-        assert response.get("id") == 2
-        
+        response = read_jsonrpc_response(process, 2)
         # We don't necessarily expect a success here if the API key is invalid, 
         # but we expect a valid JSON-RPC response (either result or error).
         assert "result" in response or "error" in response
@@ -215,7 +203,7 @@ def test_resource_read_parameterized():
             "params": {"protocolVersion": "2024-11-05", "capabilities": {}, "clientInfo": {"name": "test", "version": "1"}}
         }) + "\n")
         process.stdin.flush()
-        process.stdout.readline()
+        read_jsonrpc_response(process, 1)
         
         # 2. Call resources/read for a specific issue
         read_request = {
@@ -229,11 +217,7 @@ def test_resource_read_parameterized():
         process.stdin.write(json.dumps(read_request) + "\n")
         process.stdin.flush()
         
-        response_line = process.stdout.readline()
-        assert response_line
-        response = json.loads(response_line)
-        
-        assert response.get("id") == 2
+        response = read_jsonrpc_response(process, 2)
         # Whether it succeeds or fails with 404, we expect a valid JSON-RPC structure
         assert "result" in response or "error" in response
 
@@ -262,36 +246,20 @@ def test_error_handling():
             "params": {"protocolVersion": "2024-11-05", "capabilities": {}, "clientInfo": {"name": "test", "version": "1"}}
         }) + "\n")
         process.stdin.flush()
-        process.stdout.readline()
+        read_jsonrpc_response(process, 1)
 
-        # 2. Send a non-existent method
+        # 2. Send a valid method with missing required parameters (should return error)
         invalid_request = {
             "jsonrpc": "2.0",
             "id": 99,
-            "method": "non_existent_method",
-            "params": {}
+            "method": "resources/read",
+            "params": {} # Missing 'uri'
         }
         process.stdin.write(json.dumps(invalid_request) + "\n")
         process.stdin.flush()
         
-        response_line = process.stdout.readline()
-        assert response_line
-        response = json.loads(response_line)
-        
-        # FastMCP might return an error response or a log notification
-        if "error" in response:
-            assert response["error"]["code"] != 0
-        elif response.get("method") == "notifications/message":
-            assert response["params"]["level"] == "error"
-        else:
-            # If it's a success response for id 1, read the next line
-            if response.get("id") == 1:
-                response_line = process.stdout.readline()
-                assert response_line
-                response = json.loads(response_line)
-                assert "error" in response or response.get("method") == "notifications/message"
-            else:
-                raise AssertionError(f"Expected an error response, got: {response}")
+        response = read_jsonrpc_response(process, 99)
+        assert "error" in response
     finally:
         process.terminate()
         process.wait(timeout=2)

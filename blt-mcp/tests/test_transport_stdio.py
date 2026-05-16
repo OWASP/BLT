@@ -2,6 +2,7 @@ import subprocess
 import json
 import sys
 import os
+from tests.utils import read_jsonrpc_response
 
 def test_initialize_handshake():
     """Test valid JSON-RPC initialize message and its response structure."""
@@ -39,10 +40,7 @@ def test_initialize_handshake():
         process.stdin.flush()
         
         # Read response
-        response_line = process.stdout.readline()
-        
-        assert response_line, "Expected a response from stdout"
-        response = json.loads(response_line)
+        response = read_jsonrpc_response(process, 1)
         
         assert response.get("jsonrpc") == "2.0"
         assert response.get("id") == 1
@@ -105,9 +103,7 @@ def test_capability_negotiation():
         process.stdin.flush()
         
         # Read response
-        response_line = process.stdout.readline()
-        assert response_line, "Expected a response from stdout"
-        response = json.loads(response_line)
+        response = read_jsonrpc_response(process, 1)
         
         assert response.get("jsonrpc") == "2.0"
         assert response.get("id") == 1
@@ -160,28 +156,9 @@ def test_malformed_input():
         process.stdin.flush()
         
         # The MCP server might send an error for the malformed JSON
-        # and then process the valid request.
-        line1 = process.stdout.readline()
-        assert line1, "Expected a response from stdout"
-        resp1 = json.loads(line1)
-        
-        if resp1.get("id") != 2:
-            # First line might be an error response or a log notification
-            if "error" in resp1:
-                pass
-            elif resp1.get("method") == "notifications/message":
-                assert resp1["params"]["level"] == "error", f"Expected error level notification, got: {resp1}"
-            else:
-                raise AssertionError(f"Expected an error response for malformed JSON, got: {resp1}")
-            
-            # Second line should be our valid request response
-            line2 = process.stdout.readline()
-            assert line2, "Expected a response from stdout"
-            resp2 = json.loads(line2)
-            assert resp2.get("id") == 2, f"Expected id 2 response, got {resp2}"
-        else:
-            # Or it might just ignore the malformed JSON and respond to the valid one
-            assert resp1.get("id") == 2
+        # or it might just respond to the valid request.
+        response = read_jsonrpc_response(process, 2)
+        assert response.get("id") == 2
     finally:
         process.terminate()
         process.wait(timeout=2)

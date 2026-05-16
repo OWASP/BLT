@@ -161,8 +161,8 @@ def main() -> None:
         logger.info("Starting BLT-MCP server...")
         mcp.run()
     except KeyboardInterrupt:
-        import os
-        os._exit(0)
+        logger.info("Server stopped by user.")
+        return
 
 if __name__ == "__main__":
     main()
