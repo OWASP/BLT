@@ -63,7 +63,11 @@ def test_initialize_handshake():
         assert "prompts" in result["capabilities"]
     finally:
         process.terminate()
-        process.wait(timeout=2)
+        try:
+            process.wait(timeout=2)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.wait()
 
 def test_capability_negotiation():
     """Test that the server properly negotiates capabilities with the client."""
@@ -116,7 +120,11 @@ def test_capability_negotiation():
         
     finally:
         process.terminate()
-        process.wait(timeout=2)
+        try:
+            process.wait(timeout=2)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.wait()
 
 def test_malformed_input():
     """Test that the server handles malformed JSON without crashing."""
@@ -161,4 +169,8 @@ def test_malformed_input():
         assert response.get("id") == 2
     finally:
         process.terminate()
-        process.wait(timeout=2)
+        try:
+            process.wait(timeout=2)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.wait()

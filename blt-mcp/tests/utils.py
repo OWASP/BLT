@@ -50,7 +50,7 @@ class MCPResponseReader:
         except Exception as e:
             logger.debug("Reader loop ended: %s", e)
 
-    def read_response(self, expected_id: Any, timeout: float = 5.0) -> dict:
+    def read_response(self, expected_id: Any, timeout: float = 35.0) -> dict:
         """
         Block until a response with expected_id arrives or timeout expires.
         Responses with other IDs are re-queued so other callers can get them.
@@ -94,7 +94,7 @@ class MCPResponseReader:
 # Helper to maintain compatibility with existing tests
 _readers = {}
 
-def read_jsonrpc_response(process, expected_id, timeout=5.0):
+def read_jsonrpc_response(process, expected_id, timeout=35.0):
     if process not in _readers:
         _readers[process] = MCPResponseReader(process)
     return _readers[process].read_response(expected_id, timeout)

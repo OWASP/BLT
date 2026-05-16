@@ -55,7 +55,11 @@ def test_tools_list():
 
     finally:
         process.terminate()
-        process.wait(timeout=2)
+        try:
+            process.wait(timeout=2)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.wait()
 
 def test_tool_call():
     """Test tools/call MCP endpoint."""
@@ -108,7 +112,11 @@ def test_tool_call():
 
     finally:
         process.terminate()
-        process.wait(timeout=2)
+        try:
+            process.wait(timeout=2)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.wait()
 
 def test_tool_schemas():
     """Verify tool input schemas for Issues 12 and 13."""
@@ -154,4 +162,8 @@ def test_tool_schemas():
 
     finally:
         process.terminate()
-        process.wait(timeout=2)
+        try:
+            process.wait(timeout=2)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.wait()

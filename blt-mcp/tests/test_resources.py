@@ -75,7 +75,11 @@ def test_resources_list():
 
     finally:
         process.terminate()
-        process.wait(timeout=2)
+        try:
+            process.wait(timeout=2)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.wait()
 
 def test_resource_templates_list():
     """Test resources/templates/list MCP endpoint."""
@@ -129,7 +133,11 @@ def test_resource_templates_list():
 
     finally:
         process.terminate()
-        process.wait(timeout=2)
+        try:
+            process.wait(timeout=2)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.wait()
 
 def test_resource_read():
     """Test resources/read MCP endpoint."""
@@ -180,7 +188,11 @@ def test_resource_read():
 
     finally:
         process.terminate()
-        process.wait(timeout=2)
+        try:
+            process.wait(timeout=2)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.wait()
 
 def test_resource_read_parameterized():
     """Test resources/read with a parameterized URI (Issue #10)."""
@@ -223,7 +235,11 @@ def test_resource_read_parameterized():
 
     finally:
         process.terminate()
-        process.wait(timeout=2)
+        try:
+            process.wait(timeout=2)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.wait()
 
 def test_error_handling():
     """Test that invalid methods return a proper JSON-RPC error (Issue #8)."""
@@ -262,4 +278,8 @@ def test_error_handling():
         assert "error" in response
     finally:
         process.terminate()
-        process.wait(timeout=2)
+        try:
+            process.wait(timeout=2)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.wait()
