@@ -77,6 +77,12 @@ async def list_issues() -> str:
     logger.info("Fetching issues list from BLT API")
     return await _fetch("/issues", context="issues")
 
+@mcp.resource("blt://stats")
+async def get_stats() -> str:
+    """Get global statistics for OWASP BLT (e.g., total issues, active repos)."""
+    logger.info("Fetching global stats")
+    return await _fetch("/stats", context="stats")
+
 @mcp.resource("blt://repos/{repo_id}/issues")
 async def list_repo_issues(repo_id: str) -> str:
     """Get the list of issues for a specific repository."""
@@ -155,8 +161,8 @@ def main() -> None:
         logger.info("Starting BLT-MCP server...")
         mcp.run()
     except KeyboardInterrupt:
-        logger.info("Server stopped by user.")
-        sys.exit(0)
+        import os
+        os._exit(0)
 
 if __name__ == "__main__":
     main()
