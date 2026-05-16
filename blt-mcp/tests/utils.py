@@ -20,6 +20,7 @@ class MCPResponseReader:
         self._lock = threading.Lock()
         self._stopped = False
         self._process = process
+        self._reader_error: Exception | None = None
 
         self._thread = threading.Thread(
             target=self._read_loop,
@@ -48,7 +49,8 @@ class MCPResponseReader:
                     with self._lock:
                         self._notifications.append(msg)
         except Exception as e:
-            logger.debug("Reader loop ended: %s", e)
+            self._reader_error = e
+            logger.exception("Reader loop failed")
 
     def read_response(self, expected_id: Any, timeout: float = 35.0) -> dict:
         """
@@ -60,7 +62,13 @@ class MCPResponseReader:
 
         try:
             while time.monotonic() < deadline:
-                if self._process.poll() is not None and self._responses.empty():
+                if self._reader_error is not None:
+                    raise RuntimeError("Stdout reader thread failed") from self._reader_error
+                if (
+                    self._process.poll() is not None
+                    and self._responses.empty()
+                    and not self._thread.is_alive()
+                ):
                     raise RuntimeError(f"Process exited with code {self._process.returncode}")
                     
                 remaining = deadline - time.monotonic()
