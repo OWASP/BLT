@@ -5,9 +5,28 @@ Bugs handler for the BLT API.
 from typing import Any, Dict
 from utils import error_response, parse_pagination_params, parse_json_body, convert_d1_results
 from libs.db import get_db_safe
+from libs.jwt_utils import decode_jwt
 from models import Bug
 from workers import Response
 import logging
+
+
+_UPDATABLE_FIELDS = {
+    "status", "verified", "score", "markdown_description",
+    "description", "github_url", "cve_id", "cve_score",
+    "is_hidden", "closed_by", "closed_date", "label",
+}
+
+_VALID_STATUSES = {"open", "closed", "in-progress", "reviewing"}
+
+
+def _get_header(request: Any, name: str) -> str:
+    """Safely read a request header in Workers and tests."""
+    headers = getattr(request, "headers", None)
+    if headers and hasattr(headers, "get"):
+        value = headers.get(name)
+        return str(value) if value is not None else ""
+    return ""
 
 async def handle_bugs(
     request: Any,
@@ -23,6 +42,7 @@ async def handle_bugs(
         GET /bugs - List bugs with pagination and optional filters (status, domain, verified)
         GET /bugs/{id} - Get detailed bug info with screenshots and tags
         POST /bugs - Create a new bug report (requires url and description)
+        PATCH /bugs/{id} - Update a bug (auth required, owner only)
         GET /bugs/search - Search bugs by URL or description text (requires 'q' param)
     
     Query parameters for listing:
@@ -91,6 +111,10 @@ async def handle_bugs(
             "data": response_data
         })
     
+    # Update bug (must be checked before GET /bugs/{id})
+    if method == "PATCH" and "id" in path_params:
+        return await update_bug(db, request, env, path_params["id"], logger)
+
     # Get specific bug
     if "id" in path_params:
         try:
@@ -293,7 +317,7 @@ async def handle_bugs(
         except Exception as e:
             logger.error(f"Error creating bug: {str(e)}")
             return error_response(f"Failed to create bug: {str(e)}", status=500)
-    
+
     # List bugs with pagination
     page, per_page = parse_pagination_params(query_params)
 
@@ -376,3 +400,84 @@ async def handle_bugs(
     except Exception as e:
         logger.error(f"Error fetching bugs: {str(e)}")
         return error_response(f"Failed to fetch bugs: {str(e)}", status=500)
+
+
+async def update_bug(db: Any, request: Any, env: Any, bug_id_str: str, logger: Any) -> Any:
+    """Update a bug. Requires JWT authentication. Only the bug owner can update."""
+    try:
+        if not bug_id_str.isdigit():
+            return error_response("Invalid bug ID", status=400)
+        bug_id = int(bug_id_str)
+
+        auth_header = _get_header(request, "Authorization")
+        if not auth_header or not auth_header[:7].lower() == "bearer ":
+            return error_response("Authentication required", status=401)
+        token = auth_header[7:].strip()
+        if not token:
+            return error_response("Authentication required", status=401)
+
+        payload = decode_jwt(token, env.JWT_SECRET)
+        if not payload or not payload.get("user_id"):
+            return error_response("Invalid or expired token", status=401)
+
+        try:
+            user_id = int(payload["user_id"])
+        except (ValueError, TypeError):
+            return error_response("Invalid or expired token", status=401)
+
+        bug = await Bug.objects(db).get(id=bug_id)
+        if not bug:
+            return error_response("Bug not found", status=404)
+
+        if bug.get("user") is None or bug["user"] != user_id:
+            return error_response("You can only update your own bugs", status=403)
+
+        body = await parse_json_body(request)
+        if not body:
+            return error_response("Request body is required", status=400)
+
+        updates = {}
+        for field in body:
+            if field not in _UPDATABLE_FIELDS:
+                continue
+
+            value = body[field]
+
+            if field == "status":
+                if not isinstance(value, str) or value not in _VALID_STATUSES:
+                    return error_response(
+                        f"Invalid status. Must be one of: {', '.join(sorted(_VALID_STATUSES))}",
+                        status=400,
+                    )
+                updates["status"] = value
+
+            elif field in ("verified", "is_hidden"):
+                if not isinstance(value, bool):
+                    return error_response(f"{field} must be a boolean", status=400)
+                updates[field] = 1 if value else 0
+
+            elif field in ("score", "closed_by", "label"):
+                if isinstance(value, bool) or not isinstance(value, int):
+                    return error_response(f"{field} must be an integer", status=400)
+                updates[field] = value
+
+            elif field in ("markdown_description", "description", "github_url", "cve_id", "cve_score", "closed_date"):
+                if value is not None and not isinstance(value, str):
+                    return error_response(f"{field} must be a string or null", status=400)
+                updates[field] = value
+
+        if not updates:
+            return error_response("No valid fields to update", status=400)
+
+        await Bug.objects(db).filter(id=bug_id).update(**updates)
+
+        updated_bug = await Bug.objects(db).get(id=bug_id)
+
+        return Response.json({
+            "success": True,
+            "message": "Bug updated successfully",
+            "data": updated_bug,
+        })
+    except Exception as e:
+        logger.error(f"Error updating bug: {str(e)}")
+        return error_response("Internal server error", status=500)
