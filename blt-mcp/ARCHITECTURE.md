@@ -68,7 +68,7 @@ The protocol layer handles all MCP-specific communication:
 
 - **Transport**: Stdio-based transport for process-to-process communication
 - **Protocol**: JSON-RPC 2.0 for request/response handling
-- **Schemas**: Type-safe schema validation using MCP SDK types
+- **Schemas**: Type-safe schema validation using Pydantic and FastMCP
 
 ### Resources Layer
 
@@ -214,7 +214,7 @@ Prompts provide AI agents with structured guidance for common tasks:
 
 ### Input Validation
 - JSON Schema validation for all tool inputs
-- Type-safe TypeScript implementation
+- Type-safe Python implementation with Pydantic
 - Parameter validation before API calls
 - Error messages don't leak sensitive data
 
@@ -245,8 +245,8 @@ BLT_API_KEY=your_key_here               # Authentication token
 {
   "mcpServers": {
     "blt": {
-      "command": "node",
-      "args": ["/path/to/dist/index.js"],
+      "command": "uv",
+      "args": ["run", "blt-mcp"],
       "env": {
         "BLT_API_BASE": "https://blt.owasp.org/api",
         "BLT_API_KEY": "your_key_here"
@@ -267,7 +267,7 @@ BLT_API_KEY=your_key_here               # Authentication token
 ### Validation Errors
 - Schema validation failures reported clearly
 - Missing required parameters detected early
-- Type mismatches caught by TypeScript
+- Type mismatches caught by Pydantic and Python type hints
 - Invalid URIs handled gracefully
 
 ### Runtime Errors
@@ -320,13 +320,12 @@ BLT_API_KEY=your_key_here               # Authentication token
 
 ### Installation
 ```bash
-npm install
-npm run build
+uv sync
 ```
 
 ### Running
 ```bash
-node dist/index.js
+uv run blt-mcp
 # Server listens on stdio
 ```
 
@@ -358,6 +357,7 @@ node dist/index.js
 ## References
 
 - [Model Context Protocol Specification](https://modelcontextprotocol.io/)
-- [MCP TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk)
+- [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk)
+- [FastMCP Framework](https://github.com/jlowin/fastmcp)
 - [OWASP BLT Project](https://owasp.org/www-project-bug-logging-tool/)
 - [JSON-RPC 2.0 Specification](https://www.jsonrpc.org/specification)
