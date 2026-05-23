@@ -9,23 +9,27 @@
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
 
     <script>
-        window.tailwind = {
-            config: {
-                darkMode: 'class'
-            }
+        window.tailwind = window.tailwind || {};
+        window.tailwind.config = {
+            darkMode: 'class'
         };
 
         (function () {
             const savedTheme = localStorage.getItem('theme');
-            const isDark = savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches);
-            if (isDark) {
-                document.documentElement.classList.add('dark');
-            }
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const shouldUseDark = savedTheme === 'dark' || (savedTheme === null && prefersDark);
+            document.documentElement.classList.toggle('dark', shouldUseDark);
         })();
     </script>
     <script src="error-reporter.js"></script>
 
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        window.tailwind.config = {
+            ...(window.tailwind.config || {}),
+            darkMode: 'class'
+        };
+    </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
         integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
@@ -74,7 +78,7 @@
     </style>
 </head>
 
-<body class="flex min-h-screen flex-col bg-slate-50 text-slate-900 antialiased dark:bg-slate-900 dark:text-slate-100">
+<body class="flex min-h-screen flex-col bg-white text-slate-900 antialiased dark:bg-slate-900 dark:text-slate-100">
 
     <!-- Header -->
     <header
@@ -90,6 +94,10 @@
                 <a href="/"
                     class="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100">Dashboard</a>
                 <a href="/how-it-works.html" class="text-red-600 font-semibold dark:text-red-400">How It Works</a>
+                <a href="/diagnostics.html"
+                    class="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100">Diagnostics</a>
+                <a href="/test-error.html"
+                    class="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100">Test Error</a>
                 <a href="https://github.com/OWASP-BLT/BLT-Leaf" target="_blank"
                     class="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100">
                     <i class="fab fa-github"></i> GitHub
@@ -261,7 +269,7 @@
 
                     <!-- Score Display -->
                     <div
-                        class="bg-slate-50 dark:bg-slate-900 rounded-lg p-6 border border-slate-200 dark:border-slate-700">
+                        class="bg-white dark:bg-slate-900 rounded-lg p-6 border border-slate-200 dark:border-slate-700">
                         <div class="text-center mb-6">
                             <div class="text-5xl font-bold mb-2" id="overallScore">94%</div>
                             <div class="text-lg font-semibold" id="overallStatus">✅ Merge Ready</div>
@@ -318,7 +326,7 @@
                 </h3>
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm border border-slate-200 dark:border-slate-700 rounded-lg">
-                        <thead class="bg-slate-100 dark:bg-slate-800">
+                        <thead class="bg-slate-50 dark:bg-slate-800">
                             <tr>
                                 <th class="px-4 py-3 text-left font-semibold">Scenario</th>
                                 <th class="px-4 py-3 text-left font-semibold">What BLT-Leaf Says</th>
@@ -364,7 +372,7 @@
                 </h3>
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm border border-slate-200 dark:border-slate-700 rounded-lg">
-                        <thead class="bg-slate-100 dark:bg-slate-800">
+                        <thead class="bg-slate-50 dark:bg-slate-800">
                             <tr>
                                 <th class="px-4 py-3 text-left font-semibold">Scenario</th>
                                 <th class="px-4 py-3 text-left font-semibold">What BLT-Leaf Says</th>
@@ -409,7 +417,7 @@
                 </h3>
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm border border-slate-200 dark:border-slate-700 rounded-lg">
-                        <thead class="bg-slate-100 dark:bg-slate-800">
+                        <thead class="bg-slate-50 dark:bg-slate-800">
                             <tr>
                                 <th class="px-4 py-3 text-left font-semibold">Scenario</th>
                                 <th class="px-4 py-3 text-left font-semibold">What BLT-Leaf Says</th>
@@ -553,7 +561,7 @@
                 </p>
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm border-collapse">
-                        <thead class="bg-slate-100 dark:bg-slate-900">
+                        <thead class="bg-slate-50 dark:bg-slate-800">
                             <tr>
                                 <th
                                     class="px-4 py-3 text-left font-semibold text-slate-900 dark:text-slate-100 border-b border-slate-200 dark:border-slate-700">
@@ -714,7 +722,7 @@
 
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm border border-slate-200 dark:border-slate-700 rounded-lg">
-                        <thead class="bg-slate-100 dark:bg-slate-800">
+                        <thead class="bg-slate-50 dark:bg-slate-800">
                             <tr>
                                 <th class="px-4 py-3 text-left font-semibold">Data Point</th>
                                 <th class="px-4 py-3 text-left font-semibold">GitHub API Endpoint</th>
@@ -725,42 +733,42 @@
                             <tr>
                                 <td class="px-4 py-3 font-medium">PR Metadata</td>
                                 <td class="px-4 py-3"><code
-                                        class="text-xs bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">/repos/{owner}/{repo}/pulls/{number}</code>
+                                        class="text-xs bg-slate-50 dark:bg-slate-800 px-2 py-1 rounded">/repos/{owner}/{repo}/pulls/{number}</code>
                                 </td>
                                 <td class="px-4 py-3">Title, state, mergeable_state, draft status</td>
                             </tr>
                             <tr>
                                 <td class="px-4 py-3 font-medium">CI Checks</td>
                                 <td class="px-4 py-3"><code
-                                        class="text-xs bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">/repos/{owner}/{repo}/commits/{sha}/check-runs</code>
+                                        class="text-xs bg-slate-50 dark:bg-slate-800 px-2 py-1 rounded">/repos/{owner}/{repo}/commits/{sha}/check-runs</code>
                                 </td>
                                 <td class="px-4 py-3">Status, conclusion, check names</td>
                             </tr>
                             <tr>
                                 <td class="px-4 py-3 font-medium">Reviews</td>
                                 <td class="px-4 py-3"><code
-                                        class="text-xs bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">/repos/{owner}/{repo}/pulls/{number}/reviews</code>
+                                        class="text-xs bg-slate-50 dark:bg-slate-800 px-2 py-1 rounded">/repos/{owner}/{repo}/pulls/{number}/reviews</code>
                                 </td>
                                 <td class="px-4 py-3">Approval state, reviewer, submitted date</td>
                             </tr>
                             <tr>
                                 <td class="px-4 py-3 font-medium">Review Comments</td>
                                 <td class="px-4 py-3"><code
-                                        class="text-xs bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">/repos/{owner}/{repo}/pulls/{number}/comments</code>
+                                        class="text-xs bg-slate-50 dark:bg-slate-800 px-2 py-1 rounded">/repos/{owner}/{repo}/pulls/{number}/comments</code>
                                 </td>
                                 <td class="px-4 py-3">Comment body, author, line numbers</td>
                             </tr>
                             <tr>
                                 <td class="px-4 py-3 font-medium">Issue Comments</td>
                                 <td class="px-4 py-3"><code
-                                        class="text-xs bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">/repos/{owner}/{repo}/issues/{number}/comments</code>
+                                        class="text-xs bg-slate-50 dark:bg-slate-800 px-2 py-1 rounded">/repos/{owner}/{repo}/issues/{number}/comments</code>
                                 </td>
                                 <td class="px-4 py-3">General discussion, feedback</td>
                             </tr>
                             <tr>
                                 <td class="px-4 py-3 font-medium">Timeline</td>
                                 <td class="px-4 py-3"><code
-                                        class="text-xs bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">/repos/{owner}/{repo}/issues/{number}/timeline</code>
+                                        class="text-xs bg-slate-50 dark:bg-slate-800 px-2 py-1 rounded">/repos/{owner}/{repo}/issues/{number}/timeline</code>
                                 </td>
                                 <td class="px-4 py-3">Events, labels, assignments</td>
                             </tr>
@@ -769,7 +777,7 @@
                 </div>
 
                 <div
-                    class="mt-4 p-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg">
+                    class="mt-4 p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg">
                     <p class="text-sm text-slate-700 dark:text-slate-300">
                         <i class="fas fa-info-circle mr-1"></i>
                         <strong>API Usage:</strong> Each PR analysis uses approximately <strong>5 API calls</strong>.
@@ -914,7 +922,7 @@
                 </div>
 
                 <div
-                    class="mt-6 p-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg">
+                    class="mt-6 p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg">
                     <p class="text-sm text-slate-700 dark:text-slate-300">
                         <i class="fas fa-lightbulb mr-1"></i>
                         <strong>Pro Tip:</strong> Always check the confidence badges (🟢 High, 🟡 Medium, 🔴 Low) next
@@ -941,7 +949,7 @@
                         <p class="text-2xl font-bold text-slate-900 dark:text-white">February 2026</p>
                     </div>
                 </div>
-                <div class="p-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg">
+                <div class="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg">
                     <p class="text-sm text-slate-700 dark:text-slate-300">
                         <i class="fas fa-info-circle mr-1"></i>
                         Major changes to the scoring algorithm are documented in the <a
@@ -1098,53 +1106,38 @@
         </div>
     </footer>
 
-    <!-- Theme Toggle JavaScript -->
+    <!-- JavaScript for Interactive Calculator -->
+    <script src="how-it-works.js"></script>
     <script>
-        // Initialize theme on page load
         function initTheme() {
-            const savedTheme = localStorage.getItem('theme');
-            const isDark = savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches);
-            const themeIcon = document.getElementById('themeIcon');
-
-            if (isDark) {
-                document.documentElement.classList.add('dark');
-                if (themeIcon) themeIcon.className = 'fas fa-sun';
-            } else {
-                document.documentElement.classList.remove('dark');
-                if (themeIcon) themeIcon.className = 'fas fa-moon';
-            }
-        }
-
-        // Toggle theme
-        function toggleTheme() {
             const isDark = document.documentElement.classList.contains('dark');
             const themeIcon = document.getElementById('themeIcon');
 
-            if (isDark) {
-                document.documentElement.classList.remove('dark');
-                if (themeIcon) themeIcon.className = 'fas fa-moon';
-                localStorage.setItem('theme', 'light');
-            } else {
-                document.documentElement.classList.add('dark');
-                if (themeIcon) themeIcon.className = 'fas fa-sun';
-                localStorage.setItem('theme', 'dark');
+            if (themeIcon) {
+                themeIcon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
             }
         }
 
-        // Attach event listener when DOM is ready
-        document.addEventListener('DOMContentLoaded', () => {
-            // Initialize theme icon (dark class already set in head)
-            initTheme();
+        function toggleTheme() {
+            const isDark = !document.documentElement.classList.contains('dark');
+            document.documentElement.classList.toggle('dark', isDark);
+            const themeIcon = document.getElementById('themeIcon');
 
-            const themeToggleBtn = document.getElementById('themeToggle');
-            if (themeToggleBtn) {
-                themeToggleBtn.addEventListener('click', toggleTheme);
+            if (isDark) {
+                if (themeIcon) themeIcon.className = 'fas fa-sun';
+                localStorage.setItem('theme', 'dark');
+            } else {
+                if (themeIcon) themeIcon.className = 'fas fa-moon';
+                localStorage.setItem('theme', 'light');
             }
-        });
-    </script>
+        }
 
-    <!-- JavaScript for Interactive Calculator -->
-    <script src="how-it-works.js"></script>
+        initTheme();
+        const themeToggle = document.getElementById('themeToggle');
+        if (themeToggle) {
+            themeToggle.addEventListener('click', toggleTheme);
+        }
+    </script>
 
 </body>
 

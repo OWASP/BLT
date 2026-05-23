@@ -9,29 +9,33 @@
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
 
     <script>
-        window.tailwind = {
-            config: {
-                darkMode: 'class'
-            }
+        window.tailwind = window.tailwind || {};
+        window.tailwind.config = {
+            darkMode: 'class'
         };
 
         (function () {
             const savedTheme = localStorage.getItem('theme');
-            const isDark = savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches);
-            if (isDark) {
-                document.documentElement.classList.add('dark');
-            }
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const shouldUseDark = savedTheme === 'dark' || (savedTheme === null && prefersDark);
+            document.documentElement.classList.toggle('dark', shouldUseDark);
         })();
     </script>
     <script src="error-reporter.js"></script>
 
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        window.tailwind.config = {
+            ...(window.tailwind.config || {}),
+            darkMode: 'class'
+        };
+    </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
         integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 
-<body class="flex min-h-screen flex-col bg-slate-50 text-slate-900 antialiased dark:bg-slate-900 dark:text-slate-100">
+<body class="flex min-h-screen flex-col bg-white text-slate-900 antialiased dark:bg-slate-900 dark:text-slate-100">
 
     <!-- Header -->
     <header
@@ -167,17 +171,35 @@
 
         buildList();
 
-        // Theme toggle
+    </script>
+    <script>
+        function initTheme() {
+            const isDark = document.documentElement.classList.contains('dark');
+            const themeIcon = document.getElementById('themeIcon');
+
+            if (themeIcon) {
+                themeIcon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+            }
+        }
+
+        function toggleTheme() {
+            const isDark = !document.documentElement.classList.contains('dark');
+            document.documentElement.classList.toggle('dark', isDark);
+            const themeIcon = document.getElementById('themeIcon');
+
+            if (isDark) {
+                if (themeIcon) themeIcon.className = 'fas fa-sun';
+                localStorage.setItem('theme', 'dark');
+            } else {
+                if (themeIcon) themeIcon.className = 'fas fa-moon';
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        initTheme();
         const themeToggle = document.getElementById('themeToggle');
-        const themeIcon = document.getElementById('themeIcon');
-        themeToggle.addEventListener('click', () => {
-            const isDark = document.documentElement.classList.toggle('dark');
-            themeIcon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
-            localStorage.setItem('theme', isDark ? 'dark' : 'light');
-        });
-        // Set initial icon
-        if (document.documentElement.classList.contains('dark')) {
-            themeIcon.className = 'fas fa-sun';
+        if (themeToggle) {
+            themeToggle.addEventListener('click', toggleTheme);
         }
     </script>
 </body>
