@@ -523,11 +523,15 @@
               <p><span class="kw">git</span> clone https://github.com/OWASP-BLT/BLT-MCP.git</p>
               <p><span class="kw">cd</span> BLT-MCP</p>
               <br />
-              <p><span class="cmt"># Install dependencies</span></p>
-              <p><span class="kw">npm</span> install</p>
+              <p><span class="cmt"># Create and activate a virtual environment</span></p>
+              <p><span class="kw">uv</span> venv</p>
+              <p><span class="kw">source</span> .venv/bin/activate</p>
               <br />
-              <p><span class="cmt"># Build the project</span></p>
-              <p><span class="kw">npm</span> run build</p>
+              <p><span class="cmt"># Install the package and dependencies</span></p>
+              <p><span class="kw">uv</span> pip install -e .</p>
+              <br />
+              <p><span class="cmt"># Run the server</span></p>
+              <p><span class="kw">blt-mcp</span></p>
             </div>
           </div>
 
@@ -561,9 +565,11 @@
               <p>{</p>
               <p class="pl-4"><span class="key">"mcpServers"</span>: {</p>
               <p class="pl-8"><span class="key">"blt"</span>: {</p>
-              <p class="pl-12"><span class="key">"command"</span>: <span class="str">"node"</span>,</p>
-              <p class="pl-12"><span class="key">"args"</span>: [<span
-                  class="str">"/path/to/BLT-MCP/dist/index.js"</span>],</p>
+              <p class="pl-12"><span class="key">"command"</span>: <span class="str">"uv"</span>,</p>
+              <p class="pl-12"><span class="key">"args"</span>: [
+                  <span class="str">"--directory"</span>, <span class="str">"/path/to/BLT-MCP"</span>, 
+                  <span class="str">"run"</span>, <span class="str">"blt-mcp"</span>
+                ],</p>
               <p class="pl-12"><span class="key">"env"</span>: {</p>
               <p class="pl-16"><span class="key">"BLT_API_KEY"</span>: <span class="str">"your_key"</span></p>
               <p class="pl-12">}</p>
@@ -944,7 +950,7 @@
             <li><a href="https://github.com/OWASP-BLT/BLT-MCP/blob/main/CONTRIBUTING.md"
                 class="hover:text-white hover:underline transition-colors">Contributing</a></li>
             <li><a href="https://github.com/OWASP-BLT/BLT-MCP/blob/main/LICENSE"
-                class="hover:text-white hover:underline transition-colors">MIT License</a></li>
+                class="hover:text-white hover:underline transition-colors">GNU AGPL v3</a></li>
           </ul>
         </div>
 
@@ -965,8 +971,8 @@
 
       <div
         class="pt-8 border-t border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-500">
-        <p>© 2024 OWASP BLT. Released under the MIT License.</p>
-        <p>Built with ❤️ by the security community</p>
+        <p>© 2024 OWASP BLT. Released under the GNU AGPL v3.</p>
+        <p>Built with <i class="fa-solid fa-heart text-primary"></i> by the security community</p>
       </div>
     </div>
   </footer>
