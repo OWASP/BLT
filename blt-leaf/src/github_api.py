@@ -515,7 +515,17 @@ async def fetch_multiple_prs_batch(prs_to_fetch, token=None):
                 # Process reviews to get latest state per reviewer
                 from utils import calculate_review_status
                 reviews_data = pr_data.get('reviews', {}).get('nodes', [])
-                review_status = calculate_review_status(reviews_data)
+                # Adapt GraphQL review nodes (submittedAt/author) to REST shape (submitted_at/user)
+                # so calculate_review_status() works correctly without modification.
+                normalized_reviews = [
+                    {
+                        'submitted_at': r.get('submittedAt'),
+                        'user': r.get('author'),
+                        'state': r.get('state'),
+                    }
+                    for r in reviews_data
+                ]
+                review_status = calculate_review_status(normalized_reviews)
                 
                 # Build per-reviewer data
                 latest_reviews = {}
@@ -536,7 +546,7 @@ async def fetch_multiple_prs_batch(prs_to_fetch, token=None):
                     'title': pr_data.get('title', ''),
                     'state': pr_data.get('state', '').lower(),
                     'is_merged': 1 if pr_data.get('merged', False) else 0,
-                    'mergeable_state': pr_data.get('mergeStateStatus', 'unknown'),
+                    'mergeable_state': (pr_data.get('mergeStateStatus') or 'unknown').lower(),
                     'files_changed': pr_data.get('changedFiles', 0),
                     'author_login': author.get('login', ''),
                     'author_avatar': author.get('avatarUrl', ''),
