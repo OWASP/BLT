@@ -1,6 +1,6 @@
 """Main entry point for BLT-Leaf PR Readiness Checker - Cloudflare Worker"""
 import json
-from js import Response, URL, Object
+from js import Response, URL, Object, Request
 import time as _time
 from pyodide.ffi import to_js
 from slack_notifier import notify_slack_exception, notify_slack_error
@@ -23,6 +23,7 @@ from handlers import (
     handle_pr_readiness,
     handle_scheduled_refresh
 )
+from templates import get_404_html
 from auth_handlers import (
     handle_auth_login,
     handle_auth_callback,
@@ -114,7 +115,10 @@ async def on_fetch(request, env):
         if path == '/' or path == '/index.html':
             # Use env.ASSETS to serve static files if available
             if hasattr(env, 'ASSETS'): 
-                return await env.ASSETS.fetch(request)
+                root_url = URL.new(request.url)
+                root_url.pathname = path
+                req_root = Request.new(root_url.toString(), request)
+                return await env.ASSETS.fetch(req_root)
             # Fallback: return simple message
             return Response.new('Please configure assets in wrangler.toml', 
                               {'status': 200, 'headers': {**cors_headers, 'Content-Type': 'text/html'}})
@@ -352,10 +356,19 @@ async def on_fetch(request, env):
                 response.headers.set(key, value)
             return response
         
-        # If no API route matched, try static assets or return 404
+        # Final fallback: If no API route matched and Wrangler didn't find a static asset
         if response is None:
-            if hasattr(env, 'ASSETS'): return await env.ASSETS.fetch(request)
-            return Response.new('Not Found', {'status': 404, 'headers': cors_headers})
+            if hasattr(env, 'ASSETS'):
+                asset_response = await env.ASSETS.fetch(request)
+                if asset_response.status != 404:
+                    return asset_response
+
+            if path.startswith('/api/'):
+                return json_response({'error': 'Not Found'}, 404, extra_headers=cors_headers)
+
+            headers = {**cors_headers, 'Content-Type': 'text/html'}
+            init = to_js({'status': 404, 'headers': headers}, dict_converter=Object.fromEntries)
+            return Response.new(get_404_html(), init)
         
         # Apply CORS to API responses
         for key, value in cors_headers.items():
