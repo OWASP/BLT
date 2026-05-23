@@ -1,3 +1,5 @@
+<!-- Hidden Checkbox -->
+    <input type="checkbox" id="menu-toggle" class="peer hidden">
 <header class="sticky top-0 z-50 w-full border-b border-gray-200 bg-white/80 backdrop-blur-md transition-colors duration-300 dark:border-gray-800 dark:bg-gray-900/90">
     <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
         
@@ -32,6 +34,34 @@
                 <i id="theme-icon" class="fas fa-sun hidden dark:block"></i>
                 <i id="theme-icon-dark" class="fas fa-moon block dark:hidden"></i>
             </button>
+            <!-- Menu Icon -->
+                <label for="menu-toggle"
+                    class="md:hidden rounded-lg p-2 text-gray-500 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800">
+                    <i class="fas fa-bars"></i>
+                </label>
         </div>
     </div>
 </header>
+ <!-- MOBILE SIDEBAR -->
+    <div class="fixed top-0 left-0 h-full w-64 bg-white dark:bg-gray-900 shadow-lg 
+                transform -translate-x-full transition-transform duration-300 
+                peer-checked:translate-x-0 md:hidden z-50">
+
+        <div class="p-6 flex flex-col gap-6">
+
+            <!-- Close Button -->
+            <label for="menu-toggle"
+                class="self-end cursor-pointer text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+                <i class="fas fa-times text-xl"></i>
+            </label>
+
+            <!-- Links -->
+            {% for item in site.navigation %}
+                <a href="{{ item.url | relative_url }}"
+                   class="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+                    {{ item.title }}
+                </a>
+            {% endfor %}
+
+        </div>
+    </div>
