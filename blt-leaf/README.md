@@ -2,6 +2,8 @@
 
 A simple one-page application to track and monitor GitHub Pull Request readiness status.
 
+**Contributing:** See [CONTRIBUTING.md](CONTRIBUTING.md) for local setup, tests, and PR workflow.
+
 ## Quick Deploy
 
 Deploy this application to Cloudflare Workers with one click:
@@ -21,23 +23,28 @@ No manual configuration required!
 ```
 BLT-Leaf/
 ├── public/              # Static assets served by Cloudflare Workers
-│   └── index.html      # Main frontend application
-├── src/                # Backend Python code (modular structure)
-│   ├── index.py        # Main entry point and routing
-│   ├── handlers.py     # API endpoint handlers
-│   ├── utils.py        # Utility functions for PR analysis
-│   ├── github_api.py   # GitHub API interactions
-│   ├── database.py     # Database operations
-│   └── cache.py        # Caching and rate limiting
-├── migrations/         # Database migrations for D1
+│   ├── index.html       # Main frontend application
+│   └── ...              # Additional HTML/JS assets
+├── src/                 # Backend Python code (modular structure)
+│   ├── index.py         # Main entry point and routing
+│   ├── handlers.py      # API endpoint handlers
+│   ├── utils.py         # Utility functions for PR analysis
+│   ├── github_api.py    # GitHub API interactions
+│   ├── database.py      # Database operations
+│   ├── cache.py         # Caching and rate limiting
+│   └── ...              # Auth, Slack notifier, etc.
+├── docs/                # Extra documentation (OAuth, database)
+├── migrations/          # Database migrations for D1
 │   ├── 0001_create_prs_table.sql
 │   ├── 0002_create_timeline_cache.sql
 │   └── 0003_create_indexes.sql
-├── wrangler.toml       # Cloudflare Workers configuration
-├── package.json        # npm scripts for deployment
-├── DEPLOYMENT.md       # Detailed deployment instructions
-├── CODE_SPLITTING_SUMMARY.md  # Documentation on code organization
-└── README.md          # This file
+├── scripts/             # Helper scripts (e.g. migrations)
+├── wrangler.toml        # Cloudflare Workers configuration
+├── package.json         # npm scripts for deployment and CI
+├── test-data-display.js # Primary automated checks (used by npm test)
+├── test-sorting-security.js
+├── CONTRIBUTING.md      # Contributor setup and PR guidelines
+└── README.md            # This file
 ```
 
 ## Features
@@ -198,18 +205,10 @@ This test suite verifies:
 - ✅ Configuration files (wrangler.toml, package.json)
 - ✅ API routing and CORS configuration
 
-**Quick Local Test** (watch wrangler console for logs):
+**Sorting / security checks** (additional script in repo):
 ```bash
-node test-simple.js
+node test-sorting-security.js
 ```
-
-**Full Production Test** (requires deployment):
-```bash
-npm run deploy
-node test-production.js https://your-worker.workers.dev
-```
-
-For detailed testing instructions and expected behavior, see [TESTING.md](TESTING.md).
 
 **Note**: Local development (`wrangler dev`) may not preserve worker state between requests. For accurate rate limiting and caching tests, deploy to production.
 
