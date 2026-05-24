@@ -231,7 +231,7 @@
                 </h2>
               </div>
               <div class="p-4">
-                <form id="consent-form" novalidate aria-label="Consent recording form">
+                <form id="consent-form" aria-label="Consent recording form">
                   <div class="mb-4">
                     <label
                       class="block mb-1.5 text-xs font-bold uppercase tracking-wide text-gray-600"
@@ -497,15 +497,6 @@
     <script src="js/ui.js"></script>
     <script src="js/consent.js"></script>
     <script>
-      document.getElementById("consent-form").addEventListener("submit", (event) => {
-        const confirmLegal = document.getElementById("confirm-legal");
-        if (!confirmLegal.checked) {
-          event.preventDefault();
-          event.stopImmediatePropagation();
-          showToast("Please confirm the legal attestation before recording", "warning");
-        }
-      });
-
       function recordTemplateConsent(payload) {
         const confirmLegal = document.getElementById("confirm-legal");
         if (!confirmLegal || !confirmLegal.checked) {
