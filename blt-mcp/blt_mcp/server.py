@@ -256,8 +256,11 @@ class InterceptingStdinBuffer(io.BufferedIOBase):
                             }
                             processed_lines.append(json.dumps(ping_req).encode("utf-8"))
                             continue
-                except Exception:
+                except json.JSONDecodeError:
+                    # Non-JSON line; pass through unchanged
                     pass
+                except Exception as e:
+                    logger.exception("Unexpected error while intercepting stdin: %s", e)
             processed_lines.append(line)
         
         self.buffer = b"\n".join(processed_lines)

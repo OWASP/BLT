@@ -113,23 +113,23 @@ Tools enable AI agents to perform actions:
 - Purpose: Create new bug reports or vulnerability reports
 - Required: title, description
 - Optional: repo_id, severity, type
-- Maps to: POST /api/issues
+- Maps to: POST /bugs
 
 #### award_bacon
 - Purpose: Reward contributors with bacon points
 - Required: contributor_id, points, reason
-- Maps to: POST /api/rewards
+- Maps to: POST /rewards
 
 #### update_issue_status
 - Purpose: Change issue workflow status
 - Required: issue_id, status
 - Optional: comment
-- Maps to: PATCH /api/issues/{id}
+- Maps to: PATCH /bugs/{id}
 
 #### add_comment
 - Purpose: Add comments to issues
 - Required: issue_id, comment
-- Maps to: POST /api/issues/{id}/comments
+- Maps to: POST /bugs/{id}/comments
 
 ### Prompts Layer
 
@@ -182,7 +182,7 @@ Prompts provide AI agents with structured guidance for common tasks:
 ```
 1. AI Agent → MCP Client: "Show me issue 123"
 2. MCP Client → BLT-MCP: resources/read { uri: "blt://issues/123" }
-3. BLT-MCP → BLT API: GET /api/issues/123
+3. BLT-MCP → BLT API: GET /bugs/123
 4. BLT API → BLT-MCP: { id: 123, title: "...", ... }
 5. BLT-MCP → MCP Client: { contents: [{ text: "..." }] }
 6. MCP Client → AI Agent: Display formatted issue data
@@ -194,7 +194,7 @@ Prompts provide AI agents with structured guidance for common tasks:
 1. AI Agent → MCP Client: "Submit a new XSS vulnerability"
 2. MCP Client → BLT-MCP: tools/call { name: "submit_issue", arguments: {...} }
 3. BLT-MCP validates input schema
-4. BLT-MCP → BLT API: POST /api/issues with body
+4. BLT-MCP → BLT API: POST /bugs with body
 5. BLT API → BLT-MCP: { id: 456, created_at: "...", ... }
 6. BLT-MCP → MCP Client: { content: [{ text: "Issue created: 456" }] }
 7. MCP Client → AI Agent: Confirm issue submission
