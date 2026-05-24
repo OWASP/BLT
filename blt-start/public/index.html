@@ -300,7 +300,9 @@ cd BLT</code></pre>
             <div class="space-y-2">
               <p class="font-semibold text-gray-900 dark:text-white">Create a virtual environment &amp; install dependencies</p>
               <pre class="bg-gray-100 dark:bg-gray-800 rounded-md px-4 py-3 text-xs overflow-x-auto leading-relaxed"><code>python -m venv venv
-source venv/bin/activate   # Windows: venv\Scripts\activate
+source venv/bin/activate          # macOS/Linux
+source venv/Scripts/activate      # Windows Git Bash
+.\venv\Scripts\Activate.ps1       # Windows PowerShell
 pip install -r requirements.txt</code></pre>
             </div>
           </div>
