@@ -16,7 +16,8 @@ function showToast(message, type = "info", duration = 3500) {
 
   const icons = { success: "✅", error: "❌", info: "ℹ️", warning: "⚠️" };
   const toast = document.createElement("div");
-  toast.className = `toast toast-${type === "error" ? "error" : type === "success" ? "success" : "info"}`;
+  const typeClass = { error: "error", success: "success", warning: "warning" }[type] || "info";
+  toast.className = `toast toast-${typeClass}`;
   const iconSpan = document.createElement("span");
   iconSpan.textContent = icons[type] || icons.info;
   const messageSpan = document.createElement("span");

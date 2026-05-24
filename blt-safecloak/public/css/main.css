@@ -204,6 +204,10 @@ body {
   background: #991b1b;
 }
 
+.toast-warning {
+  background: #92400e;
+}
+
 /* ============================================
    VIDEO CHAT PAGE STYLES
    ============================================ */
