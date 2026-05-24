@@ -216,16 +216,51 @@ async def handle_bugs(
                 f"Missing required fields: {', '.join(missing_fields)}",
                 status=400
             )
+
+        # Positive allowlist: only copy keys clients are allowed to write.
+        client_writable_fields = {
+            "url",
+            "description",
+            "markdown_description",
+            "label",
+            "score",
+            "user_agent",
+            "ocr",
+            "screenshot",
+            "github_url",
+            "cve_id",
+            "cve_score",
+            "hunt",
+            "domain",
+        }
+
+        forbidden = sorted(set(body.keys()) - client_writable_fields)
+        if forbidden:
+            return error_response(
+                "The following fields are not allowed: " + ", ".join(forbidden),
+                status=400,
+            )
+
+        sanitized_body = {k: v for k, v in body.items() if k in client_writable_fields}
+
+        url = sanitized_body.get("url")
+
+        if not isinstance(url, str):
+            return error_response("URL must be a string", status=400)
+
+        url = url.strip()
+        if not url:
+            return error_response("URL is required", status=400)
         
         
         # Validate URL length
-        if len(body["url"]) > 200:
+        if len(url) > 200:
             return error_response("URL must be 200 characters or less", status=400)
 
         # Validate URL format and protocol
         try:
             from urllib.parse import urlparse
-            parsed = urlparse(body["url"])
+            parsed = urlparse(url)
             if parsed.scheme not in ("http", "https"):
                 return error_response(
                     "URL must use http or https protocol",
@@ -239,7 +274,36 @@ async def handle_bugs(
         except Exception:
             return error_response("Invalid URL format", status=400)
         
+        # Validate description
+        description = sanitized_body.get("description")
+        
+        if not isinstance(description, str):
+            return error_response("Description must be a string", status=400)
+        
+        description = description.strip()
+        if not description:
+            return error_response("Description is required", status=400)
+        
         try:
+            # Use a trusted edge header when available; never accept this from JSON body.
+            reporter_ip = None
+            if hasattr(request, "headers") and request.headers:
+                try:
+                    reporter_ip = request.headers.get("CF-Connecting-IP")
+                except Exception:
+                    reporter_ip = None
+
+            # Server-side identity (if an auth layer attaches one to request).
+            user_id = None
+            if hasattr(request, "user_id"):
+                user_id = getattr(request, "user_id")
+            elif hasattr(request, "user"):
+                request_user = getattr(request, "user")
+                if isinstance(request_user, dict):
+                    user_id = request_user.get("id")
+                else:
+                    user_id = getattr(request_user, "id", None)
+
             # Insert the new bug - use None for NULL values
             result = await db.prepare('''
                 INSERT INTO bugs (
@@ -249,27 +313,27 @@ async def handle_bugs(
                     hunt, domain, user, closed_by
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''').bind(
-                body.get("url"),
-                body.get("description"),
-                body.get("markdown_description") or None,
-                body.get("label") or None,
-                body.get("views") or None,
-                1 if body.get("verified") else 0,
-                body.get("score") or None,
-                body.get("status") or "open",
-                body.get("user_agent") or None,
-                body.get("ocr") or None,
-                body.get("screenshot") or None,
-                body.get("github_url") or None,
-                1 if body.get("is_hidden") else 0,
-                body.get("rewarded") or 0,
-                body.get("reporter_ip_address") or None,
-                body.get("cve_id") or None,
-                body.get("cve_score") or None,
-                body.get("hunt") or None,
-                body.get("domain") or None,
-                body.get("user") or None,
-                body.get("closed_by") or None
+                url,
+                description,
+                sanitized_body.get("markdown_description") if "markdown_description" in sanitized_body else None,
+                sanitized_body.get("label") if "label" in sanitized_body else None,
+                0,
+                0,
+                sanitized_body.get("score") if "score" in sanitized_body else None,
+                "open",
+                sanitized_body.get("user_agent") if "user_agent" in sanitized_body else None,
+                sanitized_body.get("ocr") if "ocr" in sanitized_body else None,
+                sanitized_body.get("screenshot") if "screenshot" in sanitized_body else None,
+                sanitized_body.get("github_url") if "github_url" in sanitized_body else None,
+                0,
+                0,
+                reporter_ip,
+                sanitized_body.get("cve_id") if "cve_id" in sanitized_body else None,
+                sanitized_body.get("cve_score") if "cve_score" in sanitized_body else None,
+                sanitized_body.get("hunt") if "hunt" in sanitized_body else None,
+                sanitized_body.get("domain") if "domain" in sanitized_body else None,
+                user_id,
+                None
             ).run()
             
             # Get the last inserted row ID
