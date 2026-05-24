@@ -1001,3 +1001,54 @@ html.dark .border-blue-200 {
 html.dark .border-green-300 {
   border-color: rgba(22, 163, 74, 0.4) !important;
 }
+
+/* === Sidebar Splitter === */
+.sidebar-splitter {
+  width: 4px;
+  min-width: 4px;
+  background: var(--blt-border);
+  cursor: col-resize;
+  user-select: none;
+  transition: background 0.2s ease;
+  flex-shrink: 0;
+  position: relative; /* For pseudo-element hit area */
+}
+
+.sidebar-splitter:hover,
+.sidebar-splitter:focus-visible {
+  background: var(--blt-primary);
+  box-shadow: 0 0 8px rgba(225, 1, 1, 0.3);
+  outline: none;
+}
+
+.sidebar-splitter::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -8px;
+  right: -8px;
+  cursor: col-resize;
+  z-index: 10;
+}
+
+.sidebar-splitter.active {
+  background: var(--blt-primary);
+}
+
+html.dark .sidebar-splitter {
+  background: var(--blt-border);
+}
+
+html.dark .sidebar-splitter:hover,
+html.dark .sidebar-splitter:focus-visible {
+  background: var(--blt-primary);
+  box-shadow: 0 0 8px rgba(225, 1, 1, 0.5);
+}
+
+/* Responsive overrides for sidebar */
+@media (max-width: 1279px) {
+  #sidebar-content {
+    width: 100% !important;
+  }
+}
