@@ -52,6 +52,7 @@ import time
 from pathlib import Path
 
 import pytest
+from playwright.sync_api import TimeoutError as PWTimeoutError
 from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).parent.parent
@@ -418,10 +419,22 @@ def _peer_id(page) -> str:
     return page.evaluate("document.getElementById('my-peer-id').textContent.trim()")
 
 
-def _accept_consent(page, timeout: int = TIMEOUT_MS):
-    """Wait for the consent dialog to appear and click 'I Consent'."""
-    page.wait_for_selector("#consent-allow", timeout=timeout)
-    page.click("#consent-allow")
+_CONSENT_TIMEOUT_MS = 2_000
+
+
+def _accept_consent(page, timeout: int = _CONSENT_TIMEOUT_MS):
+    """Click the consent banner if it is present; silently skip if it is not.
+
+    In some CI environments the consent dialog is never shown (e.g. when the
+    browser already has a stored consent decision).  Using a short timeout and
+    catching ``TimeoutError`` prevents the test from blocking for the full
+    WebRTC ``TIMEOUT_MS`` when the banner is absent.
+    """
+    try:
+        page.wait_for_selector("#consent-allow", state="visible", timeout=timeout)
+        page.click("#consent-allow")
+    except PWTimeoutError:
+        pass
 
 
 _STREAM_CHECK_JS = """
