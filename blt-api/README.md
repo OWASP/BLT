@@ -57,6 +57,35 @@ uv sync
 uv tool install workers-py
 ```
 
+## Beginner Friendly Setup 
+
+Follow these steps to quickly set up and run the project locally in one place (combined from installation and local development sections):
+
+### 1. Clone Repository
+```bash
+git clone https://github.com/OWASP-BLT/BLT-API.git
+cd BLT-API
+```
+
+### 2. Install Dependencies
+```bash
+uv sync
+uv tool install workers-py
+```
+### 3. Setup Database
+```bash
+bash scripts/setup_local_db.sh
+```
+
+### 4. Run Development Server
+```bash
+wrangler dev --port 8787
+```
+
+### 5. Open in Browser
+
+http://localhost:8787
+
 ### Local Development
 
 ```bash
