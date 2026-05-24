@@ -231,7 +231,6 @@ PRs are grouped by the phase they unblock. Review Phase 1 PRs first.
 ### Install
 
 ```bash
-npm install
 npm run setup
 ```
 
@@ -307,7 +306,7 @@ public/
   js/                  # client logic (video, voice, notes, consent, ui, crypto)
   img/                 # static images
 tests/
-  test_video_chat.py   # end-to-end + integration behaviour checks
+  test_video_chat.py   # end-to-end + integration behavior checks
   test_utils.py        # backend utility and routing tests
 .github/workflows/
   test.yml             # CI workflow
@@ -318,7 +317,7 @@ tests/
 - All sensitive data is encrypted client-side before transmission.
 - Server acts as a signaling relay only; no persistent storage of communication content.
 - Consent verification is integrated into call workflows.
-- If you find a vulnerability, please open a private/security-focused report through OWASP BLT project channels before public disclosure.
+- If you find a vulnerability, please report it privately to [security@owaspblt.org](mailto:security@owaspblt.org) before public disclosure.
 
 ## Contributing
 
