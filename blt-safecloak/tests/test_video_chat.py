@@ -1598,11 +1598,11 @@ def test_video_js_local_tile_shows_display_name():
     tile label, not just the generic 'You' token, so participants can see their own name."""
     js = (ROOT / "public/js/video.js").read_text(encoding="utf-8")
     # The label for the local tile should include state.displayName alongside "(You)"
-    assert "state.displayName} (You)" in js or "`${state.displayName} (You)`" in js
+    assert "`${state.displayName} (You)`" in js
 
 
 def test_video_js_mic_button_hidden_in_walkie_mode():
-    """video.js syncControlButtons must hide the mic button when walkie-talkie mode is
+
     active, replacing it with the push-to-talk control to avoid confusion."""
     js = (ROOT / "public/js/video.js").read_text(encoding="utf-8")
     # The mic button visibility should be toggled based on walkieTalkieMode
