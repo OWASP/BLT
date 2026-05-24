@@ -6,7 +6,7 @@ for HTML, JSON, and CORS preflight requests.
 
 Key design decisions:
 - Centralized header handling (DRY principle)
-- Proper CORS support for both preflight AND actual responses
+- Proper CORS support with optional allowlist
 - Safer JSON serialization
 """
 
@@ -18,12 +18,36 @@ from typing import Any, Dict, Set
 from urllib.parse import urlsplit
 
 
+SECURITY_HEADERS: Dict[str, str] = {
+    'X-Content-Type-Options':
+    'nosniff',
+    'X-Frame-Options':
+    'DENY',
+    'Referrer-Policy':
+    'strict-origin-when-cross-origin',
+    'Content-Security-Policy-Report-Only':
+    ("default-src 'self'; base-uri 'self'; object-src 'none'; "
+     "frame-ancestors 'none'; form-action 'self'"),
+}
+
+
+def security_headers() -> Dict[str, str]:
+    """
+    Return security headers that should be present on every response.
+
+    CSP is report-only here to avoid breaking existing inline assets while
+    still surfacing violations during testing and monitoring. No reporting
+    endpoint is configured, so violations stay local to browser/devtools logs.
+    """
+    return SECURITY_HEADERS.copy()
+
+
 def normalize_origin(origin: str) -> str:
     """Normalize origin for stable comparison."""
     value = origin.strip().rstrip('/')
     parsed = urlsplit(value)
     if parsed.scheme and parsed.netloc:
-        return f'{parsed.scheme.lower()}://{parsed.netloc.lower()}'.rstrip('/')
+        return f"{parsed.scheme.lower()}://{parsed.netloc.lower()}".rstrip('/')
     return value.lower()
 
 
@@ -76,9 +100,15 @@ def base_headers(content_type: str, origin: str | None = None) -> Dict[str, str]
     Returns:
         Dictionary of headers
     """
-    headers = {'Content-Type': content_type}
-    if origin is not None:
-        add_vary_origin(headers)
+    headers = {'Content-Type': content_type, **security_headers()}
+    # If no origin provided, preserve previous permissive behavior.
+    if origin is None:
+        headers['Access-Control-Allow-Origin'] = '*'
+        return headers
+
+    # When an origin is provided, prefer allowlist resolution and ensure
+    # responses vary by Origin to avoid cross-origin cache poisoning.
+    add_vary_origin(headers)
     allowed_origin = resolve_allowed_origin(origin)
     if allowed_origin:
         headers['Access-Control-Allow-Origin'] = allowed_origin
@@ -142,14 +172,19 @@ def cors_response(origin: str | None = None, status: int = 204) -> Response:
         Response object with CORS headers
     """
     headers = {
+        **security_headers(),
         'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type',
         'Access-Control-Max-Age': '86400',
         'Vary': 'Origin',
     }
-    allowed_origin = resolve_allowed_origin(origin)
-    if allowed_origin:
-        headers['Access-Control-Allow-Origin'] = allowed_origin
+    # Mirror base_headers behavior: if no origin provided, allow any origin
+    if origin is None:
+        headers['Access-Control-Allow-Origin'] = '*'
+    else:
+        allowed_origin = resolve_allowed_origin(origin)
+        if allowed_origin:
+            headers['Access-Control-Allow-Origin'] = allowed_origin
 
     return Response(
         None,  # 204 responses should not include a body

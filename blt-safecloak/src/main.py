@@ -42,7 +42,9 @@ class Default(WorkerEntrypoint):
             if hasattr(env, 'ASSETS'):
                 return await env.ASSETS.fetch(request)
 
-            return Response('Not Found', status=404)
+            return Response('Not Found',
+                            status=404,
+                            headers=base_headers('text/plain; charset=utf-8'))
 
         except FileNotFoundError as exc:
             print(f'[404] Page file not found: {exc}')
