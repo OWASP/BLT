@@ -335,15 +335,6 @@ const NotesApp = (() => {
     showToast(`${notes.length} notes exported`, "success");
   }
 
-  /* ── Utils ── */
-  function escHtml(str) {
-    return str
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;");
-  }
-
   /* ── Init ── */
   async function init() {
     await loadNotes();

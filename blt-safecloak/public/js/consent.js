@@ -165,18 +165,6 @@ const ConsentManager = (() => {
     if (recordedEl) recordedEl.textContent = log.filter((e) => e.type === "recorded").length;
   }
 
-  /* ── Utils ── */
-  function capitalise(s) {
-    return s ? s[0].toUpperCase() + s.slice(1) : "";
-  }
-  function escHtml(str) {
-    return str
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;");
-  }
-
   /* ── Init ── */
   async function init() {
     load();

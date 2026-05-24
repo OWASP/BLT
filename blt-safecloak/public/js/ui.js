@@ -79,6 +79,22 @@ document.addEventListener("click", (e) => {
   }
 });
 
+/* ── HTML escaping ── */
+function escHtml(str) {
+  const s = String(str);
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function capitalise(s) {
+  const v = String(s || "");
+  return v ? v[0].toUpperCase() + v.slice(1) : "";
+}
+
 /* ── Copy to clipboard ── */
 async function copyToClipboard(text, label = "Copied") {
   try {
