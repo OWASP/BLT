@@ -88,7 +88,7 @@ cp .env.example .env
 Configure the following variables:
 
 ```env
-BLT_API_BASE=https://blt.owasp.org/api
+BLT_API_BASE=https://api.owaspblt.org
 BLT_API_KEY=your_api_key_here
 ```
 
@@ -110,7 +110,7 @@ To use this server with an MCP client (like Claude Desktop or Cline), add it to 
         "blt-mcp"
       ],
       "env": {
-        "BLT_API_BASE": "https://blt.owasp.org/api",
+        "BLT_API_BASE": "https://api.owaspblt.org",
         "BLT_API_KEY": "your_api_key_here"
       }
     }
@@ -127,7 +127,7 @@ To use this server with an MCP client (like Claude Desktop or Cline), add it to 
       "command": "/path/to/venv/bin/python",
       "args": ["-m", "blt_mcp.server"],
       "env": {
-        "BLT_API_BASE": "https://blt.owasp.org/api",
+        "BLT_API_BASE": "https://api.owaspblt.org",
         "BLT_API_KEY": "your_api_key_here"
       }
     }

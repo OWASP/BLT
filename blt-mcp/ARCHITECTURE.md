@@ -56,7 +56,7 @@ BLT-MCP is a Model Context Protocol (MCP) server that bridges AI agents with the
                      │
 ┌────────────────────▼────────────────────────────────────────┐
 │                    BLT REST API                              │
-│                https://blt.owasp.org/api                     │
+│                https://api.owaspblt.org                      │
 └──────────────────────────────────────────────────────────────┘
 ```
 
@@ -242,7 +242,7 @@ Prompts provide AI agents with structured guidance for common tasks:
 ### Environment Variables
 
 ```bash
-BLT_API_BASE=https://blt.owasp.org/api  # BLT API endpoint
+BLT_API_BASE=https://api.owaspblt.org  # BLT API endpoint
 BLT_API_KEY=your_key_here               # Authentication token
 ```
 
@@ -255,7 +255,7 @@ BLT_API_KEY=your_key_here               # Authentication token
       "command": "uv",
       "args": ["run", "blt-mcp"],
       "env": {
-        "BLT_API_BASE": "https://blt.owasp.org/api",
+        "BLT_API_BASE": "https://api.owaspblt.org",
         "BLT_API_KEY": "your_key_here"
       }
     }

@@ -151,14 +151,16 @@ def test_tool_schemas():
         assert "title" in properties
         assert "description" in properties
         assert "repo_id" in properties
+        assert "labels" in properties
+        assert "assignee" in properties
         assert submit_tool["inputSchema"]["required"] == ["title", "description"]
         
         # Verify add_comment schema (Issue #13)
         comment_tool = next(t for t in tools if t["name"] == "add_comment")
         properties = comment_tool["inputSchema"]["properties"]
         assert "issue_id" in properties
-        assert "content" in properties
-        assert comment_tool["inputSchema"]["required"] == ["issue_id", "content"]
+        assert "comment_text" in properties
+        assert comment_tool["inputSchema"]["required"] == ["issue_id", "comment_text"]
 
     finally:
         process.terminate()
