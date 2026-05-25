@@ -6,7 +6,7 @@
 # python-dateutil==2.8.2  # Built-in datetime is sufficient
 
 # Testing (for local development only)
-pytest==7.4.3
+pytest==9.0.3
 pytest-asyncio==0.21.1
 
 # Note: The following are NOT compatible with Cloudflare Workers:
