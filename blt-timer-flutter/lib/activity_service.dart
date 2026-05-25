@@ -53,7 +53,7 @@ class ActivityService {
   final ActivityTrackerNative _native = ActivityTrackerNative();
   Timer? _pollTimer;
   Timer? _updateTimer;
-  
+
   final _activityStreamController = StreamController<ActivityData>.broadcast();
   Stream<ActivityData> get activityStream => _activityStreamController.stream;
 
@@ -66,30 +66,33 @@ class ActivityService {
   int _totalRightClicksToday = 0;
   double _totalScrollToday = 0.0;
   int _totalEnterToday = 0;
-  
+
   int _lastKeyCount = 0;
   double _lastMouseDistance = 0.0;
   int _lastLeftClicks = 0;
   int _lastRightClicks = 0;
   double _lastScrollAmount = 0.0;
   int _lastEnterCount = 0;
-  
-  // Removed _lastMinuteKeyCount and _lastMinuteMouseDistance (unused legacy rate fields)
 
   bool _isInitialized = false;
+  bool _isPaused = false;
+
+  bool get isPaused => _isPaused;
 
   Future<bool> initialize() async {
     if (_isInitialized) return true;
 
-    _isInitialized = _native.initialize();
-    
+    try {
+      _isInitialized = _native.initialize();
+    } catch (e) {
+      _isInitialized = false;
+    }
+
     if (_isInitialized) {
-      // Poll for events every 10ms
-      _pollTimer = Timer.periodic(const Duration(milliseconds: 10), (_) {
+      _pollTimer = Timer.periodic(const Duration(milliseconds: 50), (_) {
         _native.processEvents();
       });
 
-      // Update stream every second
       _updateTimer = Timer.periodic(const Duration(seconds: 1), (_) {
         _updateActivity();
       });
@@ -99,15 +102,16 @@ class ActivityService {
   }
 
   void _updateActivity() {
-    final data = _native.getActivityData();
-    final keyCount = data['keyCount'] as int;
-    final mouseDistance = data['mouseDistance'] as double;
-    final leftClicks = (data['leftClicks'] ?? 0) as int;
-    final rightClicks = (data['rightClicks'] ?? 0) as int;
-    final scrollAmount = (data['scrollAmount'] ?? 0.0) as double;
-    final enterCount = (data['enterCount'] ?? 0) as int;
+    if (_isPaused) return;
 
-    // Calculate incremental values
+    final data = _native.getActivityData();
+    final keyCount = (data['keyCount'] as num?)?.toInt() ?? 0;
+    final mouseDistance = (data['mouseDistance'] as num?)?.toDouble() ?? 0.0;
+    final leftClicks = (data['leftClicks'] as num?)?.toInt() ?? 0;
+    final rightClicks = (data['rightClicks'] as num?)?.toInt() ?? 0;
+    final scrollAmount = (data['scrollAmount'] as num?)?.toDouble() ?? 0.0;
+    final enterCount = (data['enterCount'] as num?)?.toInt() ?? 0;
+
     final keysDelta = keyCount - _lastKeyCount;
     final mouseDelta = mouseDistance - _lastMouseDistance;
     final leftClicksDelta = leftClicks - _lastLeftClicks;
@@ -119,16 +123,13 @@ class ActivityService {
     _totalMouseDistanceToday += mouseDelta;
     _totalLeftClicksToday += leftClicksDelta;
     _totalRightClicksToday += rightClicksDelta;
-    // Accumulate absolute scroll steps so total only increases regardless of direction
     _totalScrollToday += scrollDelta.abs();
     _totalEnterToday += enterDelta;
 
-    // Calculate per-minute rate (multiply by 60 since we update every second)
     final keysPerMinute = keysDelta * 60;
     final mouseDistancePerMinute = mouseDelta * 60;
     final leftClicksPerMinute = leftClicksDelta * 60;
     final rightClicksPerMinute = rightClicksDelta * 60;
-    // Use signed value so charts reflect direction; total remains absolute.
     final scrollUnitsPerMinute = scrollDelta * 60;
     final keysPerSecond = keysDelta;
     final mouseDistancePerSecond = mouseDelta;
@@ -143,7 +144,6 @@ class ActivityService {
     _lastScrollAmount = scrollAmount;
     _lastEnterCount = enterCount;
 
-    // Send cumulative data
     _activityStreamController.add(ActivityData(
       keyCount: keyCount,
       mouseDistance: mouseDistance,
@@ -154,7 +154,6 @@ class ActivityService {
       timestamp: DateTime.now(),
     ));
 
-    // Send rate data
     _rateStreamController.add(ActivityRate(
       keysPerMinute: keysPerMinute,
       mouseDistancePerMinute: mouseDistancePerMinute,
@@ -202,11 +201,19 @@ class ActivityService {
     _totalEnterToday = 0;
   }
 
-  void dispose() {
+  void pause() {
+    _isPaused = true;
+  }
+
+  void resume() {
+    _isPaused = false;
+  }
+
+  Future<void> dispose() async {
     _pollTimer?.cancel();
     _updateTimer?.cancel();
-    _activityStreamController.close();
-    _rateStreamController.close();
+    await _activityStreamController.close();
+    await _rateStreamController.close();
     _native.cleanup();
     _isInitialized = false;
   }

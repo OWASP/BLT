@@ -191,7 +191,7 @@ class _ActivityTrackerHomeState extends State<ActivityTrackerHome> {
     _saveTimer?.cancel();
     _recentChatRefreshTimer?.cancel();
     _saveDailySummary(); // Save on exit
-    _activityService.dispose();
+    _activityService.dispose().ignore();
     _promptTracker.dispose();
     super.dispose();
   }

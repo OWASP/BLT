@@ -1,85 +1,123 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'dart:async';
+import 'api_client.dart';
+import 'batch_sender.dart';
+import 'idle_detector.dart';
 import 'activity_service.dart';
 
 class TrackerIntegration {
   final String apiUrl;
   final String userId;
   final String projectId;
-  String? sessionId;
+  String? _sessionId;
+  String? get sessionId => _sessionId;
+
+  late final ApiClient _apiClient;
+  late final BatchSender _batchSender;
+  late final IdleDetector _idleDetector;
+
+  final _errorController = StreamController<String>.broadcast();
+  Stream<String> get errorStream => _errorController.stream;
+
+  bool _isDisposed = false;
 
   TrackerIntegration({
     required this.apiUrl,
     required this.userId,
     required this.projectId,
-  });
+  }) {
+    _apiClient = ApiClient(baseUrl: apiUrl);
+    _batchSender = BatchSender(
+      apiClient: _apiClient,
+      endpoint: '/api/activity/batch',
+      onError: (error) {
+        _errorController.add(error);
+      },
+    );
+    _idleDetector = IdleDetector(
+      onIdle: () {
+        _batchSender.flushAndDispose();
+      },
+      onActive: () {
+        if (!_isDisposed && _sessionId != null) {
+          _batchSender.start();
+        }
+      },
+    );
+  }
 
   Future<bool> startSession() async {
-    try {
-      final response = await http.post(
-        Uri.parse('$apiUrl/api/sessions/start'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'userId': userId,
-          'projectId': projectId,
-          'source': 'flutter-linux',
-        }),
-      );
+    if (_isDisposed) return false;
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        sessionId = data['sessionId'];
+    try {
+      final data = await _apiClient.post('/api/sessions/start', body: {
+        'userId': userId,
+        'projectId': projectId,
+        'source': 'flutter-linux',
+      });
+
+      _sessionId = data['sessionId'] as String?;
+      if (_sessionId != null) {
+        _batchSender.start();
+        _idleDetector.start();
         return true;
       }
       return false;
+    } on ApiException catch (e) {
+      _errorController.add('Failed to start session: ${e.message}');
+      return false;
     } catch (e) {
-      // Swallow network error; integration is optional.
+      _errorController.add('Unexpected error starting session: $e');
       return false;
     }
   }
 
-  Future<void> sendActivityData(ActivityData data) async {
-    if (sessionId == null) return;
+  void sendActivityData(ActivityData data) {
+    if (_isDisposed || _sessionId == null) return;
 
-    try {
-      await http.post(
-        Uri.parse('$apiUrl/api/activity'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'sessionId': sessionId,
-          'userId': userId,
-          'projectId': projectId,
-          'activity': {
-            'keyboard': {
-              'keyCount': data.keyCount,
-            },
-            'mouse': {
-              'distance': data.mouseDistance,
-            },
-          },
-          'timestamp': data.timestamp.toIso8601String(),
-        }),
-      );
-    } catch (e) {
-      // Ignore transient network errors.
-    }
+    _idleDetector.recordActivity();
+
+    _batchSender.add({
+      'sessionId': _sessionId,
+      'userId': userId,
+      'projectId': projectId,
+      'activity': {
+        'keyboard': {
+          'keyCount': data.keyCount,
+        },
+        'mouse': {
+          'distance': data.mouseDistance,
+        },
+      },
+      'timestamp': data.timestamp.toIso8601String(),
+    });
   }
 
   Future<void> endSession() async {
-    if (sessionId == null) return;
+    if (_sessionId == null) return;
+
+    _idleDetector.stop();
+    await _batchSender.flushAndDispose();
 
     try {
-      await http.post(
-        Uri.parse('$apiUrl/api/sessions/end'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'sessionId': sessionId,
-          'userId': userId,
-        }),
-      );
-      sessionId = null;
+      await _apiClient.post('/api/sessions/end', body: {
+        'sessionId': _sessionId,
+        'userId': userId,
+      });
+      _sessionId = null;
+    } on ApiException catch (e) {
+      _errorController.add('Failed to end session: ${e.message}');
     } catch (e) {
-      // Ignore errors during session end.
+      _errorController.add('Unexpected error ending session: $e');
     }
+  }
+
+  Future<void> dispose() async {
+    if (_isDisposed) return;
+    _isDisposed = true;
+
+    _idleDetector.dispose();
+    await _batchSender.dispose();
+    await _errorController.close();
+    _apiClient.dispose();
   }
 }
