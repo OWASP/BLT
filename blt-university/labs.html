@@ -4,7 +4,7 @@ title: Labs
 permalink: /labs/
 ---
 
-<script src="https://unpkg.com/@phosphor-icons/web"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1"></script>
 
 <section class="relative pt-16 pb-24 overflow-hidden bg-white dark:bg-gray-900 border-b border-gray-50 dark:border-gray-800 text-center transition-colors">
     <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(220,38,38,0.04),transparent_50%)] -z-10"></div>
@@ -32,6 +32,7 @@ permalink: /labs/
                 <input
                     type="text"
                     id="lab-search-filter"
+                    aria-label="Search labs"
                     class="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm dark:text-white focus:outline-none focus:ring-2 focus:ring-bltRed/20 focus:border-bltRed transition-colors"
                     placeholder="Search labs, topics, or categories..."
                 >
@@ -40,6 +41,7 @@ permalink: /labs/
             <div class="w-full md:w-48 relative">
                 <select
                     id="lab-category-filter"
+                    aria-label="Filter labs by category"
                     class="w-full appearance-none pl-4 pr-10 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-bltRed/20 focus:border-bltRed transition-colors cursor-pointer"
                 >
                     <option value="">All Categories</option>
@@ -56,6 +58,7 @@ permalink: /labs/
             <div class="w-full md:w-48 relative">
                 <select
                     id="lab-level-filter"
+                    aria-label="Filter labs by level"
                     class="w-full appearance-none pl-4 pr-10 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-bltRed/20 focus:border-bltRed transition-colors cursor-pointer"
                 >
                     <option value="">All Levels</option>

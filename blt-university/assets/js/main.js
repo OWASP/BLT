@@ -23,6 +23,34 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Mobile navigation menu
+    const mobileMenu = document.getElementById('mobile-menu');
+    const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+    const mobileMenuClose = document.getElementById('mobile-menu-close');
+    const mobileMenuBackdrop = document.querySelector('[data-mobile-menu-backdrop]');
+
+    if (mobileMenu && mobileMenuToggle) {
+        function setMobileMenuOpen(isOpen) {
+            mobileMenu.classList.toggle('hidden', !isOpen);
+            document.body.classList.toggle('overflow-hidden', isOpen);
+            mobileMenuToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            mobileMenuToggle.setAttribute('aria-label', isOpen ? 'Close navigation menu' : 'Open navigation menu');
+        }
+
+        mobileMenuToggle.addEventListener('click', () => {
+            setMobileMenuOpen(mobileMenu.classList.contains('hidden'));
+        });
+
+        mobileMenuClose?.addEventListener('click', () => setMobileMenuOpen(false));
+        mobileMenuBackdrop?.addEventListener('click', () => setMobileMenuOpen(false));
+
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape') {
+                setMobileMenuOpen(false);
+            }
+        });
+    }
+
     // Course Filtering
     const categoryFilter = document.getElementById('category-filter');
     const levelFilter = document.getElementById('level-filter');
@@ -211,6 +239,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         const marker = item.querySelector('[data-option-marker]');
 
                         item.classList.remove('border-bltRed', 'bg-red-50', 'dark:bg-red-900/10', 'border-green-500', 'bg-green-50', 'dark:bg-green-900/10');
+                        item.setAttribute('aria-pressed', item === option ? 'true' : 'false');
 
                         if (itemAnswer === correctAnswer) {
                             item.classList.add('border-green-500', 'bg-green-50', 'dark:bg-green-900/10');

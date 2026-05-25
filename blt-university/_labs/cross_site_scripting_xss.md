@@ -208,7 +208,7 @@ tasks:
       ### Content Security Policy (CSP)
 
       ```http
-      Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'
+      Content-Security-Policy: default-src 'self'; script-src 'self'; object-src 'none'
       ```
 
       ### Secure Coding Practices
@@ -226,4 +226,3 @@ tasks:
         - D) Strict-Transport-Security
       answer: B
 ---
-

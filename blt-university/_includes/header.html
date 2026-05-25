@@ -14,7 +14,7 @@
             </span>
         </a>
 
-        <nav class="hidden items-center gap-8 lg:flex">
+        <nav class="hidden items-center gap-8 md:flex">
             {% for item in site.navigation %}
                 {% assign is_active = false %}
                 {% if page.url == item.url %}
@@ -40,14 +40,28 @@
                 <i id="theme-icon" class="fas fa-sun hidden dark:block"></i>
                 <i id="theme-icon-dark" class="fas fa-moon block dark:hidden"></i>
             </button>
+<<<<<<< HEAD
             <!-- Menu Icon -->
                 <label for="menu-toggle"
                     class="md:hidden rounded-lg p-2 text-gray-500 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800">
                     <i class="fas fa-bars"></i>
                 </label>
+=======
+
+            <button id="mobile-menu-toggle"
+                    type="button"
+                    aria-label="Open navigation menu"
+                    aria-controls="mobile-menu"
+                    aria-expanded="false"
+                    class="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white md:hidden">
+                <i class="fas fa-bars text-lg"></i>
+            </button>
+>>>>>>> db70ca0 (fix:broken gem setup & coderabbit-errors)
         </div>
     </div>
+
 </header>
+<<<<<<< HEAD
  <!-- MOBILE SIDEBAR -->
     <div class="fixed top-0 left-0 h-full w-64 bg-white dark:bg-gray-900 shadow-lg 
                 transform -translate-x-full transition-transform duration-300 
@@ -71,3 +85,28 @@
 
         </div>
     </div>
+=======
+
+<div id="mobile-menu" class="fixed inset-0 z-[60] hidden md:hidden">
+    <div data-mobile-menu-backdrop class="absolute inset-0 bg-transparent"></div>
+    <div class="relative flex h-dvh w-[40vw] min-w-[260px] max-w-[420px] flex-col bg-white px-8 py-8 shadow-2xl dark:bg-gray-900">
+        <div class="mb-12 flex justify-end">
+            <button id="mobile-menu-close"
+                    type="button"
+                    aria-label="Close navigation menu"
+                    class="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+
+        <nav class="flex flex-col gap-7">
+            {% for item in site.navigation %}
+                <a href="{{ item.url | relative_url }}"
+                   class="text-base font-medium text-gray-600 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+                    {{ item.title }}
+                </a>
+            {% endfor %}
+        </nav>
+    </div>
+</div>
+>>>>>>> db70ca0 (fix:broken gem setup & coderabbit-errors)

