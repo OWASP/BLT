@@ -594,7 +594,12 @@ When setting up the webhook in your GitHub repository, select the following even
 
 The webhook endpoint verifies GitHub's signature using HMAC SHA-256 to ensure requests are authentic. Always configure `GITHUB_WEBHOOK_SECRET` in production to prevent unauthorized access.
 
-**Development Mode:** If `GITHUB_WEBHOOK_SECRET` is not set, signature verification is skipped (use only for local testing).
+**Development Mode:** If `GITHUB_WEBHOOK_SECRET` is not set, webhook requests will be rejected with `401 Invalid webhook signature`.
+
+For local testing, configure a test secret before sending webhook payloads:
+
+```bash
+wrangler secret put GITHUB_WEBHOOK_SECRET
 
 ## Contributing
 
