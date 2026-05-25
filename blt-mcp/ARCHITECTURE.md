@@ -128,7 +128,7 @@ Tools enable AI agents to perform actions:
 
 #### add_comment
 - Purpose: Add comments to issues
-- Required: issue_id, comment
+- Required: issue_id, comment_text
 - Maps to: POST /bugs/{id}/comments
 
 ### Prompts Layer
