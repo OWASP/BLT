@@ -1,0 +1,170 @@
+---
+layout: default
+title: Labs
+permalink: /labs/
+---
+
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+<section class="relative pt-16 pb-24 overflow-hidden bg-white dark:bg-gray-900 border-b border-gray-50 dark:border-gray-800 text-center transition-colors">
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(220,38,38,0.04),transparent_50%)] -z-10"></div>
+
+    <div class="max-w-4xl mx-auto px-6 relative z-10">
+        <div class="w-14 h-14 bg-bltRedLight dark:bg-red-900/30 rounded-2xl flex items-center justify-center text-bltRed mx-auto mb-6 shadow-soft">
+            <i class="ph-fill ph-flask text-2xl"></i>
+        </div>
+        <h1 class="font-display text-3xl md:text-4xl font-bold text-gray-900 dark:text-white tracking-tight mb-4">
+            Security <span class="text-transparent bg-clip-text bg-gradient-to-r from-bltRed to-red-600">Labs</span>
+        </h1>
+        <p class="text-sm md:text-base text-gray-500 dark:text-gray-400 max-w-xl mx-auto font-medium">
+            Practice security concepts in focused, ethical simulations built for hands-on learning.
+        </p>
+    </div>
+</section>
+
+<main class="flex-1 max-w-7xl mx-auto px-6 py-12 w-full dark:bg-gray-900 transition-colors">
+    <div class="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 mb-10">
+        <div class="flex flex-col md:flex-row gap-4">
+            <div class="flex-1 relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                    <i class="ph-bold ph-magnifying-glass text-lg"></i>
+                </div>
+                <input
+                    type="text"
+                    id="lab-search-filter"
+                    class="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm dark:text-white focus:outline-none focus:ring-2 focus:ring-bltRed/20 focus:border-bltRed transition-colors"
+                    placeholder="Search labs, topics, or categories..."
+                >
+            </div>
+
+            <div class="w-full md:w-48 relative">
+                <select
+                    id="lab-category-filter"
+                    class="w-full appearance-none pl-4 pr-10 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-bltRed/20 focus:border-bltRed transition-colors cursor-pointer"
+                >
+                    <option value="">All Categories</option>
+                    {% assign lab_categories = site.labs | map: "category" | uniq | compact %}
+                    {% for category in lab_categories %}
+                    <option value="{{ category | slugify }}">{{ category }}</option>
+                    {% endfor %}
+                </select>
+                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
+                    <i class="ph-bold ph-caret-down text-sm"></i>
+                </div>
+            </div>
+
+            <div class="w-full md:w-48 relative">
+                <select
+                    id="lab-level-filter"
+                    class="w-full appearance-none pl-4 pr-10 py-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-bltRed/20 focus:border-bltRed transition-colors cursor-pointer"
+                >
+                    <option value="">All Levels</option>
+                    <option value="beginner">Beginner</option>
+                    <option value="intermediate">Intermediate</option>
+                    <option value="advanced">Advanced</option>
+                </select>
+                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
+                    <i class="ph-bold ph-caret-down text-sm"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="labs-grid">
+        {% for lab in site.labs %}
+        <article
+            class="lab-card group bg-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-float border border-gray-100 dark:border-gray-700 overflow-hidden flex flex-col transition-all duration-300 hover:-translate-y-1"
+            data-category="{{ lab.category | slugify }}"
+            data-level="{{ lab.difficulty | downcase }}"
+            data-search="{{ lab.title | downcase }} {{ lab.description | downcase }} {{ lab.category | downcase }}"
+        >
+            <a href="{{ lab.url | relative_url }}" class="block h-44 bg-gray-950 relative overflow-hidden">
+                {% assign lab_key = lab.title | downcase %}
+                <div class="absolute inset-0 bg-[radial-gradient(circle_at_82%_18%,rgba(220,38,38,0.28),transparent_34%),linear-gradient(135deg,#111827,#0f172a)]"></div>
+                <div class="absolute inset-0 opacity-80">
+                    {% if lab_key contains "request forgery" %}
+                    <div class="absolute left-8 top-14 w-44 rounded-2xl border border-white/10 bg-white/10 p-3 shadow-xl">
+                        <div class="mb-3 flex items-center gap-2">
+                            <span class="h-2.5 w-2.5 rounded-full bg-bltRed"></span>
+                            <span class="h-2 w-24 rounded-full bg-white/25"></span>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="h-2 rounded-full bg-white/20"></div>
+                            <div class="h-2 w-3/4 rounded-full bg-white/20"></div>
+                            <div class="h-7 rounded-lg bg-red-500/30 border border-red-400/40"></div>
+                        </div>
+                    </div>
+                    <div class="absolute bottom-7 right-8 flex h-12 w-12 items-center justify-center rounded-2xl bg-bltRed text-white shadow-lg shadow-red-950/30">
+                        <i class="ph-bold ph-arrows-clockwise text-2xl"></i>
+                    </div>
+                    <div class="absolute right-20 top-20 h-px w-24 bg-red-300/40"></div>
+                    {% elsif lab_key contains "scripting" %}
+                    <div class="absolute left-8 top-14 w-48 overflow-hidden rounded-2xl border border-white/10 bg-white/10 shadow-xl">
+                        <div class="flex h-8 items-center gap-2 border-b border-white/10 px-3">
+                            <span class="h-2 w-2 rounded-full bg-red-400"></span>
+                            <span class="h-2 w-2 rounded-full bg-yellow-400"></span>
+                            <span class="h-2 w-2 rounded-full bg-green-400"></span>
+                        </div>
+                        <div class="space-y-2 p-3 font-mono text-[10px] text-red-100">
+                            <div>&lt;script&gt;</div>
+                            <div class="pl-3 text-white/70">alert('XSS')</div>
+                            <div>&lt;/script&gt;</div>
+                        </div>
+                    </div>
+                    <div class="absolute bottom-7 right-8 flex h-12 w-12 items-center justify-center rounded-2xl bg-bltRed text-white shadow-lg shadow-red-950/30">
+                        <i class="ph-bold ph-code text-2xl"></i>
+                    </div>
+                    {% else %}
+                    <div class="absolute left-8 top-14 h-2 w-32 rounded-full bg-white/20"></div>
+                    <div class="absolute left-8 top-20 h-2 w-48 rounded-full bg-white/10"></div>
+                    <div class="absolute left-8 top-28 rounded-xl border border-red-500/50 bg-red-950/40 px-4 py-3 font-mono text-xs text-red-100">' OR '1'='1'</div>
+                    <div class="absolute bottom-7 right-8 flex h-12 w-12 items-center justify-center rounded-2xl bg-bltRed text-white shadow-lg shadow-red-950/30">
+                        <i class="ph-bold ph-database text-2xl"></i>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="absolute top-4 left-4 flex gap-2 z-20">
+                    <span class="px-2.5 py-1 bg-bltRed text-white rounded-md text-xs font-bold tracking-wide shadow-sm">
+                        {{ lab.category | default: "Cybersecurity" }}
+                    </span>
+                    <span class="px-2.5 py-1 bg-gray-900/70 backdrop-blur-md text-white rounded-md text-xs font-semibold capitalize tracking-wide border border-white/10">
+                        {{ lab.difficulty | default: "Beginner" }}
+                    </span>
+                </div>
+            </a>
+
+            <div class="p-6 flex-1 flex flex-col">
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-3 leading-snug group-hover:text-bltRed transition-colors">
+                    <a href="{{ lab.url | relative_url }}">{{ lab.title }}</a>
+                </h2>
+                <p class="text-gray-500 dark:text-gray-400 text-sm mb-6 flex-1 leading-relaxed">
+                    {{ lab.description | truncate: 120 }}
+                </p>
+
+                <div class="flex items-center justify-between text-xs font-medium text-gray-500 dark:text-gray-400 pt-4 border-t border-gray-100 dark:border-gray-700 mb-5">
+                    <div class="flex items-center gap-1.5">
+                        <i class="ph-bold ph-list-checks text-bltRed"></i>
+                        <span>{{ lab.tasks.size | default: 0 }} tasks</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <i class="ph-bold ph-clock text-bltRed"></i>
+                        <span>{{ lab.estimated_time | default: 30 }} mins</span>
+                    </div>
+                </div>
+
+                <a href="{{ lab.url | relative_url }}" class="w-full block text-center px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-bltRed hover:text-white hover:border-bltRed transition-all duration-200">
+                    Start Lab
+                </a>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+
+    <div id="lab-no-results" class="hidden py-20 text-center">
+        <div class="w-20 h-20 bg-gray-50 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-100 dark:border-gray-700">
+            <i class="ph-bold ph-flask text-4xl text-gray-400"></i>
+        </div>
+        <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-1">No labs found</h3>
+        <p class="text-gray-500 dark:text-gray-400 text-sm">Try adjusting your search or filters.</p>
+    </div>
+</main>

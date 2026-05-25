@@ -12,12 +12,18 @@
             </span>
         </a>
 
-        <nav class="hidden items-center gap-8 md:flex">
+        <nav class="hidden items-center gap-8 lg:flex">
             {% for item in site.navigation %}
+                {% assign is_active = false %}
+                {% if page.url == item.url %}
+                    {% assign is_active = true %}
+                {% elsif item.url == "/labs/" and page.url contains "/labs/" %}
+                    {% assign is_active = true %}
+                {% endif %}
                 <a href="{{ item.url | relative_url }}"
-                   class="relative text-sm font-medium transition-colors {% if page.url == item.url %} text-bltRed {% else %} text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white {% endif %}">
+                   class="relative text-sm font-medium transition-colors {% if is_active %}text-bltRed{% else %}text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white{% endif %}">
                     {{ item.title }}
-                    {% if page.url == item.url %}
+                    {% if is_active %}
                         <span class="absolute -bottom-[21px] left-0 h-0.5 w-full bg-bltRed"></span>
                     {% endif %}
                 </a>

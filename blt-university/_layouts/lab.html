@@ -1,0 +1,259 @@
+---
+layout: default
+---
+
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+{% assign lab_key = page.title | downcase %}
+
+<article class="bg-[#fafafa] dark:bg-gray-950 transition-colors duration-300 min-h-screen">
+    <section class="bg-bltDark text-white pt-10 md:pt-12 pb-16 md:pb-20 relative overflow-hidden border-b border-white/5">
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_82%_18%,rgba(220,38,38,0.12),transparent_34%)]"></div>
+
+        <div class="max-w-7xl mx-auto px-6 relative z-10">
+            <div class="grid lg:grid-cols-[1fr_340px] gap-8 items-center">
+                <div>
+                    <div class="flex flex-wrap items-center gap-3 mb-5">
+                        <span class="px-2.5 py-1 bg-bltRed text-white rounded-md text-[10px] font-bold uppercase tracking-wider">{{ page.category }}</span>
+                        <span class="px-2.5 py-1 bg-white/10 border border-white/20 rounded-md text-[10px] font-semibold uppercase tracking-wider">{{ page.difficulty }}</span>
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white/10 border border-white/20 rounded-md text-[10px] font-semibold uppercase tracking-wider">
+                            <i class="ph-bold ph-clock text-sm text-bltRed"></i>
+                            {{ page.estimated_time }} mins
+                        </span>
+                    </div>
+
+                    <h1 class="font-display text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-4 leading-tight max-w-4xl">{{ page.title }}</h1>
+                    <p class="text-sm md:text-base text-gray-400 leading-relaxed max-w-2xl">{{ page.description }}</p>
+
+                    <div class="mt-7 grid gap-4 text-xs md:text-sm text-gray-300 sm:grid-cols-3 max-w-3xl">
+                        <div class="flex items-center gap-2">
+                            <i class="ph-bold ph-flask text-lg text-bltRed"></i>
+                            <span class="font-semibold text-white">Hands-on Labs</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="ph-bold ph-globe-hemisphere-west text-lg text-bltRed"></i>
+                            <span class="font-semibold text-white">Real-world Scenarios</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="ph-bold ph-lightning text-lg text-bltRed"></i>
+                            <span class="font-semibold text-white">Immediate Feedback</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="hidden lg:block">
+                    <div class="h-[190px] rounded-2xl border border-white/10 bg-white/5 p-3 shadow-2xl">
+                        <div class="h-full rounded-2xl border border-white/10 bg-gray-950/70 overflow-hidden">
+                            <div class="flex h-7 items-center gap-1.5 border-b border-white/10 bg-white/5 px-3">
+                                <span class="h-2 w-2 rounded-full bg-red-400"></span>
+                                <span class="h-2 w-2 rounded-full bg-yellow-400"></span>
+                                <span class="h-2 w-2 rounded-full bg-green-400"></span>
+                            </div>
+                            {% if lab_key contains "request forgery" %}
+                            <div class="p-4">
+                                <div class="mb-4 flex items-center justify-between">
+                                    <div>
+                                        <div class="mb-2 h-2 w-32 rounded-full bg-gray-700"></div>
+                                        <div class="h-2 w-20 rounded-full bg-gray-800"></div>
+                                    </div>
+                                    <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-bltRed/90 text-white">
+                                        <i class="ph-bold ph-arrows-clockwise text-xl"></i>
+                                    </div>
+                                </div>
+                                <div class="rounded-xl border border-red-500/40 bg-red-950/25 p-3">
+                                    <div class="mb-2 h-2 w-28 rounded-full bg-red-200/30"></div>
+                                    <div class="space-y-2">
+                                        <div class="h-2 rounded-full bg-gray-700"></div>
+                                        <div class="h-2 rounded-full bg-gray-700 w-4/5"></div>
+                                        <div class="h-6 rounded-lg bg-red-500/25 border border-red-400/30"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% elsif lab_key contains "scripting" %}
+                            <div class="p-4">
+                                <div class="mb-3 h-2 w-48 rounded-full bg-gray-700"></div>
+                                <div class="mb-3 h-2 w-32 rounded-full bg-gray-800"></div>
+                                <div class="rounded-xl border border-red-500/40 bg-red-950/25 p-3 font-mono text-[11px] leading-relaxed text-red-100">
+                                    <div>&lt;script&gt;</div>
+                                    <div class="pl-4 text-white/70">alert('XSS')</div>
+                                    <div>&lt;/script&gt;</div>
+                                </div>
+                                <div class="mt-3 flex items-center gap-3">
+                                    <div class="h-2 flex-1 rounded-full bg-gray-700"></div>
+                                    <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-bltRed/90 text-white">
+                                        <i class="ph-bold ph-code text-lg"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            {% else %}
+                            <div class="p-4 space-y-3">
+                                <div class="h-2 rounded-full bg-gray-700 w-3/4"></div>
+                                <div class="h-2 rounded-full bg-gray-700 w-1/2"></div>
+                                <div class="rounded-xl border border-red-500/50 bg-red-950/30 p-3 font-mono text-[11px] text-red-200">
+                                    ' OR '1'='1' --
+                                </div>
+                                <div class="h-2 rounded-full bg-gray-700 w-5/6"></div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <main data-lab-root class="max-w-7xl mx-auto px-6 w-full grid grid-cols-1 lg:grid-cols-12 gap-8 -mt-8 relative z-20 pb-24">
+        <div class="lg:col-span-8 min-w-0">
+            <div class="bg-white dark:bg-gray-900 p-5 md:p-8 rounded-[2rem] shadow-soft border border-gray-100 dark:border-gray-800 transition-colors">
+                {% for task in page.tasks %}
+                <section data-lab-task data-task-index="{{ forloop.index0 }}" class="{% unless forloop.first %}hidden{% endunless %}">
+                    <header class="flex flex-col sm:flex-row sm:items-start gap-4 pb-6 mb-6 border-b border-gray-100 dark:border-gray-800">
+                        <div class="w-11 h-11 rounded-2xl bg-bltRedLight dark:bg-red-900/30 text-bltRed flex items-center justify-center font-bold text-base shrink-0">
+                            {{ forloop.index }}
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-3 mb-2">
+                                <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white leading-tight m-0">{{ task.name }}</h2>
+                                <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider {% if task.type == 'theory' %}bg-red-50 text-bltRed dark:bg-red-900/20{% else %}bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300{% endif %}">
+                                    {{ task.type }}
+                                </span>
+                            </div>
+                            {% if task.description %}
+                            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed m-0">{{ task.description }}</p>
+                            {% endif %}
+                        </div>
+                    </header>
+
+                    {% if task.type == "theory" %}
+                    <div class="mb-8">
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                            <i class="ph-fill ph-clipboard-text text-bltRed"></i>
+                            {{ task.heading | default: task.name }}
+                        </h3>
+                        <div class="prose prose-sm md:prose-base max-w-none prose-headings:text-gray-900 dark:prose-headings:text-white prose-headings:font-bold prose-h3:text-lg prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-a:text-bltRed prose-pre:bg-gray-950 prose-pre:border prose-pre:border-gray-800 prose-pre:overflow-x-auto dark:prose-invert">
+                            {{ task.content | markdownify }}
+                        </div>
+                    </div>
+
+                    {% if task.mcq %}
+                    <div data-mcq class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-800/40 p-5 md:p-6">
+                        <h3 class="font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2 text-base">
+                            <i class="ph-bold ph-question text-bltRed"></i>
+                            Knowledge Check
+                        </h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-300 mb-5">{{ task.mcq.question | escape }}</p>
+                        <div class="space-y-3">
+                            {% for option in task.mcq.options %}
+                            {% assign option_letter = option | slice: 0 %}
+                            <button type="button" data-mcq-option data-option-letter="{{ option_letter }}" data-correct-answer="{{ task.mcq.answer }}" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>{{ option | escape }}</span>
+                            </button>
+                            {% endfor %}
+                        </div>
+                        <p data-mcq-feedback class="hidden mt-4 text-sm font-semibold"></p>
+                    </div>
+                    {% endif %}
+                    {% else %}
+                    <div class="space-y-5">
+                        <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-800/40 p-5 md:p-6">
+                            <h3 class="font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2 text-base">
+                                <i class="ph-bold ph-target text-bltRed"></i>
+                                Simulation Objective
+                            </h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-0">{{ task.description }}</p>
+                        </div>
+
+                        {% if task.simulation %}
+                        <div class="grid sm:grid-cols-2 gap-4">
+                            <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-900 p-5">
+                                <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Target</h4>
+                                <p class="text-sm font-semibold text-gray-800 dark:text-gray-200 m-0">{{ task.simulation.target_url }}</p>
+                            </div>
+                            <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-900 p-5">
+                                <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Scenario</h4>
+                                <p class="text-sm font-semibold text-gray-800 dark:text-gray-200 m-0">{{ task.simulation.scenario | replace: "_", " " | capitalize }}</p>
+                            </div>
+                        </div>
+
+                        {% if task.simulation.hints %}
+                        <div class="rounded-2xl border border-red-100 dark:border-red-900/30 bg-red-50/60 dark:bg-red-900/10 p-5">
+                            <h4 class="text-sm font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                                <i class="ph-bold ph-lightbulb text-bltRed"></i>
+                                Hints
+                            </h4>
+                            <ul class="space-y-2">
+                                {% for hint in task.simulation.hints %}
+                                <li class="flex gap-2 text-sm text-gray-600 dark:text-gray-400">
+                                    <i class="ph-bold ph-check text-bltRed mt-0.5"></i>
+                                    <span>{{ hint }}</span>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </section>
+                {% endfor %}
+
+                <footer class="mt-8 pt-6 border-t border-gray-100 dark:border-gray-800 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+                    <button type="button" data-lab-prev class="inline-flex items-center justify-center gap-2 px-5 py-3 border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-semibold text-gray-500 dark:text-gray-400 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-800 transition-all">
+                        <i class="ph-bold ph-arrow-left"></i>
+                        Previous
+                    </button>
+                    <button type="button" data-lab-next class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-bltRed text-white rounded-xl text-sm font-bold shadow-lg shadow-red-100 dark:shadow-none hover:bg-bltRedHover transition-all">
+                        Next
+                        <i class="ph-bold ph-arrow-right"></i>
+                    </button>
+                </footer>
+            </div>
+        </div>
+
+        <aside class="lg:col-span-4 min-w-0 space-y-6">
+            <div class="bg-white dark:bg-gray-900 p-6 rounded-[2rem] shadow-soft border border-gray-100 dark:border-gray-800">
+                <h3 class="text-base font-bold text-gray-900 dark:text-white mb-5 flex items-center gap-2">
+                    <i class="ph-bold ph-chart-line-up text-bltRed"></i>
+                    Lab Progress
+                </h3>
+                <div class="mb-6">
+                    <div class="flex justify-between text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">
+                        <span>Completion</span>
+                        <span data-lab-percent>0%</span>
+                    </div>
+                    <div class="w-full h-2.5 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
+                        <div data-lab-progress class="h-full w-0 bg-bltRed rounded-full transition-all duration-300"></div>
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    {% for task in page.tasks %}
+                    <button type="button" data-lab-jump data-task-index="{{ forloop.index0 }}" class="w-full flex items-center gap-3 text-left p-3 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-all">
+                        <span data-step-badge class="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 shrink-0">{{ forloop.index }}</span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-sm font-semibold text-gray-800 dark:text-gray-200">{{ task.name }}</span>
+                            <span data-step-state class="block text-xs text-gray-400">Locked</span>
+                        </span>
+                    </button>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="bg-gray-900 dark:bg-gray-800/80 p-6 rounded-[2rem] text-white relative overflow-hidden group border border-transparent dark:border-gray-700">
+                <div class="absolute -right-4 -bottom-4 opacity-10 pointer-events-none text-bltRed">
+                    <i class="ph-fill ph-shield-check text-8xl"></i>
+                </div>
+                <h3 class="text-lg font-bold mb-3 relative z-10">Practice Security</h3>
+                <p class="text-gray-400 text-sm leading-relaxed mb-5 relative z-10">
+                    These labs are educational simulations designed for ethical cybersecurity learning.
+                </p>
+                <div class="space-y-3 text-xs text-gray-300 relative z-10">
+                    <div class="flex items-center gap-2"><i class="ph-bold ph-check text-bltRed"></i>OWASP aligned content</div>
+                    <div class="flex items-center gap-2"><i class="ph-bold ph-check text-bltRed"></i>Interactive challenge tasks</div>
+                    <div class="flex items-center gap-2"><i class="ph-bold ph-check text-bltRed"></i>Beginner friendly guidance</div>
+                    <div class="flex items-center gap-2"><i class="ph-bold ph-check text-bltRed"></i>Instant feedback and hints</div>
+                </div>
+            </div>
+        </aside>
+    </main>
+</article>

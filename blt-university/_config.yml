@@ -18,15 +18,21 @@ university:
 theme: minima
 markdown: kramdown
 permalink: pretty
+port: 4001
 
-# Collections for courses
+# Collections
 collections:
   courses:
     output: true
     permalink: /courses/:path/
+
   instructors:
     output: true
     permalink: /instructors/:path/
+
+  labs:
+    output: true
+    permalink: /labs/:path/
 
 # Defaults
 defaults:
@@ -75,6 +81,8 @@ navigation:
     url: /request/
   - title: Instructors
     url: /instructors/
+  - title: Labs
+    url: /labs/
   - title: About
     url: /about/
 
