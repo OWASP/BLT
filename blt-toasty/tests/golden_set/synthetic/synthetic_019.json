@@ -1,0 +1,66 @@
+{
+  "id": "synthetic_019",
+  "source": "synthetic",
+  "category": "csrf",
+  "raw_text": "Cross-Site Request Forgery (CSRF) - Token Bypass Vulnerability\n\nCSRF token validation bypass discovered in /account/settings endpoint.\nApplication accepts requests with missing or invalid CSRF tokens in certain conditions.\n\nBypass technique:\n1. Send request without CSRF token\n2. Server returns 200 OK (should return 403)\n3. State-changing operation is executed\n\nVulnerable endpoint: POST /api/settings/update\nParameters changed: email, notifications, privacy_level\n\nAttack successful with:\nVictim email: victim.user@acmecorp.com\nAttacker email: attacker.csrf@gmail.com\nAWS key retrieved from cookie: AKIAIOSFODNN7EXAMPLE\nJWT token extracted from local storage: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJudWxsX2NzcmYiOnRydWUsInVzZXJfaWQiOiI5ODcifQ.csrf_bypass_sig\nSettings API endpoint: settings-api.staging.local\nGCP token from settings cache: ya29.a0AfH6SMCw_SettingsCacheToken_example\nTesting IP: 10.255.255.1\nSettings API key: sk_sk_test_SYNTHETIC_ONLY_00001_SettingsManagementKey_example\n",
+  "expected_entities": [
+    {
+      "type": "EMAIL_ADDRESS",
+      "value": "victim.user@acmecorp.com",
+      "start": 505,
+      "end": 529,
+      "confidence_min": 0.92
+    },
+    {
+      "type": "EMAIL_ADDRESS",
+      "value": "attacker.csrf@gmail.com",
+      "start": 546,
+      "end": 569,
+      "confidence_min": 0.93
+    },
+    {
+      "type": "AWS_ACCESS_KEY",
+      "value": "AKIAIOSFODNN7EXAMPLE",
+      "start": 601,
+      "end": 621,
+      "confidence_min": 0.95
+    },
+    {
+      "type": "AUTH_TOKEN",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJudWxsX2NzcmYiOnRydWUsInVzZXJfaWQiOiI5ODcifQ.csrf_bypass_sig",
+      "start": 662,
+      "end": 761,
+      "confidence_min": 0.88
+    },
+    {
+      "type": "DOMAIN",
+      "value": "settings-api.staging.local",
+      "start": 785,
+      "end": 811,
+      "confidence_min": 0.85
+    },
+    {
+      "type": "AUTH_TOKEN",
+      "value": "ya29.a0AfH6SMCw_SettingsCacheToken_example",
+      "start": 843,
+      "end": 885,
+      "confidence_min": 0.87
+    },
+    {
+      "type": "IP_ADDRESS",
+      "value": "10.255.255.1",
+      "start": 898,
+      "end": 910,
+      "confidence_min": 0.91
+    },
+    {
+      "type": "API_KEY",
+      "value": "sk_sk_test_SYNTHETIC_ONLY_00001_SettingsManagementKey_example",
+      "start": 929,
+      "end": 966,
+      "confidence_min": 0.87
+    }
+  ],
+  "expected_redacted_text": "Cross-Site Request Forgery (CSRF) - Token Bypass Vulnerability\n\nCSRF token validation bypass discovered in /account/settings endpoint.\nApplication accepts requests with missing or invalid CSRF tokens in certain conditions.\n\nBypass technique:\n1. Send request without CSRF token\n2. Server returns 200 OK (should return 403)\n3. State-changing operation is executed\n\nVulnerable endpoint: POST /api/settings/update\nParameters changed: email, notifications, privacy_level\n\nAttack successful with:\nVictim email: [EMAIL_ADDRESS]\nAttacker email: [EMAIL_ADDRESS]\nAWS key retrieved from cookie: [AWS_ACCESS_KEY]\nJWT token extracted from local storage: [AUTH_TOKEN]\nSettings API endpoint: [DOMAIN]\nGCP token from settings cache: [AUTH_TOKEN]\nTesting IP: [IP_ADDRESS]\nSettings API key: [API_KEY]\n",
+  "adversarial_notes": "CSRF token bypass with attacker/victim email pair. 8 entities testing JWT with null CSRF claims, settings management API keys, and broadcast IP address (10.255.255.1). Tests Presidio with account settings/privacy context."
+}

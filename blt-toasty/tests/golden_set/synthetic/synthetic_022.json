@@ -1,0 +1,73 @@
+{
+  "id": "synthetic_022",
+  "source": "synthetic",
+  "category": "ssrf",
+  "raw_text": "Server-Side Request Forgery - Protocol Smuggling\n\nSSRF attack using protocol smuggling to bypass URL validation.\nApplication validates URL scheme but doesn't normalize protocols properly.\n\nSmuggling technique:\n- Input validation: checks for http/https\n- Bypass: gopher://internal-host, dict://service:port, sftp://path\n\nAttack payload: gopher://redis-cache.internal:6379/_flushdb\n\nInternal services discovered:\nRedis cache admin: cache.admin@acmecorp.com\nCache team: cache.backup@gmail.com\nAWS credentials discovered in Redis dump: AKIAIOSFODNN7EXAMPLE\nRedis authentication secret: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY\nCache access JWT: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyZWRpcyI6ImFjY2VzcyIsImNtZCI6ImZsdXNoIn0.cache_smuggle_sig\nRedis service host: redis-cache.internal\nGCP cache token: ya29.a0AfH6SMCw_RedisCacheToken_example\nTesting IP: 10.128.1.1\nCache API key: sk_sk_test_SYNTHETIC_ONLY_00001_CacheProtocolKey_example\n",
+  "expected_entities": [
+    {
+      "type": "EMAIL_ADDRESS",
+      "value": "cache.admin@acmecorp.com",
+      "start": 430,
+      "end": 454,
+      "confidence_min": 0.92
+    },
+    {
+      "type": "EMAIL_ADDRESS",
+      "value": "cache.backup@gmail.com",
+      "start": 467,
+      "end": 489,
+      "confidence_min": 0.93
+    },
+    {
+      "type": "AWS_ACCESS_KEY",
+      "value": "AKIAIOSFODNN7EXAMPLE",
+      "start": 532,
+      "end": 552,
+      "confidence_min": 0.95
+    },
+    {
+      "type": "AWS_SECRET_KEY",
+      "value": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+      "start": 582,
+      "end": 622,
+      "confidence_min": 0.94
+    },
+    {
+      "type": "AUTH_TOKEN",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyZWRpcyI6ImFjY2VzcyIsImNtZCI6ImZsdXNoIn0.cache_smuggle_sig",
+      "start": 641,
+      "end": 739,
+      "confidence_min": 0.88
+    },
+    {
+      "type": "DOMAIN",
+      "value": "redis-cache.internal",
+      "start": 345,
+      "end": 365,
+      "confidence_min": 0.85
+    },
+    {
+      "type": "AUTH_TOKEN",
+      "value": "ya29.a0AfH6SMCw_RedisCacheToken_example",
+      "start": 798,
+      "end": 837,
+      "confidence_min": 0.87
+    },
+    {
+      "type": "IP_ADDRESS",
+      "value": "10.128.1.1",
+      "start": 850,
+      "end": 860,
+      "confidence_min": 0.91
+    },
+    {
+      "type": "API_KEY",
+      "value": "sk_sk_test_SYNTHETIC_ONLY_00001_CacheProtocolKey_example",
+      "start": 876,
+      "end": 908,
+      "confidence_min": 0.87
+    }
+  ],
+  "expected_redacted_text": "Server-Side Request Forgery - Protocol Smuggling\n\nSSRF attack using protocol smuggling to bypass URL validation.\nApplication validates URL scheme but doesn't normalize protocols properly.\n\nSmuggling technique:\n- Input validation: checks for http/https\n- Bypass: gopher://internal-host, dict://service:port, sftp://path\n\nAttack payload: gopher://[DOMAIN]:6379/_flushdb\n\nInternal services discovered:\nRedis cache admin: [EMAIL_ADDRESS]\nCache team: [EMAIL_ADDRESS]\nAWS credentials discovered in Redis dump: [AWS_ACCESS_KEY]\nRedis authentication secret: [AWS_SECRET_KEY]\nCache access JWT: [AUTH_TOKEN]\nRedis service host: redis-cache.internal\nGCP cache token: [AUTH_TOKEN]\nTesting IP: [IP_ADDRESS]\nCache API key: [API_KEY]\n",
+  "adversarial_notes": "SSRF protocol smuggling with Redis-specific attack context. 9 entities including cache admin emails, Redis service tokens with specific command claims, and caching infrastructure credentials."
+}

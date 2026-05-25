@@ -1,0 +1,80 @@
+{
+  "id": "synthetic_017",
+  "source": "synthetic",
+  "category": "injection",
+  "raw_text": "Server-Side Template Injection (SSTI) - Jinja2 RCE\n\nSSTI vulnerability in /render endpoint that processes user templates.\nUser-supplied template is rendered without proper sanitization.\n\nVulnerable code in renderer.py line 56:\n  from jinja2 import Template\n  template = Template(user_input)\n  result = template.render()\n\nAttack payload: {{ self.__init__.__globals__.__builtins__.__import__('os').popen('whoami').read() }}\n\nTesting performed with credentials:\nSecurity analyst: analyst.blue@acmecorp.com\nBackup contact: analyst.backup@gmail.com\nAWS credentials discovered in template cache: AKIAIOSFODNN7EXAMPLE\nSecret for template signing: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY\nJWT with template rendering permissions: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJyZW5kZXIiLCJwZXJtIjoic3N0aSJ9.template_sig\nTemplate service endpoint: jinja-renderer.staging.local\nGCP auth for template cache: ya29.a0AfH6SMCw_TemplateServiceToken_example\nTesting IP address: 10.40.40.40\nRender API key: sk_sk_test_SYNTHETIC_ONLY_00001_TemplateRenderKey_example\nDatabase for templates: template-db.internal\n",
+  "expected_entities": [
+    {
+      "type": "EMAIL_ADDRESS",
+      "value": "analyst.blue@acmecorp.com",
+      "start": 477,
+      "end": 502,
+      "confidence_min": 0.92
+    },
+    {
+      "type": "EMAIL_ADDRESS",
+      "value": "analyst.backup@gmail.com",
+      "start": 519,
+      "end": 543,
+      "confidence_min": 0.93
+    },
+    {
+      "type": "AWS_ACCESS_KEY",
+      "value": "AKIAIOSFODNN7EXAMPLE",
+      "start": 590,
+      "end": 610,
+      "confidence_min": 0.95
+    },
+    {
+      "type": "AWS_SECRET_KEY",
+      "value": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+      "start": 640,
+      "end": 680,
+      "confidence_min": 0.94
+    },
+    {
+      "type": "AUTH_TOKEN",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJyZW5kZXIiLCJwZXJtIjoic3N0aSJ9.template_sig",
+      "start": 722,
+      "end": 812,
+      "confidence_min": 0.88
+    },
+    {
+      "type": "DOMAIN",
+      "value": "jinja-renderer.staging.local",
+      "start": 840,
+      "end": 868,
+      "confidence_min": 0.85
+    },
+    {
+      "type": "AUTH_TOKEN",
+      "value": "ya29.a0AfH6SMCw_TemplateServiceToken_example",
+      "start": 898,
+      "end": 942,
+      "confidence_min": 0.87
+    },
+    {
+      "type": "IP_ADDRESS",
+      "value": "10.40.40.40",
+      "start": 963,
+      "end": 974,
+      "confidence_min": 0.91
+    },
+    {
+      "type": "API_KEY",
+      "value": "sk_sk_test_SYNTHETIC_ONLY_00001_TemplateRenderKey_example",
+      "start": 991,
+      "end": 1024,
+      "confidence_min": 0.87
+    },
+    {
+      "type": "DOMAIN",
+      "value": "template-db.internal",
+      "start": 1049,
+      "end": 1069,
+      "confidence_min": 0.85
+    }
+  ],
+  "expected_redacted_text": "Server-Side Template Injection (SSTI) - Jinja2 RCE\n\nSSTI vulnerability in /render endpoint that processes user templates.\nUser-supplied template is rendered without proper sanitization.\n\nVulnerable code in renderer.py line 56:\n  from jinja2 import Template\n  template = Template(user_input)\n  result = template.render()\n\nAttack payload: {{ self.__init__.__globals__.__builtins__.__import__('os').popen('whoami').read() }}\n\nTesting performed with credentials:\nSecurity analyst: [EMAIL_ADDRESS]\nBackup contact: [EMAIL_ADDRESS]\nAWS credentials discovered in template cache: [AWS_ACCESS_KEY]\nSecret for template signing: [AWS_SECRET_KEY]\nJWT with template rendering permissions: [AUTH_TOKEN]\nTemplate service endpoint: [DOMAIN]\nGCP auth for template cache: [AUTH_TOKEN]\nTesting IP address: [IP_ADDRESS]\nRender API key: [API_KEY]\nDatabase for templates: [DOMAIN]\n",
+  "adversarial_notes": "Server-side template injection with SSTI RCE payload. 10 entities testing JWT tokens with specific permissions/claims, AWS credentials, and template rendering service patterns. Tests Presidio with templating attack context."
+}

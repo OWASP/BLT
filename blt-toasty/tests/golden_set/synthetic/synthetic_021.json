@@ -1,0 +1,73 @@
+{
+  "id": "synthetic_021",
+  "source": "synthetic",
+  "category": "sqli",
+  "raw_text": "SQL Injection - Object-Relational Mapping (ORM) Bypass\n\nORM bypass vulnerability in Django ORM raw SQL queries.\nApplication uses .raw() method with string interpolation instead of parameterized queries.\n\nVulnerable code in views.py line 234:\n  from django.db import connection\n  query = \"SELECT * FROM users WHERE email = '%s'\" % email_param\n  users = connection.queries.execute(query)\n\nAttack payload: ' OR '1'='1\n\nExploitation successful with captured credentials:\nDBA contact: dba.team@acmecorp.com\nAudit email: audit.django@gmail.com\nAWS credentials found in Django settings: AKIAIOSFODNN7EXAMPLE\nDjango secret key exposed: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY\nORM authentication JWT: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcm0iOiJkamFuZ28iLCJyYXciOiJ0cnVlIn0.orm_bypass_sig\nDatabase backend: django-db.staging.local\nGCP ORM token: ya29.a0AfH6SMCw_DjangoORM_token\nTesting IP: 10.110.110.110\nORM API key: sk_sk_test_SYNTHETIC_ONLY_00001_DjangoORM_key\n",
+  "expected_entities": [
+    {
+      "type": "EMAIL_ADDRESS",
+      "value": "dba.team@acmecorp.com",
+      "start": 480,
+      "end": 501,
+      "confidence_min": 0.92
+    },
+    {
+      "type": "EMAIL_ADDRESS",
+      "value": "audit.django@gmail.com",
+      "start": 515,
+      "end": 537,
+      "confidence_min": 0.93
+    },
+    {
+      "type": "AWS_ACCESS_KEY",
+      "value": "AKIAIOSFODNN7EXAMPLE",
+      "start": 580,
+      "end": 600,
+      "confidence_min": 0.95
+    },
+    {
+      "type": "AWS_SECRET_KEY",
+      "value": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+      "start": 628,
+      "end": 668,
+      "confidence_min": 0.94
+    },
+    {
+      "type": "AUTH_TOKEN",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcm0iOiJkamFuZ28iLCJyYXciOiJ0cnVlIn0.orm_bypass_sig",
+      "start": 693,
+      "end": 784,
+      "confidence_min": 0.88
+    },
+    {
+      "type": "DOMAIN",
+      "value": "django-db.staging.local",
+      "start": 803,
+      "end": 826,
+      "confidence_min": 0.85
+    },
+    {
+      "type": "AUTH_TOKEN",
+      "value": "ya29.a0AfH6SMCw_DjangoORM_token",
+      "start": 842,
+      "end": 873,
+      "confidence_min": 0.87
+    },
+    {
+      "type": "IP_ADDRESS",
+      "value": "10.110.110.110",
+      "start": 886,
+      "end": 900,
+      "confidence_min": 0.91
+    },
+    {
+      "type": "API_KEY",
+      "value": "sk_sk_test_SYNTHETIC_ONLY_00001_DjangoORM_key",
+      "start": 914,
+      "end": 935,
+      "confidence_min": 0.87
+    }
+  ],
+  "expected_redacted_text": "SQL Injection - Object-Relational Mapping (ORM) Bypass\n\nORM bypass vulnerability in Django ORM raw SQL queries.\nApplication uses .raw() method with string interpolation instead of parameterized queries.\n\nVulnerable code in views.py line 234:\n  from django.db import connection\n  query = \"SELECT * FROM users WHERE email = '%s'\" % email_param\n  users = connection.queries.execute(query)\n\nAttack payload: ' OR '1'='1\n\nExploitation successful with captured credentials:\nDBA contact: [EMAIL_ADDRESS]\nAudit email: [EMAIL_ADDRESS]\nAWS credentials found in Django settings: [AWS_ACCESS_KEY]\nDjango secret key exposed: [AWS_SECRET_KEY]\nORM authentication JWT: [AUTH_TOKEN]\nDatabase backend: [DOMAIN]\nGCP ORM token: [AUTH_TOKEN]\nTesting IP: [IP_ADDRESS]\nORM API key: [API_KEY]\n",
+  "adversarial_notes": "ORM bypass with Django-specific JWT claims and framework-specific tokens. 9 entities testing Presidio's handling of ORM-related credentials and database connection patterns."
+}

@@ -1,0 +1,73 @@
+{
+  "id": "synthetic_008",
+  "source": "synthetic",
+  "category": "ssrf",
+  "raw_text": "Server-Side Request Forgery - AWS Metadata Service Exploitation\n\nSSRF vulnerability allows attacker to retrieve AWS EC2 metadata via /fetch endpoint.\nApplication fetches content from attacker-controlled URL without validation.\n\nAttack demonstrates metadata service access:\nhttp://169.254.169.254/lask_sk_test_SYNTHETIC_ONLY_00002_SYNTHETIC_ONLY_00002/meta-data/iam/security-credentials/\n\nMetadata retrieved:\n{\n  \"Code\" : \"Success\",\n  \"AccessKeyId\" : \"AKIAIOSFODNN7EXAMPLE\",\n  \"SecretAccessKey\" : \"wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY\",\n  \"Token\" : \"AQoDYXdzEJr..exampletoken\"\n}\n\nInternal systems exposed:\n- RDS database: prod-mysql.internal.aws\n- ElastiCache instance: redis-cache.internal\n- Internal admin email: devops@acmecorp.com\n\nTesting performed from internal IP 10.0.0.1\nService token (Lambda execution role): ya29.a0AfH6SMCz_InternalServiceToken_Example\nAPI Key for monitoring: sk_sk_sk_test_SYNTHETIC_ONLY_00002_SYNTHETIC_ONLY_00002_51234567890abcdefghijklmnopqrst\n",
+  "expected_entities": [
+    {
+      "type": "AWS_ACCESS_KEY",
+      "value": "AKIAIOSFODNN7EXAMPLE",
+      "start": 403,
+      "end": 423,
+      "confidence_min": 0.96
+    },
+    {
+      "type": "AWS_SECRET_KEY",
+      "value": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+      "start": 449,
+      "end": 489,
+      "confidence_min": 0.95
+    },
+    {
+      "type": "AUTH_TOKEN",
+      "value": "AQoDYXdzEJr..exampletoken",
+      "start": 505,
+      "end": 530,
+      "confidence_min": 0.85
+    },
+    {
+      "type": "DOMAIN",
+      "value": "prod-mysql.internal.aws",
+      "start": 577,
+      "end": 600,
+      "confidence_min": 0.85
+    },
+    {
+      "type": "DOMAIN",
+      "value": "redis-cache.internal",
+      "start": 625,
+      "end": 645,
+      "confidence_min": 0.85
+    },
+    {
+      "type": "EMAIL_ADDRESS",
+      "value": "devops@acmecorp.com",
+      "start": 670,
+      "end": 689,
+      "confidence_min": 0.92
+    },
+    {
+      "type": "IP_ADDRESS",
+      "value": "10.0.0.1",
+      "start": 726,
+      "end": 734,
+      "confidence_min": 0.9
+    },
+    {
+      "type": "AUTH_TOKEN",
+      "value": "ya29.a0AfH6SMCz_InternalServiceToken_Example",
+      "start": 774,
+      "end": 818,
+      "confidence_min": 0.87
+    },
+    {
+      "type": "API_KEY",
+      "value": "sk_sk_sk_test_SYNTHETIC_ONLY_00002_SYNTHETIC_ONLY_00002_51234567890abcdefghijklmnopqrst",
+      "start": 843,
+      "end": 882,
+      "confidence_min": 0.88
+    }
+  ],
+  "expected_redacted_text": "Server-Side Request Forgery - AWS Metadata Service Exploitation\n\nSSRF vulnerability allows attacker to retrieve AWS EC2 metadata via /fetch endpoint.\nApplication fetches content from attacker-controlled URL without validation.\n\nAttack demonstrates metadata service access:\nhttp://169.254.169.254/lask_sk_test_SYNTHETIC_ONLY_00002_SYNTHETIC_ONLY_00002/meta-data/iam/security-credentials/\n\nMetadata retrieved:\n{\n  \"Code\" : \"Success\",\n  \"AccessKeyId\" : \"[AWS_ACCESS_KEY]\",\n  \"SecretAccessKey\" : \"[AWS_SECRET_KEY]\",\n  \"Token\" : \"[AUTH_TOKEN]\"\n}\n\nInternal systems exposed:\n- RDS database: [DOMAIN]\n- ElastiCache instance: [DOMAIN]\n- Internal admin email: [EMAIL_ADDRESS]\n\nTesting performed from internal IP [IP_ADDRESS]\nService token (Lambda execution role): [AUTH_TOKEN]\nAPI Key for monitoring: [API_KEY]\n",
+  "adversarial_notes": "SSRF attacking AWS metadata service with comprehensive credential extraction. 9 entities including AWS credentials, JSON-embedded tokens, and service tokens. Tests Presidio's JSON parsing and credential detection within structured data."
+}

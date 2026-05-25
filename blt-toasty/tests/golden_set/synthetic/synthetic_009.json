@@ -1,0 +1,59 @@
+{
+  "id": "synthetic_009",
+  "source": "synthetic",
+  "category": "csrf",
+  "raw_text": "Cross-Site Request Forgery (CSRF) - Password Reset Endpoint\n\nCSRF vulnerability in /user/change-password endpoint (POST).\nNo CSRF token validation implemented; only cookies used for authentication.\n\nAttack scenario:\n1. Attacker crafts malicious HTML form on external site\n2. Victim visits page while authenticated to vulnerable app\n3. Form submits to /user/change-password via browser cookies\n\nEndpoint tested:\nPOST /api/auth/password-reset\nContent-Type: application/x-www-form-urlencoded\nnew_password=attacker123\n\nAdmin account compromised during testing:\nEmail: admin@acmecorp.com\nBackup email: backup.admin@gmail.com\nJWT token used: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsImV4cCI6MTcxNjIzOTAyMn0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c\nAWS credentials in environment: AKIAIOSFODNN7EXAMPLE\nPassword reset API key: sk_sk_test_SYNTHETIC_ONLY_00001_APIKeyForPasswordReset12345\nAuthentication service: auth-svc.staging.local\nTesting from IP: 10.10.10.10\n",
+  "expected_entities": [
+    {
+      "type": "EMAIL_ADDRESS",
+      "value": "admin@acmecorp.com",
+      "start": 564,
+      "end": 582,
+      "confidence_min": 0.92
+    },
+    {
+      "type": "EMAIL_ADDRESS",
+      "value": "backup.admin@gmail.com",
+      "start": 597,
+      "end": 619,
+      "confidence_min": 0.93
+    },
+    {
+      "type": "AUTH_TOKEN",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsImV4cCI6MTcxNjIzOTAyMn0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
+      "start": 636,
+      "end": 760,
+      "confidence_min": 0.89
+    },
+    {
+      "type": "AWS_ACCESS_KEY",
+      "value": "AKIAIOSFODNN7EXAMPLE",
+      "start": 793,
+      "end": 813,
+      "confidence_min": 0.95
+    },
+    {
+      "type": "API_KEY",
+      "value": "sk_sk_test_SYNTHETIC_ONLY_00001_APIKeyForPasswordReset12345",
+      "start": 838,
+      "end": 873,
+      "confidence_min": 0.87
+    },
+    {
+      "type": "DOMAIN",
+      "value": "auth-svc.staging.local",
+      "start": 898,
+      "end": 920,
+      "confidence_min": 0.85
+    },
+    {
+      "type": "IP_ADDRESS",
+      "value": "10.10.10.10",
+      "start": 938,
+      "end": 949,
+      "confidence_min": 0.91
+    }
+  ],
+  "expected_redacted_text": "Cross-Site Request Forgery (CSRF) - Password Reset Endpoint\n\nCSRF vulnerability in /user/change-password endpoint (POST).\nNo CSRF token validation implemented; only cookies used for authentication.\n\nAttack scenario:\n1. Attacker crafts malicious HTML form on external site\n2. Victim visits page while authenticated to vulnerable app\n3. Form submits to /user/change-password via browser cookies\n\nEndpoint tested:\nPOST /api/auth/password-reset\nContent-Type: application/x-www-form-urlencoded\nnew_password=attacker123\n\nAdmin account compromised during testing:\nEmail: [EMAIL_ADDRESS]\nBackup email: [EMAIL_ADDRESS]\nJWT token used: [AUTH_TOKEN]\nAWS credentials in environment: [AWS_ACCESS_KEY]\nPassword reset API key: [API_KEY]\nAuthentication service: [DOMAIN]\nTesting from IP: [IP_ADDRESS]\n",
+  "adversarial_notes": "CSRF attacking state-changing password reset endpoint. 7 PII entities with multiple email variants and authentication tokens. Tests Presidio with API keys for specific services and sequential credential exposure in attack chain."
+}

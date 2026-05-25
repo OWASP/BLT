@@ -1,0 +1,80 @@
+{
+  "id": "synthetic_024",
+  "source": "synthetic",
+  "category": "xss",
+  "raw_text": "Reflected XSS in HTML Attribute Context\n\nXSS vulnerability in /profile?name= parameter reflected in HTML href attribute.\nInsufficient sanitization allows JavaScript protocol handler injection.\n\nVulnerable code in profile.html:\n  <a href=\"/user/<?php echo $_GET['name']; ?>\">Profile</a>\n\nBypass payload: javascript:alert('XSS')\n\nTesting details captured:\nUser support: support.team@acmecorp.com\nSupport escalation: escalation@gmail.com\nAWS key discovered in profile cache: AKIAIOSFODNN7EXAMPLE\nProfile signing key: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY\nJWT with profile context: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcm9maWxlIjoiYXR0ciIsImhyZWYiOiJ0cnVlIn0.attr_xss_sig\nProfile service: profile-svc.staging.local\nGCP profile token: ya29.a0AfH6SMCw_ProfileService_token\nTesting from IP: 10.77.77.77\nProfile API key: sk_sk_test_SYNTHETIC_ONLY_00001_ProfileAttributeKey_example\nProfile database: profile-db.internal\n",
+  "expected_entities": [
+    {
+      "type": "EMAIL_ADDRESS",
+      "value": "support.team@acmecorp.com",
+      "start": 368,
+      "end": 393,
+      "confidence_min": 0.92
+    },
+    {
+      "type": "EMAIL_ADDRESS",
+      "value": "escalation@gmail.com",
+      "start": 414,
+      "end": 434,
+      "confidence_min": 0.93
+    },
+    {
+      "type": "AWS_ACCESS_KEY",
+      "value": "AKIAIOSFODNN7EXAMPLE",
+      "start": 472,
+      "end": 492,
+      "confidence_min": 0.95
+    },
+    {
+      "type": "AWS_SECRET_KEY",
+      "value": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+      "start": 514,
+      "end": 554,
+      "confidence_min": 0.94
+    },
+    {
+      "type": "AUTH_TOKEN",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwcm9maWxlIjoiYXR0ciIsImhyZWYiOiJ0cnVlIn0.attr_xss_sig",
+      "start": 581,
+      "end": 674,
+      "confidence_min": 0.88
+    },
+    {
+      "type": "DOMAIN",
+      "value": "profile-svc.staging.local",
+      "start": 692,
+      "end": 717,
+      "confidence_min": 0.85
+    },
+    {
+      "type": "AUTH_TOKEN",
+      "value": "ya29.a0AfH6SMCw_ProfileService_token",
+      "start": 737,
+      "end": 773,
+      "confidence_min": 0.87
+    },
+    {
+      "type": "IP_ADDRESS",
+      "value": "10.77.77.77",
+      "start": 791,
+      "end": 802,
+      "confidence_min": 0.91
+    },
+    {
+      "type": "API_KEY",
+      "value": "sk_sk_test_SYNTHETIC_ONLY_00001_ProfileAttributeKey_example",
+      "start": 820,
+      "end": 855,
+      "confidence_min": 0.87
+    },
+    {
+      "type": "DOMAIN",
+      "value": "profile-db.internal",
+      "start": 874,
+      "end": 893,
+      "confidence_min": 0.85
+    }
+  ],
+  "expected_redacted_text": "Reflected XSS in HTML Attribute Context\n\nXSS vulnerability in /profile?name= parameter reflected in HTML href attribute.\nInsufficient sanitization allows JavaScript protocol handler injection.\n\nVulnerable code in profile.html:\n  <a href=\"/user/<?php echo $_GET['name']; ?>\">Profile</a>\n\nBypass payload: javascript:alert('XSS')\n\nTesting details captured:\nUser support: [EMAIL_ADDRESS]\nSupport escalation: [EMAIL_ADDRESS]\nAWS key discovered in profile cache: [AWS_ACCESS_KEY]\nProfile signing key: [AWS_SECRET_KEY]\nJWT with profile context: [AUTH_TOKEN]\nProfile service: [DOMAIN]\nGCP profile token: [AUTH_TOKEN]\nTesting from IP: [IP_ADDRESS]\nProfile API key: [API_KEY]\nProfile database: [DOMAIN]\n",
+  "adversarial_notes": "Reflected XSS in HTML attribute context with protocol handler injection. 10 entities testing profile service credentials, support team email variants, and JWT claims specific to HTML attribute escaping."
+}

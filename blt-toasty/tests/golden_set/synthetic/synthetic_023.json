@@ -1,0 +1,80 @@
+{
+  "id": "synthetic_023",
+  "source": "synthetic",
+  "category": "xss",
+  "raw_text": "XSS - JavaScript Context Escaping Bypass\n\nXSS vulnerability in /search?q= parameter reflected in JavaScript context.\nApplication escapes HTML entities but fails to properly escape JavaScript context.\n\nVulnerable code in search.js line 78:\n  <script>\n    var searchQuery = \"<?php echo htmlspecialchars($_GET['q']); ?>\";\n    document.getElementById('results').textContent = searchQuery;\n  </script>\n\nBypass payload: \\\"; alert('XSS'); //\"\n\nAttack chain discovered during testing:\nSecurity researcher: researcher@acmecorp.com\nResearch backup: researcher.backup@gmail.com\nAWS credentials found in search logs: AKIAIOSFODNN7EXAMPLE\nSession secret for search context: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY\nIntercepted JWT with search context: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb250ZXh0Ijoic2VhcmNoIiwiZXNjYXBlIjoiZmFsc2UifQ.js_escape_sig\nSearch service endpoint: search-svc.staging.local\nGCP token for search service: ya29.a0AfH6SMCw_SearchService_token\nTesting IP: 10.99.99.99\nSearch API key: sk_sk_test_SYNTHETIC_ONLY_00001_SearchContextKey_example\nDatabase for search: search-db.internal\n",
+  "expected_entities": [
+    {
+      "type": "EMAIL_ADDRESS",
+      "value": "researcher@acmecorp.com",
+      "start": 498,
+      "end": 521,
+      "confidence_min": 0.92
+    },
+    {
+      "type": "EMAIL_ADDRESS",
+      "value": "researcher.backup@gmail.com",
+      "start": 539,
+      "end": 566,
+      "confidence_min": 0.93
+    },
+    {
+      "type": "AWS_ACCESS_KEY",
+      "value": "AKIAIOSFODNN7EXAMPLE",
+      "start": 605,
+      "end": 625,
+      "confidence_min": 0.95
+    },
+    {
+      "type": "AWS_SECRET_KEY",
+      "value": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+      "start": 661,
+      "end": 701,
+      "confidence_min": 0.94
+    },
+    {
+      "type": "AUTH_TOKEN",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb250ZXh0Ijoic2VhcmNoIiwiZXNjYXBlIjoiZmFsc2UifQ.js_escape_sig",
+      "start": 739,
+      "end": 840,
+      "confidence_min": 0.88
+    },
+    {
+      "type": "DOMAIN",
+      "value": "search-svc.staging.local",
+      "start": 866,
+      "end": 890,
+      "confidence_min": 0.85
+    },
+    {
+      "type": "AUTH_TOKEN",
+      "value": "ya29.a0AfH6SMCw_SearchService_token",
+      "start": 921,
+      "end": 956,
+      "confidence_min": 0.87
+    },
+    {
+      "type": "IP_ADDRESS",
+      "value": "10.99.99.99",
+      "start": 969,
+      "end": 980,
+      "confidence_min": 0.91
+    },
+    {
+      "type": "API_KEY",
+      "value": "sk_sk_test_SYNTHETIC_ONLY_00001_SearchContextKey_example",
+      "start": 997,
+      "end": 1029,
+      "confidence_min": 0.87
+    },
+    {
+      "type": "DOMAIN",
+      "value": "search-db.internal",
+      "start": 1051,
+      "end": 1069,
+      "confidence_min": 0.85
+    }
+  ],
+  "expected_redacted_text": "XSS - JavaScript Context Escaping Bypass\n\nXSS vulnerability in /search?q= parameter reflected in JavaScript context.\nApplication escapes HTML entities but fails to properly escape JavaScript context.\n\nVulnerable code in search.js line 78:\n  <script>\n    var searchQuery = \"<?php echo htmlspecialchars($_GET['q']); ?>\";\n    document.getElementById('results').textContent = searchQuery;\n  </script>\n\nBypass payload: \\\"; alert('XSS'); //\"\n\nAttack chain discovered during testing:\nSecurity researcher: [EMAIL_ADDRESS]\nResearch backup: [EMAIL_ADDRESS]\nAWS credentials found in search logs: [AWS_ACCESS_KEY]\nSession secret for search context: [AWS_SECRET_KEY]\nIntercepted JWT with search context: [AUTH_TOKEN]\nSearch service endpoint: [DOMAIN]\nGCP token for search service: [AUTH_TOKEN]\nTesting IP: [IP_ADDRESS]\nSearch API key: [API_KEY]\nDatabase for search: [DOMAIN]\n",
+  "adversarial_notes": "JavaScript context escaping bypass with search service tokens containing explicit 'escape:false' claims. 10 entities testing Presidio with web application search functionality credentials and context-specific JWT claims."
+}

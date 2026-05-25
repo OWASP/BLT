@@ -1,0 +1,80 @@
+{
+  "id": "synthetic_014",
+  "source": "synthetic",
+  "category": "auth_bypass",
+  "raw_text": "JWT Token Manipulation - Authentication Bypass\n\nCritical vulnerability: Application does not verify JWT signature with correct key.\nAttacker can forge JWT tokens with arbitrary claims.\n\nVulnerable code in middleware.py:\n  import jwt\n  jwt.decode(token, options={\"verify_signature\": False})  # CRITICAL!\n\nExploitation:\nOriginal legitimate token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyIiwicm9sZSI6InVzZXIifQ.legit_signature\nForged admin token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiJ9.forged\n\nSecurity testing exposed:\n- Admin account: admin.security@acmecorp.com\n- Test account: testuser.acme@gmail.com\n- AWS key used in testing: AKIAIOSFODNN7EXAMPLE\n- JWT signing secret leaked: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY\n- Internal auth service: jwt-signer.staging.local\n- GCP validation token: ya29.a0AfH6SMCw_JWTValidation_token\n- Testing IP: 172.20.0.50\n- Monitoring API key: sk_sk_test_SYNTHETIC_ONLY_00001_JWTMonitoring_key\n",
+  "expected_entities": [
+    {
+      "type": "AUTH_TOKEN",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyIiwicm9sZSI6InVzZXIifQ.legit_signature",
+      "start": 345,
+      "end": 436,
+      "confidence_min": 0.88
+    },
+    {
+      "type": "AUTH_TOKEN",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsInJvbGUiOiJhZG1pbiJ9.forged",
+      "start": 457,
+      "end": 541,
+      "confidence_min": 0.87
+    },
+    {
+      "type": "EMAIL_ADDRESS",
+      "value": "admin.security@acmecorp.com",
+      "start": 586,
+      "end": 613,
+      "confidence_min": 0.92
+    },
+    {
+      "type": "EMAIL_ADDRESS",
+      "value": "testuser.acme@gmail.com",
+      "start": 630,
+      "end": 653,
+      "confidence_min": 0.93
+    },
+    {
+      "type": "AWS_ACCESS_KEY",
+      "value": "AKIAIOSFODNN7EXAMPLE",
+      "start": 681,
+      "end": 701,
+      "confidence_min": 0.95
+    },
+    {
+      "type": "AWS_SECRET_KEY",
+      "value": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+      "start": 731,
+      "end": 771,
+      "confidence_min": 0.94
+    },
+    {
+      "type": "DOMAIN",
+      "value": "jwt-signer.staging.local",
+      "start": 797,
+      "end": 821,
+      "confidence_min": 0.85
+    },
+    {
+      "type": "AUTH_TOKEN",
+      "value": "ya29.a0AfH6SMCw_JWTValidation_token",
+      "start": 846,
+      "end": 881,
+      "confidence_min": 0.87
+    },
+    {
+      "type": "IP_ADDRESS",
+      "value": "172.20.0.50",
+      "start": 896,
+      "end": 907,
+      "confidence_min": 0.91
+    },
+    {
+      "type": "API_KEY",
+      "value": "sk_sk_test_SYNTHETIC_ONLY_00001_JWTMonitoring_key",
+      "start": 930,
+      "end": 955,
+      "confidence_min": 0.87
+    }
+  ],
+  "expected_redacted_text": "JWT Token Manipulation - Authentication Bypass\n\nCritical vulnerability: Application does not verify JWT signature with correct key.\nAttacker can forge JWT tokens with arbitrary claims.\n\nVulnerable code in middleware.py:\n  import jwt\n  jwt.decode(token, options={\"verify_signature\": False})  # CRITICAL!\n\nExploitation:\nOriginal legitimate token: [AUTH_TOKEN]\nForged admin token: [AUTH_TOKEN]\n\nSecurity testing exposed:\n- Admin account: [EMAIL_ADDRESS]\n- Test account: [EMAIL_ADDRESS]\n- AWS key used in testing: [AWS_ACCESS_KEY]\n- JWT signing secret leaked: [AWS_SECRET_KEY]\n- Internal auth service: [DOMAIN]\n- GCP validation token: [AUTH_TOKEN]\n- Testing IP: [IP_ADDRESS]\n- Monitoring API key: [API_KEY]\n",
+  "adversarial_notes": "JWT manipulation with forged tokens and secret exposure. 10 entities including both legitimate and forged JWT tokens, AWS credentials used for signing, and RFC3927 private IP range (172.16.0.0/12). Tests Presidio with multiple token variants."
+}

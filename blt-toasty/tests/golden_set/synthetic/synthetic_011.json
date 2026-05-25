@@ -1,0 +1,73 @@
+{
+  "id": "synthetic_011",
+  "source": "synthetic",
+  "category": "idor",
+  "raw_text": "IDOR via API Parameter Tampering - Invoice Access\n\nIDOR vulnerability in /api/invoices/{invoice_id} endpoint.\nUser can modify invoice_id parameter to access other users' invoices.\n\nSuccessful exploitation demonstrated:\nOriginal request: GET /api/invoices/1001\nTampered request: GET /api/invoices/1002 (different user's invoice)\nResponse: 200 OK with another user's financial data\n\nExposed customer information:\nCustomer email: customer.john@acmecorp.com\nBilling email: billing@gmail.com\nAWS account ID pattern: AKIAIOSFODNN7EXAMPLE\nInternal API endpoint: billing-api.staging.local\nTesting performed from: 192.168.50.100\nCaptured authentication: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjdXN0b21lciIsImludm9pY2VfaWQiOjEwMDJ9.xyz123abc\nGCP service account: ya29.a0AfH6SMCw_BillingServiceAccount_example\nAPI gateway key: sk_sk_test_SYNTHETIC_ONLY_00001_BillingGatewayKey_123456789\nDatabase host: invoice-db.internal\n",
+  "expected_entities": [
+    {
+      "type": "EMAIL_ADDRESS",
+      "value": "customer.john@acmecorp.com",
+      "start": 427,
+      "end": 453,
+      "confidence_min": 0.93
+    },
+    {
+      "type": "EMAIL_ADDRESS",
+      "value": "billing@gmail.com",
+      "start": 469,
+      "end": 486,
+      "confidence_min": 0.93
+    },
+    {
+      "type": "AWS_ACCESS_KEY",
+      "value": "AKIAIOSFODNN7EXAMPLE",
+      "start": 511,
+      "end": 531,
+      "confidence_min": 0.95
+    },
+    {
+      "type": "DOMAIN",
+      "value": "billing-api.staging.local",
+      "start": 555,
+      "end": 580,
+      "confidence_min": 0.85
+    },
+    {
+      "type": "IP_ADDRESS",
+      "value": "192.168.50.100",
+      "start": 605,
+      "end": 619,
+      "confidence_min": 0.9
+    },
+    {
+      "type": "AUTH_TOKEN",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjdXN0b21lciIsImludm9pY2VfaWQiOjEwMDJ9.xyz123abc",
+      "start": 645,
+      "end": 740,
+      "confidence_min": 0.88
+    },
+    {
+      "type": "AUTH_TOKEN",
+      "value": "ya29.a0AfH6SMCw_BillingServiceAccount_example",
+      "start": 762,
+      "end": 807,
+      "confidence_min": 0.87
+    },
+    {
+      "type": "API_KEY",
+      "value": "sk_sk_test_SYNTHETIC_ONLY_00001_BillingGatewayKey_123456789",
+      "start": 825,
+      "end": 860,
+      "confidence_min": 0.87
+    },
+    {
+      "type": "DOMAIN",
+      "value": "invoice-db.internal",
+      "start": 876,
+      "end": 895,
+      "confidence_min": 0.85
+    }
+  ],
+  "expected_redacted_text": "IDOR via API Parameter Tampering - Invoice Access\n\nIDOR vulnerability in /api/invoices/{invoice_id} endpoint.\nUser can modify invoice_id parameter to access other users' invoices.\n\nSuccessful exploitation demonstrated:\nOriginal request: GET /api/invoices/1001\nTampered request: GET /api/invoices/1002 (different user's invoice)\nResponse: 200 OK with another user's financial data\n\nExposed customer information:\nCustomer email: [EMAIL_ADDRESS]\nBilling email: [EMAIL_ADDRESS]\nAWS account ID pattern: [AWS_ACCESS_KEY]\nInternal API endpoint: [DOMAIN]\nTesting performed from: [IP_ADDRESS]\nCaptured authentication: [AUTH_TOKEN]\nGCP service account: [AUTH_TOKEN]\nAPI gateway key: [API_KEY]\nDatabase host: [DOMAIN]\n",
+  "adversarial_notes": "IDOR parameter tampering with financial data exposure. 9 entities including customer emails, API keys for billing services, and JWT tokens with customer-specific claims. Tests Presidio with financial domain credentials."
+}

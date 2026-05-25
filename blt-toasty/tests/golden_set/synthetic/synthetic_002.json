@@ -1,0 +1,52 @@
+{
+  "id": "synthetic_002",
+  "source": "synthetic",
+  "category": "sqli",
+  "raw_text": "SQL Injection - Blind Time-based Attack Report\n\nDiscovered blind SQL injection vulnerability in user search endpoint (POST /api/search).\nThe backend constructs dynamic queries without parameterized statements.\n\nVulnerable code pattern found in database.py line 234:\n    query = \"SELECT * FROM users WHERE username = '\" + user_input + \"'\"\n\nAttack payload used during testing:\n    admin' AND (SELECT * FROM (SELECT(SLEEP(5)))a)--\n\nThe payload is intentionally split across lines in raw SQL to evade basic filters:\n    SELECT\n    * FROM users WHERE 1=1 AND SLEEP(5)\n\nTester credentials logged:\nAWS Secret: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY\nGCP Service Token: ya29.a0AfH6SMBx_ZmZZ_bPxRfiCYEXAMPLE_example\nTest user email: dev.breach@gmail.com\nAdmin API Key: SG.7Fv_2cyzQOyLBYPy_EXAMPLE\nInternal database host: db-prod.internal\nTesting IP used: 10.0.0.5\n",
+  "expected_entities": [
+    {
+      "type": "AWS_SECRET_KEY",
+      "value": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+      "start": 603,
+      "end": 643,
+      "confidence_min": 0.94
+    },
+    {
+      "type": "AUTH_TOKEN",
+      "value": "ya29.a0AfH6SMBx_ZmZZ_bPxRfiCYEXAMPLE_example",
+      "start": 663,
+      "end": 707,
+      "confidence_min": 0.89
+    },
+    {
+      "type": "EMAIL_ADDRESS",
+      "value": "dev.breach@gmail.com",
+      "start": 725,
+      "end": 745,
+      "confidence_min": 0.93
+    },
+    {
+      "type": "API_KEY",
+      "value": "SG.7Fv_2cyzQOyLBYPy_EXAMPLE",
+      "start": 761,
+      "end": 788,
+      "confidence_min": 0.87
+    },
+    {
+      "type": "DOMAIN",
+      "value": "db-prod.internal",
+      "start": 813,
+      "end": 829,
+      "confidence_min": 0.86
+    },
+    {
+      "type": "IP_ADDRESS",
+      "value": "10.0.0.5",
+      "start": 847,
+      "end": 855,
+      "confidence_min": 0.91
+    }
+  ],
+  "expected_redacted_text": "SQL Injection - Blind Time-based Attack Report\n\nDiscovered blind SQL injection vulnerability in user search endpoint (POST /api/search).\nThe backend constructs dynamic queries without parameterized statements.\n\nVulnerable code pattern found in database.py line 234:\n    query = \"SELECT * FROM users WHERE username = '\" + user_input + \"'\"\n\nAttack payload used during testing:\n    admin' AND (SELECT * FROM (SELECT(SLEEP(5)))a)--\n\nThe payload is intentionally split across lines in raw SQL to evade basic filters:\n    SELECT\n    * FROM users WHERE 1=1 AND SLEEP(5)\n\nTester credentials logged:\nAWS Secret: [AWS_SECRET_KEY]\nGCP Service Token: [AUTH_TOKEN]\nTest user email: [EMAIL_ADDRESS]\nAdmin API Key: [API_KEY]\nInternal database host: [DOMAIN]\nTesting IP used: [IP_ADDRESS]\n",
+  "adversarial_notes": "SQL injection with time-based blind attack. SQL keywords intentionally split across lines to test parsing robustness. 6 PII entities injected including AWS credentials, GCP token, email, API key, hostname and IP. Tests Presidio's handling of credentials within multi-line SQL contexts."
+}

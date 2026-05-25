@@ -1,0 +1,45 @@
+{
+  "id": "synthetic_001",
+  "source": "synthetic",
+  "category": "xss",
+  "raw_text": "Vulnerability Report: Stored XSS via Comment Field\n\nA reflected XSS vulnerability was discovered in the comment field handler (versions < 2.4.1).\nThe application fails to properly sanitize user-supplied comment text.\n\nAttack Vector: User submitted comment containing Base64-encoded JavaScript payload.\nEncoded payload (base64): PHNjcmlwdD5hbGVydCgnSEFDS0VEJyk8L3NjcmlwdD4=\n\nDuring security testing, analyst credentials were captured:\n- AWS Access Key: AKIAIOSFODNN7EXAMPLE\n- Email contact: security.audit@acmecorp.com\n- JWT token for authenticated session: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsImlhdCI6MTUxNjIzOTAyMn0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c\n\nThe vulnerability allows arbitrary script execution when the comment is displayed to other users.\nAffected endpoint: /api/v1/comments/create\nTested via IP 192.168.1.42 from staging environment.\n\nInternal testing performed from api-gateway.staging.local to confirm persistence.\n",
+  "expected_entities": [
+    {
+      "type": "AWS_ACCESS_KEY",
+      "value": "AKIAIOSFODNN7EXAMPLE",
+      "start": 452,
+      "end": 472,
+      "confidence_min": 0.95
+    },
+    {
+      "type": "EMAIL_ADDRESS",
+      "value": "security.audit@acmecorp.com",
+      "start": 490,
+      "end": 517,
+      "confidence_min": 0.92
+    },
+    {
+      "type": "AUTH_TOKEN",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsImlhdCI6MTUxNjIzOTAyMn0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
+      "start": 557,
+      "end": 681,
+      "confidence_min": 0.88
+    },
+    {
+      "type": "IP_ADDRESS",
+      "value": "192.168.1.42",
+      "start": 838,
+      "end": 850,
+      "confidence_min": 0.9
+    },
+    {
+      "type": "DOMAIN",
+      "value": "api-gateway.staging.local",
+      "start": 910,
+      "end": 935,
+      "confidence_min": 0.85
+    }
+  ],
+  "expected_redacted_text": "Vulnerability Report: Stored XSS via Comment Field\n\nA reflected XSS vulnerability was discovered in the comment field handler (versions < 2.4.1).\nThe application fails to properly sanitize user-supplied comment text.\n\nAttack Vector: User submitted comment containing Base64-encoded JavaScript payload.\nEncoded payload (base64): PHNjcmlwdD5hbGVydCgnSEFDS0VEJyk8L3NjcmlwdD4=\n\nDuring security testing, analyst credentials were captured:\n- AWS Access Key: [AWS_ACCESS_KEY]\n- Email contact: [EMAIL_ADDRESS]\n- JWT token for authenticated session: [AUTH_TOKEN]\n\nThe vulnerability allows arbitrary script execution when the comment is displayed to other users.\nAffected endpoint: /api/v1/comments/create\nTested via IP [IP_ADDRESS] from staging environment.\n\nInternal testing performed from [DOMAIN] to confirm persistence.\n",
+  "adversarial_notes": "Base64-encoded XSS payload to test Presidio detection of encoded malicious content. High PII density with AWS credentials, JWT token, email, IP and hostname naturally embedded in vulnerability narrative. Tests edge case of multi-line text with mixed credential formats."
+}

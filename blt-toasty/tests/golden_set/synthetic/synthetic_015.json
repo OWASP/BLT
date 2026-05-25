@@ -1,0 +1,73 @@
+{
+  "id": "synthetic_015",
+  "source": "synthetic",
+  "category": "idor",
+  "raw_text": "IDOR - Numeric ID Manipulation with Edge Cases\n\nVulnerability allows direct object reference via numeric IDs in API endpoints.\nEndpoint: GET /api/v3/resource/{id}\n\nAccess control bypass:\n- User ID 1001 can access /api/v3/resource/1002 (another user's data)\n- IDs follow sequential pattern: 1001, 1002, 1003, etc.\n\nEdge case testing revealed:\n- Access to ID 0: Root admin data exposed\n- Access to ID -1: Negative IDs bypass filters\n- Access to ID 99999999: Large IDs not validated\n\nLeaked user data:\nEmail contact: research.dept@acmecorp.com\nSecondary email: backup.research@gmail.com\nAWS credentials pattern: AKIAIOSFODNN7EXAMPLE\nJWT token with ID claim: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMDAxIiwiaWQiOjEwMDJ9.token_signature\nGCP service token: ya29.a0AfH6SMCw_NumericIDToken_example\nInternal database: research-db.staging.local\nTesting IP: 10.200.0.25\nQuery API key: sk_sk_test_SYNTHETIC_ONLY_00001_ResearchQueryKey_example\nDatabase password partial: admin:SecureDb789@prod-db.internal\n",
+  "expected_entities": [
+    {
+      "type": "EMAIL_ADDRESS",
+      "value": "research.dept@acmecorp.com",
+      "start": 514,
+      "end": 540,
+      "confidence_min": 0.92
+    },
+    {
+      "type": "EMAIL_ADDRESS",
+      "value": "backup.research@gmail.com",
+      "start": 558,
+      "end": 583,
+      "confidence_min": 0.93
+    },
+    {
+      "type": "AWS_ACCESS_KEY",
+      "value": "AKIAIOSFODNN7EXAMPLE",
+      "start": 609,
+      "end": 629,
+      "confidence_min": 0.95
+    },
+    {
+      "type": "AUTH_TOKEN",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMDAxIiwiaWQiOjEwMDJ9.token_signature",
+      "start": 655,
+      "end": 740,
+      "confidence_min": 0.88
+    },
+    {
+      "type": "AUTH_TOKEN",
+      "value": "ya29.a0AfH6SMCw_NumericIDToken_example",
+      "start": 760,
+      "end": 798,
+      "confidence_min": 0.87
+    },
+    {
+      "type": "DOMAIN",
+      "value": "research-db.staging.local",
+      "start": 818,
+      "end": 843,
+      "confidence_min": 0.85
+    },
+    {
+      "type": "IP_ADDRESS",
+      "value": "10.200.0.25",
+      "start": 856,
+      "end": 867,
+      "confidence_min": 0.91
+    },
+    {
+      "type": "API_KEY",
+      "value": "sk_sk_test_SYNTHETIC_ONLY_00001_ResearchQueryKey_example",
+      "start": 883,
+      "end": 915,
+      "confidence_min": 0.87
+    },
+    {
+      "type": "DB_CONNECTION",
+      "value": "admin:SecureDb789@prod-db.internal",
+      "start": 943,
+      "end": 977,
+      "confidence_min": 0.85
+    }
+  ],
+  "expected_redacted_text": "IDOR - Numeric ID Manipulation with Edge Cases\n\nVulnerability allows direct object reference via numeric IDs in API endpoints.\nEndpoint: GET /api/v3/resource/{id}\n\nAccess control bypass:\n- User ID 1001 can access /api/v3/resource/1002 (another user's data)\n- IDs follow sequential pattern: 1001, 1002, 1003, etc.\n\nEdge case testing revealed:\n- Access to ID 0: Root admin data exposed\n- Access to ID -1: Negative IDs bypass filters\n- Access to ID 99999999: Large IDs not validated\n\nLeaked user data:\nEmail contact: [EMAIL_ADDRESS]\nSecondary email: [EMAIL_ADDRESS]\nAWS credentials pattern: [AWS_ACCESS_KEY]\nJWT token with ID claim: [AUTH_TOKEN]\nGCP service token: [AUTH_TOKEN]\nInternal database: [DOMAIN]\nTesting IP: [IP_ADDRESS]\nQuery API key: [API_KEY]\nDatabase password partial: [DB_CONNECTION]\n",
+  "adversarial_notes": "IDOR with numeric ID edge cases that test Presidio's ability to distinguish between numeric IDs (1001, 1002, 0, -1, 99999999) and actual PII patterns. 9 entities with partial DB credentials that must be carefully matched."
+}

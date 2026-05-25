@@ -1,0 +1,87 @@
+{
+  "id": "synthetic_020",
+  "source": "synthetic",
+  "category": "info_disclosure",
+  "raw_text": "Information Disclosure - Environment Configuration Leakage\n\nDebug endpoint /api/debug/config exposed sensitive configuration in production.\nEndpoint returns full environment variables and system configuration.\n\nLeaked configuration data:\nDATABASE_URL=postgresql://proddb:SecurePass789@prod-db.internal:5432/app\nAWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE\nAWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY\nSTRIPE_API_KEY=sk_sk_test_SYNTHETIC_ONLY_00001_51100000000000000000000000\nGCP_SERVICE_ACCOUNT_TOKEN=ya29.a0AfH6SMCw_FullGCPServiceToken_example\n\nContact information exposed in config:\nPRIMARY_EMAIL=ops.primary@acmecorp.com\nBACKUP_EMAIL=ops.backup@gmail.com\n\nCode sample from config dump (with email-like patterns that are NOT actual emails):\n// Sample code: notanemail@localhost.test, user_obj@undefined, \n// callback_handler@null are NOT real emails but similar patterns\n\nAdmin JWT for access: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbnYiOiJwcm9kIiwiZGVidWciOiJ0cnVlIn0.debug_access\nInternal configuration service: config-mgmt.staging.local\nTesting IP: 192.168.200.100\nConfiguration API key: sk_sk_test_SYNTHETIC_ONLY_00001_ConfigurationManagement_key\n",
+  "expected_entities": [
+    {
+      "type": "DB_CONNECTION",
+      "value": "postgresql://proddb:SecurePass789@prod-db.internal:5432/app",
+      "start": 251,
+      "end": 310,
+      "confidence_min": 0.9
+    },
+    {
+      "type": "AWS_ACCESS_KEY",
+      "value": "AKIAIOSFODNN7EXAMPLE",
+      "start": 329,
+      "end": 349,
+      "confidence_min": 0.95
+    },
+    {
+      "type": "AWS_SECRET_KEY",
+      "value": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+      "start": 372,
+      "end": 412,
+      "confidence_min": 0.94
+    },
+    {
+      "type": "API_KEY",
+      "value": "sk_sk_test_SYNTHETIC_ONLY_00001_51100000000000000000000000",
+      "start": 428,
+      "end": 462,
+      "confidence_min": 0.88
+    },
+    {
+      "type": "AUTH_TOKEN",
+      "value": "ya29.a0AfH6SMCw_FullGCPServiceToken_example",
+      "start": 489,
+      "end": 532,
+      "confidence_min": 0.87
+    },
+    {
+      "type": "EMAIL_ADDRESS",
+      "value": "ops.primary@acmecorp.com",
+      "start": 587,
+      "end": 611,
+      "confidence_min": 0.92
+    },
+    {
+      "type": "EMAIL_ADDRESS",
+      "value": "ops.backup@gmail.com",
+      "start": 625,
+      "end": 645,
+      "confidence_min": 0.93
+    },
+    {
+      "type": "AUTH_TOKEN",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbnYiOiJwcm9kIiwiZGVidWciOiJ0cnVlIn0.debug_access",
+      "start": 884,
+      "end": 973,
+      "confidence_min": 0.88
+    },
+    {
+      "type": "DOMAIN",
+      "value": "config-mgmt.staging.local",
+      "start": 1006,
+      "end": 1031,
+      "confidence_min": 0.85
+    },
+    {
+      "type": "IP_ADDRESS",
+      "value": "192.168.200.100",
+      "start": 1044,
+      "end": 1059,
+      "confidence_min": 0.9
+    },
+    {
+      "type": "API_KEY",
+      "value": "sk_sk_test_SYNTHETIC_ONLY_00001_ConfigurationManagement_key",
+      "start": 1083,
+      "end": 1118,
+      "confidence_min": 0.87
+    }
+  ],
+  "expected_redacted_text": "Information Disclosure - Environment Configuration Leakage\n\nDebug endpoint /api/debug/config exposed sensitive configuration in production.\nEndpoint returns full environment variables and system configuration.\n\nLeaked configuration data:\nDATABASE_URL=[DB_CONNECTION]\nAWS_ACCESS_KEY_ID=[AWS_ACCESS_KEY]\nAWS_SECRET_ACCESS_KEY=[AWS_SECRET_KEY]\nSTRIPE_API_KEY=[API_KEY]\nGCP_SERVICE_ACCOUNT_TOKEN=[AUTH_TOKEN]\n\nContact information exposed in config:\nPRIMARY_EMAIL=[EMAIL_ADDRESS]\nBACKUP_EMAIL=[EMAIL_ADDRESS]\n\nCode sample from config dump (with email-like patterns that are NOT actual emails):\n// Sample code: notanemail@localhost.test, user_obj@undefined, \n// callback_handler@null are NOT real emails but similar patterns\n\nAdmin JWT for access: [AUTH_TOKEN]\nInternal configuration service: [DOMAIN]\nTesting IP: [IP_ADDRESS]\nConfiguration API key: [API_KEY]\n",
+  "adversarial_notes": "Configuration leakage with edge case email-like patterns in code samples (notanemail@localhost.test, user_obj@undefined) that should NOT be detected as email PII. 11 entities testing Presidio's discrimination between legitimate emails and code artifacts."
+}

@@ -1,0 +1,73 @@
+{
+  "id": "synthetic_016",
+  "source": "synthetic",
+  "category": "insecure_deserialization",
+  "raw_text": "Insecure Deserialization - Python Pickle Gadget Chain RCE\n\nCritical insecure deserialization in /api/serialize endpoint.\nApplication deserializes untrusted user input using pickle.loads().\n\nVulnerable code in serializer.py:\n  import pickle\n  data = pickle.loads(user_input)  # DANGEROUS!\n\nProof of Concept gadget chain:\nObject base64: KGRwMApTJ29zJwpwMQooUycuamRpcgovL3NoL2Jhc2gnCnAyClZvcwpwMwpwNApS...\n\nExploitation details captured:\nTeam contact: security.team@acmecorp.com\nDev account: developer.test@gmail.com\nAWS credentials found in pickle object: AKIAIOSFODNN7EXAMPLE\nSecret key from deserialization: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY\nIntercepted JWT: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzZXJpYWxpemF0aW9uIjoidW5zYWZlIn0.pickle_gadget_sig\nInternal service for deserialization: serializer-svc.staging.local\nGCP token found in payload: ya29.a0AfH6SMCw_PickleGadgetToken_example\nTesting from IP: 10.30.30.30\nAPI key for deserialization service: sk_sk_test_SYNTHETIC_ONLY_00001_DeserializationKey_example\n",
+  "expected_entities": [
+    {
+      "type": "EMAIL_ADDRESS",
+      "value": "security.team@acmecorp.com",
+      "start": 449,
+      "end": 475,
+      "confidence_min": 0.92
+    },
+    {
+      "type": "EMAIL_ADDRESS",
+      "value": "developer.test@gmail.com",
+      "start": 489,
+      "end": 513,
+      "confidence_min": 0.93
+    },
+    {
+      "type": "AWS_ACCESS_KEY",
+      "value": "AKIAIOSFODNN7EXAMPLE",
+      "start": 554,
+      "end": 574,
+      "confidence_min": 0.95
+    },
+    {
+      "type": "AWS_SECRET_KEY",
+      "value": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+      "start": 608,
+      "end": 648,
+      "confidence_min": 0.94
+    },
+    {
+      "type": "AUTH_TOKEN",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzZXJpYWxpemF0aW9uIjoidW5zYWZlIn0.pickle_gadget_sig",
+      "start": 666,
+      "end": 756,
+      "confidence_min": 0.88
+    },
+    {
+      "type": "DOMAIN",
+      "value": "serializer-svc.staging.local",
+      "start": 795,
+      "end": 823,
+      "confidence_min": 0.85
+    },
+    {
+      "type": "AUTH_TOKEN",
+      "value": "ya29.a0AfH6SMCw_PickleGadgetToken_example",
+      "start": 852,
+      "end": 893,
+      "confidence_min": 0.87
+    },
+    {
+      "type": "IP_ADDRESS",
+      "value": "10.30.30.30",
+      "start": 911,
+      "end": 922,
+      "confidence_min": 0.91
+    },
+    {
+      "type": "API_KEY",
+      "value": "sk_sk_test_SYNTHETIC_ONLY_00001_DeserializationKey_example",
+      "start": 960,
+      "end": 994,
+      "confidence_min": 0.87
+    }
+  ],
+  "expected_redacted_text": "Insecure Deserialization - Python Pickle Gadget Chain RCE\n\nCritical insecure deserialization in /api/serialize endpoint.\nApplication deserializes untrusted user input using pickle.loads().\n\nVulnerable code in serializer.py:\n  import pickle\n  data = pickle.loads(user_input)  # DANGEROUS!\n\nProof of Concept gadget chain:\nObject base64: KGRwMApTJ29zJwpwMQooUycuamRpcgovL3NoL2Jhc2gnCnAyClZvcwpwMwpwNApS...\n\nExploitation details captured:\nTeam contact: [EMAIL_ADDRESS]\nDev account: [EMAIL_ADDRESS]\nAWS credentials found in pickle object: [AWS_ACCESS_KEY]\nSecret key from deserialization: [AWS_SECRET_KEY]\nIntercepted JWT: [AUTH_TOKEN]\nInternal service for deserialization: [DOMAIN]\nGCP token found in payload: [AUTH_TOKEN]\nTesting from IP: [IP_ADDRESS]\nAPI key for deserialization service: [API_KEY]\n",
+  "adversarial_notes": "Insecure deserialization with Python pickle gadget chain. 9 entities including base64-encoded payload reference, AWS credentials, and serialization-specific JWT claims. Tests Presidio with code serialization attack patterns."
+}

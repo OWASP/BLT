@@ -1,0 +1,80 @@
+{
+  "id": "synthetic_010",
+  "source": "synthetic",
+  "category": "info_disclosure",
+  "raw_text": "Information Disclosure - Configuration File Exposure\n\nSensitive configuration file exposed via /api/system/config endpoint.\nReturns JSON containing database credentials, API keys, and internal hostnames.\n\nExposed configuration (with escaped quotes in JSON):\n{\n  \"database\": \"postgresql://dbuser:\"SecurePass789\"@db.internal:5432/prod\",\n  \"api_key\": \"sk_sk_test_SYNTHETIC_ONLY_00001_51000000000000000000000000\",\n  \"admin_email\": \"admin@acmecorp.com\",\n  \"internal_api\": \"https://api-internal.staging.local\",\n  \"aws_key_id\": \"AKIAIOSFODNN7EXAMPLE\",\n  \"jwt_signing_key\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\",\n  \"service_account_token\": \"ya29.a0AfH6SMCy_CompleteGCPToken_example\",\n  \"backup_server\": \"backup.internal.corp\"\n}\n\nTesting performed from 10.100.100.100\nAdditional sensitive header discovered: Authorization: Bearer SG.7Fv_2cyzQOyLBYPy_COMPLETE_EXAMPLE\n",
+  "expected_entities": [
+    {
+      "type": "DB_CONNECTION",
+      "value": "postgresql://dbuser:\"SecurePass789\"@db.internal:5432/prod",
+      "start": 275,
+      "end": 332,
+      "confidence_min": 0.9
+    },
+    {
+      "type": "API_KEY",
+      "value": "sk_sk_test_SYNTHETIC_ONLY_00001_51000000000000000000000000",
+      "start": 349,
+      "end": 383,
+      "confidence_min": 0.88
+    },
+    {
+      "type": "EMAIL_ADDRESS",
+      "value": "admin@acmecorp.com",
+      "start": 404,
+      "end": 422,
+      "confidence_min": 0.92
+    },
+    {
+      "type": "DOMAIN",
+      "value": "api-internal.staging.local",
+      "start": 452,
+      "end": 478,
+      "confidence_min": 0.85
+    },
+    {
+      "type": "AWS_ACCESS_KEY",
+      "value": "AKIAIOSFODNN7EXAMPLE",
+      "start": 498,
+      "end": 518,
+      "confidence_min": 0.95
+    },
+    {
+      "type": "AUTH_TOKEN",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9",
+      "start": 543,
+      "end": 579,
+      "confidence_min": 0.85
+    },
+    {
+      "type": "AUTH_TOKEN",
+      "value": "ya29.a0AfH6SMCy_CompleteGCPToken_example",
+      "start": 610,
+      "end": 650,
+      "confidence_min": 0.88
+    },
+    {
+      "type": "DOMAIN",
+      "value": "backup.internal.corp",
+      "start": 673,
+      "end": 693,
+      "confidence_min": 0.85
+    },
+    {
+      "type": "IP_ADDRESS",
+      "value": "10.100.100.100",
+      "start": 721,
+      "end": 735,
+      "confidence_min": 0.91
+    },
+    {
+      "type": "API_KEY",
+      "value": "SG.7Fv_2cyzQOyLBYPy_COMPLETE_EXAMPLE",
+      "start": 798,
+      "end": 834,
+      "confidence_min": 0.87
+    }
+  ],
+  "expected_redacted_text": "Information Disclosure - Configuration File Exposure\n\nSensitive configuration file exposed via /api/system/config endpoint.\nReturns JSON containing database credentials, API keys, and internal hostnames.\n\nExposed configuration (with escaped quotes in JSON):\n{\n  \"database\": \"[DB_CONNECTION]\",\n  \"api_key\": \"[API_KEY]\",\n  \"admin_email\": \"[EMAIL_ADDRESS]\",\n  \"internal_api\": \"https://[DOMAIN]\",\n  \"aws_key_id\": \"[AWS_ACCESS_KEY]\",\n  \"jwt_signing_key\": \"[AUTH_TOKEN]\",\n  \"service_account_token\": \"[AUTH_TOKEN]\",\n  \"backup_server\": \"[DOMAIN]\"\n}\n\nTesting performed from [IP_ADDRESS]\nAdditional sensitive header discovered: Authorization: Bearer [API_KEY]\n",
+  "adversarial_notes": "Configuration file exposure with JSON-formatted credentials. Escaped quotes in database connection string test Presidio's parsing robustness. 10 entities including partial JWT header, complete GCP token, and SendGrid API key patterns."
+}

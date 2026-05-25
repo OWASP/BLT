@@ -1,0 +1,87 @@
+{
+  "id": "synthetic_018",
+  "source": "synthetic",
+  "category": "info_disclosure",
+  "raw_text": "Information Disclosure - Source Code Repository Exposure\n\nGit repository accidentally exposed via /.git/ directory accessible to public.\nRepository contains sensitive configuration files and commit history.\n\nLeaked files found:\n- .env file with database credentials: postgresql://produser:SecurePass456@db-prod.internal:5432/production\n- AWS credentials in config.py: AKIAIOSFODNN7EXAMPLE / wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY\n- API keys in constants.py: sk_sk_test_SYNTHETIC_ONLY_00001_ProductionAPIKey_12345\n- GCP service account JSON: ya29.a0AfH6SMCw_ProductionServiceToken_example\n\nCommit history reveals:\n- Developer email: dev.engineer@acmecorp.com\n- Test account: tester@gmail.com\n- Admin contact: admin.ops@acmecorp.com\n- JWT token in debug commit: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb21taXQiOiJkZWJ1ZyIsInBhc3MiOiJ0ZW1wIn0.debug_token\n- Internal deployment service: ci-cd.staging.local\n- Testing from IP: 192.168.10.5\n",
+  "expected_entities": [
+    {
+      "type": "DB_CONNECTION",
+      "value": "postgresql://produser:SecurePass456@db-prod.internal:5432/production",
+      "start": 267,
+      "end": 335,
+      "confidence_min": 0.9
+    },
+    {
+      "type": "AWS_ACCESS_KEY",
+      "value": "AKIAIOSFODNN7EXAMPLE",
+      "start": 368,
+      "end": 388,
+      "confidence_min": 0.95
+    },
+    {
+      "type": "AWS_SECRET_KEY",
+      "value": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+      "start": 391,
+      "end": 431,
+      "confidence_min": 0.94
+    },
+    {
+      "type": "API_KEY",
+      "value": "sk_sk_test_SYNTHETIC_ONLY_00001_ProductionAPIKey_12345",
+      "start": 460,
+      "end": 490,
+      "confidence_min": 0.88
+    },
+    {
+      "type": "AUTH_TOKEN",
+      "value": "ya29.a0AfH6SMCw_ProductionServiceToken_example",
+      "start": 519,
+      "end": 565,
+      "confidence_min": 0.87
+    },
+    {
+      "type": "EMAIL_ADDRESS",
+      "value": "dev.engineer@acmecorp.com",
+      "start": 610,
+      "end": 635,
+      "confidence_min": 0.92
+    },
+    {
+      "type": "EMAIL_ADDRESS",
+      "value": "tester@gmail.com",
+      "start": 652,
+      "end": 668,
+      "confidence_min": 0.93
+    },
+    {
+      "type": "EMAIL_ADDRESS",
+      "value": "admin.ops@acmecorp.com",
+      "start": 686,
+      "end": 708,
+      "confidence_min": 0.92
+    },
+    {
+      "type": "AUTH_TOKEN",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb21taXQiOiJkZWJ1ZyIsInBhc3MiOiJ0ZW1wIn0.debug_token",
+      "start": 738,
+      "end": 830,
+      "confidence_min": 0.87
+    },
+    {
+      "type": "DOMAIN",
+      "value": "ci-cd.staging.local",
+      "start": 862,
+      "end": 881,
+      "confidence_min": 0.85
+    },
+    {
+      "type": "IP_ADDRESS",
+      "value": "192.168.10.5",
+      "start": 901,
+      "end": 913,
+      "confidence_min": 0.9
+    }
+  ],
+  "expected_redacted_text": "Information Disclosure - Source Code Repository Exposure\n\nGit repository accidentally exposed via /.git/ directory accessible to public.\nRepository contains sensitive configuration files and commit history.\n\nLeaked files found:\n- .env file with database credentials: [DB_CONNECTION]\n- AWS credentials in config.py: [AWS_ACCESS_KEY] / [AWS_SECRET_KEY]\n- API keys in constants.py: [API_KEY]\n- GCP service account JSON: [AUTH_TOKEN]\n\nCommit history reveals:\n- Developer email: [EMAIL_ADDRESS]\n- Test account: [EMAIL_ADDRESS]\n- Admin contact: [EMAIL_ADDRESS]\n- JWT token in debug commit: [AUTH_TOKEN]\n- Internal deployment service: [DOMAIN]\n- Testing from IP: [IP_ADDRESS]\n",
+  "adversarial_notes": "Git repository source code exposure with comprehensive credential dump. 11 entities including production database connection strings, complete AWS credentials pair, and debug JWT tokens in commit messages. Tests Presidio with development/CI-CD context."
+}

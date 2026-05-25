@@ -1,0 +1,80 @@
+{
+  "id": "synthetic_025",
+  "source": "synthetic",
+  "category": "sqli",
+  "raw_text": "SQL Injection - Comment-based ORM Bypass with Data Exfiltration\n\nAdvanced SQLi attack using SQL comment injection in ORM to bypass filters.\nApplication ORM filter uses string matching that fails with comment smuggling.\n\nVulnerable code in models.py line 156:\n  User.objects.filter(username = request.GET['user'] + \" -- \")\n  # Comment prematurely closes filter logic\n\nAttack payload: admin' --\nSubsequent query becomes: SELECT * FROM users WHERE username = 'admin' -- AND active = 1\n\nData exfiltration successful with:\nAdmin contact: admin.security@acmecorp.com\nSecurity team: security.team@gmail.com\nAWS credentials from user table: AKIAIOSFODNN7EXAMPLE\nUser secret manager key: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY\nExfiltration JWT: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleZmlsdHJhdGlvbiI6ImNvbW1lbnQiLCJkYXRhIjoiYWxsIn0.sqli_comment_sig\nORM service host: orm-svc.staging.local\nGCP data access token: ya29.a0AfH6SMCw_DataExfiltration_token\nTesting IP: 10.5.5.5\nData extraction API key: sk_sk_test_SYNTHETIC_ONLY_00001_DataExtractionKey_example\nExfiltration target database: exfil-db.internal\n",
+  "expected_entities": [
+    {
+      "type": "EMAIL_ADDRESS",
+      "value": "admin.security@acmecorp.com",
+      "start": 533,
+      "end": 560,
+      "confidence_min": 0.92
+    },
+    {
+      "type": "EMAIL_ADDRESS",
+      "value": "security.team@gmail.com",
+      "start": 576,
+      "end": 599,
+      "confidence_min": 0.93
+    },
+    {
+      "type": "AWS_ACCESS_KEY",
+      "value": "AKIAIOSFODNN7EXAMPLE",
+      "start": 633,
+      "end": 653,
+      "confidence_min": 0.95
+    },
+    {
+      "type": "AWS_SECRET_KEY",
+      "value": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+      "start": 679,
+      "end": 719,
+      "confidence_min": 0.94
+    },
+    {
+      "type": "AUTH_TOKEN",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleZmlsdHJhdGlvbiI6ImNvbW1lbnQiLCJkYXRhIjoiYWxsIn0.sqli_comment_sig",
+      "start": 738,
+      "end": 844,
+      "confidence_min": 0.88
+    },
+    {
+      "type": "DOMAIN",
+      "value": "orm-svc.staging.local",
+      "start": 863,
+      "end": 884,
+      "confidence_min": 0.85
+    },
+    {
+      "type": "AUTH_TOKEN",
+      "value": "ya29.a0AfH6SMCw_DataExfiltration_token",
+      "start": 908,
+      "end": 946,
+      "confidence_min": 0.87
+    },
+    {
+      "type": "IP_ADDRESS",
+      "value": "10.5.5.5",
+      "start": 959,
+      "end": 967,
+      "confidence_min": 0.91
+    },
+    {
+      "type": "API_KEY",
+      "value": "sk_sk_test_SYNTHETIC_ONLY_00001_DataExtractionKey_example",
+      "start": 993,
+      "end": 1026,
+      "confidence_min": 0.87
+    },
+    {
+      "type": "DOMAIN",
+      "value": "exfil-db.internal",
+      "start": 1057,
+      "end": 1074,
+      "confidence_min": 0.85
+    }
+  ],
+  "expected_redacted_text": "SQL Injection - Comment-based ORM Bypass with Data Exfiltration\n\nAdvanced SQLi attack using SQL comment injection in ORM to bypass filters.\nApplication ORM filter uses string matching that fails with comment smuggling.\n\nVulnerable code in models.py line 156:\n  User.objects.filter(username = request.GET['user'] + \" -- \")\n  # Comment prematurely closes filter logic\n\nAttack payload: admin' --\nSubsequent query becomes: SELECT * FROM users WHERE username = 'admin' -- AND active = 1\n\nData exfiltration successful with:\nAdmin contact: [EMAIL_ADDRESS]\nSecurity team: [EMAIL_ADDRESS]\nAWS credentials from user table: [AWS_ACCESS_KEY]\nUser secret manager key: [AWS_SECRET_KEY]\nExfiltration JWT: [AUTH_TOKEN]\nORM service host: [DOMAIN]\nGCP data access token: [AUTH_TOKEN]\nTesting IP: [IP_ADDRESS]\nData extraction API key: [API_KEY]\nExfiltration target database: [DOMAIN]\n",
+  "adversarial_notes": "SQL injection with comment-based ORM bypass and data exfiltration chain. 10 entities including admin/security team emails, AWS credential pair for user database, and exfiltration-specific JWT claims. Final comprehensive report combining multiple attack patterns."
+}

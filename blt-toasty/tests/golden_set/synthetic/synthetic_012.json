@@ -1,0 +1,80 @@
+{
+  "id": "synthetic_012",
+  "source": "synthetic",
+  "category": "ssrf",
+  "raw_text": "Server-Side Request Forgery - Internal Service Enumeration\n\nSSRF vulnerability in /api/proxy endpoint allows scanning internal network.\nApplication makes HTTP requests to arbitrary URLs without validation.\n\nAttack: Port scanning of internal services\nTargets scanned:\n- http://internal-jenkins.staging.local:8080\n- http://monitoring-prometheus.internal:9090\n- http://log-collector.internal:5000\n\nDiscovered running services with credentials:\nJenkins admin token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJqZW5raW5zLWFkbWluIiwidXNlciI6ImFkbWluIn0.signaturesample\nPrometheus scrape token: ya29.a0AfH6SMCw_PrometheusServiceToken_example\n\nAdministrative contact: ops-team@acmecorp.com\nAWS credentials found in Jenkins environment: AKIAIOSFODNN7EXAMPLE\nAPI key for service mesh: sk_sk_test_SYNTHETIC_ONLY_00001_ServiceMeshKey_example\n\nTesting from IP: 10.64.0.1\nDatabase connection discovered: postgresql://admin:DbAdminPass123@pg-internal:5432/logs\n",
+  "expected_entities": [
+    {
+      "type": "DOMAIN",
+      "value": "internal-jenkins.staging.local",
+      "start": 276,
+      "end": 306,
+      "confidence_min": 0.85
+    },
+    {
+      "type": "DOMAIN",
+      "value": "monitoring-prometheus.internal",
+      "start": 321,
+      "end": 351,
+      "confidence_min": 0.85
+    },
+    {
+      "type": "DOMAIN",
+      "value": "log-collector.internal",
+      "start": 366,
+      "end": 388,
+      "confidence_min": 0.85
+    },
+    {
+      "type": "AUTH_TOKEN",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJqZW5raW5zLWFkbWluIiwidXNlciI6ImFkbWluIn0.signaturesample",
+      "start": 462,
+      "end": 566,
+      "confidence_min": 0.88
+    },
+    {
+      "type": "AUTH_TOKEN",
+      "value": "ya29.a0AfH6SMCw_PrometheusServiceToken_example",
+      "start": 592,
+      "end": 638,
+      "confidence_min": 0.87
+    },
+    {
+      "type": "EMAIL_ADDRESS",
+      "value": "ops-team@acmecorp.com",
+      "start": 664,
+      "end": 685,
+      "confidence_min": 0.92
+    },
+    {
+      "type": "AWS_ACCESS_KEY",
+      "value": "AKIAIOSFODNN7EXAMPLE",
+      "start": 732,
+      "end": 752,
+      "confidence_min": 0.95
+    },
+    {
+      "type": "API_KEY",
+      "value": "sk_sk_test_SYNTHETIC_ONLY_00001_ServiceMeshKey_example",
+      "start": 779,
+      "end": 809,
+      "confidence_min": 0.87
+    },
+    {
+      "type": "IP_ADDRESS",
+      "value": "10.64.0.1",
+      "start": 828,
+      "end": 837,
+      "confidence_min": 0.91
+    },
+    {
+      "type": "DB_CONNECTION",
+      "value": "postgresql://admin:DbAdminPass123@pg-internal:5432/logs",
+      "start": 870,
+      "end": 925,
+      "confidence_min": 0.9
+    }
+  ],
+  "expected_redacted_text": "Server-Side Request Forgery - Internal Service Enumeration\n\nSSRF vulnerability in /api/proxy endpoint allows scanning internal network.\nApplication makes HTTP requests to arbitrary URLs without validation.\n\nAttack: Port scanning of internal services\nTargets scanned:\n- http://[DOMAIN]:8080\n- http://[DOMAIN]:9090\n- http://[DOMAIN]:5000\n\nDiscovered running services with credentials:\nJenkins admin token: [AUTH_TOKEN]\nPrometheus scrape token: [AUTH_TOKEN]\n\nAdministrative contact: [EMAIL_ADDRESS]\nAWS credentials found in Jenkins environment: [AWS_ACCESS_KEY]\nAPI key for service mesh: [API_KEY]\n\nTesting from IP: [IP_ADDRESS]\nDatabase connection discovered: [DB_CONNECTION]\n",
+  "adversarial_notes": "SSRF with internal service enumeration. 10 entities including multiple domain names for internal services, specialized JWT tokens (Jenkins), PostgreSQL connection strings, and Prometheus monitoring tokens. Tests Presidio with infrastructure monitoring patterns."
+}
