@@ -3,6 +3,7 @@ source "https://rubygems.org"
 gem "jekyll", "~> 4.3"
 gem "minima", "~> 2.5"
 gem "json", "< 2.19"
+gem "public_suffix", "< 7.0"
 
 group :jekyll_plugins do
   gem "jekyll-feed", "~> 0.12"
