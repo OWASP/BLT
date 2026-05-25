@@ -2,7 +2,7 @@
   "id": "synthetic_009",
   "source": "synthetic",
   "category": "csrf",
-  "raw_text": "Cross-Site Request Forgery (CSRF) - Password Reset Endpoint\n\nCSRF vulnerability in /user/change-password endpoint (POST).\nNo CSRF token validation implemented; only cookies used for authentication.\n\nAttack scenario:\n1. Attacker crafts malicious HTML form on external site\n2. Victim visits page while authenticated to vulnerable app\n3. Form submits to /user/change-password via browser cookies\n\nEndpoint tested:\nPOST /api/auth/password-reset\nContent-Type: application/x-www-form-urlencoded\nnew_password=attacker123\n\nAdmin account compromised during testing:\nEmail: admin@acmecorp.com\nBackup email: backup.admin@gmail.com\nJWT token used: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsImV4cCI6MTcxNjIzOTAyMn0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c\nAWS credentials in environment: AKIAIOSFODNN7EXAMPLE\nPassword reset API key: sk_sk_test_SYNTHETIC_ONLY_00001_APIKeyForPasswordReset12345\nAuthentication service: auth-svc.staging.local\nTesting from IP: 10.10.10.10\n",
+  "raw_text": "Cross-Site Request Forgery (CSRF) - Password Reset Endpoint\n\nCSRF vulnerability in /user/change-password endpoint (POST).\nNo CSRF token validation implemented; only cookies used for authentication.\n\nAttack scenario:\n1. Attacker crafts malicious HTML form on external site\n2. Victim visits page while authenticated to vulnerable app\n3. Form submits to /user/change-password via browser cookies\n\nEndpoint tested:\nPOST /api/auth/password-reset\nContent-Type: application/x-www-form-urlencoded\nnew_password=attacker123\n\nAdmin account compromised during testing:\nEmail: admin@acmecorp.com\nBackup email: backup.admin@gmail.com\nJWT token used: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbiIsImV4cCI6MTcxNjIzOTAyMn0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c\nAWS credentials in environment: AKIAIOSFODNN7EXAMPLE\nPassword reset API key: sk_live_4eC39HqLyjWDarhtTX7YEXAMPLE\nAuthentication service: auth-svc.staging.local\nTesting from IP: 10.10.10.10\n",
   "expected_entities": [
     {
       "type": "EMAIL_ADDRESS",
@@ -34,7 +34,7 @@
     },
     {
       "type": "API_KEY",
-      "value": "sk_sk_test_SYNTHETIC_ONLY_00001_APIKeyForPasswordReset12345",
+      "value": "sk_live_4eC39HqLyjWDarhtTX7YEXAMPLE",
       "start": 838,
       "end": 873,
       "confidence_min": 0.87
