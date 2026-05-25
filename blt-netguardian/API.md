@@ -140,6 +140,9 @@ Submit scan results from security scanning agents.
 }
 ```
 
+Legacy compatibility: when `results` is omitted, the worker also accepts top-level `findings`, `vulnerabilities`, and `metadata` fields.
+Timestamps are returned as ISO 8601 UTC strings. Current worker-generated values use an explicit UTC offset such as `+00:00`.
+
 **Response (200):**
 ```json
 {
