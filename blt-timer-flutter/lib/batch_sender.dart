@@ -56,14 +56,13 @@ class BatchSender {
       }).toList();
       await apiClient.post(endpoint, body: {'activities': payloads});
     } catch (e) {
-      // Re-add failed items to buffer for retry (with limit)
       final canRequeue = _buffer.length + batch.length <= maxBatchSize * 2;
       if (canRequeue) {
         _buffer.insertAll(0, batch);
+        onError?.call('Batch send failed, requeued ${batch.length} items: $e');
       } else {
         onError?.call('Batch dropped: buffer overflow. Lost ${batch.length} items. Error: $e');
       }
-      onError?.call(e.toString());
     } finally {
       _isSending = false;
       _flushCompleter?.complete();
@@ -71,19 +70,31 @@ class BatchSender {
     }
   }
 
+  void stop() {
+    _sendTimer?.cancel();
+    _sendTimer = null;
+  }
+
+  Future<void> flush() async {
+    if (_isDisposed || _isSending) return;
+    await _flush();
+  }
+
   Future<void> flushAndDispose() async {
     if (_isDisposed) return;
-    _isDisposed = true;
     _sendTimer?.cancel();
+    _sendTimer = null;
     await _flush();
+    _isDisposed = true;
   }
 
   Future<void> dispose() async {
     if (_isDisposed) return;
-    _isDisposed = true;
     _sendTimer?.cancel();
+    _sendTimer = null;
     if (_flushCompleter != null) {
       await _flushCompleter!.future;
     }
+    _isDisposed = true;
   }
 }

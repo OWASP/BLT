@@ -203,10 +203,23 @@ class ActivityService {
 
   void pause() {
     _isPaused = true;
+    _updateTimer?.cancel();
+    _updateTimer = null;
   }
 
   void resume() {
     _isPaused = false;
+    final data = _native.getActivityData();
+    _lastKeyCount = (data['keyCount'] as num?)?.toInt() ?? 0;
+    _lastMouseDistance = (data['mouseDistance'] as num?)?.toDouble() ?? 0.0;
+    _lastLeftClicks = (data['leftClicks'] as num?)?.toInt() ?? 0;
+    _lastRightClicks = (data['rightClicks'] as num?)?.toInt() ?? 0;
+    _lastScrollAmount = (data['scrollAmount'] as num?)?.toDouble() ?? 0.0;
+    _lastEnterCount = (data['enterCount'] as num?)?.toInt() ?? 0;
+
+    _updateTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      _updateActivity();
+    });
   }
 
   Future<void> dispose() async {

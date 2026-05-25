@@ -35,7 +35,8 @@ class TrackerIntegration {
     );
     _idleDetector = IdleDetector(
       onIdle: () {
-        _batchSender.flushAndDispose();
+        _batchSender.stop();
+        _batchSender.flush().ignore();
       },
       onActive: () {
         if (!_isDisposed && _sessionId != null) {
@@ -96,7 +97,7 @@ class TrackerIntegration {
     if (_sessionId == null) return;
 
     _idleDetector.stop();
-    await _batchSender.flushAndDispose();
+    await _batchSender.flush();
 
     try {
       await _apiClient.post('/api/sessions/end', body: {
