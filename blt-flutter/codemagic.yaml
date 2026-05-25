@@ -36,6 +36,12 @@ workflows:
 #         script: | 
 #           flutter test
 #         ignore_failure: true
+      - name: Copy Runner.entitlements to ios directory
+        script: |
+          cp Runner.entitlements ios/
+      - name: Set aps-environment entitlement in project.pbxproj
+        script: |
+          plutil -insert aps-environment -string development ios/Runner.xcodeproj/project.pbxproj
       - name: Flutter build ipa
         script: | 
           flutter build ipa --release \
