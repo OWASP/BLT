@@ -1,5 +1,5 @@
 import json
-import os
+from pathlib import Path
 
 from machine.clients.slack import SlackClient
 from machine.plugins.base import MachineBasePlugin
@@ -13,10 +13,7 @@ class ProjectPlugin(MachineBasePlugin):
         self, client: SlackClient, settings: CaseInsensitiveDict, storage: PluginStorage
     ):
         super().__init__(client, settings, storage)
-
-        # Construct the absolute path to repos.json
-        project_home = "/home/DonnieBLT/BLT-Lettuce"
-        data_path = os.path.join(project_home, "data", "projects.json")
+        data_path = Path(__file__).parents[3] / "data" / "projects.json"
         with open(data_path) as f:
             self.repo_data = json.load(f)
 
@@ -24,8 +21,7 @@ class ProjectPlugin(MachineBasePlugin):
     async def project(self, command):
         text = command.text.strip()
         project_name = text.strip().lower()
-
-        project = self.project_data.get(project_name)
+        project = self.repo_data.get(project_name)
 
         if project:
             project_list = "\n".join(project)
@@ -37,5 +33,4 @@ class ProjectPlugin(MachineBasePlugin):
                 f"Hello, the project '{project_name}' is not recognized. "
                 "Please try different query."
             )
-
         await command.say(message)
