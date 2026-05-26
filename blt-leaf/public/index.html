@@ -1007,6 +1007,8 @@
                 return escapeHtml(avatar);
             }
             return 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2220%22 height=%2220%22%3E%3Crect width=%2220%22 height=%2220%22 fill=%22%23E2E8F0%22/%3E%3C/svg%3E';
+        }
+
         function renderAuthControls() {
             const mobileEl = document.getElementById('authControlsMobile');
             const desktopEl = document.getElementById('authControlsDesktop');
@@ -1068,8 +1070,6 @@
                     await loadRateLimit(true);
                 });
             });
-        }
-
         }
 
         async function loadAuthState() {
