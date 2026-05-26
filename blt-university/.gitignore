@@ -7,7 +7,6 @@ _site/
 # Ruby
 vendor/bundle/
 .bundle/
-Gemfile.lock
 *.gem
 
 # macOS
