@@ -183,6 +183,7 @@ function updateDataSourceTabs() {
   document.querySelectorAll('.data-source-tab').forEach(tab => {
     const isActive = tab.dataset.source === currentDataSource;
     tab.setAttribute('aria-selected', String(isActive));
+    tab.setAttribute('aria-current', isActive ? 'page' : 'false');
     tab.classList.toggle('ring-2', isActive);
     tab.classList.toggle('ring-offset-1', isActive);
     tab.classList.toggle('dark:ring-offset-gray-900', isActive);
@@ -191,9 +192,35 @@ function updateDataSourceTabs() {
     tab.classList.toggle('ring-gray-500', isActive && currentDataSource === 'main');
     tab.classList.toggle('shadow-sm', isActive);
     tab.classList.toggle('scale-[1.03]', isActive);
+    tab.classList.toggle('font-bold', isActive);
     tab.classList.toggle('opacity-60', !isActive);
     tab.classList.toggle('grayscale', !isActive);
   });
+}
+
+function resetDataSourceFilters(source) {
+  currentSearch = '';
+  currentFilter = 'all';
+  currentLang = '';
+  currentLabel = '';
+
+  if (source === 'github' || source === 'gitlab') {
+    currentView = 'table';
+    localStorage.setItem('blt-view', currentView);
+  }
+
+  const searchInput = document.getElementById('search-input');
+  const labelSearchInput = document.getElementById('label-search-input');
+  const filterMobile = document.getElementById('filter-select-mobile');
+  const labelDropdown = document.getElementById('label-dropdown');
+  if (searchInput) searchInput.value = '';
+  if (labelSearchInput) labelSearchInput.value = '';
+  if (filterMobile) filterMobile.value = 'all';
+  if (labelDropdown) labelDropdown.classList.add('hidden');
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('nav-active', b.dataset.filter === 'all'));
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('nav-active', b.dataset.lang === ''));
+  document.querySelectorAll('.label-option').forEach(b => b.classList.remove('nav-active', 'text-brand'));
+  updateViewButtons();
 }
 
 function gitlabMigrationProgress(r) {
@@ -1309,13 +1336,19 @@ on('view-card-btn', 'click', () => {
 document.querySelectorAll('.data-source-tab').forEach(tab => {
   tab.addEventListener('click', () => {
     const source = tab.dataset.source;
-    if (!DATA_SOURCES[source] || source === currentDataSource) return;
+    if (!DATA_SOURCES[source]) return;
+    if (source === currentDataSource) {
+      resetDataSourceFilters(source);
+      updateDataSourceTabs();
+      applyFilters();
+      return;
+    }
     currentDataSource = source;
     localStorage.setItem('blt-data-source', currentDataSource);
-    currentLang = '';
-    currentLabel = '';
+    resetDataSourceFilters(source);
     allRepos = [];
     filtered = [];
+    updateDataSourceTabs();
     loadRepos();
   });
 });
