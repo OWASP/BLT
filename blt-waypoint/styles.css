@@ -60,6 +60,11 @@
 #repo-table th[data-col]:hover { color: #E10101; }
 .dark #repo-table th[data-col]:hover { color: #f87171; }
 
+/* Data source tabs */
+.data-source-tab[aria-selected="true"] {
+  box-shadow: inset 0 -3px currentColor, 0 0 0 1px currentColor;
+}
+
 /* Table view: remove container width constraint */
 #main-layout.table-view { max-width: none; }
 

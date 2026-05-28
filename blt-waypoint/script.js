@@ -62,8 +62,7 @@ let currentView   = (window.innerWidth < 640) ? 'card' : (localStorage.getItem('
 let tableSortCol  = localStorage.getItem('blt-table-sort-col') || 'updated_at';
 let tableSortDir  = localStorage.getItem('blt-table-sort-dir') || 'desc';
 let allLabels     = [];
-let currentDataSource = localStorage.getItem('blt-data-source') || 'github';
-if (!DATA_SOURCES[currentDataSource]) currentDataSource = 'github';
+let currentDataSource = 'main';
 
 /* ------------------------------------------------------------------ */
 /*  DARK MODE                                                           */
@@ -1344,7 +1343,6 @@ document.querySelectorAll('.data-source-tab').forEach(tab => {
       return;
     }
     currentDataSource = source;
-    localStorage.setItem('blt-data-source', currentDataSource);
     resetDataSourceFilters(source);
     allRepos = [];
     filtered = [];
