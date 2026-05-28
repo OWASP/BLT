@@ -5,7 +5,7 @@ const ORG  = 'OWASP-BLT';
 const API  = 'https://api.github.com';
 const PER_PAGE = 100;            // max allowed by GitHub API
 const MAX_LANGUAGES_DISPLAYED = 12; // sidebar language filter cap
-const APP_VERSION = 'v0.2.0';
+const APP_VERSION = 'v0.2.1';
 const DATA_SOURCES = {
   main: {
     label: 'Main',
