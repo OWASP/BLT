@@ -1,6 +1,6 @@
 # OWASP BLT Organization Dashboard
 
-A live interactive dashboard for exploring all OWASP-BLT repositories and their real-time statistics.
+A live interactive dashboard for exploring OWASP-BLT GitHub and GitLab repositories, migration progress, and repository statistics.
 
 **Live Demo:** [github.owaspblt.org](http://github.owaspblt.org/)
 
