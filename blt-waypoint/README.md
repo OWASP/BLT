@@ -65,7 +65,7 @@ All projects are developed transparently under OWASP governance with AGPL-3.0 li
 - **Frontend:** HTML5, CSS3, JavaScript
 - **Styling:** Tailwind CSS
 - **Data:** JSON-based repository metadata
-- **Hosting:** GitHub Pages
+- **Hosting:** GitLab Pages
 
 ### How It Works
 1. Data is generated from GitHub API via automation
@@ -80,8 +80,8 @@ All projects are developed transparently under OWASP governance with AGPL-3.0 li
 ### Clone & Run Locally
 
 ```bash
-git clone https://github.com/OWASP-BLT/owasp-blt.github.io.git
-cd owasp-blt.github.io
+git clone https://gitlab.com/owasp-blt/blt-waypoint.git
+cd blt-waypoint
 
 # Start a local server
 python -m http.server 8000
@@ -113,7 +113,7 @@ We welcome contributions! To contribute:
 
 - 🌐 **Website:** [owaspblt.org](https://owaspblt.org)
 - 💬 **Slack:** [Join OWASP Slack](https://owasp.org/slack/invite)
-- 📧 **Issues:** [GitHub Issues](https://github.com/OWASP-BLT/owasp-blt.github.io/issues)
+- 📧 **Issues:** [GitLab Issues](https://gitlab.com/owasp-blt/blt-waypoint/-/issues)
 
 ---
 
@@ -122,4 +122,3 @@ We welcome contributions! To contribute:
 AGPL-3.0 - See [LICENSE](LICENSE) for details
 
 <p align="center">Made with ❤️ by the OWASP BLT Community</p>
-
