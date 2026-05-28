@@ -5,7 +5,7 @@ const ORG  = 'OWASP-BLT';
 const API  = 'https://api.github.com';
 const PER_PAGE = 100;            // max allowed by GitHub API
 const MAX_LANGUAGES_DISPLAYED = 12; // sidebar language filter cap
-const APP_VERSION = 'v0.2.6';
+const APP_VERSION = 'v0.2.7';
 const DATA_SOURCES = {
   main: {
     label: 'Main',
@@ -234,6 +234,11 @@ function gitlabMigrationProgress(r) {
     'owasp-blt.github.io': 90,
   };
   return progress[r.name] || 0;
+}
+
+function repoDisplayName(r) {
+  if (r.name === 'owasp-blt.github.io') return 'BLT-Waypoint owasp-blt.github.io';
+  return r.name;
 }
 
 function gitlabMigrationClasses(progress) {
@@ -610,6 +615,7 @@ function applyFilters() {
     const q = currentSearch.toLowerCase();
     repos = repos.filter(r =>
       r.name.toLowerCase().includes(q) ||
+      repoDisplayName(r).toLowerCase().includes(q) ||
       (r.description || '').toLowerCase().includes(q) ||
       (r.topics || []).some(t => t.toLowerCase().includes(q))
     );
@@ -800,7 +806,7 @@ function repoCardHTML(r) {
             target="_blank"
             rel="noopener noreferrer"
             class="font-semibold text-brand hover:underline underline-offset-2 truncate text-sm"
-          >${escapeHtml(r.name)}</a>
+          >${escapeHtml(repoDisplayName(r))}</a>
           ${archiveBadge}${forkBadge}${privateBadge}
           ${maturityBadge}
           ${wranglerIcon}${pagesIcon}
@@ -999,7 +1005,7 @@ function renderMainSummaryView(repos, container) {
 
     return `<tr class="${rowBg} border-b border-gray-100 dark:border-gray-700 hover:bg-red-50/40 dark:hover:bg-red-900/10 transition-colors">
       <td class="px-3 py-2 font-medium">
-        <a href="${escapeHtml(r.html_url)}" target="_blank" rel="noopener noreferrer" class="text-brand hover:underline underline-offset-2 text-sm whitespace-nowrap">${escapeHtml(r.name)}</a>
+        <a href="${escapeHtml(r.html_url)}" target="_blank" rel="noopener noreferrer" class="text-brand hover:underline underline-offset-2 text-sm whitespace-nowrap">${escapeHtml(repoDisplayName(r))}</a>
         ${r.description ? `<p class="text-xs text-gray-400 dark:text-gray-500 truncate max-w-sm mt-0.5">${escapeHtml(r.description)}</p>` : ''}
       </td>
       <td class="px-3 py-2 whitespace-nowrap">
@@ -1169,7 +1175,7 @@ function renderTableView(repos, container) {
     return `<tr class="${rowBg} border-b border-gray-100 dark:border-gray-700 hover:bg-red-50/40 dark:hover:bg-red-900/10 transition-colors">
       <td class="px-3 py-2 font-medium">
         <div class="flex items-center gap-1 flex-wrap">
-          <a href="${escapeHtml(r.html_url)}" target="_blank" rel="noopener noreferrer" class="text-brand hover:underline underline-offset-2 text-sm whitespace-nowrap">${escapeHtml(r.name)}</a>${archiveBadge}${forkBadge}${gsocBadge}
+          <a href="${escapeHtml(r.html_url)}" target="_blank" rel="noopener noreferrer" class="text-brand hover:underline underline-offset-2 text-sm whitespace-nowrap">${escapeHtml(repoDisplayName(r))}</a>${archiveBadge}${forkBadge}${gsocBadge}
         </div>
         ${r.description ? `<p class="text-xs text-gray-400 dark:text-gray-500 truncate max-w-xs mt-0.5">${escapeHtml(r.description)}</p>` : ''}
       </td>
