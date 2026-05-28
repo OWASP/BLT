@@ -1,0 +1,12 @@
+image: alpine:latest
+
+pages:
+  stage: deploy
+  script:
+    - mkdir public
+    - cp -r CNAME README.md css favicon.ico gsoc2026.html images index.html js mentor-guide.html pr-report.html public/
+  artifacts:
+    paths:
+      - public
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
