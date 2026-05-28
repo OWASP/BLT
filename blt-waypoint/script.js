@@ -159,6 +159,10 @@ function maturityMeta(score) {
   return              { label: 'Incubating', color: 'text-gray-500 dark:text-gray-400',     bg: 'bg-gray-100 dark:bg-gray-700' };
 }
 
+function gitlabMigrationProgress(r) {
+  return ['owasp-blt.github.io', 'BLT-Next'].includes(r.name) ? 100 : 0;
+}
+
 /* ------------------------------------------------------------------ */
 /*  GITHUB API FETCH (paginated)                                        */
 /* ------------------------------------------------------------------ */
@@ -800,6 +804,7 @@ function repoCardHTML(r) {
 /* ------------------------------------------------------------------ */
 const TABLE_COLS = [
   { key: 'name',              label: 'Repository' },
+  { key: 'gitlab_migration',  label: 'GitLab Migration' },
   { key: 'topics',            label: 'Labels'     },
   { key: 'language',          label: 'Language'   },
   { key: 'stargazers_count',  label: 'Stars'      },
@@ -825,6 +830,9 @@ function renderTableView(repos, container) {
   const sorted = [...repos].sort((a, b) => {
     let v;
     if (tableSortCol === 'name')       v = a.name.localeCompare(b.name);
+    else if (tableSortCol === 'gitlab_migration') {
+      v = gitlabMigrationProgress(a) - gitlabMigrationProgress(b);
+    }
     else if (tableSortCol === 'maturity') {
       v = (a._maturityScore || 0) - (b._maturityScore || 0);
     }
@@ -897,6 +905,10 @@ function renderTableView(repos, container) {
     const langColor = LANG_COLORS[r.language] || '#8b949e';
     const score = r._maturityScore || 0;
     const { label: matLabel, color: matColor, bg: matBg } = r._maturityMeta || maturityMeta(0);
+    const migrationProgress = gitlabMigrationProgress(r);
+    const migrationClasses = migrationProgress === 100
+      ? 'bg-green-50 text-green-700 ring-green-200 dark:bg-green-900/30 dark:text-green-300 dark:ring-green-800'
+      : 'bg-red-50 text-red-700 ring-red-200 dark:bg-red-900/30 dark:text-red-300 dark:ring-red-800';
     const rowBg = i % 2 === 0
       ? 'bg-white dark:bg-gray-900'
       : 'bg-gray-50/60 dark:bg-gray-800/60';
@@ -925,6 +937,11 @@ function renderTableView(repos, container) {
           <a href="${escapeHtml(r.html_url)}" target="_blank" rel="noopener noreferrer" class="text-brand hover:underline underline-offset-2 text-sm whitespace-nowrap">${escapeHtml(r.name)}</a>${archiveBadge}${forkBadge}${gsocBadge}
         </div>
         ${r.description ? `<p class="text-xs text-gray-400 dark:text-gray-500 truncate max-w-xs mt-0.5">${escapeHtml(r.description)}</p>` : ''}
+      </td>
+      <td class="px-3 py-2 whitespace-nowrap">
+        <span class="inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-semibold tabular-nums ring-1 ${migrationClasses}" title="GitLab migration progress: ${migrationProgress}%">
+          <i class="fa-brands fa-gitlab" aria-hidden="true"></i>${migrationProgress}%
+        </span>
       </td>
       <td class="px-3 py-2 text-center whitespace-nowrap text-sm tabular-nums">
         ${topicCount > 0 ? `<span class="inline-block bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs px-2 py-0.5 rounded-full">${topicCount}</span>` : '<span class="text-gray-300 dark:text-gray-600">—</span>'}
@@ -1250,4 +1267,3 @@ window.addEventListener('resize', () => {
 });
 
 loadRepos();
-
