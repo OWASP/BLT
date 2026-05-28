@@ -51,6 +51,8 @@ BLT-Next/
 1.  **Clone the repository**
     ```bash
     git clone https://github.com/OWASP-BLT/BLT-Next.git
+    # or
+    git clone https://gitlab.com/owasp-blt/BLT-Next.git
     cd BLT-Next
     ```
 
@@ -163,6 +165,7 @@ This project is licensed under the GNU Affero General Public License v3.0 - see 
 
 - **Project**: [OWASP BLT](https://owasp.org/www-project-bug-logging-tool/)
 - **GitHub**: [OWASP-BLT](https://github.com/OWASP-BLT)
+- **GitLab**: [owasp-blt/BLT-Next](https://gitlab.com/owasp-blt/BLT-Next)
 - **Issues**: [GitHub Issues](https://github.com/OWASP-BLT/BLT-Next/issues)
 
 ---

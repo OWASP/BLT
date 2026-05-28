@@ -12,6 +12,9 @@
     "type": "git",
     "url": "https://github.com/OWASP-BLT/BLT-Next.git"
   },
+  "gitlab": {
+    "url": "https://gitlab.com/owasp-blt/BLT-Next"
+  },
   "keywords": [
     "owasp",
     "blt",
