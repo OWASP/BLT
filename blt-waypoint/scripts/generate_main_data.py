@@ -8,10 +8,11 @@ OUT = os.getenv("MAIN_DATA_OUT", "main_data.json")
 MIGRATION_PROGRESS = {
     "BLT-Next": 100,
     "BLT-University": 95,
+    "BLT-GSOC": 90,
     "BLT-Waypoint": 90,
     "owasp-blt.github.io": 90,
 }
-MIGRATION_SUMMARY_REPOS = ("owasp-blt.github.io", "BLT-Next", "BLT-University")
+MIGRATION_SUMMARY_REPOS = ("owasp-blt.github.io", "BLT-Next", "BLT-University", "BLT-GSOC")
 TOTAL_REPOS = 55
 
 
