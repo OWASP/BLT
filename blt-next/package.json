@@ -1,0 +1,39 @@
+{
+  "name": "blt-next",
+  "version": "1.0.0",
+  "description": "OWASP BLT - Modern static frontend with Cloudflare Workers backend",
+  "scripts": {
+    "dev": "wrangler dev",
+    "db:create": "wrangler d1 create blt-database",
+    "db:init": "wrangler d1 execute blt-database --local --file=./schema.sql",
+    "worker:deploy": "wrangler deploy",
+    "pages:deploy": "npm run build && wrangler pages deploy .",
+    "lint": "echo 'Linting not configured'",
+    "setup": "npm install"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/OWASP-BLT/BLT-Next.git"
+  },
+  "keywords": [
+    "owasp",
+    "blt",
+    "bug-bounty",
+    "security",
+    "vulnerability",
+    "static-site",
+    "cloudflare-workers"
+  ],
+  "author": "OWASP BLT Team",
+  "license": "AGPL-3.0",
+  "bugs": {
+    "url": "https://github.com/OWASP-BLT/BLT-Next/issues"
+  },
+  "homepage": "https://github.com/OWASP-BLT/BLT-Next#readme",
+  "devDependencies": {
+    "wrangler": "^4.67.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

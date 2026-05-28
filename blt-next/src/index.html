@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en" class="">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OWASP BLT — Bug Logging Tool</title>
+  <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: { extend: { fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] }, colors: { primary: { DEFAULT: '#E10101', dark: '#BC0000' } } } }
+    }
+  </script>
+  <script src="assets/js/theme-init.js"></script>
+  <script src="https://unpkg.com/htmx.org@1.9.10" defer></script>
+  <script src="assets/js/main.js" type="module" defer></script>
+  <style>body { font-family: 'Inter', system-ui, sans-serif; }</style>
+</head>
+
+<body class="bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 antialiased transition-colors">
+
+  <!-- ===== NAVBAR ===== -->
+  <header class="sticky top-0 z-50 bg-white dark:bg-gray-900 border-b border-[#E5E5E5] dark:border-gray-800 transition-colors" role="banner">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <nav class="flex items-center justify-between h-16" role="navigation" aria-label="Main navigation">
+        <a href="index.html" class="flex items-center">
+          <img src="assets/img/logo-lg.png" alt="OWASP BLT Logo" class="h-8 w-auto">
+        </a>
+        <ul class="hidden md:flex items-center gap-1 list-none m-0 p-0">
+          <li><a href="index.html" class="px-3 py-2 text-sm font-medium text-red-600 dark:text-red-400 rounded-md bg-red-50 dark:bg-gray-800">Home</a></li>
+          <li><a href="pages/report-bug.html" class="whitespace-nowrap px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 rounded-md hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-gray-800 transition-colors">Report Bug</a></li>
+          <li><a href="pages/leaderboard.html" class="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 rounded-md hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-gray-800 transition-colors">Leaderboard</a></li>
+          <li><a href="pages/projects.html" class="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 rounded-md hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-gray-800 transition-colors">Projects</a></li>
+          <li><a href="pages/about.html" class="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 rounded-md hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-gray-800 transition-colors">About</a></li>
+        </ul>
+        <div class="hidden md:flex items-center gap-2">
+          <button id="themeToggle" class="p-2 text-gray-500 dark:text-gray-400 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" aria-label="Toggle theme">
+            <i class="fa-solid fa-sun dark:hidden text-sm" aria-hidden="true"></i>
+            <i class="fa-solid fa-moon hidden dark:block text-sm" aria-hidden="true"></i>
+          </button>
+          <a id="loginBtn" href="pages/login.html" class="px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 border border-red-600 dark:border-red-400 rounded-md hover:bg-red-600 hover:text-white transition-colors">Login</a>
+          <a id="signupBtn" href="pages/signup.html" class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors">Sign Up</a>
+        </div>
+        <button class="md:hidden p-2 text-gray-600 dark:text-gray-300 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800" id="mobileMenuBtn" aria-label="Open menu">
+          <i class="fa-solid fa-bars text-base" aria-hidden="true"></i>
+        </button>
+      </nav>
+      <div id="mobileMenu" class="hidden md:hidden fixed top-16 left-0 w-full h-[calc(100vh-4rem)] z-40 px-4 pb-4 border-t border-[#E5E5E5] dark:border-gray-800 dark:bg-gray-900">
+        <ul class="flex flex-col gap-1 pt-3 list-none m-0 p-0">
+          <li><a href="index.html" class="block px-3 py-2 text-sm font-medium text-red-600 dark:text-red-400 rounded-md bg-red-50 dark:bg-gray-800">Home</a></li>
+          <li><a href="pages/report-bug.html" class="block whitespace-nowrap px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 rounded-md hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-gray-800 transition-colors">Report Bug</a></li>
+          <li><a href="pages/leaderboard.html" class="block px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 rounded-md hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-gray-800 transition-colors">Leaderboard</a></li>
+          <li><a href="pages/projects.html" class="block px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 rounded-md hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-gray-800 transition-colors">Projects</a></li>
+          <li><a href="pages/about.html" class="block px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 rounded-md hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-gray-800 transition-colors">About</a></li>
+        </ul>
+        <div class="flex gap-3 mt-3">
+          <a href="pages/login.html" class="flex-1 px-4 py-2 text-sm font-medium text-center text-red-600 dark:text-red-400 border border-red-600 dark:border-red-400 rounded-md hover:bg-red-600 hover:text-white transition-colors">Login</a>
+          <a href="pages/signup.html" class="flex-1 px-4 py-2 text-sm font-medium text-center text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors">Sign Up</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main role="main">
+
+    <!-- HERO -->
+    <section class="py-24 px-4 sm:px-6 lg:px-8">
+      <div class="max-w-7xl mx-auto">
+        <div class="max-w-3xl mx-auto text-center">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#E5E5E5] dark:border-gray-700 text-xs font-medium text-gray-400 dark:text-gray-500 mb-6">
+            <i class="fa-solid fa-circle-dot text-red-600 text-[10px]" aria-hidden="true"></i>
+            Open Source &middot; OWASP Foundation
+          </div>
+          <h1 class="text-4xl sm:text-5xl lg:text-[3.5rem] font-extrabold text-gray-900 dark:text-gray-100 tracking-tight leading-tight mb-5">
+            Bug Logging Made <span class="text-red-600 dark:text-red-400">Simple</span>,<br class="hidden sm:block"> Rewarding &amp; Secure
+          </h1>
+          <p class="text-base sm:text-lg text-gray-500 dark:text-gray-400 leading-relaxed mb-9 max-w-xl mx-auto">
+            Join the global community of security researchers and developers. Report bugs, earn rewards, and make the internet more secure.
+          </p>
+          <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+            <a href="pages/report-bug.html" class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors shadow-sm">
+              <i class="fa-solid fa-bug" aria-hidden="true"></i> Report a Bug
+            </a>
+            <a href="pages/about.html" class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-red-600 dark:text-red-400 border border-red-600 dark:border-red-400 rounded-md hover:bg-red-600 hover:text-white transition-colors">
+              Learn More <i class="fa-solid fa-arrow-right text-xs" aria-hidden="true"></i>
+            </a>
+          </div>
+          <div class="mt-12 flex flex-wrap items-center justify-center gap-8 text-sm text-gray-400 dark:text-gray-500">
+            <span class="flex items-center gap-1.5"><i class="fa-solid fa-shield-halved text-red-600 dark:text-red-400" aria-hidden="true"></i> OWASP Project</span>
+            <span class="flex items-center gap-1.5"><i class="fa-brands fa-github text-red-600 dark:text-red-400" aria-hidden="true"></i> Open Source</span>
+            <span class="flex items-center gap-1.5"><i class="fa-solid fa-globe text-red-600 dark:text-red-400" aria-hidden="true"></i> Global Community</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STATS -->
+    <section class="border-t border-[#E5E5E5] dark:border-gray-800 py-14 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-gray-900 transition-colors">
+      <div class="max-w-7xl mx-auto">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-8" hx-get="/api/stats" hx-trigger="load" hx-swap="innerHTML">
+          <div class="text-center">
+            <div class="text-3xl font-bold text-red-600 dark:text-red-400 mb-1">12,000+</div>
+            <div class="text-sm text-gray-500 dark:text-gray-400">Bugs Reported</div>
+          </div>
+          <div class="text-center">
+            <div class="text-3xl font-bold text-red-600 dark:text-red-400 mb-1">3,500+</div>
+            <div class="text-sm text-gray-500 dark:text-gray-400">Active Researchers</div>
+          </div>
+          <div class="text-center">
+            <div class="text-3xl font-bold text-red-600 dark:text-red-400 mb-1">$250K+</div>
+            <div class="text-sm text-gray-500 dark:text-gray-400">Rewards Distributed</div>
+          </div>
+          <div class="text-center">
+            <div class="text-3xl font-bold text-red-600 dark:text-red-400 mb-1">800+</div>
+            <div class="text-sm text-gray-500 dark:text-gray-400">Projects Protected</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section class="py-20 px-4 sm:px-6 lg:px-8 border-t border-[#E5E5E5] dark:border-gray-800">
+      <div class="max-w-7xl mx-auto">
+        <div class="text-center mb-14">
+          <p class="text-xs font-semibold uppercase tracking-widest text-red-600 dark:text-red-400 mb-2">Features</p>
+          <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">Why Choose BLT?</h2>
+          <p class="mt-3 text-gray-500 dark:text-gray-400 max-w-xl mx-auto text-sm leading-relaxed">Everything you need to discover, report, and get rewarded for security vulnerabilities.</p>
+        </div>
+        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div class="bg-white dark:bg-gray-800 border border-[#E5E5E5] dark:border-gray-700 rounded-lg p-6 hover:border-red-200 dark:hover:border-red-800 hover:shadow-sm transition-all group">
+            <div class="w-10 h-10 rounded-md bg-red-50 dark:bg-red-950 flex items-center justify-center mb-4 group-hover:bg-red-100 dark:group-hover:bg-red-900 transition-colors">
+              <i class="fa-solid fa-bug text-red-600 dark:text-red-400" aria-hidden="true"></i>
+            </div>
+            <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-2 text-sm">Easy Bug Reporting</h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">Report bugs and vulnerabilities with our intuitive interface — from simple UI issues to critical security flaws.</p>
+          </div>
+          <div class="bg-white dark:bg-gray-800 border border-[#E5E5E5] dark:border-gray-700 rounded-lg p-6 hover:border-red-200 dark:hover:border-red-800 hover:shadow-sm transition-all group">
+            <div class="w-10 h-10 rounded-md bg-red-50 dark:bg-red-950 flex items-center justify-center mb-4 group-hover:bg-red-100 dark:group-hover:bg-red-900 transition-colors">
+              <i class="fa-solid fa-trophy text-red-600 dark:text-red-400" aria-hidden="true"></i>
+            </div>
+            <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-2 text-sm">Gamification &amp; Rewards</h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">Earn points, badges, and climb the leaderboard. Get rewarded for your contributions to internet security.</p>
+          </div>
+          <div class="bg-white dark:bg-gray-800 border border-[#E5E5E5] dark:border-gray-700 rounded-lg p-6 hover:border-red-200 dark:hover:border-red-800 hover:shadow-sm transition-all group">
+            <div class="w-10 h-10 rounded-md bg-red-50 dark:bg-red-950 flex items-center justify-center mb-4 group-hover:bg-red-100 dark:group-hover:bg-red-900 transition-colors">
+              <i class="fa-solid fa-sack-dollar text-red-600 dark:text-red-400" aria-hidden="true"></i>
+            </div>
+            <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-2 text-sm">Bug Bounties</h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">Participate in bug bounty programs and earn real rewards. Companies can launch their own programs too.</p>
+          </div>
+          <div class="bg-white dark:bg-gray-800 border border-[#E5E5E5] dark:border-gray-700 rounded-lg p-6 hover:border-red-200 dark:hover:border-red-800 hover:shadow-sm transition-all group">
+            <div class="w-10 h-10 rounded-md bg-red-50 dark:bg-red-950 flex items-center justify-center mb-4 group-hover:bg-red-100 dark:group-hover:bg-red-900 transition-colors">
+              <i class="fa-solid fa-earth-americas text-red-600 dark:text-red-400" aria-hidden="true"></i>
+            </div>
+            <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-2 text-sm">Global Community</h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">Join thousands of security researchers and developers worldwide. Collaborate, learn, and grow together.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section class="py-20 px-4 sm:px-6 lg:px-8 border-t border-[#E5E5E5] dark:border-gray-800 bg-gray-50 dark:bg-gray-900 transition-colors">
+      <div class="max-w-5xl mx-auto">
+        <div class="text-center mb-14">
+          <p class="text-xs font-semibold uppercase tracking-widest text-red-600 dark:text-red-400 mb-2">How it works</p>
+          <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">Three steps to get started</h2>
+        </div>
+        <div class="grid md:grid-cols-3 gap-10">
+          <div class="text-center">
+            <div class="w-11 h-11 rounded-full bg-red-600 dark:bg-red-500 text-white font-bold text-base flex items-center justify-center mx-auto mb-4">1</div>
+            <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-2 text-sm">Create an Account</h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">Sign up for free and join our community of security researchers and developers.</p>
+          </div>
+          <div class="text-center">
+            <div class="w-11 h-11 rounded-full bg-red-600 dark:bg-red-500 text-white font-bold text-base flex items-center justify-center mx-auto mb-4">2</div>
+            <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-2 text-sm">Find &amp; Report Bugs</h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">Discover vulnerabilities in websites and applications, then submit a detailed bug report.</p>
+          </div>
+          <div class="text-center">
+            <div class="w-11 h-11 rounded-full bg-red-600 dark:bg-red-500 text-white font-bold text-base flex items-center justify-center mx-auto mb-4">3</div>
+            <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-2 text-sm">Earn Rewards</h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">Get points, badges, and real money for valid bug reports. Climb the leaderboard.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="py-20 px-4 sm:px-6 lg:px-8 border-t border-[#E5E5E5] dark:border-gray-800">
+      <div class="max-w-2xl mx-auto text-center">
+        <h2 class="text-3xl font-bold text-gray-900 dark:text-gray-100 tracking-tight mb-4">Ready to get started?</h2>
+        <p class="text-gray-500 dark:text-gray-400 text-sm leading-relaxed mb-8">Join OWASP BLT and start making the internet a safer place today.</p>
+        <a id="ctaSignupBtn" href="pages/signup.html" class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors shadow-sm">
+          <i class="fa-solid fa-user-plus" aria-hidden="true"></i> Create Free Account
+        </a>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="border-t border-[#E5E5E5] dark:border-gray-800 py-12 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-gray-900 transition-colors" role="contentinfo">
+    <div class="max-w-7xl mx-auto">
+      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-10">
+        <div>
+          <img src="./assets/img/logo-lg.png" alt="OWASP BLT Logo" class="h-6 w-auto mb-3">
+          <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">An open-source, community-driven bug logging and vulnerability disclosure platform.</p>
+        </div>
+        <div>
+          <h3 class="text-xs font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-4">Quick Links</h3>
+          <ul class="space-y-2 list-none m-0 p-0">
+            <li><a href="pages/about.html" class="text-sm text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors">About</a></li>
+            <li><a href="https://github.com/OWASP-BLT/BLT-Next" class="text-sm text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors">GitHub</a></li>
+            <li><a href="https://owasp.org" class="text-sm text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors">OWASP Foundation</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="text-xs font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-4">Community</h3>
+          <ul class="space-y-2 list-none m-0 p-0">
+            <li><a href="pages/leaderboard.html" class="text-sm text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors">Leaderboard</a></li>
+            <li><a href="pages/projects.html" class="text-sm text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors">Projects</a></li>
+            <li><a href="pages/report-bug.html" class="text-sm text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors">Report a Bug</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="text-xs font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500 mb-4">Legal</h3>
+          <ul class="space-y-2 list-none m-0 p-0">
+            <li><span class="text-sm text-gray-500 dark:text-gray-400">Privacy Policy</span></li>
+            <li><span class="text-sm text-gray-500 dark:text-gray-400">Terms of Service</span></li>
+            <li><a href="https://github.com/OWASP-BLT/BLT-Next/blob/main/LICENSE" class="text-sm text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors">License (AGPL-3.0)</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="border-t border-[#E5E5E5] dark:border-gray-800 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <p class="text-xs text-gray-400 dark:text-gray-500">&copy; 2026 OWASP BLT. Licensed under AGPL-3.0.</p>
+        <div class="flex items-center gap-4">
+          <a href="https://github.com/OWASP-BLT/BLT-Next" class="text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 transition-colors" aria-label="GitHub">
+            <i class="fa-brands fa-github text-base" aria-hidden="true"></i>
+          </a>
+          <a href="https://owasp.org" class="text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 transition-colors" aria-label="OWASP">
+            <i class="fa-solid fa-globe text-base" aria-hidden="true"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('mobileMenuBtn')?.addEventListener('click', () => {
+        document.getElementById('mobileMenu').classList.toggle('hidden');
+      });
+
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en" class="">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leaderboard &mdash; OWASP BLT</title>
+  <link rel="shortcut icon" href="../favicon.ico" type="image/x-icon">
+  <link rel="icon" type="image/x-icon" href="../favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: { extend: { fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] }, colors: { primary: { DEFAULT: '#E10101', dark: '#BC0000' } } } }
+    }
+  </script>
+  <script src="../assets/js/theme-init.js"></script>
+  <script src="https://unpkg.com/htmx.org@1.9.10" defer></script>
+  <script src="../assets/js/main.js" type="module" defer></script>
+  <style>body { font-family: 'Inter', system-ui, sans-serif; }</style>
+</head>
+
+<body class="bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 antialiased transition-colors">
+
+  <!-- ===== NAVBAR ===== -->
+  <header class="sticky top-0 z-50 bg-white dark:bg-gray-900 border-b border-[#E5E5E5] dark:border-gray-800 transition-colors" role="banner">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <nav class="flex items-center justify-between h-16" role="navigation" aria-label="Main navigation">
+        <a href="../index.html" class="flex items-center">
+          <img src="../assets/img/logo-lg.png" alt="OWASP BLT Logo" class="h-8 w-auto">
+        </a>
+        <ul class="hidden md:flex items-center gap-1 list-none m-0 p-0">
+          <li><a href="../index.html" class="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 rounded-md hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-gray-800 transition-colors">Home</a></li>
+          <li><a href="report-bug.html" class="whitespace-nowrap px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 rounded-md hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-gray-800 transition-colors">Report Bug</a></li>
+          <li><a href="leaderboard.html" class="px-3 py-2 text-sm font-medium text-red-600 dark:text-red-400 rounded-md bg-red-50 dark:bg-gray-800">Leaderboard</a></li>
+          <li><a href="projects.html" class="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 rounded-md hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-gray-800 transition-colors">Projects</a></li>
+          <li><a href="about.html" class="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 rounded-md hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-gray-800 transition-colors">About</a></li>
+        </ul>
+        <div class="hidden md:flex items-center gap-2">
+          <button id="themeToggle" class="p-2 text-gray-500 dark:text-gray-400 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" aria-label="Toggle theme">
+            <i class="fa-solid fa-sun dark:hidden text-sm" aria-hidden="true"></i>
+            <i class="fa-solid fa-moon hidden dark:block text-sm" aria-hidden="true"></i>
+          </button>
+          <button id="loginBtn" class="whitespace-nowrap flex-shrink-0 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 border border-red-600 dark:border-red-400 rounded-md hover:bg-red-600 hover:text-white transition-colors">Login</button>
+          <button id="signupBtn" class="whitespace-nowrap flex-shrink-0 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors">Sign Up</button>
+        </div>
+        <button class="md:hidden p-2 text-gray-600 dark:text-gray-300 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800" id="mobileMenuBtn" aria-label="Open menu">
+          <i class="fa-solid fa-bars text-base" aria-hidden="true"></i>
+        </button>
+      </nav>
+      <div id="mobileMenu" class="hidden md:hidden fixed top-16 left-0 w-full h-[calc(100vh-4rem)] z-40 px-4 pb-4 border-t border-[#E5E5E5] dark:border-gray-800 dark:bg-gray-900">
+        <ul class="flex flex-col gap-1 pt-3 list-none m-0 p-0">
+          <li><a href="../index.html" class="block px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 rounded-md hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-gray-800 transition-colors">Home</a></li>
+          <li><a href="report-bug.html" class="block whitespace-nowrap px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 rounded-md hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-gray-800 transition-colors">Report Bug</a></li>
+          <li><a href="leaderboard.html" class="block px-3 py-2 text-sm font-medium text-red-600 dark:text-red-400 rounded-md bg-red-50 dark:bg-gray-800">Leaderboard</a></li>
+          <li><a href="projects.html" class="block px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 rounded-md hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-gray-800 transition-colors">Projects</a></li>
+          <li><a href="about.html" class="block px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 rounded-md hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-gray-800 transition-colors">About</a></li>
+        </ul>
+        <div class="flex gap-3 mt-3">
+          <button class="whitespace-nowrap flex-shrink-0 flex-1 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 border border-red-600 dark:border-red-400 rounded-md hover:bg-red-600 hover:text-white transition-colors">Login</button>
+          <button class="whitespace-nowrap flex-shrink-0 flex-1 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors">Sign Up</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main role="main">
+
+    <!-- PAGE HEADER -->
+    <section class="py-14 px-4 sm:px-6 lg:px-8 border-b border-[#E5E5E5] dark:border-gray-800 bg-gray-50 dark:bg-gray-900 transition-colors">
+      <div class="max-w-7xl mx-auto">
+        <div class="flex items-center gap-2 text-xs text-gray-400 dark:text-gray-500 mb-4">
+          <a href="../index.html" class="hover:text-red-600 dark:hover:text-red-400 transition-colors">Home</a>
+          <i class="fa-solid fa-chevron-right text-[10px]" aria-hidden="true"></i>
+          <span class="text-gray-600 dark:text-gray-400">Leaderboard</span>
+        </div>
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 tracking-tight mb-2">Leaderboard</h1>
+        <p class="text-gray-500 dark:text-gray-400 text-sm">Top security researchers making the internet safer.</p>
+      </div>
+    </section>
+
+    <!-- LEADERBOARD TABLE -->
+    <section class="py-12 px-4 sm:px-6 lg:px-8">
+      <div class="max-w-4xl mx-auto">
+
+        <!-- Filters + Search -->
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
+          <div class="flex flex-wrap items-center gap-2">
+            <button class="px-3 py-1.5 text-xs font-medium text-white bg-red-600 rounded-md">All Time</button>
+            <button class="px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-300 border border-[#E5E5E5] dark:border-gray-700 rounded-md hover:border-red-600 hover:text-red-600 dark:hover:text-red-400 transition-colors">This Month</button>
+            <button class="px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-300 border border-[#E5E5E5] dark:border-gray-700 rounded-md hover:border-red-600 hover:text-red-600 dark:hover:text-red-400 transition-colors">This Week</button>
+          </div>
+          <div class="relative">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs" aria-hidden="true"></i>
+            <input type="search" placeholder="Search researcher..." class="pl-8 pr-4 py-1.5 text-xs bg-white dark:bg-gray-800 border border-[#E5E5E5] dark:border-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 rounded-md focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 w-52 transition-colors">
+          </div>
+        </div>
+
+        <!-- Table -->
+        <div class="border border-[#E5E5E5] dark:border-gray-700 rounded-lg overflow-hidden">
+          <!-- Header -->
+          <div class="grid grid-cols-[44px_1fr_80px_80px_80px] bg-gray-50 dark:bg-gray-800/80 border-b border-[#E5E5E5] dark:border-gray-700 px-4 py-3">
+            <div class="text-[10px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500 text-center">#</div>
+            <div class="text-[10px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">Researcher</div>
+            <div class="text-[10px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500 text-center">Bugs</div>
+            <div class="text-[10px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500 text-center">Points</div>
+            <div class="text-[10px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500 text-center">Rewards</div>
+          </div>
+          <!-- Rows (HTMX loaded) -->
+          <div id="leaderboard-body" hx-get="/api/leaderboard" hx-target="#leaderboard-body" hx-trigger="load" hx-swap="innerHTML">
+            <!-- Placeholder rows -->
+            <div class="leaderboard-row grid grid-cols-[44px_1fr_80px_80px_80px] items-center px-4 py-3.5 border-b border-[#E5E5E5] dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors">
+              <div class="text-center"><i class="fa-solid fa-crown text-yellow-400 text-sm" aria-hidden="true"></i></div>
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-red-600 dark:bg-red-500 text-white text-xs font-bold flex items-center justify-center shrink-0">AK</div>
+                <span class="text-sm font-medium text-gray-900 dark:text-gray-100">alex_k</span>
+              </div>
+              <div class="text-center text-sm font-semibold text-red-600 dark:text-red-400">142</div>
+              <div class="text-center text-sm font-semibold text-red-600 dark:text-red-400">8,420</div>
+              <div class="text-center text-sm text-gray-500 dark:text-gray-400">$1,200</div>
+            </div>
+            <div class="leaderboard-row grid grid-cols-[44px_1fr_80px_80px_80px] items-center px-4 py-3.5 border-b border-[#E5E5E5] dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors">
+              <div class="text-center text-sm font-bold text-gray-400 dark:text-gray-500">2</div>
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200 text-xs font-bold flex items-center justify-center shrink-0">SR</div>
+                <span class="text-sm font-medium text-gray-900 dark:text-gray-100">s_researcher</span>
+              </div>
+              <div class="text-center text-sm font-semibold text-red-600 dark:text-red-400">118</div>
+              <div class="text-center text-sm font-semibold text-red-600 dark:text-red-400">6,750</div>
+              <div class="text-center text-sm text-gray-500 dark:text-gray-400">$950</div>
+            </div>
+            <div class="leaderboard-row grid grid-cols-[44px_1fr_80px_80px_80px] items-center px-4 py-3.5 border-b border-[#E5E5E5] dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors">
+              <div class="text-center text-sm font-bold text-gray-400 dark:text-gray-500">3</div>
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-orange-400 dark:bg-orange-600 text-white text-xs font-bold flex items-center justify-center shrink-0">MJ</div>
+                <span class="text-sm font-medium text-gray-900 dark:text-gray-100">mjhacks</span>
+              </div>
+              <div class="text-center text-sm font-semibold text-red-600 dark:text-red-400">97</div>
+              <div class="text-center text-sm font-semibold text-red-600 dark:text-red-400">5,320</div>
+              <div class="text-center text-sm text-gray-500 dark:text-gray-400">$720</div>
+            </div>
+            <div class="leaderboard-row grid grid-cols-[44px_1fr_80px_80px_80px] items-center px-4 py-3.5 border-b border-[#E5E5E5] dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors">
+              <div class="text-center text-sm font-bold text-gray-400 dark:text-gray-500">4</div>
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-blue-500 text-white text-xs font-bold flex items-center justify-center shrink-0">PW</div>
+                <span class="text-sm font-medium text-gray-900 dark:text-gray-100">p_white</span>
+              </div>
+              <div class="text-center text-sm font-semibold text-red-600 dark:text-red-400">84</div>
+              <div class="text-center text-sm font-semibold text-red-600 dark:text-red-400">4,100</div>
+              <div class="text-center text-sm text-gray-500 dark:text-gray-400">$540</div>
+            </div>
+            <div class="leaderboard-row grid grid-cols-[44px_1fr_80px_80px_80px] items-center px-4 py-3.5 hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors">
+              <div class="text-center text-sm font-bold text-gray-400 dark:text-gray-500">5</div>
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-purple-500 text-white text-xs font-bold flex items-center justify-center shrink-0">NV</div>
+                <span class="text-sm font-medium text-gray-900 dark:text-gray-100">n_vuln</span>
+              </div>
+              <div class="text-center text-sm font-semibold text-red-600 dark:text-red-400">71</div>
+              <div class="text-center text-sm font-semibold text-red-600 dark:text-red-400">3,390</div>
+              <div class="text-center text-sm text-gray-500 dark:text-gray-400">$410</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="flex items-center justify-between mt-6">
+          <p id="pagination-info" class="text-xs text-gray-400 dark:text-gray-500">Showing 1–5 of 3,500 researchers</p>
+          <div class="flex items-center gap-1">
+            <button id="prev-page" class="p-1.5 text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 disabled:opacity-30 transition-colors">
+              <i class="fa-solid fa-chevron-left text-xs" aria-hidden="true"></i>
+            </button>
+            <button class="page-btn w-7 h-7 text-xs font-medium text-white bg-red-600 rounded-md" data-page="1">1</button>
+            <button class="page-btn w-7 h-7 text-xs font-medium text-gray-600 dark:text-gray-300 border border-[#E5E5E5] dark:border-gray-700 rounded-md hover:border-red-600 hover:text-red-600 dark:hover:text-red-400 transition-colors" data-page="2">2</button>
+            <button class="page-btn w-7 h-7 text-xs font-medium text-gray-600 dark:text-gray-300 border border-[#E5E5E5] dark:border-gray-700 rounded-md hover:border-red-600 hover:text-red-600 dark:hover:text-red-400 transition-colors" data-page="3">3</button>
+            <span class="text-xs text-gray-400 dark:text-gray-500 px-1">…</span>
+            <button id="next-page" class="p-1.5 text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 transition-colors">
+              <i class="fa-solid fa-chevron-right text-xs" aria-hidden="true"></i>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===== FOOTER ===== -->
+  <div hx-get="../components/footer.html"  hx-trigger="load" hx-swap="outerHTML"> </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('mobileMenuBtn')?.addEventListener('click', () => {
+        document.getElementById('mobileMenu').classList.toggle('hidden');
+      });
+      
+    });
+  </script>
+</body>
+</html>

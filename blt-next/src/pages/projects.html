@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en" class="">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Projects &mdash; OWASP BLT</title>
+  <link rel="shortcut icon" href="../favicon.ico" type="image/x-icon">
+  <link rel="icon" type="image/x-icon" href="../favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: { extend: { fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] }, colors: { primary: { DEFAULT: '#E10101', dark: '#BC0000' } } } }
+    }
+  </script>
+  <script src="../assets/js/theme-init.js"></script>
+  <script src="https://unpkg.com/htmx.org@1.9.10" defer></script>
+  <script src="../assets/js/main.js" type="module" defer></script>
+  <style>body { font-family: 'Inter', system-ui, sans-serif; }</style>
+</head>
+
+<body class="bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 antialiased transition-colors">
+
+  <!-- ===== NAVBAR ===== -->
+  <header class="sticky top-0 z-50 bg-white dark:bg-gray-900 border-b border-[#E5E5E5] dark:border-gray-800 transition-colors" role="banner">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <nav class="flex items-center justify-between h-16" role="navigation" aria-label="Main navigation">
+        <a href="../index.html" class="flex items-center">
+          <img src="../assets/img/logo-lg.png" alt="OWASP BLT Logo" class="h-8 w-auto">
+        </a>
+        <ul class="hidden md:flex items-center gap-1 list-none m-0 p-0">
+          <li><a href="../index.html" class="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 rounded-md hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-gray-800 transition-colors">Home</a></li>
+          <li><a href="report-bug.html" class="whitespace-nowrap px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 rounded-md hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-gray-800 transition-colors">Report Bug</a></li>
+          <li><a href="leaderboard.html" class="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 rounded-md hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-gray-800 transition-colors">Leaderboard</a></li>
+          <li><a href="projects.html" class="px-3 py-2 text-sm font-medium text-red-600 dark:text-red-400 rounded-md bg-red-50 dark:bg-gray-800">Projects</a></li>
+          <li><a href="about.html" class="px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 rounded-md hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-gray-800 transition-colors">About</a></li>
+        </ul>
+        <div class="hidden md:flex items-center gap-2">
+          <button id="themeToggle" class="p-2 text-gray-500 dark:text-gray-400 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" aria-label="Toggle theme">
+            <i class="fa-solid fa-sun dark:hidden text-sm" aria-hidden="true"></i>
+            <i class="fa-solid fa-moon hidden dark:block text-sm" aria-hidden="true"></i>
+          </button>
+          <button id="loginBtn" class="whitespace-nowrap flex-shrink-0 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 border border-red-600 dark:border-red-400 rounded-md hover:bg-red-600 hover:text-white transition-colors">Login</button>
+          <button id="signupBtn" class="whitespace-nowrap flex-shrink-0 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors">Sign Up</button>
+        </div>
+        <button class="md:hidden p-2 text-gray-600 dark:text-gray-300 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800" id="mobileMenuBtn" aria-label="Open menu">
+          <i class="fa-solid fa-bars text-base" aria-hidden="true"></i>
+        </button>
+      </nav>
+      <div id="mobileMenu" class="hidden md:hidden fixed top-16 left-0 w-full h-[calc(100vh-4rem)] z-40 px-4 pb-4 border-t border-[#E5E5E5] dark:border-gray-800 dark:bg-gray-900">
+        <ul class="flex flex-col gap-1 pt-3 list-none m-0 p-0">
+          <li><a href="../index.html" class="block px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 rounded-md hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-gray-800 transition-colors">Home</a></li>
+          <li><a href="report-bug.html" class="block whitespace-nowrap px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 rounded-md hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-gray-800 transition-colors">Report Bug</a></li>
+          <li><a href="leaderboard.html" class="block px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 rounded-md hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-gray-800 transition-colors">Leaderboard</a></li>
+          <li><a href="projects.html" class="block px-3 py-2 text-sm font-medium text-red-600 dark:text-red-400 rounded-md bg-red-50 dark:bg-gray-800">Projects</a></li>
+          <li><a href="about.html" class="block px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 rounded-md hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-gray-800 transition-colors">About</a></li>
+        </ul>
+        <div class="flex gap-3 mt-3">
+          <button class="whitespace-nowrap flex-shrink-0 flex-1 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 border border-red-600 dark:border-red-400 rounded-md hover:bg-red-600 hover:text-white transition-colors">Login</button>
+          <button class="whitespace-nowrap flex-shrink-0 flex-1 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors">Sign Up</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main role="main">
+
+    <!-- PAGE HEADER -->
+    <section class="py-14 px-4 sm:px-6 lg:px-8 border-b border-[#E5E5E5] dark:border-gray-800 bg-gray-50 dark:bg-gray-900 transition-colors">
+      <div class="max-w-7xl mx-auto">
+        <div class="flex items-center gap-2 text-xs text-gray-400 dark:text-gray-500 mb-4">
+          <a href="../index.html" class="hover:text-red-600 dark:hover:text-red-400 transition-colors">Home</a>
+          <i class="fa-solid fa-chevron-right text-[10px]" aria-hidden="true"></i>
+          <span class="text-gray-600 dark:text-gray-400">Projects</span>
+        </div>
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 tracking-tight mb-2">Bug Bounty Projects</h1>
+            <p class="text-gray-500 dark:text-gray-400 text-sm">Companies and organizations running active bug bounty programs.</p>
+          </div>
+          <button id="createProjectBtn" class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors shrink-0">
+            <i class="fa-solid fa-plus" aria-hidden="true"></i> Launch Program
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROJECTS GRID -->
+    <section class="py-12 px-4 sm:px-6 lg:px-8">
+      <div class="max-w-7xl mx-auto">
+
+        <!-- Filters -->
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
+          <div class="flex flex-wrap items-center gap-2">
+            <button class="px-3 py-1.5 text-xs font-medium text-white bg-red-600 rounded-md">All Programs</button>
+            <button class="px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-300 border border-[#E5E5E5] dark:border-gray-700 rounded-md hover:border-red-600 hover:text-red-600 dark:hover:text-red-400 transition-colors">Active</button>
+            <button class="px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-300 border border-[#E5E5E5] dark:border-gray-700 rounded-md hover:border-red-600 hover:text-red-600 dark:hover:text-red-400 transition-colors">High Reward</button>
+            <button class="px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-300 border border-[#E5E5E5] dark:border-gray-700 rounded-md hover:border-red-600 hover:text-red-600 dark:hover:text-red-400 transition-colors">New</button>
+          </div>
+          <div class="relative">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs" aria-hidden="true"></i>
+            <input type="search" placeholder="Search projects..." class="pl-8 pr-4 py-1.5 text-xs bg-white dark:bg-gray-800 border border-[#E5E5E5] dark:border-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 rounded-md focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 w-52 transition-colors">
+          </div>
+        </div>
+
+        <!-- Grid (HTMX loaded) -->
+        <div hx-get="/api/projects" hx-trigger="load" hx-swap="innerHTML" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-12">
+          <div class="bg-white dark:bg-gray-800 border border-[#E5E5E5] dark:border-gray-700 rounded-lg p-5 hover:border-red-200 dark:hover:border-red-800 hover:shadow-sm transition-all cursor-pointer group">
+            <div class="flex items-start justify-between mb-4">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-red-50 dark:bg-red-950 flex items-center justify-center">
+                  <i class="fa-solid fa-building text-red-600 dark:text-red-400 text-sm" aria-hidden="true"></i>
+                </div>
+                <div>
+                  <h3 class="font-semibold text-gray-900 dark:text-gray-100 text-sm group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">Acme Corp</h3>
+                  <p class="text-xs text-gray-400 dark:text-gray-500">Web Application</p>
+                </div>
+              </div>
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400">Active</span>
+            </div>
+            <p class="text-xs text-gray-500 dark:text-gray-400 leading-relaxed mb-4">Security testing for our main customer portal and API endpoints. All severity levels welcome.</p>
+            <div class="flex items-center justify-between pt-4 border-t border-[#E5E5E5] dark:border-gray-700">
+              <div class="flex items-center gap-4">
+                <div class="text-center"><div class="text-sm font-bold text-red-600 dark:text-red-400">48</div><div class="text-[10px] text-gray-400 dark:text-gray-500">Bugs Found</div></div>
+                <div class="text-center"><div class="text-sm font-bold text-red-600 dark:text-red-400">$500</div><div class="text-[10px] text-gray-400 dark:text-gray-500">Max Reward</div></div>
+              </div>
+              <a href="#" class="text-xs font-medium text-red-600 dark:text-red-400 hover:underline">View <i class="fa-solid fa-arrow-right text-[10px]" aria-hidden="true"></i></a>
+            </div>
+          </div>
+          <div class="bg-white dark:bg-gray-800 border border-[#E5E5E5] dark:border-gray-700 rounded-lg p-5 hover:border-red-200 dark:hover:border-red-800 hover:shadow-sm transition-all cursor-pointer group">
+            <div class="flex items-start justify-between mb-4">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-red-50 dark:bg-red-950 flex items-center justify-center">
+                  <i class="fa-solid fa-cart-shopping text-red-600 dark:text-red-400 text-sm" aria-hidden="true"></i>
+                </div>
+                <div>
+                  <h3 class="font-semibold text-gray-900 dark:text-gray-100 text-sm group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">ShopSafe</h3>
+                  <p class="text-xs text-gray-400 dark:text-gray-500">E-Commerce Platform</p>
+                </div>
+              </div>
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400">Active</span>
+            </div>
+            <p class="text-xs text-gray-500 dark:text-gray-400 leading-relaxed mb-4">Focus on payment flows, authentication, and XSS vulnerabilities in our storefront.</p>
+            <div class="flex items-center justify-between pt-4 border-t border-[#E5E5E5] dark:border-gray-700">
+              <div class="flex items-center gap-4">
+                <div class="text-center"><div class="text-sm font-bold text-red-600 dark:text-red-400">73</div><div class="text-[10px] text-gray-400 dark:text-gray-500">Bugs Found</div></div>
+                <div class="text-center"><div class="text-sm font-bold text-red-600 dark:text-red-400">$1,000</div><div class="text-[10px] text-gray-400 dark:text-gray-500">Max Reward</div></div>
+              </div>
+              <a href="#" class="text-xs font-medium text-red-600 dark:text-red-400 hover:underline">View <i class="fa-solid fa-arrow-right text-[10px]" aria-hidden="true"></i></a>
+            </div>
+          </div>
+          <div class="bg-white dark:bg-gray-800 border border-[#E5E5E5] dark:border-gray-700 rounded-lg p-5 hover:border-red-200 dark:hover:border-red-800 hover:shadow-sm transition-all cursor-pointer group">
+            <div class="flex items-start justify-between mb-4">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-red-50 dark:bg-red-950 flex items-center justify-center">
+                  <i class="fa-solid fa-hospital text-red-600 dark:text-red-400 text-sm" aria-hidden="true"></i>
+                </div>
+                <div>
+                  <h3 class="font-semibold text-gray-900 dark:text-gray-100 text-sm group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">MedVault</h3>
+                  <p class="text-xs text-gray-400 dark:text-gray-500">Healthcare SaaS</p>
+                </div>
+              </div>
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-400">Critical Only</span>
+            </div>
+            <p class="text-xs text-gray-500 dark:text-gray-400 leading-relaxed mb-4">Patient data security is paramount. Critical and high severity vulnerabilities rewarded.</p>
+            <div class="flex items-center justify-between pt-4 border-t border-[#E5E5E5] dark:border-gray-700">
+              <div class="flex items-center gap-4">
+                <div class="text-center"><div class="text-sm font-bold text-red-600 dark:text-red-400">21</div><div class="text-[10px] text-gray-400 dark:text-gray-500">Bugs Found</div></div>
+                <div class="text-center"><div class="text-sm font-bold text-red-600 dark:text-red-400">$5,000</div><div class="text-[10px] text-gray-400 dark:text-gray-500">Max Reward</div></div>
+              </div>
+              <a href="#" class="text-xs font-medium text-red-600 dark:text-red-400 hover:underline">View <i class="fa-solid fa-arrow-right text-[10px]" aria-hidden="true"></i></a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Launch CTA -->
+        <div class="border border-[#E5E5E5] dark:border-gray-700 rounded-lg p-8 text-center bg-gray-50 dark:bg-gray-800/60">
+          <div class="w-12 h-12 rounded-full bg-red-50 dark:bg-red-950 flex items-center justify-center mx-auto mb-4">
+            <i class="fa-solid fa-rocket text-red-600 dark:text-red-400" aria-hidden="true"></i>
+          </div>
+          <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-2">Launch Your Bug Bounty Program</h3>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mb-6 max-w-md mx-auto">Protect your applications with crowdsourced security testing from our global community of researchers.</p>
+          <button id="createProjectBtn2" class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors">
+            <i class="fa-solid fa-plus" aria-hidden="true"></i> Create Bug Bounty Program
+          </button>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===== FOOTER ===== -->
+  <div hx-get="../components/footer.html"  hx-trigger="load" hx-swap="outerHTML"> </div>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('mobileMenuBtn')?.addEventListener('click', () => {
+        document.getElementById('mobileMenu').classList.toggle('hidden');
+      });
+      
+    });
+  </script>
+</body>
+</html>
