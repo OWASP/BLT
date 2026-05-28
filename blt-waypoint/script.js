@@ -17,6 +17,8 @@ const DATA_SOURCES = {
     orgUrl: 'https://gitlab.com/owasp-blt',
   },
 };
+const MIGRATION_TOTAL_REPOS = 55;
+const MIGRATION_MIGRATED_REPOS = 2;
 
 // Project board URLs sourced from https://github.com/OWASP-BLT/.github/blob/main/scripts/project_urls.json
 const PROJECT_URLS = {
@@ -182,20 +184,36 @@ function updateDataSourceTabs() {
     tab.classList.toggle('dark:ring-offset-gray-900', isActive);
     tab.classList.toggle('ring-brand', isActive && currentDataSource === 'github');
     tab.classList.toggle('ring-green-500', isActive && currentDataSource === 'gitlab');
-    tab.classList.toggle('opacity-70', !isActive);
+    tab.classList.toggle('shadow-sm', isActive);
+    tab.classList.toggle('scale-[1.03]', isActive);
+    tab.classList.toggle('opacity-60', !isActive);
+    tab.classList.toggle('grayscale', !isActive);
   });
 }
 
 function gitlabMigrationProgress(r) {
-  return ['owasp-blt.github.io', 'BLT-Next'].includes(r.name) ? 100 : 0;
+  const progress = {
+    'BLT-Next': 100,
+    'BLT-Waypoint': 90,
+    'owasp-blt.github.io': 90,
+  };
+  return progress[r.name] || 0;
 }
 
 function gitlabRepoUrl(r) {
   const urls = {
     'owasp-blt.github.io': 'https://gitlab.com/owasp-blt/blt-waypoint',
+    'BLT-Waypoint': 'https://gitlab.com/owasp-blt/blt-waypoint',
     'BLT-Next': 'https://gitlab.com/owasp-blt/BLT-Next',
   };
   return urls[r.name] || '';
+}
+
+function updateMigrationSummary() {
+  const text = document.getElementById('migration-summary-text');
+  if (!text) return;
+  const percent = ((MIGRATION_MIGRATED_REPOS / MIGRATION_TOTAL_REPOS) * 100).toFixed(1);
+  text.textContent = `Migration ${MIGRATION_MIGRATED_REPOS}/${MIGRATION_TOTAL_REPOS} (${percent}%)`;
 }
 
 /* ------------------------------------------------------------------ */
@@ -952,7 +970,9 @@ function renderTableView(repos, container) {
     const migrationProgress = gitlabMigrationProgress(r);
     const migrationClasses = migrationProgress === 100
       ? 'bg-green-50 text-green-700 ring-green-200 dark:bg-green-900/30 dark:text-green-300 dark:ring-green-800'
-      : 'bg-red-50 text-red-700 ring-red-200 dark:bg-red-900/30 dark:text-red-300 dark:ring-red-800';
+      : migrationProgress > 0
+        ? 'bg-amber-50 text-amber-700 ring-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:ring-amber-800'
+        : 'bg-red-50 text-red-700 ring-red-200 dark:bg-red-900/30 dark:text-red-300 dark:ring-red-800';
     const rowBg = i % 2 === 0
       ? 'bg-white dark:bg-gray-900'
       : 'bg-gray-50/60 dark:bg-gray-800/60';
@@ -1176,6 +1196,7 @@ document.querySelectorAll('.data-source-tab').forEach(tab => {
 // Initialize button states immediately
 updateViewButtons();
 updateDataSourceTabs();
+updateMigrationSummary();
 
 // Initialize sort UI to reflect stored preference
 const sortSelect = document.getElementById('sort-select');
