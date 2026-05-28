@@ -1,7 +1,7 @@
 # BLT University Configuration
 title: BLT University
 description: >-
-  A cybersecurity-focused online university powered by GitHub Pages.
+  A cybersecurity-focused online university powered by GitLab Pages.
   Learn, teach, and collaborate on security courses through open-source education.
 
 baseurl: ""

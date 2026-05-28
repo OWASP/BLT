@@ -1,0 +1,25 @@
+image: ruby:3.2
+
+variables:
+  JEKYLL_ENV: production
+  BUNDLE_PATH: vendor/bundle
+
+cache:
+  key:
+    files:
+      - Gemfile
+  paths:
+    - vendor/bundle
+
+pages:
+  stage: deploy
+  script:
+    - bundle install
+    - bundle exec jekyll build -d public
+  pages:
+    publish: public
+  artifacts:
+    paths:
+      - public
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'

@@ -52,6 +52,7 @@ yarn-error.log*
 # Build artifacts
 dist/
 build/
+public/
 
 # OS generated files
 .Spotlight-V100
