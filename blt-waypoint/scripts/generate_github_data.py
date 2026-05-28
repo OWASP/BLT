@@ -12,6 +12,9 @@ API = "https://api.github.com"
 ORG = os.getenv("GITHUB_ORG", "OWASP-BLT")
 OUT = os.getenv("GITHUB_DATA_OUT", "github_data.json")
 TOKEN = os.getenv("GITHUB_TOKEN") or os.getenv("GH_TOKEN")
+HOMEPAGE_OVERRIDES = {
+    "owasp-blt.github.io": "https://waypoint.owaspblt.org",
+}
 
 
 def request_json(url):
@@ -125,6 +128,8 @@ def latest_issue(repo):
 
 def normalize_repo(r):
     name = r["name"]
+    if name in HOMEPAGE_OVERRIDES:
+        r = {**r, "homepage": HOMEPAGE_OVERRIDES[name]}
     contributors = optional_json(f"{API}/repos/{ORG}/{name}/contributors?per_page=10", []) or []
     branches = count_items(f"{API}/repos/{ORG}/{name}/branches")
     commits = count_items(f"{API}/repos/{ORG}/{name}/commits")
