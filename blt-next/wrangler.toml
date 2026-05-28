@@ -16,18 +16,12 @@ ALLOWED_ORIGIN = "http://localhost"  # Override in production via Cloudflare das
 
 # Secrets (set via wrangler secret put)
 # - JWT_SECRET
-# - DATABASE_URL
 # - ENCRYPTION_KEY
 
 # KV Namespaces for caching
 # [[kv_namespaces]]
 # binding = "CACHE"
 # id = "your-kv-namespace-id"
-
-[[d1_databases]]
-binding = "DB"
-database_name = "blt-database"
-database_id = "27d79830-7681-4e22-ad2d-12ad94e0d7cd" # Placeholder ID
 
 # Development
 [env.development]

@@ -25,10 +25,10 @@ The current codebase contains mock authentication and simplified security implem
    - Production Required: Proper JWT signature verification
    - Include: Expiration checking, claims validation
 
-4. **User Data Storage**
+4. **User Data**
    - Current: Returns mock user data
-   - Production Required: Secure database with proper encryption
-   - Include: Input validation, SQL injection prevention
+   - Production Required: Fetch user data from the production account API
+   - Include: Input validation, authorization checks, and careful error handling
 
 ### API Configuration (src/assets/js/main.js)
 
@@ -78,14 +78,6 @@ Before deploying to production, you MUST:
 - [ ] Implement refresh tokens
 - [ ] Add rate limiting per user
 - [ ] Implement account lockout after failed attempts
-
-### Database Security
-
-- [ ] Use parameterized queries (prevent SQL injection)
-- [ ] Implement proper connection pooling
-- [ ] Encrypt sensitive data at rest
-- [ ] Regular backups with encryption
-- [ ] Audit logging for sensitive operations
 
 ### API Security
 

@@ -4,10 +4,7 @@
   "description": "OWASP BLT - Modern static frontend with Cloudflare Workers backend",
   "scripts": {
     "dev": "wrangler dev",
-    "db:create": "wrangler d1 create blt-database",
-    "db:init": "wrangler d1 execute blt-database --local --file=./schema.sql",
     "worker:deploy": "wrangler deploy",
-    "pages:deploy": "npm run build && wrangler pages deploy .",
     "lint": "echo 'Linting not configured'",
     "setup": "npm install"
   },

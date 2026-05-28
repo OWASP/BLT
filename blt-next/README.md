@@ -11,7 +11,7 @@ BLT-Next is the next-generation architecture for OWASP BLT (Bug Logging Tool), m
 - **⚡ Sub-200ms Global Response Times**: Optimized static assets served via Cloudflare
 - **🎯 Progressive Enhancement**: Core functionality enhanced with HTMX and Tailwind CSS
 - **📦 Modular Architecture**: Clean separation of concerns with reusable Python handlers
-- **🔒 Secure by Default**: Cloudflare Workers handle authentication and D1 peristence
+- **🔒 Secure by Default**: Cloudflare Workers handle authentication and API orchestration
 - **🌍 Global Edge Runtime**: Python Workers running everywhere on Cloudflare's network
 - **💪 Maintainable**: Zero-build frontend using Tailwind CDN and Vanilla JS
 
@@ -23,8 +23,8 @@ BLT-Next is the next-generation architecture for OWASP BLT (Bug Logging Tool), m
 - **Interactions**: HTMX for seamless dynamic updates without page reloads
 
 ### Backend (Cloudflare Python Workers)
-- **API Endpoints**: Python workers handle dynamic features and database interactions
-- **Database**: Cloudflare D1 (SQL) for low-latency edge storage
+- **API Endpoints**: Python workers handle dynamic features and external service integrations
+- **API Only**: Persistent data belongs behind upstream APIs, not in this worker
 - **Performance**: Edge computing for sub-200ms responses
 
 ## 📁 Project Structure
@@ -40,9 +40,8 @@ BLT-Next/
 ├── workers/                    # Cloudflare Workers (Backend)
 │   └── main.py                # Unified API worker
 ├── docs/                      # Documentation
-├── package.json               # Scripts for dev and database
-├── wrangler.toml              # Infrastructure as code
-└── schema.sql                 # Unified D1 database schema
+├── package.json               # Scripts for dev and deploy
+└── wrangler.toml              # Infrastructure as code
 ```
 
 ## 🚦 Getting Started
@@ -60,12 +59,7 @@ BLT-Next/
     npm install
     ```
 
-3.  **Initialize local database**
-    ```bash
-    npm run db:init
-    ```
-
-4.  **Start development server**
+3.  **Start development server**
     ```bash
     npm run dev
     ```
@@ -99,21 +93,19 @@ For more details on setting up Cloudflare Workers or custom configurations, plea
 
 ## 🔧 Configuration
 
-### GitHub Pages
+### Cloudflare Workers
 
-Enable GitHub Pages in repository settings:
-1. Go to Settings > Pages
-2. Source: Deploy from a branch
-3. Branch: main / (root)
-4. Save
+Deploy the Worker to serve both static assets and API routes:
+```bash
+npm run worker:deploy
+```
 
 ### Environment Variables (Cloudflare)
 
 Set these in Cloudflare Workers dashboard:
 ```bash
-DATABASE_URL=your_database_url
 JWT_SECRET=your_jwt_secret
-ALLOWED_ORIGINS=https://owasp-blt.github.io
+ALLOWED_ORIGINS=https://blt.example.com
 ```
 
 ## 📊 Performance
@@ -165,7 +157,6 @@ This project is licensed under the GNU Affero General Public License v3.0 - see 
 
 - OWASP Community
 - All contributors to the original BLT project
-- GitHub for Pages hosting
 - Cloudflare for Workers platform
 
 ## 📧 Contact

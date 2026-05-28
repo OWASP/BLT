@@ -26,8 +26,7 @@ cd BLT-Next
 ### 2. Local Setup (Recommended)
 1. **Install Node.js** (v18 or later) and **Python**.
 2. **Install Dependencies**: `npm install`
-3. **Initialize local database**: `npm run db:init`
-4. **Start Development Server**: `npm run dev`
+3. **Start Development Server**: `npm run dev`
    - This starts a unified server at `http://localhost:8787` serving both the frontend and the backend API.
 
 ## Development Workflow

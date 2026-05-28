@@ -445,7 +445,7 @@ X-RateLimit-Reset: 1708268400
 The API supports CORS for allowed origins. Include these headers in requests:
 
 ```
-Origin: https://owasp-blt.github.io
+Origin: https://next.owaspblt.org
 ```
 
 ## Pagination

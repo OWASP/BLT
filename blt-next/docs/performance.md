@@ -53,27 +53,24 @@ With compression (gzip/brotli):
 
 ### API Response Times
 - Target: < 200ms global average
-- Database queries: < 50ms
+- Upstream API calls: < 150ms
 - Authentication: < 100ms
 - Static data: < 10ms (with caching)
 
 ### Optimizations
 - [ ] Implement KV caching for frequently accessed data
 - [ ] Add response compression
-- [ ] Optimize database queries with indexes
+- [ ] Cache stable upstream API responses
 - [ ] Implement request coalescing
 - [ ] Add edge caching headers
 
 ## Hosting
 
-### GitHub Pages
-- Global CDN distribution
-- Automatic SSL/TLS
-- HTTP/2 support
-- Brotli/Gzip compression
-
-### Cloudflare Network
+### Cloudflare Workers
 - 200+ PoPs worldwide
+- Workers Assets for static files
+- Automatic SSL/TLS
+- HTTP/2 and HTTP/3 support
 - Argo Smart Routing
 - Web Application Firewall
 - Rate limiting

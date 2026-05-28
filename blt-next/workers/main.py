@@ -8,7 +8,7 @@ from workers import WorkerEntrypoint #Added this new import to use the modern cl
 # Configuration
 # ===================================
 ALLOWED_ORIGINS = [
-    'https://owasp-blt.github.io',
+    'https://next.owaspbt.org',
     'http://localhost:3000',
     'http://localhost:8000',
 ]
@@ -40,7 +40,7 @@ def get_cors_headers(origin):
     if not origin:
         return {}
         
-    if origin in ALLOWED_ORIGINS or origin.endswith('.github.io'):
+    if origin in ALLOWED_ORIGINS:
         return {
             'Access-Control-Allow-Origin': origin,
             'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
@@ -102,27 +102,48 @@ def apply_frontend_security_headers(asset_response):
     )
 
 # ===================================
-# Helpers
+# API Data
 # ===================================
 
-def to_dict(obj):
-    """Convert a JsProxy database row or list of rows to plain Python dicts.
-    
-    Cloudflare Workers D1 returns results as JsProxy objects which
-    cannot be serialized by json.dumps(). This helper recursively
-    converts them to native Python types using the .to_py() method.
-    
-    Args:
-        obj: A JsProxy object, list of JsProxy objects, or a plain Python object.
-    
-    Returns:
-        A plain Python dict, list of dicts, or the original object.
-    """
-    if hasattr(obj, 'to_py'):
-        return obj.to_py()
-    if isinstance(obj, list):
-        return [to_dict(item) for item in obj]
-    return obj
+STATS = {
+    'bugs_reported': '15,234',
+    'active_researchers': '3,421',
+    'rewards_distributed': '$248,500',
+    'projects_protected': '892',
+}
+
+BUGS = [
+    {
+        'id': 1,
+        'title': 'Reflected XSS in search results',
+        'description': 'Search query is rendered without escaping in the demo target.',
+        'severity': 'high',
+        'status': 'open',
+        'created_at': '2026-05-01T12:00:00Z',
+    },
+    {
+        'id': 2,
+        'title': 'Missing security headers',
+        'description': 'Several pages are missing strict transport and frame protection headers.',
+        'severity': 'medium',
+        'status': 'triaged',
+        'created_at': '2026-05-02T12:00:00Z',
+    },
+]
+
+LEADERBOARD = [
+    {'rank': 1, 'username': 'redteam_ria', 'points': 12840, 'bugs': 84},
+    {'rank': 2, 'username': 'payload_paul', 'points': 11720, 'bugs': 73},
+    {'rank': 3, 'username': 'edge_case_emi', 'points': 10950, 'bugs': 68},
+    {'rank': 4, 'username': 'headers_hari', 'points': 9820, 'bugs': 61},
+    {'rank': 5, 'username': 'cipher_sam', 'points': 8750, 'bugs': 55},
+]
+
+PROJECTS = [
+    {'name': 'OWASP BLT', 'type': 'Open Source', 'reward': '$500+', 'bugs': 142},
+    {'name': 'API Gateway', 'type': 'Cloud Security', 'reward': '$1,000+', 'bugs': 67},
+    {'name': 'Mobile Portal', 'type': 'Web App', 'reward': '$750+', 'bugs': 53},
+]
 
 # ===================================
 # Route Handlers
@@ -130,40 +151,25 @@ def to_dict(obj):
 
 async def handle_stats(request, env=None):
     """Handle /api/stats endpoint"""
-    if not env or not hasattr(env, 'DB'):
-        return create_response({'error': 'Database binding missing'}, status=500, origin=request.headers.get('Origin'))
-
-    try:
-        # Query the stats table
-        results = await env.DB.prepare("SELECT key, value FROM stats").all()
-        stats = {row.key: row.value for row in results.results}
-        
-        if not stats:
-            return create_response({'error': 'No stats found'}, status=404, origin=request.headers.get('Origin'))
-
-        # Return HTML fragment for HTMX
-        html = f"""
-        <div class="stat-card">
-            <div class="stat-value">{stats.get('bugs_reported', 0)}</div>
-            <div class="stat-label">Bugs Reported</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-value">{stats.get('active_researchers', 0)}</div>
-            <div class="stat-label">Active Researchers</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-value">{stats.get('rewards_distributed', '$0')}</div>
-            <div class="stat-label">Rewards Distributed</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-value">{stats.get('projects_protected', 0)}</div>
-            <div class="stat-label">Projects Protected</div>
-        </div>
-        """
-        return handle_html_response(html, origin=request.headers.get('Origin'))
-    except Exception as e:
-        print(f"D1 Query Error: {e}")
-        return create_response({'error': str(e)}, status=500, origin=request.headers.get('Origin'))
+    html = f"""
+    <div class="stat-card">
+        <div class="stat-value">{STATS.get('bugs_reported', 0)}</div>
+        <div class="stat-label">Bugs Reported</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{STATS.get('active_researchers', 0)}</div>
+        <div class="stat-label">Active Researchers</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{STATS.get('rewards_distributed', '$0')}</div>
+        <div class="stat-label">Rewards Distributed</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{STATS.get('projects_protected', 0)}</div>
+        <div class="stat-label">Projects Protected</div>
+    </div>
+    """
+    return handle_html_response(html, origin=request.headers.get('Origin'))
 
 async def handle_auth_login(request, env=None):
     """Handle /api/auth/login endpoint"""
@@ -211,8 +217,8 @@ async def handle_auth_signup(request, env=None):
         # TODO: In production, implement proper user registration:
         # 1. Validate input (email format, password strength, username uniqueness)
         # 2. Hash password with bcrypt/argon2 before storing
-        # 3. Check for existing user in database
-        # 4. Store user securely in database
+        # 3. Check for existing user via the account API
+        # 4. Create the user via the account API
         # 5. Send verification email
         # 6. Generate secure JWT token
         
@@ -260,7 +266,7 @@ async def handle_auth_me(request, env=None):
     # 1. Verify JWT signature with secret key
     # 2. Check token expiration
     # 3. Validate token claims
-    # 4. Query database for current user data
+    # 4. Fetch current user data from the account API
     # Example: decoded = jwt.decode(token, JWT_SECRET, algorithms=['HS256'])
     
     # Mock token validation - DO NOT USE IN PRODUCTION
@@ -286,26 +292,22 @@ async def handle_auth_me(request, env=None):
 
 async def handle_auth_logout(request, env=None):
     """Handle /api/auth/logout endpoint"""
-    # In production, invalidate token in database
+    # In production, invalidate the token through the auth API
     return create_response({
         'success': True
     }, origin=request.headers.get('Origin'))
 
 async def handle_bugs_list(request, env=None):
     """Handle /api/bugs endpoint (GET and POST)"""
-    if not env or not hasattr(env, 'DB'):
-        return create_response({'error': 'Database binding missing'}, status=500, origin=request.headers.get('Origin'))
-
     if request.method == 'POST':
         try:
             body = await request.json()
             title = body.get('title')
             description = body.get('description')
             severity = body.get('severity')
-            
-            await env.DB.prepare(
-                "INSERT INTO bugs (title, description, severity, status) VALUES (?, ?, ?, ?)"
-            ).bind(title, description, severity, 'open').run()
+
+            if not title or not description or not severity:
+                return create_response({'error': 'Missing required bug report fields'}, status=400, origin=request.headers.get('Origin'))
 
             # Mock success response in HTML for HTMX
             html = """
@@ -320,90 +322,61 @@ async def handle_bugs_list(request, env=None):
             return create_response({'error': str(e)}, status=500, origin=request.headers.get('Origin'))
 
     # GET case (list bugs)
-    try:
-        results = await env.DB.prepare("SELECT * FROM bugs ORDER BY created_at DESC LIMIT 20").all()
-        bugs = to_dict(results.results)
-        return create_response({'bugs': bugs}, origin=request.headers.get('Origin'))
-    except Exception as e:
-        return create_response({'error': str(e)}, status=500, origin=request.headers.get('Origin'))
+    return create_response({'bugs': BUGS}, origin=request.headers.get('Origin'))
 
 async def handle_leaderboard(request, env=None):
     """Handle /api/leaderboard endpoint"""
-    if not env or not hasattr(env, 'DB'):
-        return create_response({'error': 'Database binding missing'}, status=500, origin=request.headers.get('Origin'))
-
-    try:
-        results = await env.DB.prepare(
-            '''SELECT rank, ('User #' || user_id) AS username, points, bugs_verified AS bugs
-            FROM leaderboard
-            ORDER BY points DESC
-            LIMIT 10''').all()
-        leaderboard = results.results
-        
-        # Return HTML table for HTMX
-        rows = "".join([
-            f"""
-            <div class="leaderboard-row">
-                <div class="rank">{item.rank}</div>
-                <div class="username">{item.username}</div>
-                <div class="stat">{item.points} pts</div>
-                <div class="stat">{item.bugs} bugs</div>
-            </div>
-            """ for item in leaderboard
-        ])
-        
-        html = f"""
-        <div class="leaderboard-table">
-            <div class="leaderboard-row leaderboard-header">
-                <div>Rank</div>
-                <div>Researcher</div>
-                <div style="text-align: right;">Points</div>
-                <div style="text-align: right;">Bugs</div>
-            </div>
-            {rows}
+    rows = "".join([
+        f"""
+        <div class="leaderboard-row">
+            <div class="rank">{item['rank']}</div>
+            <div class="username">{item['username']}</div>
+            <div class="stat">{item['points']} pts</div>
+            <div class="stat">{item['bugs']} bugs</div>
         </div>
-        """
-        return handle_html_response(html, origin=request.headers.get('Origin'))
-    except Exception as e:
-        return create_response({'error': str(e)}, status=500, origin=request.headers.get('Origin'))
+        """ for item in LEADERBOARD
+    ])
+
+    html = f"""
+    <div class="leaderboard-table">
+        <div class="leaderboard-row leaderboard-header">
+            <div>Rank</div>
+            <div>Researcher</div>
+            <div style="text-align: right;">Points</div>
+            <div style="text-align: right;">Bugs</div>
+        </div>
+        {rows}
+    </div>
+    """
+    return handle_html_response(html, origin=request.headers.get('Origin'))
 
 async def handle_projects(request, env=None):
     """Handle /api/projects endpoint"""
-    if not env or not hasattr(env, 'DB'):
-        return create_response({'error': 'Database binding missing'}, status=500, origin=request.headers.get('Origin'))
-
-    try:
-        results = await env.DB.prepare("SELECT * FROM projects").all()
-        projects = results.results
-        
-        # Return HTML for HTMX
-        cards = "".join([
-            f"""
-            <div class="project-card">
-                <div class="project-header">
-                    <div class="project-logo">🛡️</div>
-                    <div class="project-info">
-                        <div class="project-name">{p.name}</div>
-                        <div class="project-type">{p.type}</div>
-                    </div>
-                </div>
-                <div class="project-reward">{p.get('reward', 'N/A')}</div>
-                <div class="project-stats">
-                    <div class="stat">
-                        <div class="stat-value">{p.get('bugs', 0)}</div>
-                        <div class="stat-label">Bugs</div>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-value">Active</div>
-                        <div class="stat-label">Status</div>
-                    </div>
+    cards = "".join([
+        f"""
+        <div class="project-card">
+            <div class="project-header">
+                <div class="project-logo">BT</div>
+                <div class="project-info">
+                    <div class="project-name">{p['name']}</div>
+                    <div class="project-type">{p['type']}</div>
                 </div>
             </div>
-            """ for p in projects
-        ])
-        return handle_html_response(cards, origin=request.headers.get('Origin'))
-    except Exception as e:
-        return create_response({'error': str(e)}, status=500, origin=request.headers.get('Origin'))
+            <div class="project-reward">{p.get('reward', 'N/A')}</div>
+            <div class="project-stats">
+                <div class="stat">
+                    <div class="stat-value">{p.get('bugs', 0)}</div>
+                    <div class="stat-label">Bugs</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">Active</div>
+                    <div class="stat-label">Status</div>
+                </div>
+            </div>
+        </div>
+        """ for p in PROJECTS
+    ])
+    return handle_html_response(cards, origin=request.headers.get('Origin'))
 
 # ===================================
 # Router

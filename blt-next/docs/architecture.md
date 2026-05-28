@@ -14,22 +14,21 @@ BLT-Next implements a modern, performant architecture that separates static fron
              ├──────────────┬─────────────────────────────────┐
              │              │                                 │
              ▼              ▼                                 ▼
-    ┌────────────┐  ┌──────────────┐           ┌──────────────────┐
-    │   GitHub   │  │  Cloudflare  │           │   External       │
-    │   Pages    │  │   Workers    │           │   Services       │
-    │   (CDN)    │  │   (Edge)     │           │   (Optional)     │
-    └────────────┘  └──────────────┘           └──────────────────┘
-         │                 │                            │
-         │                 │                            │
-    Static HTML        API Layer                  - Database
-    CSS, JS            Python Workers             - Auth Provider
-    Images             JWT Auth                   - Storage
-                       CORS                       - Analytics
+    ┌────────────────────────────┐           ┌──────────────────┐
+    │        Cloudflare          │           │   External       │
+    │        Workers             │           │   Services       │
+    │        (Edge)              │           │   (Optional)     │
+    └────────────────────────────┘           └──────────────────┘
+         │                                           │
+         │                                           │
+    Static Assets + API Layer                  - Auth Provider
+    Python Workers + CORS                      - Storage API
+    JWT Auth                                   - Analytics
 ```
 
 ## Components
 
-### 1. Frontend Layer (GitHub Pages)
+### 1. Frontend Layer (Cloudflare Workers Assets)
 
 **Technology Stack:**
 - HTML5 (Semantic markup)
@@ -39,7 +38,7 @@ BLT-Next implements a modern, performant architecture that separates static fron
 
 **Characteristics:**
 - Zero build step required
-- Served via GitHub's global CDN
+- Served via Cloudflare Workers Assets
 - Cached at edge locations worldwide
 - Sub-100ms delivery for static assets
 - Mobile-first, responsive design
@@ -55,7 +54,7 @@ BLT-Next implements a modern, performant architecture that separates static fron
 **Technology Stack:**
 - Python 3.11+ (Pyodide runtime)
 - Cloudflare Workers (Edge computing)
-- D1 Database (SQLite at edge) or external DB
+- Upstream APIs for persistent data
 - JWT for authentication
 
 **Characteristics:**
@@ -75,24 +74,17 @@ BLT-Next implements a modern, performant architecture that separates static fron
 /api/stats          - Platform statistics
 ```
 
-### 3. Data Layer
+### 3. API Integration Layer
 
-**Options:**
-
-**Option A: Cloudflare D1 (Recommended)**
-- SQLite database at the edge
-- Automatic replication
-- Low latency reads
-- Perfect for this use case
-
-**Option B: External Database**
-- PostgreSQL, MySQL, etc.
-- Connection pooling required
-- Use Cloudflare Workers KV for caching
+**Responsibilities:**
+- Call upstream services for persistent data
+- Normalize API responses for the frontend
+- Keep secrets and service credentials out of client-side code
+- Use Cloudflare Workers KV only for cacheable, non-authoritative data if needed
 
 ### 4. Content Delivery
 
-**GitHub Pages CDN:**
+**Cloudflare Workers Assets:**
 - Automatic SSL/TLS
 - Global distribution
 - HTTP/2 and HTTP/3 support
@@ -108,7 +100,7 @@ BLT-Next implements a modern, performant architecture that separates static fron
 
 ### Static Content Request
 ```
-User Request → GitHub Pages CDN → Edge Cache → Response
+User Request → Cloudflare Worker → Assets Cache → Response
                                      ↑
                                   (< 50ms)
 ```
@@ -117,7 +109,7 @@ User Request → GitHub Pages CDN → Edge Cache → Response
 ```
 User Request → Cloudflare Worker → Process → Response
                        ↓
-                   Database/KV
+                   Upstream API/KV cache
                        ↑
                   (< 200ms total)
 ```
@@ -152,7 +144,7 @@ User Action → HTMX Request → API → Worker → Data → HTML Fragment → D
 ### Authentication Flow
 ```
 1. User submits credentials
-2. Worker validates against database
+2. Worker validates through the auth API
 3. Generate JWT token
 4. Return token to client
 5. Client stores in localStorage
@@ -179,10 +171,9 @@ User Action → HTMX Request → API → Worker → Data → HTML Fragment → D
 
 ### Backend
 1. **Edge Caching**: KV for frequently accessed data
-2. **Connection Pooling**: Database connections
-3. **Query Optimization**: Indexed queries
-4. **Response Compression**: Gzip/Brotli
-5. **CDN Integration**: Cloudflare cache API
+2. **API Response Shaping**: Keep worker responses small and predictable
+3. **Response Compression**: Gzip/Brotli
+4. **CDN Integration**: Cloudflare cache API
 
 ### Metrics Targets
 - **Time to First Byte**: < 100ms
@@ -194,9 +185,8 @@ User Action → HTMX Request → API → Worker → Data → HTML Fragment → D
 ## Scalability
 
 ### Horizontal Scaling
-- GitHub Pages: Automatic (CDN)
 - Cloudflare Workers: Automatic (edge computing)
-- Database: Sharding or read replicas as needed
+- Upstream APIs: Scale independently behind service boundaries
 
 ### Traffic Handling
 - 10K requests/second: No issues
@@ -207,13 +197,10 @@ User Action → HTMX Request → API → Worker → Data → HTML Fragment → D
 
 ### Continuous Deployment
 ```
-Git Push → GitHub Actions → Build → Deploy to Pages
-                                  ↓
-                         Update Worker if needed
+Git Push → CI → wrangler deploy → Worker + Assets
 ```
 
 ### Zero Downtime
-- GitHub Pages: Automatic versioning
 - Workers: Gradual rollout
 - Rollback: Previous version in seconds
 
@@ -242,7 +229,6 @@ Git Push → GitHub Actions → Build → Deploy to Pages
 
 ## Cost Estimation
 
-**GitHub Pages**: Free for public repos
 **Cloudflare Workers**: 
 - Free tier: 100K requests/day
 - Paid: $5/month for 10M requests
