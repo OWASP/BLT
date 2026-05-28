@@ -6,7 +6,7 @@ Welcome to BLT University! This guide will help you get started whether you're a
 
 ### 1. Browse Courses
 
-Visit the [Course Catalog](https://owasp-blt.github.io/BLT-University/courses/) to explore available courses.
+Visit the [Course Catalog](https://university.owaspblt.org/courses/) to explore available courses.
 
 ### 2. Prerequisites Check
 
@@ -14,9 +14,9 @@ Each course lists prerequisites. Make sure you meet them before enrolling.
 
 ### 3. Enroll
 
-1. Go to the [Enrollment Page](https://owasp-blt.github.io/BLT-University/enroll/)
+1. Go to the [Enrollment Page](https://university.owaspblt.org/enroll/)
 2. Click "Submit Enrollment Request"
-3. Fill out the GitHub issue form
+3. Fill out the GitLab issue form
 4. Wait for approval (2-3 business days)
 
 ### 4. Start Learning
@@ -25,7 +25,7 @@ Once approved:
 - Access course materials on the course page
 - Join course discussions
 - Complete labs and assignments
-- Submit work via GitHub
+- Submit work via GitLab
 
 ## For Instructors
 
@@ -35,7 +35,7 @@ Read the [Contributing Guide](CONTRIBUTING.md) to understand our requirements.
 
 ### 2. Submit Proposal
 
-1. Use the [course submission template](https://github.com/OWASP-BLT/BLT-University/issues/new?template=course-submission.yml)
+1. Use the [course submission template](https://gitlab.com/owasp-blt/blt-university/-/issues/new)
 2. Provide detailed course information
 3. Wait for curriculum team review
 
@@ -45,7 +45,7 @@ Once approved:
 
 ```bash
 # Fork the repository
-git clone https://github.com/YOUR-USERNAME/BLT-University.git
+git clone git@gitlab.com:YOUR-USERNAME/blt-university.git
 cd BLT-University
 
 # Create instructor profile
@@ -54,7 +54,7 @@ cat > _instructors/your-name.md << 'EOF'
 layout: instructor
 title: Your Name
 expertise: Your Expertise
-github: yourusername
+gitlab: yourusername
 ---
 
 Your bio here...
@@ -92,7 +92,7 @@ bundle exec jekyll serve
 git add .
 git commit -m "Add new course: Your Course Title"
 git push origin main
-# Open pull request on GitHub
+# Open pull request on GitLab
 ```
 
 ### 4. Maintain Course
@@ -107,7 +107,7 @@ git push origin main
 
 ```bash
 # Clone repository
-git clone https://github.com/OWASP-BLT/BLT-University.git
+git clone https://gitlab.com/owasp-blt/blt-university.git
 cd BLT-University
 
 # Install Ruby dependencies
@@ -228,8 +228,8 @@ resources:
 
 ## Getting Help
 
-- **Technical Issues**: [Open an issue](https://github.com/OWASP-BLT/BLT-University/issues)
-- **Questions**: [Start a discussion](https://github.com/OWASP-BLT/BLT-University/discussions)
+- **Technical Issues**: [Open an issue](https://gitlab.com/owasp-blt/blt-university/-/issues)
+- **Questions**: [Start a discussion](https://gitlab.com/owasp-blt/blt-university/-/issues)
 - **Course Content**: Contact the instructor via their profile
 - **General**: Check the [README](README.md) and [Contributing Guide](CONTRIBUTING.md)
 
@@ -253,8 +253,8 @@ resources:
 
 ## Resources
 
-- **Website**: https://owasp-blt.github.io/BLT-University/
-- **GitHub**: https://github.com/OWASP-BLT/BLT-University
+- **Website**: https://university.owaspblt.org/
+- **GitLab**: https://gitlab.com/owasp-blt/blt-university
 - **Jekyll Docs**: https://jekyllrb.com/docs/
 - **Markdown Guide**: https://www.markdownguide.org/
 
@@ -262,7 +262,7 @@ resources:
 
 Ready to get started? Choose your path:
 
-- **Students**: [Browse Courses](https://owasp-blt.github.io/BLT-University/courses/) → [Enroll](https://owasp-blt.github.io/BLT-University/enroll/)
-- **Instructors**: [Read Contributing Guide](CONTRIBUTING.md) → [Submit Course](https://github.com/OWASP-BLT/BLT-University/issues/new?template=course-submission.yml)
+- **Students**: [Browse Courses](https://university.owaspblt.org/courses/) → [Enroll](https://university.owaspblt.org/enroll/)
+- **Instructors**: [Read Contributing Guide](CONTRIBUTING.md) → [Submit Course](https://gitlab.com/owasp-blt/blt-university/-/issues/new)
 
 Welcome to BLT University! 🎓

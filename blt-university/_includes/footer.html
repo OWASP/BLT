@@ -3,12 +3,11 @@
         <div class="col-span-1">
             <a href="{{ '/' | relative_url }}"
              class="flex items-center gap-3 font-display font-bold text-xl text-white mb-6">
-                <img src="{{ site.baseurl }}/assets/images/blt-logo.png"
-                    onerror="this.src='/assets/images/blt-logo.png'" alt="Logo" class="w-8 h-8 object-contain">
+                <img src="{{ '/assets/images/blt-logo.png' | relative_url }}" alt="Logo" class="w-8 h-8 object-contain">
                 {{ site.university.name | default: "BLT University" }}
              </a>
             <p class="text-sm leading-relaxed text-slate-400 mb-6">
-                {{ site.description | default: "A cybersecurity-focused online university powered by GitHub Pages." |
+                {{ site.description | default: "A cybersecurity-focused online university powered by GitLab Pages." |
                 truncate: 120 }}
             </p>
             <div
@@ -34,8 +33,8 @@
         <div>
             <h4 class="text-white font-bold text-xs uppercase tracking-widest mb-6">Get Involved</h4>
             <ul class="space-y-4 text-sm font-medium text-slate-400">
-                <li><a href="https://github.com/OWASP-BLT/BLT-University" target="_blank"
-                        class="hover:text-white hover:translate-x-1 transition-all inline-block">GitHub Repository</a>
+                <li><a href="https://gitlab.com/owasp-blt/blt-university" target="_blank"
+                        class="hover:text-white hover:translate-x-1 transition-all inline-block">GitLab Repository</a>
                 </li>
                 <li><a href="{{ '/contributing/' | relative_url }}"
                         class="hover:text-white hover:translate-x-1 transition-all inline-block">Become an
@@ -50,8 +49,8 @@
                     target="_blank" class="text-bltRed font-bold hover:text-white transition-colors">AGPL-3.0</a>.
             </p>
             <div class="flex flex-wrap gap-4">
-                <a href="https://github.com/OWASP-BLT" target="_blank"
-                   aria-label="OWASP Github" title="OWASP Github"
+                <a href="https://gitlab.com/owasp-blt" target="_blank"
+                   aria-label="OWASP BLT on GitLab" title="OWASP BLT on GitLab"
                     class="text-slate-400 hover:text-white transition-colors">
                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                         <path
@@ -129,7 +128,7 @@
             </p>
             <div class="flex items-center gap-6">
                 <p class="text-slate-500 text-xs uppercase tracking-widest font-bold">
-                    Powered by <span class="text-white">GitHub Pages</span>
+                    Powered by <span class="text-white">GitLab Pages</span>
                 </p>
             </div>
         </div>

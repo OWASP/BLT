@@ -9,7 +9,7 @@ Thank you for your interest in contributing to BLT University! This document pro
 Share your cybersecurity expertise by creating a course!
 
 **Steps:**
-1. Submit a [course proposal](https://github.com/OWASP-BLT/BLT-University/issues/new?template=course-submission.yml)
+1. Submit a [course proposal](https://gitlab.com/owasp-blt/blt-university/-/issues/new)
 2. Wait for approval and feedback from the curriculum team
 3. Create your instructor profile in `_instructors/`
 4. Develop your course content in `_courses/`
@@ -51,7 +51,7 @@ Found a problem? Let us know!
 - Accessibility issues
 - Website bugs
 
-Use our [issue tracker](https://github.com/OWASP-BLT/BLT-University/issues) with clear descriptions and steps to reproduce.
+Use our [issue tracker](https://gitlab.com/owasp-blt/blt-university/-/issues) with clear descriptions and steps to reproduce.
 
 ### 4. Suggest Improvements
 
@@ -76,7 +76,7 @@ layout: instructor
 title: Your Name
 expertise: Your Specialization
 avatar: /assets/images/instructors/yourname.jpg
-github: yourusername
+gitlab: yourusername
 linkedin: yourprofile
 twitter: yourhandle
 website: https://yoursite.com
@@ -196,7 +196,7 @@ assets/
 **Supported Formats:**
 - **Videos**: YouTube, Vimeo links (preferred) or self-hosted
 - **Documents**: PDF, Markdown
-- **Code**: GitHub repositories
+- **Code**: GitLab repositories
 - **Labs**: Docker containers, VMs (provide setup instructions)
 
 ## 🔧 Development Setup
@@ -211,7 +211,7 @@ assets/
 
 ```bash
 # Clone repository
-git clone https://github.com/OWASP-BLT/BLT-University.git
+git clone https://gitlab.com/owasp-blt/blt-university.git
 cd BLT-University
 
 # Install dependencies
@@ -239,7 +239,7 @@ git commit -m "Description of changes"
 # Push to your fork
 git push origin feature/your-feature
 
-# Open pull request on GitHub
+# Open pull request on GitLab
 ```
 
 ## ✅ Pull Request Guidelines
@@ -265,7 +265,7 @@ Provide:
 
 ### Review Process
 
-1. **Automated Checks**: GitHub Actions will run tests
+1. **Automated Checks**: GitLab CI/CD will run tests
 2. **Peer Review**: Community members review your PR
 3. **Revisions**: Address feedback and make changes
 4. **Approval**: Maintainers approve and merge
@@ -390,8 +390,8 @@ As a BLT University instructor, you get:
 
 Need assistance?
 
-- **Questions**: [GitHub Discussions](https://github.com/OWASP-BLT/BLT-University/discussions)
-- **Bugs**: [Issue Tracker](https://github.com/OWASP-BLT/BLT-University/issues)
+- **Questions**: [GitLab Issues](https://gitlab.com/owasp-blt/blt-university/-/issues)
+- **Bugs**: [Issue Tracker](https://gitlab.com/owasp-blt/blt-university/-/issues)
 - **Chat**: Join our community chat
 - **Email**: contribute@bltuniversity.org
 
