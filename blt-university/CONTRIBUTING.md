@@ -392,6 +392,7 @@ Need assistance?
 
 - **Questions**: [GitLab Issues](https://gitlab.com/owasp-blt/blt-university/-/issues)
 - **Bugs**: [Issue Tracker](https://gitlab.com/owasp-blt/blt-university/-/issues)
+- **Backup**: [GitHub Issues](https://github.com/OWASP-BLT/BLT-University/issues)
 - **Chat**: Join our community chat
 - **Email**: contribute@bltuniversity.org
 

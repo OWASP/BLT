@@ -255,6 +255,7 @@ resources:
 
 - **Website**: https://university.owaspblt.org/
 - **GitLab**: https://gitlab.com/owasp-blt/blt-university
+- **GitHub Backup**: https://github.com/OWASP-BLT/BLT-University
 - **Jekyll Docs**: https://jekyllrb.com/docs/
 - **Markdown Guide**: https://www.markdownguide.org/
 

@@ -187,6 +187,7 @@ Special thanks to:
 
 - **Website**: [https://university.owaspblt.org/](https://university.owaspblt.org/)
 - **GitLab**: [https://gitlab.com/owasp-blt/blt-university](https://gitlab.com/owasp-blt/blt-university)
+- **GitHub Backup**: [https://github.com/OWASP-BLT/BLT-University](https://github.com/OWASP-BLT/BLT-University)
 - **OWASP BLT**: [https://gitlab.com/owasp-blt](https://gitlab.com/owasp-blt)
 
 ## 💬 Support
@@ -196,6 +197,7 @@ Need help? Have questions?
 - 📖 Check our [Documentation](https://university.owaspblt.org/)
 - 💬 Join [GitLab Issues](https://gitlab.com/owasp-blt/blt-university/-/issues)
 - 🐛 Report [Issues](https://gitlab.com/owasp-blt/blt-university/-/issues)
+- 🧭 Backup: [GitHub Issues](https://github.com/OWASP-BLT/BLT-University/issues)
 
 ---
 
@@ -203,7 +205,7 @@ Need help? Have questions?
 
 **Made with ❤️ by the OWASP BLT Community**
 
-[Website](https://university.owaspblt.org/) • [Enroll](https://gitlab.com/owasp-blt/blt-university/-/issues/new) • [Request Course](https://gitlab.com/owasp-blt/blt-university/-/issues/new) • [Teach](https://gitlab.com/owasp-blt/blt-university/-/issues/new) • [Contribute](CONTRIBUTING.md)
+[Website](https://university.owaspblt.org/) • [Enroll](https://gitlab.com/owasp-blt/blt-university/-/issues/new) • [Request Course](https://gitlab.com/owasp-blt/blt-university/-/issues/new) • [Teach](https://gitlab.com/owasp-blt/blt-university/-/issues/new) • [GitHub Backup](https://github.com/OWASP-BLT/BLT-University) • [Contribute](CONTRIBUTING.md)
 
 ⭐ Star us on GitLab — it helps!
 
