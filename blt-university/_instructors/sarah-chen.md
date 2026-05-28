@@ -2,7 +2,7 @@
 layout: instructor
 title: Dr. Sarah Chen
 expertise: Cryptography & Web Security Expert
-gitlab: sarahchen
+github: sarahchen
 linkedin: dr-sarah-chen
 ---
 

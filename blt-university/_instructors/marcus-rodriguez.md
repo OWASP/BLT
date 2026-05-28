@@ -2,7 +2,7 @@
 layout: instructor
 title: Marcus Rodriguez
 expertise: Penetration Testing & Red Team Operations
-gitlab: marcusrodriguez
+github: marcusrodriguez
 twitter: marcusredteam
 ---
 

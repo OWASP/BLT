@@ -2,16 +2,17 @@
 
 > Open-Source Cybersecurity Education for Everyone
 
-[![GitLab Pages](https://img.shields.io/badge/GitLab-Pages-blue?style=flat-square&logo=gitlab)](https://university.owaspblt.org/)
+[![GitHub Pages](https://img.shields.io/badge/GitHub-Pages-blue?style=flat-square&logo=github)](https://owasp-blt.github.io/BLT-University/)
+[![GitLab Pages](https://img.shields.io/badge/GitLab-Pages-orange?style=flat-square&logo=gitlab)](https://university.owaspblt.org/)
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL%203.0-blue.svg?style=flat-square)](LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](CONTRIBUTING.md)
 
-BLT University is a revolutionary **GitLab Pages-based online university** focused on cybersecurity education. We believe security knowledge should be free, collaborative, and community-driven.
+BLT University is a revolutionary **GitHub Pages-based online university** focused on cybersecurity education. We believe security knowledge should be free, collaborative, and community-driven.
 
 ## 🌟 What Makes Us Different
 
 - **100% Free & Open Source**: All courses and materials are freely available
-- **GitLab-Powered Learning**: Learn through pull requests, issues, and GitLab CI/CD
+- **GitHub-Powered Learning**: Learn through pull requests, issues, and GitHub Actions
 - **Industry Expert Instructors**: Courses taught by experienced security professionals
 - **Hands-On Focus**: Practical labs, real-world projects, and interactive content
 - **Community-Driven**: Built by the community, for the community
@@ -19,7 +20,7 @@ BLT University is a revolutionary **GitLab Pages-based online university** focus
 
 ## 📚 Browse Courses
 
-Visit our [Course Catalog](https://university.owaspblt.org/courses/) to explore available courses in:
+Visit our [Course Catalog](https://owasp-blt.github.io/BLT-University/courses/) to explore available courses in:
 
 - 🌐 Web Security
 - 🔒 Network Security
@@ -36,10 +37,10 @@ Visit our [Course Catalog](https://university.owaspblt.org/courses/) to explore 
 
 ### For Students
 
-1. **Browse Courses**: Visit [BLT University](https://university.owaspblt.org/) to explore our catalog
-2. **Request a Course**: Don't see what you're looking for? [Request a course or topic](https://gitlab.com/owasp-blt/blt-university/-/issues/new) you'd like to learn
-3. **Create GitLab Account**: If you don't have one, [sign up for GitLab](https://gitlab.com/users/sign_up)
-4. **Enroll**: Submit an [enrollment request](https://gitlab.com/owasp-blt/blt-university/-/issues/new)
+1. **Browse Courses**: Visit [BLT University](https://owasp-blt.github.io/BLT-University/) to explore our catalog
+2. **Request a Course**: Don't see what you're looking for? [Request a course or topic](https://github.com/OWASP-BLT/BLT-University/issues/new?template=course-request.yml) you'd like to learn
+3. **Create GitHub Account**: If you don't have one, [sign up for GitHub](https://github.com/signup)
+4. **Enroll**: Submit an [enrollment request](https://github.com/OWASP-BLT/BLT-University/issues/new?template=enrollment.yml)
 5. **Start Learning**: Access course materials and begin your journey!
 
 ### For Instructors
@@ -47,20 +48,20 @@ Visit our [Course Catalog](https://university.owaspblt.org/courses/) to explore 
 Want to teach at BLT University? We'd love to have you!
 
 1. **Read the Guide**: Check out our [Contributing Guide](contributing.html)
-2. **Submit Proposal**: Use our [course submission template](https://gitlab.com/owasp-blt/blt-university/-/issues/new)
+2. **Submit Proposal**: Use our [course submission template](https://github.com/OWASP-BLT/BLT-University/issues/new?template=course-submission.yml)
 3. **Create Course**: Develop your course using our templates
 4. **Submit PR**: Submit a pull request with your course materials
 5. **Go Live**: Once approved, your course joins our catalog!
 
 ## 🏗️ How It Works
 
-### GitLab Pages-Based Platform
+### GitHub Pages-Based Platform
 
-All courses are hosted as static content on GitLab Pages, making them:
+All courses are hosted as static content on GitHub Pages, making them:
 - **Version Controlled**: Track changes and improvements over time
 - **Collaborative**: Anyone can suggest improvements via pull requests
 - **Transparent**: All course materials are open and visible
-- **Fast & Reliable**: Served through GitLab Pages infrastructure
+- **Fast & Reliable**: Served through GitHub's global CDN
 
 ### Course Management
 
@@ -71,8 +72,8 @@ All courses are hosted as static content on GitLab Pages, making them:
 
 ### Enrollment System
 
-- **GitLab Issues**: Students enroll by creating an issue
-- **Automated Workflows**: GitLab CI/CD processes enrollments automatically
+- **GitHub Issues**: Students enroll by creating an issue
+- **Automated Workflows**: GitHub Actions process enrollments automatically
 - **Access Control**: Students added to course repositories upon approval
 - **Certificate Generation**: Automated certificate creation on completion
 
@@ -80,18 +81,18 @@ All courses are hosted as static content on GitLab Pages, making them:
 
 - 📹 **Videos**: YouTube embeds, hosted videos
 - 📄 **PDFs**: Slides, guides, reference materials
-- 💻 **Code**: GitLab repositories, interactive coding exercises
+- 💻 **Code**: GitHub repositories, interactive coding exercises
 - 🔗 **External Resources**: Links to tools, documentation
 - 📅 **Events**: Live meetups, virtual sessions
-- ✏️ **Assignments**: GitLab-based homework and projects
+- ✏️ **Assignments**: GitHub-based homework and projects
 
 ## 🛠️ Technical Architecture
 
 ### Built With
 
 - **Jekyll**: Static site generator
-- **GitLab Pages**: Hosting platform
-- **GitLab CI/CD**: Automation and workflows
+- **GitHub Pages**: Hosting platform
+- **GitHub Actions**: Automation and workflows
 - **Markdown**: Content format
 - **YAML**: Course metadata
 
@@ -106,6 +107,9 @@ BLT-University/
 ├── assets/
 │   ├── css/              # Stylesheets
 │   └── js/               # JavaScript
+├── .github/
+│   ├── workflows/        # GitHub Actions
+│   └── ISSUE_TEMPLATE/   # Issue templates
 ├── .gitlab-ci.yml        # GitLab Pages deployment
 ├── _config.yml           # Jekyll configuration
 └── *.html                # Static pages
@@ -117,7 +121,7 @@ To run the site locally:
 
 ```bash
 # Clone the repository
-git clone https://gitlab.com/owasp-blt/blt-university.git
+git clone https://github.com/OWASP-BLT/BLT-University.git
 cd BLT-University
 
 # Install dependencies
@@ -143,14 +147,14 @@ We welcome contributions from everyone! Here's how you can help:
 - **🎓 Teach a Course**: Share your expertise
 - **📝 Improve Content**: Fix typos, add examples, clarify concepts
 - **🐛 Report Issues**: Found a problem? Let us know
-- **💡 Request Courses**: Tell us what you want to learn using our [course request form](https://gitlab.com/owasp-blt/blt-university/-/issues/new)
+- **💡 Request Courses**: Tell us what you want to learn using our [course request form](https://github.com/OWASP-BLT/BLT-University/issues/new?template=course-request.yml)
 - **🌍 Translate**: Help make content accessible globally
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 
 ## 🌐 Community
 
-- **GitLab Issues**: Ask questions, share knowledge
+- **GitHub Discussions**: Ask questions, share knowledge
 - **Issues**: Report bugs, request features
 - **Pull Requests**: Contribute code and content
 - **Social Media**: Follow us for updates
@@ -168,12 +172,12 @@ See [LICENSE](LICENSE) for full details.
 
 ## 🙏 Acknowledgments
 
-BLT University is part of the [OWASP BLT Project](https://gitlab.com/owasp-blt), dedicated to building open-source security tools and education.
+BLT University is part of the [OWASP BLT Project](https://github.com/OWASP-BLT), dedicated to building open-source security tools and education.
 
 Special thanks to:
 - All our instructors and contributors
 - The OWASP community
-- GitLab for providing amazing tools
+- GitHub for providing amazing tools
 - Our students who make this worthwhile
 
 ## 📊 Stats
@@ -185,19 +189,19 @@ Special thanks to:
 
 ## 🔗 Links
 
-- **Website**: [https://university.owaspblt.org/](https://university.owaspblt.org/)
+- **Website**: [https://owasp-blt.github.io/BLT-University/](https://owasp-blt.github.io/BLT-University/)
+- **GitHub**: [https://github.com/OWASP-BLT/BLT-University](https://github.com/OWASP-BLT/BLT-University)
 - **GitLab**: [https://gitlab.com/owasp-blt/blt-university](https://gitlab.com/owasp-blt/blt-university)
-- **GitHub Backup**: [https://github.com/OWASP-BLT/BLT-University](https://github.com/OWASP-BLT/BLT-University)
-- **OWASP BLT**: [https://gitlab.com/owasp-blt](https://gitlab.com/owasp-blt)
+- **OWASP BLT**: [https://github.com/OWASP-BLT](https://github.com/OWASP-BLT)
 
 ## 💬 Support
 
 Need help? Have questions?
 
-- 📖 Check our [Documentation](https://university.owaspblt.org/)
-- 💬 Join [GitLab Issues](https://gitlab.com/owasp-blt/blt-university/-/issues)
-- 🐛 Report [Issues](https://gitlab.com/owasp-blt/blt-university/-/issues)
-- 🧭 Backup: [GitHub Issues](https://github.com/OWASP-BLT/BLT-University/issues)
+- 📖 Check our [Documentation](https://owasp-blt.github.io/BLT-University/)
+- 💬 Join [GitHub Discussions](https://github.com/OWASP-BLT/BLT-University/discussions)
+- 🐛 Report [Issues](https://github.com/OWASP-BLT/BLT-University/issues)
+- GitLab mirror: [Issues](https://gitlab.com/owasp-blt/blt-university/-/issues)
 
 ---
 
@@ -205,8 +209,8 @@ Need help? Have questions?
 
 **Made with ❤️ by the OWASP BLT Community**
 
-[Website](https://university.owaspblt.org/) • [Enroll](https://gitlab.com/owasp-blt/blt-university/-/issues/new) • [Request Course](https://gitlab.com/owasp-blt/blt-university/-/issues/new) • [Teach](https://gitlab.com/owasp-blt/blt-university/-/issues/new) • [GitHub Backup](https://github.com/OWASP-BLT/BLT-University) • [Contribute](CONTRIBUTING.md)
+[Website](https://owasp-blt.github.io/BLT-University/) • [GitLab](https://gitlab.com/owasp-blt/blt-university) • [Enroll](https://github.com/OWASP-BLT/BLT-University/issues/new?template=enrollment.yml) • [Request Course](https://github.com/OWASP-BLT/BLT-University/issues/new?template=course-request.yml) • [Teach](https://github.com/OWASP-BLT/BLT-University/issues/new?template=course-submission.yml) • [Contribute](CONTRIBUTING.md)
 
-⭐ Star us on GitLab — it helps!
+⭐ Star us on GitHub — it helps!
 
 </div>

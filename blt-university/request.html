@@ -47,7 +47,7 @@ permalink: /request/
                 <div class="flex items-center justify-center w-12 h-12 rounded-full border-4 border-white dark:border-gray-900 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 font-bold shadow-sm shrink-0 z-10 group-hover:bg-bltRed group-hover:text-white transition-all">1</div>
                 <div class="bg-white dark:bg-gray-800 p-8 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 flex-1 hover:border-bltRed transition-colors">
                     <h3 class="font-bold text-xl text-gray-900 dark:text-white mb-2">Check Existing Requests</h3>
-                    <p class="text-gray-500 dark:text-gray-400 leading-relaxed">Browse <a href="https://gitlab.com/owasp-blt/blt-university/-/issues" class="text-bltRed hover:underline font-bold">existing topics</a>. If yours is already there, simply add a 👍 reaction to increase its priority.</p>
+                    <p class="text-gray-500 dark:text-gray-400 leading-relaxed">Browse <a href="https://github.com/OWASP-BLT/BLT-University/issues" class="text-bltRed hover:underline font-bold">existing topics</a>. If yours is already there, simply add a 👍 reaction to increase its priority.</p>
                 </div>
             </div>
 
@@ -61,16 +61,16 @@ permalink: /request/
         </div>
 
         <div class="mt-16 flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="https://gitlab.com/owasp-blt/blt-university/-/issues/new" class="px-10 py-4 bg-bltRed text-white font-bold rounded-2xl shadow-xl shadow-red-100 dark:shadow-none hover:bg-bltRedHover hover:-translate-y-1 transition-all">
+            <a href="https://github.com/OWASP-BLT/BLT-University/issues/new?template=course-request.yml" class="px-10 py-4 bg-bltRed text-white font-bold rounded-2xl shadow-xl shadow-red-100 dark:shadow-none hover:bg-bltRedHover hover:-translate-y-1 transition-all">
                 Submit Request
             </a>
-            <a href="https://gitlab.com/owasp-blt/blt-university/-/issues?label_name[]=course-request" class="px-10 py-4 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 font-bold border border-gray-200 dark:border-gray-700 rounded-2xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all">
+            <a href="https://gitlab.com/owasp-blt/blt-university/-/issues/new" class="inline-flex items-center justify-center gap-2 px-10 py-4 bg-gray-900 text-white font-bold rounded-2xl shadow-xl dark:shadow-none hover:bg-gray-800 hover:-translate-y-1 transition-all">
+                <i class="ph-bold ph-gitlab-logo"></i> Submit on GitLab
+            </a>
+            <a href="https://github.com/OWASP-BLT/BLT-University/issues?q=is%3Aissue+label%3Acourse-request" class="px-10 py-4 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 font-bold border border-gray-200 dark:border-gray-700 rounded-2xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-all">
                 View All Requests
             </a>
         </div>
-        <p class="mt-4 text-center text-[10px] font-bold uppercase tracking-widest text-gray-400">
-            Backup: <a href="https://github.com/OWASP-BLT/BLT-University/issues/new?template=course-request.yml" class="text-bltRed hover:underline">Submit on GitHub</a>
-        </p>
     </section>
 
     <section class="bg-gray-900 dark:bg-gray-800 p-10 md:p-14 rounded-[3rem] text-white relative overflow-hidden group border border-transparent dark:border-gray-700 transition-colors">
@@ -80,10 +80,12 @@ permalink: /request/
         <div class="relative z-10 text-center max-w-xl mx-auto">
             <h3 class="text-3xl font-bold mb-4">Are you an Instructor?</h3>
             <p class="text-gray-400 dark:text-gray-400 mb-8 leading-relaxed">See a request you can teach? Propose a course through our contributor portal and join our global faculty.</p>
-            <a href="https://gitlab.com/owasp-blt/blt-university/-/issues/new" class="inline-block px-8 py-3 bg-bltRed text-white font-bold rounded-xl shadow-[0_8px_20px_rgba(220,38,38,0.3)] dark:shadow-none hover:bg-bltRedHover transition-all">Submit a Course Proposal →</a>
-            <p class="mt-4 text-[10px] font-bold uppercase tracking-widest text-gray-500">
-                Backup: <a href="https://github.com/OWASP-BLT/BLT-University/issues/new?template=course-submission.yml" class="text-bltRed hover:underline">GitHub proposal issue</a>
-            </p>
+            <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                <a href="https://github.com/OWASP-BLT/BLT-University/issues/new?template=course-submission.yml" class="inline-block px-8 py-3 bg-bltRed text-white font-bold rounded-xl shadow-[0_8px_20px_rgba(220,38,38,0.3)] dark:shadow-none hover:bg-bltRedHover transition-all">Submit a Course Proposal →</a>
+                <a href="https://gitlab.com/owasp-blt/blt-university/-/issues/new" class="inline-flex items-center justify-center gap-2 px-8 py-3 bg-white/10 text-white font-bold rounded-xl hover:bg-white hover:text-gray-900 transition-all">
+                    <i class="ph-bold ph-gitlab-logo"></i> Submit on GitLab
+                </a>
+            </div>
         </div>
     </section>
 </main>

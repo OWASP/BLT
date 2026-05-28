@@ -111,7 +111,7 @@ Before starting this course, you should have:
 - Basic understanding of HTML, CSS, and JavaScript
 - Familiarity with HTTP protocol
 - Basic command-line skills
-- A GitLab account for submissions
+- A GitHub account for submissions
 
 ### Tools & Environment
 
@@ -134,13 +134,13 @@ Your progress will be evaluated through:
 ### Getting Started
 
 1. Enroll in the course through the enrollment page
-2. Join the course GitLab repository
+2. Join the course GitHub repository
 3. Set up your development environment
 4. Complete the Week 1 pre-assessment
 
 ### Community & Support
 
-- **GitLab Issues**: Ask questions and help fellow students
+- **GitHub Discussions**: Ask questions and help fellow students
 - **Weekly Office Hours**: Live Q&A sessions with the instructor
 - **Study Groups**: Connect with other learners
 - **Slack Channel**: Real-time communication with the community
