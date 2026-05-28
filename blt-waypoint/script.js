@@ -5,7 +5,7 @@ const ORG  = 'OWASP-BLT';
 const API  = 'https://api.github.com';
 const PER_PAGE = 100;            // max allowed by GitHub API
 const MAX_LANGUAGES_DISPLAYED = 12; // sidebar language filter cap
-const APP_VERSION = 'v0.2.4';
+const APP_VERSION = 'v0.2.5';
 const DATA_SOURCES = {
   main: {
     label: 'Main',
@@ -23,7 +23,8 @@ const DATA_SOURCES = {
   },
 };
 const MIGRATION_TOTAL_REPOS = 55;
-const MIGRATION_MIGRATED_REPOS = 2;
+const MIGRATION_MIGRATED_REPOS = 3;
+const MIGRATION_COMPLETION_POINTS = 100 + 95 + 90;
 
 // Project board URLs sourced from https://github.com/OWASP-BLT/.github/blob/main/scripts/project_urls.json
 const PROJECT_URLS = {
@@ -257,8 +258,12 @@ function gitlabRepoUrl(r) {
 function updateMigrationSummary() {
   const text = document.getElementById('migration-summary-text');
   if (!text) return;
-  const percent = ((MIGRATION_MIGRATED_REPOS / MIGRATION_TOTAL_REPOS) * 100).toFixed(1);
+  const percent = migrationOverallPercent();
   text.textContent = `Migration ${MIGRATION_MIGRATED_REPOS}/${MIGRATION_TOTAL_REPOS} (${percent}%)`;
+}
+
+function migrationOverallPercent() {
+  return (MIGRATION_COMPLETION_POINTS / MIGRATION_TOTAL_REPOS).toFixed(1);
 }
 
 function updateVersionLabel() {
@@ -1009,12 +1014,12 @@ function renderMainSummaryView(repos, container) {
     </tr>`;
   }).join('');
 
-  const percent = ((MIGRATION_MIGRATED_REPOS / MIGRATION_TOTAL_REPOS) * 100).toFixed(1);
+  const percent = migrationOverallPercent();
   container.innerHTML = `
     <table class="border-collapse text-sm w-max">
       <caption class="caption-top text-left px-3 pb-3 text-sm text-gray-600 dark:text-gray-300">
         <span class="font-semibold text-gray-800 dark:text-gray-100">GitLab migration summary:</span>
-        ${MIGRATION_MIGRATED_REPOS} of ${MIGRATION_TOTAL_REPOS} repositories migrated (${percent}%).
+        ${MIGRATION_MIGRATED_REPOS} of ${MIGRATION_TOTAL_REPOS} repositories in migration progress (${percent}% complete).
       </caption>
       <thead class="bg-gray-50 dark:bg-gray-800 border-b-2 border-gray-200 dark:border-gray-700">
         <tr>

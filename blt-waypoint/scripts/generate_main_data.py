@@ -11,8 +11,21 @@ MIGRATION_PROGRESS = {
     "BLT-Waypoint": 90,
     "owasp-blt.github.io": 90,
 }
-MIGRATED_REPOS = 2
+MIGRATION_SUMMARY_REPOS = ("owasp-blt.github.io", "BLT-Next", "BLT-University")
 TOTAL_REPOS = 55
+
+
+def migration_summary():
+    migrated_repos = [
+        name for name in MIGRATION_SUMMARY_REPOS
+        if MIGRATION_PROGRESS.get(name, 0) > 0
+    ]
+    completion_points = sum(MIGRATION_PROGRESS.get(name, 0) for name in MIGRATION_SUMMARY_REPOS)
+    return {
+        "migrated_repos": len(migrated_repos),
+        "total_repos": TOTAL_REPOS,
+        "percent": round(completion_points / TOTAL_REPOS, 1),
+    }
 
 
 def main():
@@ -40,11 +53,7 @@ def main():
         "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "source": "main",
         "org": github.get("org", "OWASP-BLT"),
-        "migration": {
-            "migrated_repos": MIGRATED_REPOS,
-            "total_repos": TOTAL_REPOS,
-            "percent": round((MIGRATED_REPOS / TOTAL_REPOS) * 100, 1),
-        },
+        "migration": migration_summary(),
         "repos": repos,
     }
 
