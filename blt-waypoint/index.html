@@ -63,15 +63,21 @@
 
       <!-- Data source tabs -->
       <div class="hidden md:flex items-center gap-1 shrink-0" role="tablist" aria-label="Repository data source">
+        <button id="data-source-main" type="button" role="tab" aria-selected="false" data-source="main"
+          title="Show migration summary data"
+          class="data-source-tab h-8 px-2 flex items-center gap-1 rounded-md border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all text-xs font-semibold">
+          <i class="fa-solid fa-chart-simple" aria-hidden="true"></i>
+          <span>Main</span>
+        </button>
         <button id="data-source-github" type="button" role="tab" aria-selected="true" data-source="github"
-          title="Show GitHub data from https://github.com/OWASP-BLT"
+          title="Show GitHub repository data"
           class="data-source-tab h-8 px-2 flex items-center gap-1 rounded-md border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 transition-all text-xs font-semibold">
           <i class="fa-brands fa-github" aria-hidden="true"></i>
           <i class="fa-solid fa-xmark" aria-hidden="true"></i>
           <span>GitHub</span>
         </button>
         <button id="data-source-gitlab" type="button" role="tab" aria-selected="false" data-source="gitlab"
-          title="Show GitLab data from https://gitlab.com/owasp-blt"
+          title="Show GitLab repository data"
           class="data-source-tab h-8 px-2 flex items-center gap-1 rounded-md border border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/40 transition-all text-xs font-semibold">
           <i class="fa-brands fa-gitlab" aria-hidden="true"></i>
           <i class="fa-solid fa-check" aria-hidden="true"></i>
