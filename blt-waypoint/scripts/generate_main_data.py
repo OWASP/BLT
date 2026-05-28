@@ -7,6 +7,7 @@ SOURCE = os.getenv("MAIN_DATA_SOURCE", "github_data.json")
 OUT = os.getenv("MAIN_DATA_OUT", "main_data.json")
 MIGRATION_PROGRESS = {
     "BLT-Next": 100,
+    "BLT-University": 95,
     "BLT-Waypoint": 90,
     "owasp-blt.github.io": 90,
 }

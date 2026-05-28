@@ -5,7 +5,7 @@ const ORG  = 'OWASP-BLT';
 const API  = 'https://api.github.com';
 const PER_PAGE = 100;            // max allowed by GitHub API
 const MAX_LANGUAGES_DISPLAYED = 12; // sidebar language filter cap
-const APP_VERSION = 'v0.2.3';
+const APP_VERSION = 'v0.2.4';
 const DATA_SOURCES = {
   main: {
     label: 'Main',
@@ -227,6 +227,7 @@ function gitlabMigrationProgress(r) {
   if (typeof r.gitlab_migration_progress === 'number') return r.gitlab_migration_progress;
   const progress = {
     'BLT-Next': 100,
+    'BLT-University': 95,
     'BLT-Waypoint': 90,
     'owasp-blt.github.io': 90,
   };
@@ -246,6 +247,7 @@ function gitlabMigrationClasses(progress) {
 function gitlabRepoUrl(r) {
   const urls = {
     'owasp-blt.github.io': 'https://gitlab.com/owasp-blt/blt-waypoint',
+    'BLT-University': 'https://gitlab.com/owasp-blt/blt-university',
     'BLT-Waypoint': 'https://gitlab.com/owasp-blt/blt-waypoint',
     'BLT-Next': 'https://gitlab.com/owasp-blt/BLT-Next',
   };
