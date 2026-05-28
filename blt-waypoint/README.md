@@ -38,12 +38,12 @@ All projects are developed transparently under OWASP governance with AGPL-3.0 li
 
 ```
 ┌──────────────────────────────────────────────────────┐
-│                     GitHub API                       │
+│                GitHub API / GitLab API               │
 └────────────────────────┬─────────────────────────────┘
                          │
                          ▼
 ┌──────────────────────────────────────────────────────┐
-│            data.json (Generated Data)                │
+│      github_data.json / gitlab_data.json             │
 └────────────────────────┬─────────────────────────────┘
                          │
          ┌───────────────┼───────────────┐
@@ -68,8 +68,8 @@ All projects are developed transparently under OWASP governance with AGPL-3.0 li
 - **Hosting:** GitLab Pages
 
 ### How It Works
-1. Data is generated from GitHub API via automation
-2. Repository statistics are compiled into `data.json`
+1. Data is generated from the GitHub and GitLab APIs via GitLab CI
+2. Repository statistics are compiled into `github_data.json` and `gitlab_data.json`
 3. JavaScript dynamically renders the dashboard
 4. Users can search, sort, and filter in real-time
 

@@ -1,12 +1,15 @@
-image: alpine:latest
+image: python:3.12-alpine
 
 pages:
   stage: deploy
   script:
+    - python scripts/generate_github_data.py || echo "Keeping existing github_data.json"
+    - python scripts/generate_gitlab_data.py || echo "Keeping existing gitlab_data.json"
     - mkdir public
-    - cp -r CNAME LICENSE README.md data.json imgs index.html issues.html screenshots.html script.js styles.css public/
+    - cp -r CNAME LICENSE README.md github_data.json gitlab_data.json imgs index.html issues.html screenshots.html script.js styles.css public/
   artifacts:
     paths:
       - public
   rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'

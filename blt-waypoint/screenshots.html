@@ -214,7 +214,7 @@ let currentSearch = '';
 
 async function loadData() {
   try {
-    const resp = await fetch(`data.json?t=${Date.now()}`);
+    const resp = await fetch(`github_data.json?t=${Date.now()}`);
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const payload = await resp.json();
     allRepos = (payload.repos || payload || []).filter(r => r.homepage);
