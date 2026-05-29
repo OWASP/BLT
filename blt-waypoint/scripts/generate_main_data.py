@@ -5,6 +5,7 @@ import os
 
 SOURCE = os.getenv("MAIN_DATA_SOURCE", "github_data.json")
 OUT = os.getenv("MAIN_DATA_OUT", "main_data.csv")
+JS_OUT = os.getenv("MAIN_DATA_JS_OUT", "main_data.js")
 MIGRATION_PROGRESS = {
     "BLT-Next": 100,
     "BLT-API": 100,
@@ -60,6 +61,14 @@ def main():
                 "gitlab_migration_progress": MIGRATION_PROGRESS.get(name, 0),
                 "gitlab_url": GITLAB_URLS.get(name, ""),
             })
+
+    with open(OUT, "r", encoding="utf-8") as f:
+        csv_text = f.read()
+
+    with open(JS_OUT, "w", encoding="utf-8") as f:
+        f.write("window.BLT_MAIN_DATA_CSV = ")
+        json.dump(csv_text, f)
+        f.write(";\n")
 
 
 if __name__ == "__main__":

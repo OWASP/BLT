@@ -417,6 +417,10 @@ function csvToMainPayload(text) {
 }
 
 async function fetchSnapshotPayload(source) {
+  if (source.type === 'csv' && window.BLT_MAIN_DATA_CSV) {
+    return csvToMainPayload(window.BLT_MAIN_DATA_CSV);
+  }
+
   const resp = await fetch(`${source.file}?t=${Date.now()}`);
   if (!resp.ok) {
     throw new Error(`${source.file} returned HTTP ${resp.status}`);
@@ -530,8 +534,9 @@ async function loadRepos() {
     const footerTs = document.getElementById('footer-ts');
     if (footerTs) {
       if (source.type === 'csv') {
+        const loadedFromEmbeddedCsv = loadedFile === source.file && window.BLT_MAIN_DATA_CSV;
         footerTs.innerHTML =
-          `${source.label} data loaded from ${loadedFile === source.file ? 'editable CSV' : 'fallback JSON'}` +
+          `${source.label} data loaded from ${loadedFromEmbeddedCsv ? 'embedded CSV cache' : loadedFile === source.file ? 'editable CSV' : 'fallback JSON'}` +
           ` &nbsp;·&nbsp; <a href="${loadedFile}" class="text-brand hover:underline" target="_blank" rel="noopener">${loadedFile}</a>`;
       } else {
         footerTs.innerHTML =
