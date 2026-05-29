@@ -41,7 +41,7 @@
 <body class="bg-gray-50 text-gray-800 dark:bg-gray-900 dark:text-gray-100 min-h-screen font-sans">
 
   <!-- ===== TOP NAV ===== -->
-  <header class="sticky top-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm">
+  <header class="sticky top-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm table-view-header">
     <div id="header-inner"
       class="max-w-screen-xl mx-auto px-2 sm:px-4 h-14 flex items-center justify-between gap-2 sm:gap-4">
 
@@ -63,22 +63,22 @@
 
       <!-- Data source tabs -->
       <div class="hidden md:flex items-center gap-1 shrink-0" role="tablist" aria-label="Repository data source">
-        <button id="data-source-main" type="button" role="tab" aria-selected="false" data-source="main"
+        <button id="data-source-main" type="button" role="tab" aria-selected="true" aria-current="page" data-source="main"
           title="Show migration summary data"
-          class="data-source-tab h-8 px-2 flex items-center gap-1 rounded-md border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all text-xs font-semibold">
+          class="data-source-tab h-8 px-2 flex items-center gap-1 rounded-md border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all text-xs font-bold ring-2 ring-offset-1 dark:ring-offset-gray-900 ring-gray-500 shadow-sm scale-[1.03]">
           <i class="fa-solid fa-chart-simple" aria-hidden="true"></i>
           <span>Main</span>
         </button>
-        <button id="data-source-github" type="button" role="tab" aria-selected="true" data-source="github"
+        <button id="data-source-github" type="button" role="tab" aria-selected="false" aria-current="false" data-source="github"
           title="Show GitHub repository data"
-          class="data-source-tab h-8 px-2 flex items-center gap-1 rounded-md border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 transition-all text-xs font-semibold">
+          class="data-source-tab h-8 px-2 flex items-center gap-1 rounded-md border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 transition-all text-xs font-semibold opacity-60 grayscale">
           <i class="fa-brands fa-github" aria-hidden="true"></i>
           <i class="fa-solid fa-xmark" aria-hidden="true"></i>
           <span>GitHub</span>
         </button>
-        <button id="data-source-gitlab" type="button" role="tab" aria-selected="false" data-source="gitlab"
+        <button id="data-source-gitlab" type="button" role="tab" aria-selected="false" aria-current="false" data-source="gitlab"
           title="Show GitLab repository data"
-          class="data-source-tab h-8 px-2 flex items-center gap-1 rounded-md border border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/40 transition-all text-xs font-semibold">
+          class="data-source-tab h-8 px-2 flex items-center gap-1 rounded-md border border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/40 transition-all text-xs font-semibold opacity-60 grayscale">
           <i class="fa-brands fa-gitlab" aria-hidden="true"></i>
           <i class="fa-solid fa-check" aria-hidden="true"></i>
           <span>GitLab</span>
@@ -164,10 +164,10 @@
   </header>
 
   <!-- ===== MAIN LAYOUT ===== -->
-  <div id="main-layout" class="max-w-screen-xl mx-auto px-2 sm:px-4 py-6 flex gap-2 sm:gap-6">
+  <div id="main-layout" class="max-w-screen-xl mx-auto px-2 sm:px-4 py-6 flex gap-2 sm:gap-6 table-view">
 
     <!-- ===== SIDEBAR ===== -->
-    <aside id="main-sidebar" class="hidden lg:flex flex-col gap-2 w-52 shrink-0">
+    <aside id="main-sidebar" class="hidden lg:flex flex-col gap-2 w-52 shrink-0 force-hidden">
       <div id="label-filter-sidebar">
         <p class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2 px-2">Labels</p>
         <div class="space-y-2 px-2">
@@ -299,7 +299,7 @@
         </div>
 
         <!-- Repo grid -->
-        <div id="repo-grid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div id="repo-grid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 hidden">
           <!-- Skeleton cards -->
           <div class="skeleton h-48 rounded-xl"></div>
           <div class="skeleton h-48 rounded-xl"></div>
@@ -310,7 +310,7 @@
         </div>
 
         <!-- Repo table (default view) -->
-        <div id="repo-table" class="overflow-x-auto hidden">
+        <div id="repo-table" class="overflow-x-auto">
           <table class="border-collapse text-sm">
             <tbody>
               <tr>
@@ -346,44 +346,6 @@
             </tbody>
           </table>
         </div>
-        <!-- Set initial view immediately to avoid skeleton flash -->
-        <script>
-          (function () {
-            /*
-             * INTENTIONAL DUPLICATION: This view-determination logic mirrors
-             * the initialisation in script.js (currentView variable).
-             *
-             * It runs inline, before script.js is loaded, so the correct
-             * skeleton (grid vs table) is shown immediately — preventing a
-             * visible flash of the wrong layout.
-             *
-             * Key identifiers kept in sync with script.js:
-             *   localStorage key : 'blt-view'
-             *   DOM IDs          : 'repo-grid', 'repo-table',
-             *                      'main-sidebar', 'main-layout'
-             *   Header selector  : document.querySelector('header')
-             *
-             * If you change the view logic in script.js, update this block too.
-             */
-            const isMobile = window.innerWidth < 640;
-            const savedView = localStorage.getItem('blt-view');
-            // On mobile, always default to card — ignore any desktop-saved table preference
-            const v = isMobile ? 'card' : (savedView || 'table');
-            if (v === 'table') {
-              const g = document.getElementById('repo-grid');
-              const t = document.getElementById('repo-table');
-              const s = document.getElementById('main-sidebar');
-              const l = document.getElementById('main-layout');
-              const h = document.querySelector('header');
-              if (g) g.classList.add('hidden');
-              if (t) t.classList.remove('hidden');
-              if (s) s.classList.add('force-hidden');
-              if (l) l.classList.add('table-view');
-              if (h) h.classList.add('table-view-header');
-            }
-          })();
-        </script>
-
         <!-- Error state -->
         <div id="error-state" class="hidden text-center py-16">
           <i class="fa-solid fa-triangle-exclamation text-4xl text-brand mb-3" aria-hidden="true"></i>
