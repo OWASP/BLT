@@ -5,11 +5,12 @@ const ORG  = 'OWASP-BLT';
 const API  = 'https://api.github.com';
 const PER_PAGE = 100;            // max allowed by GitHub API
 const MAX_LANGUAGES_DISPLAYED = 12; // sidebar language filter cap
-const APP_VERSION = 'v0.2.7';
+const APP_VERSION = 'v0.2.8';
 const DATA_SOURCES = {
   main: {
     label: 'Main',
-    file: 'main_data.json',
+    file: 'main_data.csv',
+    type: 'csv',
   },
   github: {
     label: 'GitHub',
@@ -23,8 +24,8 @@ const DATA_SOURCES = {
   },
 };
 const MIGRATION_TOTAL_REPOS = 55;
-const MIGRATION_MIGRATED_REPOS = 4;
-const MIGRATION_COMPLETION_POINTS = 100 + 95 + 90 + 90;
+const MIGRATION_MIGRATED_REPOS = 5;
+const MIGRATION_COMPLETION_POINTS = 100 + 100 + 95 + 90 + 90;
 
 // Project board URLs sourced from https://github.com/OWASP-BLT/.github/blob/main/scripts/project_urls.json
 const PROJECT_URLS = {
@@ -65,6 +66,11 @@ let tableSortCol  = localStorage.getItem('blt-table-sort-col') || 'updated_at';
 let tableSortDir  = localStorage.getItem('blt-table-sort-dir') || 'desc';
 let allLabels     = [];
 let currentDataSource = 'main';
+let currentMigrationSummary = {
+  migrated_repos: MIGRATION_MIGRATED_REPOS,
+  total_repos: MIGRATION_TOTAL_REPOS,
+  percent: Number(migrationOverallPercent()),
+};
 
 /* ------------------------------------------------------------------ */
 /*  DARK MODE                                                           */
@@ -232,6 +238,7 @@ function gitlabMigrationProgress(r) {
     'BLT-GSOC': 90,
     'BLT-Waypoint': 90,
     'owasp-blt.github.io': 90,
+    'BLT-API': 100,
   };
   return progress[r.name] || 0;
 }
@@ -258,15 +265,26 @@ function gitlabRepoUrl(r) {
     'BLT-University': 'https://gitlab.com/owasp-blt/blt-university',
     'BLT-Waypoint': 'https://gitlab.com/owasp-blt/blt-waypoint',
     'BLT-Next': 'https://gitlab.com/owasp-blt/BLT-Next',
+    'BLT-API': 'https://gitlab.com/owasp-blt/blt-api',
   };
-  return urls[r.name] || '';
+  return r.gitlab_url || urls[r.name] || '';
+}
+
+function calculateMigrationSummary(repos) {
+  const totalRepos = repos.length || MIGRATION_TOTAL_REPOS;
+  const completionPoints = repos.reduce((sum, repo) => sum + gitlabMigrationProgress(repo), 0);
+  return {
+    migrated_repos: repos.filter(repo => gitlabMigrationProgress(repo) > 0).length,
+    total_repos: totalRepos,
+    percent: Number((completionPoints / totalRepos).toFixed(1)),
+  };
 }
 
 function updateMigrationSummary() {
   const text = document.getElementById('migration-summary-text');
   if (!text) return;
-  const percent = migrationOverallPercent();
-  text.textContent = `Migration ${MIGRATION_MIGRATED_REPOS}/${MIGRATION_TOTAL_REPOS} (${percent}%)`;
+  const migration = currentMigrationSummary;
+  text.textContent = `Migration ${migration.migrated_repos}/${migration.total_repos} (${migration.percent}%)`;
 }
 
 function migrationOverallPercent() {
@@ -318,6 +336,82 @@ function liveSiteMeta(r) {
     label: 'Live site',
     classes: 'text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-800 ring-gray-200 dark:ring-gray-700',
     icon: 'fa-solid fa-arrow-up-right-from-square',
+  };
+}
+
+function parseCsv(text) {
+  const rows = [];
+  let row = [];
+  let value = '';
+  let inQuotes = false;
+
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    const next = text[i + 1];
+
+    if (char === '"') {
+      if (inQuotes && next === '"') {
+        value += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (char === ',' && !inQuotes) {
+      row.push(value);
+      value = '';
+    } else if ((char === '\n' || char === '\r') && !inQuotes) {
+      if (char === '\r' && next === '\n') i++;
+      row.push(value);
+      if (row.some(cell => cell.trim() !== '')) rows.push(row);
+      row = [];
+      value = '';
+    } else {
+      value += char;
+    }
+  }
+
+  if (value || row.length) {
+    row.push(value);
+    if (row.some(cell => cell.trim() !== '')) rows.push(row);
+  }
+
+  return rows;
+}
+
+function csvToMainPayload(text) {
+  const rows = parseCsv(text);
+  if (!rows.length) return { generated_at: '', source: 'main', org: ORG, repos: [] };
+
+  const headers = rows[0].map(header => header.trim());
+  const repos = rows.slice(1).map(cells => {
+    const raw = {};
+    headers.forEach((header, index) => {
+      raw[header] = (cells[index] || '').trim();
+    });
+
+    return {
+      id: raw.id ? Number(raw.id) : undefined,
+      name: raw.name,
+      full_name: raw.full_name,
+      html_url: raw.html_url,
+      description: raw.description,
+      homepage: raw.homepage || null,
+      topics: raw.topics ? raw.topics.split('|').map(t => t.trim()).filter(Boolean) : [],
+      language: raw.language || null,
+      fork: (raw.fork || '').toLowerCase() === 'true',
+      archived: (raw.archived || '').toLowerCase() === 'true',
+      updated_at: raw.updated_at,
+      gitlab_migration_progress: raw.gitlab_migration_progress ? Number(raw.gitlab_migration_progress) : 0,
+      gitlab_url: raw.gitlab_url,
+    };
+  }).filter(repo => repo.name);
+
+  return {
+    generated_at: '',
+    source: 'main',
+    org: ORG,
+    migration: calculateMigrationSummary(repos),
+    repos,
   };
 }
 
@@ -373,9 +467,13 @@ async function loadRepos() {
       throw new Error(`${source.file} returned HTTP ${resp.status}`);
     }
 
-    const payload = await resp.json();
+    const payload = source.type === 'csv'
+      ? csvToMainPayload(await resp.text())
+      : await resp.json();
     snapshotLoaded = true;
     allRepos = payload.repos || [];
+    currentMigrationSummary = payload.migration || calculateMigrationSummary(allRepos);
+    updateMigrationSummary();
     buildLangFilter(allRepos);
     buildLabelFilter(allRepos);
     const searchInput = document.getElementById('search-input');
@@ -393,10 +491,16 @@ async function loadRepos() {
       : 'unknown';
     const footerTs = document.getElementById('footer-ts');
     if (footerTs) {
-      footerTs.innerHTML =
-        `${source.label} stats generated by hourly action at <strong>${generatedAt}</strong>` +
-        ` &nbsp;·&nbsp; <a href="${source.file}" class="text-brand hover:underline" target="_blank" rel="noopener">${source.file}</a>` +
-        (source.orgUrl ? ` &nbsp;·&nbsp; <a href="${source.orgUrl}" class="text-brand hover:underline" target="_blank" rel="noopener">${source.label} org</a>` : '');
+      if (source.type === 'csv') {
+        footerTs.innerHTML =
+          `${source.label} data loaded from editable CSV` +
+          ` &nbsp;·&nbsp; <a href="${source.file}" class="text-brand hover:underline" target="_blank" rel="noopener">${source.file}</a>`;
+      } else {
+        footerTs.innerHTML =
+          `${source.label} stats generated by hourly action at <strong>${generatedAt}</strong>` +
+          ` &nbsp;·&nbsp; <a href="${source.file}" class="text-brand hover:underline" target="_blank" rel="noopener">${source.file}</a>` +
+          (source.orgUrl ? ` &nbsp;·&nbsp; <a href="${source.orgUrl}" class="text-brand hover:underline" target="_blank" rel="noopener">${source.label} org</a>` : '');
+      }
     }
     return;
   } catch (err) {
@@ -1023,11 +1127,13 @@ function renderMainSummaryView(repos, container) {
   }).join('');
 
   const percent = migrationOverallPercent();
+  const migration = currentMigrationSummary;
+  const migrationPercent = Number.isFinite(migration.percent) ? migration.percent : percent;
   container.innerHTML = `
     <table class="border-collapse text-sm w-max">
       <caption class="caption-top text-left px-3 pb-3 text-sm text-gray-600 dark:text-gray-300">
         <span class="font-semibold text-gray-800 dark:text-gray-100">GitLab migration summary:</span>
-        ${MIGRATION_MIGRATED_REPOS} of ${MIGRATION_TOTAL_REPOS} repositories in migration progress (${percent}% complete).
+        ${migration.migrated_repos} of ${migration.total_repos} repositories in migration progress (${migrationPercent}% complete).
       </caption>
       <thead class="bg-gray-50 dark:bg-gray-800 border-b-2 border-gray-200 dark:border-gray-700">
         <tr>
