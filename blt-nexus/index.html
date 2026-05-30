@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="BLT Nexus – Discover cybersecurity projects and the ambassadors who connect them to OWASP BLT."
+    />
+    <title>BLT Nexus – Cybersecurity Projects &amp; Ambassadors</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- Navigation -->
+    <nav aria-label="Main navigation">
+      <a href="/" class="nav-brand" aria-label="BLT Nexus home">
+        <span class="logo-badge">BLT</span>
+        <span>Nexus</span>
+      </a>
+      <ul class="nav-links" role="list">
+        <li><a href="#projects">Projects</a></li>
+        <li><a href="#about">About</a></li>
+        <li>
+          <a
+            href="https://github.com/OWASP-BLT/BLT-Nexus"
+            target="_blank"
+            rel="noopener noreferrer"
+            >GitHub</a
+          >
+        </li>
+        <li>
+          <a
+            href="https://blt.owasp.org"
+            target="_blank"
+            rel="noopener noreferrer"
+            >BLT</a
+          >
+        </li>
+      </ul>
+    </nav>
+
+    <!-- Hero -->
+    <section class="hero" aria-labelledby="hero-heading">
+      <div class="hero-content">
+        <span class="hero-badge">Ambassador Program</span>
+        <h1 id="hero-heading">
+          Cybersecurity Projects<br />Powered by <span>BLT Nexus</span>
+        </h1>
+        <p>
+          Discover open-source and commercial security projects connected to
+          OWASP BLT through our global network of security ambassadors.
+        </p>
+        <div class="hero-cta">
+          <a href="#projects" class="btn btn-primary">
+            <!-- shield icon -->
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            </svg>
+            Browse Projects
+          </a>
+          <a
+            href="https://blt.owasp.org/ambassador"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="btn btn-outline"
+          >
+            Become an Ambassador
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stats bar -->
+    <div class="stats-bar" aria-label="Program statistics">
+      <div class="stats-inner">
+        <div class="stat-item">
+          <div class="stat-number" id="stat-projects">0</div>
+          <div class="stat-label">Projects</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" id="stat-ambassadors">0</div>
+          <div class="stat-label">Ambassadors</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number" id="stat-categories">0</div>
+          <div class="stat-label">Categories</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main content -->
+    <main>
+      <!-- Projects section -->
+      <section id="projects" aria-labelledby="projects-heading">
+        <div class="section-header">
+          <h2 id="projects-heading">Cybersecurity Projects</h2>
+          <p>
+            Each project is supported by BLT ambassadors who help bridge the
+            community.
+          </p>
+        </div>
+
+        <!-- Search & filter controls -->
+        <div class="controls" role="search">
+          <div class="search-wrap">
+            <!-- magnifying glass icon -->
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input
+              id="search"
+              type="search"
+              placeholder="Search projects or ambassadors…"
+              aria-label="Search projects or ambassadors"
+            />
+          </div>
+          <div
+            class="filter-tags"
+            role="group"
+            aria-label="Filter by category"
+          >
+            <button
+              class="filter-tag active"
+              data-category="all"
+              aria-pressed="true"
+            >
+              All
+            </button>
+            <button
+              class="filter-tag"
+              data-category="bug-bounty"
+              aria-pressed="false"
+            >
+              Bug Bounty
+            </button>
+            <button
+              class="filter-tag"
+              data-category="scanning"
+              aria-pressed="false"
+            >
+              Scanning
+            </button>
+            <button
+              class="filter-tag"
+              data-category="ctf"
+              aria-pressed="false"
+            >
+              CTF / Labs
+            </button>
+            <button
+              class="filter-tag"
+              data-category="platform"
+              aria-pressed="false"
+            >
+              Platform
+            </button>
+            <button
+              class="filter-tag"
+              data-category="framework"
+              aria-pressed="false"
+            >
+              Framework
+            </button>
+            <button
+              class="filter-tag"
+              data-category="community"
+              aria-pressed="false"
+            >
+              Community
+            </button>
+          </div>
+        </div>
+
+        <!-- Projects grid (populated by JS) -->
+        <div id="projects-grid" role="list" aria-live="polite">
+          <div id="no-results" role="alert">
+            <!-- search-x icon -->
+            <svg
+              width="48"
+              height="48"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              <line x1="8" y1="8" x2="14" y2="14" />
+              <line x1="14" y1="8" x2="8" y2="14" />
+            </svg>
+            <p>No projects match your search. Try a different keyword or filter.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- About section -->
+      <section id="about" class="about-section" aria-labelledby="about-heading">
+        <div>
+          <h2 id="about-heading">What is BLT Nexus?</h2>
+          <p>
+            BLT Nexus is the ambassador program for
+            <a
+              href="https://blt.owasp.org"
+              target="_blank"
+              rel="noopener noreferrer"
+              >OWASP BLT</a
+            >, the Bug Logging Tool. Our ambassadors are security professionals
+            and enthusiasts who bridge the gap between BLT and the wider
+            cybersecurity ecosystem.
+          </p>
+          <p>
+            By becoming an ambassador, you represent a cybersecurity project in
+            the BLT community — helping users report bugs, spreading awareness,
+            and earning recognition for your contributions to making the web
+            more secure.
+          </p>
+          <p>
+            This page lists all active projects and the ambassadors who champion
+            them. Want to add your project or become an ambassador? Open an
+            issue or pull request on
+            <a
+              href="https://github.com/OWASP-BLT/BLT-Nexus"
+              target="_blank"
+              rel="noopener noreferrer"
+              >GitHub</a
+            >.
+          </p>
+        </div>
+        <div>
+          <h2>How It Works</h2>
+          <div class="how-it-works">
+            <div class="step-item">
+              <div class="step-num" aria-hidden="true">1</div>
+              <div class="step-text">
+                <h4>Apply as Ambassador</h4>
+                <p>
+                  Choose a cybersecurity project you're passionate about and
+                  apply through the BLT ambassador portal.
+                </p>
+              </div>
+            </div>
+            <div class="step-item">
+              <div class="step-num" aria-hidden="true">2</div>
+              <div class="step-text">
+                <h4>Connect the Project</h4>
+                <p>
+                  Link the project to BLT so community members can report bugs
+                  and track issues through our platform.
+                </p>
+              </div>
+            </div>
+            <div class="step-item">
+              <div class="step-num" aria-hidden="true">3</div>
+              <div class="step-text">
+                <h4>Build the Bridge</h4>
+                <p>
+                  Engage with both communities, triage reports, and help
+                  projects improve their security posture.
+                </p>
+              </div>
+            </div>
+            <div class="step-item">
+              <div class="step-num" aria-hidden="true">4</div>
+              <div class="step-text">
+                <h4>Earn Recognition</h4>
+                <p>
+                  Top ambassadors earn BLT badges, points, and recognition on
+                  this page and across the OWASP community.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CTA banner -->
+      <div class="cta-banner" role="complementary" aria-label="Call to action">
+        <h2>Ready to Make an Impact?</h2>
+        <p>
+          Join the BLT Nexus Ambassador Program and help secure the web by
+          connecting security projects to the global BLT community.
+        </p>
+        <div class="hero-cta">
+          <a
+            href="https://blt.owasp.org/ambassador"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="btn btn-primary"
+          >
+            Become an Ambassador
+          </a>
+          <a
+            href="https://github.com/OWASP-BLT/BLT-Nexus"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="btn btn-outline"
+          >
+            View on GitHub
+          </a>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+      <div class="footer-links" role="list">
+        <a
+          href="https://blt.owasp.org"
+          target="_blank"
+          rel="noopener noreferrer"
+          role="listitem"
+          >OWASP BLT</a
+        >
+        <a
+          href="https://owasp.org"
+          target="_blank"
+          rel="noopener noreferrer"
+          role="listitem"
+          >OWASP</a
+        >
+        <a
+          href="https://github.com/OWASP-BLT/BLT-Nexus"
+          target="_blank"
+          rel="noopener noreferrer"
+          role="listitem"
+          >GitHub</a
+        >
+        <a
+          href="https://github.com/OWASP-BLT/BLT-Nexus/issues"
+          target="_blank"
+          rel="noopener noreferrer"
+          role="listitem"
+          >Report an Issue</a
+        >
+      </div>
+      <p>
+        &copy; <span id="footer-year"></span> OWASP BLT Nexus &mdash; Part of
+        the
+        <a
+          href="https://owasp.org"
+          target="_blank"
+          rel="noopener noreferrer"
+          >OWASP Foundation</a
+        >
+      </p>
+    </footer>
+
+    <script src="data.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
