@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trademark Check — BLT Enforcement</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: { DEFAULT: '#E10101', hover: '#b91c1c' },
+            surface: { dark: '#1F2937', base: '#111827' },
+            sidebar: { active: '#feeae9' }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="h-full bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 flex flex-col min-h-screen">
+
+  <!-- Top Nav -->
+  <header class="bg-white dark:bg-gray-800 border-b border-[#E5E5E5] dark:border-gray-700 sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-14">
+      <a href="index.html" class="flex items-center gap-2 font-bold text-lg text-gray-900 dark:text-white">
+        <span class="text-[#E10101] text-xl"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i></span>
+        BLT <span class="text-[#E10101]">Enforcement</span>
+      </a>
+      <nav class="hidden sm:flex items-center gap-6 text-sm font-medium">
+        <a href="index.html" class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] transition-colors">Dashboard</a>
+        <a href="trademark-check.html" class="text-[#E10101] border-b-2 border-[#E10101] pb-0.5">Trademark Check</a>
+        <a href="repo-compare.html" class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] transition-colors">Repo Compare</a>
+      </nav>
+      <button id="menuToggle" class="sm:hidden text-gray-500 dark:text-gray-400 hover:text-[#E10101]" aria-label="Toggle menu">
+        <i class="fa-solid fa-bars text-lg" aria-hidden="true"></i>
+      </button>
+    </div>
+    <div id="mobileNav" class="hidden sm:hidden border-t border-[#E5E5E5] dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3 flex flex-col gap-3 text-sm font-medium">
+      <a href="index.html" class="text-gray-600 dark:text-gray-300 hover:text-[#E10101]">Dashboard</a>
+      <a href="trademark-check.html" class="text-[#E10101]">Trademark Check</a>
+      <a href="repo-compare.html" class="text-gray-600 dark:text-gray-300 hover:text-[#E10101]">Repo Compare</a>
+    </div>
+  </header>
+
+  <div class="flex flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 gap-6">
+
+    <!-- Sidebar -->
+    <aside class="hidden lg:block w-56 flex-shrink-0">
+      <nav class="bg-white dark:bg-gray-800 rounded-xl border border-[#E5E5E5] dark:border-gray-700 overflow-hidden">
+        <p class="px-4 pt-4 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Search</p>
+        <ul>
+          <li>
+            <a href="#search" class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium bg-[#feeae9] text-[#E10101] border-l-2 border-[#E10101]">
+              <i class="fa-solid fa-magnifying-glass w-4" aria-hidden="true"></i> Search Trademarks
+            </a>
+          </li>
+        </ul>
+        <p class="px-4 pt-4 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Analysis</p>
+        <ul>
+          <li>
+            <a href="#results" class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-[#feeae9] hover:text-[#E10101] transition-colors">
+              <i class="fa-solid fa-list w-4" aria-hidden="true"></i> Results
+            </a>
+          </li>
+          <li>
+            <a href="#similarity" class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-[#feeae9] hover:text-[#E10101] transition-colors">
+              <i class="fa-solid fa-chart-bar w-4" aria-hidden="true"></i> Similarity Score
+            </a>
+          </li>
+          <li>
+            <a href="#guide" class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-[#feeae9] hover:text-[#E10101] transition-colors">
+              <i class="fa-solid fa-book w-4" aria-hidden="true"></i> How to Read Results
+            </a>
+          </li>
+        </ul>
+        <p class="px-4 pt-4 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Resources</p>
+        <ul class="pb-2">
+          <li>
+            <a href="https://tmsearch.uspto.gov" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-[#feeae9] hover:text-[#E10101] transition-colors">
+              <i class="fa-solid fa-arrow-up-right-from-square w-4" aria-hidden="true"></i> USPTO TESS
+            </a>
+          </li>
+          <li>
+            <a href="https://www.wipo.int/branddb/en/" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-[#feeae9] hover:text-[#E10101] transition-colors">
+              <i class="fa-solid fa-arrow-up-right-from-square w-4" aria-hidden="true"></i> WIPO Global Brand DB
+            </a>
+          </li>
+          <li>
+            <a href="https://euipo.europa.eu/eSearch/" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-[#feeae9] hover:text-[#E10101] transition-colors">
+              <i class="fa-solid fa-arrow-up-right-from-square w-4" aria-hidden="true"></i> EUIPO eSearch
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </aside>
+
+    <!-- Main content -->
+    <main class="flex-1 min-w-0 space-y-6">
+
+      <!-- Page heading -->
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+          <i class="fa-solid fa-registered text-[#E10101]" aria-hidden="true"></i>
+          Trademark Check
+        </h1>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Search for existing trademark registrations and assess potential conflicts with your brand or product name.</p>
+      </div>
+
+      <!-- Search form -->
+      <section id="search" class="bg-white dark:bg-gray-800 rounded-xl border border-[#E5E5E5] dark:border-gray-700 p-6">
+        <h2 class="text-base font-semibold text-gray-900 dark:text-white mb-4">Search Parameters</h2>
+        <form id="tmForm" class="space-y-4" novalidate>
+
+          <!-- Term input -->
+          <div>
+            <label for="tmTerm" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Search Term <span class="text-[#E10101]" aria-hidden="true">*</span>
+            </label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none">
+                <i class="fa-solid fa-magnifying-glass text-sm" aria-hidden="true"></i>
+              </span>
+              <input
+                id="tmTerm"
+                type="search"
+                placeholder="e.g. OWASP, BLT, MyBrand"
+                class="w-full border border-gray-400 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-md pl-9 pr-4 py-2 text-sm focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 placeholder-gray-400"
+                autocomplete="off"
+                required
+                aria-required="true"
+                aria-describedby="tmTermHint"
+              />
+            </div>
+            <p id="tmTermHint" class="text-xs text-gray-400 dark:text-gray-500 mt-1">Enter the exact name or phrase you want to check.</p>
+          </div>
+
+          <!-- Row: class + jurisdiction -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label for="tmClass" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nice Classification Class</label>
+              <select
+                id="tmClass"
+                class="w-full border border-gray-400 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-md px-4 py-2 text-sm focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600"
+              >
+                <option value="">All classes</option>
+                <option value="9">Class 9 — Software &amp; Electronics</option>
+                <option value="35">Class 35 — Business Services</option>
+                <option value="38">Class 38 — Telecommunications</option>
+                <option value="42">Class 42 — IT &amp; Technology Services</option>
+                <option value="45">Class 45 — Legal &amp; Security Services</option>
+              </select>
+            </div>
+            <div>
+              <label for="tmJurisdiction" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Jurisdiction</label>
+              <select
+                id="tmJurisdiction"
+                class="w-full border border-gray-400 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-md px-4 py-2 text-sm focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600"
+              >
+                <option value="us">United States (USPTO)</option>
+                <option value="eu">European Union (EUIPO)</option>
+                <option value="int">International (WIPO)</option>
+                <option value="uk">United Kingdom (IPO)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Phonetic toggle -->
+          <div class="flex items-center gap-3">
+            <input
+              id="tmPhonetic"
+              type="checkbox"
+              class="h-4 w-4 rounded border-gray-400 text-[#E10101] accent-[#E10101] focus:ring-[#E10101]"
+            />
+            <label for="tmPhonetic" class="text-sm text-gray-700 dark:text-gray-300">Include phonetic / sound-alike matches</label>
+          </div>
+
+          <!-- Actions -->
+          <div class="flex flex-wrap gap-3 pt-1">
+            <button
+              type="submit"
+              class="inline-flex items-center gap-2 rounded-md bg-[#E10101] hover:bg-red-700 text-white text-sm font-semibold px-5 py-2 transition-colors focus:outline-none focus:ring-2 focus:ring-[#E10101] focus:ring-offset-2"
+            >
+              <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> Search Trademarks
+            </button>
+            <button
+              type="reset"
+              id="clearBtn"
+              class="inline-flex items-center gap-2 rounded-md border border-[#E10101] text-[#E10101] hover:bg-[#E10101] hover:text-white text-sm font-semibold px-5 py-2 transition-colors focus:outline-none focus:ring-2 focus:ring-[#E10101] focus:ring-offset-2"
+            >
+              <i class="fa-solid fa-xmark" aria-hidden="true"></i> Clear
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Results area -->
+      <section id="results" aria-live="polite" aria-atomic="true">
+        <!-- Loading state (hidden by default) -->
+        <div id="loadingState" class="hidden bg-white dark:bg-gray-800 rounded-xl border border-[#E5E5E5] dark:border-gray-700 p-10 flex flex-col items-center gap-3 text-gray-400">
+          <i class="fa-solid fa-spinner fa-spin text-3xl text-[#E10101]" aria-hidden="true"></i>
+          <p class="text-sm">Searching trademark databases…</p>
+        </div>
+
+        <!-- Error state (hidden by default) -->
+        <div id="errorState" class="hidden bg-white dark:bg-gray-800 rounded-xl border border-red-200 dark:border-red-900 p-6 flex items-start gap-3">
+          <i class="fa-solid fa-circle-exclamation text-[#E10101] mt-0.5" aria-hidden="true"></i>
+          <div>
+            <p class="text-sm font-semibold text-gray-900 dark:text-white">Search failed</p>
+            <p id="errorMsg" class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Please try again.</p>
+          </div>
+        </div>
+
+        <!-- Results table (hidden by default) -->
+        <div id="resultsPanel" class="hidden bg-white dark:bg-gray-800 rounded-xl border border-[#E5E5E5] dark:border-gray-700">
+          <div class="px-6 py-4 border-b border-[#E5E5E5] dark:border-gray-700 flex items-center justify-between">
+            <h2 class="text-base font-semibold text-gray-900 dark:text-white">
+              Results for <span id="resultsTermLabel" class="text-[#E10101]"></span>
+            </h2>
+            <span id="resultsBadge" class="text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full px-2.5 py-0.5 font-medium"></span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="min-w-full text-sm">
+              <thead class="bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400 text-xs uppercase">
+                <tr>
+                  <th scope="col" class="px-6 py-3 text-left font-semibold">Mark</th>
+                  <th scope="col" class="px-6 py-3 text-left font-semibold">Owner</th>
+                  <th scope="col" class="px-6 py-3 text-left font-semibold">Class</th>
+                  <th scope="col" class="px-6 py-3 text-left font-semibold">Status</th>
+                  <th scope="col" class="px-6 py-3 text-left font-semibold">Jurisdiction</th>
+                  <th scope="col" class="px-6 py-3 text-left font-semibold">Similarity</th>
+                </tr>
+              </thead>
+              <tbody id="resultsBody" class="divide-y divide-[#E5E5E5] dark:divide-gray-700 text-gray-900 dark:text-gray-100">
+              </tbody>
+            </table>
+          </div>
+          <div id="noResultsMsg" class="hidden px-6 py-10 text-center text-gray-400 dark:text-gray-500 text-sm">
+            <i class="fa-solid fa-circle-check text-green-500 text-2xl mb-2 block" aria-hidden="true"></i>
+            No conflicting trademarks found for this search.
+          </div>
+        </div>
+      </section>
+
+      <!-- Similarity score -->
+      <section id="similarity" class="hidden bg-white dark:bg-gray-800 rounded-xl border border-[#E5E5E5] dark:border-gray-700 p-6">
+        <h2 class="text-base font-semibold text-gray-900 dark:text-white mb-4">Similarity Score</h2>
+        <div id="similarityContent" class="space-y-3"></div>
+      </section>
+
+      <!-- How to read results guide -->
+      <section id="guide" class="bg-white dark:bg-gray-800 rounded-xl border border-[#E5E5E5] dark:border-gray-700 p-6">
+        <h2 class="text-base font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+          <i class="fa-solid fa-circle-info text-[#E10101]" aria-hidden="true"></i>
+          How to Interpret Results
+        </h2>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+          <div class="rounded-lg bg-gray-50 dark:bg-gray-900 border border-[#E5E5E5] dark:border-gray-700 p-4">
+            <span class="inline-block w-2.5 h-2.5 rounded-full bg-green-500 mr-1.5 align-middle" aria-hidden="true"></span>
+            <span class="font-semibold text-gray-900 dark:text-white">Low Risk</span>
+            <p class="text-gray-500 dark:text-gray-400 mt-1">Similarity &lt; 40%. No direct conflicts found. Consider consulting a trademark attorney before filing.</p>
+          </div>
+          <div class="rounded-lg bg-gray-50 dark:bg-gray-900 border border-[#E5E5E5] dark:border-gray-700 p-4">
+            <span class="inline-block w-2.5 h-2.5 rounded-full bg-yellow-400 mr-1.5 align-middle" aria-hidden="true"></span>
+            <span class="font-semibold text-gray-900 dark:text-white">Medium Risk</span>
+            <p class="text-gray-500 dark:text-gray-400 mt-1">Similarity 40–70%. Potential conflicts in related classes. Thorough legal review recommended.</p>
+          </div>
+          <div class="rounded-lg bg-gray-50 dark:bg-gray-900 border border-[#E5E5E5] dark:border-gray-700 p-4">
+            <span class="inline-block w-2.5 h-2.5 rounded-full bg-[#E10101] mr-1.5 align-middle" aria-hidden="true"></span>
+            <span class="font-semibold text-gray-900 dark:text-white">High Risk</span>
+            <p class="text-gray-500 dark:text-gray-400 mt-1">Similarity &gt; 70%. Existing registered marks conflict. Use may constitute infringement.</p>
+          </div>
+        </div>
+        <p class="text-xs text-gray-400 dark:text-gray-500 mt-4">
+          <i class="fa-solid fa-triangle-exclamation text-yellow-400 mr-1" aria-hidden="true"></i>
+          This tool provides informational guidance only and does not constitute legal advice. Always consult a qualified intellectual property attorney.
+        </p>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Footer -->
+  <footer class="border-t border-[#E5E5E5] dark:border-gray-700 bg-white dark:bg-gray-800 mt-auto">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-gray-500 dark:text-gray-400">
+      <span>© 2025 <a href="https://owasp.org" class="text-[#E10101] hover:underline" target="_blank" rel="noopener noreferrer">OWASP BLT</a> — IP &amp; Trademark Enforcement</span>
+      <div class="flex gap-4">
+        <a href="https://github.com/OWASP-BLT/BLT-Enforcement" class="hover:text-[#E10101] transition-colors" target="_blank" rel="noopener noreferrer" aria-label="GitHub repository">
+          <i class="fa-brands fa-github text-lg" aria-hidden="true"></i>
+        </a>
+        <a href="https://owasp.org" class="hover:text-[#E10101] transition-colors" target="_blank" rel="noopener noreferrer" aria-label="OWASP website">
+          <i class="fa-solid fa-globe text-lg" aria-hidden="true"></i>
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // ── Mobile nav ──────────────────────────────────────────────────────────────
+    document.getElementById('menuToggle').addEventListener('click', function () {
+      document.getElementById('mobileNav').classList.toggle('hidden');
+    });
+
+    // ── Pre-fill from URL query param ──────────────────────────────────────────
+    (function () {
+      const q = new URLSearchParams(window.location.search).get('q');
+      if (q) {
+        document.getElementById('tmTerm').value = q;
+        document.getElementById('tmForm').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+      }
+    })();
+
+    // ── Mock trademark data ────────────────────────────────────────────────────
+    const mockDB = [
+      { mark: 'OWASP', owner: 'OWASP Foundation', class: '42', status: 'Registered', jurisdiction: 'US', file: 'https://tmsearch.uspto.gov' },
+      { mark: 'OWASPR', owner: 'Tech Secure Ltd', class: '9', status: 'Pending', jurisdiction: 'EU', file: '#' },
+      { mark: 'BLT Bug', owner: 'BLT Project', class: '42', status: 'Registered', jurisdiction: 'US', file: '#' },
+      { mark: 'SecureBLT', owner: 'SecureApps Inc', class: '35', status: 'Registered', jurisdiction: 'INT', file: '#' },
+      { mark: 'OPENWASP', owner: 'OpenWasp GmbH', class: '9', status: 'Abandoned', jurisdiction: 'EU', file: '#' },
+    ];
+
+    function similarity(a, b) {
+      a = a.toLowerCase(); b = b.toLowerCase();
+      if (a === b) return 100;
+      if (b.includes(a) || a.includes(b)) return 85;
+      let common = 0;
+      for (const ch of a) { if (b.includes(ch)) common++; }
+      return Math.round((common / Math.max(a.length, b.length)) * 100);
+    }
+
+    function riskBadge(score) {
+      if (score >= 70) return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700"><span class="w-1.5 h-1.5 rounded-full bg-[#E10101]"></span>High</span>`;
+      if (score >= 40) return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700"><span class="w-1.5 h-1.5 rounded-full bg-yellow-400"></span>Medium</span>`;
+      return `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700"><span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>Low</span>`;
+    }
+
+    function statusBadge(status) {
+      const map = {
+        Registered: 'bg-green-100 text-green-700',
+        Pending:    'bg-yellow-100 text-yellow-700',
+        Abandoned:  'bg-gray-100 text-gray-500',
+      };
+      return `<span class="px-2 py-0.5 rounded-full text-xs font-medium ${map[status] || 'bg-gray-100 text-gray-500'}">${status}</span>`;
+    }
+
+    // ── Form submit ────────────────────────────────────────────────────────────
+    document.getElementById('tmForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const term = document.getElementById('tmTerm').value.trim();
+      if (!term) {
+        document.getElementById('tmTerm').focus();
+        return;
+      }
+      const clsFilter = document.getElementById('tmClass').value;
+      const phonetic   = document.getElementById('tmPhonetic').checked;
+
+      // Show loading
+      document.getElementById('loadingState').classList.remove('hidden');
+      document.getElementById('resultsPanel').classList.add('hidden');
+      document.getElementById('errorState').classList.add('hidden');
+      document.getElementById('similarity').classList.add('hidden');
+
+      // Simulate async search
+      setTimeout(function () {
+        document.getElementById('loadingState').classList.add('hidden');
+
+        const results = mockDB
+          .map(function (r) { return Object.assign({}, r, { score: similarity(term, r.mark) }); })
+          .filter(function (r) {
+            if (clsFilter && r.class !== clsFilter) return false;
+            return phonetic ? r.score >= 30 : r.score >= 50;
+          })
+          .sort(function (a, b) { return b.score - a.score; });
+
+        // Update results panel
+        document.getElementById('resultsTermLabel').textContent = '"' + term + '"';
+        document.getElementById('resultsBadge').textContent = results.length + ' match' + (results.length !== 1 ? 'es' : '');
+        document.getElementById('resultsPanel').classList.remove('hidden');
+
+        const body = document.getElementById('resultsBody');
+        body.innerHTML = '';
+        if (results.length === 0) {
+          document.getElementById('noResultsMsg').classList.remove('hidden');
+        } else {
+          document.getElementById('noResultsMsg').classList.add('hidden');
+          results.forEach(function (r) {
+            const tr = document.createElement('tr');
+            tr.className = 'hover:bg-gray-50 dark:hover:bg-gray-900/40 transition-colors';
+            tr.innerHTML = `
+              <td class="px-6 py-3 font-semibold">
+                <a href="${r.file}" class="text-[#E10101] hover:underline" target="_blank" rel="noopener noreferrer">${r.mark}</a>
+              </td>
+              <td class="px-6 py-3 text-gray-600 dark:text-gray-300">${r.owner}</td>
+              <td class="px-6 py-3 text-gray-600 dark:text-gray-300">Class ${r.class}</td>
+              <td class="px-6 py-3">${statusBadge(r.status)}</td>
+              <td class="px-6 py-3 text-gray-600 dark:text-gray-300">${r.jurisdiction}</td>
+              <td class="px-6 py-3">
+                <div class="flex items-center gap-2">
+                  <div class="w-20 h-1.5 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
+                    <div class="h-full rounded-full ${r.score >= 70 ? 'bg-[#E10101]' : r.score >= 40 ? 'bg-yellow-400' : 'bg-green-500'}" style="width:${r.score}%"></div>
+                  </div>
+                  ${riskBadge(r.score)}
+                </div>
+              </td>`;
+            body.appendChild(tr);
+          });
+        }
+
+        // Similarity section
+        if (results.length > 0) {
+          const maxScore = results[0].score;
+          const simSection = document.getElementById('similarity');
+          const simContent = document.getElementById('similarityContent');
+          simSection.classList.remove('hidden');
+          simContent.innerHTML = `
+            <div class="flex items-center justify-between text-sm mb-1">
+              <span class="font-medium text-gray-700 dark:text-gray-300">Highest similarity to "<span class="text-[#E10101]">${results[0].mark}</span>"</span>
+              <span class="font-bold text-gray-900 dark:text-white">${maxScore}%</span>
+            </div>
+            <div class="w-full h-3 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
+              <div class="h-full rounded-full transition-all duration-700 ${maxScore >= 70 ? 'bg-[#E10101]' : maxScore >= 40 ? 'bg-yellow-400' : 'bg-green-500'}" style="width:${maxScore}%"></div>
+            </div>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">${
+              maxScore >= 70
+                ? 'High conflict risk detected. We strongly recommend consulting a trademark attorney before using this name.'
+                : maxScore >= 40
+                ? 'Moderate conflict risk. Conduct a comprehensive clearance search and review with a legal professional.'
+                : 'Low conflict risk based on available data. Standard due diligence is still advised.'
+            }</p>`;
+        }
+      }, 900);
+    });
+
+    // Clear handler
+    document.getElementById('clearBtn').addEventListener('click', function () {
+      document.getElementById('resultsPanel').classList.add('hidden');
+      document.getElementById('errorState').classList.add('hidden');
+      document.getElementById('similarity').classList.add('hidden');
+      document.getElementById('loadingState').classList.add('hidden');
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Repository Compare — BLT Enforcement</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: { DEFAULT: '#E10101', hover: '#b91c1c' },
+            surface: { dark: '#1F2937', base: '#111827' },
+            sidebar: { active: '#feeae9' }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="h-full bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 flex flex-col min-h-screen">
+
+  <!-- Top Nav -->
+  <header class="bg-white dark:bg-gray-800 border-b border-[#E5E5E5] dark:border-gray-700 sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-14">
+      <a href="index.html" class="flex items-center gap-2 font-bold text-lg text-gray-900 dark:text-white">
+        <span class="text-[#E10101] text-xl"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i></span>
+        BLT <span class="text-[#E10101]">Enforcement</span>
+      </a>
+      <nav class="hidden sm:flex items-center gap-6 text-sm font-medium">
+        <a href="index.html" class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] transition-colors">Dashboard</a>
+        <a href="trademark-check.html" class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] transition-colors">Trademark Check</a>
+        <a href="repo-compare.html" class="text-[#E10101] border-b-2 border-[#E10101] pb-0.5">Repo Compare</a>
+      </nav>
+      <button id="menuToggle" class="sm:hidden text-gray-500 dark:text-gray-400 hover:text-[#E10101]" aria-label="Toggle menu">
+        <i class="fa-solid fa-bars text-lg" aria-hidden="true"></i>
+      </button>
+    </div>
+    <div id="mobileNav" class="hidden sm:hidden border-t border-[#E5E5E5] dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3 flex flex-col gap-3 text-sm font-medium">
+      <a href="index.html" class="text-gray-600 dark:text-gray-300 hover:text-[#E10101]">Dashboard</a>
+      <a href="trademark-check.html" class="text-gray-600 dark:text-gray-300 hover:text-[#E10101]">Trademark Check</a>
+      <a href="repo-compare.html" class="text-[#E10101]">Repo Compare</a>
+    </div>
+  </header>
+
+  <div class="flex flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 gap-6">
+
+    <!-- Sidebar -->
+    <aside class="hidden lg:block w-56 flex-shrink-0">
+      <nav class="bg-white dark:bg-gray-800 rounded-xl border border-[#E5E5E5] dark:border-gray-700 overflow-hidden">
+        <p class="px-4 pt-4 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Compare</p>
+        <ul>
+          <li>
+            <a href="#compare-form" class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium bg-[#feeae9] text-[#E10101] border-l-2 border-[#E10101]">
+              <i class="fa-solid fa-code-compare w-4" aria-hidden="true"></i> Repository Inputs
+            </a>
+          </li>
+        </ul>
+        <p class="px-4 pt-4 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Report</p>
+        <ul>
+          <li>
+            <a href="#overview" class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-[#feeae9] hover:text-[#E10101] transition-colors">
+              <i class="fa-solid fa-chart-pie w-4" aria-hidden="true"></i> Overview
+            </a>
+          </li>
+          <li>
+            <a href="#license-audit" class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-[#feeae9] hover:text-[#E10101] transition-colors">
+              <i class="fa-solid fa-scale-balanced w-4" aria-hidden="true"></i> License Audit
+            </a>
+          </li>
+          <li>
+            <a href="#file-similarity" class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-[#feeae9] hover:text-[#E10101] transition-colors">
+              <i class="fa-solid fa-file-code w-4" aria-hidden="true"></i> File Similarity
+            </a>
+          </li>
+          <li>
+            <a href="#fork-history" class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-[#feeae9] hover:text-[#E10101] transition-colors">
+              <i class="fa-solid fa-code-fork w-4" aria-hidden="true"></i> Fork History
+            </a>
+          </li>
+        </ul>
+        <p class="px-4 pt-4 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Resources</p>
+        <ul class="pb-2">
+          <li>
+            <a href="https://choosealicense.com" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-[#feeae9] hover:text-[#E10101] transition-colors">
+              <i class="fa-solid fa-arrow-up-right-from-square w-4" aria-hidden="true"></i> Choose a License
+            </a>
+          </li>
+          <li>
+            <a href="https://spdx.org/licenses/" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-600 dark:text-gray-300 hover:bg-[#feeae9] hover:text-[#E10101] transition-colors">
+              <i class="fa-solid fa-arrow-up-right-from-square w-4" aria-hidden="true"></i> SPDX License List
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </aside>
+
+    <!-- Main content -->
+    <main class="flex-1 min-w-0 space-y-6">
+
+      <!-- Page heading -->
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+          <i class="fa-solid fa-code-compare text-[#E10101]" aria-hidden="true"></i>
+          Repository Comparison
+        </h1>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Compare two GitHub repositories to detect code similarities, license incompatibilities, and potential intellectual property violations.</p>
+      </div>
+
+      <!-- Input form -->
+      <section id="compare-form" class="bg-white dark:bg-gray-800 rounded-xl border border-[#E5E5E5] dark:border-gray-700 p-6">
+        <h2 class="text-base font-semibold text-gray-900 dark:text-white mb-4">Repository Inputs</h2>
+        <form id="compareForm" class="space-y-4" novalidate>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Repo A -->
+            <div>
+              <label for="repoA" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Repository A <span class="text-[#E10101]" aria-hidden="true">*</span>
+              </label>
+              <div class="relative">
+                <span class="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none">
+                  <i class="fa-brands fa-github text-sm" aria-hidden="true"></i>
+                </span>
+                <input
+                  id="repoA"
+                  type="text"
+                  placeholder="owner/repository"
+                  value="OWASP-BLT/BLT"
+                  class="w-full border border-gray-400 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-md pl-9 pr-4 py-2 text-sm focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 placeholder-gray-400"
+                  required
+                  aria-required="true"
+                  aria-describedby="repoAHint"
+                />
+              </div>
+              <p id="repoAHint" class="text-xs text-gray-400 mt-1">Format: <code class="font-mono bg-gray-100 dark:bg-gray-700 px-1 rounded">owner/repo</code></p>
+            </div>
+
+            <!-- Repo B -->
+            <div>
+              <label for="repoB" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Repository B <span class="text-[#E10101]" aria-hidden="true">*</span>
+              </label>
+              <div class="relative">
+                <span class="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none">
+                  <i class="fa-brands fa-github text-sm" aria-hidden="true"></i>
+                </span>
+                <input
+                  id="repoB"
+                  type="text"
+                  placeholder="owner/repository"
+                  class="w-full border border-gray-400 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-md pl-9 pr-4 py-2 text-sm focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 placeholder-gray-400"
+                  required
+                  aria-required="true"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Options row -->
+          <div class="flex flex-wrap gap-5 pt-1">
+            <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
+              <input type="checkbox" id="optLicense" checked class="h-4 w-4 rounded border-gray-400 accent-[#E10101] focus:ring-[#E10101]" />
+              <i class="fa-solid fa-scale-balanced text-[#E10101] text-xs" aria-hidden="true"></i> License comparison
+            </label>
+            <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
+              <input type="checkbox" id="optFiles" checked class="h-4 w-4 rounded border-gray-400 accent-[#E10101] focus:ring-[#E10101]" />
+              <i class="fa-solid fa-file-code text-[#E10101] text-xs" aria-hidden="true"></i> File structure similarity
+            </label>
+            <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
+              <input type="checkbox" id="optForks" checked class="h-4 w-4 rounded border-gray-400 accent-[#E10101] focus:ring-[#E10101]" />
+              <i class="fa-solid fa-code-fork text-[#E10101] text-xs" aria-hidden="true"></i> Fork &amp; parent detection
+            </label>
+            <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
+              <input type="checkbox" id="optDeps" class="h-4 w-4 rounded border-gray-400 accent-[#E10101] focus:ring-[#E10101]" />
+              <i class="fa-solid fa-box text-[#E10101] text-xs" aria-hidden="true"></i> Dependency audit
+            </label>
+          </div>
+
+          <!-- Token input (optional) -->
+          <div>
+            <label for="ghToken" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              GitHub Token <span class="text-xs text-gray-400 font-normal">(optional — increases API rate limit)</span>
+            </label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none">
+                <i class="fa-solid fa-key text-sm" aria-hidden="true"></i>
+              </span>
+              <input
+                id="ghToken"
+                type="password"
+                placeholder="ghp_••••••••••••••••"
+                class="w-full border border-gray-400 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 rounded-md pl-9 pr-4 py-2 text-sm focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 placeholder-gray-400"
+                autocomplete="off"
+                aria-describedby="tokenHint"
+              />
+            </div>
+            <p id="tokenHint" class="text-xs text-gray-400 mt-1">Token is used only in your browser and never sent to any server.</p>
+          </div>
+
+          <!-- Actions -->
+          <div class="flex flex-wrap gap-3 pt-1">
+            <button
+              type="submit"
+              class="inline-flex items-center gap-2 rounded-md bg-[#E10101] hover:bg-red-700 text-white text-sm font-semibold px-5 py-2 transition-colors focus:outline-none focus:ring-2 focus:ring-[#E10101] focus:ring-offset-2"
+            >
+              <i class="fa-solid fa-code-compare" aria-hidden="true"></i> Compare Repositories
+            </button>
+            <button
+              type="reset"
+              id="clearBtn"
+              class="inline-flex items-center gap-2 rounded-md border border-[#E10101] text-[#E10101] hover:bg-[#E10101] hover:text-white text-sm font-semibold px-5 py-2 transition-colors focus:outline-none focus:ring-2 focus:ring-[#E10101] focus:ring-offset-2"
+            >
+              <i class="fa-solid fa-xmark" aria-hidden="true"></i> Clear
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Loading -->
+      <div id="loadingState" class="hidden bg-white dark:bg-gray-800 rounded-xl border border-[#E5E5E5] dark:border-gray-700 p-10 flex flex-col items-center gap-3 text-gray-400" aria-live="polite">
+        <i class="fa-solid fa-spinner fa-spin text-3xl text-[#E10101]" aria-hidden="true"></i>
+        <p class="text-sm" id="loadingMsg">Fetching repository data from GitHub API…</p>
+      </div>
+
+      <!-- Error -->
+      <div id="errorState" class="hidden bg-white dark:bg-gray-800 rounded-xl border border-red-200 dark:border-red-900 p-6 flex items-start gap-3" role="alert">
+        <i class="fa-solid fa-circle-exclamation text-[#E10101] mt-0.5" aria-hidden="true"></i>
+        <div>
+          <p class="text-sm font-semibold text-gray-900 dark:text-white">Comparison failed</p>
+          <p id="errorMsg" class="text-sm text-gray-500 dark:text-gray-400 mt-0.5"></p>
+        </div>
+      </div>
+
+      <!-- Results sections (all hidden until compare runs) -->
+
+      <!-- Overview -->
+      <section id="overview" class="hidden bg-white dark:bg-gray-800 rounded-xl border border-[#E5E5E5] dark:border-gray-700" aria-live="polite">
+        <div class="px-6 py-4 border-b border-[#E5E5E5] dark:border-gray-700 flex items-center gap-2">
+          <i class="fa-solid fa-chart-pie text-[#E10101]" aria-hidden="true"></i>
+          <h2 class="text-base font-semibold text-gray-900 dark:text-white">Comparison Overview</h2>
+        </div>
+        <div class="p-6">
+          <!-- Repo meta side by side -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6" id="repoMeta"></div>
+          <!-- Risk summary -->
+          <div id="riskBanner" class="rounded-lg border p-4 flex items-start gap-3"></div>
+        </div>
+      </section>
+
+      <!-- License Audit -->
+      <section id="license-audit" class="hidden bg-white dark:bg-gray-800 rounded-xl border border-[#E5E5E5] dark:border-gray-700">
+        <div class="px-6 py-4 border-b border-[#E5E5E5] dark:border-gray-700 flex items-center gap-2">
+          <i class="fa-solid fa-scale-balanced text-[#E10101]" aria-hidden="true"></i>
+          <h2 class="text-base font-semibold text-gray-900 dark:text-white">License Audit</h2>
+        </div>
+        <div class="p-6 space-y-4" id="licenseContent"></div>
+      </section>
+
+      <!-- File Similarity -->
+      <section id="file-similarity" class="hidden bg-white dark:bg-gray-800 rounded-xl border border-[#E5E5E5] dark:border-gray-700">
+        <div class="px-6 py-4 border-b border-[#E5E5E5] dark:border-gray-700 flex items-center gap-2">
+          <i class="fa-solid fa-file-code text-[#E10101]" aria-hidden="true"></i>
+          <h2 class="text-base font-semibold text-gray-900 dark:text-white">File Structure Similarity</h2>
+        </div>
+        <div class="p-6" id="fileContent"></div>
+      </section>
+
+      <!-- Fork History -->
+      <section id="fork-history" class="hidden bg-white dark:bg-gray-800 rounded-xl border border-[#E5E5E5] dark:border-gray-700">
+        <div class="px-6 py-4 border-b border-[#E5E5E5] dark:border-gray-700 flex items-center gap-2">
+          <i class="fa-solid fa-code-fork text-[#E10101]" aria-hidden="true"></i>
+          <h2 class="text-base font-semibold text-gray-900 dark:text-white">Fork &amp; Parent Detection</h2>
+        </div>
+        <div class="p-6" id="forkContent"></div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Footer -->
+  <footer class="border-t border-[#E5E5E5] dark:border-gray-700 bg-white dark:bg-gray-800 mt-auto">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-gray-500 dark:text-gray-400">
+      <span>© 2025 <a href="https://owasp.org" class="text-[#E10101] hover:underline" target="_blank" rel="noopener noreferrer">OWASP BLT</a> — IP &amp; Trademark Enforcement</span>
+      <div class="flex gap-4">
+        <a href="https://github.com/OWASP-BLT/BLT-Enforcement" class="hover:text-[#E10101] transition-colors" target="_blank" rel="noopener noreferrer" aria-label="GitHub repository">
+          <i class="fa-brands fa-github text-lg" aria-hidden="true"></i>
+        </a>
+        <a href="https://owasp.org" class="hover:text-[#E10101] transition-colors" target="_blank" rel="noopener noreferrer" aria-label="OWASP website">
+          <i class="fa-solid fa-globe text-lg" aria-hidden="true"></i>
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // ── Helpers ─────────────────────────────────────────────────────────────────
+    function show(id) { document.getElementById(id).classList.remove('hidden'); }
+    function hide(id) { document.getElementById(id).classList.add('hidden'); }
+
+    document.getElementById('menuToggle').addEventListener('click', function () {
+      document.getElementById('mobileNav').classList.toggle('hidden');
+    });
+
+    document.getElementById('clearBtn').addEventListener('click', function () {
+      ['loadingState','errorState','overview','license-audit','file-similarity','fork-history'].forEach(hide);
+    });
+
+    // ── License compatibility matrix ────────────────────────────────────────────
+    const licenseInfo = {
+      'MIT':        { type: 'Permissive',   copyleft: false, commercial: true,  color: 'green' },
+      'Apache-2.0': { type: 'Permissive',   copyleft: false, commercial: true,  color: 'green' },
+      'BSD-3-Clause':{ type: 'Permissive',  copyleft: false, commercial: true,  color: 'green' },
+      'ISC':        { type: 'Permissive',   copyleft: false, commercial: true,  color: 'green' },
+      'GPL-2.0':    { type: 'Copyleft',     copyleft: true,  commercial: false, color: 'yellow' },
+      'GPL-3.0':    { type: 'Copyleft',     copyleft: true,  commercial: false, color: 'yellow' },
+      'AGPL-3.0':   { type: 'Strong Copyleft', copyleft: true, commercial: false, color: 'red' },
+      'LGPL-2.1':   { type: 'Weak Copyleft', copyleft: true, commercial: true,  color: 'yellow' },
+      'MPL-2.0':    { type: 'Weak Copyleft', copyleft: true, commercial: true,  color: 'yellow' },
+      'UNLICENSED': { type: 'No License',   copyleft: false, commercial: false, color: 'red' },
+    };
+
+    function compatible(a, b) {
+      if (a === b) return true;
+      const infoA = licenseInfo[a]; const infoB = licenseInfo[b];
+      if (!infoA || !infoB) return null;
+      if (!infoA.copyleft && !infoB.copyleft) return true;
+      if ((a === 'AGPL-3.0' || b === 'AGPL-3.0') && a !== b) return false;
+      if ((a === 'GPL-3.0' || b === 'GPL-3.0') && !['GPL-3.0','LGPL-2.1','MIT','Apache-2.0','BSD-3-Clause'].includes(a === 'GPL-3.0' ? b : a)) return false;
+      return null;
+    }
+
+    function licenseBadgeColor(lic) {
+      const info = licenseInfo[lic];
+      if (!info) return 'bg-gray-100 text-gray-600';
+      return { green: 'bg-green-100 text-green-700', yellow: 'bg-yellow-100 text-yellow-700', red: 'bg-red-100 text-red-700' }[info.color] || 'bg-gray-100 text-gray-600';
+    }
+
+    // ── File-name similarity ────────────────────────────────────────────────────
+    function jaccardSim(setA, setB) {
+      const inter = setA.filter(f => setB.includes(f)).length;
+      const union = new Set([...setA, ...setB]).size;
+      return union === 0 ? 0 : Math.round((inter / union) * 100);
+    }
+
+    // ── GitHub API helper ────────────────────────────────────────────────────────
+    async function ghFetch(path, token) {
+      const headers = { Accept: 'application/vnd.github.v3+json' };
+      if (token) headers['Authorization'] = 'Bearer ' + token;
+      const resp = await fetch('https://api.github.com' + path, { headers });
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}));
+        throw new Error(err.message || 'GitHub API error ' + resp.status);
+      }
+      return resp.json();
+    }
+
+    async function getRepoTree(owner, repo, token) {
+      const info = await ghFetch('/repos/' + owner + '/' + repo, token);
+      const branch = info.default_branch;
+      const tree = await ghFetch('/repos/' + owner + '/' + repo + '/git/trees/' + branch + '?recursive=1', token);
+      return { info, files: (tree.tree || []).filter(f => f.type === 'blob').map(f => f.path) };
+    }
+
+    // ── Main compare ────────────────────────────────────────────────────────────
+    document.getElementById('compareForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const repoAVal = document.getElementById('repoA').value.trim();
+      const repoBVal = document.getElementById('repoB').value.trim();
+      const token    = document.getElementById('ghToken').value.trim();
+
+      const rePattern = /^[A-Za-z0-9_.\-]+\/[A-Za-z0-9_.\-]+$/;
+      if (!repoAVal || !repoBVal) {
+        showError('Both repository fields are required.');
+        return;
+      }
+      if (!rePattern.test(repoAVal) || !rePattern.test(repoBVal)) {
+        showError('Repository must be in "owner/repo" format (e.g. OWASP-BLT/BLT).');
+        return;
+      }
+
+      const [ownerA, nameA] = repoAVal.split('/');
+      const [ownerB, nameB] = repoBVal.split('/');
+
+      // Reset
+      ['overview','license-audit','file-similarity','fork-history','errorState'].forEach(hide);
+      show('loadingState');
+      setLoadingMsg('Fetching repository data from GitHub API…');
+
+      try {
+        const [dataA, dataB] = await Promise.all([
+          getRepoTree(ownerA, nameA, token),
+          getRepoTree(ownerB, nameB, token),
+        ]);
+
+        hide('loadingState');
+
+        renderOverview(dataA, dataB);
+        if (document.getElementById('optLicense').checked) renderLicense(dataA, dataB);
+        if (document.getElementById('optFiles').checked) renderFiles(dataA, dataB);
+        if (document.getElementById('optForks').checked) renderForks(dataA, dataB);
+
+      } catch (err) {
+        hide('loadingState');
+        showError(err.message || 'An unexpected error occurred. Check the repository names and try again.');
+      }
+    });
+
+    function showError(msg) {
+      document.getElementById('errorMsg').textContent = msg;
+      show('errorState');
+    }
+
+    function setLoadingMsg(msg) {
+      document.getElementById('loadingMsg').textContent = msg;
+    }
+
+    // ── Render: Overview ────────────────────────────────────────────────────────
+    function renderOverview(dataA, dataB) {
+      const a = dataA.info; const b = dataB.info;
+      const fileSim = jaccardSim(dataA.files, dataB.files);
+      const licA = (a.license && a.license.spdx_id) ? a.license.spdx_id : 'UNLICENSED';
+      const licB = (b.license && b.license.spdx_id) ? b.license.spdx_id : 'UNLICENSED';
+      const compat = compatible(licA, licB);
+
+      let riskLevel, riskColor, riskIcon, riskText;
+      if (fileSim >= 60 || compat === false) {
+        riskLevel = 'High Risk';
+        riskColor = 'border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-900/20';
+        riskIcon  = 'fa-triangle-exclamation text-[#E10101]';
+        riskText  = 'Significant similarity or license incompatibility detected. A legal review is strongly recommended.';
+      } else if (fileSim >= 30 || compat === null) {
+        riskLevel = 'Medium Risk';
+        riskColor = 'border-yellow-200 dark:border-yellow-900 bg-yellow-50 dark:bg-yellow-900/20';
+        riskIcon  = 'fa-circle-exclamation text-yellow-500';
+        riskText  = 'Moderate overlap or ambiguous license compatibility. Further review is advised.';
+      } else {
+        riskLevel = 'Low Risk';
+        riskColor = 'border-green-200 dark:border-green-900 bg-green-50 dark:bg-green-900/20';
+        riskIcon  = 'fa-circle-check text-green-500';
+        riskText  = 'Low similarity and compatible licenses detected.';
+      }
+
+      document.getElementById('repoMeta').innerHTML = [a, b].map(function(r) {
+        const lic = (r.license && r.license.spdx_id) ? r.license.spdx_id : 'UNLICENSED';
+        return `
+          <div class="rounded-lg border border-[#E5E5E5] dark:border-gray-700 bg-gray-50 dark:bg-gray-900 p-4 space-y-2">
+            <div class="flex items-center gap-2">
+              <i class="fa-brands fa-github text-gray-400" aria-hidden="true"></i>
+              <a href="${r.html_url}" class="text-[#E10101] hover:underline font-semibold text-sm" target="_blank" rel="noopener noreferrer">${r.full_name}</a>
+            </div>
+            <p class="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">${r.description || 'No description provided.'}</p>
+            <div class="flex flex-wrap gap-2 text-xs">
+              <span class="flex items-center gap-1 text-gray-600 dark:text-gray-300"><i class="fa-solid fa-star text-yellow-400" aria-hidden="true"></i>${r.stargazers_count.toLocaleString()}</span>
+              <span class="flex items-center gap-1 text-gray-600 dark:text-gray-300"><i class="fa-solid fa-code-fork text-gray-400" aria-hidden="true"></i>${r.forks_count.toLocaleString()}</span>
+              <span class="flex items-center gap-1 text-gray-600 dark:text-gray-300"><i class="fa-solid fa-circle-dot text-gray-400" aria-hidden="true"></i>${r.open_issues_count.toLocaleString()} issues</span>
+              <span class="px-2 py-0.5 rounded-full font-medium ${licenseBadgeColor(lic)}">${lic}</span>
+            </div>
+            <p class="text-xs text-gray-400 dark:text-gray-500">Language: <span class="font-medium text-gray-700 dark:text-gray-300">${r.language || 'Unknown'}</span></p>
+          </div>`;
+      }).join('');
+
+      document.getElementById('riskBanner').className = 'rounded-lg border p-4 flex items-start gap-3 ' + riskColor;
+      document.getElementById('riskBanner').innerHTML = `
+        <i class="fa-solid ${riskIcon} text-xl mt-0.5 flex-shrink-0" aria-hidden="true"></i>
+        <div>
+          <p class="font-semibold text-gray-900 dark:text-white text-sm">${riskLevel}</p>
+          <p class="text-sm text-gray-600 dark:text-gray-300 mt-0.5">${riskText}</p>
+          <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">File structure similarity: <strong>${fileSim}%</strong></p>
+        </div>`;
+
+      show('overview');
+    }
+
+    // ── Render: License ─────────────────────────────────────────────────────────
+    function renderLicense(dataA, dataB) {
+      const licA = (dataA.info.license && dataA.info.license.spdx_id) ? dataA.info.license.spdx_id : 'UNLICENSED';
+      const licB = (dataB.info.license && dataB.info.license.spdx_id) ? dataB.info.license.spdx_id : 'UNLICENSED';
+      const compat = compatible(licA, licB);
+      const infoA = licenseInfo[licA] || {};
+      const infoB = licenseInfo[licB] || {};
+
+      const compatHtml = compat === true
+        ? '<span class="text-green-600 font-semibold"><i class="fa-solid fa-circle-check mr-1" aria-hidden="true"></i>Compatible</span>'
+        : compat === false
+        ? '<span class="text-[#E10101] font-semibold"><i class="fa-solid fa-circle-xmark mr-1" aria-hidden="true"></i>Incompatible</span>'
+        : '<span class="text-yellow-600 font-semibold"><i class="fa-solid fa-circle-question mr-1" aria-hidden="true"></i>Unclear — verify manually</span>';
+
+      document.getElementById('licenseContent').innerHTML = `
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="rounded-lg border border-[#E5E5E5] dark:border-gray-700 bg-gray-50 dark:bg-gray-900 p-4 space-y-2">
+            <p class="text-xs font-semibold text-gray-400 uppercase">Repository A</p>
+            <p class="font-semibold text-gray-900 dark:text-white">${dataA.info.full_name}</p>
+            <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold ${licenseBadgeColor(licA)}">${licA}</span>
+            <ul class="text-xs text-gray-500 dark:text-gray-400 space-y-1 mt-2">
+              <li><i class="fa-solid fa-${infoA.copyleft ? 'circle-xmark text-[#E10101]' : 'circle-check text-green-500'} mr-1" aria-hidden="true"></i>${infoA.copyleft ? 'Copyleft (share-alike required)' : 'No copyleft'}</li>
+              <li><i class="fa-solid fa-${infoA.commercial ? 'circle-check text-green-500' : 'circle-xmark text-[#E10101]'} mr-1" aria-hidden="true"></i>${infoA.commercial ? 'Commercial use allowed' : 'Commercial use restricted'}</li>
+              <li><i class="fa-solid fa-tag text-gray-400 mr-1" aria-hidden="true"></i>${infoA.type || 'Unknown type'}</li>
+            </ul>
+          </div>
+          <div class="rounded-lg border border-[#E5E5E5] dark:border-gray-700 bg-gray-50 dark:bg-gray-900 p-4 space-y-2">
+            <p class="text-xs font-semibold text-gray-400 uppercase">Repository B</p>
+            <p class="font-semibold text-gray-900 dark:text-white">${dataB.info.full_name}</p>
+            <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold ${licenseBadgeColor(licB)}">${licB}</span>
+            <ul class="text-xs text-gray-500 dark:text-gray-400 space-y-1 mt-2">
+              <li><i class="fa-solid fa-${infoB.copyleft ? 'circle-xmark text-[#E10101]' : 'circle-check text-green-500'} mr-1" aria-hidden="true"></i>${infoB.copyleft ? 'Copyleft (share-alike required)' : 'No copyleft'}</li>
+              <li><i class="fa-solid fa-${infoB.commercial ? 'circle-check text-green-500' : 'circle-xmark text-[#E10101]'} mr-1" aria-hidden="true"></i>${infoB.commercial ? 'Commercial use allowed' : 'Commercial use restricted'}</li>
+              <li><i class="fa-solid fa-tag text-gray-400 mr-1" aria-hidden="true"></i>${infoB.type || 'Unknown type'}</li>
+            </ul>
+          </div>
+        </div>
+        <div class="rounded-lg border border-[#E5E5E5] dark:border-gray-700 bg-gray-50 dark:bg-gray-900 p-4">
+          <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">License Compatibility</p>
+          <p class="text-sm">${compatHtml}</p>
+          ${compat === false ? '<p class="text-xs text-gray-500 dark:text-gray-400 mt-2">These licenses are incompatible. Combining code from both repositories in a single project may violate the terms of one or both licenses. Consult an IP attorney.</p>' : ''}
+          ${compat === null ? '<p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Compatibility is unclear due to missing or non-standard license information. Manual review is required.</p>' : ''}
+        </div>`;
+      show('license-audit');
+    }
+
+    // ── Render: Files ────────────────────────────────────────────────────────────
+    function renderFiles(dataA, dataB) {
+      const filesA = dataA.files; const filesB = dataB.files;
+      const sim = jaccardSim(filesA, filesB);
+      const commonFiles = filesA.filter(f => filesB.includes(f)).slice(0, 15);
+      const onlyA = filesA.filter(f => !filesB.includes(f)).slice(0, 8);
+      const onlyB = filesB.filter(f => !filesA.includes(f)).slice(0, 8);
+
+      const barColor = sim >= 60 ? 'bg-[#E10101]' : sim >= 30 ? 'bg-yellow-400' : 'bg-green-500';
+
+      document.getElementById('fileContent').innerHTML = `
+        <div class="space-y-4">
+          <div>
+            <div class="flex items-center justify-between text-sm mb-1">
+              <span class="font-medium text-gray-700 dark:text-gray-300">File structure overlap</span>
+              <span class="font-bold text-gray-900 dark:text-white">${sim}%</span>
+            </div>
+            <div class="w-full h-3 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
+              <div class="h-full rounded-full transition-all duration-700 ${barColor}" style="width:${sim}%"></div>
+            </div>
+            <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">${filesA.length} files in A · ${filesB.length} files in B · ${commonFiles.length}+ common files</p>
+          </div>
+          ${commonFiles.length > 0 ? `
+          <div>
+            <p class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Common files (top ${commonFiles.length})</p>
+            <ul class="grid grid-cols-1 sm:grid-cols-2 gap-1">
+              ${commonFiles.map(f => `<li class="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-900 rounded px-2 py-1"><i class="fa-solid fa-file-code text-[#E10101] text-[10px]" aria-hidden="true"></i><code class="truncate font-mono">${f}</code></li>`).join('')}
+            </ul>
+          </div>` : ''}
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            ${onlyA.length > 0 ? `
+            <div>
+              <p class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Only in A</p>
+              <ul class="space-y-1">
+                ${onlyA.map(f => `<li class="text-xs text-gray-500 bg-gray-50 dark:bg-gray-900 rounded px-2 py-1 font-mono truncate">${f}</li>`).join('')}
+                ${filesA.filter(f => !filesB.includes(f)).length > 8 ? `<li class="text-xs text-gray-400 italic">…and ${filesA.filter(f=>!filesB.includes(f)).length - 8} more</li>` : ''}
+              </ul>
+            </div>` : ''}
+            ${onlyB.length > 0 ? `
+            <div>
+              <p class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Only in B</p>
+              <ul class="space-y-1">
+                ${onlyB.map(f => `<li class="text-xs text-gray-500 bg-gray-50 dark:bg-gray-900 rounded px-2 py-1 font-mono truncate">${f}</li>`).join('')}
+                ${filesB.filter(f => !filesA.includes(f)).length > 8 ? `<li class="text-xs text-gray-400 italic">…and ${filesB.filter(f=>!filesA.includes(f)).length - 8} more</li>` : ''}
+              </ul>
+            </div>` : ''}
+          </div>
+        </div>`;
+      show('file-similarity');
+    }
+
+    // ── Render: Forks ────────────────────────────────────────────────────────────
+    function renderForks(dataA, dataB) {
+      const a = dataA.info; const b = dataB.info;
+      const aIsFork = a.fork;
+      const bIsFork = b.fork;
+      const sharedParent = aIsFork && bIsFork && a.parent && b.parent && a.parent.full_name === b.parent.full_name;
+
+      let html = '<div class="space-y-3">';
+
+      if (sharedParent) {
+        html += `<div class="rounded-lg border border-yellow-200 dark:border-yellow-900 bg-yellow-50 dark:bg-yellow-900/20 p-4 flex items-start gap-3">
+          <i class="fa-solid fa-triangle-exclamation text-yellow-500 mt-0.5" aria-hidden="true"></i>
+          <div>
+            <p class="text-sm font-semibold text-gray-900 dark:text-white">Both repositories share the same parent fork</p>
+            <p class="text-sm text-gray-600 dark:text-gray-300 mt-0.5">Parent: <a href="https://github.com/${a.parent.full_name}" class="text-[#E10101] hover:underline" target="_blank" rel="noopener noreferrer">${a.parent.full_name}</a></p>
+          </div>
+        </div>`;
+      }
+
+      [{ label: 'A', info: a }, { label: 'B', info: b }].forEach(function(item) {
+        const r = item.info;
+        html += `<div class="rounded-lg border border-[#E5E5E5] dark:border-gray-700 bg-gray-50 dark:bg-gray-900 p-4">
+          <p class="text-xs font-semibold text-gray-400 uppercase mb-2">Repository ${item.label} — <a href="${r.html_url}" class="text-[#E10101] hover:underline" target="_blank" rel="noopener noreferrer">${r.full_name}</a></p>
+          <div class="flex flex-wrap gap-3 text-sm">
+            <span class="flex items-center gap-1.5 ${r.fork ? 'text-yellow-600' : 'text-green-600'}">
+              <i class="fa-solid ${r.fork ? 'fa-code-fork' : 'fa-house'} text-xs" aria-hidden="true"></i>
+              ${r.fork ? 'Is a fork' : 'Original repository'}
+            </span>
+            ${r.fork && r.parent ? `<span class="flex items-center gap-1.5 text-gray-600 dark:text-gray-300">
+              <i class="fa-solid fa-turn-up text-xs text-gray-400" aria-hidden="true"></i>
+              Forked from <a href="${r.parent.html_url}" class="text-[#E10101] hover:underline ml-1" target="_blank" rel="noopener noreferrer">${r.parent.full_name}</a>
+            </span>` : ''}
+            <span class="text-gray-500 dark:text-gray-400 text-xs">Created: ${new Date(r.created_at).toLocaleDateString()}</span>
+            <span class="text-gray-500 dark:text-gray-400 text-xs">Updated: ${new Date(r.updated_at).toLocaleDateString()}</span>
+          </div>
+        </div>`;
+      });
+
+      if (!aIsFork && !bIsFork) {
+        html += `<p class="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
+          <i class="fa-solid fa-circle-info text-gray-400" aria-hidden="true"></i>
+          Neither repository is marked as a fork on GitHub. They may still share common code; refer to the file similarity analysis.
+        </p>`;
+      }
+
+      html += '</div>';
+      document.getElementById('forkContent').innerHTML = html;
+      show('fork-history');
+    }
+  </script>
+</body>
+</html>
