@@ -1,0 +1,30 @@
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_PIPELINE_SOURCE == "push"'
+    - when: never
+
+stages:
+  - test
+
+variables:
+  PYTHON_VERSION: "3.12"
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD: "1"
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  UV_CACHE_DIR: "$CI_PROJECT_DIR/.cache/uv"
+
+pytest:
+  stage: test
+  image: "python:${PYTHON_VERSION}-slim"
+  cache:
+    key: "uv-py312"
+    paths:
+      - .cache/pip
+      - .cache/uv
+  before_script:
+    - python --version
+    - pip install --upgrade pip uv
+    - uv --version
+  script:
+    - uv sync --extra dev
+    - uv run pytest -q -p pytest_asyncio.plugin
