@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>OWASP Issues</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 10px;
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+        }
+
+        h2 {
+            margin: 0 0 8px 0;
+            font-size: 16px;
+            color: #333;
+        }
+
+        #issue-count {
+            color: #0366d6;
+            font-weight: bold;
+        }
+
+        table.dataTable {
+            font-size: 11px;
+            border-collapse: collapse;
+        }
+
+        table.dataTable thead th {
+            position: sticky;
+            top: 0;
+            background-color: #f6f8fa;
+            border: 1px solid #d0d7de;
+            padding: 4px 6px;
+            white-space: nowrap;
+            font-size: 11px;
+        }
+
+        table.dataTable tbody td {
+            padding: 3px 6px;
+            border: 1px solid #e8eaed;
+            vertical-align: top;
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        table.dataTable tbody tr:nth-child(even) {
+            background-color: #f6f8fa;
+        }
+
+        table.dataTable tbody tr:hover {
+            background-color: #eaf3fb;
+        }
+
+        a {
+            color: #0366d6;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .label-badge {
+            display: inline-block;
+            padding: 1px 5px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+            margin: 1px;
+            white-space: nowrap;
+        }
+
+        .state-open {
+            display: inline-block;
+            padding: 1px 6px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+            background-color: #2da44e;
+            color: #fff;
+        }
+
+        .state-closed {
+            display: inline-block;
+            padding: 1px 6px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+            background-color: #8250df;
+            color: #fff;
+        }
+
+        .dataTables_wrapper .dataTables_filter input {
+            font-size: 11px;
+            padding: 2px 5px;
+        }
+
+        .dataTables_wrapper .dataTables_length select {
+            font-size: 11px;
+        }
+
+        .dataTables_wrapper .dataTables_info,
+        .dataTables_wrapper .dataTables_paginate {
+            font-size: 11px;
+        }
+
+        .dataTables_wrapper {
+            overflow-x: auto;
+        }
+
+        #header-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        #header-bar a {
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div id="header-bar">
+        <h2>OWASP Issues &mdash; <span id="issue-count">Loading&hellip;</span></h2>
+        <a href="index.html">Projects</a>
+        <a href="projects.html">Repos</a>
+    </div>
+
+    <table id="issues" class="display compact" style="width:100%">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Repository</th>
+                <th>Title</th>
+                <th>State</th>
+                <th>Author</th>
+                <th>Labels</th>
+                <th>Assignees</th>
+                <th>Milestone</th>
+                <th>Created</th>
+                <th>Updated</th>
+                <th>💬</th>
+            </tr>
+        </thead>
+    </table>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script>
+        function luminance(hex) {
+            const r = parseInt(hex.substr(0, 2), 16) / 255;
+            const g = parseInt(hex.substr(2, 2), 16) / 255;
+            const b = parseInt(hex.substr(4, 2), 16) / 255;
+            return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+        }
+
+        function labelHtml(labels) {
+            if (!labels || labels.length === 0) return '';
+            return labels.map(function (lbl) {
+                const bg = '#' + lbl.color;
+                const fg = luminance(lbl.color) > 0.4 ? '#000' : '#fff';
+                return `<span class="label-badge" style="background-color:${bg};color:${fg}">${escapeHtml(lbl.name)}</span>`;
+            }).join('');
+        }
+
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function formatDate(iso) {
+            if (!iso) return '';
+            const d = new Date(iso);
+            return d.toISOString().slice(0, 10);
+        }
+
+        function generateIssueData(issues) {
+            return issues.map(function (issue) {
+                const repoShort = issue.repo.replace('OWASP/', '');
+                const repoUrl = `https://github.com/${issue.repo}`;
+                const stateHtml = issue.state === 'open'
+                    ? `<span class="state-open">open</span>`
+                    : `<span class="state-closed">closed</span>`;
+
+                return {
+                    number: `<a href="${issue.html_url}" target="_blank" title="${escapeHtml(issue.html_url)}">#${issue.number}</a>`,
+                    number_sort: issue.number,
+                    repo: `<a href="${repoUrl}" target="_blank">${escapeHtml(repoShort)}</a>`,
+                    repo_sort: repoShort,
+                    title: `<a href="${issue.html_url}" target="_blank" title="${escapeHtml(issue.title)}">${escapeHtml(issue.title)}</a>`,
+                    state: stateHtml,
+                    author: issue.author_url
+                        ? `<a href="${issue.author_url}" target="_blank">${escapeHtml(issue.author)}</a>`
+                        : escapeHtml(issue.author),
+                    labels: labelHtml(issue.labels),
+                    labels_sort: (issue.labels || []).map(l => l.name).join(', '),
+                    assignees: (issue.assignees || []).map(a =>
+                        `<a href="https://github.com/${a}" target="_blank">${escapeHtml(a)}</a>`
+                    ).join(', '),
+                    assignees_sort: (issue.assignees || []).join(', '),
+                    milestone: escapeHtml(issue.milestone || ''),
+                    created_at: formatDate(issue.created_at),
+                    updated_at: formatDate(issue.updated_at),
+                    comments: issue.comments,
+                };
+            });
+        }
+
+        (async function () {
+            let issues;
+            try {
+                const response = await fetch('issues.json');
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                issues = await response.json();
+            } catch (err) {
+                document.getElementById('issue-count').textContent = 'Error loading issues.json';
+                console.error('Failed to load issues:', err);
+                return;
+            }
+            const issueData = generateIssueData(issues);
+
+            document.getElementById('issue-count').textContent =
+                issueData.length.toLocaleString() + ' open issue' + (issueData.length !== 1 ? 's' : '');
+
+            $(document).ready(function () {
+                $('#issues').DataTable({
+                    data: issueData,
+                    pageLength: 200,
+                    lengthMenu: [50, 100, 200, 500],
+                    order: [[9, 'desc']],
+                    columns: [
+                        {
+                            data: 'number',
+                            render: function (data, type, row) {
+                                return type === 'sort' ? row.number_sort : data;
+                            },
+                            width: '40px'
+                        },
+                        {
+                            data: 'repo',
+                            render: function (data, type, row) {
+                                return type === 'sort' ? row.repo_sort : data;
+                            },
+                            width: '130px'
+                        },
+                        { data: 'title' },
+                        { data: 'state', width: '52px', orderable: false },
+                        { data: 'author', width: '90px' },
+                        {
+                            data: 'labels',
+                            render: function (data, type, row) {
+                                return type === 'sort' ? row.labels_sort : data;
+                            },
+                            width: '140px'
+                        },
+                        {
+                            data: 'assignees',
+                            render: function (data, type, row) {
+                                return type === 'sort' ? row.assignees_sort : data;
+                            },
+                            width: '90px'
+                        },
+                        { data: 'milestone', width: '80px' },
+                        { data: 'created_at', width: '80px' },
+                        { data: 'updated_at', width: '80px' },
+                        { data: 'comments', width: '30px' },
+                    ]
+                });
+            });
+        })();
+    </script>
+</body>
+</html>

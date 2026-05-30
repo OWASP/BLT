@@ -1,93 +1,222 @@
-# BLT-OWASP-Projects
+# OWASP Projects Dashboard 🛡️
 
+A comprehensive dashboard for tracking and visualizing OWASP (Open Web Application Security Project) repositories and their statistics.
 
+## 📊 Overview
 
-## Getting started
+This project provides an automated system for monitoring OWASP project repositories, collecting their statistics, and presenting them through interactive web dashboards. It tracks over 1000+ OWASP projects, automatically fetching repository data, commit information, and project metadata.
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+## ✨ Features
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+- **Automated Repository Discovery**: Automatically discovers and tracks all OWASP `www-project-*` repositories
+- **Daily Updates**: GitHub Actions workflows run daily to keep repository data fresh
+- **Interactive Dashboards**: Two web-based dashboards for exploring project data:
+  - `index.html` - Comprehensive project matrix with detailed statistics
+  - `projects.html` - Simplified view with core metrics and color-coded activity
+- **Rich Metadata**: Tracks project information including:
+  - Repository statistics (stars, forks, issues, PRs)
+  - Commit activity and release information
+  - Project metadata (level, type, region, pitch)
+  - License and language information
+  - Build status and GitHub status
+- **Slack Notifications**: Get notified when new OWASP projects are detected
 
-## Add your files
+## 🌐 Live Dashboards
 
-* [Create](https://docs.gitlab.com/user/project/repository/web_editor/#create-a-file) or [upload](https://docs.gitlab.com/user/project/repository/web_editor/#upload-a-file) files
-* [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+- **Full Project Matrix**: [index.html](https://owasp-blt.github.io/BLT-OWASP-Projects/index.html)
+- **Simplified Projects View**: [projects.html](https://owasp-blt.github.io/BLT-OWASP-Projects/projects.html)
+
+## 📁 Project Structure
 
 ```
-cd existing_repo
-git remote add origin https://gitlab.com/owasp-blt/blt-owasp-projects.git
-git branch -M main
-git push -uf origin main
+.
+├── index.html                    # Main dashboard with comprehensive project data
+├── projects.html                 # Simplified dashboard with color-coded activity
+├── repo_status.json              # Detailed repository status data
+├── www_project_repos.json        # Basic repository information
+├── project_repos_links.json      # Project to repository mappings
+└── .github/
+    ├── workflows/
+    │   ├── parse_repos.yml       # Fetches OWASP project repositories
+    │   ├── fetch_repo_status.yml # Updates detailed repository status
+    │   ├── sweep_repos.yml       # Sweeps repositories for additional data
+    │   └── scrape_github_links.yml# Scrapes GitHub links from project pages
+    └── scripts/
+        ├── main.py               # Main repository parsing script
+        ├── fetch_repo_status.py  # Fetches detailed repository information
+        ├── sweep.py              # Repository sweeping logic
+        └── scrape_github_links.py# GitHub link extraction script
 ```
 
-## Integrate with your tools
+## 🚀 Getting Started
 
-* [Set up project integrations](https://gitlab.com/owasp-blt/blt-owasp-projects/-/settings/integrations)
+### Prerequisites
 
-## Collaborate with your team
+- Python 3.x
+- GitHub Personal Access Token (for API access)
+- Slack Webhook URL (optional, for notifications)
 
-* [Invite team members and collaborators](https://docs.gitlab.com/user/project/members/)
-* [Create a new merge request](https://docs.gitlab.com/user/project/merge_requests/creating_merge_requests/)
-* [Automatically close issues from merge requests](https://docs.gitlab.com/user/project/issues/managing_issues/#closing-issues-automatically)
-* [Enable merge request approvals](https://docs.gitlab.com/user/project/merge_requests/approvals/)
-* [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+### Setup
 
-## Test and Deploy
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/OWASP-BLT/BLT-OWASP-Projects.git
+   cd BLT-OWASP-Projects
+   ```
 
-Use the built-in continuous integration in GitLab.
+2. **Install dependencies**
+   ```bash
+   pip install requests
+   ```
 
-* [Get started with GitLab CI/CD](https://docs.gitlab.com/ci/quick_start/)
-* [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/user/application_security/sast/)
-* [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/topics/autodevops/requirements/)
-* [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/user/clusters/agent/)
-* [Set up protected environments](https://docs.gitlab.com/ci/environments/protected_environments/)
+3. **Configure environment variables**
+   
+   For GitHub Actions, set these secrets in your repository:
+   - `GITHUB_TOKEN` - GitHub Personal Access Token
+   - `ACCESS_TOKEN` - Additional access token for API calls
+   - `SLACK_WEBHOOK_URL` - Slack webhook for notifications (optional)
 
-***
+### Local Development
 
-# Editing this README
+To run the scripts locally:
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+```bash
+# Fetch OWASP project repositories
+export GITHUB_TOKEN="your_token_here"
+export SLACK_WEBHOOK_URL="your_webhook_url"
+python .github/scripts/main.py
 
-## Suggestions for a good README
+# Fetch detailed repository status
+export ACCESS_TOKEN="your_token_here"
+python .github/scripts/fetch_repo_status.py
+```
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+### Viewing the Dashboards
 
-## Name
-Choose a self-explaining name for your project.
+Simply open the HTML files in a web browser:
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+```bash
+# Open the main dashboard
+open index.html
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+# Or open the simplified view
+open projects.html
+```
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+For GitHub Pages deployment, the dashboards are automatically available at your GitHub Pages URL.
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+## 🔄 Automated Workflows
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+This project uses GitHub Actions to automatically update data:
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+### 1. Parse OWASP Repositories (`parse_repos.yml`)
+- **Trigger**: Daily at midnight (UTC) or manual dispatch
+- **Purpose**: Fetches all OWASP `www-project-*` repositories
+- **Output**: Updates `www_project_repos.json`
+- **Notifications**: Sends Slack alerts for new repositories
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+### 2. Fetch Repository Status (`fetch_repo_status.yml`)
+- **Trigger**: Daily at midnight (UTC), on push, or manual dispatch
+- **Purpose**: Fetches detailed statistics for all tracked projects
+- **Output**: Updates `repo_status.json`
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+### 3. Sweep Repositories (`sweep_repos.yml`)
+- **Trigger**: Scheduled or manual dispatch
+- **Purpose**: Additional repository data collection
+- **Output**: Updates project metadata
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+### 4. Scrape GitHub Links (`scrape_github_links.yml`)
+- **Trigger**: Scheduled or manual dispatch
+- **Purpose**: Extracts GitHub repository links from OWASP project pages
+- **Output**: Updates `project_repos_links.json`
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+## 📊 Data Files
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+### `www_project_repos.json`
+Contains basic repository information fetched from GitHub API:
+- Repository name and URL
+- Creation, update, and push timestamps
+- Stars, forks, and issues count
 
-## License
-For open source projects, say how it is licensed.
+### `repo_status.json`
+Contains detailed project and repository statistics:
+- Project metadata (name, title, level, type)
+- Repository statistics (stars, forks, PRs, issues)
+- Commit and release information
+- License and language data
+- Build and GitHub status
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+### `project_repos_links.json`
+Maps OWASP project names to their associated GitHub repositories.
+
+## 🎨 Dashboard Features
+
+### Main Dashboard (index.html)
+- Sortable and searchable DataTable
+- 24+ columns of project information
+- Pagination (100 items per page)
+- Direct links to project pages and repositories
+
+### Simplified Dashboard (projects.html)
+- Color-coded activity indicators (blue = old, red = recent)
+- Mobile-responsive design
+- Focus on core metrics (stars, forks, issues)
+- Sortable by activity timestamps
+
+## 🤝 Contributing
+
+Contributions are welcome! Here's how you can help:
+
+1. **Fork the repository**
+2. **Create a feature branch**
+   ```bash
+   git checkout -b feature/amazing-feature
+   ```
+3. **Make your changes**
+4. **Commit your changes**
+   ```bash
+   git commit -m 'Add some amazing feature'
+   ```
+5. **Push to the branch**
+   ```bash
+   git push origin feature/amazing-feature
+   ```
+6. **Open a Pull Request**
+
+### Areas for Contribution
+
+- Improve dashboard UI/UX
+- Add new data visualizations
+- Enhance data collection scripts
+- Add documentation
+- Fix bugs and issues
+- Add new metrics or filters
+
+## 📝 License
+
+This project is part of the OWASP BLT (Bug Logging Tool) initiative. Please refer to the OWASP Foundation's licensing terms for more information.
+
+## 🔗 Related Projects
+
+- [OWASP BLT](https://github.com/OWASP-BLT/BLT) - Main OWASP Bug Logging Tool
+- [OWASP Foundation](https://owasp.org/) - Official OWASP website
+- [OWASP Projects](https://owasp.org/projects/) - OWASP projects directory
+
+## 📞 Support
+
+For questions, issues, or suggestions:
+
+- Open an issue on [GitHub Issues](https://github.com/OWASP-BLT/BLT-OWASP-Projects/issues)
+- Visit [OWASP BLT](https://github.com/OWASP-BLT/BLT)
+- Check [OWASP Community](https://owasp.org/community/)
+
+## 🙏 Acknowledgments
+
+- OWASP Foundation and community
+- All contributors to OWASP projects
+- GitHub API for providing repository data
+- DataTables library for interactive tables
+
+---
+
+**Made with ❤️ by the OWASP BLT community**

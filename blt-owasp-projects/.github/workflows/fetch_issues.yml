@@ -1,0 +1,41 @@
+name: Fetch OWASP Issues
+
+on:
+  schedule:
+    - cron: '0 * * * *'  # Every hour
+  workflow_dispatch:
+  push:
+
+permissions:
+  contents: write
+
+jobs:
+  fetch-issues:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.x
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Fetch issues and send Slack notifications
+        env:
+          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SLACK_NEW_ISSUES_WEBHOOK: ${{ secrets.SLACK_NEW_ISSUES_WEBHOOK }}
+        run: python .github/scripts/fetch_issues.py
+
+      - name: Commit and push
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add issues.json known_issue_ids.json
+          git commit -m "Update issues data" || echo "No changes to commit"
+          git push
