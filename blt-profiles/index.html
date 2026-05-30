@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BLT Profiles — Cybersecurity Community</title>
+  <meta name="description" content="Browse and join the BLT cybersecurity community. Discover researchers, bug hunters, and security professionals worldwide." />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#E10101',
+            'primary-dark': '#b91c1c',
+            'blt-dark': '#111827',
+            'blt-surface': '#1F2937',
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    .btn-primary {
+      background-color: #E10101;
+      color: #fff;
+      border: 1px solid #E10101;
+      transition: background-color .15s, border-color .15s;
+    }
+    .btn-primary:hover { background-color: #b91c1c; border-color: #b91c1c; }
+    .btn-outline {
+      background-color: transparent;
+      color: #E10101;
+      border: 1px solid #E10101;
+      transition: background-color .15s, color .15s;
+    }
+    .btn-outline:hover { background-color: #E10101; color: #fff; }
+    .profile-card:hover { box-shadow: 0 8px 30px rgba(225,1,1,.12); transform: translateY(-2px); }
+    .profile-card { transition: transform .2s, box-shadow .2s; }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-900 font-sans min-h-screen flex flex-col">
+
+  <!-- ── NAV ── -->
+  <header class="bg-white border-b border-[#E5E5E5] sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
+      <a href="index.html" class="flex items-center gap-2 font-bold text-xl tracking-tight" aria-label="BLT Profiles home">
+        <span class="text-[#E10101]"><i class="fa-solid fa-bug" aria-hidden="true"></i></span>
+        <span>BLT<span class="text-[#E10101]"> Profiles</span></span>
+      </a>
+      <nav class="hidden md:flex items-center gap-6 text-sm font-medium" aria-label="Main navigation">
+        <a href="index.html" class="text-[#E10101] underline underline-offset-4">Home</a>
+        <a href="https://github.com/OWASP-BLT/BLT-Profiles/issues/new/choose" target="_blank" rel="noopener"
+           class="text-gray-600 hover:text-[#E10101]">Add Profile</a>
+        <a href="https://github.com/OWASP-BLT/BLT-Profiles" target="_blank" rel="noopener"
+           class="text-gray-600 hover:text-[#E10101]">
+          <i class="fa-brands fa-github text-lg" aria-hidden="true"></i> GitHub
+        </a>
+      </nav>
+      <a href="https://github.com/OWASP-BLT/BLT-Profiles/issues/new/choose"
+         target="_blank" rel="noopener"
+         class="btn-primary inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-semibold">
+        <i class="fa-solid fa-user-plus" aria-hidden="true"></i>
+        Add Your Profile
+      </a>
+    </div>
+  </header>
+
+  <main class="flex-1">
+
+    <!-- ── HERO ── -->
+    <section class="bg-[#111827] text-white py-20 px-4 text-center" aria-label="Hero">
+      <div class="max-w-3xl mx-auto">
+        <span class="inline-flex items-center gap-2 bg-[#E10101]/10 text-[#E10101] text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-widest mb-4">
+          <i class="fa-solid fa-shield-halved" aria-hidden="true"></i> OWASP BLT Community
+        </span>
+        <h1 class="text-4xl sm:text-5xl font-extrabold leading-tight mb-4">
+          Cybersecurity Profiles
+        </h1>
+        <p class="text-gray-300 text-lg mb-8">
+          Meet the bug hunters, researchers, and security engineers shaping the future of the web.
+          Add your profile and join the community.
+        </p>
+
+        <!-- Search -->
+        <form id="searchForm" class="flex items-center max-w-xl mx-auto bg-[#1F2937] rounded-lg overflow-hidden border border-gray-700 focus-within:border-[#E10101] focus-within:ring-1 focus-within:ring-[#E10101] transition-all"
+              role="search" aria-label="Search profiles" onsubmit="return false;">
+          <label for="searchInput" class="sr-only">Search profiles</label>
+          <span class="pl-4 text-gray-400" aria-hidden="true"><i class="fa-solid fa-magnifying-glass"></i></span>
+          <input id="searchInput" type="search" placeholder="Search by name, role, or tag…"
+                 class="flex-1 bg-transparent px-4 py-3 text-white placeholder-gray-400 outline-none text-sm" />
+          <button type="submit" class="btn-primary px-5 py-3 text-sm font-semibold rounded-none">
+            Search
+          </button>
+        </form>
+
+        <div class="flex items-center justify-center gap-8 mt-10 text-gray-400 text-sm">
+          <span id="statsTotal" class="flex flex-col items-center gap-1">
+            <span class="text-3xl font-bold text-white" id="totalCount">–</span>
+            Profiles
+          </span>
+          <span class="w-px h-10 bg-gray-700"></span>
+          <span class="flex flex-col items-center gap-1">
+            <span class="text-3xl font-bold text-white">🌍</span>
+            Global
+          </span>
+          <span class="w-px h-10 bg-gray-700"></span>
+          <span class="flex flex-col items-center gap-1">
+            <span class="text-3xl font-bold text-white">🛡️</span>
+            Open Source
+          </span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── PROFILES GRID ── -->
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14" aria-label="Profile listings">
+
+      <!-- Filter bar -->
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+        <h2 class="text-xl font-bold">Community Members</h2>
+        <div class="flex items-center gap-3 text-sm" role="group" aria-label="Sort options">
+          <span class="text-gray-500">Sort by:</span>
+          <select id="sortSelect" aria-label="Sort profiles"
+                  class="border border-gray-400 rounded-md px-4 py-2 focus:border-[#E10101] focus:ring-1 focus:ring-[#E10101] outline-none text-sm bg-white">
+            <option value="newest">Newest</option>
+            <option value="name">Name</option>
+            <option value="role">Role</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Grid -->
+      <div id="profileGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <!-- Populated by JS -->
+      </div>
+
+      <!-- Empty state -->
+      <div id="emptyState" class="hidden text-center py-24 col-span-full">
+        <i class="fa-solid fa-user-slash text-5xl text-gray-300 mb-4" aria-hidden="true"></i>
+        <p class="text-gray-500 text-lg font-medium">No profiles found.</p>
+        <p class="text-gray-400 text-sm mt-1 mb-6">Be the first to add your cybersecurity profile!</p>
+        <a href="https://github.com/OWASP-BLT/BLT-Profiles/issues/new/choose"
+           target="_blank" rel="noopener"
+           class="btn-primary inline-flex items-center gap-2 px-5 py-2.5 rounded-md font-semibold text-sm">
+          <i class="fa-solid fa-plus" aria-hidden="true"></i> Add Your Profile
+        </a>
+      </div>
+
+      <!-- Loading -->
+      <div id="loadingState" class="col-span-full flex justify-center py-20">
+        <i class="fa-solid fa-circle-notch fa-spin text-[#E10101] text-3xl" aria-label="Loading profiles"></i>
+      </div>
+    </section>
+
+    <!-- ── HOW IT WORKS ── -->
+    <section class="bg-white border-t border-[#E5E5E5] py-16 px-4" aria-label="How it works">
+      <div class="max-w-5xl mx-auto text-center">
+        <h2 class="text-2xl font-bold mb-2">How to Add Your Profile</h2>
+        <p class="text-gray-500 text-sm mb-10">Three simple steps to join the community.</p>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-8">
+          <div class="flex flex-col items-center gap-3">
+            <span class="w-14 h-14 rounded-full bg-[#feeae9] flex items-center justify-center text-[#E10101] text-2xl">
+              <i class="fa-brands fa-github" aria-hidden="true"></i>
+            </span>
+            <h3 class="font-bold">1. Open an Issue</h3>
+            <p class="text-gray-500 text-sm">Use the <em>Add Profile</em> GitHub issue template and fill in your details.</p>
+          </div>
+          <div class="flex flex-col items-center gap-3">
+            <span class="w-14 h-14 rounded-full bg-[#feeae9] flex items-center justify-center text-[#E10101] text-2xl">
+              <i class="fa-solid fa-robot" aria-hidden="true"></i>
+            </span>
+            <h3 class="font-bold">2. Auto-Published</h3>
+            <p class="text-gray-500 text-sm">A GitHub Action automatically creates your profile page — no manual review needed.</p>
+          </div>
+          <div class="flex flex-col items-center gap-3">
+            <span class="w-14 h-14 rounded-full bg-[#feeae9] flex items-center justify-center text-[#E10101] text-2xl">
+              <i class="fa-solid fa-id-card" aria-hidden="true"></i>
+            </span>
+            <h3 class="font-bold">3. Share Your Profile</h3>
+            <p class="text-gray-500 text-sm">Your public profile lives at <code class="text-[#E10101] bg-gray-100 px-1 py-0.5 rounded text-xs">…/yourname</code>.</p>
+          </div>
+        </div>
+        <div class="mt-10">
+          <a href="https://github.com/OWASP-BLT/BLT-Profiles/issues/new/choose"
+             target="_blank" rel="noopener"
+             class="btn-primary inline-flex items-center gap-2 px-6 py-3 rounded-md font-semibold">
+            <i class="fa-solid fa-user-plus" aria-hidden="true"></i>
+            Add Your Profile Now
+          </a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ── FOOTER ── -->
+  <footer class="bg-[#111827] text-gray-400 text-sm py-8 px-4" role="contentinfo">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+      <p>© <span id="footerYear"></span> <a href="https://owasp.org/www-project-bug-logging-tool/" target="_blank" rel="noopener" class="text-[#E10101] hover:underline">OWASP BLT</a>. All rights reserved.</p>
+      <div class="flex items-center gap-5">
+        <a href="https://github.com/OWASP-BLT/BLT-Profiles" target="_blank" rel="noopener" aria-label="GitHub repository"
+           class="hover:text-white transition-colors"><i class="fa-brands fa-github text-lg" aria-hidden="true"></i></a>
+        <a href="https://owasp.org" target="_blank" rel="noopener" aria-label="OWASP website"
+           class="hover:text-white transition-colors"><i class="fa-solid fa-globe text-lg" aria-hidden="true"></i></a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // ── Utilities ──────────────────────────────────────────────────────────────
+    document.getElementById('footerYear').textContent = new Date().getFullYear();
+
+    // ── Profile card builder ───────────────────────────────────────────────────
+    function buildCard(p) {
+      const initials = (p.name || p.username || '?')[0].toUpperCase();
+      let avatarHTML;
+      if (p.avatar) {
+        const img = document.createElement('img');
+        img.src = p.avatar;
+        img.alt = (p.username || '') + ' avatar';
+        img.className = 'w-16 h-16 rounded-full object-cover ring-2 ring-[#E5E5E5]';
+        img.loading = 'lazy';
+        img.addEventListener('error', function() { this.replaceWith(fallbackAvatar(initials)); });
+        // Temporarily store element reference via a data attribute for insertion
+        const placeholder = `<span data-avatar-placeholder="${escHtml(p.username)}"></span>`;
+        avatarHTML = placeholder;
+        // We'll swap the placeholder with a real img after insertion
+        setTimeout(() => {
+          const el = document.querySelector(`[data-avatar-placeholder="${CSS.escape(p.username || '')}"]`);
+          if (el) el.replaceWith(img);
+        }, 0);
+      } else {
+        avatarHTML = `<span class="w-16 h-16 rounded-full bg-[#feeae9] flex items-center justify-center text-[#E10101] font-bold text-2xl" aria-hidden="true">${escHtml(initials)}</span>`;
+      }
+
+      const tags = (p.tags || []).slice(0, 2).map(t =>
+        `<span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">${escHtml(t)}</span>`
+      ).join('');
+
+      return `
+        <article class="profile-card bg-white border border-[#E5E5E5] rounded-xl p-5 flex flex-col gap-4">
+          <div class="flex items-start gap-4">
+            ${avatarHTML}
+            <div class="flex-1 min-w-0">
+              <h3 class="font-bold text-base truncate">${escHtml(p.name || p.username)}</h3>
+              <p class="text-gray-500 text-sm truncate">@${escHtml(p.username)}</p>
+              <p class="text-[#E10101] text-xs font-medium mt-0.5 truncate">${escHtml(p.role || 'Cybersecurity Professional')}</p>
+            </div>
+          </div>
+          ${p.questions && p.questions.involvement
+            ? `<p class="text-gray-600 text-xs leading-relaxed line-clamp-3">${escHtml(p.questions.involvement)}</p>`
+            : ''}
+          ${tags ? `<div class="flex flex-wrap gap-1">${tags}</div>` : ''}
+          <div class="mt-auto pt-3 border-t border-[#E5E5E5] flex items-center justify-between">
+            <div class="flex items-center gap-3 text-xs text-gray-500">
+              <span title="Bugs reported"><i class="fa-solid fa-bug text-[#E10101]" aria-hidden="true"></i> ${p.stats ? p.stats.bugs_reported || 0 : 0}</span>
+              <span title="Total PRs"><i class="fa-solid fa-code-pull-request text-[#E10101]" aria-hidden="true"></i> ${p.prs ? p.prs.total || 0 : 0}</span>
+            </div>
+            <a href="${encodeURIComponent(p.username)}"
+               class="btn-outline text-xs px-3 py-1.5 rounded-md font-semibold">
+              View Profile
+            </a>
+          </div>
+        </article>`;
+    }
+
+    function fallbackAvatar(initial) {
+      const span = document.createElement('span');
+      span.className = 'w-16 h-16 rounded-full bg-[#feeae9] flex items-center justify-center text-[#E10101] font-bold text-2xl';
+      span.textContent = initial;
+      return span;
+    }
+
+    function escHtml(str) {
+      return String(str || '')
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    // ── Data loading ───────────────────────────────────────────────────────────
+    const ROLE_SECTIONS = ['Leads', 'Co-Leads', 'Ambassadors', 'Interns', 'Contributors', 'Mentors'];
+    let allProfiles = [];
+
+    function normalizeRoleSection(profile) {
+      const mapping = {
+        'lead': 'Leads',
+        'leads': 'Leads',
+        'co-lead': 'Co-Leads',
+        'co lead': 'Co-Leads',
+        'co-leads': 'Co-Leads',
+        'co leads': 'Co-Leads',
+        'ambassador': 'Ambassadors',
+        'ambassadors': 'Ambassadors',
+        'intern': 'Interns',
+        'interns': 'Interns',
+        'contributor': 'Contributors',
+        'contributors': 'Contributors',
+        'mentor': 'Mentors',
+        'mentors': 'Mentors'
+      };
+      const section = String(profile.role_section || '').trim().toLowerCase();
+      const role = String(profile.role || '').trim().toLowerCase();
+      return mapping[section] || mapping[role] || 'Contributors';
+    }
+
+    async function loadProfiles() {
+      const grid    = document.getElementById('profileGrid');
+      const empty   = document.getElementById('emptyState');
+      const loading = document.getElementById('loadingState');
+
+      try {
+        const res = await fetch('profiles/index.json?_=' + Date.now());
+        if (!res.ok) throw new Error('index not found');
+        allProfiles = await res.json();
+      } catch (e) {
+        allProfiles = [];
+      }
+
+      loading.classList.add('hidden');
+      document.getElementById('totalCount').textContent = allProfiles.length;
+
+      renderProfiles(allProfiles);
+    }
+
+    function renderProfiles(list) {
+      const grid  = document.getElementById('profileGrid');
+      const empty = document.getElementById('emptyState');
+
+      if (!list.length) {
+        grid.innerHTML = '';
+        empty.classList.remove('hidden');
+        return;
+      }
+      empty.classList.add('hidden');
+      const grouped = ROLE_SECTIONS.reduce((acc, section) => {
+        acc[section] = [];
+        return acc;
+      }, {});
+      list.forEach(profile => {
+        grouped[normalizeRoleSection(profile)].push(profile);
+      });
+
+      grid.innerHTML = ROLE_SECTIONS.map(section => {
+        const cards = grouped[section].map(buildCard).join('');
+        return `
+          <div class="col-span-full mt-2">
+            <h2 class="text-lg font-semibold mb-4">${escHtml(section)}</h2>
+            ${
+              cards
+                ? `<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">${cards}</div>`
+                : '<p class="text-sm text-gray-400 mb-4">No profiles in this section yet.</p>'
+            }
+          </div>
+        `;
+      }).join('');
+    }
+
+    // ── Search ─────────────────────────────────────────────────────────────────
+    function filterProfiles() {
+      const query = document.getElementById('searchInput').value.toLowerCase();
+      const sort  = document.getElementById('sortSelect').value;
+
+      let list = allProfiles.filter(p => {
+        const haystack = [p.username, p.name, p.role, ...(p.tags || [])].join(' ').toLowerCase();
+        return haystack.includes(query);
+      });
+
+      if (sort === 'name') list = [...list].sort((a,b) => (a.name||a.username).localeCompare(b.name||b.username));
+      else if (sort === 'role') list = [...list].sort((a,b) => (a.role||'').localeCompare(b.role||''));
+      else list = [...list].sort((a,b) => new Date(b.created_at||0) - new Date(a.created_at||0));
+
+      renderProfiles(list);
+    }
+
+    document.getElementById('searchInput').addEventListener('input', filterProfiles);
+    document.getElementById('sortSelect').addEventListener('change', filterProfiles);
+
+    // ── Init ───────────────────────────────────────────────────────────────────
+    loadProfiles();
+  </script>
+</body>
+</html>

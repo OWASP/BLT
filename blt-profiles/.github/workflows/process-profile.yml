@@ -1,0 +1,101 @@
+name: Process Profile Submission
+
+on:
+  issues:
+    types: [opened, labeled]
+
+jobs:
+  process-profile:
+    # Only run when the profile-submission label is present
+    if: contains(github.event.issue.labels.*.name, 'profile-submission')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Parse issue and create profile
+        id: create_profile
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_AUTHOR: ${{ github.event.issue.user.login }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python .github/scripts/create_profile.py
+
+      - name: Commit and push profile
+        id: commit
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add profiles/
+          if git diff --staged --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            USERNAME=$(cat /tmp/profile_username.txt 2>/dev/null || echo "${{ github.event.issue.user.login }}")
+            git commit -m "profile: add @${USERNAME}"
+            git push
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "username=${USERNAME}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Comment on issue — success
+        if: steps.commit.outputs.changed == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const username = '${{ steps.commit.outputs.username }}';
+            const baseUrl = `https://${context.repo.owner}.github.io/${context.repo.repo}`;
+            const profileUrl = `${baseUrl}/profile.html?user=${encodeURIComponent(username)}`;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: [
+                `✅ **Profile published!**`,
+                ``,
+                `Your BLT profile is now live at:`,
+                `👉 **${profileUrl}**`,
+                ``,
+                `The homepage listing will update within a minute. Thank you for joining the community! 🛡️`
+              ].join('\n')
+            });
+
+      - name: Comment on issue — no change (duplicate)
+        if: steps.commit.outputs.changed == 'false'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const username = '${{ github.event.issue.user.login }}';
+            const baseUrl = `https://${context.repo.owner}.github.io/${context.repo.repo}`;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: [
+                `ℹ️ A profile for **@${username}** already exists or no changes were detected.`,
+                ``,
+                `If you want to update your profile, please edit the JSON file directly via a pull request,`,
+                `or open a new issue with updated information.`
+              ].join('\n')
+            });
+
+      - name: Close the issue after processing
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.update({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'closed',
+              state_reason: 'completed'
+            });

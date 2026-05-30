@@ -1,0 +1,106 @@
+name: "Add Profile"
+description: "Submit your cybersecurity profile to BLT Profiles"
+title: "[PROFILE] @your-github-username"
+labels:
+  - "profile-submission"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 👋 Welcome to BLT Profiles!
+
+        Fill in the form below to add your cybersecurity profile to the community directory.
+        Once submitted, a GitHub Action will automatically publish your profile page.
+
+        > **Tip:** Use your real GitHub username so your avatar and stats are fetched automatically.
+
+  - type: input
+    id: username
+    attributes:
+      label: "GitHub Username"
+      description: "Your exact GitHub username (without @)"
+      placeholder: "e.g., johndoe"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: role
+    attributes:
+      label: "Role Section"
+      description: "Choose the BLT role section for your profile"
+      options:
+        - Leads
+        - Co-Leads
+        - Ambassadors
+        - Interns
+        - Contributors
+        - Mentors
+    validations:
+      required: true
+
+  - type: input
+    id: linkedin
+    attributes:
+      label: "LinkedIn Profile URL"
+      description: "Link to your LinkedIn profile (optional)"
+      placeholder: "https://linkedin.com/in/your-profile"
+
+  - type: input
+    id: wallet
+    attributes:
+      label: "Wallet / ID String"
+      description: "Crypto wallet address or custom ID string for rewards (optional)"
+      placeholder: "0x... or your custom ID"
+
+  - type: input
+    id: tags
+    attributes:
+      label: "Tags / Labels"
+      description: "Comma-separated tags that describe your expertise (optional)"
+      placeholder: "Bug Hunter, Web Security, OWASP, CTF Player"
+
+  - type: textarea
+    id: involvement
+    attributes:
+      label: "Question 1: What is your involvement in cybersecurity?"
+      description: "Describe your role, experience, areas of focus, and community contributions."
+      placeholder: |
+        I am a web application security researcher focused on finding vulnerabilities in
+        open-source projects. I contribute to OWASP BLT and regularly participate in bug
+        bounty programs on HackerOne and Bugcrowd...
+    validations:
+      required: true
+
+  - type: textarea
+    id: evolution
+    attributes:
+      label: "Question 2: How do you see cybersecurity evolving?"
+      description: "Share your perspective on where cybersecurity is headed — technology trends, threats, or opportunities."
+      placeholder: |
+        I believe AI will fundamentally change the threat landscape. Automated vulnerability
+        discovery will lower the barrier for both defenders and attackers. Communities like
+        OWASP that share knowledge openly will be critical...
+    validations:
+      required: true
+
+  - type: textarea
+    id: achievement
+    attributes:
+      label: "Question 3: What is your most significant cybersecurity achievement or contribution?"
+      description: "A vulnerability discovered, tool built, research published, or community effort led."
+      placeholder: |
+        I discovered a critical SQL injection in a widely-used open-source project affecting
+        100k+ installations, coordinated responsible disclosure, and authored the CVE writeup.
+        The patch was released within 72 hours...
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: "Confirmation"
+      options:
+        - label: "I confirm this information is accurate and I consent to it being published publicly on BLT Profiles."
+          required: true
+        - label: "I understand that my GitHub username will be used to fetch my public avatar and follower counts."
+          required: true

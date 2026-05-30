@@ -1,0 +1,14 @@
+[
+    {
+      "username": "blt_demo",
+      "name": "BLT Demo User",
+      "role": "Security Researcher",
+      "role_section": "Contributors",
+      "avatar": "https://avatars.githubusercontent.com/u/36029484?v=4",
+      "tags": ["BLT Contributor", "Bug Hunter"],
+      "stats": { "bugs_reported": 42, "open_issues": 5, "closed_issues": 37 },
+      "prs": { "total": 18, "merged": 14, "open": 2, "closed": 2 },
+      "questions": { "involvement": "Bug hunter and open-source security contributor. Part of the OWASP BLT project." },
+      "created_at": "2024-01-15T10:00:00Z"
+    }
+  ]
