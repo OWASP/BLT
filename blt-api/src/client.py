@@ -40,7 +40,7 @@ class BLTClient:
         Args:
             base_url: Base URL of the BLT API
             auth_token: Optional authentication token
-            api_key: Optional shared BLT API key
+            api_key: Optional user-owned or legacy BLT API key
         """
         self.base_url = base_url.rstrip("/")
         self.auth_token = auth_token
@@ -55,7 +55,7 @@ class BLTClient:
         }
         
         if self.auth_token:
-            headers["Authorization"] = f"Token {self.auth_token}"
+            headers["Authorization"] = f"Bearer {self.auth_token}"
 
         if self.api_key:
             headers["X-BLT-API-Key"] = self.api_key

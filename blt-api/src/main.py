@@ -29,14 +29,17 @@ from handlers import (
     handle_repos,
     handle_health,
     handle_homepage,
+    handle_auth_page,
     handle_signup,
     handle_signin,
     handle_verify_email,
+    handle_verify_local,
+    handle_api_keys,
     make_routes_handler
 )
 from utils import json_response, error_response, cors_headers
 from libs.db import get_db_safe 
-from libs.api_key import validate_api_key_request
+from libs.api_key import is_api_key_required, is_user_api_key_candidate, validate_api_key_request
 
 # Initialize the router
 router = Router()
@@ -45,6 +48,7 @@ router = Router()
 
 # Homepage and health check
 router.add_route("GET", "/", handle_homepage)
+router.add_route("GET", "/auth", handle_auth_page)
 router.add_route("GET", "/health", handle_health)
 
 # Bugs API
@@ -65,9 +69,20 @@ router.add_route("GET", "/users/{id}/followers", handle_users)
 router.add_route("GET", "/users/{id}/following", handle_users)
 
 # Auth API
+router.add_route("POST", "/api/auth/signup", handle_signup)
+router.add_route("POST", "/api/auth/signin", handle_signin)
+router.add_route("GET", "/api/auth/verify-email", handle_verify_email)
+router.add_route("POST", "/api/auth/verify-local", handle_verify_local)
+router.add_route("GET", "/api/auth/api-keys", handle_api_keys)
+router.add_route("POST", "/api/auth/api-keys", handle_api_keys)
+router.add_route("DELETE", "/api/auth/api-keys/{id}", handle_api_keys)
 router.add_route("POST", "/auth/signup", handle_signup)
 router.add_route("POST", "/auth/signin", handle_signin)
 router.add_route("GET", "/auth/verify-email", handle_verify_email)  # Email verification route
+router.add_route("POST", "/auth/verify-local", handle_verify_local)
+router.add_route("GET", "/auth/api-keys", handle_api_keys)
+router.add_route("POST", "/auth/api-keys", handle_api_keys)
+router.add_route("DELETE", "/auth/api-keys/{id}", handle_api_keys)
 
 # Domains API
 router.add_route("GET", "/domains", handle_domains)
@@ -143,6 +158,10 @@ _add_v2_route("GET", "/users/{id}/following", handle_users)
 _add_v2_route("POST", "/auth/signup", handle_signup)
 _add_v2_route("POST", "/auth/signin", handle_signin)
 _add_v2_route("GET", "/auth/verify-email", handle_verify_email)
+_add_v2_route("POST", "/auth/verify-local", handle_verify_local)
+_add_v2_route("GET", "/auth/api-keys", handle_api_keys)
+_add_v2_route("POST", "/auth/api-keys", handle_api_keys)
+_add_v2_route("DELETE", "/auth/api-keys/{id}", handle_api_keys)
 
 _add_v2_route("GET", "/domains", handle_domains)
 _add_v2_route("GET", "/domains/{id}", handle_domains)
@@ -205,11 +224,16 @@ class Default(WorkerEntrypoint):
                     headers=Headers.new(cors_headers())
                 )
 
-            api_key_error = validate_api_key_request(request, self.env)
-            if api_key_error is not None:
-                return api_key_error
+            db = None
+            if is_api_key_required(request.method, request.url):
+                if is_user_api_key_candidate(request):
+                    db = await get_db_safe(self.env)
+                api_key_error = await validate_api_key_request(request, self.env, db)
+                if api_key_error is not None:
+                    return api_key_error
 
-            await get_db_safe(self.env)  # Ensure database is available and initialized
+            if db is None:
+                db = await get_db_safe(self.env)  # Ensure database is available and initialized
         
             # Get URL and method
             url = request.url

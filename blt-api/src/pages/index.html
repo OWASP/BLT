@@ -27,14 +27,45 @@
                     <img src="/logo.png" alt="BLT-Sammich Logo" class="h-8 w-8 mr-2" />
                     <h1 class="text-xl font-bold text-gray-900">BLT API</h1>
                 </div>
-                <div class="flex items-center space-x-4">
-                    <a href="[[API_BASE_URL]]/health" class="text-gray-600 hover:text-red-600 font-medium">
+                <div class="flex items-center space-x-3">
+                    <a href="[[API_BASE_URL]]/health" class="text-gray-500 hover:text-red-600 font-medium text-sm hidden sm:block">
                         <i class="fas fa-heartbeat mr-1"></i> Health
                     </a>
-                    <a class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors" 
+                    <a class="hidden sm:flex items-center border border-gray-200 hover:border-gray-300 text-gray-600 hover:text-gray-900 font-semibold py-2 px-3 rounded-lg transition-colors text-sm"
                        href="https://github.com/OWASP-BLT/BLT-API" target="_blank" rel="noopener noreferrer">
                         <i class="fab fa-github mr-2"></i> GitHub
                     </a>
+                    <!-- Auth buttons (shown when not signed in) -->
+                    <div id="navAuthButtons" class="flex items-center space-x-2">
+                        <button onclick="openAuthModal('signin')" class="text-gray-700 hover:text-red-600 font-semibold py-2 px-4 rounded-lg transition-colors border border-gray-200 hover:border-red-300 text-sm">
+                            Sign In
+                        </button>
+                        <button onclick="openAuthModal('signup')" class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors text-sm">
+                            Sign Up
+                        </button>
+                    </div>
+                    <!-- User menu (shown when signed in) -->
+                    <div id="navUserMenu" class="hidden relative">
+                        <button onclick="toggleUserDropdown()" class="flex items-center space-x-2 bg-red-50 hover:bg-red-100 text-red-700 font-semibold py-2 px-3 rounded-lg transition-colors text-sm">
+                            <div class="w-6 h-6 bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                                <span id="navUserInitial">U</span>
+                            </div>
+                            <span id="navUsername" class="hidden sm:block max-w-[6rem] truncate"></span>
+                            <i class="fas fa-chevron-down text-xs"></i>
+                        </button>
+                        <div id="userDropdown" class="hidden absolute right-0 top-full mt-1 w-48 bg-white border border-gray-200 rounded-xl shadow-xl z-50 py-1 overflow-hidden">
+                            <div class="px-4 py-2.5 border-b border-gray-100 bg-gray-50">
+                                <p class="text-xs text-gray-400 uppercase tracking-wide font-semibold">Signed in as</p>
+                                <p id="dropdownUsername" class="text-sm font-semibold text-gray-900 truncate mt-0.5"></p>
+                            </div>
+                            <button onclick="scrollToApiKeys()" class="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition-colors">
+                                <i class="fas fa-key text-gray-400 w-4"></i> API Keys
+                            </button>
+                            <button onclick="handleSignOut()" class="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors">
+                                <i class="fas fa-sign-out-alt w-4"></i> Sign Out
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -121,10 +152,12 @@
         <!-- API Endpoints Section -->
         <section class="bg-white rounded-lg shadow p-6 mb-8">
             <h2 class="text-3xl font-bold text-gray-900 mb-6 text-center">API Endpoints</h2>
-            <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-                <p class="text-sm font-semibold text-red-700 mb-2">Shared API key</p>
-                <pre class="text-xs overflow-x-auto"><code class="text-gray-800">X-BLT-API-Key: f5537412b459790f9fa1cc47b862b9c7016471957178dc9b161d59355b6fd051</code></pre>
-                <p class="text-xs text-gray-600 mt-2">Try it requests use this shared key automatically.</p>
+            <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 flex items-start gap-3">
+                <i class="fas fa-key text-red-500 mt-0.5 shrink-0"></i>
+                <div>
+                    <p class="text-sm font-semibold text-red-700 mb-0.5">API Key Required</p>
+                    <p class="text-xs text-gray-600">Sign in with the button in the top-right corner to generate an API key. Try-it requests will use your key automatically.</p>
+                </div>
             </div>
             
             <!-- Health & Status -->
@@ -662,17 +695,66 @@
             </div>
         </section>
 
-        <!-- Authentication -->
-        <section class="bg-white rounded-lg shadow p-6 mb-8">
-            <h2 class="text-3xl font-bold text-gray-900 mb-6 text-center">Authentication</h2>
-            <div class="max-w-3xl mx-auto">
-                <div class="bg-red-50 border border-red-200 rounded-lg p-4">
-                    <p class="text-sm font-semibold text-red-700 mb-2">Shared BLT API key</p>
-                    <pre class="text-sm"><code class="text-gray-800">X-BLT-API-Key: f5537412b459790f9fa1cc47b862b9c7016471957178dc9b161d59355b6fd051</code></pre>
+        <!-- Authentication & API Keys -->
+        <section id="authSection" class="bg-white rounded-lg shadow p-6 mb-8">
+            <h2 class="text-3xl font-bold text-gray-900 mb-2 text-center">Authentication &amp; API Keys</h2>
+            <p class="text-gray-500 text-center mb-8 text-sm">Sign in to create and manage your personal API keys</p>
+
+            <!-- Signed-out state -->
+            <div id="authSignedOutState" class="max-w-sm mx-auto text-center py-6">
+                <div class="w-16 h-16 bg-red-100 text-red-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-key text-2xl"></i>
                 </div>
-                <p class="text-gray-600 text-center my-4">Use this shared key on protected API requests. Try it requests on this page include it automatically.</p>
-                <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                    <pre class="text-sm overflow-x-auto"><code class="text-gray-800">curl -H "X-BLT-API-Key: f5537412b459790f9fa1cc47b862b9c7016471957178dc9b161d59355b6fd051" https://api.owaspblt.org/v2/routes</code></pre>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">Get your API key</h3>
+                <p class="text-gray-500 text-sm mb-6">Create a free account to generate API keys and access authenticated endpoints.</p>
+                <div class="flex justify-center gap-3">
+                    <button onclick="openAuthModal('signin')" class="px-5 py-2.5 border border-gray-200 hover:border-red-300 text-gray-700 hover:text-red-700 rounded-lg text-sm font-semibold transition-colors">
+                        Sign In
+                    </button>
+                    <button onclick="openAuthModal('signup')" class="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-semibold transition-colors flex items-center gap-2">
+                        <i class="fas fa-user-plus text-xs"></i> Create Account
+                    </button>
+                </div>
+            </div>
+
+            <!-- Signed-in state: API key manager -->
+            <div id="apiKeyManager" class="hidden max-w-2xl mx-auto">
+                <div class="flex items-center justify-between mb-5 pb-4 border-b border-gray-100">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 bg-red-600 text-white rounded-full flex items-center justify-center font-bold text-sm" id="keyManagerAvatar">U</div>
+                        <div>
+                            <p class="text-sm font-semibold text-gray-900" id="keyManagerUsername">User</p>
+                            <p class="text-xs text-gray-400">API Key Manager</p>
+                        </div>
+                    </div>
+                    <button onclick="handleSignOut()" class="text-sm text-gray-400 hover:text-red-600 flex items-center gap-1.5 transition-colors" type="button">
+                        <i class="fas fa-sign-out-alt"></i> Sign out
+                    </button>
+                </div>
+
+                <form id="apiKeyCreateForm" class="flex flex-col sm:flex-row gap-2 mb-5">
+                    <input id="apiKeyName" class="flex-1 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition" name="name" placeholder="Key name (e.g. local dev, production)" required>
+                    <button class="bg-red-600 hover:bg-red-700 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2" type="submit">
+                        <i class="fas fa-plus text-xs"></i> Create Key
+                    </button>
+                </form>
+
+                <div id="generatedApiKeyBox" class="hidden bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4">
+                    <div class="flex items-start gap-3">
+                        <i class="fas fa-triangle-exclamation text-amber-500 mt-0.5 shrink-0"></i>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-semibold text-amber-900 mb-1">Copy this key — it won't be shown again.</p>
+                            <code id="generatedApiKeyValue" class="block break-all text-amber-800 text-xs font-mono bg-amber-100 px-3 py-1.5 rounded-lg mt-1"></code>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="apiKeyList" class="space-y-2 mb-3"></div>
+                <p id="apiKeyMessage" class="text-sm text-gray-500 mb-4"></p>
+
+                <div class="bg-gray-50 border border-gray-100 rounded-xl p-4">
+                    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Example usage</p>
+                    <pre class="text-xs text-gray-700 font-mono overflow-x-auto">curl -H "X-BLT-API-Key: blt_live_..." [[API_BASE_URL]]/bugs</pre>
                 </div>
             </div>
         </section>
@@ -699,6 +781,135 @@
             </div>
         </div>
     </footer>
+
+    <!-- Auth Modal -->
+    <div id="authModal" class="fixed inset-0 bg-black bg-opacity-60 hidden z-[100] flex items-start justify-center p-4 pt-16 sm:pt-20">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md relative overflow-hidden">
+            <!-- Gradient header -->
+            <div class="bg-gradient-to-br from-red-600 to-red-800 px-8 pt-8 pb-6">
+                <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-red-200 hover:text-white transition-colors" aria-label="Close">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+                <div class="flex items-center mb-5">
+                    <div class="w-10 h-10 bg-white bg-opacity-20 rounded-xl flex items-center justify-center mr-3">
+                        <i class="fas fa-shield-alt text-white text-lg"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-white font-bold text-xl leading-tight">BLT API</h2>
+                        <p class="text-red-200 text-xs">OWASP Bug Logging Tool</p>
+                    </div>
+                </div>
+                <!-- Tab switcher -->
+                <div class="flex bg-black bg-opacity-20 rounded-xl p-1">
+                    <button id="authTabSignin" onclick="switchAuthTab('signin')" class="flex-1 py-2 px-4 rounded-lg text-sm font-semibold transition-all bg-white text-red-700 shadow-sm">
+                        Sign In
+                    </button>
+                    <button id="authTabSignup" onclick="switchAuthTab('signup')" class="flex-1 py-2 px-4 rounded-lg text-sm font-semibold transition-all text-red-200 hover:text-white">
+                        Sign Up
+                    </button>
+                </div>
+            </div>
+
+            <!-- Forms area -->
+            <div class="px-8 py-6">
+                <!-- Sign In Form -->
+                <form id="authModalSigninForm" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Username or Email</label>
+                        <div class="relative">
+                            <i class="fas fa-user absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none"></i>
+                            <input id="modalSigninIdentifier" type="text" name="identifier" placeholder="Enter your username or email"
+                                   autocomplete="username" required
+                                   class="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-shadow">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Password</label>
+                        <div class="relative">
+                            <i class="fas fa-lock absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none"></i>
+                            <input id="modalSigninPassword" type="password" name="password" placeholder="Enter your password"
+                                   autocomplete="current-password" required
+                                   class="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-shadow">
+                        </div>
+                    </div>
+                    <p id="modalSigninMessage" class="text-sm min-h-[1.25rem]"></p>
+                    <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2">
+                        <i class="fas fa-sign-in-alt"></i> Sign In
+                    </button>
+                    <p class="text-center text-sm text-gray-500">
+                        Don&apos;t have an account?
+                        <button type="button" onclick="switchAuthTab('signup')" class="text-red-600 hover:underline font-semibold">Sign up free</button>
+                    </p>
+                </form>
+
+                <!-- Sign Up Form (hidden by default) -->
+                <form id="authModalSignupForm" class="space-y-4 hidden">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Username</label>
+                        <div class="relative">
+                            <i class="fas fa-user absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none"></i>
+                            <input id="modalSignupUsername" type="text" name="username" placeholder="Choose a username"
+                                   autocomplete="username" required
+                                   class="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-shadow">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Email</label>
+                        <div class="relative">
+                            <i class="fas fa-envelope absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none"></i>
+                            <input id="modalSignupEmail" type="email" name="email" placeholder="Enter your email"
+                                   autocomplete="email" required
+                                   class="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-shadow">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Password</label>
+                        <div class="relative">
+                            <i class="fas fa-lock absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none"></i>
+                            <input id="modalSignupPassword" type="password" name="password" placeholder="Create a strong password"
+                                   autocomplete="new-password" required
+                                   class="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-shadow">
+                        </div>
+                    </div>
+                    <p id="modalSignupMessage" class="text-sm min-h-[1.25rem]"></p>
+                    <button type="submit" class="w-full bg-gray-900 hover:bg-gray-800 text-white font-semibold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2">
+                        <i class="fas fa-user-plus"></i> Create Account
+                    </button>
+                    <p class="text-center text-sm text-gray-500">
+                        Already have an account?
+                        <button type="button" onclick="switchAuthTab('signin')" class="text-red-600 hover:underline font-semibold">Sign in</button>
+                    </p>
+                </form>
+
+                <!-- Local verification step (shown only after local signup succeeds) -->
+                <form id="modalLocalDevVerifyForm" class="space-y-4 hidden">
+                    <div class="text-center">
+                        <div class="w-12 h-12 bg-red-50 text-red-600 rounded-xl flex items-center justify-center mx-auto mb-3">
+                            <i class="fas fa-shield-halved"></i>
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900">Verify local account</h3>
+                        <p class="text-sm text-gray-500 mt-1">Enter your local development verification code.</p>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Verification code</label>
+                        <div class="relative">
+                            <i class="fas fa-key absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none"></i>
+                            <input id="modalLocalVerifyCode" type="text" name="dev_otp" placeholder="000000"
+                                   inputmode="numeric" autocomplete="one-time-code"
+                                   class="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-shadow">
+                        </div>
+                    </div>
+                    <p id="modalLocalVerifyMessage" class="text-sm min-h-[1.25rem]"></p>
+                    <button type="submit" class="w-full bg-gray-900 hover:bg-gray-800 text-white font-semibold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2">
+                        <i class="fas fa-check"></i> Verify Account
+                    </button>
+                    <button type="button" onclick="switchAuthTab('signup')" class="w-full text-sm text-gray-500 hover:text-red-600 font-semibold">
+                        Back to sign up
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <!-- API Test Modal -->
     <div id="apiTestModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50">
@@ -759,31 +970,233 @@
     <!-- JavaScript for API Testing -->
     <script>
         const baseUrl = '[[API_BASE_URL]]';
-        const sharedApiKey = 'f5537412b459790f9fa1cc47b862b9c7016471957178dc9b161d59355b6fd051';
+        const authBaseUrl = baseUrl.replace(/\/v2$/, '');
+        const authApi = {
+            signin: '/api/auth/signin',
+            signup: '/api/auth/signup',
+            verifyEmail: '/api/auth/verify-email',
+            verifyLocal: '/api/auth/verify-local',
+            apiKeys: '/api/auth/api-keys'
+        };
         const publicTryItEndpoints = new Set(['/', '/v2', '/health', '/v2/health']);
+        const authStorage = {
+            token: 'bltApiToken',
+            username: 'bltApiUsername',
+            apiKey: 'bltApiKey'
+        };
 
         function isPublicTryItEndpoint(endpoint) {
             return publicTryItEndpoints.has(endpoint.split('?')[0]);
         }
 
+        function getStoredToken() {
+            return sessionStorage.getItem(authStorage.token) || '';
+        }
+
+        function isLocalDevelopment() {
+            return ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
+        }
+
+        let pendingLocalVerificationIdentifier = '';
+
+        function getStoredApiKey() {
+            return sessionStorage.getItem(authStorage.apiKey) || '';
+        }
+
         function getApiKeyHeaders(endpoint) {
-            if (isPublicTryItEndpoint(endpoint)) {
-                return {};
+            const headers = {};
+            const token = getStoredToken();
+            const apiKey = getStoredApiKey();
+
+            if (token) {
+                headers.Authorization = `Bearer ${token}`;
             }
 
-            return { 'X-BLT-API-Key': sharedApiKey };
+            if (!isPublicTryItEndpoint(endpoint) && apiKey) {
+                headers['X-BLT-API-Key'] = apiKey;
+            }
+
+            return headers;
         }
 
         function renderRequestHeaders(headers) {
             const headersEl = document.getElementById('requestHeaders');
             const noticeEl = document.getElementById('apiKeyNotice');
             const entries = Object.entries(headers);
-            noticeEl.textContent = entries.length
-                ? 'Using the shared BLT API key shown on this page.'
-                : 'No API key is needed for this public endpoint.';
+            if (headers['X-BLT-API-Key']) {
+                noticeEl.textContent = 'Using your generated API key.';
+            } else if (headers.Authorization) {
+                noticeEl.textContent = 'Using your Bearer session token. Create a generated API key for protected API routes.';
+            } else {
+                noticeEl.textContent = 'No API key is needed for this public endpoint.';
+            }
             headersEl.textContent = entries.length
                 ? entries.map(([key, value]) => `${key}: ${value}`).join('\n')
                 : 'No additional headers';
+        }
+
+        function setMessage(id, message, isError = false) {
+            const el = document.getElementById(id);
+            el.textContent = message;
+            el.className = `text-sm ${isError ? 'text-red-700' : 'text-gray-600'}`;
+        }
+
+        function setSession(token, username) {
+            sessionStorage.setItem(authStorage.token, token);
+            if (username) {
+                sessionStorage.setItem(authStorage.username, username);
+            }
+        }
+
+        function clearSession() {
+            sessionStorage.removeItem(authStorage.token);
+            sessionStorage.removeItem(authStorage.username);
+            sessionStorage.removeItem(authStorage.apiKey);
+        }
+
+        function authFetch(endpoint, options = {}) {
+            const headers = Object.assign({}, options.headers || {});
+            if (options.body && !headers['Content-Type']) {
+                headers['Content-Type'] = 'application/json';
+            }
+            const token = getStoredToken();
+            if (token) {
+                headers.Authorization = `Bearer ${token}`;
+            }
+            return fetch(authBaseUrl + endpoint, Object.assign({}, options, { headers }));
+        }
+
+        function renderAuthState() {
+            const token = getStoredToken();
+            const username = sessionStorage.getItem(authStorage.username) || 'User';
+
+            const navAuthButtons = document.getElementById('navAuthButtons');
+            const navUserMenu = document.getElementById('navUserMenu');
+            const navUserInitial = document.getElementById('navUserInitial');
+            const navUsername = document.getElementById('navUsername');
+            const dropdownUsername = document.getElementById('dropdownUsername');
+            const signedOutState = document.getElementById('authSignedOutState');
+            const manager = document.getElementById('apiKeyManager');
+            const keyManagerUsername = document.getElementById('keyManagerUsername');
+            const keyManagerAvatar = document.getElementById('keyManagerAvatar');
+
+            if (token) {
+                const initial = username.charAt(0).toUpperCase();
+                navAuthButtons.classList.add('hidden');
+                navUserMenu.classList.remove('hidden');
+                if (navUserInitial) navUserInitial.textContent = initial;
+                if (navUsername) navUsername.textContent = username;
+                if (dropdownUsername) dropdownUsername.textContent = username;
+                if (signedOutState) signedOutState.classList.add('hidden');
+                if (manager) manager.classList.remove('hidden');
+                if (keyManagerUsername) keyManagerUsername.textContent = username;
+                if (keyManagerAvatar) keyManagerAvatar.textContent = initial;
+                loadApiKeys();
+            } else {
+                navAuthButtons.classList.remove('hidden');
+                navUserMenu.classList.add('hidden');
+                if (signedOutState) signedOutState.classList.remove('hidden');
+                if (manager) manager.classList.add('hidden');
+            }
+        }
+
+        async function loadApiKeys() {
+            if (!getStoredToken()) {
+                return;
+            }
+            const list = document.getElementById('apiKeyList');
+            list.textContent = 'Loading API keys...';
+            try {
+                const response = await authFetch(authApi.apiKeys);
+                const data = await response.json();
+                list.textContent = '';
+                const keys = Array.isArray(data.data) ? data.data : [];
+                if (!response.ok) {
+                    setMessage('apiKeyMessage', data.message || 'Unable to load API keys.', true);
+                    return;
+                }
+                if (!keys.length) {
+                    list.textContent = 'No API keys yet.';
+                    return;
+                }
+                keys.forEach((key) => {
+                    const row = document.createElement('div');
+                    row.className = 'flex items-center justify-between border border-gray-200 rounded p-3';
+                    const text = document.createElement('div');
+                    text.textContent = `${key.name} - ${key.key_prefix}`;
+                    const button = document.createElement('button');
+                    button.type = 'button';
+                    button.className = 'text-sm text-red-700 hover:text-red-900';
+                    button.textContent = 'Revoke';
+                    button.addEventListener('click', (event) => revokeApiKey(key.id, event.currentTarget));
+                    row.appendChild(text);
+                    row.appendChild(button);
+                    list.appendChild(row);
+                });
+            } catch (error) {
+                list.textContent = '';
+                setMessage('apiKeyMessage', error.message, true);
+            }
+        }
+
+        async function revokeApiKey(id, button) {
+            if (button) {
+                button.disabled = true;
+                button.textContent = 'Revoking...';
+                button.className = 'text-sm text-gray-400 cursor-not-allowed';
+            }
+            try {
+                const response = await authFetch(`${authApi.apiKeys}/${id}`, { method: 'DELETE' });
+                const data = await response.json();
+                setMessage('apiKeyMessage', data.message || (response.ok ? 'API key revoked.' : 'Unable to revoke API key.'), !response.ok);
+                if (response.ok) {
+                    await loadApiKeys();
+                    return;
+                }
+            } finally {
+                if (button) {
+                    button.disabled = false;
+                    button.textContent = 'Revoke';
+                    button.className = 'text-sm text-red-700 hover:text-red-900';
+                }
+            }
+        }
+
+        function showLocalVerificationStep(message) {
+            const signinForm = document.getElementById('authModalSigninForm');
+            const signupForm = document.getElementById('authModalSignupForm');
+            const verifyForm = document.getElementById('modalLocalDevVerifyForm');
+            const signinTab = document.getElementById('authTabSignin');
+            const signupTab = document.getElementById('authTabSignup');
+
+            signinForm.classList.add('hidden');
+            signupForm.classList.add('hidden');
+            verifyForm.classList.remove('hidden');
+            signinTab.className = 'flex-1 py-2 px-4 rounded-lg text-sm font-semibold transition-all text-red-200 hover:text-white';
+            signupTab.className = 'flex-1 py-2 px-4 rounded-lg text-sm font-semibold transition-all text-red-200 hover:text-white';
+            setMessage('modalLocalVerifyMessage', message || 'Enter the local verification code.');
+            document.getElementById('modalLocalVerifyCode').focus();
+        }
+
+        async function verifyEmailFromQuery() {
+            const params = new URLSearchParams(window.location.search);
+            const verifyToken = params.get('verify_token') || params.get('token');
+            if (!verifyToken) {
+                return;
+            }
+
+            openAuthModal('signin');
+            setMessage('modalSigninMessage', 'Verifying email...');
+            try {
+                const response = await fetch(`${authBaseUrl}${authApi.verifyEmail}?token=${encodeURIComponent(verifyToken)}`);
+                const data = await response.json();
+                setMessage('modalSigninMessage', data.message || (response.ok ? 'Email verified. You can sign in now.' : 'Email verification failed.'), !response.ok);
+                if (window.history && window.history.replaceState) {
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                }
+            } catch (error) {
+                setMessage('modalSigninMessage', error.message, true);
+            }
         }
         
         function closeModal() {
@@ -871,13 +1284,186 @@
                 testEndpoint(method, endpoint, { q: value });
             }
         }
-        
-        // Close modal when clicking outside
+
+        document.getElementById('authModalSigninForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            setMessage('modalSigninMessage', 'Signing in...');
+            const body = {
+                identifier: document.getElementById('modalSigninIdentifier').value,
+                password: document.getElementById('modalSigninPassword').value
+            };
+            try {
+                const response = await fetch(authBaseUrl + authApi.signin, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                const data = await response.json();
+                if (!response.ok) {
+                    setMessage('modalSigninMessage', data.message || 'Sign in failed.', true);
+                    return;
+                }
+                setSession(data.access_token || data.token, data.username);
+                closeAuthModal();
+                renderAuthState();
+            } catch (error) {
+                setMessage('modalSigninMessage', error.message, true);
+            }
+        });
+
+        document.getElementById('authModalSignupForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            setMessage('modalSignupMessage', 'Creating account...');
+            const body = {
+                username: document.getElementById('modalSignupUsername').value,
+                email: document.getElementById('modalSignupEmail').value,
+                password: document.getElementById('modalSignupPassword').value
+            };
+            try {
+                const response = await fetch(authBaseUrl + authApi.signup, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                const data = await response.json();
+                setMessage('modalSignupMessage', data.message || (response.ok ? 'Account created! Check your email to verify.' : 'Signup failed.'), !response.ok);
+                if (response.ok && data.requires_local_verification && isLocalDevelopment()) {
+                    pendingLocalVerificationIdentifier = body.username || body.email;
+                    showLocalVerificationStep(data.message);
+                    return;
+                }
+                if (response.ok) {
+                    setTimeout(() => switchAuthTab('signin'), 2500);
+                }
+            } catch (error) {
+                setMessage('modalSignupMessage', error.message, true);
+            }
+        });
+
+        document.getElementById('modalLocalDevVerifyForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            setMessage('modalLocalVerifyMessage', 'Verifying account...');
+            const body = {
+                identifier: pendingLocalVerificationIdentifier || document.getElementById('modalSignupUsername').value,
+                dev_otp: document.getElementById('modalLocalVerifyCode').value
+            };
+            try {
+                const response = await fetch(authBaseUrl + authApi.verifyLocal, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                const data = await response.json();
+                if (!response.ok) {
+                    setMessage('modalLocalVerifyMessage', data.message || 'Verification failed.', true);
+                    return;
+                }
+                pendingLocalVerificationIdentifier = '';
+                document.getElementById('modalSigninIdentifier').value = body.identifier;
+                setMessage('modalSigninMessage', data.message || 'Account verified. You can sign in now.');
+                switchAuthTab('signin');
+            } catch (error) {
+                setMessage('modalLocalVerifyMessage', error.message, true);
+            }
+        });
+
+        document.getElementById('apiKeyCreateForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            setMessage('apiKeyMessage', 'Creating API key...');
+            document.getElementById('generatedApiKeyBox').classList.add('hidden');
+            const body = { name: document.getElementById('apiKeyName').value };
+            try {
+                const response = await authFetch(authApi.apiKeys, {
+                    method: 'POST',
+                    body: JSON.stringify(body)
+                });
+                const data = await response.json();
+                if (!response.ok) {
+                    setMessage('apiKeyMessage', data.message || 'Unable to create API key.', true);
+                    return;
+                }
+                const apiKey = data.data.api_key;
+                sessionStorage.setItem(authStorage.apiKey, apiKey);
+                document.getElementById('generatedApiKeyValue').textContent = apiKey;
+                document.getElementById('generatedApiKeyBox').classList.remove('hidden');
+                setMessage('apiKeyMessage', 'API key created and selected for Try-it requests.');
+                document.getElementById('apiKeyName').value = '';
+                loadApiKeys();
+            } catch (error) {
+                setMessage('apiKeyMessage', error.message, true);
+            }
+        });
+
+        // Close API test modal when clicking outside
         document.getElementById('apiTestModal').addEventListener('click', function(e) {
             if (e.target === this) {
                 closeModal();
             }
         });
+
+        // Close auth modal when clicking outside
+        document.getElementById('authModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeAuthModal();
+            }
+        });
+
+        // Close user dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            const dropdown = document.getElementById('userDropdown');
+            const menu = document.getElementById('navUserMenu');
+            if (dropdown && menu && !menu.contains(e.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
+
+        function openAuthModal(tab) {
+            document.getElementById('authModal').classList.remove('hidden');
+            switchAuthTab(tab || 'signin');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeAuthModal() {
+            document.getElementById('authModal').classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        function switchAuthTab(tab) {
+            const signinForm = document.getElementById('authModalSigninForm');
+            const signupForm = document.getElementById('authModalSignupForm');
+            const verifyForm = document.getElementById('modalLocalDevVerifyForm');
+            const signinTab = document.getElementById('authTabSignin');
+            const signupTab = document.getElementById('authTabSignup');
+            verifyForm.classList.add('hidden');
+            if (tab === 'signup') {
+                signinForm.classList.add('hidden');
+                signupForm.classList.remove('hidden');
+                signinTab.className = 'flex-1 py-2 px-4 rounded-lg text-sm font-semibold transition-all text-red-200 hover:text-white';
+                signupTab.className = 'flex-1 py-2 px-4 rounded-lg text-sm font-semibold transition-all bg-white text-red-700 shadow-sm';
+            } else {
+                signinForm.classList.remove('hidden');
+                signupForm.classList.add('hidden');
+                signinTab.className = 'flex-1 py-2 px-4 rounded-lg text-sm font-semibold transition-all bg-white text-red-700 shadow-sm';
+                signupTab.className = 'flex-1 py-2 px-4 rounded-lg text-sm font-semibold transition-all text-red-200 hover:text-white';
+            }
+        }
+
+        function toggleUserDropdown() {
+            document.getElementById('userDropdown').classList.toggle('hidden');
+        }
+
+        function scrollToApiKeys() {
+            document.getElementById('userDropdown').classList.add('hidden');
+            const section = document.getElementById('authSection');
+            if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function handleSignOut() {
+            clearSession();
+            const dropdown = document.getElementById('userDropdown');
+            if (dropdown) dropdown.classList.add('hidden');
+            renderAuthState();
+        }
 
         // Load section counts from /stats endpoint
         function titleizeStatKey(key) {
@@ -956,6 +1542,8 @@
                 }
             }
         }
+        renderAuthState();
+        verifyEmailFromQuery();
         loadSectionCounts();
     </script>
 </body>

@@ -124,6 +124,94 @@ async def test_on_fetch_allows_health_without_api_key():
 
 
 @pytest.mark.asyncio
+async def test_on_fetch_allows_auth_signin_without_api_key():
+    worker = main.Default()
+    worker.env = MockEnv()
+    request = MockRequest(method="POST", url="https://api.example.com/auth/signin")
+    expected_response = object()
+
+    with patch("main.get_db_safe", AsyncMock()) as get_db, \
+         patch.object(main.router, "handle", AsyncMock(return_value=expected_response)) as handle:
+        response = await worker.on_fetch(request)
+
+    assert response is expected_response
+    get_db.assert_awaited_once_with(worker.env)
+    handle.assert_awaited_once_with(request, worker.env)
+
+
+@pytest.mark.asyncio
+async def test_on_fetch_allows_auth_page_without_api_key():
+    worker = main.Default()
+    worker.env = MockEnv()
+    request = MockRequest(method="GET", url="https://api.example.com/auth")
+    expected_response = object()
+
+    with patch("main.get_db_safe", AsyncMock()) as get_db, \
+         patch.object(main.router, "handle", AsyncMock(return_value=expected_response)) as handle:
+        response = await worker.on_fetch(request)
+
+    assert response is expected_response
+    get_db.assert_awaited_once_with(worker.env)
+    handle.assert_awaited_once_with(request, worker.env)
+
+
+@pytest.mark.asyncio
+async def test_on_fetch_allows_api_auth_signin_without_api_key():
+    worker = main.Default()
+    worker.env = MockEnv()
+    request = MockRequest(method="POST", url="https://api.example.com/api/auth/signin")
+    expected_response = object()
+
+    with patch("main.get_db_safe", AsyncMock()) as get_db, \
+         patch.object(main.router, "handle", AsyncMock(return_value=expected_response)) as handle:
+        response = await worker.on_fetch(request)
+
+    assert response is expected_response
+    get_db.assert_awaited_once_with(worker.env)
+    handle.assert_awaited_once_with(request, worker.env)
+
+
+@pytest.mark.asyncio
+async def test_on_fetch_allows_api_key_management_without_static_api_key():
+    worker = main.Default()
+    worker.env = MockEnv()
+    request = MockRequest(
+        method="GET",
+        url="https://api.example.com/auth/api-keys",
+        headers={"Authorization": "Bearer session-token"},
+    )
+    expected_response = object()
+
+    with patch("main.get_db_safe", AsyncMock()) as get_db, \
+         patch.object(main.router, "handle", AsyncMock(return_value=expected_response)) as handle:
+        response = await worker.on_fetch(request)
+
+    assert response is expected_response
+    get_db.assert_awaited_once_with(worker.env)
+    handle.assert_awaited_once_with(request, worker.env)
+
+
+@pytest.mark.asyncio
+async def test_on_fetch_allows_api_auth_api_key_management_without_static_api_key():
+    worker = main.Default()
+    worker.env = MockEnv()
+    request = MockRequest(
+        method="GET",
+        url="https://api.example.com/api/auth/api-keys",
+        headers={"Authorization": "Bearer session-token"},
+    )
+    expected_response = object()
+
+    with patch("main.get_db_safe", AsyncMock()) as get_db, \
+         patch.object(main.router, "handle", AsyncMock(return_value=expected_response)) as handle:
+        response = await worker.on_fetch(request)
+
+    assert response is expected_response
+    get_db.assert_awaited_once_with(worker.env)
+    handle.assert_awaited_once_with(request, worker.env)
+
+
+@pytest.mark.asyncio
 async def test_on_fetch_allows_options_preflight_without_api_key():
     worker = main.Default()
     worker.env = MockEnv()

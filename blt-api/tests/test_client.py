@@ -47,7 +47,7 @@ class TestBLTClient:
         headers = client._get_headers()
         
         assert "Authorization" in headers
-        assert headers["Authorization"] == "Token test-token"
+        assert headers["Authorization"] == "Bearer test-token"
 
     def test_get_headers_with_api_key(self):
         """Test headers with shared API key."""
@@ -65,7 +65,7 @@ class TestBLTClient:
         )
         headers = client._get_headers()
 
-        assert headers["Authorization"] == "Token test-token"
+        assert headers["Authorization"] == "Bearer test-token"
         assert headers["X-BLT-API-Key"] == "docs-static-key"
     
     def test_get_headers_extra(self):

@@ -120,7 +120,7 @@ class EmailService:
         base_url: str,
         expires_hours: int = 24,
     ) -> Tuple[int, str]:
-        verification_link = f"{base_url}/auth/verify-email?token={verification_token}"
+        verification_link = f"{base_url}/auth?verify_token={verification_token}"
         subject = "Verify your OWASP BLT account"
         html_content = get_verification_email(username, verification_link, expires_hours)
         self.logger.info("Sending verification email to %s for user %s", to_email, username)
@@ -138,4 +138,3 @@ class EmailService:
         subject = "Reset your OWASP BLT password"
         html_content = get_password_reset_email(username, reset_link, expires_hours)
         return await self.send_email(to_email, subject, html_content, content_type="text/html")
-
