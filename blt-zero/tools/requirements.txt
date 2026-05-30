@@ -1,0 +1,2 @@
+# Match CI and keep a single secure version (see .github/workflows/ci.yml).
+cryptography==46.0.5

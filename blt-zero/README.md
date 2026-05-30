@@ -1,72 +1,170 @@
-# BLT-Zero
+# BLT-Zero (MVP Phase)
 
-**Zero Trust Vulnerability Reporting — without a trace.**
+**Zero-Trust Vulnerability Reporting — encrypted payload delivery.**
 
-BLT-Zero is a [Cloudflare Python Workers](https://developers.cloudflare.com/workers/languages/python/) powered site that lets security researchers report vulnerabilities directly and securely to target organizations — with **zero tracking** of sensitive data.
+BLT-Zero is a Cloudflare Workers site that lets security researchers submit sensitive vulnerability reports and screenshots **encrypted directly in the browser**. The Worker receives a pre-encrypted payload, forwards it directly to the organization’s security inbox, and stores only minimal metadata.
 
-It is an independent application maintained under the [OWASP BLT](https://github.com/OWASP-BLT/BLT) project family, operating on its own infrastructure with no shared servers or database.
+It is an independent application under the OWASP BLT project family, intended to run on its own deployment and database.
 
 ---
 
 ## 🔐 What is BLT-Zero?
 
-BLT-Zero provides a **zero-trust workflow** for delivering vulnerability reports securely. Sensitive vulnerability details are **never stored** — they exist only in memory while the encrypted package is being built, then delivered directly to the recipient organization.
+BLT-Zero provides a secure workflow for delivering vulnerability reports:
+
+- **Encryption happens client-side (browser)** using modern AES-256 ZIP encryption.
+- **BLT-Zero never stores plaintext** vulnerability details.
+- **Organizations decrypt locally** using standard archive tools.
 
 ### Key Principles
 
 | Principle | Description |
-|-----------|-------------|
-| **Direct Delivery** | Reports are encrypted with the recipient organization's public key so only they can decrypt them. |
-| **Minimal Metadata** | Only non-sensitive metadata (e.g., domain name, username) and artifact hashes are stored — never vulnerability descriptions or PoC details. |
-| **Ephemeral Handling** | Full vulnerability details exist only in memory or ephemeral Cloudflare Worker storage while building the encrypted package. Plaintext is never written to permanent storage. |
-| **Out-of-Band Secrets** | Any symmetric passwords are delivered through a separate channel (phone, SMS, or secure messaging) and are never stored alongside report content. |
+|----------|-------------|
+| **Encrypted Transit** | Worker receives only an encrypted ZIP package in Base64 (no plaintext files). |
+| **Direct Delivery** | Reports are emailed directly to the organization's security team. |
+| **No tracking by design** | No analytics/cookies/fingerprinting in this project. |
+| **Abuse controls** | Rate limiting + optional Cloudflare Turnstile. |
 
 ---
 
-## 🏗️ Architecture
+## 🏗️ Architecture (Current MVP)
 
-BLT-Zero runs entirely on **Cloudflare Workers** using Python, giving it:
+### Components
 
-- **No persistent server infrastructure** — serverless, edge-deployed execution.
-- **Ephemeral worker storage** — sensitive data never survives beyond request processing.
-- **Zero tracking** — no analytics, no fingerprinting, no user profiling.
-- **Independent deployment** — its own domain and infrastructure, separate from the main BLT application.
+- **Client (Browser)**
+  - Gathers the form data (Target URL, Description, Markdown) and dynamically builds a `report.json` in memory.
+  - Bundles the JSON and uploaded screenshots using `@zip.js/zip.js`.
+  - Generates a strong, random 24-character password and encrypts the ZIP file (AES-256) entirely inside the browser.
+  - Sends the Base64-encoded encrypted ZIP and the generated password to the Worker.
 
-### Encryption
-
-Reports are encrypted using [age](https://age-encryption.org/) or OpenPGP with the recipient organization's public key. A symmetric password fallback is supported, delivered exclusively out-of-band.
-
----
-
-## ✨ Features
-
-- 🔒 End-to-end encrypted vulnerability report submission
-- 📭 Direct delivery to recipient organizations — no middleman storage of sensitive data
-- 🕵️ Zero tracking of reporters (no cookies, no analytics)
-- 🗝️ Public-key encryption with optional symmetric password (out-of-band delivery)
-- 📊 Minimal metadata storage for tracking, points, and program management
-- 🔗 Integration with main BLT for reporter points attribution
+- **Worker (Python / FastAPI)**
+  - Validates request + (optional) Turnstile.
+  - Emails the encrypted ZIP attachment and the decryption password to the org inbox via SendGrid.
 
 ---
 
-## 🚀 How It Works
+## 🔒 Cryptography & Decryption
 
-1. **Reporter** visits BLT-Zero and fills in the vulnerability report form.
-2. The report is **encrypted in memory** using the target organization's public key.
-3. The **encrypted package is delivered** directly to the organization — plaintext details are never persisted.
-4. Only **minimal metadata** (domain, reporter username, artifact hash) is stored for points and tracking.
-5. If a symmetric password is used, it is sent **out-of-band** by the reporter (e.g., via phone or secure messaging).
+**Client-Side Encryption**
+To ensure maximum compatibility and avoid requiring organizations to pre-generate PGP/JWK keys, encryption is handled via **AES-256 Password-Protected ZIPs**. The browser generates a secure, ephemeral password, encrypts the payload, and the Worker forwards this password to the organization alongside the file. 
+
+**Decryption (Important Note for Windows Users)**
+Because the browser uses modern AES-256 encryption, **the default Windows File Explorer cannot extract the ZIP file** (it will throw Error `0x80004005`). 
+
+To decrypt the report, organizations must use a modern archive utility:
+- **Windows:** Use [7-Zip](https://www.7-zip.org/) or WinRAR. Right-click -> Extract Here -> Enter the password from the email.
+- **macOS:** Use The Unarchiver or the built-in Archive Utility.
+- **Linux:** Use the `unzip` command-line tool.
+
+---
+
+## ✅ Features
+
+- 🔒 Client-side ZIP encryption in the browser (`@zip.js`).
+- 📧 Direct email delivery to org security inbox via SendGrid.
+- 🧾 Minimal storage: domain + optional username + artifact hash only.
+- 🛡️ Rate limiting to prevent abuse.
+- 📊 Optional points sync to main BLT.
 
 ---
 
-## 🛠️ Technology Stack
+## 🚀 Workflow (end-to-end)
 
-- **Runtime**: [Cloudflare Workers](https://workers.cloudflare.com/) (Python)
-- **Encryption**: [age](https://age-encryption.org/) / OpenPGP
-- **Storage**: Minimal — Cloudflare KV or D1 for non-sensitive metadata only
-- **Integration**: OWASP BLT API for points attribution
+1. Reporter fills out the vulnerability form and attaches screenshots.
+2. Browser intercepts the submission, generates a password, and bundles everything into an AES-256 encrypted ZIP.
+3. Worker receives the encrypted Base64 string and the password.
+4. Worker emails the ciphertext ZIP attachment + password to the org inbox.
+5. Org receives the email, downloads the ZIP, and decrypts it locally using 7-Zip.
 
 ---
+
+## 🛠️ Tech Stack
+
+- Runtime: Cloudflare Workers (Python support)
+- Frontend Crypto: `@zip.js/zip.js` (AES-256)
+- Email: SendGrid
+- Protection: optional Turnstile + rate limiting
+
+---
+
+### Installation
+
+1. Clone the repository:
+```bash
+git clone [https://github.com/OWASP-BLT/BLT-Zero.git](https://github.com/OWASP-BLT/BLT-Zero.git)
+cd BLT-Zero
+```
+
+2. Install Wrangler (if not already installed):
+```bash
+npm install -g wrangler
+```
+
+3. Login to Cloudflare:
+```bash
+wrangler login
+```
+
+4. Create `.dev.vars` file from `.dev.vars.example` and populate wrangler.toml with Database ID from previous step:
+
+### Development
+
+Run the development server:
+```bash
+wrangler dev
+```
+
+The application will be available at `http://localhost:8787`
+
+### Deployment
+
+Deploy to Cloudflare Workers:
+```bash
+wrangler deploy
+```
+
+### Org Onboarding (Keys)
+
+1. Generate organization keypair locally:
+```bash
+python tools/org_keygen.py
+```
+
+This will generate:
+
+- `private_key.jwk` (keep this secret)
+- `public_key.jwk` (share this with BLT-Zero)
+
+2. Decrypt a received vulnerability report:
+```bash
+python tools/org_decrypt.py private_key.jwk package.json
+```
+
+### Optional BLT points / BACON sync
+
+BLT-Zero can **optionally** award BLT points/BACON for successful encrypted submissions
+without ever sending plaintext report data to the main BLT platform.
+
+- If the reporter supplies a `username` and you configure BLT sync, the Worker will
+  POST a small JSON payload to the main BLT API:
+
+  ```json
+  { "username": "<reporter>", "domain_name": "<program domain>" }
+  ```
+
+- No report content, ciphertext, or fields derived from the encrypted package are sent.
+
+To enable this integration:
+
+1. Configure the following variables in `wrangler.toml` / `.dev.vars`:
+
+   - `MAIN_BLT_API_URL` – base URL for the BLT API (defaults to `https://api.owaspblt.org`)
+   - `MAIN_BLT_API_TOKEN` – BLT API token with permission to award points for Zero-Trust submissions
+
+2. Deploy BLT-Zero with those values set.
+
+If `MAIN_BLT_API_TOKEN` is not set, BLT sync is silently skipped and submissions
+remain purely local to BLT-Zero.
 
 ## 🤝 Contributing
 

@@ -1,0 +1,33 @@
+name = "blt-zero"
+main = "src/main.py"
+compatibility_date = "2026-02-28" # Use a current date
+compatibility_flags = ["python_workers"]
+
+[[rules]]
+type = "Text"
+globs = ["**/*.html"]
+fallthrough = true
+
+[assets]
+directory = "./static"
+
+[vars]
+APP_ORIGIN = "https://zero.owaspblt.org"
+MAIN_BLT_API_URL = "https://api.owaspblt.org" # Base URL for BLT points/BACON sync
+POINTS_AWARD = "3" # Default points awarded per successful encrypted submission (used by BLT API)
+
+# ZIP submission constraints
+ZIP_MAX_TOTAL_BYTES = "5242880"
+ZIP_MAX_FILES = "5"
+MAX_REPORT_CHARS = "20000"
+
+# In-memory rate limits (per Cloudflare isolate)
+RL_IP_PER_MINUTE = "5"
+RL_IP_PER_HOUR   = "50"
+RL_IP_PER_DAY    = "200"
+
+RL_EMAIL_PER_HOUR       = "10"
+RL_EMAIL_DOMAIN_PER_HOUR = "20"
+RL_DISTINCT_EMAILS_PER_IP_PER_HOUR = "10"
+
+RL_GLOBAL_PER_MINUTE = "30"

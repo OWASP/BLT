@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8"/>
+  <title>BLT-Zero — Submit Encrypted Report</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: '#dc2626',
+            'primary-foreground': '#ffffff',
+            'dark-base': '#0f172a',
+            'dark-surface': '#1e293b',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+    .msg-ok { color: #10b981; white-space: pre-wrap; font-family: monospace; font-size: 0.875rem; }
+    .msg-error { color: #ef4444; white-space: pre-wrap; font-family: monospace; font-size: 0.875rem; }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-900 dark:bg-dark-base dark:text-gray-100 min-h-screen">
+  <section class="px-6 py-12">
+    <div class="mx-auto max-w-7xl">
+      
+      <div class="text-center mb-12">
+        <div class="mb-6 inline-flex items-center gap-1.5 rounded-full border border-gray-200 dark:border-gray-700 px-3 py-1 text-xs font-medium text-gray-600 dark:text-gray-400">
+          <span class="relative flex h-1.5 w-1.5">
+            <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500 opacity-75"></span>
+            <span class="relative inline-flex h-1.5 w-1.5 rounded-full bg-green-500"></span>
+          </span>
+          Zero-trust Security
+        </div>
+
+        <!-- SendGrid status indicator (ADDED) -->
+        <div class="text-xs text-gray-500 dark:text-gray-400 mb-3">
+          SendGrid: {{SENDGRID_STATUS}}
+        </div>
+
+        <h1 class="text-balance text-4xl font-bold tracking-tight sm:text-5xl">
+          Submit Encrypted Report
+        </h1>
+        <p class="mx-auto mt-4 max-w-xl text-pretty text-base leading-relaxed text-gray-600 dark:text-gray-400">
+          This builds a password-protected ZIP in your browser and emails it directly to the organization's address you provide.
+        </p>
+      </div>
+
+      <div class="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-dark-surface p-6 mb-8 shadow-sm">
+        <div class="flex flex-wrap gap-2 mb-4">
+          <span class="inline-block rounded-full border border-gray-200 dark:border-gray-700 px-3 py-1 text-xs font-medium bg-gray-50 dark:bg-dark-base">Client-Side ZIP</span>
+          <span class="inline-block rounded-full border border-gray-200 dark:border-gray-700 px-3 py-1 text-xs font-medium bg-gray-50 dark:bg-dark-base">Direct Email Delivery</span>
+        </div>
+        <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">
+          The email body will explicitly include the decryption password generated during this phase.
+        </p>
+        <ul class="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+          <li>• Max screenshots: <strong id="limitFiles" class="text-gray-900 dark:text-white">{{MAX_FILES}}</strong></li>
+          <li>• Total upload cap: <strong id="limitBytes" class="text-gray-900 dark:text-white">{{MAX_TOTAL}}</strong> bytes</li>
+        </ul>
+      </div>
+
+      <div class="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-dark-surface p-6 shadow-sm">
+        <form id="reportForm" novalidate>
+          <div class="space-y-4">
+
+            <!-- Reporter Email (ADDED) -->
+            <div>
+              <label for="reporter_email" class="block text-sm font-medium mb-2">Reporter Email (optional)</label>
+              <input
+                id="reporter_email"
+                type="email"
+                placeholder="you@example.com"
+                class="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-dark-base text-gray-900 dark:text-gray-50 focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
+              />
+            </div>
+            
+            <div>
+              <label for="org_email" class="block text-sm font-medium mb-2">Organization Email (recipient)</label>
+              <input 
+                id="org_email" 
+                type="email" 
+                required 
+                placeholder="security@example.com" 
+                class="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-dark-base text-gray-900 dark:text-gray-50 focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
+              />
+            </div>
+
+            <div>
+              <label for="url" class="block text-sm font-medium mb-2">Target URL</label>
+              <input 
+                id="url" 
+                type="url" 
+                required 
+                placeholder="https://target.example.com/path" 
+                class="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-dark-base text-gray-900 dark:text-gray-50 focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
+              />
+            </div>
+
+            <div>
+              <label for="description" class="block text-sm font-medium mb-2">Vulnerability Description</label>
+              <textarea 
+                id="description" 
+                rows="5" 
+                required 
+                placeholder="What you found, impact, and steps to reproduce..." 
+                class="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-dark-base text-gray-900 dark:text-gray-50 focus:outline-none focus:ring-2 focus:ring-primary transition-colors resize-y"
+              ></textarea>
+            </div>
+
+            <div>
+              <label for="markdown" class="block text-sm font-medium mb-2">Detailed Report (Markdown, optional)</label>
+              <textarea 
+                id="markdown" 
+                rows="7" 
+                placeholder="# PoC..." 
+                class="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-dark-base text-gray-900 dark:text-gray-50 focus:outline-none focus:ring-2 focus:ring-primary transition-colors font-mono text-sm resize-y"
+              ></textarea>
+            </div>
+
+            <div>
+              <label for="shots" class="block text-sm font-medium mb-2">Screenshots (images only)</label>
+              <input 
+                id="shots" 
+                type="file" 
+                accept="image/*" 
+                multiple 
+                class="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-dark-base text-gray-900 dark:text-gray-50 focus:outline-none focus:ring-2 focus:ring-primary file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/90 cursor-pointer transition-colors"
+              />
+            </div>
+
+            <button 
+              type="submit" 
+              id="btn"
+              class="w-full px-6 py-3 rounded-lg bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-colors"
+            >
+              Encrypt & Submit
+            </button>
+
+            <div class="mt-4 p-4 rounded-lg bg-gray-50 dark:bg-dark-base border border-gray-200 dark:border-gray-700 hidden" id="msgContainer">
+              <pre id="msg"></pre>
+            </div>
+
+          </div>
+        </form>
+      </div>
+
+    </div>
+  </section>
+
+<script type="module">
+import * as zip from "https://unpkg.com/@zip.js/zip.js/index.js";
+window.zip = zip;
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+const form = document.getElementById("reportForm");
+const btn = document.getElementById("btn");
+const msgContainer = document.getElementById("msgContainer");
+const msg = document.getElementById("msg");
+
+function showErr(text){
+msgContainer.classList.remove("hidden");
+msg.className="msg-error";
+msg.textContent=text;
+}
+
+function showOk(text){
+msgContainer.classList.remove("hidden");
+msg.className="msg-ok";
+msg.textContent=text;
+}
+
+form.addEventListener("submit", async (e)=>{
+e.preventDefault();
+
+if(!window.zip){
+showErr("Encryption library is still loading, please wait a second and try again.");
+return;
+}
+
+btn.disabled=true;
+btn.textContent="Encrypting locally...";
+msgContainer.classList.add("hidden");
+
+try{
+
+const reporter_email=document.getElementById("reporter_email").value.trim();
+
+const org_email=document.getElementById("org_email").value.trim();
+const url=document.getElementById("url").value.trim();
+const description=document.getElementById("description").value.trim();
+const markdown=document.getElementById("markdown").value.trim();
+
+const files=Array.from(document.getElementById("shots").files||[]);
+const maxFiles=Number(document.getElementById("limitFiles").textContent);
+const maxTotalBytes=Number(document.getElementById("limitBytes").textContent);
+const totalBytes=files.reduce((sum,file)=>sum+file.size,0);
+
+if(files.length>maxFiles){
+throw new Error(`Too many screenshots. Max allowed: ${maxFiles}.`);
+}
+if(totalBytes>maxTotalBytes){
+throw new Error(`Total upload size exceeds ${maxTotalBytes} bytes.`);
+}
+
+const passwordBytes=new Uint8Array(24);
+crypto.getRandomValues(passwordBytes);
+const password=Array.from(passwordBytes,(b)=>b.toString(16).padStart(2,"0")).join("");
+
+const zipFileWriter=new window.zip.BlobWriter();
+const zipWriter=new window.zip.ZipWriter(zipFileWriter,{password:password});
+
+const reportJsonStr=JSON.stringify({
+reporter_email,
+org_email,
+url,
+description,
+markdown,
+submitted_at:new Date().toISOString()
+},null,2);
+
+await zipWriter.add("report.json",new window.zip.TextReader(reportJsonStr));
+
+for(const f of files){
+await zipWriter.add(`screenshots/${f.name}`,new window.zip.BlobReader(f));
+}
+
+const zipBlob=await zipWriter.close();
+
+btn.textContent="Submitting to server...";
+
+const reader=new FileReader();
+const b64=await new Promise(resolve=>{
+reader.onloadend=()=>resolve(reader.result.split(',')[1]);
+reader.readAsDataURL(zipBlob);
+});
+
+const payload={
+org_email,
+report:{url,description,markdown,reporter_email},
+zip_content_b64:b64,
+password:password
+};
+
+const res=await fetch("/submit",{
+method:"POST",
+headers:{"content-type":"application/json"},
+body:JSON.stringify(payload)
+});
+
+const data=await res.json();
+if(!res.ok)throw new Error(data.error||"Server rejected submission");
+
+showOk(`Success! Report encrypted and sent.\nArtifact Hash: ${data.artifact_hash}`);
+form.reset();
+
+}catch(err){
+showErr(err.message);
+}finally{
+btn.disabled=false;
+btn.textContent="Encrypt & Submit";
+}
+
+});
+
+});
+</script>
+
+</body>
+</html>
