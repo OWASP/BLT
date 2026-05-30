@@ -1,0 +1,54 @@
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+    - "**/*.mocks.dart"
+  
+  errors:
+    invalid_annotation_target: ignore
+  
+  strong-mode:
+    implicit-casts: false
+    implicit-dynamic: false
+
+linter:
+  rules:
+    # Error rules
+    - avoid_print
+    - avoid_types_as_parameter_names
+    - no_duplicate_case_values
+    - valid_regexps
+    
+    # Style rules
+    - camel_case_types
+    - library_names
+    - file_names
+    - library_prefixes
+    - non_constant_identifier_names
+    - constant_identifier_names
+    - directives_ordering
+    
+    # Pub rules
+    - package_names
+    
+    # Documentation
+    - public_member_api_docs
+    
+    # Usage
+    - prefer_const_constructors
+    - prefer_const_declarations
+    - prefer_final_fields
+    - unnecessary_const
+    - unnecessary_new
+    - use_key_in_widget_constructors
+    - prefer_collection_literals
+    - avoid_function_literals_in_foreach_calls
+    - prefer_iterable_whereType
+    - unnecessary_brace_in_string_interps
+    - avoid_init_to_null
+    - avoid_return_types_on_setters
+    - empty_constructor_bodies
+    - prefer_is_empty
+    - prefer_is_not_empty

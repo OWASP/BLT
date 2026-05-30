@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vanish — BLT Vanish Flutter App | OWASP BLT</title>
+  <meta name="description" content="A privacy-first Flutter toolkit for managing and deleting your personal data from data brokers. All data stays encrypted on your device." />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              DEFAULT: '#E10101',
+              hover:   '#B91C1C',
+            },
+            dark: {
+              base:    '#111827',
+              surface: '#1F2937',
+            },
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+
+  <!-- Font Awesome -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  />
+
+  <!-- Google Fonts – Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <style>
+    /* Brand accent underline helper */
+    .brand-underline {
+      text-decoration-color: #E10101;
+      text-underline-offset: 4px;
+    }
+    /* Phone frame shadow */
+    .phone-shadow {
+      filter: drop-shadow(0 24px 48px rgba(0,0,0,0.25));
+    }
+    /* Smooth gradient hero */
+    .hero-gradient {
+      background: linear-gradient(135deg, #111827 0%, #1F2937 60%, #111827 100%);
+    }
+  </style>
+</head>
+
+<body class="font-sans bg-white text-gray-900 antialiased">
+
+  <!-- ─────────────────────────────────────────
+       NAVIGATION
+  ───────────────────────────────────────── -->
+  <header class="sticky top-0 z-50 border-b border-[#E5E5E5] bg-white/95 backdrop-blur-sm">
+    <div class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+      <!-- Logo -->
+      <a href="#" class="flex items-center gap-2 font-bold text-xl text-gray-900 hover:text-brand transition-colors" aria-label="Vanish home">
+        <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-brand">
+          <i class="fa-solid fa-shield-halved text-white text-sm" aria-hidden="true"></i>
+        </span>
+        Vanish
+      </a>
+
+      <!-- Desktop nav -->
+      <nav class="hidden md:flex items-center gap-8 text-sm font-medium text-gray-600" aria-label="Main navigation">
+        <a href="#features" class="hover:text-brand transition-colors">Features</a>
+        <a href="#screenshots" class="hover:text-brand transition-colors">Screenshots</a>
+        <a href="#how-it-works" class="hover:text-brand transition-colors">How It Works</a>
+        <a href="#security" class="hover:text-brand transition-colors">Security</a>
+        <a href="#get-started" class="hover:text-brand transition-colors">Get Started</a>
+      </nav>
+
+      <!-- CTA -->
+      <a
+        href="https://github.com/OWASP-BLT/BLT-Vanish-Flutter"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="inline-flex items-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-hover transition-colors focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2"
+      >
+        <i class="fa-brands fa-github" aria-hidden="true"></i>
+        View on GitHub
+      </a>
+    </div>
+  </header>
+
+
+  <!-- ─────────────────────────────────────────
+       HERO
+  ───────────────────────────────────────── -->
+  <section class="hero-gradient text-white overflow-hidden">
+    <div class="mx-auto max-w-6xl px-6 py-24 lg:py-32 grid lg:grid-cols-2 gap-16 items-center">
+
+      <!-- Left: copy -->
+      <div>
+        <!-- OWASP badge -->
+        <span class="inline-flex items-center gap-2 rounded-full border border-red-500/40 bg-red-500/10 px-3 py-1 text-xs font-semibold text-red-400 mb-6">
+          <i class="fa-solid fa-bug" aria-hidden="true"></i>
+          OWASP BLT Project
+        </span>
+
+        <h1 class="text-5xl lg:text-6xl font-extrabold leading-tight tracking-tight">
+          Take back<br/>
+          <span class="text-brand">your privacy</span>
+        </h1>
+
+        <p class="mt-6 text-lg text-gray-300 max-w-lg leading-relaxed">
+          Vanish is an open-source Flutter app that finds data brokers holding your
+          personal information and helps you send opt-out requests—entirely from your
+          device, with zero data leaving it.
+        </p>
+
+        <ul class="mt-8 space-y-3 text-sm text-gray-300" aria-label="Key highlights">
+          <li class="flex items-center gap-3">
+            <i class="fa-solid fa-lock text-brand w-4 text-center" aria-hidden="true"></i>
+            AES-256 encrypted local storage
+          </li>
+          <li class="flex items-center gap-3">
+            <i class="fa-solid fa-wifi-slash text-brand w-4 text-center" aria-hidden="true"></i>
+            Fully offline — no internet required
+          </li>
+          <li class="flex items-center gap-3">
+            <i class="fa-solid fa-mobile-screen-button text-brand w-4 text-center" aria-hidden="true"></i>
+            iOS, Android, macOS, Windows &amp; Linux
+          </li>
+          <li class="flex items-center gap-3">
+            <i class="fa-brands fa-osi text-brand w-4 text-center" aria-hidden="true"></i>
+            Open-source &amp; auditable — AGPL-3.0
+          </li>
+        </ul>
+
+        <div class="mt-10 flex flex-wrap gap-4">
+          <a
+            href="https://github.com/OWASP-BLT/BLT-Vanish-Flutter"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-2 rounded-md bg-brand px-6 py-3 font-semibold text-white shadow hover:bg-brand-hover transition-colors focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2 focus:ring-offset-dark-base"
+          >
+            <i class="fa-brands fa-github" aria-hidden="true"></i>
+            Clone &amp; Build
+          </a>
+          <a
+            href="#how-it-works"
+            class="inline-flex items-center gap-2 rounded-md border border-[#E10101] px-6 py-3 font-semibold text-[#E10101] hover:bg-brand hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2 focus:ring-offset-dark-base"
+          >
+            Learn More
+            <i class="fa-solid fa-arrow-down" aria-hidden="true"></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- Right: hero phone mockup -->
+      <div class="flex justify-center lg:justify-end">
+        <div class="phone-shadow relative w-64 lg:w-72">
+          <!-- Phone frame -->
+          <svg viewBox="0 0 280 560" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="App screenshot: Dashboard screen" role="img">
+            <!-- Body -->
+            <rect width="280" height="560" rx="36" fill="#1F2937"/>
+            <!-- Screen bezel -->
+            <rect x="8" y="8" width="264" height="544" rx="29" fill="#111827"/>
+            <!-- Notch -->
+            <rect x="96" y="16" width="88" height="24" rx="12" fill="#1F2937"/>
+            <!-- Status bar -->
+            <text x="24" y="30" fill="#9CA3AF" font-size="9" font-family="Inter,sans-serif">9:41</text>
+            <text x="232" y="30" fill="#9CA3AF" font-size="9" font-family="Inter,sans-serif" text-anchor="end">100%</text>
+
+            <!-- App bar -->
+            <rect x="8" y="44" width="264" height="44" fill="#1F2937"/>
+            <text x="24" y="72" fill="#F9FAFB" font-size="14" font-weight="700" font-family="Inter,sans-serif">Vanish</text>
+
+            <!-- Welcome card -->
+            <rect x="16" y="100" width="248" height="76" rx="12" fill="#374151"/>
+            <circle cx="46" cy="132" r="16" fill="#4B5563"/>
+            <text x="46" y="137" fill="#E10101" font-size="16" text-anchor="middle" font-family="Inter,sans-serif">🛡</text>
+            <text x="72" y="127" fill="#F9FAFB" font-size="11" font-weight="600" font-family="Inter,sans-serif">Welcome to Vanish</text>
+            <text x="72" y="142" fill="#9CA3AF" font-size="9" font-family="Inter,sans-serif">Your privacy, your control</text>
+            <!-- Encrypted badge -->
+            <rect x="24" y="158" width="232" height="10" rx="5" fill="#065F46" opacity="0.6"/>
+            <text x="140" y="166" fill="#6EE7B7" font-size="7" text-anchor="middle" font-family="Inter,sans-serif">🔒  All data encrypted on this device</text>
+
+            <!-- Stats row -->
+            <rect x="16" y="192" width="248" height="80" rx="12" fill="#374151"/>
+            <text x="140" y="210" fill="#F9FAFB" font-size="10" font-weight="600" text-anchor="middle" font-family="Inter,sans-serif">Your Privacy Progress</text>
+            <!-- Stat 1 -->
+            <circle cx="60" cy="244" r="14" fill="#1D4ED820"/>
+            <text x="60" y="249" fill="#60A5FA" font-size="14" font-weight="700" text-anchor="middle" font-family="Inter,sans-serif">12</text>
+            <text x="60" y="262" fill="#9CA3AF" font-size="6" text-anchor="middle" font-family="Inter,sans-serif">Total</text>
+            <!-- Stat 2 -->
+            <circle cx="140" cy="244" r="14" fill="#14532D20"/>
+            <text x="140" y="249" fill="#4ADE80" font-size="14" font-weight="700" text-anchor="middle" font-family="Inter,sans-serif">8</text>
+            <text x="140" y="262" fill="#9CA3AF" font-size="6" text-anchor="middle" font-family="Inter,sans-serif">Done</text>
+            <!-- Stat 3 -->
+            <circle cx="220" cy="244" r="14" fill="#78350F20"/>
+            <text x="220" y="249" fill="#FBBF24" font-size="14" font-weight="700" text-anchor="middle" font-family="Inter,sans-serif">4</text>
+            <text x="220" y="262" fill="#9CA3AF" font-size="6" text-anchor="middle" font-family="Inter,sans-serif">Pending</text>
+
+            <!-- Quick action -->
+            <rect x="16" y="284" width="248" height="64" rx="12" fill="#374151"/>
+            <text x="24" y="302" fill="#F9FAFB" font-size="10" font-weight="600" font-family="Inter,sans-serif">Quick Actions</text>
+            <rect x="24" y="310" width="232" height="30" rx="8" fill="#4B5563"/>
+            <text x="46" y="330" fill="#93C5FD" font-size="9" font-family="Inter,sans-serif">🔍  Search data brokers</text>
+
+            <!-- Privacy tip -->
+            <rect x="16" y="360" width="248" height="54" rx="12" fill="#374151"/>
+            <text x="26" y="378" fill="#FCD34D" font-size="9" font-family="Inter,sans-serif">💡 Privacy Tip</text>
+            <text x="26" y="393" fill="#9CA3AF" font-size="7.5" font-family="Inter,sans-serif">Your data never leaves this</text>
+            <text x="26" y="404" fill="#9CA3AF" font-size="7.5" font-family="Inter,sans-serif">device. End-to-end encrypted.</text>
+
+            <!-- Bottom nav bar -->
+            <rect x="8" y="496" width="264" height="56" rx="0" fill="#1F2937"/>
+            <rect x="8" y="496" width="264" height="2" fill="#374151"/>
+            <!-- Nav items -->
+            <text x="46" y="520" fill="#E10101" font-size="12" text-anchor="middle" font-family="Inter,sans-serif">⊞</text>
+            <text x="46" y="533" fill="#E10101" font-size="6.5" text-anchor="middle" font-family="Inter,sans-serif">Dashboard</text>
+            <text x="108" y="520" fill="#6B7280" font-size="12" text-anchor="middle" font-family="Inter,sans-serif">🏢</text>
+            <text x="108" y="533" fill="#6B7280" font-size="6.5" text-anchor="middle" font-family="Inter,sans-serif">Brokers</text>
+            <text x="172" y="520" fill="#6B7280" font-size="12" text-anchor="middle" font-family="Inter,sans-serif">📋</text>
+            <text x="172" y="533" fill="#6B7280" font-size="6.5" text-anchor="middle" font-family="Inter,sans-serif">Requests</text>
+            <text x="234" y="520" fill="#6B7280" font-size="12" text-anchor="middle" font-family="Inter,sans-serif">👤</text>
+            <text x="234" y="533" fill="#6B7280" font-size="6.5" text-anchor="middle" font-family="Inter,sans-serif">Profile</text>
+
+            <!-- Home indicator -->
+            <rect x="104" y="548" width="72" height="4" rx="2" fill="#4B5563"/>
+          </svg>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ─────────────────────────────────────────
+       FEATURES
+  ───────────────────────────────────────── -->
+  <section id="features" class="py-24 bg-white">
+    <div class="mx-auto max-w-6xl px-6">
+      <div class="text-center mb-16">
+        <h2 class="text-4xl font-bold text-gray-900">Everything you need to<br/><span class="text-brand">erase yourself</span></h2>
+        <p class="mt-4 text-lg text-gray-500 max-w-2xl mx-auto">
+          Built ground-up for privacy. Vanish puts you in control with a clean,
+          accessible Flutter interface that never compromises on security.
+        </p>
+      </div>
+
+      <div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+
+        <!-- Feature cards -->
+        <article class="rounded-xl border border-[#E5E5E5] p-8 hover:border-brand/40 hover:shadow-md transition-all group">
+          <div class="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-red-50 group-hover:bg-brand transition-colors">
+            <i class="fa-solid fa-lock text-brand group-hover:text-white text-xl transition-colors" aria-hidden="true"></i>
+          </div>
+          <h3 class="text-lg font-semibold text-gray-900 mb-2">AES-256 Encryption</h3>
+          <p class="text-gray-500 text-sm leading-relaxed">
+            Every field of your personal data is encrypted with AES-256-CBC before being
+            written to disk. Keys live in the platform's secure enclave (Keychain / KeyStore).
+          </p>
+        </article>
+
+        <article class="rounded-xl border border-[#E5E5E5] p-8 hover:border-brand/40 hover:shadow-md transition-all group">
+          <div class="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-red-50 group-hover:bg-brand transition-colors">
+            <i class="fa-solid fa-server-slash text-brand group-hover:text-white text-xl transition-colors" aria-hidden="true"></i>
+          </div>
+          <h3 class="text-lg font-semibold text-gray-900 mb-2">No External Servers</h3>
+          <p class="text-gray-500 text-sm leading-relaxed">
+            Your PII never leaves your device. Broker metadata is fetched from public sources
+            only; the actual opt-out requests are generated locally.
+          </p>
+        </article>
+
+        <article class="rounded-xl border border-[#E5E5E5] p-8 hover:border-brand/40 hover:shadow-md transition-all group">
+          <div class="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-red-50 group-hover:bg-brand transition-colors">
+            <i class="fa-solid fa-globe text-brand group-hover:text-white text-xl transition-colors" aria-hidden="true"></i>
+          </div>
+          <h3 class="text-lg font-semibold text-gray-900 mb-2">Cross-Platform</h3>
+          <p class="text-gray-500 text-sm leading-relaxed">
+            One codebase for iOS, Android, macOS, Windows, and Linux.
+            Flutter's widget engine delivers a pixel-perfect native experience everywhere.
+          </p>
+        </article>
+
+        <article class="rounded-xl border border-[#E5E5E5] p-8 hover:border-brand/40 hover:shadow-md transition-all group">
+          <div class="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-red-50 group-hover:bg-brand transition-colors">
+            <i class="fa-solid fa-building text-brand group-hover:text-white text-xl transition-colors" aria-hidden="true"></i>
+          </div>
+          <h3 class="text-lg font-semibold text-gray-900 mb-2">Data Broker Directory</h3>
+          <p class="text-gray-500 text-sm leading-relaxed">
+            Browse a curated, searchable directory of data brokers. Filter by category
+            and see opt-out methods &amp; estimated response times.
+          </p>
+        </article>
+
+        <article class="rounded-xl border border-[#E5E5E5] p-8 hover:border-brand/40 hover:shadow-md transition-all group">
+          <div class="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-red-50 group-hover:bg-brand transition-colors">
+            <i class="fa-solid fa-clipboard-check text-brand group-hover:text-white text-xl transition-colors" aria-hidden="true"></i>
+          </div>
+          <h3 class="text-lg font-semibold text-gray-900 mb-2">Request Tracking</h3>
+          <p class="text-gray-500 text-sm leading-relaxed">
+            Track every opt-out request from submission to completion. Dashboard stats
+            show total, completed, and pending requests at a glance.
+          </p>
+        </article>
+
+        <article class="rounded-xl border border-[#E5E5E5] p-8 hover:border-brand/40 hover:shadow-md transition-all group">
+          <div class="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-red-50 group-hover:bg-brand transition-colors">
+            <i class="fa-brands fa-osi text-brand group-hover:text-white text-xl transition-colors" aria-hidden="true"></i>
+          </div>
+          <h3 class="text-lg font-semibold text-gray-900 mb-2">Open Source</h3>
+          <p class="text-gray-500 text-sm leading-relaxed">
+            AGPL-3.0 licensed. Every line of code is on GitHub — fully auditable,
+            forkable, and community-driven under the OWASP BLT umbrella.
+          </p>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ─────────────────────────────────────────
+       SCREENSHOTS
+  ───────────────────────────────────────── -->
+  <section id="screenshots" class="py-24 bg-gray-50">
+    <div class="mx-auto max-w-6xl px-6">
+      <div class="text-center mb-16">
+        <h2 class="text-4xl font-bold text-gray-900">Clean, <span class="text-brand">accessible</span> UI</h2>
+        <p class="mt-4 text-lg text-gray-500 max-w-2xl mx-auto">
+          Four focused screens. Nothing superfluous.
+        </p>
+      </div>
+
+      <!-- Screenshot row -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 items-end justify-items-center">
+
+        <!-- Screenshot 1 – Dashboard -->
+        <figure class="flex flex-col items-center gap-4">
+          <div class="phone-shadow w-40 lg:w-48">
+            <svg viewBox="0 0 200 400" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Dashboard screen">
+              <rect width="200" height="400" rx="28" fill="#1F2937"/>
+              <rect x="6" y="6" width="188" height="388" rx="23" fill="#111827"/>
+              <rect x="64" y="12" width="72" height="18" rx="9" fill="#1F2937"/>
+              <!-- App bar -->
+              <rect x="6" y="32" width="188" height="36" fill="#1F2937"/>
+              <text x="18" y="55" fill="#F9FAFB" font-size="11" font-weight="700" font-family="Inter,sans-serif">Vanish</text>
+              <!-- Welcome card -->
+              <rect x="12" y="76" width="176" height="62" rx="10" fill="#374151"/>
+              <circle cx="34" cy="101" r="12" fill="#4B5563"/>
+              <text x="34" y="106" fill="#E10101" font-size="13" text-anchor="middle">🛡</text>
+              <text x="54" y="96" fill="#F9FAFB" font-size="8.5" font-weight="600" font-family="Inter,sans-serif">Welcome to Vanish</text>
+              <text x="54" y="108" fill="#9CA3AF" font-size="7" font-family="Inter,sans-serif">Your privacy, your control</text>
+              <rect x="18" y="124" width="164" height="8" rx="4" fill="#065F46" opacity="0.7"/>
+              <text x="100" y="131" fill="#6EE7B7" font-size="6" text-anchor="middle" font-family="Inter,sans-serif">🔒  Encrypted on device</text>
+              <!-- Stats -->
+              <rect x="12" y="148" width="176" height="66" rx="10" fill="#374151"/>
+              <text x="100" y="163" fill="#F9FAFB" font-size="8" font-weight="600" text-anchor="middle" font-family="Inter,sans-serif">Privacy Progress</text>
+              <circle cx="44" cy="188" r="12" fill="#1D4ED820"/>
+              <text x="44" y="193" fill="#60A5FA" font-size="11" font-weight="700" text-anchor="middle" font-family="Inter,sans-serif">12</text>
+              <text x="44" y="204" fill="#9CA3AF" font-size="5.5" text-anchor="middle" font-family="Inter,sans-serif">Total</text>
+              <circle cx="100" cy="188" r="12" fill="#14532D20"/>
+              <text x="100" y="193" fill="#4ADE80" font-size="11" font-weight="700" text-anchor="middle" font-family="Inter,sans-serif">8</text>
+              <text x="100" y="204" fill="#9CA3AF" font-size="5.5" text-anchor="middle" font-family="Inter,sans-serif">Done</text>
+              <circle cx="156" cy="188" r="12" fill="#78350F20"/>
+              <text x="156" y="193" fill="#FBBF24" font-size="11" font-weight="700" text-anchor="middle" font-family="Inter,sans-serif">4</text>
+              <text x="156" y="204" fill="#9CA3AF" font-size="5.5" text-anchor="middle" font-family="Inter,sans-serif">Pending</text>
+              <!-- Bottom nav -->
+              <rect x="6" y="354" width="188" height="40" fill="#1F2937"/>
+              <rect x="6" y="354" width="188" height="1.5" fill="#374151"/>
+              <text x="30" y="371" fill="#E10101" font-size="9" text-anchor="middle">⊞</text>
+              <text x="30" y="382" fill="#E10101" font-size="5" text-anchor="middle">Dashboard</text>
+              <text x="74" y="371" fill="#6B7280" font-size="9" text-anchor="middle">🏢</text>
+              <text x="74" y="382" fill="#6B7280" font-size="5" text-anchor="middle">Brokers</text>
+              <text x="126" y="371" fill="#6B7280" font-size="9" text-anchor="middle">📋</text>
+              <text x="126" y="382" fill="#6B7280" font-size="5" text-anchor="middle">Requests</text>
+              <text x="170" y="371" fill="#6B7280" font-size="9" text-anchor="middle">👤</text>
+              <text x="170" y="382" fill="#6B7280" font-size="5" text-anchor="middle">Profile</text>
+              <!-- Home bar -->
+              <rect x="72" y="390" width="56" height="3" rx="1.5" fill="#4B5563"/>
+            </svg>
+          </div>
+          <figcaption class="text-sm font-medium text-gray-600 text-center">Dashboard</figcaption>
+        </figure>
+
+        <!-- Screenshot 2 – Brokers -->
+        <figure class="flex flex-col items-center gap-4">
+          <div class="phone-shadow w-40 lg:w-48">
+            <svg viewBox="0 0 200 400" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Brokers search screen">
+              <rect width="200" height="400" rx="28" fill="#1F2937"/>
+              <rect x="6" y="6" width="188" height="388" rx="23" fill="#111827"/>
+              <rect x="64" y="12" width="72" height="18" rx="9" fill="#1F2937"/>
+              <!-- App bar -->
+              <rect x="6" y="32" width="188" height="36" fill="#1F2937"/>
+              <text x="18" y="55" fill="#F9FAFB" font-size="11" font-weight="700" font-family="Inter,sans-serif">Data Brokers</text>
+              <!-- Search bar -->
+              <rect x="12" y="76" width="176" height="30" rx="8" fill="#374151"/>
+              <text x="26" y="96" fill="#9CA3AF" font-size="10">🔍</text>
+              <text x="46" y="96" fill="#6B7280" font-size="7.5" font-family="Inter,sans-serif">Search data brokers...</text>
+              <!-- Category chips -->
+              <rect x="12" y="114" width="40" height="14" rx="7" fill="#E10101"/>
+              <text x="32" y="124" fill="#FFF" font-size="6" text-anchor="middle" font-family="Inter,sans-serif">All</text>
+              <rect x="58" y="114" width="52" height="14" rx="7" fill="#374151"/>
+              <text x="84" y="124" fill="#9CA3AF" font-size="6" text-anchor="middle" font-family="Inter,sans-serif">People Search</text>
+              <rect x="116" y="114" width="44" height="14" rx="7" fill="#374151"/>
+              <text x="138" y="124" fill="#9CA3AF" font-size="6" text-anchor="middle" font-family="Inter,sans-serif">Marketing</text>
+              <!-- Broker cards -->
+              <rect x="12" y="136" width="176" height="54" rx="8" fill="#374151"/>
+              <text x="20" y="152" fill="#F9FAFB" font-size="9" font-weight="600" font-family="Inter,sans-serif">Spokeo</text>
+              <text x="20" y="164" fill="#9CA3AF" font-size="6.5" font-family="Inter,sans-serif">People Search</text>
+              <text x="20" y="178" fill="#6B7280" font-size="6" font-family="Inter,sans-serif">Aggregates public records, social media...</text>
+              <rect x="20" y="182" width="52" height="12" rx="6" fill="#1D4ED820"/>
+              <text x="46" y="191" fill="#93C5FD" font-size="6" text-anchor="middle" font-family="Inter,sans-serif">Web Form</text>
+
+              <rect x="12" y="198" width="176" height="54" rx="8" fill="#374151"/>
+              <text x="20" y="214" fill="#F9FAFB" font-size="9" font-weight="600" font-family="Inter,sans-serif">BeenVerified</text>
+              <text x="20" y="226" fill="#9CA3AF" font-size="6.5" font-family="Inter,sans-serif">Background Check</text>
+              <text x="20" y="240" fill="#6B7280" font-size="6" font-family="Inter,sans-serif">Provides background reports on individuals...</text>
+              <rect x="20" y="244" width="52" height="12" rx="6" fill="#14532D20"/>
+              <text x="46" y="253" fill="#4ADE80" font-size="6" text-anchor="middle" font-family="Inter,sans-serif">~30 days</text>
+
+              <rect x="12" y="260" width="176" height="54" rx="8" fill="#374151"/>
+              <text x="20" y="276" fill="#F9FAFB" font-size="9" font-weight="600" font-family="Inter,sans-serif">Whitepages</text>
+              <text x="20" y="288" fill="#9CA3AF" font-size="6.5" font-family="Inter,sans-serif">People Search</text>
+              <text x="20" y="302" fill="#6B7280" font-size="6" font-family="Inter,sans-serif">Phone, address, &amp; person lookups...</text>
+              <rect x="20" y="306" width="52" height="12" rx="6" fill="#1D4ED820"/>
+              <text x="46" y="315" fill="#93C5FD" font-size="6" text-anchor="middle" font-family="Inter,sans-serif">Email</text>
+              <!-- Bottom nav -->
+              <rect x="6" y="354" width="188" height="40" fill="#1F2937"/>
+              <rect x="6" y="354" width="188" height="1.5" fill="#374151"/>
+              <text x="30" y="371" fill="#6B7280" font-size="9" text-anchor="middle">⊞</text>
+              <text x="74" y="371" fill="#E10101" font-size="9" text-anchor="middle">🏢</text>
+              <text x="74" y="382" fill="#E10101" font-size="5" text-anchor="middle">Brokers</text>
+              <text x="126" y="371" fill="#6B7280" font-size="9" text-anchor="middle">📋</text>
+              <text x="170" y="371" fill="#6B7280" font-size="9" text-anchor="middle">👤</text>
+              <rect x="72" y="390" width="56" height="3" rx="1.5" fill="#4B5563"/>
+            </svg>
+          </div>
+          <figcaption class="text-sm font-medium text-gray-600 text-center">Broker Directory</figcaption>
+        </figure>
+
+        <!-- Screenshot 3 – Requests -->
+        <figure class="flex flex-col items-center gap-4">
+          <div class="phone-shadow w-40 lg:w-48">
+            <svg viewBox="0 0 200 400" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Opt-out requests screen">
+              <rect width="200" height="400" rx="28" fill="#1F2937"/>
+              <rect x="6" y="6" width="188" height="388" rx="23" fill="#111827"/>
+              <rect x="64" y="12" width="72" height="18" rx="9" fill="#1F2937"/>
+              <!-- App bar -->
+              <rect x="6" y="32" width="188" height="36" fill="#1F2937"/>
+              <text x="18" y="55" fill="#F9FAFB" font-size="11" font-weight="700" font-family="Inter,sans-serif">Opt-Out Requests</text>
+              <!-- Request cards -->
+              <rect x="12" y="76" width="176" height="60" rx="8" fill="#374151"/>
+              <rect x="20" y="84" width="6" height="6" rx="3" fill="#4ADE80"/>
+              <text x="34" y="92" fill="#F9FAFB" font-size="8.5" font-weight="600" font-family="Inter,sans-serif">Spokeo</text>
+              <text x="34" y="104" fill="#9CA3AF" font-size="6.5" font-family="Inter,sans-serif">Submitted Jan 5, 2025</text>
+              <rect x="20" y="112" width="56" height="14" rx="7" fill="#14532D"/>
+              <text x="48" y="122" fill="#4ADE80" font-size="6.5" text-anchor="middle" font-family="Inter,sans-serif">✓ Completed</text>
+
+              <rect x="12" y="144" width="176" height="60" rx="8" fill="#374151"/>
+              <rect x="20" y="152" width="6" height="6" rx="3" fill="#FBBF24"/>
+              <text x="34" y="160" fill="#F9FAFB" font-size="8.5" font-weight="600" font-family="Inter,sans-serif">BeenVerified</text>
+              <text x="34" y="172" fill="#9CA3AF" font-size="6.5" font-family="Inter,sans-serif">Submitted Feb 12, 2025</text>
+              <rect x="20" y="180" width="48" height="14" rx="7" fill="#78350F"/>
+              <text x="44" y="190" fill="#FBBF24" font-size="6.5" text-anchor="middle" font-family="Inter,sans-serif">⏳ Pending</text>
+
+              <rect x="12" y="212" width="176" height="60" rx="8" fill="#374151"/>
+              <rect x="20" y="220" width="6" height="6" rx="3" fill="#60A5FA"/>
+              <text x="34" y="228" fill="#F9FAFB" font-size="8.5" font-weight="600" font-family="Inter,sans-serif">Whitepages</text>
+              <text x="34" y="240" fill="#9CA3AF" font-size="6.5" font-family="Inter,sans-serif">Submitted Feb 20, 2025</text>
+              <rect x="20" y="248" width="56" height="14" rx="7" fill="#1E3A5F"/>
+              <text x="48" y="258" fill="#60A5FA" font-size="6.5" text-anchor="middle" font-family="Inter,sans-serif">📤 Submitted</text>
+
+              <rect x="12" y="280" width="176" height="60" rx="8" fill="#374151"/>
+              <rect x="20" y="288" width="6" height="6" rx="3" fill="#4ADE80"/>
+              <text x="34" y="296" fill="#F9FAFB" font-size="8.5" font-weight="600" font-family="Inter,sans-serif">Intelius</text>
+              <text x="34" y="308" fill="#9CA3AF" font-size="6.5" font-family="Inter,sans-serif">Submitted Jan 28, 2025</text>
+              <rect x="20" y="316" width="56" height="14" rx="7" fill="#14532D"/>
+              <text x="48" y="326" fill="#4ADE80" font-size="6.5" text-anchor="middle" font-family="Inter,sans-serif">✓ Completed</text>
+              <!-- Bottom nav -->
+              <rect x="6" y="354" width="188" height="40" fill="#1F2937"/>
+              <rect x="6" y="354" width="188" height="1.5" fill="#374151"/>
+              <text x="30" y="371" fill="#6B7280" font-size="9" text-anchor="middle">⊞</text>
+              <text x="74" y="371" fill="#6B7280" font-size="9" text-anchor="middle">🏢</text>
+              <text x="126" y="371" fill="#E10101" font-size="9" text-anchor="middle">📋</text>
+              <text x="126" y="382" fill="#E10101" font-size="5" text-anchor="middle">Requests</text>
+              <text x="170" y="371" fill="#6B7280" font-size="9" text-anchor="middle">👤</text>
+              <rect x="72" y="390" width="56" height="3" rx="1.5" fill="#4B5563"/>
+            </svg>
+          </div>
+          <figcaption class="text-sm font-medium text-gray-600 text-center">Request Tracking</figcaption>
+        </figure>
+
+        <!-- Screenshot 4 – Profile -->
+        <figure class="flex flex-col items-center gap-4">
+          <div class="phone-shadow w-40 lg:w-48">
+            <svg viewBox="0 0 200 400" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="User profile screen">
+              <rect width="200" height="400" rx="28" fill="#1F2937"/>
+              <rect x="6" y="6" width="188" height="388" rx="23" fill="#111827"/>
+              <rect x="64" y="12" width="72" height="18" rx="9" fill="#1F2937"/>
+              <!-- App bar -->
+              <rect x="6" y="32" width="188" height="36" fill="#1F2937"/>
+              <text x="18" y="55" fill="#F9FAFB" font-size="11" font-weight="700" font-family="Inter,sans-serif">Profile</text>
+              <!-- Avatar card -->
+              <rect x="12" y="76" width="176" height="90" rx="10" fill="#374151"/>
+              <circle cx="100" cy="106" r="24" fill="#4B5563"/>
+              <text x="100" y="113" fill="#F9FAFB" font-size="18" text-anchor="middle" font-family="Inter,sans-serif" font-weight="700">JD</text>
+              <text x="100" y="140" fill="#F9FAFB" font-size="10" text-anchor="middle" font-weight="600" font-family="Inter,sans-serif">Jane Doe</text>
+              <rect x="62" y="148" width="76" height="12" rx="6" fill="#065F46"/>
+              <text x="100" y="157" fill="#6EE7B7" font-size="6" text-anchor="middle" font-family="Inter,sans-serif">🔒  Encrypted on device</text>
+              <!-- Contact info card -->
+              <rect x="12" y="176" width="176" height="80" rx="10" fill="#374151"/>
+              <text x="20" y="193" fill="#F9FAFB" font-size="9" font-weight="600" font-family="Inter,sans-serif">Contact Information</text>
+              <text x="28" y="210" fill="#9CA3AF" font-size="7" font-family="Inter,sans-serif">✉️  jane.doe@example.com</text>
+              <rect x="20" y="215" width="160" height="0.5" fill="#4B5563"/>
+              <text x="28" y="228" fill="#9CA3AF" font-size="7" font-family="Inter,sans-serif">📞  +1 (555) 000-1234</text>
+              <rect x="20" y="233" width="160" height="0.5" fill="#4B5563"/>
+              <text x="28" y="246" fill="#9CA3AF" font-size="7" font-family="Inter,sans-serif">📍  123 Main St, Springfield, IL</text>
+              <!-- Note card -->
+              <rect x="12" y="268" width="176" height="44" rx="10" fill="#78350F" opacity="0.35"/>
+              <text x="20" y="285" fill="#FCD34D" font-size="8" font-weight="600" font-family="Inter,sans-serif">ℹ️  Privacy Notice</text>
+              <text x="20" y="297" fill="#D1D5DB" font-size="6" font-family="Inter,sans-serif">This info stays on your device only.</text>
+              <text x="20" y="307" fill="#D1D5DB" font-size="6" font-family="Inter,sans-serif">It is never sent to any server.</text>
+              <!-- FAB -->
+              <circle cx="168" cy="340" r="18" fill="#E10101"/>
+              <text x="168" y="346" fill="#FFF" font-size="14" text-anchor="middle">✏️</text>
+              <!-- Bottom nav -->
+              <rect x="6" y="354" width="188" height="40" fill="#1F2937"/>
+              <rect x="6" y="354" width="188" height="1.5" fill="#374151"/>
+              <text x="30" y="371" fill="#6B7280" font-size="9" text-anchor="middle">⊞</text>
+              <text x="74" y="371" fill="#6B7280" font-size="9" text-anchor="middle">🏢</text>
+              <text x="126" y="371" fill="#6B7280" font-size="9" text-anchor="middle">📋</text>
+              <text x="170" y="371" fill="#E10101" font-size="9" text-anchor="middle">👤</text>
+              <text x="170" y="382" fill="#E10101" font-size="5" text-anchor="middle">Profile</text>
+              <rect x="72" y="390" width="56" height="3" rx="1.5" fill="#4B5563"/>
+            </svg>
+          </div>
+          <figcaption class="text-sm font-medium text-gray-600 text-center">Encrypted Profile</figcaption>
+        </figure>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ─────────────────────────────────────────
+       HOW IT WORKS
+  ───────────────────────────────────────── -->
+  <section id="how-it-works" class="py-24 bg-white">
+    <div class="mx-auto max-w-6xl px-6">
+      <div class="text-center mb-16">
+        <h2 class="text-4xl font-bold text-gray-900">How it <span class="text-brand">works</span></h2>
+        <p class="mt-4 text-lg text-gray-500 max-w-2xl mx-auto">Three simple steps to start erasing your data from the web.</p>
+      </div>
+
+      <ol class="grid gap-8 md:grid-cols-3" aria-label="How Vanish works">
+
+        <li class="relative flex flex-col items-center text-center">
+          <div class="flex h-16 w-16 items-center justify-center rounded-full bg-brand text-white text-2xl font-extrabold mb-6 shadow-lg" aria-hidden="true">1</div>
+          <!-- Connector line (desktop) -->
+          <div class="hidden md:block absolute top-8 left-[calc(50%+2rem)] right-[-calc(50%-2rem)] h-0.5 bg-[#E5E5E5]" aria-hidden="true"></div>
+          <h3 class="text-lg font-semibold text-gray-900 mb-2">Set Up Your Profile</h3>
+          <p class="text-gray-500 text-sm leading-relaxed max-w-xs">
+            Enter your name, email, phone, and address. Every field is immediately
+            encrypted with AES-256 before it touches storage.
+          </p>
+        </li>
+
+        <li class="relative flex flex-col items-center text-center">
+          <div class="flex h-16 w-16 items-center justify-center rounded-full bg-brand text-white text-2xl font-extrabold mb-6 shadow-lg" aria-hidden="true">2</div>
+          <div class="hidden md:block absolute top-8 left-[calc(50%+2rem)] right-[-calc(50%-2rem)] h-0.5 bg-[#E5E5E5]" aria-hidden="true"></div>
+          <h3 class="text-lg font-semibold text-gray-900 mb-2">Browse Data Brokers</h3>
+          <p class="text-gray-500 text-sm leading-relaxed max-w-xs">
+            Search a curated directory of data brokers — filtered by category, opt-out
+            method, and estimated response time.
+          </p>
+        </li>
+
+        <li class="flex flex-col items-center text-center">
+          <div class="flex h-16 w-16 items-center justify-center rounded-full bg-brand text-white text-2xl font-extrabold mb-6 shadow-lg" aria-hidden="true">3</div>
+          <h3 class="text-lg font-semibold text-gray-900 mb-2">Send &amp; Track Requests</h3>
+          <p class="text-gray-500 text-sm leading-relaxed max-w-xs">
+            Submit opt-out requests and track their status from pending to completed —
+            all from within the app, all stored locally.
+          </p>
+        </li>
+
+      </ol>
+    </div>
+  </section>
+
+
+  <!-- ─────────────────────────────────────────
+       SECURITY DEEP-DIVE
+  ───────────────────────────────────────── -->
+  <section id="security" class="py-24 bg-dark-base text-white">
+    <div class="mx-auto max-w-6xl px-6 grid lg:grid-cols-2 gap-16 items-center">
+
+      <!-- Left: copy -->
+      <div>
+        <span class="inline-flex items-center gap-2 rounded-full border border-red-500/40 bg-red-500/10 px-3 py-1 text-xs font-semibold text-red-400 mb-6">
+          <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+          Security Architecture
+        </span>
+        <h2 class="text-4xl font-bold mb-6">
+          Built <span class="text-brand">security-first</span>,<br/>not security-last
+        </h2>
+        <p class="text-gray-300 mb-10 leading-relaxed">
+          Most apps encrypt data in transit. Vanish encrypts data at rest,
+          at creation, and never transmits it at all. Here's how:
+        </p>
+
+        <ul class="space-y-6" aria-label="Security features">
+          <li class="flex gap-4">
+            <span class="mt-1 flex-shrink-0 flex h-8 w-8 items-center justify-center rounded-lg bg-brand/20">
+              <i class="fa-solid fa-key text-brand text-sm" aria-hidden="true"></i>
+            </span>
+            <div>
+              <p class="font-semibold text-white">Secure Key Storage</p>
+              <p class="text-sm text-gray-400 mt-1">Encryption keys are stored in the platform's trusted enclave — Apple Keychain on iOS/macOS, Android KeyStore on Android.</p>
+            </div>
+          </li>
+          <li class="flex gap-4">
+            <span class="mt-1 flex-shrink-0 flex h-8 w-8 items-center justify-center rounded-lg bg-brand/20">
+              <i class="fa-solid fa-dice text-brand text-sm" aria-hidden="true"></i>
+            </span>
+            <div>
+              <p class="font-semibold text-white">Random IVs per Encryption</p>
+              <p class="text-sm text-gray-400 mt-1">A fresh random initialization vector is generated for every encryption operation, preventing pattern analysis even when values repeat.</p>
+            </div>
+          </li>
+          <li class="flex gap-4">
+            <span class="mt-1 flex-shrink-0 flex h-8 w-8 items-center justify-center rounded-lg bg-brand/20">
+              <i class="fa-solid fa-ban text-brand text-sm" aria-hidden="true"></i>
+            </span>
+            <div>
+              <p class="font-semibold text-white">Zero Telemetry</p>
+              <p class="text-sm text-gray-400 mt-1">No analytics SDKs. No crash reporting that phones home. No feature flags fetched from a server. Nothing.</p>
+            </div>
+          </li>
+          <li class="flex gap-4">
+            <span class="mt-1 flex-shrink-0 flex h-8 w-8 items-center justify-center rounded-lg bg-brand/20">
+              <i class="fa-brands fa-github text-brand text-sm" aria-hidden="true"></i>
+            </span>
+            <div>
+              <p class="font-semibold text-white">Open &amp; Auditable</p>
+              <p class="text-sm text-gray-400 mt-1">Every line of code is on GitHub under AGPL-3.0. Anyone can audit, fork, or contribute.</p>
+            </div>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Right: architecture diagram -->
+      <div class="bg-dark-surface rounded-2xl p-8 border border-gray-700">
+        <h3 class="text-lg font-semibold text-gray-100 mb-6">App Architecture</h3>
+        <div class="font-mono text-sm text-gray-300 leading-7 overflow-x-auto">
+<pre class="whitespace-pre text-xs leading-5 text-gray-400">
+lib/
+├── main.dart              <span class="text-gray-600">← App entry point</span>
+├── models/
+│   ├── broker.dart        <span class="text-gray-600">← Broker data model</span>
+│   ├── user_data.dart     <span class="text-gray-600">← PII (encrypted)</span>
+│   └── opt_out_request.dart
+├── services/
+│   ├── storage_service.dart  <span class="text-brand">← AES-256 storage</span>
+│   └── broker_service.dart   <span class="text-gray-600">← Public data only</span>
+├── screens/
+│   ├── home_screen.dart
+│   ├── brokers_screen.dart
+│   ├── broker_detail_screen.dart
+│   ├── profile_screen.dart
+│   └── requests_screen.dart
+└── widgets/               <span class="text-gray-600">← Reusable UI</span>
+</pre>
+        </div>
+
+        <!-- Stack badges -->
+        <div class="mt-6 flex flex-wrap gap-2">
+          <span class="rounded-md bg-gray-700 px-3 py-1 text-xs font-medium text-gray-200">Flutter 3.x</span>
+          <span class="rounded-md bg-gray-700 px-3 py-1 text-xs font-medium text-gray-200">Dart 3.x</span>
+          <span class="rounded-md bg-gray-700 px-3 py-1 text-xs font-medium text-gray-200">AES-256-CBC</span>
+          <span class="rounded-md bg-gray-700 px-3 py-1 text-xs font-medium text-gray-200">SQLite (sqflite)</span>
+          <span class="rounded-md bg-gray-700 px-3 py-1 text-xs font-medium text-gray-200">Provider</span>
+          <span class="rounded-md bg-brand/20 border border-brand/30 px-3 py-1 text-xs font-medium text-red-300">AGPL-3.0</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ─────────────────────────────────────────
+       GET STARTED
+  ───────────────────────────────────────── -->
+  <section id="get-started" class="py-24 bg-white">
+    <div class="mx-auto max-w-6xl px-6 grid lg:grid-cols-2 gap-16 items-start">
+
+      <!-- Install steps -->
+      <div>
+        <h2 class="text-4xl font-bold text-gray-900 mb-4">Get started <span class="text-brand">in minutes</span></h2>
+        <p class="text-gray-500 mb-10 leading-relaxed">
+          Flutter and Dart are the only prerequisites. Clone the repo and you're running.
+        </p>
+
+        <ol class="space-y-6" aria-label="Installation steps">
+          <li class="flex gap-4">
+            <span class="flex-shrink-0 flex h-8 w-8 items-center justify-center rounded-full bg-red-50 text-brand font-bold text-sm" aria-hidden="true">1</span>
+            <div class="flex-1">
+              <p class="font-semibold text-gray-900 mb-2">Install Flutter ≥ 3.0</p>
+              <a href="https://docs.flutter.dev/get-started/install" target="_blank" rel="noopener noreferrer"
+                 class="text-red-600 text-sm underline brand-underline hover:text-brand-hover transition-colors">
+                flutter.dev/get-started
+                <i class="fa-solid fa-arrow-up-right-from-square ml-1 text-xs" aria-hidden="true"></i>
+              </a>
+            </div>
+          </li>
+
+          <li class="flex gap-4">
+            <span class="flex-shrink-0 flex h-8 w-8 items-center justify-center rounded-full bg-red-50 text-brand font-bold text-sm" aria-hidden="true">2</span>
+            <div class="flex-1">
+              <p class="font-semibold text-gray-900 mb-2">Clone &amp; install dependencies</p>
+              <div class="rounded-lg bg-gray-900 p-4 text-sm font-mono overflow-x-auto">
+                <span class="text-green-400">$</span>
+                <span class="text-gray-100"> git clone https://github.com/OWASP-BLT/BLT-Vanish-Flutter</span><br/>
+                <span class="text-green-400">$</span>
+                <span class="text-gray-100"> cd BLT-Vanish-Flutter &amp;&amp; flutter pub get</span>
+              </div>
+            </div>
+          </li>
+
+          <li class="flex gap-4">
+            <span class="flex-shrink-0 flex h-8 w-8 items-center justify-center rounded-full bg-red-50 text-brand font-bold text-sm" aria-hidden="true">3</span>
+            <div class="flex-1">
+              <p class="font-semibold text-gray-900 mb-2">Generate code &amp; run</p>
+              <div class="rounded-lg bg-gray-900 p-4 text-sm font-mono overflow-x-auto">
+                <span class="text-green-400">$</span>
+                <span class="text-gray-100"> flutter pub run build_runner build</span><br/>
+                <span class="text-green-400">$</span>
+                <span class="text-gray-100"> flutter run</span>
+              </div>
+            </div>
+          </li>
+        </ol>
+      </div>
+
+      <!-- Build targets -->
+      <div>
+        <h3 class="text-xl font-semibold text-gray-900 mb-6">Build for every platform</h3>
+        <div class="space-y-3">
+
+          <div class="flex items-center justify-between rounded-lg border border-[#E5E5E5] px-5 py-4 hover:border-brand/40 transition-colors group">
+            <div class="flex items-center gap-3">
+              <i class="fa-brands fa-android text-green-500 text-xl w-6 text-center" aria-hidden="true"></i>
+              <span class="font-medium text-gray-800">Android</span>
+            </div>
+            <code class="text-xs text-gray-500 bg-gray-100 rounded px-2 py-1 group-hover:bg-red-50 transition-colors">flutter build apk --release</code>
+          </div>
+
+          <div class="flex items-center justify-between rounded-lg border border-[#E5E5E5] px-5 py-4 hover:border-brand/40 transition-colors group">
+            <div class="flex items-center gap-3">
+              <i class="fa-brands fa-apple text-gray-700 text-xl w-6 text-center" aria-hidden="true"></i>
+              <span class="font-medium text-gray-800">iOS</span>
+            </div>
+            <code class="text-xs text-gray-500 bg-gray-100 rounded px-2 py-1 group-hover:bg-red-50 transition-colors">flutter build ios --release</code>
+          </div>
+
+          <div class="flex items-center justify-between rounded-lg border border-[#E5E5E5] px-5 py-4 hover:border-brand/40 transition-colors group">
+            <div class="flex items-center gap-3">
+              <i class="fa-brands fa-apple text-gray-500 text-xl w-6 text-center" aria-hidden="true"></i>
+              <span class="font-medium text-gray-800">macOS</span>
+            </div>
+            <code class="text-xs text-gray-500 bg-gray-100 rounded px-2 py-1 group-hover:bg-red-50 transition-colors">flutter build macos --release</code>
+          </div>
+
+          <div class="flex items-center justify-between rounded-lg border border-[#E5E5E5] px-5 py-4 hover:border-brand/40 transition-colors group">
+            <div class="flex items-center gap-3">
+              <i class="fa-brands fa-windows text-blue-500 text-xl w-6 text-center" aria-hidden="true"></i>
+              <span class="font-medium text-gray-800">Windows</span>
+            </div>
+            <code class="text-xs text-gray-500 bg-gray-100 rounded px-2 py-1 group-hover:bg-red-50 transition-colors">flutter build windows --release</code>
+          </div>
+
+          <div class="flex items-center justify-between rounded-lg border border-[#E5E5E5] px-5 py-4 hover:border-brand/40 transition-colors group">
+            <div class="flex items-center gap-3">
+              <i class="fa-brands fa-linux text-orange-500 text-xl w-6 text-center" aria-hidden="true"></i>
+              <span class="font-medium text-gray-800">Linux</span>
+            </div>
+            <code class="text-xs text-gray-500 bg-gray-100 rounded px-2 py-1 group-hover:bg-red-50 transition-colors">flutter build linux --release</code>
+          </div>
+
+        </div>
+
+        <!-- CI note -->
+        <div class="mt-6 rounded-lg border border-[#E5E5E5] bg-gray-50 px-5 py-4 flex gap-3 items-start">
+          <i class="fa-solid fa-circle-check text-green-500 mt-0.5" aria-hidden="true"></i>
+          <div>
+            <p class="text-sm font-medium text-gray-800">CI/CD on GitHub Actions</p>
+            <p class="text-xs text-gray-500 mt-1">Every push runs formatting checks, static analysis, and unit tests with coverage reporting.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ─────────────────────────────────────────
+       CONTRIBUTING CTA
+  ───────────────────────────────────────── -->
+  <section class="py-20 bg-brand">
+    <div class="mx-auto max-w-4xl px-6 text-center">
+      <i class="fa-brands fa-github text-white/70 text-5xl mb-6 block" aria-hidden="true"></i>
+      <h2 class="text-4xl font-extrabold text-white mb-4">Join the OWASP BLT community</h2>
+      <p class="text-red-100 text-lg mb-10 max-w-2xl mx-auto">
+        Vanish is community-driven. Report issues, suggest brokers to add, or
+        contribute code. Every pull request makes privacy more accessible for everyone.
+      </p>
+      <div class="flex flex-wrap justify-center gap-4">
+        <a
+          href="https://github.com/OWASP-BLT/BLT-Vanish-Flutter"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-2 rounded-md bg-white px-6 py-3 font-semibold text-brand shadow hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-brand"
+        >
+          <i class="fa-brands fa-github" aria-hidden="true"></i>
+          Star on GitHub
+        </a>
+        <a
+          href="https://github.com/OWASP-BLT/BLT-Vanish-Web/blob/main/CONTRIBUTING.md"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-2 rounded-md border-2 border-white px-6 py-3 font-semibold text-white hover:bg-white hover:text-brand transition-colors focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-brand"
+        >
+          <i class="fa-solid fa-code-pull-request" aria-hidden="true"></i>
+          Contributing Guide
+        </a>
+        <a
+          href="https://github.com/OWASP-BLT/BLT-Vanish-Flutter/issues"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-2 rounded-md border-2 border-white px-6 py-3 font-semibold text-white hover:bg-white hover:text-brand transition-colors focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-brand"
+        >
+          <i class="fa-solid fa-bug" aria-hidden="true"></i>
+          Report an Issue
+        </a>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ─────────────────────────────────────────
+       FOOTER
+  ───────────────────────────────────────── -->
+  <footer class="bg-dark-base text-gray-400">
+    <div class="mx-auto max-w-6xl px-6 py-16 grid gap-12 md:grid-cols-4">
+
+      <!-- Brand -->
+      <div class="md:col-span-2">
+        <a href="#" class="flex items-center gap-2 font-bold text-lg text-white mb-4" aria-label="Vanish home">
+          <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-brand">
+            <i class="fa-solid fa-shield-halved text-white text-sm" aria-hidden="true"></i>
+          </span>
+          Vanish
+        </a>
+        <p class="text-sm leading-relaxed max-w-xs">
+          A privacy-first Flutter toolkit for managing and deleting your personal
+          data from data brokers. Built by the OWASP BLT community.
+        </p>
+        <p class="mt-4 text-xs text-gray-600">Licensed under <a href="https://www.gnu.org/licenses/agpl-3.0.en.html" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:underline brand-underline">AGPL-3.0</a></p>
+      </div>
+
+      <!-- Links: Project -->
+      <nav aria-label="Project links">
+        <p class="text-xs font-semibold uppercase tracking-widest text-gray-500 mb-4">Project</p>
+        <ul class="space-y-2 text-sm">
+          <li><a href="https://github.com/OWASP-BLT/BLT-Vanish-Flutter" target="_blank" rel="noopener noreferrer" class="hover:text-white hover:underline brand-underline transition-colors">Source Code</a></li>
+          <li><a href="https://github.com/OWASP-BLT/BLT-Vanish-Flutter/issues" target="_blank" rel="noopener noreferrer" class="hover:text-white hover:underline brand-underline transition-colors">Issues</a></li>
+          <li><a href="https://github.com/OWASP-BLT/BLT-Vanish-Flutter/pulls" target="_blank" rel="noopener noreferrer" class="hover:text-white hover:underline brand-underline transition-colors">Pull Requests</a></li>
+          <li><a href="https://github.com/OWASP-BLT/BLT-Vanish-Web/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener noreferrer" class="hover:text-white hover:underline brand-underline transition-colors">Contributing</a></li>
+          <li><a href="https://github.com/OWASP-BLT/BLT-Vanish-Flutter/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" class="hover:text-white hover:underline brand-underline transition-colors">License</a></li>
+        </ul>
+      </nav>
+
+      <!-- Links: OWASP BLT -->
+      <nav aria-label="OWASP BLT links">
+        <p class="text-xs font-semibold uppercase tracking-widest text-gray-500 mb-4">OWASP BLT</p>
+        <ul class="space-y-2 text-sm">
+          <li><a href="https://www.bugheist.com" target="_blank" rel="noopener noreferrer" class="hover:text-white hover:underline brand-underline transition-colors">BLT Website</a></li>
+          <li><a href="https://owasp.org/www-project-bug-logging-tool/" target="_blank" rel="noopener noreferrer" class="hover:text-white hover:underline brand-underline transition-colors">OWASP Project Page</a></li>
+          <li><a href="https://github.com/OWASP-BLT" target="_blank" rel="noopener noreferrer" class="hover:text-white hover:underline brand-underline transition-colors">GitHub Org</a></li>
+          <li><a href="https://github.com/OWASP-BLT/BLT-Vanish-Web" target="_blank" rel="noopener noreferrer" class="hover:text-white hover:underline brand-underline transition-colors">BLT Vanish Web</a></li>
+        </ul>
+      </nav>
+
+    </div>
+
+    <!-- Bottom bar -->
+    <div class="border-t border-gray-800">
+      <div class="mx-auto max-w-6xl px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-600">
+        <p>© 2025 OWASP BLT Project. All rights reserved.</p>
+        <div class="flex items-center gap-4">
+          <a href="https://github.com/OWASP-BLT" target="_blank" rel="noopener noreferrer" class="hover:text-gray-300 transition-colors" aria-label="OWASP BLT GitHub">
+            <i class="fa-brands fa-github text-base" aria-hidden="true"></i>
+          </a>
+          <a href="https://owasp.org" target="_blank" rel="noopener noreferrer" class="hover:text-gray-300 transition-colors" aria-label="OWASP Foundation">
+            <i class="fa-solid fa-shield text-base" aria-hidden="true"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
