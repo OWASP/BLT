@@ -76,7 +76,7 @@ class _ReportFormState extends ConsumerState<ReportForm> {
   bool showLabel = false;
   List<Tag> _labels = [];
   late List<bool> _labelsState;
-  static const platform = MethodChannel('clipboard_image_channel');
+  static const platform = MethodChannel('com.apps.blt/channel');
   bool _isSnackBarVisible = false;
 
   void showSnackBar(BuildContext context, String message) {

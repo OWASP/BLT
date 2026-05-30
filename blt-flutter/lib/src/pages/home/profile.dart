@@ -30,11 +30,11 @@ class _UserProfileState extends ConsumerState<UserProfile> {
     List<Issue>? issueList = null;
     final client = http.Client();
     try {
-      final IssueData? issueData = await IssueApiClient.getAllIssues(
-        client,
-        IssueEndPoints.issues,
-      );
-      issueList = issueData!.issueList;
+      // final IssueData? issueData = await IssueApiClient.getAllIssues(
+      //   client,
+      //   IssueEndPoints.issues,
+      // );
+      // issueList = issueData!.issueList;
     } catch (e) {}
     return issueList;
   }

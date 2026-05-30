@@ -34,3 +34,4 @@ export 'package:blt/src/pages/contributors_info.dart';
 export 'package:blt/src/pages/drawer/projects.dart';
 export 'package:blt/src/pages/sizzle/sizzle_login.dart';
 export 'package:blt/src/pages/sizzle/sizzle_home.dart';
+export '../pages/spam_call_blocker/blocker_home.dart';

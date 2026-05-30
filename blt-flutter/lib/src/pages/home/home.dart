@@ -424,6 +424,43 @@ class _HomeState extends ConsumerState<Home> {
                   }),
                 ),
               ),
+              ListTile(
+                title: Container(
+                  width: double.infinity,
+                  height: 50,
+                  child: Builder(builder: (context) {
+                    return TextButton(
+                      child: Text(
+                        "Spam Call Blocker",
+                        style: GoogleFonts.ubuntu(
+                          textStyle: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                          ),
+                        ),
+                      ),
+                      style: ButtonStyle(
+                        shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                          RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
+                        ),
+                        backgroundColor: WidgetStateProperty.all(
+                          isDarkMode.isDarkMode
+                              ? Color.fromRGBO(126, 33, 58, 1)
+                              : Color(0xFFDC4654),
+                        ),
+                      ),
+                      onPressed: () async {
+                        Navigator.pushNamed(
+                          context,
+                          RouteManager.spamCallBlockerPage,
+                        );
+                      },
+                    );
+                  }),
+                ),
+              ),
               // Sizzle Button
               ListTile(
                 title: Container(

@@ -23,12 +23,12 @@ class IssueListProvider extends StateNotifier<AsyncValue<List<Issue>?>?> {
   /// when the provider is initialized.
   Future<void> _retrieveIssueList() async {
     try {
-      final IssueData? issueData = await IssueApiClient.getAllIssues(
-        client,
-        IssueEndPoints.issues,
-      );
-      nxtUrl = issueData!.nextQuery;
-      state = AsyncValue.data(issueData.issueList);
+      // final IssueData? issueData = await IssueApiClient.getAllIssues(
+      //   client,
+      //   IssueEndPoints.issues,
+      // );
+      // nxtUrl = issueData!.nextQuery;
+      // state = AsyncValue.data(issueData.issueList);
     } catch (e) {
       AsyncValue.error(e);
     }

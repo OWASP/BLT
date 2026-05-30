@@ -45,11 +45,11 @@ class IssueApiClient {
     http.Response? response;
     Issue? issue;
     try {
-      response = await http.get(Uri.parse(IssueEndPoints.issues + "$id/"));
-      if (response.statusCode == 200) {
-        var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
-        issue = Issue.fromJson(decodedResponse);
-      }
+      // response = await http.get(Uri.parse(IssueEndPoints.issues + "$id/"));
+      // if (response.statusCode == 200) {
+      //   var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
+      //   issue = Issue.fromJson(decodedResponse);
+      // }
     } catch (e) {
       print(e);
     }
@@ -62,21 +62,21 @@ class IssueApiClient {
     IssueData? issueData;
     List<Issue>? issueList;
     try {
-      String searchUrl = IssueEndPoints.issues + "?search=$query";
-      response = await http.get(Uri.parse(searchUrl));
-      if (response.statusCode == 200) {
-        issueList = [];
-        var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
-        decodedResponse["results"].forEach((element) {
-          issueList!.add(Issue.fromJson(element));
-        });
-        issueData = IssueData(
-          count: decodedResponse["count"],
-          nextQuery: decodedResponse["next"],
-          previousQuery: decodedResponse["previous"],
-          issueList: issueList,
-        );
-      }
+      // String searchUrl = IssueEndPoints.issues + "?search=$query";
+      // response = await http.get(Uri.parse(searchUrl));
+      // if (response.statusCode == 200) {
+      //   issueList = [];
+      //   var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
+      //   decodedResponse["results"].forEach((element) {
+      //     issueList!.add(Issue.fromJson(element));
+      //   });
+      //   issueData = IssueData(
+      //     count: decodedResponse["count"],
+      //     nextQuery: decodedResponse["next"],
+      //     previousQuery: decodedResponse["previous"],
+      //     issueList: issueList,
+      //   );
+      // }
     } catch (e) {
       print(e);
     }
@@ -87,54 +87,54 @@ class IssueApiClient {
   static Future<void> postIssue(Issue issue, BuildContext parentContext) async {
     http.Response? response;
     try {
-      var request = http.MultipartRequest(
-        "POST",
-        Uri.parse(IssueEndPoints.issues),
-      );
-      await Future.forEach(
-          issue.screenshotsLink!,
-          (path) async => {
-                request.files
-                    .add(await http.MultipartFile.fromPath("screenshots", path))
-              });
-      var issueMap = issue.toJson();
-      request.headers.addAll({
-        "Content-Type": "multipart/form-data",
-        "user_agent": issue.userAgent!
-      });
-      issue.toJson().forEach((key, value) {
-        request.fields[key] = jsonEncode(value);
-      });
+      // var request = http.MultipartRequest(
+      //   "POST",
+      //   Uri.parse(IssueEndPoints.issues),
+      // );
+      // await Future.forEach(
+      //     issue.screenshotsLink!,
+      //     (path) async => {
+      //           request.files
+      //               .add(await http.MultipartFile.fromPath("screenshots", path))
+      //         });
+      // var issueMap = issue.toJson();
+      // request.headers.addAll({
+      //   "Content-Type": "multipart/form-data",
+      //   "user_agent": issue.userAgent!
+      // });
+      // issue.toJson().forEach((key, value) {
+      //   request.fields[key] = jsonEncode(value);
+      // });
 
-      request.fields["url"] = issueMap["url"];
-      request.fields["status"] = issueMap["status"];
-      request.fields["description"] = issueMap["description"];
+      // request.fields["url"] = issueMap["url"];
+      // request.fields["status"] = issueMap["status"];
+      // request.fields["description"] = issueMap["description"];
 
-      var streamedresponse = await request.send();
-      response = await http.Response.fromStream(streamedresponse);
+      // var streamedresponse = await request.send();
+      // response = await http.Response.fromStream(streamedresponse);
 
-      if (streamedresponse.statusCode == 201 ||
-          streamedresponse.statusCode == 200) {
-        var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
-        issue = Issue.fromJson(decodedResponse);
+      // if (streamedresponse.statusCode == 201 ||
+      //     streamedresponse.statusCode == 200) {
+      //   var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
+      //   issue = Issue.fromJson(decodedResponse);
 
-        SnackBar thankSnack = SnackBar(
-          content: Text("Thanks for reporting the issue!"),
-        );
-        ScaffoldMessenger.of(parentContext).showSnackBar(thankSnack);
+      //   SnackBar thankSnack = SnackBar(
+      //     content: Text("Thanks for reporting the issue!"),
+      //   );
+      //   ScaffoldMessenger.of(parentContext).showSnackBar(thankSnack);
 
-        Navigator.of(parentContext).pushNamed(
-          RouteManager.issueDetailPage,
-          arguments: issue,
-        );
-      } else {
-        ScaffoldMessenger.of(parentContext).clearSnackBars();
-        SnackBar errorSnack = SnackBar(
-          content:
-              Text("There was some error, please try again!" + response.body),
-        );
-        ScaffoldMessenger.of(parentContext).showSnackBar(errorSnack);
-      }
+      //   Navigator.of(parentContext).pushNamed(
+      //     RouteManager.issueDetailPage,
+      //     arguments: issue,
+      //   );
+      // } else {
+      //   ScaffoldMessenger.of(parentContext).clearSnackBars();
+      //   SnackBar errorSnack = SnackBar(
+      //     content:
+      //         Text("There was some error, please try again!" + response.body),
+      //   );
+      //   ScaffoldMessenger.of(parentContext).showSnackBar(errorSnack);
+      // }
     } catch (e) {
       ScaffoldMessenger.of(parentContext).clearSnackBars();
       SnackBar errorSnack = SnackBar(
