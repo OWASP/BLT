@@ -174,9 +174,58 @@ class TestHomepageHandler:
         if hasattr(response, 'body'):
             content = response.body
             assert "getApiKeyHeaders" in content
-            assert "sharedApiKey" in content
             assert "fetch(url, { headers: requestHeaders })" in content
             assert "X-BLT-API-Key" in content
-            assert "Try it requests use this shared key automatically." in content
-            assert "Using the shared BLT API key shown on this page." in content
+            assert "generated API key" in content
+
+    @pytest.mark.asyncio
+    async def test_homepage_contains_auth_ui_forms(self):
+        """Test that homepage exposes signup and signin controls."""
+        request = MockRequest()
+        env = MockEnv()
+
+        response = await handle_homepage(
+            request,
+            env,
+            path_params={},
+            query_params={},
+            path="/"
+        )
+
+        if hasattr(response, 'body'):
+            content = response.body
+            assert "authModalSigninForm" in content
+            assert "authModalSignupForm" in content
+            assert 'href="/auth"' not in content
+            assert "/api/auth/signin" in content
+            assert "/api/auth/signup" in content
+            assert "/api/auth/verify-email" in content
+            assert "/api/auth/verify-local" in content
+            assert "sessionStorage" in content
+            assert "modalLocalDevVerifyForm" in content
+            assert "modalLocalVerifyCode" in content
+            assert "isLocalDevelopment" in content
+            assert "body.dev_otp" not in content
+
+    @pytest.mark.asyncio
+    async def test_homepage_contains_api_key_management_ui(self):
+        """Test that signed-in users can manage generated API keys from homepage."""
+        request = MockRequest()
+        env = MockEnv()
+
+        response = await handle_homepage(
+            request,
+            env,
+            path_params={},
+            query_params={},
+            path="/"
+        )
+
+        if hasattr(response, 'body'):
+            content = response.body
+            assert "apiKeyManager" in content
+            assert "apiKeyCreateForm" in content
+            assert "/api/auth/api-keys" in content
+            assert "Bearer ${token}" in content
+            assert "Using your generated API key." in content
             assert "prompt('Enter BLT API key'" not in content

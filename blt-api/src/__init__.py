@@ -20,7 +20,8 @@ from .handlers import (
     handle_health,
     handle_signup,
     handle_signin,
-    handle_verify_email
+    handle_verify_email,
+    handle_verify_local
 )
 
 __all__ = [
@@ -38,7 +39,8 @@ __all__ = [
     "handle_health",
     "handle_signup",
     "handle_signin",
-    "handle_verify_email"
+    "handle_verify_email",
+    "handle_verify_local"
 ]
 
 __version__ = "1.0.0"

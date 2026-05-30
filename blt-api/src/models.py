@@ -66,6 +66,16 @@ class User(Model):
     table_name = "users"
 
 
+class UserAuthIdentity(Model):
+    """Maps to login/provider identities linked to users."""
+    table_name = "user_auth_identities"
+
+
+class UserApiKey(Model):
+    """Maps to user-owned API keys for programmatic access."""
+    table_name = "user_api_keys"
+
+
 class UserFollow(Model):
     """Maps to the ``user_follows`` junction table (users ↔ users)."""
     table_name = "user_follows"

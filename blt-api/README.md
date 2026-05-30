@@ -128,15 +128,22 @@ uv run pytest tests/test_router.py -v
 | GET | `/` | API homepage with interactive documentation |
 | GET | `/health` | Health check endpoint |
 
-All API endpoints are also available under the versioned `/v2` prefix (for example, `/v2/health`, `/v2/users`, `/v2/auth/signup`).
+Resource API endpoints are also available under the versioned `/v2` prefix (for example, `/v2/health` and `/v2/users`). Authentication APIs use the canonical `/api/auth/*` namespace.
 
 ### Authentication
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/auth/signup` | Register a new user |
-| POST | `/auth/signin` | Sign in and get auth token |
-| GET | `/auth/verify-email` | Verify email address (link from email) |
+| GET | `/auth` | Legacy browser entry that serves the homepage auth modal |
+| POST | `/api/auth/signup` | Register a new user |
+| POST | `/api/auth/signin` | Sign in and get Bearer JWT |
+| GET | `/api/auth/verify-email` | Verify email address as JSON API |
+| POST | `/api/auth/verify-local` | Localhost-only development verification |
+| GET | `/api/auth/api-keys` | List user API keys, Bearer JWT required |
+| POST | `/api/auth/api-keys` | Create a user API key, Bearer JWT required |
+| DELETE | `/api/auth/api-keys/{id}` | Revoke a user API key, Bearer JWT required |
+
+Legacy `/auth/*` and `/v2/auth/*` API paths are still accepted during the namespace migration, but new clients should use `/api/auth/*`.
 
 ### Bugs
 
@@ -563,7 +570,7 @@ BLT-API/
 │   │   └── homepage.py     # Interactive API documentation
 │   ├── services/           # Service modules
 │   │   ├── __init__.py
-│   │   ├── email_service.py      # Email sending (Mailgun)
+│   │   ├── email_service.py      # Email sending (SendGrid)
 │   │   ├── email_templates.py    # Email template renderer
 │   │   └── templates/            # Email HTML templates
 │   │       ├── base.html         # Base email template
@@ -605,55 +612,35 @@ Configure these in `.env.sample` (copy to `.env` for local development) and set 
 |----------|-------------|---------|
 | `BLT_API_BASE_URL` | BLT backend API URL | `https://api.owaspblt.org/v2` |
 | `BLT_WEBSITE_URL` | BLT website URL | `https://owaspblt.org` |
-| `BLT_API_KEY` | Shared static API key required for protected API routes | Required |
+| `BLT_API_KEY` | Optional legacy static API key accepted for compatibility | Optional |
 | `JWT_SECRET` | Secret key for JWT tokens | Required |
 | `USER_DATA_ENCRYPTION_KEY` | Key used to encrypt sensitive user fields | Required for encrypted user data |
 | `USER_DATA_HASH_KEY` | Key used for user-data blind indexes (e.g., email hash) | Required for encrypted user data |
-| `MAILGUN_API_KEY` | Mailgun API key (Private or Sending API key) | Required for email |
-| `MAILGUN_DOMAIN` | Mailgun domain (sandbox or custom domain) | Required for email |
+| `LOCAL_AUTH_OTP` | Localhost-only post-signup verification code that bypasses email delivery | Optional, defaults to `000000` |
+| `SENDGRID_USERNAME` | Optional SendGrid username kept for service compatibility | Optional, defaults to `apikey` |
+| `SENDGRID_API_KEY` | SendGrid API key used by the SendGrid Web API | Required for email |
+| `SENDGRID_PASSWORD` | Backward-compatible alias for `SENDGRID_API_KEY` | Optional |
+| `FROM_EMAIL` | Verified sender address for outgoing email | Required for email |
 
-#### Email Service Setup (Mailgun)
+#### Email Service Setup (SendGrid)
 
-The API uses Mailgun for sending emails (verification, password reset, etc.). You have two options:
-
-**Option 1: Sandbox Domain (Testing Only)**
-- ✅ Free for testing
-- ❌ Can only send to authorized recipients (max 5)
-- ❌ Cannot send to real users
-- Domain format: `sandbox123...mailgun.org`
+The API uses SendGrid Web API v3 for sending emails (verification, password reset, etc.). Configure a verified sender and store the API key in `SENDGRID_API_KEY`. `SENDGRID_PASSWORD` is still accepted as a backward-compatible alias.
 
 ```toml
-MAILGUN_DOMAIN = "sandbox120cc536878b42198d6b4f33b30e2877.mailgun.org"
+SENDGRID_USERNAME = "apikey"
+SENDGRID_API_KEY = "SG.xxxxx"
+FROM_EMAIL = "noreply@yourdomain.com"
 ```
 
-**To authorize test recipients:**
-1. Log in to Mailgun dashboard
-2. Go to **Sending → Authorized Recipients**
-3. Add your test email addresses
-4. Confirm via the email Mailgun sends
+**To set up SendGrid:**
+1. Create or select a SendGrid API key with mail send permission.
+2. Verify a sender identity or authenticated sending domain.
+3. Set `SENDGRID_API_KEY` as a Wrangler secret, or `SENDGRID_PASSWORD` if you are using the legacy variable name.
+4. Set `FROM_EMAIL` to the verified sender address.
 
-**Option 2: Custom Domain (Production)**
-- ✅ Can send to anyone
-- ✅ Professional sender address (e.g., `noreply@yourdomain.com`)
-- Requires domain verification (DNS setup)
-- Domain format: `yourdomain.com` or `mg.yourdomain.com`
+For production, prefer a restricted API key with only mail send permission.
 
-```toml
-MAILGUN_DOMAIN = "post0.live"  # or "mg.yourdomain.com"
-```
-
-**To set up a custom domain:**
-1. Log in to Mailgun dashboard
-2. Go to **Sending → Domains → Add New Domain**
-3. Enter your domain (e.g., `post0.live`)
-4. Add the DNS records (TXT, MX, CNAME) to your domain registrar
-5. Wait for verification (usually 15-30 minutes)
-
-**API Keys:**
-- **Private API Key**: Full access to all Mailgun operations (use for development)
-- **Sending API Key**: Restricted to only sending messages (recommended for production)
-
-Both keys work the same way. Generate **Sending API Key** in Mailgun dashboard → Settings → API Keys → Create New Sending Key
+User signup sends a 24-hour email verification link through this service.
 
 ## Deployment
 
@@ -716,20 +703,43 @@ wrangler deploy --no-build
 
 ## Authentication
 
-Protected endpoints require the shared BLT API key in the `X-BLT-API-Key` request header. Keep user auth separate: routes that need a signed-in user can still use the existing `Authorization` token header in addition to the shared key.
+BLT-API uses two credentials:
 
-```bash
-curl -H "X-BLT-API-Key: f5537412b459790f9fa1cc47b862b9c7016471957178dc9b161d59355b6fd051" https://your-worker.workers.dev/bugs
-```
+- JWT Bearer tokens for signed-in browser/UI sessions.
+- User-owned API keys for programmatic access through `X-BLT-API-Key`.
 
-For endpoints that also require a user token:
+Open `/` in a browser and use the auth modal to sign up, sign in, verify email links, and create user-owned `X-BLT-API-Key` values. The legacy `/auth` route serves the same homepage modal experience for existing email links.
+
+For local development on `localhost`, create the account first. After the local signup request succeeds, the modal asks for the local verification code from `LOCAL_AUTH_OTP`, or `000000` when unset. This shortcut is rejected outside localhost and does not bypass production email verification.
+
+Sign in:
 
 ```bash
 curl \
-  -H "X-BLT-API-Key: f5537412b459790f9fa1cc47b862b9c7016471957178dc9b161d59355b6fd051" \
-  -H "Authorization: Token YOUR_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"identifier":"user@example.com","password":"YourPassword123!"}' \
+  https://your-worker.workers.dev/api/auth/signin
+```
+
+Create a user-owned API key with the returned Bearer token:
+
+```bash
+curl \
+  -H "Authorization: Bearer YOUR_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"local dev"}' \
+  https://your-worker.workers.dev/api/auth/api-keys
+```
+
+Use that API key for programmatic requests:
+
+```bash
+curl \
+  -H "X-BLT-API-Key: blt_live_xxxxx" \
   https://your-worker.workers.dev/bugs
 ```
+
+The legacy static `BLT_API_KEY` remains accepted during migration, but new users should create account-owned API keys.
 
 ## Rate Limiting
 
