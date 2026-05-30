@@ -2,6 +2,28 @@
 
 Static BLT design system for light/dark mode, logos, colors, typography, and copy-paste component patterns.
 
+## Cloudflare Pages
+
+This repository is configured as a static Cloudflare Pages site. The deployable
+site lives in the repository root, so no build step or generated output folder
+is needed.
+
+For a Git-connected Pages project, use:
+
+- Build command: leave blank
+- Build output directory: `.`
+- Root directory: leave blank
+
+To preview or deploy with Wrangler:
+
+```bash
+npx wrangler pages dev
+npx wrangler pages deploy
+```
+
+The custom domain is recorded in `CNAME` as `design.owaspblt.org`. Add the same
+domain in the Cloudflare Pages dashboard after creating the project.
+
 ## Preview
 
 Serve the folder with any local static server, then open `index.html`. The guide is static HTML with Tailwind CDN, Font Awesome CDN, and local shared assets.
