@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Badges | BLT Design Guide</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Manrope', 'system-ui', 'sans-serif'] } } } };</script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <script src="../assets/js/theme.js"></script>
+    <link rel="stylesheet" href="../assets/css/blt-design.css" />
+  </head>
+  <body class="min-h-screen font-sans text-slate-900 antialiased">
+    <div class="min-h-screen lg:grid lg:grid-cols-[18.5rem_minmax(0,1fr)]">
+      <aside id="sidebar-root" data-include="../partials/sidebar.html" class="lg:sticky lg:top-0 lg:h-screen"></aside>
+      <main class="blt-page-main px-4 py-8 sm:px-8 lg:px-10">
+        <header class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <span class="blt-badge"><i class="fa-solid fa-certificate" aria-hidden="true"></i> Components</span>
+            <h1 class="mt-4 text-3xl font-extrabold tracking-tight sm:text-4xl">Badges</h1>
+            <p class="mt-2 max-w-2xl text-sm leading-7 text-slate-600 sm:text-base">Small status labels for reports, cloud resources, contributor state, and severity.</p>
+          </div>
+          <button class="blt-theme-toggle self-start" type="button" data-theme-toggle>
+            <i class="fa-solid fa-moon theme-icon-light" aria-hidden="true"></i>
+            <i class="fa-solid fa-sun theme-icon-dark" aria-hidden="true"></i>
+            <span data-theme-label>Dark</span>
+          </button>
+        </header>
+
+        <section class="blt-card p-5">
+          <div class="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
+            <div>
+              <h2 class="text-xl font-extrabold tracking-tight">Status Set</h2>
+              <p class="mt-2 text-sm leading-6 text-slate-600">Use soft backgrounds, visible borders, and short labels that scan well in tables.</p>
+            </div>
+            <div class="flex flex-wrap gap-2 rounded-xl border border-slate-200 bg-white p-4">
+              <span class="blt-status-badge blt-status-success"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> Verified</span>
+              <span class="blt-status-badge blt-status-warning"><i class="fa-solid fa-clock" aria-hidden="true"></i> Pending</span>
+              <span class="blt-status-badge blt-status-danger"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Critical</span>
+              <span class="blt-status-badge blt-status-muted"><i class="fa-solid fa-box-archive" aria-hidden="true"></i> Archived</span>
+            </div>
+          </div>
+          <pre class="mt-4 overflow-x-auto rounded-lg border border-slate-700 bg-slate-900 p-3 text-xs text-slate-200"><code>&lt;span class="blt-status-badge blt-status-danger"&gt;
+  &lt;i class="fa-solid fa-triangle-exclamation" aria-hidden="true"&gt;&lt;/i&gt; Critical
+&lt;/span&gt;</code></pre>
+        </section>
+
+        <section class="mt-5 grid gap-4 md:grid-cols-2">
+          <article class="blt-card p-5">
+            <h2 class="text-lg font-extrabold tracking-tight">Module Chips</h2>
+            <div class="mt-4 flex flex-wrap gap-2">
+              <span class="blt-badge"><i class="fa-solid fa-key" aria-hidden="true"></i> BLT Auth</span>
+              <span class="blt-badge"><i class="fa-solid fa-cloud" aria-hidden="true"></i> Cloud</span>
+              <span class="blt-badge"><i class="fa-solid fa-bug" aria-hidden="true"></i> Issues</span>
+            </div>
+          </article>
+          <article class="blt-card p-5">
+            <h2 class="text-lg font-extrabold tracking-tight">Compact Labels</h2>
+            <div class="mt-4 flex flex-wrap gap-2">
+              <span class="blt-label">API v2</span>
+              <span class="blt-label">OAuth</span>
+              <span class="blt-label">Cloudflare</span>
+            </div>
+          </article>
+        </section>
+      </main>
+    </div>
+    <script src="../assets/js/include.js" defer></script>
+  </body>
+</html>

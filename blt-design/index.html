@@ -9,47 +9,382 @@
       tailwind.config = {
         theme: {
           extend: {
-            fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+            fontFamily: { sans: ["Manrope", "system-ui", "sans-serif"] },
+            boxShadow: { soft: "0 14px 40px -28px rgba(17,24,39,0.35)" },
           },
         },
       };
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    />
+    <script src="./docs/assets/js/theme.js"></script>
+    <link rel="stylesheet" href="./docs/assets/css/blt-design.css" />
   </head>
-  <body class="min-h-screen bg-gradient-to-b from-slate-50 via-red-50/40 to-white font-sans text-slate-900 antialiased">
+  <body class="min-h-screen font-sans text-slate-900 antialiased">
     <div class="min-h-screen lg:grid lg:grid-cols-[18.5rem_minmax(0,1fr)]">
-      <aside id="sidebar-root" data-include="./docs/partials/sidebar.html" class="lg:sticky lg:top-0 lg:h-screen"></aside>
-      <main class="px-4 py-8 sm:px-8 lg:px-10">
-        <header class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <span class="inline-flex items-center gap-1.5 rounded-full border border-red-600/30 bg-[#feeae9] px-3 py-1 text-xs font-semibold text-red-600"><i class="fa-solid fa-layer-group" aria-hidden="true"></i> BLT Core Style Guide</span>
-            <h1 class="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">BLT Design Guide</h1>
-            <p class="mt-2 max-w-2xl text-sm text-slate-600 sm:text-base">Official BLT-core aligned components and patterns. </p>
+      <aside
+        id="sidebar-root"
+        data-include="./docs/partials/sidebar.html"
+        class="lg:sticky lg:top-0 lg:h-screen"
+      ></aside>
+      <main class="blt-page-main px-4 py-10 sm:px-8 lg:px-12">
+        <!-- Hero -->
+        <header class="mb-12 max-w-2xl">
+          <span class="blt-badge"
+            ><i class="fa-solid fa-layer-group" aria-hidden="true"></i> BLT
+            Design System</span
+          >
+          <h1
+            class="mt-5 text-4xl font-extrabold tracking-tight text-slate-900 lg:text-5xl"
+          >
+            Copy-paste components<br class="hidden sm:block" />
+            for every BLT product.
+          </h1>
+          <p class="mt-4 max-w-xl text-base leading-7 text-slate-500">
+            Official BLT tokens, shell patterns, and components for static
+            pages, docs, dashboards, and product flows. Light and dark mode
+            driven by the same shared theme layer.
+          </p>
+          <div class="mt-7 flex flex-wrap items-center gap-3">
+            <a
+              class="blt-button-primary"
+              href="./docs/foundations/theme-colors.html"
+            >
+              Get started
+              <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+            </a>
+            <a
+              class="blt-button-secondary"
+              href="https://github.com/OWASP-BLT"
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              <i class="fa-brands fa-github" aria-hidden="true"></i> Contribute
+            </a>
+            <button class="blt-theme-toggle" type="button" data-theme-toggle>
+              <i
+                class="fa-solid fa-moon theme-icon-light"
+                aria-hidden="true"
+              ></i>
+              <i class="fa-solid fa-sun theme-icon-dark" aria-hidden="true"></i>
+              <span data-theme-label>Dark</span>
+            </button>
           </div>
-          <a class="inline-flex items-center gap-2 self-start rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50" href="https://github.com/OWASP-BLT" target="_blank" rel="noreferrer noopener"><i class="fa-brands fa-github" aria-hidden="true"></i>Open Contribute Page</a>
         </header>
 
-        <section class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-          <p class="text-sm text-slate-600">Usage-first docs. Every component includes preview + code snippet, and examples are ready for light/dark contexts in product usage.</p>
+        <!-- Stats strip -->
+        <div
+          class="mb-12 flex flex-wrap items-center gap-0 divide-x divide-slate-200"
+        >
+          <div class="pr-8">
+            <p class="text-3xl font-extrabold tracking-tight">14</p>
+            <p
+              class="mt-0.5 text-xs font-medium uppercase tracking-widest text-slate-500"
+            >
+              Component pages
+            </p>
+          </div>
+          <div class="px-8">
+            <p class="text-3xl font-extrabold tracking-tight">2</p>
+            <p
+              class="mt-0.5 text-xs font-medium uppercase tracking-widest text-slate-500"
+            >
+              Theme modes
+            </p>
+          </div>
+          <div class="pl-8">
+            <p class="text-3xl font-extrabold tracking-tight">Manrope</p>
+            <p
+              class="mt-0.5 text-xs font-medium uppercase tracking-widest text-slate-500"
+            >
+              Core typeface
+            </p>
+          </div>
+        </div>
+
+        <!-- Foundations -->
+        <div class="mb-4 flex items-center gap-4">
+          <p
+            class="shrink-0 text-xs font-semibold uppercase tracking-widest text-slate-400"
+          >
+            Foundations
+          </p>
+          <div class="h-px flex-1 bg-slate-100"></div>
+        </div>
+        <section class="mb-12 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          <a
+            class="blt-card group block p-5 transition-all hover:-translate-y-0.5 hover:border-red-600/30"
+            href="./docs/foundations/theme-colors.html"
+          >
+            <div class="flex items-start justify-between">
+              <div
+                class="flex h-9 w-9 items-center justify-center rounded-lg bg-red-50 text-red-600"
+              >
+                <i class="fa-solid fa-palette text-sm" aria-hidden="true"></i>
+              </div>
+              <i
+                class="fa-solid fa-arrow-right text-xs text-slate-300 transition-all group-hover:translate-x-0.5 group-hover:text-red-400"
+                aria-hidden="true"
+              ></i>
+            </div>
+            <h3 class="mt-4 text-sm font-bold tracking-tight">Theme Colors</h3>
+            <p class="mt-1 text-sm leading-6 text-slate-500">
+              Semantic tokens, swatches, and dark border guidance.
+            </p>
+          </a>
+          <a
+            class="blt-card group block p-5 transition-all hover:-translate-y-0.5 hover:border-red-600/30"
+            href="./docs/foundations/typography.html"
+          >
+            <div class="flex items-start justify-between">
+              <div
+                class="flex h-9 w-9 items-center justify-center rounded-lg bg-red-50 text-red-600"
+              >
+                <i class="fa-solid fa-font text-sm" aria-hidden="true"></i>
+              </div>
+              <i
+                class="fa-solid fa-arrow-right text-xs text-slate-300 transition-all group-hover:translate-x-0.5 group-hover:text-red-400"
+                aria-hidden="true"
+              ></i>
+            </div>
+            <h3 class="mt-4 text-sm font-bold tracking-tight">Typography</h3>
+            <p class="mt-1 text-sm leading-6 text-slate-500">
+              Manrope scale, weights, body copy, and code style.
+            </p>
+          </a>
+          <a
+            class="blt-card group block p-5 transition-all hover:-translate-y-0.5 hover:border-red-600/30"
+            href="./docs/foundations/blt-css.html"
+          >
+            <div class="flex items-start justify-between">
+              <div
+                class="flex h-9 w-9 items-center justify-center rounded-lg bg-red-50 text-red-600"
+              >
+                <i class="fa-solid fa-file-code text-sm" aria-hidden="true"></i>
+              </div>
+              <i
+                class="fa-solid fa-arrow-right text-xs text-slate-300 transition-all group-hover:translate-x-0.5 group-hover:text-red-400"
+                aria-hidden="true"
+              ></i>
+            </div>
+            <h3 class="mt-4 text-sm font-bold tracking-tight">CSS Reference</h3>
+            <p class="mt-1 text-sm leading-6 text-slate-500">
+              Copy-paste variables and helper classes.
+            </p>
+          </a>
+          <a
+            class="blt-card group block p-5 transition-all hover:-translate-y-0.5 hover:border-red-600/30"
+            href="./docs/foundations/figma-links.html"
+          >
+            <div class="flex items-start justify-between">
+              <div
+                class="flex h-9 w-9 items-center justify-center rounded-lg bg-red-50 text-red-600"
+              >
+                <i class="fa-brands fa-figma text-sm" aria-hidden="true"></i>
+              </div>
+              <i
+                class="fa-solid fa-arrow-right text-xs text-slate-300 transition-all group-hover:translate-x-0.5 group-hover:text-red-400"
+                aria-hidden="true"
+              ></i>
+            </div>
+            <h3 class="mt-4 text-sm font-bold tracking-tight">Figma Links</h3>
+            <p class="mt-1 text-sm leading-6 text-slate-500">
+              Design file references and handoff points.
+            </p>
+          </a>
+          <a
+            class="blt-card group block p-5 transition-all hover:-translate-y-0.5 hover:border-red-600/30"
+            href="./docs/foundations/ai-prompt.html"
+          >
+            <div class="flex items-start justify-between">
+              <div
+                class="flex h-9 w-9 items-center justify-center rounded-lg bg-red-50 text-red-600"
+              >
+                <i
+                  class="fa-solid fa-wand-magic-sparkles text-sm"
+                  aria-hidden="true"
+                ></i>
+              </div>
+              <i
+                class="fa-solid fa-arrow-right text-xs text-slate-300 transition-all group-hover:translate-x-0.5 group-hover:text-red-400"
+                aria-hidden="true"
+              ></i>
+            </div>
+            <h3 class="mt-4 text-sm font-bold tracking-tight">AI Prompt</h3>
+            <p class="mt-1 text-sm leading-6 text-slate-500">
+              Rules that keep generated BLT UI consistent.
+            </p>
+          </a>
+          <a
+            class="blt-card group block p-5 transition-all hover:-translate-y-0.5 hover:border-red-600/30"
+            href="./docs/logos.html"
+          >
+            <div class="flex items-start justify-between">
+              <div
+                class="flex h-9 w-9 items-center justify-center rounded-lg bg-red-50 text-red-600"
+              >
+                <i class="fa-solid fa-image text-sm" aria-hidden="true"></i>
+              </div>
+              <i
+                class="fa-solid fa-arrow-right text-xs text-slate-300 transition-all group-hover:translate-x-0.5 group-hover:text-red-400"
+                aria-hidden="true"
+              ></i>
+            </div>
+            <h3 class="mt-4 text-sm font-bold tracking-tight">
+              Repository Logos
+            </h3>
+            <p class="mt-1 text-sm leading-6 text-slate-500">
+              Logo containers and usage for BLT products.
+            </p>
+          </a>
         </section>
 
-        <section class="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          <a class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-red-600/30 hover:shadow" href="./docs/foundations/theme-colors.html"><h3 class="text-base font-semibold tracking-tight">Theme Colors</h3><p class="mt-1.5 text-sm text-slate-600">Primary, secondary, neutral, dark palette mappings.</p></a>
-          <a class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-red-600/30 hover:shadow" href="./docs/foundations/typography.html"><h3 class="text-base font-semibold tracking-tight">Typography</h3><p class="mt-1.5 text-sm text-slate-600">Official heading/body text scales and usage.</p></a>
-          <a class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-red-600/30 hover:shadow" href="./docs/foundations/blt-css.html"><h3 class="text-base font-semibold tracking-tight">CSS Reference</h3><p class="mt-1.5 text-sm text-slate-600">Copy-paste core style variables and helpers.</p></a>
-          <a class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-red-600/30 hover:shadow" href="./docs/foundations/figma-links.html"><h3 class="text-base font-semibold tracking-tight">Figma Links</h3><p class="mt-1.5 text-sm text-slate-600">Official design files and key feature nodes.</p></a>
-          <a class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-red-600/30 hover:shadow" href="./docs/foundations/ai-prompt.html"><h3 class="text-base font-semibold tracking-tight">AI Prompt</h3><p class="mt-1.5 text-sm text-slate-600">Prompt that enforces BLT-core style decisions.</p></a>
-          <a class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-red-600/30 hover:shadow" href="./docs/components/navbar.html"><h3 class="text-base font-semibold tracking-tight">Navbar</h3><p class="mt-1.5 text-sm text-slate-600">Full and compact navbar variants.</p></a>
-          <a class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-red-600/30 hover:shadow" href="./docs/components/blt-sidebar.html"><h3 class="text-base font-semibold tracking-tight">BLT Sidebar</h3><p class="mt-1.5 text-sm text-slate-600">Official grouped sidebar pattern.</p></a>
-          <a class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-red-600/30 hover:shadow" href="./docs/components/buttons.html"><h3 class="text-base font-semibold tracking-tight">Buttons</h3><p class="mt-1.5 text-sm text-slate-600">Primary and outline button patterns.</p></a>
-          <a class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-red-600/30 hover:shadow" href="./docs/components/inputs.html"><h3 class="text-base font-semibold tracking-tight">Inputs</h3><p class="mt-1.5 text-sm text-slate-600">Input, textarea, and focus-state standards.</p></a>
-          <a class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-red-600/30 hover:shadow" href="./docs/components/search.html"><h3 class="text-base font-semibold tracking-tight">Search</h3><p class="mt-1.5 text-sm text-slate-600">Search field with icon and BLT focus style.</p></a>
-          <a class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-red-600/30 hover:shadow" href="./docs/components/links.html"><h3 class="text-base font-semibold tracking-tight">Links</h3><p class="mt-1.5 text-sm text-slate-600">Brand links with hover behavior.</p></a>
-          <a class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-red-600/30 hover:shadow" href="./docs/components/card.html"><h3 class="text-base font-semibold tracking-tight">Card</h3><p class="mt-1.5 text-sm text-slate-600">Content card for campaigns and events.</p></a>
-          <a class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-red-600/30 hover:shadow" href="./docs/components/icons.html"><h3 class="text-base font-semibold tracking-tight">Icons</h3><p class="mt-1.5 text-sm text-slate-600">Icon and logo usage patterns.</p></a>
+        <!-- Status + Components -->
+        <div class="mb-4 flex items-center gap-4">
+          <p
+            class="shrink-0 text-xs font-semibold uppercase tracking-widest text-slate-400"
+          >
+            Coverage
+          </p>
+          <div class="h-px flex-1 bg-slate-100"></div>
+        </div>
+        <section class="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+          <article class="blt-card p-6">
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <p
+                  class="text-xs font-semibold uppercase tracking-widest text-slate-400"
+                >
+                  Phase 2 status
+                </p>
+                <h2 class="mt-1.5 text-lg font-extrabold tracking-tight">
+                  Foundation and coverage ready
+                </h2>
+              </div>
+              <span class="blt-badge shrink-0">Complete</span>
+            </div>
+            <ul class="mt-6 grid gap-2 sm:grid-cols-2">
+              <li class="flex items-center gap-2.5 text-sm text-slate-600">
+                <i
+                  class="fa-solid fa-circle-check text-red-500 shrink-0"
+                  aria-hidden="true"
+                ></i
+                >Shared theme CSS
+              </li>
+              <li class="flex items-center gap-2.5 text-sm text-slate-600">
+                <i
+                  class="fa-solid fa-circle-check text-red-500 shrink-0"
+                  aria-hidden="true"
+                ></i
+                >Dark mode toggle
+              </li>
+              <li class="flex items-center gap-2.5 text-sm text-slate-600">
+                <i
+                  class="fa-solid fa-circle-check text-red-500 shrink-0"
+                  aria-hidden="true"
+                ></i
+                >14 component pages
+              </li>
+              <li class="flex items-center gap-2.5 text-sm text-slate-600">
+                <i
+                  class="fa-solid fa-circle-check text-red-500 shrink-0"
+                  aria-hidden="true"
+                ></i
+                >Subdued dark borders
+              </li>
+            </ul>
+          </article>
+
+          <article class="blt-card p-6">
+            <p
+              class="text-xs font-semibold uppercase tracking-widest text-slate-400"
+            >
+              Component pages
+            </p>
+            <h2 class="mt-1.5 text-lg font-extrabold tracking-tight">
+              Full coverage
+            </h2>
+            <div class="mt-5 flex flex-wrap gap-1.5">
+              <a
+                class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-500 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+                href="./docs/components/navbar.html"
+                >Navbar</a
+              >
+              <a
+                class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-500 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+                href="./docs/components/blt-sidebar.html"
+                >Sidebar</a
+              >
+              <a
+                class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-500 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+                href="./docs/components/buttons.html"
+                >Buttons</a
+              >
+              <a
+                class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-500 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+                href="./docs/components/inputs.html"
+                >Inputs</a
+              >
+              <a
+                class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-500 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+                href="./docs/components/search.html"
+                >Search</a
+              >
+              <a
+                class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-500 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+                href="./docs/components/links.html"
+                >Links</a
+              >
+              <a
+                class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-500 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+                href="./docs/components/card.html"
+                >Cards</a
+              >
+              <a
+                class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-500 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+                href="./docs/components/badges.html"
+                >Badges</a
+              >
+              <a
+                class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-500 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+                href="./docs/components/alerts.html"
+                >Alerts</a
+              >
+              <a
+                class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-500 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+                href="./docs/components/tables.html"
+                >Tables</a
+              >
+              <a
+                class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-500 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+                href="./docs/components/tabs.html"
+                >Tabs</a
+              >
+              <a
+                class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-500 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+                href="./docs/components/modals.html"
+                >Modals</a
+              >
+              <a
+                class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-500 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+                href="./docs/components/states.html"
+                >States</a
+              >
+              <a
+                class="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-500 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+                href="./docs/components/icons.html"
+                >Icons</a
+              >
+            </div>
+          </article>
         </section>
       </main>
     </div>

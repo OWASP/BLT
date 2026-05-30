@@ -31,7 +31,7 @@ function normalizePath(path) {
 
 function setActive(link) {
   link.classList.remove('border-transparent', 'text-slate-700');
-  link.classList.add('border-red-600/30', 'bg-[#feeae9]', 'font-semibold', 'text-red-600');
+  link.classList.add('blt-active', 'border-red-600/30', 'bg-[#feeae9]', 'font-semibold', 'text-red-600');
 
   const icon = link.querySelector('i');
   if (icon) {
@@ -134,12 +134,14 @@ async function loadIncludes() {
 
       wireDocLinks(node);
       wireAssets(node);
+      window.BLTTheme?.sync?.();
     } catch (err) {
       node.innerHTML = '<p class="p-4 text-sm text-red-700">Unable to load shared navigation.</p>';
       console.error(err);
     }
   }
   wireAssets(document);
+  window.BLTTheme?.sync?.();
 }
 
 loadIncludes();

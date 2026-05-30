@@ -5,58 +5,69 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AI Prompt | BLT Design Guide</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] } } } };</script>
-    <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Manrope', 'system-ui', 'sans-serif'] } } } };</script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <script src="../assets/js/theme.js"></script>
+    <link rel="stylesheet" href="../assets/css/blt-design.css" />
   </head>
-  <body class="min-h-screen bg-gradient-to-b from-slate-50 via-red-50/40 to-white font-sans text-slate-900 antialiased">
+  <body class="min-h-screen font-sans text-slate-900 antialiased">
     <div class="min-h-screen lg:grid lg:grid-cols-[18.5rem_minmax(0,1fr)]">
       <aside id="sidebar-root" data-include="../partials/sidebar.html" class="lg:sticky lg:top-0 lg:h-screen"></aside>
-      <main class="px-4 py-8 sm:px-8 lg:px-10">
-        <header class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"><div><h1 class="text-3xl font-bold tracking-tight sm:text-4xl">BLT UI Prompt</h1><p class="mt-2 text-sm text-slate-600 sm:text-base">Prompt aligned with official BLT-core style guide and Figma files.</p></div><a class="inline-flex items-center gap-2 self-start rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50" href="https://github.com/OWASP-BLT" target="_blank" rel="noreferrer noopener"><i class="fa-brands fa-github" aria-hidden="true"></i>Contribute</a></header>
-        <section class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"><pre class="overflow-x-auto rounded-lg border border-slate-700 bg-slate-900 p-3 text-xs text-slate-200"><code>You are a senior UI engineer updating BLT-core UI.
+      <main class="blt-page-main px-4 py-8 sm:px-8 lg:px-10">
+        <header class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <span class="blt-badge"><i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i> Foundations</span>
+            <h1 class="mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl">BLT UI Prompt</h1>
+            <p class="mt-2 max-w-2xl text-sm leading-7 text-slate-600 sm:text-base">Use this prompt when asking an AI tool to generate BLT pages or components. It encodes the same foundation used by this guide.</p>
+          </div>
+          <button class="blt-theme-toggle self-start" type="button" data-theme-toggle>
+            <i class="fa-solid fa-moon theme-icon-light" aria-hidden="true"></i>
+            <i class="fa-solid fa-sun theme-icon-dark" aria-hidden="true"></i>
+            <span data-theme-label>Dark</span>
+          </button>
+        </header>
 
-Follow BLT Official Style Guide strictly.
+        <section class="blt-card p-5">
+          <h2 class="text-xl font-extrabold tracking-tight">Canonical prompt</h2>
+          <pre class="mt-4 overflow-x-auto rounded-lg border p-3 text-xs"><code>You are a senior UI engineer creating BLT product UI.
 
-Stack constraints
-- Pure HTML + Tailwind CSS
-- Font Awesome CDN icons
-- No React/framework abstractions
+Use the BLT design system:
+- Static HTML with Tailwind CDN is acceptable.
+- Use Manrope for UI text and JetBrains Mono for code.
+- Primary red is #E10101; hover red is #B91C1C.
+- Light mode uses #F8FAFC background, #FFFFFF surfaces, and subtle #E5E7EB borders.
+- Dark mode uses #111827 background, #1F2937 surfaces, and subdued #2B3546 borders.
+- Persist dark mode with the `blt-theme` localStorage key and a `dark` class on html.
+- Use compact rounded-md or rounded-lg controls; cards may use rounded-xl.
+- Use restrained shadows, clear section bands, and practical component previews.
+- Never use bright white borders in dark mode.
+- Avoid decorative blobs beyond the subtle BLT red hero glow.
+- Include accessible labels for icon buttons and form controls.
 
-Brand tokens
-- Primary: #E10101
-- Primary hover: red-700
-- Outline button: border/text #E10101, hover filled
-- Neutral border: #E5E5E5
-- Dark base: #111827, dark surface: #1F2937
+For each component, provide:
+1. A polished preview.
+2. A copy-paste snippet.
+3. Light and dark mode behavior.
+4. BLT-specific content examples, not generic filler.</code></pre>
+        </section>
 
-Component rules
-- Buttons: include primary + outline variants
-- Inputs: border-gray-400, rounded-md, px-4 py-2, focus:border-red-600, focus:ring-1 focus:ring-red-600
-- Links: text-red-600 + underline on hover
-- Search: input with leading icon and same focus behavior
-- Sidebar: grouped nav, active bg #feeae9, active text #E10101
-- Icons: semantic usage and aria-hidden for decorative icons
-
-Quality bar
-- Clean, modern, practical (no AI slop)
-- Preserve semantics and accessibility
-- Keep code copy-paste friendly
-- Include dark-compatible classes in examples
-
-Reference design files
-- https://www.figma.com/file/s0xuxeU6O2guoWEfA9OElZ/Design
-- https://www.figma.com/file/2lfEZKvqcb4WxRPYEwJqeE/OWASP-BLT
-- https://www.figma.com/file/JE0QlQ95FVpk0wG9HyFw4D/BLT-Website
-
-Output
-1) Updated code
-2) What changed
-3) Reuse notes
-
-Code:
-[PASTE HERE]</code></pre></section>
+        <section class="mt-5 grid gap-4 lg:grid-cols-3">
+          <article class="blt-card p-5">
+            <h3 class="text-base font-bold">Tone</h3>
+            <p class="mt-2 text-sm leading-6 text-slate-600">BLT UI should feel practical, trusted, and contributor-friendly. Use direct labels and useful examples.</p>
+          </article>
+          <article class="blt-card p-5">
+            <h3 class="text-base font-bold">Surfaces</h3>
+            <p class="mt-2 text-sm leading-6 text-slate-600">Prefer full-width sections and compact cards. Avoid nested cards unless the inner element is an actual component preview.</p>
+          </article>
+          <article class="blt-card p-5">
+            <h3 class="text-base font-bold">Dark mode</h3>
+            <p class="mt-2 text-sm leading-6 text-slate-600">Dark mode is not inverted light mode. Use slate backgrounds, softer borders, and red only for intent.</p>
+          </article>
+        </section>
       </main>
     </div>
     <script src="../assets/js/include.js" defer></script>
