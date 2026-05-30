@@ -1,93 +1,218 @@
-# BLT-NetGuardian-Client
+# BLT NetGuardian Client
 
+A Flutter client application for the BLT NetGuardian security platform. This client interfaces with Cloudflare Worker APIs to coordinate security scans, vulnerability detection, and monitoring across Web2, Web3, and smart contract ecosystems.
 
+## Features
 
-## Getting started
+- **Task Queue Management**: Queue and monitor security scanning tasks
+- **Target Registration**: Register and manage scan targets (websites, smart contracts, APIs, repositories)
+- **Agent Result Ingestion**: Receive and process results from various security agents
+- **Job State Management**: Track task states with real-time updates
+- **Task Deduplication**: Automatically prevent duplicate scan tasks
+- **Vulnerability Dashboard**: View and filter discovered vulnerabilities
+- **Multi-Agent Support**: Coordinate Web2 crawlers, Web3 monitors, static analyzers, contract scanners, and volunteer agents
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+## Architecture
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+The client interfaces with the following Cloudflare Worker API endpoints:
 
-## Add your files
+### Task Queue Endpoints
+- `POST /api/tasks/queue` - Queue a new task
+- `GET /api/tasks` - List all tasks (with optional status filter)
+- `GET /api/tasks/:id` - Get specific task details
 
-* [Create](https://docs.gitlab.com/user/project/repository/web_editor/#create-a-file) or [upload](https://docs.gitlab.com/user/project/repository/web_editor/#upload-a-file) files
-* [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+### Target Registration Endpoints
+- `POST /api/targets/register` - Register a new scan target
+- `GET /api/targets` - List all targets (with optional isActive filter)
+- `GET /api/targets/:id` - Get specific target details
+- `DELETE /api/targets/:id` - Deactivate a target
+
+### Agent Result Ingestion Endpoints
+- `POST /api/results/ingest` - Submit agent scan results
+- `GET /api/results` - List all results (with optional taskId filter)
+- `GET /api/results/:id` - Get specific result details
+
+## Project Structure
 
 ```
-cd existing_repo
-git remote add origin https://gitlab.com/owasp-blt/blt-netguardian-client.git
-git branch -M main
-git push -uf origin main
+lib/
+├── models/              # Data models
+│   ├── task.dart       # Task and TaskStatus models
+│   ├── target.dart     # Target and TargetType models
+│   └── agent_result.dart # AgentResult and Vulnerability models
+├── services/           # Business logic layer
+│   ├── api_service.dart      # HTTP API client
+│   ├── task_manager.dart     # Task management with deduplication
+│   ├── target_manager.dart   # Target management
+│   └── result_manager.dart   # Result and vulnerability management
+├── providers/          # State management
+│   ├── app_provider.dart     # App-level state
+│   ├── task_provider.dart    # Task state
+│   ├── target_provider.dart  # Target state
+│   └── result_provider.dart  # Result state
+├── screens/            # UI screens
+│   ├── home_screen.dart      # Main navigation
+│   ├── dashboard_screen.dart # Statistics dashboard
+│   ├── tasks_screen.dart     # Task management
+│   ├── targets_screen.dart   # Target management
+│   └── results_screen.dart   # Results and vulnerabilities
+└── main.dart           # Application entry point
 ```
 
-## Integrate with your tools
+## Getting Started
 
-* [Set up project integrations](https://gitlab.com/owasp-blt/blt-netguardian-client/-/settings/integrations)
+### Prerequisites
 
-## Collaborate with your team
+- Flutter SDK (3.0.0 or later)
+- Dart SDK (3.0.0 or later)
 
-* [Invite team members and collaborators](https://docs.gitlab.com/user/project/members/)
-* [Create a new merge request](https://docs.gitlab.com/user/project/merge_requests/creating_merge_requests/)
-* [Automatically close issues from merge requests](https://docs.gitlab.com/user/project/issues/managing_issues/#closing-issues-automatically)
-* [Enable merge request approvals](https://docs.gitlab.com/user/project/merge_requests/approvals/)
-* [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+### Installation
 
-## Test and Deploy
+1. Clone the repository:
+```bash
+git clone https://github.com/OWASP-BLT/BLT-NetGuardian-Client.git
+cd BLT-NetGuardian-Client
+```
 
-Use the built-in continuous integration in GitLab.
+2. Install dependencies:
+```bash
+flutter pub get
+```
 
-* [Get started with GitLab CI/CD](https://docs.gitlab.com/ci/quick_start/)
-* [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/user/application_security/sast/)
-* [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/topics/autodevops/requirements/)
-* [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/user/clusters/agent/)
-* [Set up protected environments](https://docs.gitlab.com/ci/environments/protected_environments/)
+3. Run the application:
+```bash
+flutter run
+```
 
-***
+### Configuration
 
-# Editing this README
+On first launch, you'll be prompted to configure the API endpoint:
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+1. Enter your Cloudflare Worker API base URL (e.g., `https://api.netguardian.example.com`)
+2. Click "Connect" to initialize the client
 
-## Suggestions for a good README
-
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
-
-## Name
-Choose a self-explaining name for your project.
-
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
-
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
-
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+You can change the API endpoint later via the Settings button in the app bar.
 
 ## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+### Queueing Tasks
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+1. Navigate to the "Tasks" tab
+2. Click the "+" button
+3. Enter task type (e.g., `web2Crawler`, `web3Monitor`, `staticAnalyzer`, `contractScanner`, `volunteerAgent`)
+4. Enter the target URL
+5. Click "Queue"
+
+Tasks are automatically deduplicated based on type, target, and parameters.
+
+### Registering Targets
+
+1. Navigate to the "Targets" tab
+2. Click the "+" button
+3. Enter the target URL
+4. Select the target type (Website, Smart Contract, API, or Repository)
+5. Click "Register"
+
+### Viewing Results
+
+1. Navigate to the "Results" tab
+2. View the "Results" sub-tab for agent scan results
+3. View the "Vulnerabilities" sub-tab for discovered vulnerabilities
+4. Filter by severity, agent type, or task
+
+### Dashboard
+
+The Dashboard tab provides real-time statistics:
+- Task counts by status
+- Target counts by type and status
+- Result counts by processing state
+- Vulnerability counts by severity
+
+## Task Types
+
+The client supports the following task types:
+
+- **web2Crawler**: Traditional web application crawling and scanning
+- **web3Monitor**: Web3/blockchain monitoring and analysis
+- **staticAnalyzer**: Static code analysis
+- **contractScanner**: Smart contract security scanning
+- **volunteerAgent**: Community-contributed security agents
+
+## Task Deduplication
+
+The client automatically prevents duplicate tasks using a hash-based system:
+- Hash is computed from: `type:target:parameters`
+- Duplicate tasks are rejected with `DuplicateTaskException`
+- Cache is maintained locally and synced with the server
+
+## Development
+
+### Running Tests
+
+```bash
+flutter test
+```
+
+### Linting
+
+```bash
+flutter analyze
+```
+
+### Building
+
+For production builds:
+
+```bash
+# Android
+flutter build apk
+
+# iOS
+flutter build ios
+
+# Web
+flutter build web
+
+# Desktop
+flutter build windows
+flutter build macos
+flutter build linux
+```
+
+## Dependencies
+
+- `http`: HTTP client for API communication
+- `provider`: State management
+- `shared_preferences`: Local data persistence
+- `uuid`: Unique identifier generation
+- `intl`: Internationalization support
 
 ## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+Contributions are welcome! Please follow these steps:
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## License
-For open source projects, say how it is licensed.
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Security
+
+This client is part of the OWASP BLT (Bug Logging Tool) project. If you discover a security vulnerability, please report it through the OWASP BLT platform.
+
+## Support
+
+For issues, questions, or contributions, please visit:
+- [GitHub Issues](https://github.com/OWASP-BLT/BLT-NetGuardian-Client/issues)
+- [OWASP BLT Project](https://owasp.org/www-project-bug-logging-tool/)
+
+## Acknowledgments
+
+- OWASP Foundation
+- BLT Community Contributors
+- Flutter and Dart teams

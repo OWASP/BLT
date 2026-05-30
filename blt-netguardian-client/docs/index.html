@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BLT NetGuardian Client – OWASP BLT Security Platform</title>
+  <meta name="description" content="BLT NetGuardian Client – A Flutter app for coordinating security scans, vulnerability detection, and monitoring for the OWASP BLT platform." />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary:           '#E10101',
+            'primary-hover':   '#b91c1c',
+            'neutral-border':  '#E5E5E5',
+            'dark-base':       '#111827',
+            'dark-surface':    '#1F2937',
+          },
+        },
+      },
+    };
+  </script>
+
+  <!-- Font Awesome 6 CDN -->
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+        integrity="sha512-Avb2QiuDEEvB4bZJYdft2mNjVShBftLdPG8FJ0V7irTLQ8Uo0qcPxh4Plq7G5tGm0rU+1SPhVotteLpBERwTkw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <style>
+    /* Code block monospace */
+    .code-block { font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace; }
+
+    /* Tab panels */
+    .tab-panel  { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* Mobile nav */
+    #mobile-menu { display: none; }
+    #mobile-menu.open { display: block; }
+
+    /* Back-to-top */
+    #back-to-top {
+      position: fixed; bottom: 24px; right: 24px;
+      width: 40px; height: 40px;
+      background: #E10101; color: #fff;
+      border-radius: 50%; display: none;
+      align-items: center; justify-content: center;
+      font-size: 1rem; cursor: pointer;
+      box-shadow: 0 4px 12px rgba(225,1,1,0.35);
+      transition: background 0.15s, opacity 0.2s;
+      z-index: 200;
+    }
+    #back-to-top.visible { display: flex; }
+    #back-to-top:hover  { background: #b91c1c; }
+
+    /* Primary button */
+    .btn-primary-blt {
+      background: #E10101; color: #fff;
+      transition: background 0.15s;
+    }
+    .btn-primary-blt:hover { background: #b91c1c; }
+
+    /* Outline button */
+    .btn-outline-blt {
+      border: 2px solid #E10101; color: #E10101;
+      transition: background 0.15s, color 0.15s;
+    }
+    .btn-outline-blt:hover { background: #E10101; color: #fff; }
+
+    /* BLT input style */
+    .input-blt {
+      border: 1px solid #9ca3af; /* border-gray-400 */
+      border-radius: 0.375rem;   /* rounded-md */
+      padding: 0.5rem 1rem;      /* px-4 py-2 */
+      transition: border-color 0.15s, box-shadow 0.15s;
+      outline: none;
+      width: 100%;
+      background: #fff;
+      color: #111827;
+    }
+    .input-blt:focus {
+      border-color: #dc2626; /* red-600 */
+      box-shadow: 0 0 0 1px #dc2626;
+    }
+
+    /* Dark input */
+    @media (prefers-color-scheme: dark) {
+      .input-blt { background: #1F2937; color: #f9fafb; border-color: #6b7280; }
+      .input-blt:focus { border-color: #dc2626; box-shadow: 0 0 0 1px #dc2626; }
+    }
+
+    /* Copy button */
+    .copy-btn {
+      position: absolute; top: 10px; right: 10px;
+      padding: 4px 10px; border-radius: 4px;
+      font-size: 0.72rem; font-weight: 600;
+      background: #374151; color: #9ca3af;
+      cursor: pointer; border: none;
+      transition: background 0.15s, color 0.15s;
+    }
+    .copy-btn:hover  { background: #E10101; color: #fff; }
+    .copy-btn.copied { background: #16a34a; color: #fff; }
+  </style>
+</head>
+<body class="bg-white text-gray-800 antialiased dark:bg-dark-base dark:text-gray-100">
+
+<!-- ═══════════════════════ HEADER / NAV ═══════════════════════ -->
+<header class="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-neutral-border dark:bg-dark-base/95 dark:border-gray-700">
+  <nav class="max-w-6xl mx-auto px-6 flex items-center justify-between h-16" aria-label="Primary navigation">
+    <!-- Brand -->
+    <a href="#" class="flex items-center gap-2 font-bold text-lg text-gray-900 dark:text-white no-underline">
+      <i class="fa-solid fa-shield-halved text-primary text-xl" aria-hidden="true"></i>
+      <span>BLT <span class="text-primary">NetGuardian</span></span>
+    </a>
+
+    <!-- Desktop nav -->
+    <ul class="hidden md:flex items-center gap-6 text-sm font-medium list-none m-0 p-0">
+      <li><a href="#features"     class="text-gray-600 hover:text-primary dark:text-gray-300 dark:hover:text-primary transition-colors">Features</a></li>
+      <li><a href="#screenshot"   class="text-gray-600 hover:text-primary dark:text-gray-300 dark:hover:text-primary transition-colors">Screenshot</a></li>
+      <li><a href="#configure"    class="text-gray-600 hover:text-primary dark:text-gray-300 dark:hover:text-primary transition-colors">Configure</a></li>
+      <li><a href="#architecture" class="text-gray-600 hover:text-primary dark:text-gray-300 dark:hover:text-primary transition-colors">Architecture</a></li>
+      <li><a href="#install"      class="text-gray-600 hover:text-primary dark:text-gray-300 dark:hover:text-primary transition-colors">Install</a></li>
+      <li><a href="#changelog"    class="text-gray-600 hover:text-primary dark:text-gray-300 dark:hover:text-primary transition-colors">Changelog</a></li>
+      <li>
+        <a href="https://github.com/OWASP-BLT/BLT-NetGuardian-Client" target="_blank" rel="noopener"
+           class="inline-flex items-center gap-1.5 text-gray-600 hover:text-primary dark:text-gray-300 dark:hover:text-primary transition-colors">
+          <i class="fa-brands fa-github" aria-hidden="true"></i> GitHub
+        </a>
+      </li>
+    </ul>
+
+    <!-- Mobile hamburger -->
+    <button id="menu-toggle" class="md:hidden text-gray-600 dark:text-gray-300 p-1"
+            aria-label="Toggle menu" aria-expanded="false" aria-controls="mobile-menu">
+      <i id="menu-icon" class="fa-solid fa-bars text-xl" aria-hidden="true"></i>
+    </button>
+  </nav>
+
+  <!-- Mobile menu drawer -->
+  <div id="mobile-menu" class="md:hidden border-t border-neutral-border dark:border-gray-700 bg-white dark:bg-dark-base px-6 py-4" role="navigation" aria-label="Mobile navigation">
+    <ul class="flex flex-col gap-4 text-sm font-medium list-none m-0 p-0">
+      <li><a href="#features"     class="text-gray-600 hover:text-primary dark:text-gray-300 dark:hover:text-primary transition-colors" onclick="closeMobileMenu()">Features</a></li>
+      <li><a href="#screenshot"   class="text-gray-600 hover:text-primary dark:text-gray-300 dark:hover:text-primary transition-colors" onclick="closeMobileMenu()">Screenshot</a></li>
+      <li><a href="#configure"    class="text-gray-600 hover:text-primary dark:text-gray-300 dark:hover:text-primary transition-colors" onclick="closeMobileMenu()">Configure</a></li>
+      <li><a href="#architecture" class="text-gray-600 hover:text-primary dark:text-gray-300 dark:hover:text-primary transition-colors" onclick="closeMobileMenu()">Architecture</a></li>
+      <li><a href="#install"      class="text-gray-600 hover:text-primary dark:text-gray-300 dark:hover:text-primary transition-colors" onclick="closeMobileMenu()">Install</a></li>
+      <li><a href="#changelog"    class="text-gray-600 hover:text-primary dark:text-gray-300 dark:hover:text-primary transition-colors" onclick="closeMobileMenu()">Changelog</a></li>
+      <li>
+        <a href="https://github.com/OWASP-BLT/BLT-NetGuardian-Client" target="_blank" rel="noopener"
+           class="inline-flex items-center gap-1.5 text-gray-600 hover:text-primary dark:text-gray-300 dark:hover:text-primary transition-colors">
+          <i class="fa-brands fa-github" aria-hidden="true"></i> GitHub
+        </a>
+      </li>
+    </ul>
+  </div>
+</header>
+
+<!-- ═══════════════════════ HERO ═══════════════════════ -->
+<section class="relative overflow-hidden bg-gradient-to-br from-white via-red-50 to-white dark:from-dark-base dark:via-dark-surface dark:to-dark-base pt-20 pb-16">
+  <div class="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-primary/10 blur-3xl pointer-events-none" aria-hidden="true"></div>
+  <div class="max-w-6xl mx-auto px-6 text-center relative">
+    <!-- Badges -->
+    <div class="flex flex-wrap justify-center gap-2 mb-6">
+      <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-primary dark:bg-red-900/40 dark:text-red-400">
+        <i class="fa-brands fa-flutter" aria-hidden="true"></i> Flutter · Cross-platform
+      </span>
+      <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400">
+        <i class="fa-solid fa-lock-open" aria-hidden="true"></i> Open Source
+      </span>
+      <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-400">
+        <i class="fa-solid fa-bug" aria-hidden="true"></i> OWASP BLT
+      </span>
+    </div>
+
+    <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight mb-4 text-gray-900 dark:text-white">
+      BLT <span class="text-primary">NetGuardian</span> Client
+    </h1>
+    <p class="text-lg text-gray-500 dark:text-gray-400 max-w-2xl mx-auto mb-8">
+      A Flutter client application for the BLT NetGuardian security platform.
+      Coordinate security scans, track vulnerabilities, and monitor Web2, Web3, and
+      smart-contract targets — all from one unified dashboard.
+    </p>
+
+    <!-- CTAs -->
+    <div class="flex flex-wrap justify-center gap-4 mb-12">
+      <a href="#install"
+         class="btn-primary-blt inline-flex items-center gap-2 px-6 py-3 rounded-md font-semibold text-sm">
+        <i class="fa-solid fa-download" aria-hidden="true"></i> Get Started
+      </a>
+      <a href="https://github.com/OWASP-BLT/BLT-NetGuardian-Client" target="_blank" rel="noopener"
+         class="btn-outline-blt inline-flex items-center gap-2 px-6 py-3 rounded-md font-semibold text-sm">
+        <i class="fa-brands fa-github" aria-hidden="true"></i> View on GitHub
+      </a>
+    </div>
+
+    <!-- Hero stats row -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-3xl mx-auto">
+      <div class="rounded-xl border border-neutral-border dark:border-gray-700 bg-white/80 dark:bg-dark-surface/80 backdrop-blur px-4 py-5">
+        <div class="text-2xl font-extrabold text-primary">6</div>
+        <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">Platforms</div>
+      </div>
+      <div class="rounded-xl border border-neutral-border dark:border-gray-700 bg-white/80 dark:bg-dark-surface/80 backdrop-blur px-4 py-5">
+        <div class="text-2xl font-extrabold text-primary">5</div>
+        <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">Agent Types</div>
+      </div>
+      <div class="rounded-xl border border-neutral-border dark:border-gray-700 bg-white/80 dark:bg-dark-surface/80 backdrop-blur px-4 py-5">
+        <div class="text-2xl font-extrabold text-primary">9</div>
+        <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">API Endpoints</div>
+      </div>
+      <div class="rounded-xl border border-neutral-border dark:border-gray-700 bg-white/80 dark:bg-dark-surface/80 backdrop-blur px-4 py-5">
+        <div class="text-2xl font-extrabold text-primary">MIT</div>
+        <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">License</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ SCREENSHOT ═══════════════════════ -->
+<section id="screenshot" class="py-16 bg-gray-50 dark:bg-dark-surface">
+  <div class="max-w-6xl mx-auto px-6">
+    <h2 class="text-2xl font-bold mb-2 text-gray-900 dark:text-white">Application Screenshot</h2>
+    <p class="text-gray-500 dark:text-gray-400 mb-8 text-sm">A look at BLT NetGuardian Client running on desktop/web.</p>
+    <div class="rounded-2xl overflow-hidden border border-neutral-border dark:border-gray-700 shadow-2xl max-w-4xl mx-auto">
+      <!-- Title bar -->
+      <div class="flex items-center gap-2 px-4 py-3 bg-gray-100 dark:bg-dark-surface border-b border-neutral-border dark:border-gray-700">
+        <span class="w-3 h-3 rounded-full bg-red-500" aria-hidden="true"></span>
+        <span class="w-3 h-3 rounded-full bg-yellow-400" aria-hidden="true"></span>
+        <span class="w-3 h-3 rounded-full bg-green-500" aria-hidden="true"></span>
+        <span class="flex-1 text-center text-xs text-gray-400 dark:text-gray-500">BLT NetGuardian Client</span>
+      </div>
+      <!-- SVG App Mockup -->
+      <svg viewBox="0 0 860 520" xmlns="http://www.w3.org/2000/svg" class="w-full block"
+           role="img" aria-label="BLT NetGuardian Client application dashboard mockup showing sidebar navigation, stat cards, vulnerability table, and task queue">
+        <defs>
+          <linearGradient id="appBg" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#111827"/>
+            <stop offset="100%" stop-color="#1F2937"/>
+          </linearGradient>
+        </defs>
+        <rect width="860" height="520" fill="url(#appBg)"/>
+
+        <!-- Sidebar -->
+        <rect x="0" y="0" width="200" height="520" fill="#1F2937"/>
+        <rect x="0" y="0" width="200" height="56" fill="#111827"/>
+        <polygon points="22,20 14,26 14,36 22,42 30,36 30,26" fill="none" stroke="#E10101" stroke-width="2"/>
+        <text x="40" y="35" fill="#f9fafb" font-family="sans-serif" font-size="13" font-weight="700">NetGuardian</text>
+
+        <!-- Sidebar: Dashboard (active) -->
+        <rect x="8" y="64" width="184" height="36" rx="6" fill="#E10101" opacity="0.12"/>
+        <rect x="8" y="64" width="4" height="36" rx="2" fill="#E10101"/>
+        <text x="46" y="88" fill="#E10101" font-family="sans-serif" font-size="12" font-weight="600">Dashboard</text>
+
+        <!-- Sidebar: Tasks -->
+        <text x="46" y="127" fill="#9ca3af" font-family="sans-serif" font-size="12">Tasks</text>
+        <rect x="150" y="116" width="30" height="14" rx="7" fill="#374151"/>
+        <text x="165" y="127" fill="#9ca3af" font-family="sans-serif" font-size="10" text-anchor="middle">12</text>
+
+        <!-- Sidebar: Targets -->
+        <text x="46" y="163" fill="#9ca3af" font-family="sans-serif" font-size="12">Targets</text>
+
+        <!-- Sidebar: Results -->
+        <text x="46" y="196" fill="#9ca3af" font-family="sans-serif" font-size="12">Results</text>
+
+        <!-- Main content heading -->
+        <text x="224" y="42" fill="#f9fafb" font-family="sans-serif" font-size="18" font-weight="700">Dashboard Overview</text>
+
+        <!-- Search bar (BLT style: leading icon) -->
+        <rect x="580" y="20" width="260" height="30" rx="6" fill="#374151" stroke="#4b5563" stroke-width="1"/>
+        <!-- Magnifying glass: circle + handle -->
+        <circle cx="594" cy="35" r="5" fill="none" stroke="#6b7280" stroke-width="1.5"/>
+        <line x1="598" y1="39" x2="602" y2="43" stroke="#6b7280" stroke-width="1.5" stroke-linecap="round"/>
+        <text x="612" y="39" fill="#6b7280" font-family="sans-serif" font-size="11">Search tasks, targets...</text>
+
+        <!-- Stat card 1: Total Tasks -->
+        <rect x="216" y="60" width="148" height="80" rx="8" fill="#1F2937" stroke="#374151" stroke-width="1"/>
+        <text x="232" y="86" fill="#9ca3af" font-family="sans-serif" font-size="11">Total Tasks</text>
+        <text x="232" y="118" fill="#f9fafb" font-family="sans-serif" font-size="26" font-weight="800">148</text>
+
+        <!-- Stat card 2: Active Scans -->
+        <rect x="374" y="60" width="148" height="80" rx="8" fill="#1F2937" stroke="#374151" stroke-width="1"/>
+        <text x="390" y="86" fill="#9ca3af" font-family="sans-serif" font-size="11">Active Scans</text>
+        <text x="390" y="118" fill="#10b981" font-family="sans-serif" font-size="26" font-weight="800">23</text>
+
+        <!-- Stat card 3: Vulnerabilities -->
+        <rect x="532" y="60" width="148" height="80" rx="8" fill="#1F2937" stroke="#374151" stroke-width="1"/>
+        <text x="548" y="86" fill="#9ca3af" font-family="sans-serif" font-size="11">Vulnerabilities</text>
+        <text x="548" y="118" fill="#E10101" font-family="sans-serif" font-size="26" font-weight="800">47</text>
+
+        <!-- Stat card 4: Targets -->
+        <rect x="690" y="60" width="150" height="80" rx="8" fill="#1F2937" stroke="#374151" stroke-width="1"/>
+        <text x="706" y="86" fill="#9ca3af" font-family="sans-serif" font-size="11">Targets</text>
+        <text x="706" y="118" fill="#f9fafb" font-family="sans-serif" font-size="26" font-weight="800">31</text>
+
+        <!-- Vulnerability table -->
+        <rect x="216" y="156" width="452" height="340" rx="10" fill="#1F2937" stroke="#374151" stroke-width="1"/>
+        <text x="234" y="182" fill="#f9fafb" font-family="sans-serif" font-size="13" font-weight="700">Recent Vulnerabilities</text>
+        <rect x="216" y="192" width="452" height="28" fill="#111827"/>
+        <text x="234" y="211" fill="#6b7280" font-family="sans-serif" font-size="10">SEVERITY</text>
+        <text x="320" y="211" fill="#6b7280" font-family="sans-serif" font-size="10">TARGET</text>
+        <text x="460" y="211" fill="#6b7280" font-family="sans-serif" font-size="10">DESCRIPTION</text>
+        <text x="608" y="211" fill="#6b7280" font-family="sans-serif" font-size="10">STATUS</text>
+
+        <!-- Row 1 -->
+        <rect x="234" y="228" width="56" height="16" rx="8" fill="#fee2e2"/>
+        <text x="262" y="240" fill="#E10101" font-family="sans-serif" font-size="9" text-anchor="middle" font-weight="600">CRITICAL</text>
+        <text x="320" y="240" fill="#d1d5db" font-family="sans-serif" font-size="10">example.com</text>
+        <text x="460" y="240" fill="#d1d5db" font-family="sans-serif" font-size="10">SQL Injection in login</text>
+        <rect x="608" y="228" width="40" height="16" rx="8" fill="#1e3a5f"/>
+        <text x="628" y="240" fill="#60a5fa" font-family="sans-serif" font-size="9" text-anchor="middle">OPEN</text>
+
+        <!-- Row 2 -->
+        <rect x="234" y="256" width="40" height="16" rx="8" fill="#fef3c7"/>
+        <text x="254" y="268" fill="#d97706" font-family="sans-serif" font-size="9" text-anchor="middle" font-weight="600">HIGH</text>
+        <text x="320" y="268" fill="#d1d5db" font-family="sans-serif" font-size="10">api.project.io</text>
+        <text x="460" y="268" fill="#d1d5db" font-family="sans-serif" font-size="10">Broken auth endpoint</text>
+        <rect x="608" y="256" width="56" height="16" rx="8" fill="#1a3a2a"/>
+        <text x="636" y="268" fill="#34d399" font-family="sans-serif" font-size="9" text-anchor="middle">PATCHED</text>
+
+        <!-- Row 3 -->
+        <rect x="234" y="284" width="52" height="16" rx="8" fill="#fef3c7"/>
+        <text x="260" y="296" fill="#d97706" font-family="sans-serif" font-size="9" text-anchor="middle" font-weight="600">MEDIUM</text>
+        <text x="320" y="296" fill="#d1d5db" font-family="sans-serif" font-size="10">0xDeadBeef.eth</text>
+        <text x="460" y="296" fill="#d1d5db" font-family="sans-serif" font-size="10">Reentrancy in withdraw()</text>
+        <rect x="608" y="284" width="40" height="16" rx="8" fill="#1e3a5f"/>
+        <text x="628" y="296" fill="#60a5fa" font-family="sans-serif" font-size="9" text-anchor="middle">OPEN</text>
+
+        <!-- Row 4 -->
+        <rect x="234" y="312" width="34" height="16" rx="8" fill="#dcfce7"/>
+        <text x="251" y="324" fill="#16a34a" font-family="sans-serif" font-size="9" text-anchor="middle" font-weight="600">LOW</text>
+        <text x="320" y="324" fill="#d1d5db" font-family="sans-serif" font-size="10">repo/smart-audit</text>
+        <text x="460" y="324" fill="#d1d5db" font-family="sans-serif" font-size="10">Integer overflow (minor)</text>
+        <rect x="608" y="312" width="56" height="16" rx="8" fill="#1a3a2a"/>
+        <text x="636" y="324" fill="#34d399" font-family="sans-serif" font-size="9" text-anchor="middle">PATCHED</text>
+
+        <!-- Task queue panel -->
+        <rect x="678" y="156" width="162" height="340" rx="10" fill="#1F2937" stroke="#374151" stroke-width="1"/>
+        <text x="694" y="182" fill="#f9fafb" font-family="sans-serif" font-size="12" font-weight="700">Task Queue</text>
+
+        <rect x="686" y="192" width="142" height="44" rx="6" fill="#111827"/>
+        <circle cx="699" cy="214" r="4" fill="#10b981"/>
+        <text x="710" y="210" fill="#d1d5db" font-family="sans-serif" font-size="10">Web crawl</text>
+        <text x="710" y="223" fill="#6b7280" font-family="sans-serif" font-size="9">running · 42%</text>
+        <rect x="710" y="228" width="106" height="4" rx="2" fill="#374151"/>
+        <rect x="710" y="228" width="44" height="4" rx="2" fill="#10b981"/>
+
+        <rect x="686" y="244" width="142" height="44" rx="6" fill="#111827"/>
+        <circle cx="699" cy="266" r="4" fill="#E10101"/>
+        <text x="710" y="262" fill="#d1d5db" font-family="sans-serif" font-size="10">Contract audit</text>
+        <text x="710" y="275" fill="#6b7280" font-family="sans-serif" font-size="9">queued</text>
+
+        <rect x="686" y="296" width="142" height="44" rx="6" fill="#111827"/>
+        <circle cx="699" cy="318" r="4" fill="#f59e0b"/>
+        <text x="710" y="314" fill="#d1d5db" font-family="sans-serif" font-size="10">Static analysis</text>
+        <text x="710" y="327" fill="#6b7280" font-family="sans-serif" font-size="9">running · 79%</text>
+        <rect x="710" y="332" width="106" height="4" rx="2" fill="#374151"/>
+        <rect x="710" y="332" width="84" height="4" rx="2" fill="#f59e0b"/>
+      </svg>
+    </div>
+    <p class="text-center text-xs text-gray-400 mt-3">
+      <i class="fa-solid fa-circle-info mr-1" aria-hidden="true"></i>
+      Application dashboard mockup — Flutter renders identically on iOS, Android, Web, and Desktop.
+    </p>
+  </div>
+</section>
+
+<!-- ═══════════════════════ FEATURES ═══════════════════════ -->
+<section id="features" class="py-16 bg-white dark:bg-dark-base">
+  <div class="max-w-6xl mx-auto px-6">
+    <h2 class="text-2xl font-bold mb-2 text-gray-900 dark:text-white">Features</h2>
+    <p class="text-gray-500 dark:text-gray-400 mb-10 text-sm">Everything you need to orchestrate comprehensive security monitoring.</p>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+
+      <div class="rounded-xl border border-neutral-border dark:border-gray-700 bg-white dark:bg-dark-surface p-6 hover:shadow-md transition-shadow">
+        <div class="w-10 h-10 rounded-lg flex items-center justify-center mb-4" style="background:#feeae9;">
+          <i class="fa-solid fa-list-check text-primary" aria-hidden="true"></i>
+        </div>
+        <h3 class="font-bold mb-1 text-gray-900 dark:text-white">Task Queue Management</h3>
+        <p class="text-sm text-gray-500 dark:text-gray-400">Queue, monitor, and deduplicate security scanning tasks across all agents and target types.</p>
+      </div>
+
+      <div class="rounded-xl border border-neutral-border dark:border-gray-700 bg-white dark:bg-dark-surface p-6 hover:shadow-md transition-shadow">
+        <div class="w-10 h-10 rounded-lg flex items-center justify-center mb-4" style="background:#feeae9;">
+          <i class="fa-solid fa-crosshairs text-primary" aria-hidden="true"></i>
+        </div>
+        <h3 class="font-bold mb-1 text-gray-900 dark:text-white">Target Registration</h3>
+        <p class="text-sm text-gray-500 dark:text-gray-400">Register and manage scan targets: websites, smart contracts, APIs, and code repositories.</p>
+      </div>
+
+      <div class="rounded-xl border border-neutral-border dark:border-gray-700 bg-white dark:bg-dark-surface p-6 hover:shadow-md transition-shadow">
+        <div class="w-10 h-10 rounded-lg flex items-center justify-center mb-4" style="background:#feeae9;">
+          <i class="fa-solid fa-robot text-primary" aria-hidden="true"></i>
+        </div>
+        <h3 class="font-bold mb-1 text-gray-900 dark:text-white">Multi-Agent Support</h3>
+        <p class="text-sm text-gray-500 dark:text-gray-400">Coordinate Web2 crawlers, Web3 monitors, static analyzers, contract scanners, and volunteer agents.</p>
+      </div>
+
+      <div class="rounded-xl border border-neutral-border dark:border-gray-700 bg-white dark:bg-dark-surface p-6 hover:shadow-md transition-shadow">
+        <div class="w-10 h-10 rounded-lg flex items-center justify-center mb-4" style="background:#feeae9;">
+          <i class="fa-solid fa-triangle-exclamation text-primary" aria-hidden="true"></i>
+        </div>
+        <h3 class="font-bold mb-1 text-gray-900 dark:text-white">Vulnerability Dashboard</h3>
+        <p class="text-sm text-gray-500 dark:text-gray-400">View, filter, and triage discovered vulnerabilities by severity, target, agent, or status.</p>
+      </div>
+
+      <div class="rounded-xl border border-neutral-border dark:border-gray-700 bg-white dark:bg-dark-surface p-6 hover:shadow-md transition-shadow">
+        <div class="w-10 h-10 rounded-lg flex items-center justify-center mb-4" style="background:#feeae9;">
+          <i class="fa-solid fa-rotate text-primary" aria-hidden="true"></i>
+        </div>
+        <h3 class="font-bold mb-1 text-gray-900 dark:text-white">Real-time Job State</h3>
+        <p class="text-sm text-gray-500 dark:text-gray-400">Track task states with live updates via Cloudflare Worker API polling and push notifications.</p>
+      </div>
+
+      <div class="rounded-xl border border-neutral-border dark:border-gray-700 bg-white dark:bg-dark-surface p-6 hover:shadow-md transition-shadow">
+        <div class="w-10 h-10 rounded-lg flex items-center justify-center mb-4" style="background:#feeae9;">
+          <i class="fa-solid fa-cloud text-primary" aria-hidden="true"></i>
+        </div>
+        <h3 class="font-bold mb-1 text-gray-900 dark:text-white">Cloudflare Worker Backend</h3>
+        <p class="text-sm text-gray-500 dark:text-gray-400">All data flows through Cloudflare Worker API endpoints — scalable, serverless, and globally distributed.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ HOW IT WORKS ═══════════════════════ -->
+<section class="py-16 bg-gray-50 dark:bg-dark-surface">
+  <div class="max-w-6xl mx-auto px-6">
+    <h2 class="text-2xl font-bold mb-2 text-gray-900 dark:text-white">How It Works</h2>
+    <p class="text-gray-500 dark:text-gray-400 mb-10 text-sm">From target registration to vulnerability report in four steps.</p>
+    <ol class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 list-none p-0 m-0" role="list">
+
+      <li class="relative rounded-xl border border-neutral-border dark:border-gray-700 bg-white dark:bg-dark-base p-6 pt-10">
+        <span class="absolute -top-4 left-5 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white" style="background:#E10101;" aria-hidden="true">1</span>
+        <h3 class="font-bold mb-2 text-gray-900 dark:text-white">Register a Target</h3>
+        <p class="text-sm text-gray-500 dark:text-gray-400">Add the URL, contract address, or repo path you want to monitor.</p>
+      </li>
+
+      <li class="relative rounded-xl border border-neutral-border dark:border-gray-700 bg-white dark:bg-dark-base p-6 pt-10">
+        <span class="absolute -top-4 left-5 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white" style="background:#E10101;" aria-hidden="true">2</span>
+        <h3 class="font-bold mb-2 text-gray-900 dark:text-white">Queue a Task</h3>
+        <p class="text-sm text-gray-500 dark:text-gray-400">Select an agent type and priority, then push the task to the Cloudflare Worker queue.</p>
+      </li>
+
+      <li class="relative rounded-xl border border-neutral-border dark:border-gray-700 bg-white dark:bg-dark-base p-6 pt-10">
+        <span class="absolute -top-4 left-5 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white" style="background:#E10101;" aria-hidden="true">3</span>
+        <h3 class="font-bold mb-2 text-gray-900 dark:text-white">Agents Scan</h3>
+        <p class="text-sm text-gray-500 dark:text-gray-400">Distributed agents pick up tasks and ingest results back into the platform automatically.</p>
+      </li>
+
+      <li class="relative rounded-xl border border-neutral-border dark:border-gray-700 bg-white dark:bg-dark-base p-6 pt-10">
+        <span class="absolute -top-4 left-5 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-white" style="background:#E10101;" aria-hidden="true">4</span>
+        <h3 class="font-bold mb-2 text-gray-900 dark:text-white">Triage Results</h3>
+        <p class="text-sm text-gray-500 dark:text-gray-400">Review the vulnerability dashboard, filter by severity, and export findings to BLT.</p>
+      </li>
+
+    </ol>
+  </div>
+</section>
+
+<!-- ═══════════════════════ CONFIGURE ═══════════════════════ -->
+<section id="configure" class="py-16 bg-white dark:bg-dark-base">
+  <div class="max-w-6xl mx-auto px-6">
+    <h2 class="text-2xl font-bold mb-2 text-gray-900 dark:text-white">Configure</h2>
+    <p class="text-gray-500 dark:text-gray-400 mb-10 text-sm">
+      Set your Cloudflare Worker endpoint and preferences before running the app.
+    </p>
+
+    <div class="grid md:grid-cols-2 gap-8">
+      <!-- Left: Input form demo -->
+      <div class="rounded-xl border border-neutral-border dark:border-gray-700 bg-white dark:bg-dark-surface p-6">
+        <h3 class="font-semibold text-sm mb-5 flex items-center gap-2 text-gray-900 dark:text-white">
+          <i class="fa-solid fa-sliders text-primary text-xs" aria-hidden="true"></i>
+          API Configuration
+        </h3>
+
+        <div class="space-y-4">
+          <!-- Text input -->
+          <div>
+            <label for="cfg-endpoint" class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+              Worker API Endpoint <span class="text-primary" aria-hidden="true">*</span>
+            </label>
+            <input id="cfg-endpoint" type="url" placeholder="https://your-worker.workers.dev"
+                   class="input-blt dark:bg-dark-base dark:text-gray-100 dark:border-gray-600"
+                   autocomplete="off" />
+            <p class="mt-1 text-xs text-gray-400">The base URL of your deployed Cloudflare Worker.</p>
+          </div>
+
+          <!-- Search input with leading icon -->
+          <div>
+            <label for="cfg-search" class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+              Filter Targets
+            </label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                <i class="fa-solid fa-magnifying-glass text-gray-400 text-sm" aria-hidden="true"></i>
+              </span>
+              <input id="cfg-search" type="search" placeholder="Search by URL or contract address..."
+                     class="input-blt pl-9 dark:bg-dark-base dark:text-gray-100 dark:border-gray-600"
+                     autocomplete="off" />
+            </div>
+          </div>
+
+          <!-- Select -->
+          <div>
+            <label for="cfg-agent" class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+              Default Agent Type
+            </label>
+            <div class="relative">
+              <select id="cfg-agent"
+                      class="input-blt appearance-none pr-8 dark:bg-dark-base dark:text-gray-100 dark:border-gray-600">
+                <option>Web2 Crawler</option>
+                <option>Web3 Monitor</option>
+                <option>Static Analyzer</option>
+                <option>Contract Scanner</option>
+                <option>Volunteer Agent</option>
+              </select>
+              <span class="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                <i class="fa-solid fa-chevron-down text-gray-400 text-xs" aria-hidden="true"></i>
+              </span>
+            </div>
+          </div>
+
+          <!-- Buttons -->
+          <div class="flex gap-3 pt-1">
+            <button type="button" class="btn-primary-blt inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-semibold">
+              <i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> Save Config
+            </button>
+            <button type="button" class="btn-outline-blt inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-semibold">
+              <i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Reset
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: env var reference -->
+      <div>
+        <h3 class="font-semibold text-sm mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
+          <i class="fa-solid fa-file-code text-primary text-xs" aria-hidden="true"></i>
+          Environment Variables
+        </h3>
+        <div class="relative code-block rounded-lg border border-neutral-border dark:border-gray-700 bg-gray-900 p-5 text-sm text-gray-100 overflow-x-auto">
+          <button class="copy-btn" onclick="copyCode(this)" aria-label="Copy code">Copy</button>
+          <span class="text-gray-500"># .env (placed next to main.dart)</span><br/>
+          <span class="text-yellow-300">WORKER_BASE_URL</span>=<span class="text-green-400">https://your-worker.workers.dev</span><br/>
+          <span class="text-yellow-300">DEFAULT_AGENT_TYPE</span>=<span class="text-green-400">web2</span><br/>
+          <span class="text-yellow-300">SCAN_TIMEOUT_SECONDS</span>=<span class="text-sky-400">30</span><br/>
+          <span class="text-yellow-300">DEDUP_ENABLED</span>=<span class="text-sky-400">true</span>
+        </div>
+
+        <div class="mt-4 rounded-lg border border-neutral-border dark:border-gray-700 p-4 bg-amber-50 dark:bg-amber-900/20">
+          <p class="text-xs text-amber-700 dark:text-amber-400 flex items-start gap-2">
+            <i class="fa-solid fa-circle-exclamation mt-0.5 flex-shrink-0" aria-hidden="true"></i>
+            Never commit your <code>.env</code> file. Add it to <code>.gitignore</code> before your first push.
+          </p>
+        </div>
+
+        <div class="mt-4 rounded-lg border border-neutral-border dark:border-gray-700 p-4 dark:bg-dark-surface">
+          <h4 class="text-xs font-semibold text-gray-900 dark:text-white mb-2">Supported Agent Types</h4>
+          <div class="flex flex-wrap gap-2">
+            <span class="px-2 py-0.5 rounded text-xs font-mono bg-red-100 text-primary dark:bg-red-900/30 dark:text-red-400">web2</span>
+            <span class="px-2 py-0.5 rounded text-xs font-mono bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400">web3</span>
+            <span class="px-2 py-0.5 rounded text-xs font-mono bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">static</span>
+            <span class="px-2 py-0.5 rounded text-xs font-mono bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">contract</span>
+            <span class="px-2 py-0.5 rounded text-xs font-mono bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">volunteer</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ ARCHITECTURE ═══════════════════════ -->
+<section id="architecture" class="py-16 bg-gray-50 dark:bg-dark-surface">
+  <div class="max-w-6xl mx-auto px-6">
+    <h2 class="text-2xl font-bold mb-2 text-gray-900 dark:text-white">Architecture</h2>
+    <p class="text-gray-500 dark:text-gray-400 mb-10 text-sm">Client-side Flutter app communicating with a serverless Cloudflare Worker backend.</p>
+    <div class="flex justify-center mb-10">
+      <svg viewBox="0 0 760 300" xmlns="http://www.w3.org/2000/svg"
+           class="w-full max-w-3xl rounded-xl border border-neutral-border dark:border-gray-700 p-4 bg-white dark:bg-dark-base"
+           role="img" aria-label="Architecture diagram: Flutter client communicates with Cloudflare Worker API which connects to Security Agents and the OWASP BLT platform">
+        <!-- Flutter client -->
+        <rect x="20" y="100" width="160" height="100" rx="10" fill="#feeae9" stroke="#E10101" stroke-width="2"/>
+        <text x="100" y="136" text-anchor="middle" fill="#E10101" font-family="sans-serif" font-size="13" font-weight="700">Flutter Client</text>
+        <text x="100" y="156" text-anchor="middle" fill="#6b7280" font-family="sans-serif" font-size="10">iOS · Android · Web</text>
+        <text x="100" y="172" text-anchor="middle" fill="#6b7280" font-family="sans-serif" font-size="10">Windows · macOS · Linux</text>
+        <!-- Arrow -->
+        <line x1="184" y1="150" x2="272" y2="150" stroke="#E10101" stroke-width="2" stroke-dasharray="6,3"/>
+        <polygon points="272,145 282,150 272,155" fill="#E10101"/>
+        <!-- Cloudflare Worker -->
+        <rect x="282" y="80" width="196" height="140" rx="10" fill="#1F2937" stroke="#374151" stroke-width="2"/>
+        <text x="380" y="106" text-anchor="middle" fill="#f9fafb" font-family="sans-serif" font-size="13" font-weight="700">Cloudflare Worker</text>
+        <text x="380" y="126" text-anchor="middle" fill="#9ca3af" font-family="sans-serif" font-size="10">POST /api/tasks/queue</text>
+        <text x="380" y="142" text-anchor="middle" fill="#9ca3af" font-family="sans-serif" font-size="10">GET  /api/targets</text>
+        <text x="380" y="158" text-anchor="middle" fill="#9ca3af" font-family="sans-serif" font-size="10">POST /api/results/ingest</text>
+        <text x="380" y="194" text-anchor="middle" fill="#6b7280" font-family="sans-serif" font-size="9">Durable Objects · KV · D1</text>
+        <!-- Arrow to Agents -->
+        <line x1="482" y1="116" x2="558" y2="80" stroke="#374151" stroke-width="2" stroke-dasharray="6,3"/>
+        <polygon points="555,74 567,78 560,86" fill="#374151"/>
+        <!-- Arrow to BLT -->
+        <line x1="482" y1="180" x2="558" y2="216" stroke="#374151" stroke-width="2" stroke-dasharray="6,3"/>
+        <polygon points="555,210 567,216 560,224" fill="#374151"/>
+        <!-- Security Agents -->
+        <rect x="568" y="40" width="164" height="72" rx="10" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+        <text x="650" y="66" text-anchor="middle" fill="#16a34a" font-family="sans-serif" font-size="12" font-weight="700">Security Agents</text>
+        <text x="650" y="82" text-anchor="middle" fill="#6b7280" font-family="sans-serif" font-size="9">Web2 · Web3 · Static</text>
+        <text x="650" y="97" text-anchor="middle" fill="#6b7280" font-family="sans-serif" font-size="9">Contract · Volunteer</text>
+        <!-- OWASP BLT -->
+        <rect x="568" y="188" width="164" height="72" rx="10" fill="#feeae9" stroke="#E10101" stroke-width="2"/>
+        <text x="650" y="222" text-anchor="middle" fill="#E10101" font-family="sans-serif" font-size="12" font-weight="700">OWASP BLT</text>
+        <text x="650" y="240" text-anchor="middle" fill="#6b7280" font-family="sans-serif" font-size="9">Bug Logging Tool</text>
+      </svg>
+    </div>
+
+    <!-- API endpoint cards -->
+    <div class="grid md:grid-cols-3 gap-4">
+      <div class="rounded-lg border border-neutral-border dark:border-gray-700 p-4 bg-white dark:bg-dark-base">
+        <h4 class="font-semibold text-sm mb-3 flex items-center gap-2 text-gray-900 dark:text-white">
+          <i class="fa-solid fa-layer-group text-primary text-xs" aria-hidden="true"></i> Task Queue
+        </h4>
+        <ul class="text-xs text-gray-500 dark:text-gray-400 space-y-1 list-none p-0">
+          <li><code class="text-primary font-mono font-semibold">POST</code>   /api/tasks/queue</li>
+          <li><code class="text-green-600 font-mono font-semibold">GET</code>    /api/tasks</li>
+          <li><code class="text-green-600 font-mono font-semibold">GET</code>    /api/tasks/:id</li>
+        </ul>
+      </div>
+      <div class="rounded-lg border border-neutral-border dark:border-gray-700 p-4 bg-white dark:bg-dark-base">
+        <h4 class="font-semibold text-sm mb-3 flex items-center gap-2 text-gray-900 dark:text-white">
+          <i class="fa-solid fa-crosshairs text-primary text-xs" aria-hidden="true"></i> Target Registration
+        </h4>
+        <ul class="text-xs text-gray-500 dark:text-gray-400 space-y-1 list-none p-0">
+          <li><code class="text-primary font-mono font-semibold">POST</code>   /api/targets/register</li>
+          <li><code class="text-green-600 font-mono font-semibold">GET</code>    /api/targets</li>
+          <li><code class="text-red-500 font-mono font-semibold">DELETE</code> /api/targets/:id</li>
+        </ul>
+      </div>
+      <div class="rounded-lg border border-neutral-border dark:border-gray-700 p-4 bg-white dark:bg-dark-base">
+        <h4 class="font-semibold text-sm mb-3 flex items-center gap-2 text-gray-900 dark:text-white">
+          <i class="fa-solid fa-chart-bar text-primary text-xs" aria-hidden="true"></i> Agent Results
+        </h4>
+        <ul class="text-xs text-gray-500 dark:text-gray-400 space-y-1 list-none p-0">
+          <li><code class="text-primary font-mono font-semibold">POST</code>  /api/results/ingest</li>
+          <li><code class="text-green-600 font-mono font-semibold">GET</code>   /api/results</li>
+          <li><code class="text-green-600 font-mono font-semibold">GET</code>   /api/results/:id</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ INSTALL / BUILD ═══════════════════════ -->
+<section id="install" class="py-16 bg-white dark:bg-dark-base">
+  <div class="max-w-6xl mx-auto px-6">
+    <h2 class="text-2xl font-bold mb-2 text-gray-900 dark:text-white">Install &amp; Build</h2>
+    <p class="text-gray-500 dark:text-gray-400 mb-8 text-sm">Build and run the client for any platform Flutter supports.</p>
+
+    <!-- Prerequisites -->
+    <div class="mb-8 rounded-lg border border-neutral-border dark:border-gray-700 bg-white dark:bg-dark-surface p-5">
+      <h3 class="font-semibold text-sm mb-3 flex items-center gap-2 text-gray-900 dark:text-white">
+        <i class="fa-solid fa-circle-check text-primary" aria-hidden="true"></i> Prerequisites
+      </h3>
+      <ul class="text-sm text-gray-500 dark:text-gray-400 space-y-1.5 list-disc pl-5">
+        <li>Flutter SDK 3.0.0 or later — <a href="https://docs.flutter.dev/get-started/install" target="_blank" rel="noopener" class="text-primary underline-offset-2 hover:underline">Install Flutter</a></li>
+        <li>Dart SDK 3.0.0 or later (bundled with Flutter)</li>
+        <li>A running BLT NetGuardian Cloudflare Worker API endpoint</li>
+        <li>For Android builds: Android Studio / Android SDK</li>
+        <li>For iOS builds: Xcode on macOS</li>
+      </ul>
+    </div>
+
+    <!-- Quick start -->
+    <div class="mb-8 rounded-lg border border-neutral-border dark:border-gray-700 bg-white dark:bg-dark-surface p-5">
+      <h3 class="font-semibold text-sm mb-3 flex items-center gap-2 text-gray-900 dark:text-white">
+        <i class="fa-solid fa-rocket text-primary" aria-hidden="true"></i> Quick Start
+      </h3>
+      <div class="relative code-block rounded-lg bg-gray-900 p-4 text-sm text-gray-100 overflow-x-auto">
+        <button class="copy-btn" onclick="copyCode(this)" aria-label="Copy quick start commands">Copy</button>
+        <span class="text-sky-400">git clone https://github.com/OWASP-BLT/BLT-NetGuardian-Client.git</span><br/>
+        <span class="text-sky-400">cd BLT-NetGuardian-Client</span><br/>
+        <span class="text-sky-400">flutter pub get</span><br/>
+        <span class="text-sky-400">flutter run</span>
+      </div>
+    </div>
+
+    <!-- Platform tabs -->
+    <div class="flex flex-wrap gap-2 mb-6" role="tablist" aria-label="Build platforms">
+      <button class="tab-btn px-4 py-2 rounded-md text-sm font-semibold border-2 active"
+              style="border-color:#E10101; color:#E10101; background:#feeae9;"
+              onclick="switchTab(event,'tab-ios')" role="tab" aria-selected="true" aria-controls="tab-ios">
+        <i class="fa-brands fa-apple mr-1" aria-hidden="true"></i> iOS
+      </button>
+      <button class="tab-btn px-4 py-2 rounded-md text-sm font-semibold border-2"
+              style="border-color:#E5E5E5; color:#6b7280;"
+              onclick="switchTab(event,'tab-android')" role="tab" aria-selected="false" aria-controls="tab-android">
+        <i class="fa-brands fa-android mr-1" aria-hidden="true"></i> Android
+      </button>
+      <button class="tab-btn px-4 py-2 rounded-md text-sm font-semibold border-2"
+              style="border-color:#E5E5E5; color:#6b7280;"
+              onclick="switchTab(event,'tab-web')" role="tab" aria-selected="false" aria-controls="tab-web">
+        <i class="fa-solid fa-globe mr-1" aria-hidden="true"></i> Web
+      </button>
+      <button class="tab-btn px-4 py-2 rounded-md text-sm font-semibold border-2"
+              style="border-color:#E5E5E5; color:#6b7280;"
+              onclick="switchTab(event,'tab-desktop')" role="tab" aria-selected="false" aria-controls="tab-desktop">
+        <i class="fa-solid fa-desktop mr-1" aria-hidden="true"></i> Desktop
+      </button>
+    </div>
+
+    <!-- iOS -->
+    <div id="tab-ios" class="tab-panel active" role="tabpanel">
+      <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Build a release IPA for iOS distribution or TestFlight.</p>
+      <div class="relative code-block rounded-lg border border-neutral-border dark:border-gray-700 bg-gray-900 p-5 text-sm text-gray-100 overflow-x-auto">
+        <button class="copy-btn" onclick="copyCode(this)" aria-label="Copy iOS build commands">Copy</button>
+        <span class="text-gray-500"># Install dependencies</span><br/>
+        <span class="text-sky-400">flutter pub get</span><br/><br/>
+        <span class="text-gray-500"># Release build (requires macOS + Xcode)</span><br/>
+        <span class="text-sky-400">flutter build ios --release</span><br/><br/>
+        <span class="text-gray-500"># Archive for App Store / TestFlight via Xcode</span><br/>
+        <span class="text-sky-400">open ios/Runner.xcworkspace</span>
+      </div>
+    </div>
+
+    <!-- Android -->
+    <div id="tab-android" class="tab-panel" role="tabpanel">
+      <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Build a release APK or App Bundle for Android distribution.</p>
+      <div class="relative code-block rounded-lg border border-neutral-border dark:border-gray-700 bg-gray-900 p-5 text-sm text-gray-100 overflow-x-auto">
+        <button class="copy-btn" onclick="copyCode(this)" aria-label="Copy Android build commands">Copy</button>
+        <span class="text-gray-500"># Release APK (sideload)</span><br/>
+        <span class="text-sky-400">flutter build apk --release</span><br/>
+        <span class="text-gray-500"># Output: build/app/outputs/flutter-apk/app-release.apk</span><br/><br/>
+        <span class="text-gray-500"># App Bundle (Google Play)</span><br/>
+        <span class="text-sky-400">flutter build appbundle --release</span>
+      </div>
+    </div>
+
+    <!-- Web -->
+    <div id="tab-web" class="tab-panel" role="tabpanel">
+      <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Build a production-ready web bundle and serve it from any static host.</p>
+      <div class="relative code-block rounded-lg border border-neutral-border dark:border-gray-700 bg-gray-900 p-5 text-sm text-gray-100 overflow-x-auto">
+        <button class="copy-btn" onclick="copyCode(this)" aria-label="Copy web build commands">Copy</button>
+        <span class="text-gray-500"># Build the web app</span><br/>
+        <span class="text-sky-400">flutter build web --release</span><br/>
+        <span class="text-gray-500"># Output: build/web/</span><br/><br/>
+        <span class="text-gray-500"># Serve locally</span><br/>
+        <span class="text-sky-400">cd build/web &amp;&amp; python3 -m http.server 8080</span>
+      </div>
+    </div>
+
+    <!-- Desktop -->
+    <div id="tab-desktop" class="tab-panel" role="tabpanel">
+      <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Build a native desktop executable for Windows, macOS, or Linux.</p>
+      <div class="relative code-block rounded-lg border border-neutral-border dark:border-gray-700 bg-gray-900 p-5 text-sm text-gray-100 overflow-x-auto">
+        <button class="copy-btn" onclick="copyCode(this)" aria-label="Copy desktop build commands">Copy</button>
+        <span class="text-gray-500"># Windows</span><br/>
+        <span class="text-sky-400">flutter build windows --release</span><br/><br/>
+        <span class="text-gray-500"># macOS (requires macOS host)</span><br/>
+        <span class="text-sky-400">flutter build macos --release</span><br/><br/>
+        <span class="text-gray-500"># Linux</span><br/>
+        <span class="text-sky-400">flutter build linux --release</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ CHANGELOG ═══════════════════════ -->
+<section id="changelog" class="py-16 bg-gray-50 dark:bg-dark-surface">
+  <div class="max-w-6xl mx-auto px-6">
+    <h2 class="text-2xl font-bold mb-2 text-gray-900 dark:text-white">Changelog</h2>
+    <p class="text-gray-500 dark:text-gray-400 mb-8 text-sm">
+      What's new — follows <a href="https://keepachangelog.com/en/1.0.0/" target="_blank" rel="noopener" class="text-primary hover:underline underline-offset-2">Keep a Changelog</a>
+      and <a href="https://semver.org/" target="_blank" rel="noopener" class="text-primary hover:underline underline-offset-2">Semantic Versioning</a>.
+    </p>
+
+    <!-- v1.0.0 -->
+    <div class="rounded-xl border border-neutral-border dark:border-gray-700 bg-white dark:bg-dark-base overflow-hidden">
+      <!-- Header -->
+      <div class="flex items-center justify-between px-6 py-4 border-b border-neutral-border dark:border-gray-700">
+        <div class="flex items-center gap-3">
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-primary text-white">
+            v1.0.0
+          </span>
+          <span class="text-sm font-semibold text-gray-900 dark:text-white">Initial Release</span>
+        </div>
+        <time datetime="2024-12-12" class="text-xs text-gray-400">December 12, 2024</time>
+      </div>
+
+      <!-- Body -->
+      <div class="px-6 py-5 grid sm:grid-cols-2 gap-6">
+        <!-- Added -->
+        <div>
+          <h4 class="text-xs font-bold uppercase tracking-widest text-green-600 dark:text-green-400 mb-3 flex items-center gap-1.5">
+            <i class="fa-solid fa-plus-circle" aria-hidden="true"></i> Added
+          </h4>
+          <ul class="text-sm text-gray-600 dark:text-gray-400 space-y-1.5 list-none p-0">
+            <li class="flex items-start gap-2"><span class="text-green-500 mt-0.5" aria-hidden="true">+</span>Complete Flutter client for BLT NetGuardian platform</li>
+            <li class="flex items-start gap-2"><span class="text-green-500 mt-0.5" aria-hidden="true">+</span>Task queue management with automatic deduplication</li>
+            <li class="flex items-start gap-2"><span class="text-green-500 mt-0.5" aria-hidden="true">+</span>Target registration and management system</li>
+            <li class="flex items-start gap-2"><span class="text-green-500 mt-0.5" aria-hidden="true">+</span>Agent result ingestion and processing pipeline</li>
+            <li class="flex items-start gap-2"><span class="text-green-500 mt-0.5" aria-hidden="true">+</span>Vulnerability dashboard with severity filtering</li>
+            <li class="flex items-start gap-2"><span class="text-green-500 mt-0.5" aria-hidden="true">+</span>RESTful API client for Cloudflare Worker endpoints</li>
+            <li class="flex items-start gap-2"><span class="text-green-500 mt-0.5" aria-hidden="true">+</span>Provider-based state management (AppProvider, TaskProvider, TargetProvider, ResultProvider)</li>
+            <li class="flex items-start gap-2"><span class="text-green-500 mt-0.5" aria-hidden="true">+</span>Material Design 3 dark theme support</li>
+          </ul>
+        </div>
+        <!-- Models & Services -->
+        <div>
+          <h4 class="text-xs font-bold uppercase tracking-widest text-blue-600 dark:text-blue-400 mb-3 flex items-center gap-1.5">
+            <i class="fa-solid fa-cube" aria-hidden="true"></i> Models &amp; Services
+          </h4>
+          <ul class="text-sm text-gray-600 dark:text-gray-400 space-y-1.5 list-none p-0">
+            <li class="flex items-start gap-2"><span class="text-blue-500 mt-0.5" aria-hidden="true">·</span><code class="text-xs bg-gray-100 dark:bg-gray-800 px-1 rounded">Task</code> model with status tracking</li>
+            <li class="flex items-start gap-2"><span class="text-blue-500 mt-0.5" aria-hidden="true">·</span><code class="text-xs bg-gray-100 dark:bg-gray-800 px-1 rounded">Target</code> model with type classification</li>
+            <li class="flex items-start gap-2"><span class="text-blue-500 mt-0.5" aria-hidden="true">·</span><code class="text-xs bg-gray-100 dark:bg-gray-800 px-1 rounded">AgentResult</code> model with findings</li>
+            <li class="flex items-start gap-2"><span class="text-blue-500 mt-0.5" aria-hidden="true">·</span><code class="text-xs bg-gray-100 dark:bg-gray-800 px-1 rounded">Vulnerability</code> model with CVE/CWE support</li>
+            <li class="flex items-start gap-2"><span class="text-blue-500 mt-0.5" aria-hidden="true">·</span><code class="text-xs bg-gray-100 dark:bg-gray-800 px-1 rounded">ApiService</code> HTTP client</li>
+            <li class="flex items-start gap-2"><span class="text-blue-500 mt-0.5" aria-hidden="true">·</span><code class="text-xs bg-gray-100 dark:bg-gray-800 px-1 rounded">TaskManager</code> with deduplication</li>
+            <li class="flex items-start gap-2"><span class="text-blue-500 mt-0.5" aria-hidden="true">·</span><code class="text-xs bg-gray-100 dark:bg-gray-800 px-1 rounded">TargetManager</code> with URL tracking</li>
+            <li class="flex items-start gap-2"><span class="text-blue-500 mt-0.5" aria-hidden="true">·</span><code class="text-xs bg-gray-100 dark:bg-gray-800 px-1 rounded">ResultManager</code> vulnerability aggregation</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Links -->
+      <div class="px-6 py-3 bg-gray-50 dark:bg-dark-surface border-t border-neutral-border dark:border-gray-700 flex gap-4 text-xs">
+        <a href="https://github.com/OWASP-BLT/BLT-NetGuardian-Client/releases" target="_blank" rel="noopener"
+           class="text-primary hover:underline underline-offset-2 inline-flex items-center gap-1">
+          <i class="fa-solid fa-tag" aria-hidden="true"></i> All Releases
+        </a>
+        <a href="https://github.com/OWASP-BLT/BLT-NetGuardian-Client/blob/main/CHANGELOG.md" target="_blank" rel="noopener"
+           class="text-primary hover:underline underline-offset-2 inline-flex items-center gap-1">
+          <i class="fa-solid fa-file-lines" aria-hidden="true"></i> Full Changelog
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ FOOTER ═══════════════════════ -->
+<footer class="border-t border-neutral-border dark:border-gray-700 py-10 bg-white dark:bg-dark-base">
+  <div class="max-w-6xl mx-auto px-6">
+    <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-2 font-bold text-gray-900 dark:text-white">
+        <i class="fa-solid fa-shield-halved text-primary" aria-hidden="true"></i>
+        BLT NetGuardian Client
+      </div>
+      <nav aria-label="Footer navigation">
+        <ul class="flex flex-wrap justify-center gap-4 text-sm list-none m-0 p-0">
+          <li><a href="https://owasp.org/www-project-bug-logging-tool/" target="_blank" rel="noopener" class="text-primary hover:underline underline-offset-2">OWASP BLT</a></li>
+          <li><a href="https://github.com/OWASP-BLT/BLT-NetGuardian-Client" target="_blank" rel="noopener" class="text-primary hover:underline underline-offset-2">GitHub</a></li>
+          <li><a href="https://github.com/OWASP-BLT/BLT-NetGuardian-Client/issues" target="_blank" rel="noopener" class="text-primary hover:underline underline-offset-2">Issues</a></li>
+          <li><a href="https://github.com/OWASP-BLT/BLT-NetGuardian-Client/blob/main/LICENSE" target="_blank" rel="noopener" class="text-primary hover:underline underline-offset-2">MIT License</a></li>
+        </ul>
+      </nav>
+    </div>
+    <p class="text-center text-xs text-gray-400 mt-6">
+      Part of the <a href="https://owasp.org/www-project-bug-logging-tool/" target="_blank" rel="noopener" class="text-primary hover:underline underline-offset-2">OWASP Bug Logging Tool (BLT)</a> project.
+      Open source under the MIT License.
+    </p>
+  </div>
+</footer>
+
+<!-- Back-to-top button -->
+<button id="back-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Back to top">
+  <i class="fa-solid fa-chevron-up" aria-hidden="true"></i>
+</button>
+
+<script>
+  /* ── Tab switching ── */
+  function switchTab(e, id) {
+    document.querySelectorAll('.tab-btn').forEach(function (b) {
+      b.style.borderColor = '#E5E5E5';
+      b.style.color = '#6b7280';
+      b.style.background = '';
+      b.setAttribute('aria-selected', 'false');
+    });
+    document.querySelectorAll('.tab-panel').forEach(function (p) {
+      p.classList.remove('active');
+    });
+    e.currentTarget.style.borderColor = '#E10101';
+    e.currentTarget.style.color = '#E10101';
+    e.currentTarget.style.background = '#feeae9';
+    e.currentTarget.setAttribute('aria-selected', 'true');
+    document.getElementById(id).classList.add('active');
+  }
+
+  /* ── Mobile menu toggle ── */
+  var menuToggle = document.getElementById('menu-toggle');
+  var mobileMenu = document.getElementById('mobile-menu');
+  var menuIcon   = document.getElementById('menu-icon');
+
+  menuToggle.addEventListener('click', function () {
+    var isOpen = mobileMenu.classList.toggle('open');
+    menuIcon.className = isOpen ? 'fa-solid fa-xmark text-xl' : 'fa-solid fa-bars text-xl';
+    menuToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  });
+
+  function closeMobileMenu() {
+    mobileMenu.classList.remove('open');
+    menuIcon.className = 'fa-solid fa-bars text-xl';
+    menuToggle.setAttribute('aria-expanded', 'false');
+  }
+
+  /* ── Copy-to-clipboard ── */
+  function copyCode(btn) {
+    var block = btn.parentElement;
+    var text = block.innerText.replace(/^Copy\n?/, '').trim();
+    navigator.clipboard.writeText(text).then(function () {
+      btn.textContent = 'Copied!';
+      btn.classList.add('copied');
+      setTimeout(function () {
+        btn.textContent = 'Copy';
+        btn.classList.remove('copied');
+      }, 2000);
+    });
+  }
+
+  /* ── Back to top visibility ── */
+  var btt = document.getElementById('back-to-top');
+  window.addEventListener('scroll', function () {
+    btt.classList.toggle('visible', window.scrollY > 400);
+  }, { passive: true });
+</script>
+</body>
+</html>
