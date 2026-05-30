@@ -5,9 +5,9 @@ pages:
   script:
     - python scripts/generate_github_data.py || echo "Keeping existing github_data.json"
     - python scripts/generate_gitlab_data.py || echo "Keeping existing gitlab_data.json"
-    - python scripts/generate_main_data.py || echo "Keeping existing main_data.json"
+    - python scripts/generate_main_data.py || echo "Keeping existing main data files"
     - mkdir public
-    - cp -r CNAME LICENSE README.md github_data.json gitlab_data.json main_data.json imgs index.html issues.html screenshots.html script.js styles.css public/
+    - cp -r CNAME LICENSE README.md github_data.json gitlab_data.json main_data.csv main_data.js main_data.json imgs index.html issues.html screenshots.html script.js styles.css public/
   artifacts:
     paths:
       - public
