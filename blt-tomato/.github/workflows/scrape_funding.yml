@@ -1,0 +1,45 @@
+name: Scrape Funding
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+  schedule:
+    # Run every Friday at 1pm EST (18:00 UTC)
+    # Note: EST is UTC-5. During EDT (daylight time), this runs at 2pm EDT.
+    - cron: '0 18 * * 5'
+
+permissions:
+  contents: write
+  
+jobs:
+  parse_repos:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.x
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r .github/scripts/funding/requirements.txt
+
+    - name: Parse repositories
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: python .github/scripts/funding/owasp_funding_yml_scraper.py
+        
+    - name: Commit and push
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add project_repos_links.json index.html
+        git commit -m "Update repository status" || echo "No changes to commit"
+        git push
