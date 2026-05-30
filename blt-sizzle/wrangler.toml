@@ -1,0 +1,36 @@
+name = "blt-sizzle"
+main = "workers/main.py"
+compatibility_date = "2024-04-03"
+compatibility_flags = ["python_workers"]
+
+# Scheduled notifications - runs every hour to check for users needing reminders
+[triggers]
+crons = ["0 * * * *"]
+
+# D1 Database binding
+[[d1_databases]]
+binding = "sizzle_db"
+database_name = "sizzle-db"
+database_id = "272f7618-e0af-42be-80b5-4ca1e0090356"
+migrations_dir = "migrations"
+
+# Configure assets (static files)
+[assets]
+directory = "src"
+binding = "ASSETS"
+
+
+[observability]
+enabled = false
+head_sampling_rate = 1
+
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+persist = true
+invocation_logs = true
+
+[observability.traces]
+enabled = false
+persist = true
+head_sampling_rate = 1

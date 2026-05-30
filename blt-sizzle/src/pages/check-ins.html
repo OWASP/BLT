@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sizzle | Past Check-ins</title>
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        outfit: ['Outfit', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: {
+                            DEFAULT: '#E10101',
+                            dark: '#BC0000',
+                        },
+                        secondary: '#64748b',
+                        gray: {
+                            200: '#E5E5E5',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Theme Initialization -->
+    <script>
+        if (localStorage.getItem('theme') === 'dark' ||
+            (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+        }
+    </style>
+</head>
+
+<body
+    class="bg-gray-50 dark:bg-slate-900 min-h-screen flex flex-col items-center text-slate-900 dark:text-white transition-colors duration-300">
+    <!-- Header -->
+    <header
+        class="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border-b border-gray-200 dark:border-slate-700">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <nav class="flex items-center justify-between h-16">
+                <div class="flex items-center gap-2">
+                    <a href="/" class="flex items-center gap-2">
+                        <img src="/assets/images/owasp-blt-logo.svg" alt="OWASP BLT Logo" class="h-8 w-auto">
+                        <span class="font-bold text-xl tracking-tight hidden sm:block">SIZZLE</span>
+                    </a>
+                </div>
+
+                <div class="hidden md:flex items-center gap-8">
+                    <a href="/"
+                        class="text-slate-600 dark:text-slate-300 hover:text-primary transition-colors font-medium">Check-in</a>
+                    <a href="/check-ins" class="text-primary font-bold">Past Check-ins</a>
+                    <a href="/leaderboard"
+                        class="text-slate-600 dark:text-slate-300 hover:text-primary transition-colors font-medium">Leaderboard</a>
+                    <a href="/settings"
+                        class="text-slate-600 dark:text-slate-300 hover:text-primary transition-colors font-medium">Settings</a>
+                </div>
+
+                <div class="flex items-center gap-4">
+                    <button id="themeToggle"
+                        class="p-2 text-slate-500 hover:text-primary dark:text-slate-400 dark:hover:text-primary transition-colors">
+                        <svg id="sunIcon" class="hidden w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                            <path fill-rule="evenodd"
+                                d="M10 18a.8.8 0 01-.8-.8V16.7a.8.8 0 111.6 0v.5a.8.8 0 01-.8.8zm8-8a.8.8 0 01-.8.8h-.5a.8.8 0 110-1.6h.5a.8.8 0 01.8.8zM10 2a.8.8 0 01.8.8v.5a.8.8 0 11-1.6 0V2.8a.8.8 0 01.8-.8zm-8 8a.8.8 0 01.8-.8h.5a.8.8 0 110 1.6H2.8a.8.8 0 01-.8-.8zm14.5 4.5a.8.8 0 010 1.1l-.4.4a.8.8 0 11-1.1-1.1l.4-.4a.8.8 0 011.1 0zm-11-11a.8.8 0 010 1.1l-.4.4a.8.8 0 01-1.1-1.1l.4-.4a.8.8 0 011.1 0zM16.7 3.3a.8.8 0 010 1.1l-.4.4a.8.8 0 11-1.1-1.1l.4-.4a.8.8 0 011.1 0zm-11 11a.8.8 0 010 1.1l-.4.4a.8.8 0 11-1.1-1.1l.4-.4a.8.8 0 011.1 0z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        <svg id="moonIcon" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+                        </svg>
+                    </button>
+                    <!-- Auth Controls -->
+                    <div id="authControls" class="hidden items-center gap-3">
+                        <span id="userDisplay" class="hidden text-sm font-medium text-slate-600 dark:text-slate-300 sm:block"></span>
+                        <button id="logoutBtn"
+                            class="hidden text-sm font-medium text-slate-500 hover:text-primary dark:text-slate-400 dark:hover:text-primary transition-colors">
+                            Sign out
+                        </button>
+                        <a id="loginBtn" href="/api/auth/login"
+                            class="hidden items-center gap-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-semibold px-4 py-2 rounded-xl hover:opacity-90 transition-opacity">
+                            Login with GitHub
+                        </a>
+                    </div>
+                    <!-- Mobile Menu Button -->
+                    <button class="md:hidden p-2 text-slate-600 dark:text-slate-300">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 6h16M4 12h16m-7 6h7"></path>
+                        </svg>
+                    </button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main class="pt-24 pb-12 px-4 w-full max-w-5xl">
+        <div
+            class="bg-white dark:bg-slate-800 rounded-3xl shadow-xl p-8 md:p-10 text-slate-800 dark:text-slate-100 animate-in fade-in duration-700 border border-gray-100 dark:border-slate-700">
+            <header class="mb-8">
+                <h1 class="text-4xl font-bold tracking-tight text-slate-900 dark:text-white mb-2">📜 Past Check-ins</h1>
+                <p class="text-slate-500 dark:text-slate-400 text-lg">Review your journey and progress</p>
+            </header>
+
+            <div id="checkinsList" class="space-y-6">
+                <div class="flex justify-center py-12">
+                    <div class="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Theme Toggle Logic
+        const themeToggle = document.getElementById('themeToggle');
+        const sunIcon = document.getElementById('sunIcon');
+        const moonIcon = document.getElementById('moonIcon');
+
+        function updateThemeIcons() {
+            if (document.documentElement.classList.contains('dark')) {
+                sunIcon.classList.remove('hidden');
+                moonIcon.classList.add('hidden');
+            } else {
+                sunIcon.classList.add('hidden');
+                moonIcon.classList.remove('hidden');
+            }
+        }
+
+        updateThemeIcons();
+
+        themeToggle.addEventListener('click', () => {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            updateThemeIcons();
+        });
+
+        let userId = null;
+
+        async function checkAuth() {
+            try {
+                const res = await fetch('/api/auth/me');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.authenticated) return data;
+                }
+            } catch (e) {}
+            return null;
+        }
+
+        async function loadCheckins() {
+            const list = document.getElementById('checkinsList');
+            try {
+                const response = await fetch(`/api/checkins?userId=${userId}`);
+                if (!response.ok) throw new Error('Failed to fetch');
+                const data = await response.json();
+
+                if (data.checkins && data.checkins.length > 0) {
+                    list.innerHTML = data.checkins.map(ci => {
+                        const date = new Date(ci.date).toLocaleDateString(undefined, {
+                            weekday: 'long',
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                        });
+
+                        return `
+                        <div class="bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-6 border-2 border-slate-100 dark:border-slate-700 transition-all hover:border-primary/20">
+                            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+                                <h3 class="font-bold text-xl text-slate-900 dark:text-white">${date}</h3>
+                                <div class="flex items-center gap-3">
+                                    <span class="text-2xl">${ci.mood}</span>
+                                    ${ci.goalAccomplished ?
+                                '<span class="bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 px-3 py-1 rounded-full text-xs font-bold ring-1 ring-green-600/20">Goal Accomplished</span>' :
+                                ''}
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div>
+                                    <p class="text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Previous Work</p>
+                                    <p class="text-slate-600 dark:text-slate-300 text-sm whitespace-pre-wrap">${ci.previousWork || '<span class="italic text-slate-400">No entry</span>'}</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Today's Plan</p>
+                                    <p class="text-slate-600 dark:text-slate-300 text-sm whitespace-pre-wrap">${ci.todayPlan || '<span class="italic text-slate-400">No entry</span>'}</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Blockers</p>
+                                    <p class="text-slate-600 dark:text-slate-300 text-sm whitespace-pre-wrap">${ci.blockers || '<span class="italic text-slate-400">None</span>'}</p>
+                                </div>
+                            </div>
+                        </div>
+                        `;
+                    }).join('');
+                } else {
+                    list.innerHTML = `
+                        <div class="text-center py-20 bg-slate-50 dark:bg-slate-900/50 rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-700">
+                            <p class="text-slate-400 text-lg font-medium">No check-ins found yet. Start your streak today!</p>
+                            <a href="/" class="inline-block mt-6 px-8 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary-dark transition-colors shadow-lg shadow-primary/20">Go to Check-in</a>
+                        </div>
+                    `;
+                }
+            } catch (e) {
+                list.innerHTML = '<p class="text-center py-12 text-rose-500 font-bold">Failed to load check-ins.</p>';
+            }
+        }
+
+        // Initialise
+        (async () => {
+            const authControls = document.getElementById('authControls');
+            const loginBtn = document.getElementById('loginBtn');
+            const userDisplay = document.getElementById('userDisplay');
+            const logoutBtn = document.getElementById('logoutBtn');
+
+            authControls.classList.remove('hidden');
+            authControls.classList.add('flex');
+
+            const authData = await checkAuth();
+            if (!authData) return;
+
+            userId = authData.userId;
+            userDisplay.textContent = authData.displayName;
+            userDisplay.classList.remove('hidden');
+            logoutBtn.classList.remove('hidden');
+            logoutBtn.addEventListener('click', async () => {
+                await fetch('/api/auth/logout', { method: 'POST' });
+                window.location.href = '/';
+            });
+
+            loadCheckins();
+        })();
+    </script>
+</body>
+
+</html>
