@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cyber Security Dashboard - BLT-Dash</title>
+  <style>
+    /* ─── Reset & Base ──────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #050a14;
+      --bg2:         #070d1a;
+      --bg3:         #0a1525;
+      --border:      #0f2a4a;
+      --border2:     #1a3a5c;
+      --green:       #00ff41;
+      --green-dim:   #00cc33;
+      --green-dark:  #004d00;
+      --cyan:        #00e5ff;
+      --cyan-dim:    #00b8cc;
+      --blue:        #0080ff;
+      --blue-dim:    #004d99;
+      --yellow:      #ffd700;
+      --yellow-dim:  #b39700;
+      --red:         #ff3333;
+      --red-dim:     #991f1f;
+      --orange:      #ff6600;
+      --white:       #e0f0ff;
+      --tile-bg:     #0a1828;
+      --tile-border: #1e4060;
+      --section-title: #00e5ff;
+      --font: 'Courier New', monospace;
+    }
+
+    html, body {
+      width: 100%; height: 100%;
+      background: var(--bg);
+      color: var(--green);
+      font-family: var(--font);
+      font-size: 11px;
+      overflow-x: hidden;
+    }
+
+    /* Subtle grid/dot background */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background-image:
+        radial-gradient(ellipse 80% 60% at 50% 40%, rgba(0,80,160,0.08) 0%, transparent 70%),
+        linear-gradient(rgba(0,80,160,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,80,160,0.04) 1px, transparent 1px);
+      background-size: 100% 100%, 40px 40px, 40px 40px;
+      pointer-events: none;
+    }
+
+    /* ─── Layout ──────────────────────────────────────────────────────── */
+    .dashboard {
+      position: relative; z-index: 1;
+      display: grid;
+      grid-template-rows: auto auto auto;
+      gap: 4px;
+      padding: 4px;
+      min-height: 100vh;
+    }
+
+    /* Top row: 4 quadrant panels */
+    .top-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+      gap: 4px;
+    }
+
+    /* Middle row: world-map panel + NIST scores */
+    .mid-row {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 4px;
+    }
+
+    /* Bottom row: 3 panels */
+    .bot-row {
+      display: grid;
+      grid-template-columns: 1fr 2fr 1fr;
+      gap: 4px;
+    }
+
+    /* ─── Panel ─────────────────────────────────────────────────────── */
+    .panel {
+      background: var(--bg2);
+      border: 1px solid var(--border2);
+      border-radius: 3px;
+      padding: 6px;
+      position: relative;
+    }
+
+    .panel-title {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: var(--cyan);
+      text-align: center;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid var(--border2);
+    }
+
+    /* ─── Icon grid ─────────────────────────────────────────────────── */
+    .icon-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 3px;
+    }
+    .icon-grid.cols4 { grid-template-columns: repeat(4, 1fr); }
+    .icon-grid.cols6 { grid-template-columns: repeat(6, 1fr); }
+    .icon-grid.cols7 { grid-template-columns: repeat(7, 1fr); }
+
+    .tile {
+      background: var(--tile-bg);
+      border: 1px solid var(--tile-border);
+      border-radius: 2px;
+      padding: 4px 2px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      min-height: 52px;
+      cursor: pointer;
+      transition: border-color .15s, background .15s;
+    }
+    .tile:hover {
+      border-color: var(--cyan);
+      background: #0d1f35;
+    }
+    .tile.highlight {
+      border-color: var(--green);
+      box-shadow: 0 0 6px var(--green-dark);
+    }
+    .tile.highlight-yellow {
+      border-color: var(--yellow);
+      background: #1a1500;
+    }
+    .tile.highlight-red {
+      border-color: var(--red);
+      background: #1a0000;
+    }
+    .tile.highlight-green {
+      border-color: var(--green);
+      background: #001a00;
+    }
+    .tile.active {
+      background: #0d2a1a;
+      border-color: var(--green);
+    }
+
+    .tile-icon {
+      font-size: 18px;
+      line-height: 1;
+      color: var(--green);
+    }
+    .tile-label {
+      font-size: 6.5px;
+      text-align: center;
+      color: var(--cyan-dim);
+      letter-spacing: 0.3px;
+      line-height: 1.2;
+      text-transform: uppercase;
+      max-width: 44px;
+    }
+
+    /* Threat tiles with different icon colors */
+    .threat-panel .tile-icon { color: var(--cyan); }
+
+    /* ─── World Map Panel ───────────────────────────────────────────── */
+    .map-panel {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+    }
+    .dash-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--green);
+      text-align: center;
+      text-shadow: 0 0 12px var(--green-dark);
+      margin-bottom: 8px;
+      letter-spacing: 1px;
+    }
+
+    .world-map-container {
+      position: relative;
+      width: 100%;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .world-map-svg {
+      width: 100%;
+      max-width: 260px;
+      opacity: 0.85;
+      filter: drop-shadow(0 0 8px rgba(0,255,65,0.3));
+    }
+
+    .score-circle {
+      position: absolute;
+      bottom: 20px;
+      right: 10px;
+      width: 70px;
+      height: 70px;
+    }
+
+    /* ─── NIST Scores Panel ─────────────────────────────────────────── */
+    .nist-panel {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .nist-scores-row {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .nist-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .nist-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-align: center;
+      color: var(--cyan);
+      text-transform: uppercase;
+    }
+
+    /* Hexagonal score badge */
+    .hex-score {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 80px;
+      height: 80px;
+    }
+
+    .hex-score svg { position: absolute; top: 0; left: 0; }
+
+    .hex-value {
+      position: relative;
+      z-index: 1;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -1px;
+    }
+    .hex-value.blue  { color: var(--cyan); }
+    .hex-value.green { color: var(--green); }
+    .hex-value.yellow { color: var(--yellow); }
+    .hex-value.red   { color: var(--red); }
+
+    /* Gauge arc */
+    .gauge-wrap {
+      width: 80px;
+      display: flex;
+      justify-content: center;
+    }
+
+    /* Score item lists */
+    .nist-items {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      width: 100%;
+    }
+
+    .nist-item {
+      font-size: 7px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-align: center;
+      padding: 4px 4px;
+      border-radius: 2px;
+      text-transform: uppercase;
+      line-height: 1.2;
+    }
+    .nist-item.blue  { background: var(--blue-dim);   color: var(--white); border: 1px solid var(--blue); }
+    .nist-item.green { background: var(--green-dark); color: var(--green); border: 1px solid var(--green-dim); }
+    .nist-item.yellow { background: #2a1e00; color: var(--yellow); border: 1px solid var(--yellow-dim); }
+    .nist-item.red   { background: var(--red-dim);   color: #ffd0d0;     border: 1px solid var(--red); }
+    .nist-item.gr    { background: #001400; color: var(--green);  border: 1px solid var(--green-dim); }
+
+    /* ─── Bottom panels ─────────────────────────────────────────────── */
+    .bot-title {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: var(--cyan);
+      text-align: center;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid var(--border2);
+    }
+
+    /* Skill maturity: colored tiles */
+    .skill-tile {
+      background: var(--tile-bg);
+      border: 1px solid var(--tile-border);
+      border-radius: 2px;
+      padding: 3px 2px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      min-height: 46px;
+    }
+
+    /* Scan-line overlay */
+    .scanlines {
+      position: fixed; inset: 0; z-index: 999;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,0.08) 2px,
+        rgba(0,0,0,0.08) 4px
+      );
+      pointer-events: none;
+    }
+
+    /* Corner decorations */
+    .corner-tl, .corner-tr, .corner-bl, .corner-br {
+      position: absolute;
+      width: 10px; height: 10px;
+      border-color: var(--cyan-dim);
+      border-style: solid;
+      opacity: 0.5;
+    }
+    .corner-tl { top: 0; left: 0; border-width: 1px 0 0 1px; }
+    .corner-tr { top: 0; right: 0; border-width: 1px 1px 0 0; }
+    .corner-bl { bottom: 0; left: 0; border-width: 0 0 1px 1px; }
+    .corner-br { bottom: 0; right: 0; border-width: 0 1px 1px 0; }
+
+    /* Pulse animation for active/alert tiles */
+    @keyframes pulse-green {
+      0%, 100% { box-shadow: 0 0 3px var(--green-dark); }
+      50% { box-shadow: 0 0 10px var(--green); }
+    }
+    @keyframes pulse-red {
+      0%, 100% { box-shadow: 0 0 3px #400000; }
+      50% { box-shadow: 0 0 10px var(--red); }
+    }
+    .tile.active { animation: pulse-green 2s ease-in-out infinite; }
+    .tile.alert  { animation: pulse-red  1.5s ease-in-out infinite; }
+
+    /* Threat panel tile overrides */
+    .threat-panel .tile { min-height: 46px; }
+
+    /* Responsive shrink for very small viewports */
+    @media (max-width: 900px) {
+      .top-row, .bot-row { grid-template-columns: 1fr 1fr; }
+      .mid-row { grid-template-columns: 1fr; }
+      .nist-scores-row { grid-template-columns: repeat(3, 1fr); }
+    }
+  </style>
+</head>
+<body>
+<div class="scanlines"></div>
+
+<div class="dashboard">
+
+  <!-- ═══════════════════════════ TOP ROW ════════════════════════════ -->
+  <div class="top-row">
+
+    <!-- ADMINISTRATIVE -->
+    <div class="panel">
+      <div class="corner-tl"></div><div class="corner-tr"></div>
+      <div class="corner-bl"></div><div class="corner-br"></div>
+      <div class="panel-title">Administrative</div>
+      <div class="icon-grid">
+        <div class="tile active"><span class="tile-icon">♟</span><span class="tile-label">Strategy</span></div>
+        <div class="tile"><span class="tile-icon">🎯</span><span class="tile-label">Mission &amp; Vision</span></div>
+        <div class="tile"><span class="tile-icon">👥</span><span class="tile-label">Team Training</span></div>
+        <div class="tile"><span class="tile-icon">♾</span><span class="tile-label">Business Continuity</span></div>
+        <div class="tile"><span class="tile-icon">🛡</span><span class="tile-label">Cyber Resilience</span></div>
+        <div class="tile"><span class="tile-icon">💲</span><span class="tile-label">Budget</span></div>
+        <div class="tile"><span class="tile-icon">📊</span><span class="tile-label">Metrics</span></div>
+        <div class="tile"><span class="tile-icon">👤</span><span class="tile-label">Succession Planning</span></div>
+        <div class="tile"><span class="tile-icon">🔏</span><span class="tile-label">Privacy</span></div>
+        <div class="tile"><span class="tile-icon">📋</span><span class="tile-label">Regulatory Change Mgmt</span></div>
+        <div class="tile"><span class="tile-icon">👁</span><span class="tile-label">Talent Retention</span></div>
+        <div class="tile"><span class="tile-icon">🤝</span><span class="tile-label">Peer Support</span></div>
+        <div class="tile"><span class="tile-icon">🏆</span><span class="tile-label">Program Maturity</span></div>
+        <div class="tile"><span class="tile-icon">📜</span><span class="tile-label">Policies</span></div>
+        <div class="tile"><span class="tile-icon">🔍</span><span class="tile-label">Security Awareness</span></div>
+        <div class="tile"><span class="tile-icon">⚖</span><span class="tile-label">Policy Exceptions</span></div>
+        <div class="tile"><span class="tile-icon">🗂</span><span class="tile-label">Classify Data</span></div>
+        <div class="tile"><span class="tile-icon">⚡</span><span class="tile-label">Risk Mgmt</span></div>
+        <div class="tile"><span class="tile-icon">🔄</span><span class="tile-label">Disaster Recovery</span></div>
+        <div class="tile"><span class="tile-icon">🔧</span><span class="tile-label">Exabeam Implement</span></div>
+        <div class="tile"><span class="tile-icon">📌</span><span class="tile-label">GRC Implement</span></div>
+        <div class="tile"><span class="tile-icon">📦</span><span class="tile-label">Software Licenses</span></div>
+        <div class="tile"><span class="tile-icon">📝</span><span class="tile-label">DPA/DPIA</span></div>
+        <div class="tile"><span class="tile-icon">💳</span><span class="tile-label">PCI</span></div>
+        <div class="tile"><span class="tile-icon">🔑</span><span class="tile-label">Party</span></div>
+      </div>
+    </div>
+
+    <!-- RISK & COMPLIANCE -->
+    <div class="panel">
+      <div class="corner-tl"></div><div class="corner-tr"></div>
+      <div class="corner-bl"></div><div class="corner-br"></div>
+      <div class="panel-title">Risk &amp; Compliance</div>
+      <div class="icon-grid">
+        <div class="tile"><span class="tile-icon">🔒</span><span class="tile-label">Business Continuity</span></div>
+        <div class="tile"><span class="tile-icon">🛡</span><span class="tile-label">Cyber Resilience</span></div>
+        <div class="tile"><span class="tile-icon">🔏</span><span class="tile-label">Privacy</span></div>
+        <div class="tile"><span class="tile-icon">📋</span><span class="tile-label">Regulatory Change Mgmt</span></div>
+        <div class="tile"><span class="tile-icon">⚡</span><span class="tile-label">Risk Mgmt</span></div>
+        <div class="tile"><span class="tile-icon">🔄</span><span class="tile-label">Disaster Recovery</span></div>
+        <div class="tile"><span class="tile-icon">📜</span><span class="tile-label">Policies</span></div>
+        <div class="tile"><span class="tile-icon">🔍</span><span class="tile-label">Security Awareness</span></div>
+        <div class="tile"><span class="tile-icon">⚖</span><span class="tile-label">Policy Exceptions</span></div>
+        <div class="tile"><span class="tile-icon">🗂</span><span class="tile-label">Classify Data</span></div>
+        <div class="tile"><span class="tile-icon">🔧</span><span class="tile-label">Exabeam Implement</span></div>
+        <div class="tile"><span class="tile-icon">📌</span><span class="tile-label">GRC Implement</span></div>
+        <div class="tile"><span class="tile-icon">📦</span><span class="tile-label">Software Licenses</span></div>
+        <div class="tile"><span class="tile-icon">📝</span><span class="tile-label">DPA/DPIA</span></div>
+        <div class="tile"><span class="tile-icon">💳</span><span class="tile-label">PCI</span></div>
+        <div class="tile"><span class="tile-icon">📊</span><span class="tile-label">Metrics</span></div>
+        <div class="tile"><span class="tile-icon">👤</span><span class="tile-label">Succession Planning</span></div>
+        <div class="tile"><span class="tile-icon">🤝</span><span class="tile-label">Peer Support</span></div>
+        <div class="tile"><span class="tile-icon">🏆</span><span class="tile-label">Program Maturity</span></div>
+        <div class="tile active"><span class="tile-icon">♟</span><span class="tile-label">Strategy</span></div>
+        <div class="tile"><span class="tile-icon">🎯</span><span class="tile-label">Mission &amp; Vision</span></div>
+        <div class="tile"><span class="tile-icon">👥</span><span class="tile-label">Team Training</span></div>
+        <div class="tile"><span class="tile-icon">♾</span><span class="tile-label">Business Continuity</span></div>
+        <div class="tile"><span class="tile-icon">👁</span><span class="tile-label">Talent Retention</span></div>
+        <div class="tile"><span class="tile-icon">🔑</span><span class="tile-label">CMDB</span></div>
+      </div>
+    </div>
+
+    <!-- ENGINEERING & ARCHITECT -->
+    <div class="panel">
+      <div class="corner-tl"></div><div class="corner-tr"></div>
+      <div class="corner-bl"></div><div class="corner-br"></div>
+      <div class="panel-title">Engineering &amp; Architect</div>
+      <div class="icon-grid cols4">
+        <div class="tile"><span class="tile-icon">🔧</span><span class="tile-label">Dev SecOps</span></div>
+        <div class="tile"><span class="tile-icon">🗝</span><span class="tile-label">Key Mgmt</span></div>
+        <div class="tile"><span class="tile-icon">🏅</span><span class="tile-label">Cert Mgmt</span></div>
+        <div class="tile"><span class="tile-icon">☁</span><span class="tile-label">Cloud Security</span></div>
+        <div class="tile active"><span class="tile-icon">🔐</span><span class="tile-label">IAM Program</span></div>
+        <div class="tile"><span class="tile-icon">🗄</span><span class="tile-label">Database Security</span></div>
+        <div class="tile"><span class="tile-icon">📱</span><span class="tile-label">Mobile App Security</span></div>
+        <div class="tile"><span class="tile-icon">🌐</span><span class="tile-label">DDoS Mitigation</span></div>
+        <div class="tile"><span class="tile-icon">🗺</span><span class="tile-label">Critical Systems Map</span></div>
+        <div class="tile"><span class="tile-icon">⏱</span><span class="tile-label">Control Uptime</span></div>
+        <div class="tile"><span class="tile-icon">🔗</span><span class="tile-label">Network Mapping</span></div>
+        <div class="tile"><span class="tile-icon">🤖</span><span class="tile-label">Bot Mitigation</span></div>
+        <div class="tile"><span class="tile-icon">⚙</span><span class="tile-label">TECH</span></div>
+        <div class="tile"><span class="tile-icon">🌐</span><span class="tile-label">Web App</span></div>
+        <div class="tile"><span class="tile-icon">🖨</span><span class="tile-label">Printer Security</span></div>
+        <div class="tile"><span class="tile-icon">📧</span><span class="tile-label">Email Security</span></div>
+        <div class="tile"><span class="tile-icon">☁</span><span class="tile-label">Cloud Uploads</span></div>
+        <div class="tile"><span class="tile-icon">🦠</span><span class="tile-label">Malware</span></div>
+        <div class="tile"><span class="tile-icon">🔎</span><span class="tile-label">Asset Discovery</span></div>
+        <div class="tile"><span class="tile-icon">📥</span><span class="tile-label">Cloud Download</span></div>
+      </div>
+    </div>
+
+    <!-- THREAT & RESPONSE -->
+    <div class="panel threat-panel">
+      <div class="corner-tl"></div><div class="corner-tr"></div>
+      <div class="corner-bl"></div><div class="corner-br"></div>
+      <div class="panel-title">Threat &amp; Response</div>
+      <div class="icon-grid cols5">
+        <div class="tile highlight"><span class="tile-icon">🎣</span><span class="tile-label">Phishing</span></div>
+        <div class="tile alert"><span class="tile-icon">💰</span><span class="tile-label">Ransomware</span></div>
+        <div class="tile"><span class="tile-icon">🔐</span><span class="tile-label">Security</span></div>
+        <div class="tile"><span class="tile-icon">🖥</span><span class="tile-label">IDS/IPS</span></div>
+        <div class="tile alert"><span class="tile-icon">⚠</span><span class="tile-label">Threat Intel</span></div>
+        <div class="tile"><span class="tile-icon">🔒</span><span class="tile-label">Secure Config</span></div>
+        <div class="tile"><span class="tile-icon">📋</span><span class="tile-label">GCIRT Plan</span></div>
+        <div class="tile"><span class="tile-icon">📓</span><span class="tile-label">SOC Playbooks</span></div>
+        <div class="tile"><span class="tile-icon">🗺</span><span class="tile-label">Network Mapping</span></div>
+        <div class="tile"><span class="tile-icon">🚨</span><span class="tile-label">Critical Threat</span></div>
+        <div class="tile"><span class="tile-icon">🖥</span><span class="tile-label">Endpoint Security</span></div>
+        <div class="tile"><span class="tile-icon">⚡</span><span class="tile-label">Response Comms</span></div>
+        <div class="tile"><span class="tile-icon">🛡</span><span class="tile-label">Threat Hunting</span></div>
+        <div class="tile highlight-red"><span class="tile-icon">🔴</span><span class="tile-label">SIEM</span></div>
+        <div class="tile highlight-yellow"><span class="tile-icon">🟡</span><span class="tile-label">Vuln Mgmt</span></div>
+        <div class="tile"><span class="tile-icon">🗃</span><span class="tile-label">Asset Map</span></div>
+        <div class="tile"><span class="tile-icon">🔭</span><span class="tile-label">SOC OPS</span></div>
+        <div class="tile"><span class="tile-icon">📡</span><span class="tile-label">Threat Detection</span></div>
+        <div class="tile"><span class="tile-icon">🔥</span><span class="tile-label">Firewall Mgmt</span></div>
+        <div class="tile"><span class="tile-icon">💡</span><span class="tile-label">Recovery Comms</span></div>
+      </div>
+    </div>
+
+  </div><!-- /top-row -->
+
+  <!-- ═══════════════════════════ MID ROW ═════════════════════════════ -->
+  <div class="mid-row">
+
+    <!-- World Map + Title -->
+    <div class="panel map-panel">
+      <div class="dash-title">Cyber Security Dashboard</div>
+      <div class="world-map-container">
+        <!-- SVG World Map (simplified continents) -->
+        <svg class="world-map-svg" viewBox="0 0 800 450" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="glowGrad" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#003300" stop-opacity="0.8"/>
+              <stop offset="100%" stop-color="#001100" stop-opacity="0.1"/>
+            </radialGradient>
+            <filter id="glow">
+              <feGaussianBlur stdDeviation="2" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+          <!-- Ocean -->
+          <rect width="800" height="450" fill="#020d1a"/>
+          <!-- Grid lines -->
+          <g stroke="#0a2040" stroke-width="0.5" opacity="0.5">
+            <line x1="0" y1="90" x2="800" y2="90"/>
+            <line x1="0" y1="180" x2="800" y2="180"/>
+            <line x1="0" y1="270" x2="800" y2="270"/>
+            <line x1="0" y1="360" x2="800" y2="360"/>
+            <line x1="100" y1="0" x2="100" y2="450"/>
+            <line x1="200" y1="0" x2="200" y2="450"/>
+            <line x1="300" y1="0" x2="300" y2="450"/>
+            <line x1="400" y1="0" x2="400" y2="450"/>
+            <line x1="500" y1="0" x2="500" y2="450"/>
+            <line x1="600" y1="0" x2="600" y2="450"/>
+            <line x1="700" y1="0" x2="700" y2="450"/>
+          </g>
+          <!-- North America -->
+          <path d="M80,60 L180,40 L220,50 L240,80 L230,120 L200,140 L190,170 L170,180 L150,200 L120,220 L100,240 L80,230 L60,200 L50,160 L60,120 Z"
+                fill="#006600" stroke="#00ff41" stroke-width="1" opacity="0.8" filter="url(#glow)"/>
+          <!-- Greenland -->
+          <path d="M230,20 L270,15 L290,30 L280,55 L250,60 L230,50 Z"
+                fill="#004d00" stroke="#00cc33" stroke-width="0.8" opacity="0.6"/>
+          <!-- South America -->
+          <path d="M150,250 L200,240 L230,260 L240,300 L230,340 L210,380 L180,410 L160,390 L140,360 L130,310 L140,280 Z"
+                fill="#006600" stroke="#00ff41" stroke-width="1" opacity="0.8" filter="url(#glow)"/>
+          <!-- Europe -->
+          <path d="M350,50 L400,40 L430,50 L440,70 L430,90 L410,100 L380,95 L360,85 L345,70 Z"
+                fill="#006600" stroke="#00ff41" stroke-width="1" opacity="0.8" filter="url(#glow)"/>
+          <!-- Africa -->
+          <path d="M360,110 L410,100 L440,120 L450,160 L440,210 L420,260 L400,300 L370,310 L350,290 L340,250 L335,200 L340,150 Z"
+                fill="#006600" stroke="#00ff41" stroke-width="1" opacity="0.8" filter="url(#glow)"/>
+          <!-- Asia -->
+          <path d="M440,40 L560,30 L650,40 L700,60 L720,90 L700,120 L650,130 L600,140 L560,150 L520,160 L480,150 L450,130 L430,100 L435,70 Z"
+                fill="#006600" stroke="#00ff41" stroke-width="1" opacity="0.8" filter="url(#glow)"/>
+          <!-- Middle East -->
+          <path d="M450,130 L490,120 L520,130 L530,160 L510,180 L480,185 L455,170 Z"
+                fill="#005500" stroke="#00cc33" stroke-width="0.8" opacity="0.7"/>
+          <!-- Australia -->
+          <path d="M580,270 L650,260 L690,280 L700,320 L680,360 L640,370 L600,360 L570,330 L565,300 Z"
+                fill="#006600" stroke="#00ff41" stroke-width="1" opacity="0.8" filter="url(#glow)"/>
+          <!-- Scan / pulse circles -->
+          <circle cx="130" cy="150" r="8" fill="none" stroke="#00ff41" stroke-width="1.5" opacity="0.9"/>
+          <circle cx="130" cy="150" r="4" fill="#00ff41" opacity="0.8">
+            <animate attributeName="r" values="4;14;4" dur="2s" repeatCount="indefinite"/>
+            <animate attributeName="opacity" values="0.8;0;0.8" dur="2s" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="380" cy="70" r="6" fill="none" stroke="#00e5ff" stroke-width="1" opacity="0.8"/>
+          <circle cx="380" cy="70" r="3" fill="#00e5ff" opacity="0.7">
+            <animate attributeName="r" values="3;12;3" dur="2.5s" repeatCount="indefinite"/>
+            <animate attributeName="opacity" values="0.7;0;0.7" dur="2.5s" repeatCount="indefinite"/>
+          </circle>
+          <circle cx="600" cy="80" r="5" fill="none" stroke="#ffd700" stroke-width="1" opacity="0.7"/>
+          <circle cx="600" cy="80" r="2.5" fill="#ffd700" opacity="0.6">
+            <animate attributeName="r" values="2.5;10;2.5" dur="3s" repeatCount="indefinite"/>
+            <animate attributeName="opacity" values="0.6;0;0.6" dur="3s" repeatCount="indefinite"/>
+          </circle>
+          <!-- Connecting lines -->
+          <line x1="130" y1="150" x2="380" y2="70" stroke="#00e5ff" stroke-width="0.5" stroke-dasharray="4,4" opacity="0.4"/>
+          <line x1="380" y1="70" x2="600" y2="80" stroke="#00e5ff" stroke-width="0.5" stroke-dasharray="4,4" opacity="0.4"/>
+          <line x1="130" y1="150" x2="600" y2="80" stroke="#00ff41" stroke-width="0.5" stroke-dasharray="2,6" opacity="0.3"/>
+        </svg>
+        <!-- Overall Score -->
+        <div style="position:absolute; bottom:10px; right:10px;">
+          <svg width="80" height="80" viewBox="0 0 80 80">
+            <defs>
+              <radialGradient id="scoreGrad" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#002200"/>
+                <stop offset="100%" stop-color="#000800"/>
+              </radialGradient>
+            </defs>
+            <!-- Outer ring -->
+            <circle cx="40" cy="40" r="36" fill="url(#scoreGrad)" stroke="#00ff41" stroke-width="2"/>
+            <!-- Tick marks -->
+            <g stroke="#00cc33" stroke-width="1" opacity="0.5">
+              <line x1="40" y1="6" x2="40" y2="12" transform="rotate(0 40 40)"/>
+              <line x1="40" y1="6" x2="40" y2="12" transform="rotate(30 40 40)"/>
+              <line x1="40" y1="6" x2="40" y2="12" transform="rotate(60 40 40)"/>
+              <line x1="40" y1="6" x2="40" y2="12" transform="rotate(90 40 40)"/>
+              <line x1="40" y1="6" x2="40" y2="12" transform="rotate(120 40 40)"/>
+              <line x1="40" y1="6" x2="40" y2="12" transform="rotate(150 40 40)"/>
+              <line x1="40" y1="6" x2="40" y2="12" transform="rotate(180 40 40)"/>
+              <line x1="40" y1="6" x2="40" y2="12" transform="rotate(210 40 40)"/>
+              <line x1="40" y1="6" x2="40" y2="12" transform="rotate(240 40 40)"/>
+              <line x1="40" y1="6" x2="40" y2="12" transform="rotate(270 40 40)"/>
+              <line x1="40" y1="6" x2="40" y2="12" transform="rotate(300 40 40)"/>
+              <line x1="40" y1="6" x2="40" y2="12" transform="rotate(330 40 40)"/>
+            </g>
+            <!-- Arc progress (95/100 = 342°) -->
+            <circle cx="40" cy="40" r="32" fill="none" stroke="#00ff41" stroke-width="3"
+                    stroke-dasharray="190 10000"
+                    stroke-dashoffset="-48"
+                    stroke-linecap="round" opacity="0.8"/>
+            <!-- Score text -->
+            <text x="40" y="45" text-anchor="middle" font-family="'Courier New',monospace"
+                  font-size="22" font-weight="700" fill="#00ff41">95</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- NIST Framework Scores -->
+    <div class="panel nist-panel">
+      <div class="panel-title">NIST Cybersecurity Framework — Maturity Scores</div>
+      <div class="nist-scores-row">
+
+        <!-- IDENTIFY -->
+        <div class="nist-col">
+          <div class="nist-label" style="color:#00e5ff">Identify</div>
+          <div class="hex-score">
+            <svg width="80" height="80" viewBox="0 0 80 80">
+              <polygon points="40,4 72,22 72,58 40,76 8,58 8,22"
+                       fill="#040f1e" stroke="#0060cc" stroke-width="2.5"/>
+              <polygon points="40,10 66,25 66,55 40,70 14,55 14,25"
+                       fill="none" stroke="#0040aa" stroke-width="1" opacity="0.5"/>
+            </svg>
+            <span class="hex-value blue">4.00</span>
+          </div>
+          <div class="gauge-wrap">
+            <svg width="70" height="36" viewBox="0 0 70 36">
+              <path d="M5,35 A30,30 0 0,1 65,35" fill="none" stroke="#0d2040" stroke-width="6"/>
+              <path d="M5,35 A30,30 0 0,1 65,35" fill="none" stroke="#0060cc" stroke-width="4"
+                    stroke-dasharray="94 100" stroke-linecap="round"/>
+              <circle cx="35" cy="35" r="3" fill="#00e5ff"/>
+            </svg>
+          </div>
+          <div class="nist-items">
+            <div class="nist-item blue">Asset Management</div>
+            <div class="nist-item blue">Business Environment</div>
+            <div class="nist-item blue">Governance</div>
+            <div class="nist-item blue">Risk Assessment</div>
+            <div class="nist-item blue">Risk Management Strategy</div>
+            <div class="nist-item blue">Supply Chain Risk Management</div>
+          </div>
+        </div>
+
+        <!-- PROTECT -->
+        <div class="nist-col">
+          <div class="nist-label" style="color:#00ff41">Protect</div>
+          <div class="hex-score">
+            <svg width="80" height="80" viewBox="0 0 80 80">
+              <polygon points="40,4 72,22 72,58 40,76 8,58 8,22"
+                       fill="#040f0a" stroke="#00aa22" stroke-width="2.5"/>
+              <polygon points="40,10 66,25 66,55 40,70 14,55 14,25"
+                       fill="none" stroke="#007718" stroke-width="1" opacity="0.5"/>
+            </svg>
+            <span class="hex-value green">4.00</span>
+          </div>
+          <div class="gauge-wrap">
+            <svg width="70" height="36" viewBox="0 0 70 36">
+              <path d="M5,35 A30,30 0 0,1 65,35" fill="none" stroke="#0d2010" stroke-width="6"/>
+              <path d="M5,35 A30,30 0 0,1 65,35" fill="none" stroke="#00cc33" stroke-width="4"
+                    stroke-dasharray="94 100" stroke-linecap="round"/>
+              <circle cx="35" cy="35" r="3" fill="#00ff41"/>
+            </svg>
+          </div>
+          <div class="nist-items">
+            <div class="nist-item green">Access Control</div>
+            <div class="nist-item green">Awareness &amp; Training</div>
+            <div class="nist-item green">Data Security</div>
+            <div class="nist-item green">Info Protection &amp; Procedures</div>
+            <div class="nist-item green">Maintenance</div>
+            <div class="nist-item green">Protective Technology</div>
+          </div>
+        </div>
+
+        <!-- DETECT -->
+        <div class="nist-col">
+          <div class="nist-label" style="color:#ffd700">Detect</div>
+          <div class="hex-score">
+            <svg width="80" height="80" viewBox="0 0 80 80">
+              <polygon points="40,4 72,22 72,58 40,76 8,58 8,22"
+                       fill="#100d00" stroke="#cc9900" stroke-width="2.5"/>
+              <polygon points="40,10 66,25 66,55 40,70 14,55 14,25"
+                       fill="none" stroke="#997700" stroke-width="1" opacity="0.5"/>
+            </svg>
+            <span class="hex-value yellow">4.00</span>
+          </div>
+          <div class="gauge-wrap">
+            <svg width="70" height="36" viewBox="0 0 70 36">
+              <path d="M5,35 A30,30 0 0,1 65,35" fill="none" stroke="#201800" stroke-width="6"/>
+              <path d="M5,35 A30,30 0 0,1 65,35" fill="none" stroke="#ccaa00" stroke-width="4"
+                    stroke-dasharray="94 100" stroke-linecap="round"/>
+              <circle cx="35" cy="35" r="3" fill="#ffd700"/>
+            </svg>
+          </div>
+          <div class="nist-items">
+            <div class="nist-item yellow">Anomalies &amp; Events</div>
+            <div class="nist-item yellow">Continuous Monitoring</div>
+            <div class="nist-item yellow">Detection Processes</div>
+          </div>
+        </div>
+
+        <!-- RESPOND -->
+        <div class="nist-col">
+          <div class="nist-label" style="color:#ff4444">Respond</div>
+          <div class="hex-score">
+            <svg width="80" height="80" viewBox="0 0 80 80">
+              <polygon points="40,4 72,22 72,58 40,76 8,58 8,22"
+                       fill="#140000" stroke="#cc0000" stroke-width="2.5"/>
+              <polygon points="40,10 66,25 66,55 40,70 14,55 14,25"
+                       fill="none" stroke="#990000" stroke-width="1" opacity="0.5"/>
+            </svg>
+            <span class="hex-value red">4.00</span>
+          </div>
+          <div class="gauge-wrap">
+            <svg width="70" height="36" viewBox="0 0 70 36">
+              <path d="M5,35 A30,30 0 0,1 65,35" fill="none" stroke="#200000" stroke-width="6"/>
+              <path d="M5,35 A30,30 0 0,1 65,35" fill="none" stroke="#cc0000" stroke-width="4"
+                    stroke-dasharray="94 100" stroke-linecap="round"/>
+              <circle cx="35" cy="35" r="3" fill="#ff3333"/>
+            </svg>
+          </div>
+          <div class="nist-items">
+            <div class="nist-item red">Response &amp; Planning</div>
+            <div class="nist-item red">Response Communications</div>
+            <div class="nist-item red">Analysis</div>
+            <div class="nist-item red">Mitigation</div>
+            <div class="nist-item red">Response Improvements</div>
+          </div>
+        </div>
+
+        <!-- RECOVER -->
+        <div class="nist-col">
+          <div class="nist-label" style="color:#00ff41">Recover</div>
+          <div class="hex-score">
+            <svg width="80" height="80" viewBox="0 0 80 80">
+              <polygon points="40,4 72,22 72,58 40,76 8,58 8,22"
+                       fill="#001800" stroke="#00bb00" stroke-width="2.5"/>
+              <polygon points="40,10 66,25 66,55 40,70 14,55 14,25"
+                       fill="none" stroke="#008800" stroke-width="1" opacity="0.5"/>
+            </svg>
+            <span class="hex-value green">4.00</span>
+          </div>
+          <div class="gauge-wrap">
+            <svg width="70" height="36" viewBox="0 0 70 36">
+              <path d="M5,35 A30,30 0 0,1 65,35" fill="none" stroke="#001400" stroke-width="6"/>
+              <path d="M5,35 A30,30 0 0,1 65,35" fill="none" stroke="#00cc33" stroke-width="4"
+                    stroke-dasharray="94 100" stroke-linecap="round"/>
+              <circle cx="35" cy="35" r="3" fill="#00ff41"/>
+            </svg>
+          </div>
+          <div class="nist-items">
+            <div class="nist-item gr">Recovery Planning</div>
+            <div class="nist-item gr">Recovery Improvements</div>
+            <div class="nist-item gr">Recovery Communications</div>
+          </div>
+        </div>
+
+      </div><!-- /nist-scores-row -->
+    </div><!-- /nist-panel -->
+
+  </div><!-- /mid-row -->
+
+  <!-- ═══════════════════════════ BOTTOM ROW ══════════════════════════ -->
+  <div class="bot-row">
+
+    <!-- Business Function Alignment -->
+    <div class="panel">
+      <div class="corner-tl"></div><div class="corner-tr"></div>
+      <div class="corner-bl"></div><div class="corner-br"></div>
+      <div class="bot-title">Business Function Alignment</div>
+      <div class="icon-grid cols4">
+        <div class="tile"><span class="tile-icon">💰</span><span class="tile-label">Finance</span></div>
+        <div class="tile"><span class="tile-icon">👥</span><span class="tile-label">Human Resources</span></div>
+        <div class="tile"><span class="tile-icon">₿</span><span class="tile-label">Crypto</span></div>
+        <div class="tile"><span class="tile-icon">🏷</span><span class="tile-label">Sales</span></div>
+        <div class="tile"><span class="tile-icon">⚠</span><span class="tile-label">Fraud</span></div>
+        <div class="tile"><span class="tile-icon">🔧</span><span class="tile-label">Dev Ops</span></div>
+        <div class="tile"><span class="tile-icon">🚀</span><span class="tile-label">Product Launch</span></div>
+        <div class="tile"><span class="tile-icon">🤖</span><span class="tile-label">SOAR</span></div>
+        <div class="tile"><span class="tile-icon">🛒</span><span class="tile-label">Ecom</span></div>
+        <div class="tile"><span class="tile-icon">⚖</span><span class="tile-label">Legal</span></div>
+        <div class="tile"><span class="tile-icon">🏢</span><span class="tile-label">Dist Centers</span></div>
+        <div class="tile"><span class="tile-icon">📣</span><span class="tile-label">Marketing</span></div>
+        <div class="tile"><span class="tile-icon">🧑‍💼</span><span class="tile-label">Customer Exp</span></div>
+        <div class="tile"><span class="tile-icon">🎪</span><span class="tile-label">Event Support</span></div>
+        <div class="tile"><span class="tile-icon">🌍</span><span class="tile-label">Intl Offices</span></div>
+        <div class="tile"><span class="tile-icon">🔫</span><span class="tile-label">Attack IQ Simulator</span></div>
+      </div>
+    </div>
+
+    <!-- Critical Control / Tool Optimization -->
+    <div class="panel">
+      <div class="corner-tl"></div><div class="corner-tr"></div>
+      <div class="corner-bl"></div><div class="corner-br"></div>
+      <div class="bot-title">Critical Control / Tool Optimization</div>
+      <div class="icon-grid cols7">
+        <div class="tile highlight-yellow"><span class="tile-icon">🔒</span><span class="tile-label">Privacy SaaS</span></div>
+        <div class="tile"><span class="tile-icon">🧱</span><span class="tile-label">Other Firewalls</span></div>
+        <div class="tile highlight-green"><span class="tile-icon">🛡</span><span class="tile-label">Cylance Antivirus</span></div>
+        <div class="tile"><span class="tile-icon">🔥</span><span class="tile-label">Primary Firewalls</span></div>
+        <div class="tile"><span class="tile-icon">🌐</span><span class="tile-label">WAF</span></div>
+        <div class="tile"><span class="tile-icon">🏭</span><span class="tile-label">Factory Firewalls</span></div>
+        <div class="tile"><span class="tile-icon">💾</span><span class="tile-label">DR Solution</span></div>
+        <div class="tile"><span class="tile-icon">📋</span><span class="tile-label">GRC</span></div>
+        <div class="tile"><span class="tile-icon">💼</span><span class="tile-label">Microsoft O365</span></div>
+        <div class="tile"><span class="tile-icon">🍯</span><span class="tile-label">Honeypot</span></div>
+        <div class="tile"><span class="tile-icon">🧪</span><span class="tile-label">Pen Testing</span></div>
+        <div class="tile"><span class="tile-icon">📱</span><span class="tile-label">Mobile App Security</span></div>
+        <div class="tile"><span class="tile-icon">🔍</span><span class="tile-label">IDR</span></div>
+        <div class="tile"><span class="tile-icon">🔗</span><span class="tile-label">NAC</span></div>
+        <div class="tile"><span class="tile-icon">🎛</span><span class="tile-label">PAM</span></div>
+        <div class="tile"><span class="tile-icon">🎓</span><span class="tile-label">Security Training</span></div>
+        <div class="tile"><span class="tile-icon">☁</span><span class="tile-label">Cloud Security</span></div>
+        <div class="tile"><span class="tile-icon">📦</span><span class="tile-label">Container Security</span></div>
+        <div class="tile"><span class="tile-icon">🤖</span><span class="tile-label">Bot Management</span></div>
+        <div class="tile"><span class="tile-icon">🔬</span><span class="tile-label">Forensics</span></div>
+        <div class="tile"><span class="tile-icon">🔎</span><span class="tile-label">FIM</span></div>
+        <div class="tile"><span class="tile-icon">🆔</span><span class="tile-label">Azure AD</span></div>
+        <div class="tile highlight-green"><span class="tile-icon">🛡</span><span class="tile-label">Remote Security</span></div>
+        <div class="tile"><span class="tile-icon">🔑</span><span class="tile-label">IAM PAM</span></div>
+        <div class="tile highlight-red"><span class="tile-icon">⚡</span><span class="tile-label">SSDLC</span></div>
+        <div class="tile"><span class="tile-icon">⚙</span><span class="tile-label">TVM</span></div>
+        <div class="tile"><span class="tile-icon">📡</span><span class="tile-label">GCIRT</span></div>
+        <div class="tile active"><span class="tile-icon">🎯</span><span class="tile-label">Threat Mgmt</span></div>
+      </div>
+    </div>
+
+    <!-- Skill Maturity -->
+    <div class="panel">
+      <div class="corner-tl"></div><div class="corner-tr"></div>
+      <div class="corner-bl"></div><div class="corner-br"></div>
+      <div class="bot-title">Skill Maturity</div>
+      <div class="icon-grid cols4">
+        <div class="tile"><span class="tile-icon">🧠</span><span class="tile-label">Pen Testing</span></div>
+        <div class="tile"><span class="tile-icon">📱</span><span class="tile-label">Mobile App Security</span></div>
+        <div class="tile"><span class="tile-icon">📋</span><span class="tile-label">GCIRT</span></div>
+        <div class="tile active"><span class="tile-icon">🔐</span><span class="tile-label">IAM PAM</span></div>
+        <div class="tile"><span class="tile-icon">☁</span><span class="tile-label">Cloud Security</span></div>
+        <div class="tile"><span class="tile-icon">🔒</span><span class="tile-label">AppSec</span></div>
+        <div class="tile"><span class="tile-icon">🛡</span><span class="tile-label">SOC Analyst</span></div>
+        <div class="tile"><span class="tile-icon">🔬</span><span class="tile-label">Forensics</span></div>
+        <div class="tile"><span class="tile-icon">📡</span><span class="tile-label">Network Sec</span></div>
+        <div class="tile"><span class="tile-icon">🧩</span><span class="tile-label">Threat Intel</span></div>
+        <div class="tile"><span class="tile-icon">📊</span><span class="tile-label">Risk Analysis</span></div>
+        <div class="tile"><span class="tile-icon">🤖</span><span class="tile-label">Automation</span></div>
+      </div>
+    </div>
+
+  </div><!-- /bot-row -->
+
+</div><!-- /dashboard -->
+
+<script>
+  // Animate tiles randomly to simulate live data
+  function animateTiles() {
+    const tiles = document.querySelectorAll('.tile');
+    const randomTile = tiles[Math.floor(Math.random() * tiles.length)];
+    randomTile.style.borderColor = '#00e5ff';
+    randomTile.style.boxShadow = '0 0 8px #00e5ff55';
+    setTimeout(() => {
+      randomTile.style.borderColor = '';
+      randomTile.style.boxShadow = '';
+    }, 800);
+  }
+  setInterval(animateTiles, 400);
+
+  // Update timestamp
+  function updateTime() {
+    const now = new Date();
+    const ts = now.toISOString().replace('T', ' ').substring(0, 19) + ' UTC';
+    document.title = 'Cyber Security Dashboard — ' + ts;
+  }
+  updateTime();
+  setInterval(updateTime, 1000);
+</script>
+</body>
+</html>
