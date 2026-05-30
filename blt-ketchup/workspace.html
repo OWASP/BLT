@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Acme Corp — External Network · BLT Ketchup</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/fontawesome.min.css" />
+  <style>
+    /* Thin custom scrollbar for sidebar */
+    .sidebar-scroll::-webkit-scrollbar { width: 4px; }
+    .sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
+    .sidebar-scroll::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 9999px; }
+    /* Blinking cursor for collaborative presence */
+    @keyframes blink { 50% { opacity: 0; } }
+    .cursor-blink { animation: blink 1s step-end infinite; }
+  </style>
+</head>
+<body class="h-full bg-gray-50 dark:bg-[#111827] text-gray-900 dark:text-gray-100 font-sans flex flex-col">
+
+  <!-- ====== TOP NAV ====== -->
+  <header class="bg-white dark:bg-[#1F2937] border-b border-[#E5E5E5] dark:border-gray-700 z-30 shrink-0">
+    <div class="flex items-center justify-between px-4 h-14">
+
+      <!-- Left: back + breadcrumb -->
+      <div class="flex items-center gap-3 min-w-0">
+        <a href="index.html" class="shrink-0 text-gray-500 hover:text-[#E10101] transition-colors p-1 rounded focus:outline-none focus:ring-2 focus:ring-[#E10101]" aria-label="Back to engagements">
+          <i class="fa-solid fa-chevron-left text-sm" aria-hidden="true"></i>
+        </a>
+        <div class="min-w-0">
+          <div class="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 truncate">
+            <a href="index.html" class="hover:text-[#E10101] hover:underline truncate">Engagements</a>
+            <i class="fa-solid fa-chevron-right text-xs" aria-hidden="true"></i>
+            <span class="font-medium text-gray-900 dark:text-gray-100 truncate">Acme Corp — External Network</span>
+          </div>
+          <div class="flex items-center gap-2 mt-0.5">
+            <span class="inline-flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
+              <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" aria-hidden="true"></span>
+              Live · 3 collaborators
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Center: presence avatars -->
+      <div class="hidden md:flex items-center gap-2">
+        <div class="flex -space-x-2" aria-label="Online: Alex, Jordan, Sam">
+          <div class="relative">
+            <img src="https://ui-avatars.com/api/?name=Alex+P&background=E10101&color=fff&size=28" alt="Alex P (you)" class="w-7 h-7 rounded-full ring-2 ring-white dark:ring-[#1F2937]" />
+            <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-green-400 ring-1 ring-white dark:ring-[#1F2937]" aria-hidden="true"></span>
+          </div>
+          <div class="relative">
+            <img src="https://ui-avatars.com/api/?name=Jordan+K&background=374151&color=fff&size=28" alt="Jordan K" class="w-7 h-7 rounded-full ring-2 ring-white dark:ring-[#1F2937]" />
+            <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-green-400 ring-1 ring-white dark:ring-[#1F2937]" aria-hidden="true"></span>
+          </div>
+          <div class="relative">
+            <img src="https://ui-avatars.com/api/?name=Sam+R&background=6B7280&color=fff&size=28" alt="Sam R" class="w-7 h-7 rounded-full ring-2 ring-white dark:ring-[#1F2937]" />
+            <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-yellow-400 ring-1 ring-white dark:ring-[#1F2937]" aria-hidden="true"></span>
+          </div>
+        </div>
+        <button class="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-md border border-[#E5E5E5] dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-[#E10101] hover:text-[#E10101] transition-colors focus:outline-none focus:ring-2 focus:ring-[#E10101]">
+          <i class="fa-solid fa-user-plus text-xs" aria-hidden="true"></i>
+          Invite
+        </button>
+      </div>
+
+      <!-- Right: actions -->
+      <div class="flex items-center gap-2">
+        <button class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md border border-[#E5E5E5] dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-[#E10101] hover:text-[#E10101] transition-colors focus:outline-none focus:ring-2 focus:ring-[#E10101]">
+          <i class="fa-solid fa-file-export" aria-hidden="true"></i>
+          Export Report
+        </button>
+        <button class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md bg-[#E10101] text-white hover:bg-red-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-[#E10101]">
+          <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+          Escalate to BLT
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ====== 3-COLUMN WORKSPACE ====== -->
+  <div class="flex flex-1 min-h-0">
+
+    <!-- ===== LEFT SIDEBAR: Findings list ===== -->
+    <aside class="w-72 shrink-0 bg-white dark:bg-[#1F2937] border-r border-[#E5E5E5] dark:border-gray-700 flex flex-col hidden lg:flex" aria-label="Findings sidebar">
+
+      <!-- Sidebar header -->
+      <div class="px-4 py-3 border-b border-[#E5E5E5] dark:border-gray-700">
+        <div class="flex items-center justify-between mb-2">
+          <h2 class="text-sm font-semibold">Findings</h2>
+          <a href="finding.html" class="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded bg-[#E10101] text-white hover:bg-red-700 transition-colors focus:outline-none focus:ring-2 focus:ring-[#E10101]">
+            <i class="fa-solid fa-plus" aria-hidden="true"></i> Add
+          </a>
+        </div>
+        <!-- Search -->
+        <div class="relative">
+          <span class="absolute inset-y-0 left-2.5 flex items-center pointer-events-none text-gray-400 text-xs" aria-hidden="true">
+            <i class="fa-solid fa-magnifying-glass"></i>
+          </span>
+          <input
+            type="search"
+            placeholder="Search findings…"
+            aria-label="Search findings"
+            class="w-full text-xs border border-gray-400 rounded-md pl-7 pr-3 py-1.5 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600"
+          />
+        </div>
+        <!-- Filter chips -->
+        <div class="flex gap-1.5 mt-2 flex-wrap">
+          <button class="px-2 py-0.5 text-xs rounded-full bg-[#feeae9] text-[#E10101] font-medium focus:outline-none focus:ring-2 focus:ring-[#E10101]">All 32</button>
+          <button class="px-2 py-0.5 text-xs rounded-full border border-[#E5E5E5] dark:border-gray-600 text-gray-500 hover:border-[#E10101] hover:text-[#E10101] transition-colors focus:outline-none focus:ring-2 focus:ring-[#E10101]">Critical 3</button>
+          <button class="px-2 py-0.5 text-xs rounded-full border border-[#E5E5E5] dark:border-gray-600 text-gray-500 hover:border-[#E10101] hover:text-[#E10101] transition-colors focus:outline-none focus:ring-2 focus:ring-[#E10101]">High 8</button>
+          <button class="px-2 py-0.5 text-xs rounded-full border border-[#E5E5E5] dark:border-gray-600 text-gray-500 hover:border-[#E10101] hover:text-[#E10101] transition-colors focus:outline-none focus:ring-2 focus:ring-[#E10101]">Open</button>
+        </div>
+      </div>
+
+      <!-- Findings list (scrollable) -->
+      <nav class="flex-1 overflow-y-auto sidebar-scroll py-1" aria-label="Findings list">
+
+        <!-- Section: Critical -->
+        <div class="px-3 pt-3 pb-1">
+          <p class="text-xs font-semibold text-[#E10101] uppercase tracking-wide">Critical</p>
+        </div>
+
+        <a href="finding.html" class="block px-3 py-2 mx-1 rounded-lg bg-[#feeae9] text-[#E10101]" aria-current="page">
+          <div class="flex items-start gap-2">
+            <span class="mt-0.5 shrink-0 w-2 h-2 rounded-full bg-[#E10101]" aria-hidden="true"></span>
+            <div class="min-w-0">
+              <p class="text-xs font-semibold truncate">SQL Injection — Login Endpoint</p>
+              <p class="text-xs mt-0.5 text-[#E10101]/70">CVSS 9.8 · Open</p>
+            </div>
+          </div>
+        </a>
+
+        <a href="finding.html" class="block px-3 py-2 mx-1 rounded-lg hover:bg-[#feeae9] hover:text-[#E10101] text-gray-700 dark:text-gray-300 transition-colors">
+          <div class="flex items-start gap-2">
+            <span class="mt-0.5 shrink-0 w-2 h-2 rounded-full bg-[#E10101]" aria-hidden="true"></span>
+            <div class="min-w-0">
+              <p class="text-xs font-semibold truncate">RCE via Deserialization</p>
+              <p class="text-xs mt-0.5 text-gray-400">CVSS 9.6 · Open</p>
+            </div>
+          </div>
+        </a>
+
+        <a href="finding.html" class="block px-3 py-2 mx-1 rounded-lg hover:bg-[#feeae9] hover:text-[#E10101] text-gray-700 dark:text-gray-300 transition-colors">
+          <div class="flex items-start gap-2">
+            <span class="mt-0.5 shrink-0 w-2 h-2 rounded-full bg-[#E10101]" aria-hidden="true"></span>
+            <div class="min-w-0">
+              <p class="text-xs font-semibold truncate">Exposed AWS Keys in Repo</p>
+              <p class="text-xs mt-0.5 text-gray-400">CVSS 9.1 · Escalated</p>
+            </div>
+          </div>
+        </a>
+
+        <!-- Section: High -->
+        <div class="px-3 pt-4 pb-1">
+          <p class="text-xs font-semibold text-orange-500 uppercase tracking-wide">High</p>
+        </div>
+
+        <a href="finding.html" class="block px-3 py-2 mx-1 rounded-lg hover:bg-[#feeae9] hover:text-[#E10101] text-gray-700 dark:text-gray-300 transition-colors">
+          <div class="flex items-start gap-2">
+            <span class="mt-0.5 shrink-0 w-2 h-2 rounded-full bg-orange-400" aria-hidden="true"></span>
+            <div class="min-w-0">
+              <p class="text-xs font-semibold truncate">SSRF — Internal Metadata</p>
+              <p class="text-xs mt-0.5 text-gray-400">CVSS 8.2 · Open</p>
+            </div>
+          </div>
+        </a>
+
+        <a href="finding.html" class="block px-3 py-2 mx-1 rounded-lg hover:bg-[#feeae9] hover:text-[#E10101] text-gray-700 dark:text-gray-300 transition-colors">
+          <div class="flex items-start gap-2">
+            <span class="mt-0.5 shrink-0 w-2 h-2 rounded-full bg-orange-400" aria-hidden="true"></span>
+            <div class="min-w-0">
+              <p class="text-xs font-semibold truncate">Broken Auth — API Tokens</p>
+              <p class="text-xs mt-0.5 text-gray-400">CVSS 7.9 · In Progress</p>
+            </div>
+          </div>
+        </a>
+
+        <a href="finding.html" class="block px-3 py-2 mx-1 rounded-lg hover:bg-[#feeae9] hover:text-[#E10101] text-gray-700 dark:text-gray-300 transition-colors">
+          <div class="flex items-start gap-2">
+            <span class="mt-0.5 shrink-0 w-2 h-2 rounded-full bg-orange-400" aria-hidden="true"></span>
+            <div class="min-w-0">
+              <p class="text-xs font-semibold truncate">XXE in SOAP Endpoint</p>
+              <p class="text-xs mt-0.5 text-gray-400">CVSS 7.5 · Open</p>
+            </div>
+          </div>
+        </a>
+
+        <!-- Section: Medium -->
+        <div class="px-3 pt-4 pb-1">
+          <p class="text-xs font-semibold text-yellow-600 uppercase tracking-wide">Medium</p>
+        </div>
+
+        <a href="finding.html" class="block px-3 py-2 mx-1 rounded-lg hover:bg-[#feeae9] hover:text-[#E10101] text-gray-700 dark:text-gray-300 transition-colors">
+          <div class="flex items-start gap-2">
+            <span class="mt-0.5 shrink-0 w-2 h-2 rounded-full bg-yellow-400" aria-hidden="true"></span>
+            <div class="min-w-0">
+              <p class="text-xs font-semibold truncate">CORS Misconfiguration</p>
+              <p class="text-xs mt-0.5 text-gray-400">CVSS 5.4 · Open</p>
+            </div>
+          </div>
+        </a>
+
+        <a href="finding.html" class="block px-3 py-2 mx-1 rounded-lg hover:bg-[#feeae9] hover:text-[#E10101] text-gray-700 dark:text-gray-300 transition-colors">
+          <div class="flex items-start gap-2">
+            <span class="mt-0.5 shrink-0 w-2 h-2 rounded-full bg-yellow-400" aria-hidden="true"></span>
+            <div class="min-w-0">
+              <p class="text-xs font-semibold truncate">Weak TLS — RC4 Suite</p>
+              <p class="text-xs mt-0.5 text-gray-400">CVSS 5.1 · Open</p>
+            </div>
+          </div>
+        </a>
+
+        <a href="finding.html" class="block px-3 py-2 mx-1 rounded-lg hover:bg-[#feeae9] hover:text-[#E10101] text-gray-700 dark:text-gray-300 transition-colors">
+          <div class="flex items-start gap-2">
+            <span class="mt-0.5 shrink-0 w-2 h-2 rounded-full bg-yellow-400" aria-hidden="true"></span>
+            <div class="min-w-0">
+              <p class="text-xs font-semibold truncate">Missing HSTS Header</p>
+              <p class="text-xs mt-0.5 text-gray-400">CVSS 4.3 · Open</p>
+            </div>
+          </div>
+        </a>
+
+        <!-- show more -->
+        <div class="px-4 py-3">
+          <button class="text-xs text-[#E10101] hover:underline font-medium focus:outline-none focus:ring-2 focus:ring-[#E10101] rounded">
+            Show 22 more findings…
+          </button>
+        </div>
+      </nav>
+    </aside>
+
+    <!-- ===== CENTER: Collaborative editor ===== -->
+    <main class="flex-1 flex flex-col min-w-0 overflow-hidden" aria-label="Finding editor">
+
+      <!-- Editor toolbar -->
+      <div class="bg-white dark:bg-[#1F2937] border-b border-[#E5E5E5] dark:border-gray-700 px-4 py-2 flex items-center gap-1 flex-wrap shrink-0">
+        <div class="flex items-center gap-1 border-r border-[#E5E5E5] dark:border-gray-600 pr-2 mr-1">
+          <button class="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-[#E10101]" title="Bold" aria-label="Bold">
+            <i class="fa-solid fa-bold text-xs" aria-hidden="true"></i>
+          </button>
+          <button class="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-[#E10101]" title="Italic" aria-label="Italic">
+            <i class="fa-solid fa-italic text-xs" aria-hidden="true"></i>
+          </button>
+          <button class="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-[#E10101]" title="Code" aria-label="Code block">
+            <i class="fa-solid fa-code text-xs" aria-hidden="true"></i>
+          </button>
+        </div>
+        <div class="flex items-center gap-1 border-r border-[#E5E5E5] dark:border-gray-600 pr-2 mr-1">
+          <button class="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-[#E10101]" title="Heading 1" aria-label="Heading 1">
+            <span class="text-xs font-bold">H1</span>
+          </button>
+          <button class="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-[#E10101]" title="Heading 2" aria-label="Heading 2">
+            <span class="text-xs font-bold">H2</span>
+          </button>
+          <button class="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-[#E10101]" title="Bullet list" aria-label="Bullet list">
+            <i class="fa-solid fa-list-ul text-xs" aria-hidden="true"></i>
+          </button>
+        </div>
+        <div class="flex items-center gap-1 border-r border-[#E5E5E5] dark:border-gray-600 pr-2 mr-1">
+          <button class="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-[#E10101]" title="Attach evidence" aria-label="Attach evidence">
+            <i class="fa-solid fa-paperclip text-xs" aria-hidden="true"></i>
+          </button>
+          <button class="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-[#E10101]" title="Insert screenshot" aria-label="Insert screenshot">
+            <i class="fa-solid fa-image text-xs" aria-hidden="true"></i>
+          </button>
+          <button class="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-[#E10101]" title="Tag team member" aria-label="Tag team member">
+            <i class="fa-solid fa-at text-xs" aria-hidden="true"></i>
+          </button>
+        </div>
+        <div class="ml-auto flex items-center gap-2 text-xs text-gray-400 dark:text-gray-500">
+          <i class="fa-solid fa-cloud-arrow-up" aria-hidden="true"></i>
+          <span>Auto-saved 2s ago</span>
+        </div>
+      </div>
+
+      <!-- Editor body (scrollable) -->
+      <div class="flex-1 overflow-y-auto">
+        <div class="max-w-3xl mx-auto px-6 py-8">
+
+          <!-- Finding title -->
+          <div class="mb-6">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#E10101] text-white">CRITICAL</span>
+              <span class="text-xs text-gray-400">CVSS 9.8 · Finding #ACM-001</span>
+            </div>
+            <h1
+              contenteditable="true"
+              spellcheck="true"
+              class="text-2xl font-bold text-gray-900 dark:text-gray-100 outline-none border-b-2 border-transparent focus:border-[#E10101] pb-1 transition-colors"
+              aria-label="Finding title"
+            >SQL Injection — Login Endpoint</h1>
+          </div>
+
+          <!-- Meta row -->
+          <div class="flex flex-wrap gap-4 mb-6 text-sm">
+            <div>
+              <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Assigned to</p>
+              <div class="flex items-center gap-1.5">
+                <img src="https://ui-avatars.com/api/?name=Alex+P&background=E10101&color=fff&size=20" alt="" aria-hidden="true" class="w-5 h-5 rounded-full" />
+                <span class="font-medium">Alex P</span>
+              </div>
+            </div>
+            <div>
+              <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Status</p>
+              <select aria-label="Finding status" class="text-sm border border-gray-400 rounded-md px-3 py-1 bg-white dark:bg-gray-700 dark:border-gray-600 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600">
+                <option>Open</option>
+                <option>In Progress</option>
+                <option>Needs Review</option>
+                <option>Resolved</option>
+                <option>Accepted Risk</option>
+              </select>
+            </div>
+            <div>
+              <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Found</p>
+              <span class="font-medium">Mar 14, 2026</span>
+            </div>
+            <div>
+              <p class="text-xs text-gray-400 uppercase tracking-wide mb-1">Tags</p>
+              <div class="flex gap-1">
+                <span class="px-2 py-0.5 rounded-full text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">injection</span>
+                <span class="px-2 py-0.5 rounded-full text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">auth</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Collaborative presence indicator -->
+          <div class="mb-4 flex items-center gap-2 text-xs text-gray-400">
+            <img src="https://ui-avatars.com/api/?name=Jordan+K&background=374151&color=fff&size=16" alt="" aria-hidden="true" class="w-4 h-4 rounded-full" />
+            <span>Jordan is editing this section<span class="cursor-blink ml-0.5">|</span></span>
+          </div>
+
+          <!-- Editable sections -->
+          <section class="mb-6">
+            <h2 class="text-base font-semibold mb-2 text-gray-900 dark:text-gray-100">Summary</h2>
+            <div
+              contenteditable="true"
+              spellcheck="true"
+              class="min-h-[80px] text-sm leading-relaxed text-gray-700 dark:text-gray-300 outline-none border border-transparent rounded-md p-2 -mx-2 focus:border-gray-300 dark:focus:border-gray-600 focus:bg-white dark:focus:bg-gray-800 transition-colors"
+              aria-label="Finding summary"
+            >
+              The login endpoint at <code class="bg-gray-100 dark:bg-gray-700 px-1 py-0.5 rounded text-xs font-mono">/api/v1/auth/login</code> is vulnerable to classic SQL injection via the <code class="bg-gray-100 dark:bg-gray-700 px-1 py-0.5 rounded text-xs font-mono">username</code> parameter. An unauthenticated attacker can bypass authentication or dump the entire user database by submitting a crafted payload.
+            </div>
+          </section>
+
+          <section class="mb-6">
+            <h2 class="text-base font-semibold mb-2 text-gray-900 dark:text-gray-100">Steps to Reproduce</h2>
+            <div
+              contenteditable="true"
+              spellcheck="true"
+              class="min-h-[120px] text-sm leading-relaxed text-gray-700 dark:text-gray-300 outline-none border border-transparent rounded-md p-2 -mx-2 focus:border-gray-300 dark:focus:border-gray-600 focus:bg-white dark:focus:bg-gray-800 transition-colors"
+              aria-label="Steps to reproduce"
+            >
+              <ol class="list-decimal list-inside space-y-1">
+                <li>Navigate to <code class="bg-gray-100 dark:bg-gray-700 px-1 py-0.5 rounded text-xs font-mono">https://acme-corp.example.com/login</code></li>
+                <li>Enter <code class="bg-gray-100 dark:bg-gray-700 px-1 py-0.5 rounded text-xs font-mono">' OR '1'='1</code> as the username</li>
+                <li>Enter any password</li>
+                <li>Observe that authentication is bypassed</li>
+                <li>Use sqlmap to enumerate the full database schema</li>
+              </ol>
+            </div>
+          </section>
+
+          <section class="mb-6">
+            <h2 class="text-base font-semibold mb-2 text-gray-900 dark:text-gray-100">Impact</h2>
+            <div
+              contenteditable="true"
+              spellcheck="true"
+              class="min-h-[80px] text-sm leading-relaxed text-gray-700 dark:text-gray-300 outline-none border border-transparent rounded-md p-2 -mx-2 focus:border-gray-300 dark:focus:border-gray-600 focus:bg-white dark:focus:bg-gray-800 transition-colors"
+              aria-label="Impact description"
+            >
+              Full authentication bypass and potential for complete database exfiltration including PII, credentials, and session tokens for all 14,000+ users.
+            </div>
+          </section>
+
+          <section class="mb-6">
+            <h2 class="text-base font-semibold mb-2 text-gray-900 dark:text-gray-100">Remediation</h2>
+            <div
+              contenteditable="true"
+              spellcheck="true"
+              class="min-h-[80px] text-sm leading-relaxed text-gray-700 dark:text-gray-300 outline-none border border-transparent rounded-md p-2 -mx-2 focus:border-gray-300 dark:focus:border-gray-600 focus:bg-white dark:focus:bg-gray-800 transition-colors"
+              aria-label="Remediation steps"
+            >
+              Use parameterized queries (prepared statements) for all database interactions. Implement input validation. Enable a WAF rule for SQLi patterns as a short-term mitigation.
+            </div>
+          </section>
+
+          <!-- Evidence section -->
+          <section class="mb-6">
+            <div class="flex items-center justify-between mb-3">
+              <h2 class="text-base font-semibold text-gray-900 dark:text-gray-100">Evidence</h2>
+              <button class="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-md border border-[#E10101] text-[#E10101] hover:bg-[#E10101] hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-[#E10101]">
+                <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                Add Evidence
+              </button>
+            </div>
+
+            <div class="space-y-3">
+              <!-- Screenshot evidence -->
+              <div class="border border-[#E5E5E5] dark:border-gray-700 rounded-lg overflow-hidden">
+                <div class="bg-gray-50 dark:bg-gray-800 px-3 py-2 flex items-center justify-between border-b border-[#E5E5E5] dark:border-gray-700">
+                  <div class="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
+                    <i class="fa-solid fa-image text-gray-400" aria-hidden="true"></i>
+                    <span class="font-medium">screenshot-login-bypass.png</span>
+                    <span class="text-gray-400">· 42 KB</span>
+                  </div>
+                  <div class="flex gap-1">
+                    <button class="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#E10101]" aria-label="Download evidence">
+                      <i class="fa-solid fa-download text-xs" aria-hidden="true"></i>
+                    </button>
+                    <button class="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-400 hover:text-[#E10101] focus:outline-none focus:ring-2 focus:ring-[#E10101]" aria-label="Remove evidence">
+                      <i class="fa-solid fa-trash text-xs" aria-hidden="true"></i>
+                    </button>
+                  </div>
+                </div>
+                <div class="p-3 bg-gray-900 text-green-400 font-mono text-xs leading-relaxed">
+                  <p>POST /api/v1/auth/login HTTP/1.1</p>
+                  <p>Host: acme-corp.example.com</p>
+                  <p>Content-Type: application/json</p>
+                  <p>&nbsp;</p>
+                  <p>{"username":"' OR '1'='1","password":"anything"}</p>
+                  <p>&nbsp;</p>
+                  <p class="text-blue-300">HTTP/1.1 200 OK</p>
+                  <p class="text-blue-300">{"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...","user":{"id":1,"role":"admin"}}</p>
+                </div>
+              </div>
+
+              <!-- File evidence -->
+              <div class="border border-[#E5E5E5] dark:border-gray-700 rounded-lg px-3 py-2 flex items-center justify-between">
+                <div class="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
+                  <i class="fa-solid fa-file-code text-gray-400" aria-hidden="true"></i>
+                  <span class="font-medium">sqlmap-output.txt</span>
+                  <span class="text-gray-400">· 128 KB</span>
+                </div>
+                <div class="flex gap-1">
+                  <button class="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-[#E10101]" aria-label="Download file">
+                    <i class="fa-solid fa-download text-xs" aria-hidden="true"></i>
+                  </button>
+                  <button class="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-400 hover:text-[#E10101] focus:outline-none focus:ring-2 focus:ring-[#E10101]" aria-label="Remove file">
+                    <i class="fa-solid fa-trash text-xs" aria-hidden="true"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Comments / activity -->
+          <section class="mb-6">
+            <h2 class="text-base font-semibold mb-3 text-gray-900 dark:text-gray-100">Activity</h2>
+
+            <div class="space-y-4">
+              <div class="flex gap-3">
+                <img src="https://ui-avatars.com/api/?name=Jordan+K&background=374151&color=fff&size=28" alt="Jordan K" class="w-7 h-7 rounded-full shrink-0 mt-0.5" />
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-baseline gap-2 mb-1">
+                    <span class="text-xs font-semibold">Jordan K</span>
+                    <span class="text-xs text-gray-400">Mar 14 · 14:32</span>
+                  </div>
+                  <div class="text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-800 rounded-lg px-3 py-2">
+                    Confirmed reproduction. Also found that the <code class="bg-gray-200 dark:bg-gray-700 px-1 rounded text-xs font-mono">/api/v1/auth/reset</code> endpoint is similarly vulnerable. Adding as a sub-finding.
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex gap-3">
+                <img src="https://ui-avatars.com/api/?name=Sam+R&background=6B7280&color=fff&size=28" alt="Sam R" class="w-7 h-7 rounded-full shrink-0 mt-0.5" />
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-baseline gap-2 mb-1">
+                    <span class="text-xs font-semibold">Sam R</span>
+                    <span class="text-xs text-gray-400">Mar 14 · 15:10</span>
+                  </div>
+                  <div class="text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-800 rounded-lg px-3 py-2">
+                    <span class="text-[#E10101] font-medium">@Alex P</span> should we escalate this to BLT immediately? Client needs to be notified ASAP given PII risk.
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Comment input -->
+            <div class="mt-4 flex gap-3">
+              <img src="https://ui-avatars.com/api/?name=Alex+P&background=E10101&color=fff&size=28" alt="Alex P (you)" class="w-7 h-7 rounded-full shrink-0 mt-0.5" />
+              <div class="flex-1">
+                <textarea
+                  rows="2"
+                  placeholder="Add a comment or @mention a teammate…"
+                  aria-label="Add comment"
+                  class="w-full text-sm border border-gray-400 rounded-md px-4 py-2 bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 resize-none"
+                ></textarea>
+                <div class="flex justify-end mt-1.5">
+                  <button class="px-3 py-1.5 text-xs font-medium rounded-md bg-[#E10101] text-white hover:bg-red-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-[#E10101]">
+                    Comment
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+        </div>
+      </div>
+    </main>
+
+    <!-- ===== RIGHT SIDEBAR: CVSS + Meta ===== -->
+    <aside class="w-72 shrink-0 bg-white dark:bg-[#1F2937] border-l border-[#E5E5E5] dark:border-gray-700 overflow-y-auto sidebar-scroll hidden xl:flex flex-col" aria-label="CVSS and metadata panel">
+      <div class="p-4 space-y-6">
+
+        <!-- CVSS Score card -->
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-sm font-semibold">CVSS v3.1 Score</h3>
+            <a href="finding.html" class="text-xs text-[#E10101] hover:underline focus:outline-none focus:ring-2 focus:ring-[#E10101] rounded">Full calculator →</a>
+          </div>
+
+          <!-- Score display -->
+          <div class="bg-[#feeae9] dark:bg-red-950/30 rounded-xl p-4 text-center mb-4">
+            <p class="text-5xl font-black text-[#E10101]">9.8</p>
+            <p class="text-sm font-bold text-[#E10101] uppercase tracking-wide mt-1">Critical</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 font-mono">AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H</p>
+          </div>
+
+          <!-- CVSS metric rows -->
+          <div class="space-y-2.5">
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="text-gray-500">Attack Vector</span>
+                <span class="font-medium text-[#E10101]">Network</span>
+              </div>
+              <div class="h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                <div class="h-full bg-[#E10101] rounded-full" style="width:100%"></div>
+              </div>
+            </div>
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="text-gray-500">Attack Complexity</span>
+                <span class="font-medium text-orange-500">Low</span>
+              </div>
+              <div class="h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                <div class="h-full bg-orange-400 rounded-full" style="width:75%"></div>
+              </div>
+            </div>
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="text-gray-500">Privileges Required</span>
+                <span class="font-medium text-green-500">None</span>
+              </div>
+              <div class="h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                <div class="h-full bg-green-400 rounded-full" style="width:100%"></div>
+              </div>
+            </div>
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="text-gray-500">User Interaction</span>
+                <span class="font-medium text-green-500">None</span>
+              </div>
+              <div class="h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                <div class="h-full bg-green-400 rounded-full" style="width:100%"></div>
+              </div>
+            </div>
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="text-gray-500">Confidentiality</span>
+                <span class="font-medium text-[#E10101]">High</span>
+              </div>
+              <div class="h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                <div class="h-full bg-[#E10101] rounded-full" style="width:100%"></div>
+              </div>
+            </div>
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="text-gray-500">Integrity</span>
+                <span class="font-medium text-[#E10101]">High</span>
+              </div>
+              <div class="h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                <div class="h-full bg-[#E10101] rounded-full" style="width:100%"></div>
+              </div>
+            </div>
+            <div>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="text-gray-500">Availability</span>
+                <span class="font-medium text-[#E10101]">High</span>
+              </div>
+              <div class="h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                <div class="h-full bg-[#E10101] rounded-full" style="width:100%"></div>
+              </div>
+            </div>
+          </div>
+
+          <a href="finding.html" class="mt-3 w-full inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md border border-[#E10101] text-[#E10101] hover:bg-[#E10101] hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-[#E10101]">
+            <i class="fa-solid fa-calculator" aria-hidden="true"></i>
+            Edit CVSS Metrics
+          </a>
+        </div>
+
+        <!-- Escalate to BLT -->
+        <div class="border border-[#E5E5E5] dark:border-gray-700 rounded-xl p-4">
+          <h3 class="text-sm font-semibold mb-1">Escalate to BLT</h3>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">Submit this finding to BLT for public disclosure or coordinated disclosure with the vendor.</p>
+          <button class="w-full inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-md bg-[#E10101] text-white hover:bg-red-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-[#E10101]">
+            <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+            Escalate Now
+          </button>
+        </div>
+
+        <!-- References -->
+        <div>
+          <h3 class="text-sm font-semibold mb-2">References</h3>
+          <ul class="space-y-1.5 text-xs">
+            <li>
+              <a href="#" class="flex items-center gap-1.5 text-[#E10101] hover:underline focus:outline-none focus:ring-2 focus:ring-[#E10101] rounded">
+                <i class="fa-solid fa-link text-gray-400" aria-hidden="true"></i>
+                OWASP — SQL Injection
+              </a>
+            </li>
+            <li>
+              <a href="#" class="flex items-center gap-1.5 text-[#E10101] hover:underline focus:outline-none focus:ring-2 focus:ring-[#E10101] rounded">
+                <i class="fa-solid fa-link text-gray-400" aria-hidden="true"></i>
+                CWE-89: Improper Neutralization
+              </a>
+            </li>
+            <li>
+              <a href="#" class="flex items-center gap-1.5 text-[#E10101] hover:underline focus:outline-none focus:ring-2 focus:ring-[#E10101] rounded">
+                <i class="fa-solid fa-link text-gray-400" aria-hidden="true"></i>
+                NVD CVSS Calculator
+              </a>
+            </li>
+          </ul>
+        </div>
+
+      </div>
+    </aside>
+
+  </div><!-- end 3-col -->
+
+</body>
+</html>

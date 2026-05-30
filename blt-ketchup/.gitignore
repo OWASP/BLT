@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+
+# Build artifacts (css/styles.css and webfonts are committed intentionally
+# so the pages work without a build step; exclude only the source map)
+css/*.map
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+npm-debug.log*

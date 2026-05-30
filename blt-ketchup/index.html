@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BLT Ketchup — Pentest Collaboration Workspace</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/fontawesome.min.css" />
+</head>
+<body class="h-full bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans">
+
+  <!-- ====== TOP NAV ====== -->
+  <header class="bg-white dark:bg-gray-800 border-b border-[#E5E5E5] dark:border-gray-700 sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
+
+      <!-- Logo -->
+      <a href="index.html" class="flex items-center gap-2 shrink-0">
+        <span class="inline-flex items-center justify-center w-8 h-8 rounded-md bg-[#E10101]">
+          <i class="fa-solid fa-shield-halved text-white text-sm" aria-hidden="true"></i>
+        </span>
+        <span class="font-bold text-lg tracking-tight">BLT <span class="text-[#E10101]">Ketchup</span></span>
+      </a>
+
+      <!-- Search -->
+      <div class="hidden md:flex flex-1 max-w-md mx-8">
+        <label for="global-search" class="sr-only">Search engagements</label>
+        <div class="relative w-full">
+          <span class="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400" aria-hidden="true">
+            <i class="fa-solid fa-magnifying-glass text-sm"></i>
+          </span>
+          <input
+            id="global-search"
+            type="search"
+            placeholder="Search engagements, findings…"
+            class="w-full border border-gray-400 rounded-md pl-9 pr-4 py-2 text-sm bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600"
+          />
+        </div>
+      </div>
+
+      <!-- Right actions -->
+      <div class="flex items-center gap-3">
+        <button
+          class="hidden sm:inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-[#E10101] text-white hover:bg-red-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#E10101]"
+          aria-label="New engagement"
+        >
+          <i class="fa-solid fa-plus" aria-hidden="true"></i>
+          New Engagement
+        </button>
+
+        <button class="relative text-gray-500 hover:text-[#E10101] transition-colors p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-[#E10101]" aria-label="Notifications">
+          <i class="fa-solid fa-bell text-lg" aria-hidden="true"></i>
+          <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#E10101]" aria-hidden="true"></span>
+        </button>
+
+        <button class="focus:outline-none focus:ring-2 focus:ring-[#E10101] rounded-full" aria-label="User menu">
+          <img src="https://ui-avatars.com/api/?name=Alex+Pentest&background=E10101&color=fff&size=32" alt="Alex Pentest" class="w-8 h-8 rounded-full" />
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ====== MAIN LAYOUT ====== -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- Page heading -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+      <div>
+        <h1 class="text-2xl font-bold">Engagements</h1>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">All active and completed red-team engagements</p>
+      </div>
+      <div class="flex gap-2">
+        <button class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md border border-[#E10101] text-[#E10101] hover:bg-[#E10101] hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-[#E10101]">
+          <i class="fa-solid fa-filter" aria-hidden="true"></i>
+          Filter
+        </button>
+        <button class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-[#E10101] text-white hover:bg-red-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#E10101]">
+          <i class="fa-solid fa-plus" aria-hidden="true"></i>
+          New Engagement
+        </button>
+      </div>
+    </div>
+
+    <!-- Stats strip -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+      <div class="bg-white dark:bg-gray-800 rounded-xl border border-[#E5E5E5] dark:border-gray-700 px-5 py-4">
+        <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Active</p>
+        <p class="text-3xl font-bold mt-1">4</p>
+      </div>
+      <div class="bg-white dark:bg-gray-800 rounded-xl border border-[#E5E5E5] dark:border-gray-700 px-5 py-4">
+        <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Findings</p>
+        <p class="text-3xl font-bold mt-1">127</p>
+      </div>
+      <div class="bg-white dark:bg-gray-800 rounded-xl border border-[#E5E5E5] dark:border-gray-700 px-5 py-4">
+        <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Critical</p>
+        <p class="text-3xl font-bold mt-1 text-[#E10101]">9</p>
+      </div>
+      <div class="bg-white dark:bg-gray-800 rounded-xl border border-[#E5E5E5] dark:border-gray-700 px-5 py-4">
+        <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Team Members</p>
+        <p class="text-3xl font-bold mt-1">12</p>
+      </div>
+    </div>
+
+    <!-- Engagement cards -->
+    <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+
+      <!-- Card 1 — Active -->
+      <article class="bg-white dark:bg-gray-800 rounded-xl border border-[#E5E5E5] dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow">
+        <div class="h-1.5 bg-[#E10101]" aria-hidden="true"></div>
+        <div class="p-5">
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400">
+                <span class="w-1.5 h-1.5 rounded-full bg-green-500" aria-hidden="true"></span>
+                Active
+              </span>
+              <h2 class="mt-2 font-semibold text-base">Acme Corp — External Network</h2>
+              <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Q2 2026 · 14 days left</p>
+            </div>
+            <button class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-1 -mt-1 -mr-1 focus:outline-none focus:ring-2 focus:ring-[#E10101] rounded" aria-label="Engagement options">
+              <i class="fa-solid fa-ellipsis-vertical" aria-hidden="true"></i>
+            </button>
+          </div>
+
+          <!-- Severity bar -->
+          <div class="mt-4 space-y-1.5">
+            <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400">
+              <span>Severity distribution</span>
+              <span>32 findings</span>
+            </div>
+            <div class="flex rounded-full overflow-hidden h-2" role="img" aria-label="Severity: 3 critical, 8 high, 12 medium, 9 low">
+              <div class="bg-[#E10101]" style="width:9%"></div>
+              <div class="bg-orange-400" style="width:25%"></div>
+              <div class="bg-yellow-400" style="width:37.5%"></div>
+              <div class="bg-green-400" style="width:28.5%"></div>
+            </div>
+            <div class="flex gap-3 text-xs text-gray-500 dark:text-gray-400">
+              <span><span class="inline-block w-2 h-2 rounded-full bg-[#E10101] mr-1" aria-hidden="true"></span>3 Crit</span>
+              <span><span class="inline-block w-2 h-2 rounded-full bg-orange-400 mr-1" aria-hidden="true"></span>8 High</span>
+              <span><span class="inline-block w-2 h-2 rounded-full bg-yellow-400 mr-1" aria-hidden="true"></span>12 Med</span>
+              <span><span class="inline-block w-2 h-2 rounded-full bg-green-400 mr-1" aria-hidden="true"></span>9 Low</span>
+            </div>
+          </div>
+
+          <!-- Team avatars -->
+          <div class="mt-4 flex items-center justify-between">
+            <div class="flex -space-x-2" aria-label="Team: Alex, Jordan, Sam, +2 more">
+              <img src="https://ui-avatars.com/api/?name=Alex+P&background=E10101&color=fff&size=28" alt="Alex P" class="w-7 h-7 rounded-full ring-2 ring-white dark:ring-gray-800" />
+              <img src="https://ui-avatars.com/api/?name=Jordan+K&background=374151&color=fff&size=28" alt="Jordan K" class="w-7 h-7 rounded-full ring-2 ring-white dark:ring-gray-800" />
+              <img src="https://ui-avatars.com/api/?name=Sam+R&background=6B7280&color=fff&size=28" alt="Sam R" class="w-7 h-7 rounded-full ring-2 ring-white dark:ring-gray-800" />
+              <span class="w-7 h-7 rounded-full ring-2 ring-white dark:ring-gray-800 bg-gray-200 dark:bg-gray-600 flex items-center justify-center text-xs font-medium text-gray-600 dark:text-gray-300">+2</span>
+            </div>
+            <a href="workspace.html" class="inline-flex items-center gap-1 text-sm font-medium text-[#E10101] hover:underline focus:outline-none focus:ring-2 focus:ring-[#E10101] rounded">
+              Open <i class="fa-solid fa-arrow-right text-xs" aria-hidden="true"></i>
+            </a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 2 — Active -->
+      <article class="bg-white dark:bg-gray-800 rounded-xl border border-[#E5E5E5] dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow">
+        <div class="h-1.5 bg-[#E10101]" aria-hidden="true"></div>
+        <div class="p-5">
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400">
+                <span class="w-1.5 h-1.5 rounded-full bg-green-500" aria-hidden="true"></span>
+                Active
+              </span>
+              <h2 class="mt-2 font-semibold text-base">GlobalBank — Web App Assessment</h2>
+              <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Q2 2026 · 8 days left</p>
+            </div>
+            <button class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-1 -mt-1 -mr-1 focus:outline-none focus:ring-2 focus:ring-[#E10101] rounded" aria-label="Engagement options">
+              <i class="fa-solid fa-ellipsis-vertical" aria-hidden="true"></i>
+            </button>
+          </div>
+
+          <div class="mt-4 space-y-1.5">
+            <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400">
+              <span>Severity distribution</span>
+              <span>41 findings</span>
+            </div>
+            <div class="flex rounded-full overflow-hidden h-2" role="img" aria-label="Severity: 4 critical, 11 high, 18 medium, 8 low">
+              <div class="bg-[#E10101]" style="width:10%"></div>
+              <div class="bg-orange-400" style="width:27%"></div>
+              <div class="bg-yellow-400" style="width:44%"></div>
+              <div class="bg-green-400" style="width:19%"></div>
+            </div>
+            <div class="flex gap-3 text-xs text-gray-500 dark:text-gray-400">
+              <span><span class="inline-block w-2 h-2 rounded-full bg-[#E10101] mr-1" aria-hidden="true"></span>4 Crit</span>
+              <span><span class="inline-block w-2 h-2 rounded-full bg-orange-400 mr-1" aria-hidden="true"></span>11 High</span>
+              <span><span class="inline-block w-2 h-2 rounded-full bg-yellow-400 mr-1" aria-hidden="true"></span>18 Med</span>
+              <span><span class="inline-block w-2 h-2 rounded-full bg-green-400 mr-1" aria-hidden="true"></span>8 Low</span>
+            </div>
+          </div>
+
+          <div class="mt-4 flex items-center justify-between">
+            <div class="flex -space-x-2" aria-label="Team: Maya, Chris">
+              <img src="https://ui-avatars.com/api/?name=Maya+L&background=E10101&color=fff&size=28" alt="Maya L" class="w-7 h-7 rounded-full ring-2 ring-white dark:ring-gray-800" />
+              <img src="https://ui-avatars.com/api/?name=Chris+M&background=374151&color=fff&size=28" alt="Chris M" class="w-7 h-7 rounded-full ring-2 ring-white dark:ring-gray-800" />
+            </div>
+            <a href="workspace.html" class="inline-flex items-center gap-1 text-sm font-medium text-[#E10101] hover:underline focus:outline-none focus:ring-2 focus:ring-[#E10101] rounded">
+              Open <i class="fa-solid fa-arrow-right text-xs" aria-hidden="true"></i>
+            </a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 3 — In Review -->
+      <article class="bg-white dark:bg-gray-800 rounded-xl border border-[#E5E5E5] dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow">
+        <div class="h-1.5 bg-blue-500" aria-hidden="true"></div>
+        <div class="p-5">
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400">
+                <span class="w-1.5 h-1.5 rounded-full bg-blue-500" aria-hidden="true"></span>
+                In Review
+              </span>
+              <h2 class="mt-2 font-semibold text-base">HealthCo — Internal AD Audit</h2>
+              <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Q1 2026 · Pending sign-off</p>
+            </div>
+            <button class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-1 -mt-1 -mr-1 focus:outline-none focus:ring-2 focus:ring-[#E10101] rounded" aria-label="Engagement options">
+              <i class="fa-solid fa-ellipsis-vertical" aria-hidden="true"></i>
+            </button>
+          </div>
+
+          <div class="mt-4 space-y-1.5">
+            <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400">
+              <span>Severity distribution</span>
+              <span>54 findings</span>
+            </div>
+            <div class="flex rounded-full overflow-hidden h-2" role="img" aria-label="Severity: 2 critical, 14 high, 24 medium, 14 low">
+              <div class="bg-[#E10101]" style="width:4%"></div>
+              <div class="bg-orange-400" style="width:26%"></div>
+              <div class="bg-yellow-400" style="width:44%"></div>
+              <div class="bg-green-400" style="width:26%"></div>
+            </div>
+            <div class="flex gap-3 text-xs text-gray-500 dark:text-gray-400">
+              <span><span class="inline-block w-2 h-2 rounded-full bg-[#E10101] mr-1" aria-hidden="true"></span>2 Crit</span>
+              <span><span class="inline-block w-2 h-2 rounded-full bg-orange-400 mr-1" aria-hidden="true"></span>14 High</span>
+              <span><span class="inline-block w-2 h-2 rounded-full bg-yellow-400 mr-1" aria-hidden="true"></span>24 Med</span>
+              <span><span class="inline-block w-2 h-2 rounded-full bg-green-400 mr-1" aria-hidden="true"></span>14 Low</span>
+            </div>
+          </div>
+
+          <div class="mt-4 flex items-center justify-between">
+            <div class="flex -space-x-2" aria-label="Team: Alex, Jordan, Sam, Nina, +1 more">
+              <img src="https://ui-avatars.com/api/?name=Alex+P&background=E10101&color=fff&size=28" alt="Alex P" class="w-7 h-7 rounded-full ring-2 ring-white dark:ring-gray-800" />
+              <img src="https://ui-avatars.com/api/?name=Jordan+K&background=374151&color=fff&size=28" alt="Jordan K" class="w-7 h-7 rounded-full ring-2 ring-white dark:ring-gray-800" />
+              <img src="https://ui-avatars.com/api/?name=Nina+S&background=6B7280&color=fff&size=28" alt="Nina S" class="w-7 h-7 rounded-full ring-2 ring-white dark:ring-gray-800" />
+              <span class="w-7 h-7 rounded-full ring-2 ring-white dark:ring-gray-800 bg-gray-200 dark:bg-gray-600 flex items-center justify-center text-xs font-medium text-gray-600 dark:text-gray-300">+1</span>
+            </div>
+            <a href="workspace.html" class="inline-flex items-center gap-1 text-sm font-medium text-[#E10101] hover:underline focus:outline-none focus:ring-2 focus:ring-[#E10101] rounded">
+              Open <i class="fa-solid fa-arrow-right text-xs" aria-hidden="true"></i>
+            </a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 4 — Completed -->
+      <article class="bg-white dark:bg-gray-800 rounded-xl border border-[#E5E5E5] dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow opacity-75">
+        <div class="h-1.5 bg-gray-400" aria-hidden="true"></div>
+        <div class="p-5">
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400">
+                <span class="w-1.5 h-1.5 rounded-full bg-gray-400" aria-hidden="true"></span>
+                Completed
+              </span>
+              <h2 class="mt-2 font-semibold text-base">RetailX — Cloud Config Review</h2>
+              <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Q1 2026 · Delivered Mar 1</p>
+            </div>
+            <button class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-1 -mt-1 -mr-1 focus:outline-none focus:ring-2 focus:ring-[#E10101] rounded" aria-label="Engagement options">
+              <i class="fa-solid fa-ellipsis-vertical" aria-hidden="true"></i>
+            </button>
+          </div>
+
+          <div class="mt-4 space-y-1.5">
+            <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400">
+              <span>Severity distribution</span>
+              <span>19 findings</span>
+            </div>
+            <div class="flex rounded-full overflow-hidden h-2" role="img" aria-label="Severity: 0 critical, 3 high, 9 medium, 7 low">
+              <div class="bg-orange-400" style="width:16%"></div>
+              <div class="bg-yellow-400" style="width:47%"></div>
+              <div class="bg-green-400" style="width:37%"></div>
+            </div>
+            <div class="flex gap-3 text-xs text-gray-500 dark:text-gray-400">
+              <span><span class="inline-block w-2 h-2 rounded-full bg-orange-400 mr-1" aria-hidden="true"></span>3 High</span>
+              <span><span class="inline-block w-2 h-2 rounded-full bg-yellow-400 mr-1" aria-hidden="true"></span>9 Med</span>
+              <span><span class="inline-block w-2 h-2 rounded-full bg-green-400 mr-1" aria-hidden="true"></span>7 Low</span>
+            </div>
+          </div>
+
+          <div class="mt-4 flex items-center justify-between">
+            <div class="flex -space-x-2" aria-label="Team: Sam, Chris">
+              <img src="https://ui-avatars.com/api/?name=Sam+R&background=6B7280&color=fff&size=28" alt="Sam R" class="w-7 h-7 rounded-full ring-2 ring-white dark:ring-gray-800" />
+              <img src="https://ui-avatars.com/api/?name=Chris+M&background=374151&color=fff&size=28" alt="Chris M" class="w-7 h-7 rounded-full ring-2 ring-white dark:ring-gray-800" />
+            </div>
+            <a href="workspace.html" class="inline-flex items-center gap-1 text-sm font-medium text-[#E10101] hover:underline focus:outline-none focus:ring-2 focus:ring-[#E10101] rounded">
+              View <i class="fa-solid fa-arrow-right text-xs" aria-hidden="true"></i>
+            </a>
+          </div>
+        </div>
+      </article>
+
+      <!-- New engagement CTA -->
+      <button
+        class="bg-white dark:bg-gray-800 rounded-xl border-2 border-dashed border-[#E5E5E5] dark:border-gray-600 p-5 flex flex-col items-center justify-center gap-3 text-gray-400 hover:border-[#E10101] hover:text-[#E10101] transition-colors group focus:outline-none focus:ring-2 focus:ring-[#E10101]"
+        aria-label="Create new engagement"
+      >
+        <span class="w-12 h-12 rounded-full border-2 border-dashed border-current flex items-center justify-center group-hover:bg-[#feeae9] transition-colors">
+          <i class="fa-solid fa-plus text-xl" aria-hidden="true"></i>
+        </span>
+        <span class="text-sm font-medium">New Engagement</span>
+      </button>
+
+    </div>
+  </div>
+
+  <!-- ====== FOOTER ====== -->
+  <footer class="mt-16 border-t border-[#E5E5E5] dark:border-gray-700 bg-white dark:bg-gray-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-gray-500 dark:text-gray-400">
+      <p>&copy; 2026 OWASP BLT. All rights reserved.</p>
+      <div class="flex gap-4">
+        <a href="#" class="text-[#E10101] hover:underline focus:outline-none focus:ring-2 focus:ring-[#E10101] rounded">Docs</a>
+        <a href="#" class="text-[#E10101] hover:underline focus:outline-none focus:ring-2 focus:ring-[#E10101] rounded">API</a>
+        <a href="#" class="text-[#E10101] hover:underline focus:outline-none focus:ring-2 focus:ring-[#E10101] rounded">Privacy</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
