@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Test files
+test_*.html
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
