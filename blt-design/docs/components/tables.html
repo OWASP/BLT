@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tables | BLT Design Guide</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Manrope', 'system-ui', 'sans-serif'] } } } };</script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <script src="../assets/js/theme.js"></script>
+    <link rel="stylesheet" href="../assets/css/blt-design.css" />
+  </head>
+  <body class="min-h-screen font-sans text-slate-900 antialiased">
+    <div class="min-h-screen lg:grid lg:grid-cols-[18.5rem_minmax(0,1fr)]">
+      <aside id="sidebar-root" data-include="../partials/sidebar.html" class="lg:sticky lg:top-0 lg:h-screen"></aside>
+      <main class="blt-page-main px-4 py-8 sm:px-8 lg:px-10">
+        <header class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <span class="blt-badge"><i class="fa-solid fa-table" aria-hidden="true"></i> Components</span>
+            <h1 class="mt-4 text-3xl font-extrabold tracking-tight sm:text-4xl">Tables</h1>
+            <p class="mt-2 max-w-2xl text-sm leading-7 text-slate-600 sm:text-base">Readable data tables for reports, leaderboards, domains, and cloud deployments.</p>
+          </div>
+          <button class="blt-theme-toggle self-start" type="button" data-theme-toggle>
+            <i class="fa-solid fa-moon theme-icon-light" aria-hidden="true"></i>
+            <i class="fa-solid fa-sun theme-icon-dark" aria-hidden="true"></i>
+            <span data-theme-label>Dark</span>
+          </button>
+        </header>
+
+        <section class="blt-card overflow-hidden">
+          <div class="border-b border-slate-200 p-5">
+            <h2 class="text-xl font-extrabold tracking-tight">Report Queue</h2>
+            <p class="mt-1 text-sm leading-6 text-slate-600">Keep row height compact, status color restrained, and actions right aligned.</p>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="blt-data-table text-left text-sm">
+              <thead class="text-xs uppercase tracking-wide">
+                <tr>
+                  <th class="px-5 py-3 font-extrabold" scope="col">Report</th>
+                  <th class="px-5 py-3 font-extrabold" scope="col">Domain</th>
+                  <th class="px-5 py-3 font-extrabold" scope="col">Severity</th>
+                  <th class="px-5 py-3 font-extrabold" scope="col">Status</th>
+                  <th class="px-5 py-3 font-extrabold text-right" scope="col">Points</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="px-5 py-4 font-bold text-slate-900">Open redirect</td>
+                  <td class="px-5 py-4 text-slate-600">api.blt.owasp.org</td>
+                  <td class="px-5 py-4"><span class="blt-status-badge blt-status-warning">Medium</span></td>
+                  <td class="px-5 py-4"><span class="blt-status-badge blt-status-success">Verified</span></td>
+                  <td class="px-5 py-4 text-right font-extrabold text-slate-900">120</td>
+                </tr>
+                <tr>
+                  <td class="px-5 py-4 font-bold text-slate-900">Expired CORS origin</td>
+                  <td class="px-5 py-4 text-slate-600">cloud.blt.owasp.org</td>
+                  <td class="px-5 py-4"><span class="blt-status-badge blt-status-danger">High</span></td>
+                  <td class="px-5 py-4"><span class="blt-status-badge blt-status-warning">Review</span></td>
+                  <td class="px-5 py-4 text-right font-extrabold text-slate-900">200</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <pre class="m-5 overflow-x-auto rounded-lg border border-slate-700 bg-slate-900 p-3 text-xs text-slate-200"><code>&lt;div class="overflow-x-auto"&gt;
+  &lt;table class="blt-data-table text-left text-sm"&gt;
+    &lt;thead class="text-xs uppercase tracking-wide"&gt;
+      &lt;th scope="col"&gt;Report&lt;/th&gt;
+    &lt;/thead&gt;
+    &lt;tbody&gt;...&lt;/tbody&gt;
+  &lt;/table&gt;
+&lt;/div&gt;</code></pre>
+        </section>
+      </main>
+    </div>
+    <script src="../assets/js/include.js" defer></script>
+  </body>
+</html>

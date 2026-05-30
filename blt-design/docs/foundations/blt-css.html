@@ -6,83 +6,90 @@
     <title>BLT CSS Reference | BLT Design Guide</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-      tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] } } } };
+      tailwind.config = { theme: { extend: { fontFamily: { sans: ['Manrope', 'system-ui', 'sans-serif'] } } } };
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <script src="../assets/js/theme.js"></script>
+    <link rel="stylesheet" href="../assets/css/blt-design.css" />
   </head>
-  <body class="min-h-screen bg-gradient-to-b from-slate-50 via-red-50/40 to-white font-sans text-slate-900 antialiased">
+  <body class="min-h-screen font-sans text-slate-900 antialiased">
     <div class="min-h-screen lg:grid lg:grid-cols-[18.5rem_minmax(0,1fr)]">
       <aside id="sidebar-root" data-include="../partials/sidebar.html" class="lg:sticky lg:top-0 lg:h-screen"></aside>
-      <main class="px-4 py-8 sm:px-8 lg:px-10">
+      <main class="blt-page-main px-4 py-8 sm:px-8 lg:px-10">
         <header class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">BLT CSS Reference</h1>
-            <p class="mt-2 text-sm text-slate-600 sm:text-base">No required file. Copy-paste this style block into your page/layout and keep BLT tokens consistent.</p>
+            <span class="blt-badge"><i class="fa-solid fa-file-code" aria-hidden="true"></i> Foundations</span>
+            <h1 class="mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl">BLT CSS Reference</h1>
+            <p class="mt-2 max-w-2xl text-sm leading-7 text-slate-600 sm:text-base">The shared library file is `docs/assets/css/blt-design.css`. Product pages can copy this smaller token block when they do not consume the full guide CSS.</p>
           </div>
-          <a class="inline-flex items-center gap-2 self-start rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50" href="https://github.com/OWASP-BLT" target="_blank" rel="noreferrer noopener"><i class="fa-brands fa-github" aria-hidden="true"></i>Contribute</a>
+          <button class="blt-theme-toggle self-start" type="button" data-theme-toggle>
+            <i class="fa-solid fa-moon theme-icon-light" aria-hidden="true"></i>
+            <i class="fa-solid fa-sun theme-icon-dark" aria-hidden="true"></i>
+            <span data-theme-label>Dark</span>
+          </button>
         </header>
 
-        <section class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-          <h3 class="text-base font-semibold">Copy-Paste Style Block</h3>
-          <pre class="mt-3 overflow-x-auto rounded-lg border border-slate-700 bg-slate-900 p-3 text-xs text-slate-200"><code>&lt;style&gt;
+        <section class="blt-card p-5">
+          <h3 class="text-base font-bold">Copy-paste style block</h3>
+          <pre class="mt-3 overflow-x-auto rounded-lg border p-3 text-xs"><code>&lt;style&gt;
 :root {
   --blt-primary: #E10101;
-  --blt-primary-hover: #c10000;
-  --blt-bg: #f8fafc;
+  --blt-primary-hover: #B91C1C;
+  --blt-primary-soft: #feeae9;
+  --blt-background: #f8fafc;
   --blt-surface: #ffffff;
-  --blt-border: #e2e8f0;
-  --blt-text: #0f172a;
-  --blt-muted: #475569;
+  --blt-border: #e5e7eb;
+  --blt-text: #111827;
+  --blt-muted: #64748b;
   --blt-radius: 0.75rem;
+  --blt-font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
 }
 
-[data-theme="dark"] {
-  --blt-bg: #111827;
-  --blt-surface: #1f2937;
-  --blt-border: #374151;
-  --blt-text: #f9fafb;
-  --blt-muted: #d1d5db;
+.dark {
+  --blt-primary: #EF4444;
+  --blt-primary-hover: #DC2626;
+  --blt-primary-soft: rgba(127, 29, 29, 0.34);
+  --blt-background: #111827;
+  --blt-surface: #1F2937;
+  --blt-border: #2B3546;
+  --blt-text: #F9FAFB;
+  --blt-muted: #CBD5E1;
 }
 
-.blt-surface {
+.blt-card {
   background: var(--blt-surface);
   border: 1px solid var(--blt-border);
   border-radius: var(--blt-radius);
 }
 
-.blt-btn-primary {
+.blt-button-primary {
   background: var(--blt-primary);
   color: #fff;
   border-radius: 0.5rem;
-  padding: 0.5rem 0.9rem;
-  font-weight: 600;
-}
-
-.blt-btn-primary:hover {
-  background: var(--blt-primary-hover);
+  font-weight: 700;
+  padding: 0.625rem 0.875rem;
 }
 &lt;/style&gt;</code></pre>
-          <p class="mt-2 text-sm text-slate-600">Use with Tailwind components when needed. Keep brand primary anchored to <code class="rounded bg-slate-100 px-1 py-0.5 text-xs">#E10101</code>.</p>
         </section>
 
-        <section class="mt-4 grid gap-4 sm:grid-cols-2">
-          <article class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <h3 class="text-base font-semibold">Do</h3>
-            <ul class="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-700">
-              <li>Copy this block into shared layout files once.</li>
-              <li>Keep Tailwind utilities as the main styling method.</li>
-              <li>Use variables for consistent cross-page polish.</li>
+        <section class="mt-5 grid gap-4 sm:grid-cols-2">
+          <article class="blt-card p-5">
+            <h3 class="text-base font-bold">Do</h3>
+            <ul class="mt-3 list-disc space-y-2 pl-5 text-sm leading-6 text-slate-600">
+              <li>Use `blt-theme` for persisted dark mode.</li>
+              <li>Keep dark borders subdued and slate-based.</li>
+              <li>Use variables for cross-page surfaces and focus states.</li>
             </ul>
           </article>
-          <article class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <h3 class="text-base font-semibold">Do Not</h3>
-            <ul class="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-700">
-              <li>Override primary red with unrelated brand colors.</li>
-              <li>Mix random dark shades across pages.</li>
-              <li>Create separate style rules for each page.</li>
+          <article class="blt-card p-5">
+            <h3 class="text-base font-bold">Do Not</h3>
+            <ul class="mt-3 list-disc space-y-2 pl-5 text-sm leading-6 text-slate-600">
+              <li>Use white borders or pure black surfaces in dark mode.</li>
+              <li>Mix unrelated reds with `#E10101` and `#B91C1C`.</li>
+              <li>Create page-local theme variables unless the shared file cannot be used.</li>
             </ul>
           </article>
         </section>

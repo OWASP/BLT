@@ -5,23 +5,50 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Theme Colors | BLT Design Guide</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] } } } };</script>
+    <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Manrope', 'system-ui', 'sans-serif'] } } } };</script>
     <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <script src="../assets/js/theme.js"></script>
+    <link rel="stylesheet" href="../assets/css/blt-design.css" />
   </head>
-  <body class="min-h-screen bg-gradient-to-b from-slate-50 via-red-50/40 to-white font-sans text-slate-900 antialiased">
+  <body class="min-h-screen font-sans text-slate-900 antialiased">
     <div class="min-h-screen lg:grid lg:grid-cols-[18.5rem_minmax(0,1fr)]">
       <aside id="sidebar-root" data-include="../partials/sidebar.html" class="lg:sticky lg:top-0 lg:h-screen"></aside>
-      <main class="px-4 py-8 sm:px-8 lg:px-10">
-        <header class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"><div><h1 class="text-3xl font-bold tracking-tight sm:text-4xl">Theme Colors</h1><p class="mt-2 text-sm text-slate-600 sm:text-base">Official BLT-core palette with primary <code class="rounded bg-slate-100 px-1 py-0.5 text-xs">#E10101</code>.</p></div><a class="inline-flex items-center gap-2 self-start rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50" href="https://github.com/OWASP-BLT" target="_blank" rel="noreferrer noopener"><i class="fa-brands fa-github" aria-hidden="true"></i>Contribute</a></header>
+      <main class="blt-page-main px-4 py-8 sm:px-8 lg:px-10">
+        <header class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <span class="blt-badge"><i class="fa-solid fa-palette" aria-hidden="true"></i> Foundations</span>
+            <h1 class="mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl">Theme Colors</h1>
+            <p class="mt-2 max-w-2xl text-sm leading-7 text-slate-600 sm:text-base">Use semantic tokens first. Direct Tailwind colors are acceptable in snippets only when they map cleanly to these BLT values.</p>
+          </div>
+          <button class="blt-theme-toggle self-start" type="button" data-theme-toggle>
+            <i class="fa-solid fa-moon theme-icon-light" aria-hidden="true"></i>
+            <i class="fa-solid fa-sun theme-icon-dark" aria-hidden="true"></i>
+            <span data-theme-label>Dark</span>
+          </button>
+        </header>
+
         <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          <article class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"><h3 class="text-base font-semibold">Primary</h3><div class="mt-3 rounded-lg bg-red-600 px-3 py-5 text-sm font-semibold text-white">#E10101</div><p class="mt-2 text-sm text-slate-600">Primary actions, links, emphasis.</p></article>
-          <article class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"><h3 class="text-base font-semibold">Outline/Secondary</h3><div class="mt-3 rounded-lg border border-red-600 bg-white px-3 py-5 text-sm font-semibold text-red-600">Border/Text #E10101</div><p class="mt-2 text-sm text-slate-600">Secondary button style.</p></article>
-          <article class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"><h3 class="text-base font-semibold">Light Background</h3><div class="mt-3 rounded-lg bg-white px-3 py-5 text-sm font-semibold text-slate-700">#FFFFFF</div><p class="mt-2 text-sm text-slate-600">Card/surface base.</p></article>
-          <article class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"><h3 class="text-base font-semibold">Neutral Border</h3><div class="mt-3 rounded-lg bg-gray-200 px-3 py-5 text-sm font-semibold text-slate-700">#E5E5E5</div><p class="mt-2 text-sm text-slate-600">Subtle boundaries.</p></article>
-          <article class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"><h3 class="text-base font-semibold">Dark Base</h3><div class="mt-3 rounded-lg bg-gray-900 px-3 py-5 text-sm font-semibold text-white">#111827</div><p class="mt-2 text-sm text-slate-600">Dark mode background.</p></article>
-          <article class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"><h3 class="text-base font-semibold">Dark Surface</h3><div class="mt-3 rounded-lg bg-gray-800 px-3 py-5 text-sm font-semibold text-white">#1F2937</div><p class="mt-2 text-sm text-slate-600">Dark mode cards/panels.</p></article>
+          <article class="blt-card p-4"><h3 class="text-base font-bold">Primary</h3><div class="mt-3 rounded-lg bg-[#E10101] px-3 py-5 text-sm font-bold text-white">#E10101</div><p class="mt-2 text-sm text-slate-600">Primary action, active nav, focused brand states.</p></article>
+          <article class="blt-card p-4"><h3 class="text-base font-bold">Primary Hover</h3><div class="mt-3 rounded-lg bg-[#B91C1C] px-3 py-5 text-sm font-bold text-white">#B91C1C</div><p class="mt-2 text-sm text-slate-600">Button hover and active destructive emphasis.</p></article>
+          <article class="blt-card p-4"><h3 class="text-base font-bold">Active Accent</h3><div class="mt-3 rounded-lg border border-red-600/20 bg-[#feeae9] px-3 py-5 text-sm font-bold text-red-600">#feeae9</div><p class="mt-2 text-sm text-slate-600">Light chips, active sidebar items, icon wells.</p></article>
+          <article class="blt-card p-4"><h3 class="text-base font-bold">Light Background</h3><div class="mt-3 rounded-lg border border-slate-200 bg-[#f8fafc] px-3 py-5 text-sm font-bold text-slate-700">#F8FAFC</div><p class="mt-2 text-sm text-slate-600">Page background in light mode.</p></article>
+          <article class="blt-card p-4"><h3 class="text-base font-bold">Light Surface</h3><div class="mt-3 rounded-lg border border-slate-200 bg-white px-3 py-5 text-sm font-bold text-slate-700">#FFFFFF</div><p class="mt-2 text-sm text-slate-600">Cards, nav, panels, and input surfaces.</p></article>
+          <article class="blt-card p-4"><h3 class="text-base font-bold">Light Border</h3><div class="mt-3 rounded-lg bg-[#E5E7EB] px-3 py-5 text-sm font-bold text-slate-700">#E5E7EB</div><p class="mt-2 text-sm text-slate-600">Subtle structure without heavy outlines.</p></article>
+          <article class="blt-card p-4"><h3 class="text-base font-bold">Dark Base</h3><div class="mt-3 rounded-lg bg-[#111827] px-3 py-5 text-sm font-bold text-white">#111827</div><p class="mt-2 text-sm text-slate-600">Dark page background.</p></article>
+          <article class="blt-card p-4"><h3 class="text-base font-bold">Dark Surface</h3><div class="mt-3 rounded-lg bg-[#1F2937] px-3 py-5 text-sm font-bold text-white">#1F2937</div><p class="mt-2 text-sm text-slate-600">Dark cards, sidebars, and panels.</p></article>
+          <article class="blt-card p-4"><h3 class="text-base font-bold">Dark Border</h3><div class="mt-3 rounded-lg bg-[#2B3546] px-3 py-5 text-sm font-bold text-white">#2B3546</div><p class="mt-2 text-sm text-slate-600">Quiet dark border. Avoid white outlines.</p></article>
+        </section>
+
+        <section class="blt-section mt-5 p-5">
+          <h2 class="text-xl font-extrabold tracking-tight">Usage rules</h2>
+          <ul class="mt-4 grid gap-3 text-sm text-slate-600 md:grid-cols-2">
+            <li class="rounded-lg border border-slate-200 bg-white p-3">Use red for intent, active states, and focus. Do not make whole pages red.</li>
+            <li class="rounded-lg border border-slate-200 bg-white p-3">Dark mode uses slate surfaces. Never use white borders in dark mode.</li>
+            <li class="rounded-lg border border-slate-200 bg-white p-3">Keep text contrast high: headings on `--blt-text`, supporting copy on `--blt-text-muted`.</li>
+            <li class="rounded-lg border border-slate-200 bg-white p-3">Use `#feeae9` only as a soft active/accent surface in light mode.</li>
+          </ul>
         </section>
       </main>
     </div>

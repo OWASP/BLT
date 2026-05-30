@@ -5,26 +5,73 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Typography | BLT Design Guide</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] } } } };</script>
+    <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Manrope', 'system-ui', 'sans-serif'] } } } };</script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <script src="../assets/js/theme.js"></script>
+    <link rel="stylesheet" href="../assets/css/blt-design.css" />
   </head>
-  <body class="min-h-screen bg-gradient-to-b from-slate-50 via-red-50/40 to-white font-sans text-slate-900 antialiased">
+  <body class="min-h-screen font-sans text-slate-900 antialiased">
     <div class="min-h-screen lg:grid lg:grid-cols-[18.5rem_minmax(0,1fr)]">
       <aside id="sidebar-root" data-include="../partials/sidebar.html" class="lg:sticky lg:top-0 lg:h-screen"></aside>
-      <main class="px-4 py-8 sm:px-8 lg:px-10">
-        <header class="mb-6"><h1 class="text-3xl font-bold tracking-tight sm:text-4xl">Typography</h1></header>
-        <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 class="text-4xl font-bold">Heading 1</h2>
-          <p class="mt-1 text-sm text-slate-500">text-4xl font-bold</p>
-          <h3 class="mt-6 text-3xl font-bold">Heading 2</h3>
-          <p class="mt-1 text-sm text-slate-500">text-3xl font-bold</p>
-          <h4 class="mt-6 text-2xl font-bold">Heading 3</h4>
-          <p class="mt-1 text-sm text-slate-500">text-2xl font-bold</p>
-          <p class="mt-6 text-base">Body text: readable and neutral for content sections.</p>
-          <p class="mt-1 text-sm text-slate-500">text-base</p>
+      <main class="blt-page-main px-4 py-8 sm:px-8 lg:px-10">
+        <header class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <span class="blt-badge"><i class="fa-solid fa-font" aria-hidden="true"></i> Foundations</span>
+            <h1 class="mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl">Typography</h1>
+            <p class="mt-2 max-w-2xl text-sm leading-7 text-slate-600 sm:text-base">BLT uses Manrope for product UI and JetBrains Mono for code. Keep headings tight, body copy readable, and compact UI labels scannable.</p>
+          </div>
+          <button class="blt-theme-toggle self-start" type="button" data-theme-toggle>
+            <i class="fa-solid fa-moon theme-icon-light" aria-hidden="true"></i>
+            <i class="fa-solid fa-sun theme-icon-dark" aria-hidden="true"></i>
+            <span data-theme-label>Dark</span>
+          </button>
+        </header>
+
+        <section class="blt-card p-6">
+          <div class="grid gap-8 lg:grid-cols-[1.15fr_0.85fr]">
+            <div>
+              <h2 class="text-5xl font-extrabold tracking-tight">Heading 1</h2>
+              <p class="mt-2 text-sm text-slate-500">text-5xl font-extrabold tracking-tight</p>
+              <h3 class="mt-8 text-4xl font-extrabold tracking-tight">Heading 2</h3>
+              <p class="mt-2 text-sm text-slate-500">text-4xl font-extrabold tracking-tight</p>
+              <h4 class="mt-8 text-2xl font-bold tracking-tight">Heading 3</h4>
+              <p class="mt-2 text-sm text-slate-500">text-2xl font-bold tracking-tight</p>
+              <p class="mt-8 max-w-2xl text-base leading-7 text-slate-600">Body text should sit at `text-base leading-7` for docs and longer explanations. Compact panels can use `text-sm leading-6`, but avoid dense paragraphs below that size.</p>
+            </div>
+            <div class="rounded-xl border border-slate-200 bg-white p-4">
+              <p class="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Type tokens</p>
+              <dl class="mt-4 space-y-3 text-sm">
+                <div class="flex items-center justify-between gap-3"><dt class="text-slate-600">Font family</dt><dd class="font-bold">Manrope</dd></div>
+                <div class="flex items-center justify-between gap-3"><dt class="text-slate-600">Body</dt><dd class="font-mono text-xs">16 / 28</dd></div>
+                <div class="flex items-center justify-between gap-3"><dt class="text-slate-600">Compact</dt><dd class="font-mono text-xs">14 / 24</dd></div>
+                <div class="flex items-center justify-between gap-3"><dt class="text-slate-600">Code</dt><dd class="font-mono text-xs">JetBrains Mono</dd></div>
+              </dl>
+            </div>
+          </div>
+        </section>
+
+        <section class="mt-5 grid gap-4 lg:grid-cols-3">
+          <article class="blt-card p-5">
+            <h3 class="text-base font-bold">Headings</h3>
+            <p class="mt-2 text-sm leading-6 text-slate-600">Use `font-extrabold` for page titles and `font-bold` for card headings. Keep tracking at default or `tracking-tight` only for display text.</p>
+          </article>
+          <article class="blt-card p-5">
+            <h3 class="text-base font-bold">Labels</h3>
+            <p class="mt-2 text-sm leading-6 text-slate-600">Small labels use uppercase only when they are section markers. Avoid uppercase for long phrases.</p>
+          </article>
+          <article class="blt-card p-5">
+            <h3 class="text-base font-bold">Code</h3>
+            <p class="mt-2 text-sm leading-6 text-slate-600">Code blocks use dark surfaces in both themes for stable contrast and easier copying.</p>
+          </article>
+        </section>
+
+        <section class="mt-5 blt-card p-5">
+          <h2 class="text-xl font-extrabold tracking-tight">Snippet</h2>
+          <pre class="mt-4 overflow-x-auto rounded-lg border p-3 text-xs"><code>&lt;h1 class="text-4xl font-extrabold tracking-tight sm:text-5xl"&gt;Page title&lt;/h1&gt;
+&lt;p class="mt-3 text-base leading-7 text-slate-600"&gt;Readable product copy.&lt;/p&gt;</code></pre>
         </section>
       </main>
     </div>
