@@ -1,0 +1,11 @@
+APP_ORIGIN=http://127.0.0.1:8787
+MAX_UPLOAD_BYTES=3145728
+RATE_LIMIT_PER_MINUTE=20
+
+# Email provider(sendgrid only)
+EMAIL_PROVIDER=sendgrid
+SENDGRID_API_KEY=...
+
+# Optional points sync
+# MAIN_BLT_API_URL=https://blt.owasp.org
+# MAIN_BLT_API_TOKEN=...

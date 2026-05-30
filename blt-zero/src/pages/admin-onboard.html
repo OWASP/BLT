@@ -1,0 +1,191 @@
+
+<section class="px-6 py-12">
+  <div class="mx-auto max-w-4xl">
+    
+    <!-- Header -->
+    <div class="text-center mb-12">
+      <div class="mb-6 inline-flex items-center gap-1.5 rounded-full border border-yellow-500/20 bg-yellow-500/10 px-3 py-1 text-xs font-medium text-yellow-500">
+        <svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/>
+        </svg>
+        Admin Only
+      </div>
+      <h1 class="text-balance text-4xl font-bold tracking-tight">Organization Admin Onboarding</h1>
+      <p class="mx-auto mt-4 max-w-xl text-pretty text-base leading-relaxed text-gray-600 dark:text-gray-400">
+        Register or update your organization's domain with BLT-Zero
+      </p>
+    </div>
+
+    <!-- Info Card -->
+    <div class="rounded-lg border border-yellow-500/20 bg-yellow-500/5 p-6 mb-8">
+      <div class="flex gap-3">
+        <svg class="h-5 w-5 text-yellow-500 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>
+        </svg>
+        <div>
+          <p class="font-semibold text-gray-900 dark:text-gray-50 mb-2">Protected Page</p>
+          <p class="text-sm text-gray-600 dark:text-gray-400">
+            This page allows you to insert or update a domain entry in the database and send an onboarding email. 
+            Protected by ADMIN_TOKEN {{TURNSTILE_STATUS}}.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Onboarding Form -->
+    <div class="rounded-lg border bg-white dark:bg-dark-surface p-8">
+      <form id="a">
+        <div class="space-y-5">
+          
+          <!-- Admin Token -->
+          <div>
+            <label class="block text-sm font-medium mb-2">ADMIN TOKEN</label>
+            <input 
+              id="token" 
+              type="password"
+              placeholder="paste ADMIN_TOKEN" 
+              required
+              class="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-dark-base text-gray-900 dark:text-gray-50 focus:outline-none focus:ring-2 focus:ring-primary font-mono"
+            />
+          </div>
+
+          <!-- Domain and Email -->
+          <div class="grid gap-4 md:grid-cols-2">
+            <div>
+              <label class="block text-sm font-medium mb-2">Domain</label>
+              <input 
+                id="domain" 
+                placeholder="example.com" 
+                required
+                class="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-dark-base text-gray-900 dark:text-gray-50 focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-2">Security Inbox Email</label>
+              <input 
+                id="email" 
+                type="email"
+                placeholder="security@example.com" 
+                required
+                class="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-dark-base text-gray-900 dark:text-gray-50 focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+          </div>
+
+          <!-- Public Key JWK -->
+          <div>
+            <label class="block text-sm font-medium mb-2">Public Key (JWK JSON)</label>
+            <textarea 
+              id="jwk" 
+              rows="8" 
+              placeholder='{"kty":"EC","crv":"P-256","x":"...","y":"..."}'
+              required
+              class="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-dark-base text-gray-900 dark:text-gray-50 focus:outline-none focus:ring-2 focus:ring-primary font-mono text-sm"
+            ></textarea>
+            <p class="text-xs text-gray-600 dark:text-gray-400 mt-2">
+              Generate using <code class="px-1 py-0.5 rounded bg-gray-100 dark:bg-gray-800">python tools/org_keygen.py</code>
+            </p>
+          </div>
+
+          <!-- Key ID -->
+          <div>
+            <label class="block text-sm font-medium mb-2">Key ID</label>
+            <input 
+              id="keyid" 
+              placeholder="hex string (from keygen output)" 
+              required
+              class="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-dark-base text-gray-900 dark:text-gray-50 focus:outline-none focus:ring-2 focus:ring-primary font-mono"
+            />
+          </div>
+
+          <!-- Send Email Checkbox -->
+          <div class="flex items-center gap-3">
+            <input 
+              type="checkbox" 
+              id="sendmail" 
+              checked
+              class="h-4 w-4 rounded border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-dark-base text-primary focus:ring-2 focus:ring-primary"
+            />
+            <label for="sendmail" class="text-sm font-medium cursor-pointer">
+              Send onboarding email to organization inbox
+            </label>
+          </div>
+
+          <!-- Turnstile Widget -->
+          {{TURNSTILE_WIDGET}}
+
+          <!-- Submit Button -->
+          <button 
+            type="submit"
+            class="w-full px-6 py-3 rounded-lg bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-colors"
+          >
+            Onboard Domain
+          </button>
+
+          <!-- Status Message -->
+          <p class="text-sm text-gray-600 dark:text-gray-400" id="out"></p>
+
+        </div>
+      </form>
+    </div>
+
+    <!-- Help Card -->
+    <div class="mt-8 rounded-lg border bg-white dark:bg-dark-surface p-6">
+      <h3 class="text-lg font-semibold mb-4">Need Help?</h3>
+      <div class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+        <p>• First time onboarding? Check the <a href="/docs/org-onboarding" class="text-primary hover:underline">Organization Onboarding Guide</a></p>
+        <p>• Learn about our <a href="/docs/security" class="text-primary hover:underline">Security Model</a></p>
+        <p>• How to <a href="/docs/decrypt" class="text-primary hover:underline">Decrypt Reports</a></p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<script>
+// @ts-nocheck
+const TURNSTILE_ENABLED = {{TURNSTILE_ENABLED}};
+
+document.getElementById("a").addEventListener("submit", async (e)=>{
+  e.preventDefault();
+  const out = document.getElementById("out");
+  out.textContent="";
+
+  let turnstileToken = "";
+  if (TURNSTILE_ENABLED){
+    turnstileToken = document.querySelector('input[name="cf-turnstile-response"]')?.value || "";
+    if(!turnstileToken){ 
+      out.textContent="❌ Turnstile verification missing. Please complete the challenge."; 
+      return; 
+    }
+  }
+
+  try{
+    out.textContent="⏳ Processing...";
+    
+    const resp = await fetch("/admin/onboard", {
+      method:"POST",
+      headers: {"content-type":"application/json"},
+      body: JSON.stringify({
+        admin_token: document.getElementById("token").value.trim(),
+        turnstile_token: turnstileToken,
+        domain: document.getElementById("domain").value.trim().toLowerCase(),
+        org_email: document.getElementById("email").value.trim(),
+        key_id: document.getElementById("keyid").value.trim(),
+        public_key_jwk: document.getElementById("jwk").value.trim(),
+        send_onboarding_email: document.getElementById("sendmail").checked
+      })
+    });
+    
+    const j = await resp.json().catch(()=>({}));
+    if(!resp.ok) throw new Error(j?.error || "Onboard failed");
+    
+    out.textContent = "✅ Successfully onboarded: " + j.domain + (j.email_sent ? " (onboarding email sent)" : "");
+    
+    // Reset form on success
+    document.getElementById("a").reset();
+  }catch(err){
+    out.textContent = "❌ " + (err?.message || String(err));
+  }
+});
+</script>

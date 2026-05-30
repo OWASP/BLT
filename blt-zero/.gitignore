@@ -1,0 +1,10 @@
+worker/.wrangler/
+worker/.dev.vars
+.vscode/
+node_modules/
+dist/
+.wrangler/  
+*.log
+.DS_Store
+*.env
+.env.*
