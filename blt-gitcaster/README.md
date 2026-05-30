@@ -1,93 +1,155 @@
-# BLT-GitCaster
+# 🎙️ AI-Powered GitHub Sportscaster
 
+A real-time, AI-powered leaderboard of GitHub repository activity with live play-by-play commentary! Watch as repositories compete for the top spots with an animated sportscaster announcing each event.
 
+## 🎯 Features
 
-## Getting started
+### Live Activity Tracking
+- **Real-Time Monitoring**: Monitors the latest GitHub public events globally
+- **Configurable Scope**: Watch all of GitHub, specific organizations, repositories, or users
+- **Event Filtering**: Filter by event types (Push, PR, Issues, Stars, Forks, Releases)
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+### Dynamic Leaderboard & Analytics
+- **Activity Scoring**: Repositories ranked by weighted activity scores
+- **Trending Indicators**: See which repos are climbing or falling in the rankings
+- **Real-Time Stats**: Track total events, contributors, and activity scores
+- **Animated Transitions**: Beautiful animations when repos change positions
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+### AI Commentary
+- **Sports-Style Announcements**: AI-generated play-by-play commentary for each event
+- **Configurable AI Backend**: Connect to OpenAI or any compatible API
+- **Fallback Templates**: Built-in engaging commentary when AI is unavailable
+- **Multiple Models**: Support for gpt-4o-mini, gpt-4o, o3-mini, and gpt-3.5-turbo
 
-## Add your files
+### Audio Features
+- **Sound Effects**: Unique audio cues for each event type (Push, PR, Star, Fork, etc.)
+- **Text-to-Speech**: Have the AI commentary read aloud by the browser
+- **Mute Controls**: Toggle sound effects and TTS independently
 
-* [Create](https://docs.gitlab.com/user/project/repository/web_editor/#create-a-file) or [upload](https://docs.gitlab.com/user/project/repository/web_editor/#upload-a-file) files
-* [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+### Channel System
+- **All Activity**: See everything happening in real-time
+- **🔥 Hot**: High-impact events (Pushes, PRs, Releases)
+- **💻 Code**: Code-related activity (Pushes, PRs, Creates, Deletes)
+- **👥 Social**: Community engagement (Stars, Forks, Issues, Comments)
 
+### Visual Design
+- **Animated Sportscaster**: SVG robot that "announces" each event
+- **TV Screen Interface**: Retro-inspired broadcast display
+- **Glassmorphic Cards**: Modern, beautiful UI components
+- **Dark Theme**: Easy on the eyes for 24/7 streaming
+- **Responsive Design**: Works on desktop, tablet, and mobile
+
+### Configuration Options
+- **Monitoring Scope**: Global, Organization, Repository, or User
+- **Preset Channels**: Quick access to popular tech categories (Web, AI/ML, DevOps)
+- **Refresh Speed**: Adjustable from 5-60 seconds
+- **Auto-Protect**: Automatic rate limit throttling
+- **Local Storage**: Settings persist across sessions
+
+## 🚀 Live Demo
+
+Visit the live page at: https://owasp-blt.github.io/Github_Sportscaster/
+
+## 📖 How It Works
+
+The page fetches data from the GitHub Events API and processes it in real-time:
+
+1. **Event Collection**: Polls GitHub API for public events
+2. **Smart Processing**: Filters duplicates, categorizes events
+3. **Activity Scoring**: Weights events by type and recency
+4. **Leaderboard Updates**: Ranks repositories by activity score
+5. **AI Commentary**: Generates sports-style announcements
+6. **Live Rendering**: Animates changes in real-time
+
+### Event Weights
+| Event Type | Weight |
+|------------|--------|
+| Release | 10 |
+| Pull Request | 5 |
+| Fork | 4 |
+| Push | 3 |
+| Issues | 2 |
+| Create | 2 |
+| Watch (Star) | 1 |
+| Comments | 1 |
+
+## 🛠️ Technical Details
+
+### Architecture
+- **Single Page App**: HTML + CSS + JavaScript
+- **No Build Required**: Works directly from static hosting
+- **Modular Design**: Separate classes for SoundEffects, TTS, AI Commentary, and Main Sportscaster
+
+### Files
+- `index.html` - Main UI structure and styling
+- `sportscaster.js` - Core JavaScript functionality
+
+### API Integration
+- **GitHub Events API**: Real-time public events
+- **Conditional Requests**: Uses ETags to minimize API calls
+- **Rate Limit Protection**: Auto-throttling when limits are low
+- **Demo Mode**: Fallback to simulated data if API is unavailable
+
+### AI Integration
+Configure your own AI API for commentary:
+1. Click the ⚙️ Settings button
+2. Enter your API URL (e.g., `https://api.openai.com/v1/chat/completions`)
+3. Enter your API key
+4. Select your preferred model
+5. Enable AI Commentary with the 🤖 button
+
+## 📝 Usage
+
+### Basic Usage
+Simply open the page and watch! The sportscaster will:
+- Update every 10 seconds (configurable)
+- Show new repositories as they appear
+- Highlight repos with new activity
+- Announce events with AI commentary (when enabled)
+
+### Advanced Configuration
+
+#### Monitor a Specific Organization
+1. Open Settings (⚙️)
+2. Set Scope to "Organization"
+3. Enter org name (e.g., "facebook")
+4. Click "Apply Configuration"
+
+#### Monitor a Specific Repository
+1. Open Settings (⚙️)
+2. Set Scope to "Repository"
+3. Enter repo (e.g., "facebook/react")
+4. Click "Apply Configuration"
+
+#### Enable AI Commentary
+1. Open Settings (⚙️)
+2. Enter your OpenAI API URL
+3. Enter your API key
+4. Select a model
+5. Click "Apply Configuration"
+6. Toggle the 🤖 button to enable
+
+## 🔧 Development
+
+To run locally:
+```bash
+# Clone the repository
+git clone https://github.com/OWASP-BLT/Github_Sportscaster.git
+cd Github_Sportscaster
+
+# Serve the files (any HTTP server works)
+python3 -m http.server 8080
+
+# Open http://localhost:8080 in your browser
 ```
-cd existing_repo
-git remote add origin https://gitlab.com/owasp-blt/blt-gitcaster.git
-git branch -M main
-git push -uf origin main
-```
 
-## Integrate with your tools
+## 🔒 Security Notes
 
-* [Set up project integrations](https://gitlab.com/owasp-blt/blt-gitcaster/-/settings/integrations)
+- API keys are stored in browser localStorage
+- No server-side processing of credentials
+- All API calls made directly from browser
+- Consider using environment-restricted API keys
 
-## Collaborate with your team
+## 📄 License
 
-* [Invite team members and collaborators](https://docs.gitlab.com/user/project/members/)
-* [Create a new merge request](https://docs.gitlab.com/user/project/merge_requests/creating_merge_requests/)
-* [Automatically close issues from merge requests](https://docs.gitlab.com/user/project/issues/managing_issues/#closing-issues-automatically)
-* [Enable merge request approvals](https://docs.gitlab.com/user/project/merge_requests/approvals/)
-* [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
-
-## Test and Deploy
-
-Use the built-in continuous integration in GitLab.
-
-* [Get started with GitLab CI/CD](https://docs.gitlab.com/ci/quick_start/)
-* [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/user/application_security/sast/)
-* [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/topics/autodevops/requirements/)
-* [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/user/clusters/agent/)
-* [Set up protected environments](https://docs.gitlab.com/ci/environments/protected_environments/)
-
-***
-
-# Editing this README
-
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
-
-## Suggestions for a good README
-
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
-
-## Name
-Choose a self-explaining name for your project.
-
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
-
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
-
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
-
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
-
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
-
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
-
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
-
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+This project is open source and available under the MIT License.

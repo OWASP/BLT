@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BLT GitHub Sportscaster - About</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#E10101',
+                        'neutral-border': '#E5E5E5',
+                        'dark-base': '#111827',
+                        'dark-surface': '#1F2937'
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'ui-sans-serif', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        };
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+        crossorigin="anonymous"
+        referrerpolicy="no-referrer"
+    >
+
+    <style>
+        :root {
+            --blt-primary: #E10101;
+            --blt-primary-hover: #b91c1c;
+            --blt-outline-soft: #feeae9;
+            --blt-border: #E5E5E5;
+            --blt-text: #111827;
+            --blt-muted: #6b7280;
+            --blt-surface: #ffffff;
+            --blt-background: #fafafa;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            min-height: 100vh;
+            background:
+                radial-gradient(circle at 8% 4%, rgba(225, 1, 1, 0.08), transparent 36%),
+                radial-gradient(circle at 92% 0%, rgba(225, 1, 1, 0.05), transparent 32%),
+                var(--blt-background);
+            color: var(--blt-text);
+        }
+
+        .nav-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background: rgba(255,255,255,0.95);
+            border-bottom: 1px solid var(--blt-border);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.7rem 1.5rem;
+        }
+
+        .nav-logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 800;
+            font-size: 1rem;
+            color: var(--blt-text);
+            text-decoration: none;
+        }
+
+        .nav-logo i { color: var(--blt-primary); }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            border: 1px solid transparent;
+            border-radius: 0.5rem;
+            padding: 0.55rem 1.1rem;
+            font-weight: 700;
+            font-size: 0.9rem;
+            background: var(--blt-primary);
+            color: #fff;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .btn-primary:hover { background: var(--blt-primary-hover); }
+
+        .btn-outline {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            border: 1px solid var(--blt-primary);
+            border-radius: 0.5rem;
+            padding: 0.55rem 1.1rem;
+            font-weight: 700;
+            font-size: 0.9rem;
+            background: #fff;
+            color: var(--blt-primary);
+            transition: all 0.2s ease;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .btn-outline:hover { background: var(--blt-primary); color: #fff; }
+
+        .feature-grid {
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: 1fr;
+        }
+
+        @media (min-width: 640px) { .feature-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (min-width: 1024px) { .feature-grid { grid-template-columns: repeat(3, 1fr); } }
+
+        .info-grid {
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: 1fr;
+        }
+        @media (min-width: 1024px) { .info-grid { grid-template-columns: repeat(3, 1fr); } }
+
+        .feature-card, .info-card {
+            border: 1px solid var(--blt-border);
+            background: #fff;
+            border-radius: 0.85rem;
+            padding: 1.25rem;
+            box-shadow: 0 4px 12px rgba(17, 24, 39, 0.05);
+            transition: box-shadow 0.2s ease, transform 0.2s ease;
+        }
+
+        .feature-card:hover, .info-card:hover {
+            box-shadow: 0 8px 24px rgba(17, 24, 39, 0.1);
+            transform: translateY(-2px);
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem 1rem;
+            color: #6b7280;
+            font-size: 0.85rem;
+            border-top: 1px solid var(--blt-border);
+            margin-top: 2rem;
+        }
+
+        footer a { color: var(--blt-primary); text-decoration: none; }
+        footer a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body class="font-sans text-gray-900 antialiased">
+
+    <!-- Navigation Bar -->
+    <nav class="nav-bar" aria-label="Site navigation">
+        <a class="nav-logo" href="landing.html">
+            <i class="fa-solid fa-tower-broadcast" aria-hidden="true"></i>
+            BLT Sportscaster
+        </a>
+        <div class="nav-links">
+            <a href="https://github.com/OWASP-BLT/Github_Sportscaster" target="_blank" rel="noopener noreferrer" class="btn-outline">
+                <i class="fa-brands fa-github" aria-hidden="true"></i>
+                View Source
+            </a>
+            <a href="index.html" class="btn-primary">
+                <i class="fa-solid fa-tower-broadcast" aria-hidden="true"></i>
+                Live Dashboard
+            </a>
+        </div>
+    </nav>
+
+    <main class="pt-24 pb-10">
+
+        <!-- Hero Section -->
+        <section class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 mb-10">
+            <div class="rounded-2xl border border-neutral-border bg-white p-6 sm:p-10 shadow-sm">
+                <p class="inline-flex items-center gap-2 rounded-full bg-red-50 text-red-700 border border-red-100 px-3 py-1 text-xs font-bold tracking-wide uppercase">
+                    <i class="fa-solid fa-bolt" aria-hidden="true"></i>
+                    OWASP BLT Extension
+                </p>
+                <h1 class="mt-4 text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-gray-900">
+                    BLT GitHub Sportscaster
+                </h1>
+                <p class="mt-4 text-base sm:text-lg leading-relaxed text-gray-600 max-w-3xl">
+                    Real-time GitHub event intelligence with a live sportscaster feed, ranked activity leaderboard,
+                    AI commentary, and practical controls for monitoring the repos and communities that matter to you.
+                </p>
+                <div class="mt-6 flex flex-wrap items-center gap-3">
+                    <a href="index.html" class="btn-primary px-5 py-3 rounded-lg text-sm font-semibold">
+                        <i class="fa-solid fa-tower-broadcast" aria-hidden="true"></i>
+                        Watch Live Dashboard
+                    </a>
+                    <a href="https://github.com/OWASP-BLT/Github_Sportscaster" target="_blank" rel="noopener noreferrer" class="btn-outline px-5 py-3 rounded-lg text-sm font-semibold">
+                        <i class="fa-brands fa-github" aria-hidden="true"></i>
+                        View Source
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Feature Highlights -->
+        <section class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 mb-8" aria-label="Feature highlights">
+            <h2 class="text-xl font-extrabold text-gray-900 mb-4">What it does</h2>
+            <div class="feature-grid">
+                <article class="feature-card">
+                    <h3 class="text-sm font-extrabold text-gray-900 inline-flex items-center gap-2">
+                        <i class="fa-solid fa-wave-square text-red-600" aria-hidden="true"></i>
+                        Live Event Stream
+                    </h3>
+                    <p class="mt-2 text-sm text-gray-600">Tracks GitHub public activity in real-time with configurable scope for global, org, repo, or user views.</p>
+                </article>
+                <article class="feature-card">
+                    <h3 class="text-sm font-extrabold text-gray-900 inline-flex items-center gap-2">
+                        <i class="fa-solid fa-ranking-star text-red-600" aria-hidden="true"></i>
+                        Ranked Leaderboard
+                    </h3>
+                    <p class="mt-2 text-sm text-gray-600">Weighted activity scoring surfaces trending repositories and contributor momentum as it happens.</p>
+                </article>
+                <article class="feature-card">
+                    <h3 class="text-sm font-extrabold text-gray-900 inline-flex items-center gap-2">
+                        <i class="fa-solid fa-robot text-red-600" aria-hidden="true"></i>
+                        AI Commentary
+                    </h3>
+                    <p class="mt-2 text-sm text-gray-600">Pluggable OpenAI-compatible narration adds play-by-play context with fallback templates when AI is unavailable.</p>
+                </article>
+                <article class="feature-card">
+                    <h3 class="text-sm font-extrabold text-gray-900 inline-flex items-center gap-2">
+                        <i class="fa-solid fa-filter text-red-600" aria-hidden="true"></i>
+                        Channel Filters
+                    </h3>
+                    <p class="mt-2 text-sm text-gray-600">Quickly focus on hot, code, social, or all activity channels for cleaner monitoring during triage and demos.</p>
+                </article>
+                <article class="feature-card">
+                    <h3 class="text-sm font-extrabold text-gray-900 inline-flex items-center gap-2">
+                        <i class="fa-solid fa-gauge-high text-red-600" aria-hidden="true"></i>
+                        Rate-Safe Polling
+                    </h3>
+                    <p class="mt-2 text-sm text-gray-600">Countdown, progress bar, and auto-protect throttling help stay within GitHub API limits while remaining responsive.</p>
+                </article>
+                <article class="feature-card">
+                    <h3 class="text-sm font-extrabold text-gray-900 inline-flex items-center gap-2">
+                        <i class="fa-solid fa-volume-high text-red-600" aria-hidden="true"></i>
+                        Audio Controls
+                    </h3>
+                    <p class="mt-2 text-sm text-gray-600">Independent sound-effects and text-to-speech toggles make it usable in both ambient screens and quiet workflows.</p>
+                </article>
+            </div>
+        </section>
+
+        <!-- Why / How / Where -->
+        <section class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 mb-8">
+            <div class="info-grid">
+                <article class="info-card">
+                    <p class="text-xs font-bold uppercase tracking-wide text-red-700">Why it helps</p>
+                    <p class="mt-2 text-sm text-gray-600">Teams get a single live board for engineering momentum, community signals, and release cadence.</p>
+                </article>
+                <article class="info-card">
+                    <p class="text-xs font-bold uppercase tracking-wide text-red-700">How to use</p>
+                    <p class="mt-2 text-sm text-gray-600">Pick scope and filters in Settings, tune refresh speed, then watch leaderboard shifts and commentary.</p>
+                </article>
+                <article class="info-card">
+                    <p class="text-xs font-bold uppercase tracking-wide text-red-700">Where it fits</p>
+                    <p class="mt-2 text-sm text-gray-600">Works well for demo walls, hackathons, community ops, and rapid OSS ecosystem monitoring.</p>
+                </article>
+            </div>
+        </section>
+
+        <!-- CTA -->
+        <section class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 text-center">
+            <a href="index.html" class="btn-primary px-8 py-4 rounded-xl text-base font-bold">
+                <i class="fa-solid fa-tower-broadcast" aria-hidden="true"></i>
+                Open Live Dashboard
+            </a>
+        </section>
+
+    </main>
+
+    <footer>
+        <p>
+            <a href="https://github.com/OWASP-BLT/Github_Sportscaster" target="_blank" rel="noopener noreferrer">
+                <i class="fa-brands fa-github" aria-hidden="true"></i> OWASP BLT / Github_Sportscaster
+            </a>
+            &nbsp;·&nbsp; Licensed under AGPL-3.0
+        </p>
+    </footer>
+
+</body>
+</html>

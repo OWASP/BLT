@@ -1,0 +1,1549 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BLT GitHub Sportscaster - Live Play-by-Play</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#E10101',
+                        'neutral-border': '#E5E5E5',
+                        'dark-base': '#111827',
+                        'dark-surface': '#1F2937'
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'ui-sans-serif', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        };
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+        crossorigin="anonymous"
+        referrerpolicy="no-referrer"
+    >
+
+    <style>
+        :root {
+            --blt-primary: #E10101;
+            --blt-primary-hover: #b91c1c;
+            --blt-outline-soft: #feeae9;
+            --blt-border: #E5E5E5;
+            --blt-text: #111827;
+            --blt-muted: #6b7280;
+            --blt-surface: #ffffff;
+            --blt-background: #fafafa;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background:
+                radial-gradient(circle at 8% 4%, rgba(225, 1, 1, 0.08), transparent 36%),
+                radial-gradient(circle at 92% 0%, rgba(225, 1, 1, 0.05), transparent 32%),
+                var(--blt-background);
+            color: var(--blt-text);
+        }
+
+        .top-bar {
+            position: fixed;
+            top: 14px;
+            right: 14px;
+            display: flex;
+            gap: 6px;
+            z-index: 1000;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .top-bar-btn {
+            height: 40px;
+            min-width: 40px;
+            padding: 0 0.75rem;
+            border-radius: 0.75rem;
+            border: 1px solid var(--blt-border);
+            background: rgba(255, 255, 255, 0.98);
+            color: #374151;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            font-size: 0.82rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            text-decoration: none;
+            box-shadow: 0 1px 2px rgba(17, 24, 39, 0.08);
+            white-space: nowrap;
+        }
+
+        .top-bar-btn:hover {
+            border-color: #d1d5db;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(17, 24, 39, 0.12);
+        }
+
+        .top-bar-btn.active {
+            background: var(--blt-outline-soft);
+            border-color: #fca5a5;
+            color: var(--blt-primary);
+        }
+
+        .top-bar-btn.muted,
+        .top-bar-btn.disabled {
+            opacity: 0.55;
+        }
+
+        .top-bar-label {
+            font-size: 0.78rem;
+            font-weight: 600;
+        }
+
+        .config-panel {
+            position: fixed;
+            top: 66px;
+            right: 14px;
+            width: min(380px, calc(100vw - 28px));
+            background: var(--blt-surface);
+            border: 1px solid var(--blt-border);
+            border-radius: 1rem;
+            padding: 1rem;
+            box-shadow: 0 18px 40px rgba(17, 24, 39, 0.18);
+            z-index: 999;
+            display: none;
+            max-height: calc(100vh - 80px);
+            overflow-y: auto;
+        }
+
+        .config-panel.visible {
+            display: block;
+            animation: slideDown 0.18s ease-out;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .config-group {
+            margin-bottom: 0.95rem;
+        }
+
+        .config-group label {
+            display: block;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 0.4rem;
+        }
+
+        .config-group input[type="text"],
+        .config-group select,
+        .config-group textarea {
+            width: 100%;
+            border: 1px solid #9ca3af;
+            border-radius: 0.375rem;
+            padding: 0.5rem 0.75rem;
+            background: #fff;
+            color: #111827;
+            font-size: 0.9rem;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .config-group input[type="text"]:focus,
+        .config-group select:focus,
+        .config-group textarea:focus {
+            outline: none;
+            border-color: #dc2626;
+            box-shadow: 0 0 0 1px #dc2626;
+        }
+
+        .input-with-icon {
+            position: relative;
+        }
+
+        .input-with-icon i {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6b7280;
+            font-size: 0.85rem;
+            pointer-events: none;
+        }
+
+        .input-with-icon input {
+            padding-left: 2rem;
+        }
+
+        .btn-primary,
+        .config-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            width: 100%;
+            border: 1px solid transparent;
+            border-radius: 0.5rem;
+            padding: 0.65rem 0.95rem;
+            font-weight: 700;
+            background: var(--blt-primary);
+            color: #fff;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .btn-primary:hover,
+        .config-btn:hover {
+            background: var(--blt-primary-hover);
+        }
+
+        .btn-outline,
+        .config-btn.secondary {
+            border: 1px solid var(--blt-primary);
+            background: #fff;
+            color: var(--blt-primary);
+        }
+
+        .btn-outline:hover,
+        .config-btn.secondary:hover {
+            background: var(--blt-primary);
+            color: #fff;
+        }
+
+        .preset-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.45rem;
+            margin-top: 0.4rem;
+        }
+
+        .preset-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            border: 1px solid var(--blt-border);
+            border-radius: 999px;
+            padding: 0.3rem 0.65rem;
+            font-size: 0.76rem;
+            color: #4b5563;
+            background: #fff;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .preset-chip:hover,
+        .preset-chip.active {
+            background: var(--blt-outline-soft);
+            border-color: #fca5a5;
+            color: var(--blt-primary);
+        }
+
+        .api-key-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.55rem;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+            padding: 0.45rem 0.65rem;
+            background: #f9fafb;
+        }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 999px;
+            background: #9ca3af;
+            flex-shrink: 0;
+        }
+
+        .status-indicator.checking { background: #d97706; }
+        .status-indicator.connected { background: #16a34a; box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.12); }
+        .status-indicator.error { background: #dc2626; }
+        .status-indicator.ready { background: #2563eb; }
+
+        .status-text {
+            font-size: 0.82rem;
+            color: #4b5563;
+        }
+
+        .status-text.connected { color: #15803d; }
+        .status-text.error { color: #b91c1c; }
+        .status-text.checking { color: #b45309; }
+        .status-text.ready { color: #1d4ed8; }
+
+        .test-connection-btn {
+            margin-top: 0.55rem;
+            width: 100%;
+            font-size: 0.82rem;
+            padding: 0.55rem 0.8rem;
+        }
+
+        .dashboard-shell {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 0 1rem 2.25rem;
+        }
+
+        .header {
+            text-align: center;
+            margin: 1.1rem auto 1.15rem;
+        }
+
+        .header h1 {
+            font-size: clamp(1.6rem, 3vw, 2.35rem);
+            font-weight: 800;
+            color: #111827;
+            margin-bottom: 0.3rem;
+            letter-spacing: -0.02em;
+        }
+
+        .header p {
+            color: #4b5563;
+            font-size: 0.98rem;
+            max-width: 620px;
+            margin: 0 auto;
+        }
+
+        .stats {
+            text-align: center;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            color: #4b5563;
+            border: 1px solid var(--blt-border);
+            background: #fff;
+            padding: 0.8rem 1rem;
+            border-radius: 0.85rem;
+        }
+
+        .stats strong {
+            color: #111827;
+            font-weight: 700;
+        }
+
+        .channel-filters {
+            max-width: 960px;
+            margin: 0 auto 1rem;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.55rem;
+        }
+
+        .channel-filters-label {
+            font-size: 0.82rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            color: #6b7280;
+            margin-right: 0.2rem;
+        }
+
+        .channel-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            border: 1px solid var(--blt-border);
+            border-radius: 999px;
+            padding: 0.45rem 0.82rem;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #374151;
+            background: #fff;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .channel-pill:hover {
+            border-color: #d1d5db;
+            background: #f9fafb;
+        }
+
+        .channel-pill.active {
+            background: #feeae9;
+            border-color: #fca5a5;
+            color: var(--blt-primary);
+        }
+
+        .channel-pill .count {
+            border-radius: 999px;
+            padding: 0.15rem 0.45rem;
+            font-size: 0.72rem;
+            color: #6b7280;
+            background: #f3f4f6;
+        }
+
+        .channel-pill.active .count {
+            color: var(--blt-primary);
+            background: rgba(225, 1, 1, 0.08);
+        }
+
+        .sportscaster-section {
+            max-width: 960px;
+            margin: 0 auto 1rem;
+            display: flex;
+            align-items: stretch;
+            gap: 1rem;
+            border: 1px solid var(--blt-border);
+            background: #fff;
+            border-radius: 1rem;
+            padding: 1rem;
+            box-shadow: 0 10px 24px rgba(17, 24, 39, 0.08);
+        }
+
+        .robot-container {
+            width: 112px;
+            min-width: 112px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.4rem;
+            border: 1px solid var(--blt-border);
+            border-radius: 0.85rem;
+            background: linear-gradient(180deg, #fff, #f8fafc);
+        }
+
+        .robot-svg {
+            width: 90px;
+            height: 108px;
+        }
+
+        .robot-mouth {
+            animation: robotTalk 0.32s ease-in-out infinite;
+            transform-origin: center;
+        }
+
+        .robot-eye {
+            animation: robotBlink 3s ease-in-out infinite;
+            transform-origin: center;
+        }
+
+        .antenna-light {
+            animation: antennaPulse 1.1s ease-in-out infinite;
+        }
+
+        @keyframes robotTalk {
+            0%, 100% { transform: scaleY(1); }
+            50% { transform: scaleY(0.7); }
+        }
+
+        @keyframes robotBlink {
+            0%, 90%, 100% { transform: scaleY(1); }
+            95% { transform: scaleY(0.1); }
+        }
+
+        @keyframes antennaPulse {
+            0%, 100% { fill: #E10101; }
+            50% { fill: #f97316; }
+        }
+
+        .tv-screen {
+            flex: 1;
+            position: relative;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.85rem;
+            background: #fafafa;
+            padding: 0.85rem 1rem;
+            min-height: 132px;
+        }
+
+        .tv-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #dc2626;
+            margin-bottom: 0.3rem;
+        }
+
+        .live-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            background: #dc2626;
+            animation: livePulse 1s ease-in-out infinite;
+        }
+
+        @keyframes livePulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.35; }
+        }
+
+        .announcement-content {
+            margin-top: 0.2rem;
+        }
+
+        .announcement-event-type {
+            color: #dc2626;
+            font-size: 0.82rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .announcement-repo {
+            margin-top: 0.35rem;
+            font-size: clamp(1.05rem, 1.7vw, 1.3rem);
+            font-weight: 800;
+            line-height: 1.25;
+            overflow-wrap: break-word;
+        }
+
+        .announcement-repo a,
+        .event-repo-name a,
+        .leaderboard-repo-name a,
+        .commit-sha,
+        .view-link {
+            color: #dc2626;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .announcement-repo a:hover,
+        .event-repo-name a:hover,
+        .leaderboard-repo-name a:hover,
+        .commit-sha:hover,
+        .view-link:hover {
+            color: #b91c1c;
+            text-decoration: underline;
+        }
+
+        .announcement-time {
+            margin-top: 0.4rem;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.55rem;
+            color: #6b7280;
+            font-size: 0.8rem;
+        }
+
+        .no-announcement {
+            color: #9ca3af;
+            font-style: italic;
+            padding: 0.8rem 0;
+        }
+
+        .ai-commentary {
+            margin-top: 0.6rem;
+            border: 1px solid #fecaca;
+            border-radius: 0.75rem;
+            background: #fff5f5;
+            padding: 0.65rem 0.8rem;
+        }
+
+        .ai-commentary-header {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #b91c1c;
+            margin-bottom: 0.3rem;
+        }
+
+        .ai-commentary-text {
+            font-size: 0.9rem;
+            color: #1f2937;
+            line-height: 1.45;
+            font-style: italic;
+            min-height: 32px;
+        }
+
+        .ai-commentary-text.generating {
+            opacity: 0.65;
+        }
+
+        .typing-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .typing-indicator span {
+            width: 6px;
+            height: 6px;
+            border-radius: 999px;
+            background: #dc2626;
+            animation: typingBounce 1.4s infinite ease-in-out;
+        }
+
+        .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes typingBounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
+        .leaderboard-section,
+        .api-status,
+        .list-container {
+            max-width: 960px;
+            margin: 0 auto 1rem;
+        }
+
+        .leaderboard-section,
+        .api-status {
+            border: 1px solid var(--blt-border);
+            border-radius: 1rem;
+            background: #fff;
+            padding: 0.9rem 1rem;
+            box-shadow: 0 8px 20px rgba(17, 24, 39, 0.06);
+        }
+
+        .leaderboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .leaderboard-title {
+            font-size: 1.02rem;
+            font-weight: 800;
+            color: #111827;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+        }
+
+        .leaderboard-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .leaderboard-item {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            border: 1px solid #f1f5f9;
+            border-radius: 0.75rem;
+            background: #f9fafb;
+            padding: 0.58rem 0.7rem;
+            transition: all 0.2s ease;
+        }
+
+        .leaderboard-item:hover {
+            border-color: #fca5a5;
+            background: #fff;
+            transform: translateX(2px);
+        }
+
+        .leaderboard-item.rank-1,
+        .leaderboard-item.rank-2,
+        .leaderboard-item.rank-3 {
+            border-color: #fee2e2;
+            background: #fff7f7;
+        }
+
+        .leaderboard-rank {
+            width: 30px;
+            text-align: center;
+            font-weight: 800;
+            color: #6b7280;
+        }
+
+        .leaderboard-rank.top-rank {
+            color: #E10101;
+        }
+
+        .leaderboard-rank i {
+            color: #E10101;
+        }
+
+        .leaderboard-repo {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .leaderboard-repo-name {
+            font-size: 0.9rem;
+            font-weight: 700;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: #111827;
+        }
+
+        .leaderboard-stats {
+            display: flex;
+            gap: 0.7rem;
+            font-size: 0.75rem;
+            color: #4b5563;
+            flex-wrap: wrap;
+        }
+
+        .leaderboard-stat {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .leaderboard-change {
+            font-size: 0.73rem;
+            padding: 0.22rem 0.48rem;
+            border-radius: 999px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .leaderboard-change.up,
+        .trending-badge.up {
+            color: #15803d;
+            background: #dcfce7;
+        }
+
+        .leaderboard-change.down,
+        .trending-badge.down {
+            color: #b91c1c;
+            background: #fee2e2;
+        }
+
+        .leaderboard-change.new,
+        .trending-badge.new {
+            color: #b45309;
+            background: #fef3c7;
+        }
+
+        .api-status-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            margin-bottom: 0.55rem;
+        }
+
+        .rate-limit-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .rate-limit-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-size: 0.8rem;
+            color: #4b5563;
+        }
+
+        .rate-limit-value {
+            font-weight: 800;
+            color: #15803d;
+        }
+
+        .rate-limit-value.warning {
+            color: #b45309;
+        }
+
+        .rate-limit-value.danger {
+            color: #b91c1c;
+        }
+
+        .refresh-countdown {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.32rem;
+            font-size: 0.8rem;
+            color: #4b5563;
+        }
+
+        .countdown-value {
+            font-weight: 800;
+            color: #111827;
+            min-width: 26px;
+            text-align: right;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 8px;
+            border-radius: 999px;
+            overflow: hidden;
+            background: #f3f4f6;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 100%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, #E10101, #f97316);
+            transition: width 0.25s ease;
+        }
+
+        .progress-bar.loading {
+            animation: pulse 0.7s ease-in-out infinite;
+        }
+
+        .speed-control {
+            margin-top: 0.65rem;
+            padding-top: 0.65rem;
+            border-top: 1px solid #f1f5f9;
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+            flex-wrap: wrap;
+        }
+
+        .speed-control-label {
+            font-size: 0.8rem;
+            color: #4b5563;
+            font-weight: 600;
+        }
+
+        .speed-slider {
+            flex: 1;
+            min-width: 140px;
+            accent-color: #E10101;
+        }
+
+        .speed-value {
+            font-size: 0.8rem;
+            font-weight: 800;
+            color: #111827;
+            min-width: 36px;
+            text-align: right;
+        }
+
+        .auto-protect {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.78rem;
+            color: #4b5563;
+        }
+
+        .auto-protect input[type="checkbox"] {
+            accent-color: #E10101;
+        }
+
+        .auto-protect-label {
+            cursor: pointer;
+        }
+
+        .rate-protected {
+            font-size: 0.75rem;
+            color: #b45309;
+            font-weight: 700;
+        }
+
+        .list-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+
+        .event-item {
+            border: 1px solid var(--blt-border);
+            background: #fff;
+            border-radius: 0.85rem;
+            padding: 0.7rem 0.75rem;
+            transition: all 0.25s ease;
+            box-shadow: 0 6px 16px rgba(17, 24, 39, 0.05);
+        }
+
+        .event-item:hover {
+            border-color: #fca5a5;
+            transform: translateY(-1px);
+            box-shadow: 0 10px 22px rgba(17, 24, 39, 0.09);
+        }
+
+        .event-item-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.7rem;
+        }
+
+        .event-number {
+            width: 28px;
+            height: 28px;
+            min-width: 28px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #374151;
+            background: #f3f4f6;
+            border: 1px solid #e5e7eb;
+        }
+
+        .event-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .event-repo-name {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #111827;
+            overflow-wrap: break-word;
+        }
+
+        .event-meta {
+            margin-top: 0.22rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .event-type {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.28rem;
+            border: 1px solid #fee2e2;
+            border-radius: 999px;
+            background: #fff5f5;
+            color: #b91c1c;
+            padding: 0.16rem 0.5rem;
+            font-size: 0.72rem;
+            font-weight: 600;
+        }
+
+        .event-time {
+            color: #6b7280;
+            font-size: 0.74rem;
+        }
+
+        .event-stats {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            margin-left: auto;
+            flex-shrink: 0;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .stat-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.22rem;
+            border: 1px solid #f3f4f6;
+            border-radius: 999px;
+            background: #f9fafb;
+            color: #4b5563;
+            padding: 0.17rem 0.42rem;
+            font-size: 0.68rem;
+        }
+
+        .stat-pill-value {
+            font-weight: 700;
+            color: #111827;
+        }
+
+        .mini-activity-bar {
+            width: 52px;
+            height: 4px;
+            border-radius: 999px;
+            overflow: hidden;
+            background: #f3f4f6;
+        }
+
+        .mini-activity-fill {
+            height: 100%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, #E10101, #fb7185);
+        }
+
+        .commit-info {
+            margin-top: 0.4rem;
+            border-left: 2px solid #fee2e2;
+            padding-left: 0.55rem;
+        }
+
+        .commit-count {
+            font-size: 0.73rem;
+            color: #4b5563;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-weight: 600;
+        }
+
+        .commit-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+            margin-top: 0.25rem;
+        }
+
+        .commit-item {
+            display: flex;
+            gap: 0.34rem;
+            align-items: baseline;
+            font-size: 0.72rem;
+            color: #374151;
+            overflow-wrap: anywhere;
+        }
+
+        .commit-sha {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.7rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .commit-more {
+            font-size: 0.72rem;
+            color: #6b7280;
+            margin-top: 0.24rem;
+        }
+
+        .commit-author {
+            color: #9ca3af;
+            font-size: 0.68rem;
+            font-style: italic;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .actor-avatar {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            vertical-align: middle;
+            margin-right: 3px;
+            flex-shrink: 0;
+        }
+
+        .actor-avatar-lg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .actor-link {
+            color: #374151;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .actor-link:hover {
+            color: #dc2626;
+            text-decoration: underline;
+        }
+
+        .files-changed {
+            margin-top: 0.35rem;
+            font-size: 0.72rem;
+        }
+
+        .files-changed-summary {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            color: #4b5563;
+            font-weight: 600;
+            margin-bottom: 0.2rem;
+        }
+
+        .files-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.12rem;
+        }
+
+        .files-item {
+            display: flex;
+            align-items: baseline;
+            gap: 0.3rem;
+            color: #374151;
+            overflow-wrap: anywhere;
+        }
+
+        .files-name {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.7rem;
+            flex: 1;
+        }
+
+        .files-status {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.65rem;
+            font-weight: 700;
+            width: 1em;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .files-status-added { color: #16a34a; }
+        .files-status-removed { color: #dc2626; }
+        .files-status-renamed { color: #7c3aed; }
+        .files-status-copied { color: #0369a1; }
+        .files-status-modified { color: #d97706; }
+
+        .files-diff {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.68rem;
+            white-space: nowrap;
+        }
+
+        .files-additions {
+            color: #16a34a;
+            font-weight: 600;
+        }
+
+        .files-deletions {
+            color: #dc2626;
+            font-weight: 600;
+        }
+
+        .files-more {
+            font-size: 0.7rem;
+            color: #6b7280;
+            margin-top: 0.15rem;
+        }
+
+        .event-icon,
+        .stat-pill-icon,
+        .leader-icon,
+        .trend-icon {
+            color: #E10101;
+        }
+
+        .event-item.new-event {
+            border-color: #fda4af;
+            box-shadow: 0 0 0 2px rgba(225, 1, 1, 0.14), 0 8px 18px rgba(17, 24, 39, 0.07);
+        }
+
+        .event-item.stagger-in {
+            animation: staggerSlideIn 0.35s ease-out forwards;
+            opacity: 0;
+        }
+
+        @keyframes staggerSlideIn {
+            from { opacity: 0; transform: translateX(-18px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .loading,
+        .error,
+        .refresh-info {
+            max-width: 960px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .loading {
+            margin-top: 0.2rem;
+            padding: 1rem;
+            border: 1px dashed #d1d5db;
+            border-radius: 0.85rem;
+            color: #6b7280;
+            background: #fff;
+        }
+
+        .error {
+            margin-top: 0.2rem;
+            padding: 0.75rem;
+            border-radius: 0.85rem;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
+            background: #fff5f5;
+        }
+
+        .refresh-info {
+            color: #6b7280;
+            font-size: 0.82rem;
+            margin-top: 0.9rem;
+            padding-bottom: 1rem;
+        }
+
+        .pulse {
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        @media (max-width: 768px) {
+            .top-bar {
+                top: 8px;
+                right: 8px;
+            }
+
+            .sportscaster-section {
+                flex-direction: column;
+            }
+
+            .robot-container {
+                width: 100%;
+                min-width: 0;
+            }
+
+            .event-item-row {
+                flex-direction: column;
+            }
+
+            .event-stats {
+                width: 100%;
+                margin-left: 0;
+                justify-content: flex-start;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .top-bar-label {
+                display: none;
+            }
+            .top-bar-btn {
+                padding: 0 0.5rem;
+            }
+        }
+
+        /* Event detail info (PR title, issue title, release name, etc.) */
+        .event-detail-info {
+            margin-top: 0.4rem;
+            border-left: 2px solid #fee2e2;
+            padding-left: 0.55rem;
+            font-size: 0.82rem;
+        }
+
+        .event-detail-action {
+            display: inline-block;
+            color: #6b7280;
+            font-size: 0.72rem;
+            font-weight: 600;
+            text-transform: capitalize;
+            margin-right: 0.3rem;
+            margin-bottom: 0.15rem;
+        }
+
+        .event-detail-title {
+            color: #111827;
+            font-weight: 600;
+            font-size: 0.82rem;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .event-detail-title:hover {
+            color: var(--blt-primary);
+            text-decoration: underline;
+        }
+
+        .event-detail-ref {
+            display: inline-block;
+            background: #f3f4f6;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+            padding: 0.1rem 0.4rem;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.72rem;
+            color: #374151;
+            margin-left: 0.2rem;
+        }
+
+        .event-detail-body {
+            color: #4b5563;
+            font-size: 0.75rem;
+            line-height: 1.4;
+            margin-top: 0.2rem;
+            font-style: italic;
+            word-break: break-word;
+        }
+    </style>
+</head>
+<body class="font-sans text-gray-900 antialiased">
+    <!-- Top Bar Controls -->
+    <div class="top-bar">
+        <a class="top-bar-btn" href="landing.html" title="About this tool">
+            <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+            <span class="top-bar-label">About</span>
+        </a>
+        <a class="top-bar-btn" href="https://github.com/OWASP-BLT/Github_Sportscaster" target="_blank" rel="noopener noreferrer" title="View on GitHub">
+            <i class="fa-brands fa-github" aria-hidden="true"></i>
+            <span class="top-bar-label">GitHub</span>
+        </a>
+        <button class="top-bar-btn" id="sound-toggle" title="Toggle Sound Effects" type="button" aria-label="Toggle sound effects">
+            <i class="fa-solid fa-volume-high" id="sound-icon" aria-hidden="true"></i>
+            <span class="top-bar-label" id="sound-label">Sound</span>
+        </button>
+        <button class="top-bar-btn" id="tts-toggle" title="Toggle Text-to-Speech" type="button" aria-label="Toggle text-to-speech">
+            <i class="fa-solid fa-microphone-lines" aria-hidden="true"></i>
+            <span class="top-bar-label">Voice</span>
+        </button>
+        <button class="top-bar-btn" id="ai-toggle" title="Toggle AI Commentary" type="button" aria-label="Toggle AI commentary">
+            <i class="fa-solid fa-robot" aria-hidden="true"></i>
+            <span class="top-bar-label">AI</span>
+        </button>
+        <button class="top-bar-btn" id="config-toggle" title="Settings" type="button" aria-label="Open settings">
+            <i class="fa-solid fa-sliders" aria-hidden="true"></i>
+            <span class="top-bar-label">Settings</span>
+        </button>
+    </div>
+
+    <!-- Configuration Panel -->
+    <div class="config-panel" id="config-panel" role="dialog" aria-label="Configuration panel">
+        <h3 class="text-base font-extrabold text-gray-900 mb-3 inline-flex items-center gap-2">
+            <i class="fa-solid fa-sliders text-red-600" aria-hidden="true"></i>
+            Configuration
+        </h3>
+
+        <div class="config-group">
+            <label for="scope-type">Monitoring Scope</label>
+            <select id="scope-type">
+                <option value="global">All GitHub</option>
+                <option value="org">Organization</option>
+                <option value="repo">Repository</option>
+                <option value="user">User</option>
+            </select>
+        </div>
+
+        <div class="config-group" id="scope-value-group" style="display: none;">
+            <label for="scope-value">Scope Value <small class="text-gray-500">(e.g., "facebook" or "facebook/react")</small></label>
+            <div class="input-with-icon">
+                <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                <input type="text" id="scope-value" placeholder="Enter org, repo, or username">
+            </div>
+        </div>
+
+        <div class="config-group">
+            <label for="github-token">
+                GitHub Token
+                <small class="text-gray-500">(optional — raises rate limit to 5000/hr)</small>
+            </label>
+            <div class="input-with-icon">
+                <i class="fa-brands fa-github" aria-hidden="true"></i>
+                <input type="password" id="github-token" placeholder="ghp_xxxxxxxxxxxx (stored locally)" autocomplete="off">
+            </div>
+            <p style="font-size:0.72rem;color:#6b7280;margin-top:0.3rem;">
+                <i class="fa-solid fa-triangle-exclamation" style="color:#b45309;" aria-hidden="true"></i>
+                Use a fine-grained token with read-only public repo access. Stored in browser localStorage.
+            </p>
+        </div>
+
+        <div class="config-group">
+            <label>Filter by Event Types</label>
+            <div class="preset-chips" id="event-type-filters">
+                <span class="preset-chip active" data-type="all"><i class="fa-solid fa-layer-group" aria-hidden="true"></i>All Events</span>
+                <span class="preset-chip" data-type="PushEvent"><i class="fa-solid fa-upload" aria-hidden="true"></i>Push</span>
+                <span class="preset-chip" data-type="PullRequestEvent"><i class="fa-solid fa-code-pull-request" aria-hidden="true"></i>PR</span>
+                <span class="preset-chip" data-type="IssuesEvent"><i class="fa-solid fa-bug" aria-hidden="true"></i>Issues</span>
+                <span class="preset-chip" data-type="WatchEvent"><i class="fa-solid fa-star" aria-hidden="true"></i>Stars</span>
+                <span class="preset-chip" data-type="ForkEvent"><i class="fa-solid fa-code-fork" aria-hidden="true"></i>Forks</span>
+                <span class="preset-chip" data-type="ReleaseEvent"><i class="fa-solid fa-rocket" aria-hidden="true"></i>Release</span>
+            </div>
+        </div>
+
+        <div class="config-group">
+            <label for="ai-api-url">AI Commentary API (OpenAI-compatible)</label>
+            <input type="text" id="ai-api-url" placeholder="https://api.openai.com/v1/chat/completions" value="">
+            <input type="text" id="ai-api-key" placeholder="API Key (stored locally)" style="margin-top: 8px;">
+            <select id="ai-model" style="margin-top: 8px;">
+                <option value="gpt-4o-mini">gpt-4o-mini</option>
+                <option value="gpt-4o">gpt-4o</option>
+                <option value="o3-mini">o3-mini</option>
+                <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
+            </select>
+            <div class="api-key-status" id="api-key-status">
+                <span class="status-indicator" id="status-indicator"></span>
+                <span class="status-text" id="status-text">Not configured</span>
+            </div>
+            <button class="config-btn secondary test-connection-btn" id="test-connection-btn" type="button">
+                <i class="fa-solid fa-plug" aria-hidden="true"></i>
+                Test Connection
+            </button>
+        </div>
+
+        <div class="config-group">
+            <label>Preset Channels</label>
+            <div class="preset-chips">
+                <span class="preset-chip" data-preset="trending"><i class="fa-solid fa-fire" aria-hidden="true"></i>Trending</span>
+                <span class="preset-chip" data-preset="web"><i class="fa-solid fa-globe" aria-hidden="true"></i>Web Dev</span>
+                <span class="preset-chip" data-preset="ai"><i class="fa-solid fa-brain" aria-hidden="true"></i>AI/ML</span>
+                <span class="preset-chip" data-preset="devops"><i class="fa-solid fa-gears" aria-hidden="true"></i>DevOps</span>
+            </div>
+        </div>
+
+        <div class="config-group">
+            <label for="volume-slider">
+                Sound Volume: <strong id="volume-display">50%</strong>
+            </label>
+            <div style="display:flex;align-items:center;gap:0.5rem;margin-top:0.3rem;">
+                <i class="fa-solid fa-volume-low text-gray-400" aria-hidden="true"></i>
+                <input type="range" class="speed-slider" id="volume-slider" min="0" max="100" value="50" step="5" style="flex:1;">
+                <i class="fa-solid fa-volume-high text-gray-400" aria-hidden="true"></i>
+            </div>
+        </div>
+
+        <button class="config-btn" id="apply-config" type="button">
+            <i class="fa-solid fa-check" aria-hidden="true"></i>
+            Apply Configuration
+        </button>
+        <button class="config-btn secondary" id="reset-config" type="button" style="margin-top: 8px;">
+            <i class="fa-solid fa-rotate-left" aria-hidden="true"></i>
+            Reset to Defaults
+        </button>
+    </div>
+
+    <main class="pt-16 pb-6">
+        <section id="live-dashboard" class="dashboard-shell" aria-label="Live sportscaster dashboard">
+            <div class="header">
+                <h1><i class="fa-solid fa-microphone-lines text-red-600" aria-hidden="true"></i> Live GitHub Sportscaster</h1>
+                <p>Play-by-play coverage of repository activity with real-time ranking and optional AI narration.</p>
+            </div>
+
+            <div class="stats" role="status" aria-live="polite">
+                <strong id="event-count">0</strong> events processed |
+                <strong id="repo-count">0</strong> repositories tracked |
+                Last update: <strong id="last-update">-</strong>
+            </div>
+
+            <!-- Channel Filters -->
+            <div class="channel-filters" id="channel-filters">
+                <span class="channel-filters-label"><i class="fa-solid fa-tv" aria-hidden="true"></i> Channels</span>
+                <span class="channel-pill active" data-channel="all"><i class="fa-solid fa-layer-group" aria-hidden="true"></i>All Activity <span class="count" id="all-count">0</span></span>
+                <span class="channel-pill" data-channel="hot"><i class="fa-solid fa-fire" aria-hidden="true"></i>Hot <span class="count" id="hot-count">0</span></span>
+                <span class="channel-pill" data-channel="code"><i class="fa-solid fa-code" aria-hidden="true"></i>Code <span class="count" id="code-count">0</span></span>
+                <span class="channel-pill" data-channel="social"><i class="fa-solid fa-users" aria-hidden="true"></i>Social <span class="count" id="social-count">0</span></span>
+            </div>
+
+            <!-- Sportscaster Announcement Section -->
+            <div class="sportscaster-section" id="sportscaster">
+                <div class="robot-container">
+                    <svg class="robot-svg" viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <line x1="50" y1="10" x2="50" y2="25" stroke="#9ca3af" stroke-width="3"/>
+                        <circle class="antenna-light" cx="50" cy="7" r="5" fill="#E10101"/>
+
+                        <rect x="20" y="25" width="60" height="45" rx="10" fill="#f3f4f6" stroke="#d1d5db" stroke-width="2"/>
+
+                        <g class="robot-eye">
+                            <circle cx="35" cy="45" r="8" fill="#1f2937"/>
+                            <circle cx="35" cy="45" r="5" fill="#E10101"/>
+                            <circle cx="37" cy="43" r="2" fill="#fff"/>
+                        </g>
+                        <g class="robot-eye">
+                            <circle cx="65" cy="45" r="8" fill="#1f2937"/>
+                            <circle cx="65" cy="45" r="5" fill="#E10101"/>
+                            <circle cx="67" cy="43" r="2" fill="#fff"/>
+                        </g>
+
+                        <g class="robot-mouth">
+                            <rect x="35" y="58" width="30" height="8" rx="2" fill="#1f2937"/>
+                            <line x1="40" y1="62" x2="45" y2="62" stroke="#f87171" stroke-width="2"/>
+                            <line x1="48" y1="62" x2="53" y2="62" stroke="#f87171" stroke-width="2"/>
+                            <line x1="56" y1="62" x2="61" y2="62" stroke="#f87171" stroke-width="2"/>
+                        </g>
+
+                        <rect x="40" y="70" width="20" height="10" fill="#9ca3af"/>
+                        <rect x="15" y="80" width="70" height="35" rx="8" fill="#f3f4f6" stroke="#d1d5db" stroke-width="2"/>
+
+                        <rect x="30" y="88" width="40" height="20" rx="3" fill="#111827"/>
+                        <text x="50" y="102" text-anchor="middle" fill="#f87171" font-size="8" font-family="monospace">LIVE</text>
+
+                        <rect x="5" y="82" width="10" height="25" rx="5" fill="#d1d5db"/>
+                        <rect x="85" y="82" width="10" height="25" rx="5" fill="#d1d5db"/>
+                    </svg>
+                </div>
+                <div class="tv-screen">
+                    <div class="tv-label"><span class="live-indicator"></span>LIVE</div>
+                    <div class="announcement-content" id="announcement">
+                        <div class="no-announcement">Waiting for activity...</div>
+                    </div>
+                    <div class="ai-commentary" id="ai-commentary" style="display: none;">
+                        <div class="ai-commentary-header">
+                            <i class="fa-solid fa-robot" aria-hidden="true"></i>
+                            AI Commentary
+                        </div>
+                        <div class="ai-commentary-text" id="ai-commentary-text">
+                            <div class="typing-indicator"><span></span><span></span><span></span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Leaderboard Section -->
+            <div class="leaderboard-section" id="leaderboard-section">
+                <div class="leaderboard-header">
+                    <div class="leaderboard-title"><i class="fa-solid fa-trophy text-red-600" aria-hidden="true"></i> Activity Leaderboard</div>
+                </div>
+                <div class="leaderboard-list" id="leaderboard-list"></div>
+            </div>
+
+            <!-- API Status & Refresh Progress -->
+            <div class="api-status" id="api-status">
+                <div class="api-status-header">
+                    <div class="rate-limit-info">
+                        <div class="rate-limit-item">
+                            <i class="fa-solid fa-cloud-arrow-down text-red-600" aria-hidden="true"></i>
+                            <span class="rate-limit-label">API Requests:</span>
+                            <span class="rate-limit-value" id="rate-remaining">-</span>
+                            <span class="rate-limit-label">/</span>
+                            <span class="rate-limit-value" id="rate-limit">-</span>
+                        </div>
+                        <div class="rate-limit-item">
+                            <i class="fa-regular fa-clock text-red-600" aria-hidden="true"></i>
+                            <span class="rate-limit-label">Resets in:</span>
+                            <span class="rate-limit-value" id="rate-reset">-</span>
+                        </div>
+                    </div>
+                    <div class="refresh-countdown">
+                        <span>Next refresh:</span>
+                        <span class="countdown-value" id="countdown">-</span>
+                        <span>s</span>
+                    </div>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="progress-bar" style="width: 100%;"></div>
+                </div>
+                <div class="speed-control">
+                    <span class="speed-control-label">Refresh Speed:</span>
+                    <input type="range" class="speed-slider" id="speed-slider" min="5" max="60" value="10" step="5">
+                    <span class="speed-value" id="speed-value">10s</span>
+                    <div class="auto-protect">
+                        <input type="checkbox" id="auto-protect" checked>
+                        <label for="auto-protect" class="auto-protect-label" title="Automatically slow down when rate limit is low">Auto-protect</label>
+                    </div>
+                    <span class="rate-protected" id="rate-protected" style="display: none;">Throttled</span>
+                </div>
+            </div>
+
+            <div class="loading pulse" id="loading">Loading GitHub activity...</div>
+            <div class="error" id="error" style="display: none;"></div>
+
+            <div class="list-container" id="event-list"></div>
+
+            <div class="refresh-info">
+                <i class="fa-solid fa-circle-info text-red-600" aria-hidden="true"></i>
+                Use refresh speed and channel filters to tune the stream.
+            </div>
+        </section>
+    </main>
+
+    <script src="sportscaster.js"></script>
+</body>
+</html>
