@@ -106,6 +106,9 @@ def main():
             "gitlab_url": gitlab_url,
         })
 
+    if not repos:
+        raise RuntimeError(f"{SOURCE} did not contain repositories; keeping the existing main data files")
+
     with open(OUT, "w", encoding="utf-8", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=FIELDS, lineterminator="\n")
         writer.writeheader()

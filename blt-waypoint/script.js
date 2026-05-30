@@ -403,7 +403,11 @@ function csvToMainPayload(text) {
 
 async function fetchSnapshotPayload(source) {
   if (source.type === 'csv' && window.BLT_MAIN_DATA_CSV) {
-    return csvToMainPayload(window.BLT_MAIN_DATA_CSV);
+    const payload = csvToMainPayload(window.BLT_MAIN_DATA_CSV);
+    if (!payload.repos || payload.repos.length === 0) {
+      throw new Error('Embedded main_data.js did not contain repository rows');
+    }
+    return payload;
   }
 
   const resp = await fetch(`${source.file}?t=${Date.now()}`);
