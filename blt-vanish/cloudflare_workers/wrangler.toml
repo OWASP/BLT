@@ -1,18 +1,16 @@
-name = "selferase"
+name = "blt-vanish"
 main = "src/index.ts"
 compatibility_date = "2023-12-01"
 
 # Workers configuration
 workers_dev = true
-account_id = "" # Set your Cloudflare account ID
-route = "" # Set your custom domain route if needed
 
 # Environment variables (optional)
 [env.production]
-name = "selferase-production"
+name = "blt-vanish-production"
 
 [env.development]
-name = "selferase-development"
+name = "blt-vanish-development"
 
 # CORS and security settings
 [build]
@@ -22,6 +20,4 @@ command = "tsc"
 [limits]
 cpu_ms = 50
 
-# Analytics (optional - set to false for privacy)
-[analytics_engine_datasets]
-# No analytics to preserve privacy
+# Analytics bindings are intentionally omitted to preserve privacy.
