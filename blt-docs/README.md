@@ -63,21 +63,17 @@ The built site will be in the `site/` directory.
 
 ## 🚀 Deployment
 
-Documentation is built by GitLab CI and deployed to Cloudflare Workers when
-changes are pushed to the default branch. The pipeline is defined in
-`.gitlab-ci.yml`.
+Documentation is automatically built and deployed by Cloudflare Workers Builds
+when changes are pushed to the connected GitLab repository.
 
 ### Cloudflare Workers Setup
 
-Create a Cloudflare API token with permission to edit Workers, then add these
-variables in GitLab under **Settings** → **CI/CD** → **Variables**:
+Connect this GitLab repository to a Worker in the Cloudflare dashboard. Use
+`npx wrangler deploy` as the deploy command.
 
-- `CLOUDFLARE_ACCOUNT_ID`: Cloudflare account ID for the deployment
-- `CLOUDFLARE_API_TOKEN`: Cloudflare API token, stored as a masked and hidden variable
-
-The generated MkDocs site is static, so `wrangler.toml` deploys the `site/`
-directory directly with Workers Static Assets and connects the Worker to
-`docs.owaspblt.org`. No Python Worker function is needed.
+The generated MkDocs site is static, so `wrangler.toml` runs `mkdocs build` and
+deploys the `site/` directory directly with Workers Static Assets. The Worker is
+hosted at `docs.owaspblt.org`. No Python Worker function is needed.
 
 Before the first deployment, remove any existing CNAME record for
 `docs.owaspblt.org` so Cloudflare can create the custom-domain DNS record and
@@ -106,7 +102,7 @@ We welcome contributions to improve the documentation! To contribute:
 - **Framework**: [MkDocs](https://www.mkdocs.org/)
 - **Theme**: [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/)
 - **Hosting**: Cloudflare Workers Static Assets
-- **CI/CD**: GitLab CI/CD
+- **CI/CD**: Cloudflare Workers Builds
 
 ## 📖 Documentation Source
 

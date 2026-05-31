@@ -1,6 +1,9 @@
 name = "blt-docs"
 compatibility_date = "2026-05-31"
 
+[build]
+command = "mkdocs build"
+
 [assets]
 directory = "./site"
 not_found_handling = "404-page"
