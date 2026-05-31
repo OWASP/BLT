@@ -293,7 +293,7 @@ Serve the deployable `public/` directory locally:
 python -m http.server 8000 --directory public
 
 # Using Node.js
-npx serve
+npx serve public
 
 # Visit http://localhost:8000
 ```
@@ -306,11 +306,11 @@ BLT-Hackathons/
 │   ├── index.html              # Main page listing all hackathons
 │   ├── hackathon.html          # Individual hackathon dashboard
 │   ├── js/
-│   ├── config.js               # Single hackathon configuration (legacy)
-│   ├── hackathons-config.js    # Multiple hackathons configuration
-│   ├── index.js                # Index page logic
-│   ├── github-api.js           # GitHub API integration
-│   └── main.js                 # Dashboard logic
+│   │   ├── config.js           # Single hackathon configuration (legacy)
+│   │   ├── hackathons-config.js # Multiple hackathons configuration
+│   │   ├── index.js            # Index page logic
+│   │   ├── github-api.js       # GitHub API integration
+│   │   └── main.js             # Dashboard logic
 │   ├── images/                 # Optional: images and logos
 │   └── hackathon-data/         # Generated JSON statistics
 └── README.md

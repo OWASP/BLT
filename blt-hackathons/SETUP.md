@@ -104,7 +104,7 @@ Open `index.html` in your browser or run a local server:
 python -m http.server 8000 --directory public
 
 # Node.js
-npx serve
+npx serve public
 
 # Then visit: http://localhost:8000
 ```
