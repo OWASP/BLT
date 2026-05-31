@@ -30,7 +30,7 @@
   {
     "id": "sizzle_owaspblt",
     "name": "BLT Sizzle",
-    "url": "https://owasp-blt.github.io/BLT-Sizzle/",
+    "url": "https://sizzle.owaspbt.org",
     "keyword": "BLT",
     "enabled": true
   },
@@ -51,28 +51,28 @@
   {
     "id": "owasp_bumper",
     "name": "BLT OWASP Bumper",
-    "url": "https://owasp-blt.github.io/BLT-OWASP-Bumper/",
+    "url": "https://owasp-bumper.owaspbt.org",
     "keyword": "OWASP",
     "enabled": true
   },
   {
     "id": "owasp_projects",
     "name": "BLT OWASP Projects",
-    "url": "https://owasp-blt.github.io/BLT-OWASP-Projects/",
+    "url": "https://owasp-projects.owaspbt.org",
     "keyword": "OWASP",
     "enabled": true
   },
   {
     "id": "docs_owaspblt",
     "name": "BLT Docs",
-    "url": "https://owasp-blt.github.io/BLT-docs/",
+    "url": "https://docs.owaspbt.org",
     "keyword": "BLT",
     "enabled": true
   },
   {
     "id": "owasp_metadata",
     "name": "BLT OWASP Metadata",
-    "url": "https://owasp-blt.github.io/BLT-OWASP-metadata/",
+    "url": "https://owasp-metadata.owaspbt.org",
     "keyword": "OWASP",
     "enabled": true
   },
@@ -86,42 +86,42 @@
   {
     "id": "extension_owaspblt",
     "name": "BLT Extension",
-    "url": "https://owasp-blt.github.io/BLT-Extension/",
+    "url": "https://extension.owaspbt.org",
     "keyword": "BLT",
     "enabled": true
   },
   {
     "id": "rewards_owaspblt",
     "name": "BLT Rewards",
-    "url": "https://owasp-blt.github.io/BLT-Rewards/",
+    "url": "https://rewards.owaspbt.org",
     "keyword": "BLT",
     "enabled": true
   },
   {
     "id": "ideas_owaspblt",
     "name": "BLT Ideas",
-    "url": "https://owasp-blt.github.io/BLT-Ideas/",
+    "url": "https://ideas.owaspbt.org",
     "keyword": "BLT",
     "enabled": true
   },
   {
     "id": "action_owaspblt",
     "name": "BLT Action",
-    "url": "https://owasp-blt.github.io/BLT-Action/",
+    "url": "https://action.owaspbt.org",
     "keyword": "BLT",
     "enabled": true
   },
   {
     "id": "panini_owaspblt",
     "name": "BLT Panini",
-    "url": "https://owasp-blt.github.io/BLT-Panini/",
+    "url": "https://panini.owaspbt.org",
     "keyword": "BLT",
     "enabled": true
   },
   {
     "id": "netguardian_owaspblt",
     "name": "BLT NetGuardian",
-    "url": "https://owasp-blt.github.io/BLT-NetGuardian/",
+    "url": "https://netguardian.owaspbt.org",
     "keyword": "BLT",
     "enabled": true
   },
@@ -142,33 +142,33 @@
   {
     "id": "design_owaspblt",
     "name": "BLT Design",
-    "url": "https://owasp-blt.github.io/BLT-Design/",
+    "url": "https://design.owaspbt.org",
     "keyword": "BLT",
     "enabled": true
   },
   {
     "id": "design_contest_owaspblt",
     "name": "BLT Design Contest",
-    "url": "https://owasp-blt.github.io/BLT-Design-Contest/",
+    "url": "https://design-contest.owaspbt.org",
     "keyword": "BLT",
     "enabled": true
   },
   {
     "id": "gsoc_owaspblt",
     "name": "BLT GSOC",
-    "url": "https://owasp-blt.github.io/BLT-GSOC/",
+    "url": "https://gsoc.owaspbt.org",
     "keyword": "BLT",
     "enabled": true
   },
   {
     "id": "mygsoc_owaspblt",
     "name": "BLT MY GSOC Tool",
-    "url": "https://owasp-blt.github.io/MY-GSOC-TOOL/",
+    "url": "https://gsoc-tool.owaspbt.org",
     "keyword": "BLT",
     "enabled": true
   },
   {
-    "id": "flutter_owaspblt",
+    "id": "flutter_app_store",
     "name": "BLT Flutter App",
     "url": "https://apps.apple.com/us/app/owasp-blt/id6448071954",
     "keyword": "OWASP",
@@ -227,13 +227,6 @@
     "id": "vanish_owaspblt",
     "name": "BLT Vanish",
     "url": "https://vanish.owaspblt.org",
-    "keyword": "BLT",
-    "enabled": true
-  },
-  {
-    "id": "legacy_owaspblt",
-    "name": "BLT Legacy",
-    "url": "https://legacy.owaspblt.org",
     "keyword": "BLT",
     "enabled": true
   },
