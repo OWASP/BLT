@@ -52,8 +52,6 @@ The pipeline is defined in `.gitlab-ci.yml`. Add these masked CI/CD variables in
 
 | Variable | Purpose |
 | --- | --- |
-| `CLOUDFLARE_API_TOKEN` | Deploy the static asset Worker |
-| `CLOUDFLARE_ACCOUNT_ID` | Select the Cloudflare account |
 | `GITLAB_TOKEN` | Read, comment on, and close GitLab issues |
 | `GITLAB_PUSH_TOKEN` | Push generated Markdown and JSON commits to `main` |
 
@@ -68,6 +66,15 @@ Create a GitLab pipeline schedule for periodic submission processing and stale j
 ```bash
 npm run deploy:worker
 ```
+
+Do not run `npx wrangler deploy` directly from a fresh checkout: `.worker-assets/` is a generated public-only bundle. For Cloudflare Workers Builds, configure:
+
+| Setting | Value |
+| --- | --- |
+| Build command | `npm run build:worker` |
+| Deploy command | `npx wrangler@4 deploy` |
+
+For local deployment, use `npm run deploy:worker`; it performs both steps. GitLab CI does not deploy the Worker.
 
 Configure `jobs.owaspblt.org` as a Cloudflare custom domain for the `blt-jobs` Worker.
 
