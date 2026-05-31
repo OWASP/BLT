@@ -79,7 +79,7 @@
   {
     "id": "mcp_owaspblt",
     "name": "BLT MCP",
-    "url": "https://github.owaspblt.org/BLT-MCP/",
+    "url": "https://mcp.owaspblt.org/",
     "keyword": "BLT",
     "enabled": true
   },
