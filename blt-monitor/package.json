@@ -1,0 +1,11 @@
+{
+  "name": "blt-monitor",
+  "private": true,
+  "scripts": {
+    "build": "echo \"No build step required for this Cloudflare Python Worker\"",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "4.95.0"
+  }
+}

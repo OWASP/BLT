@@ -60,6 +60,10 @@ visual dashboard with a compact list view and detailed monitor pages.
      ```bash
      npx wrangler secret put SLACK_WEBHOOK_URL
      ```
+   - For Cloudflare Workers Builds connected to GitLab, clear the optional
+     build command under **Settings > Build** and keep the deploy command as
+     `npx wrangler deploy`. The included `npm run build` compatibility script
+     is a no-op for existing build settings.
 
 4. **Configure Monitors**:
    - Edit the `public/monitors.json` file
