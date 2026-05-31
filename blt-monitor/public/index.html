@@ -9,8 +9,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
       body { font-family: 'Segoe UI', system-ui, sans-serif; }
-      .card-hover { transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease; }
-      .card-hover:hover { transform: translateY(-1px); }
     </style>
 </head>
 <body class="bg-[#0a0f1e] text-[#e2e8f0] m-0 p-0">
@@ -42,6 +40,52 @@
       <span>Website Monitors</span>
     </h1>
     <p class="text-slate-400 text-sm sm:text-base mb-4 relative z-10">Monitor multiple websites and view their uptime status at a glance</p>
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4 relative z-10">
+      <div class="bg-slate-900/70 border border-slate-700 rounded-lg px-3 py-2">
+        <div class="text-xs text-slate-500">Loaded</div>
+        <div id="loaded-count" class="font-bold text-slate-200">0</div>
+      </div>
+      <div class="bg-green-900/30 border border-green-800 rounded-lg px-3 py-2">
+        <div class="text-xs text-green-400">Up</div>
+        <div id="up-count" class="font-bold text-green-300">0</div>
+      </div>
+      <div class="bg-red-900/30 border border-red-800 rounded-lg px-3 py-2">
+        <div class="text-xs text-red-400">Down</div>
+        <div id="down-count" class="font-bold text-red-300">0</div>
+      </div>
+      <div class="bg-yellow-900/30 border border-yellow-800 rounded-lg px-3 py-2">
+        <div class="text-xs text-yellow-400">Warning</div>
+        <div id="warning-count" class="font-bold text-yellow-300">0</div>
+      </div>
+    </div>
+    <div class="grid sm:grid-cols-[1fr_auto_auto] gap-2 relative z-10">
+      <label class="relative">
+        <span class="sr-only">Search monitors</span>
+        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+        <input id="monitor-search" type="search" placeholder="Search monitors..."
+               class="w-full bg-slate-900 border border-slate-700 rounded-lg py-2 pl-9 pr-3 text-sm text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-red-500">
+      </label>
+      <label>
+        <span class="sr-only">Filter by status</span>
+        <select id="status-filter" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-red-500">
+          <option value="all">All statuses</option>
+          <option value="up">Up</option>
+          <option value="down">Down</option>
+          <option value="warning">Warning</option>
+          <option value="unknown">Unknown</option>
+          <option value="disabled">Disabled</option>
+        </select>
+      </label>
+      <label>
+        <span class="sr-only">Sort monitors</span>
+        <select id="sort-order" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-red-500">
+          <option value="configured">Configured order</option>
+          <option value="status">Status</option>
+          <option value="name">Name</option>
+          <option value="response">Response time</option>
+        </select>
+      </label>
+    </div>
   </div>
 
   <!-- Monitor Cards -->
@@ -90,37 +134,71 @@
     return `${Math.floor(hours / 24)}d ago`;
   }
 
+  const monitorCards = [];
+  const statusOrder = { down: 0, warning: 1, unknown: 2, disabled: 3, up: 4 };
+
+  document.getElementById('monitor-search').addEventListener('input', renderCards);
+  document.getElementById('status-filter').addEventListener('change', renderCards);
+  document.getElementById('sort-order').addEventListener('change', renderCards);
+
+  function registerCard(card) {
+    monitorCards.push(card);
+    renderCards();
+  }
+
+  function renderCards() {
+    const container = document.getElementById('monitors-list');
+    const search = document.getElementById('monitor-search').value.trim().toLowerCase();
+    const statusFilter = document.getElementById('status-filter').value;
+    const sortOrder = document.getElementById('sort-order').value;
+
+    const cards = monitorCards
+      .filter(card => (!search || card.dataset.search.includes(search))
+        && (statusFilter === 'all' || card.dataset.status === statusFilter))
+      .sort((a, b) => {
+        if (sortOrder === 'status') {
+          return statusOrder[a.dataset.status] - statusOrder[b.dataset.status]
+            || Number(a.dataset.index) - Number(b.dataset.index);
+        }
+        if (sortOrder === 'name') return a.dataset.name.localeCompare(b.dataset.name);
+        if (sortOrder === 'response') {
+          return Number(a.dataset.responseMs) - Number(b.dataset.responseMs)
+            || Number(a.dataset.index) - Number(b.dataset.index);
+        }
+        return Number(a.dataset.index) - Number(b.dataset.index);
+      });
+
+    container.replaceChildren(...cards);
+    document.getElementById('loaded-count').textContent = monitorCards.length;
+    document.getElementById('up-count').textContent = monitorCards.filter(card => card.dataset.status === 'up').length;
+    document.getElementById('down-count').textContent = monitorCards.filter(card => card.dataset.status === 'down').length;
+    document.getElementById('warning-count').textContent = monitorCards.filter(card => card.dataset.status === 'warning').length;
+  }
+
   fetch('monitors.json')
     .then(r => {
       if (!r.ok) throw new Error('Failed to fetch monitors.json');
       return r.json();
     })
     .then(monitors => {
-      const container = document.getElementById('monitors-list');
-      monitors.forEach((monitor, index) => {
-        const safeId = sanitizeId(monitor.id);          // used for routing & KV keys — must stay stable
-        const domSafeId = `${safeId}-${index}`;        // DOM-only: guarantees unique canvas/element IDs
-        if (monitor.enabled === false) {
-          container.appendChild(createMonitorCard(monitor, safeId, domSafeId, [], null));
-          return;
-        }
-        fetch(`/api/history/${encodeURIComponent(safeId)}`)
-          .then(r => {
-            if (!r.ok) throw new Error(`History fetch failed: ${r.status} ${r.statusText}`);
-            return r.json();
-          })
-          .then(entries => {
-            const rows = toRows(entries);
+      return fetch('/api/histories')
+        .then(r => {
+          if (!r.ok) throw new Error(`History fetch failed: ${r.status} ${r.statusText}`);
+          return r.json();
+        })
+        .catch(err => {
+          console.error('Failed to load monitor history:', err);
+          return {};
+        })
+        .then(histories => {
+          monitors.forEach((monitor, index) => {
+            const safeId = sanitizeId(monitor.id);          // used for routing & KV keys — must stay stable
+            const domSafeId = `${safeId}-${index}`;        // DOM-only: guarantees unique canvas/element IDs
+            const rows = toRows(histories[safeId] || []);
             const lastRow = rows.length > 0 ? rows[rows.length - 1] : null;
-            const card = createMonitorCard(monitor, safeId, domSafeId, rows, lastRow);
-            container.appendChild(card);
-          })
-          .catch(err => {
-            console.error(`Failed to load data for ${monitor.id}:`, err);
-            const card = createMonitorCard(monitor, safeId, domSafeId, [], null);
-            container.appendChild(card);
+            registerCard(createMonitorCard(monitor, safeId, domSafeId, rows, lastRow, index));
           });
-      });
+        });
     })
     .catch(err => {
       console.error('Failed to load monitors configuration:', err);
@@ -128,45 +206,59 @@
         '<div class="bg-red-900/30 text-red-300 border border-red-800 rounded-xl p-4 text-center">Failed to load monitors configuration</div>';
     });
 
-  function createMonitorCard(monitor, safeId, domSafeId, rows, lastRow) {
+  function createMonitorCard(monitor, safeId, domSafeId, rows, lastRow, index) {
     const card = document.createElement('div');
     card.onclick = () => { window.location.href = `monitor.html?id=${safeId}`; };
     card.onkeydown = (e) => { if ((e.key === 'Enter' || e.key === ' ') && e.target === card) { e.preventDefault(); window.location.href = `monitor.html?id=${safeId}`; } };
     card.setAttribute('tabindex', '0');
     card.setAttribute('role', 'link');
     card.setAttribute('aria-label', `View details for ${monitor.name}`);
-    card.className = 'card-hover block bg-[#0f172a] border border-slate-800 rounded-xl hover:border-slate-600 hover:shadow-xl p-4 sm:p-5 cursor-pointer focus:outline-none focus:ring-1 focus:ring-red-500';
 
     let statusBadgeClass = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-slate-800 text-slate-400 border border-slate-700';
     let statusIcon = '<i class="fa-solid fa-question"></i> Unknown';
     let responseTime = '--';
     let lastCheck = 'Never';
+    let status = 'unknown';
+    let cardBorderClass = 'border-slate-800';
+    let responseMs = Number.MAX_SAFE_INTEGER;
 
     if (monitor.enabled === false) {
+      status = 'disabled';
       statusIcon = '<i class="fa-solid fa-pause"></i> Disabled';
     } else if (lastRow) {
       const isSuccess = lastRow[2] === 'success';
       const keywordFound = lastRow[3] === 'found';
-      const status = (isSuccess && keywordFound) ? 'up' : (isSuccess ? 'warning' : 'down');
+      status = (isSuccess && keywordFound) ? 'up' : (isSuccess ? 'warning' : 'down');
 
       if (status === 'up') {
+        cardBorderClass = 'border-green-600 ring-1 ring-green-600/60';
         statusBadgeClass = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-900/50 text-green-300 border border-green-800';
         statusIcon = '<i class="fa-solid fa-circle-check"></i> Up';
       } else if (status === 'warning') {
+        cardBorderClass = 'border-yellow-700 ring-1 ring-yellow-700/50';
         statusBadgeClass = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-900/50 text-yellow-300 border border-yellow-800';
         statusIcon = '<i class="fa-solid fa-triangle-exclamation"></i> Warning';
       } else if (status === 'down') {
+        cardBorderClass = 'border-red-600 ring-1 ring-red-600/60';
         statusBadgeClass = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-900/50 text-red-300 border border-red-800';
         statusIcon = '<i class="fa-solid fa-circle-xmark"></i> Down';
       }
 
       const ms = parseInt(lastRow[1]);
+      responseMs = isNaN(ms) ? Number.MAX_SAFE_INTEGER : ms;
       responseTime = isNaN(ms) ? '--' : ms.toLocaleString() + ' ms';
 
       //guard against invalid date before calling timeAgo
       const checkDate = new Date(lastRow[0]);
       lastCheck = isNaN(checkDate.getTime()) ? 'Unknown' : timeAgo(checkDate);
     }
+
+    card.className = `block bg-[#0f172a] border ${cardBorderClass} rounded-xl p-4 sm:p-5 cursor-pointer focus:outline-none focus:ring-1 focus:ring-red-500`;
+    card.dataset.index = index;
+    card.dataset.name = String(monitor.name || '').toLowerCase();
+    card.dataset.search = `${monitor.name || ''} ${monitor.url || ''} ${monitor.keyword || ''}`.toLowerCase();
+    card.dataset.status = status;
+    card.dataset.responseMs = responseMs;
 
     const canvasId = `chart-${domSafeId}`;
 

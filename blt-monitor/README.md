@@ -1,7 +1,7 @@
 # Website Monitor
 
 A Cloudflare Python Worker website monitor. It checks website availability and
-content every minute, stores recent history in Workers KV, and provides a
+content every ten minutes, stores recent history in Workers KV, and provides a
 visual dashboard with a compact list view and detailed monitor pages.
 
 ## Features
@@ -9,7 +9,7 @@ visual dashboard with a compact list view and detailed monitor pages.
 - **Multi-Monitor Support**: Monitor multiple websites from a single dashboard
 - **Compact List View**: Homepage shows all monitors at a glance with sparkline charts
 - **Detailed Monitor Pages**: Click any monitor for comprehensive status information
-- Monitors website availability every minute with a Cloudflare Cron Trigger
+- Monitors website availability every ten minutes with a Cloudflare Cron Trigger
 - Checks for specific keywords in website content
 - Maintains the latest 30 checks in Workers KV for each monitor
 - Visual dashboard with response time charts
@@ -55,7 +55,7 @@ visual dashboard with a compact list view and detailed monitor pages.
    - Wrangler automatically provisions the `blt-monitor-history` KV namespace on the first
      deployment and adds its ID to `wrangler.toml`
    - The Worker serves the dashboard, exposes `/api/health`, and runs the
-     monitor cron every minute
+     monitor cron every ten minutes
    - Optionally store the Slack webhook as a Worker secret:
      ```bash
      npx wrangler secret put SLACK_WEBHOOK_URL
@@ -111,7 +111,7 @@ visual dashboard with a compact list view and detailed monitor pages.
 ## Usage
 
 Once set up, the monitor will:
-- Run automatically every minute for each configured monitor
+- Run automatically every ten minutes for each configured monitor
 - Store the latest 30 checks for each monitor in Workers KV
 - Each monitor card shows:
   - Monitor name and URL
