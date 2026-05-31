@@ -27,7 +27,7 @@ except ImportError:
 
 JOBS_DIR = Path(__file__).resolve().parent.parent / "jobs"
 HEADERS = {
-    "User-Agent": "OWASP-BLT-Jobs-Bot/1.0 (https://github.com/OWASP-BLT/BLT-Jobs)"
+    "User-Agent": "OWASP-BLT-Jobs-Bot/1.0 (https://gitlab.com/owasp-blt/blt-jobs)"
 }
 
 
@@ -455,6 +455,7 @@ def scrape_url(url: str) -> tuple[dict, str]:
         "created_at":              created,
         "views_count":             0,
         "added_by":                os.environ.get("ISSUE_USER", "").strip(),
+        "added_by_url":            os.environ.get("ISSUE_USER_URL", "").strip(),
         "needs_manual_review":     needs_review,
     }
     return fm, description

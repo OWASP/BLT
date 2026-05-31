@@ -1,6 +1,6 @@
 /**
  * Job Analytics - View Tracking System
- * Uses localStorage to track job views and syncs with GitHub via Actions
+ * Uses localStorage to track job views locally.
  */
 
 const ANALYTICS_KEY = 'blt_job_views';
@@ -115,8 +115,7 @@ function checkAndSync() {
 }
 
 /**
- * Sync view data to GitHub (via issue creation)
- * This creates a GitHub issue with the analytics data that can be processed by Actions
+ * Prepare view data for a future server-side sync endpoint.
  */
 function syncViewData() {
   const viewData = getViewData();
@@ -136,15 +135,13 @@ function syncViewData() {
     };
   }
   
-  // Store sync data for GitHub Action to pick up
-  // In a real implementation, this would POST to a GitHub Action endpoint
+  // Store sync data until a server-side sync endpoint is configured.
   // For now, we'll just log it and update the last sync time
   console.log('Analytics sync data:', summary);
   
   localStorage.setItem(LAST_SYNC_KEY, Date.now().toString());
   
-  // Optional: Create a GitHub issue with the data
-  // This would require a backend endpoint or GitHub Action workflow
+  // A production sync would POST this payload to a backend endpoint.
   // For now, we'll just make the data available via a global variable
   window.BLT_ANALYTICS_SYNC_DATA = summary;
 }

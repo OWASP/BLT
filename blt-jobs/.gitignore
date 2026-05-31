@@ -16,3 +16,4 @@ comment.txt
 
 # Node dependencies
 node_modules/
+.worker-assets/

@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 /**
- * Parse GitHub issue body (markdown **Label:** value or ### Label\n\nvalue) and write seekers/<slug>.md.
- * Used by process-submissions.yml for [SEEKER] issues.
+ * Parse GitLab issue body (markdown **Label:** value or ### Label\n\nvalue) and write seekers/<slug>.md.
  * Reads issue body from stdin or FIRST argument.
  */
 const fs = require("fs");
@@ -51,6 +50,7 @@ function slugify(s) {
 function extractLinks(data) {
   const links = {
     github: "",
+    gitlab: "",
     linkedin: "",
     portfolio: "",
     email: "",
@@ -60,6 +60,7 @@ function extractLinks(data) {
   
   // Extract from individual fields
   links.github = (data["GitHub"] || "").trim().replace(/^[(\s]+|[)\s]+$/g, "");
+  links.gitlab = (data["GitLab"] || "").trim().replace(/^[(\s]+|[)\s]+$/g, "");
   links.linkedin = (data["LinkedIn"] || "").trim().replace(/^[(\s]+|[)\s]+$/g, "");
   links.portfolio = (data["Portfolio/Website"] || "").trim().replace(/^[(\s]+|[)\s]+$/g, "");
   links.email = (data["Email"] || "").trim().replace(/^[(\s]+|[)\s]+$/g, "");
@@ -110,6 +111,7 @@ function main() {
     experience_summary: experienceSummary || "",
     availability: availability || "",
     github: links.github || "",
+    gitlab: links.gitlab || "",
     linkedin: links.linkedin || "",
     portfolio: links.portfolio || "",
     email: links.email || "",

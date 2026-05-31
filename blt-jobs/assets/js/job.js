@@ -119,7 +119,8 @@ function renderJob(job) {
   const addedBy = esc(normalizeString(job.added_by));
 
   const flagIssueTitle = encodeURIComponent(`[FLAG] ${job.title || "Untitled"} @ ${job.organization_name || "Unknown organization"}`);
-  const flagUrl = `https://github.com/OWASP-BLT/BLT-Jobs/issues/new?template=flag-job-posting.yml&title=${flagIssueTitle}&job_id=${encodeURIComponent(job.id)}`;
+  const flagDescription = `### Job ID\n${job.id}\n\n### Reason for Flagging\n\n### Additional Details\n\n/label ~"flag-job-posting"`;
+  const flagUrl = `https://gitlab.com/owasp-blt/blt-jobs/-/issues/new?issue[title]=${flagIssueTitle}&issue[description]=${encodeURIComponent(flagDescription)}`;
 
   root.innerHTML = `
     <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
@@ -240,7 +241,7 @@ function renderJob(job) {
                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                        </svg>
-                       <span>Added by <a href="https://github.com/${encodeURIComponent(job.added_by)}" target="_blank" rel="noopener noreferrer" class="font-medium text-[#e74c3c] hover:text-red-700 dark:hover:text-red-400">@${addedBy}</a></span>
+                       <span>Added by ${safeUrl(job.added_by_url || "") ? `<a href="${esc(job.added_by_url)}" target="_blank" rel="noopener noreferrer" class="font-medium text-[#e74c3c] hover:text-red-700 dark:hover:text-red-400">@${addedBy}</a>` : `@${addedBy}`}</span>
                      </div>`
                   : ""
               }

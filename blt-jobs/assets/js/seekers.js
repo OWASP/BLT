@@ -64,6 +64,7 @@ function renderSeekers(seekers) {
       
       // Extract links - handle both new format and old profile_url
       const github = s.github || "";
+      const gitlab = s.gitlab || "";
       const linkedin = s.linkedin || (s.profile_url && s.profile_url.includes("linkedin") ? s.profile_url : "");
       const portfolio = s.portfolio || "";
       const email = s.email || "";
@@ -74,6 +75,7 @@ function renderSeekers(seekers) {
       const socialLinks = [];
       if (safeUrl(linkedin)) socialLinks.push(`<a href="${esc(linkedin)}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600" title="LinkedIn Profile"><i class="fa-brands fa-linkedin" aria-hidden="true"></i></a>`);
       if (safeUrl(github)) socialLinks.push(`<a href="${esc(github)}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600" title="GitHub Profile"><i class="fa-brands fa-github" aria-hidden="true"></i></a>`);
+      if (safeUrl(gitlab)) socialLinks.push(`<a href="${esc(gitlab)}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600" title="GitLab Profile"><i class="fa-brands fa-gitlab" aria-hidden="true"></i></a>`);
       if (safeUrl(portfolio)) socialLinks.push(`<a href="${esc(portfolio)}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600" title="Portfolio"><i class="fa-solid fa-globe" aria-hidden="true"></i></a>`);
       if (safeUrl(twitter)) socialLinks.push(`<a href="${esc(twitter)}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600" title="Twitter/X"><i class="fa-brands fa-x-twitter" aria-hidden="true"></i></a>`);
       if (safeUrl(resumeUrl)) socialLinks.push(`<a href="${esc(resumeUrl)}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 transition hover:bg-red-100 dark:border-red-800 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50" title="Download Resume"><i class="fa-solid fa-file-pdf" aria-hidden="true"></i></a>`);

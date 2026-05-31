@@ -55,6 +55,7 @@ function mdToJob(filePath) {
   // FIX: compute effective_expires_at here so the filter below actually works
   const effectiveExpiry = resolveExpiry(fm);
 
+  const addedBy = get("added_by") || null;
   return {
     id: stem,
     organization_name: get("organization_name", "Unknown organization"),
@@ -72,7 +73,9 @@ function mdToJob(filePath) {
     application_instructions: get("application_instructions") || null,
     created_at: get("created_at") || new Date().toISOString(),
     views_count: parseInt(get("views_count"), 10) || 0,
-    added_by: get("added_by") || null,
+    added_by: addedBy,
+    // Preserve profile links for listings created before the GitLab migration.
+    added_by_url: get("added_by_url") || (addedBy ? `https://github.com/${addedBy}` : null),
     needs_manual_review: needsReview,
   };
 }
@@ -93,6 +96,7 @@ function mdToSeeker(filePath) {
     profile_url: get("profile_url", ""),
     availability: get("availability", ""),
     github: get("github", ""),
+    gitlab: get("gitlab", ""),
     linkedin: get("linkedin", ""),
     portfolio: get("portfolio", ""),
     email: get("email", ""),

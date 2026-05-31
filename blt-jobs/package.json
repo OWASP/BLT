@@ -6,7 +6,9 @@
     "validate:jobs": "node scripts/validate-jobs.js",
     "list:jobs": "node scripts/list-jobs-status.js",
     "expire:jobs": "node scripts/expire-jobs.js",
-    "crawl:jobs": "node scripts/scheduled-crawl.js"
+    "crawl:jobs": "node scripts/scheduled-crawl.js",
+    "build:worker": "npm run build:jobs && node scripts/prepare-worker-assets.js",
+    "deploy:worker": "npm run build:worker && npx wrangler@4 deploy"
   },
   "dependencies": {
     "gray-matter": "^4.0.3"

@@ -164,6 +164,7 @@ function renderSeeker(seeker) {
 
   // Get all contact links
   const github = seeker.github || "";
+  const gitlab = seeker.gitlab || "";
   const linkedin = seeker.linkedin || (seeker.profile_url && seeker.profile_url.includes("linkedin") ? seeker.profile_url : "");
   const portfolio = seeker.portfolio || "";
   const email = seeker.email || "";
@@ -178,6 +179,7 @@ function renderSeeker(seeker) {
   const contactLinks = [];
   if (safeUrl(linkedin)) contactLinks.push(`<a href="${esc(linkedin)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"><i class="fa-brands fa-linkedin" aria-hidden="true"></i> LinkedIn</a>`);
   if (safeUrl(github)) contactLinks.push(`<a href="${esc(github)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 transition hover:bg-gray-50 dark:hover:bg-gray-700"><i class="fa-brands fa-github" aria-hidden="true"></i> GitHub</a>`);
+  if (safeUrl(gitlab)) contactLinks.push(`<a href="${esc(gitlab)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 transition hover:bg-gray-50 dark:hover:bg-gray-700"><i class="fa-brands fa-gitlab" aria-hidden="true"></i> GitLab</a>`);
   if (safeUrl(portfolio)) contactLinks.push(`<a href="${esc(portfolio)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 transition hover:bg-gray-50 dark:hover:bg-gray-700"><i class="fa-solid fa-globe" aria-hidden="true"></i> Portfolio</a>`);
   if (safeUrl(twitter)) contactLinks.push(`<a href="${esc(twitter)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 transition hover:bg-gray-50 dark:hover:bg-gray-700"><i class="fa-brands fa-x-twitter" aria-hidden="true"></i> Twitter</a>`);
   if (safeUrl(resumeUrl)) contactLinks.push(`<a href="${esc(resumeUrl)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700"><i class="fa-solid fa-file-pdf" aria-hidden="true"></i> Resume</a>`);

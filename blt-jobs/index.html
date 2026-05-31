@@ -11,7 +11,7 @@
     <meta property="og:title" content="BLT Jobs - Connect Talent with Opportunities" />
     <meta property="og:description" content="A community-driven job board for the OWASP BLT ecosystem. Post a job or feature your profile to connect with talent." />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://owasp-blt.github.io/BLT-Jobs/" />
+    <meta property="og:url" content="https://jobs.owaspblt.org/" />
 
     <!-- Twitter Card Metadata -->
     <meta name="twitter:card" content="summary" />
@@ -96,9 +96,9 @@
             <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-red-600 text-white font-bold">
               1
             </div>
-            <h3 class="font-semibold dark:text-white">Submit via GitHub</h3>
+            <h3 class="font-semibold dark:text-white">Submit via GitLab</h3>
             <p class="mt-2 text-sm text-slate-600 dark:text-gray-400">
-              Open a pull request or paste a job URL. We use PRs and templates so you don’t need to edit raw files.
+              Open an issue or paste a job URL. We use templates so you do not need to edit raw files.
             </p>
           </div>
           <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
@@ -107,7 +107,7 @@
             </div>
             <h3 class="font-semibold dark:text-white">Automated Processing</h3>
             <p class="mt-2 text-sm text-slate-600 dark:text-gray-400">
-              Our GitHub Actions workflow builds job and seeker data from markdown and can scrape job URLs from PRs.
+              Our GitLab pipeline builds job and seeker data from markdown and can scrape job URLs from issues.
             </p>
           </div>
           <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
@@ -155,7 +155,7 @@
           </div>
           <div class="flex flex-col justify-center rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
             <h3 class="mb-1 font-semibold dark:text-white">Quick Add Job URL</h3>
-            <p class="mb-4 text-sm text-slate-500 dark:text-gray-400">Paste a job link and we'll open a pre-filled GitHub issue to import it.</p>
+            <p class="mb-4 text-sm text-slate-500 dark:text-gray-400">Paste a job link and we'll open a pre-filled GitLab issue to import it.</p>
             <form id="quick-add-form" class="flex gap-2" novalidate>
               <input id="quick-add-url" type="url" placeholder="https://boards.greenhouse.io/…" required
                 class="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 shadow-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400 dark:focus:border-red-500" />
@@ -231,8 +231,8 @@
             © 2026 OWASP BLT Jobs. Part of the <a href="https://owasp.org/www-project-bug-logging-tool/" target="_blank" class="font-medium text-red-600 hover:text-red-700">OWASP BLT Project</a>
           </p>
           <div class="flex gap-4">
-            <a href="https://github.com/OWASP-BLT/BLT-Jobs" target="_blank" aria-label="GitHub Repository" class="text-slate-600 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-500">
-              <i class="fa-brands fa-github text-xl" aria-hidden="true"></i>
+            <a href="https://gitlab.com/owasp-blt/blt-jobs" target="_blank" aria-label="GitLab Repository" class="text-slate-600 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-500">
+              <i class="fa-brands fa-gitlab text-xl" aria-hidden="true"></i>
             </a>
           </div>
         </div>
@@ -246,7 +246,7 @@
     <script>
       (function () {
         var params = new URLSearchParams(window.location.search);
-        var repo = params.get('repo') || (window.location.hostname.indexOf('pritz395.github.io') !== -1 ? 'Pritz395/BLT-Jobs' : 'OWASP-BLT/BLT-Jobs');
+        var repo = params.get('repo') || 'owasp-blt/blt-jobs';
         var form = document.getElementById('quick-add-form');
         var input = document.getElementById('quick-add-url');
         var error = document.getElementById('quick-add-error');
@@ -259,7 +259,8 @@
               return;
             }
             if (error) error.classList.add('hidden');
-            window.open('https://github.com/' + repo + '/issues/new?template=job-posting-from-link.yml&job_url=' + encodeURIComponent(url), '_blank', 'noopener,noreferrer');
+            var description = '### Job Posting URL\\n' + url + '\\n\\n/label ~"job-posting-from-link"';
+            window.open('https://gitlab.com/' + repo + '/-/issues/new?issue[title]=' + encodeURIComponent('Job Post from Link') + '&issue[description]=' + encodeURIComponent(description), '_blank', 'noopener,noreferrer');
           });
           if (input) {
             input.addEventListener('input', function () {
@@ -306,7 +307,7 @@
             jobs.forEach(function (j) {
               var meta = '';
               if (j.created_at) meta += '<span class="flex items-center gap-1"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i> ' + esc(fmtDate(j.created_at)) + '</span>';
-              if (j.added_by) meta += '<span class="flex items-center gap-1"><i class="fa-solid fa-user" aria-hidden="true"></i> <a href="https://github.com/' + esc(j.added_by) + '" target="_blank" rel="noopener noreferrer" class="font-medium text-red-600 hover:text-red-700 dark:text-red-400">@' + esc(j.added_by) + '</a></span>';
+              if (j.added_by) meta += '<span class="flex items-center gap-1"><i class="fa-solid fa-user" aria-hidden="true"></i> ' + (j.added_by_url ? '<a href="' + esc(j.added_by_url) + '" target="_blank" rel="noopener noreferrer" class="font-medium text-red-600 hover:text-red-700 dark:text-red-400">@' + esc(j.added_by) + '</a>' : '@' + esc(j.added_by)) + '</span>';
               html += '<div class="rounded-lg border border-slate-200 dark:border-gray-700 p-3">';
               html += '<a href="job.html?id=' + encodeURIComponent(j.id) + '" class="font-medium text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">' + esc(j.title || 'Untitled') + (j.organization_name ? ' – ' + esc(j.organization_name) : '') + '</a>';
               if (meta) html += '<div class="mt-1 flex flex-wrap gap-3 text-xs text-slate-500 dark:text-gray-400">' + meta + '</div>';
@@ -342,12 +343,16 @@
           .then(function (data) {
             var jobs = Array.isArray(data.jobs) ? data.jobs : [];
             var counts = {};
+            var profileUrls = {};
             jobs.forEach(function (job) {
               var user = (job.added_by || '').trim();
-              if (user) counts[user] = (counts[user] || 0) + 1;
+              if (user) {
+                counts[user] = (counts[user] || 0) + 1;
+                if (job.added_by_url) profileUrls[user] = job.added_by_url;
+              }
             });
             var ranked = Object.keys(counts)
-              .map(function (user) { return { user: user, count: counts[user] }; })
+              .map(function (user) { return { user: user, count: counts[user], profileUrl: profileUrls[user] || '' }; })
               .sort(function (a, b) { return b.count - a.count || a.user.localeCompare(b.user); })
               .slice(0, 5);
             if (ranked.length === 0) {
@@ -359,8 +364,8 @@
               var medal = MEDAL_ICONS[i] || ('#' + (i + 1));
               html += '<div class="flex items-center gap-4 py-3">';
               html += '<span class="w-8 text-center text-lg">' + medal + '</span>';
-              html += '<img src="https://github.com/' + esc(entry.user) + '.png?size=32" alt="' + esc(entry.user) + '" width="32" height="32" class="w-8 h-8 rounded-full border border-slate-200 dark:border-gray-600" loading="lazy" onerror="this.src=\'https://github.com/ghost.png\'" />';
-              html += '<a href="https://github.com/' + esc(entry.user) + '" target="_blank" rel="noopener noreferrer" class="flex-1 font-medium text-slate-900 dark:text-gray-100 hover:text-red-600 dark:hover:text-red-400">@' + esc(entry.user) + '</a>';
+              html += '<span class="flex h-8 w-8 items-center justify-center rounded-full bg-red-100 text-xs font-bold text-red-700 dark:bg-red-900/30 dark:text-red-300">@</span>';
+              html += entry.profileUrl ? '<a href="' + esc(entry.profileUrl) + '" target="_blank" rel="noopener noreferrer" class="flex-1 font-medium text-slate-900 dark:text-gray-100 hover:text-red-600 dark:hover:text-red-400">@' + esc(entry.user) + '</a>' : '<span class="flex-1 font-medium">@' + esc(entry.user) + '</span>';
               html += '<span class="inline-flex items-center gap-1 rounded-full bg-red-50 px-3 py-1 text-sm font-semibold text-red-700 dark:bg-red-900/30 dark:text-red-400"><i class="fa-solid fa-briefcase text-xs" aria-hidden="true"></i> ' + entry.count + ' job' + (entry.count !== 1 ? 's' : '') + '</span>';
               html += '</div>';
             });

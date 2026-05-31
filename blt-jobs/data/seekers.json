@@ -11,6 +11,7 @@
       "profile_url": "",
       "availability": "Immediately",
       "github": "https://github.com/Mberic",
+      "gitlab": "",
       "linkedin": "https://www.linkedin.com/in/eric-mboizi/",
       "portfolio": "**Email:** mbericks01@gmail.com",
       "email": "",
@@ -30,6 +31,7 @@
       "profile_url": "",
       "availability": "Not currently looking but open to opportunities",
       "github": "https://github.com/yourusername",
+      "gitlab": "",
       "linkedin": "https://linkedin.com/in/yourprofile",
       "portfolio": "Optional",
       "email": "Optional - will be visible on the public site",
@@ -49,6 +51,7 @@
       "profile_url": "",
       "availability": "Immediately",
       "github": "https://github.com/Jozz77",
+      "gitlab": "",
       "linkedin": "https://www.linkedin.com/in/jonathan-mmadu-45a714219",
       "portfolio": "https://jozzdev.vercel.app",
       "email": "mmadujonathan@gmail.com",
@@ -68,6 +71,7 @@
       "profile_url": "https://linkedin.com/in/md-kaif-ansari",
       "availability": "Immediately  ## Skills <!-- List your technical skills, programming languages, frameworks, etc. --> Js/Ts, Node, Express, Next.js, React, Postgressql, Python, Devops  ## About Me <!-- Brief professional summary/bio --> I'm a Cs nerd, contributing open source building useful software and breaking internet.   ## Experience Highlights <!-- List key projects, achievements, or relevant experience -->   ## Contact & Links",
       "github": "",
+      "gitlab": "",
       "linkedin": "",
       "portfolio": "",
       "email": "",
@@ -87,6 +91,7 @@
       "profile_url": "",
       "availability": "Available immediately",
       "github": "https://github.com/azizrebhi",
+      "gitlab": "",
       "linkedin": "https://linkedin.com/in/aziz-rebhi",
       "portfolio": "**Email:** mohamedaziz.rebhi@ensi-uma.tn",
       "email": "",
@@ -106,6 +111,7 @@
       "profile_url": "",
       "availability": "Available upon graduation (October 2026)",
       "github": "https://github.com/azizrebhi",
+      "gitlab": "",
       "linkedin": "https://linkedin.com/in/aziz-rebhi",
       "portfolio": "**Email:** mohamedaziz.rebhi@ensi-uma.tn",
       "email": "",
@@ -125,6 +131,7 @@
       "profile_url": "",
       "availability": "May end to September",
       "github": "https://github.com/Rudrawhy",
+      "gitlab": "",
       "linkedin": "https://linkedin.com/in/yourprofile",
       "portfolio": "Optional",
       "email": "Optional - will be visible on the public site",
@@ -135,5 +142,5 @@
     }
   ],
   "count": 7,
-  "generated_at": "2026-05-13T18:31:12.668Z"
+  "generated_at": "2026-05-31T15:10:30.242Z"
 }

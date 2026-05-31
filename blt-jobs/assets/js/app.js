@@ -178,6 +178,7 @@ function renderJobs(jobs) {
       const salary = esc(job.salary_range || "");
       const createdAt = esc(job.created_at || "");
       const addedBy = esc(job.added_by || "");
+      const addedByUrl = safeUrl(job.added_by_url || "");
       const workMode = inferWorkMode(job);
       const workBadge = workModeBadgeHtml(workMode);
 
@@ -217,7 +218,7 @@ function renderJobs(jobs) {
         ? `<span class="flex items-center gap-1 text-gray-500 dark:text-gray-500"><i class="fa-solid fa-calendar" aria-hidden="true"></i> Posted ${createdAt}</span>`
         : "";
       const addedBySpan = addedBy
-        ? `<span class="flex items-center gap-1"><i class="fa-solid fa-user" aria-hidden="true"></i> Added by <a href="https://github.com/${encodeURIComponent(job.added_by)}" target="_blank" rel="noopener noreferrer" class="font-medium text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">@${addedBy}</a></span>`
+        ? `<span class="flex items-center gap-1"><i class="fa-solid fa-user" aria-hidden="true"></i> Added by ${addedByUrl ? `<a href="${esc(addedByUrl)}" target="_blank" rel="noopener noreferrer" class="font-medium text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">@${addedBy}</a>` : `@${addedBy}`}</span>`
         : "";
 
       const expiryBadge = expired
@@ -269,8 +270,8 @@ function renderJobs(jobs) {
             </div>
             <div class="flex gap-2">
               <div id="bookmark-${job.id}"></div>
-              <a href="https://github.com/OWASP-BLT/BLT-Jobs/blob/main/jobs/${encodeURIComponent(job.id)}.md" target="_blank" rel="noopener" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
-                <i class="fa-brands fa-github" aria-hidden="true"></i> View on GitHub
+              <a href="https://gitlab.com/owasp-blt/blt-jobs/-/blob/main/jobs/${encodeURIComponent(job.id)}.md" target="_blank" rel="noopener" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                <i class="fa-brands fa-gitlab" aria-hidden="true"></i> View on GitLab
               </a>
             </div>
           </div>

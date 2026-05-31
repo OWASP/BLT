@@ -1,0 +1,65 @@
+stages:
+  - validate
+  - deploy
+  - maintenance
+
+default:
+  image: node:22-bookworm
+  cache:
+    key:
+      files:
+        - package-lock.json
+    paths:
+      - .npm/
+  before_script:
+    - npm ci --cache .npm --prefer-offline
+
+validate:
+  stage: validate
+  script:
+    - npm run build:jobs
+    - npm run validate:jobs
+
+deploy_worker:
+  stage: deploy
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main" && $CI_PIPELINE_SOURCE == "push"'
+  script:
+    - npm run build:worker
+    - npx wrangler@4 deploy
+
+process_submissions:
+  stage: maintenance
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+      when: manual
+  before_script:
+    - apt-get update
+    - apt-get install -y --no-install-recommends git python3 python3-pip
+    - pip3 install --break-system-packages -r scripts/requirements-scrape.txt
+    - npm ci --cache .npm --prefer-offline
+    - git config user.name "gitlab-ci-token"
+    - git config user.email "gitlab-ci-token@users.noreply.gitlab.com"
+    - git remote set-url origin "https://gitlab-ci-token:${GITLAB_PUSH_TOKEN:-$CI_JOB_TOKEN}@gitlab.com/${CI_PROJECT_PATH}.git"
+  script:
+    - node scripts/process-gitlab-submissions.js
+
+expire_jobs:
+  stage: maintenance
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+      when: manual
+  before_script:
+    - apt-get update
+    - apt-get install -y --no-install-recommends git
+    - npm ci --cache .npm --prefer-offline
+    - git config user.name "gitlab-ci-token"
+    - git config user.email "gitlab-ci-token@users.noreply.gitlab.com"
+    - git remote set-url origin "https://gitlab-ci-token:${GITLAB_PUSH_TOKEN:-$CI_JOB_TOKEN}@gitlab.com/${CI_PROJECT_PATH}.git"
+  script:
+    - node scripts/expire-jobs.js
+    - npm run build:jobs
+    - git add jobs data/jobs.json data/seekers.json
+    - git diff --cached --quiet || (git commit -m "chore: expire stale jobs" && git push origin HEAD:main)

@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 /**
- * Parse GitHub issue form body (### Label\n\nvalue) and write jobs/<slug>.md with YAML frontmatter.
- * Used by process-submissions.yml for [JOB] form issues.
+ * Parse GitLab issue template body (### Label\n\nvalue) and write jobs/<slug>.md with YAML frontmatter.
  * Reads issue body from stdin or FIRST argument.
  */
 const fs = require("fs");
@@ -11,13 +10,13 @@ const JOBS_DIR = path.join(__dirname, "..", "jobs");
 
 function parseFormBody(body) {
   const data = {};
-  const sections = body.split(/\n### /).filter(Boolean);
+  const sections = body.split(/\n##+ /).filter(Boolean);
   for (const section of sections) {
     const firstNewline = section.indexOf("\n");
     let label = (firstNewline === -1 ? section : section.slice(0, firstNewline)).trim().replace(/\s*\(Optional\)\s*$/, "");
     label = label.replace(/^#+\s*/, "").trim();
     let value = firstNewline === -1 ? "" : section.slice(firstNewline).replace(/^\n+/, "");
-    value = value.split(/\n\n###/)[0].trim();
+    value = value.split(/\n\n##+/)[0].trim();
     data[label] = value;
   }
   return data;
@@ -80,6 +79,7 @@ function main() {
     created_at: created,
     views_count: 0,
     added_by: addedBy || "",
+    added_by_url: (process.env.ISSUE_USER_URL || "").trim(),
     needs_manual_review: false,
   };
 
