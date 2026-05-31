@@ -64,14 +64,14 @@
       "type": "API_KEY",
       "value": "sk_sk_test_SYNTHETIC_ONLY_00001_SearchContextKey_example",
       "start": 997,
-      "end": 1029,
+      "end": 1053,
       "confidence_min": 0.87
     },
     {
       "type": "DOMAIN",
       "value": "search-db.internal",
-      "start": 1051,
-      "end": 1069,
+      "start": 1075,
+      "end": 1093,
       "confidence_min": 0.85
     }
   ],

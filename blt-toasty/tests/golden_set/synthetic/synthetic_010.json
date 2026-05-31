@@ -15,63 +15,63 @@
       "type": "API_KEY",
       "value": "sk_sk_test_SYNTHETIC_ONLY_00001_51000000000000000000000000",
       "start": 349,
-      "end": 383,
+      "end": 407,
       "confidence_min": 0.88
     },
     {
       "type": "EMAIL_ADDRESS",
       "value": "admin@acmecorp.com",
-      "start": 404,
-      "end": 422,
+      "start": 428,
+      "end": 446,
       "confidence_min": 0.92
     },
     {
       "type": "DOMAIN",
       "value": "api-internal.staging.local",
-      "start": 452,
-      "end": 478,
+      "start": 476,
+      "end": 502,
       "confidence_min": 0.85
     },
     {
       "type": "AWS_ACCESS_KEY",
       "value": "AKIAIOSFODNN7EXAMPLE",
-      "start": 498,
-      "end": 518,
+      "start": 522,
+      "end": 542,
       "confidence_min": 0.95
     },
     {
       "type": "AUTH_TOKEN",
       "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9",
-      "start": 543,
-      "end": 579,
+      "start": 567,
+      "end": 603,
       "confidence_min": 0.85
     },
     {
       "type": "AUTH_TOKEN",
       "value": "ya29.a0AfH6SMCy_CompleteGCPToken_example",
-      "start": 610,
-      "end": 650,
+      "start": 634,
+      "end": 674,
       "confidence_min": 0.88
     },
     {
       "type": "DOMAIN",
       "value": "backup.internal.corp",
-      "start": 673,
-      "end": 693,
+      "start": 697,
+      "end": 717,
       "confidence_min": 0.85
     },
     {
       "type": "IP_ADDRESS",
       "value": "10.100.100.100",
-      "start": 721,
-      "end": 735,
+      "start": 745,
+      "end": 759,
       "confidence_min": 0.91
     },
     {
       "type": "API_KEY",
       "value": "SG.7Fv_2cyzQOyLBYPy_COMPLETE_EXAMPLE",
-      "start": 798,
-      "end": 834,
+      "start": 822,
+      "end": 858,
       "confidence_min": 0.87
     }
   ],

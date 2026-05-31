@@ -29,56 +29,56 @@
       "type": "API_KEY",
       "value": "sk_sk_test_SYNTHETIC_ONLY_00001_51100000000000000000000000",
       "start": 428,
-      "end": 462,
+      "end": 486,
       "confidence_min": 0.88
     },
     {
       "type": "AUTH_TOKEN",
       "value": "ya29.a0AfH6SMCw_FullGCPServiceToken_example",
-      "start": 489,
-      "end": 532,
+      "start": 513,
+      "end": 556,
       "confidence_min": 0.87
     },
     {
       "type": "EMAIL_ADDRESS",
       "value": "ops.primary@acmecorp.com",
-      "start": 587,
-      "end": 611,
+      "start": 611,
+      "end": 635,
       "confidence_min": 0.92
     },
     {
       "type": "EMAIL_ADDRESS",
       "value": "ops.backup@gmail.com",
-      "start": 625,
-      "end": 645,
+      "start": 649,
+      "end": 669,
       "confidence_min": 0.93
     },
     {
       "type": "AUTH_TOKEN",
       "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbnYiOiJwcm9kIiwiZGVidWciOiJ0cnVlIn0.debug_access",
-      "start": 884,
-      "end": 973,
+      "start": 908,
+      "end": 997,
       "confidence_min": 0.88
     },
     {
       "type": "DOMAIN",
       "value": "config-mgmt.staging.local",
-      "start": 1006,
-      "end": 1031,
+      "start": 1030,
+      "end": 1055,
       "confidence_min": 0.85
     },
     {
       "type": "IP_ADDRESS",
       "value": "192.168.200.100",
-      "start": 1044,
-      "end": 1059,
+      "start": 1068,
+      "end": 1083,
       "confidence_min": 0.9
     },
     {
       "type": "API_KEY",
       "value": "sk_sk_test_SYNTHETIC_ONLY_00001_ConfigurationManagement_key",
-      "start": 1083,
-      "end": 1118,
+      "start": 1107,
+      "end": 1166,
       "confidence_min": 0.87
     }
   ],

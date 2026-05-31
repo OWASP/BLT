@@ -64,14 +64,14 @@
       "type": "API_KEY",
       "value": "sk_sk_test_SYNTHETIC_ONLY_00001_ProfileAttributeKey_example",
       "start": 820,
-      "end": 855,
+      "end": 879,
       "confidence_min": 0.87
     },
     {
       "type": "DOMAIN",
       "value": "profile-db.internal",
-      "start": 874,
-      "end": 893,
+      "start": 898,
+      "end": 917,
       "confidence_min": 0.85
     }
   ],

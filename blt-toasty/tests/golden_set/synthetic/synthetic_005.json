@@ -22,35 +22,35 @@
       "type": "API_KEY",
       "value": "sk_sk_test_SYNTHETIC_ONLY_00001_4eC39HqLyjWDarhtTX7YEXAMPLE",
       "start": 510,
-      "end": 545,
+      "end": 569,
       "confidence_min": 0.88
     },
     {
       "type": "DOMAIN",
       "value": "api.staging.local",
-      "start": 565,
-      "end": 582,
+      "start": 589,
+      "end": 606,
       "confidence_min": 0.85
     },
     {
       "type": "IP_ADDRESS",
       "value": "10.20.30.40",
-      "start": 606,
-      "end": 617,
+      "start": 630,
+      "end": 641,
       "confidence_min": 0.91
     },
     {
       "type": "DB_CONNECTION",
       "value": "mysql://admin:DbPass789@mysql-prod.internal:3306/app_db",
-      "start": 651,
-      "end": 706,
+      "start": 675,
+      "end": 730,
       "confidence_min": 0.89
     },
     {
       "type": "AUTH_TOKEN",
       "value": "ya29.a0AfH6SMBz_newtoken_example",
-      "start": 743,
-      "end": 775,
+      "start": 767,
+      "end": 799,
       "confidence_min": 0.87
     }
   ],

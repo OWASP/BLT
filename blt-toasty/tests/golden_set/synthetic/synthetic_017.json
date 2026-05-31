@@ -64,14 +64,14 @@
       "type": "API_KEY",
       "value": "sk_sk_test_SYNTHETIC_ONLY_00001_TemplateRenderKey_example",
       "start": 991,
-      "end": 1024,
+      "end": 1048,
       "confidence_min": 0.87
     },
     {
       "type": "DOMAIN",
       "value": "template-db.internal",
-      "start": 1049,
-      "end": 1069,
+      "start": 1073,
+      "end": 1093,
       "confidence_min": 0.85
     }
   ],

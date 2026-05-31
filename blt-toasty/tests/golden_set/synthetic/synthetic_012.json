@@ -57,21 +57,21 @@
       "type": "API_KEY",
       "value": "sk_sk_test_SYNTHETIC_ONLY_00001_ServiceMeshKey_example",
       "start": 779,
-      "end": 809,
+      "end": 833,
       "confidence_min": 0.87
     },
     {
       "type": "IP_ADDRESS",
       "value": "10.64.0.1",
-      "start": 828,
-      "end": 837,
+      "start": 852,
+      "end": 861,
       "confidence_min": 0.91
     },
     {
       "type": "DB_CONNECTION",
       "value": "postgresql://admin:DbAdminPass123@pg-internal:5432/logs",
-      "start": 870,
-      "end": 925,
+      "start": 894,
+      "end": 949,
       "confidence_min": 0.9
     }
   ],

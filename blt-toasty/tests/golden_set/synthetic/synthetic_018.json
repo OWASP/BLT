@@ -29,56 +29,56 @@
       "type": "API_KEY",
       "value": "sk_sk_test_SYNTHETIC_ONLY_00001_ProductionAPIKey_12345",
       "start": 460,
-      "end": 490,
+      "end": 514,
       "confidence_min": 0.88
     },
     {
       "type": "AUTH_TOKEN",
       "value": "ya29.a0AfH6SMCw_ProductionServiceToken_example",
-      "start": 519,
-      "end": 565,
+      "start": 543,
+      "end": 589,
       "confidence_min": 0.87
     },
     {
       "type": "EMAIL_ADDRESS",
       "value": "dev.engineer@acmecorp.com",
-      "start": 610,
-      "end": 635,
+      "start": 634,
+      "end": 659,
       "confidence_min": 0.92
     },
     {
       "type": "EMAIL_ADDRESS",
       "value": "tester@gmail.com",
-      "start": 652,
-      "end": 668,
+      "start": 676,
+      "end": 692,
       "confidence_min": 0.93
     },
     {
       "type": "EMAIL_ADDRESS",
       "value": "admin.ops@acmecorp.com",
-      "start": 686,
-      "end": 708,
+      "start": 710,
+      "end": 732,
       "confidence_min": 0.92
     },
     {
       "type": "AUTH_TOKEN",
       "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb21taXQiOiJkZWJ1ZyIsInBhc3MiOiJ0ZW1wIn0.debug_token",
-      "start": 738,
-      "end": 830,
+      "start": 762,
+      "end": 854,
       "confidence_min": 0.87
     },
     {
       "type": "DOMAIN",
       "value": "ci-cd.staging.local",
-      "start": 862,
-      "end": 881,
+      "start": 886,
+      "end": 905,
       "confidence_min": 0.85
     },
     {
       "type": "IP_ADDRESS",
       "value": "192.168.10.5",
-      "start": 901,
-      "end": 913,
+      "start": 925,
+      "end": 937,
       "confidence_min": 0.9
     }
   ],

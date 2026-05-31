@@ -64,14 +64,14 @@
       "type": "API_KEY",
       "value": "sk_sk_test_SYNTHETIC_ONLY_00001_DataExtractionKey_example",
       "start": 993,
-      "end": 1026,
+      "end": 1050,
       "confidence_min": 0.87
     },
     {
       "type": "DOMAIN",
       "value": "exfil-db.internal",
-      "start": 1057,
-      "end": 1074,
+      "start": 1081,
+      "end": 1098,
       "confidence_min": 0.85
     }
   ],

@@ -57,14 +57,14 @@
       "type": "API_KEY",
       "value": "sk_sk_test_SYNTHETIC_ONLY_00001_BillingGatewayKey_123456789",
       "start": 825,
-      "end": 860,
+      "end": 884,
       "confidence_min": 0.87
     },
     {
       "type": "DOMAIN",
       "value": "invoice-db.internal",
-      "start": 876,
-      "end": 895,
+      "start": 900,
+      "end": 919,
       "confidence_min": 0.85
     }
   ],

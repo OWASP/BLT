@@ -143,3 +143,8 @@ wrangler.toml.bak
 worker-configuration.d.ts
 node_modules/
 package-lock.json
+
+# Golden Set
+tests/golden_set/historical/
+.dev.vars
+

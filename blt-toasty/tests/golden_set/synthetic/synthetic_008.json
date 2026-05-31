@@ -7,64 +7,64 @@
     {
       "type": "AWS_ACCESS_KEY",
       "value": "AKIAIOSFODNN7EXAMPLE",
-      "start": 403,
-      "end": 423,
+      "start": 451,
+      "end": 471,
       "confidence_min": 0.96
     },
     {
       "type": "AWS_SECRET_KEY",
       "value": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
-      "start": 449,
-      "end": 489,
+      "start": 497,
+      "end": 537,
       "confidence_min": 0.95
     },
     {
       "type": "AUTH_TOKEN",
       "value": "AQoDYXdzEJr..exampletoken",
-      "start": 505,
-      "end": 530,
+      "start": 553,
+      "end": 578,
       "confidence_min": 0.85
     },
     {
       "type": "DOMAIN",
       "value": "prod-mysql.internal.aws",
-      "start": 577,
-      "end": 600,
+      "start": 625,
+      "end": 648,
       "confidence_min": 0.85
     },
     {
       "type": "DOMAIN",
       "value": "redis-cache.internal",
-      "start": 625,
-      "end": 645,
+      "start": 673,
+      "end": 693,
       "confidence_min": 0.85
     },
     {
       "type": "EMAIL_ADDRESS",
       "value": "devops@acmecorp.com",
-      "start": 670,
-      "end": 689,
+      "start": 718,
+      "end": 737,
       "confidence_min": 0.92
     },
     {
       "type": "IP_ADDRESS",
       "value": "10.0.0.1",
-      "start": 726,
-      "end": 734,
+      "start": 774,
+      "end": 782,
       "confidence_min": 0.9
     },
     {
       "type": "AUTH_TOKEN",
       "value": "ya29.a0AfH6SMCz_InternalServiceToken_Example",
-      "start": 774,
-      "end": 818,
+      "start": 822,
+      "end": 866,
       "confidence_min": 0.87
     },
     {
       "type": "API_KEY",
       "value": "sk_sk_sk_test_SYNTHETIC_ONLY_00002_SYNTHETIC_ONLY_00002_51234567890abcdefghijklmnopqrst",
-      "start": 843,
-      "end": 882,
+      "start": 891,
+      "end": 978,
       "confidence_min": 0.88
     }
   ],
