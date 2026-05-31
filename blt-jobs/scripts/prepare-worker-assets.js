@@ -21,6 +21,7 @@ const publicEntries = [
 
 fs.rmSync(outDir, { recursive: true, force: true });
 fs.mkdirSync(outDir, { recursive: true });
+fs.writeFileSync(path.join(outDir, ".gitkeep"), "");
 
 for (const entry of publicEntries) {
   fs.cpSync(path.join(root, entry), path.join(outDir, entry), { recursive: true });
