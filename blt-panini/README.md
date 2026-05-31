@@ -2,7 +2,7 @@
 
 **Panini** is a static web application that visualizes apps banned by different countries around the world. It provides both a list view and an interactive map view to explore censorship data.
 
-This project was extracted from the [OWASP BLT](https://github.com/OWASP-BLT/BLT) project to serve as a standalone visualization suitable for GitHub Pages.
+This project was extracted from the [OWASP BLT](https://github.com/OWASP-BLT/BLT) project to serve as a standalone visualization.
 
 ## ✨ Features
 
@@ -24,7 +24,17 @@ This project was extracted from the [OWASP BLT](https://github.com/OWASP-BLT/BLT
 
 ## 📂 Data
 
-The data is stored in `banned_apps.json` in a structured format, making it easy to update or expand.
+The data is stored in `public/banned_apps.json` in a structured format, making it easy to update or expand.
+
+## Deployment
+
+The static site is configured for Cloudflare Workers Static Assets. Deploy it with:
+
+```bash
+npx wrangler deploy
+```
+
+For Cloudflare Pages, use `public` as the build output directory. No build command is required.
 
 ## 🤝 Contributing
 

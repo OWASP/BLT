@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 
 BASE_URL = "https://slack.com/apps"
 BASE_DOMAIN = "https://slack.com"
-OUTPUT_FILE = os.path.join(os.path.dirname(__file__), "..", "slack_apps.json")
+OUTPUT_FILE = os.path.join(os.path.dirname(__file__), "..", "public", "slack_apps.json")
 REQUEST_DELAY = float(os.environ.get("SLACK_SCRAPER_DELAY", "2"))
 HEADERS = {
     "User-Agent": (

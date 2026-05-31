@@ -32,10 +32,10 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add slack_apps.json
+          git add public/slack_apps.json
           if git diff --cached --quiet; then
-            echo "No changes to slack_apps.json — skipping commit."
+            echo "No changes to public/slack_apps.json — skipping commit."
           else
-            git commit -m "chore: update slack_apps.json [automated]"
+            git commit -m "chore: update public/slack_apps.json [automated]"
             git push
           fi
