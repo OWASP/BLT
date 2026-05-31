@@ -1,9 +1,16 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
 name = "blt-monitor"
 version = "0.1.0"
 description = "BLT website monitor dashboard for Cloudflare Python Workers"
 requires-python = ">=3.12"
 dependencies = []
+
+[tool.hatch.build.targets.wheel]
+include = ["worker.py"]
 
 [dependency-groups]
 dev = [
