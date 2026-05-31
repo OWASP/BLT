@@ -20,10 +20,10 @@
       <span>OWASP <span class="text-red-500">BLT</span></span>
     </a>
     <div class="flex items-center gap-3">
-      <a href="https://github.com/OWASP-BLT/BLT-Monitor" target="_blank" rel="noopener noreferrer"
+      <a href="https://gitlab.com/owasp-blt/blt-monitor" target="_blank" rel="noopener noreferrer"
          class="flex items-center gap-1.5 text-sm bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg transition-colors font-medium">
-        <i class="fa-brands fa-github"></i>
-        <span>GitHub</span>
+        <i class="fa-brands fa-gitlab"></i>
+        <span>GitLab</span>
       </a>
     </div>
   </div>
@@ -60,55 +60,19 @@
       </div>
     </div>
 
-    <!-- Badges -->
-    <div class="flex items-center gap-2 flex-wrap">
-      <a href="https://github.com/OWASP-BLT/BLT-Monitor/actions/workflows/website-monitor.yml"
-         target="_blank" rel="noopener noreferrer"
-         class="inline-block rounded overflow-hidden border border-slate-700">
-        <img alt="Website Monitor Status"
-             src="https://github.com/OWASP-BLT/BLT-Monitor/actions/workflows/website-monitor.yml/badge.svg">
-      </a>
-
-      <a href="https://github.com/OWASP-BLT/BLT-Monitor/stargazers"
-         target="_blank" rel="noopener noreferrer"
-         class="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg border border-yellow-700/60 bg-yellow-900/30 text-yellow-300 text-xs font-medium hover:bg-yellow-800/50 transition-all">
-        <i class="fa-regular fa-star"></i>
-        Stars <span id="gh-stars" class="font-bold">...</span>
-      </a>
-
-      <a href="https://github.com/OWASP-BLT/BLT-Monitor/forks"
-         target="_blank" rel="noopener noreferrer"
-         class="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg border border-blue-700/60 bg-blue-900/30 text-blue-300 text-xs font-medium hover:bg-blue-800/50 transition-all">
-        <i class="fa-solid fa-code-fork"></i>
-        Forks <span id="gh-forks" class="font-bold">...</span>
-      </a>
-    </div>
-
     <!-- Action Buttons -->
     <div class="flex gap-2 flex-wrap lg:flex-nowrap">
       <a class="inline-flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded-lg text-xs font-medium transition-colors"
-         href="https://github.com/OWASP-BLT/BLT-Monitor/actions/workflows/website-monitor.yml"
+         href="https://gitlab.com/owasp-blt/blt-monitor"
          target="_blank" rel="noopener noreferrer">
-        <i class="fa-solid fa-play"></i> Run Now
+        <i class="fa-brands fa-gitlab"></i> View Source
       </a>
 
-      <a class="inline-flex items-center gap-1 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-2 py-1 rounded-lg text-xs font-medium transition-colors"
-         href="https://github.com/OWASP-BLT/BLT-Monitor/edit/main/.github/workflows/website-monitor.yml"
-         target="_blank" rel="noopener noreferrer">
-        <i class="fa-solid fa-sliders"></i> Edit Config
-      </a>
-
-      <a class="inline-flex items-center gap-1 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-2 py-1 rounded-lg text-xs font-medium transition-colors"
-         href="https://github.com/OWASP-BLT/BLT-Monitor/actions/workflows/test-slack.yml"
-         target="_blank" rel="noopener noreferrer">
-        <i class="fa-brands fa-slack"></i> Test Slack
-      </a>
-
-      <a id="csv-link"
+      <a id="history-link"
          class="inline-flex items-center gap-1 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-2 py-1 rounded-lg text-xs font-medium transition-colors"
          href="#"
          target="_blank" rel="noopener noreferrer">
-        <i class="fa-solid fa-table"></i> View CSV
+        <i class="fa-solid fa-table"></i> View JSON
       </a>
     </div>
 
@@ -186,11 +150,7 @@
           </li>
           <li>Enable <strong class="text-slate-300">Incoming Webhooks</strong> for the app.</li>
           <li>Create a new webhook URL and copy it.</li>
-          <li>Go to your GitHub repository settings &rarr; <strong class="text-slate-300">Secrets and variables</strong> &rarr; <strong class="text-slate-300">Actions</strong>.</li>
-          <li>Click <strong class="text-slate-300">New repository secret</strong> and add:<br>
-            <strong class="text-slate-300">Name:</strong> <code class="bg-slate-800 text-teal-300 px-1 rounded">SLACK_WEBHOOK_URL</code><br>
-            <strong class="text-slate-300">Value:</strong> (paste your Slack webhook URL)
-          </li>
+          <li>Run <code class="bg-slate-800 text-teal-300 px-1 rounded">npx wrangler secret put SLACK_WEBHOOK_URL</code> and paste the webhook URL.</li>
         </ol>
       </details>
 
@@ -232,14 +192,13 @@
     return `${Math.floor(hours / 24)} days ago`;
   }
 
-  function parseCSV(csv) {
-    return csv
-      .split('\n')
-      .map(l => l.trim())
-      .filter(Boolean)
-      .filter(l => !/^\s*datetime\s*,/i.test(l))
-      .map(l => l.split(',').map(c => c.trim()))
-      .filter(cols => cols.length >= 4 && !isNaN(Date.parse(cols[0])));
+  function toRows(entries) {
+    return entries.map(entry => [
+      entry.datetime,
+      entry.duration_ms,
+      entry.status,
+      entry.keyword_status
+    ]);
   }
 
   // --- State ---
@@ -269,19 +228,23 @@
       urlEl.textContent = monitor.url;
       if (safe !== '#') urlEl.href = safe;
 
-      const csvFile = monitors.length > 1 ? `status-${safeId}.csv` : 'status.csv';
-      document.getElementById('csv-link').href =
-        `https://github.com/OWASP-BLT/BLT-Monitor/blob/main/${csvFile}`;
+      const historyEndpoint = `/api/history/${encodeURIComponent(safeId)}`;
+      document.getElementById('history-link').href = historyEndpoint;
+
+      if (monitor.enabled === false) {
+        showDisabledState();
+        return;
+      }
 
       if (!slackConfigured) {
         const slackWarning = document.getElementById('slack-warning');
         if (slackWarning) {
           slackWarning.innerHTML =
-            '<div class="bg-yellow-900/30 text-yellow-300 border border-yellow-800 rounded-xl p-3 mb-4 text-sm"><i class="fa-solid fa-triangle-exclamation"></i> <b>Slack notifications are not configured.</b> Set the <code class="bg-slate-800 px-1 rounded">SLACK_WEBHOOK_URL</code> secret in your repository.</div>';
+            '<div class="bg-yellow-900/30 text-yellow-300 border border-yellow-800 rounded-xl p-3 mb-4 text-sm"><i class="fa-solid fa-triangle-exclamation"></i> <b>Slack notifications are not configured.</b> Set the Worker secret with <code class="bg-slate-800 px-1 rounded">npx wrangler secret put SLACK_WEBHOOK_URL</code>.</div>';
         }
       }
 
-      loadMonitorData(monitor, csvFile);
+      loadMonitorData(monitor, historyEndpoint);
     })
     .catch(err => {
       console.error('Failed to load monitor:', err);
@@ -289,17 +252,35 @@
         '<div class="bg-red-900/30 text-red-300 border border-red-800 rounded-xl p-4 m-4 text-center">Failed to load monitor configuration</div>';
     });
 
-  function loadMonitorData(monitor, csvFile) {
+  function showDisabledState() {
+    document.getElementById('last-check').textContent = 'Disabled';
+    document.getElementById('last-check-ago').textContent = '';
+    document.getElementById('resp-ms').textContent = '-- ms';
+    document.getElementById('resp-min-max').textContent = 'Paused';
+
+    const statusBadge = document.getElementById('status-badge');
+    statusBadge.innerHTML = '<i class="fa-solid fa-pause"></i> Disabled';
+    statusBadge.className = 'inline-block px-2.5 py-0.5 rounded-full text-sm font-medium bg-slate-800 text-slate-300 border border-slate-700';
+
+    const keywordBadge = document.getElementById('keyword-badge');
+    keywordBadge.textContent = 'Monitoring paused';
+    keywordBadge.className = 'inline-block px-2 py-0.5 rounded-full text-xs sm:text-sm font-medium bg-slate-800 text-slate-300 border border-slate-700';
+
+    document.querySelector('#recent-table tbody').innerHTML =
+      '<tr><td colspan="4" class="p-3 text-center text-slate-400">This monitor is disabled</td></tr>';
+  }
+
+  function loadMonitorData(monitor, historyEndpoint) {
     const keywordText = monitor.keyword || '';
 
-    fetch(csvFile)
+    fetch(historyEndpoint)
       .then(r => {
-        if (!r.ok) throw new Error(`CSV fetch failed: ${r.status} ${r.statusText}`);
-        return r.text();
+        if (!r.ok) throw new Error(`History fetch failed: ${r.status} ${r.statusText}`);
+        return r.json();
       })
-      .then(csv => {
-        const rows = parseCSV(csv);
-        if (!rows.length) throw new Error('No valid CSV rows');
+      .then(entries => {
+        const rows = toRows(entries);
+        if (!rows.length) throw new Error('No history entries');
 
         const lastRow = rows[rows.length - 1];
 
@@ -425,7 +406,7 @@
         }
       })
       .catch(err => {
-        console.error('Failed to load CSV data:', err);
+        console.error('Failed to load history data:', err);
         document.getElementById('resp-ms').textContent = '-- ms';
         document.getElementById('resp-min-max').textContent = 'N/A';
 
@@ -442,25 +423,11 @@
 
         const tbody = document.querySelector('#recent-table tbody');
         if (tbody) {
-          tbody.innerHTML = '<tr><td colspan="4" class="p-3 text-center text-slate-400">Failed to load CSV data</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="4" class="p-3 text-center text-slate-400">Failed to load history data</td></tr>';
         }
       });
   }
 
-  // GitHub stats
-  fetch('https://api.github.com/repos/OWASP-BLT/BLT-Monitor')
-    .then(r => {
-      if (!r.ok) throw new Error(`GitHub API error: ${r.status}`);
-      return r.json();
-    })
-    .then(data => {
-      document.getElementById('gh-stars').textContent = data.stargazers_count;
-      document.getElementById('gh-forks').textContent = data.forks_count;
-    })
-    .catch(() => {
-      document.getElementById('gh-stars').textContent = '—';
-      document.getElementById('gh-forks').textContent = '—';
-    });
 </script>
 </body>
 </html>

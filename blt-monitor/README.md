@@ -1,54 +1,68 @@
 # Website Monitor
 
-A simple GitHub Actions-based website monitoring solution that checks website availability and content every 5 minutes, providing a visual dashboard with a compact list view and detailed monitor pages.
+A Cloudflare Python Worker website monitor. It checks website availability and
+content every minute, stores recent history in Workers KV, and provides a
+visual dashboard with a compact list view and detailed monitor pages.
 
 ## Features
 
 - **Multi-Monitor Support**: Monitor multiple websites from a single dashboard
 - **Compact List View**: Homepage shows all monitors at a glance with sparkline charts
 - **Detailed Monitor Pages**: Click any monitor for comprehensive status information
-- Monitors website availability every 5 minutes
+- Monitors website availability every minute with a Cloudflare Cron Trigger
 - Checks for specific keywords in website content
-- Maintains a 30-day history of response times and keyword status
+- Maintains the latest 30 checks in Workers KV for each monitor
 - Visual dashboard with response time charts
 - Slack notifications for downtime and missing keywords
-- Automatic updates via GitHub Pages
+- Deployable on Cloudflare Python Workers with static assets
 - Configurable websites and keywords via `monitors.json`
 
 ## Dashboard Structure
 
-- **Homepage (`index.html`)**: Displays a compact list of all monitors with inline sparkline charts
-- **Monitor Detail Page (`monitor.html`)**: Shows comprehensive information for a specific monitor
-- **Configuration (`monitors.json`)**: Defines the monitors to track
+- **Homepage (`public/index.html`)**: Displays a compact list of all monitors with inline sparkline charts
+- **Monitor Detail Page (`public/monitor.html`)**: Shows comprehensive information for a specific monitor
+- **Configuration (`public/monitors.json`)**: Defines the monitors to track
 
 ## Setup Instructions
 
-1. **Fork this repository** to your GitHub account
+1. **Clone or fork the [GitLab repository](https://gitlab.com/owasp-blt/blt-monitor)**
 
-2. **Configure Slack Webhook**:
+2. **Configure Slack Webhook (Optional)**:
    - Go to your Slack workspace
    - Create a new Slack App (https://api.slack.com/apps)
    - Enable Incoming Webhooks
    - Create a new webhook URL
    - Copy the webhook URL
 
-3. **Add Slack Webhook to GitHub Secrets**:
-   - Go to your repository settings
-   - Navigate to "Secrets and variables" > "Actions"
-   - Click "New repository secret"
-   - Name: `SLACK_WEBHOOK_URL`
-   - Value: Paste your Slack webhook URL
-   - Click "Add secret"
+3. **Deploy the Cloudflare Python Worker**:
+   - Install [uv](https://docs.astral.sh/uv/) and Node.js
+   - Install the Python Worker development dependencies:
+     ```bash
+     uv sync
+     ```
+   - Authenticate with Cloudflare:
+     ```bash
+     npx wrangler login
+     ```
+   - Start the local development server:
+     ```bash
+     uv run pywrangler dev
+     ```
+   - Deploy the dashboard:
+     ```bash
+     uv run pywrangler deploy
+     ```
+   - Wrangler automatically provisions the `HISTORY` KV namespace on the first
+     deployment and adds its ID to `wrangler.toml`
+   - The Worker serves the dashboard, exposes `/api/health`, and runs the
+     monitor cron every minute
+   - Optionally store the Slack webhook as a Worker secret:
+     ```bash
+     npx wrangler secret put SLACK_WEBHOOK_URL
+     ```
 
-4. **Enable GitHub Pages**:
-   - Go to your repository settings
-   - Navigate to "Pages"
-   - Under "Source", select "Deploy from a branch"
-   - Select the "main" branch
-   - Click "Save"
-
-5. **Configure Monitors**:
-   - Edit the `monitors.json` file in the repository root
+4. **Configure Monitors**:
+   - Edit the `public/monitors.json` file
    - Add or modify monitor configurations:
      ```json
      [
@@ -56,49 +70,42 @@ A simple GitHub Actions-based website monitoring solution that checks website av
          "id": "owaspblt",
          "name": "OWASP BLT",
          "url": "https://owaspblt.org",
-         "keyword": "OWASP"
+         "keyword": "OWASP",
+         "enabled": true
        },
        {
          "id": "example",
          "name": "Example Site",
          "url": "https://example.com",
-         "keyword": "Example"
+         "keyword": "Example",
+         "enabled": false
        }
      ]
      ```
    - Each monitor requires:
-     - `id`: Unique identifier (used in filenames)
+     - `id`: Unique identifier (used in routes and KV keys)
      - `name`: Display name for the monitor
      - `url`: Website URL to monitor
      - `keyword`: Text to search for in the page content
+     - `enabled`: Set to `false` to pause checks without removing the monitor
 
-6. **Configure Workflow (Optional)**:
-   You can also configure the website URL and keyword in the workflow file:
-
-   a. **Default Configuration**:
-   - Edit the `.github/workflows/website-monitor.yml` file
-   - Find the `env` section at the top of the file
-   - Update the default values:
-     ```yaml
-     env:
-       DEFAULT_WEBSITE_URL: 'https://owasp.org'  # Change this URL
-       DEFAULT_KEYWORD: 'OWASP'                  # Change this keyword
+5. **Configure Manual Runs (Optional)**:
+   - Create an ingest token and store it as a Worker secret:
+     ```bash
+     npx wrangler secret put INGEST_TOKEN
      ```
-
-   b. **Manual Run Configuration**:
-   - Go to the "Actions" tab in your repository
-   - Select "Website Monitor" workflow
-   - Click "Run workflow"
-   - Optionally enter:
-     - Website URL to monitor (defaults to the value in DEFAULT_WEBSITE_URL)
-     - Keyword to check for (defaults to the value in DEFAULT_KEYWORD)
-   - Click "Run workflow"
+   - Invoke an immediate monitor run with:
+     ```bash
+     curl --request POST \
+       --header "Authorization: Bearer <INGEST_TOKEN>" \
+       https://<your-worker-domain>/api/run
+     ```
 
 ## Usage
 
 Once set up, the monitor will:
-- Run automatically every 5 minutes for each configured monitor
-- Update the homepage at `https://<your-username>.github.io/<repository-name>/` with a compact list of all monitors
+- Run automatically every minute for each configured monitor
+- Store the latest 30 checks for each monitor in Workers KV
 - Each monitor card shows:
   - Monitor name and URL
   - Current status (Up/Warning/Down)
@@ -109,7 +116,7 @@ Once set up, the monitor will:
 - Send Slack notifications when:
   - A website is down
   - A specified keyword is not found
-- Maintain a 30-day history of response times and keyword status for each monitor
+- Maintain recent response time and keyword status history for each monitor
 
 ## Dashboard Features
 
@@ -127,26 +134,20 @@ Click any monitor to see comprehensive information:
 - Current response time with min/max values
 - Website status (up/down)
 - Keyword status (found/not found)
-- Full response time chart with 30-day history
+- Full response time chart with recent history
 - Recent checks table with detailed status
-- Links to run workflow, edit config, and view raw data
+- Links to view source and raw JSON data
 
 ## Manual Testing
 
-You can manually trigger the monitor with custom configuration:
-1. Go to the "Actions" tab in your repository
-2. Select "Website Monitor" workflow
-3. Click "Run workflow"
-4. Optionally enter:
-   - Website URL to monitor (defaults to DEFAULT_WEBSITE_URL)
-   - Keyword to check for (defaults to DEFAULT_KEYWORD)
-5. Click "Run workflow"
+Use the authenticated `/api/run` endpoint shown in the setup instructions to
+trigger an immediate monitor run.
 
 ## Troubleshooting
 
-- If the dashboard isn't updating, check the GitHub Actions logs
-- Ensure the Slack webhook URL is correctly set in repository secrets
-- Verify GitHub Pages is enabled and configured correctly
+- If dashboard data is not updating, check the Worker Cron Events and logs in
+  the Cloudflare dashboard
+- Ensure the optional Slack webhook URL is set as a Worker secret
 - Check that the target website allows automated monitoring
 - Verify the keyword exists in the website content
 - Check if the website's content is dynamically loaded (which might not be detected)
@@ -154,4 +155,4 @@ You can manually trigger the monitor with custom configuration:
 
 ## Contributing
 
-Feel free to submit issues and enhancement requests! 
+Feel free to submit issues and enhancement requests!

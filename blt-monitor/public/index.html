@@ -22,10 +22,10 @@
       <span class="text-[#e2e8f0]">OWASP <span class="text-red-500">BLT</span></span>
     </div>
     <div class="flex items-center gap-3">
-      <a href="https://github.com/OWASP-BLT/BLT-Monitor" target="_blank" rel="noopener noreferrer"
+      <a href="https://gitlab.com/owasp-blt/blt-monitor" target="_blank" rel="noopener noreferrer"
          class="flex items-center gap-1.5 text-sm bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg transition-colors font-medium">
-        <i class="fa-brands fa-github"></i>
-        <span>GitHub</span>
+        <i class="fa-brands fa-gitlab"></i>
+        <span>GitLab</span>
       </a>
     </div>
   </div>
@@ -42,20 +42,6 @@
       <span>Website Monitors</span>
     </h1>
     <p class="text-slate-400 text-sm sm:text-base mb-4 relative z-10">Monitor multiple websites and view their uptime status at a glance</p>
-    <div class="flex items-center gap-2 flex-wrap relative z-10">
-      <a href="https://github.com/OWASP-BLT/BLT-Monitor/actions/workflows/website-monitor.yml" rel="noopener noreferrer" target="_blank"
-         class="inline-block rounded overflow-hidden border border-slate-700">
-        <img alt="Website Monitor Status" src="https://github.com/OWASP-BLT/BLT-Monitor/actions/workflows/website-monitor.yml/badge.svg">
-      </a>
-      <a href="https://github.com/OWASP-BLT/BLT-Monitor/stargazers" target="_blank" rel="noopener noreferrer"
-         class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-yellow-700/60 bg-yellow-900/30 text-yellow-300 text-xs font-medium hover:bg-yellow-800/50 hover:shadow-md hover:shadow-yellow-900/40 transition-all">
-        <i class="fa-regular fa-star"></i> Stars <span id="gh-stars" class="font-bold">...</span>
-      </a>
-      <a href="https://github.com/OWASP-BLT/BLT-Monitor/forks" target="_blank" rel="noopener noreferrer"
-         class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-blue-700/60 bg-blue-900/30 text-blue-300 text-xs font-medium hover:bg-blue-800/50 hover:shadow-md hover:shadow-blue-900/40 transition-all">
-        <i class="fa-solid fa-code-fork"></i> Forks <span id="gh-forks" class="font-bold">...</span>
-      </a>
-    </div>
   </div>
 
   <!-- Monitor Cards -->
@@ -65,21 +51,19 @@
 </div>
 
 <script>
-  // sanitizeId: stable ID for routing + CSV naming (must match monitor.html)
+  // sanitizeId: stable ID for routing + KV keys (must match monitor.html)
   function sanitizeId(id) {
     const cleaned = String(id || '').toLowerCase().replace(/[^a-z0-9-_]/g, '');
     return cleaned || 'monitor';
   }
 
-  // parseCSV now filters blank lines, validates column count & date
-  function parseCSV(csv) {
-    return csv
-      .split('\n')
-      .map(l => l.trim())
-      .filter(Boolean)
-      .filter(l => !/^\s*datetime\s*,/i.test(l))
-      .map(l => l.split(',').map(c => c.trim()))
-      .filter(cols => cols.length >= 4 && !isNaN(Date.parse(cols[0])));
+  function toRows(entries) {
+    return entries.map(entry => [
+      entry.datetime,
+      entry.duration_ms,
+      entry.status,
+      entry.keyword_status
+    ]);
   }
 
   function escapeHTML(str) {
@@ -114,23 +98,26 @@
     .then(monitors => {
       const container = document.getElementById('monitors-list');
       monitors.forEach((monitor, index) => {
-        const safeId = sanitizeId(monitor.id);          // used for routing & CSV — must stay stable
+        const safeId = sanitizeId(monitor.id);          // used for routing & KV keys — must stay stable
         const domSafeId = `${safeId}-${index}`;        // DOM-only: guarantees unique canvas/element IDs
-        const csvFile = monitors.length > 1 ? `status-${safeId}.csv` : 'status.csv';
-        fetch(csvFile)
+        if (monitor.enabled === false) {
+          container.appendChild(createMonitorCard(monitor, safeId, domSafeId, [], null));
+          return;
+        }
+        fetch(`/api/history/${encodeURIComponent(safeId)}`)
           .then(r => {
-            if (!r.ok) throw new Error(`CSV fetch failed: ${r.status} ${r.statusText}`);
-            return r.text();
+            if (!r.ok) throw new Error(`History fetch failed: ${r.status} ${r.statusText}`);
+            return r.json();
           })
-          .then(csv => {
-            const rows = parseCSV(csv);
+          .then(entries => {
+            const rows = toRows(entries);
             const lastRow = rows.length > 0 ? rows[rows.length - 1] : null;
-            const card = createMonitorCard(monitor, safeId, domSafeId, rows, lastRow, csvFile);
+            const card = createMonitorCard(monitor, safeId, domSafeId, rows, lastRow);
             container.appendChild(card);
           })
           .catch(err => {
             console.error(`Failed to load data for ${monitor.id}:`, err);
-            const card = createMonitorCard(monitor, safeId, domSafeId, [], null, csvFile);
+            const card = createMonitorCard(monitor, safeId, domSafeId, [], null);
             container.appendChild(card);
           });
       });
@@ -141,7 +128,7 @@
         '<div class="bg-red-900/30 text-red-300 border border-red-800 rounded-xl p-4 text-center">Failed to load monitors configuration</div>';
     });
 
-  function createMonitorCard(monitor, safeId, domSafeId, rows, lastRow, csvFile) {
+  function createMonitorCard(monitor, safeId, domSafeId, rows, lastRow) {
     const card = document.createElement('div');
     card.onclick = () => { window.location.href = `monitor.html?id=${safeId}`; };
     card.onkeydown = (e) => { if ((e.key === 'Enter' || e.key === ' ') && e.target === card) { e.preventDefault(); window.location.href = `monitor.html?id=${safeId}`; } };
@@ -155,7 +142,9 @@
     let responseTime = '--';
     let lastCheck = 'Never';
 
-    if (lastRow) {
+    if (monitor.enabled === false) {
+      statusIcon = '<i class="fa-solid fa-pause"></i> Disabled';
+    } else if (lastRow) {
       const isSuccess = lastRow[2] === 'success';
       const keywordFound = lastRow[3] === 'found';
       const status = (isSuccess && keywordFound) ? 'up' : (isSuccess ? 'warning' : 'down');
@@ -268,21 +257,6 @@
       }
     });
   }
-
-  // GitHub stats
-  fetch('https://api.github.com/repos/OWASP-BLT/BLT-Monitor')
-    .then(r => {
-      if (!r.ok) throw new Error(`GitHub API error: ${r.status}`);
-      return r.json();
-    })
-    .then(data => {
-      document.getElementById('gh-stars').textContent = data.stargazers_count;
-      document.getElementById('gh-forks').textContent = data.forks_count;
-    })
-    .catch(() => {
-      document.getElementById('gh-stars').textContent = '—';
-      document.getElementById('gh-forks').textContent = '—';
-    });
 
 </script>
 </body>

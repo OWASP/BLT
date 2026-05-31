@@ -1,0 +1,15 @@
+name = "blt-monitor"
+main = "worker.py"
+compatibility_date = "2026-05-30"
+compatibility_flags = [ "python_workers" ]
+
+[[kv_namespaces]]
+binding = "HISTORY"
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
+run_worker_first = [ "/api/*" ]
+
+[triggers]
+crons = [ "* * * * *" ]
