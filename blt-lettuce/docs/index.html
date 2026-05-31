@@ -190,35 +190,6 @@
         </div>
       </section>
 
-      <!-- Project Health / GitHub Stats -->
-      <section class="bg-white rounded-lg shadow p-6 mb-8">
-        <h2 class="text-3xl font-bold text-gray-900 mb-8 text-center">Project Health</h2>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 text-center">
-          <div class="p-4 bg-gray-50 rounded-lg">
-            <p class="text-2xl font-bold text-gray-900" id="gh-stars">--</p>
-            <p class="text-sm text-gray-500">GitHub Stars</p>
-          </div>
-          <div class="p-4 bg-gray-50 rounded-lg">
-            <p class="text-2xl font-bold text-gray-900" id="gh-forks">--</p>
-            <p class="text-sm text-gray-500">Forks</p>
-          </div>
-          <div class="p-4 bg-gray-50 rounded-lg">
-            <p class="text-2xl font-bold text-gray-900" id="gh-issues">--</p>
-            <p class="text-sm text-gray-500">Open Issues</p>
-          </div>
-          <div class="p-4 bg-gray-50 rounded-lg">
-            <p class="text-2xl font-bold text-gray-900" id="gh-contributors">--</p>
-            <p class="text-sm text-gray-500">Contributors</p>
-          </div>
-        </div>
-        <div class="flex flex-wrap justify-center gap-2">
-          <img src="https://img.shields.io/github/commit-activity/m/OWASP-BLT/BLT-Lettuce?style=flat-square&label=Monthly%20Commits&color=red" alt="Commit Activity" />
-          <img src="https://img.shields.io/github/last-commit/OWASP-BLT/BLT-Lettuce?style=flat-square&color=red" alt="Last Commit" />
-          <img src="https://img.shields.io/github/languages/top/OWASP-BLT/BLT-Lettuce?style=flat-square&color=red" alt="Top Language" />
-          <img src="https://img.shields.io/github/repo-size/OWASP-BLT/BLT-Lettuce?style=flat-square&color=red" alt="Repo Size" />
-        </div>
-      </section>
-
       <!-- Tech Stack -->
       <section class="mb-12 text-center">
         <h2 class="text-2xl font-bold text-gray-900 mb-6">Built With</h2>
@@ -248,7 +219,6 @@
       // --- Stats Fetching Logic ---
       const STATS_JSON_URL = "https://raw.githubusercontent.com/OWASP-BLT/BLT-Lettuce/main/data/stats.json";
       const STATS_API_URL = "https://blt-lettuce-worker.workers.dev/stats";
-      const GITHUB_API_URL = "https://api.github.com/repos/OWASP-BLT/BLT-Lettuce";
 
       // Fallback stats if all fails
       const FALLBACK_STATS = {
@@ -282,25 +252,6 @@
             console.warn("Using fallback stats");
             return FALLBACK_STATS;
           }
-        }
-      }
-
-      async function fetchGitHubStats() {
-        try {
-          const [repoData, contributorsHeader] = await Promise.all([fetch(GITHUB_API_URL).then((r) => r.json()), fetch(`${GITHUB_API_URL}/contributors?per_page=1`).then((r) => r.headers)]);
-
-          // Parse pagination header for contributors count
-          let contributorCount = 0;
-          const linkHeader = contributorsHeader.get("Link");
-          if (linkHeader) {
-            const match = linkHeader.match(/page=(\d+)>; rel="last"/);
-            if (match) contributorCount = parseInt(match[1], 10);
-          }
-
-          return { ...repoData, contributorCount: contributorCount || 10 }; // Default to 10 if parsing fails
-        } catch (error) {
-          console.error("GitHub stats error:", error);
-          return null;
         }
       }
 
@@ -345,14 +296,6 @@
         const stats = await fetchStats();
         renderStats(stats);
 
-        // 2. Fetch & Render GitHub Stats
-        const ghStats = await fetchGitHubStats();
-        if (ghStats) {
-          document.getElementById("gh-stars").textContent = formatNumber(ghStats.stargazers_count);
-          document.getElementById("gh-forks").textContent = formatNumber(ghStats.forks_count);
-          document.getElementById("gh-issues").textContent = formatNumber(ghStats.open_issues_count);
-          document.getElementById("gh-contributors").textContent = formatNumber(ghStats.contributorCount);
-        }
       }
 
       // Run

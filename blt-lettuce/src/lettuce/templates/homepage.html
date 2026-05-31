@@ -19,7 +19,7 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-16">
           <div class="flex items-center">
-            <img class="w-10 h-10 mr-2" src="https://raw.githubusercontent.com/OWASP-BLT/BLT-Lettuce/main/docs/static/logo.png" alt="BLT-Lettuce Logo" />
+            <img class="w-10 h-10 mr-2" src="/docs/static/logo.png" alt="BLT-Lettuce Logo" />
             <h1 class="text-xl font-bold text-gray-900">BLT-Lettuce</h1>
           </div>
           <div class="flex items-center gap-4">
@@ -206,33 +206,6 @@
         </div>
       </section>
 
-      <section class="bg-white rounded-lg shadow p-6 mb-8">
-        <h2 class="text-3xl font-bold text-gray-900 mb-8 text-center">Project Health</h2>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 text-center">
-          <div class="p-4 bg-gray-50 rounded-lg"><p class="text-2xl font-bold text-gray-900" id="gh-stars">--</p><p class="text-sm text-gray-500">GitHub Stars</p></div>
-          <div class="p-4 bg-gray-50 rounded-lg"><p class="text-2xl font-bold text-gray-900" id="gh-forks">--</p><p class="text-sm text-gray-500">Forks</p></div>
-          <div class="p-4 bg-gray-50 rounded-lg"><p class="text-2xl font-bold text-gray-900" id="gh-issues">--</p><p class="text-sm text-gray-500">Open Issues</p></div>
-          <div class="p-4 bg-gray-50 rounded-lg"><p class="text-2xl font-bold text-gray-900" id="gh-contributors">--</p><p class="text-sm text-gray-500">Contributors</p></div>
-        </div>
-        <div class="flex flex-wrap justify-center gap-2">
-          <img src="https://img.shields.io/github/commit-activity/m/OWASP-BLT/BLT-Lettuce?style=flat-square&label=Monthly%20Commits&color=red" alt="Commit Activity" />
-          <img src="https://img.shields.io/github/last-commit/OWASP-BLT/BLT-Lettuce?style=flat-square&color=red" alt="Last Commit" />
-          <img src="https://img.shields.io/github/languages/top/OWASP-BLT/BLT-Lettuce?style=flat-square&color=red" alt="Top Language" />
-          <img src="https://img.shields.io/github/repo-size/OWASP-BLT/BLT-Lettuce?style=flat-square&color=red" alt="Repo Size" />
-        </div>
-        
-        <div class="mt-6 pt-6 border-t border-gray-200">
-          <h3 class="text-sm font-semibold text-gray-700 mb-3 text-center">Database Records</h3>
-          <div class="flex flex-wrap justify-center gap-2 text-xs">
-            <span class="px-2 py-1 bg-green-50 text-green-700 rounded-md"><span class="font-semibold" id="db-workspaces">-</span> workspaces</span>
-            <span class="px-2 py-1 bg-indigo-50 text-indigo-700 rounded-md"><span class="font-semibold" id="db-join-messages">-</span> join messages</span>
-            <span class="px-2 py-1 bg-purple-50 text-purple-700 rounded-md"><span class="font-semibold" id="db-channels">-</span> channels</span>
-            <span class="px-2 py-1 bg-orange-50 text-orange-700 rounded-md"><span class="font-semibold" id="db-repositories">-</span> repos</span>
-            <span class="px-2 py-1 bg-pink-50 text-pink-700 rounded-md"><span class="font-semibold" id="db-events">-</span> events</span>
-          </div>
-        </div>
-      </section>
-
       <section class="mb-12 text-center">
         <h2 class="text-2xl font-bold text-gray-900 mb-6">Built With</h2>
         <div class="flex flex-wrap justify-center gap-3">
@@ -258,7 +231,6 @@
     </main>
 
     <script>
-      const GITHUB_API_URL = "https://api.github.com/repos/OWASP-BLT/BLT-Lettuce";
       const WORKSPACES_API_URL = window.location.origin + "/api/workspaces-public";
       const FALLBACK_STATS = { total_activities: 15420, team_joins: 1250, commands: 3450, last_updated: new Date().toISOString() };
       const formatNumber = (n) => n >= 1e6 ? (n / 1e6).toFixed(1) + "M" : n >= 1e3 ? (n / 1e3).toFixed(1) + "K" : n.toLocaleString();
@@ -295,35 +267,6 @@
           };
         } catch {
           return FALLBACK_STATS;
-        }
-      }
-
-      async function fetchGitHubStats() {
-        try {
-          const [repo, ch] = await Promise.all([
-            fetch(GITHUB_API_URL).then(r => r.json()),
-            fetch(GITHUB_API_URL + "/contributors?per_page=1").then(r => r.headers),
-          ]);
-          let cnt = 0;
-          const lh = ch.get("Link");
-          if (lh) {
-            const m = lh.match(/page=(\d+)>; rel="last"/);
-            if (m) cnt = parseInt(m[1], 10);
-          }
-          return { ...repo, contributorCount: cnt || 10 };
-        } catch {
-          return null;
-        }
-      }
-
-      async function fetchDbStats() {
-        try {
-          const r = await fetch(window.location.origin + "/api/db-stats");
-          if (!r.ok) throw new Error();
-          const data = await r.json();
-          return data.counts;
-        } catch {
-          return null;
         }
       }
 
@@ -438,21 +381,6 @@
         const [stats, workspaces] = await Promise.all([fetchStats(), fetchWorkspaces()]);
         renderStats(stats);
         renderWorkspaces(workspaces);
-        const gh = await fetchGitHubStats();
-        if (gh) {
-          document.getElementById("gh-stars").textContent = formatNumber(gh.stargazers_count);
-          document.getElementById("gh-forks").textContent = formatNumber(gh.forks_count);
-          document.getElementById("gh-issues").textContent = formatNumber(gh.open_issues_count);
-          document.getElementById("gh-contributors").textContent = formatNumber(gh.contributorCount);
-        }
-        const dbStats = await fetchDbStats();
-        if (dbStats) {
-          document.getElementById("db-workspaces").textContent = dbStats.workspaces || 0;
-          document.getElementById("db-join-messages").textContent = dbStats.join_messages || 0;
-          document.getElementById("db-channels").textContent = dbStats.channels || 0;
-          document.getElementById("db-repositories").textContent = dbStats.repositories || 0;
-          document.getElementById("db-events").textContent = dbStats.events || 0;
-        }
       }
       init();
     </script>
