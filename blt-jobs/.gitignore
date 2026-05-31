@@ -18,3 +18,4 @@ comment.txt
 node_modules/
 .worker-assets/*
 !.worker-assets/.gitkeep
+.wrangler/
