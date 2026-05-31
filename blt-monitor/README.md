@@ -64,6 +64,9 @@ visual dashboard with a compact list view and detailed monitor pages.
      build command under **Settings > Build** and keep the deploy command as
      `npx wrangler deploy`. The included `npm run build` compatibility script
      is a no-op for existing build settings.
+   - This Worker uses Cloudflare's built-in Python SDK through the
+     `disable_python_external_sdk` compatibility flag, so Workers Builds can
+     deploy it directly with Wrangler.
 
 4. **Configure Monitors**:
    - Edit the `public/monitors.json` file
