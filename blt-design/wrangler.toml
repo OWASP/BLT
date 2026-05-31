@@ -1,3 +1,5 @@
 name = "blt-design"
-pages_build_output_dir = "./"
 compatibility_date = "2026-05-30"
+
+[assets]
+directory = "./"
