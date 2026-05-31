@@ -13,8 +13,4 @@ name = "blt-vanish-production"
 [env.development]
 name = "blt-vanish-development"
 
-# Limits
-[limits]
-cpu_ms = 50
-
 # Analytics bindings are intentionally omitted to preserve privacy.
