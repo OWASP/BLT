@@ -52,7 +52,7 @@ visual dashboard with a compact list view and detailed monitor pages.
      ```bash
      uv run pywrangler deploy
      ```
-   - Wrangler automatically provisions the `HISTORY` KV namespace on the first
+   - Wrangler automatically provisions the `blt-monitor-history` KV namespace on the first
      deployment and adds its ID to `wrangler.toml`
    - The Worker serves the dashboard, exposes `/api/health`, and runs the
      monitor cron every minute

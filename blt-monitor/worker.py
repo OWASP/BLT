@@ -7,6 +7,7 @@ from urllib.parse import urlparse
 from workers import Response, WorkerEntrypoint, fetch
 
 MAX_HISTORY_ENTRIES = 30
+HISTORY_BINDING = "blt-monitor-history"
 MONITOR_ID_PATTERN = re.compile(r"^[a-z0-9_-]+$")
 
 
@@ -144,7 +145,7 @@ class Default(WorkerEntrypoint):
         history = await self.load_history(monitor_id)
         history.append(entry)
         history = history[-MAX_HISTORY_ENTRIES:]
-        await self.env.HISTORY.put(self.history_key(monitor_id), json.dumps(history))
+        await self.history_store.put(self.history_key(monitor_id), json.dumps(history))
         return history
 
     async def notify_failures(self, monitors, results):
@@ -178,7 +179,7 @@ class Default(WorkerEntrypoint):
         return True
 
     async def load_history(self, monitor_id):
-        raw_history = await self.env.HISTORY.get(self.history_key(monitor_id))
+        raw_history = await self.history_store.get(self.history_key(monitor_id))
         if not raw_history:
             return []
 
@@ -191,6 +192,10 @@ class Default(WorkerEntrypoint):
     @staticmethod
     def history_key(monitor_id):
         return f"history:{monitor_id}"
+
+    @property
+    def history_store(self):
+        return getattr(self.env, HISTORY_BINDING)
 
     def is_authorized(self, request):
         expected_token = getattr(self.env, "INGEST_TOKEN", "")
