@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="BLT Preflight UI examples for contributor security guidance.">
+  <title>BLT Preflight UI</title>
+  <script>
+    const savedTheme = localStorage.getItem('blt-theme');
+    if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+    }
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            blt: { red: '#E10101', hover: '#B91C1C' },
+            ink: '#111827',
+            panel: '#1F2937',
+            line: '#2B3546'
+          },
+          fontFamily: {
+            sans: ['Manrope', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace']
+          }
+        }
+      }
+    };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    ::selection { background: #E10101; color: white; }
+    .hero-glow { background: radial-gradient(circle, rgba(225, 1, 1, .16), transparent 68%); }
+    .code-scroll::-webkit-scrollbar { height: 6px; }
+    .code-scroll::-webkit-scrollbar-thumb { background: #4B5563; border-radius: 999px; }
+  </style>
+</head>
+<body class="bg-slate-50 font-sans text-slate-900 antialiased dark:bg-ink dark:text-slate-100">
+  <header class="sticky top-0 z-30 border-b border-gray-200 bg-white/90 backdrop-blur dark:border-line dark:bg-ink/90">
+    <div class="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
+      <a href="#" class="flex items-center gap-3" aria-label="BLT Preflight home">
+        <span class="grid h-9 w-9 place-items-center rounded-lg bg-blt-red text-sm font-extrabold text-white shadow-sm">B</span>
+        <span>
+          <span class="block text-sm font-extrabold tracking-tight">BLT Preflight</span>
+          <span class="block text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">UI field guide</span>
+        </span>
+      </a>
+      <nav class="hidden items-center gap-6 text-sm font-semibold text-slate-600 dark:text-slate-300 sm:flex" aria-label="Primary navigation">
+        <a href="#components" class="transition hover:text-blt-red">Components</a>
+        <a href="#principles" class="transition hover:text-blt-red">Principles</a>
+      </nav>
+      <div class="flex items-center gap-2">
+        <button id="theme-toggle" type="button" class="grid h-9 w-9 place-items-center rounded-md border border-gray-200 bg-white text-slate-600 transition hover:border-blt-red hover:text-blt-red dark:border-line dark:bg-panel dark:text-slate-300" aria-label="Switch to dark mode">
+          <svg class="h-4 w-4 dark:hidden" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v2m0 14v2M3 12h2m14 0h2m-3.6-6.4-1.4 1.4M8 16l-1.4 1.4m0-11.8L8 7m8 9 1.4 1.4"/><circle cx="12" cy="12" r="4"/></svg>
+          <svg class="hidden h-4 w-4 dark:block" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.5 14.4A8 8 0 0 1 9.6 3.5 8.5 8.5 0 1 0 20.5 14.4Z"/></svg>
+        </button>
+        <a href="https://github.com/OWASP-BLT/BLT-Preflight" class="rounded-md bg-blt-red px-3 py-2 text-xs font-bold text-white transition hover:bg-blt-hover sm:px-4 sm:text-sm">View GitHub</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="relative overflow-hidden border-b border-gray-200 bg-white dark:border-line dark:bg-ink">
+      <div class="hero-glow pointer-events-none absolute -right-28 -top-28 h-96 w-96" aria-hidden="true"></div>
+      <div class="relative mx-auto grid max-w-6xl gap-10 px-4 py-20 sm:px-6 lg:grid-cols-[1fr_380px] lg:items-center lg:py-24">
+        <div>
+          <p class="mb-4 flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.18em] text-blt-red">
+            <span class="h-2 w-2 rounded-full bg-blt-red"></span>
+            OWASP BLT product UI
+          </p>
+          <h1 class="max-w-3xl text-4xl font-extrabold leading-tight tracking-[-0.04em] text-slate-950 dark:text-white sm:text-6xl">Security guidance that lands before the pull request.</h1>
+          <p class="mt-6 max-w-2xl text-base leading-7 text-slate-600 dark:text-slate-300 sm:text-lg">A compact component set for BLT Preflight: practical contributor advisories, local checks, and feedback patterns built for everyday repository workflows.</p>
+          <div class="mt-8 flex flex-wrap gap-3">
+            <a href="#components" class="rounded-md bg-blt-red px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-blt-hover">Explore components</a>
+            <a href="https://github.com/OWASP-BLT/BLT-Preflight#quick-start" class="rounded-md border border-gray-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition hover:border-blt-red hover:text-blt-red dark:border-line dark:bg-panel dark:text-slate-200">Read quickstart</a>
+          </div>
+        </div>
+        <aside class="rounded-xl border border-gray-200 bg-slate-50 p-4 shadow-sm dark:border-line dark:bg-panel" aria-label="Preflight status summary">
+          <div class="flex items-center justify-between border-b border-gray-200 pb-3 dark:border-line">
+            <span class="text-xs font-extrabold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Preflight status</span>
+            <span class="rounded-full bg-green-100 px-2 py-1 text-[10px] font-extrabold uppercase tracking-wide text-green-700 dark:bg-green-950 dark:text-green-300">Advisory only</span>
+          </div>
+          <div class="space-y-3 pt-4 text-sm">
+            <div class="flex items-center justify-between"><span class="text-slate-500 dark:text-slate-400">Repository</span><span class="font-mono text-xs">OWASP-BLT/BLT</span></div>
+            <div class="flex items-center justify-between"><span class="text-slate-500 dark:text-slate-400">Changed files</span><span class="font-bold">3</span></div>
+            <div class="flex items-center justify-between"><span class="text-slate-500 dark:text-slate-400">Guidance found</span><span class="font-bold text-blt-red">2 notes</span></div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="principles" class="border-b border-gray-200 bg-slate-100/70 dark:border-line dark:bg-panel/35">
+      <div class="mx-auto grid max-w-6xl gap-px px-4 py-6 sm:grid-cols-3 sm:px-6">
+        <div class="py-3 sm:px-5"><p class="text-xs font-extrabold uppercase tracking-[0.16em] text-blt-red">01 / Context</p><p class="mt-2 text-sm text-slate-600 dark:text-slate-300">Use repository-specific examples and changed paths.</p></div>
+        <div class="py-3 sm:border-x sm:border-gray-200 sm:px-5 dark:sm:border-line"><p class="text-xs font-extrabold uppercase tracking-[0.16em] text-blt-red">02 / Clarity</p><p class="mt-2 text-sm text-slate-600 dark:text-slate-300">Explain risk without blocking contributors.</p></div>
+        <div class="py-3 sm:px-5"><p class="text-xs font-extrabold uppercase tracking-[0.16em] text-blt-red">03 / Action</p><p class="mt-2 text-sm text-slate-600 dark:text-slate-300">End every advisory with a useful next step.</p></div>
+      </div>
+    </section>
+
+    <section id="components" class="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:py-20">
+      <div class="mb-10 max-w-2xl">
+        <p class="text-xs font-extrabold uppercase tracking-[0.18em] text-blt-red">Component library</p>
+        <h2 class="mt-3 text-3xl font-extrabold tracking-tight text-slate-950 dark:text-white">Built for real Preflight moments.</h2>
+        <p class="mt-3 leading-7 text-slate-600 dark:text-slate-300">Each component includes a working preview, a copy-paste snippet, and its theme behavior.</p>
+      </div>
+
+      <div class="space-y-10">
+        <article class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-line dark:bg-panel">
+          <div class="grid lg:grid-cols-[1fr_0.92fr]">
+            <div class="p-5 sm:p-7">
+              <p class="text-xs font-extrabold uppercase tracking-[0.16em] text-blt-red">01 / Advisory card</p>
+              <h3 class="mt-2 text-xl font-extrabold">Authentication change detected</h3>
+              <p class="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">Use on pull requests when Preflight identifies a sensitive path or label.</p>
+              <div class="mt-6 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-950 dark:bg-red-950/30">
+                <div class="flex flex-wrap items-start justify-between gap-3">
+                  <div><p class="text-sm font-extrabold text-slate-900 dark:text-white">Review session handling</p><p class="mt-1 font-mono text-[11px] text-slate-500 dark:text-slate-400">src/auth/session.py</p></div>
+                  <span class="rounded-full bg-blt-red px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide text-white">Critical</span>
+                </div>
+                <p class="mt-4 text-sm leading-6 text-slate-700 dark:text-slate-200">Confirm token rotation, expiration, and invalidation behavior before merging this authentication update.</p>
+                <a class="mt-4 inline-flex text-sm font-bold text-blt-red hover:text-blt-hover" href="https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html">Open OWASP guidance <span aria-hidden="true">&nbsp;&rarr;</span></a>
+              </div>
+            </div>
+            <div class="border-t border-gray-200 bg-slate-50 p-5 dark:border-line dark:bg-ink/45 sm:p-7 lg:border-l lg:border-t-0">
+              <div class="flex items-center justify-between"><p class="text-xs font-extrabold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Copy-paste snippet</p><button class="copy-btn rounded-md border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-600 transition hover:border-blt-red hover:text-blt-red dark:border-line dark:bg-panel dark:text-slate-300" data-copy="advisory-code" aria-label="Copy advisory card snippet">Copy</button></div>
+              <pre class="code-scroll mt-4 overflow-x-auto rounded-lg bg-ink p-4 text-[11px] leading-5 text-slate-200"><code id="advisory-code">&lt;aside class="rounded-lg border border-red-200 bg-red-50 p-4
+  dark:border-red-950 dark:bg-red-950/30"&gt;
+  &lt;span class="text-xs font-bold text-white bg-[#E10101]"&gt;
+    Critical
+  &lt;/span&gt;
+  &lt;h3&gt;Review session handling&lt;/h3&gt;
+  &lt;p&gt;Confirm token rotation and invalidation behavior.&lt;/p&gt;
+&lt;/aside&gt;</code></pre>
+              <p class="mt-4 text-xs leading-5 text-slate-500 dark:text-slate-400"><strong class="text-slate-700 dark:text-slate-200">Theme behavior:</strong> light mode uses a soft red warning surface; dark mode shifts to a subdued red tint with a low-contrast border.</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-line dark:bg-panel">
+          <div class="grid lg:grid-cols-[1fr_0.92fr]">
+            <div class="p-5 sm:p-7">
+              <p class="text-xs font-extrabold uppercase tracking-[0.16em] text-blt-red">02 / Local check</p>
+              <h3 class="mt-2 text-xl font-extrabold">Contributor terminal prompt</h3>
+              <p class="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">Use in setup screens and documentation to make the local workflow easy to scan.</p>
+              <div class="mt-6 overflow-hidden rounded-lg border border-gray-200 bg-ink dark:border-line">
+                <div class="flex items-center gap-1.5 border-b border-line px-4 py-3"><span class="h-2.5 w-2.5 rounded-full bg-blt-red"></span><span class="h-2.5 w-2.5 rounded-full bg-amber-400"></span><span class="h-2.5 w-2.5 rounded-full bg-green-500"></span><span class="ml-2 font-mono text-[10px] text-slate-400">preflight / staged changes</span></div>
+                <div class="space-y-3 p-4 font-mono text-xs leading-6 text-slate-200">
+                  <p><span class="text-green-400">$</span> pf</p>
+                  <p class="text-slate-400">Scanning 3 staged files...</p>
+                  <p><span class="text-amber-300">!</span> authentication guidance found</p>
+                  <p class="text-slate-400">Review: <span class="text-white">src/auth/session.py</span></p>
+                </div>
+              </div>
+            </div>
+            <div class="border-t border-gray-200 bg-slate-50 p-5 dark:border-line dark:bg-ink/45 sm:p-7 lg:border-l lg:border-t-0">
+              <div class="flex items-center justify-between"><p class="text-xs font-extrabold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Copy-paste snippet</p><button class="copy-btn rounded-md border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-600 transition hover:border-blt-red hover:text-blt-red dark:border-line dark:bg-panel dark:text-slate-300" data-copy="terminal-code" aria-label="Copy local check snippet">Copy</button></div>
+              <pre class="code-scroll mt-4 overflow-x-auto rounded-lg bg-ink p-4 text-[11px] leading-5 text-slate-200"><code id="terminal-code">&lt;div class="rounded-lg bg-[#111827] font-mono text-xs text-slate-200"&gt;
+  &lt;p&gt;&lt;span class="text-green-400"&gt;$&lt;/span&gt; pf&lt;/p&gt;
+  &lt;p class="text-slate-400"&gt;Scanning 3 staged files...&lt;/p&gt;
+  &lt;p&gt;! authentication guidance found&lt;/p&gt;
+&lt;/div&gt;</code></pre>
+              <p class="mt-4 text-xs leading-5 text-slate-500 dark:text-slate-400"><strong class="text-slate-700 dark:text-slate-200">Theme behavior:</strong> the terminal stays ink-dark in both modes for consistent code contrast; its outer border follows the active surface.</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-line dark:bg-panel">
+          <div class="grid lg:grid-cols-[1fr_0.92fr]">
+            <div class="p-5 sm:p-7">
+              <p class="text-xs font-extrabold uppercase tracking-[0.16em] text-blt-red">03 / Feedback form</p>
+              <h3 class="mt-2 text-xl font-extrabold">Close the guidance loop</h3>
+              <p class="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">Use after an advisory to learn whether the recommendation helped the contributor.</p>
+              <form class="mt-6 rounded-lg border border-gray-200 bg-slate-50 p-4 dark:border-line dark:bg-ink/35" onsubmit="event.preventDefault()">
+                <fieldset>
+                  <legend class="text-sm font-extrabold">Was the authentication guidance useful?</legend>
+                  <div class="mt-3 flex gap-2">
+                    <label class="cursor-pointer"><input class="peer sr-only" type="radio" name="helpful" checked><span class="block rounded-md border border-gray-200 bg-white px-3 py-2 text-xs font-bold text-slate-600 transition peer-checked:border-blt-red peer-checked:text-blt-red dark:border-line dark:bg-panel dark:text-slate-300">Yes, helpful</span></label>
+                    <label class="cursor-pointer"><input class="peer sr-only" type="radio" name="helpful"><span class="block rounded-md border border-gray-200 bg-white px-3 py-2 text-xs font-bold text-slate-600 transition peer-checked:border-blt-red peer-checked:text-blt-red dark:border-line dark:bg-panel dark:text-slate-300">Needs work</span></label>
+                  </div>
+                </fieldset>
+                <label for="feedback-note" class="mt-4 block text-xs font-bold text-slate-600 dark:text-slate-300">Optional note</label>
+                <textarea id="feedback-note" rows="2" class="mt-2 w-full resize-none rounded-md border border-gray-200 bg-white p-3 text-sm outline-none transition placeholder:text-slate-400 focus:border-blt-red focus:ring-2 focus:ring-red-100 dark:border-line dark:bg-panel dark:focus:ring-red-950" placeholder="The token rotation reminder caught a missing case."></textarea>
+                <button type="submit" class="mt-3 rounded-md bg-blt-red px-4 py-2 text-xs font-bold text-white transition hover:bg-blt-hover">Send feedback</button>
+              </form>
+            </div>
+            <div class="border-t border-gray-200 bg-slate-50 p-5 dark:border-line dark:bg-ink/45 sm:p-7 lg:border-l lg:border-t-0">
+              <div class="flex items-center justify-between"><p class="text-xs font-extrabold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Copy-paste snippet</p><button class="copy-btn rounded-md border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-600 transition hover:border-blt-red hover:text-blt-red dark:border-line dark:bg-panel dark:text-slate-300" data-copy="feedback-code" aria-label="Copy feedback form snippet">Copy</button></div>
+              <pre class="code-scroll mt-4 overflow-x-auto rounded-lg bg-ink p-4 text-[11px] leading-5 text-slate-200"><code id="feedback-code">&lt;fieldset&gt;
+  &lt;legend class="text-sm font-bold"&gt;
+    Was the authentication guidance useful?
+  &lt;/legend&gt;
+  &lt;label&gt;&lt;input type="radio" name="helpful"&gt; Yes, helpful&lt;/label&gt;
+  &lt;label&gt;&lt;input type="radio" name="helpful"&gt; Needs work&lt;/label&gt;
+&lt;/fieldset&gt;</code></pre>
+              <p class="mt-4 text-xs leading-5 text-slate-500 dark:text-slate-400"><strong class="text-slate-700 dark:text-slate-200">Theme behavior:</strong> inputs use white surfaces and gray borders in light mode, then panel surfaces and subdued blue-gray borders in dark mode.</p>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-gray-200 bg-white dark:border-line dark:bg-panel">
+    <div class="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-7 text-xs text-slate-500 dark:text-slate-400 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+      <p class="font-semibold">BLT Preflight UI field guide</p>
+      <p>Static HTML, ready for Cloudflare Pages.</p>
+    </div>
+  </footer>
+
+  <script>
+    const themeToggle = document.getElementById('theme-toggle');
+    const setThemeLabel = () => {
+      const isDark = document.documentElement.classList.contains('dark');
+      themeToggle.setAttribute('aria-label', isDark ? 'Switch to light mode' : 'Switch to dark mode');
+    };
+
+    setThemeLabel();
+    themeToggle.addEventListener('click', () => {
+      const isDark = document.documentElement.classList.toggle('dark');
+      localStorage.setItem('blt-theme', isDark ? 'dark' : 'light');
+      setThemeLabel();
+    });
+
+    document.querySelectorAll('.copy-btn').forEach((button) => {
+      button.addEventListener('click', async () => {
+        const snippet = document.getElementById(button.dataset.copy).textContent;
+        try {
+          await navigator.clipboard.writeText(snippet);
+          const original = button.textContent;
+          button.textContent = 'Copied';
+          setTimeout(() => { button.textContent = original; }, 1400);
+        } catch {
+          button.textContent = 'Select code';
+        }
+      });
+    });
+  </script>
+</body>
+</html>
