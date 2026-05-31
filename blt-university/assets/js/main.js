@@ -1,4 +1,3 @@
-// BLT University JavaScript
 // Load saved theme
 if (localStorage.getItem("theme") === "dark") {
     document.documentElement.classList.add("dark");
@@ -6,7 +5,7 @@ if (localStorage.getItem("theme") === "dark") {
 
 document.addEventListener('DOMContentLoaded', function() {
     
-    // DARK MODE TOGGLE
+    // Dark mode toggle
     const toggle = document.getElementById("theme-toggle");
     if (toggle) {
         toggle.addEventListener("click", () => {
@@ -119,8 +118,8 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        function taskRequiresCorrectAnswer(index) {
-            return Boolean(tasks[index]?.querySelector('[data-mcq]'));
+        function taskRequiresCompletion(index) {
+            return Boolean(tasks[index]?.querySelector('[data-mcq], [data-simulation-root]'));
         }
 
         function isTaskComplete(index) {
@@ -189,9 +188,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 prevButton.disabled = currentIndex === 0;
             }
             if (nextButton) {
-                const needsAnswer = taskRequiresCorrectAnswer(currentIndex) && !isTaskComplete(currentIndex);
-                nextButton.disabled = needsAnswer || (currentIndex === tasks.length - 1 && isTaskComplete(currentIndex));
-                nextButton.title = needsAnswer ? 'Answer the knowledge check correctly to continue.' : '';
+                const needsCompletion = taskRequiresCompletion(currentIndex) && !isTaskComplete(currentIndex);
+                nextButton.disabled = needsCompletion || (currentIndex === tasks.length - 1 && isTaskComplete(currentIndex));
+                nextButton.title = needsCompletion ? 'Complete this task correctly to continue.' : '';
                 nextButton.innerHTML = currentIndex === tasks.length - 1
                     ? 'Complete <i class="ph-bold ph-check"></i>'
                     : 'Next <i class="ph-bold ph-arrow-right"></i>';
@@ -200,11 +199,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
         prevButton?.addEventListener('click', () => showTask(currentIndex - 1));
         nextButton?.addEventListener('click', () => {
-            if (taskRequiresCorrectAnswer(currentIndex) && !isTaskComplete(currentIndex)) {
+            if (taskRequiresCompletion(currentIndex) && !isTaskComplete(currentIndex)) {
                 return;
             }
 
-            if (!taskRequiresCorrectAnswer(currentIndex)) {
+            if (!taskRequiresCompletion(currentIndex)) {
                 completeTask(currentIndex);
             }
 
@@ -222,6 +221,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     showTask(requestedIndex);
                 }
             });
+        });
+
+        labRoot.addEventListener('lab:task-complete', event => {
+            const completedIndex = Number(event.detail?.taskIndex ?? currentIndex);
+            if (Number.isInteger(completedIndex)) {
+                completeTask(completedIndex);
+                showTask(currentIndex);
+            }
         });
 
         labRoot.querySelectorAll('[data-mcq]').forEach(mcq => {
@@ -328,9 +335,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const titleParam = urlParams.get('title');
 
     if (courseParam && window.location.pathname.includes('/enroll/')) {
-        console.log('Enrolling in course:', courseParam, titleParam);
-
-        // Update the enrollment button to prefill the title if available
         if (titleParam) {
             const enrollButton = document.querySelector('[data-enrollment-button]');
             if (enrollButton) {

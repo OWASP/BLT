@@ -77,18 +77,47 @@ tasks:
     type: simulation
     order: 3
     simulation:
+      engine: sqli-login
       type: login_bypass
       scenario: vulnerable_login
       target_url: /vulnerable-login
+      vulnerable_code: |
+        const username = request.body.username;
+        const password = request.body.password;
+        const query = "SELECT * FROM users WHERE username = '" + username + "' AND password = '" + password + "'";
+        db.query(query);
+      vulnerable_lines:
+        - 3
+      explain:
+        question: Why can the login be bypassed?
+        options:
+          - id: direct_sql_input
+            label: User input is concatenated directly into the SQL query.
+          - id: weak_password_hash
+            label: The password hash is too short.
+          - id: missing_https
+            label: The request is not using HTTPS.
+        answer: direct_sql_input
+      expected_patterns:
+        - parameterized_query
+        - prepared_statement
+      attack_payloads:
+        - "' OR '1'='1"
       vulnerable_parameters:
         - username
         - password
       success_payload: "admin' -- -"
       success_criteria: Successfully logged in as admin without knowing the password.
+      fix_starter_code: |
+        const username = request.body.username;
+        const password = request.body.password;
+        const query = "SELECT * FROM users WHERE username = '" + username + "' AND password = '" + password + "'";
+        db.query(query);
       hints:
         - Try using SQL comments to bypass the password check.
         - The application uses single quotes around the username.
         - Remember that -- followed by whitespace comments out the rest of the SQL query.
+        - In the fix, keep user values outside the SQL string and bind them as parameters.
 
   - name: Union-Based SQL Injection
     description: Learn about Union-based SQL injection attacks to extract data.
@@ -133,9 +162,31 @@ tasks:
     type: simulation
     order: 5
     simulation:
+      engine: sqli-union
       type: union_injection
       scenario: data_extraction
       target_url: /vulnerable-search
+      vulnerable_code: |
+        const search = request.query.search;
+        const query = "SELECT id, name, price, description FROM products WHERE name LIKE '%" + search + "%'";
+        db.query(query);
+      vulnerable_lines:
+        - 2
+      explain:
+        question: Why can this UNION payload extract data?
+        options:
+          - id: union_appends_rows
+            label: The search term changes the SELECT statement, so UNION can append compatible rows from another table.
+          - id: table_has_passwords
+            label: The users table has a password column, which by itself causes injection.
+          - id: missing_pagination
+            label: The product search is missing pagination.
+        answer: union_appends_rows
+      expected_patterns:
+        - parameterized_query
+        - prepared_statement
+      attack_payloads:
+        - "' UNION SELECT id, username, password, email FROM users-- -"
       vulnerable_parameters:
         - search
       table_structure:
@@ -151,6 +202,10 @@ tasks:
           - description
       success_payload: "' UNION SELECT id, username, password, email FROM users-- -"
       success_criteria: Extract all usernames and passwords from users table.
+      fix_starter_code: |
+        const search = request.query.search;
+        const query = "SELECT id, name, price, description FROM products WHERE name LIKE '%" + search + "%'";
+        db.query(query);
       hints:
         - First determine the number of columns using ORDER BY.
         - Use UNION SELECT to combine with your malicious query.
@@ -199,9 +254,31 @@ tasks:
     type: simulation
     order: 7
     simulation:
+      engine: sqli-blind
       type: blind_injection
       scenario: character_extraction
       target_url: /vulnerable-profile
+      vulnerable_code: |
+        const userId = request.query.user_id;
+        const query = "SELECT * FROM profiles WHERE user_id = " + userId;
+        const profile = db.query(query);
+      vulnerable_lines:
+        - 2
+      explain:
+        question: How does Boolean-based blind SQL injection leak data?
+        options:
+          - id: response_difference
+            label: Injected true or false conditions change the application response, revealing one bit of information at a time.
+          - id: password_visible
+            label: The password is printed directly on the page.
+          - id: slow_network
+            label: The network connection is slow enough to expose data.
+        answer: response_difference
+      expected_patterns:
+        - parameterized_query
+        - prepared_statement
+      attack_payloads:
+        - "' AND (SELECT SUBSTRING(password,1,1) FROM users WHERE username='admin')='p'-- -"
       vulnerable_parameters:
         - user_id
       blind_type: boolean
@@ -209,6 +286,10 @@ tasks:
       success_payload: "' AND (SELECT SUBSTRING(password,1,1) FROM users WHERE username='admin')='p'-- -"
       success_criteria: Extract the first 5 characters of the admin password.
       expected_approach: Boolean-based character-by-character extraction.
+      fix_starter_code: |
+        const userId = request.query.user_id;
+        const query = "SELECT * FROM profiles WHERE user_id = " + userId;
+        const profile = db.query(query);
       hints:
         - Use AND conditions to test character values.
         - Compare response content for true/false conditions.
@@ -256,9 +337,31 @@ tasks:
     type: simulation
     order: 9
     simulation:
+      engine: sqli-time
       type: time_based_injection
       scenario: password_extraction
       target_url: /vulnerable-news
+      vulnerable_code: |
+        const articleId = request.query.article_id;
+        const query = "SELECT * FROM articles WHERE id = " + articleId;
+        const article = db.query(query);
+      vulnerable_lines:
+        - 2
+      explain:
+        question: Why does a time-based SQL injection work here?
+        options:
+          - id: timing_channel
+            label: The injected condition can call a database delay function, so response time reveals whether the condition is true.
+          - id: large_article
+            label: Large articles take longer to download.
+          - id: missing_cache
+            label: Browser caching is disabled.
+        answer: timing_channel
+      expected_patterns:
+        - parameterized_query
+        - prepared_statement
+      attack_payloads:
+        - "' AND IF((SELECT LENGTH(password) FROM users WHERE username='admin')=8, SLEEP(5), 0)-- -"
       vulnerable_parameters:
         - article_id
       database_type: mysql
@@ -266,6 +369,10 @@ tasks:
       target_data: admin_password_length
       success_payload: "' AND IF((SELECT LENGTH(password) FROM users WHERE username='admin')=8, SLEEP(5), 0)-- -"
       success_criteria: Determine the length of the admin password using time delays.
+      fix_starter_code: |
+        const articleId = request.query.article_id;
+        const query = "SELECT * FROM articles WHERE id = " + articleId;
+        const article = db.query(query);
       hints:
         - Use SLEEP(5) to create time delays.
         - Test different password lengths using LENGTH() function.

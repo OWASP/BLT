@@ -3,6 +3,7 @@ layout: default
 ---
 
 <script defer src="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1"></script>
+<script id="lab-data" type="application/json">{{ page.tasks | jsonify | replace: "</", "<\/" }}</script>
 
 {% assign lab_key = page.title | downcase %}
 
@@ -102,7 +103,7 @@ layout: default
         </div>
     </section>
 
-    <main data-lab-root class="max-w-7xl mx-auto px-6 w-full grid grid-cols-1 lg:grid-cols-12 gap-8 -mt-8 relative z-20 pb-24">
+    <main data-lab-root data-lab-id="{{ page.slug | default: page.title | slugify }}" class="max-w-7xl mx-auto px-6 w-full grid grid-cols-1 lg:grid-cols-12 gap-8 -mt-8 relative z-20 pb-24">
         <div class="lg:col-span-8 min-w-0">
             <div class="bg-white dark:bg-gray-900 p-5 md:p-8 rounded-[2rem] shadow-soft border border-gray-100 dark:border-gray-800 transition-colors">
                 {% for task in page.tasks %}
@@ -165,6 +166,8 @@ layout: default
                         </div>
 
                         {% if task.simulation %}
+                        <div data-simulation-root data-task-index="{{ forloop.index0 }}" data-simulation-engine="{{ task.simulation.engine | default: task.simulation.type }}"></div>
+
                         <div class="grid sm:grid-cols-2 gap-4">
                             <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-900 p-5">
                                 <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Target</h4>
@@ -176,7 +179,7 @@ layout: default
                             </div>
                         </div>
 
-                        {% if task.simulation.hints %}
+                        {% if task.simulation.hints and task.simulation.engine == nil %}
                         <div class="rounded-2xl border border-red-100 dark:border-red-900/30 bg-red-50/60 dark:bg-red-900/10 p-5">
                             <h4 class="text-sm font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
                                 <i class="ph-bold ph-lightbulb text-bltRed"></i>
@@ -257,3 +260,5 @@ layout: default
         </aside>
     </main>
 </article>
+
+<script src="{{ '/assets/js/labs/main.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
