@@ -112,7 +112,7 @@ Tools enable AI agents to perform actions:
 #### submit_issue
 - Purpose: Create new bug reports or vulnerability reports
 - Required: title, description
-- Optional: repo_id, severity, type
+- Optional: repo_id, severity, type, confirmed
 - Maps to: POST /bugs
 
 #### award_bacon
@@ -129,7 +129,13 @@ Tools enable AI agents to perform actions:
 #### add_comment
 - Purpose: Add comments to issues
 - Required: issue_id, comment_text
+- Optional: confirmed
 - Maps to: POST /bugs/{id}/comments
+
+#### summarize_issue_context
+- Purpose: Generate a structured summary of an issue's context (title, status, description, comments)
+- Required: issue_id
+- Maps to: GET /bugs/{id} and GET /bugs/{id}/comments
 
 ### Prompts Layer
 

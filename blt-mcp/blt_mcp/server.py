@@ -9,6 +9,8 @@ import httpx
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
+from blt_mcp.validation import StdinWrapper, InterceptingStdinBuffer
+from blt_mcp.tools import generate_ai_metadata, summarize_issue_context_impl
 
 # Load environment variables from .env file
 load_dotenv()
@@ -103,7 +105,8 @@ async def submit_issue(
     description: str,
     repo_id: Optional[str] = None,
     labels: Optional[List[str]] = None,
-    assignee: Optional[str] = None
+    assignee: Optional[str] = None,
+    confirmed: bool = False
 ) -> str:
     """
     Submit a new issue to OWASP BLT.
@@ -114,11 +117,20 @@ async def submit_issue(
         repo_id: The ID of the repository to submit to (e.g., 'BLT-MCP'). Use list_repos to find IDs.
         labels: Optional list of labels to apply to the issue (e.g., ['bug', 'security']).
         assignee: Optional username of the assignee for the issue.
+        confirmed: Set to true to confirm execution of this write operation.
     """
+    if not confirmed:
+        logger.warning("Write operation 'submit_issue' blocked: confirmation required.")
+        raise ValueError("Write operation requires confirmation. Please set 'confirmed': true to proceed.")
+        
+    logger.info("Write operation 'submit_issue' confirmed. Proceeding to execution.")
+    ai_metadata = generate_ai_metadata("submit_issue")
+    
     logger.info(f"Submitting issue: {title} to repo: {repo_id or 'default'}")
     payload = {
         "title": title,
         "description": description,
+        "metadata": ai_metadata
     }
     if repo_id is not None:
         payload["repo_id"] = repo_id
@@ -127,8 +139,14 @@ async def submit_issue(
     if assignee is not None:
         payload["assignee"] = assignee
 
+    headers = {
+        "X-AI-Generated": "true",
+        "X-AI-Source": "BLT-MCP",
+        "X-AI-Timestamp": ai_metadata["timestamp"]
+    }
+
     try:
-        response = await http_client.post("/bugs", json=payload)
+        response = await http_client.post("/bugs", json=payload, headers=headers)
         response.raise_for_status()
         try:
             issue_id = response.json().get('id', 'Unknown')
@@ -144,17 +162,40 @@ async def submit_issue(
         raise RuntimeError(f"Failed to submit issue: {e}") from e
 
 @mcp.tool()
-async def add_comment(issue_id: str, comment_text: str) -> str:
+async def add_comment(
+    issue_id: str,
+    comment_text: str,
+    confirmed: bool = False
+) -> str:
     """
     Add a comment to an existing BLT issue.
     
     Args:
         issue_id: The ID of the issue to comment on.
         comment_text: The text of the comment.
+        confirmed: Set to true to confirm execution of this write operation.
     """
+    if not confirmed:
+        logger.warning("Write operation 'add_comment' blocked: confirmation required.")
+        raise ValueError("Write operation requires confirmation. Please set 'confirmed': true to proceed.")
+        
+    logger.info("Write operation 'add_comment' confirmed. Proceeding to execution.")
+    ai_metadata = generate_ai_metadata("add_comment")
+    
     logger.info(f"Adding comment to issue: {issue_id}")
+    payload = {
+        "content": comment_text,
+        "metadata": ai_metadata
+    }
+    
+    headers = {
+        "X-AI-Generated": "true",
+        "X-AI-Source": "BLT-MCP",
+        "X-AI-Timestamp": ai_metadata["timestamp"]
+    }
+    
     try:
-        response = await http_client.post(f"/bugs/{issue_id}/comments", json={"content": comment_text})
+        response = await http_client.post(f"/bugs/{issue_id}/comments", json=payload, headers=headers)
         response.raise_for_status()
         return f"Successfully added comment to issue {issue_id}"
     except httpx.HTTPStatusError as e:
@@ -164,116 +205,22 @@ async def add_comment(issue_id: str, comment_text: str) -> str:
         logger.error(f"Failed to add comment: {e}")
         raise RuntimeError(f"Failed to add comment: {e}") from e
 
+@mcp.tool()
+async def summarize_issue_context(issue_id: str) -> str:
+    """
+    Generate a structured summary of an issue's context (title, description, comments, status).
+    
+    Args:
+        issue_id: The ID of the issue to summarize.
+    """
+    return await summarize_issue_context_impl(issue_id, _fetch)
+
 @mcp.prompt()
 def triage_vulnerability(description: str) -> str:
     """Create a prompt for triaging a vulnerability."""
     return f"Please triage the following vulnerability: {description}. Assess severity and suggest next steps."
 
-class InterceptingStdinBuffer(io.BufferedIOBase):
-    def __init__(self, original):
-        self.original = original
-        self.buffer = b""
-
-    def readable(self):
-        return True
-
-    def writable(self):
-        return False
-
-    def seekable(self):
-        return False
-
-    @property
-    def closed(self):
-        return self.original.closed
-
-    def read(self, size=-1):
-        if not self.buffer:
-            # Stdio transport runs line-by-line. Using readline() prevents blocking.
-            chunk = self.original.readline()
-            if not chunk:
-                return b""
-            
-            self.buffer += chunk
-            self._process_buffer()
-
-        if size is not None and size > 0:
-            res = self.buffer[:size]
-            self.buffer = self.buffer[size:]
-            return res
-        else:
-            res = self.buffer
-            self.buffer = b""
-            return res
-
-    def read1(self, size=-1):
-        return self.read(size)
-
-    def readline(self, limit=-1):
-        if b"\n" not in self.buffer:
-            chunk = self.original.readline(limit)
-            if chunk:
-                self.buffer += chunk
-                self._process_buffer()
-        
-        if b"\n" in self.buffer:
-            idx = self.buffer.index(b"\n") + 1
-            res = self.buffer[:idx]
-            self.buffer = self.buffer[idx:]
-            return res
-        else:
-            res = self.buffer
-            self.buffer = b""
-            return res
-
-    def _process_buffer(self):
-        lines = self.buffer.split(b"\n")
-        processed_lines = []
-        for line in lines[:-1]:
-            decoded = line.decode("utf-8", errors="ignore").strip()
-            if decoded:
-                try:
-                    data = json.loads(decoded)
-                    if isinstance(data, dict) and data.get("method") == "resources/read":
-                        params = data.get("params")
-                        if isinstance(params, dict) and "uri" not in params:
-                            req_id = data.get("id")
-                            error_resp = {
-                                "jsonrpc": "2.0",
-                                "id": req_id,
-                                "error": {
-                                    "code": -32602,
-                                    "message": "Invalid params: missing 'uri' parameter in resources/read"
-                                }
-                            }
-                            sys.stdout.write(json.dumps(error_resp) + "\n")
-                            sys.stdout.flush()
-                            
-                            ping_req = {
-                                "jsonrpc": "2.0",
-                                "id": f"dummy_{req_id}",
-                                "method": "ping"
-                            }
-                            processed_lines.append(json.dumps(ping_req).encode("utf-8"))
-                            continue
-                except json.JSONDecodeError:
-                    # Non-JSON line; pass through unchanged
-                    pass
-                except Exception as e:
-                    logger.exception("Unexpected error while intercepting stdin: %s", e)
-            processed_lines.append(line)
-        
-        self.buffer = b"\n".join(processed_lines)
-        if len(lines) > 1:
-            self.buffer += b"\n" + lines[-1]
-
-class StdinWrapper:
-    def __init__(self, original_stdin, intercepted_buffer):
-        self.original_stdin = original_stdin
-        self.buffer = intercepted_buffer
-
-    def __getattr__(self, name):
-        return getattr(self.original_stdin, name)
+# Validation helper classes have been extracted to blt_mcp/validation.py
 
 def main() -> None:
     """Entry point for the BLT-MCP server."""
