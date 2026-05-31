@@ -2,7 +2,7 @@
  * Example Hackathon Configuration
  * 
  * This is a complete example showing all available options.
- * Copy values from here to js/config.js to customize your hackathon.
+ * Copy values from here to public/js/config.js to customize your hackathon.
  */
 
 const EXAMPLE_CONFIG = {

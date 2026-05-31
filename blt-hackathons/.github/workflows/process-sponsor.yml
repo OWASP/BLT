@@ -72,7 +72,7 @@ jobs:
             }
 
             // Load and eval the hackathons config
-            const configPath = 'js/hackathons-config.js';
+            const configPath = 'public/js/hackathons-config.js';
             const config = fs.readFileSync(configPath, 'utf8');
 
             let HACKATHONS_CONFIG;
@@ -83,7 +83,7 @@ jobs:
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: issueNumber,
-                body: `❌ Failed to parse \`js/hackathons-config.js\`: ${e.message}`
+              body: `❌ Failed to parse \`public/js/hackathons-config.js\`: ${e.message}`
               });
               core.setFailed('Config parse error: ' + e.message);
               return;
@@ -165,7 +165,7 @@ jobs:
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: issueNumber,
-                body: `❌ Could not update the sponsors array in the config for hackathon **"${hackathon.name}"**. Please update \`js/hackathons-config.js\` manually.`
+                body: `❌ Could not update the sponsors array in the config for hackathon **"${hackathon.name}"**. Please update \`public/js/hackathons-config.js\` manually.`
               });
               core.setFailed('Sponsors array not found in hackathon block');
               return;
@@ -189,7 +189,7 @@ jobs:
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add js/hackathons-config.js
+          git add public/js/hackathons-config.js
           git diff --staged --quiet || git commit -m "Add sponsor: ${SPONSOR_NAME} to ${SLUG} (issue #${ISSUE_NUMBER})"
           git push
 

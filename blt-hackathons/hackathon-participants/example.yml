@@ -8,7 +8,7 @@
 # leaderboard regardless of whether they are listed here.
 #
 # Usage: set `participantsFile: "hackathon-participants/my-hackathon.yml"`
-# in the hackathon entry inside js/hackathons-config.js.
+# in the hackathon entry inside public/js/hackathons-config.js.
 
 participants:
   - example-user-1

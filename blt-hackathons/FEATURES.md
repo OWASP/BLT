@@ -244,8 +244,8 @@ sponsors: [
 - Logos and icons
 
 **How to Customize:**
-1. Edit `js/config.js` for text content
-2. Edit `index.html` for structural changes
+1. Edit `public/js/config.js` for text content
+2. Edit `public/index.html` for structural changes
 3. Add custom CSS in `<style>` section
 4. Replace gradient with banner image
 
@@ -368,7 +368,7 @@ display: {
 - Custom tracking
 
 **How to Add:**
-Insert tracking code in `index.html` before `</head>`:
+Insert tracking code in `public/index.html` before `</head>`:
 ```html
 <!-- Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>

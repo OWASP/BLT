@@ -20,7 +20,7 @@ cd my-hackathon
 
 ## Step 2: Configure Your Hackathon
 
-Open `js/config.js` and update:
+Open `public/js/config.js` and update:
 
 ### 🎯 Required Settings
 
@@ -101,7 +101,7 @@ Open `index.html` in your browser or run a local server:
 
 ```bash
 # Python 3
-python -m http.server 8000
+python -m http.server 8000 --directory public
 
 # Node.js
 npx serve
@@ -155,7 +155,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/upload-pages-artifact@v2
         with:
-          path: '.'
+          path: 'public'
       - uses: actions/deploy-pages@v2
 ```
 
@@ -190,8 +190,8 @@ Once deployed, share your hackathon dashboard:
 
 ## Next Steps
 
-- 🎨 Customize colors and styling in `index.html`
-- 🖼️ Add sponsor logos to `images/` folder
+- 🎨 Customize colors and styling in `public/index.html`
+- 🖼️ Add sponsor logos to `public/images/` folder
 - 📊 Monitor the dashboard during your hackathon
 - 🏆 Announce winners based on the leaderboard
 

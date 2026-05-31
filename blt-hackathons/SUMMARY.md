@@ -24,10 +24,10 @@ Successfully transformed the BLT-Hackathon repository into a complete, self-host
 ## Files Created
 
 ### Core Application
-1. `index.html` - Main dashboard (172 lines)
-2. `js/config.js` - Configuration file (98 lines)
-3. `js/github-api.js` - GitHub API integration (251 lines)
-4. `js/main.js` - Dashboard logic (473 lines)
+1. `public/index.html` - Main dashboard (172 lines)
+2. `public/js/config.js` - Configuration file (98 lines)
+3. `public/js/github-api.js` - GitHub API integration (251 lines)
+4. `public/js/main.js` - Dashboard logic (473 lines)
 
 ### Documentation
 5. `README.md` - Complete documentation
@@ -41,7 +41,7 @@ Successfully transformed the BLT-Hackathon repository into a complete, self-host
 11. `.github/workflows/pages.yml` - GitHub Pages workflow
 12. `.gitignore` - Git ignore patterns
 13. `LICENSE` - MIT License
-14. `images/README.md` - Image guidelines
+14. `public/images/README.md` - Image guidelines
 
 ## Security Features
 
@@ -78,7 +78,7 @@ Successfully transformed the BLT-Hackathon repository into a complete, self-host
 
 ### Easy Setup (3 Steps)
 1. Fork/clone repository
-2. Edit `js/config.js` with hackathon details
+2. Edit `public/js/config.js` with hackathon details
 3. Enable GitHub Pages
 
 ### Simple Configuration
@@ -200,7 +200,7 @@ Each guide is comprehensive and user-friendly:
 ## Next Steps for Users
 
 1. **Fork the repository**
-2. **Configure** `js/config.js`
+2. **Configure** `public/js/config.js`
 3. **Add GitHub token** (optional but recommended)
 4. **Enable GitHub Pages**
 5. **Share** your hackathon URL

@@ -51,7 +51,7 @@ jobs:
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add stats.json hackathon-data/
+          git add public/stats.json public/hackathon-data/
           git diff --staged --quiet || git commit -m "Update statistics [skip ci]"
           git push
         continue-on-error: true
@@ -75,7 +75,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'
+          path: 'public'
 
       - name: Deploy to GitHub Pages
         id: deployment

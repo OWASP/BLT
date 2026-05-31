@@ -20,7 +20,7 @@ A static hackathon platform for GitHub and GitLab projects with **charts**, **le
 
 ### Option 1: Single Hackathon (Legacy Mode)
 
-For a single hackathon, edit `js/config.js`:
+For a single hackathon, edit `public/js/config.js`:
 
 ```javascript
 const HACKATHON_CONFIG = {
@@ -38,11 +38,11 @@ const HACKATHON_CONFIG = {
 };
 ```
 
-Then open `hackathon.html` directly.
+Then open `public/hackathon.html` directly.
 
 ### Option 2: Multiple Hackathons (Recommended)
 
-For multiple hackathons, edit `js/hackathons-config.js`:
+For multiple hackathons, edit `public/js/hackathons-config.js`:
 
 ```javascript
 const HACKATHONS_CONFIG = {
@@ -78,7 +78,7 @@ Connect the repository in Cloudflare Pages and use:
 
 - Production branch: `main`
 - Build command: leave empty
-- Build output directory: `/`
+- Build output directory: `public`
 
 The site is entirely static. No Cloudflare Worker is needed.
 
@@ -249,7 +249,7 @@ This can reduce the CSS from ~3MB to ~10KB.
 
 The platform now supports hosting multiple hackathons on a single deployment:
 
-1. **Configure multiple hackathons** in `js/hackathons-config.js`
+1. **Configure multiple hackathons** in `public/js/hackathons-config.js`
 2. **Each hackathon gets a unique slug** used in the URL (e.g., `hackathon.html?slug=blt-2024`)
 3. **Main index page** at `/` lists all hackathons with filtering by status (ongoing, upcoming, ended)
 4. **Individual hackathon pages** accessible via slug show full dashboard with stats and leaderboard
@@ -286,11 +286,11 @@ Add Google Analytics or other tracking by inserting the code before the closing 
 
 ### Local Testing
 
-Simply open `index.html` in a web browser, or use a local server:
+Serve the deployable `public/` directory locally:
 
 ```bash
 # Using Python 3
-python -m http.server 8000
+python -m http.server 8000 --directory public
 
 # Using Node.js
 npx serve
@@ -302,15 +302,17 @@ npx serve
 
 ```
 BLT-Hackathons/
-├── index.html                  # Main page listing all hackathons
-├── hackathon.html              # Individual hackathon dashboard
-├── js/
+├── public/                     # Cloudflare Pages and GitHub Pages output
+│   ├── index.html              # Main page listing all hackathons
+│   ├── hackathon.html          # Individual hackathon dashboard
+│   ├── js/
 │   ├── config.js               # Single hackathon configuration (legacy)
 │   ├── hackathons-config.js    # Multiple hackathons configuration
 │   ├── index.js                # Index page logic
 │   ├── github-api.js           # GitHub API integration
 │   └── main.js                 # Dashboard logic
-├── images/                     # Optional: images and logos
+│   ├── images/                 # Optional: images and logos
+│   └── hackathon-data/         # Generated JSON statistics
 └── README.md
 ```
 

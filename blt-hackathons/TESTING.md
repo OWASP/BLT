@@ -13,11 +13,11 @@ Before going live, test your hackathon dashboard to ensure everything works corr
 - [ ] GitHub token is added (recommended)
 
 ### ✅ Files
-- [ ] `index.html` exists
-- [ ] `js/config.js` exists and is properly configured
-- [ ] `js/github-api.js` exists
-- [ ] `js/main.js` exists
-- [ ] Images are in `images/` folder (if using sponsor logos or banners)
+- [ ] `public/index.html` exists
+- [ ] `public/js/config.js` exists and is properly configured
+- [ ] `public/js/github-api.js` exists
+- [ ] `public/js/main.js` exists
+- [ ] Images are in `public/images/` folder (if using sponsor logos or banners)
 
 ### ✅ Testing
 
@@ -26,7 +26,7 @@ Before going live, test your hackathon dashboard to ensure everything works corr
 1. **Start a local server:**
    ```bash
    # Option 1: Python
-   python -m http.server 8000
+   python -m http.server 8000 --directory public
    
    # Option 2: Node.js
    npx serve
@@ -148,7 +148,7 @@ Before going live, test your hackathon dashboard to ensure everything works corr
 
 **Solutions:**
 - Check image paths in config match actual files
-- Ensure images are in `images/` folder
+- Ensure images are in `public/images/` folder
 - Verify file names match exactly (case-sensitive)
 
 ### Issue: Dates Showing Incorrectly

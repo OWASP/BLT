@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Fetch GitHub or GitLab stats for hackathons and save to hackathon-data/.
+Fetch GitHub or GitLab stats for hackathons and save to public/hackathon-data/.
 The CI workflow selects which date range it owns.
 
 The frontend simply loads the resulting JSON files without making any live
@@ -33,6 +33,12 @@ logger = logging.getLogger(__name__)
 
 GITHUB_API_BASE = "https://api.github.com"
 DEFAULT_GITLAB_URL = "https://gitlab.com"
+PUBLIC_DIR = os.environ.get("PUBLIC_DIR", "public")
+
+
+def public_path(*parts):
+    """Return a path inside the static deployment directory."""
+    return os.path.join(PUBLIC_DIR, *parts)
 
 
 def is_hackathon_active(start_time, end_time):
@@ -45,7 +51,7 @@ def is_hackathon_active(start_time, end_time):
 
 def load_existing_data(slug):
     """Load existing hackathon data if it exists."""
-    output_path = f"hackathon-data/{slug}.json"
+    output_path = public_path("hackathon-data", f"{slug}.json")
     if os.path.exists(output_path):
         try:
             with open(output_path, "r", encoding="utf-8") as f:
@@ -942,7 +948,7 @@ def main():
         sys.exit(1)
 
     # Create output directory
-    os.makedirs("hackathon-data", exist_ok=True)
+    os.makedirs(public_path("hackathon-data"), exist_ok=True)
     
     # Cache for org repos to avoid fetching multiple times
     org_repos_cache = {}
@@ -966,8 +972,8 @@ def main():
         if not is_hackathon_active(start_time, end_time):
             logger.info("⏭️  Skipping ended hackathon: %s (ended on %s)", name, end_time)
             # Verify the data file exists
-            output_path = f"hackathon-data/{slug}.json"
-            summary_path = f"hackathon-data/{slug}-summary.json"
+            output_path = public_path("hackathon-data", f"{slug}.json")
+            summary_path = public_path("hackathon-data", f"{slug}-summary.json")
             if not os.path.exists(output_path):
                 logger.warning("⚠️  No data file found for ended hackathon %s, processing once", slug)
             else:
@@ -987,12 +993,12 @@ def main():
         try:
             data = process_hackathon(hackathon, token, org_repos_cache)
             if data:
-                output_path = f"hackathon-data/{slug}.json"
+                output_path = public_path("hackathon-data", f"{slug}.json")
                 with open(output_path, "w", encoding="utf-8") as f:
                     json.dump(data, f, indent=2)
                 logger.info("✅ Saved stats for '%s' to %s", slug, output_path)
                 # Write lightweight summary file for the index page
-                summary_path = f"hackathon-data/{slug}-summary.json"
+                summary_path = public_path("hackathon-data", f"{slug}-summary.json")
                 with open(summary_path, "w", encoding="utf-8") as f:
                     json.dump(build_summary(data), f, indent=2)
                 logger.info("✅ Saved summary for '%s' to %s", slug, summary_path)
@@ -1029,7 +1035,7 @@ def main():
             for h in hackathons
         ],
     }
-    with open("stats.json", "w", encoding="utf-8") as f:
+    with open(public_path("stats.json"), "w", encoding="utf-8") as f:
         json.dump(stats_data, f, indent=2)
     logger.info("Updated stats.json")
 

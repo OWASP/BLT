@@ -236,7 +236,7 @@ jobs:
             }`;
 
             // Read the current config file
-            const configPath = 'js/hackathons-config.js';
+            const configPath = 'public/js/hackathons-config.js';
             let config = fs.readFileSync(configPath, 'utf8');
 
             // Check for duplicate slug using a regex to avoid false substring matches
@@ -286,7 +286,7 @@ jobs:
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add js/hackathons-config.js
+          git add public/js/hackathons-config.js
           git diff --staged --quiet || git commit -m "Add hackathon: ${SLUG} (issue #${ISSUE_NUMBER})"
           git push
 

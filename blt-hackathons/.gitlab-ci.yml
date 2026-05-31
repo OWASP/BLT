@@ -7,7 +7,7 @@ verify-static-site:
   stage: verify
   script:
     - python -m py_compile fetch_stats.py
-    - python -m json.tool stats.json >/dev/null
+    - python -m json.tool public/stats.json >/dev/null
 
 update-future-hackathons:
   image: python:3.11-slim
@@ -26,7 +26,7 @@ update-future-hackathons:
     - UPDATE_HACKATHONS_STARTING_AFTER=2026-05-31T23:59:59Z HACKATHONS_CONFIG_PATH=/tmp/hackathons-config-parsed.json python fetch_stats.py
     - git config user.name "gitlab-ci[bot]"
     - git config user.email "gitlab-ci[bot]@users.noreply.gitlab.com"
-    - git add stats.json hackathon-data/
+    - git add public/stats.json public/hackathon-data/
     - |
       if ! git diff --staged --quiet; then
         git commit -m "Update statistics [skip ci]"

@@ -2,7 +2,7 @@
 
 const fs = require('fs');
 
-const sourcePath = process.argv[2] || 'js/hackathons-config.js';
+const sourcePath = process.argv[2] || 'public/js/hackathons-config.js';
 const outputPath = process.argv[3] || '/tmp/hackathons-config-parsed.json';
 const source = fs.readFileSync(sourcePath, 'utf8');
 const config = eval(`${source}\nHACKATHONS_CONFIG`);
