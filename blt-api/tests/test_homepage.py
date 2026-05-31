@@ -1,20 +1,23 @@
 """
-Tests for the homepage handler.
+Tests for BLT API landing page and dashboard handlers.
 """
 
-import pytest
+import importlib
 import sys
+import types
 from pathlib import Path
+
+import pytest
 
 # Add src to path for imports to work
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
-from handlers.homepage import handle_homepage
+from handlers.homepage import handle_blt_api_logo, handle_dashboard, handle_homepage
 
 
 class MockRequest:
     """Mock request object for testing."""
-    
+
     def __init__(self, url="https://blt-api.workers.dev/"):
         self.url = url
         self.method = "GET"
@@ -25,207 +28,192 @@ class MockEnv:
     pass
 
 
+async def _body(handler, url="https://blt-api.workers.dev/", path="/"):
+    response = await handler(
+        MockRequest(url=url),
+        MockEnv(),
+        path_params={},
+        query_params={},
+        path=path,
+    )
+    assert response is not None
+    assert hasattr(response, "body")
+    assert "text/html" in response.headers["Content-Type"]
+    return response.body
+
+
 class TestHomepageHandler:
-    """Tests for the homepage handler."""
-    
-    @pytest.mark.asyncio
-    async def test_homepage_returns_html(self):
-        """Test that homepage handler returns HTML content."""
-        request = MockRequest()
-        env = MockEnv()
-        
-        response = await handle_homepage(
-            request,
-            env,
-            path_params={},
-            query_params={},
-            path="/"
-        )
-        
-        # Check that response has HTML content
-        assert response is not None
-        # In test environment, response.body should contain HTML
-        if hasattr(response, 'body'):
-            assert "<!DOCTYPE html>" in response.body
-            assert "BLT API" in response.body
-    
-    @pytest.mark.asyncio
-    async def test_homepage_contains_api_info(self):
-        """Test that homepage contains API endpoint information."""
-        request = MockRequest()
-        env = MockEnv()
-        
-        response = await handle_homepage(
-            request,
-            env,
-            path_params={},
-            query_params={},
-            path="/"
-        )
-        
-        # Check for key API information
-        if hasattr(response, 'body'):
-            content = response.body
-            assert "/bugs" in content
-            assert "/users" in content
-            assert "/domains" in content
-            assert "/organizations" in content
-            assert "/projects" in content
-            assert "/hunts" in content
-            assert "/stats" in content
-            assert "/leaderboard" in content
-    
-    @pytest.mark.asyncio
-    async def test_homepage_contains_documentation(self):
-        """Test that homepage contains documentation sections."""
-        request = MockRequest()
-        env = MockEnv()
-        
-        response = await handle_homepage(
-            request,
-            env,
-            path_params={},
-            query_params={},
-            path="/"
-        )
-        
-        if hasattr(response, 'body'):
-            content = response.body
-            # Check for documentation sections
-            assert "Response Format" in content or "response format" in content.lower()
-            assert "Authentication" in content or "authentication" in content.lower()
+    """Tests for the public BLT API landing page."""
 
     @pytest.mark.asyncio
-    async def test_homepage_documents_static_api_key_header(self):
-        """Test that homepage documents the shared API key header."""
-        request = MockRequest()
-        env = MockEnv()
+    async def test_homepage_returns_landing_page_html(self):
+        content = await _body(handle_homepage)
 
-        response = await handle_homepage(
-            request,
-            env,
-            path_params={},
-            query_params={},
-            path="/"
-        )
-
-        if hasattr(response, 'body'):
-            content = response.body
-            assert "X-BLT-API-Key" in content
-            assert "BLT_API_KEY" not in content
-            assert "Authorization: Token YOUR_API_TOKEN" not in content
-    
-    @pytest.mark.asyncio
-    async def test_homepage_with_custom_url(self):
-        """Test homepage with a custom URL."""
-        request = MockRequest(url="https://custom-api.example.com/")
-        env = MockEnv()
-        
-        response = await handle_homepage(
-            request,
-            env,
-            path_params={},
-            query_params={},
-            path="/"
-        )
-        
-        # Should still work with custom URL
-        assert response is not None
-    
-    @pytest.mark.asyncio
-    async def test_homepage_contains_try_it_buttons(self):
-        """Test that homepage contains interactive Try it buttons."""
-        request = MockRequest()
-        env = MockEnv()
-        
-        response = await handle_homepage(
-            request,
-            env,
-            path_params={},
-            query_params={},
-            path="/"
-        )
-        
-        if hasattr(response, 'body'):
-            content = response.body
-            # Check for Try it buttons
-            assert "Try it" in content
-            assert "testEndpoint" in content  # JavaScript function
-            assert "apiTestModal" in content  # Modal element
-            assert "API Test Console" in content  # Modal title
-            
-            # Check for security: should use textContent, not innerHTML for responses
-            assert "textContent = JSON.stringify" in content
+        assert "<!DOCTYPE html>" in content
+        assert "BLT API" in content
+        assert "Build with" in content
+        assert "Everything you need to test a route" in content
+        assert "The dashboard keeps route docs" in content
+        assert 'src="/blt-api.svg"' in content
+        assert 'src="/blt-api.png"' not in content
 
     @pytest.mark.asyncio
-    async def test_homepage_try_it_console_sends_api_key_header(self):
-        """Test that Try it requests include the shared API key when needed."""
-        request = MockRequest()
-        env = MockEnv()
+    async def test_homepage_links_to_dashboard_route_not_html_or_v2_page(self):
+        content = await _body(handle_homepage, url="https://custom-api.example.com/")
 
-        response = await handle_homepage(
-            request,
-            env,
-            path_params={},
-            query_params={},
-            path="/"
-        )
-
-        if hasattr(response, 'body'):
-            content = response.body
-            assert "getApiKeyHeaders" in content
-            assert "fetch(url, { headers: requestHeaders })" in content
-            assert "X-BLT-API-Key" in content
-            assert "generated API key" in content
+        assert "https://custom-api.example.com/dashboard" in content
+        assert "/dashboard.html" not in content
+        assert "/v2/dashboard" not in content
+        assert "Open v2 docs" not in content
 
     @pytest.mark.asyncio
-    async def test_homepage_contains_auth_ui_forms(self):
-        """Test that homepage exposes signup and signin controls."""
-        request = MockRequest()
-        env = MockEnv()
+    async def test_homepage_points_protected_endpoint_cards_to_dashboard(self):
+        content = await _body(handle_homepage)
 
-        response = await handle_homepage(
-            request,
-            env,
-            path_params={},
-            query_params={},
-            path="/"
-        )
-
-        if hasattr(response, 'body'):
-            content = response.body
-            assert "authModalSigninForm" in content
-            assert "authModalSignupForm" in content
-            assert 'href="/auth"' not in content
-            assert "/api/auth/signin" in content
-            assert "/api/auth/signup" in content
-            assert "/api/auth/verify-email" in content
-            assert "/api/auth/verify-local" in content
-            assert "sessionStorage" in content
-            assert "modalLocalDevVerifyForm" in content
-            assert "modalLocalVerifyCode" in content
-            assert "isLocalDevelopment" in content
-            assert "body.dev_otp" not in content
+        assert "Cards point to the dashboard" in content
+        for label in ["/bugs", "/users", "/domains", "/organizations", "/projects", "/stats"]:
+            assert label in content
+        assert "X-BLT-API-Key" in content
 
     @pytest.mark.asyncio
-    async def test_homepage_contains_api_key_management_ui(self):
-        """Test that signed-in users can manage generated API keys from homepage."""
-        request = MockRequest()
-        env = MockEnv()
-
-        response = await handle_homepage(
-            request,
-            env,
+    async def test_blt_api_logo_asset_is_served(self):
+        response = await handle_blt_api_logo(
+            MockRequest(url="https://blt-api.workers.dev/blt-api.svg"),
+            MockEnv(),
             path_params={},
             query_params={},
-            path="/"
+            path="/blt-api.svg",
         )
 
-        if hasattr(response, 'body'):
-            content = response.body
-            assert "apiKeyManager" in content
-            assert "apiKeyCreateForm" in content
-            assert "/api/auth/api-keys" in content
-            assert "Bearer ${token}" in content
-            assert "Using your generated API key." in content
-            assert "prompt('Enter BLT API key'" not in content
+        assert response.status == 200
+        assert "image/svg+xml" in response.headers["Content-Type"]
+        assert "<svg" in response.body
+
+
+class TestDashboardHandler:
+    """Tests for the interactive API dashboard/docs page."""
+
+    @pytest.mark.asyncio
+    async def test_dashboard_returns_html(self):
+        content = await _body(
+            handle_dashboard,
+            url="https://blt-api.workers.dev/dashboard",
+            path="/dashboard",
+        )
+
+        assert "<!doctype html>" in content.lower()
+        assert "BLT API" in content
+        assert "Try It" in content
+
+    @pytest.mark.asyncio
+    async def test_dashboard_contains_route_catalog(self):
+        content = await _body(handle_dashboard, url="https://api.example.com/dashboard", path="/dashboard")
+
+        for route in [
+            "/v2/auth/signup",
+            "/v2/auth/signin",
+            "/v2/auth/verify-email",
+            "/v2/bugs",
+            "/v2/users",
+            "/v2/domains",
+            "/v2/organizations",
+        ]:
+            assert route in content
+
+    @pytest.mark.asyncio
+    async def test_dashboard_contains_try_it_console(self):
+        content = await _body(handle_dashboard, url="https://api.example.com/dashboard", path="/dashboard")
+
+        assert "sendRequestButton" in content
+        assert "async function sendRequest" in content
+        assert "fetch(request.url, fetchOptions)" in content
+        assert "responseBody" in content
+        assert "copyCurlButton" not in content
+        assert "curlOutput" not in content
+        assert "Generated cURL" not in content
+
+    @pytest.mark.asyncio
+    async def test_dashboard_contains_api_key_panel(self):
+        content = await _body(handle_dashboard, url="https://api.example.com/dashboard", path="/dashboard")
+
+        assert "profileModal" in content
+        assert "accountOpenButton" in content
+        assert "createApiKeyButton" in content
+        assert "apiKeyList" in content
+        assert "X-BLT-API-Key" in content
+        assert "blt-dashboard-api-key" in content
+        assert 'src="/blt-api.svg"' in content
+        assert 'src="/blt-api.png"' not in content
+
+    @pytest.mark.asyncio
+    async def test_dashboard_profile_modal_omits_manual_api_key_controls(self):
+        content = await _body(handle_dashboard, url="https://api.example.com/dashboard", path="/dashboard")
+
+        assert "Active API key" not in content
+        assert "savedKeyDisplay" not in content
+        assert "copyApiKeyButton" not in content
+        assert "clearApiKeyButton" not in content
+        assert "Paste existing key" not in content
+        assert "apiKeyInput" not in content
+        assert "saveApiKeyButton" not in content
+
+    @pytest.mark.asyncio
+    async def test_dashboard_signup_verification_is_backend_driven(self):
+        content = await _body(handle_dashboard, url="https://api.example.com/dashboard", path="/dashboard")
+
+        assert "if (data.requires_local_verification)" in content
+        assert "isLocalDevelopment" not in content
+
+    @pytest.mark.asyncio
+    async def test_dashboard_signout_clears_saved_api_key(self):
+        content = await _body(handle_dashboard, url="https://api.example.com/dashboard", path="/dashboard")
+
+        signout_start = content.index("function signOutAccount()")
+        signout_end = content.index("function updateApiKeyStatus()", signout_start)
+        signout_body = content[signout_start:signout_end]
+
+        assert "clearSession();" in signout_body
+        assert "localStorage.removeItem(API_KEY_STORAGE_KEY);" in signout_body
+        assert "closeProfileModal();" in signout_body
+
+    @pytest.mark.asyncio
+    async def test_dashboard_uses_safe_response_rendering(self):
+        content = await _body(handle_dashboard, url="https://api.example.com/dashboard", path="/dashboard")
+
+        assert "elements.responseBody.textContent = displayText" in content
+        assert "elements.responseBody.textContent = lastResponseText" in content
+        assert "JSON.stringify(value, null, 2)" in content
+        assert "responseBody.innerHTML" not in content
+
+    @pytest.mark.asyncio
+    async def test_dashboard_replaces_origin_without_v2_page_prefix(self):
+        content = await _body(
+            handle_dashboard,
+            url="https://custom-api.example.com/dashboard",
+            path="/dashboard",
+        )
+
+        assert 'const baseUrl = "https://custom-api.example.com";' in content
+        assert "https://custom-api.example.com/v2/dashboard" not in content
+        assert "https://custom-api.example.com/dashboard.html" not in content
+
+    def test_dashboard_route_registration_uses_plain_dashboard_only(self, monkeypatch):
+        previous_workers = sys.modules.get("workers")
+        workers_mod = types.ModuleType("workers")
+
+        class WorkerEntrypoint:
+            pass
+
+        setattr(workers_mod, "WorkerEntrypoint", WorkerEntrypoint)
+        with monkeypatch.context() as patch_context:
+            patch_context.setitem(sys.modules, "workers", workers_mod)
+            main = importlib.reload(sys.modules["main"]) if "main" in sys.modules else importlib.import_module("main")
+
+            route_paths = {(route.method, route.pattern) for route in main.router.routes}
+            assert ("GET", "/dashboard") in route_paths
+            assert ("GET", "/dashboard.html") not in route_paths
+            assert ("GET", "/v2/dashboard") not in route_paths
+            assert ("GET", "/v2/dashboard.html") not in route_paths
+            assert ("GET", "/v2") not in route_paths
+
+        assert sys.modules.get("workers") is previous_workers

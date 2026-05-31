@@ -66,6 +66,9 @@ Thumbs.db
 # Build artifacts
 *.wasm
 
+# Local page backups
+src/pages/old-dashboard.html
+
 # Lock files
 pyproject.toml.lock
 uv.lock

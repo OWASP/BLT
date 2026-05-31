@@ -2,7 +2,7 @@
 
 from typing import Any, Dict
 
-from .homepage import handle_homepage
+from .homepage import handle_dashboard
 
 
 async def handle_auth_page(
@@ -12,5 +12,5 @@ async def handle_auth_page(
     query_params: Dict[str, str],
     path: str,
 ) -> Any:
-    """Serve the homepage modal experience for backward-compatible /auth links."""
-    return await handle_homepage(request, env, path_params, query_params, path)
+    """Serve the dashboard/docs experience for backward-compatible /auth links."""
+    return await handle_dashboard(request, env, path_params, query_params, path)
