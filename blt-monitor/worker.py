@@ -9,12 +9,7 @@ from workers import Response, WorkerEntrypoint, fetch
 MAX_HISTORY_ENTRIES = 30
 HISTORY_BINDING = "blt-monitor-history"
 HISTORY_SHARDS = 4
-SCHEDULE_SHARDS = {
-    "*/10 * * * *": 0,
-    "1-59/10 * * * *": 1,
-    "2-59/10 * * * *": 2,
-    "3-59/10 * * * *": 3,
-}
+SHARD_INTERVAL_MS = 5 * 60 * 1000
 MONITOR_ID_PATTERN = re.compile(r"^[a-z0-9_-]+$")
 
 
@@ -76,7 +71,8 @@ class Default(WorkerEntrypoint):
         return await self.env.ASSETS.fetch(request)
 
     async def scheduled(self, controller, env, ctx):
-        await self.run_monitors(SCHEDULE_SHARDS[controller.cron])
+        shard = int(controller.scheduledTime // SHARD_INTERVAL_MS) % HISTORY_SHARDS
+        await self.run_monitors(shard)
 
     async def run_monitors(self, shard):
         monitors = await self.load_monitors()
