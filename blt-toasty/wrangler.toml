@@ -18,6 +18,12 @@ zone_id = ""
 [build]
 command = ""
 
+# Serve the landing page and its styles directly from Cloudflare's static
+# assets layer while keeping backend requests routed through the Worker.
+[assets]
+directory = "./docs"
+run_worker_first = ["/api/*", "/health"]
+
 # Environment variables
 [env.production]
 name = "toasty-backend-prod"
@@ -68,4 +74,3 @@ invocation_logs = true
 enabled = false
 persist = true
 head_sampling_rate = 1
-
