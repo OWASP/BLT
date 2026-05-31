@@ -271,7 +271,10 @@
           </div>
           <div class="flex items-center gap-1.5 text-sm text-slate-500 mt-1">
             <i class="fa-solid fa-link flex-shrink-0 text-slate-600"></i>
-            <span class="truncate max-w-[300px]" title="${escapeHTML(monitor.url)}">${escapeHTML(monitor.url)}</span>
+            <a href="${escapeHTML(safeUrl(monitor.url))}" target="_blank" rel="noopener noreferrer"
+               onclick="event.stopPropagation()" onkeydown="event.stopPropagation()"
+               class="truncate max-w-[300px] hover:text-red-400 hover:underline"
+               title="${escapeHTML(monitor.url)}">${escapeHTML(monitor.url)}</a>
           </div>
           <div class="flex items-center gap-2 flex-wrap mt-2.5">
             <a href="${escapeHTML(safeUrl(monitor.url))}" target="_blank" rel="noopener noreferrer"

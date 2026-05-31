@@ -8,7 +8,7 @@
   },
   {
     "id": "api_owaspblt",
-    "name": "OWASP BLT API",
+    "name": "BLT API",
     "url": "https://api.owaspblt.org",
     "keyword": "blt",
     "enabled": true
@@ -127,7 +127,7 @@
   },
   {
     "id": "waypoint_owaspblt",
-    "name": "OWASP BLT Waypoint",
+    "name": "BLT Waypoint",
     "url": "https://waypoint.owaspblt.org",
     "keyword": "OWASP",
     "enabled": true
