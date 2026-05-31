@@ -4,7 +4,7 @@ Official documentation for the OWASP Bug Logging Tool (BLT) project. This reposi
 
 ## 🌐 Live Documentation
 
-Visit the live documentation at: [https://owasp-blt.github.io/documentation/](https://owasp-blt.github.io/documentation/)
+Visit the live documentation at: [https://docs.owaspblt.org/](https://docs.owaspblt.org/)
 
 ## 📚 Documentation Structure
 
@@ -35,8 +35,8 @@ The documentation is organized into the following sections:
 
 1. Clone this repository:
    ```bash
-   git clone https://github.com/OWASP-BLT/documentation.git
-   cd documentation
+   git clone https://gitlab.com/owasp-blt/blt-docs.git
+   cd blt-docs
    ```
 
 2. Install dependencies:
@@ -63,18 +63,25 @@ The built site will be in the `site/` directory.
 
 ## 🚀 Deployment
 
-Documentation is automatically deployed to GitHub Pages when changes are pushed to the `main` branch. The deployment is handled by GitHub Actions (see `.github/workflows/deploy-docs.yml`).
+Documentation is built by GitLab CI and deployed to Cloudflare Workers when
+changes are pushed to the default branch. The pipeline is defined in
+`.gitlab-ci.yml`.
 
-### GitHub Pages Setup
+### Cloudflare Workers Setup
 
-To enable GitHub Pages for this repository:
+Create a Cloudflare API token with permission to edit Workers, then add these
+variables in GitLab under **Settings** → **CI/CD** → **Variables**:
 
-1. Go to repository **Settings** → **Pages**
-2. Under **Source**, select **Deploy from a branch**
-3. Select branch: **gh-pages** and folder: **/ (root)**
-4. Click **Save**
+- `CLOUDFLARE_ACCOUNT_ID`: Cloudflare account ID for the deployment
+- `CLOUDFLARE_API_TOKEN`: Cloudflare API token, stored as a masked and hidden variable
 
-The workflow will automatically create and maintain the `gh-pages` branch with the built documentation.
+The generated MkDocs site is static, so `wrangler.toml` deploys the `site/`
+directory directly with Workers Static Assets and connects the Worker to
+`docs.owaspblt.org`. No Python Worker function is needed.
+
+Before the first deployment, remove any existing CNAME record for
+`docs.owaspblt.org` so Cloudflare can create the custom-domain DNS record and
+certificate.
 
 ## 📝 Contributing
 
@@ -98,8 +105,8 @@ We welcome contributions to improve the documentation! To contribute:
 
 - **Framework**: [MkDocs](https://www.mkdocs.org/)
 - **Theme**: [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/)
-- **Hosting**: GitHub Pages
-- **CI/CD**: GitHub Actions
+- **Hosting**: Cloudflare Workers Static Assets
+- **CI/CD**: GitLab CI/CD
 
 ## 📖 Documentation Source
 

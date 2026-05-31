@@ -1,0 +1,6 @@
+name = "blt-docs"
+compatibility_date = "2026-05-31"
+
+[assets]
+directory = "./site"
+not_found_handling = "404-page"
