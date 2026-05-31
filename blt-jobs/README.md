@@ -8,8 +8,8 @@ BLT Jobs is an open source job board for the [OWASP BLT](https://owasp.org/www-p
 
 - Job listings live in `jobs/*.md`.
 - Seeker profiles live in `seekers/*.md`.
-- `npm run build:jobs` turns the Markdown sources into `data/jobs.json` and `data/seekers.json`.
-- The static site is packaged with `npm run build:worker` and deployed to Cloudflare Workers.
+- `npm run build:jobs` turns the Markdown sources into `public/data/jobs.json` and `public/data/seekers.json`.
+- Cloudflare Workers serves the committed static site files directly and excludes repository internals with `.assetsignore`.
 - Contributors submit jobs and profiles through GitLab issue templates. A scheduled or manually started GitLab pipeline processes labeled issues, commits the Markdown file, and closes the issue.
 - Seeker profiles can link to GitHub, GitLab, LinkedIn, a portfolio, or any combination of those services.
 
@@ -61,20 +61,20 @@ Create a GitLab pipeline schedule for periodic submission processing and stale j
 
 ## Cloudflare Workers
 
-`wrangler.toml` serves `.worker-assets/` as static assets with `404.html` handling. Run:
+`wrangler.toml` serves the committed static site assets with `404.html` handling. Run:
 
 ```bash
 npm run deploy:worker
 ```
 
-Do not run `npx wrangler deploy` directly from a fresh checkout: `.worker-assets/` is a generated public-only bundle. For Cloudflare Workers Builds, configure:
+For Cloudflare Workers Builds, the default deploy command is enough:
 
 | Setting | Value |
 | --- | --- |
-| Build command | `npm run build:worker` |
+| Build command | Leave blank |
 | Deploy command | `npx wrangler@4 deploy` |
 
-For local deployment, use `npm run deploy:worker`; it performs both steps. GitLab CI does not deploy the Worker.
+For local deployment, use `npm run deploy:worker` to regenerate JSON first. GitLab CI does not deploy the Worker.
 
 Configure `jobs.owaspblt.org` as a Cloudflare custom domain for the `blt-jobs` Worker.
 
@@ -84,9 +84,10 @@ Configure `jobs.owaspblt.org` as a Cloudflare custom domain for the `blt-jobs` W
 .
 ├── .gitlab-ci.yml
 ├── .gitlab/issue_templates/
+├── .assetsignore
 ├── assets/
-├── data/
 ├── jobs/
+├── public/
 ├── seekers/
 ├── scripts/
 ├── wrangler.toml

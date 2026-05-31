@@ -5,9 +5,9 @@ const matter = require("gray-matter");
 const { extractSalary } = require("./extract-salary");
 
 const JOBS_DIR = path.join(__dirname, "..", "jobs");
-const OUT_FILE = path.join(__dirname, "..", "data", "jobs.json");
+const OUT_FILE = path.join(__dirname, "..", "public", "data", "jobs.json");
 const SEEKERS_DIR = path.join(__dirname, "..", "seekers");
-const SEEKERS_OUT_FILE = path.join(__dirname, "..", "data", "seekers.json");
+const SEEKERS_OUT_FILE = path.join(__dirname, "..", "public", "data", "seekers.json");
 const DEFAULT_EXPIRY_DAYS = 60;
 
 function parseDate(value) {

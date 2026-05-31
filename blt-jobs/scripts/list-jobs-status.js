@@ -6,7 +6,7 @@
 const fs = require("fs");
 const path = require("path");
 
-const JOBS_JSON = path.join(__dirname, "..", "data", "jobs.json");
+const JOBS_JSON = path.join(__dirname, "..", "public", "data", "jobs.json");
 
 function main() {
   if (!fs.existsSync(JOBS_JSON)) {

@@ -137,7 +137,7 @@ async function main() {
   }
 
   run("npm", ["run", "build:jobs"]);
-  run("git", ["add", "jobs", "seekers", "data/jobs.json", "data/seekers.json"]);
+  run("git", ["add", "jobs", "seekers", "public/data/jobs.json", "public/data/seekers.json"]);
   run("git", ["commit", "-m", `chore: process ${processed.length} GitLab submission(s)`]);
   run("git", ["push", "origin", "HEAD:main"]);
 

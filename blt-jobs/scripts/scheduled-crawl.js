@@ -46,7 +46,7 @@ function normalizeUrl(url) {
 }
 
 function loadExistingUrls() {
-  const jobsFile = path.join(__dirname, '..', 'data', 'jobs.json');
+  const jobsFile = path.join(__dirname, '..', 'public', 'data', 'jobs.json');
   if (!fs.existsSync(jobsFile)) return new Set();
 
   const parsed = JSON.parse(fs.readFileSync(jobsFile, 'utf8'));

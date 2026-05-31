@@ -7,7 +7,7 @@
     "list:jobs": "node scripts/list-jobs-status.js",
     "expire:jobs": "node scripts/expire-jobs.js",
     "crawl:jobs": "node scripts/scheduled-crawl.js",
-    "build:worker": "npm run build:jobs && node scripts/prepare-worker-assets.js",
+    "build:worker": "npm run build:jobs",
     "deploy:worker": "npm run build:worker && npx wrangler@4 deploy"
   },
   "dependencies": {
