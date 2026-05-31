@@ -1,6 +1,7 @@
 name = "blt-vanish"
-main = "src/index.ts"
-compatibility_date = "2023-12-01"
+main = "src/index.py"
+compatibility_date = "2026-05-31"
+compatibility_flags = ["python_workers"]
 
 # Workers configuration
 workers_dev = true
@@ -11,10 +12,6 @@ name = "blt-vanish-production"
 
 [env.development]
 name = "blt-vanish-development"
-
-# CORS and security settings
-[build]
-command = "tsc"
 
 # Limits
 [limits]

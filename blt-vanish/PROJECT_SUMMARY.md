@@ -65,16 +65,16 @@ BLT-Vanish uses a unique architecture that combines local security with edge aut
 - Zero PII processing
 
 **Key Files**:
-- `src/index.ts` - Main router and request handler
-- `src/brokers.ts` - Broker data endpoints
-- `src/health.ts` - Health check logic
-- `src/templates.ts` - Template serving
+- `src/index.py` - Main router and request handler
+- `src/brokers.py` - Broker data endpoints
+- `src/health.py` - Health check logic
+- `src/templates.py` - Template serving
 
 **Technologies**:
-- TypeScript
+- Python
 - Cloudflare Workers (edge functions)
 - Wrangler (deployment tool)
-- ESLint + Prettier for code quality
+- Python syntax checks
 
 ### 3. Broker Database (`data/`)
 

@@ -247,11 +247,13 @@ BLT-Vanish-Web/
 │
 ├── cloudflare_workers/    # Stateless edge workers
 │   ├── src/
-│   │   ├── brokers.ts     # Broker metadata API
-│   │   ├── health.ts      # Broker health checks
-│   │   └── templates.ts   # Opt-out templates
+│   │   ├── index.py       # Main router and handlers
+│   │   ├── brokers.py     # Broker metadata API
+│   │   ├── health.py      # Broker health checks
+│   │   ├── responses.py   # Shared HTTP response helpers
+│   │   └── templates.py   # Opt-out templates
 │   ├── wrangler.toml      # Cloudflare configuration
-│   └── package.json       # Node dependencies
+│   └── package.json       # Wrangler deployment launcher
 │
 ├── data/                  # Public broker metadata
 │   ├── brokers/           # Broker definitions

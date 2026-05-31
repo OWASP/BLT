@@ -27,6 +27,8 @@ cloudflare_workers/package-lock.json
 cloudflare_workers/wrangler.toml.local
 cloudflare_workers/.dev.vars
 cloudflare_workers/.wrangler/
+cloudflare_workers/**/__pycache__/
+cloudflare_workers/**/*.pyc
 
 # IDEs
 .vscode/

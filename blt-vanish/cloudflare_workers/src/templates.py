@@ -1,44 +1,10 @@
-/**
- * Opt-out template endpoint
- * Serves template text for generating opt-out requests - NO PII
- */
+from workers import Response
 
-export async function handleTemplatesRequest(
-  request: Request,
-  path: string
-): Promise<Response> {
-  const templateId = path.split('/api/templates/')[1];
+from responses import json_response
 
-  if (!templateId) {
-    return new Response(
-      JSON.stringify({ error: 'Template ID required' }),
-      {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      }
-    );
-  }
 
-  const template = getTemplate(templateId);
-
-  if (template) {
-    return new Response(template, {
-      headers: { 'Content-Type': 'text/plain' },
-    });
-  } else {
-    return new Response(
-      JSON.stringify({ error: 'Template not found' }),
-      {
-        status: 404,
-        headers: { 'Content-Type': 'application/json' },
-      }
-    );
-  }
-}
-
-function getTemplate(templateId: string): string | null {
-  const templates: Record<string, string> = {
-    'default-gdpr': `Subject: GDPR Data Deletion Request
+TEMPLATES = {
+    "default-gdpr": """Subject: GDPR Data Deletion Request
 
 Dear [Broker Name],
 
@@ -61,9 +27,8 @@ I expect this request to be completed within 30 days as required by GDPR.
 
 Thank you,
 [Full Name]
-[Date]`,
-
-    'default-ccpa': `Subject: CCPA Data Deletion Request
+[Date]""",
+    "default-ccpa": """Subject: CCPA Data Deletion Request
 
 Dear [Broker Name],
 
@@ -84,9 +49,8 @@ I request that you respond to this request within 45 days as required by law.
 
 Sincerely,
 [Full Name]
-[Date]`,
-
-    'truthfinder-optout': `Subject: Opt-Out Request
+[Date]""",
+    "truthfinder-optout": """Subject: Opt-Out Request
 
 Dear TruthFinder Opt-Out Team,
 
@@ -101,9 +65,8 @@ My Information:
 Please remove all records associated with my name and address, and confirm when this has been completed.
 
 Thank you,
-[Full Name]`,
-
-    'email-generic': `Subject: Request to Remove Personal Information
+[Full Name]""",
+    "email-generic": """Subject: Request to Remove Personal Information
 
 Dear [Broker Name],
 
@@ -125,9 +88,8 @@ Please process this request within 30 days and send confirmation to [Email Addre
 
 Regards,
 [Full Name]
-[Date]`,
-
-    'phone-script': `Hello, I'm calling to request removal of my personal information from your database.
+[Date]""",
+    "phone-script": """Hello, I'm calling to request removal of my personal information from your database.
 
 My name is [Full Name], and I'd like to opt out of your services.
 
@@ -142,9 +104,8 @@ Can you please confirm:
 2. How long it will take to process
 3. A reference number for my request
 
-Thank you for your assistance.`,
-
-    'mail-letter': `[Your Name]
+Thank you for your assistance.""",
+    "mail-letter": """[Your Name]
 [Your Address]
 [City, State ZIP]
 [Email Address]
@@ -182,8 +143,17 @@ Please confirm receipt of this request and provide a timeline for completion.
 Sincerely,
 
 [Signature]
-[Printed Name]`,
-  };
-
-  return templates[templateId] || null;
+[Printed Name]""",
 }
+
+
+def handle_templates_request(path):
+    template_id = path.removeprefix("/api/templates/")
+    if not template_id:
+        return json_response({"error": "Template ID required"}, status=400)
+
+    template = TEMPLATES.get(template_id)
+    if template is None:
+        return json_response({"error": "Template not found"}, status=404)
+
+    return Response(template, headers={"Content-Type": "text/plain"})

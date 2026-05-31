@@ -1,6 +1,6 @@
 # BLT-Vanish Cloudflare Workers
 
-Stateless edge functions that serve **public data only**. No user PII is ever processed or stored.
+Stateless Python edge functions that serve **public data only**. No user PII is ever processed or stored.
 
 ## Purpose
 
@@ -41,7 +41,8 @@ Returns list of broker categories.
 
 ### Prerequisites
 
-- Node.js 18+
+- Python 3
+- Node.js 22+
 - Cloudflare account (for deployment)
 - Wrangler CLI
 
@@ -51,11 +52,11 @@ Returns list of broker categories.
 # Install dependencies
 npm install
 
-# Configure Wrangler
-# Edit wrangler.toml with your account_id
-
 # Run locally
 npm run dev
+
+# Check Python syntax
+npm run check
 
 # Deploy to Cloudflare
 npm run deploy
@@ -64,22 +65,19 @@ npm run deploy
 ### Testing
 
 ```bash
-# Run tests
-npm test
-
-# Lint code
-npm run lint
-
-# Format code
-npm run format
+# Check Python syntax
+npm run check
 ```
 
 ## Configuration
 
 Edit `wrangler.toml`:
-- Set your `account_id`
+- Set your Cloudflare account credentials through Wrangler
 - Configure routes (optional)
 - Set environment variables (if needed)
+
+Python Workers currently require the `python_workers` compatibility flag. The
+flag is configured in `wrangler.toml`.
 
 ## Security
 
@@ -103,10 +101,11 @@ wrangler deploy --env development
 
 ```
 src/
-├── index.ts       # Main router and handlers
-├── brokers.ts     # Broker data endpoints
-├── health.ts      # Health check logic
-└── templates.ts   # Template serving
+├── index.py       # Main router and handlers
+├── brokers.py     # Broker data endpoints
+├── health.py      # Health check logic
+├── responses.py   # Shared response headers and helpers
+└── templates.py   # Template serving
 ```
 
 ## Contributing

@@ -30,7 +30,7 @@ This roadmap maps the Community Bonding period and a 12-week development cadence
 
 - Week 1: Contracts & scaffolding
   - Add `docs/security-contracts.md` (SecurityAlert, RiskAssessment, RemediationAction)
-  - Add Worker `contracts.ts` type guards and contract tests (TS/Dart)
+  - Add Worker `contracts.py` validators and contract tests (Python/Dart)
   - Scoring service skeleton in `flutter_app/lib/services/security_risk_service.dart`
   - Deliverable: frozen v1 contract doc + CI contract tests
 
