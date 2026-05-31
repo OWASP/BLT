@@ -126,9 +126,9 @@
     "enabled": true
   },
   {
-    "id": "github_owaspblt",
-    "name": "OWASP BLT GitHub",
-    "url": "https://github.owaspblt.org",
+    "id": "waypoint_owaspblt",
+    "name": "OWASP BLT Waypoint",
+    "url": "https://waypoint.owaspblt.org",
     "keyword": "OWASP",
     "enabled": true
   },
