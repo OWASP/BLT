@@ -1,7 +1,7 @@
 name = "blt-ideas"
 main = "src/entry.py"
-compatibility_date = "2026-05-31"
-compatibility_flags = ["python_workers"]
+compatibility_date = "2026-05-01"
+compatibility_flags = ["python_workers", "disable_python_external_sdk"]
 
 [build]
 command = "python scripts/generate_page.py"
