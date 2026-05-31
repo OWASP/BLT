@@ -30,7 +30,7 @@ This dashboard helps:
 * 📚 Contributor onboarding guide
 * 🐞 Good first issues section
 * ⚙️ Local setup instructions
-* 🔀 Pull request workflow
+* 🔀 Merge request workflow
 * 🔍 Code review guidelines
 * 🎨 UI Style Guide (Buttons, Inputs, Icons)
 * 🌙 Dark mode support
@@ -64,7 +64,7 @@ This dashboard helps:
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/shiva119127/blt-contributor-page.git
+   git clone https://gitlab.com/shiva119127/blt-contributor-page.git
    ```
 
 2. Navigate to the project directory:
@@ -113,7 +113,7 @@ This dashboard helps:
 * 🏠 Welcome Dashboard
 * ⚙️ Local Setup
 * ⭐ Good First Issues
-* 🔀 Creating PRs
+* 🔀 Creating MRs
 * 🔍 Code Review
 * 🎨 Style Guide
 * 🔗 Useful Links
@@ -132,7 +132,7 @@ git checkout -b feature/your-feature
 # Commit changes
 git commit -m "feat: add new feature"
 
-# Push & PR
+# Push & MR
 git push origin feature/your-feature
 ```
 
@@ -140,7 +140,7 @@ git push origin feature/your-feature
 
 ## 🔮 Future Improvements
 
-* 🔗 GitHub API integration
+* 🔗 GitLab API integration
 * 👤 Authentication system
 * 📊 Contributor analytics
 * 🌐 Multi-language UI toggle
@@ -157,7 +157,7 @@ MIT License © 2026
 
 If you like this project:
 
-👉 Give it a ⭐ on GitHub
+👉 Give it a ⭐ on GitLab
 👉 Share with developers
 👉 Contribute 🚀
 

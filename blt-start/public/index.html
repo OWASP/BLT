@@ -64,7 +64,7 @@
           <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" aria-hidden="true"></i>
           <input
             type="search"
-            placeholder="Search docs, issues, PRs…"
+            placeholder="Search docs, issues, MRs…"
             class="w-full border border-gray-400 rounded-md pl-9 pr-4 py-2 text-sm
                    focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600
                    dark:bg-blt-surface dark:border-gray-600 dark:text-gray-100
@@ -77,26 +77,26 @@
       <!-- CTA buttons -->
       <nav class="flex items-center gap-2 shrink-0" aria-label="Header actions">
         <a
-          href="https://github.com/OWASP-BLT/BLT/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22"
+          href="https://gitlab.com/OWASP-BLT/BLT/-/issues?label_name[]=good%20first%20issue"
           target="_blank" rel="noopener noreferrer"
           class="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-md
                  border border-blt-primary text-blt-primary text-sm font-medium
                  hover:bg-blt-primary hover:text-white"
-          aria-label="Browse good first issues on GitHub"
+          aria-label="Browse good first issues on GitLab"
         >
           <i class="fa-solid fa-bug" aria-hidden="true"></i>
           Good First Issues
         </a>
         <a
-          href="https://github.com/OWASP-BLT/BLT"
+          href="https://gitlab.com/OWASP-BLT/BLT"
           target="_blank" rel="noopener noreferrer"
           class="inline-flex items-center gap-2 px-4 py-2 rounded-md
                  bg-blt-primary text-white text-sm font-medium
                  hover:bg-blt-hover"
-          aria-label="View BLT on GitHub"
+          aria-label="View BLT on GitLab"
         >
-          <i class="fa-brands fa-github" aria-hidden="true"></i>
-          GitHub
+          <i class="fa-brands fa-gitlab" aria-hidden="true"></i>
+          GitLab
         </a>
       </nav>
     </div>
@@ -146,10 +146,10 @@
               </a>
             </li>
             <li>
-              <a href="#creating-prs" class="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium
+              <a href="#creating-mrs" class="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium
                  text-gray-700 dark:text-gray-300 hover:bg-blt-sidebar hover:text-blt-primary dark:hover:bg-gray-700">
                 <i class="fa-solid fa-code-pull-request w-4 text-center" aria-hidden="true"></i>
-                Creating PRs
+                Creating MRs
               </a>
             </li>
             <li>
@@ -241,15 +241,15 @@
           <p class="text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
             This page is your orientation hub. Whether you are a <strong>first-time contributor</strong>
             looking for a place to start, or a <strong>mentor</strong> helping newcomers find good issues
-            and ship quality PRs — you are in the right place.
+            and ship quality MRs — you are in the right place.
           </p>
 
           <div class="grid sm:grid-cols-3 gap-4">
             <!-- Stat card -->
             <div class="rounded-lg border border-blt-border dark:border-gray-700 p-4 text-center">
-              <i class="fa-brands fa-github text-2xl text-gray-400 dark:text-gray-500 mb-2" aria-hidden="true"></i>
+              <i class="fa-brands fa-gitlab text-2xl text-gray-400 dark:text-gray-500 mb-2" aria-hidden="true"></i>
               <p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Repository</p>
-              <a href="https://github.com/OWASP-BLT/BLT" target="_blank" rel="noopener noreferrer"
+              <a href="https://gitlab.com/OWASP-BLT/BLT" target="_blank" rel="noopener noreferrer"
                  class="text-red-600 dark:text-red-400 hover:underline text-sm font-semibold">
                 OWASP-BLT/BLT
               </a>
@@ -257,10 +257,10 @@
             <div class="rounded-lg border border-blt-border dark:border-gray-700 p-4 text-center">
               <i class="fa-solid fa-bug text-2xl text-gray-400 dark:text-gray-500 mb-2" aria-hidden="true"></i>
               <p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Good First Issues</p>
-              <a href="https://github.com/OWASP-BLT/BLT/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22"
+              <a href="https://gitlab.com/OWASP-BLT/BLT/-/issues?label_name[]=good%20first%20issue"
                  target="_blank" rel="noopener noreferrer"
                  class="text-red-600 dark:text-red-400 hover:underline text-sm font-semibold">
-                Browse on GitHub
+                Browse on GitLab
               </a>
             </div>
             <div class="rounded-lg border border-blt-border dark:border-gray-700 p-4 text-center">
@@ -289,7 +289,7 @@
             <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blt-primary text-white text-sm font-bold shrink-0 mt-0.5">1</span>
             <div class="space-y-2">
               <p class="font-semibold text-gray-900 dark:text-white">Fork &amp; clone the repository</p>
-              <pre class="bg-gray-100 dark:bg-gray-800 rounded-md px-4 py-3 text-xs overflow-x-auto leading-relaxed"><code>git clone https://github.com/&lt;YOUR-USERNAME&gt;/BLT.git
+              <pre class="bg-gray-100 dark:bg-gray-800 rounded-md px-4 py-3 text-xs overflow-x-auto leading-relaxed"><code>git clone https://gitlab.com/&lt;YOUR-USERNAME&gt;/BLT.git
 cd BLT</code></pre>
             </div>
           </div>
@@ -321,7 +321,7 @@ python manage.py runserver</code></pre>
 
         <p class="mt-3 text-sm text-gray-500 dark:text-gray-400">
           Full instructions are in the
-          <a href="https://github.com/OWASP-BLT/BLT/blob/main/README.md"
+          <a href="https://gitlab.com/OWASP-BLT/BLT/-/blob/main/README.md"
              target="_blank" rel="noopener noreferrer"
              class="text-red-600 dark:text-red-400 hover:underline font-medium">
             project README
@@ -340,7 +340,7 @@ python manage.py runserver</code></pre>
 
           <p class="text-gray-700 dark:text-gray-300 leading-relaxed">
             Good first issues are deliberately small, well-scoped tasks. They let you learn the codebase,
-            the PR workflow, and the community norms without being overwhelming.
+            the MR workflow, and the community norms without being overwhelming.
           </p>
 
           <!-- Checklist -->
@@ -394,24 +394,24 @@ python manage.py runserver</code></pre>
           </div>
 
           <a
-            href="https://github.com/OWASP-BLT/BLT/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22"
+            href="https://gitlab.com/OWASP-BLT/BLT/-/issues?label_name[]=good%20first%20issue"
             target="_blank" rel="noopener noreferrer"
             class="inline-flex items-center gap-2 px-5 py-2.5 rounded-md
                    bg-blt-primary text-white text-sm font-semibold
                    hover:bg-blt-hover"
           >
-            <i class="fa-brands fa-github" aria-hidden="true"></i>
+            <i class="fa-brands fa-gitlab" aria-hidden="true"></i>
             Browse Good First Issues
           </a>
 
         </div>
       </section>
 
-      <!-- ──── CREATING PRs ──── -->
-      <section id="creating-prs" aria-labelledby="pr-heading">
-        <h2 id="pr-heading" class="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+      <!-- ──── CREATING MRs ──── -->
+      <section id="creating-mrs" aria-labelledby="mr-heading">
+        <h2 id="mr-heading" class="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
           <i class="fa-solid fa-code-pull-request text-blt-primary" aria-hidden="true"></i>
-          Creating a Pull Request
+          Creating a Merge Request
         </h2>
 
         <div class="rounded-xl border border-blt-border dark:border-gray-700 bg-white dark:bg-blt-surface shadow-sm divide-y divide-blt-border dark:divide-gray-700">
@@ -449,11 +449,11 @@ git rebase upstream/main</code></pre>
           <div class="p-6 flex gap-4">
             <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blt-primary text-white text-sm font-bold shrink-0 mt-0.5">4</span>
             <div>
-              <p class="font-semibold text-gray-900 dark:text-white mb-1">Open the Pull Request</p>
+              <p class="font-semibold text-gray-900 dark:text-white mb-1">Open the Merge Request</p>
               <ul class="mt-1 space-y-1.5 text-sm text-gray-600 dark:text-gray-400 list-none">
                 <li class="flex items-start gap-2">
                   <i class="fa-solid fa-arrow-right text-blt-primary text-xs mt-1 shrink-0" aria-hidden="true"></i>
-                  Link the issue with <code class="bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-xs">Closes #&lt;issue-number&gt;</code> in the PR description.
+                  Link the issue with <code class="bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-xs">Closes #&lt;issue-number&gt;</code> in the MR description.
                 </li>
                 <li class="flex items-start gap-2">
                   <i class="fa-solid fa-arrow-right text-blt-primary text-xs mt-1 shrink-0" aria-hidden="true"></i>
@@ -461,7 +461,7 @@ git rebase upstream/main</code></pre>
                 </li>
                 <li class="flex items-start gap-2">
                   <i class="fa-solid fa-arrow-right text-blt-primary text-xs mt-1 shrink-0" aria-hidden="true"></i>
-                  Fill in the PR template completely — skip no sections.
+                  Fill in the MR template completely — skip no sections.
                 </li>
                 <li class="flex items-start gap-2">
                   <i class="fa-solid fa-arrow-right text-blt-primary text-xs mt-1 shrink-0" aria-hidden="true"></i>
@@ -477,7 +477,7 @@ git rebase upstream/main</code></pre>
               <p class="font-semibold text-gray-900 dark:text-white mb-1">Respond to review feedback</p>
               <p class="text-sm text-gray-600 dark:text-gray-400">
                 Address every comment, mark resolved conversations, and push updates to the same branch.
-                Do <strong>not</strong> open a new PR for review fixes.
+                Do <strong>not</strong> open a new MR for review fixes.
               </p>
             </div>
           </div>
@@ -502,7 +502,7 @@ git rebase upstream/main</code></pre>
             <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
               <li class="flex items-start gap-2">
                 <i class="fa-solid fa-check text-green-500 mt-0.5 shrink-0" aria-hidden="true"></i>
-                Keep PRs small and focused on one concern.
+                Keep MRs small and focused on one concern.
               </li>
               <li class="flex items-start gap-2">
                 <i class="fa-solid fa-check text-green-500 mt-0.5 shrink-0" aria-hidden="true"></i>
@@ -690,8 +690,8 @@ git rebase upstream/main</code></pre>
               <span class="text-xs text-gray-500 dark:text-gray-400">fa-code-pull-request</span>
             </div>
             <div class="flex flex-col items-center gap-1.5 text-center">
-              <i class="fa-brands fa-github text-2xl text-gray-600 dark:text-gray-300" aria-hidden="true"></i>
-              <span class="text-xs text-gray-500 dark:text-gray-400">fa-brands fa-github</span>
+              <i class="fa-brands fa-gitlab text-2xl text-gray-600 dark:text-gray-300" aria-hidden="true"></i>
+              <span class="text-xs text-gray-500 dark:text-gray-400">fa-brands fa-gitlab</span>
             </div>
             <div class="flex flex-col items-center gap-1.5 text-center">
               <i class="fa-solid fa-star text-2xl text-gray-600 dark:text-gray-300" aria-hidden="true"></i>
@@ -788,7 +788,7 @@ git rebase upstream/main</code></pre>
             <div class="rounded-lg border border-blt-border dark:border-gray-700 p-4 space-y-2">
               <h3 class="font-semibold text-gray-900 dark:text-white text-sm flex items-center gap-2">
                 <i class="fa-solid fa-trophy text-blt-primary" aria-hidden="true"></i>
-                Celebrate merged PRs
+                Celebrate merged MRs
               </h3>
               <p class="text-sm text-gray-600 dark:text-gray-400">
                 A short "great work!" comment or Slack message goes a long way in retaining contributors.
@@ -809,20 +809,20 @@ git rebase upstream/main</code></pre>
 
         <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
 
-          <a href="https://github.com/OWASP-BLT/BLT" target="_blank" rel="noopener noreferrer"
+          <a href="https://gitlab.com/OWASP-BLT/BLT" target="_blank" rel="noopener noreferrer"
              class="group rounded-xl border border-blt-border dark:border-gray-700 bg-white dark:bg-blt-surface shadow-sm p-5 flex items-start gap-4 hover:border-blt-primary dark:hover:border-red-500 transition-colors">
             <span class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 group-hover:bg-red-50 group-hover:text-blt-primary shrink-0 transition-colors">
-              <i class="fa-brands fa-github text-lg" aria-hidden="true"></i>
+              <i class="fa-brands fa-gitlab text-lg" aria-hidden="true"></i>
             </span>
             <div>
               <p class="font-semibold text-gray-900 dark:text-white text-sm group-hover:text-blt-primary transition-colors">
                 BLT Repository
               </p>
-              <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Main source code on GitHub</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Main source code on GitLab</p>
             </div>
           </a>
 
-          <a href="https://github.com/OWASP-BLT/BLT/issues" target="_blank" rel="noopener noreferrer"
+          <a href="https://gitlab.com/OWASP-BLT/BLT/-/issues" target="_blank" rel="noopener noreferrer"
              class="group rounded-xl border border-blt-border dark:border-gray-700 bg-white dark:bg-blt-surface shadow-sm p-5 flex items-start gap-4 hover:border-blt-primary dark:hover:border-red-500 transition-colors">
             <span class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 group-hover:bg-red-50 group-hover:text-blt-primary shrink-0 transition-colors">
               <i class="fa-solid fa-circle-dot text-lg" aria-hidden="true"></i>
@@ -835,16 +835,16 @@ git rebase upstream/main</code></pre>
             </div>
           </a>
 
-          <a href="https://github.com/OWASP-BLT/BLT/pulls" target="_blank" rel="noopener noreferrer"
+          <a href="https://gitlab.com/OWASP-BLT/BLT/-/merge_requests" target="_blank" rel="noopener noreferrer"
              class="group rounded-xl border border-blt-border dark:border-gray-700 bg-white dark:bg-blt-surface shadow-sm p-5 flex items-start gap-4 hover:border-blt-primary dark:hover:border-red-500 transition-colors">
             <span class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 group-hover:bg-red-50 group-hover:text-blt-primary shrink-0 transition-colors">
               <i class="fa-solid fa-code-pull-request text-lg" aria-hidden="true"></i>
             </span>
             <div>
               <p class="font-semibold text-gray-900 dark:text-white text-sm group-hover:text-blt-primary transition-colors">
-                Pull Requests
+                Merge Requests
               </p>
-              <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Open &amp; merged PRs</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Open &amp; merged MRs</p>
             </div>
           </a>
 
@@ -905,10 +905,10 @@ git rebase upstream/main</code></pre>
       </p>
 
       <nav class="flex items-center gap-5" aria-label="Footer links">
-        <a href="https://github.com/OWASP-BLT/BLT" target="_blank" rel="noopener noreferrer"
+        <a href="https://gitlab.com/OWASP-BLT/BLT" target="_blank" rel="noopener noreferrer"
            class="text-gray-400 dark:text-gray-500 hover:text-blt-primary dark:hover:text-red-400 transition-colors"
-           aria-label="BLT on GitHub">
-          <i class="fa-brands fa-github text-xl" aria-hidden="true"></i>
+           aria-label="BLT on GitLab">
+          <i class="fa-brands fa-gitlab text-xl" aria-hidden="true"></i>
         </a>
         <a href="https://owasp.slack.com/archives/CBKGH8A5P" target="_blank" rel="noopener noreferrer"
            class="text-gray-400 dark:text-gray-500 hover:text-blt-primary dark:hover:text-red-400 transition-colors"
