@@ -84,7 +84,8 @@ wrangler dev --port 8787
 
 ### 5. Open in Browser
 
-http://localhost:8787
+- Landing page: http://localhost:8787
+- Interactive dashboard/docs: http://localhost:8787/dashboard
 
 ### Local Development
 
@@ -125,7 +126,8 @@ uv run pytest tests/test_router.py -v
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/` | API homepage with interactive documentation |
+| GET | `/` | BLT API landing page |
+| GET | `/dashboard` | Interactive API dashboard and documentation |
 | GET | `/health` | Health check endpoint |
 
 Resource API endpoints are also available under the versioned `/v2` prefix (for example, `/v2/health` and `/v2/users`). Authentication APIs use the canonical `/api/auth/*` namespace.
@@ -134,7 +136,7 @@ Resource API endpoints are also available under the versioned `/v2` prefix (for 
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/auth` | Legacy browser entry that serves the homepage auth modal |
+| GET | `/auth` | Legacy browser entry that serves the API dashboard |
 | POST | `/api/auth/signup` | Register a new user |
 | POST | `/api/auth/signin` | Sign in and get Bearer JWT |
 | GET | `/api/auth/verify-email` | Verify email address as JSON API |
@@ -579,7 +581,8 @@ BLT-API/
 │   │       ├── password_reset.html
 │   │       └── bug_confirmation.html
 │   └── pages/              # Static pages
-│       └── index.html      # API homepage template
+│       ├── index.html      # BLT API landing page template
+│       └── dashboard.html  # Interactive API dashboard/docs template, served at /dashboard
 ├── scripts/                # Utility scripts
 │   ├── migrate.sh          # Auto-migration script for deployments
 │   ├── setup_local_db.sh   # Local database setup

@@ -28,6 +28,8 @@ from handlers import (
     handle_contributors, 
     handle_repos,
     handle_health,
+    handle_blt_api_logo,
+    handle_dashboard,
     handle_homepage,
     handle_auth_page,
     handle_signup,
@@ -48,6 +50,8 @@ router = Router()
 
 # Homepage and health check
 router.add_route("GET", "/", handle_homepage)
+router.add_route("GET", "/blt-api.svg", handle_blt_api_logo)
+router.add_route("GET", "/dashboard", handle_dashboard)
 router.add_route("GET", "/auth", handle_auth_page)
 router.add_route("GET", "/health", handle_health)
 
@@ -136,8 +140,7 @@ def _add_v2_route(method: str, pattern: str, handler) -> None:
     router.add_route(method, v2_pattern, handler)
 
 
-# v2 API routes (backward compatible with existing unversioned routes)
-_add_v2_route("GET", "/", handle_homepage)
+# v2 API routes (backward compatible with existing unversioned API routes)
 _add_v2_route("GET", "/health", handle_health)
 
 _add_v2_route("GET", "/bugs/search", handle_bugs)

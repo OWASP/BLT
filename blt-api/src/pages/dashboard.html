@@ -1,0 +1,3513 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BLT API Dashboard</title>
+    <meta
+      name="description"
+      content="Interactive BLT API dashboard for exploring and testing real v2 endpoints."
+    />
+    <script>
+      (function () {
+        var savedTheme = localStorage.getItem("blt-theme");
+        var prefersDark =
+          window.matchMedia &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches;
+        if (savedTheme === "dark" || (!savedTheme && prefersDark)) {
+          document.documentElement.classList.add("dark");
+        }
+      })();
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "slate-950": "#09090b",
+              "slate-900": "#18181b",
+              "slate-800": "#27272a",
+              "slate-700": "#3f3f46",
+              "slate-600": "#52525b",
+              "slate-400": "#a1a1aa",
+              "slate-200": "#e4e4e7",
+              "slate-100": "#f4f4f5",
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      :root {
+        color-scheme: light;
+      }
+      html.dark {
+        color-scheme: dark;
+      }
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      }
+      .endpoint-code {
+        font-family: "Monaco", "Menlo", monospace;
+        font-size: 12px;
+      }
+      .fade-enter {
+        opacity: 0;
+      }
+      .fade-enter-active {
+        opacity: 1;
+        transition: opacity 200ms;
+      }
+      .sidebar-nav {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(148, 163, 184, 0.8) transparent;
+      }
+      .sidebar-nav::-webkit-scrollbar {
+        width: 8px;
+      }
+      .sidebar-nav::-webkit-scrollbar-thumb {
+        background: rgba(148, 163, 184, 0.75);
+        border-radius: 999px;
+      }
+    </style>
+  </head>
+  <body
+    class="bg-white dark:bg-slate-950 text-gray-900 dark:text-slate-100 transition-colors"
+  >
+    <div class="flex h-screen overflow-hidden">
+      <aside
+        id="sidebar"
+        class="w-64 bg-gray-50 dark:bg-slate-900 border-r border-gray-200 dark:border-slate-800 overflow-hidden flex flex-col"
+      >
+        <div class="p-2 border-b border-gray-200 dark:border-slate-800">
+          <a
+            href="/"
+            class="inline-flex items-center gap-2.5"
+            aria-label="BLT API home"
+          >
+            <img src="/blt-api.svg" alt="BLT API logo" class="h-14" />
+            <div class="flex flex-col">
+              <span
+                class="text-sm font-medium tracking-tight text-gray-900 dark:text-slate-100"
+                >BLT API</span
+              >
+              <p class="text-xs text-gray-600 dark:text-slate-400 mt-1">
+                Interactive API Explorer
+              </p>
+            </div>
+          </a>
+
+          <span class="sr-only">Route Catalog</span>
+        </div>
+
+        <div class="p-4 border-b border-gray-200 dark:border-slate-800">
+          <input
+            id="searchInput"
+            type="search"
+            placeholder="Search endpoints..."
+            class="w-full px-3 py-2 text-sm rounded border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-red-600 dark:focus:ring-red-500"
+          />
+        </div>
+
+        <nav class="flex-1 sidebar-nav overflow-y-auto" aria-label="API routes">
+          <div id="navContainer"></div>
+        </nav>
+
+        <div
+          class="p-4 border-t border-gray-200 dark:border-slate-800 text-xs text-gray-600 dark:text-slate-400"
+        >
+          <p
+            id="endpointCount"
+            class="rounded-full border border-gray-200 bg-white px-3 py-2 text-center font-mono font-semibold text-gray-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+          >
+            v2 · Loading endpoints
+          </p>
+        </div>
+      </aside>
+
+      <div class="flex-1 flex flex-col overflow-hidden">
+        <header
+          class="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 px-8 py-4 flex items-center justify-between"
+        >
+          <h2 id="pageTitle" class="text-2xl font-bold">BLT API Dashboard</h2>
+          <div class="flex items-center gap-3">
+            <a
+              href="[[API_BASE_URL]]/health"
+              class="px-3 py-2 text-sm rounded border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-slate-100 hover:bg-gray-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-red-600 dark:focus:ring-red-500"
+            >
+              Health
+            </a>
+            <div class="relative">
+              <button
+                id="accountOpenButton"
+                type="button"
+                class="inline-flex items-center gap-2 rounded-full border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
+                aria-haspopup="menu"
+                aria-controls="profileMenu"
+                aria-expanded="false"
+              >
+                <span
+                  id="accountAvatar"
+                  class="flex h-7 w-7 items-center justify-center rounded-full bg-red-50 text-xs font-bold text-red-700 ring-1 ring-red-100 dark:bg-red-500/10 dark:text-red-300 dark:ring-red-500/30"
+                  aria-hidden="true"
+                  >👤</span
+                >
+                <span id="accountStatusChip">Sign up / Sign in</span>
+              </button>
+              <div
+                id="profileMenu"
+                class="absolute right-0 z-40 mt-2 hidden w-56 rounded-xl border border-gray-200 bg-white p-2 shadow-xl dark:border-slate-700 dark:bg-slate-900"
+                role="menu"
+                aria-label="Profile menu"
+              >
+                <button
+                  id="openProfileModalButton"
+                  type="button"
+                  class="w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-gray-700 transition hover:bg-gray-100 dark:text-slate-200 dark:hover:bg-slate-800"
+                  role="menuitem"
+                >
+                  Profile & API keys
+                </button>
+                <button
+                  id="menuSignOutButton"
+                  type="button"
+                  class="mt-1 w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-red-700 transition hover:bg-red-50 dark:text-red-300 dark:hover:bg-red-500/10"
+                  role="menuitem"
+                >
+                  Sign out
+                </button>
+              </div>
+            </div>
+            <button
+              id="themeToggle"
+              type="button"
+              class="p-2 rounded hover:bg-gray-100 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-red-600 dark:focus:ring-red-500"
+              aria-label="Toggle dark mode"
+            >
+              <svg
+                class="w-5 h-5"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                aria-hidden="true"
+              >
+                <path
+                  d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"
+                ></path>
+              </svg>
+            </button>
+          </div>
+        </header>
+
+        <main class="flex-1 overflow-hidden flex gap-6 p-8">
+          <div class="flex-1 overflow-y-auto">
+            <div class="space-y-4 pr-2">
+              <section
+                class="grid gap-3 md:grid-cols-3"
+                aria-label="API status"
+              >
+                <div
+                  class="rounded-lg border border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-900 p-4"
+                >
+                  <p
+                    class="text-xs font-semibold uppercase text-gray-600 dark:text-slate-400"
+                  >
+                    Base URL
+                  </p>
+                  <p
+                    id="baseUrlDisplay"
+                    class="mt-2 truncate endpoint-code text-sm font-semibold text-gray-900 dark:text-slate-100"
+                  >
+                    [[API_BASE_URL]]
+                  </p>
+                </div>
+                <div
+                  class="rounded-lg border border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-900 p-4"
+                >
+                  <div class="flex items-center justify-between gap-3">
+                    <p
+                      class="text-xs font-semibold uppercase text-gray-600 dark:text-slate-400"
+                    >
+                      Health
+                    </p>
+                    <button
+                      id="refreshHealthButton"
+                      type="button"
+                      class="rounded px-2 py-1 text-xs font-semibold text-red-600 dark:text-red-500 hover:bg-gray-100 dark:hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-red-600 dark:focus:ring-red-500"
+                    >
+                      Refresh
+                    </button>
+                  </div>
+                  <p
+                    id="healthStatus"
+                    class="mt-2 text-sm font-semibold text-gray-600 dark:text-slate-300"
+                  >
+                    Checking...
+                  </p>
+                </div>
+                <div
+                  class="rounded-lg border border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-900 p-4"
+                >
+                  <div class="flex items-center justify-between gap-3">
+                    <p
+                      class="text-xs font-semibold uppercase text-gray-600 dark:text-slate-400"
+                    >
+                      Stats
+                    </p>
+                    <button
+                      id="refreshStatsButton"
+                      type="button"
+                      class="rounded px-2 py-1 text-xs font-semibold text-red-600 dark:text-red-500 hover:bg-gray-100 dark:hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-red-600 dark:focus:ring-red-500"
+                    >
+                      Refresh
+                    </button>
+                  </div>
+                  <p
+                    id="statsStatus"
+                    class="mt-2 text-sm font-semibold text-gray-600 dark:text-slate-300"
+                  >
+                    API key needed
+                  </p>
+                </div>
+              </section>
+
+              <section
+                id="statsGrid"
+                class="hidden grid-cols-2 gap-3 md:grid-cols-4"
+                aria-label="Platform stats"
+              ></section>
+
+              <section id="detailPanel" class="min-w-0">
+                <div
+                  class="bg-gray-50 dark:bg-slate-900 rounded-lg p-6 text-sm text-gray-600 dark:text-slate-400"
+                >
+                  Select an endpoint to view details.
+                </div>
+              </section>
+            </div>
+          </div>
+
+          <aside
+            class="w-96 bg-gray-50 dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-slate-800 p-6 flex flex-col overflow-hidden"
+          >
+            <div class="flex items-start justify-between gap-3 mb-4">
+              <div>
+                <h3 class="text-lg font-bold">Try It</h3>
+                <p class="mt-1 text-xs text-gray-600 dark:text-slate-400">
+                  Live requests use fetch with cookies included.
+                </p>
+              </div>
+              <span
+                id="consoleMethodBadge"
+                class="rounded-md bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-700 ring-1 ring-inset ring-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:ring-blue-500/30"
+                >GET</span
+              >
+            </div>
+
+            <div
+              class="space-y-4 border-b border-gray-200 dark:border-slate-800 pb-4"
+            >
+              <div>
+                <label
+                  for="baseUrlInput"
+                  class="text-xs font-semibold text-gray-700 dark:text-slate-300"
+                  >Base URL</label
+                >
+                <input
+                  id="baseUrlInput"
+                  type="url"
+                  class="w-full mt-1 px-3 py-2 text-sm rounded border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-slate-100 endpoint-code focus:outline-none focus:ring-2 focus:ring-red-600 dark:focus:ring-red-500"
+                />
+              </div>
+
+              <div class="grid grid-cols-[6.5rem_minmax(0,1fr)] gap-2">
+                <div>
+                  <label
+                    for="methodInput"
+                    class="text-xs font-semibold text-gray-700 dark:text-slate-300"
+                    >Method</label
+                  >
+                  <input
+                    id="methodInput"
+                    type="text"
+                    readonly
+                    class="w-full mt-1 px-3 py-2 text-sm rounded border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-slate-100 endpoint-code font-bold focus:outline-none focus:ring-2 focus:ring-red-600 dark:focus:ring-red-500"
+                  />
+                </div>
+                <div class="min-w-0">
+                  <label
+                    for="pathInput"
+                    class="text-xs font-semibold text-gray-700 dark:text-slate-300"
+                    >Path</label
+                  >
+                  <input
+                    id="pathInput"
+                    type="text"
+                    readonly
+                    class="w-full mt-1 px-3 py-2 text-sm rounded border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-slate-100 endpoint-code focus:outline-none focus:ring-2 focus:ring-red-600 dark:focus:ring-red-500"
+                  />
+                </div>
+              </div>
+
+              <button
+                id="sendRequestButton"
+                type="button"
+                class="w-full bg-red-600 hover:bg-red-700 dark:hover:bg-red-700 text-white font-semibold py-2 rounded transition disabled:cursor-not-allowed disabled:opacity-70 focus:outline-none focus:ring-2 focus:ring-red-600 dark:focus:ring-red-500"
+              >
+                Send Request
+              </button>
+            </div>
+
+            <div class="space-y-4 flex-1 overflow-y-auto pt-4">
+              <div id="pathParamsSection" class="hidden">
+                <h3
+                  class="text-xs font-bold uppercase text-gray-600 dark:text-slate-400"
+                >
+                  Path Params
+                </h3>
+                <div id="pathParamsContainer" class="mt-2 space-y-3"></div>
+              </div>
+
+              <div id="queryParamsSection" class="hidden">
+                <h3
+                  class="text-xs font-bold uppercase text-gray-600 dark:text-slate-400"
+                >
+                  Query Params
+                </h3>
+                <div id="queryParamsContainer" class="mt-2 space-y-3"></div>
+              </div>
+
+              <div id="bodyEditorSection" class="hidden">
+                <div class="flex items-center justify-between gap-3">
+                  <label
+                    for="bodyEditor"
+                    class="text-xs font-semibold text-gray-700 dark:text-slate-300"
+                    >JSON Body</label
+                  >
+                  <button
+                    id="resetBodyButton"
+                    type="button"
+                    class="text-xs font-semibold text-red-600 dark:text-red-500 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-600 dark:focus:ring-red-500"
+                  >
+                    Reset Sample
+                  </button>
+                </div>
+                <textarea
+                  id="bodyEditor"
+                  spellcheck="false"
+                  class="w-full mt-1 px-3 py-2 text-xs rounded border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-slate-100 endpoint-code leading-5 focus:outline-none focus:ring-2 focus:ring-red-600 dark:focus:ring-red-500 h-44 resize-y"
+                ></textarea>
+              </div>
+
+              <div>
+                <button
+                  id="formatJsonButton"
+                  type="button"
+                  class="w-full rounded border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm font-semibold text-gray-700 dark:text-slate-100 hover:bg-gray-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-red-600 dark:focus:ring-red-500 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Format JSON
+                </button>
+              </div>
+
+              <div
+                id="requestStatus"
+                class="rounded border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-gray-600 dark:text-slate-300"
+                aria-live="polite"
+              >
+                Ready.
+              </div>
+
+              <div
+                class="mt-6 border-t border-gray-200 dark:border-slate-800 pt-4"
+              >
+                <label
+                  class="text-xs font-semibold text-gray-700 dark:text-slate-300"
+                  >Response</label
+                >
+                <div
+                  class="mt-2 bg-white dark:bg-slate-950 rounded border border-gray-300 dark:border-slate-800 overflow-hidden"
+                >
+                  <div
+                    class="flex flex-wrap items-center justify-between gap-2 border-b border-gray-200 dark:border-slate-800 px-3 py-2"
+                  >
+                    <div
+                      class="flex flex-wrap items-center gap-2 text-xs font-semibold"
+                    >
+                      <span
+                        id="responseStatusBadge"
+                        class="rounded bg-gray-200 px-2 py-1 text-gray-700 dark:bg-slate-800 dark:text-slate-300"
+                        >No response</span
+                      >
+                      <span
+                        id="responseTime"
+                        class="text-gray-500 dark:text-slate-400"
+                      ></span>
+                    </div>
+                    <button
+                      id="copyResponseButton"
+                      type="button"
+                      class="rounded px-2 py-1 text-xs font-semibold text-red-600 dark:text-red-500 hover:bg-gray-100 dark:hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-red-600 dark:focus:ring-red-500 disabled:cursor-not-allowed disabled:opacity-40"
+                      disabled
+                    >
+                      Copy response
+                    </button>
+                  </div>
+                  <pre
+                    class="max-h-80 overflow-auto p-3 endpoint-code text-xs leading-5 text-gray-800 dark:text-slate-100"
+                  ><code id="responseBody">Response will appear here.</code></pre>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </main>
+      </div>
+    </div>
+
+    <!-- ── Auth Modal (sign in / create account) ──────────────────────── -->
+    <div
+      id="authModal"
+      class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 pt-12"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="authModalTitle"
+    >
+      <div
+        id="authModalBackdrop"
+        class="absolute inset-0 bg-slate-950/60 backdrop-blur-sm"
+      ></div>
+      <div
+        class="relative w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-slate-900"
+      >
+        <!-- gradient header with logo + tabs -->
+        <div class="bg-gradient-to-br from-red-600 to-red-800 px-8 pt-8 pb-6">
+          <button
+            id="authModalCloseButton"
+            type="button"
+            aria-label="Close"
+            class="absolute right-4 top-4 rounded-lg p-1.5 text-red-200 transition hover:bg-red-700/50 hover:text-white focus:outline-none focus:ring-2 focus:ring-white/50"
+          >
+            <svg
+              class="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+          <div class="mb-5 flex items-center gap-3">
+            <div
+              class="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/20"
+            >
+              <svg
+                class="h-5 w-5 text-white"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+            </div>
+            <div>
+              <h2 id="authModalTitle" class="text-lg font-bold text-white">
+                BLT API
+              </h2>
+              <p class="text-xs text-red-200">OWASP Bug Logging Tool</p>
+            </div>
+          </div>
+          <div id="authTabBar" class="flex rounded-xl bg-black/20 p-1">
+            <button
+              id="authTabSignin"
+              type="button"
+              aria-selected="true"
+              class="flex-1 rounded-lg py-2 px-4 text-sm font-semibold transition-all bg-white text-red-700 shadow-sm"
+            >
+              Sign in
+            </button>
+            <button
+              id="authTabSignup"
+              type="button"
+              aria-selected="false"
+              class="flex-1 rounded-lg py-2 px-4 text-sm font-semibold transition-all text-red-200 hover:text-white"
+            >
+              Create account
+            </button>
+          </div>
+        </div>
+        <!-- forms area -->
+        <div class="px-8 py-6">
+          <!-- Sign in form -->
+          <form id="authSigninForm" class="space-y-4" novalidate>
+            <div>
+              <label
+                for="authSigninUsername"
+                class="block text-xs font-semibold text-gray-700 dark:text-slate-300"
+                >Username</label
+              >
+              <input
+                id="authSigninUsername"
+                name="username"
+                type="text"
+                autocomplete="username"
+                placeholder="your_username"
+                class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-red-500"
+              />
+            </div>
+            <div>
+              <label
+                for="authSigninPassword"
+                class="block text-xs font-semibold text-gray-700 dark:text-slate-300"
+                >Password</label
+              >
+              <input
+                id="authSigninPassword"
+                name="password"
+                type="password"
+                autocomplete="current-password"
+                placeholder="Your password"
+                class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-red-500"
+              />
+            </div>
+            <div
+              id="authSigninMessage"
+              class="hidden rounded-lg px-3 py-2.5 text-sm"
+              aria-live="polite"
+            ></div>
+            <button
+              id="authSigninButton"
+              type="submit"
+              class="w-full rounded-lg bg-red-600 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              Sign in
+            </button>
+            <p class="text-center text-xs text-gray-500 dark:text-slate-400">
+              Don't have an account?
+              <button
+                type="button"
+                id="switchToSignup"
+                class="font-semibold text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 focus:outline-none"
+              >
+                Create one
+              </button>
+            </p>
+          </form>
+          <!-- Sign up form (hidden by default) -->
+          <form id="authSignupForm" class="hidden space-y-4" novalidate>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label
+                  for="authSignupUsername"
+                  class="block text-xs font-semibold text-gray-700 dark:text-slate-300"
+                  >Username</label
+                >
+                <input
+                  id="authSignupUsername"
+                  name="username"
+                  type="text"
+                  autocomplete="username"
+                  placeholder="researcher"
+                  class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-red-500"
+                />
+              </div>
+              <div>
+                <label
+                  for="authSignupEmail"
+                  class="block text-xs font-semibold text-gray-700 dark:text-slate-300"
+                  >Email</label
+                >
+                <input
+                  id="authSignupEmail"
+                  name="email"
+                  type="email"
+                  autocomplete="email"
+                  placeholder="you@example.com"
+                  class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-red-500"
+                />
+              </div>
+            </div>
+            <div>
+              <label
+                for="authSignupPassword"
+                class="block text-xs font-semibold text-gray-700 dark:text-slate-300"
+                >Password</label
+              >
+              <input
+                id="authSignupPassword"
+                name="password"
+                type="password"
+                autocomplete="new-password"
+                placeholder="12+ chars · uppercase · number · symbol"
+                class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-red-500"
+              />
+            </div>
+            <div
+              id="authSignupMessage"
+              class="hidden rounded-lg px-3 py-2.5 text-sm"
+              aria-live="polite"
+            ></div>
+            <button
+              id="authSignupButton"
+              type="submit"
+              class="w-full rounded-lg bg-red-600 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              Create account
+            </button>
+            <p class="text-center text-xs text-gray-500 dark:text-slate-400">
+              Already have an account?
+              <button
+                type="button"
+                id="switchToSignin"
+                class="font-semibold text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 focus:outline-none"
+              >
+                Sign in
+              </button>
+            </p>
+          </form>
+          <!-- Local dev verification step (hidden by default, production users see email message) -->
+          <div id="authVerifyStep" class="hidden space-y-4">
+            <div
+              class="rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-500/30 dark:bg-amber-500/10"
+            >
+              <p
+                class="text-xs font-bold uppercase text-amber-700 dark:text-amber-300"
+              >
+                Local development
+              </p>
+              <p class="mt-1 text-sm text-amber-800 dark:text-amber-100">
+                A verification code was printed to your server console. Enter it
+                below to activate your account.
+              </p>
+            </div>
+            <div>
+              <label
+                for="authVerifyCode"
+                class="block text-xs font-semibold text-gray-700 dark:text-slate-300"
+                >Verification code</label
+              >
+              <input
+                id="authVerifyCode"
+                type="text"
+                autocomplete="one-time-code"
+                inputmode="numeric"
+                placeholder="000000"
+                class="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-center text-xl font-mono tracking-[0.4em] dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-red-500"
+              />
+            </div>
+            <div
+              id="authVerifyMessage"
+              class="hidden rounded-lg px-3 py-2.5 text-sm"
+              aria-live="polite"
+            ></div>
+            <button
+              id="authVerifyButton"
+              type="button"
+              class="w-full rounded-lg bg-red-600 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              Verify account
+            </button>
+            <button
+              id="authVerifyBackButton"
+              type="button"
+              class="w-full rounded-lg border border-gray-300 bg-white py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-red-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+            >
+              Back to sign in
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Profile Modal (signed-in users) ────────────────────────────── -->
+    <div
+      id="profileModal"
+      class="fixed inset-0 z-50 hidden flex items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="profileModalTitle"
+    >
+      <div
+        id="profileModalBackdrop"
+        class="absolute inset-0 bg-slate-950/60 backdrop-blur-sm"
+      ></div>
+      <div
+        class="relative w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-slate-900"
+      >
+        <!-- profile header -->
+        <div
+          class="bg-gradient-to-br from-slate-800 to-slate-900 px-8 pt-8 pb-6"
+        >
+          <button
+            id="profileModalCloseButton"
+            type="button"
+            aria-label="Close"
+            class="absolute right-4 top-4 rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-white/30"
+          >
+            <svg
+              class="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+          <div class="flex items-center gap-4">
+            <div
+              id="profileAvatarLarge"
+              class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-red-600 text-2xl font-bold text-white ring-2 ring-red-500/30"
+            >
+              ?
+            </div>
+            <div class="min-w-0">
+              <h2
+                id="profileModalTitle"
+                class="truncate text-lg font-bold text-white"
+              >
+                Your Profile
+              </h2>
+              <div class="mt-1 flex items-center gap-2">
+                <span
+                  class="inline-flex h-2 w-2 rounded-full bg-green-400 shadow-sm shadow-green-400/50"
+                ></span>
+                <span class="text-xs text-slate-300">Session active</span>
+              </div>
+            </div>
+            <button
+              id="profileSignOutButton"
+              type="button"
+              class="ml-auto shrink-0 rounded-lg border border-slate-600 px-3 py-1.5 text-xs font-semibold text-slate-300 transition hover:border-red-500/60 hover:bg-red-500/10 hover:text-red-300 focus:outline-none focus:ring-2 focus:ring-red-500"
+            >
+              Sign out
+            </button>
+          </div>
+        </div>
+        <!-- scrollable content -->
+        <div class="sidebar-nav max-h-[68vh] overflow-y-auto p-6 space-y-5">
+          <!-- create + list API keys -->
+          <div
+            class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-slate-800 dark:bg-slate-800"
+          >
+            <div class="mb-3 flex items-center justify-between gap-3">
+              <p
+                class="text-xs font-bold uppercase text-gray-600 dark:text-slate-400"
+              >
+                Your API keys
+              </p>
+              <button
+                id="refreshApiKeysButton"
+                type="button"
+                class="rounded border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 py-1 text-xs font-semibold text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+              >
+                Refresh
+              </button>
+            </div>
+            <div class="mb-4 flex gap-2">
+              <input
+                id="apiKeyNameInput"
+                type="text"
+                autocomplete="off"
+                placeholder="Key name (e.g. local dev)"
+                class="flex-1 rounded-lg border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-red-500"
+              />
+              <button
+                id="createApiKeyButton"
+                type="button"
+                class="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300 dark:hover:bg-red-500/20"
+              >
+                Create
+              </button>
+            </div>
+            <div
+              id="apiKeyList"
+              class="space-y-2 min-h-[2rem] text-sm text-gray-600 dark:text-slate-300"
+            >
+              Sign in to load API keys.
+            </div>
+          </div>
+          <div
+            id="apiKeyMessage"
+            class="hidden rounded-lg px-3 py-2.5 text-sm"
+            aria-live="polite"
+          ></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const baseUrl = "[[API_BASE_URL]]";
+      const API_KEY_STORAGE_KEY = "blt-dashboard-api-key";
+      const SESSION_TOKEN_STORAGE_KEY = "blt-dashboard-session-token";
+      const SESSION_USERNAME_STORAGE_KEY = "blt-dashboard-session-username";
+      const THEME_STORAGE_KEY = "blt-theme";
+      let activeRoute = null;
+      let sessionToken = "";
+      let sessionUsername = "";
+      let lastResponseText = "";
+      let pendingLocalVerificationUsername = "";
+
+      const methodStyles = {
+        GET: "bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-200 dark:bg-blue-500/10 dark:text-blue-300 dark:ring-blue-500/30",
+        POST: "bg-green-50 text-green-700 ring-1 ring-inset ring-green-200 dark:bg-green-500/10 dark:text-green-300 dark:ring-green-500/30",
+        PATCH:
+          "bg-amber-50 text-amber-700 ring-1 ring-inset ring-amber-200 dark:bg-amber-500/10 dark:text-amber-300 dark:ring-amber-500/30",
+        DELETE:
+          "bg-red-50 text-red-700 ring-1 ring-inset ring-red-200 dark:bg-red-500/10 dark:text-red-300 dark:ring-red-500/30",
+      };
+
+      const catalog = [
+        {
+          name: "Auth",
+          summary: "Register, sign in, and verify email addresses.",
+          routes: [
+            {
+              id: "auth-signup",
+              name: "Create account",
+              method: "POST",
+              path: "/v2/auth/signup",
+              summary:
+                "Register a new user and send an email verification link.",
+              auth: { apiKey: false, bearer: false },
+              bodySchema: [
+                {
+                  name: "username",
+                  type: "string",
+                  required: true,
+                  description:
+                    "3-30 characters. Letters, numbers, underscores, dots, and hyphens.",
+                },
+                {
+                  name: "email",
+                  type: "string",
+                  required: true,
+                  description: "Unique email address for the account.",
+                },
+                {
+                  name: "password",
+                  type: "string",
+                  required: true,
+                  description:
+                    "12-128 chars with uppercase, lowercase, number, and symbol.",
+                },
+                {
+                  name: "redirect_uri",
+                  type: "string",
+                  required: false,
+                  description: "Optional approved redirect target.",
+                },
+              ],
+              sampleBody: {
+                username: "security.researcher",
+                email: "researcher@example.com",
+                password: "Use-A-Strong-Pass1!",
+              },
+              sampleResponse: {
+                message:
+                  "User registered successfully, To activate your account, please check your email for the verification link.",
+                user_id: 42,
+              },
+              errors: [
+                {
+                  status: 400,
+                  message:
+                    "Invalid JSON, missing fields, invalid email, weak password, or duplicate user.",
+                },
+                { status: 429, message: "Too many signup attempts." },
+                {
+                  status: 503,
+                  message: "Verification email could not be delivered.",
+                },
+              ],
+            },
+            {
+              id: "auth-signin",
+              name: "Sign in",
+              method: "POST",
+              path: "/v2/auth/signin",
+              summary:
+                "Validate credentials and return a JWT token for this page session.",
+              auth: { apiKey: false, bearer: false },
+              bodySchema: [
+                {
+                  name: "username",
+                  type: "string",
+                  required: true,
+                  description: "Existing BLT username.",
+                },
+                {
+                  name: "password",
+                  type: "string",
+                  required: true,
+                  description: "Account password.",
+                },
+                {
+                  name: "redirect_uri",
+                  type: "string",
+                  required: false,
+                  description: "Optional approved redirect target.",
+                },
+              ],
+              sampleBody: {
+                username: "security.researcher",
+                password: "Use-A-Strong-Pass1!",
+              },
+              sampleResponse: {
+                message: "Login successful",
+                token: "eyJhbGciOi...",
+                username: "security.researcher",
+              },
+              errors: [
+                {
+                  status: 400,
+                  message:
+                    "Invalid JSON, missing fields, invalid username, or invalid password shape.",
+                },
+                { status: 401, message: "Invalid username or password." },
+                { status: 403, message: "Account has not been verified." },
+                { status: 429, message: "Too many signin attempts." },
+              ],
+            },
+            {
+              id: "auth-verify-email",
+              name: "Verify email",
+              method: "GET",
+              path: "/v2/auth/verify-email",
+              summary:
+                "Activate a user account with the verification token from email.",
+              auth: { apiKey: false, bearer: false },
+              queryParams: [
+                {
+                  name: "token",
+                  type: "string",
+                  required: true,
+                  example: "verification-jwt",
+                  description: "JWT token from the verification link.",
+                },
+              ],
+              sampleResponse: {
+                message:
+                  "Email verified successfully, your account is now active.",
+              },
+              errors: [
+                { status: 400, message: "Missing, invalid, or expired token." },
+                { status: 500, message: "JWT secret or database error." },
+              ],
+            },
+          ],
+        },
+        {
+          name: "Bugs",
+          summary: "Read, search, create, and update bug reports.",
+          routes: [
+            {
+              id: "bugs-list",
+              name: "List bugs",
+              method: "GET",
+              path: "/v2/bugs",
+              summary: "List bug reports with pagination and optional filters.",
+              auth: { apiKey: true, bearer: false },
+              queryParams: [
+                {
+                  name: "page",
+                  type: "integer",
+                  required: false,
+                  example: "1",
+                  description: "Page number. Defaults to 1.",
+                },
+                {
+                  name: "per_page",
+                  type: "integer",
+                  required: false,
+                  example: "20",
+                  description: "Items per page. Max 100.",
+                },
+                {
+                  name: "status",
+                  type: "string",
+                  required: false,
+                  example: "open",
+                  description: "Filter by status.",
+                },
+                {
+                  name: "domain",
+                  type: "integer",
+                  required: false,
+                  example: "1",
+                  description: "Filter by domain ID.",
+                },
+                {
+                  name: "verified",
+                  type: "boolean",
+                  required: false,
+                  example: "true",
+                  description: "Filter by verification state.",
+                },
+              ],
+              sampleResponse: {
+                success: true,
+                data: [
+                  {
+                    id: 123,
+                    url: "https://example.com",
+                    description: "Stored XSS report",
+                    status: "open",
+                    verified: 0,
+                  },
+                ],
+                pagination: {
+                  page: 1,
+                  per_page: 20,
+                  count: 1,
+                  total: 1,
+                  total_pages: 1,
+                },
+              },
+              errors: [
+                { status: 401, message: "Missing or invalid API key." },
+                { status: 500, message: "Database query failed." },
+              ],
+            },
+            {
+              id: "bugs-get",
+              name: "Get bug",
+              method: "GET",
+              path: "/v2/bugs/{id}",
+              summary: "Fetch one bug report with screenshots and tags.",
+              auth: { apiKey: true, bearer: false },
+              pathParams: [
+                {
+                  name: "id",
+                  type: "integer",
+                  required: true,
+                  example: "123",
+                  description: "Bug ID.",
+                },
+              ],
+              sampleResponse: {
+                success: true,
+                data: {
+                  id: 123,
+                  url: "https://example.com",
+                  description: "Stored XSS report",
+                  status: "open",
+                  screenshots: [],
+                  tags: [],
+                },
+              },
+              errors: [
+                { status: 400, message: "Invalid bug ID." },
+                { status: 404, message: "Bug not found." },
+              ],
+            },
+            {
+              id: "bugs-create",
+              name: "Create bug",
+              method: "POST",
+              path: "/v2/bugs",
+              summary: "Create a new bug report with URL and description.",
+              auth: { apiKey: true, bearer: false },
+              bodySchema: [
+                {
+                  name: "url",
+                  type: "string",
+                  required: true,
+                  description:
+                    "Affected http or https URL. Max 200 characters.",
+                },
+                {
+                  name: "description",
+                  type: "string",
+                  required: true,
+                  description: "Bug description.",
+                },
+                {
+                  name: "markdown_description",
+                  type: "string",
+                  required: false,
+                  description: "Markdown-formatted details.",
+                },
+                {
+                  name: "domain",
+                  type: "integer",
+                  required: false,
+                  description: "Related domain ID.",
+                },
+                {
+                  name: "label",
+                  type: "integer",
+                  required: false,
+                  description: "Label ID.",
+                },
+                {
+                  name: "github_url",
+                  type: "string",
+                  required: false,
+                  description: "Related GitHub URL.",
+                },
+              ],
+              sampleBody: {
+                url: "https://example.com/account",
+                description: "Stored XSS in the profile bio field.",
+                markdown_description:
+                  "## Impact\nStored script executes for profile viewers.",
+                domain: 1,
+              },
+              sampleResponse: {
+                success: true,
+                message: "Bug created successfully",
+                data: {
+                  id: 124,
+                  url: "https://example.com/account",
+                  description: "Stored XSS in the profile bio field.",
+                  status: "open",
+                },
+              },
+              errors: [
+                {
+                  status: 400,
+                  message:
+                    "Missing URL or description, invalid URL, or unsupported field.",
+                },
+                { status: 429, message: "Too many bug submissions." },
+                { status: 500, message: "Failed to create bug." },
+              ],
+            },
+            {
+              id: "bugs-update",
+              name: "Update bug",
+              method: "PATCH",
+              path: "/v2/bugs/{id}",
+              summary:
+                "Update fields on a bug you own. Requires a signin token in memory.",
+              auth: { apiKey: true, bearer: true },
+              pathParams: [
+                {
+                  name: "id",
+                  type: "integer",
+                  required: true,
+                  example: "123",
+                  description: "Bug ID to update.",
+                },
+              ],
+              bodySchema: [
+                {
+                  name: "status",
+                  type: "string",
+                  required: false,
+                  description: "open, closed, in-progress, or reviewing.",
+                },
+                {
+                  name: "description",
+                  type: "string",
+                  required: false,
+                  description: "Replacement plain text description.",
+                },
+                {
+                  name: "markdown_description",
+                  type: "string",
+                  required: false,
+                  description: "Replacement Markdown description.",
+                },
+                {
+                  name: "verified",
+                  type: "boolean",
+                  required: false,
+                  description: "Verification state.",
+                },
+                {
+                  name: "github_url",
+                  type: "string|null",
+                  required: false,
+                  description: "Linked GitHub issue or PR.",
+                },
+              ],
+              sampleBody: {
+                status: "reviewing",
+                markdown_description:
+                  "Updated proof of concept and impact notes.",
+              },
+              sampleResponse: {
+                success: true,
+                message: "Bug updated successfully",
+                data: { id: 123, status: "reviewing" },
+              },
+              errors: [
+                {
+                  status: 400,
+                  message:
+                    "Invalid ID, empty body, invalid status, or no valid fields.",
+                },
+                { status: 401, message: "Missing or invalid bearer token." },
+                { status: 403, message: "You can only update your own bugs." },
+                { status: 404, message: "Bug not found." },
+              ],
+            },
+            {
+              id: "bugs-search",
+              name: "Search bugs",
+              method: "GET",
+              path: "/v2/bugs/search",
+              summary: "Search bugs by URL or description text.",
+              auth: { apiKey: true, bearer: false },
+              queryParams: [
+                {
+                  name: "q",
+                  type: "string",
+                  required: true,
+                  example: "xss",
+                  description: "Search text.",
+                },
+                {
+                  name: "limit",
+                  type: "integer",
+                  required: false,
+                  example: "10",
+                  description: "Max results. Max 100.",
+                },
+              ],
+              sampleResponse: {
+                success: true,
+                query: "xss",
+                data: [
+                  {
+                    id: 123,
+                    url: "https://example.com",
+                    description: "Stored XSS report",
+                  },
+                ],
+              },
+              errors: [
+                { status: 400, message: "Search query q is required." },
+                { status: 500, message: "Search query failed." },
+              ],
+            },
+          ],
+        },
+        {
+          name: "Users",
+          summary:
+            "Read users, profile data, activity, followers, and create users.",
+          routes: [
+            {
+              id: "users-list",
+              name: "List users",
+              method: "GET",
+              path: "/v2/users",
+              summary: "List active users ordered by score.",
+              auth: { apiKey: true, bearer: false },
+              queryParams: [
+                {
+                  name: "page",
+                  type: "integer",
+                  required: false,
+                  example: "1",
+                  description: "Page number.",
+                },
+                {
+                  name: "per_page",
+                  type: "integer",
+                  required: false,
+                  example: "20",
+                  description: "Items per page.",
+                },
+              ],
+              sampleResponse: {
+                success: true,
+                data: [
+                  { id: 7, username: "alice", total_score: 1200, is_active: 1 },
+                ],
+                pagination: { page: 1, per_page: 20, count: 1, total: 1 },
+              },
+              errors: [
+                { status: 401, message: "Missing or invalid API key." },
+                { status: 503, message: "Service temporarily unavailable." },
+              ],
+            },
+            {
+              id: "users-create",
+              name: "Create user",
+              method: "POST",
+              path: "/v2/users",
+              summary:
+                "Create a user account with validation and abuse protection.",
+              auth: { apiKey: true, bearer: false },
+              bodySchema: [
+                {
+                  name: "username",
+                  type: "string",
+                  required: true,
+                  description:
+                    "3-30 chars using letters, numbers, underscore, dot, or hyphen.",
+                },
+                {
+                  name: "email",
+                  type: "string",
+                  required: true,
+                  description: "Unique email address.",
+                },
+                {
+                  name: "password",
+                  type: "string",
+                  required: true,
+                  description:
+                    "12-128 chars with upper, lower, number, and symbol.",
+                },
+                {
+                  name: "description",
+                  type: "string",
+                  required: false,
+                  description: "Optional profile text up to 500 characters.",
+                },
+              ],
+              sampleBody: {
+                username: "alice.researcher",
+                email: "alice@example.com",
+                password: "Use-A-Strong-Pass1!",
+                description: "Security researcher",
+              },
+              sampleResponse: {
+                success: true,
+                message:
+                  "User created. Please verify email to activate account.",
+                data: { id: 7, username: "alice.researcher", is_active: false },
+              },
+              errors: [
+                {
+                  status: 400,
+                  message: "Invalid body or field validation error.",
+                },
+                { status: 409, message: "Username or email already exists." },
+                { status: 413, message: "Request body too large." },
+                {
+                  status: 415,
+                  message: "Content-Type must be application/json.",
+                },
+                { status: 429, message: "Account creation rate limit." },
+              ],
+            },
+            {
+              id: "users-get",
+              name: "Get user",
+              method: "GET",
+              path: "/v2/users/{id}",
+              summary: "Fetch one user's public profile fields.",
+              auth: { apiKey: true, bearer: false },
+              pathParams: [
+                {
+                  name: "id",
+                  type: "integer",
+                  required: true,
+                  example: "7",
+                  description: "User ID.",
+                },
+              ],
+              sampleResponse: {
+                success: true,
+                data: { id: 7, username: "alice", total_score: 1200 },
+              },
+              errors: [
+                { status: 400, message: "Invalid user ID." },
+                { status: 404, message: "User not found." },
+              ],
+            },
+            {
+              id: "users-profile",
+              name: "Get user profile",
+              method: "GET",
+              path: "/v2/users/{id}/profile",
+              summary:
+                "Fetch a user profile with aggregate bug, domain, and social stats.",
+              auth: { apiKey: true, bearer: false },
+              pathParams: [
+                {
+                  name: "id",
+                  type: "integer",
+                  required: true,
+                  example: "7",
+                  description: "User ID.",
+                },
+              ],
+              sampleResponse: {
+                success: true,
+                data: {
+                  id: 7,
+                  username: "alice",
+                  stats: {
+                    total_bugs: 4,
+                    verified_bugs: 2,
+                    domains: 1,
+                    followers: 8,
+                    following: 5,
+                  },
+                },
+              },
+              errors: [
+                { status: 400, message: "Invalid user ID." },
+                { status: 404, message: "User not found." },
+              ],
+            },
+            {
+              id: "users-bugs",
+              name: "User bugs",
+              method: "GET",
+              path: "/v2/users/{id}/bugs",
+              summary: "List bugs reported by a user.",
+              auth: { apiKey: true, bearer: false },
+              pathParams: [
+                {
+                  name: "id",
+                  type: "integer",
+                  required: true,
+                  example: "7",
+                  description: "User ID.",
+                },
+              ],
+              queryParams: [
+                {
+                  name: "page",
+                  type: "integer",
+                  required: false,
+                  example: "1",
+                  description: "Page number.",
+                },
+                {
+                  name: "per_page",
+                  type: "integer",
+                  required: false,
+                  example: "20",
+                  description: "Items per page.",
+                },
+              ],
+              sampleResponse: {
+                success: true,
+                data: [
+                  {
+                    id: 123,
+                    url: "https://example.com",
+                    status: "open",
+                    verified: 0,
+                  },
+                ],
+                pagination: { page: 1, per_page: 20, count: 1, total: 1 },
+              },
+              errors: [{ status: 400, message: "Invalid user ID." }],
+            },
+            {
+              id: "users-domains",
+              name: "User domains",
+              method: "GET",
+              path: "/v2/users/{id}/domains",
+              summary: "List domains submitted by a user.",
+              auth: { apiKey: true, bearer: false },
+              pathParams: [
+                {
+                  name: "id",
+                  type: "integer",
+                  required: true,
+                  example: "7",
+                  description: "User ID.",
+                },
+              ],
+              queryParams: [
+                {
+                  name: "page",
+                  type: "integer",
+                  required: false,
+                  example: "1",
+                  description: "Page number.",
+                },
+                {
+                  name: "per_page",
+                  type: "integer",
+                  required: false,
+                  example: "20",
+                  description: "Items per page.",
+                },
+              ],
+              sampleResponse: {
+                success: true,
+                data: [
+                  {
+                    id: 4,
+                    name: "Example",
+                    url: "https://example.com",
+                    is_active: 1,
+                  },
+                ],
+                pagination: { page: 1, per_page: 20, count: 1, total: 1 },
+              },
+              errors: [{ status: 400, message: "Invalid user ID." }],
+            },
+            {
+              id: "users-followers",
+              name: "User followers",
+              method: "GET",
+              path: "/v2/users/{id}/followers",
+              summary: "List users following the selected user.",
+              auth: { apiKey: true, bearer: false },
+              pathParams: [
+                {
+                  name: "id",
+                  type: "integer",
+                  required: true,
+                  example: "7",
+                  description: "User ID.",
+                },
+              ],
+              queryParams: [
+                {
+                  name: "page",
+                  type: "integer",
+                  required: false,
+                  example: "1",
+                  description: "Page number.",
+                },
+                {
+                  name: "per_page",
+                  type: "integer",
+                  required: false,
+                  example: "20",
+                  description: "Items per page.",
+                },
+              ],
+              sampleResponse: {
+                success: true,
+                data: [{ id: 12, username: "bob" }],
+                pagination: { page: 1, per_page: 20, count: 1, total: 1 },
+              },
+              errors: [{ status: 400, message: "Invalid user ID." }],
+            },
+            {
+              id: "users-following",
+              name: "User following",
+              method: "GET",
+              path: "/v2/users/{id}/following",
+              summary: "List users followed by the selected user.",
+              auth: { apiKey: true, bearer: false },
+              pathParams: [
+                {
+                  name: "id",
+                  type: "integer",
+                  required: true,
+                  example: "7",
+                  description: "User ID.",
+                },
+              ],
+              queryParams: [
+                {
+                  name: "page",
+                  type: "integer",
+                  required: false,
+                  example: "1",
+                  description: "Page number.",
+                },
+                {
+                  name: "per_page",
+                  type: "integer",
+                  required: false,
+                  example: "20",
+                  description: "Items per page.",
+                },
+              ],
+              sampleResponse: {
+                success: true,
+                data: [{ id: 19, username: "charlie" }],
+                pagination: { page: 1, per_page: 20, count: 1, total: 1 },
+              },
+              errors: [{ status: 400, message: "Invalid user ID." }],
+            },
+          ],
+        },
+        {
+          name: "Domains",
+          summary: "Read domains and domain tag associations.",
+          routes: [
+            {
+              id: "domains-list",
+              name: "List domains",
+              method: "GET",
+              path: "/v2/domains",
+              summary: "List domains with pagination.",
+              auth: { apiKey: true, bearer: false },
+              queryParams: [
+                {
+                  name: "page",
+                  type: "integer",
+                  required: false,
+                  example: "1",
+                  description: "Page number.",
+                },
+                {
+                  name: "per_page",
+                  type: "integer",
+                  required: false,
+                  example: "20",
+                  description: "Items per page.",
+                },
+              ],
+              sampleResponse: {
+                success: true,
+                data: [
+                  {
+                    id: 4,
+                    name: "Example",
+                    url: "https://example.com",
+                    clicks: 5,
+                    is_active: 1,
+                  },
+                ],
+                pagination: {
+                  page: 1,
+                  per_page: 20,
+                  count: 1,
+                  total: 1,
+                  total_pages: 1,
+                },
+              },
+              errors: [
+                { status: 401, message: "Missing or invalid API key." },
+                { status: 503, message: "Database unavailable." },
+              ],
+            },
+            {
+              id: "domains-get",
+              name: "Get domain",
+              method: "GET",
+              path: "/v2/domains/{id}",
+              summary: "Fetch details for a single domain.",
+              auth: { apiKey: true, bearer: false },
+              pathParams: [
+                {
+                  name: "id",
+                  type: "integer",
+                  required: true,
+                  example: "4",
+                  description: "Domain ID.",
+                },
+              ],
+              sampleResponse: {
+                success: true,
+                data: {
+                  id: 4,
+                  name: "Example",
+                  url: "https://example.com",
+                  is_active: 1,
+                },
+              },
+              errors: [
+                { status: 400, message: "Invalid domain ID." },
+                { status: 404, message: "Domain not found." },
+              ],
+            },
+            {
+              id: "domains-tags",
+              name: "Domain tags",
+              method: "GET",
+              path: "/v2/domains/{id}/tags",
+              summary: "List tags attached to a domain.",
+              auth: { apiKey: true, bearer: false },
+              pathParams: [
+                {
+                  name: "id",
+                  type: "integer",
+                  required: true,
+                  example: "4",
+                  description: "Domain ID.",
+                },
+              ],
+              queryParams: [
+                {
+                  name: "page",
+                  type: "integer",
+                  required: false,
+                  example: "1",
+                  description: "Page number.",
+                },
+                {
+                  name: "per_page",
+                  type: "integer",
+                  required: false,
+                  example: "20",
+                  description: "Items per page.",
+                },
+              ],
+              sampleResponse: {
+                success: true,
+                domain_id: 4,
+                data: [{ id: 2, name: "xss" }],
+                pagination: { page: 1, per_page: 20, count: 1 },
+              },
+              errors: [
+                { status: 400, message: "Invalid domain ID." },
+                { status: 500, message: "Failed to fetch domain tags." },
+              ],
+            },
+          ],
+        },
+        {
+          name: "Organizations",
+          summary:
+            "Explore organizations, related domains, bugs, managers, tags, integrations, and stats.",
+          routes: [
+            {
+              id: "orgs-list",
+              name: "List organizations",
+              method: "GET",
+              path: "/v2/organizations",
+              summary:
+                "List organizations with pagination, search, type, and active filters.",
+              auth: { apiKey: true, bearer: false },
+              queryParams: [
+                {
+                  name: "page",
+                  type: "integer",
+                  required: false,
+                  example: "1",
+                  description: "Page number.",
+                },
+                {
+                  name: "per_page",
+                  type: "integer",
+                  required: false,
+                  example: "20",
+                  description: "Items per page.",
+                },
+                {
+                  name: "search",
+                  type: "string",
+                  required: false,
+                  example: "owasp",
+                  description: "Search name, slug, or description.",
+                },
+                {
+                  name: "type",
+                  type: "string",
+                  required: false,
+                  example: "nonprofit",
+                  description: "company, nonprofit, or education.",
+                },
+                {
+                  name: "is_active",
+                  type: "boolean",
+                  required: false,
+                  example: "true",
+                  description: "Filter active organizations.",
+                },
+              ],
+              sampleResponse: {
+                success: true,
+                data: [
+                  {
+                    id: 1,
+                    name: "OWASP BLT",
+                    slug: "owasp-blt",
+                    type: "nonprofit",
+                    is_active: 1,
+                  },
+                ],
+                pagination: { page: 1, per_page: 20, count: 1, total: 1 },
+              },
+              errors: [
+                { status: 401, message: "Missing or invalid API key." },
+                { status: 503, message: "Database unavailable." },
+              ],
+            },
+            {
+              id: "orgs-get",
+              name: "Get organization",
+              method: "GET",
+              path: "/v2/organizations/{id}",
+              summary:
+                "Fetch one organization. Optional include can add managers, tags, or stats.",
+              auth: { apiKey: true, bearer: false },
+              pathParams: [
+                {
+                  name: "id",
+                  type: "integer",
+                  required: true,
+                  example: "1",
+                  description: "Organization ID.",
+                },
+              ],
+              queryParams: [
+                {
+                  name: "include",
+                  type: "string",
+                  required: false,
+                  example: "managers,tags,stats",
+                  description: "Comma-separated related data.",
+                },
+              ],
+              sampleResponse: {
+                success: true,
+                data: {
+                  id: 1,
+                  name: "OWASP BLT",
+                  slug: "owasp-blt",
+                  domain_count: 12,
+                },
+              },
+              errors: [
+                { status: 400, message: "Invalid organization ID." },
+                { status: 404, message: "Organization not found." },
+              ],
+            },
+            {
+              id: "orgs-domains",
+              name: "Organization domains",
+              method: "GET",
+              path: "/v2/organizations/{id}/domains",
+              summary: "List domains owned by an organization.",
+              auth: { apiKey: true, bearer: false },
+              pathParams: [
+                {
+                  name: "id",
+                  type: "integer",
+                  required: true,
+                  example: "1",
+                  description: "Organization ID.",
+                },
+              ],
+              queryParams: [
+                {
+                  name: "page",
+                  type: "integer",
+                  required: false,
+                  example: "1",
+                  description: "Page number.",
+                },
+                {
+                  name: "per_page",
+                  type: "integer",
+                  required: false,
+                  example: "20",
+                  description: "Items per page.",
+                },
+              ],
+              sampleResponse: {
+                success: true,
+                data: [{ id: 4, name: "Example", url: "https://example.com" }],
+                pagination: { page: 1, per_page: 20, count: 1, total: 1 },
+              },
+              errors: [{ status: 400, message: "Invalid organization ID." }],
+            },
+            {
+              id: "orgs-bugs",
+              name: "Organization bugs",
+              method: "GET",
+              path: "/v2/organizations/{id}/bugs",
+              summary: "List bugs from an organization's domains.",
+              auth: { apiKey: true, bearer: false },
+              pathParams: [
+                {
+                  name: "id",
+                  type: "integer",
+                  required: true,
+                  example: "1",
+                  description: "Organization ID.",
+                },
+              ],
+              queryParams: [
+                {
+                  name: "page",
+                  type: "integer",
+                  required: false,
+                  example: "1",
+                  description: "Page number.",
+                },
+                {
+                  name: "per_page",
+                  type: "integer",
+                  required: false,
+                  example: "20",
+                  description: "Items per page.",
+                },
+              ],
+              sampleResponse: {
+                success: true,
+                data: [
+                  {
+                    id: 123,
+                    url: "https://example.com",
+                    status: "open",
+                    domain_name: "Example",
+                  },
+                ],
+                pagination: { page: 1, per_page: 20, count: 1, total: 1 },
+              },
+              errors: [{ status: 400, message: "Invalid organization ID." }],
+            },
+            {
+              id: "orgs-managers",
+              name: "Organization managers",
+              method: "GET",
+              path: "/v2/organizations/{id}/managers",
+              summary: "List managers for an organization.",
+              auth: { apiKey: true, bearer: false },
+              pathParams: [
+                {
+                  name: "id",
+                  type: "integer",
+                  required: true,
+                  example: "1",
+                  description: "Organization ID.",
+                },
+              ],
+              sampleResponse: {
+                success: true,
+                data: [
+                  {
+                    id: 7,
+                    username: "alice",
+                    joined_as_manager: "2024-01-01T00:00:00Z",
+                  },
+                ],
+                count: 1,
+              },
+              errors: [{ status: 400, message: "Invalid organization ID." }],
+            },
+            {
+              id: "orgs-tags",
+              name: "Organization tags",
+              method: "GET",
+              path: "/v2/organizations/{id}/tags",
+              summary: "List tags attached to an organization.",
+              auth: { apiKey: true, bearer: false },
+              pathParams: [
+                {
+                  name: "id",
+                  type: "integer",
+                  required: true,
+                  example: "1",
+                  description: "Organization ID.",
+                },
+              ],
+              sampleResponse: {
+                success: true,
+                data: [{ id: 2, name: "xss" }],
+                count: 1,
+              },
+              errors: [{ status: 400, message: "Invalid organization ID." }],
+            },
+            {
+              id: "orgs-integrations",
+              name: "Organization integrations",
+              method: "GET",
+              path: "/v2/organizations/{id}/integrations",
+              summary: "List configured organization integrations.",
+              auth: { apiKey: true, bearer: false },
+              pathParams: [
+                {
+                  name: "id",
+                  type: "integer",
+                  required: true,
+                  example: "1",
+                  description: "Organization ID.",
+                },
+              ],
+              sampleResponse: {
+                success: true,
+                data: [
+                  {
+                    id: 5,
+                    integration_type: "webhook",
+                    integration_name: "Triage",
+                    is_active: 1,
+                  },
+                ],
+                count: 1,
+              },
+              errors: [{ status: 400, message: "Invalid organization ID." }],
+            },
+            {
+              id: "orgs-stats",
+              name: "Organization stats",
+              method: "GET",
+              path: "/v2/organizations/{id}/stats",
+              summary: "Get aggregate organization counts.",
+              auth: { apiKey: true, bearer: false },
+              pathParams: [
+                {
+                  name: "id",
+                  type: "integer",
+                  required: true,
+                  example: "1",
+                  description: "Organization ID.",
+                },
+              ],
+              sampleResponse: {
+                success: true,
+                data: {
+                  domain_count: 12,
+                  bug_count: 45,
+                  verified_bug_count: 10,
+                  manager_count: 3,
+                },
+              },
+              errors: [{ status: 400, message: "Invalid organization ID." }],
+            },
+          ],
+        },
+      ];
+
+      const elements = {
+        mobileNavToggle: document.getElementById("mobileNavToggle"),
+        sidebar: document.getElementById("sidebar"),
+        navContainer: document.getElementById("navContainer"),
+        searchInput: document.getElementById("searchInput"),
+        endpointCount: document.getElementById("endpointCount"),
+        pageTitle: document.getElementById("pageTitle"),
+        detailPanel: document.getElementById("detailPanel"),
+        baseUrlDisplay: document.getElementById("baseUrlDisplay"),
+        healthStatus: document.getElementById("healthStatus"),
+        statsStatus: document.getElementById("statsStatus"),
+        statsGrid: document.getElementById("statsGrid"),
+        refreshHealthButton: document.getElementById("refreshHealthButton"),
+        refreshStatsButton: document.getElementById("refreshStatsButton"),
+        accountOpenButton: document.getElementById("accountOpenButton"),
+        accountStatusChip: document.getElementById("accountStatusChip"),
+        themeToggle: document.getElementById("themeToggle"),
+        consoleMethodBadge: document.getElementById("consoleMethodBadge"),
+        baseUrlInput: document.getElementById("baseUrlInput"),
+        methodInput: document.getElementById("methodInput"),
+        pathInput: document.getElementById("pathInput"),
+        pathParamsSection: document.getElementById("pathParamsSection"),
+        pathParamsContainer: document.getElementById("pathParamsContainer"),
+        queryParamsSection: document.getElementById("queryParamsSection"),
+        queryParamsContainer: document.getElementById("queryParamsContainer"),
+        bodyEditorSection: document.getElementById("bodyEditorSection"),
+        bodyEditor: document.getElementById("bodyEditor"),
+        resetBodyButton: document.getElementById("resetBodyButton"),
+        formatJsonButton: document.getElementById("formatJsonButton"),
+        sendRequestButton: document.getElementById("sendRequestButton"),
+        requestStatus: document.getElementById("requestStatus"),
+        responseStatusBadge: document.getElementById("responseStatusBadge"),
+        responseTime: document.getElementById("responseTime"),
+        responseBody: document.getElementById("responseBody"),
+        copyResponseButton: document.getElementById("copyResponseButton"),
+        // Auth modal
+        authModal: document.getElementById("authModal"),
+        authModalBackdrop: document.getElementById("authModalBackdrop"),
+        authModalCloseButton: document.getElementById("authModalCloseButton"),
+        authTabSignin: document.getElementById("authTabSignin"),
+        authTabSignup: document.getElementById("authTabSignup"),
+        authSigninForm: document.getElementById("authSigninForm"),
+        authSigninUsername: document.getElementById("authSigninUsername"),
+        authSigninPassword: document.getElementById("authSigninPassword"),
+        authSigninMessage: document.getElementById("authSigninMessage"),
+        authSigninButton: document.getElementById("authSigninButton"),
+        authSignupForm: document.getElementById("authSignupForm"),
+        authSignupUsername: document.getElementById("authSignupUsername"),
+        authSignupEmail: document.getElementById("authSignupEmail"),
+        authSignupPassword: document.getElementById("authSignupPassword"),
+        authSignupMessage: document.getElementById("authSignupMessage"),
+        authSignupButton: document.getElementById("authSignupButton"),
+        authVerifyStep: document.getElementById("authVerifyStep"),
+        authVerifyCode: document.getElementById("authVerifyCode"),
+        authVerifyMessage: document.getElementById("authVerifyMessage"),
+        authVerifyButton: document.getElementById("authVerifyButton"),
+        authVerifyBackButton: document.getElementById("authVerifyBackButton"),
+        switchToSignup: document.getElementById("switchToSignup"),
+        switchToSignin: document.getElementById("switchToSignin"),
+        // Profile modal
+        profileModal: document.getElementById("profileModal"),
+        profileModalBackdrop: document.getElementById("profileModalBackdrop"),
+        profileModalCloseButton: document.getElementById(
+          "profileModalCloseButton",
+        ),
+        profileAvatarLarge: document.getElementById("profileAvatarLarge"),
+        profileModalTitle: document.getElementById("profileModalTitle"),
+        profileSignOutButton: document.getElementById("profileSignOutButton"),
+        createApiKeyButton: document.getElementById("createApiKeyButton"),
+        refreshApiKeysButton: document.getElementById("refreshApiKeysButton"),
+        apiKeyNameInput: document.getElementById("apiKeyNameInput"),
+        apiKeyList: document.getElementById("apiKeyList"),
+        apiKeyMessage: document.getElementById("apiKeyMessage"),
+        // Header account controls
+        accountAvatar: document.getElementById("accountAvatar"),
+        accountStatusChip: document.getElementById("accountStatusChip"),
+        profileMenu: document.getElementById("profileMenu"),
+        openProfileModalButton: document.getElementById(
+          "openProfileModalButton",
+        ),
+        menuSignOutButton: document.getElementById("menuSignOutButton"),
+      };
+
+      function allRoutes() {
+        return catalog.flatMap(function (group) {
+          return group.routes.map(function (route) {
+            return Object.assign(
+              { group: group.name, groupSummary: group.summary },
+              route,
+            );
+          });
+        });
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+
+      function prettyJson(value) {
+        return JSON.stringify(value, null, 2);
+      }
+
+      function getDefaultBaseUrl() {
+        if (baseUrl.indexOf("[[") !== -1) {
+          return window.location.origin || "https://blt-api.workers.dev";
+        }
+        return baseUrl;
+      }
+
+      function getActiveBaseUrl() {
+        return (elements.baseUrlInput.value || getDefaultBaseUrl())
+          .trim()
+          .replace(/\/+$/, "");
+      }
+
+      function joinUrl(base, path) {
+        var cleanBase = String(base || "")
+          .trim()
+          .replace(/\/+$/, "");
+        var cleanPath = String(path || "");
+        if (!cleanPath.startsWith("/")) cleanPath = "/" + cleanPath;
+        if (cleanBase.endsWith("/v2") && cleanPath.startsWith("/v2/")) {
+          cleanPath = cleanPath.slice(3);
+        }
+        return cleanBase + cleanPath;
+      }
+
+      function getSavedApiKey() {
+        return (localStorage.getItem(API_KEY_STORAGE_KEY) || "").trim();
+      }
+
+      function getMethodClass(method) {
+        return (
+          methodStyles[method] ||
+          "bg-gray-100 text-gray-700 ring-1 ring-inset ring-gray-200 dark:bg-slate-800 dark:text-slate-100 dark:ring-slate-700"
+        );
+      }
+
+      function methodBadge(method, extraClasses) {
+        return (
+          '<span class="inline-flex items-center rounded-md px-2.5 py-1 text-xs font-bold ' +
+          getMethodClass(method) +
+          " " +
+          (extraClasses || "") +
+          '">' +
+          method +
+          "</span>"
+        );
+      }
+
+      function getPathParamNames(path) {
+        var matches = path.match(/\{([^}]+)\}/g) || [];
+        return matches.map(function (match) {
+          return match.slice(1, -1);
+        });
+      }
+
+      function getPathParams(route) {
+        var explicit = route.pathParams || [];
+        var byName = {};
+        explicit.forEach(function (param) {
+          byName[param.name] = param;
+        });
+        return getPathParamNames(route.path).map(function (name) {
+          return (
+            byName[name] || {
+              name: name,
+              type: "string",
+              required: true,
+              example: "1",
+              description: "Path parameter.",
+            }
+          );
+        });
+      }
+
+      function authLines(route) {
+        var lines = [];
+        if (route.auth && route.auth.apiKey)
+          lines.push("X-BLT-API-Key required");
+        if (route.auth && route.auth.bearer)
+          lines.push("Bearer token required after signin");
+        lines.push('Cookies included via credentials: "include"');
+        return lines;
+      }
+
+      function renderTableRows(items) {
+        return (
+          '<div class="overflow-x-auto rounded border border-gray-200 dark:border-slate-700"><table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-slate-700"><thead class="bg-gray-50 dark:bg-slate-800"><tr><th class="px-3 py-2 text-left font-bold text-gray-600 dark:text-slate-300">Name</th><th class="px-3 py-2 text-left font-bold text-gray-600 dark:text-slate-300">Type</th><th class="px-3 py-2 text-left font-bold text-gray-600 dark:text-slate-300">Required</th><th class="px-3 py-2 text-left font-bold text-gray-600 dark:text-slate-300">Description</th></tr></thead><tbody class="divide-y divide-gray-100 dark:divide-slate-800">' +
+          items
+            .map(function (item) {
+              return (
+                '<tr><td class="px-3 py-2 endpoint-code font-semibold text-gray-900 dark:text-slate-100">' +
+                escapeHtml(item.name) +
+                '</td><td class="px-3 py-2 text-gray-600 dark:text-slate-300">' +
+                escapeHtml(item.type || "string") +
+                '</td><td class="px-3 py-2 text-gray-600 dark:text-slate-300">' +
+                (item.required ? "Yes" : "No") +
+                '</td><td class="px-3 py-2 text-gray-600 dark:text-slate-300">' +
+                escapeHtml(item.description || "") +
+                "</td></tr>"
+              );
+            })
+            .join("") +
+          "</tbody></table></div>"
+        );
+      }
+
+      function renderParameterSection(title, items) {
+        if (!items || !items.length) return "";
+        return (
+          '<section><h3 class="mb-3 text-sm font-bold text-gray-900 dark:text-slate-100">' +
+          escapeHtml(title) +
+          "</h3>" +
+          renderTableRows(items) +
+          "</section>"
+        );
+      }
+
+      function authBadges(route) {
+        var badges = [];
+        if (route.auth && route.auth.apiKey) {
+          badges.push(
+            '<span class="rounded-full bg-red-50 px-3 py-1 text-xs font-bold text-red-700 ring-1 ring-inset ring-red-200 dark:bg-red-500/10 dark:text-red-300 dark:ring-red-500/30">API key required</span>',
+          );
+        } else {
+          badges.push(
+            '<span class="rounded-full bg-green-50 px-3 py-1 text-xs font-bold text-green-700 ring-1 ring-inset ring-green-200 dark:bg-green-500/10 dark:text-green-300 dark:ring-green-500/30">Public endpoint</span>',
+          );
+        }
+        if (route.auth && route.auth.bearer) {
+          badges.push(
+            '<span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700 ring-1 ring-inset ring-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-700">Bearer token</span>',
+          );
+        }
+        badges.push(
+          '<span class="rounded-full bg-gray-50 px-3 py-1 text-xs font-bold text-gray-600 ring-1 ring-inset ring-gray-200 dark:bg-slate-800 dark:text-slate-300 dark:ring-slate-700">cookies included</span>',
+        );
+        return badges.join("");
+      }
+
+      function renderNav() {
+        var term = elements.searchInput.value.trim().toLowerCase();
+        var visibleCount = 0;
+        elements.navContainer.innerHTML =
+          catalog
+            .map(function (group) {
+              var filteredRoutes = group.routes.filter(function (route) {
+                var haystack = [
+                  route.name,
+                  route.path,
+                  route.summary,
+                  group.name,
+                ]
+                  .join(" ")
+                  .toLowerCase();
+                return !term || haystack.indexOf(term) !== -1;
+              });
+              visibleCount += filteredRoutes.length;
+              if (!filteredRoutes.length) return "";
+              return (
+                '<details class="border-b border-gray-200 dark:border-slate-800 py-3 px-4 group" open><summary class="cursor-pointer font-semibold text-sm flex items-center gap-2 text-gray-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-red-600 dark:focus:ring-red-500"><span class="w-3 h-3 bg-red-100 dark:bg-red-900 rounded-full"></span><span>' +
+                escapeHtml(group.name) +
+                '</span><span class="ml-auto text-xs text-gray-500 dark:text-slate-400">' +
+                filteredRoutes.length +
+                '</span></summary><div class="mt-3 space-y-2 ml-5">' +
+                filteredRoutes
+                  .map(function (route) {
+                    var isActive = activeRoute && activeRoute.id === route.id;
+                    return (
+                      '<button type="button" data-endpoint-id="' +
+                      escapeHtml(route.id) +
+                      '" class="endpoint-nav-button w-full text-left py-2 px-3 rounded transition text-xs focus:outline-none focus:ring-2 focus:ring-red-600 dark:focus:ring-red-500 ' +
+                      (isActive
+                        ? "bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-300"
+                        : "text-gray-700 hover:bg-gray-200 dark:text-slate-300 dark:hover:bg-slate-800") +
+                      '" aria-current="' +
+                      (isActive ? "true" : "false") +
+                      '">' +
+                      methodBadge(route.method, "shrink-0 mt-0.5") +
+                      '<span class="ml-2 endpoint-code text-xs">' +
+                      escapeHtml(route.path) +
+                      '</span><span class="mt-1 block truncate text-xs text-gray-500 dark:text-slate-400">' +
+                      escapeHtml(route.name) +
+                      "</span></button>"
+                    );
+                  })
+                  .join("") +
+                "</div></details>"
+              );
+            })
+            .join("") ||
+          '<p class="p-4 text-sm text-gray-500 dark:text-slate-400">No endpoints match your search.</p>';
+        elements.endpointCount.textContent =
+          "v2 · " + visibleCount + " endpoints";
+      }
+
+      function renderDetail(route) {
+        var pathParams = getPathParams(route);
+        var queryParams = route.queryParams || [];
+        var bodySchema = route.bodySchema || [];
+        var sampleRequest = buildCurlCommand({
+          includeSecrets: false,
+          useSamples: true,
+        });
+        var errorRows =
+          (route.errors || [])
+            .map(function (error) {
+              return (
+                '<div class="flex gap-3 rounded border border-gray-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"><span class="endpoint-code font-bold text-red-700 dark:text-red-300">' +
+                escapeHtml(error.status) +
+                '</span><span class="text-gray-600 dark:text-slate-300">' +
+                escapeHtml(error.message) +
+                "</span></div>"
+              );
+            })
+            .join("") ||
+          '<p class="text-sm text-gray-500 dark:text-slate-400">No endpoint-specific errors documented.</p>';
+        elements.pageTitle.textContent = route.name;
+        elements.detailPanel.innerHTML =
+          '<div class="space-y-6">' +
+          '<div class="flex flex-wrap items-start justify-between gap-3">' +
+          '<div class="min-w-0">' +
+          '<div class="flex flex-wrap items-center gap-3">' +
+          methodBadge(route.method) +
+          '<code class="break-all endpoint-code text-base font-bold text-gray-900 dark:text-slate-100 sm:text-lg">' +
+          escapeHtml(route.path) +
+          "</code></div>" +
+          '<p class="mt-3 max-w-3xl text-sm leading-6 text-gray-600 dark:text-slate-400">' +
+          escapeHtml(route.summary) +
+          "</p>" +
+          '<div class="mt-4 flex flex-wrap gap-2">' +
+          authBadges(route) +
+          "</div>" +
+          "</div>" +
+          '<button type="button" id="copyPathButton" class="rounded border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm font-semibold text-gray-700 dark:text-slate-100 hover:bg-gray-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-red-600 dark:focus:ring-red-500">Copy path</button>' +
+          "</div>" +
+          renderParameterSection("Path Parameters", pathParams) +
+          renderParameterSection("Query Parameters", queryParams) +
+          renderParameterSection("Body Schema", bodySchema) +
+          '<details class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-slate-800 dark:bg-slate-900">' +
+          '<summary class="cursor-pointer text-sm font-bold text-gray-900 outline-none focus:ring-2 focus:ring-red-600 dark:text-slate-100 dark:focus:ring-red-500">Examples & responses</summary>' +
+          '<div class="mt-4 grid gap-4 xl:grid-cols-2">' +
+          '<div class="min-w-0"><h3 class="text-sm font-bold text-gray-900 dark:text-slate-100">Sample Request</h3><pre class="mt-3 max-h-72 overflow-auto rounded bg-white p-3 endpoint-code text-xs leading-5 text-gray-800 ring-1 ring-inset ring-gray-200 dark:bg-slate-950 dark:text-slate-100 dark:ring-slate-700"><code>' +
+          escapeHtml(sampleRequest) +
+          "</code></pre></div>" +
+          '<div class="min-w-0"><h3 class="text-sm font-bold text-gray-900 dark:text-slate-100">Sample Response</h3><pre class="mt-3 max-h-72 overflow-auto rounded bg-white p-3 endpoint-code text-xs leading-5 text-gray-800 ring-1 ring-inset ring-gray-200 dark:bg-slate-950 dark:text-slate-100 dark:ring-slate-700"><code>' +
+          escapeHtml(prettyJson(route.sampleResponse || { success: true })) +
+          "</code></pre></div>" +
+          "</div>" +
+          '<div class="mt-4"><h3 class="text-sm font-bold text-gray-900 dark:text-slate-100">Errors</h3><div class="mt-3 space-y-2">' +
+          errorRows +
+          "</div></div>" +
+          "</details>" +
+          "</div>";
+        document
+          .getElementById("copyPathButton")
+          .addEventListener("click", function () {
+            copyText(route.path, "Path copied.");
+          });
+      }
+
+      function renderConsole(route) {
+        elements.consoleMethodBadge.className =
+          "rounded-md px-2.5 py-1 text-xs font-bold " +
+          getMethodClass(route.method);
+        elements.consoleMethodBadge.textContent = route.method;
+        elements.methodInput.value = route.method;
+        elements.pathInput.value = route.path;
+
+        var pathParams = getPathParams(route);
+        elements.pathParamsSection.classList.toggle(
+          "hidden",
+          pathParams.length === 0,
+        );
+        elements.pathParamsContainer.innerHTML = pathParams
+          .map(function (param) {
+            return (
+              '<div><label class="block text-xs font-semibold text-gray-700 dark:text-slate-300" for="path-param-' +
+              escapeHtml(param.name) +
+              '">' +
+              escapeHtml(param.name) +
+              (param.required ? " *" : "") +
+              '</label><input id="path-param-' +
+              escapeHtml(param.name) +
+              '" data-path-param="' +
+              escapeHtml(param.name) +
+              '" type="text" class="w-full mt-1 px-3 py-2 text-sm rounded border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-slate-100 endpoint-code focus:outline-none focus:ring-2 focus:ring-red-600 dark:focus:ring-red-500" placeholder="' +
+              escapeHtml(param.example || param.name) +
+              '"><p class="mt-1 text-xs text-gray-500 dark:text-slate-400">' +
+              escapeHtml(param.description || "") +
+              "</p></div>"
+            );
+          })
+          .join("");
+
+        var queryParams = route.queryParams || [];
+        elements.queryParamsSection.classList.toggle(
+          "hidden",
+          queryParams.length === 0,
+        );
+        elements.queryParamsContainer.innerHTML = queryParams
+          .map(function (param) {
+            return (
+              '<div><label class="block text-xs font-semibold text-gray-700 dark:text-slate-300" for="query-param-' +
+              escapeHtml(param.name) +
+              '">' +
+              escapeHtml(param.name) +
+              (param.required ? " *" : "") +
+              '</label><input id="query-param-' +
+              escapeHtml(param.name) +
+              '" data-query-param="' +
+              escapeHtml(param.name) +
+              '" type="text" class="w-full mt-1 px-3 py-2 text-sm rounded border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-slate-100 endpoint-code focus:outline-none focus:ring-2 focus:ring-red-600 dark:focus:ring-red-500" placeholder="' +
+              escapeHtml(param.example || "") +
+              '"><p class="mt-1 text-xs text-gray-500 dark:text-slate-400">' +
+              escapeHtml(param.description || "") +
+              "</p></div>"
+            );
+          })
+          .join("");
+
+        var hasBody = ["POST", "PATCH", "PUT"].indexOf(route.method) !== -1;
+        elements.bodyEditorSection.classList.toggle("hidden", !hasBody);
+        elements.formatJsonButton.disabled = !hasBody;
+        if (hasBody) {
+          elements.bodyEditor.value = prettyJson(route.sampleBody || {});
+        } else {
+          elements.bodyEditor.value = "";
+        }
+
+        addConsoleInputListeners();
+        updateCurlPreview();
+      }
+
+      function addConsoleInputListeners() {
+        var inputs = document.querySelectorAll(
+          "[data-path-param], [data-query-param]",
+        );
+        inputs.forEach(function (input) {
+          input.addEventListener("input", updateCurlPreview);
+        });
+      }
+
+      function selectEndpoint(routeId) {
+        var route = allRoutes().find(function (item) {
+          return item.id === routeId;
+        });
+        if (!route) return;
+        activeRoute = route;
+        renderNav();
+        renderConsole(route);
+        renderDetail(route);
+        if (elements.mobileNavToggle && window.innerWidth < 1024) {
+          elements.sidebar.classList.add("hidden");
+          elements.mobileNavToggle.setAttribute("aria-expanded", "false");
+        }
+      }
+
+      function getInputValue(selector) {
+        var input = document.querySelector(selector);
+        return input ? input.value.trim() : "";
+      }
+
+      function buildPath(route, options) {
+        var validate = Boolean(options && options.validate);
+        var useSamples = Boolean(options && options.useSamples);
+        var path = route.path;
+        getPathParams(route).forEach(function (param) {
+          var rawValue = useSamples
+            ? param.example || param.name
+            : getInputValue('[data-path-param="' + param.name + '"]');
+          if (!rawValue && validate && param.required) {
+            throw new Error("Missing required path parameter: " + param.name);
+          }
+          var replacement = rawValue
+            ? encodeURIComponent(rawValue)
+            : "{" + param.name + "}";
+          path = path.replace("{" + param.name + "}", replacement);
+        });
+        return path;
+      }
+
+      function buildUrl(route, options) {
+        var validate = Boolean(options && options.validate);
+        var useSamples = Boolean(options && options.useSamples);
+        var path = buildPath(route, {
+          validate: validate,
+          useSamples: useSamples,
+        });
+        var url = joinUrl(getActiveBaseUrl(), path);
+        var params = new URLSearchParams();
+        (route.queryParams || []).forEach(function (param) {
+          var rawValue = useSamples
+            ? param.example || ""
+            : getInputValue('[data-query-param="' + param.name + '"]');
+          if (!rawValue && validate && param.required) {
+            throw new Error("Missing required query parameter: " + param.name);
+          }
+          if (rawValue) params.append(param.name, rawValue);
+        });
+        var queryString = params.toString();
+        return queryString
+          ? url + (url.indexOf("?") === -1 ? "?" : "&") + queryString
+          : url;
+      }
+
+      function buildRequest(route, options) {
+        var validate = Boolean(options && options.validate);
+        var includeSecrets = Boolean(options && options.includeSecrets);
+        var useSamples = Boolean(options && options.useSamples);
+        var headers = { Accept: "application/json" };
+        var headersForCurl = { Accept: "application/json" };
+        var savedKey = getSavedApiKey();
+
+        if (route.auth && route.auth.apiKey) {
+          if (!savedKey && validate) {
+            if (sessionToken) {
+              openProfileModal();
+            } else {
+              openAuthModal("signin");
+            }
+            throw new Error(
+              "Missing API key. Sign in and create one in your profile.",
+            );
+          }
+          headers["X-BLT-API-Key"] = savedKey;
+          headersForCurl["X-BLT-API-Key"] = savedKey
+            ? includeSecrets
+              ? savedKey
+              : "<saved-api-key>"
+            : "<api-key>";
+        }
+
+        if (sessionToken) {
+          headers.Authorization = "Bearer " + sessionToken;
+          headersForCurl.Authorization = includeSecrets
+            ? "Bearer " + sessionToken
+            : "Bearer <session-token>";
+        }
+
+        var bodyText = "";
+        if (["POST", "PATCH", "PUT"].indexOf(route.method) !== -1) {
+          var rawBody = useSamples
+            ? prettyJson(route.sampleBody || {})
+            : elements.bodyEditor.value.trim();
+          if (!rawBody && validate) {
+            throw new Error("Request body JSON is required for this endpoint.");
+          }
+          if (rawBody) {
+            try {
+              JSON.parse(rawBody);
+            } catch (error) {
+              if (validate)
+                throw new Error(
+                  "Request body must be valid JSON: " + error.message,
+                );
+            }
+            bodyText = rawBody;
+            headers["Content-Type"] = "application/json";
+            headersForCurl["Content-Type"] = "application/json";
+          }
+        }
+
+        return {
+          method: route.method,
+          url: buildUrl(route, { validate: validate, useSamples: useSamples }),
+          headers: headers,
+          headersForCurl: headersForCurl,
+          bodyText: bodyText,
+        };
+      }
+
+      function shellQuote(value) {
+        return "'" + String(value).replace(/'/g, "'\\''") + "'";
+      }
+
+      function buildCurlCommand(options) {
+        if (!activeRoute) return "Select an endpoint";
+        var request = buildRequest(activeRoute, {
+          validate: false,
+          includeSecrets: Boolean(options && options.includeSecrets),
+          useSamples: Boolean(options && options.useSamples),
+        });
+        var parts = [
+          "curl",
+          "-i",
+          "-X",
+          request.method,
+          shellQuote(request.url),
+        ];
+        Object.entries(request.headersForCurl).forEach(function (entry) {
+          parts.push("-H", shellQuote(entry[0] + ": " + entry[1]));
+        });
+        if (request.bodyText) {
+          parts.push("--data", shellQuote(request.bodyText));
+        }
+        return parts.join(" \\\n  ");
+      }
+
+      function updateCurlPreview() {
+        // The right sidebar intentionally focuses on inputs and response output.
+        // Keep this hook as a no-op because input changes still call it.
+      }
+
+      function setRequestStatus(message, tone) {
+        var toneClass =
+          "border-gray-200 bg-white text-gray-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300";
+        if (tone === "error")
+          toneClass =
+            "border-red-200 bg-red-50 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200";
+        if (tone === "success")
+          toneClass =
+            "border-green-200 bg-green-50 text-green-700 dark:border-green-500/30 dark:bg-green-500/10 dark:text-green-200";
+        elements.requestStatus.className =
+          "rounded px-3 py-2 text-sm " + toneClass;
+        elements.requestStatus.textContent = message;
+      }
+
+      function setResponseMeta(statusText, responseTime, ok) {
+        elements.responseStatusBadge.textContent = statusText;
+        elements.responseStatusBadge.className =
+          "rounded-md px-2 py-1 " +
+          (ok
+            ? "bg-green-50 text-green-700 ring-1 ring-inset ring-green-200 dark:bg-green-500/10 dark:text-green-300 dark:ring-green-500/30"
+            : "bg-red-50 text-red-700 ring-1 ring-inset ring-red-200 dark:bg-red-500/10 dark:text-red-300 dark:ring-red-500/30");
+        elements.responseTime.textContent = responseTime || "";
+      }
+
+      function extractToken(payload) {
+        if (!payload || typeof payload !== "object") return "";
+        if (typeof payload.token === "string") return payload.token;
+        if (payload.data && typeof payload.data.token === "string")
+          return payload.data.token;
+        if (payload.data && typeof payload.data.access_token === "string")
+          return payload.data.access_token;
+        return "";
+      }
+
+      async function sendRequest() {
+        if (!activeRoute) return;
+        var request;
+        try {
+          request = buildRequest(activeRoute, {
+            validate: true,
+            includeSecrets: true,
+          });
+        } catch (error) {
+          setRequestStatus(error.message, "error");
+          return;
+        }
+
+        setRequestStatus("Sending request...", "info");
+        elements.sendRequestButton.disabled = true;
+        elements.copyResponseButton.disabled = true;
+        elements.responseBody.textContent = "Loading...";
+        elements.responseTime.textContent = "";
+        var start = performance.now();
+
+        try {
+          var fetchOptions = {
+            method: request.method,
+            headers: request.headers,
+            credentials: "include",
+          };
+          if (request.bodyText) fetchOptions.body = request.bodyText;
+
+          var response = await fetch(request.url, fetchOptions);
+          var elapsed = Math.round(performance.now() - start);
+          var rawText = await response.text();
+          var parsed = null;
+          var displayText = rawText || "(empty response)";
+          try {
+            parsed = rawText ? JSON.parse(rawText) : null;
+            if (parsed !== null) displayText = prettyJson(parsed);
+          } catch (error) {
+            parsed = null;
+          }
+
+          lastResponseText = displayText;
+          elements.responseBody.textContent = displayText;
+          elements.copyResponseButton.disabled = false;
+          setResponseMeta(
+            response.status + " " + response.statusText,
+            elapsed + "ms",
+            response.ok,
+          );
+          setRequestStatus(
+            response.ok
+              ? "Request complete."
+              : "Request completed with an error status.",
+            response.ok ? "success" : "error",
+          );
+
+          if (response.ok && activeRoute.id === "auth-signin") {
+            var token = extractToken(parsed);
+            if (token) {
+              setSession(token, extractUsername(parsed) || "signed-in user");
+              setRequestStatus(
+                "Signin succeeded. Your session token is saved for this browser tab.",
+                "success",
+              );
+            }
+          }
+        } catch (error) {
+          var elapsedOnError = Math.round(performance.now() - start);
+          lastResponseText = "Network error: " + error.message;
+          elements.responseBody.textContent = lastResponseText;
+          elements.copyResponseButton.disabled = false;
+          setResponseMeta("Network error", elapsedOnError + "ms", false);
+          setRequestStatus("Request failed: " + error.message, "error");
+        } finally {
+          elements.sendRequestButton.disabled = false;
+        }
+      }
+
+      function extractUsername(payload) {
+        if (!payload || typeof payload !== "object") return "";
+        if (typeof payload.username === "string") return payload.username;
+        if (payload.data && typeof payload.data.username === "string")
+          return payload.data.username;
+        return "";
+      }
+
+      // ── Auth modal helpers ────────────────────────────────────────────────
+
+      function setModalMessage(el, message, tone) {
+        if (!el) return;
+        var toneClass =
+          "rounded-lg px-3 py-2.5 text-sm border border-gray-200 bg-white text-gray-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300";
+        if (tone === "error")
+          toneClass =
+            "rounded-lg px-3 py-2.5 text-sm border border-red-200 bg-red-50 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200";
+        if (tone === "success")
+          toneClass =
+            "rounded-lg px-3 py-2.5 text-sm border border-green-200 bg-green-50 text-green-700 dark:border-green-500/30 dark:bg-green-500/10 dark:text-green-200";
+        el.className = toneClass;
+        el.textContent = message;
+        el.classList.remove("hidden");
+      }
+
+      function setAccountMessage(message, tone) {
+        setModalMessage(elements.apiKeyMessage, message, tone);
+      }
+
+      function openAuthModal(tab) {
+        switchAuthTab(tab || "signin");
+        elements.authModal.classList.remove("hidden");
+        window.requestAnimationFrame(function () {
+          if (tab === "signup") {
+            elements.authSignupUsername.focus();
+          } else {
+            elements.authSigninUsername.focus();
+          }
+        });
+      }
+
+      function closeAuthModal() {
+        elements.authModal.classList.add("hidden");
+      }
+
+      function switchAuthTab(tab) {
+        var isSignin = tab !== "signup";
+        var activeClass =
+          "flex-1 rounded-lg py-2 px-4 text-sm font-semibold transition-all bg-white text-red-700 shadow-sm";
+        var inactiveClass =
+          "flex-1 rounded-lg py-2 px-4 text-sm font-semibold transition-all text-red-200 hover:text-white";
+        elements.authTabSignin.className = isSignin
+          ? activeClass
+          : inactiveClass;
+        elements.authTabSignin.setAttribute("aria-selected", String(isSignin));
+        elements.authTabSignup.className = !isSignin
+          ? activeClass
+          : inactiveClass;
+        elements.authTabSignup.setAttribute("aria-selected", String(!isSignin));
+        elements.authSigninForm.classList.toggle("hidden", !isSignin);
+        elements.authSignupForm.classList.toggle("hidden", isSignin);
+        elements.authVerifyStep.classList.add("hidden");
+      }
+
+      function showVerifyStep() {
+        elements.authSigninForm.classList.add("hidden");
+        elements.authSignupForm.classList.add("hidden");
+        elements.authVerifyStep.classList.remove("hidden");
+        window.requestAnimationFrame(function () {
+          elements.authVerifyCode.focus();
+        });
+      }
+
+      function openProfileModal() {
+        var username = sessionUsername || "Account";
+        elements.profileModalTitle.textContent = username;
+        elements.profileAvatarLarge.textContent =
+          username.charAt(0).toUpperCase() || "?";
+        if (elements.profileMenu) elements.profileMenu.classList.add("hidden");
+        elements.profileModal.classList.remove("hidden");
+        loadUserApiKeys();
+        updateApiKeyStatus();
+      }
+
+      function closeProfileModal() {
+        elements.profileModal.classList.add("hidden");
+      }
+
+      function setSession(token, username) {
+        sessionToken = token || "";
+        sessionUsername = username || sessionUsername || "signed-in user";
+        if (sessionToken) {
+          sessionStorage.setItem(SESSION_TOKEN_STORAGE_KEY, sessionToken);
+          sessionStorage.setItem(SESSION_USERNAME_STORAGE_KEY, sessionUsername);
+        }
+        updateTokenStatus();
+        updateCurlPreview();
+        loadUserApiKeys();
+      }
+
+      function restoreSession() {
+        sessionToken = (
+          sessionStorage.getItem(SESSION_TOKEN_STORAGE_KEY) || ""
+        ).trim();
+        sessionUsername = (
+          sessionStorage.getItem(SESSION_USERNAME_STORAGE_KEY) || ""
+        ).trim();
+      }
+
+      function clearSession() {
+        sessionToken = "";
+        sessionUsername = "";
+        sessionStorage.removeItem(SESSION_TOKEN_STORAGE_KEY);
+        sessionStorage.removeItem(SESSION_USERNAME_STORAGE_KEY);
+        updateTokenStatus();
+        updateCurlPreview();
+      }
+
+      function authHeaders(includeJson) {
+        var headers = { Accept: "application/json" };
+        if (includeJson) headers["Content-Type"] = "application/json";
+        if (sessionToken) headers.Authorization = "Bearer " + sessionToken;
+        return headers;
+      }
+
+      async function parseJsonResponse(response) {
+        var text = await response.text();
+        if (!text) return {};
+        try {
+          return JSON.parse(text);
+        } catch (error) {
+          return { message: text };
+        }
+      }
+
+      async function signupAccount(event) {
+        if (event) event.preventDefault();
+        var payload = {
+          username: elements.authSignupUsername.value.trim(),
+          email: elements.authSignupEmail.value.trim(),
+          password: elements.authSignupPassword.value,
+        };
+        if (!payload.username || !payload.email || !payload.password) {
+          setModalMessage(
+            elements.authSignupMessage,
+            "Enter username, email, and password.",
+            "error",
+          );
+          return;
+        }
+        elements.authSignupButton.disabled = true;
+        setModalMessage(
+          elements.authSignupMessage,
+          "Creating account\u2026",
+          "info",
+        );
+        try {
+          var response = await fetch(
+            joinUrl(getActiveBaseUrl(), "/v2/auth/signup"),
+            {
+              method: "POST",
+              credentials: "include",
+              headers: authHeaders(true),
+              body: JSON.stringify(payload),
+            },
+          );
+          var data = await parseJsonResponse(response);
+          if (!response.ok) throw new Error(data.message || "Signup failed.");
+          elements.authSigninUsername.value = payload.username;
+          pendingLocalVerificationUsername = payload.username;
+          if (data.requires_local_verification) {
+            showVerifyStep();
+            setModalMessage(
+              elements.authVerifyMessage,
+              data.message ||
+                "Check your server console for the verification code.",
+              "success",
+            );
+          } else {
+            switchAuthTab("signin");
+            setModalMessage(
+              elements.authSigninMessage,
+              data.message ||
+                "Account created. Check your email, then sign in.",
+              "success",
+            );
+          }
+        } catch (error) {
+          setModalMessage(
+            elements.authSignupMessage,
+            error.message || "Signup failed.",
+            "error",
+          );
+        } finally {
+          elements.authSignupButton.disabled = false;
+        }
+      }
+
+      async function signinAccount(event) {
+        if (event) event.preventDefault();
+        var payload = {
+          username: elements.authSigninUsername.value.trim(),
+          password: elements.authSigninPassword.value,
+        };
+        if (!payload.username || !payload.password) {
+          setModalMessage(
+            elements.authSigninMessage,
+            "Enter username and password.",
+            "error",
+          );
+          return;
+        }
+        elements.authSigninButton.disabled = true;
+        setModalMessage(elements.authSigninMessage, "Signing in\u2026", "info");
+        try {
+          var response = await fetch(
+            joinUrl(getActiveBaseUrl(), "/v2/auth/signin"),
+            {
+              method: "POST",
+              credentials: "include",
+              headers: authHeaders(true),
+              body: JSON.stringify(payload),
+            },
+          );
+          var data = await parseJsonResponse(response);
+          if (!response.ok) throw new Error(data.message || "Signin failed.");
+          var token = extractToken(data);
+          if (!token)
+            throw new Error(
+              "Signin succeeded but no session token was returned.",
+            );
+          setSession(token, extractUsername(data) || payload.username);
+          elements.authSigninPassword.value = "";
+          closeAuthModal();
+        } catch (error) {
+          setModalMessage(
+            elements.authSigninMessage,
+            error.message || "Signin failed.",
+            "error",
+          );
+        } finally {
+          elements.authSigninButton.disabled = false;
+        }
+      }
+
+      async function verifyLocalCode() {
+        var code = elements.authVerifyCode.value.trim();
+        var identifier =
+          pendingLocalVerificationUsername ||
+          elements.authSigninUsername.value.trim();
+        if (!code || !identifier) {
+          setModalMessage(
+            elements.authVerifyMessage,
+            "Enter the verification code from your server console.",
+            "error",
+          );
+          return;
+        }
+        elements.authVerifyButton.disabled = true;
+        setModalMessage(elements.authVerifyMessage, "Verifying\u2026", "info");
+        try {
+          var response = await fetch(
+            joinUrl(getActiveBaseUrl(), "/v2/auth/verify-local"),
+            {
+              method: "POST",
+              credentials: "include",
+              headers: authHeaders(true),
+              body: JSON.stringify({ identifier: identifier, dev_otp: code }),
+            },
+          );
+          var data = await parseJsonResponse(response);
+          if (!response.ok)
+            throw new Error(data.message || "Verification failed.");
+          elements.authVerifyCode.value = "";
+          switchAuthTab("signin");
+          setModalMessage(
+            elements.authSigninMessage,
+            data.message || "Account verified. You can now sign in.",
+            "success",
+          );
+        } catch (error) {
+          setModalMessage(
+            elements.authVerifyMessage,
+            error.message || "Verification failed.",
+            "error",
+          );
+        } finally {
+          elements.authVerifyButton.disabled = false;
+        }
+      }
+
+      function signOutAccount() {
+        clearSession();
+        localStorage.removeItem(API_KEY_STORAGE_KEY);
+        updateApiKeyStatus();
+        closeProfileModal();
+        if (elements.profileMenu) elements.profileMenu.classList.add("hidden");
+      }
+
+      function updateApiKeyStatus() {
+        loadStats();
+        updateCurlPreview();
+      }
+
+      function updateTokenStatus() {
+        var signedIn = Boolean(sessionToken);
+        if (elements.accountStatusChip) {
+          elements.accountStatusChip.textContent = signedIn
+            ? sessionUsername || "Signed in"
+            : "Sign up / Sign in";
+        }
+        if (elements.accountAvatar) {
+          elements.accountAvatar.textContent =
+            signedIn && sessionUsername
+              ? sessionUsername.charAt(0).toUpperCase()
+              : "\uD83D\uDC64";
+        }
+      }
+
+      async function copyText(text, successMessage) {
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(text);
+          } else {
+            var textarea = document.createElement("textarea");
+            textarea.value = text;
+            textarea.setAttribute("readonly", "");
+            textarea.style.position = "absolute";
+            textarea.style.left = "-9999px";
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand("copy");
+            textarea.remove();
+          }
+          if (successMessage) setRequestStatus(successMessage, "success");
+        } catch (error) {
+          setRequestStatus("Copy failed: " + error.message, "error");
+        }
+      }
+
+      function renderApiKeyList(keys) {
+        if (!sessionToken) {
+          elements.apiKeyList.innerHTML = "Sign in to load API keys.";
+          return;
+        }
+        if (!keys || !keys.length) {
+          elements.apiKeyList.innerHTML = "No active API keys yet.";
+          return;
+        }
+        elements.apiKeyList.innerHTML = keys
+          .map(function (key) {
+            var id = key.id == null ? "" : String(key.id);
+            return (
+              '<div class="flex items-center justify-between gap-3 border-b border-gray-100 py-2 last:border-0 dark:border-slate-700">' +
+              '<div class="min-w-0"><p class="truncate text-sm font-semibold text-gray-900 dark:text-slate-100">' +
+              escapeHtml(key.name || "API key") +
+              "</p>" +
+              '<p class="endpoint-code text-xs text-gray-500 dark:text-slate-400">' +
+              escapeHtml(key.key_prefix || key.prefix || "\u2022\u2022\u2022") +
+              "</p></div>" +
+              '<button type="button" data-revoke-api-key="' +
+              escapeHtml(id) +
+              '" class="rounded border border-red-200 px-2 py-1 text-xs font-semibold text-red-700 hover:bg-red-50 dark:border-red-500/30 dark:text-red-300 dark:hover:bg-red-500/10 focus:outline-none focus:ring-2 focus:ring-red-500">Revoke</button>' +
+              "</div>"
+            );
+          })
+          .join("");
+      }
+
+      async function loadUserApiKeys() {
+        if (!elements.apiKeyList) return;
+        if (!sessionToken) {
+          renderApiKeyList([]);
+          return;
+        }
+        elements.apiKeyList.textContent = "Loading\u2026";
+        try {
+          var response = await fetch(
+            joinUrl(getActiveBaseUrl(), "/v2/auth/api-keys"),
+            {
+              method: "GET",
+              credentials: "include",
+              headers: authHeaders(false),
+            },
+          );
+          var data = await parseJsonResponse(response);
+          if (!response.ok)
+            throw new Error(data.message || "Could not load API keys.");
+          renderApiKeyList(data.data || []);
+        } catch (error) {
+          elements.apiKeyList.textContent =
+            error.message || "Could not load API keys.";
+        }
+      }
+
+      async function revokeApiKey(id) {
+        if (!id || !sessionToken) return;
+        setAccountMessage("Revoking API key\u2026", "info");
+        try {
+          var response = await fetch(
+            joinUrl(
+              getActiveBaseUrl(),
+              "/v2/auth/api-keys/" + encodeURIComponent(id),
+            ),
+            {
+              method: "DELETE",
+              credentials: "include",
+              headers: authHeaders(false),
+            },
+          );
+          var data = await parseJsonResponse(response);
+          if (!response.ok)
+            throw new Error(data.message || "Could not revoke API key.");
+          setAccountMessage(data.message || "API key revoked.", "success");
+          loadUserApiKeys();
+        } catch (error) {
+          setAccountMessage(
+            error.message || "Could not revoke API key.",
+            "error",
+          );
+        }
+      }
+
+      async function createApiKey() {
+        if (!sessionToken) {
+          setAccountMessage("Sign in before creating an API key.", "error");
+          return;
+        }
+        var keyName = elements.apiKeyNameInput.value.trim() || "Dashboard key";
+        setAccountMessage("Creating API key\u2026", "info");
+        try {
+          var response = await fetch(
+            joinUrl(getActiveBaseUrl(), "/v2/auth/api-keys"),
+            {
+              method: "POST",
+              credentials: "include",
+              headers: authHeaders(true),
+              body: JSON.stringify({ name: keyName }),
+            },
+          );
+          var data = await parseJsonResponse(response);
+          if (!response.ok)
+            throw new Error(data.message || "Could not create API key.");
+          var createdKey =
+            data &&
+            (data.key ||
+              data.api_key ||
+              data.apiKey ||
+              (data.data &&
+                (data.data.key || data.data.api_key || data.data.apiKey)));
+          if (createdKey) {
+            localStorage.setItem(API_KEY_STORAGE_KEY, createdKey);
+            setAccountMessage(
+              "API key created and saved. Copy it now if needed.",
+              "success",
+            );
+            updateApiKeyStatus();
+          } else {
+            setAccountMessage("API key created.", "success");
+          }
+          elements.apiKeyNameInput.value = "";
+          loadUserApiKeys();
+        } catch (error) {
+          setAccountMessage(
+            error.message || "Could not create API key.",
+            "error",
+          );
+        }
+      }
+
+      async function loadHealth() {
+        elements.healthStatus.textContent = "Checking...";
+        try {
+          var response = await fetch(joinUrl(getActiveBaseUrl(), "/health"), {
+            headers: { Accept: "application/json" },
+            credentials: "include",
+          });
+          elements.healthStatus.textContent = response.ok
+            ? "Healthy (" + response.status + ")"
+            : "Unhealthy (" + response.status + ")";
+          elements.healthStatus.className =
+            "mt-2 text-sm font-semibold " +
+            (response.ok
+              ? "text-green-700 dark:text-green-300"
+              : "text-red-700 dark:text-red-300");
+        } catch (error) {
+          elements.healthStatus.textContent = "Unavailable";
+          elements.healthStatus.className =
+            "mt-2 text-sm font-semibold text-red-700 dark:text-red-300";
+        }
+      }
+
+      function titleizeStatKey(key) {
+        return key.replace(/_/g, " ").replace(/\b\w/g, function (letter) {
+          return letter.toUpperCase();
+        });
+      }
+
+      function renderStats(data) {
+        var entries = Object.entries(data || {})
+          .filter(function (entry) {
+            return !Number.isNaN(Number(entry[1]));
+          })
+          .slice(0, 8);
+        if (!entries.length) {
+          elements.statsGrid.classList.add("hidden");
+          return;
+        }
+        elements.statsGrid.className = "grid grid-cols-2 gap-3 md:grid-cols-4";
+        elements.statsGrid.innerHTML = entries
+          .map(function (entry) {
+            return (
+              '<div class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-slate-800 dark:bg-slate-900"><p class="truncate text-xs font-semibold uppercase text-gray-600 dark:text-slate-400">' +
+              escapeHtml(titleizeStatKey(entry[0])) +
+              '</p><p class="mt-1 text-xl font-bold text-gray-900 dark:text-slate-100">' +
+              Number(entry[1]).toLocaleString() +
+              "</p></div>"
+            );
+          })
+          .join("");
+      }
+
+      async function loadStats() {
+        var savedKey = getSavedApiKey();
+        if (!savedKey) {
+          elements.statsStatus.textContent = "API key needed";
+          elements.statsStatus.className =
+            "mt-2 text-sm font-semibold text-gray-600 dark:text-slate-300";
+          elements.statsGrid.classList.add("hidden");
+          return;
+        }
+        elements.statsStatus.textContent = "Loading...";
+        try {
+          var response = await fetch(joinUrl(getActiveBaseUrl(), "/stats"), {
+            headers: { Accept: "application/json", "X-BLT-API-Key": savedKey },
+            credentials: "include",
+          });
+          if (!response.ok) throw new Error(String(response.status));
+          var payload = await response.json();
+          renderStats(payload.data || payload);
+          elements.statsStatus.textContent = "Loaded";
+          elements.statsStatus.className =
+            "mt-2 text-sm font-semibold text-green-700 dark:text-green-300";
+        } catch (error) {
+          elements.statsStatus.textContent = "Unavailable";
+          elements.statsStatus.className =
+            "mt-2 text-sm font-semibold text-red-700 dark:text-red-300";
+          elements.statsGrid.classList.add("hidden");
+        }
+      }
+
+      function formatBodyJson() {
+        if (elements.bodyEditorSection.classList.contains("hidden")) return;
+        try {
+          var parsed = JSON.parse(elements.bodyEditor.value || "{}");
+          elements.bodyEditor.value = prettyJson(parsed);
+          setRequestStatus("JSON formatted.", "success");
+          updateCurlPreview();
+        } catch (error) {
+          setRequestStatus(
+            "Request body must be valid JSON: " + error.message,
+            "error",
+          );
+        }
+      }
+
+      function resetSampleBody() {
+        if (!activeRoute) return;
+        elements.bodyEditor.value = prettyJson(activeRoute.sampleBody || {});
+        updateCurlPreview();
+        setRequestStatus("Sample body restored.", "success");
+      }
+
+      function wireEvents() {
+        // ── Mobile nav ────────────────────────────────────────────────────
+        if (elements.mobileNavToggle) {
+          elements.mobileNavToggle.addEventListener("click", function () {
+            var isHidden = elements.sidebar.classList.toggle("hidden");
+            elements.mobileNavToggle.setAttribute(
+              "aria-expanded",
+              String(!isHidden),
+            );
+          });
+        }
+        // ── Endpoint nav ──────────────────────────────────────────────────
+        elements.navContainer.addEventListener("click", function (event) {
+          var button = event.target.closest("[data-endpoint-id]");
+          if (button) selectEndpoint(button.getAttribute("data-endpoint-id"));
+        });
+        elements.searchInput.addEventListener("input", renderNav);
+        // ── Console inputs ────────────────────────────────────────────────
+        elements.baseUrlInput.addEventListener("input", function () {
+          elements.baseUrlDisplay.textContent = getActiveBaseUrl();
+          updateCurlPreview();
+        });
+        elements.bodyEditor.addEventListener("input", updateCurlPreview);
+        // ── Health / stats ────────────────────────────────────────────────
+        elements.refreshHealthButton.addEventListener("click", loadHealth);
+        elements.refreshStatsButton.addEventListener("click", loadStats);
+        // ── Theme toggle ──────────────────────────────────────────────────
+        elements.themeToggle.addEventListener("click", function () {
+          var isDark = document.documentElement.classList.toggle("dark");
+          localStorage.setItem(THEME_STORAGE_KEY, isDark ? "dark" : "light");
+        });
+        // ── Header account button ─────────────────────────────────────────
+        elements.accountOpenButton.addEventListener("click", function (event) {
+          event.stopPropagation();
+          if (sessionToken) {
+            elements.profileMenu.classList.toggle("hidden");
+          } else {
+            openAuthModal("signin");
+          }
+        });
+        // Close dropdown on outside click
+        document.addEventListener("click", function (event) {
+          if (
+            elements.profileMenu &&
+            !elements.profileMenu.classList.contains("hidden")
+          ) {
+            if (
+              !elements.profileMenu.contains(event.target) &&
+              !elements.accountOpenButton.contains(event.target)
+            ) {
+              elements.profileMenu.classList.add("hidden");
+            }
+          }
+        });
+        // ── Profile dropdown items ────────────────────────────────────────
+        if (elements.openProfileModalButton) {
+          elements.openProfileModalButton.addEventListener(
+            "click",
+            function () {
+              elements.profileMenu.classList.add("hidden");
+              openProfileModal();
+            },
+          );
+        }
+        if (elements.menuSignOutButton) {
+          elements.menuSignOutButton.addEventListener("click", signOutAccount);
+        }
+        // ── Auth modal ────────────────────────────────────────────────────
+        elements.authModalBackdrop.addEventListener("click", closeAuthModal);
+        elements.authModalCloseButton.addEventListener("click", closeAuthModal);
+        elements.authTabSignin.addEventListener("click", function () {
+          switchAuthTab("signin");
+        });
+        elements.authTabSignup.addEventListener("click", function () {
+          switchAuthTab("signup");
+        });
+        if (elements.switchToSignup)
+          elements.switchToSignup.addEventListener("click", function () {
+            switchAuthTab("signup");
+          });
+        if (elements.switchToSignin)
+          elements.switchToSignin.addEventListener("click", function () {
+            switchAuthTab("signin");
+          });
+        elements.authSigninForm.addEventListener("submit", signinAccount);
+        elements.authSignupForm.addEventListener("submit", signupAccount);
+        elements.authVerifyButton.addEventListener("click", verifyLocalCode);
+        elements.authVerifyBackButton.addEventListener("click", function () {
+          switchAuthTab("signin");
+        });
+        // ── Profile modal ─────────────────────────────────────────────────
+        elements.profileModalBackdrop.addEventListener(
+          "click",
+          closeProfileModal,
+        );
+        elements.profileModalCloseButton.addEventListener(
+          "click",
+          closeProfileModal,
+        );
+        elements.profileSignOutButton.addEventListener("click", signOutAccount);
+        elements.createApiKeyButton.addEventListener("click", createApiKey);
+        elements.refreshApiKeysButton.addEventListener(
+          "click",
+          loadUserApiKeys,
+        );
+        elements.apiKeyList.addEventListener("click", function (event) {
+          var button = event.target.closest("[data-revoke-api-key]");
+          if (button) revokeApiKey(button.getAttribute("data-revoke-api-key"));
+        });
+        // ── Console actions ───────────────────────────────────────────────
+        elements.formatJsonButton.addEventListener("click", formatBodyJson);
+        elements.resetBodyButton.addEventListener("click", resetSampleBody);
+        elements.sendRequestButton.addEventListener("click", sendRequest);
+        elements.copyResponseButton.addEventListener("click", function () {
+          if (lastResponseText) copyText(lastResponseText, "Response copied.");
+        });
+        // ── Escape key closes whichever modal is open ─────────────────────
+        document.addEventListener("keydown", function (event) {
+          if (event.key === "Escape") {
+            if (!elements.authModal.classList.contains("hidden")) {
+              closeAuthModal();
+              return;
+            }
+            if (!elements.profileModal.classList.contains("hidden")) {
+              closeProfileModal();
+              return;
+            }
+          }
+        });
+      }
+
+      function init() {
+        var resolvedBaseUrl = getDefaultBaseUrl();
+        elements.baseUrlInput.value = resolvedBaseUrl;
+        elements.baseUrlDisplay.textContent = resolvedBaseUrl;
+        restoreSession();
+        wireEvents();
+        updateApiKeyStatus();
+        updateTokenStatus();
+        renderNav();
+        selectEndpoint("auth-signup");
+        loadHealth();
+      }
+
+      init();
+    </script>
+  </body>
+</html>

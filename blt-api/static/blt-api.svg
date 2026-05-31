@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">BLT API</title>
+  <desc id="desc">Red BLT API mark</desc>
+  <rect width="64" height="64" rx="16" fill="#fff5f5"/>
+  <path d="M18 22c0-5.5 4.5-10 10-10h8c5.5 0 10 4.5 10 10v20c0 5.5-4.5 10-10 10h-8c-5.5 0-10-4.5-10-10V22Z" fill="#dc2626"/>
+  <path d="M24 24h16M24 32h16M24 40h10" stroke="white" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="17" cy="20" r="5" fill="#ef4444" opacity="0.85"/>
+  <circle cx="47" cy="20" r="5" fill="#ef4444" opacity="0.85"/>
+  <path d="M14 47c5-2.5 9-4 18-4s13 1.5 18 4" fill="none" stroke="#991b1b" stroke-width="3" stroke-linecap="round" opacity="0.45"/>
+</svg>

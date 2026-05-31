@@ -86,8 +86,11 @@ Hot reload is enabled - code changes trigger automatic restart.
 ### Test Endpoints
 
 ```bash
-# Visit the interactive API homepage
-open http://localhost:8787
+# Open the BLT API landing page in your browser:
+# http://localhost:8787
+
+# Open the interactive API dashboard/docs in your browser:
+# http://localhost:8787/dashboard
 
 # Health check
 curl http://localhost:8787/health
@@ -201,7 +204,7 @@ python3 -c "import secrets; print(secrets.token_urlsafe(32))"
 - `src/handlers/` - HTTP request handlers (bugs, users, domains, auth, etc.)
 - `src/services/` - Service modules (email service, templates)
 - `src/libs/` - Shared libraries (database, JWT, constants)
-- `src/pages/` - Static HTML pages (API homepage)
+- `src/pages/` - Static HTML pages (landing page and dashboard/docs)
 - `scripts/` - Utility scripts (database setup, migrations)
 - `migrations/` - D1 database migrations
 - `tests/` - Test files
@@ -263,13 +266,16 @@ return error_response("Not found", status=404)
 
 ### Manual Testing
 
-Use the interactive API homepage:
+Use the landing page and interactive API dashboard:
 ```bash
 # Start dev server
 wrangler dev --port 8787
 
-# Open in browser
-open http://localhost:8787
+# Open landing page in your browser:
+# http://localhost:8787
+
+# Open dashboard/docs in your browser:
+# http://localhost:8787/dashboard
 ```
 
 Or use curl:
@@ -350,7 +356,7 @@ See the [README.md](README.md#cloudflare-git-integration-recommended) for setup 
    ```
 4. Test locally with `wrangler dev`
 5. Add tests in `tests/`
-6. Update API documentation in homepage template if needed
+6. Update API documentation in `src/pages/dashboard.html` if needed
 7. Submit PR
 
 ### Add a New Table
@@ -461,7 +467,7 @@ wrangler dev --port 8787
 - Use `[[placeholder]]` syntax in HTML templates (not `{{placeholder}}`)
 - Follow JWT authentication patterns from `libs/jwt_utils.py`
 - Use EmailService for sending emails, not direct API calls
-- Document new endpoints in PR and update homepage template if public-facing
+- Document new endpoints in PR and update `src/pages/dashboard.html` if public-facing
 
 ## Resources
 

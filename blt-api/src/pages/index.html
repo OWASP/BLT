@@ -1,1550 +1,739 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BLT API - OWASP Bug Logging Tool API</title>
-    <meta name="description" content="OWASP BLT API - Full-featured REST API for bug logging and security bug tracking">
-    
-    <!-- Tailwind CSS CDN -->
+<html lang="en" class="scroll-smooth">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BLT API - OWASP Bug Logging Tool</title>
+    <meta
+      name="description"
+      content="Use the BLT API to browse OWASP BLT bugs, users, domains, organizations, projects, hunts, stats, and leaderboard data."
+    />
+    <script>
+      window.tailwind = window.tailwind || {};
+      window.tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              blt: {
+                red: "#dc2626",
+                coral: "#ef4444",
+                ink: "#111827",
+              },
+            },
+            fontFamily: {
+              sans: [
+                "Geist",
+                "Inter",
+                "ui-sans-serif",
+                "system-ui",
+                "-apple-system",
+                "BlinkMacSystemFont",
+                "Segoe UI",
+                "sans-serif",
+              ],
+              mono: [
+                "ui-monospace",
+                "SFMono-Regular",
+                "Menlo",
+                "Monaco",
+                "Consolas",
+                "monospace",
+              ],
+            },
+          },
+        },
+      };
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      .mobile-menu.open {
+        display: flex;
+      }
+      .mobile-toggle.active span:nth-child(1) {
+        transform: translateY(6px) rotate(45deg);
+      }
+      .mobile-toggle.active span:nth-child(2) {
+        opacity: 0;
+      }
+      .mobile-toggle.active span:nth-child(3) {
+        transform: translateY(-6px) rotate(-45deg);
+      }
+      .dot-field {
+        background-image: radial-gradient(
+          rgba(17, 24, 39, 0.18) 1px,
+          transparent 1px
+        );
+        background-size: 18px 18px;
+        mask-image: radial-gradient(circle at center, black 0, transparent 74%);
+        -webkit-mask-image: radial-gradient(
+          circle at center,
+          black 0,
+          transparent 74%
+        );
+      }
+      .feature-divider::before,
+      .feature-divider::after {
+        content: "";
+        height: 1px;
+        flex: 1;
+      }
+      .feature-divider::before {
+        background: linear-gradient(to right, transparent, #e5e7eb);
+      }
+      .feature-divider::after {
+        background: linear-gradient(to left, transparent, #e5e7eb);
+      }
+      .wave-dots i {
+        position: absolute;
+        width: 0.25rem;
+        height: 0.25rem;
+        border-radius: 999px;
+        background: #d1d5db;
+        animation: wave 2s infinite ease-in-out;
+      }
+      .wave-dots i:nth-child(1) {
+        top: 0;
+        left: 0;
+      }
+      .wave-dots i:nth-child(2) {
+        top: 0;
+        left: 1rem;
+      }
+      .wave-dots i:nth-child(3) {
+        top: 0.25rem;
+        left: 0.5rem;
+        animation-delay: 0.35s;
+      }
+      .wave-dots i:nth-child(4) {
+        top: 0.5rem;
+        left: 0;
+        animation-delay: 0.55s;
+      }
+      .wave-dots i:nth-child(5) {
+        top: 0.5rem;
+        left: 1rem;
+        animation-delay: 0.55s;
+      }
+      .wave-dots i:nth-child(6) {
+        top: 0.75rem;
+        left: 0.5rem;
+        animation-delay: 0.85s;
+      }
+      .section-kicker.with-bar::before {
+        content: "";
+        position: absolute;
+        top: 0.18rem;
+        left: -0.55rem;
+        width: 3px;
+        height: 1.25rem;
+        border-radius: 0 2px 2px 0;
+        background: #ef4444;
+      }
+      .footer-panel::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0.04;
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 1) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 1) 1px, transparent 1px);
+        background-size: 40px 40px;
+      }
+      .footer-links p {
+        margin: 0 0 0.35rem;
+        color: #6b7280;
+        font-size: 0.625rem;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+      .footer-links a {
+        display: block;
+        color: #d1d5db;
+        font-size: 0.875rem;
+        line-height: 1.55;
+        transition: color 180ms ease;
+      }
+      .footer-links a:hover {
+        color: white;
+      }
+      @keyframes wave {
+        0%,
+        100% {
+          transform: translateY(0);
+          opacity: 0.5;
         }
+        50% {
+          transform: translateY(-3px);
+          opacity: 1;
+        }
+      }
     </style>
-</head>
-<body class="bg-gray-50">
-    <!-- Navigation -->
-    <nav class="bg-white shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                <div class="flex items-center">
-                    <img src="/logo.png" alt="BLT-Sammich Logo" class="h-8 w-8 mr-2" />
-                    <h1 class="text-xl font-bold text-gray-900">BLT API</h1>
-                </div>
-                <div class="flex items-center space-x-3">
-                    <a href="[[API_BASE_URL]]/health" class="text-gray-500 hover:text-red-600 font-medium text-sm hidden sm:block">
-                        <i class="fas fa-heartbeat mr-1"></i> Health
-                    </a>
-                    <a class="hidden sm:flex items-center border border-gray-200 hover:border-gray-300 text-gray-600 hover:text-gray-900 font-semibold py-2 px-3 rounded-lg transition-colors text-sm"
-                       href="https://github.com/OWASP-BLT/BLT-API" target="_blank" rel="noopener noreferrer">
-                        <i class="fab fa-github mr-2"></i> GitHub
-                    </a>
-                    <!-- Auth buttons (shown when not signed in) -->
-                    <div id="navAuthButtons" class="flex items-center space-x-2">
-                        <button onclick="openAuthModal('signin')" class="text-gray-700 hover:text-red-600 font-semibold py-2 px-4 rounded-lg transition-colors border border-gray-200 hover:border-red-300 text-sm">
-                            Sign In
-                        </button>
-                        <button onclick="openAuthModal('signup')" class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors text-sm">
-                            Sign Up
-                        </button>
-                    </div>
-                    <!-- User menu (shown when signed in) -->
-                    <div id="navUserMenu" class="hidden relative">
-                        <button onclick="toggleUserDropdown()" class="flex items-center space-x-2 bg-red-50 hover:bg-red-100 text-red-700 font-semibold py-2 px-3 rounded-lg transition-colors text-sm">
-                            <div class="w-6 h-6 bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
-                                <span id="navUserInitial">U</span>
-                            </div>
-                            <span id="navUsername" class="hidden sm:block max-w-[6rem] truncate"></span>
-                            <i class="fas fa-chevron-down text-xs"></i>
-                        </button>
-                        <div id="userDropdown" class="hidden absolute right-0 top-full mt-1 w-48 bg-white border border-gray-200 rounded-xl shadow-xl z-50 py-1 overflow-hidden">
-                            <div class="px-4 py-2.5 border-b border-gray-100 bg-gray-50">
-                                <p class="text-xs text-gray-400 uppercase tracking-wide font-semibold">Signed in as</p>
-                                <p id="dropdownUsername" class="text-sm font-semibold text-gray-900 truncate mt-0.5"></p>
-                            </div>
-                            <button onclick="scrollToApiKeys()" class="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition-colors">
-                                <i class="fas fa-key text-gray-400 w-4"></i> API Keys
-                            </button>
-                            <button onclick="handleSignOut()" class="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors">
-                                <i class="fas fa-sign-out-alt w-4"></i> Sign Out
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+  </head>
+  <body
+    class="min-h-screen overflow-x-hidden bg-gray-50 font-sans text-gray-900 antialiased selection:bg-red-100 selection:text-red-700"
+  >
+    <header
+      class="fixed inset-x-0 top-0 z-50 border-b border-black/5 bg-white/90 backdrop-blur-[18px]"
+      id="site-header"
+    >
+      <div
+        class="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-4 max-md:px-4"
+      >
+        <a
+          href="/"
+          class="inline-flex items-center gap-2.5"
+          aria-label="BLT API home"
+        >
+          <img src="/blt-api.svg" alt="BLT API logo" class="h-14" />
+          <div class="flex flex-col">
+            <span class="text-sm font-semibold tracking-tight">BLT API</span>
+          </div>
+        </a>
+
+        <nav
+          class="hidden items-center gap-7 md:flex"
+          aria-label="Primary navigation"
+        >
+          <a
+            class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+            href="#docs"
+            >Docs</a
+          >
+          <a
+            class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+            href="#endpoints"
+            >Endpoints</a
+          >
+          <a
+            class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+            href="[[API_BASE_URL]]/health"
+            >Health</a
+          >
+          <a
+            class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+            href="https://gitlab.com/owasp-blt/blt-api/"
+            target="_blank"
+            rel="noopener noreferrer"
+            >Source</a
+          >
+        </nav>
+
+        <div class="hidden items-center gap-3 md:flex">
+          <a
+            class="rounded-md px-3 py-2 text-sm text-gray-600 transition-colors duration-150 hover:bg-gray-100 hover:text-gray-900"
+            href="[[API_BASE_URL]]/health"
+            >Check health</a
+          >
+          <a
+            class="inline-flex items-center justify-center rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-4 py-2 text-sm font-medium text-white shadow-[0_10px_24px_-18px_rgba(220,38,38,.8)] transition duration-200 hover:-translate-y-px"
+            href="[[API_BASE_URL]]/dashboard"
+            >View docs</a
+          >
         </div>
-    </nav>
 
-    <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <!-- Hero Section -->
-        <section class="bg-white rounded-lg shadow p-8 mb-8 text-center">
-            <div class="max-w-3xl mx-auto">
-                <h1 class="text-4xl font-bold text-gray-900 mb-4"><i class="fas fa-shield-alt text-red-600 text-4xl mr-2"></i> BLT API</h1>
-                <p class="text-xl text-gray-600 mb-6">
-                    OWASP Bug Logging Tool - Full-Featured REST API running on Cloudflare Workers for global low-latency access
-                </p>
-                <div class="flex justify-center items-center space-x-4 mb-6">
-                    <span class="inline-flex items-center px-4 py-2 bg-green-50 text-green-600 rounded-lg font-medium">
-                        <i class="fas fa-check-circle mr-2"></i>
-                        API Healthy
-                    </span>
-                    <span class="inline-flex items-center px-4 py-2 bg-red-50 text-red-600 rounded-lg font-medium">
-                        <i class="fas fa-globe mr-2"></i>
-                        Edge-Deployed
-                    </span>
-                </div>
-                <div class="flex justify-center space-x-3">
-                          <a href="https://owaspblt.org" 
-                       class="inline-flex items-center px-5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
-                       target="_blank" rel="noopener noreferrer">
-                        <i class="fas fa-external-link-alt mr-2"></i>
-                        BLT Website
-                    </a>
-                    <a href="https://github.com/OWASP-BLT/BLT" 
-                       class="inline-flex items-center px-5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
-                       target="_blank" rel="noopener noreferrer">
-                        <i class="fab fa-github mr-2"></i>
-                        Main Repository
-                    </a>
-                </div>
-            </div>
-        </section>
+        <button
+          class="mobile-toggle hidden h-8 w-8 cursor-pointer flex-col items-center justify-center gap-[5px] border-0 bg-transparent max-md:flex"
+          id="mobile-toggle"
+          type="button"
+          aria-label="Toggle menu"
+          aria-expanded="false"
+          aria-controls="mobile-menu"
+        >
+          <span
+            class="block h-px w-5 bg-gray-600 transition duration-200"
+          ></span>
+          <span
+            class="block h-px w-5 bg-gray-600 transition duration-200"
+          ></span>
+          <span
+            class="block h-px w-5 bg-gray-600 transition duration-200"
+          ></span>
+        </button>
+      </div>
 
-        <!-- Overview Section -->
-        <section class="bg-white rounded-lg shadow p-6 mb-8">
-            <h2 class="text-3xl font-bold text-gray-900 mb-6 text-center">Features</h2>
-            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div class="text-center">
-                    <div class="w-12 h-12 bg-red-100 text-red-600 rounded-lg flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-rocket text-xl"></i>
-                    </div>
-                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Edge-Deployed</h3>
-                    <p class="text-gray-600 text-sm">Running on Cloudflare's global network for minimal latency</p>
-                </div>
-                <div class="text-center">
-                    <div class="w-12 h-12 bg-red-100 text-red-600 rounded-lg flex items-center justify-center mx-auto mb-4">
-                        <i class="fab fa-python text-xl"></i>
-                    </div>
-                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Python-Powered</h3>
-                    <p class="text-gray-600 text-sm">Built with Python for Cloudflare Workers</p>
-                </div>
-                <div class="text-center">
-                    <div class="w-12 h-12 bg-red-100 text-red-600 rounded-lg flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-lock text-xl"></i>
-                    </div>
-                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Secure</h3>
-                    <p class="text-gray-600 text-sm">CORS enabled with authentication support</p>
-                </div>
-                <div class="text-center">
-                    <div class="w-12 h-12 bg-red-100 text-red-600 rounded-lg flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-chart-line text-xl"></i>
-                    </div>
-                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Comprehensive</h3>
-                    <p class="text-gray-600 text-sm">Full API coverage for all BLT resources</p>
-                </div>
-            </div>
+      <nav
+        class="mobile-menu hidden flex-col gap-4 border-t border-gray-100 bg-white/95 px-6 py-4 backdrop-blur-md"
+        id="mobile-menu"
+        aria-label="Mobile navigation"
+      >
+        <a
+          class="text-sm text-gray-600 transition-colors hover:text-gray-900"
+          href="#docs"
+          >Docs</a
+        >
+        <a
+          class="text-sm text-gray-600 transition-colors hover:text-gray-900"
+          href="#endpoints"
+          >Endpoints</a
+        >
+        <a
+          class="text-sm text-gray-600 transition-colors hover:text-gray-900"
+          href="[[API_BASE_URL]]/health"
+          >Health</a
+        >
+        <a
+          class="text-sm text-gray-600 transition-colors hover:text-gray-900"
+          href="https://gitlab.com/owasp-blt/blt-api/"
+          target="_blank"
+          rel="noopener noreferrer"
+          >Source</a
+        >
+        <a
+          class="inline-flex items-center justify-center rounded-md border border-gray-200 bg-white px-5 py-3 text-sm font-medium text-gray-700 transition duration-200 hover:border-gray-300 hover:bg-gray-50"
+          href="[[API_BASE_URL]]/health"
+          >Check health</a
+        >
+        <a
+          class="inline-flex items-center justify-center rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-5 py-3 text-sm font-medium text-white transition duration-200 hover:-translate-y-px"
+          href="[[API_BASE_URL]]/dashboard"
+          >View docs</a
+        >
+      </nav>
+    </header>
 
-            <div class="mt-8 pt-6 border-t border-gray-100">
-                <h3 class="text-xl font-semibold text-gray-900 mb-4 text-center">Model Stats</h3>
-                <div id="model-stats-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
-                    <div class="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-500">Loading stats...</div>
-                </div>
-            </div>
-        </section>
+    <main>
+      <section
+        class="relative flex min-h-[43rem] items-start justify-center px-4 pb-14 pt-52 max-md:min-h-[38rem] max-md:pt-36"
+        aria-label="Hero"
+      >
+        <div
+          class="dot-field pointer-events-none absolute inset-x-0 top-24 z-[1] mx-auto h-[36rem] w-[min(94rem,180vw)] opacity-70"
+          aria-hidden="true"
+        ></div>
+        <div
+          class="relative z-[2] flex w-full flex-col items-center text-center"
+        >
+          <a
+            class="inline-flex max-w-[min(40rem,calc(100vw_-_2rem))] items-center gap-3 rounded-full bg-white/40 py-[.15rem] pl-[.15rem] pr-3 text-sm font-medium text-gray-900 shadow-[0_10px_30px_-16px_rgba(220,38,38,.45),0_0_0_1px_rgba(0,0,0,.1)] backdrop-blur-[1px] max-md:text-[.72rem]"
+            href="[[API_BASE_URL]]/dashboard"
+            aria-label="Open BLT API documentation"
+          >
+            <span
+              class="flex-none rounded-full border border-gray-200 bg-gray-50 px-[.65rem] py-1 text-xs text-gray-600"
+              >Live</span
+            >
+            <span class="truncate"
+              >API docs and health checks are available.</span
+            >
+          </a>
+          <h1
+            class="mt-7 text-[clamp(3.4rem,10vw,7rem)] font-bold leading-[.92] tracking-[-.055em] text-gray-900"
+          >
+            Build with<br />BLT <span class="text-red-600">API</span>.
+          </h1>
+          <p
+            class="mt-6 max-w-[42rem] text-[clamp(1rem,1.55vw,1.22rem)] leading-[1.6] text-gray-700 text-balance"
+          >
+            Use OWASP BLT data through clear routes for bugs, users, domains,
+            organizations, projects, hunts, stats, and leaderboards.
+          </p>
+          <div
+            class="mt-7 flex items-center justify-center gap-3 max-md:w-full max-md:flex-col max-md:px-4"
+          >
+            <a
+              class="inline-flex items-center justify-center rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-5 py-3 text-base font-medium text-white shadow-[0_0_0_2px_rgba(0,0,0,.04),0_10px_24px_-14px_rgba(220,38,38,.8)] transition duration-200 hover:-translate-y-px"
+              href="[[API_BASE_URL]]/dashboard"
+              >View API docs</a
+            >
+            <a
+              class="inline-flex items-center justify-center rounded-md border border-gray-200 bg-white px-5 py-3 text-base font-medium text-gray-700 transition duration-200 hover:border-gray-300 hover:bg-gray-50"
+              href="[[API_BASE_URL]]/health"
+              >Check health</a
+            >
+          </div>
+        </div>
+      </section>
 
-        <!-- API Endpoints Section -->
-        <section class="bg-white rounded-lg shadow p-6 mb-8">
-            <h2 class="text-3xl font-bold text-gray-900 mb-6 text-center">API Endpoints</h2>
-            <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 flex items-start gap-3">
-                <i class="fas fa-key text-red-500 mt-0.5 shrink-0"></i>
-                <div>
-                    <p class="text-sm font-semibold text-red-700 mb-0.5">API Key Required</p>
-                    <p class="text-xs text-gray-600">Sign in with the button in the top-right corner to generate an API key. Try-it requests will use your key automatically.</p>
-                </div>
-            </div>
-            
-            <!-- Health & Status -->
-            <div class="mb-8">
-                <h3 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                    <i class="fas fa-heartbeat text-red-600 mr-2"></i>
-                    Health & Status
-                </h3>
-                <div class="space-y-3">
-                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
-                        <div class="flex items-start">
-                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
-                            <div class="flex-1">
-                                <code class="text-sm font-mono text-gray-800">/</code>
-                                <p class="text-gray-600 text-sm mt-1">API homepage (this page)</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
-                        <div class="flex items-start justify-between">
-                            <div class="flex items-start flex-1">
-                                <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
-                                <div class="flex-1">
-                                    <code class="text-sm font-mono text-gray-800">/health</code>
-                                    <p class="text-gray-600 text-sm mt-1">Health check endpoint (JSON response)</p>
-                                </div>
-                            </div>
-                            <button onclick="testEndpoint('GET', '/health')" 
-                                    class="ml-4 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition-colors flex items-center">
-                                <i class="fas fa-play mr-2"></i>Try it
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+      <div
+        class="feature-divider mx-auto my-10 flex w-[min(72rem,calc(100%_-_2rem))] items-center gap-3 text-gray-500"
+        aria-hidden="true"
+      >
+        <span class="wave-dots relative h-4 w-5 flex-none"
+          ><i></i><i></i><i></i><i></i><i></i><i></i
+        ></span>
+      </div>
 
-            <!-- Bugs -->
-            <div class="mb-8">
-                <h3 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                    <i class="fas fa-bug text-red-600 mr-2"></i>
-                    Bugs
-                </h3>
-                <div class="space-y-3">
-                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
-                        <div class="flex items-start justify-between">
-                            <div class="flex items-start flex-1">
-                                <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
-                                <div class="flex-1">
-                                    <code class="text-sm font-mono text-gray-800">/bugs</code>
-                                    <p class="text-gray-600 text-sm mt-1">List all bugs (paginated)</p>
-                                    <div class="mt-2 bg-gray-50 p-2 rounded text-xs">
-                                        <span class="font-semibold text-red-600">Query params:</span> 
-                                        <code class="bg-white px-1 py-0.5 rounded">page</code>, 
-                                        <code class="bg-white px-1 py-0.5 rounded">per_page</code>, 
-                                        <code class="bg-white px-1 py-0.5 rounded">status</code>, 
-                                        <code class="bg-white px-1 py-0.5 rounded">domain</code>
-                                    </div>
-                                </div>
-                            </div>
-                            <button onclick="testEndpoint('GET', '/bugs', {page: 1, per_page: 10})" 
-                                    class="ml-4 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition-colors flex items-center">
-                                <i class="fas fa-play mr-2"></i>Try it
-                            </button>
-                        </div>
-                    </div>
-                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
-                        <div class="flex items-start justify-between">
-                            <div class="flex items-start flex-1">
-                                <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
-                                <div class="flex-1">
-                                    <code class="text-sm font-mono text-gray-800">/bugs/{{id}}</code>
-                                    <p class="text-gray-600 text-sm mt-1">Get a specific bug by ID</p>
-                                </div>
-                            </div>
-                            <button onclick="testEndpointWithParams('GET', '/bugs/{{id}}', 'Enter bug ID:', '1')" 
-                                    class="ml-4 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition-colors flex items-center">
-                                <i class="fas fa-play mr-2"></i>Try it
-                            </button>
-                        </div>
-                    </div>
-                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
-                        <div class="flex items-start justify-between">
-                            <div class="flex items-start flex-1">
-                                <span class="inline-block px-3 py-1 bg-green-500 text-white text-xs font-bold rounded mr-3">POST</span>
-                                <div class="flex-1">
-                                    <code class="text-sm font-mono text-gray-800">/bugs</code>
-                                    <p class="text-gray-600 text-sm mt-1">Create a new bug</p>
-                                </div>
-                            </div>
-                            <button onclick="alert('POST endpoint requires authentication and a valid request body')" 
-                                    class="ml-4 px-4 py-2 bg-gray-400 text-white text-sm font-semibold rounded-lg cursor-not-allowed flex items-center">
-                                <i class="fas fa-lock mr-2"></i>Auth Required
-                            </button>
-                        </div>
-                    </div>
-                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
-                        <div class="flex items-start justify-between">
-                            <div class="flex items-start flex-1">
-                                <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
-                                <div class="flex-1">
-                                    <code class="text-sm font-mono text-gray-800">/bugs/search</code>
-                                    <p class="text-gray-600 text-sm mt-1">Search bugs</p>
-                                    <div class="mt-2 bg-gray-50 p-2 rounded text-xs">
-                                        <span class="font-semibold text-red-600">Query params:</span> 
-                                        <code class="bg-white px-1 py-0.5 rounded">q</code>
-                                    </div>
-                                </div>
-                            </div>
-                            <button onclick="testEndpointWithQuery('GET', '/bugs/search', 'Enter search query:', 'xss')" 
-                                    class="ml-4 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition-colors flex items-center">
-                                <i class="fas fa-play mr-2"></i>Try it
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+      <section
+        id="docs"
+        class="w-full px-4 pb-24 pt-10 max-md:pb-20"
+        aria-labelledby="docs-heading"
+      >
+        <div class="mx-auto w-[min(64rem,calc(100%_-_1rem))]">
+          <div class="mx-auto mb-10 max-w-[42rem] text-center">
+            <span
+              class="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 py-1 font-mono text-xs font-medium uppercase tracking-[.16em] text-red-600"
+              >API Docs</span
+            >
+            <h2
+              id="docs-heading"
+              class="mt-4 text-[clamp(2.25rem,4vw,3.1rem)] font-semibold leading-[1.05] tracking-[-.04em] text-balance"
+            >
+              Everything you need to test a route
+            </h2>
+            <p
+              class="mx-auto mt-4 max-w-[40rem] text-base leading-[1.6] text-gray-600"
+            >
+              The dashboard keeps route docs, examples, the shared API key, and
+              the Try it console in one place.
+            </p>
+          </div>
 
-            <!-- Users -->
-            <div class="mb-8">
-                <h3 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                    <i class="fas fa-users text-red-600 mr-2"></i>
-                    Users
-                </h3>
-                <div class="space-y-3">
-                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
-                        <div class="flex items-start justify-between">
-                            <div class="flex items-start flex-1">
-                                <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
-                                <div class="flex-1">
-                                    <code class="text-sm font-mono text-gray-800">/users</code>
-                                    <p class="text-gray-600 text-sm mt-1">List all users (paginated)</p>
-                                    <div class="mt-2 bg-gray-50 p-2 rounded text-xs">
-                                        <span class="font-semibold text-red-600">Query params:</span> 
-                                        <code class="bg-white px-1 py-0.5 rounded">page</code>, 
-                                        <code class="bg-white px-1 py-0.5 rounded">per_page</code>
-                                    </div>
-                                </div>
-                            </div>
-                            <button onclick="testEndpoint('GET', '/users', {page: 1, per_page: 10})" 
-                                    class="ml-4 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition-colors flex items-center">
-                                <i class="fas fa-play mr-2"></i>Try it
-                            </button>
-                        </div>
-                    </div>
-                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
-                        <div class="flex items-start justify-between">
-                            <div class="flex items-start flex-1">
-                                <span class="inline-block px-3 py-1 bg-green-500 text-white text-xs font-bold rounded mr-3">POST</span>
-                                <div class="flex-1">
-                                    <code class="text-sm font-mono text-gray-800">/users</code>
-                                    <p class="text-gray-600 text-sm mt-1">Create a new user with validation, rate limiting, and strong password rules</p>
-                                </div>
-                            </div>
-                            <button onclick="alert('POST /users expects JSON body: username, email, password (description optional)')" 
-                                    class="ml-4 px-4 py-2 bg-gray-400 text-white text-sm font-semibold rounded-lg cursor-not-allowed flex items-center">
-                                <i class="fas fa-file-code mr-2"></i>JSON Body
-                            </button>
-                        </div>
-                    </div>
-                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
-                        <div class="flex items-start">
-                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
-                            <div class="flex-1">
-                                <code class="text-sm font-mono text-gray-800">/users/{{id}}</code>
-                                <p class="text-gray-600 text-sm mt-1">Get a specific user by ID</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
-                        <div class="flex items-start">
-                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
-                            <div class="flex-1">
-                                <code class="text-sm font-mono text-gray-800">/users/{{id}}/profile</code>
-                                <p class="text-gray-600 text-sm mt-1">Get detailed user profile</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+          <div
+            class="grid grid-cols-3 gap-3 max-lg:grid-cols-2 max-md:grid-cols-1"
+          >
+            <article
+              class="rounded-xl bg-white p-6 shadow-[inset_0_0_0_1px_rgba(17,24,39,.1)]"
+            >
+              <div
+                class="flex h-12 w-12 items-center justify-center rounded-full border border-gray-200 bg-gray-50 font-mono text-sm font-semibold text-red-600"
+              >
+                01
+              </div>
+              <h3 class="mt-6 text-lg font-semibold">Browse routes</h3>
+              <p class="mt-3 text-sm leading-6 text-gray-600">
+                Find the endpoint family you need and see the supported method,
+                path, auth mode, and response shape.
+              </p>
+            </article>
+            <article
+              class="rounded-xl bg-white p-6 shadow-[inset_0_0_0_1px_rgba(17,24,39,.1)]"
+            >
+              <div
+                class="flex h-12 w-12 items-center justify-center rounded-full border border-gray-200 bg-gray-50 font-mono text-sm font-semibold text-red-600"
+              >
+                02
+              </div>
+              <h3 class="mt-6 text-lg font-semibold">Try safe requests</h3>
+              <p class="mt-3 text-sm leading-6 text-gray-600">
+                Run GET requests from the docs page and inspect formatted JSON
+                without leaving the browser.
+              </p>
+            </article>
+            <article
+              class="rounded-xl bg-white p-6 shadow-[inset_0_0_0_1px_rgba(17,24,39,.1)]"
+            >
+              <div
+                class="flex h-12 w-12 items-center justify-center rounded-full border border-gray-200 bg-gray-50 font-mono text-sm font-semibold text-red-600"
+              >
+                03
+              </div>
+              <h3 class="mt-6 text-lg font-semibold">Use the API key</h3>
+              <p class="mt-3 text-sm leading-6 text-gray-600">
+                Protected endpoints use
+                <span class="font-mono text-gray-900">X-BLT-API-Key</span>; the
+                dashboard shows the shared key for test requests.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
 
-            <!-- Domains -->
-            <div class="mb-8">
-                <h3 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                    <i class="fas fa-globe text-red-600 mr-2"></i>
-                    Domains
-                </h3>
-                <div class="space-y-3">
-                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
-                        <div class="flex items-start">
-                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
-                            <div class="flex-1">
-                                <code class="text-sm font-mono text-gray-800">/domains</code>
-                                <p class="text-gray-600 text-sm mt-1">List all domains (paginated)</p>
-                                <div class="mt-2 bg-gray-50 p-2 rounded text-xs">
-                                    <span class="font-semibold text-red-600">Query params:</span> 
-                                    <code class="bg-white px-1 py-0.5 rounded">page</code>, 
-                                    <code class="bg-white px-1 py-0.5 rounded">per_page</code>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
-                        <div class="flex items-start">
-                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
-                            <div class="flex-1">
-                                <code class="text-sm font-mono text-gray-800">/domains/{{id}}</code>
-                                <p class="text-gray-600 text-sm mt-1">Get a specific domain by ID</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
-                        <div class="flex items-start">
-                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
-                            <div class="flex-1">
-                                <code class="text-sm font-mono text-gray-800">/domains/{{id}}/bugs</code>
-                                <p class="text-gray-600 text-sm mt-1">Get all bugs for a domain</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+      <section
+        class="w-full px-4 pb-24 pt-6 max-md:pb-20"
+        aria-labelledby="dashboard-heading"
+      >
+        <div
+          class="mx-auto grid w-[min(72rem,calc(100%_-_1rem))] items-center gap-10 lg:grid-cols-[0.88fr_1.12fr]"
+        >
+          <div>
+            <h2
+              id="dashboard-heading"
+              class="section-kicker with-bar relative m-0 text-lg font-semibold leading-tight tracking-[-.01em] text-red-500"
+            >
+              Dashboard
+            </h2>
+            <p
+              class="mt-2 text-[clamp(2rem,3vw,2.55rem)] font-semibold leading-[1.05] tracking-[-.04em] text-balance"
+            >
+              Docs, keys, and responses in one view.
+            </p>
+            <p
+              class="mt-4 max-w-[36rem] text-base leading-[1.65] text-gray-600"
+            >
+              Open
+              <a
+                class="font-medium text-red-600 hover:underline"
+                href="[[API_BASE_URL]]/dashboard"
+                >/dashboard</a
+              >
+              to inspect endpoints and test requests against the current API
+              base URL.
+            </p>
+            <div class="mt-6 flex flex-wrap gap-3">
+              <a
+                class="inline-flex items-center justify-center rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-4 py-2.5 text-sm font-medium text-white transition duration-200 hover:-translate-y-px"
+                href="[[API_BASE_URL]]/dashboard"
+                >Open dashboard</a
+              >
+              <a
+                class="inline-flex items-center justify-center rounded-md border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition duration-200 hover:border-gray-300 hover:bg-gray-50"
+                href="[[API_BASE_URL]]/health"
+                >Check health</a
+              >
             </div>
+          </div>
 
-            <!-- Organizations -->
-            <div class="mb-8">
-                <h3 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                    <i class="fas fa-building text-red-600 mr-2"></i>
-                    Organizations
-                </h3>
-                <div class="space-y-3">
-                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
-                        <div class="flex items-start">
-                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
-                            <div class="flex-1">
-                                <code class="text-sm font-mono text-gray-800">/organizations</code>
-                                <p class="text-gray-600 text-sm mt-1">List all organizations (paginated)</p>
-                                <div class="mt-2 bg-gray-50 p-2 rounded text-xs">
-                                    <span class="font-semibold text-red-600">Query params:</span> 
-                                    <code class="bg-white px-1 py-0.5 rounded">page</code>, 
-                                    <code class="bg-white px-1 py-0.5 rounded">per_page</code>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
-                        <div class="flex items-start">
-                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
-                            <div class="flex-1">
-                                <code class="text-sm font-mono text-gray-800">/organizations/{{id}}</code>
-                                <p class="text-gray-600 text-sm mt-1">Get a specific organization by ID</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
-                        <div class="flex items-start">
-                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
-                            <div class="flex-1">
-                                <code class="text-sm font-mono text-gray-800">/organizations/{{id}}/repos</code>
-                                <p class="text-gray-600 text-sm mt-1">Get repositories for an organization</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
-                        <div class="flex items-start">
-                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
-                            <div class="flex-1">
-                                <code class="text-sm font-mono text-gray-800">/organizations/{{id}}/projects</code>
-                                <p class="text-gray-600 text-sm mt-1">Get projects for an organization</p>
-                            </div>
-                        </div>
-                    </div>
+          <a
+            href="[[API_BASE_URL]]/dashboard"
+            class="group block rounded-3xl border border-gray-200 bg-white p-4 shadow-[0_22px_60px_-45px_rgba(15,23,42,.75)]"
+            aria-label="Open dashboard documentation"
+          >
+            <div
+              class="rounded-2xl border border-gray-100 bg-gray-50 p-4 font-mono text-xs text-gray-600"
+            >
+              <div class="mb-4 flex items-center justify-between">
+                <span class="font-sans text-sm font-semibold text-gray-900"
+                  >API Test Console</span
+                >
+                <span
+                  class="rounded-full bg-emerald-50 px-2 py-1 text-[.65rem] font-semibold text-emerald-700"
+                  >ready</span
+                >
+              </div>
+              <div class="grid gap-2">
+                <div class="rounded-xl bg-white p-3 shadow-sm">
+                  <span class="text-red-600">GET</span> /health
+                  <span class="float-right text-emerald-700">public</span>
                 </div>
-            </div>
-
-            <!-- Projects -->
-            <div class="mb-8">
-                <h3 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                    <i class="fas fa-folder-open text-red-600 mr-2"></i>
-                    Projects
-                </h3>
-                <div class="space-y-3">
-                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
-                        <div class="flex items-start">
-                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
-                            <div class="flex-1">
-                                <code class="text-sm font-mono text-gray-800">/projects</code>
-                                <p class="text-gray-600 text-sm mt-1">List all projects (paginated)</p>
-                                <div class="mt-2 bg-gray-50 p-2 rounded text-xs">
-                                    <span class="font-semibold text-red-600">Query params:</span> 
-                                    <code class="bg-white px-1 py-0.5 rounded">page</code>, 
-                                    <code class="bg-white px-1 py-0.5 rounded">per_page</code>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
-                        <div class="flex items-start">
-                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
-                            <div class="flex-1">
-                                <code class="text-sm font-mono text-gray-800">/projects/{{id}}</code>
-                                <p class="text-gray-600 text-sm mt-1">Get a specific project by ID</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
-                        <div class="flex items-start">
-                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
-                            <div class="flex-1">
-                                <code class="text-sm font-mono text-gray-800">/projects/{{id}}/contributors</code>
-                                <p class="text-gray-600 text-sm mt-1">Get contributors for a project</p>
-                            </div>
-                        </div>
-                    </div>
+                <div class="rounded-xl bg-white p-3 shadow-sm">
+                  <span class="text-red-600">GET</span> /bugs
+                  <span class="float-right text-gray-400">key</span>
                 </div>
-            </div>
-
-            <!-- Bug Hunts -->
-            <div class="mb-8">
-                <h3 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                    <i class="fas fa-crosshairs text-red-600 mr-2"></i>
-                    Bug Hunts
-                </h3>
-                <div class="space-y-3">
-                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
-                        <div class="flex items-start">
-                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
-                            <div class="flex-1">
-                                <code class="text-sm font-mono text-gray-800">/hunts</code>
-                                <p class="text-gray-600 text-sm mt-1">List all bug hunts</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
-                        <div class="flex items-start">
-                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
-                            <div class="flex-1">
-                                <code class="text-sm font-mono text-gray-800">/hunts/{{id}}</code>
-                                <p class="text-gray-600 text-sm mt-1">Get a specific hunt by ID</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
-                        <div class="flex items-start">
-                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
-                            <div class="flex-1">
-                                <code class="text-sm font-mono text-gray-800">/hunts/active</code>
-                                <p class="text-gray-600 text-sm mt-1">Get currently active hunts</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
-                        <div class="flex items-start">
-                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
-                            <div class="flex-1">
-                                <code class="text-sm font-mono text-gray-800">/hunts/previous</code>
-                                <p class="text-gray-600 text-sm mt-1">Get past hunts</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
-                        <div class="flex items-start">
-                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
-                            <div class="flex-1">
-                                <code class="text-sm font-mono text-gray-800">/hunts/upcoming</code>
-                                <p class="text-gray-600 text-sm mt-1">Get upcoming hunts</p>
-                            </div>
-                        </div>
-                    </div>
+                <div class="rounded-xl bg-white p-3 shadow-sm">
+                  <span class="text-red-600">GET</span> /routes
+                  <span class="float-right text-gray-400">key</span>
                 </div>
-            </div>
-
-            <!-- Statistics -->
-            <div class="mb-8">
-                <h3 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                    <i class="fas fa-chart-bar text-red-600 mr-2"></i>
-                    Statistics
-                </h3>
-                <div class="space-y-3">
-                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
-                        <div class="flex items-start justify-between">
-                            <div class="flex items-start flex-1">
-                                <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
-                                <div class="flex-1">
-                                    <code class="text-sm font-mono text-gray-800">/stats</code>
-                                    <p class="text-gray-600 text-sm mt-1">Get platform statistics</p>
-                                </div>
-                            </div>
-                            <button onclick="testEndpoint('GET', '/stats')" 
-                                    class="ml-4 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition-colors flex items-center">
-                                <i class="fas fa-play mr-2"></i>Try it
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Leaderboard -->
-            <div class="mb-8">
-                <h3 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                    <i class="fas fa-trophy text-red-600 mr-2"></i>
-                    Leaderboard
-                </h3>
-                <div class="space-y-3">
-                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
-                        <div class="flex items-start justify-between">
-                            <div class="flex items-start flex-1">
-                                <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
-                                <div class="flex-1">
-                                    <code class="text-sm font-mono text-gray-800">/leaderboard</code>
-                                    <p class="text-gray-600 text-sm mt-1">Get global leaderboard</p>
-                                </div>
-                            </div>
-                            <button onclick="testEndpoint('GET', '/leaderboard')" 
-                                    class="ml-4 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition-colors flex items-center">
-                                <i class="fas fa-play mr-2"></i>Try it
-                            </button>
-                        </div>
-                    </div>
-                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
-                        <div class="flex items-start">
-                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
-                            <div class="flex-1">
-                                <code class="text-sm font-mono text-gray-800">/leaderboard/monthly</code>
-                                <p class="text-gray-600 text-sm mt-1">Get monthly leaderboard</p>
-                                <div class="mt-2 bg-gray-50 p-2 rounded text-xs">
-                                    <span class="font-semibold text-red-600">Query params:</span> 
-                                    <code class="bg-white px-1 py-0.5 rounded">month</code>, 
-                                    <code class="bg-white px-1 py-0.5 rounded">year</code>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
-                        <div class="flex items-start">
-                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
-                            <div class="flex-1">
-                                <code class="text-sm font-mono text-gray-800">/leaderboard/organizations</code>
-                                <p class="text-gray-600 text-sm mt-1">Get organization leaderboard</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Contributors -->
-            <div class="mb-8">
-                <h3 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                    <i class="fas fa-user-friends text-red-600 mr-2"></i>
-                    Contributors
-                </h3>
-                <div class="space-y-3">
-                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
-                        <div class="flex items-start">
-                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
-                            <div class="flex-1">
-                                <code class="text-sm font-mono text-gray-800">/contributors</code>
-                                <p class="text-gray-600 text-sm mt-1">List all contributors</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
-                        <div class="flex items-start">
-                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
-                            <div class="flex-1">
-                                <code class="text-sm font-mono text-gray-800">/contributors/{{id}}</code>
-                                <p class="text-gray-600 text-sm mt-1">Get a specific contributor by ID</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Repositories -->
-            <div class="mb-8">
-                <h3 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                    <i class="fas fa-code-branch text-red-600 mr-2"></i>
-                    Repositories
-                </h3>
-                <div class="space-y-3">
-                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
-                        <div class="flex items-start">
-                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
-                            <div class="flex-1">
-                                <code class="text-sm font-mono text-gray-800">/repos</code>
-                                <p class="text-gray-600 text-sm mt-1">List repositories</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
-                        <div class="flex items-start">
-                            <span class="inline-block px-3 py-1 bg-blue-500 text-white text-xs font-bold rounded mr-3">GET</span>
-                            <div class="flex-1">
-                                <code class="text-sm font-mono text-gray-800">/repos/{{id}}</code>
-                                <p class="text-gray-600 text-sm mt-1">Get a specific repository by ID</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Response Format -->
-        <section class="bg-white rounded-lg shadow p-6 mb-8">
-            <h2 class="text-3xl font-bold text-gray-900 mb-6 text-center">Response Format</h2>
-            <p class="text-gray-600 text-center mb-6">All API endpoints return JSON responses in a consistent format</p>
-            
-            <div class="grid md:grid-cols-2 gap-6">
-                <div class="border border-gray-200 rounded-lg p-4">
-                    <h4 class="font-semibold text-green-600 mb-3 flex items-center">
-                        <i class="fas fa-check-circle mr-2"></i>
-                        Success Response
-                    </h4>
-                    <pre class="bg-gray-50 p-3 rounded text-xs overflow-x-auto"><code>{
+              </div>
+              <pre
+                class="mt-4 overflow-hidden rounded-xl bg-[#111827] p-4 text-left text-[.68rem] leading-5 text-gray-200"
+              ><code>{
   "success": true,
-  "data": { ... },
-  "pagination": {
-    "page": 1,
-    "per_page": 20,
-    "count": 10,
-    "total": 100
-  }
+  "data": [],
+  "pagination": { "page": 1 }
 }</code></pre>
-                </div>
-                
-                <div class="border border-gray-200 rounded-lg p-4">
-                    <h4 class="font-semibold text-red-600 mb-3 flex items-center">
-                        <i class="fas fa-exclamation-circle mr-2"></i>
-                        Error Response
-                    </h4>
-                    <pre class="bg-gray-50 p-3 rounded text-xs overflow-x-auto"><code>{
-  "error": true,
-  "message": "Error description",
-  "status": 400
-}</code></pre>
-                </div>
             </div>
-        </section>
+          </a>
+        </div>
+      </section>
 
-        <!-- Authentication & API Keys -->
-        <section id="authSection" class="bg-white rounded-lg shadow p-6 mb-8">
-            <h2 class="text-3xl font-bold text-gray-900 mb-2 text-center">Authentication &amp; API Keys</h2>
-            <p class="text-gray-500 text-center mb-8 text-sm">Sign in to create and manage your personal API keys</p>
+      <div
+        class="feature-divider mx-auto my-10 flex w-[min(72rem,calc(100%_-_2rem))] items-center gap-3 text-gray-500"
+        aria-hidden="true"
+      >
+        <span class="wave-dots relative h-4 w-5 flex-none"
+          ><i></i><i></i><i></i><i></i><i></i><i></i
+        ></span>
+      </div>
 
-            <!-- Signed-out state -->
-            <div id="authSignedOutState" class="max-w-sm mx-auto text-center py-6">
-                <div class="w-16 h-16 bg-red-100 text-red-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-key text-2xl"></i>
-                </div>
-                <h3 class="text-lg font-semibold text-gray-900 mb-2">Get your API key</h3>
-                <p class="text-gray-500 text-sm mb-6">Create a free account to generate API keys and access authenticated endpoints.</p>
-                <div class="flex justify-center gap-3">
-                    <button onclick="openAuthModal('signin')" class="px-5 py-2.5 border border-gray-200 hover:border-red-300 text-gray-700 hover:text-red-700 rounded-lg text-sm font-semibold transition-colors">
-                        Sign In
-                    </button>
-                    <button onclick="openAuthModal('signup')" class="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-semibold transition-colors flex items-center gap-2">
-                        <i class="fas fa-user-plus text-xs"></i> Create Account
-                    </button>
-                </div>
+      <section
+        id="endpoints"
+        class="w-full px-4 pb-24 pt-10 max-md:pb-20"
+        aria-labelledby="endpoints-heading"
+      >
+        <div class="mx-auto w-[min(72rem,calc(100%_-_1rem))]">
+          <div class="max-w-[38rem]">
+            <h2
+              id="endpoints-heading"
+              class="section-kicker with-bar relative m-0 text-lg font-semibold leading-tight tracking-[-.01em] text-red-500"
+            >
+              Endpoint groups
+            </h2>
+            <p
+              class="mt-2 text-[clamp(2rem,3vw,2.55rem)] font-semibold leading-[1.05] tracking-[-.04em] text-balance"
+            >
+              Start with the routes your integration needs.
+            </p>
+            <p class="mt-4 max-w-[42rem] text-base leading-[1.6] text-gray-600">
+              Cards point to the dashboard so protected routes do not drop
+              visitors into a 401 page.
+            </p>
+          </div>
+
+          <div
+            class="mt-8 grid grid-cols-3 gap-3 max-lg:grid-cols-2 max-md:grid-cols-1"
+          >
+            <a
+              class="rounded-2xl border border-gray-200 bg-white p-5 transition hover:-translate-y-0.5 hover:border-red-200"
+              href="[[API_BASE_URL]]/dashboard"
+              ><span class="font-mono text-sm text-red-600">/bugs</span>
+              <p class="mt-2 text-sm text-gray-600">
+                Create and inspect bug reports.
+              </p></a
+            >
+            <a
+              class="rounded-2xl border border-gray-200 bg-white p-5 transition hover:-translate-y-0.5 hover:border-red-200"
+              href="[[API_BASE_URL]]/dashboard"
+              ><span class="font-mono text-sm text-red-600">/users</span>
+              <p class="mt-2 text-sm text-gray-600">
+                Read user profiles and activity.
+              </p></a
+            >
+            <a
+              class="rounded-2xl border border-gray-200 bg-white p-5 transition hover:-translate-y-0.5 hover:border-red-200"
+              href="[[API_BASE_URL]]/dashboard"
+              ><span class="font-mono text-sm text-red-600">/domains</span>
+              <p class="mt-2 text-sm text-gray-600">
+                Work with domains and tags.
+              </p></a
+            >
+            <a
+              class="rounded-2xl border border-gray-200 bg-white p-5 transition hover:-translate-y-0.5 hover:border-red-200"
+              href="[[API_BASE_URL]]/dashboard"
+              ><span class="font-mono text-sm text-red-600"
+                >/organizations</span
+              >
+              <p class="mt-2 text-sm text-gray-600">
+                Access organization data and stats.
+              </p></a
+            >
+            <a
+              class="rounded-2xl border border-gray-200 bg-white p-5 transition hover:-translate-y-0.5 hover:border-red-200"
+              href="[[API_BASE_URL]]/dashboard"
+              ><span class="font-mono text-sm text-red-600">/projects</span>
+              <p class="mt-2 text-sm text-gray-600">
+                Browse BLT project metadata.
+              </p></a
+            >
+            <a
+              class="rounded-2xl border border-gray-200 bg-white p-5 transition hover:-translate-y-0.5 hover:border-red-200"
+              href="[[API_BASE_URL]]/dashboard"
+              ><span class="font-mono text-sm text-red-600">/stats</span>
+              <p class="mt-2 text-sm text-gray-600">
+                Check leaderboard and platform metrics.
+              </p></a
+            >
+          </div>
+        </div>
+      </section>
+
+      <section
+        class="ml-[calc(50%_-_50vw)] w-screen overflow-hidden px-4 pt-4"
+        id="cta"
+        aria-labelledby="cta-heading"
+      >
+        <div
+          class="relative mx-auto flex w-[min(42rem,100%)] flex-col items-center gap-3 text-center"
+        >
+          <span
+            class="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 py-1 font-mono text-xs font-medium uppercase tracking-[.16em] text-red-600"
+            >OWASP BLT Project</span
+          >
+          <h2
+            id="cta-heading"
+            class="mt-1 text-[clamp(1.5rem,7vw,4rem)] font-medium leading-[1.05] tracking-[-.045em] text-gray-900"
+          >
+            Start using the<br />BLT API.
+          </h2>
+          <p class="m-0 max-w-[31rem] text-sm leading-[1.6] text-gray-500">
+            Open the docs, try a request, and check service health from the same
+            deployment.
+          </p>
+          <div
+            class="mb-2 flex items-center justify-center gap-3 max-md:w-full max-md:flex-col max-md:px-4"
+          >
+            <a
+              class="inline-flex items-center justify-center rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-5 py-3 text-sm font-medium text-white shadow-[0_10px_24px_-14px_rgba(220,38,38,.8)] transition duration-200 hover:-translate-y-px"
+              href="[[API_BASE_URL]]/dashboard"
+              >View API docs</a
+            >
+            <a
+              class="inline-flex items-center justify-center rounded-md border border-gray-200 bg-white px-5 py-3 text-sm font-medium text-gray-700 transition duration-200 hover:border-gray-300 hover:bg-gray-50"
+              href="[[API_BASE_URL]]/health"
+              >Check health</a
+            >
+          </div>
+        </div>
+
+        <footer
+          class="footer-panel relative mt-14 w-full overflow-hidden rounded-t-3xl border border-white/5 bg-[#0e0d0c] py-6 pb-8 text-white max-md:rounded-t-[.8rem]"
+        >
+          <h2
+            class="relative m-0 px-2 text-center text-[clamp(3.2rem,12vw,9rem)] font-light leading-[.9] text-white"
+          >
+            api.owaspblt.org
+          </h2>
+          <div
+            class="relative mx-auto mt-3 h-[3px] w-16 rounded-full bg-red-600"
+            aria-hidden="true"
+          ></div>
+          <div
+            class="footer-links relative mx-auto mt-8 grid max-w-6xl grid-cols-4 gap-8 px-6 font-mono max-md:grid-cols-2 max-md:gap-6"
+          >
+            <div>
+              <p>Docs</p>
+              <a href="[[API_BASE_URL]]/dashboard">Dashboard</a>
+              <a href="[[API_BASE_URL]]/health">Health</a>
             </div>
-
-            <!-- Signed-in state: API key manager -->
-            <div id="apiKeyManager" class="hidden max-w-2xl mx-auto">
-                <div class="flex items-center justify-between mb-5 pb-4 border-b border-gray-100">
-                    <div class="flex items-center gap-3">
-                        <div class="w-9 h-9 bg-red-600 text-white rounded-full flex items-center justify-center font-bold text-sm" id="keyManagerAvatar">U</div>
-                        <div>
-                            <p class="text-sm font-semibold text-gray-900" id="keyManagerUsername">User</p>
-                            <p class="text-xs text-gray-400">API Key Manager</p>
-                        </div>
-                    </div>
-                    <button onclick="handleSignOut()" class="text-sm text-gray-400 hover:text-red-600 flex items-center gap-1.5 transition-colors" type="button">
-                        <i class="fas fa-sign-out-alt"></i> Sign out
-                    </button>
-                </div>
-
-                <form id="apiKeyCreateForm" class="flex flex-col sm:flex-row gap-2 mb-5">
-                    <input id="apiKeyName" class="flex-1 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition" name="name" placeholder="Key name (e.g. local dev, production)" required>
-                    <button class="bg-red-600 hover:bg-red-700 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2" type="submit">
-                        <i class="fas fa-plus text-xs"></i> Create Key
-                    </button>
-                </form>
-
-                <div id="generatedApiKeyBox" class="hidden bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4">
-                    <div class="flex items-start gap-3">
-                        <i class="fas fa-triangle-exclamation text-amber-500 mt-0.5 shrink-0"></i>
-                        <div class="flex-1 min-w-0">
-                            <p class="text-sm font-semibold text-amber-900 mb-1">Copy this key — it won't be shown again.</p>
-                            <code id="generatedApiKeyValue" class="block break-all text-amber-800 text-xs font-mono bg-amber-100 px-3 py-1.5 rounded-lg mt-1"></code>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="apiKeyList" class="space-y-2 mb-3"></div>
-                <p id="apiKeyMessage" class="text-sm text-gray-500 mb-4"></p>
-
-                <div class="bg-gray-50 border border-gray-100 rounded-xl p-4">
-                    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Example usage</p>
-                    <pre class="text-xs text-gray-700 font-mono overflow-x-auto">curl -H "X-BLT-API-Key: blt_live_..." [[API_BASE_URL]]/bugs</pre>
-                </div>
+            <div>
+              <p>API</p>
+              <a href="[[API_BASE_URL]]/dashboard">Bugs</a>
+              <a href="[[API_BASE_URL]]/dashboard">Stats</a>
+              <a href="[[API_BASE_URL]]/dashboard">Leaderboard</a>
             </div>
-        </section>
+            <div>
+              <p>Project</p>
+              <a
+                href="https://gitlab.com/owasp-blt/blt-api/"
+                target="_blank"
+                rel="noopener noreferrer"
+                >GitLab</a
+              >
+              <a
+                href="https://github.com/OWASP-BLT/BLT"
+                target="_blank"
+                rel="noopener noreferrer"
+                >OWASP BLT repo</a
+              >
+            </div>
+            <div>
+              <p>OWASP</p>
+              <a
+                href="https://owaspblt.org"
+                target="_blank"
+                rel="noopener noreferrer"
+                >OWASP BLT</a
+              >
+              <a
+                href="https://owasp.org/www-project-bug-logging-tool/"
+                target="_blank"
+                rel="noopener noreferrer"
+                >Foundation page</a
+              >
+              <a
+                href="https://owasp.org"
+                target="_blank"
+                rel="noopener noreferrer"
+                >owasp.org</a
+              >
+            </div>
+          </div>
+        </footer>
+      </section>
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-white border-t mt-12">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div class="text-center">
-                <p class="text-gray-600 mb-2">BLT API v1.0.0 | Made with ❤️ by the OWASP BLT Community</p>
-                <div class="flex justify-center space-x-4 text-sm">
-                    <a href="https://github.com/OWASP-BLT/BLT-API" class="text-red-600 hover:underline" target="_blank">
-                        <i class="fab fa-github mr-1"></i> Documentation
-                    </a>
-                    <span class="text-gray-400">•</span>
-                    <a href="https://owaspblt.org" class="text-red-600 hover:underline" target="_blank">
-                        <i class="fas fa-external-link-alt mr-1"></i> Website
-                    </a>
-                    <span class="text-gray-400">•</span>
-                    <a href="https://github.com/OWASP-BLT/BLT" class="text-red-600 hover:underline" target="_blank">
-                        <i class="fab fa-github mr-1"></i> GitHub
-                    </a>
-                </div>
-            </div>
-        </div>
-    </footer>
-
-    <!-- Auth Modal -->
-    <div id="authModal" class="fixed inset-0 bg-black bg-opacity-60 hidden z-[100] flex items-start justify-center p-4 pt-16 sm:pt-20">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md relative overflow-hidden">
-            <!-- Gradient header -->
-            <div class="bg-gradient-to-br from-red-600 to-red-800 px-8 pt-8 pb-6">
-                <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-red-200 hover:text-white transition-colors" aria-label="Close">
-                    <i class="fas fa-times text-lg"></i>
-                </button>
-                <div class="flex items-center mb-5">
-                    <div class="w-10 h-10 bg-white bg-opacity-20 rounded-xl flex items-center justify-center mr-3">
-                        <i class="fas fa-shield-alt text-white text-lg"></i>
-                    </div>
-                    <div>
-                        <h2 class="text-white font-bold text-xl leading-tight">BLT API</h2>
-                        <p class="text-red-200 text-xs">OWASP Bug Logging Tool</p>
-                    </div>
-                </div>
-                <!-- Tab switcher -->
-                <div class="flex bg-black bg-opacity-20 rounded-xl p-1">
-                    <button id="authTabSignin" onclick="switchAuthTab('signin')" class="flex-1 py-2 px-4 rounded-lg text-sm font-semibold transition-all bg-white text-red-700 shadow-sm">
-                        Sign In
-                    </button>
-                    <button id="authTabSignup" onclick="switchAuthTab('signup')" class="flex-1 py-2 px-4 rounded-lg text-sm font-semibold transition-all text-red-200 hover:text-white">
-                        Sign Up
-                    </button>
-                </div>
-            </div>
-
-            <!-- Forms area -->
-            <div class="px-8 py-6">
-                <!-- Sign In Form -->
-                <form id="authModalSigninForm" class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Username or Email</label>
-                        <div class="relative">
-                            <i class="fas fa-user absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none"></i>
-                            <input id="modalSigninIdentifier" type="text" name="identifier" placeholder="Enter your username or email"
-                                   autocomplete="username" required
-                                   class="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-shadow">
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Password</label>
-                        <div class="relative">
-                            <i class="fas fa-lock absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none"></i>
-                            <input id="modalSigninPassword" type="password" name="password" placeholder="Enter your password"
-                                   autocomplete="current-password" required
-                                   class="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-shadow">
-                        </div>
-                    </div>
-                    <p id="modalSigninMessage" class="text-sm min-h-[1.25rem]"></p>
-                    <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2">
-                        <i class="fas fa-sign-in-alt"></i> Sign In
-                    </button>
-                    <p class="text-center text-sm text-gray-500">
-                        Don&apos;t have an account?
-                        <button type="button" onclick="switchAuthTab('signup')" class="text-red-600 hover:underline font-semibold">Sign up free</button>
-                    </p>
-                </form>
-
-                <!-- Sign Up Form (hidden by default) -->
-                <form id="authModalSignupForm" class="space-y-4 hidden">
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Username</label>
-                        <div class="relative">
-                            <i class="fas fa-user absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none"></i>
-                            <input id="modalSignupUsername" type="text" name="username" placeholder="Choose a username"
-                                   autocomplete="username" required
-                                   class="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-shadow">
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Email</label>
-                        <div class="relative">
-                            <i class="fas fa-envelope absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none"></i>
-                            <input id="modalSignupEmail" type="email" name="email" placeholder="Enter your email"
-                                   autocomplete="email" required
-                                   class="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-shadow">
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Password</label>
-                        <div class="relative">
-                            <i class="fas fa-lock absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none"></i>
-                            <input id="modalSignupPassword" type="password" name="password" placeholder="Create a strong password"
-                                   autocomplete="new-password" required
-                                   class="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-shadow">
-                        </div>
-                    </div>
-                    <p id="modalSignupMessage" class="text-sm min-h-[1.25rem]"></p>
-                    <button type="submit" class="w-full bg-gray-900 hover:bg-gray-800 text-white font-semibold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2">
-                        <i class="fas fa-user-plus"></i> Create Account
-                    </button>
-                    <p class="text-center text-sm text-gray-500">
-                        Already have an account?
-                        <button type="button" onclick="switchAuthTab('signin')" class="text-red-600 hover:underline font-semibold">Sign in</button>
-                    </p>
-                </form>
-
-                <!-- Local verification step (shown only after local signup succeeds) -->
-                <form id="modalLocalDevVerifyForm" class="space-y-4 hidden">
-                    <div class="text-center">
-                        <div class="w-12 h-12 bg-red-50 text-red-600 rounded-xl flex items-center justify-center mx-auto mb-3">
-                            <i class="fas fa-shield-halved"></i>
-                        </div>
-                        <h3 class="text-lg font-semibold text-gray-900">Verify local account</h3>
-                        <p class="text-sm text-gray-500 mt-1">Enter your local development verification code.</p>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Verification code</label>
-                        <div class="relative">
-                            <i class="fas fa-key absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none"></i>
-                            <input id="modalLocalVerifyCode" type="text" name="dev_otp" placeholder="000000"
-                                   inputmode="numeric" autocomplete="one-time-code"
-                                   class="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-shadow">
-                        </div>
-                    </div>
-                    <p id="modalLocalVerifyMessage" class="text-sm min-h-[1.25rem]"></p>
-                    <button type="submit" class="w-full bg-gray-900 hover:bg-gray-800 text-white font-semibold py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2">
-                        <i class="fas fa-check"></i> Verify Account
-                    </button>
-                    <button type="button" onclick="switchAuthTab('signup')" class="w-full text-sm text-gray-500 hover:text-red-600 font-semibold">
-                        Back to sign up
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- API Test Modal -->
-    <div id="apiTestModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50">
-        <div class="relative top-20 mx-auto p-5 border w-11/12 max-w-4xl shadow-lg rounded-lg bg-white">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-2xl font-bold text-gray-900">
-                    <i class="fas fa-flask text-red-600 mr-2"></i>API Test Console
-                </h3>
-                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
-                    <i class="fas fa-times text-2xl"></i>
-                </button>
-            </div>
-            
-            <div class="mb-4">
-                <div class="flex items-center space-x-2 mb-2">
-                    <span id="modalMethod" class="px-3 py-1 bg-blue-500 text-white text-sm font-bold rounded"></span>
-                    <code id="modalEndpoint" class="text-sm font-mono text-gray-800"></code>
-                </div>
-                <div id="modalLoading" class="hidden">
-                    <div class="flex items-center justify-center py-8">
-                        <i class="fas fa-spinner fa-spin text-4xl text-red-600"></i>
-                        <span class="ml-3 text-gray-600">Loading...</span>
-                    </div>
-                </div>
-            </div>
-            
-            <div id="modalContent" class="space-y-4">
-                <!-- Request section -->
-                <div class="border border-gray-200 rounded-lg p-4">
-                    <h4 class="font-semibold text-gray-900 mb-2 flex items-center">
-                        <i class="fas fa-arrow-up text-blue-600 mr-2"></i>Request
-                    </h4>
-                    <div class="bg-gray-50 rounded p-3">
-                        <div class="mb-2">
-                            <span class="text-sm font-semibold text-gray-700">URL:</span>
-                            <code id="requestUrl" class="text-sm text-gray-800 ml-2"></code>
-                        </div>
-                        <div id="apiKeyNotice" class="text-xs text-red-700 font-semibold mb-2"></div>
-                        <div id="requestHeaders" class="text-xs text-gray-600"></div>
-                    </div>
-                </div>
-                
-                <!-- Response section -->
-                <div class="border border-gray-200 rounded-lg p-4">
-                    <h4 class="font-semibold text-gray-900 mb-2 flex items-center">
-                        <i class="fas fa-arrow-down text-green-600 mr-2"></i>Response
-                        <span id="responseStatus" class="ml-2 px-2 py-1 text-xs rounded"></span>
-                        <span id="responseTime" class="ml-2 text-sm text-gray-600"></span>
-                    </h4>
-                    <div class="bg-gray-50 rounded p-3 overflow-x-auto">
-                        <pre id="responseBody" class="text-xs"><code></code></pre>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- JavaScript for API Testing -->
     <script>
-        const baseUrl = '[[API_BASE_URL]]';
-        const authBaseUrl = baseUrl.replace(/\/v2$/, '');
-        const authApi = {
-            signin: '/api/auth/signin',
-            signup: '/api/auth/signup',
-            verifyEmail: '/api/auth/verify-email',
-            verifyLocal: '/api/auth/verify-local',
-            apiKeys: '/api/auth/api-keys'
-        };
-        const publicTryItEndpoints = new Set(['/', '/v2', '/health', '/v2/health']);
-        const authStorage = {
-            token: 'bltApiToken',
-            username: 'bltApiUsername',
-            apiKey: 'bltApiKey'
-        };
+      (function () {
+        var mobileToggle = document.getElementById("mobile-toggle");
+        var mobileMenu = document.getElementById("mobile-menu");
 
-        function isPublicTryItEndpoint(endpoint) {
-            return publicTryItEndpoints.has(endpoint.split('?')[0]);
+        if (mobileToggle && mobileMenu) {
+          mobileToggle.addEventListener("click", function () {
+            var open = !mobileMenu.classList.contains("open");
+            mobileMenu.classList.toggle("open", open);
+            mobileToggle.classList.toggle("active", open);
+            mobileToggle.setAttribute("aria-expanded", String(open));
+          });
+
+          mobileMenu.querySelectorAll("a").forEach(function (link) {
+            link.addEventListener("click", function () {
+              mobileMenu.classList.remove("open");
+              mobileToggle.classList.remove("active");
+              mobileToggle.setAttribute("aria-expanded", "false");
+            });
+          });
         }
-
-        function getStoredToken() {
-            return sessionStorage.getItem(authStorage.token) || '';
-        }
-
-        function isLocalDevelopment() {
-            return ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
-        }
-
-        let pendingLocalVerificationIdentifier = '';
-
-        function getStoredApiKey() {
-            return sessionStorage.getItem(authStorage.apiKey) || '';
-        }
-
-        function getApiKeyHeaders(endpoint) {
-            const headers = {};
-            const token = getStoredToken();
-            const apiKey = getStoredApiKey();
-
-            if (token) {
-                headers.Authorization = `Bearer ${token}`;
-            }
-
-            if (!isPublicTryItEndpoint(endpoint) && apiKey) {
-                headers['X-BLT-API-Key'] = apiKey;
-            }
-
-            return headers;
-        }
-
-        function renderRequestHeaders(headers) {
-            const headersEl = document.getElementById('requestHeaders');
-            const noticeEl = document.getElementById('apiKeyNotice');
-            const entries = Object.entries(headers);
-            if (headers['X-BLT-API-Key']) {
-                noticeEl.textContent = 'Using your generated API key.';
-            } else if (headers.Authorization) {
-                noticeEl.textContent = 'Using your Bearer session token. Create a generated API key for protected API routes.';
-            } else {
-                noticeEl.textContent = 'No API key is needed for this public endpoint.';
-            }
-            headersEl.textContent = entries.length
-                ? entries.map(([key, value]) => `${key}: ${value}`).join('\n')
-                : 'No additional headers';
-        }
-
-        function setMessage(id, message, isError = false) {
-            const el = document.getElementById(id);
-            el.textContent = message;
-            el.className = `text-sm ${isError ? 'text-red-700' : 'text-gray-600'}`;
-        }
-
-        function setSession(token, username) {
-            sessionStorage.setItem(authStorage.token, token);
-            if (username) {
-                sessionStorage.setItem(authStorage.username, username);
-            }
-        }
-
-        function clearSession() {
-            sessionStorage.removeItem(authStorage.token);
-            sessionStorage.removeItem(authStorage.username);
-            sessionStorage.removeItem(authStorage.apiKey);
-        }
-
-        function authFetch(endpoint, options = {}) {
-            const headers = Object.assign({}, options.headers || {});
-            if (options.body && !headers['Content-Type']) {
-                headers['Content-Type'] = 'application/json';
-            }
-            const token = getStoredToken();
-            if (token) {
-                headers.Authorization = `Bearer ${token}`;
-            }
-            return fetch(authBaseUrl + endpoint, Object.assign({}, options, { headers }));
-        }
-
-        function renderAuthState() {
-            const token = getStoredToken();
-            const username = sessionStorage.getItem(authStorage.username) || 'User';
-
-            const navAuthButtons = document.getElementById('navAuthButtons');
-            const navUserMenu = document.getElementById('navUserMenu');
-            const navUserInitial = document.getElementById('navUserInitial');
-            const navUsername = document.getElementById('navUsername');
-            const dropdownUsername = document.getElementById('dropdownUsername');
-            const signedOutState = document.getElementById('authSignedOutState');
-            const manager = document.getElementById('apiKeyManager');
-            const keyManagerUsername = document.getElementById('keyManagerUsername');
-            const keyManagerAvatar = document.getElementById('keyManagerAvatar');
-
-            if (token) {
-                const initial = username.charAt(0).toUpperCase();
-                navAuthButtons.classList.add('hidden');
-                navUserMenu.classList.remove('hidden');
-                if (navUserInitial) navUserInitial.textContent = initial;
-                if (navUsername) navUsername.textContent = username;
-                if (dropdownUsername) dropdownUsername.textContent = username;
-                if (signedOutState) signedOutState.classList.add('hidden');
-                if (manager) manager.classList.remove('hidden');
-                if (keyManagerUsername) keyManagerUsername.textContent = username;
-                if (keyManagerAvatar) keyManagerAvatar.textContent = initial;
-                loadApiKeys();
-            } else {
-                navAuthButtons.classList.remove('hidden');
-                navUserMenu.classList.add('hidden');
-                if (signedOutState) signedOutState.classList.remove('hidden');
-                if (manager) manager.classList.add('hidden');
-            }
-        }
-
-        async function loadApiKeys() {
-            if (!getStoredToken()) {
-                return;
-            }
-            const list = document.getElementById('apiKeyList');
-            list.textContent = 'Loading API keys...';
-            try {
-                const response = await authFetch(authApi.apiKeys);
-                const data = await response.json();
-                list.textContent = '';
-                const keys = Array.isArray(data.data) ? data.data : [];
-                if (!response.ok) {
-                    setMessage('apiKeyMessage', data.message || 'Unable to load API keys.', true);
-                    return;
-                }
-                if (!keys.length) {
-                    list.textContent = 'No API keys yet.';
-                    return;
-                }
-                keys.forEach((key) => {
-                    const row = document.createElement('div');
-                    row.className = 'flex items-center justify-between border border-gray-200 rounded p-3';
-                    const text = document.createElement('div');
-                    text.textContent = `${key.name} - ${key.key_prefix}`;
-                    const button = document.createElement('button');
-                    button.type = 'button';
-                    button.className = 'text-sm text-red-700 hover:text-red-900';
-                    button.textContent = 'Revoke';
-                    button.addEventListener('click', (event) => revokeApiKey(key.id, event.currentTarget));
-                    row.appendChild(text);
-                    row.appendChild(button);
-                    list.appendChild(row);
-                });
-            } catch (error) {
-                list.textContent = '';
-                setMessage('apiKeyMessage', error.message, true);
-            }
-        }
-
-        async function revokeApiKey(id, button) {
-            if (button) {
-                button.disabled = true;
-                button.textContent = 'Revoking...';
-                button.className = 'text-sm text-gray-400 cursor-not-allowed';
-            }
-            try {
-                const response = await authFetch(`${authApi.apiKeys}/${id}`, { method: 'DELETE' });
-                const data = await response.json();
-                setMessage('apiKeyMessage', data.message || (response.ok ? 'API key revoked.' : 'Unable to revoke API key.'), !response.ok);
-                if (response.ok) {
-                    await loadApiKeys();
-                    return;
-                }
-            } finally {
-                if (button) {
-                    button.disabled = false;
-                    button.textContent = 'Revoke';
-                    button.className = 'text-sm text-red-700 hover:text-red-900';
-                }
-            }
-        }
-
-        function showLocalVerificationStep(message) {
-            const signinForm = document.getElementById('authModalSigninForm');
-            const signupForm = document.getElementById('authModalSignupForm');
-            const verifyForm = document.getElementById('modalLocalDevVerifyForm');
-            const signinTab = document.getElementById('authTabSignin');
-            const signupTab = document.getElementById('authTabSignup');
-
-            signinForm.classList.add('hidden');
-            signupForm.classList.add('hidden');
-            verifyForm.classList.remove('hidden');
-            signinTab.className = 'flex-1 py-2 px-4 rounded-lg text-sm font-semibold transition-all text-red-200 hover:text-white';
-            signupTab.className = 'flex-1 py-2 px-4 rounded-lg text-sm font-semibold transition-all text-red-200 hover:text-white';
-            setMessage('modalLocalVerifyMessage', message || 'Enter the local verification code.');
-            document.getElementById('modalLocalVerifyCode').focus();
-        }
-
-        async function verifyEmailFromQuery() {
-            const params = new URLSearchParams(window.location.search);
-            const verifyToken = params.get('verify_token') || params.get('token');
-            if (!verifyToken) {
-                return;
-            }
-
-            openAuthModal('signin');
-            setMessage('modalSigninMessage', 'Verifying email...');
-            try {
-                const response = await fetch(`${authBaseUrl}${authApi.verifyEmail}?token=${encodeURIComponent(verifyToken)}`);
-                const data = await response.json();
-                setMessage('modalSigninMessage', data.message || (response.ok ? 'Email verified. You can sign in now.' : 'Email verification failed.'), !response.ok);
-                if (window.history && window.history.replaceState) {
-                    window.history.replaceState({}, document.title, window.location.pathname);
-                }
-            } catch (error) {
-                setMessage('modalSigninMessage', error.message, true);
-            }
-        }
-        
-        function closeModal() {
-            document.getElementById('apiTestModal').classList.add('hidden');
-        }
-        
-        function showModal() {
-            document.getElementById('apiTestModal').classList.remove('hidden');
-        }
-        
-        function testEndpoint(method, endpoint, queryParams = null) {
-            showModal();
-            
-            // Update modal header
-            document.getElementById('modalMethod').textContent = method;
-            document.getElementById('modalMethod').className = `px-3 py-1 ${method === 'GET' ? 'bg-blue-500' : 'bg-green-500'} text-white text-sm font-bold rounded`;
-            document.getElementById('modalEndpoint').textContent = endpoint;
-            
-            // Show loading
-            document.getElementById('modalLoading').classList.remove('hidden');
-            document.getElementById('modalContent').classList.add('hidden');
-            
-            // Build URL with query params
-            let url = baseUrl + endpoint;
-            if (queryParams) {
-                const params = new URLSearchParams(queryParams);
-                url += '?' + params.toString();
-            }
-            
-            document.getElementById('requestUrl').textContent = url;
-            const requestHeaders = getApiKeyHeaders(endpoint);
-            renderRequestHeaders(requestHeaders);
-            
-            // Make request
-            const startTime = performance.now();
-            fetch(url, { headers: requestHeaders })
-                .then(response => {
-                    const endTime = performance.now();
-                    const duration = Math.round(endTime - startTime);
-                    
-                    // Hide loading, show content
-                    document.getElementById('modalLoading').classList.add('hidden');
-                    document.getElementById('modalContent').classList.remove('hidden');
-                    
-                    // Update status
-                    const statusEl = document.getElementById('responseStatus');
-                    statusEl.textContent = `${response.status} ${response.statusText}`;
-                    statusEl.className = `ml-2 px-2 py-1 text-xs rounded ${response.ok ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`;
-                    
-                    // Update time
-                    document.getElementById('responseTime').textContent = `(${duration}ms)`;
-                    
-                    return response.json();
-                })
-                .then(data => {
-                    // Display formatted JSON
-                    const codeEl = document.getElementById('responseBody').querySelector('code');
-                    codeEl.textContent = JSON.stringify(data, null, 2);
-                })
-                .catch(error => {
-                    document.getElementById('modalLoading').classList.add('hidden');
-                    document.getElementById('modalContent').classList.remove('hidden');
-                    
-                    const statusEl = document.getElementById('responseStatus');
-                    statusEl.textContent = 'Error';
-                    statusEl.className = 'ml-2 px-2 py-1 text-xs rounded bg-red-100 text-red-800';
-                    
-                    const codeEl = document.getElementById('responseBody').querySelector('code');
-                    codeEl.textContent = 'Error: ' + error.message;
-                    codeEl.style.color = 'red';
-                });
-        }
-        
-        function testEndpointWithParams(method, endpointTemplate, promptText, defaultValue) {
-            const value = prompt(promptText, defaultValue);
-            if (value) {
-                const endpoint = endpointTemplate.replace('{{id}}', value);
-                testEndpoint(method, endpoint);
-            }
-        }
-        
-        function testEndpointWithQuery(method, endpoint, promptText, defaultValue) {
-            const value = prompt(promptText, defaultValue);
-            if (value) {
-                testEndpoint(method, endpoint, { q: value });
-            }
-        }
-
-        document.getElementById('authModalSigninForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            setMessage('modalSigninMessage', 'Signing in...');
-            const body = {
-                identifier: document.getElementById('modalSigninIdentifier').value,
-                password: document.getElementById('modalSigninPassword').value
-            };
-            try {
-                const response = await fetch(authBaseUrl + authApi.signin, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(body)
-                });
-                const data = await response.json();
-                if (!response.ok) {
-                    setMessage('modalSigninMessage', data.message || 'Sign in failed.', true);
-                    return;
-                }
-                setSession(data.access_token || data.token, data.username);
-                closeAuthModal();
-                renderAuthState();
-            } catch (error) {
-                setMessage('modalSigninMessage', error.message, true);
-            }
-        });
-
-        document.getElementById('authModalSignupForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            setMessage('modalSignupMessage', 'Creating account...');
-            const body = {
-                username: document.getElementById('modalSignupUsername').value,
-                email: document.getElementById('modalSignupEmail').value,
-                password: document.getElementById('modalSignupPassword').value
-            };
-            try {
-                const response = await fetch(authBaseUrl + authApi.signup, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(body)
-                });
-                const data = await response.json();
-                setMessage('modalSignupMessage', data.message || (response.ok ? 'Account created! Check your email to verify.' : 'Signup failed.'), !response.ok);
-                if (response.ok && data.requires_local_verification && isLocalDevelopment()) {
-                    pendingLocalVerificationIdentifier = body.username || body.email;
-                    showLocalVerificationStep(data.message);
-                    return;
-                }
-                if (response.ok) {
-                    setTimeout(() => switchAuthTab('signin'), 2500);
-                }
-            } catch (error) {
-                setMessage('modalSignupMessage', error.message, true);
-            }
-        });
-
-        document.getElementById('modalLocalDevVerifyForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            setMessage('modalLocalVerifyMessage', 'Verifying account...');
-            const body = {
-                identifier: pendingLocalVerificationIdentifier || document.getElementById('modalSignupUsername').value,
-                dev_otp: document.getElementById('modalLocalVerifyCode').value
-            };
-            try {
-                const response = await fetch(authBaseUrl + authApi.verifyLocal, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(body)
-                });
-                const data = await response.json();
-                if (!response.ok) {
-                    setMessage('modalLocalVerifyMessage', data.message || 'Verification failed.', true);
-                    return;
-                }
-                pendingLocalVerificationIdentifier = '';
-                document.getElementById('modalSigninIdentifier').value = body.identifier;
-                setMessage('modalSigninMessage', data.message || 'Account verified. You can sign in now.');
-                switchAuthTab('signin');
-            } catch (error) {
-                setMessage('modalLocalVerifyMessage', error.message, true);
-            }
-        });
-
-        document.getElementById('apiKeyCreateForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            setMessage('apiKeyMessage', 'Creating API key...');
-            document.getElementById('generatedApiKeyBox').classList.add('hidden');
-            const body = { name: document.getElementById('apiKeyName').value };
-            try {
-                const response = await authFetch(authApi.apiKeys, {
-                    method: 'POST',
-                    body: JSON.stringify(body)
-                });
-                const data = await response.json();
-                if (!response.ok) {
-                    setMessage('apiKeyMessage', data.message || 'Unable to create API key.', true);
-                    return;
-                }
-                const apiKey = data.data.api_key;
-                sessionStorage.setItem(authStorage.apiKey, apiKey);
-                document.getElementById('generatedApiKeyValue').textContent = apiKey;
-                document.getElementById('generatedApiKeyBox').classList.remove('hidden');
-                setMessage('apiKeyMessage', 'API key created and selected for Try-it requests.');
-                document.getElementById('apiKeyName').value = '';
-                loadApiKeys();
-            } catch (error) {
-                setMessage('apiKeyMessage', error.message, true);
-            }
-        });
-
-        // Close API test modal when clicking outside
-        document.getElementById('apiTestModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeModal();
-            }
-        });
-
-        // Close auth modal when clicking outside
-        document.getElementById('authModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeAuthModal();
-            }
-        });
-
-        // Close user dropdown when clicking outside
-        document.addEventListener('click', function(e) {
-            const dropdown = document.getElementById('userDropdown');
-            const menu = document.getElementById('navUserMenu');
-            if (dropdown && menu && !menu.contains(e.target)) {
-                dropdown.classList.add('hidden');
-            }
-        });
-
-        function openAuthModal(tab) {
-            document.getElementById('authModal').classList.remove('hidden');
-            switchAuthTab(tab || 'signin');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeAuthModal() {
-            document.getElementById('authModal').classList.add('hidden');
-            document.body.style.overflow = '';
-        }
-
-        function switchAuthTab(tab) {
-            const signinForm = document.getElementById('authModalSigninForm');
-            const signupForm = document.getElementById('authModalSignupForm');
-            const verifyForm = document.getElementById('modalLocalDevVerifyForm');
-            const signinTab = document.getElementById('authTabSignin');
-            const signupTab = document.getElementById('authTabSignup');
-            verifyForm.classList.add('hidden');
-            if (tab === 'signup') {
-                signinForm.classList.add('hidden');
-                signupForm.classList.remove('hidden');
-                signinTab.className = 'flex-1 py-2 px-4 rounded-lg text-sm font-semibold transition-all text-red-200 hover:text-white';
-                signupTab.className = 'flex-1 py-2 px-4 rounded-lg text-sm font-semibold transition-all bg-white text-red-700 shadow-sm';
-            } else {
-                signinForm.classList.remove('hidden');
-                signupForm.classList.add('hidden');
-                signinTab.className = 'flex-1 py-2 px-4 rounded-lg text-sm font-semibold transition-all bg-white text-red-700 shadow-sm';
-                signupTab.className = 'flex-1 py-2 px-4 rounded-lg text-sm font-semibold transition-all text-red-200 hover:text-white';
-            }
-        }
-
-        function toggleUserDropdown() {
-            document.getElementById('userDropdown').classList.toggle('hidden');
-        }
-
-        function scrollToApiKeys() {
-            document.getElementById('userDropdown').classList.add('hidden');
-            const section = document.getElementById('authSection');
-            if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-
-        function handleSignOut() {
-            clearSession();
-            const dropdown = document.getElementById('userDropdown');
-            if (dropdown) dropdown.classList.add('hidden');
-            renderAuthState();
-        }
-
-        // Load section counts from /stats endpoint
-        function titleizeStatKey(key) {
-            return key.replace(/_/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase());
-        }
-
-        function statCardMeta(key) {
-            const map = {
-                bugs: { icon: 'fa-bug', tone: 'red' },
-                users: { icon: 'fa-users', tone: 'blue' },
-                domains: { icon: 'fa-globe', tone: 'emerald' },
-                hunts: { icon: 'fa-crosshairs', tone: 'amber' },
-                tags: { icon: 'fa-tags', tone: 'orange' },
-                organization: { icon: 'fa-building', tone: 'sky' },
-                organization_managers: { icon: 'fa-user-tie', tone: 'cyan' },
-                organization_tags: { icon: 'fa-hashtag', tone: 'violet' },
-                organization_integrations: { icon: 'fa-plug', tone: 'indigo' },
-                user_follows: { icon: 'fa-user-group', tone: 'teal' },
-                user_bug_upvotes: { icon: 'fa-thumbs-up', tone: 'green' },
-                user_bug_saves: { icon: 'fa-bookmark', tone: 'yellow' },
-                user_bug_flags: { icon: 'fa-flag', tone: 'rose' },
-                bug_tags: { icon: 'fa-tags', tone: 'orange' },
-                bug_screenshots: { icon: 'fa-image', tone: 'pink' },
-                bug_team_members: { icon: 'fa-people-group', tone: 'lime' },
-                domain_tags: { icon: 'fa-link', tone: 'purple' },
-                d1_migrations: { icon: 'fa-database', tone: 'slate' }
-            };
-            return map[key] || { icon: 'fa-table', tone: 'gray' };
-        }
-
-        function renderStatCards(statsData) {
-            const container = document.getElementById('model-stats-grid');
-            if (!container) return;
-
-            const entries = Object.entries(statsData || {})
-                .filter(([, value]) => !Number.isNaN(Number(value)))
-                .sort(([a], [b]) => a.localeCompare(b));
-
-            if (!entries.length) {
-                container.innerHTML = '<div class="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-500">No stats available</div>';
-                return;
-            }
-
-            container.innerHTML = entries.map(([key, value]) => {
-                const meta = statCardMeta(key);
-                const count = Number(value).toLocaleString();
-                const label = titleizeStatKey(key);
-                return `
-                    <div class="bg-${meta.tone}-50 border border-${meta.tone}-100 rounded-lg px-3 py-2 flex items-center gap-2 min-w-0">
-                        <div class="w-7 h-7 bg-${meta.tone}-100 text-${meta.tone}-600 rounded-md flex items-center justify-center shrink-0">
-                            <i class="fas ${meta.icon} text-[11px]"></i>
-                        </div>
-                        <div class="min-w-0">
-                            <p class="text-[10px] uppercase tracking-wide text-${meta.tone}-700 font-semibold truncate">${label}</p>
-                            <p class="text-sm font-bold text-gray-900">${count}</p>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        async function loadSectionCounts() {
-            try {
-                const response = await fetch(baseUrl + '/stats', {
-                    headers: getApiKeyHeaders('/stats')
-                });
-                if (!response.ok) throw new Error();
-                const data = await response.json();
-                if (data && data.data) {
-                    renderStatCards(data.data);
-                }
-            } catch (e) {
-                const container = document.getElementById('model-stats-grid');
-                if (container) {
-                    container.innerHTML = '<div class="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-500">Stats unavailable</div>';
-                }
-            }
-        }
-        renderAuthState();
-        verifyEmailFromQuery();
-        loadSectionCounts();
+      })();
     </script>
-</body>
+  </body>
 </html>

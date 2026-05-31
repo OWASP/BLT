@@ -49,6 +49,8 @@ def _response_data(response):
         ("GET", "https://api.example.com/"),
         ("GET", "https://api.example.com/v2"),
         ("GET", "https://api.example.com/auth"),
+        ("GET", "https://api.example.com/dashboard"),
+        ("GET", "https://api.example.com/blt-api.svg"),
         ("GET", "https://api.example.com/health"),
         ("GET", "https://api.example.com/v2/health"),
     ],
@@ -92,6 +94,9 @@ def test_auth_requests_do_not_require_api_key(method, url):
     [
         "https://api.example.com/bugs",
         "https://api.example.com/routes",
+        "https://api.example.com/dashboard.html",
+        "https://api.example.com/v2/dashboard",
+        "https://api.example.com/v2/dashboard.html",
         "https://api.example.com/v2/bugs",
     ],
 )

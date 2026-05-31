@@ -16,7 +16,7 @@ from .leaderboard import handle_leaderboard
 from .contributors import handle_contributors
 from .repos import handle_repos
 from .health import handle_health
-from .homepage import handle_homepage
+from .homepage import handle_blt_api_logo, handle_dashboard, handle_homepage
 from .auth_page import handle_auth_page
 from .auth import handle_api_keys, handle_signup, handle_signin, handle_verify_email, handle_verify_local
 from .routes import make_routes_handler
@@ -33,6 +33,8 @@ __all__ = [
     "handle_contributors",
     "handle_repos",
     "handle_health",
+    "handle_blt_api_logo",
+    "handle_dashboard",
     "handle_homepage",
     "handle_auth_page",
     "handle_signup",
