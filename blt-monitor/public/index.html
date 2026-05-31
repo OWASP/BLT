@@ -45,14 +45,18 @@
         <div class="text-xs text-slate-500">Loaded</div>
         <div id="loaded-count" class="font-bold text-slate-200">0</div>
       </div>
-      <div class="bg-green-900/30 border border-green-800 rounded-lg px-3 py-2">
+      <button type="button" data-status-filter="up"
+              class="status-filter-button text-left bg-green-900/30 border border-green-800 rounded-lg px-3 py-2 hover:bg-green-900/50 focus:outline-none focus:ring-2 focus:ring-green-500"
+              aria-pressed="false">
         <div class="text-xs text-green-400">Up</div>
         <div id="up-count" class="font-bold text-green-300">0</div>
-      </div>
-      <div class="bg-red-900/30 border border-red-800 rounded-lg px-3 py-2">
+      </button>
+      <button type="button" data-status-filter="down"
+              class="status-filter-button text-left bg-red-900/30 border border-red-800 rounded-lg px-3 py-2 hover:bg-red-900/50 focus:outline-none focus:ring-2 focus:ring-red-500"
+              aria-pressed="false">
         <div class="text-xs text-red-400">Down</div>
         <div id="down-count" class="font-bold text-red-300">0</div>
-      </div>
+      </button>
       <div class="bg-yellow-900/30 border border-yellow-800 rounded-lg px-3 py-2">
         <div class="text-xs text-yellow-400">Warning</div>
         <div id="warning-count" class="font-bold text-yellow-300">0</div>
@@ -140,6 +144,15 @@
   document.getElementById('monitor-search').addEventListener('input', renderCards);
   document.getElementById('status-filter').addEventListener('change', renderCards);
   document.getElementById('sort-order').addEventListener('change', renderCards);
+  document.querySelectorAll('.status-filter-button').forEach(button => {
+    button.addEventListener('click', () => {
+      const statusFilter = document.getElementById('status-filter');
+      statusFilter.value = statusFilter.value === button.dataset.statusFilter
+        ? 'all'
+        : button.dataset.statusFilter;
+      renderCards();
+    });
+  });
 
   function registerCard(card) {
     monitorCards.push(card);
@@ -173,6 +186,9 @@
     document.getElementById('up-count').textContent = monitorCards.filter(card => card.dataset.status === 'up').length;
     document.getElementById('down-count').textContent = monitorCards.filter(card => card.dataset.status === 'down').length;
     document.getElementById('warning-count').textContent = monitorCards.filter(card => card.dataset.status === 'warning').length;
+    document.querySelectorAll('.status-filter-button').forEach(button => {
+      button.setAttribute('aria-pressed', String(button.dataset.statusFilter === statusFilter));
+    });
   }
 
   fetch('monitors.json')
