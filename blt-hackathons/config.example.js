@@ -194,6 +194,31 @@ const EXAMPLE_CONFIG = {
     }
 };
 
+// GitLab hackathons use the same top-level fields and display options.
+const GITLAB_EXAMPLE_CONFIG = {
+    slug: "summer-2026",
+    name: "Summer 2026 GitLab Hackathon",
+    description: "Track contributions across a GitLab group.",
+    startTime: "2026-06-01T00:00:00Z",
+    endTime: "2026-06-30T23:59:59Z",
+    provider: "gitlab",
+    gitlab: {
+        url: "https://gitlab.com",
+        group: "owasp-blt",
+        projects: [
+            "owasp-blt/blt-hackathons"
+        ]
+    },
+    prizes: [],
+    sponsors: [],
+    display: {
+        showRepoStats: true,
+        maxLeaderboardEntries: 15,
+        showPRsInLeaderboard: true,
+        showReviewsInLeaderboard: true
+    }
+};
+
 // =====================
 // DATE FORMAT EXAMPLES
 // =====================

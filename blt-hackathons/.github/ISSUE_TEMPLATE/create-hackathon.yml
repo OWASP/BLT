@@ -57,6 +57,17 @@ body:
       description: Drag-and-drop or paste your banner image here. GitHub will upload it and insert a markdown image link automatically.
       placeholder: Paste or drag your banner image here…
 
+  - type: dropdown
+    id: provider
+    attributes:
+      label: Source Control Provider
+      description: New GitLab hackathons are refreshed daily by GitLab CI.
+      options:
+        - GitHub
+        - GitLab
+    validations:
+      required: true
+
   - type: input
     id: organization
     attributes:
@@ -64,11 +75,25 @@ body:
       description: Track all repositories in this organization.
       placeholder: e.g., "OWASP-BLT"
 
+  - type: input
+    id: gitlab-url
+    attributes:
+      label: GitLab URL (optional)
+      description: Leave empty to use https://gitlab.com.
+      placeholder: e.g., "https://gitlab.com"
+
+  - type: input
+    id: gitlab-group
+    attributes:
+      label: GitLab Group (optional)
+      description: Track all projects in this GitLab group and its nested subgroups.
+      placeholder: e.g., "owasp-blt"
+
   - type: textarea
     id: repositories
     attributes:
       label: Repositories (one per line, optional)
-      description: List repositories to track (owner/repo format, one per line). Leave empty when using organization tracking.
+      description: List GitHub repositories or GitLab projects (namespace/project format, one per line). Leave empty when using organization or group tracking.
       placeholder: |
         OWASP-BLT/BLT
         OWASP-BLT/BLT-Extension

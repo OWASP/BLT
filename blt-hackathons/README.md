@@ -1,6 +1,6 @@
 # BLT-Hackathon 🏆
 
-A self-hosted GitHub Pages hackathon platform that lets you conduct a hackathon on your project with **charts**, **leaderboards**, and **prizes**!
+A static hackathon platform for GitHub and GitLab projects with **charts**, **leaderboards**, and **prizes**.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub Pages](https://img.shields.io/badge/Deployed%20on-GitHub%20Pages-blue)](https://pages.github.com/)
@@ -13,7 +13,7 @@ A self-hosted GitHub Pages hackathon platform that lets you conduct a hackathon 
 - 🏆 **Prize Management** - Showcase prizes and awards for top contributors
 - 🤝 **Sponsor Display** - Highlight your hackathon sponsors
 - 📱 **Responsive Design** - Works perfectly on desktop and mobile devices
-- 🚀 **Zero Backend** - Runs entirely on GitHub Pages using GitHub API
+- 🚀 **Zero Backend** - Deploys as static files to Cloudflare Pages or GitHub Pages
 - ⚡ **Easy Setup** - Just edit a config file and deploy!
 
 ## 🎯 Quick Start
@@ -72,6 +72,26 @@ Your main page (`index.html`) will show all hackathons, and each hackathon will 
 3. Under "Source", select the branch you want to deploy (usually `main`)
 4. Your hackathon platform will be live at: `https://your-username.github.io/BLT-Hackathons/`
 
+### Deploy to Cloudflare Pages
+
+Connect the repository in Cloudflare Pages and use:
+
+- Production branch: `main`
+- Build command: leave empty
+- Build output directory: `/`
+
+The site is entirely static. No Cloudflare Worker is needed.
+
+### Daily GitLab Updates
+
+Create a GitLab pipeline schedule that runs daily on `main`. The included `.gitlab-ci.yml` updates hackathons starting after May 31, 2026. Add these masked CI/CD variables:
+
+- `GITHUB_TOKEN`: optional, for future hackathons that track GitHub repositories
+- `GITLAB_TOKEN`: optional for public GitLab projects, required for private projects
+- `GITLAB_PUSH_TOKEN`: required project access token with repository write access
+
+The existing GitHub Action remains in place for hackathons starting on or before May 31, 2026.
+
 ## 📖 Configuration Guide
 
 ### Basic Information
@@ -113,6 +133,29 @@ When an `organization` field is specified, the system will automatically fetch a
 - Go to [GitHub Settings → Tokens](https://github.com/settings/tokens)
 - Create a new token with `public_repo` scope
 - Add it to the config to avoid API rate limits (60 requests/hour without token, 5000 with token)
+
+### GitLab Configuration
+
+New hackathons can track GitLab projects and groups. Set `provider: "gitlab"` and use a `gitlab` block:
+
+```javascript
+{
+    slug: "summer-2026",
+    name: "Summer 2026",
+    startTime: "2026-06-01T00:00:00Z",
+    endTime: "2026-06-30T23:59:59Z",
+    provider: "gitlab",
+    gitlab: {
+        url: "https://gitlab.com",
+        group: "owasp-blt",
+        projects: ["owasp-blt/blt-hackathons"]
+    }
+}
+```
+
+`group` includes projects from nested subgroups. `projects` can also contain paths such as `group/subgroup/project`. Public projects work without a token; private projects require a CI variable named `GITLAB_TOKEN`.
+
+GitLab merge-request notes are counted as review activity. Existing GitHub hackathons and their generated JSON files remain unchanged.
 
 ### Prizes Configuration
 

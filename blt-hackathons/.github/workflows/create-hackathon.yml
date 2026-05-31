@@ -75,7 +75,10 @@ jobs:
             const startTime   = extractField('Start Date & Time (ISO 8601)');
             const endTime     = extractField('End Date & Time (ISO 8601)');
             const bannerRaw   = extractField('Banner Image');
+            const providerRaw = extractField('Source Control Provider');
             const organization = extractField('GitHub Organization (optional)');
+            const gitlabUrlRaw = extractField('GitLab URL (optional)');
+            const gitlabGroup = extractField('GitLab Group (optional)');
             const reposRaw    = extractField('Repositories (one per line, optional)');
             const rulesRaw    = extractField('Rules (optional)');
             const prizesRaw   = extractField('Prizes JSON (optional)');
@@ -158,6 +161,11 @@ jobs:
               ? reposRaw.split('\n').map(r => r.trim()).filter(r => r.length > 0)
               : [];
 
+            const provider = providerRaw === 'GitLab' ? 'gitlab' : 'github';
+            const gitlabUrl = gitlabUrlRaw && gitlabUrlRaw !== '_No response_'
+              ? gitlabUrlRaw
+              : 'https://gitlab.com';
+
             // Parse prizes JSON (best-effort; warn user if invalid)
             let prizes = [];
             let prizesWarning = '';
@@ -187,6 +195,24 @@ jobs:
               ? `\n                // Organization field - all repos in this org will be tracked\n                organization: ${JSON.stringify(organization)},`
               : '';
 
+            const gitlabGroupLine = gitlabGroup && gitlabGroup !== '_No response_'
+              ? `\n                // Group field - all projects in this group will be tracked\n                group: ${JSON.stringify(gitlabGroup)},`
+              : '';
+
+            const providerLine = provider === 'gitlab'
+              ? `\n            provider: "gitlab",`
+              : '';
+
+            const sourceControlBlock = provider === 'gitlab'
+              ? `gitlab: {
+                url: ${JSON.stringify(gitlabUrl)},${gitlabGroupLine}
+                projects: ${reposArray}
+            }`
+              : `github: {
+                token: "",${orgLine}
+                repositories: ${reposArray}
+            }`;
+
             const rulesValue = (rulesRaw && rulesRaw !== '_No response_') ? rulesRaw : '';
 
             const newEntry = `
@@ -197,10 +223,8 @@ jobs:
             rules: \`\n                ${rulesValue.replace(/`/g, '\\`')}\n            \`,
             startTime: ${JSON.stringify(startTime)},
             endTime: ${JSON.stringify(endTime)},
-            github: {
-                token: "",${orgLine}
-                repositories: ${reposArray}
-            },
+            ${providerLine}
+            ${sourceControlBlock},
             prizes: ${prizesArray},
             sponsors: [],
             display: {

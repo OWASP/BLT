@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Fetch GitHub stats for all hackathons and save to hackathon-data/ directory.
-This script is run every hour via GitHub Actions to keep data fresh.
+Fetch GitHub or GitLab stats for hackathons and save to hackathon-data/.
+The CI workflow selects which date range it owns.
 
 The frontend simply loads the resulting JSON files without making any live
 GitHub API calls.
@@ -20,6 +20,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import date, datetime, timedelta, timezone
 from urllib.error import HTTPError, URLError
+from urllib.parse import quote
 from urllib.request import Request, urlopen
 
 import yaml
@@ -31,6 +32,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 GITHUB_API_BASE = "https://api.github.com"
+DEFAULT_GITLAB_URL = "https://gitlab.com"
 
 
 def is_hackathon_active(start_time, end_time):
@@ -91,6 +93,43 @@ def make_request(url, token=None, retry_count=3):
     return None
 
 
+def make_gitlab_request(url, token=None, retry_count=3):
+    """Make a GitLab API request with retry/back-off logic."""
+    headers = {
+        "Accept": "application/json",
+        "User-Agent": "BLT-Hackathons-Stats-Fetcher/1.0",
+    }
+    if token:
+        headers["PRIVATE-TOKEN"] = token
+
+    for attempt in range(retry_count):
+        try:
+            req = Request(url, headers=headers)
+            with urlopen(req, timeout=30) as response:
+                return json.loads(response.read().decode("utf-8"))
+        except HTTPError as exc:
+            if exc.code == 429:
+                wait = int(exc.headers.get("Retry-After", "60"))
+                logger.warning("Rate limited on %s. Waiting %ds...", url, min(wait, 300))
+                time.sleep(min(wait, 300))
+            elif exc.code == 404:
+                logger.warning("Not found: %s", url)
+                return None
+            else:
+                logger.error("HTTP %d for %s: %s", exc.code, url, exc.reason)
+                if attempt < retry_count - 1:
+                    time.sleep(5 * (attempt + 1))
+                else:
+                    return None
+        except URLError as exc:
+            logger.error("URL error for %s: %s", url, exc)
+            if attempt < retry_count - 1:
+                time.sleep(5 * (attempt + 1))
+            else:
+                return None
+    return None
+
+
 def fetch_all_pages(base_url, token=None, max_pages=100):
     """Fetch all pages from a paginated GitHub API endpoint."""
     all_items = []
@@ -117,6 +156,116 @@ def fetch_all_pages(base_url, token=None, max_pages=100):
 
     logger.info("Fetched %d items from %s", len(all_items), base_url.split("?")[0])
     return all_items
+
+
+def fetch_all_gitlab_pages(base_url, token=None, max_pages=100):
+    """Fetch all pages from a paginated GitLab API endpoint."""
+    all_items = []
+    for page in range(1, max_pages + 1):
+        sep = "&" if "?" in base_url else "?"
+        items = make_gitlab_request(f"{base_url}{sep}per_page=100&page={page}", token)
+        if not items:
+            break
+        all_items.extend(items)
+        if len(items) < 100:
+            break
+    logger.info("Fetched %d items from %s", len(all_items), base_url.split("?")[0])
+    return all_items
+
+
+def gitlab_api_base(gitlab_config):
+    """Return the API base for gitlab.com or a self-managed GitLab instance."""
+    return f"{gitlab_config.get('url', DEFAULT_GITLAB_URL).rstrip('/')}/api/v4"
+
+
+def gitlab_project_id(project_path):
+    return quote(project_path, safe="")
+
+
+def fetch_gitlab_group_projects(group, gitlab_config, token=None):
+    """Fetch all public projects for a GitLab group, including subgroups."""
+    group_id = quote(group, safe="")
+    url = f"{gitlab_api_base(gitlab_config)}/groups/{group_id}/projects?include_subgroups=true"
+    projects = fetch_all_gitlab_pages(url, token)
+    return [p["path_with_namespace"] for p in projects if p.get("path_with_namespace")]
+
+
+def gitlab_user(user):
+    """Normalize GitLab user fields to the existing GitHub-shaped contract."""
+    user = user or {}
+    return {
+        "login": user.get("username", "unknown"),
+        "avatar_url": user.get("avatar_url", ""),
+        "html_url": user.get("web_url", ""),
+    }
+
+
+def fetch_gitlab_merge_requests(project_path, start_dt, end_dt, gitlab_config, token=None):
+    """Fetch GitLab merge requests and normalize them as pull requests."""
+    project_id = gitlab_project_id(project_path)
+    url = f"{gitlab_api_base(gitlab_config)}/projects/{project_id}/merge_requests?state=all&order_by=created_at&sort=desc"
+    merge_requests = fetch_all_gitlab_pages(url, token)
+    filtered = []
+    for mr in merge_requests:
+        created_at = datetime.fromisoformat(mr["created_at"].replace("Z", "+00:00"))
+        merged_at = datetime.fromisoformat(mr["merged_at"].replace("Z", "+00:00")) if mr.get("merged_at") else None
+        if start_dt <= created_at <= end_dt or (merged_at and start_dt <= merged_at <= end_dt):
+            filtered.append({
+                **mr,
+                "number": mr["iid"],
+                "html_url": mr["web_url"],
+                "user": gitlab_user(mr.get("author")),
+                "repository": project_path,
+            })
+    return filtered
+
+
+def fetch_gitlab_reviews(project_path, mr_number, gitlab_config, token=None):
+    """Treat human GitLab merge-request notes as review activity."""
+    project_id = gitlab_project_id(project_path)
+    url = f"{gitlab_api_base(gitlab_config)}/projects/{project_id}/merge_requests/{mr_number}/notes"
+    notes = fetch_all_gitlab_pages(url, token)
+    return [
+        {
+            "id": note.get("id"),
+            "state": "COMMENTED",
+            "submitted_at": note.get("created_at"),
+            "html_url": f"{gitlab_config.get('url', DEFAULT_GITLAB_URL).rstrip('/')}/{project_path}/-/merge_requests/{mr_number}#note_{note.get('id')}",
+            "user": gitlab_user(note.get("author")),
+        }
+        for note in notes
+        if not note.get("system")
+    ]
+
+
+def fetch_gitlab_issues(project_path, start_dt, end_dt, gitlab_config, token=None):
+    """Fetch GitLab issues and normalize them for the shared stats processor."""
+    project_id = gitlab_project_id(project_path)
+    url = f"{gitlab_api_base(gitlab_config)}/projects/{project_id}/issues?scope=all&state=all&order_by=created_at&sort=desc"
+    issues = fetch_all_gitlab_pages(url, token)
+    filtered = []
+    for issue in issues:
+        created_at = datetime.fromisoformat(issue["created_at"].replace("Z", "+00:00"))
+        closed_at = datetime.fromisoformat(issue["closed_at"].replace("Z", "+00:00")) if issue.get("closed_at") else None
+        if start_dt <= created_at <= end_dt or (closed_at and start_dt <= closed_at <= end_dt):
+            filtered.append({**issue, "repository": project_path})
+    return filtered
+
+
+def fetch_gitlab_project_metadata(project_path, gitlab_config, token=None):
+    """Fetch GitLab project metadata and normalize repository card fields."""
+    project_id = gitlab_project_id(project_path)
+    data = make_gitlab_request(f"{gitlab_api_base(gitlab_config)}/projects/{project_id}", token)
+    if not data:
+        return None
+    return {
+        "full_name": data.get("path_with_namespace"),
+        "description": data.get("description"),
+        "stargazers_count": data.get("star_count", 0),
+        "forks_count": data.get("forks_count", 0),
+        "language": None,
+        "html_url": data.get("web_url"),
+    }
 
 
 def load_participants_allowlist(participants_file):
@@ -464,9 +613,12 @@ def process_hackathon(hackathon_config, token, org_repos_cache=None):
     name = hackathon_config["name"]
     start_time = hackathon_config["startTime"]
     end_time = hackathon_config["endTime"]
+    provider = hackathon_config.get("provider", "github").lower()
     github_config = hackathon_config.get("github", {})
-    organization = github_config.get("organization")
-    explicit_repos = list(github_config.get("repositories", []))
+    gitlab_config = hackathon_config.get("gitlab", {})
+    provider_config = gitlab_config if provider == "gitlab" else github_config
+    organization = provider_config.get("group") if provider == "gitlab" else provider_config.get("organization")
+    explicit_repos = list(provider_config.get("projects", [])) if provider == "gitlab" else list(provider_config.get("repositories", []))
 
     # Optional participants allowlist: limits who counts as a contributor
     # and who appears in the review leaderboard.
@@ -491,14 +643,19 @@ def process_hackathon(hackathon_config, token, org_repos_cache=None):
     repositories = list(explicit_repos)
     if organization:
         # Use cached org repos if available
-        if org_repos_cache and organization in org_repos_cache:
-            org_repos = org_repos_cache[organization]
+        cache_key = f"{provider}:{organization}"
+        if org_repos_cache and cache_key in org_repos_cache:
+            org_repos = org_repos_cache[cache_key]
             logger.info("Using cached org repos for %s (%d repos)", organization, len(org_repos))
         else:
             try:
-                org_repos = fetch_org_repos(organization, token)
+                org_repos = (
+                    fetch_gitlab_group_projects(organization, gitlab_config, token)
+                    if provider == "gitlab"
+                    else fetch_org_repos(organization, token)
+                )
                 if org_repos and org_repos_cache is not None:
-                    org_repos_cache[organization] = org_repos
+                    org_repos_cache[cache_key] = org_repos
             except Exception as exc:
                 logger.error(
                     "Failed to fetch org repos for %s, using explicit list: %s",
@@ -530,11 +687,15 @@ def process_hackathon(hackathon_config, token, org_repos_cache=None):
         future_to_repo = {}
         for repo_path in repositories:
             parts = repo_path.split("/")
-            if len(parts) != 2:
+            if provider != "gitlab" and len(parts) != 2:
                 logger.warning("Skipping invalid repo path: %s", repo_path)
                 continue
-            owner, repo = parts
-            future = executor.submit(fetch_pull_requests, owner, repo, start_dt, end_dt, token)
+            owner, repo = parts[-2:]
+            future = (
+                executor.submit(fetch_gitlab_merge_requests, repo_path, start_dt, end_dt, gitlab_config, token)
+                if provider == "gitlab"
+                else executor.submit(fetch_pull_requests, owner, repo, start_dt, end_dt, token)
+            )
             future_to_repo[future] = repo_path
 
         for future in as_completed(future_to_repo):
@@ -567,12 +728,16 @@ def process_hackathon(hackathon_config, token, org_repos_cache=None):
         def fetch_enriched_reviews(pr):
             repo_path = pr.get("repository", "")
             parts = repo_path.split("/")
-            if len(parts) != 2:
+            if provider != "gitlab" and len(parts) != 2:
                 return []
-            owner, repo = parts
+            owner, repo = parts[-2:]
             pr_number = pr["number"]
             try:
-                reviews = fetch_reviews_for_pr(owner, repo, pr_number, token)
+                reviews = (
+                    fetch_gitlab_reviews(repo_path, pr_number, gitlab_config, token)
+                    if provider == "gitlab"
+                    else fetch_reviews_for_pr(owner, repo, pr_number, token)
+                )
                 for review in reviews:
                     review["repository"] = repo_path
                     review["pull_request_url"] = pr.get("html_url", "")
@@ -646,10 +811,14 @@ def process_hackathon(hackathon_config, token, org_repos_cache=None):
         future_to_repo_issues = {}
         for repo_path in repositories:
             parts = repo_path.split("/")
-            if len(parts) != 2:
+            if provider != "gitlab" and len(parts) != 2:
                 continue
-            owner, repo = parts
-            future = executor.submit(fetch_issues, owner, repo, start_dt, end_dt, token)
+            owner, repo = parts[-2:]
+            future = (
+                executor.submit(fetch_gitlab_issues, repo_path, start_dt, end_dt, gitlab_config, token)
+                if provider == "gitlab"
+                else executor.submit(fetch_issues, owner, repo, start_dt, end_dt, token)
+            )
             future_to_repo_issues[future] = repo_path
 
         for future in as_completed(future_to_repo_issues):
@@ -671,10 +840,14 @@ def process_hackathon(hackathon_config, token, org_repos_cache=None):
         future_to_repo_meta = {}
         for repo_path in repositories:
             parts = repo_path.split("/")
-            if len(parts) != 2:
+            if provider != "gitlab" and len(parts) != 2:
                 continue
-            owner, repo = parts
-            future = executor.submit(fetch_repo_metadata, owner, repo, token)
+            owner, repo = parts[-2:]
+            future = (
+                executor.submit(fetch_gitlab_project_metadata, repo_path, gitlab_config, token)
+                if provider == "gitlab"
+                else executor.submit(fetch_repo_metadata, owner, repo, token)
+            )
             future_to_repo_meta[future] = repo_path
 
         for future in as_completed(future_to_repo_meta):
@@ -699,6 +872,7 @@ def process_hackathon(hackathon_config, token, org_repos_cache=None):
         "name": name,
         "startTime": start_time,
         "endTime": end_time,
+        "provider": provider,
         "repositories": repositories,
         "stats": stats,
     }
@@ -718,6 +892,8 @@ def build_summary(data):
         for p in leaderboard[:3]
     ]
     return {
+        "provider": data.get("provider", "github"),
+        "lastUpdated": data.get("lastUpdated"),
         "participantCount": stats.get("participantCount", 0),
         "totalPRs": stats.get("totalPRs", 0),
         "mergedPRs": stats.get("mergedPRs", 0),
@@ -726,6 +902,21 @@ def build_summary(data):
         "topContributors": top_contributors,
         "recentPRs": stats.get("recentPRs", []),
     }
+
+
+def parse_optional_datetime(value):
+    """Parse an optional ISO 8601 workflow boundary."""
+    return datetime.fromisoformat(value.replace("Z", "+00:00")) if value else None
+
+
+def is_owned_by_workflow(hackathon, starts_after=None, starts_through=None):
+    """Return whether this CI workflow owns updates for the hackathon."""
+    start_dt = datetime.fromisoformat(hackathon["startTime"].replace("Z", "+00:00"))
+    if starts_after and start_dt <= starts_after:
+        return False
+    if starts_through and start_dt > starts_through:
+        return False
+    return True
 
 
 def main():
@@ -740,11 +931,10 @@ def main():
     with open(config_path, "r", encoding="utf-8") as f:
         config = json.load(f)
 
-    token = os.environ.get("GITHUB_TOKEN", "")
-    if not token:
-        logger.warning(
-            "No GITHUB_TOKEN set - API calls will be rate limited to 60/hr"
-        )
+    github_token = os.environ.get("GITHUB_TOKEN", "")
+    gitlab_token = os.environ.get("GITLAB_TOKEN", "")
+    starts_after = parse_optional_datetime(os.environ.get("UPDATE_HACKATHONS_STARTING_AFTER"))
+    starts_through = parse_optional_datetime(os.environ.get("UPDATE_HACKATHONS_STARTING_THROUGH"))
 
     hackathons = config.get("hackathons", [])
     if not hackathons:
@@ -762,6 +952,15 @@ def main():
         name = hackathon.get("name", slug)
         start_time = hackathon.get("startTime")
         end_time = hackathon.get("endTime")
+        provider = hackathon.get("provider", "github").lower()
+        token = gitlab_token if provider == "gitlab" else github_token
+
+        if not is_owned_by_workflow(hackathon, starts_after, starts_through):
+            logger.info("Skipping hackathon outside this workflow's date range: %s", name)
+            continue
+
+        if not token:
+            logger.warning("No %s token set for %s; public API rate limits apply", provider.upper(), name)
         
         # Skip ended hackathons (optimization!)
         if not is_hackathon_active(start_time, end_time):
@@ -807,7 +1006,10 @@ def main():
     primary = hackathons[0] if hackathons else {}
     all_repos: set = set()
     for h in hackathons:
-        for r in h.get("github", {}).get("repositories", []):
+        provider = h.get("provider", "github").lower()
+        provider_config = h.get("gitlab", {}) if provider == "gitlab" else h.get("github", {})
+        repo_key = "projects" if provider == "gitlab" else "repositories"
+        for r in provider_config.get(repo_key, []):
             all_repos.add(r)
 
     stats_data = {
@@ -822,6 +1024,7 @@ def main():
                 "name": h.get("name", ""),
                 "startTime": h.get("startTime", ""),
                 "endTime": h.get("endTime", ""),
+                "provider": h.get("provider", "github"),
             }
             for h in hackathons
         ],

@@ -6,7 +6,12 @@
 class HackathonDashboard {
     constructor(config) {
         this.config = config;
-        this.api = new GitHubAPI(config.github.token);
+        this.provider = (config.provider || 'github').toLowerCase();
+        this.providerConfig = this.provider === 'gitlab'
+            ? (config.gitlab || {})
+            : (config.github || {});
+        // The class also contains the shared leaderboard sorting helpers.
+        this.api = new GitHubAPI((config.github || {}).token);
         this.chart = null;
         // Store resolved repositories (set during initialization)
         // Contains the merged list of explicit repositories and organization repositories
@@ -15,8 +20,8 @@ class HackathonDashboard {
 
     /**
      * Initialize the dashboard by loading pre-fetched stats from a JSON file.
-     * All data is collected server-side (via fetch_stats.py running hourly) so
-     * the page never makes live GitHub API calls.
+     * All data is collected server-side by fetch_stats.py, so the page never
+     * makes live source-control API calls.
      */
     async init() {
         this.showLoading();
@@ -33,8 +38,8 @@ class HackathonDashboard {
                 if (!response.ok) {
                     throw new Error(
                         `Stats file not available (HTTP ${response.status}). ` +
-                        `Data may not have been generated yet – please wait for ` +
-                        `the hourly refresh or trigger it manually.`
+                        `Data may not have been generated yet. Please wait for ` +
+                        `the scheduled refresh or trigger it manually.`
                     );
                 }
                 statsData = await response.json();
@@ -47,7 +52,7 @@ class HackathonDashboard {
             // Use repositories from pre-fetched data (may include org repos)
             this.repositories =
                 statsData.repositories ||
-                this.config.github.repositories ||
+                this.getConfiguredRepositories() ||
                 [];
 
             const stats = statsData.stats || {};
@@ -207,7 +212,7 @@ class HackathonDashboard {
         document.getElementById('merged-pr-count').textContent = (stats.mergedPRs || 0).toLocaleString();
         document.getElementById('issue-count').textContent = (stats.totalIssues || 0).toLocaleString();
         // Use resolved repositories count if available, otherwise fall back to config
-        const repoCount = this.repositories ? this.repositories.length : (this.config.github.repositories || []).length;
+        const repoCount = this.repositories ? this.repositories.length : this.getConfiguredRepositories().length;
         document.getElementById('repo-count').textContent = repoCount.toLocaleString();
 
         // Calculate days active: days elapsed from start up to today (capped at end date)
@@ -272,11 +277,11 @@ class HackathonDashboard {
                                 ${participant.mergedCount} merged PR${participant.mergedCount !== 1 ? 's' : ''}
                             </div>
                         </div>
-                        <a href="https://github.com/search?q=author%3A${participant.username}+org%3AOWASP-BLT+type%3Apr+is%3Amerged" 
+                        <a href="${this.getContributorActivityUrl(participant)}"
                            target="_blank" 
                            rel="noopener noreferrer"
                            class="ml-2 px-2 sm:px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-xs sm:text-sm font-medium whitespace-nowrap"
-                           title="View merged PRs by ${this.escapeHtml(participant.username)} to OWASP-BLT repositories">
+                           title="View contributions by ${this.escapeHtml(participant.username)}">
                             <i class="fas fa-external-link-alt mr-1"></i>
                             <span class="hidden sm:inline">View PRs</span>
                         </a>
@@ -334,7 +339,7 @@ class HackathonDashboard {
                                 ${participant.reviewCount} review${participant.reviewCount !== 1 ? 's' : ''}
                             </div>
                         </div>
-                        <a href="https://github.com/search?q=reviewed-by%3A${participant.username}+type%3Apr" 
+                        <a href="${this.getReviewActivityUrl(participant)}"
                            target="_blank" 
                            rel="noopener noreferrer"
                            class="ml-2 px-2 sm:px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-xs sm:text-sm font-medium whitespace-nowrap"
@@ -499,7 +504,7 @@ class HackathonDashboard {
     renderRepositories(repoStats, repoData = []) {
         const container = document.getElementById('repositories-list');
         // Use resolved repositories if available, otherwise fall back to config
-        const repositories = this.repositories || this.config.github.repositories || [];
+        const repositories = this.repositories || this.getConfiguredRepositories();
         
         // Build a lookup map from full_name -> repo metadata
         const repoMetaMap = {};
@@ -518,14 +523,15 @@ class HackathonDashboard {
         const reposHtml = repositories.map(repoPath => {
             const stats = repoStats[repoPath] || { total: 0, merged: 0, issues: 0, closedIssues: 0 };
             const meta = repoMetaMap[repoPath] || {};
+            const urls = this.getRepositoryUrls(repoPath, meta);
             return `
                 <div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
                     <div class="flex items-center justify-between mb-2">
                         <div class="flex items-center">
-                            <i class="fab fa-github text-gray-600 mr-2"></i>
-                            <a href="https://github.com/${repoPath}" target="_blank"
+                            <i class="fab fa-${this.provider} text-gray-600 mr-2"></i>
+                            <a href="${urls.repository}" target="_blank"
                                class="font-medium hover:text-red-600">
-                                ${repoPath}
+                                ${this.escapeHtml(repoPath)}
                             </a>
                         </div>
                         ${meta.stargazers_count !== undefined ? `
@@ -550,17 +556,17 @@ class HackathonDashboard {
                         </div>
                     ` : ''}
                     <div class="flex gap-2">
-                        <a href="https://github.com/${repoPath}" target="_blank"
+                        <a href="${urls.repository}" target="_blank"
                            class="inline-flex items-center px-2 py-1 border border-gray-300 text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50">
-                            <i class="fab fa-github mr-1"></i>
-                            GitHub
+                            <i class="fab fa-${this.provider} mr-1"></i>
+                            ${this.provider === 'gitlab' ? 'GitLab' : 'GitHub'}
                         </a>
-                        <a href="https://github.com/${repoPath}/pulls" target="_blank"
+                        <a href="${urls.changes}" target="_blank"
                            class="inline-flex items-center px-2 py-1 border border-gray-300 text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50">
                             <i class="fas fa-code-branch mr-1"></i>
-                            Pull Requests
+                            ${this.provider === 'gitlab' ? 'Merge Requests' : 'Pull Requests'}
                         </a>
-                        <a href="https://github.com/${repoPath}/issues" target="_blank"
+                        <a href="${urls.issues}" target="_blank"
                            class="inline-flex items-center px-2 py-1 border border-gray-300 text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50">
                             <i class="fas fa-circle-dot mr-1"></i>
                             Issues
@@ -571,6 +577,38 @@ class HackathonDashboard {
         }).join('');
 
         container.innerHTML = reposHtml || '<p class="text-gray-600">No repositories configured.</p>';
+    }
+
+    /**
+     * Return configured repositories or projects before generated data loads.
+     */
+    getConfiguredRepositories() {
+        return this.provider === 'gitlab'
+            ? (this.providerConfig.projects || [])
+            : (this.providerConfig.repositories || []);
+    }
+
+    getRepositoryUrls(repoPath, metadata = {}) {
+        const baseUrl = metadata.html_url || (
+            this.provider === 'gitlab'
+                ? `${(this.providerConfig.url || 'https://gitlab.com').replace(/\/$/, '')}/${repoPath}`
+                : `https://github.com/${repoPath}`
+        );
+        return {
+            repository: baseUrl,
+            changes: `${baseUrl}/${this.provider === 'gitlab' ? '-/merge_requests' : 'pulls'}`,
+            issues: `${baseUrl}/${this.provider === 'gitlab' ? '-/issues' : 'issues'}`,
+        };
+    }
+
+    getContributorActivityUrl(participant) {
+        if (this.provider === 'gitlab') return participant.url;
+        return `https://github.com/search?q=author%3A${encodeURIComponent(participant.username)}+org%3AOWASP-BLT+type%3Apr+is%3Amerged`;
+    }
+
+    getReviewActivityUrl(participant) {
+        if (this.provider === 'gitlab') return participant.url;
+        return `https://github.com/search?q=reviewed-by%3A${encodeURIComponent(participant.username)}+type%3Apr`;
     }
 
     /**
@@ -650,14 +688,14 @@ class HackathonDashboard {
     /**
      * Update API info section in footer.
      * Since stats are pre-fetched server-side, we only show when data was last
-     * refreshed – no live GitHub API calls are made from the frontend.
+     * refreshed. No live source-control API calls are made from the frontend.
      */
     async updateApiInfo() {
         const infoEl = document.getElementById('github-api-info');
         if (!infoEl) return;
 
         const lastUpdatedHtml = this.loadedAt
-            ? `<span class="inline-flex items-center gap-1 text-green-600"><i class="fas fa-sync-alt"></i> Stats auto-refreshed hourly</span>` +
+            ? `<span class="inline-flex items-center gap-1 text-green-600"><i class="fas fa-sync-alt"></i> Stats auto-refreshed ${this.provider === 'gitlab' ? 'daily' : 'hourly'}</span>` +
               `<span class="text-gray-400">|</span>` +
               `<span>Last updated: <span id="last-updated-time" title="${this.loadedAt.toLocaleString()}">${this.timeAgo(this.loadedAt)}</span></span>`
             : '';

@@ -38,21 +38,13 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Parse hackathons config
-        run: |
-          node -e "
-            const fs = require('fs');
-            const HACKATHONS_CONFIG = eval(fs.readFileSync('js/hackathons-config.js', 'utf8') + '\nHACKATHONS_CONFIG');
-            const config = JSON.parse(JSON.stringify(HACKATHONS_CONFIG));
-            // Strip any tokens before writing to disk
-            config.hackathons.forEach(h => { if (h.github) h.github.token = ''; });
-            fs.writeFileSync('/tmp/hackathons-config-parsed.json', JSON.stringify(config));
-            console.log('Parsed ' + config.hackathons.length + ' hackathon(s)');
-          "
+        run: node scripts/parse_hackathons_config.js
 
       - name: Fetch and update statistics
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HACKATHONS_CONFIG_PATH: /tmp/hackathons-config-parsed.json
+          UPDATE_HACKATHONS_STARTING_THROUGH: 2026-05-31T23:59:59Z
         run: python fetch_stats.py
 
       - name: Commit and push if changed

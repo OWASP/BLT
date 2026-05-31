@@ -1,0 +1,34 @@
+stages:
+  - verify
+  - update
+
+verify-static-site:
+  image: python:3.11-slim
+  stage: verify
+  script:
+    - python -m py_compile fetch_stats.py
+    - python -m json.tool stats.json >/dev/null
+
+update-future-hackathons:
+  image: python:3.11-slim
+  stage: update
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+      when: manual
+    - when: never
+  before_script:
+    - apt-get update
+    - apt-get install -y --no-install-recommends git nodejs
+    - pip install --no-cache-dir -r requirements.txt
+  script:
+    - node scripts/parse_hackathons_config.js
+    - UPDATE_HACKATHONS_STARTING_AFTER=2026-05-31T23:59:59Z HACKATHONS_CONFIG_PATH=/tmp/hackathons-config-parsed.json python fetch_stats.py
+    - git config user.name "gitlab-ci[bot]"
+    - git config user.email "gitlab-ci[bot]@users.noreply.gitlab.com"
+    - git add stats.json hackathon-data/
+    - |
+      if ! git diff --staged --quiet; then
+        git commit -m "Update statistics [skip ci]"
+        git push "https://oauth2:${GITLAB_PUSH_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git" HEAD:${CI_DEFAULT_BRANCH}
+      fi
