@@ -1,3 +1,5 @@
 name = "blt-preflight"
-pages_build_output_dir = "./public"
 compatibility_date = "2026-05-31"
+
+[assets]
+directory = "./public"
