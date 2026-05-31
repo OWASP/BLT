@@ -1,0 +1,12 @@
+name = "blt-ideas"
+main = "src/entry.py"
+compatibility_date = "2026-05-31"
+compatibility_flags = ["python_workers"]
+
+[build]
+command = "python scripts/generate_page.py"
+
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+run_worker_first = true
