@@ -30,7 +30,7 @@
   {
     "id": "sizzle_owaspblt",
     "name": "BLT Sizzle",
-    "url": "https://sizzle.owaspbt.org",
+    "url": "https://sizzle.owaspblt.org",
     "keyword": "Sizzle",
     "enabled": true
   },
@@ -51,28 +51,28 @@
   {
     "id": "owasp_bumper",
     "name": "BLT OWASP Bumper",
-    "url": "https://owasp-bumper.owaspbt.org",
+    "url": "https://owasp-bumper.owaspblt.org",
     "keyword": "OWASP",
     "enabled": true
   },
   {
     "id": "owasp_projects",
     "name": "BLT OWASP Projects",
-    "url": "https://owasp-projects.owaspbt.org",
+    "url": "https://owasp-projects.owaspblt.org",
     "keyword": "OWASP",
     "enabled": true
   },
   {
     "id": "docs_owaspblt",
     "name": "BLT Docs",
-    "url": "https://docs.owaspbt.org",
+    "url": "https://docs.owaspblt.org",
     "keyword": "BLT",
     "enabled": true
   },
   {
     "id": "owasp_metadata",
     "name": "BLT OWASP Metadata",
-    "url": "https://owasp-metadata.owaspbt.org",
+    "url": "https://owasp-metadata.owaspblt.org",
     "keyword": "OWASP",
     "enabled": true
   },
@@ -86,42 +86,42 @@
   {
     "id": "extension_owaspblt",
     "name": "BLT Extension",
-    "url": "https://extension.owaspbt.org",
+    "url": "https://extension.owaspblt.org",
     "keyword": "BLT",
     "enabled": true
   },
   {
     "id": "rewards_owaspblt",
     "name": "BLT Rewards",
-    "url": "https://rewards.owaspbt.org",
+    "url": "https://rewards.owaspblt.org",
     "keyword": "BLT",
     "enabled": true
   },
   {
     "id": "ideas_owaspblt",
     "name": "BLT Ideas",
-    "url": "https://ideas.owaspbt.org",
+    "url": "https://ideas.owaspblt.org",
     "keyword": "BLT",
     "enabled": true
   },
   {
     "id": "action_owaspblt",
     "name": "BLT Action",
-    "url": "https://action.owaspbt.org",
+    "url": "https://action.owaspblt.org",
     "keyword": "BLT",
     "enabled": true
   },
   {
     "id": "panini_owaspblt",
     "name": "BLT Panini",
-    "url": "https://panini.owaspbt.org",
+    "url": "https://panini.owaspblt.org",
     "keyword": "BLT",
     "enabled": true
   },
   {
     "id": "netguardian_owaspblt",
     "name": "BLT NetGuardian",
-    "url": "https://netguardian.owaspbt.org",
+    "url": "https://netguardian.owaspblt.org",
     "keyword": "BLT",
     "enabled": true
   },
@@ -142,28 +142,28 @@
   {
     "id": "design_owaspblt",
     "name": "BLT Design",
-    "url": "https://design.owaspbt.org",
+    "url": "https://design.owaspblt.org",
     "keyword": "BLT",
     "enabled": true
   },
   {
     "id": "design_contest_owaspblt",
     "name": "BLT Design Contest",
-    "url": "https://design-contest.owaspbt.org",
+    "url": "https://design-contest.owaspblt.org",
     "keyword": "BLT",
     "enabled": true
   },
   {
     "id": "gsoc_owaspblt",
     "name": "BLT GSOC",
-    "url": "https://gsoc.owaspbt.org",
+    "url": "https://gsoc.owaspblt.org",
     "keyword": "BLT",
     "enabled": true
   },
   {
     "id": "mygsoc_owaspblt",
     "name": "BLT MY GSOC Tool",
-    "url": "https://gsoc-tool.owaspbt.org",
+    "url": "https://gsoc-tool.owaspblt.org",
     "keyword": "BLT",
     "enabled": true
   },
