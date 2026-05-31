@@ -4,7 +4,7 @@ compatibility_date = "2026-05-30"
 compatibility_flags = [ "python_workers", "disable_python_external_sdk" ]
 
 [[kv_namespaces]]
-binding = "HISTORY"
+binding = "blt-monitor-history"
 
 [assets]
 directory = "./public"
