@@ -53,6 +53,7 @@ This dashboard helps:
 * Tailwind CSS (CDN)
 * Font Awesome
 * Vanilla JavaScript
+* Cloudflare Workers Static Assets
 
 ---
 
@@ -72,25 +73,17 @@ This dashboard helps:
    cd blt-contributor-page
    ```
 
-3. Open the project in your browser:
+3. Start the local Cloudflare Workers development server:
 
-   * **macOS**
+   ```bash
+   wrangler dev
+   ```
 
-     ```bash
-     open index.html
-     ```
+4. Deploy to Cloudflare Workers:
 
-   * **Windows**
-
-     ```bash
-     start index.html
-     ```
-
-   * **Linux**
-
-     ```bash
-     xdg-open index.html
-     ```
+   ```bash
+   wrangler deploy
+   ```
 
 ---
 
@@ -107,8 +100,9 @@ This dashboard helps:
 
 ```text
 .
-├── index.html
-├── assets/
+├── public/
+│   └── index.html
+├── wrangler.toml
 └── README.md
 ```
 
