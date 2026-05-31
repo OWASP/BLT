@@ -100,7 +100,7 @@ class Default(WorkerEntrypoint):
             cloudflare_captcha = (
                 "verify you are human by completing the action below" in content.lower()
             )
-            if keyword_status == "found" or cloudflare_captcha:
+            if response.ok and (keyword_status == "found" or cloudflare_captcha):
                 status = "success"
         except Exception as error:
             print(f"Monitor request failed for {monitor.get('id')}: {error}")
