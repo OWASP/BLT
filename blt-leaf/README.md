@@ -600,7 +600,7 @@ For local testing, configure a test secret before sending webhook payloads:
 
 ```bash
 wrangler secret put GITHUB_WEBHOOK_SECRET
-
+```
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
