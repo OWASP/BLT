@@ -110,6 +110,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const nextButton = labRoot.querySelector('[data-lab-next]');
         const progressBar = labRoot.querySelector('[data-lab-progress]');
         const percentLabel = labRoot.querySelector('[data-lab-percent]');
+        const labId = labRoot.getAttribute('data-lab-id');
         let currentIndex = 0;
         let highestUnlocked = 0;
         const completedTasks = new Set();
@@ -129,6 +130,59 @@ document.addEventListener('DOMContentLoaded', function() {
         function completeTask(index) {
             completedTasks.add(index);
             highestUnlocked = Math.max(highestUnlocked, Math.min(index + 1, tasks.length - 1));
+        }
+
+        function getStoredProgress() {
+            try {
+                return JSON.parse(localStorage.getItem('blt-lab-progress') || '{}');
+            } catch (_error) {
+                return {};
+            }
+        }
+
+        function saveTaskProgress(index, value) {
+            if (!labId) {
+                return;
+            }
+
+            const progress = getStoredProgress();
+            const labProgress = progress[labId] || {};
+            labProgress[index] = {
+                ...(labProgress[index] || {}),
+                ...value
+            };
+            progress[labId] = labProgress;
+            localStorage.setItem('blt-lab-progress', JSON.stringify(progress));
+        }
+
+        function clearTaskProgressFrom(index) {
+            if (!labId) {
+                return;
+            }
+
+            const progress = getStoredProgress();
+            const labProgress = progress[labId] || {};
+            Object.keys(labProgress).forEach(taskIndex => {
+                if (Number(taskIndex) >= index) {
+                    delete labProgress[taskIndex];
+                }
+            });
+            progress[labId] = labProgress;
+            localStorage.setItem('blt-lab-progress', JSON.stringify(progress));
+        }
+
+        function restoreLabProgress() {
+            if (!labId) {
+                return;
+            }
+
+            const progress = getStoredProgress();
+            Object.entries(progress[labId] || {}).forEach(([taskIndex, taskProgress]) => {
+                const index = Number(taskIndex);
+                if (Number.isInteger(index) && index >= 0 && index < tasks.length && taskProgress?.completed) {
+                    completeTask(index);
+                }
+            });
         }
 
         function lockAfter(index) {
@@ -225,7 +279,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         labRoot.addEventListener('lab:task-complete', event => {
             const completedIndex = Number(event.detail?.taskIndex ?? currentIndex);
-            if (Number.isInteger(completedIndex)) {
+            if (Number.isInteger(completedIndex) && completedIndex >= 0 && completedIndex < tasks.length) {
                 completeTask(completedIndex);
                 showTask(currentIndex);
             }
@@ -268,8 +322,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     if (isCorrect) {
                         completeTask(currentIndex);
+                        saveTaskProgress(currentIndex, { completed: true });
                     } else {
                         lockAfter(currentIndex);
+                        clearTaskProgressFrom(currentIndex);
                     }
 
                     if (feedback) {
@@ -283,7 +339,8 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 
-        showTask(0);
+        restoreLabProgress();
+        showTask(highestUnlocked);
     });
 
     // Lab catalog filtering

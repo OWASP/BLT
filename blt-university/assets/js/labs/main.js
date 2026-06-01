@@ -234,9 +234,22 @@
         };
     }
 
+    function getStoredSimulationProgress() {
+        const storageKey = 'blt-lab-progress';
+        try {
+            return JSON.parse(localStorage.getItem(storageKey) || '{}');
+        } catch (_error) {
+            return {};
+        }
+    }
+
+    function getSimulationProgress(labId, taskIndex) {
+        return getStoredSimulationProgress()[labId]?.[taskIndex] || null;
+    }
+
     function setSimulationProgress(labId, taskIndex, value) {
         const storageKey = 'blt-lab-progress';
-        const progress = JSON.parse(localStorage.getItem(storageKey) || '{}');
+        const progress = getStoredSimulationProgress();
         const labProgress = progress[labId] || {};
 
         labProgress[taskIndex] = {
@@ -615,12 +628,13 @@
     }
 
     function renderCodeFixSimulation(container, config, context, options) {
-        const state = createSimulationState();
+        const savedProgress = getSimulationProgress(context.labId, context.taskIndex);
+        const state = createSimulationState(savedProgress?.completed ? SimulationStates.COMPLETE : SimulationStates.IDENTIFY);
         const selectedLines = new Set();
         const hintController = createHintController(config.hints || []);
         const model = {
             selectedAnswer: null,
-            explainDone: false
+            explainDone: Boolean(savedProgress?.completed)
         };
 
         function rerender() {
@@ -973,7 +987,7 @@
             if (!renderer) {
                 container.innerHTML = `
                     <div class="mt-6 rounded-2xl border border-yellow-200 bg-yellow-50 p-4 text-sm font-semibold text-yellow-800 dark:border-yellow-900/40 dark:bg-yellow-900/10 dark:text-yellow-200">
-                        Simulation engine "${engine || 'unknown'}" is not implemented yet.
+                        Simulation engine "${escapeHtml(engine || 'unknown')}" is not implemented yet.
                     </div>
                 `;
                 return;
