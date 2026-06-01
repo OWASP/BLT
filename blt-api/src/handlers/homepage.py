@@ -1,5 +1,10 @@
 """
-Static page handlers for the BLT API landing page and dashboard.
+Static browser/page handlers for BLT-API.
+
+Route map:
+- GET / -> src/pages/index.html
+- GET /dashboard -> src/pages/dashboard.html
+- GET /blt-api.svg -> static/blt-api.svg
 """
 
 from pathlib import Path
