@@ -1,6 +1,7 @@
 """GitLab API client module for Cloudflare Workers."""
 
 import json
+import js
 
 from js import fetch
 from pyodide.ffi import to_js
@@ -36,11 +37,18 @@ async def call_gitlab_api(endpoint: str, method: str, env, body: dict = None) ->
     if body is not None:
         options["body"] = json.dumps(body)
 
-    js_options = to_js(options)
+    # CRITICAL: Pyodide converts dicts to JS Maps by default. 
+    # fetch() expects a plain JS Object, so we MUST use dict_converter.
+    js_options = to_js(options, dict_converter=js.Object.fromEntries)
     response = await fetch(url, js_options)
 
     if not response.ok:
-        raise RuntimeError(f"GitLab API error: {response.status} {response.statusText}")
+        error_body = await response.text()
+        raise RuntimeError(f"GitLab API error {response.status} {response.statusText}: {error_body}")
+
+    # Handle 204 No Content gracefully
+    if response.status == 204:
+        return {}
 
     response_json = await response.json()
     return response_json.to_py()
