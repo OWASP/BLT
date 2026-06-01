@@ -296,6 +296,30 @@ class TestRouterGetRouteList:
         result = router.get_route_list()
         assert len(result) == 1
         assert result[0] == {"method": "GET", "path": "/users"}
+
+    def test_get_route_list_includes_optional_metadata(self):
+        """Test get_route_list includes route metadata when registered."""
+        router = Router()
+        router.add_route(
+            "GET",
+            "/bugs",
+            lambda: None,
+            metadata={
+                "summary": "List bugs with pagination and filters.",
+                "auth_type": "api_key",
+                "path_params": [],
+                "query_params": [{"name": "page", "type": "integer", "required": False}],
+                "body_fields": [],
+            },
+        )
+
+        result = router.get_route_list()
+
+        assert result[0]["method"] == "GET"
+        assert result[0]["path"] == "/bugs"
+        assert result[0]["summary"] == "List bugs with pagination and filters."
+        assert result[0]["auth_type"] == "api_key"
+        assert result[0]["query_params"] == [{"name": "page", "type": "integer", "required": False}]
     
     def test_get_route_list_multiple_routes(self):
         """Test get_route_list with multiple routes."""
