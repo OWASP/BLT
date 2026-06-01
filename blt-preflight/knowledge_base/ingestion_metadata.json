@@ -1,0 +1,32 @@
+{
+  "documents": [
+    {
+      "filename": "top10-2025.md",
+      "title": "OWASP Top 10 2025",
+      "source_url": "https://owasp.org/Top10/2025/",
+      "category": "General",
+      "priority": 1
+    },
+    {
+      "filename": "authentication-cheat-sheet.md",
+      "title": "Authentication Cheat Sheet",
+      "source_url": "https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html",
+      "category": "A07",
+      "priority": 2
+    },
+    {
+      "filename": "api-security-cheat-sheet.md",
+      "title": "API Security Cheat Sheet",
+      "source_url": "https://cheatsheetseries.owasp.org/cheatsheets/API_Security_Cheat_Sheet.html",
+      "category": "A01",
+      "priority": 2
+    },
+    {
+      "filename": "session-management-cheat-sheet.md",
+      "title": "Session Management Cheat Sheet",
+      "source_url": "https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html",
+      "category": "A07",
+      "priority": 3
+    }
+  ]
+}
