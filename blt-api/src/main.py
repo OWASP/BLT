@@ -29,6 +29,7 @@ from handlers import (
     handle_repos,
     handle_health,
     handle_blt_api_logo,
+    handle_llm_txt,
     handle_dashboard,
     handle_homepage,
     handle_auth_page,
@@ -51,6 +52,7 @@ router = Router()
 # Homepage and health check
 router.add_route("GET", "/", handle_homepage)
 router.add_route("GET", "/blt-api.svg", handle_blt_api_logo)
+router.add_route("GET", "/llm.txt", handle_llm_txt)
 router.add_route("GET", "/dashboard", handle_dashboard)
 router.add_route("GET", "/auth", handle_auth_page)
 router.add_route("GET", "/health", handle_health)
