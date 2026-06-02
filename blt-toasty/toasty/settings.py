@@ -1,15 +1,24 @@
 import os
-
 from pathlib import Path
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv("SECRET_KEY")
+if not SECRET_KEY:
+    raise ImproperlyConfigured("SECRET_KEY must be set in the environment.")
 
-DEBUG = True
+DEBUG_ENV = os.getenv("DEBUG", "False").strip().lower()
+DEBUG = DEBUG_ENV in ("1", "true", "yes", "on")
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS_ENV = os.getenv("ALLOWED_HOSTS", "").strip()
+if ALLOWED_HOSTS_ENV:
+    ALLOWED_HOSTS = [host.strip() for host in ALLOWED_HOSTS_ENV.split(",") if host.strip()]
+else:
+    if not DEBUG:
+        raise ImproperlyConfigured("ALLOWED_HOSTS must be set in the environment when DEBUG is False.")
+    ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
 
 
 # Application definition
@@ -114,3 +123,22 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Production Security Headers & Cookies
+if not DEBUG:
+    # Proxy SSL configurations
+    if os.getenv("USE_X_FORWARDED_HOST", "False").strip().lower() in ("1", "true", "yes", "on"):
+        SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+        USE_X_FORWARDED_HOST = True
+
+    # Enforce SSL redirect conditionally depending on environment/proxy setup
+    if os.getenv("SECURE_SSL_REDIRECT", "True").strip().lower() in ("1", "true", "yes", "on"):
+        SECURE_SSL_REDIRECT = True
+        
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    # Note: Modern browsers ignore X-XSS-Protection; SECURE_BROWSER_XSS_FILTER is obsolete.
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True

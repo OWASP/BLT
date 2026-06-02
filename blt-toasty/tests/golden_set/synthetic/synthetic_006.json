@@ -1,0 +1,59 @@
+{
+  "id": "synthetic_006",
+  "source": "synthetic",
+  "category": "sqli",
+  "raw_text": "Union-based SQL Injection - User Enumeration\n\nUnion-based SQL injection discovered in /user/profile endpoint (GET parameter: uid).\nApplication fails to validate integer input before constructing SQL query.\n\nVulnerable query in models.py line 89:\n  SELECT id, username, email FROM users WHERE id = {uid}\n\nSuccessful exploitation using UNION SELECT attack:\n  1 UNION SELECT 1,2,password FROM users--\n\nTesting details captured:\nTester email: intern.dev@acmecorp.com\nAWS secret discovered in database: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY\nJWT from captured session: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyMTIzIiwicm9sZSI6InVzZXIifQ.abcdef123456\nAPI Gateway tested: api-gw.staging.local\nDatabase server: db.internal.corp\nTesting performed from: 172.16.0.100\nSendGrid API key used: SG.SendGridTestKey_example\n",
+  "expected_entities": [
+    {
+      "type": "EMAIL_ADDRESS",
+      "value": "intern.dev@acmecorp.com",
+      "start": 439,
+      "end": 462,
+      "confidence_min": 0.92
+    },
+    {
+      "type": "AWS_SECRET_KEY",
+      "value": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+      "start": 498,
+      "end": 538,
+      "confidence_min": 0.94
+    },
+    {
+      "type": "AUTH_TOKEN",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyMTIzIiwicm9sZSI6InVzZXIifQ.abcdef123456",
+      "start": 566,
+      "end": 658,
+      "confidence_min": 0.88
+    },
+    {
+      "type": "DOMAIN",
+      "value": "api-gw.staging.local",
+      "start": 679,
+      "end": 699,
+      "confidence_min": 0.85
+    },
+    {
+      "type": "DOMAIN",
+      "value": "db.internal.corp",
+      "start": 717,
+      "end": 733,
+      "confidence_min": 0.85
+    },
+    {
+      "type": "IP_ADDRESS",
+      "value": "172.16.0.100",
+      "start": 758,
+      "end": 770,
+      "confidence_min": 0.91
+    },
+    {
+      "type": "API_KEY",
+      "value": "SG.SendGridTestKey_example",
+      "start": 794,
+      "end": 820,
+      "confidence_min": 0.86
+    }
+  ],
+  "expected_redacted_text": "Union-based SQL Injection - User Enumeration\n\nUnion-based SQL injection discovered in /user/profile endpoint (GET parameter: uid).\nApplication fails to validate integer input before constructing SQL query.\n\nVulnerable query in models.py line 89:\n  SELECT id, username, email FROM users WHERE id = {uid}\n\nSuccessful exploitation using UNION SELECT attack:\n  1 UNION SELECT 1,2,password FROM users--\n\nTesting details captured:\nTester email: [EMAIL_ADDRESS]\nAWS secret discovered in database: [AWS_SECRET_KEY]\nJWT from captured session: [AUTH_TOKEN]\nAPI Gateway tested: [DOMAIN]\nDatabase server: [DOMAIN]\nTesting performed from: [IP_ADDRESS]\nSendGrid API key used: [API_KEY]\n",
+  "adversarial_notes": "Union-based SQLi with user enumeration attack chain. 7 PII entities embedded in test narrative. Tests Presidio with RFC1918 private IP address (172.16.0.0/12 range) and mixed credential types in SQL injection context."
+}
