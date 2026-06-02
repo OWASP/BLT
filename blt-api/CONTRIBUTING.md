@@ -2,6 +2,8 @@
 
 This guide covers setting up the development environment, working with the database, and contributing code.
 
+Coding agents should also read [AGENTS.md](AGENTS.md) for the short operational checklist before making changes.
+
 ## Prerequisites
 
 - Node.js 18+ (for Wrangler CLI)
