@@ -30,3 +30,8 @@ jobs:
 
       - name: Run tests
         run: python3 -m pytest -q
+
+      - name: Validate NetGuardian D1 migration SQL
+        run: |
+          test -f migrations/ng/0001_core.sql
+          grep -qE 'UNIQUE[[:space:]]*\([[:space:]]*org_id[[:space:]]*,[[:space:]]*sender_id[[:space:]]*,[[:space:]]*nonce[[:space:]]*\)' migrations/ng/0001_core.sql
