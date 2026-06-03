@@ -1,0 +1,21 @@
+default:
+  image: ghcr.io/astral-sh/uv:python3.12-bookworm-slim
+
+variables:
+  UV_CACHE_DIR: ".uv-cache"
+
+cache:
+  key:
+    files:
+      - uv.lock
+  paths:
+    - $UV_CACHE_DIR
+
+stages:
+  - test
+
+run-tests:
+  stage: test
+  script:
+    - uv sync --all-extras
+    - uv run pytest tests/
