@@ -223,7 +223,28 @@ See [Configuration Guide](docs/CONFIGURATION.md) for detailed instructions.
 
 - **[Security Guidance](docs/SECURITY_GUIDANCE.md)**: Comprehensive security best practices
 - **[Configuration Guide](docs/CONFIGURATION.md)**: How to customize the advisory system
+- **[Deployment Guide](DEPLOYMENT.md)**: Cloudflare Pages setup and deployment instructions
 - **[Maintainer Dashboard](docs/MAINTAINER_DASHBOARD.md)**: View advisory statistics (generated)
+
+## Deployment
+
+The static site can be previewed and deployed with Cloudflare Pages from the `public/` directory.
+
+Preview the site locally:
+
+```bash
+npx wrangler pages dev public
+```
+
+Deploy to Cloudflare Pages:
+
+```bash
+npx wrangler pages deploy public --project-name=blt-preflight
+```
+
+The repository already includes `wrangler.toml`, which points Cloudflare to the static assets in `public/`. No build command is required.
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for complete setup instructions.
 
 ## Architecture
 
