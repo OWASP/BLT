@@ -26,7 +26,7 @@ function getSiteBase() {
 }
 
 function normalizePath(path) {
-  return path.replace(/\/+/g, '/').replace(/index\.html$/, '').replace(/\/$/, '');
+  return path.replace(/\/+/g, '/').replace(/index\.html$/, '').replace(/\.html$/, '').replace(/\/$/, '');
 }
 
 function setActive(link) {
