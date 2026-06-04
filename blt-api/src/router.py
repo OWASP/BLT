@@ -12,12 +12,13 @@ from utils import error_response, json_response
 
 
 class Route:
-    """Represents a single route with its pattern and handler."""
+    """Represents a single route with its pattern, handler, and optional metadata."""
     
-    def __init__(self, method: str, pattern: str, handler: Callable):
+    def __init__(self, method: str, pattern: str, handler: Callable, metadata: Optional[Dict[str, Any]] = None):
         self.method = method.upper()
         self.pattern = pattern
         self.handler = handler
+        self.metadata = dict(metadata or {})
         self.regex, self.param_names = self._compile_pattern(pattern)
     
     def _compile_pattern(self, pattern: str) -> Tuple[re.Pattern, List[str]]:
@@ -73,7 +74,7 @@ class Router:
         """Initialize the router."""
         self.routes: List[Route] = []
     
-    def add_route(self, method: str, pattern: str, handler: Callable) -> None:
+    def add_route(self, method: str, pattern: str, handler: Callable, metadata: Optional[Dict[str, Any]] = None) -> None:
         """
         Register a new route.
         
@@ -81,8 +82,9 @@ class Router:
             method: HTTP method (GET, POST, PUT, DELETE, etc.)
             pattern: URL pattern (e.g., "/users/{id}")
             handler: Async function to handle the request
+            metadata: Optional route discovery metadata for /routes consumers
         """
-        route = Route(method, pattern, handler)
+        route = Route(method, pattern, handler, metadata=metadata)
         self.routes.append(route)
     
     def get(self, pattern: str) -> Callable:
@@ -117,12 +119,13 @@ class Router:
         """Return metadata for all registered routes.
 
         Returns:
-            List of dicts with method and path for each route.
+            List of dicts with method, path, and any registered route metadata.
         """
         return [
             {
                 "method": route.method,
                 "path": route.pattern,
+                **route.metadata,
             }
             for route in self.routes
         ]
