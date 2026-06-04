@@ -11,10 +11,10 @@ KNOWLEDGE_BASE = BASE_DIR / "knowledge_base" / "owasp_corpus"
 CHROMADB_DIR = BASE_DIR / "chromadb"
 
 ## METADATA
-METADAT_FILE = BASE_DIR / "ingestion_metadata.json"
+METADATA_FILE = BASE_DIR / "ingestion_metadata.json"
 
 ## Embedding settings
-EMBEDDINGS_MODEL = "sentence-transformers/all-mpnet-base-v2"
+EMBEDDING_MODEL = "sentence-transformers/all-mpnet-base-v2"
 
 ## Chunking settings
 CHUNK_SIZE = 400     #tokens

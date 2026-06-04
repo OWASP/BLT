@@ -15,9 +15,9 @@
       "priority": 2
     },
     {
-      "filename": "api-security-cheat-sheet.md",
-      "title": "API Security Cheat Sheet",
-      "source_url": "https://cheatsheetseries.owasp.org/cheatsheets/API_Security_Cheat_Sheet.html",
+      "filename": "api-security-top10.md",
+      "title": "API Security TOP 10 2023",
+      "source_url": "https://owasp.org/API-Security/editions/2023/en/0x11-t10/",
       "category": "A01",
       "priority": 2
     },
