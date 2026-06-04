@@ -29,6 +29,7 @@ from handlers import (
     handle_repos,
     handle_health,
     handle_blt_api_logo,
+    handle_llm_txt,
     handle_dashboard,
     handle_homepage,
     handle_auth_page,

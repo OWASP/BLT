@@ -1,3 +1,10 @@
+"""
+Cloudflare D1 binding helpers.
+
+The primary binding name is `blt_api` from wrangler.toml. Helpers accept both
+Workers env objects and dict-like test envs.
+"""
+
 import asyncio
 import weakref
 from typing import Optional

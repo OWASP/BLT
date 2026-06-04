@@ -1,4 +1,10 @@
-"""Legacy browser auth route handler."""
+"""
+Legacy browser /auth route.
+
+This is not a JSON auth API endpoint. It serves the dashboard/docs UI for
+older browser and email links; JSON auth APIs live under /api/auth/* plus
+legacy compatibility namespaces.
+"""
 
 from typing import Any, Dict
 

@@ -1,4 +1,9 @@
-"""API-key validation for BLT API requests."""
+"""
+API-key gate classification and validation for BLT-API.
+
+`X-BLT-API-Key` gates protected API requests before router dispatch.
+JWT/Bearer identity is separate and handled by auth context helpers.
+"""
 
 import hashlib
 import hmac
@@ -20,6 +25,7 @@ PUBLIC_API_KEY_PATHS = {
     "/v2",
     "/auth",
     "/blt-api.svg",
+    "/llm.txt",
     "/dashboard",
     "/health",
     "/v2/health",
