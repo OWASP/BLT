@@ -24,7 +24,7 @@ This file is for coding agents working on BLT-API, the Cloudflare Workers API fo
 - `GET /` -> `src/pages/index.html`: public landing page for humans.
 - `GET /dashboard` -> `src/pages/dashboard.html`: interactive API explorer/docs UI.
 - `GET /auth` -> `src/handlers/auth_page.py`: legacy browser alias that serves dashboard, not JSON auth.
-- `GET /blt-api.svg` -> `static/blt-api.svg`: logo asset route.
+- `GET /blt-api.png` -> `static/blt-api.png`: logo asset route.
 - `src/pages/old-dashboard.html` is a gitignored local backup if present; do not treat it as routed or committed.
 
 ## Auth and API access
