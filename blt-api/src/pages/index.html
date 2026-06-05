@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <!-- BLT-API public landing page. Served by handle_homepage at GET /. -->
 <html lang="en" class="scroll-smooth">
   <head>
@@ -186,7 +186,7 @@
           class="inline-flex items-center gap-2.5"
           aria-label="BLT API home"
         >
-          <img src="/blt-api.svg" alt="BLT API logo" class="h-14" />
+          <img src="/blt-api.png" alt="BLT API logo" class="h-12 sm:h-14" />
           <div class="flex flex-col">
             <span class="text-sm font-semibold tracking-tight">BLT API</span>
           </div>
@@ -299,19 +299,19 @@
         aria-label="Hero"
       >
         <div
-          class="dot-field pointer-events-none absolute inset-x-0 top-24 z-[1] mx-auto h-[36rem] w-[min(94rem,180vw)] opacity-70"
+          class="dot-field pointer-events-none absolute inset-x-0 top-24 z-[1] mx-auto h-[36rem] w-full opacity-70 md:w-[min(94rem,180vw)]"
           aria-hidden="true"
         ></div>
         <div
-          class="relative z-[2] flex w-full flex-col items-center text-center"
+          class="relative z-[2] flex w-full min-w-0 flex-col items-center text-center"
         >
           <a
-            class="inline-flex max-w-[min(40rem,calc(100vw_-_2rem))] items-center gap-3 rounded-full bg-white/40 py-[.15rem] pl-[.15rem] pr-3 text-sm font-medium text-gray-900 shadow-[0_10px_30px_-16px_rgba(220,38,38,.45),0_0_0_1px_rgba(0,0,0,.1)] backdrop-blur-[1px] max-md:text-[.72rem]"
+            class="inline-flex max-w-[min(40rem,calc(100vw_-_2rem))] items-center gap-3 rounded-full bg-white/40 py-[.15rem] pl-[.15rem] pr-3 text-sm font-medium text-gray-900 shadow-[0_10px_30px_-16px_rgba(220,38,38,.45),0_0_0_1px_rgba(0,0,0,.1)] backdrop-blur-[1px] max-md:w-full max-md:justify-center max-md:text-[.72rem]"
             href="[[API_BASE_URL]]/dashboard"
             aria-label="Open BLT API documentation"
           >
             <span
-              class="flex-none rounded-full border border-gray-200 bg-gray-50 px-[.65rem] py-1 text-xs text-gray-600"
+              class="flex-none rounded-full border border-gray-200 bg-gray-50 px-2 md:px-[.65rem] py-1 text-xs text-gray-600"
               >Live</span
             >
             <span class="truncate"
@@ -319,12 +319,12 @@
             >
           </a>
           <h1
-            class="mt-7 text-[clamp(3.4rem,10vw,7rem)] font-bold leading-[.92] tracking-[-.055em] text-gray-900"
+            class="mt-7 max-w-full text-[clamp(3.4rem,10vw,7rem)] font-bold leading-[.92] tracking-[-.055em] text-gray-900"
           >
             Build with<br />BLT <span class="text-red-600">API</span>.
           </h1>
           <p
-            class="mt-6 max-w-[42rem] text-[clamp(1rem,1.55vw,1.22rem)] leading-[1.6] text-gray-700 text-balance"
+            class="mt-6 w-full max-w-[42rem] text-[clamp(1rem,1.55vw,1.22rem)] leading-[1.6] text-gray-700 text-balance max-md:px-2"
           >
             Use OWASP BLT data through clear routes for bugs, users, domains,
             organizations, projects, hunts, stats, and leaderboards.
@@ -333,12 +333,12 @@
             class="mt-7 flex items-center justify-center gap-3 max-md:w-full max-md:flex-col max-md:px-4"
           >
             <a
-              class="inline-flex items-center justify-center rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-5 py-3 text-base font-medium text-white shadow-[0_0_0_2px_rgba(0,0,0,.04),0_10px_24px_-14px_rgba(220,38,38,.8)] transition duration-200 hover:-translate-y-px"
+              class="inline-flex items-center justify-center rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-5 py-3 text-base font-medium text-white shadow-[0_0_0_2px_rgba(0,0,0,.04),0_10px_24px_-14px_rgba(220,38,38,.8)] transition duration-200 hover:-translate-y-px max-md:w-full"
               href="[[API_BASE_URL]]/dashboard"
               >View API docs</a
             >
             <a
-              class="inline-flex items-center justify-center rounded-md border border-gray-200 bg-white px-5 py-3 text-base font-medium text-gray-700 transition duration-200 hover:border-gray-300 hover:bg-gray-50"
+              class="inline-flex items-center justify-center rounded-md border border-gray-200 bg-white px-5 py-3 text-base font-medium text-gray-700 transition duration-200 hover:border-gray-300 hover:bg-gray-50 max-md:w-full"
               href="[[API_BASE_URL]]/health"
               >Check health</a
             >
@@ -477,11 +477,11 @@
 
           <a
             href="[[API_BASE_URL]]/dashboard"
-            class="group block rounded-3xl border border-gray-200 bg-white p-4 shadow-[0_22px_60px_-45px_rgba(15,23,42,.75)]"
+            class="group block min-w-0 rounded-3xl border border-gray-200 bg-white p-4 shadow-[0_22px_60px_-45px_rgba(15,23,42,.75)]"
             aria-label="Open dashboard documentation"
           >
             <div
-              class="rounded-2xl border border-gray-100 bg-gray-50 p-4 font-mono text-xs text-gray-600"
+              class="min-w-0 rounded-2xl border border-gray-100 bg-gray-50 p-4 font-mono text-xs text-gray-600"
             >
               <div class="mb-4 flex items-center justify-between">
                 <span class="font-sans text-sm font-semibold text-gray-900"
@@ -507,7 +507,7 @@
                 </div>
               </div>
               <pre
-                class="mt-4 overflow-hidden rounded-xl bg-[#111827] p-4 text-left text-[.68rem] leading-5 text-gray-200"
+                class="mt-4 overflow-x-auto rounded-xl bg-[#111827] p-4 text-left text-[.68rem] leading-5 text-gray-200"
               ><code>{
   "success": true,
   "data": [],
@@ -614,7 +614,7 @@
         aria-labelledby="cta-heading"
       >
         <div
-          class="relative mx-auto flex w-[min(42rem,100%)] flex-col items-center gap-3 text-center"
+          class="relative mx-auto flex w-[min(42rem,100%)] min-w-0 flex-col items-center gap-3 text-center"
         >
           <span
             class="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 py-1 font-mono text-xs font-medium uppercase tracking-[.16em] text-red-600"
@@ -622,11 +622,13 @@
           >
           <h2
             id="cta-heading"
-            class="mt-1 text-[clamp(1.5rem,7vw,4rem)] font-medium leading-[1.05] tracking-[-.045em] text-gray-900"
+            class="mt-1 max-w-full text-[clamp(1.5rem,7vw,4rem)] font-medium leading-[1.05] tracking-[-.045em] text-gray-900"
           >
             Start using the<br />BLT API.
           </h2>
-          <p class="m-0 max-w-[31rem] text-sm leading-[1.6] text-gray-500">
+          <p
+            class="m-0 w-full max-w-[31rem] text-sm leading-[1.6] text-gray-500"
+          >
             Open the docs, try a request, and check service health from the same
             deployment.
           </p>
@@ -634,12 +636,12 @@
             class="mb-2 flex items-center justify-center gap-3 max-md:w-full max-md:flex-col max-md:px-4"
           >
             <a
-              class="inline-flex items-center justify-center rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-5 py-3 text-sm font-medium text-white shadow-[0_10px_24px_-14px_rgba(220,38,38,.8)] transition duration-200 hover:-translate-y-px"
+              class="inline-flex items-center justify-center rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-5 py-3 text-sm font-medium text-white shadow-[0_10px_24px_-14px_rgba(220,38,38,.8)] transition duration-200 hover:-translate-y-px max-md:w-full"
               href="[[API_BASE_URL]]/dashboard"
               >View API docs</a
             >
             <a
-              class="inline-flex items-center justify-center rounded-md border border-gray-200 bg-white px-5 py-3 text-sm font-medium text-gray-700 transition duration-200 hover:border-gray-300 hover:bg-gray-50"
+              class="inline-flex items-center justify-center rounded-md border border-gray-200 bg-white px-5 py-3 text-sm font-medium text-gray-700 transition duration-200 hover:border-gray-300 hover:bg-gray-50 max-md:w-full"
               href="[[API_BASE_URL]]/health"
               >Check health</a
             >
@@ -650,7 +652,7 @@
           class="footer-panel relative mt-14 w-full overflow-hidden rounded-t-3xl border border-white/5 bg-[#0e0d0c] py-6 pb-8 text-white max-md:rounded-t-[.8rem]"
         >
           <h2
-            class="relative m-0 px-2 text-center text-[clamp(3.2rem,12vw,9rem)] font-light leading-[.9] text-white"
+            class="relative m-0 break-all px-2 text-center text-[clamp(2.1rem,11vw,9rem)] font-light leading-[.9] text-white sm:break-normal sm:text-[clamp(3.2rem,12vw,9rem)]"
           >
             api.owaspblt.org
           </h2>
@@ -659,7 +661,7 @@
             aria-hidden="true"
           ></div>
           <div
-            class="footer-links relative mx-auto mt-8 grid max-w-6xl grid-cols-4 gap-8 px-6 font-mono max-md:grid-cols-2 max-md:gap-6"
+            class="footer-links relative mx-auto mt-8 grid max-w-6xl grid-cols-1 gap-6 px-6 font-mono sm:grid-cols-2 md:grid-cols-4 md:gap-8"
           >
             <div>
               <p>Docs</p>

@@ -46,7 +46,7 @@ def _meta(
 ROUTE_METADATA: Dict[RouteKey, RouteMetadata] = {
     # Browser/static/public utility routes
     ("GET", "/"): _meta("Serve the public BLT-API landing page.", "public"),
-    ("GET", "/blt-api.svg"): _meta("Serve the BLT API logo asset.", "public"),
+    ("GET", "/blt-api.png"): _meta("Serve the BLT API logo asset.", "public"),
     ("GET", "/dashboard"): _meta("Serve the interactive BLT API explorer and documentation UI.", "public"),
     ("GET", "/auth"): _meta("Serve the legacy browser auth/dashboard entry page.", "public"),
     ("GET", "/health"): _meta("Return API health status.", "public"),

@@ -49,13 +49,13 @@ class TestHomepageHandler:
     async def test_homepage_returns_landing_page_html(self):
         content = await _body(handle_homepage)
 
-        assert "<!DOCTYPE html>" in content
+        assert "<!doctype html>" in content.lower()
         assert "BLT API" in content
         assert "Build with" in content
         assert "Everything you need to test a route" in content
         assert "The dashboard keeps route docs" in content
-        assert 'src="/blt-api.svg"' in content
-        assert 'src="/blt-api.png"' not in content
+        assert 'src="/blt-api.png"' in content
+        assert 'src="/blt-api.svg"' not in content
 
     @pytest.mark.asyncio
     async def test_homepage_links_to_dashboard_route_not_html_or_v2_page(self):
@@ -78,16 +78,17 @@ class TestHomepageHandler:
     @pytest.mark.asyncio
     async def test_blt_api_logo_asset_is_served(self):
         response = await handle_blt_api_logo(
-            MockRequest(url="https://blt-api.workers.dev/blt-api.svg"),
+            MockRequest(url="https://blt-api.workers.dev/blt-api.png"),
             MockEnv(),
             path_params={},
             query_params={},
-            path="/blt-api.svg",
+            path="/blt-api.png",
         )
 
         assert response.status == 200
-        assert "image/svg+xml" in response.headers["Content-Type"]
-        assert "<svg" in response.body
+        assert "image/png" in response.headers["Content-Type"]
+        assert isinstance(response.body, bytes)
+        assert response.body.startswith(b"\x89PNG\r\n\x1a\n")
 
 
 class TestDashboardHandler:
@@ -142,8 +143,20 @@ class TestDashboardHandler:
         assert "apiKeyList" in content
         assert "X-BLT-API-Key" in content
         assert "blt-dashboard-api-key" in content
-        assert 'src="/blt-api.svg"' in content
-        assert 'src="/blt-api.png"' not in content
+        assert 'src="/blt-api.png"' in content
+        assert 'src="/blt-api.svg"' not in content
+
+    @pytest.mark.asyncio
+    async def test_dashboard_mobile_route_catalog_uses_hamburger_menu(self):
+        content = await _body(handle_dashboard, url="https://api.example.com/dashboard", path="/dashboard")
+
+        assert 'id="mobileNavToggle"' in content
+        assert 'aria-controls="sidebar"' in content
+        assert "hidden md:flex" in content
+        assert "fixed inset-0 z-40" in content
+        assert "id=\"mobileThemeToggle\"" in content
+        assert "mobileHealthLink" in content
+        assert "function closeMobileNav()" in content
 
     @pytest.mark.asyncio
     async def test_dashboard_profile_modal_omits_manual_api_key_controls(self):

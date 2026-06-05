@@ -4,7 +4,7 @@ Static browser/page handlers for BLT-API.
 Route map:
 - GET / -> src/pages/index.html
 - GET /dashboard -> src/pages/dashboard.html
-- GET /blt-api.svg -> static/blt-api.svg
+- GET /blt-api.png -> static/blt-api.png
 """
 
 from pathlib import Path
@@ -149,7 +149,7 @@ def _serve_page(request: Any, page_name: str) -> Any:
 def _serve_static_file(file_name: str, content_type: str) -> Any:
     """Serve a small static asset through the Worker routing path."""
     asset_file = Path(__file__).resolve().parents[2] / "static" / file_name
-    asset_content = asset_file.read_text(encoding="utf-8")
+    asset_content = asset_file.read_bytes()
     headers = {
         "Content-Type": content_type,
         "Cache-Control": "public, max-age=86400",
@@ -220,7 +220,7 @@ async def handle_blt_api_logo(
     path: str,
 ) -> Any:
     """Serve the BLT API logo when static asset passthrough is unavailable."""
-    return _serve_static_file("blt-api.svg", "image/svg+xml; charset=utf-8")
+    return _serve_static_file("blt-api.png", "image/png")
 
 
 async def handle_llm_txt(
