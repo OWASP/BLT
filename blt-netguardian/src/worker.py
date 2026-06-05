@@ -96,6 +96,8 @@ class BLTWorker:
                 response = await self.handle_task_list(request)
             elif path == 'api/vulnerabilities':
                 response = await self.handle_vulnerabilities(request)
+            elif path == 'api/ng/health':
+                response = self.handle_ng_health(request)
             else:
                 response = self.json_response({'error': 'Not found'}, status=404)
             
@@ -523,6 +525,16 @@ class BLTWorker:
 
         except Exception as e:
             return self.internal_error_response('Failed to list tasks', e)
+
+    def handle_ng_health(self, request):
+        """NetGuardian ingest scaffold liveness (Week 1 Day 4)."""
+        if request.method != 'GET':
+            return self.json_response({'error': 'Method not allowed'}, status=405)
+        return self.json_response({
+            'status': 'ok',
+            'component': 'netguardian',
+            'ingest': 'not_implemented',
+        })
     
     async def handle_vulnerabilities(self, request):
         """Get vulnerabilities from the database."""
