@@ -54,6 +54,12 @@ Visit **[https://owasp-blt.github.io/OWASP-Wich/](https://owasp-blt.github.io/OW
 - Interactive category exploration
 - Visual scoring with color-coded status
 
+### Cloudflare Deployment
+
+The browser application is served from `public/`.
+
+Cloudflare should use `wrangler.toml`, which points both `pages_build_output_dir` and `[assets].directory` at `./public`.
+
 ### Python CLI Tool
 
 For automation and integration into CI/CD pipelines, you can also use the Python command-line tool.
