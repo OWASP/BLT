@@ -1,0 +1,32 @@
+stages:
+  - build
+  - deploy
+
+variables:
+  GITLAB_PROJECT_PATH: "$CI_PROJECT_PATH"
+  GITLAB_PROJECT_ID: "$CI_PROJECT_ID"
+
+build_showcase:
+  image: python:3.12-slim
+  stage: build
+  rules:
+    - if: '$CI_COMMIT_BRANCH'
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+  script:
+    - python scripts/build_showcase.py
+  artifacts:
+    paths:
+      - public/
+    expire_in: 1 week
+
+deploy_cloudflare:
+  image: node:22-slim
+  stage: deploy
+  needs:
+    - job: build_showcase
+      artifacts: true
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+  script:
+    - npx wrangler deploy

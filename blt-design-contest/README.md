@@ -2,13 +2,13 @@
 
 Community design showcase for [OWASP BLT](https://owasp.org/www-project-blt/).
 
-**[🎨 View the Showcase →](https://owasp-blt.github.io/BLT-Design-Contest/)**
+**View the Showcase:** deploy `public/` with Cloudflare Workers Static Assets.
 
 ## How it works
 
-1. **Submit** – Open a new issue using the [Design Submission](../../issues/new?template=design-submission.yml) template. Fill in your name, upload a preview image, link your design file, and submit.
-2. **Rate** – Anyone can leave a 👍 (or other) reaction on any submission issue.
-3. **Showcase** – A GitHub Actions workflow automatically rebuilds the showcase pages (`index.html` plus one page per contest) whenever a submission is opened/edited, and deploys them to GitHub Pages. The pages reflect live reaction counts.
+1. **Submit** – Open a new GitLab issue using one of the templates in `.gitlab/issue_templates/`. Fill in your name, upload a preview image, link your design file, and submit.
+2. **Rate** – Anyone can leave a thumbs-up or other GitLab reaction on any submission issue.
+3. **Showcase** – GitLab CI rebuilds the showcase pages into `public/` and deploys them to Cloudflare. Automatic timed rebuilds are not configured.
 
 ## Stack
 
@@ -18,18 +18,27 @@ Community design showcase for [OWASP BLT](https://owasp.org/www-project-blt/).
 | CSS | Tailwind CSS (CDN) |
 | Icons | Font Awesome 6 (CDN) |
 | Build | Python 3 (`scripts/build_showcase.py`) |
-| CI/CD | GitHub Actions (`.github/workflows/build.yml`) |
-| Hosting | GitHub Pages (deployed via `actions/deploy-pages`) |
+| CI/CD | GitLab CI (`.gitlab-ci.yml`) + Cloudflare Wrangler |
+| Hosting | Cloudflare Workers Static Assets (`public/`) |
 
 ## Local development.
 
 ```bash
-# Generate all showcase HTML pages (needs GITHUB_TOKEN for > 60 API requests/hr)
-GITHUB_TOKEN=ghp_... python scripts/build_showcase.py
+# Generate all showcase HTML pages into public/
+GITLAB_TOKEN=glpat-... python scripts/build_showcase.py
 
 # Serve locally
-python -m http.server 8080
+python -m http.server 8080 --directory public
 # open http://localhost:8080
+```
+
+## Cloudflare deployment
+
+This repository is configured for Cloudflare Workers Static Assets. The generated
+HTML files are served from `public/`.
+
+```bash
+npx wrangler deploy
 ```
 
 ## Brand

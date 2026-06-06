@@ -1,0 +1,5 @@
+name = "blt-design-contest"
+compatibility_date = "2026-06-05"
+
+[assets]
+directory = "./public"

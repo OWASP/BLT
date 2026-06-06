@@ -6,8 +6,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
-  <meta name="description" content="BLT Welcome Video — open design showcase for BLT and the broader open source security community. Browse entries, vote for your favourites, and submit your own!" />
-  <title>BLT Welcome Video — BLT Design Contests</title>
+  <meta name="description" content="BLT Homepage Design — open design showcase for BLT and the broader open source security community. Browse entries, vote for your favourites, and submit your own!" />
+  <title>BLT Homepage Design — BLT Design Contests</title>
 
   <!-- Tailwind CSS (CDN) -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -44,7 +44,7 @@
              flex flex-col font-sans antialiased">
 
   <!-- ── Skip to content ── -->
-  <a href="#contest-blt-welcome-video"
+  <a href="#contest-blt-homepage"
      class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2
             focus:z-50 focus:px-4 focus:py-2 focus:bg-[#E10101] focus:text-white
             focus:rounded-md focus:font-medium">
@@ -77,17 +77,17 @@
           </a>
           <span class="text-gray-300 dark:text-gray-600">|</span>
           <span class="inline-flex items-center gap-1.5 text-[#E10101] font-semibold">
-            <i class="fa-solid fa-photo-film" aria-hidden="true"></i> BLT Welcome Video
+            <i class="fa-solid fa-house" aria-hidden="true"></i> BLT Homepage Design
           </span>
-          <a href="https://github.com/OWASP-BLT/BLT-Design-Contest" target="_blank" rel="noopener"
+          <a href="https://gitlab.com/owasp-blt/blt-design-contest" target="_blank" rel="noopener"
              class="text-gray-600 dark:text-gray-300 hover:text-[#E10101] transition-colors
                     inline-flex items-center gap-1">
-            <i class="fa-brands fa-github" aria-hidden="true"></i> GitHub
+            <i class="fa-brands fa-gitlab" aria-hidden="true"></i> GitLab
           </a>
         </div>
 
         <!-- CTA -->
-        <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/new?template=welcome-video-submission.yml"
+        <a href="https://gitlab.com/owasp-blt/blt-design-contest/-/issues/new?template=homepage-submission.yml"
            target="_blank" rel="noopener"
            class="inline-flex items-center gap-2 bg-[#E10101] hover:bg-red-700
                   text-white text-sm font-semibold px-4 py-2 rounded-md
@@ -122,30 +122,30 @@
 
       
       
-    <div id="contest-blt-welcome-video" class="contest-panel" role="tabpanel" aria-labelledby="tab-blt-welcome-video">
+    <div id="contest-blt-homepage" class="contest-panel" role="tabpanel" aria-labelledby="tab-blt-homepage">
 
       <!-- Contest info bar -->
       <div class="mb-6 p-5 bg-white dark:bg-[#1F2937] rounded-xl border border-[#E5E5E5] dark:border-gray-700">
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-              <i class="fa-solid fa-photo-film text-[#E10101]" aria-hidden="true"></i>
-              BLT Welcome Video
+              <i class="fa-solid fa-house text-[#E10101]" aria-hidden="true"></i>
+              BLT Homepage Design
             </h2>
-            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Design a welcome video for beginners giving a walkthrough explanation of the OWASP BLT ecosystem.</p>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Design the new homepage for the OWASP BLT website.</p>
             <div class="mt-2 flex items-center gap-4 text-sm font-medium flex-wrap">
-              <span class="inline-flex items-center gap-1 text-[#E10101]"><i class="fa-solid fa-trophy" aria-hidden="true"></i> $20 prize</span>
+              <span class="inline-flex items-center gap-1 text-[#E10101]"><i class="fa-solid fa-trophy" aria-hidden="true"></i> $25 prize</span>
               <span class="inline-flex items-center gap-1 text-[#E10101]">
                 <i class="fa-solid fa-calendar-day" aria-hidden="true"></i> Ends April 15, 2026
               </span>
               <span class="inline-flex items-center gap-1 text-gray-500 dark:text-gray-400">
                 <i class="fa-solid fa-images" aria-hidden="true"></i>
-                0 submissions
+                2 submissions
               </span>
             </div>
             
           </div>
-          <a href="https://github.com/OWASP-BLT/BLT-Design-Contest/issues/new?template=welcome-video-submission.yml"
+          <a href="https://gitlab.com/owasp-blt/blt-design-contest/-/issues/new?template=homepage-submission.yml"
              target="_blank" rel="noopener"
              class="inline-flex items-center gap-2 bg-[#E10101] hover:bg-red-700
                     text-white text-sm font-semibold px-4 py-2 rounded-md
@@ -159,30 +159,138 @@
       <!-- Sort controls -->
       <div class="flex items-center gap-3 flex-wrap mb-6">
         <span class="text-sm text-gray-500 dark:text-gray-400 mr-1">Sort:</span>
-        <button id="sort-thumbs-blt-welcome-video" type="button"
+        <button id="sort-thumbs-blt-homepage" type="button"
                 class="inline-flex items-center gap-2 border border-gray-300 dark:border-gray-600
                        text-gray-700 dark:text-gray-200 hover:border-[#E10101] hover:text-[#E10101]
                        text-sm font-semibold px-4 py-2 rounded-md transition-colors"
                 aria-pressed="false"
-                data-sort="thumbs" data-contest="blt-welcome-video">
+                data-sort="thumbs" data-contest="blt-homepage">
           <i class="fa-solid fa-arrow-down-wide-short" aria-hidden="true"></i>
           By 👍
         </button>
-        <button id="sort-reactions-blt-welcome-video" type="button"
+        <button id="sort-reactions-blt-homepage" type="button"
                 class="inline-flex items-center gap-2 border border-gray-300 dark:border-gray-600
                        text-gray-700 dark:text-gray-200 hover:border-[#E10101] hover:text-[#E10101]
                        text-sm font-semibold px-4 py-2 rounded-md transition-colors"
                 aria-pressed="false"
-                data-sort="reactions" data-contest="blt-welcome-video">
+                data-sort="reactions" data-contest="blt-homepage">
           <i class="fa-solid fa-arrow-down-wide-short" aria-hidden="true"></i>
           By all reactions
         </button>
       </div>
 
       <!-- Cards grid -->
-      <div id="cards-grid-blt-welcome-video"
+      <div id="cards-grid-blt-homepage"
            class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div class="col-span-full text-center py-20 text-gray-500 dark:text-gray-400"><i class="fa-solid fa-photo-film text-5xl mb-4 block text-[#E10101]" aria-hidden="true"></i><p class="text-lg font-medium">No submissions yet — be the first!</p><p class="mt-2 text-sm">Click <strong>Add Entry</strong> to get started.</p></div>
+        
+    <article class="group relative bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
+                    border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                    flex flex-col hover:shadow-md transition-shadow"
+             data-thumbs="4"
+             data-total-reactions="11"
+             data-issue-url="https://gitlab.com/owasp-blt/blt-design-contest/-/issues/102"
+             aria-label="Contest submission: [Homepage]">
+      
+      <a href="https://gitlab.com/owasp-blt/blt-design-contest/-/issues/102" target="_blank" rel="noopener"    class="block overflow-hidden aspect-square bg-gray-100 dark:bg-gray-700">  <img src="https://github.com/user-attachments/assets/3e9dbb4d-83b2-4318-afa3-0b25c9cb2d85" alt="[Homepage] preview" loading="lazy"        class="w-full h-full object-cover transition-transform duration-300               group-hover:scale-105" /></a>
+      <div class="p-5 flex flex-col gap-3 flex-1">
+        <!-- Category + issue number -->
+        <div class="flex items-center justify-between gap-2 flex-wrap">
+          <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200">UI / Website Redesign</span>
+          <span class="text-xs text-gray-400 dark:text-gray-500">#102 · <time class="sub-date" datetime="2026-03-24T15:45:15Z">2026-03-24</time></span>
+        </div>
+
+        <!-- Title -->
+        <h2 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
+          <a href="https://gitlab.com/owasp-blt/blt-design-contest/-/issues/102" target="_blank" rel="noopener"
+             class="hover:text-[#E10101] transition-colors">[Homepage]</a>
+        </h2>
+
+        <!-- Description -->
+        <p class="text-sm text-gray-600 dark:text-gray-300 flex-1">WE FIX THE WEB</p>
+
+        <!-- Designer -->
+        <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+          <img src="https://avatars.githubusercontent.com/u/213652949?v=4" alt="" class="w-6 h-6 rounded-full" aria-hidden="true" />
+          <a href="https://github.com/S3DFX-CYBER" target="_blank" rel="noopener"
+             class="text-[#E10101] hover:underline font-medium">S3DFX-CYBER</a>
+        </div>
+        <!-- Last comment -->
+        <div class="flex items-start gap-1.5 text-xs text-gray-400 dark:text-gray-500"><img src="https://avatars.githubusercontent.com/in/1159228?v=4" alt="owasp-blt[bot]'s avatar" class="w-5 h-5 rounded-full shrink-0" /><span><a href="https://gitlab.com/owasp-blt/blt-design-contest/-/issues/102" target="_blank" rel="noopener" class="hover:text-[#E10101] transition-colors">1 comment · </a><a href="https://github.com/apps/owasp-blt" target="_blank" rel="noopener" class="font-medium text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">owasp-blt[bot]</a>: 👋 Thanks for opening this issue, @S3DFX-CYBER!
+
+Our team will review it shortly. In the meantime:
+- If you&#x27;d like to …</span></div>
+        <!-- Footer: reactions + design link -->
+        <div class="flex items-center justify-between gap-2 flex-wrap pt-2
+                    border-t border-[#E5E5E5] dark:border-gray-700">
+          <div class="flex items-center gap-1 flex-wrap" aria-label="Reactions">
+            <button type="button" class="inline-flex items-center gap-1 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-full px-2 py-0.5 hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-[#E10101] transition-colors cursor-pointer" data-thumbs-btn aria-label="Thumbs up this design on GitLab">👍 <span>4</span></button><span class="inline-flex items-center gap-1 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-full px-2 py-0.5">😄 <span>1</span></span><span class="inline-flex items-center gap-1 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-full px-2 py-0.5">🎉 <span>1</span></span><span class="inline-flex items-center gap-1 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-full px-2 py-0.5">❤️ <span>1</span></span><span class="inline-flex items-center gap-1 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-full px-2 py-0.5">🚀 <span>3</span></span><span class="inline-flex items-center gap-1 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-full px-2 py-0.5">👀 <span>1</span></span>
+          </div>
+          <div class="flex items-center gap-3">
+            
+            <a href="https://gitlab.com/owasp-blt/blt-design-contest/-/issues/102" target="_blank" rel="noopener"
+               class="inline-flex items-center gap-1 text-sm font-medium
+                      border border-[#E10101] text-[#E10101] rounded-md px-3 py-1
+                      hover:bg-[#E10101] hover:text-white transition-colors"
+               aria-label="View issue #102">
+              <i class="fa-brands fa-gitlab" aria-hidden="true"></i> Issue
+            </a>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="group relative bg-white dark:bg-[#1F2937] rounded-2xl shadow-sm border
+                    border-[#E5E5E5] dark:border-gray-700 overflow-hidden
+                    flex flex-col hover:shadow-md transition-shadow"
+             data-thumbs="23"
+             data-total-reactions="63"
+             data-issue-url="https://gitlab.com/owasp-blt/blt-design-contest/-/issues/88"
+             aria-label="Contest submission: [Homepage]">
+      
+      <a href="https://gitlab.com/owasp-blt/blt-design-contest/-/issues/88" target="_blank" rel="noopener"    class="block overflow-hidden aspect-square bg-gray-100 dark:bg-gray-700">  <img src="https://github.com/user-attachments/assets/4c030d97-329a-46a9-bf43-23fbde9e57ab" alt="[Homepage] preview" loading="lazy"        class="w-full h-full object-cover transition-transform duration-300               group-hover:scale-105" /></a>
+      <div class="p-5 flex flex-col gap-3 flex-1">
+        <!-- Category + issue number -->
+        <div class="flex items-center justify-between gap-2 flex-wrap">
+          <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200">UI / Website Redesign</span>
+          <span class="text-xs text-gray-400 dark:text-gray-500">#88 · <time class="sub-date" datetime="2026-03-08T18:10:29Z">2026-03-08</time></span>
+        </div>
+
+        <!-- Title -->
+        <h2 class="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
+          <a href="https://gitlab.com/owasp-blt/blt-design-contest/-/issues/88" target="_blank" rel="noopener"
+             class="hover:text-[#E10101] transition-colors">[Homepage]</a>
+        </h2>
+
+        <!-- Description -->
+        <p class="text-sm text-gray-600 dark:text-gray-300 flex-1">I am obsessed with BLT !</p>
+
+        <!-- Designer -->
+        <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+          <img src="https://avatars.githubusercontent.com/u/117475603?v=4" alt="" class="w-6 h-6 rounded-full" aria-hidden="true" />
+          <a href="https://github.com/mdkaifansari04" target="_blank" rel="noopener"
+             class="text-[#E10101] hover:underline font-medium">mdkaifansari04</a>
+        </div>
+        <!-- Last comment -->
+        <div class="flex items-start gap-1.5 text-xs text-gray-400 dark:text-gray-500"><img src="https://avatars.githubusercontent.com/u/115058302?v=4" alt="rinkitadhana's avatar" class="w-5 h-5 rounded-full shrink-0" /><span><a href="https://gitlab.com/owasp-blt/blt-design-contest/-/issues/88" target="_blank" rel="noopener" class="hover:text-[#E10101] transition-colors">4 comments · </a><a href="https://github.com/rinkitadhana" target="_blank" rel="noopener" class="font-medium text-gray-500 dark:text-gray-400 hover:text-[#E10101] transition-colors">rinkitadhana</a>: Looks Cool!</span></div>
+        <!-- Footer: reactions + design link -->
+        <div class="flex items-center justify-between gap-2 flex-wrap pt-2
+                    border-t border-[#E5E5E5] dark:border-gray-700">
+          <div class="flex items-center gap-1 flex-wrap" aria-label="Reactions">
+            <button type="button" class="inline-flex items-center gap-1 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-full px-2 py-0.5 hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-[#E10101] transition-colors cursor-pointer" data-thumbs-btn aria-label="Thumbs up this design on GitLab">👍 <span>23</span></button><span class="inline-flex items-center gap-1 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-full px-2 py-0.5">😄 <span>8</span></span><span class="inline-flex items-center gap-1 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-full px-2 py-0.5">🎉 <span>7</span></span><span class="inline-flex items-center gap-1 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-full px-2 py-0.5">❤️ <span>9</span></span><span class="inline-flex items-center gap-1 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-full px-2 py-0.5">🚀 <span>8</span></span><span class="inline-flex items-center gap-1 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-full px-2 py-0.5">👀 <span>8</span></span>
+          </div>
+          <div class="flex items-center gap-3">
+            
+            <a href="https://gitlab.com/owasp-blt/blt-design-contest/-/issues/88" target="_blank" rel="noopener"
+               class="inline-flex items-center gap-1 text-sm font-medium
+                      border border-[#E10101] text-[#E10101] rounded-md px-3 py-1
+                      hover:bg-[#E10101] hover:text-white transition-colors"
+               aria-label="View issue #88">
+              <i class="fa-brands fa-gitlab" aria-hidden="true"></i> Issue
+            </a>
+          </div>
+        </div>
+      </div>
+    </article>
       </div>
 
     </div>
@@ -210,9 +318,9 @@
            class="hover:text-[#E10101] transition-colors inline-flex items-center gap-1">
           <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> All Contests
         </a>
-        <a href="https://github.com/OWASP-BLT/BLT-Design-Contest" target="_blank" rel="noopener"
+        <a href="https://gitlab.com/owasp-blt/blt-design-contest" target="_blank" rel="noopener"
            class="hover:text-[#E10101] transition-colors inline-flex items-center gap-1">
-          <i class="fa-brands fa-github" aria-hidden="true"></i> Source
+          <i class="fa-brands fa-gitlab" aria-hidden="true"></i> Source
         </a>
         <a href="https://owasp.org/www-project-blt/" target="_blank" rel="noopener"
            class="hover:text-[#E10101] transition-colors">OWASP BLT</a>
@@ -291,7 +399,7 @@
       });
     });
 
-    // Thumbs-up click handler — opens the GitHub issue so the user can react there
+    // Thumbs-up click handler — opens the GitLab issue so the user can react there
     // Uses event delegation so it works for both static and live-updated buttons
     document.addEventListener('click', (e) => {
       const btn = e.target.closest('[data-thumbs-btn]');
@@ -302,7 +410,7 @@
       }
     });
 
-    // Live-update reaction counts from the GitHub API on page load
+    // Live-update reaction counts from the GitLab API on page load
     (async function () {
       const REACTION_LABELS = [
         ['+1',      '👍'],
@@ -320,8 +428,8 @@
                         + 'hover:text-[#E10101] transition-colors cursor-pointer';
       const ETAG_KEY   = 'bltDesignIssuesEtag';
       const CACHE_KEY  = 'bltDesignIssuesCache';
-      const BASE_URL   = 'https://api.github.com/repos/OWASP-BLT/BLT-Design-Contest/issues?state=open&per_page=100';
-      const API_HEADERS = { 'Accept': 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' };
+      const BASE_URL   = 'https://gitlab.com/api/v4/projects/owasp-blt%2Fblt-design-contest/issues?state=opened&per_page=100';
+      const API_HEADERS = { 'Accept': 'application/json' };
 
       const cards = Array.from(document.querySelectorAll('article[data-issue-url]'));
       if (!cards.length) return;
@@ -372,7 +480,12 @@
       if (!issues) return;
 
       const byUrl = {};
-      for (const issue of issues) byUrl[issue.html_url] = issue.reactions || {};
+      for (const issue of issues) {
+        byUrl[issue.web_url] = {
+          '+1': parseInt(issue.upvotes, 10) || 0,
+          '-1': parseInt(issue.downvotes, 10) || 0,
+        };
+      }
 
       for (const card of cards) {
         const reactions = byUrl[card.dataset.issueUrl];
@@ -394,7 +507,7 @@
           total++;
           if (content === '+1') {
             html += `<button type="button" class="${THUMBS_PILL}" data-thumbs-btn `
-                  + `aria-label="Thumbs up this design on GitHub">${emoji} <span>${count}</span></button>`;
+                  + `aria-label="Thumbs up this design on GitLab">${emoji} <span>${count}</span></button>`;
           } else {
             html += `<span class="${PILL}">${emoji} <span>${count}</span></span>`;
           }
@@ -403,7 +516,7 @@
           html = `<a href="${card.dataset.issueUrl}" target="_blank" rel="noopener" `
                + `class="inline-flex items-center gap-1.5 text-xs text-gray-400 dark:text-gray-500 `
                + `hover:text-[#E10101] dark:hover:text-[#E10101] transition-colors" `
-               + `aria-label="Be the first to react on GitHub">`
+               + `aria-label="Be the first to react on GitLab">`
                + `<i class="fa-regular fa-face-smile" aria-hidden="true"></i>Be the first to react!</a>`;
         }
         container.innerHTML = html;
