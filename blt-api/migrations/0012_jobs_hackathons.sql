@@ -48,7 +48,12 @@ CREATE TABLE IF NOT EXISTS hackathons (
     created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (created_by_user_id) REFERENCES users(id) ON DELETE CASCADE,
-    UNIQUE(created_by_user_id, slug)
+    UNIQUE(created_by_user_id, slug),
+    CONSTRAINT hackathons_valid_dates_check CHECK (
+        julianday(starts_at) IS NOT NULL
+        AND julianday(ends_at) IS NOT NULL
+        AND julianday(ends_at) > julianday(starts_at)
+    )
 );
 
 CREATE INDEX IF NOT EXISTS idx_hackathons_created_by_user
@@ -82,6 +87,40 @@ CREATE INDEX IF NOT EXISTS idx_hackathon_registrations_hackathon
 
 CREATE INDEX IF NOT EXISTS idx_hackathon_registrations_owner
     ON hackathon_registrations(created_by_user_id);
+
+CREATE TRIGGER IF NOT EXISTS enforce_hackathon_registration_owner_insert
+AFTER INSERT ON hackathon_registrations
+FOR EACH ROW
+WHEN (
+    SELECT created_by_user_id
+    FROM hackathons
+    WHERE id = NEW.hackathon_id
+) IS NULL
+OR NEW.created_by_user_id != (
+    SELECT created_by_user_id
+    FROM hackathons
+    WHERE id = NEW.hackathon_id
+)
+BEGIN
+    SELECT RAISE(ABORT, 'hackathon registration owner mismatch');
+END;
+
+CREATE TRIGGER IF NOT EXISTS enforce_hackathon_registration_owner_update
+AFTER UPDATE ON hackathon_registrations
+FOR EACH ROW
+WHEN (
+    SELECT created_by_user_id
+    FROM hackathons
+    WHERE id = NEW.hackathon_id
+) IS NULL
+OR NEW.created_by_user_id != (
+    SELECT created_by_user_id
+    FROM hackathons
+    WHERE id = NEW.hackathon_id
+)
+BEGIN
+    SELECT RAISE(ABORT, 'hackathon registration owner mismatch');
+END;
 
 CREATE TRIGGER IF NOT EXISTS update_jobs_modified
 AFTER UPDATE ON jobs

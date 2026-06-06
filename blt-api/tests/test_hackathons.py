@@ -157,6 +157,34 @@ async def test_hackathons_create_sets_current_user_owner():
 
 
 @pytest.mark.asyncio
+async def test_hackathons_create_normalizes_datetimes_to_utc_storage():
+    hackathon_model = MagicMock()
+    hackathon_model.create = AsyncMock(return_value={"id": 3})
+
+    body = {
+        "title": "Summer Bugs",
+        "slug": "summer-bugs",
+        "starts_at": "2026-07-01T10:30:00+05:30",
+        "ends_at": "2026-07-01T12:00:00+05:30",
+    }
+
+    with patch("handlers.hackathons.get_db_safe", AsyncMock(return_value=MagicMock())), \
+         patch("handlers.hackathons.Hackathon", hackathon_model):
+        response = await handle_hackathons(
+            MockRequest(method="POST", body=body, user_id=42),
+            MockEnv(),
+            {},
+            {},
+            "/v2/hackathons",
+        )
+
+    assert response.status == 201
+    create_kwargs = hackathon_model.create.await_args.kwargs
+    assert create_kwargs["starts_at"] == "2026-07-01 05:00:00"
+    assert create_kwargs["ends_at"] == "2026-07-01 06:30:00"
+
+
+@pytest.mark.asyncio
 async def test_hackathons_create_duplicate_slug_returns_409_not_500():
     hackathon_model = MagicMock()
     hackathon_model.create = AsyncMock(
@@ -252,6 +280,37 @@ async def test_hackathons_patch_updates_owned_hackathon():
     assert response.status == 200
     qs.update.assert_awaited_once_with(capacity=150)
     assert _json(response)["data"]["capacity"] == 150
+
+
+@pytest.mark.asyncio
+async def test_hackathons_patch_ends_at_before_starts_at_returns_400():
+    existing = {
+        "id": 7,
+        "title": "BLT Build Day",
+        "slug": "blt-build-day",
+        "starts_at": "2026-06-10 00:00:00",
+        "ends_at": "2026-06-12 00:00:00",
+        "capacity": 100,
+        "created_by_user_id": 42,
+    }
+    qs = _queryset()
+    qs.get = AsyncMock(side_effect=[existing])
+    hackathon_model = MagicMock()
+    hackathon_model.objects.return_value = qs
+
+    with patch("handlers.hackathons.get_db_safe", AsyncMock(return_value=MagicMock())), \
+         patch("handlers.hackathons.Hackathon", hackathon_model):
+        response = await handle_hackathons(
+            MockRequest(method="PATCH", body={"ends_at": "2026-06-09 00:00:00"}, user_id=42),
+            MockEnv(),
+            {"id": "7"},
+            {},
+            "/v2/hackathons/7",
+        )
+
+    assert response.status == 400
+    assert _json(response)["message"] == "ends_at must be after starts_at"
+    qs.update.assert_not_awaited()
 
 
 @pytest.mark.asyncio

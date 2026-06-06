@@ -50,6 +50,10 @@ def _parse_datetime(value: Optional[str]) -> Optional[datetime]:
     return parsed.astimezone(timezone.utc)
 
 
+def _format_datetime(value: datetime) -> str:
+    return value.astimezone(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+
+
 def _hackathon_status(row: Dict[str, Any]) -> str:
     now = _parse_datetime(_utc_now()) or datetime.now(timezone.utc)
     starts_at = _parse_datetime(row.get("starts_at"))
@@ -67,7 +71,12 @@ def _with_status(row: Dict[str, Any]) -> Dict[str, Any]:
     return enriched
 
 
-def _validate_hackathon_payload(body: Dict[str, Any], *, partial: bool = False) -> Dict[str, Any]:
+def _validate_hackathon_payload(
+    body: Dict[str, Any],
+    *,
+    partial: bool = False,
+    existing: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
     if not partial:
         missing = sorted(field for field in _HACKATHON_CREATE_REQUIRED if not body.get(field))
         if missing:
@@ -91,8 +100,11 @@ def _validate_hackathon_payload(body: Dict[str, Any], *, partial: bool = False) 
         if field == "slug" and value and not _SLUG_RE.match(value):
             raise ValueError("slug must be 3-100 lowercase letters, numbers, hyphens, or underscores")
 
-        if field in {"starts_at", "ends_at"} and value and _parse_datetime(value) is None:
-            raise ValueError(f"{field} must be an ISO datetime")
+        if field in {"starts_at", "ends_at"} and value:
+            parsed_value = _parse_datetime(value)
+            if parsed_value is None:
+                raise ValueError(f"{field} must be an ISO datetime")
+            value = _format_datetime(parsed_value)
 
         if field == "capacity":
             if value is not None and (isinstance(value, bool) or not isinstance(value, int) or value <= 0):
@@ -105,9 +117,10 @@ def _validate_hackathon_payload(body: Dict[str, Any], *, partial: bool = False) 
 
         updates[field] = value
 
-    starts_at = updates.get("starts_at") if "starts_at" in updates else body.get("starts_at")
-    ends_at = updates.get("ends_at") if "ends_at" in updates else body.get("ends_at")
-    if starts_at and ends_at:
+    if "starts_at" in updates or "ends_at" in updates:
+        persisted = existing or body
+        starts_at = updates.get("starts_at", persisted.get("starts_at"))
+        ends_at = updates.get("ends_at", persisted.get("ends_at"))
         parsed_start = _parse_datetime(starts_at)
         parsed_end = _parse_datetime(ends_at)
         if parsed_start and parsed_end and parsed_end <= parsed_start:
@@ -204,7 +217,7 @@ async def _update_hackathon(db: Any, request: Any, hackathon_id_str: str, user_i
     if not body:
         return error_response("Request body is required", status=400)
     try:
-        updates = _validate_hackathon_payload(body, partial=True)
+        updates = _validate_hackathon_payload(body, partial=True, existing=existing)
     except ValueError as exc:
         return error_response(str(exc), status=400)
 
