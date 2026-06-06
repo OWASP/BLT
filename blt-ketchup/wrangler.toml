@@ -9,9 +9,12 @@ compatibility_date = "2024-09-23"
 [build]
 command = ""
 
+[assets]
+directory = "./public"
+
 [vars]
 # Non-secret runtime config
-CORS_ORIGINS = "https://ketchup.blt.owasp.org,http://localhost:5173"
+CORS_ORIGINS = "https://ketchup.owaspblt.org,http://localhost:5173"
 
 # Workers KV namespace — stores encrypted finding bodies and evidence blobs
 [[kv_namespaces]]
@@ -29,7 +32,3 @@ database_id   = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
 # ROOT_SECRET : 32-byte hex string used for HKDF key derivation
 # Never commit actual secret values here.
 
-# Routes
-[[routes]]
-pattern = "ketchup.blt.owasp.org/api/*"
-zone_name = "blt.owasp.org"
