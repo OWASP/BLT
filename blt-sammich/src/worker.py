@@ -2632,7 +2632,7 @@ def contrib_response() -> Dict[str, Any]:
         ":one: Use Slack's channel browser (Ctrl/Cmd + K)\n"
         ":two: Type #project- to see all project channels\n"
         ":three: Join the channels that interest you\n\n"
-        "All OWASP project channels start with #project-\n\n"
+        "All OWASP project channels start with #project- like #project-blt\n\n"
         ":hammer_and_wrench: GSOC Projects: View this year's participating GSOC projects "
         "https://owasp.org/www-community/initiatives/gsoc/gsoc2026ideas\n\n"
         ":busts_in_silhouette: Identifying Key People and Activity\n\n"
