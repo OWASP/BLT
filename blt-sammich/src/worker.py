@@ -1,5 +1,8 @@
+import base64
+import csv
 import hashlib
 import hmac
+import io
 import json
 import time
 import traceback
@@ -21,33 +24,15 @@ except ImportError:
 
 
 PROJECTS_PER_PAGE = 100
-SCHEMA_STATEMENTS = [
-    (
-        "CREATE TABLE IF NOT EXISTS slack_activity ("
-        "id INTEGER PRIMARY KEY AUTOINCREMENT, "
-        "activity_kind TEXT NOT NULL, "
-        "slack_type TEXT, "
-        "command_name TEXT, "
-        "team_id TEXT, "
-        "user_id TEXT, "
-        "channel_id TEXT, "
-        "payload_json TEXT NOT NULL, "
-        "received_at TEXT NOT NULL"
-        ")"
-    ),
-    (
-        "CREATE INDEX IF NOT EXISTS idx_slack_activity_received_at "
-        "ON slack_activity(received_at)"
-    ),
-    (
-        "CREATE TABLE IF NOT EXISTS workspace_installations ("
-        "team_id TEXT PRIMARY KEY, "
-        "installer_user_id TEXT NOT NULL, "
-        "installed_at TEXT NOT NULL"
-        ")"
-    ),
-]
 SCHEMA_READY = False
+SUPPORTED_SLACK_COMMANDS = {
+    "/contrib",
+    "/stats",
+    "/discover",
+    "/gsoc25",
+    "/blt",
+    "/installed_apps",
+}
 
 
 def _to_js_options(value: Dict[str, Any]) -> Any:
@@ -188,12 +173,72 @@ def html_response(body: str, status: int = 200) -> Any:
     return build_response(body, status=status, content_type="text/html; charset=utf-8")
 
 
+def redirect_response(location: str) -> Any:
+    return build_response("", status=303, headers={"location": location})
+
+
 def flatten_form_values(values: Dict[str, List[str]]) -> Dict[str, str]:
     return dict((key, item[0] if item else "") for key, item in values.items())
 
 
 def parse_form_encoded(body: str) -> Dict[str, str]:
     return flatten_form_values(parse_qs(body, keep_blank_values=True))
+
+
+def html_escape(text: Any) -> str:
+    return (
+        str(text if text is not None else "")
+        .replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+        .replace('"', "&quot;")
+        .replace("'", "&#x27;")
+    )
+
+
+def admin_path(env: Any) -> str:
+    path = (env_value(env, "ADMIN_URL") or "").strip()
+    if not path.startswith("/"):
+        path = "/" + path
+    return path.rstrip("/")
+
+
+def admin_credentials(env: Any) -> Tuple[str, str]:
+    return env_value(env, "ADMIN_USERNAME", "") or "", env_value(
+        env, "ADMIN_PASSWORD", ""
+    ) or ""
+
+
+def request_basic_auth_credentials(request: Any) -> Tuple[str, str]:
+    header = request.headers.get("authorization", "") or ""
+    if not header.lower().startswith("basic "):
+        return "", ""
+    try:
+        decoded = base64.b64decode(header.split(" ", 1)[1]).decode("utf-8")
+    except Exception:
+        return "", ""
+    username, separator, password = decoded.partition(":")
+    if not separator:
+        return "", ""
+    return username, password
+
+
+def is_admin_request(request: Any, env: Any) -> bool:
+    username, password = request_basic_auth_credentials(request)
+    expected_username, expected_password = admin_credentials(env)
+    if not expected_username or not expected_password:
+        return False
+    return hmac.compare_digest(username, expected_username) and hmac.compare_digest(
+        password, expected_password
+    )
+
+
+def basic_auth_response() -> Any:
+    return build_response(
+        "Authentication required.",
+        status=401,
+        headers={"WWW-Authenticate": 'Basic realm="BLT-Sammich Admin"'},
+    )
 
 
 def log_exception_one_line(
@@ -214,6 +259,12 @@ def log_exception_one_line(
     if extra:
         payload["extra"] = extra
     print(json.dumps(payload, separators=(",", ":")))
+
+
+def log_json_event(event: str, payload: Dict[str, Any]) -> None:
+    record = {"level": "info", "event": event}
+    record.update(payload)
+    print(json.dumps(record, separators=(",", ":"), sort_keys=True))
 
 
 def verify_slack_signature(
@@ -491,8 +542,6 @@ async def ensure_schema(env: Any) -> None:
         getattr(env, "DB")
     except Exception:
         return
-    for sql in SCHEMA_STATEMENTS:
-        await d1_run(env, sql)
     SCHEMA_READY = True
 
 
@@ -531,6 +580,34 @@ async def record_activity(
             received_at,
         ],
     )
+    try:
+        workspace = await db_get_workspace_by_team(env, team_id)
+        if workspace and workspace.get("id"):
+            event_payload = payload.get("event") or {}
+            model_event_type = (
+                "Command"
+                if activity_kind == "slash_command"
+                else event_payload.get("type")
+                or payload.get("type")
+                or activity_kind
+            )
+            if model_event_type == "team_join":
+                model_event_type = "Team_Join"
+            await db_log_event(
+                env,
+                workspace.get("id"),
+                str(model_event_type),
+                user_slack_id=user_id or "",
+                channel_id=channel_id or "",
+                request_data=payload_json,
+                status="success",
+                webhook_body_type=str(payload.get("type") or ""),
+                webhook_event_id=str(payload.get("event_id") or ""),
+                webhook_event_time=str(payload.get("event_time") or ""),
+                webhook_event_subtype=str(event_payload.get("subtype") or ""),
+            )
+    except Exception as error:
+        log_exception_one_line(error, "record_model_activity_failed")
 
 
 async def save_workspace_installer(
@@ -556,6 +633,1339 @@ async def save_workspace_installer(
         ),
         [team_id, installer_user_id, installed_at],
     )
+
+
+def utc_now() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+def result_rows(result: Dict[str, Any]) -> List[Dict[str, Any]]:
+    rows = result.get("results") or []
+    return [row for row in rows if isinstance(row, dict)]
+
+
+def result_first(result: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    rows = result_rows(result)
+    return rows[0] if rows else None
+
+
+async def db_get_workspace_by_id(env: Any, workspace_id: Any) -> Optional[Dict[str, Any]]:
+    await ensure_schema(env)
+    return result_first(
+        await d1_run(env, "SELECT * FROM workspaces WHERE id = ? LIMIT 1", [workspace_id])
+    )
+
+
+async def db_get_workspace_by_team(env: Any, team_id: str) -> Optional[Dict[str, Any]]:
+    await ensure_schema(env)
+    return result_first(
+        await d1_run(
+            env,
+            "SELECT * FROM workspaces WHERE team_id = ? ORDER BY updated_at DESC LIMIT 1",
+            [team_id],
+        )
+    )
+
+
+async def db_get_workspace_by_team_and_app(
+    env: Any, team_id: str, app_id: str
+) -> Optional[Dict[str, Any]]:
+    await ensure_schema(env)
+    return result_first(
+        await d1_run(
+            env,
+            "SELECT * FROM workspaces WHERE team_id = ? AND app_id = ? LIMIT 1",
+            [team_id, app_id or ""],
+        )
+    )
+
+
+async def db_get_workspace_by_channel_id(
+    env: Any, channel_id: str
+) -> Optional[Dict[str, Any]]:
+    await ensure_schema(env)
+    return result_first(
+        await d1_run(
+            env,
+            (
+                "SELECT w.* FROM channels c "
+                "JOIN workspaces w ON w.id = c.workspace_id "
+                "WHERE c.channel_id = ? ORDER BY w.updated_at DESC LIMIT 1"
+            ),
+            [channel_id],
+        )
+    )
+
+
+async def db_upsert_workspace(
+    env: Any,
+    team_id: str,
+    team_name: str,
+    access_token: str = "",
+    bot_user_id: str = "",
+    app_id: str = "",
+    app_name: str = "",
+    app_icon_url: str = "",
+    icon_url: str = "",
+    manifest_yaml: str = "",
+    installer_slack_user_id: str = "",
+    installer_name: str = "",
+) -> Optional[int]:
+    if not team_id:
+        return None
+    await ensure_schema(env)
+    now = utc_now()
+    await d1_run(
+        env,
+        (
+            "INSERT INTO workspaces ("
+            "team_id, team_name, access_token, bot_user_id, app_id, app_name, app_icon_url, "
+            "icon_url, manifest_yaml, installer_slack_user_id, installer_name, created_at, updated_at"
+            ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
+            "ON CONFLICT(team_id, app_id) DO UPDATE SET "
+            "team_name = excluded.team_name, "
+            "access_token = CASE WHEN excluded.access_token != '' THEN excluded.access_token ELSE workspaces.access_token END, "
+            "bot_user_id = CASE WHEN excluded.bot_user_id != '' THEN excluded.bot_user_id ELSE workspaces.bot_user_id END, "
+            "app_name = CASE WHEN excluded.app_name != '' THEN excluded.app_name ELSE workspaces.app_name END, "
+            "app_icon_url = CASE WHEN excluded.app_icon_url != '' THEN excluded.app_icon_url ELSE workspaces.app_icon_url END, "
+            "icon_url = CASE WHEN excluded.icon_url != '' THEN excluded.icon_url ELSE workspaces.icon_url END, "
+            "manifest_yaml = CASE WHEN excluded.manifest_yaml != '' THEN excluded.manifest_yaml ELSE workspaces.manifest_yaml END, "
+            "installer_slack_user_id = CASE WHEN excluded.installer_slack_user_id != '' THEN excluded.installer_slack_user_id ELSE workspaces.installer_slack_user_id END, "
+            "installer_name = CASE WHEN excluded.installer_name != '' THEN excluded.installer_name ELSE workspaces.installer_name END, "
+            "updated_at = excluded.updated_at"
+        ),
+        [
+            team_id,
+            team_name or team_id,
+            access_token or "",
+            bot_user_id or "",
+            app_id or "",
+            app_name or "",
+            app_icon_url or "",
+            icon_url or app_icon_url or "",
+            manifest_yaml or "",
+            installer_slack_user_id or "",
+            installer_name or "",
+            now,
+            now,
+        ],
+    )
+    row = await db_get_workspace_by_team_and_app(env, team_id, app_id or "")
+    return int(row["id"]) if row and row.get("id") is not None else None
+
+
+async def db_update_workspace_icon(env: Any, workspace_id: Any, icon_url: str) -> bool:
+    await ensure_schema(env)
+    await d1_run(
+        env,
+        "UPDATE workspaces SET icon_url = ?, updated_at = ? WHERE id = ?",
+        [icon_url or "", utc_now(), workspace_id],
+    )
+    return True
+
+
+async def db_update_workspace_manifest(
+    env: Any, workspace_id: Any, manifest_yaml: str
+) -> bool:
+    await ensure_schema(env)
+    await d1_run(
+        env,
+        "UPDATE workspaces SET manifest_yaml = ?, updated_at = ? WHERE id = ?",
+        [str(manifest_yaml or ""), utc_now(), workspace_id],
+    )
+    return True
+
+
+async def db_update_workspace_app_metadata(
+    env: Any, workspace_id: Any, app_name: str = "", app_icon_url: str = "", app_id: str = ""
+) -> bool:
+    await ensure_schema(env)
+    await d1_run(
+        env,
+        (
+            "UPDATE workspaces SET app_name = ?, app_icon_url = ?, app_id = ?, "
+            "updated_at = ? WHERE id = ?"
+        ),
+        [app_name or "", app_icon_url or "", app_id or "", utc_now(), workspace_id],
+    )
+    return True
+
+
+async def db_update_workspace_installer(
+    env: Any, workspace_id: Any, installer_slack_user_id: str = "", installer_name: str = ""
+) -> bool:
+    await ensure_schema(env)
+    await d1_run(
+        env,
+        (
+            "UPDATE workspaces SET installer_slack_user_id = ?, installer_name = ?, "
+            "updated_at = ? WHERE id = ?"
+        ),
+        [
+            installer_slack_user_id or "",
+            installer_name or "",
+            utc_now(),
+            workspace_id,
+        ],
+    )
+    return True
+
+
+async def db_update_workspace_channel_member_counts(
+    env: Any, workspace_id: Any, channel_count: int = 0, member_count: int = 0
+) -> bool:
+    await ensure_schema(env)
+    await d1_run(
+        env,
+        "UPDATE workspaces SET channel_count = ?, member_count = ?, updated_at = ? WHERE id = ?",
+        [int(channel_count or 0), int(member_count or 0), utc_now(), workspace_id],
+    )
+    return True
+
+
+async def db_update_workspace_invite_link(
+    env: Any, workspace_id: Any, invite_link: str = ""
+) -> bool:
+    await ensure_schema(env)
+    await d1_run(
+        env,
+        "UPDATE workspaces SET invite_link = ?, updated_at = ? WHERE id = ?",
+        [str(invite_link or "").strip(), utc_now(), workspace_id],
+    )
+    return True
+
+
+async def db_get_workspace_invite_link(env: Any, workspace_id: Any) -> str:
+    await ensure_schema(env)
+    row = result_first(
+        await d1_run(
+            env,
+            "SELECT invite_link FROM workspaces WHERE id = ? LIMIT 1",
+            [workspace_id],
+        )
+    )
+    return str((row or {}).get("invite_link") or "").strip()
+
+
+async def db_get_workspace_admin_identity(
+    env: Any, workspace: Dict[str, Any]
+) -> Optional[Dict[str, Any]]:
+    workspace = workspace or {}
+    installer_id = str(workspace.get("installer_slack_user_id") or "").strip()
+    installer_name = str(workspace.get("installer_name") or "").strip()
+    if installer_id:
+        return {"slack_user_id": installer_id, "name": installer_name or installer_id}
+
+    workspace_id = workspace.get("id")
+    if not workspace_id:
+        return None
+    installers = await db_get_workspace_installers(env, workspace_id)
+    for installer in installers:
+        slack_user_id = str(installer.get("slack_user_id") or "").strip()
+        if slack_user_id:
+            name = str(installer.get("name") or slack_user_id).strip()
+            await db_update_workspace_installer(env, workspace_id, slack_user_id, name)
+            return {"slack_user_id": slack_user_id, "name": name}
+    return None
+
+
+async def db_get_or_create_user(
+    env: Any,
+    slack_user_id: str,
+    team_id: str,
+    name: str,
+    email: str,
+    access_token: str,
+    avatar_url: str = "",
+) -> Optional[Dict[str, Any]]:
+    if not slack_user_id:
+        return None
+    await ensure_schema(env)
+    now = utc_now()
+    existing = result_first(
+        await d1_run(
+            env,
+            "SELECT * FROM users WHERE slack_user_id = ? LIMIT 1",
+            [slack_user_id],
+        )
+    )
+    if existing:
+        effective_name = name or existing.get("name") or slack_user_id
+        await d1_run(
+            env,
+            (
+                "UPDATE users SET name = ?, email = ?, access_token = ?, avatar_url = ?, "
+                "team_id = ?, updated_at = ? WHERE slack_user_id = ?"
+            ),
+            [
+                effective_name,
+                email or "",
+                access_token or "",
+                avatar_url or "",
+                team_id or "unknown",
+                now,
+                slack_user_id,
+            ],
+        )
+    else:
+        await d1_run(
+            env,
+            (
+                "INSERT INTO users (slack_user_id, team_id, name, email, access_token, avatar_url, created_at, updated_at) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+            ),
+            [
+                slack_user_id,
+                team_id or "unknown",
+                name or slack_user_id,
+                email or "",
+                access_token or "",
+                avatar_url or "",
+                now,
+                now,
+            ],
+        )
+    return result_first(
+        await d1_run(
+            env,
+            "SELECT * FROM users WHERE slack_user_id = ? LIMIT 1",
+            [slack_user_id],
+        )
+    )
+
+
+async def db_create_session(env: Any, user_id: Any, token: str) -> Optional[str]:
+    if not token:
+        return None
+    await ensure_schema(env)
+    await d1_run(
+        env,
+        "INSERT INTO sessions (id, user_id, created_at, expires_at) VALUES (?, ?, ?, ?)",
+        [
+            token,
+            user_id,
+            utc_now(),
+            (datetime.now(timezone.utc) + timedelta(days=30)).isoformat(),
+        ],
+    )
+    return token
+
+
+async def db_get_session(env: Any, token: str) -> Optional[Dict[str, Any]]:
+    if not token:
+        return None
+    await ensure_schema(env)
+    return result_first(
+        await d1_run(
+            env,
+            (
+                "SELECT s.id AS session_id, s.user_id, s.expires_at, "
+                "u.slack_user_id, u.team_id, u.name, u.email, u.avatar_url "
+                "FROM sessions s JOIN users u ON s.user_id = u.id "
+                "WHERE s.id = ? AND s.expires_at > ? LIMIT 1"
+            ),
+            [token, utc_now()],
+        )
+    )
+
+
+async def db_delete_session(env: Any, token: str) -> bool:
+    await ensure_schema(env)
+    await d1_run(env, "DELETE FROM sessions WHERE id = ?", [token])
+    return True
+
+
+async def db_link_user_workspace(
+    env: Any, user_id: Any, workspace_id: Any, role: str = "owner"
+) -> bool:
+    await ensure_schema(env)
+    await d1_run(
+        env,
+        (
+            "INSERT INTO user_workspaces (user_id, workspace_id, role, created_at) "
+            "VALUES (?, ?, ?, ?) ON CONFLICT(user_id, workspace_id) DO NOTHING"
+        ),
+        [user_id, workspace_id, role or "owner", utc_now()],
+    )
+    return True
+
+
+async def db_get_user_workspaces(env: Any, user_id: Any) -> List[Dict[str, Any]]:
+    await ensure_schema(env)
+    return result_rows(
+        await d1_run(
+            env,
+            (
+                "SELECT w.* FROM workspaces w "
+                "JOIN user_workspaces uw ON w.id = uw.workspace_id "
+                "WHERE uw.user_id = ? ORDER BY w.team_name ASC"
+            ),
+            [user_id],
+        )
+    )
+
+
+async def db_user_owns_workspace(
+    env: Any, user_id: Any, workspace_id: Any
+) -> bool:
+    await ensure_schema(env)
+    return (
+        result_first(
+            await d1_run(
+                env,
+                "SELECT id FROM user_workspaces WHERE user_id = ? AND workspace_id = ? LIMIT 1",
+                [user_id, workspace_id],
+            )
+        )
+        is not None
+    )
+
+
+async def db_get_user_workspace_role(
+    env: Any, user_id: Any, workspace_id: Any
+) -> str:
+    await ensure_schema(env)
+    row = result_first(
+        await d1_run(
+            env,
+            "SELECT role FROM user_workspaces WHERE user_id = ? AND workspace_id = ? LIMIT 1",
+            [user_id, workspace_id],
+        )
+    )
+    return str((row or {}).get("role") or "")
+
+
+async def db_get_workspace_installers(
+    env: Any, workspace_id: Any
+) -> List[Dict[str, Any]]:
+    await ensure_schema(env)
+    return result_rows(
+        await d1_run(
+            env,
+            (
+                "SELECT u.name, u.slack_user_id, uw.role, uw.created_at "
+                "FROM user_workspaces uw JOIN users u ON u.id = uw.user_id "
+                "WHERE uw.workspace_id = ? "
+                "ORDER BY CASE WHEN uw.role = 'owner' THEN 0 ELSE 1 END, uw.created_at ASC"
+            ),
+            [workspace_id],
+        )
+    )
+
+
+async def db_delete_workspace(env: Any, workspace_id: Any) -> bool:
+    await ensure_schema(env)
+    await d1_run(env, "DELETE FROM user_workspaces WHERE workspace_id = ?", [workspace_id])
+    for table in (
+        "events",
+        "channels",
+        "repositories",
+        "github_organizations",
+        "join_messages",
+    ):
+        await d1_run(env, "DELETE FROM {0} WHERE workspace_id = ?".format(table), [workspace_id])
+    await d1_run(env, "DELETE FROM workspaces WHERE id = ?", [workspace_id])
+    return True
+
+
+async def db_upsert_channel(
+    env: Any,
+    workspace_id: Any,
+    channel_id: str,
+    channel_name: str,
+    member_count: int = 0,
+    topic: str = "",
+    purpose: str = "",
+    is_private: int = 0,
+) -> bool:
+    await ensure_schema(env)
+    now = utc_now()
+    await d1_run(
+        env,
+        (
+            "INSERT INTO channels (workspace_id, channel_id, channel_name, member_count, "
+            "topic, purpose, is_private, created_at, updated_at) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) "
+            "ON CONFLICT(workspace_id, channel_id) DO UPDATE SET "
+            "channel_name = excluded.channel_name, "
+            "member_count = excluded.member_count, "
+            "topic = excluded.topic, "
+            "purpose = excluded.purpose, "
+            "is_private = excluded.is_private, "
+            "updated_at = excluded.updated_at"
+        ),
+        [
+            workspace_id,
+            channel_id,
+            channel_name,
+            int(member_count or 0),
+            topic or "",
+            purpose or "",
+            1 if is_private else 0,
+            now,
+            now,
+        ],
+    )
+    return True
+
+
+async def db_get_channels(env: Any, workspace_id: Any) -> List[Dict[str, Any]]:
+    await ensure_schema(env)
+    return result_rows(
+        await d1_run(
+            env,
+            "SELECT * FROM channels WHERE workspace_id = ? ORDER BY member_count DESC",
+            [workspace_id],
+        )
+    )
+
+
+async def db_get_channel_by_slack_id(
+    env: Any, workspace_id: Any, channel_id: str
+) -> Optional[Dict[str, Any]]:
+    await ensure_schema(env)
+    return result_first(
+        await d1_run(
+            env,
+            "SELECT * FROM channels WHERE workspace_id = ? AND channel_id = ? LIMIT 1",
+            [workspace_id, channel_id],
+        )
+    )
+
+
+async def db_update_channel_join_config(
+    env: Any,
+    workspace_id: Any,
+    channel_id: str,
+    join_message_id: Any,
+    join_delivery_mode: str = "dm",
+) -> bool:
+    await ensure_schema(env)
+    await d1_run(
+        env,
+        (
+            "UPDATE channels SET send_join_message = ?, join_message_id = ?, "
+            "join_delivery_mode = ?, updated_at = ? WHERE workspace_id = ? AND channel_id = ?"
+        ),
+        [
+            1 if join_message_id else 0,
+            join_message_id,
+            join_delivery_mode or "dm",
+            utc_now(),
+            workspace_id,
+            channel_id,
+        ],
+    )
+    return True
+
+
+async def db_get_channel_name(env: Any, workspace_id: Any, channel_id: str) -> str:
+    row = await db_get_channel_by_slack_id(env, workspace_id, channel_id)
+    return str((row or {}).get("channel_name") or "")
+
+
+async def db_get_channel_join_message_sent_counts(
+    env: Any, workspace_id: Any
+) -> Dict[str, int]:
+    await ensure_schema(env)
+    rows = result_rows(
+        await d1_run(
+            env,
+            (
+                "SELECT request_data FROM events WHERE workspace_id = ? "
+                "AND event_type = 'Channel_Join_Message' AND status = 'success' "
+                "ORDER BY id DESC LIMIT 10000"
+            ),
+            [workspace_id],
+        )
+    )
+    counts: Dict[str, int] = {}
+    for row in rows:
+        try:
+            payload = json.loads(row.get("request_data") or "{}")
+        except Exception:
+            payload = {}
+        channel_id = str(payload.get("channel") or "").strip()
+        if channel_id:
+            counts[channel_id] = counts.get(channel_id, 0) + 1
+    return counts
+
+
+async def db_add_repository(
+    env: Any,
+    workspace_id: Any,
+    repo_url: str,
+    repo_name: str = "",
+    description: str = "",
+    language: str = "",
+    stars: int = 0,
+    source_type: str = "repo",
+    metadata_json: str = "",
+) -> bool:
+    await ensure_schema(env)
+    await d1_run(
+        env,
+        (
+            "INSERT INTO repositories (workspace_id, repo_url, repo_name, description, "
+            "language, stars, source_type, metadata_json, created_at) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) "
+            "ON CONFLICT(workspace_id, repo_url) DO UPDATE SET "
+            "repo_name = excluded.repo_name, "
+            "description = excluded.description, "
+            "language = excluded.language, "
+            "stars = excluded.stars, "
+            "source_type = excluded.source_type, "
+            "metadata_json = excluded.metadata_json"
+        ),
+        [
+            workspace_id,
+            repo_url,
+            repo_name or "",
+            description or "",
+            language or "",
+            int(stars or 0),
+            source_type or "repo",
+            metadata_json or "",
+            utc_now(),
+        ],
+    )
+    return True
+
+
+async def db_get_repositories(env: Any, workspace_id: Any) -> List[Dict[str, Any]]:
+    await ensure_schema(env)
+    return result_rows(
+        await d1_run(
+            env,
+            "SELECT * FROM repositories WHERE workspace_id = ? ORDER BY stars DESC",
+            [workspace_id],
+        )
+    )
+
+
+async def db_delete_repository(env: Any, repo_id: Any, workspace_id: Any) -> bool:
+    await ensure_schema(env)
+    await d1_run(
+        env,
+        "DELETE FROM repositories WHERE id = ? AND workspace_id = ?",
+        [repo_id, workspace_id],
+    )
+    return True
+
+
+async def db_upsert_github_organization(
+    env: Any,
+    workspace_id: Any,
+    org_login: str,
+    org_type: str = "org",
+    metadata_json: str = "",
+) -> bool:
+    await ensure_schema(env)
+    now = utc_now()
+    await d1_run(
+        env,
+        (
+            "INSERT INTO github_organizations (workspace_id, org_login, org_type, "
+            "metadata_json, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?) "
+            "ON CONFLICT(workspace_id, org_login) DO UPDATE SET "
+            "org_type = excluded.org_type, "
+            "metadata_json = excluded.metadata_json, "
+            "updated_at = excluded.updated_at"
+        ),
+        [
+            workspace_id,
+            str(org_login or "").strip(),
+            str(org_type or "org").strip() or "org",
+            metadata_json or "",
+            now,
+            now,
+        ],
+    )
+    return True
+
+
+async def db_get_workspace_github_org_count(env: Any, workspace_id: Any) -> int:
+    await ensure_schema(env)
+    row = result_first(
+        await d1_run(
+            env,
+            "SELECT COUNT(*) AS count FROM github_organizations WHERE workspace_id = ?",
+            [workspace_id],
+        )
+    )
+    return int((row or {}).get("count") or 0)
+
+
+async def db_get_workspace_latest_org_login(env: Any, workspace_id: Any) -> str:
+    await ensure_schema(env)
+    row = result_first(
+        await d1_run(
+            env,
+            (
+                "SELECT org_login FROM github_organizations WHERE workspace_id = ? "
+                "ORDER BY updated_at DESC, created_at DESC, id DESC LIMIT 1"
+            ),
+            [workspace_id],
+        )
+    )
+    return str((row or {}).get("org_login") or "").strip()
+
+
+async def db_add_join_message(
+    env: Any, workspace_id: Any, name: str, message_text: str
+) -> bool:
+    await ensure_schema(env)
+    now = utc_now()
+    await d1_run(
+        env,
+        (
+            "INSERT INTO join_messages (workspace_id, name, message_text, is_active, created_at, updated_at) "
+            "VALUES (?, ?, ?, 1, ?, ?)"
+        ),
+        [workspace_id, name, message_text, now, now],
+    )
+    return True
+
+
+async def db_get_join_messages(env: Any, workspace_id: Any) -> List[Dict[str, Any]]:
+    await ensure_schema(env)
+    return result_rows(
+        await d1_run(
+            env,
+            "SELECT * FROM join_messages WHERE workspace_id = ? ORDER BY created_at DESC",
+            [workspace_id],
+        )
+    )
+
+
+async def db_get_join_message_by_id(
+    env: Any, workspace_id: Any, message_id: Any
+) -> Optional[Dict[str, Any]]:
+    await ensure_schema(env)
+    return result_first(
+        await d1_run(
+            env,
+            "SELECT * FROM join_messages WHERE id = ? AND workspace_id = ? LIMIT 1",
+            [message_id, workspace_id],
+        )
+    )
+
+
+async def db_delete_join_message(env: Any, workspace_id: Any, message_id: Any) -> bool:
+    await ensure_schema(env)
+    await d1_run(
+        env,
+        (
+            "UPDATE channels SET join_message_id = NULL, send_join_message = 0, updated_at = ? "
+            "WHERE workspace_id = ? AND join_message_id = ?"
+        ),
+        [utc_now(), workspace_id, message_id],
+    )
+    await d1_run(
+        env,
+        "DELETE FROM join_messages WHERE id = ? AND workspace_id = ?",
+        [message_id, workspace_id],
+    )
+    return True
+
+
+async def db_log_event(
+    env: Any,
+    workspace_id: Any,
+    event_type: str,
+    user_slack_id: str = "",
+    status: str = "success",
+    channel_name: str = "",
+    request_data: str = "",
+    verified: int = 0,
+    channel_id: str = "",
+    webhook_body_type: str = "",
+    webhook_event_id: str = "",
+    webhook_event_time: str = "",
+    webhook_event_subtype: str = "",
+    webhook_retry_num: str = "",
+    webhook_retry_reason: str = "",
+) -> bool:
+    return await db_insert_event(
+        env,
+        workspace_id,
+        event_type,
+        user_slack_id=user_slack_id,
+        status=status,
+        channel_name=channel_name,
+        request_data=request_data,
+        verified=verified,
+        channel_id=channel_id,
+        webhook_body_type=webhook_body_type,
+        webhook_event_id=webhook_event_id,
+        webhook_event_time=webhook_event_time,
+        webhook_event_subtype=webhook_event_subtype,
+        webhook_retry_num=webhook_retry_num,
+        webhook_retry_reason=webhook_retry_reason,
+    )
+
+
+async def db_insert_event(
+    env: Any,
+    workspace_id: Any,
+    event_type: str,
+    user_slack_id: str = "",
+    status: str = "success",
+    created_at: Optional[str] = None,
+    channel_name: str = "",
+    request_data: str = "",
+    verified: int = 0,
+    channel_id: str = "",
+    webhook_body_type: str = "",
+    webhook_event_id: str = "",
+    webhook_event_time: str = "",
+    webhook_event_subtype: str = "",
+    webhook_retry_num: str = "",
+    webhook_retry_reason: str = "",
+) -> bool:
+    await ensure_schema(env)
+    await d1_run(
+        env,
+        (
+            "INSERT INTO events (workspace_id, event_type, user_slack_id, channel_name, "
+            "channel_id, request_data, verified, status, created_at, webhook_body_type, "
+            "webhook_event_id, webhook_event_time, webhook_event_subtype, webhook_retry_num, webhook_retry_reason) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        ),
+        [
+            workspace_id,
+            event_type,
+            user_slack_id or "",
+            channel_name or "",
+            channel_id or "",
+            request_data or "",
+            1 if verified else 0,
+            status or "success",
+            created_at or utc_now(),
+            webhook_body_type or "",
+            webhook_event_id or "",
+            webhook_event_time or "",
+            webhook_event_subtype or "",
+            webhook_retry_num or "",
+            webhook_retry_reason or "",
+        ],
+    )
+    return True
+
+
+def normalize_event_timestamp(value: Any) -> str:
+    raw = str(value or "").strip()
+    if not raw:
+        return utc_now()
+    cleaned = raw.replace(" ", "T")
+    if cleaned.endswith("Z"):
+        cleaned = cleaned[:-1] + "+00:00"
+    try:
+        parsed = datetime.fromisoformat(cleaned)
+    except ValueError:
+        return utc_now()
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc).isoformat()
+
+
+async def import_workspace_history_csv(
+    env: Any, workspace_id: Any, csv_text: str
+) -> Dict[str, Any]:
+    if not csv_text or not str(csv_text).strip():
+        return {"ok": False, "error": "CSV file is empty"}
+
+    reader = csv.DictReader(io.StringIO(csv_text))
+    if not reader.fieldnames:
+        return {"ok": False, "error": "CSV must include a header row"}
+
+    imported = 0
+    skipped = 0
+    errors = []
+    normalized_fieldnames = [str(name or "").strip().lower() for name in reader.fieldnames]
+
+    for row_index, row in enumerate(reader, start=2):
+        normalized_row = {}
+        for index, key in enumerate(reader.fieldnames or []):
+            normalized_key = normalized_fieldnames[index]
+            normalized_row[normalized_key] = row.get(key)
+
+        event_type = str(
+            normalized_row.get("event_type") or normalized_row.get("type") or ""
+        ).strip()
+        if not event_type:
+            skipped += 1
+            if len(errors) < 5:
+                errors.append("Line {0}: missing event_type".format(row_index))
+            continue
+
+        verified = str(normalized_row.get("verified") or "").strip().lower() in (
+            "1",
+            "true",
+            "yes",
+            "y",
+            "verified",
+        )
+        ok = await db_insert_event(
+            env,
+            workspace_id,
+            event_type,
+            user_slack_id=str(
+                normalized_row.get("user_slack_id") or normalized_row.get("user") or ""
+            ).strip(),
+            status=str(normalized_row.get("status") or "success").strip() or "success",
+            created_at=normalize_event_timestamp(
+                normalized_row.get("created_at")
+                or normalized_row.get("time")
+                or normalized_row.get("timestamp")
+            ),
+            channel_name=str(normalized_row.get("channel_name") or "").strip(),
+            channel_id=str(normalized_row.get("channel_id") or "").strip(),
+            request_data=str(normalized_row.get("request_data") or "").strip(),
+            verified=1 if verified else 0,
+        )
+        if ok:
+            imported += 1
+        else:
+            skipped += 1
+
+    return {
+        "ok": imported > 0,
+        "events_imported": imported,
+        "rows_skipped": skipped,
+        "errors": errors,
+    }
+
+
+async def db_get_events(
+    env: Any, workspace_id: Any, limit: int = 20
+) -> List[Dict[str, Any]]:
+    await ensure_schema(env)
+    return result_rows(
+        await d1_run(
+            env,
+            (
+                "SELECT e.*, e.user_slack_id AS user_name FROM events e "
+                "WHERE e.workspace_id = ? ORDER BY e.created_at DESC LIMIT ?"
+            ),
+            [workspace_id, int(limit or 20)],
+        )
+    )
+
+
+def build_public_events(events: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    return [
+        {
+            "id": event.get("id"),
+            "event_type": event.get("event_type"),
+            "status": event.get("status"),
+            "verified": event.get("verified"),
+            "created_at": event.get("created_at"),
+        }
+        for event in events or []
+    ]
+
+
+async def db_purge_events(env: Any, workspace_id: Any) -> Dict[str, Any]:
+    await ensure_schema(env)
+    result = await d1_run(env, "DELETE FROM events WHERE workspace_id = ?", [workspace_id])
+    meta = result.get("meta") or {}
+    return {"ok": True, "deleted": int(meta.get("changes") or 0)}
+
+
+async def db_get_last_event_time(
+    env: Any, workspace_id: Any, event_type: str
+) -> str:
+    await ensure_schema(env)
+    row = result_first(
+        await d1_run(
+            env,
+            "SELECT MAX(created_at) AS last_time FROM events WHERE workspace_id = ? AND event_type = ?",
+            [workspace_id, event_type],
+        )
+    )
+    return str((row or {}).get("last_time") or "").strip()
+
+
+async def db_has_team_join_event_id(
+    env: Any, workspace_id: Any, event_id: str
+) -> bool:
+    if not event_id:
+        return False
+    await ensure_schema(env)
+    row = result_first(
+        await d1_run(
+            env,
+            (
+                "SELECT id FROM events WHERE workspace_id = ? AND event_type = 'Team_Join' "
+                "AND request_data LIKE ? ORDER BY id DESC LIMIT 1"
+            ),
+            [workspace_id, '%"event_id":"{0}"%'.format(event_id)],
+        )
+    )
+    return row is not None
+
+
+async def db_mark_join_message_verified_by_tracking(
+    env: Any, tracking_id: str, ip_address: str, user_agent: str
+) -> bool:
+    if not tracking_id:
+        return False
+    await ensure_schema(env)
+    row = result_first(
+        await d1_run(
+            env,
+            (
+                "SELECT id, request_data FROM events "
+                "WHERE event_type IN ('Channel_Join_Message', 'Team_Join') "
+                "AND request_data LIKE ? ORDER BY id DESC LIMIT 1"
+            ),
+            ['%"logo_tracking_id": "{0}"%'.format(tracking_id)],
+        )
+    )
+    if not row:
+        return False
+    try:
+        payload = json.loads(row.get("request_data") or "{}")
+    except Exception:
+        payload = {}
+    if not isinstance(payload, dict):
+        payload = {}
+    payload["verification_ip"] = ip_address or ""
+    payload["verification_user_agent"] = str(user_agent or "")[:512]
+    payload["verified_at"] = utc_now()
+    await d1_run(
+        env,
+        "UPDATE events SET request_data = ?, verified = 1 WHERE id = ?",
+        [json.dumps(payload), row.get("id")],
+    )
+    return True
+
+
+async def db_get_daily_stats(
+    env: Any, workspace_id: Any, days: int = 30
+) -> List[Dict[str, Any]]:
+    await ensure_schema(env)
+    since = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+    return result_rows(
+        await d1_run(
+            env,
+            (
+                "SELECT substr(created_at, 1, 10) AS date, event_type, COUNT(*) AS count "
+                "FROM events WHERE workspace_id = ? AND created_at >= ? "
+                "GROUP BY date, event_type ORDER BY date ASC"
+            ),
+            [workspace_id, since],
+        )
+    )
+
+
+async def db_get_workspace_stats(env: Any, workspace_id: Any) -> Dict[str, Any]:
+    await ensure_schema(env)
+    since_24h = (datetime.now(timezone.utc) - timedelta(hours=24)).isoformat()
+    total = int(
+        (result_first(await d1_run(env, "SELECT COUNT(*) AS n FROM events WHERE workspace_id = ?", [workspace_id])) or {}).get("n")
+        or 0
+    )
+    last24 = int(
+        (
+            result_first(
+                await d1_run(
+                    env,
+                    "SELECT COUNT(*) AS n FROM events WHERE workspace_id = ? AND created_at >= ?",
+                    [workspace_id, since_24h],
+                )
+            )
+            or {}
+        ).get("n")
+        or 0
+    )
+    success = int(
+        (
+            result_first(
+                await d1_run(
+                    env,
+                    "SELECT COUNT(*) AS n FROM events WHERE workspace_id = ? AND status='success'",
+                    [workspace_id],
+                )
+            )
+            or {}
+        ).get("n")
+        or 0
+    )
+    last_event = result_first(
+        await d1_run(
+            env,
+            "SELECT created_at FROM events WHERE workspace_id = ? ORDER BY created_at DESC LIMIT 1",
+            [workspace_id],
+        )
+    )
+    joins = int(
+        (
+            result_first(
+                await d1_run(
+                    env,
+                    "SELECT COUNT(*) AS n FROM events WHERE workspace_id = ? AND event_type='Team_Join'",
+                    [workspace_id],
+                )
+            )
+            or {}
+        ).get("n")
+        or 0
+    )
+    commands = int(
+        (
+            result_first(
+                await d1_run(
+                    env,
+                    "SELECT COUNT(*) AS n FROM events WHERE workspace_id = ? AND event_type='Command'",
+                    [workspace_id],
+                )
+            )
+            or {}
+        ).get("n")
+        or 0
+    )
+    return {
+        "total_activities": total,
+        "last_24h_activities": last24,
+        "success_rate": round(success / total * 100, 1) if total else 100.0,
+        "last_event_time": (last_event or {}).get("created_at"),
+        "joins": joins,
+        "commands": commands,
+    }
+
+
+async def db_list_workspaces_public(env: Any) -> List[Dict[str, Any]]:
+    await ensure_schema(env)
+    rows = result_rows(
+        await d1_run(
+            env,
+            (
+                "SELECT w.id, w.team_id, w.team_name, w.icon_url, w.invite_link, "
+                "w.member_count, w.channel_count, w.created_at, "
+                "(SELECT COUNT(*) FROM events e WHERE e.workspace_id = w.id) AS total_activities, "
+                "(SELECT COUNT(*) FROM events e WHERE e.workspace_id = w.id AND e.event_type = 'Team_Join') AS joins, "
+                "(SELECT MAX(e2.created_at) FROM events e2 WHERE e2.workspace_id = w.id) AS last_event_time, "
+                "(SELECT COUNT(*) FROM repositories r WHERE r.workspace_id = w.id) AS repo_count, "
+                "(SELECT go.org_login FROM github_organizations go WHERE go.workspace_id = w.id "
+                "ORDER BY go.updated_at DESC, go.created_at DESC, go.id DESC LIMIT 1) AS github_org_login "
+                "FROM workspaces w ORDER BY w.created_at DESC"
+            ),
+        )
+    )
+    for row in rows:
+        org_login = str(row.get("github_org_login") or "").strip()
+        row["github_org_login"] = org_login
+        row["github_org_url"] = "https://github.com/{0}".format(org_login) if org_login else ""
+        row["status"] = "connected"
+        row["channel_count"] = int(row.get("channel_count") or 0)
+        row["member_count"] = int(row.get("member_count") or 0)
+        row["repo_count"] = int(row.get("repo_count") or 0)
+    return rows
+
+
+async def upsert_connected_workspace(
+    env: Any,
+    team_id: str,
+    team_name: str,
+    installer_user_id: str = "",
+    bot_user_id: str = "",
+    icon_url: str = "",
+    invite_link: str = "",
+    github_org_url: str = "",
+    repo_count: int = 0,
+    channel_count: int = 0,
+    member_count: int = 0,
+    status: str = "connected",
+) -> None:
+    if not team_id:
+        return
+    try:
+        getattr(env, "DB")
+    except Exception:
+        return
+
+    await ensure_schema(env)
+    now = datetime.now(timezone.utc).isoformat()
+    await d1_run(
+        env,
+        (
+            "INSERT INTO connected_workspaces ("
+            "team_id, team_name, icon_url, installer_user_id, bot_user_id, invite_link, "
+            "github_org_url, repo_count, channel_count, member_count, status, created_at, updated_at"
+            ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
+            "ON CONFLICT(team_id) DO UPDATE SET "
+            "team_name = excluded.team_name, "
+            "icon_url = excluded.icon_url, "
+            "installer_user_id = excluded.installer_user_id, "
+            "bot_user_id = excluded.bot_user_id, "
+            "invite_link = excluded.invite_link, "
+            "github_org_url = excluded.github_org_url, "
+            "repo_count = excluded.repo_count, "
+            "channel_count = excluded.channel_count, "
+            "member_count = excluded.member_count, "
+            "status = excluded.status, "
+            "updated_at = excluded.updated_at"
+        ),
+        [
+            team_id,
+            team_name or team_id,
+            icon_url,
+            installer_user_id,
+            bot_user_id,
+            invite_link,
+            github_org_url,
+            int(repo_count or 0),
+            int(channel_count or 0),
+            int(member_count or 0),
+            status or "connected",
+            now,
+            now,
+        ],
+    )
+    if not await db_get_workspace_by_team(env, team_id):
+        await db_upsert_workspace(
+            env,
+            team_id=team_id,
+            team_name=team_name or team_id,
+            bot_user_id=bot_user_id,
+            icon_url=icon_url,
+            installer_slack_user_id=installer_user_id,
+        )
+
+
+async def save_managed_server(
+    env: Any,
+    name: str,
+    url: str,
+    status: str = "online",
+    description: str = "",
+    server_id: Optional[int] = None,
+) -> None:
+    try:
+        getattr(env, "DB")
+    except Exception:
+        return
+    await ensure_schema(env)
+    now = datetime.now(timezone.utc).isoformat()
+    if server_id:
+        await d1_run(
+            env,
+            (
+                "UPDATE managed_servers SET name = ?, url = ?, status = ?, "
+                "description = ?, updated_at = ? WHERE id = ?"
+            ),
+            [name, url, status or "online", description, now, server_id],
+        )
+        return
+    await d1_run(
+        env,
+        (
+            "INSERT INTO managed_servers (name, url, status, description, created_at, updated_at) "
+            "VALUES (?, ?, ?, ?, ?, ?)"
+        ),
+        [name, url, status or "online", description, now, now],
+    )
+
+
+async def delete_managed_server(env: Any, server_id: int) -> None:
+    try:
+        getattr(env, "DB")
+    except Exception:
+        return
+    await ensure_schema(env)
+    await d1_run(env, "DELETE FROM managed_servers WHERE id = ?", [server_id])
+
+
+async def list_managed_servers(env: Any) -> List[Dict[str, Any]]:
+    try:
+        getattr(env, "DB")
+    except Exception:
+        return []
+    await ensure_schema(env)
+    result = await d1_run(
+        env,
+        "SELECT * FROM managed_servers ORDER BY updated_at DESC, id DESC",
+    )
+    return result.get("results") or []
+
+
+async def list_connected_workspaces(env: Any) -> List[Dict[str, Any]]:
+    try:
+        getattr(env, "DB")
+    except Exception:
+        return []
+    await ensure_schema(env)
+    connected_result = await d1_run(
+        env,
+        (
+            "SELECT cw.*, "
+            "COALESCE(sa.total_activities, 0) AS total_activities, "
+            "COALESCE(sa.joins, 0) AS joins, "
+            "sa.last_event_time AS last_event_time "
+            "FROM connected_workspaces cw "
+            "LEFT JOIN ("
+            "SELECT team_id, COUNT(*) AS total_activities, "
+            "SUM(CASE WHEN slack_type = 'team_join' THEN 1 ELSE 0 END) AS joins, "
+            "MAX(received_at) AS last_event_time "
+            "FROM slack_activity WHERE team_id IS NOT NULL GROUP BY team_id"
+            ") sa ON sa.team_id = cw.team_id "
+            "ORDER BY COALESCE(sa.last_event_time, cw.updated_at) DESC"
+        ),
+    )
+    connected_rows = result_rows(connected_result)
+    workspace_rows = await db_list_workspaces_public(env)
+
+    by_team: Dict[str, Dict[str, Any]] = {}
+    for row in connected_rows:
+        team_key = str(row.get("team_id") or "connected:{0}".format(row.get("id")))
+        by_team[team_key] = row
+    for row in workspace_rows:
+        team_key = str(row.get("team_id") or "workspace:{0}".format(row.get("id")))
+        existing = by_team.get(team_key, {})
+        merged = dict(existing)
+        merged.update(row)
+        by_team[team_key] = merged
+
+    rows = list(by_team.values())
+    rows.sort(
+        key=lambda row: str(
+            row.get("last_event_time") or row.get("updated_at") or row.get("created_at") or ""
+        ),
+        reverse=True,
+    )
+    return rows
+
+
+async def public_connections_payload(env: Any) -> Dict[str, Any]:
+    workspaces = await list_connected_workspaces(env)
+    servers = await list_managed_servers(env)
+    total_activities = sum(int(row.get("total_activities") or 0) for row in workspaces)
+    joins = sum(int(row.get("joins") or 0) for row in workspaces)
+    commands = max(total_activities - joins, 0)
+    last_updated = ""
+    for row in workspaces:
+        timestamp = str(row.get("last_event_time") or row.get("updated_at") or "")
+        if timestamp and timestamp > last_updated:
+            last_updated = timestamp
+    for row in servers:
+        timestamp = str(row.get("updated_at") or "")
+        if timestamp and timestamp > last_updated:
+            last_updated = timestamp
+    return {
+        "ok": True,
+        "workspaces": workspaces,
+        "servers": servers,
+        "stats": {
+            "connected_workspaces": len(workspaces),
+            "managed_servers": len(servers),
+            "total_activities": total_activities,
+            "team_joins": joins,
+            "commands": commands,
+            "last_updated": last_updated,
+        },
+    }
 
 
 async def get_workspace_installer(env: Any, team_id: str) -> Optional[str]:
@@ -672,11 +2082,12 @@ async def create_github_issue(title: str, env: Any) -> Tuple[bool, str]:
 def help_response() -> Dict[str, Any]:
     text = (
         "Available commands:\n"
-        "• /contributors or /stats\n"
-        "• /project [name]\n"
-        "• /repo [technology]\n"
-        "• /ghissue [title]\n"
-        "• /blt-app-url"
+        "• /contrib\n"
+        "• /stats\n"
+        "• /discover [search term]\n"
+        "• /gsoc25 [technology, mentor, or project]\n"
+        "• /installed_apps\n"
+        "• /blt"
     )
     return {
         "response_type": "ephemeral",
@@ -686,6 +2097,45 @@ def help_response() -> Dict[str, Any]:
                 "*BLT Sammich Commands*\n{0}".format(text.replace("\n", "\n"))
             )
         ],
+    }
+
+
+async def stats_response(env: Any) -> Dict[str, Any]:
+    workspace_count = 0
+    server_count = 0
+    total_activities = 0
+    try:
+        payload = await public_connections_payload(env)
+        stats = payload.get("stats") or {}
+        workspace_count = int(stats.get("connected_workspaces") or 0)
+        server_count = int(stats.get("managed_servers") or 0)
+        total_activities = int(stats.get("total_activities") or 0)
+    except Exception:
+        pass
+
+    project_count = len(PROJECT_DATA)
+    technology_count = len(REPO_DATA)
+    repo_count = sum(len(repos or []) for repos in REPO_DATA.values())
+    message = (
+        "*OWASP Project Stats*\n"
+        "Projects indexed: {0}\n"
+        "Technology groups: {1}\n"
+        "Repository links indexed: {2}\n"
+        "Connected workspaces: {3}\n"
+        "Managed servers: {4}\n"
+        "Logged activities: {5}"
+    ).format(
+        project_count,
+        technology_count,
+        repo_count,
+        workspace_count,
+        server_count,
+        total_activities,
+    )
+    return {
+        "response_type": "ephemeral",
+        "text": message,
+        "blocks": [make_section_block(message)],
     }
 
 
@@ -838,7 +2288,9 @@ async def command_response(form: Dict[str, str], env: Any) -> Dict[str, Any]:
     command_name = form.get("command", "")
     command_text = form.get("text", "")
 
-    if command_name in ("/contributors", "/stats"):
+    if command_name == "/stats":
+        return await stats_response(env)
+    if command_name == "/contributors":
         try:
             rows = await fetch_contributor_activity(env)
         except ValueError as error:
@@ -987,6 +2439,212 @@ async def handle_event_payload(payload: Dict[str, Any], env: Any) -> Any:
     return json_response({"ok": True})
 
 
+def render_status_chip(status: str) -> str:
+    normalized = (status or "unknown").lower()
+    classes = {
+        "online": "bg-green-100 text-green-700",
+        "connected": "bg-green-100 text-green-700",
+        "degraded": "bg-yellow-100 text-yellow-700",
+        "offline": "bg-red-100 text-red-700",
+    }.get(normalized, "bg-gray-100 text-gray-700")
+    return '<span class="px-2 py-1 rounded text-xs font-semibold {0}">{1}</span>'.format(
+        classes,
+        html_escape(status or "unknown"),
+    )
+
+
+def render_admin_html(
+    env: Any,
+    workspaces: List[Dict[str, Any]],
+    servers: List[Dict[str, Any]],
+    message: str = "",
+) -> str:
+    admin_url = admin_path(env)
+    workspace_rows = []
+    for ws in workspaces:
+        workspace_rows.append(
+            "<tr class=\"border-t\">"
+            "<td class=\"py-3 pr-4 font-semibold\">{0}</td>"
+            "<td class=\"py-3 pr-4 font-mono text-xs text-gray-500\">{1}</td>"
+            "<td class=\"py-3 pr-4\">{2}</td>"
+            "<td class=\"py-3 pr-4 text-right\">{3}</td>"
+            "<td class=\"py-3 pr-4 text-right\">{4}</td>"
+            "<td class=\"py-3 text-right\">{5}</td>"
+            "</tr>".format(
+                html_escape(ws.get("team_name") or "Workspace"),
+                html_escape(ws.get("team_id") or ""),
+                render_status_chip(str(ws.get("status") or "connected")),
+                int(ws.get("total_activities") or 0),
+                int(ws.get("channel_count") or 0),
+                int(ws.get("member_count") or 0),
+            )
+        )
+    if not workspace_rows:
+        workspace_rows.append(
+            '<tr><td colspan="6" class="py-8 text-center text-gray-400">No connected workspaces yet.</td></tr>'
+        )
+
+    server_rows = []
+    for server in servers:
+        server_id = int(server.get("id") or 0)
+        server_rows.append(
+            "<tr class=\"border-t align-top\">"
+            "<td class=\"py-3 pr-4 font-semibold\">{0}</td>"
+            "<td class=\"py-3 pr-4\"><a class=\"text-red-600 hover:underline\" href=\"{1}\" target=\"_blank\" rel=\"noopener noreferrer\">{1}</a></td>"
+            "<td class=\"py-3 pr-4\">{2}</td>"
+            "<td class=\"py-3 pr-4 text-sm text-gray-500\">{3}</td>"
+            "<td class=\"py-3 text-right\">"
+            "<form method=\"post\" action=\"{4}\" class=\"inline\">"
+            "<input type=\"hidden\" name=\"action\" value=\"delete_server\" />"
+            "<input type=\"hidden\" name=\"server_id\" value=\"{5}\" />"
+            "<button class=\"text-red-600 hover:text-red-700 font-semibold text-sm\" type=\"submit\">Delete</button>"
+            "</form>"
+            "</td>"
+            "</tr>".format(
+                html_escape(server.get("name") or "Server"),
+                html_escape(server.get("url") or "#"),
+                render_status_chip(str(server.get("status") or "online")),
+                html_escape(server.get("description") or ""),
+                admin_url,
+                server_id,
+            )
+        )
+    if not server_rows:
+        server_rows.append(
+            '<tr><td colspan="5" class="py-8 text-center text-gray-400">No managed servers yet.</td></tr>'
+        )
+
+    alert = ""
+    if message:
+        alert = (
+            '<div class="mb-6 rounded border border-green-200 bg-green-50 px-4 py-3 text-green-700">'
+            + html_escape(message)
+            + "</div>"
+        )
+
+    return """<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BLT-Sammich Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+</head>
+<body class="bg-gray-50 text-gray-900">
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+      <div>
+        <h1 class="text-3xl font-bold">BLT-Sammich Admin</h1>
+        <p class="text-gray-500 text-sm">Manage connected Slack workspaces and public server cards.</p>
+      </div>
+      <a href="/" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-semibold hover:bg-gray-50"><i class="fas fa-home"></i>Homepage</a>
+    </div>
+    {alert}
+    <section class="bg-white rounded-lg shadow p-6 mb-8">
+      <h2 class="text-xl font-bold mb-4">Connected Workspaces</h2>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead><tr class="text-left text-gray-500"><th class="py-2 pr-4">Name</th><th class="py-2 pr-4">Team ID</th><th class="py-2 pr-4">Status</th><th class="py-2 pr-4 text-right">Activities</th><th class="py-2 pr-4 text-right">Channels</th><th class="py-2 text-right">Members</th></tr></thead>
+          <tbody>{workspace_rows}</tbody>
+        </table>
+      </div>
+    </section>
+    <section class="grid lg:grid-cols-2 gap-8 mb-8">
+      <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-xl font-bold mb-4">Add Workspace</h2>
+        <form method="post" action="{admin_url}" class="space-y-4">
+          <input type="hidden" name="action" value="save_workspace" />
+          <div><label class="block text-sm font-semibold mb-1">Team ID</label><input name="team_id" required class="w-full border border-gray-300 rounded-lg px-3 py-2" /></div>
+          <div><label class="block text-sm font-semibold mb-1">Team Name</label><input name="team_name" required class="w-full border border-gray-300 rounded-lg px-3 py-2" /></div>
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div><label class="block text-sm font-semibold mb-1">Channels</label><input name="channel_count" type="number" min="0" value="0" class="w-full border border-gray-300 rounded-lg px-3 py-2" /></div>
+            <div><label class="block text-sm font-semibold mb-1">Members</label><input name="member_count" type="number" min="0" value="0" class="w-full border border-gray-300 rounded-lg px-3 py-2" /></div>
+          </div>
+          <div><label class="block text-sm font-semibold mb-1">Invite Link</label><input name="invite_link" class="w-full border border-gray-300 rounded-lg px-3 py-2" /></div>
+          <div><label class="block text-sm font-semibold mb-1">GitHub Org URL</label><input name="github_org_url" class="w-full border border-gray-300 rounded-lg px-3 py-2" /></div>
+          <button class="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700" type="submit"><i class="fas fa-save"></i>Save Workspace</button>
+        </form>
+      </div>
+      <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-xl font-bold mb-4">Add Server</h2>
+        <form method="post" action="{admin_url}" class="space-y-4">
+          <input type="hidden" name="action" value="save_server" />
+          <div><label class="block text-sm font-semibold mb-1">Name</label><input name="name" required class="w-full border border-gray-300 rounded-lg px-3 py-2" /></div>
+          <div><label class="block text-sm font-semibold mb-1">URL</label><input name="url" required class="w-full border border-gray-300 rounded-lg px-3 py-2" /></div>
+          <div><label class="block text-sm font-semibold mb-1">Status</label><select name="status" class="w-full border border-gray-300 rounded-lg px-3 py-2"><option>online</option><option>degraded</option><option>offline</option></select></div>
+          <div><label class="block text-sm font-semibold mb-1">Description</label><textarea name="description" class="w-full border border-gray-300 rounded-lg px-3 py-2" rows="3"></textarea></div>
+          <button class="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700" type="submit"><i class="fas fa-server"></i>Save Server</button>
+        </form>
+      </div>
+    </section>
+    <section class="bg-white rounded-lg shadow p-6">
+      <h2 class="text-xl font-bold mb-4">Managed Servers</h2>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead><tr class="text-left text-gray-500"><th class="py-2 pr-4">Name</th><th class="py-2 pr-4">URL</th><th class="py-2 pr-4">Status</th><th class="py-2 pr-4">Description</th><th class="py-2 text-right">Actions</th></tr></thead>
+          <tbody>{server_rows}</tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</body>
+</html>""".format(
+        alert=alert,
+        admin_url=html_escape(admin_url),
+        workspace_rows="\n".join(workspace_rows),
+        server_rows="\n".join(server_rows),
+    )
+
+
+async def handle_admin_get(request: Any, env: Any) -> Any:
+    if not is_admin_request(request, env):
+        return basic_auth_response()
+    parsed_url = urlparse(request.url)
+    params = parse_qs(parsed_url.query)
+    message = params.get("message", [""])[0]
+    return html_response(
+        render_admin_html(
+            env,
+            await list_connected_workspaces(env),
+            await list_managed_servers(env),
+            message=message,
+        )
+    )
+
+
+async def handle_admin_post(request: Any, env: Any) -> Any:
+    if not is_admin_request(request, env):
+        return basic_auth_response()
+    body_text = str(await request.text())
+    form = parse_form_encoded(body_text)
+    action = form.get("action", "")
+    if action == "save_workspace":
+        await upsert_connected_workspace(
+            env,
+            form.get("team_id", "").strip(),
+            form.get("team_name", "").strip(),
+            invite_link=form.get("invite_link", "").strip(),
+            github_org_url=form.get("github_org_url", "").strip(),
+            channel_count=int(form.get("channel_count") or 0),
+            member_count=int(form.get("member_count") or 0),
+        )
+        return redirect_response(admin_path(env) + "?message=Workspace+saved")
+    if action == "save_server":
+        await save_managed_server(
+            env,
+            form.get("name", "").strip(),
+            form.get("url", "").strip(),
+            form.get("status", "online").strip(),
+            form.get("description", "").strip(),
+        )
+        return redirect_response(admin_path(env) + "?message=Server+saved")
+    if action == "delete_server":
+        await delete_managed_server(env, int(form.get("server_id") or 0))
+        return redirect_response(admin_path(env) + "?message=Server+deleted")
+    return redirect_response(admin_path(env) + "?message=No+changes+made")
+
+
 async def handle_oauth_callback(request_url: Any, env: Any) -> Any:
     params = parse_qs(request_url.query)
     if params.get("error"):
@@ -1056,6 +2714,23 @@ async def handle_oauth_callback(request_url: Any, env: Any) -> Any:
         )
 
     team_name = payload.get("team", {}).get("name") or "your workspace"
+    await db_upsert_workspace(
+        env,
+        team_id=str(payload.get("team", {}).get("id") or ""),
+        team_name=str(team_name),
+        access_token=str(payload.get("access_token") or ""),
+        bot_user_id=str(payload.get("bot_user_id") or ""),
+        app_id=str(payload.get("app_id") or ""),
+        installer_slack_user_id=str(payload.get("authed_user", {}).get("id") or ""),
+    )
+    await upsert_connected_workspace(
+        env,
+        str(payload.get("team", {}).get("id") or ""),
+        str(team_name),
+        installer_user_id=str(payload.get("authed_user", {}).get("id") or ""),
+        bot_user_id=str(payload.get("bot_user_id") or ""),
+        status="connected",
+    )
     return html_response(
         (
             "<h1>Slack app installed</h1>"
@@ -1068,15 +2743,26 @@ async def handle_oauth_callback(request_url: Any, env: Any) -> Any:
 async def handle_request(request: Any, env: Any) -> Any:
     parsed_url = urlparse(request.url)
     path = parsed_url.path or "/"
+    normalized_path = path.rstrip("/") or "/"
     method = str(request.method).upper()
+    configured_admin_path = admin_path(env)
 
-    if method == "GET" and path == "/health":
+    if method == "GET" and normalized_path == "/health":
         return json_response({"ok": True, "service": "blt-sammich-worker"})
 
-    if method == "GET" and path == "/oauth/slack/callback":
+    if method == "GET" and normalized_path == "/api/workspaces-public":
+        return json_response(await public_connections_payload(env))
+
+    if normalized_path == configured_admin_path and method == "GET":
+        return await handle_admin_get(request, env)
+
+    if normalized_path == configured_admin_path and method == "POST":
+        return await handle_admin_post(request, env)
+
+    if method == "GET" and normalized_path == "/oauth/slack/callback":
         return await handle_oauth_callback(parsed_url, env)
 
-    if method == "GET" and path == "/install-slack":
+    if method == "GET" and normalized_path == "/install-slack":
         try:
             install_url = build_slack_install_url(env)
         except ValueError as error:
@@ -1095,11 +2781,11 @@ async def handle_request(request: Any, env: Any) -> Any:
             headers={"location": install_url},
         )
 
-    if method == "POST" and path in ("/slack/commands", "/slack/events"):
+    if method == "POST" and normalized_path in ("/slack/commands", "/slack/events"):
         body_text = str(await request.text())
 
         # Slack URL verification can be sent before signing secret wiring is complete.
-        if path == "/slack/events":
+        if normalized_path == "/slack/events":
             try:
                 verification_payload = json.loads(body_text or "{}")
             except json.JSONDecodeError:
@@ -1118,13 +2804,34 @@ async def handle_request(request: Any, env: Any) -> Any:
         content_type = request.headers.get("content-type", "")
         if "application/x-www-form-urlencoded" in content_type:
             form = parse_form_encoded(body_text)
-            if path == "/slack/events" and form.get("payload"):
+            if normalized_path == "/slack/events" and form.get("payload"):
                 payload = json.loads(form["payload"])
                 await record_activity(env, "interaction", payload)
                 return json_response(interaction_response(payload))
 
             await record_activity(env, "slash_command", form)
-            return json_response(await command_response(form, env))
+            command_name = form.get("command", "")
+            log_json_event(
+                "slash_command_received",
+                {
+                    "command": command_name,
+                    "team_id": form.get("team_id", ""),
+                    "user_id": form.get("user_id", ""),
+                    "channel_id": form.get("channel_id", ""),
+                    "supported": command_name in SUPPORTED_SLACK_COMMANDS,
+                },
+            )
+            response_payload = await command_response(form, env)
+            log_json_event(
+                "slash_command_responded",
+                {
+                    "command": command_name,
+                    "team_id": form.get("team_id", ""),
+                    "response_type": response_payload.get("response_type", ""),
+                    "text": str(response_payload.get("text", ""))[:160],
+                },
+            )
+            return json_response(response_payload)
 
         payload = json.loads(body_text or "{}")
         await record_activity(env, "event", payload)

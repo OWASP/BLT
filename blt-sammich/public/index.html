@@ -87,6 +87,36 @@
         </div>
       </section>
 
+      <!-- Live Connections -->
+      <section class="bg-white rounded-lg shadow p-6 mb-8" id="connections">
+        <div class="mb-6">
+          <div>
+            <h2 class="text-3xl font-bold text-gray-900">Live Connections</h2>
+            <p class="text-gray-500 text-sm mt-1">Connected Slack workspaces and managed servers running BLT-Sammich</p>
+          </div>
+        </div>
+        <div id="connection-stats" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div class="text-center py-8 text-gray-500 sm:col-span-2 lg:col-span-4">
+            <span class="loading align-middle mr-2"></span> Loading live statistics...
+          </div>
+        </div>
+        <div class="grid lg:grid-cols-2 gap-8">
+          <div>
+            <h3 class="text-xl font-bold text-gray-900 mb-4">Connected Workspaces</h3>
+            <div id="workspaces-container" class="grid gap-4">
+              <div class="text-center py-8 text-gray-400 border border-dashed border-gray-200 rounded-lg">Loading workspaces...</div>
+            </div>
+          </div>
+          <div>
+            <h3 class="text-xl font-bold text-gray-900 mb-4">Managed Servers</h3>
+            <div id="servers-container" class="grid gap-4">
+              <div class="text-center py-8 text-gray-400 border border-dashed border-gray-200 rounded-lg">Loading servers...</div>
+            </div>
+          </div>
+        </div>
+        <div id="connections-updated" class="text-center text-xs text-gray-400 mt-6 h-4"></div>
+      </section>
+
       <!-- How It Works -->
       <section class="bg-white rounded-lg shadow p-6 mb-8">
         <h2 class="text-3xl font-bold text-gray-900 mb-6 text-center">How It Works</h2>
@@ -310,5 +340,125 @@
         <p>Powered by <a href="https://github.com/OWASP-BLT/BLT-Sammich" class="text-red-600 hover:underline" target="_blank">BLT-Sammich</a></p>
       </div>
     </footer>
+    <script>
+      const CONNECTIONS_API_URL = window.location.origin + "/api/workspaces-public";
+      const formatNumber = (value) => Number(value || 0).toLocaleString();
+      const timeAgo = (iso) => {
+        if (!iso) return "No activity yet";
+        const ts = new Date(iso).getTime();
+        if (!Number.isFinite(ts)) return "No activity yet";
+        const diff = Math.max(0, Math.floor((Date.now() - ts) / 1000));
+        if (diff < 60) return "Just now";
+        if (diff < 3600) return Math.floor(diff / 60) + "m ago";
+        if (diff < 86400) return Math.floor(diff / 3600) + "h ago";
+        return Math.floor(diff / 86400) + "d ago";
+      };
+      const escapeHtml = (value) => String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#x27;");
+      const statusClass = (status) => {
+        const normalized = String(status || "").toLowerCase();
+        if (["online", "connected"].includes(normalized)) return "bg-green-50 text-green-700 border-green-200";
+        if (normalized === "degraded") return "bg-yellow-50 text-yellow-700 border-yellow-200";
+        if (normalized === "offline") return "bg-red-50 text-red-700 border-red-200";
+        return "bg-gray-50 text-gray-700 border-gray-200";
+      };
+      const statusChip = (status) => `<span class="px-2 py-1 rounded-md border text-xs font-semibold ${statusClass(status)}">${escapeHtml(status || "unknown")}</span>`;
+
+      function renderStats(stats) {
+        const container = document.getElementById("connection-stats");
+        const cards = [
+          ["fa-slack", "Workspaces", stats.connected_workspaces],
+          ["fa-server", "Servers", stats.managed_servers],
+          ["fa-chart-line", "Activities", stats.total_activities],
+          ["fa-terminal", "Commands", stats.commands],
+        ];
+        container.innerHTML = cards.map(([icon, label, value]) => `
+          <div class="border border-gray-200 rounded-lg p-4 text-center">
+            <div class="w-11 h-11 bg-red-100 text-red-600 rounded-lg flex items-center justify-center mx-auto mb-3 text-lg"><i class="fas ${icon}"></i></div>
+            <div class="text-2xl font-bold text-gray-900">${formatNumber(value)}</div>
+            <div class="text-sm text-gray-500">${label}</div>
+          </div>
+        `).join("");
+        if (stats.last_updated) {
+          document.getElementById("connections-updated").textContent = "Last updated " + timeAgo(stats.last_updated);
+        }
+      }
+
+      function renderWorkspaces(workspaces) {
+        const container = document.getElementById("workspaces-container");
+        if (!workspaces.length) {
+          container.innerHTML = `<div class="text-center py-8 text-gray-400 border border-dashed border-gray-200 rounded-lg"><i class="fab fa-slack text-3xl mb-2 block"></i>No workspaces connected yet.</div>`;
+          return;
+        }
+        container.innerHTML = workspaces.map((workspace) => {
+          const invite = String(workspace.invite_link || "").trim();
+          const github = String(workspace.github_org_url || "").trim();
+          return `
+            <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+              <div class="flex items-start justify-between gap-3 mb-4">
+                <div class="flex items-center gap-3 min-w-0">
+                  ${workspace.icon_url ? `<img src="${escapeHtml(workspace.icon_url)}" alt="" class="w-10 h-10 rounded-lg object-cover" />` : `<div class="w-10 h-10 rounded-lg bg-red-100 text-red-600 flex items-center justify-center font-bold">${escapeHtml(String(workspace.team_name || "W").slice(0, 1))}</div>`}
+                  <div class="min-w-0">
+                    <h4 class="font-bold text-gray-900 truncate">${escapeHtml(workspace.team_name || "Workspace")}</h4>
+                    <p class="text-xs text-gray-400 font-mono">${escapeHtml(workspace.team_id || "")}</p>
+                  </div>
+                </div>
+                ${statusChip(workspace.status || "connected")}
+              </div>
+              <div class="grid grid-cols-3 gap-2 text-center text-xs mb-4">
+                <div class="bg-gray-50 rounded-md p-2"><div class="font-bold text-gray-900">${formatNumber(workspace.total_activities)}</div><div class="text-gray-500">activities</div></div>
+                <div class="bg-gray-50 rounded-md p-2"><div class="font-bold text-gray-900">${formatNumber(workspace.channel_count)}</div><div class="text-gray-500">channels</div></div>
+                <div class="bg-gray-50 rounded-md p-2"><div class="font-bold text-gray-900">${formatNumber(workspace.member_count)}</div><div class="text-gray-500">members</div></div>
+              </div>
+              <div class="flex flex-wrap gap-2">
+                ${invite ? `<a href="${escapeHtml(invite)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-xs font-semibold text-red-700 bg-red-50 border border-red-200 rounded-md px-2 py-1 hover:bg-red-100"><i class="fas fa-user-plus"></i>Join</a>` : ""}
+                ${github ? `<a href="${escapeHtml(github)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-xs font-semibold text-gray-700 bg-gray-50 border border-gray-200 rounded-md px-2 py-1 hover:bg-gray-100"><i class="fab fa-github"></i>GitHub</a>` : ""}
+                <span class="ml-auto text-xs text-gray-400">${timeAgo(workspace.last_event_time || workspace.updated_at)}</span>
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+
+      function renderServers(servers) {
+        const container = document.getElementById("servers-container");
+        if (!servers.length) {
+          container.innerHTML = `<div class="text-center py-8 text-gray-400 border border-dashed border-gray-200 rounded-lg"><i class="fas fa-server text-3xl mb-2 block"></i>No servers managed yet.</div>`;
+          return;
+        }
+        container.innerHTML = servers.map((server) => `
+          <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+            <div class="flex items-start justify-between gap-3 mb-2">
+              <div>
+                <h4 class="font-bold text-gray-900">${escapeHtml(server.name || "Server")}</h4>
+                <a href="${escapeHtml(server.url || "#")}" target="_blank" rel="noopener noreferrer" class="text-sm text-red-600 hover:underline break-all">${escapeHtml(server.url || "")}</a>
+              </div>
+              ${statusChip(server.status || "online")}
+            </div>
+            <p class="text-sm text-gray-500">${escapeHtml(server.description || "No description provided.")}</p>
+          </div>
+        `).join("");
+      }
+
+      async function initConnections() {
+        try {
+          const response = await fetch(CONNECTIONS_API_URL);
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const payload = await response.json();
+          renderStats(payload.stats || {});
+          renderWorkspaces(Array.isArray(payload.workspaces) ? payload.workspaces : []);
+          renderServers(Array.isArray(payload.servers) ? payload.servers : []);
+        } catch (error) {
+          document.getElementById("connection-stats").innerHTML = `<div class="text-center py-8 text-gray-400 sm:col-span-2 lg:col-span-4">Live connection data is unavailable.</div>`;
+          renderWorkspaces([]);
+          renderServers([]);
+        }
+      }
+      initConnections();
+    </script>
   </body>
 </html>

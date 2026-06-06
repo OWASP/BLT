@@ -228,6 +228,36 @@ GITHUB_TOKEN=ghp_your-github-personal-access-token
 2. Generate new token with `repo` and `user` scopes
 3. Copy the token to your `.secrets` file
 
+### Cloudflare Production Secrets
+
+Runtime values for the Cloudflare Worker should live in `.env.production`, which is ignored by git. Add values like:
+
+```bash
+ADMIN_URL=/your-private-admin-path
+ADMIN_USERNAME=your-admin-user
+ADMIN_PASSWORD=your-admin-password
+```
+
+Upload them to Cloudflare with:
+
+```bash
+script/set-vars.sh
+```
+
+To target a Wrangler environment, set `WRANGLER_ENV`:
+
+```bash
+WRANGLER_ENV=production script/set-vars.sh
+```
+
+### Cloudflare D1 Migrations
+
+Database schema lives in `migrations/`. Wrangler runs `script/migrate.sh` from the `[build]` command before deploys, which applies D1 migrations to the configured `blt-sammich` database. To skip migrations for a local build:
+
+```bash
+SKIP_D1_MIGRATIONS=1 wrangler deploy
+```
+
 ### 9. Run the Bot
 ```bash
 poetry run python app.py
@@ -518,4 +548,3 @@ Need help?
 ---
 
 Made with ❤️ by the OWASP BLT community
-

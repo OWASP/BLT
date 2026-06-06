@@ -1,3 +1,6 @@
+import base64
+from pathlib import Path
+
 from src import worker
 
 
@@ -141,3 +144,126 @@ def test_build_slack_install_url_uses_required_env_vars():
     assert "state=state-token" in install_url
     assert "scope=commands%2Cchat%3Awrite" in install_url
     assert "user_scope=users%3Aread" in install_url
+
+
+class _Headers:
+    def __init__(self, values):
+        self.values = values
+
+    def get(self, name, default=""):
+        return self.values.get(name.lower(), default)
+
+
+class _Request:
+    def __init__(self, authorization):
+        self.headers = _Headers({"authorization": authorization})
+
+
+def test_admin_path_uses_default_and_normalizes_env_value():
+    env = _Env()
+    assert worker.admin_path(env) == ""
+    setattr(env, "ADMIN_URL", "private-admin")
+    assert worker.admin_path(env) == "/private-admin"
+
+
+def test_basic_auth_accepts_configured_admin_user():
+    env = _Env()
+    setattr(env, "ADMIN_USERNAME", "manager")
+    setattr(env, "ADMIN_PASSWORD", "secret")
+    token = base64.b64encode(b"manager:secret").decode("ascii")
+
+    assert worker.is_admin_request(_Request("Basic " + token), env)
+
+
+def test_basic_auth_rejects_bad_password():
+    env = _Env()
+    setattr(env, "ADMIN_USERNAME", "manager")
+    setattr(env, "ADMIN_PASSWORD", "secret")
+    token = base64.b64encode(b"manager:nope").decode("ascii")
+
+    assert not worker.is_admin_request(_Request("Basic " + token), env)
+
+
+def test_basic_auth_rejects_missing_config():
+    token = base64.b64encode(b"admin:admin").decode("ascii")
+    assert not worker.is_admin_request(_Request("Basic " + token), _Env())
+
+
+def test_render_admin_html_includes_workspaces_and_servers():
+    env = _Env()
+    setattr(env, "ADMIN_URL", "/private-admin")
+    html = worker.render_admin_html(
+        env,
+        [
+            {
+                "team_name": "Security Team",
+                "team_id": "T123",
+                "status": "connected",
+                "total_activities": 7,
+                "channel_count": 3,
+                "member_count": 42,
+            }
+        ],
+        [
+            {
+                "id": 1,
+                "name": "Production",
+                "url": "https://example.com",
+                "status": "online",
+                "description": "Main endpoint",
+            }
+        ],
+    )
+
+    assert "Security Team" in html
+    assert "Production" in html
+    assert "/private-admin" in html
+
+
+def test_lettuce_model_tables_are_in_schema_bootstrap():
+    migrations_dir = Path(__file__).resolve().parents[1] / "migrations"
+    schema_sql = "\n".join(
+        path.read_text() for path in sorted(migrations_dir.glob("*.sql"))
+    )
+
+    for table_name in (
+        "slack_activity",
+        "workspace_installations",
+        "connected_workspaces",
+        "managed_servers",
+        "workspaces",
+        "channels",
+        "repositories",
+        "github_organizations",
+        "events",
+        "join_messages",
+        "users",
+        "sessions",
+        "user_workspaces",
+    ):
+        assert "CREATE TABLE IF NOT EXISTS {0}".format(table_name) in schema_sql
+
+
+def test_public_event_rows_hide_request_payload():
+    public_events = worker.build_public_events(
+        [
+            {
+                "id": 1,
+                "event_type": "Team_Join",
+                "status": "success",
+                "verified": 1,
+                "created_at": "2026-06-06T00:00:00+00:00",
+                "request_data": "secret payload",
+            }
+        ]
+    )
+
+    assert public_events == [
+        {
+            "id": 1,
+            "event_type": "Team_Join",
+            "status": "success",
+            "verified": 1,
+            "created_at": "2026-06-06T00:00:00+00:00",
+        }
+    ]
