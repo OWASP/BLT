@@ -327,7 +327,39 @@ def test_render_team_join_message_uses_team_template():
         {"user": {"id": "U123", "name": "newperson"}},
         "T04T40NHX",
     )
-    assert message == "welcome newperson"
+    assert "Welcome to the OWASP Slack Community, <@U123>!" in message
+    assert "#introductions" in message
+    assert "#contribute" in message
+    assert "#project-blt" in message
+
+
+def test_workspace_welcome_message_links_known_channels():
+    message = worker.link_workspace_channel_names(
+        worker.render_team_join_message({"user": {"id": "U123"}}, "T070JPE5BQQ"),
+        [
+            {"channel_id": "C077QBBLY1Z", "channel_name": "contribute"},
+            {"channel_id": "CNEWS", "channel_name": "newsroom"},
+        ],
+    )
+
+    assert "<@U123>" in message
+    assert "<#C077QBBLY1Z|contribute>" in message
+    assert "<#CNEWS|newsroom>" in message
+
+
+def test_channel_join_message_template_renders_user_and_channel_context():
+    template = worker.get_channel_join_message("T070JPE5BQQ", "C077QBBLY1Z")
+    rendered = worker.render_join_message_template(
+        template,
+        {
+            "user_id": "U123",
+            "channel_name": "contribute",
+            "channel_id": "C077QBBLY1Z",
+        },
+    )
+
+    assert "Welcome <@U123> to *#contribute*!" in rendered
+    assert "good first issue" in rendered
 
 
 class _Env:
@@ -1419,6 +1451,234 @@ def test_refresh_workspace_channels_missing_scope_names_workspace_and_scopes():
     assert "team_name Security Team" in raised
     assert "needed scopes channels:read,groups:read" in raised
     assert "provided scopes chat:write" in raised
+
+
+def test_handle_channel_join_event_sends_ephemeral_file_template():
+    captured = {"logs": [], "ephemeral": None}
+    original_get_workspace = worker.db_get_workspace_by_team
+    original_get_name = worker.db_get_channel_name
+    original_log = worker.db_log_event
+    original_ephemeral = worker.slack_api_send_ephemeral
+
+    async def fake_get_workspace(env, team_id):
+        return {"id": 7, "team_id": team_id, "team_name": "OWASP"}
+
+    async def fake_get_name(env, workspace_id, channel_id):
+        return "contribute"
+
+    async def fake_log(env, workspace_id, event_type, **kwargs):
+        captured["logs"].append((workspace_id, event_type, kwargs))
+        return True
+
+    async def fake_ephemeral(
+        channel_id,
+        user_id,
+        text,
+        env,
+        team_id="",
+        blocks=None,
+        branding_tracking_id="",
+    ):
+        captured["ephemeral"] = {
+            "channel_id": channel_id,
+            "user_id": user_id,
+            "text": text,
+            "team_id": team_id,
+            "blocks": blocks,
+            "branding_tracking_id": branding_tracking_id,
+        }
+        return {"ok": True, "ts": "123.456"}
+
+    worker.db_get_workspace_by_team = fake_get_workspace
+    worker.db_get_channel_name = fake_get_name
+    worker.db_log_event = fake_log
+    worker.slack_api_send_ephemeral = fake_ephemeral
+    try:
+        result = asyncio.run(
+            worker.handle_channel_join_event(
+                _Env(),
+                {"user": "U123", "channel": "C077QBBLY1Z"},
+                team_id="T070JPE5BQQ",
+                source_event="member_joined_channel",
+            )
+        )
+    finally:
+        worker.db_get_workspace_by_team = original_get_workspace
+        worker.db_get_channel_name = original_get_name
+        worker.db_log_event = original_log
+        worker.slack_api_send_ephemeral = original_ephemeral
+
+    assert result["ok"]
+    assert captured["ephemeral"]["channel_id"] == "C077QBBLY1Z"
+    assert captured["ephemeral"]["user_id"] == "U123"
+    assert captured["ephemeral"]["branding_tracking_id"]
+    assert "Welcome <@U123> to *#contribute*!" in captured["ephemeral"]["text"]
+    assert [row[1] for row in captured["logs"]] == [
+        "Channel_Join",
+        "Channel_Join_Message",
+    ]
+
+
+def test_slack_api_send_ephemeral_adds_tracking_branding_block():
+    captured = {}
+    original_call = worker.slack_api_call
+
+    async def fake_call(
+        env,
+        api_method,
+        request_payload,
+        team_id="",
+        channel_id="",
+        user_id="",
+        token="",
+    ):
+        captured["api_method"] = api_method
+        captured["payload"] = request_payload
+        captured["team_id"] = team_id
+        captured["channel_id"] = channel_id
+        captured["user_id"] = user_id
+        return {"ok": True}
+
+    env = _Env()
+    setattr(env, "BASE_URL", "https://sammich.example")
+    worker.slack_api_call = fake_call
+    try:
+        result = asyncio.run(
+            worker.slack_api_send_ephemeral(
+                "C123",
+                "U123",
+                "hello",
+                env,
+                team_id="T123",
+                blocks=[worker.make_section_block("hello")],
+                branding_tracking_id="tid-123",
+            )
+        )
+    finally:
+        worker.slack_api_call = original_call
+
+    assert result["ok"]
+    assert captured["api_method"] == "chat.postEphemeral"
+    assert captured["payload"]["blocks"][-1]["type"] == "context"
+    image_element = captured["payload"]["blocks"][-1]["elements"][0]
+    assert image_element["type"] == "image"
+    assert "https://sammich.example/logo-hit?" in image_element["image_url"]
+    assert "tid=tid-123" in image_element["image_url"]
+    assert "ch=C123" in image_element["image_url"]
+    assert "u=U123" in image_element["image_url"]
+
+
+def test_db_mark_join_message_verified_by_tracking_matches_compact_json():
+    captured = {}
+    original_d1_run = worker.d1_run
+    original_schema_ready = worker.SCHEMA_READY
+
+    async def fake_d1_run(env, query, params=None):
+        if query.startswith("SELECT id, request_data FROM events"):
+            captured["select_query"] = query
+            captured["select_params"] = params
+            return {
+                "results": [
+                    {
+                        "id": 42,
+                        "request_data": '{"logo_tracking_id":"tid-123","kind":"team_join"}',
+                    }
+                ]
+            }
+        if query.startswith("UPDATE events SET request_data"):
+            captured["update_params"] = params
+            return {"success": True}
+        return {"success": True}
+
+    env = _Env()
+    setattr(env, "DB", object())
+    worker.d1_run = fake_d1_run
+    worker.SCHEMA_READY = True
+    try:
+        result = asyncio.run(
+            worker.db_mark_join_message_verified_by_tracking(
+                env, "tid-123", "203.0.113.7", "Slackbot"
+            )
+        )
+    finally:
+        worker.d1_run = original_d1_run
+        worker.SCHEMA_READY = original_schema_ready
+
+    assert result is True
+    assert "Team_Join_Welcome" in captured["select_query"]
+    assert captured["select_params"] == ['%"logo_tracking_id"%', '%"tid-123"%']
+    updated = json.loads(captured["update_params"][0])
+    assert updated["verification_ip"] == "203.0.113.7"
+    assert updated["verification_user_agent"] == "Slackbot"
+    assert captured["update_params"][1] == 42
+
+
+def test_blt_welcome_command_sends_welcome_dm():
+    captured = {"sent": None, "logs": []}
+    original_get_workspace = worker.db_get_workspace_by_team
+    original_get_channels = worker.db_get_channels
+    original_open = worker.slack_api_open_conversation
+    original_send = worker.slack_api_send_message
+    original_log = worker.db_log_event
+
+    async def fake_get_workspace(env, team_id):
+        return {"id": 7, "team_id": team_id, "team_name": "OWASP"}
+
+    async def fake_get_channels(env, workspace_id):
+        return [{"channel_id": "C077QBBLY1Z", "channel_name": "contribute"}]
+
+    async def fake_open(user_id, env, team_id=""):
+        return {"ok": True, "channel": {"id": "D123"}}
+
+    async def fake_send(
+        channel_id,
+        text,
+        env,
+        team_id="",
+        blocks=None,
+        branding_tracking_id="",
+    ):
+        captured["sent"] = {
+            "channel_id": channel_id,
+            "text": text,
+            "team_id": team_id,
+            "blocks": blocks,
+            "branding_tracking_id": branding_tracking_id,
+        }
+        return {"ok": True, "ts": "123.456"}
+
+    async def fake_log(env, workspace_id, event_type, **kwargs):
+        captured["logs"].append((workspace_id, event_type, kwargs))
+        return True
+
+    worker.db_get_workspace_by_team = fake_get_workspace
+    worker.db_get_channels = fake_get_channels
+    worker.slack_api_open_conversation = fake_open
+    worker.slack_api_send_message = fake_send
+    worker.db_log_event = fake_log
+    try:
+        response = asyncio.run(
+            worker.command_response(
+                {"command": "/blt-welcome", "team_id": "T070JPE5BQQ", "user_id": "U123"},
+                _Env(),
+            )
+        )
+    finally:
+        worker.db_get_workspace_by_team = original_get_workspace
+        worker.db_get_channels = original_get_channels
+        worker.slack_api_open_conversation = original_open
+        worker.slack_api_send_message = original_send
+        worker.db_log_event = original_log
+
+    assert response["response_type"] == "ephemeral"
+    assert "sent" in response["text"]
+    assert captured["sent"]["channel_id"] == "D123"
+    assert captured["sent"]["team_id"] == "T070JPE5BQQ"
+    assert captured["sent"]["branding_tracking_id"]
+    rendered = captured["sent"]["blocks"][0]["text"]["text"]
+    assert "Welcome to the OWASP Slack Community, <@U123>!" in rendered
+    assert "<#C077QBBLY1Z|contribute>" in rendered
+    assert captured["logs"][0][1] == "Team_Join_Welcome"
 
 
 def test_db_upsert_slack_app_persists_app_secrets():

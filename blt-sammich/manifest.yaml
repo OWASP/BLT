@@ -34,6 +34,10 @@ features:
       url: https://sammich.owaspblt.org/slack/commands/
       description: On development
       should_escape: false
+    - command: /blt-welcome
+      url: https://sammich.owaspblt.org/slack/commands/
+      description: Send the BLT welcome message to yourself
+      should_escape: false
     - command: /installed_apps
       url: https://sammich.owaspblt.org/slack/commands/
       description: List installed apps
@@ -57,8 +61,10 @@ oauth_config:
       - groups:history
       - groups:read
       - im:history
+      - im:read
       - im:write
       - mpim:history
+      - mpim:read
       - team:read
       - users:read
       - incoming-webhook
@@ -73,6 +79,7 @@ settings:
       - message.groups
       - message.im
       - message.mpim
+      - member_joined_channel
       - team_join
   interactivity:
     is_enabled: true

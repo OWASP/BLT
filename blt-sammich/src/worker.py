@@ -4,6 +4,8 @@ import hashlib
 import hmac
 import io
 import json
+import re
+import secrets
 import time
 import traceback
 from datetime import datetime, timedelta, timezone
@@ -30,6 +32,7 @@ SLACK_COMMAND_DEFINITIONS = [
     ("/stats", "Show OWASP project and Sammich connection stats"),
     ("/discover [search term]", "Discover OWASP projects to work on"),
     ("/gsoc25 [technology, mentor, or project]", "Find OWASP GSoC project details"),
+    ("/blt-welcome", "Send the BLT welcome message to yourself"),
     ("/blt", "Show Sammich command help"),
     ("/installed_apps", "List installed apps and logged activity"),
 ]
@@ -302,22 +305,83 @@ def get_team_message_template(team_id: str, event_name: str) -> Optional[str]:
     return load_text_file(template_path)
 
 
+def get_workspace_welcome_message(team_id: str) -> str:
+    team_template = get_team_message_template(team_id, "team_join")
+    if team_template:
+        return team_template
+    return (
+        load_text_file(ROOT_DIR / "data" / "welcome_message.md")
+        or "Welcome to the OWASP Slack Community, <@{user_id}>!"
+    )
+
+
+def get_channel_join_message(team_id: str, channel_id: str) -> str:
+    if not team_id or not channel_id:
+        return ""
+    template_path = ROOT_DIR / "data" / "message-{0}-{1}-ephemeral.md".format(
+        team_id, channel_id
+    )
+    return load_text_file(template_path) or ""
+
+
+def render_join_message_template(
+    template_text: str, context: Dict[str, Any]
+) -> str:
+    output = str(template_text or "")
+    for key, value in (context or {}).items():
+        safe_value = str(value or "")
+        output = output.replace("{" + key + "}", safe_value)
+        output = output.replace("{{" + key + "}}", safe_value)
+    return output
+
+
+def link_workspace_channel_names(
+    text: str, channels: List[Dict[str, Any]]
+) -> str:
+    linked = str(text or "")
+    if not linked:
+        return linked
+    pairs = []
+    for channel in channels or []:
+        channel_name = str((channel or {}).get("channel_name") or "").strip()
+        channel_id = str((channel or {}).get("channel_id") or "").strip()
+        if channel_name and channel_id:
+            pairs.append((channel_name, channel_id))
+    pairs.sort(key=lambda pair: len(pair[0]), reverse=True)
+    for channel_name, channel_id in pairs:
+        pattern = re.compile(
+            r"(?<![A-Za-z0-9_/<])#{0}(?![A-Za-z0-9_-])".format(
+                re.escape(channel_name)
+            )
+        )
+        linked = pattern.sub("<#{0}|{1}>".format(channel_id, channel_name), linked)
+    return linked
+
+
 def render_team_join_message(
     event_payload: Dict[str, Any], team_id: str
 ) -> Optional[str]:
-    template = get_team_message_template(team_id, "team_join")
+    template = get_workspace_welcome_message(team_id)
     if not template:
         return None
 
     user = event_payload.get("user") or {}
+    user_id = str(user.get("id") or "")
     username = (
         user.get("name")
         or user.get("real_name")
         or user.get("profile", {}).get("display_name")
-        or user.get("id")
+        or user_id
         or "there"
     )
-    return template.format(username=username)
+    return render_join_message_template(
+        template,
+        {
+            "user_id": user_id,
+            "user_mention": "<@{0}>".format(user_id) if user_id else "",
+            "username": username,
+        },
+    )
 
 
 def current_config_message(env: Any, team_id: str, installer_user_id: str) -> str:
@@ -356,6 +420,44 @@ def build_slack_install_url(env: Any) -> str:
     if user_scopes:
         params["user_scope"] = user_scopes
     return "https://slack.com/oauth/v2/authorize?{0}".format(urlencode(params))
+
+
+def app_base_url(env: Any) -> str:
+    base_url = str(env_value(env, "BASE_URL") or "").strip().rstrip("/")
+    return base_url or "https://sammich.owaspblt.org"
+
+
+def blt_logo_url(env: Any) -> str:
+    return "{0}/static/logo.png".format(app_base_url(env))
+
+
+def build_blt_branding_block(
+    env: Any, channel_id: str = "", user_id: str = "", tracking_id: str = ""
+) -> Dict[str, Any]:
+    tid = str(tracking_id or "").strip() or secrets.token_hex(12)
+    logo_query = urlencode(
+        {
+            "src": "slack",
+            "tid": tid,
+            "ts": str(int(datetime.now(timezone.utc).timestamp())),
+            "ch": str(channel_id or "")[:80],
+            "u": str(user_id or "")[:80],
+        }
+    )
+    return {
+        "type": "context",
+        "elements": [
+            {
+                "type": "image",
+                "image_url": "{0}/logo-hit?{1}".format(app_base_url(env), logo_query),
+                "alt_text": "BLT Sammich",
+            },
+            {
+                "type": "mrkdwn",
+                "text": "Sent by <{0}|BLT Sammich>".format(app_base_url(env)),
+            },
+        ],
+    }
 
 
 def build_response(
@@ -2547,6 +2649,26 @@ async def db_has_team_join_event_id(
     return row is not None
 
 
+async def db_has_team_join_welcome_event_id(
+    env: Any, workspace_id: Any, event_id: str
+) -> bool:
+    if not event_id:
+        return False
+    await ensure_schema(env)
+    row = result_first(
+        await d1_run(
+            env,
+            (
+                "SELECT id FROM events WHERE workspace_id = ? "
+                "AND event_type = 'Team_Join_Welcome' AND request_data LIKE ? "
+                "ORDER BY id DESC LIMIT 1"
+            ),
+            [workspace_id, '%"event_id":"{0}"%'.format(event_id)],
+        )
+    )
+    return row is not None
+
+
 async def db_mark_join_message_verified_by_tracking(
     env: Any, tracking_id: str, ip_address: str, user_agent: str
 ) -> bool:
@@ -2558,10 +2680,11 @@ async def db_mark_join_message_verified_by_tracking(
             env,
             (
                 "SELECT id, request_data FROM events "
-                "WHERE event_type IN ('Channel_Join_Message', 'Team_Join') "
-                "AND request_data LIKE ? ORDER BY id DESC LIMIT 1"
+                "WHERE event_type IN ('Channel_Join_Message', 'Team_Join', 'Team_Join_Welcome') "
+                "AND request_data LIKE ? AND request_data LIKE ? "
+                "ORDER BY id DESC LIMIT 1"
             ),
-            ['%"logo_tracking_id": "{0}"%'.format(tracking_id)],
+            ['%"logo_tracking_id"%', '%"{0}"%'.format(tracking_id)],
         )
     )
     if not row:
@@ -3131,6 +3254,102 @@ def repo_response(text: str) -> Dict[str, Any]:
     }
 
 
+async def blt_welcome_response(form: Dict[str, str], env: Any) -> Dict[str, Any]:
+    team_id = str(form.get("team_id") or "").strip()
+    user_id = str(form.get("user_id") or "").strip()
+    if not user_id:
+        message = "I could not find your Slack user id for this command."
+        return {
+            "response_type": "ephemeral",
+            "text": message,
+            "blocks": [make_section_block(message)],
+        }
+
+    workspace = await db_get_workspace_by_team(env, team_id) if team_id else None
+    workspace_id = (workspace or {}).get("id")
+    channels = await db_get_channels(env, workspace_id) if workspace_id else []
+    welcome_text = render_team_join_message({"user": {"id": user_id}}, team_id) or ""
+    if not welcome_text.strip():
+        welcome_text = render_join_message_template(
+            get_workspace_welcome_message(team_id),
+            {
+                "user_id": user_id,
+                "user_mention": "<@{0}>".format(user_id),
+                "username": user_id,
+            },
+        )
+    welcome_text = link_workspace_channel_names(welcome_text, channels)
+    blocks = [
+        {"type": "section", "text": {"type": "mrkdwn", "text": welcome_text.strip()}}
+    ]
+
+    dm_response = await slack_api_open_conversation(user_id, env, team_id=team_id)
+    dm_channel = ""
+    if isinstance(dm_response.get("channel"), dict):
+        dm_channel = str((dm_response.get("channel") or {}).get("id") or "")
+    elif dm_response.get("channel"):
+        dm_channel = str(dm_response.get("channel") or "")
+    if not dm_response.get("ok") or not dm_channel:
+        message = "I could not open a DM for the welcome message: {0}".format(
+            dm_response.get("error") or "dm_open_failed"
+        )
+        return {
+            "response_type": "ephemeral",
+            "text": message,
+            "blocks": [make_section_block(message)],
+        }
+
+    logo_tracking_id = secrets.token_hex(12)
+    send_result = await slack_api_send_message(
+        dm_channel,
+        "Welcome to the OWASP Slack Community!",
+        env,
+        team_id=team_id,
+        blocks=blocks,
+        branding_tracking_id=logo_tracking_id,
+    )
+    if workspace_id:
+        await db_log_event(
+            env,
+            workspace_id,
+            "Team_Join_Welcome",
+            user_slack_id=user_id,
+            status="success" if send_result.get("ok") else "failed",
+            channel_name="Direct Message",
+            request_data=json.dumps(
+                {
+                    "dm_channel": dm_channel,
+                    "command": "/blt-welcome",
+                    "logo_url": blt_logo_url(env),
+                    "logo_tracking_id": logo_tracking_id,
+                    "slack_response": send_result,
+                },
+                separators=(",", ":"),
+            ),
+            channel_id=dm_channel,
+            slack_team_id=team_id,
+            slack_response_data=json.dumps(send_result, sort_keys=True),
+            webhook_body_type="slash_command",
+            webhook_event_subtype="blt_welcome",
+        )
+
+    if send_result.get("ok"):
+        message = "I sent the BLT welcome message to your DM."
+        return {
+            "response_type": "ephemeral",
+            "text": message,
+            "blocks": [make_section_block(message)],
+        }
+    message = "I could not send the welcome message: {0}".format(
+        send_result.get("error") or "slack_api_failed"
+    )
+    return {
+        "response_type": "ephemeral",
+        "text": message,
+        "blocks": [make_section_block(message)],
+    }
+
+
 async def command_response(form: Dict[str, str], env: Any) -> Dict[str, Any]:
     command_name = form.get("command", "")
     command_text = form.get("text", "")
@@ -3189,6 +3408,8 @@ async def command_response(form: Dict[str, str], env: Any) -> Dict[str, Any]:
                 )
             ],
         }
+    if command_name == "/blt-welcome":
+        return await blt_welcome_response(form, env)
     if command_name == "/installed_apps":
         summary = await installed_apps_summary(env)
         return {
@@ -3314,9 +3535,9 @@ async def log_slack_api_response(
         )
 
 
-async def slack_api_post_message(
-    channel_id: str, text: str, env: Any, team_id: str = ""
-) -> None:
+async def workspace_slack_token(
+    env: Any, team_id: str = "", channel_id: str = ""
+) -> str:
     try:
         token = await db_get_workspace_bot_token(
             env, team_id=team_id, channel_id=channel_id
@@ -3330,11 +3551,25 @@ async def slack_api_post_message(
         token = ""
     if not token:
         token = env_value(env, "SLACK_BOT_TOKEN")
+    return token or ""
+
+
+async def slack_api_call(
+    env: Any,
+    api_method: str,
+    request_payload: Dict[str, Any],
+    team_id: str = "",
+    channel_id: str = "",
+    user_id: str = "",
+    token: str = "",
+) -> Dict[str, Any]:
+    token = token or await workspace_slack_token(
+        env, team_id=team_id, channel_id=channel_id
+    )
     if not token:
-        return
-    request_payload = {"channel": channel_id, "text": text}
+        return {"ok": False, "error": "missing_slack_token"}
     ok, payload, status_code = await fetch_json(
-        "https://slack.com/api/chat.postMessage",
+        "https://slack.com/api/{0}".format(api_method),
         method="POST",
         headers={
             "Authorization": "Bearer {0}".format(token),
@@ -3346,12 +3581,97 @@ async def slack_api_post_message(
         env,
         team_id=team_id,
         channel_id=channel_id,
-        user_id="",
-        api_method="chat.postMessage",
+        user_id=user_id,
+        api_method=api_method,
         request_payload=request_payload,
         response_payload=payload,
-        ok=ok and bool(payload.get("ok", True)),
+        ok=ok and bool(payload.get("ok", False)),
         status_code=status_code,
+    )
+    if not isinstance(payload, dict):
+        payload = {}
+    payload.setdefault("ok", bool(ok and payload.get("ok", False)))
+    return payload
+
+
+async def slack_api_send_message(
+    channel_id: str,
+    text: str,
+    env: Any,
+    team_id: str = "",
+    blocks: Optional[List[Dict[str, Any]]] = None,
+    branding_tracking_id: str = "",
+) -> Dict[str, Any]:
+    request_payload: Dict[str, Any] = {"channel": channel_id, "text": text}
+    payload_blocks = list(blocks or [])
+    if payload_blocks:
+        payload_blocks.append(
+            build_blt_branding_block(
+                env,
+                channel_id=channel_id,
+                tracking_id=branding_tracking_id,
+            )
+        )
+        request_payload["blocks"] = payload_blocks
+    return await slack_api_call(
+        env,
+        "chat.postMessage",
+        request_payload,
+        team_id=team_id,
+        channel_id=channel_id,
+    )
+
+
+async def slack_api_post_message(
+    channel_id: str, text: str, env: Any, team_id: str = ""
+) -> None:
+    await slack_api_send_message(channel_id, text, env, team_id=team_id)
+
+
+async def slack_api_open_conversation(
+    user_id: str, env: Any, team_id: str = ""
+) -> Dict[str, Any]:
+    return await slack_api_call(
+        env,
+        "conversations.open",
+        {"users": user_id},
+        team_id=team_id,
+        user_id=user_id,
+    )
+
+
+async def slack_api_send_ephemeral(
+    channel_id: str,
+    user_id: str,
+    text: str,
+    env: Any,
+    team_id: str = "",
+    blocks: Optional[List[Dict[str, Any]]] = None,
+    branding_tracking_id: str = "",
+) -> Dict[str, Any]:
+    request_payload: Dict[str, Any] = {
+        "channel": channel_id,
+        "user": user_id,
+        "text": text,
+    }
+    payload_blocks = list(blocks or [])
+    if payload_blocks:
+        payload_blocks.append(
+            build_blt_branding_block(
+                env,
+                channel_id=channel_id,
+                user_id=user_id,
+                tracking_id=branding_tracking_id,
+            )
+        )
+        request_payload["blocks"] = payload_blocks
+    return await slack_api_call(
+        env,
+        "chat.postEphemeral",
+        request_payload,
+        team_id=team_id,
+        channel_id=channel_id,
+        user_id=user_id,
     )
 
 
@@ -3394,6 +3714,241 @@ async def slack_api_publish_home(user_id: str, env: Any, team_id: str = "") -> N
     )
 
 
+async def handle_team_join_event(
+    env: Any, event: Dict[str, Any], team_id: str = "", envelope: Optional[Dict[str, Any]] = None
+) -> Dict[str, Any]:
+    user_obj = event.get("user") if isinstance(event.get("user"), dict) else {}
+    user_id = str(user_obj.get("id") or event.get("user") or "").strip()
+    if not user_id:
+        return {"ok": False, "error": "missing_user_id"}
+
+    workspace = await db_get_workspace_by_team(env, team_id) if team_id else None
+    workspace_id = (workspace or {}).get("id")
+    event_id = str((envelope or {}).get("event_id") or event.get("_event_id") or "").strip()
+    if workspace_id and event_id:
+        try:
+            if await db_has_team_join_welcome_event_id(env, workspace_id, event_id):
+                return {"ok": True, "action": "duplicate_team_join_welcome_skipped"}
+        except Exception as error:
+            log_exception_one_line(
+                error,
+                "team_join_duplicate_lookup_failed",
+                {"team_id": team_id, "event_id": event_id},
+            )
+
+    welcome_text = render_team_join_message(
+        {"user": user_obj or {"id": user_id}},
+        team_id,
+    )
+    if not welcome_text:
+        return {"ok": True, "action": "team_join_no_template"}
+
+    channels = await db_get_channels(env, workspace_id) if workspace_id else []
+    top_channels = [
+        channel
+        for channel in channels[:5]
+        if channel.get("channel_id") and channel.get("channel_name")
+    ]
+    if top_channels:
+        welcome_text += "\n\n:bar_chart: *Most Active Channels:* {0}".format(
+            ", ".join(
+                "*<#{0}|{1}>*".format(
+                    channel.get("channel_id"), channel.get("channel_name")
+                )
+                for channel in top_channels
+            )
+        )
+    welcome_text = link_workspace_channel_names(welcome_text, channels)
+    blocks = [
+        {"type": "section", "text": {"type": "mrkdwn", "text": welcome_text.strip()}}
+    ]
+
+    dm_response = await slack_api_open_conversation(user_id, env, team_id=team_id)
+    dm_channel = ""
+    if isinstance(dm_response.get("channel"), dict):
+        dm_channel = str((dm_response.get("channel") or {}).get("id") or "")
+    elif dm_response.get("channel"):
+        dm_channel = str(dm_response.get("channel") or "")
+    if not dm_response.get("ok") or not dm_channel:
+        if workspace_id:
+            await db_log_event(
+                env,
+                workspace_id,
+                "Team_Join_Welcome",
+                user_slack_id=user_id,
+                status="failed",
+                channel_name="Direct Message",
+                request_data=json.dumps(
+                    {
+                        "stage": "open_conversation",
+                        "event_id": event_id,
+                        "error": dm_response.get("error") or "dm_open_failed",
+                    },
+                    separators=(",", ":"),
+                ),
+                channel_id="",
+                slack_team_id=team_id,
+                webhook_body_type="event_callback",
+                webhook_event_id=event_id,
+                webhook_event_time=str((envelope or {}).get("event_time") or ""),
+                webhook_event_subtype="team_join",
+            )
+        return {"ok": False, "error": dm_response.get("error") or "dm_open_failed"}
+
+    logo_tracking_id = secrets.token_hex(12)
+    send_result = await slack_api_send_message(
+        dm_channel,
+        "Welcome to the OWASP Slack Community!",
+        env,
+        team_id=team_id,
+        blocks=blocks,
+        branding_tracking_id=logo_tracking_id,
+    )
+    if workspace_id:
+        await db_log_event(
+            env,
+            workspace_id,
+            "Team_Join_Welcome",
+            user_slack_id=user_id,
+            status="success" if send_result.get("ok") else "failed",
+            channel_name="Direct Message",
+            request_data=json.dumps(
+                {
+                    "dm_channel": dm_channel,
+                    "event_id": event_id,
+                    "logo_url": blt_logo_url(env),
+                    "logo_tracking_id": logo_tracking_id,
+                    "slack_response": send_result,
+                },
+                separators=(",", ":"),
+            ),
+            channel_id=dm_channel,
+            slack_team_id=team_id,
+            slack_response_data=json.dumps(send_result, sort_keys=True),
+            webhook_body_type="event_callback",
+            webhook_event_id=event_id,
+            webhook_event_time=str((envelope or {}).get("event_time") or ""),
+            webhook_event_subtype="team_join",
+        )
+    return {"ok": bool(send_result.get("ok")), "action": "team_join_welcome_sent"}
+
+
+async def handle_channel_join_event(
+    env: Any,
+    event: Dict[str, Any],
+    team_id: str = "",
+    source_event: str = "",
+) -> Dict[str, Any]:
+    user_id = str(event.get("user") or "").strip()
+    channel_id = str(event.get("channel") or "").strip()
+    if not user_id or not channel_id:
+        return {"ok": False, "error": "missing_channel_join_fields"}
+
+    workspace = await db_get_workspace_by_team(env, team_id) if team_id else None
+    if not workspace:
+        workspace = await db_get_workspace_by_channel_id(env, channel_id)
+    if not workspace:
+        return {"ok": True, "action": "channel_join_workspace_not_found"}
+
+    effective_team_id = str(team_id or workspace.get("team_id") or "").strip()
+    workspace_id = workspace.get("id")
+    channel_name = await db_get_channel_name(env, workspace_id, channel_id)
+    template = get_channel_join_message(effective_team_id, channel_id)
+    await db_log_event(
+        env,
+        workspace_id,
+        "Channel_Join",
+        user_slack_id=user_id,
+        status="success",
+        channel_name=channel_name,
+        request_data=json.dumps(
+            {"channel_id": channel_id, "source_event": source_event or ""},
+            separators=(",", ":"),
+        ),
+        channel_id=channel_id,
+        slack_team_id=effective_team_id,
+        webhook_body_type="event_callback",
+        webhook_event_subtype="channel_join",
+    )
+    if not template.strip():
+        return {"ok": True, "action": "channel_join_logged"}
+
+    rendered = render_join_message_template(
+        template,
+        {
+            "user_id": user_id,
+            "user_mention": "<@{0}>".format(user_id),
+            "channel_id": channel_id,
+            "channel_name": channel_name,
+            "workspace_id": workspace_id,
+            "workspace_name": workspace.get("team_name") or "",
+            "event_type": "channel_join",
+            "timestamp": utc_now(),
+        },
+    )
+    if not rendered.strip():
+        return {"ok": True, "action": "channel_join_empty_template"}
+
+    blocks = [{"type": "section", "text": {"type": "mrkdwn", "text": rendered}}]
+    logo_tracking_id = secrets.token_hex(12)
+    send_result = await slack_api_send_ephemeral(
+        channel_id,
+        user_id,
+        rendered,
+        env,
+        team_id=effective_team_id,
+        blocks=blocks,
+        branding_tracking_id=logo_tracking_id,
+    )
+    delivery_mode = "ephemeral"
+    if not send_result.get("ok"):
+        dm_response = await slack_api_open_conversation(
+            user_id, env, team_id=effective_team_id
+        )
+        dm_channel = ""
+        if isinstance(dm_response.get("channel"), dict):
+            dm_channel = str((dm_response.get("channel") or {}).get("id") or "")
+        elif dm_response.get("channel"):
+            dm_channel = str(dm_response.get("channel") or "")
+        if dm_response.get("ok") and dm_channel:
+            delivery_mode = "dm"
+            send_result = await slack_api_send_message(
+                dm_channel,
+                rendered,
+                env,
+                team_id=effective_team_id,
+                blocks=blocks,
+                branding_tracking_id=logo_tracking_id,
+            )
+    await db_log_event(
+        env,
+        workspace_id,
+        "Channel_Join_Message",
+        user_slack_id=user_id,
+        status="success" if send_result.get("ok") else "failed",
+        channel_name=channel_name,
+        request_data=json.dumps(
+            {
+                "channel": channel_id,
+                "channel_name": channel_name,
+                "template_name": "data_file",
+                "user_id": user_id,
+                "delivery_mode": delivery_mode,
+                "source_event": source_event or "",
+                "logo_url": blt_logo_url(env),
+                "logo_tracking_id": logo_tracking_id,
+            },
+            separators=(",", ":"),
+        ),
+        channel_id=channel_id,
+        slack_team_id=effective_team_id,
+        slack_response_data=json.dumps(send_result, sort_keys=True),
+        webhook_body_type="event_callback",
+        webhook_event_subtype="channel_join",
+    )
+    return {"ok": bool(send_result.get("ok")), "action": "channel_join_logged"}
+
+
 async def handle_event_payload(payload: Dict[str, Any], env: Any) -> Any:
     if payload.get("type") == "url_verification":
         return json_response({"challenge": payload.get("challenge", "")})
@@ -3422,13 +3977,30 @@ async def handle_event_payload(payload: Dict[str, Any], env: Any) -> Any:
                 team_id=team_id,
             )
     if event.get("type") == "team_join":
-        user_id = event.get("user", {}).get("id")
-        welcome_message = render_team_join_message(event, team_id)
-        if user_id and welcome_message:
-            await slack_api_post_message(
-                user_id, welcome_message, env, team_id=team_id
-            )
+        result = await handle_team_join_event(env, event, team_id=team_id, envelope=payload)
+        return json_response(result)
+    if event.get("type") == "member_joined_channel":
+        result = await handle_channel_join_event(
+            env,
+            {
+                "type": "message",
+                "subtype": "channel_join",
+                "user": event.get("user"),
+                "channel": event.get("channel"),
+                "channel_type": event.get("channel_type", "channel"),
+            },
+            team_id=team_id,
+            source_event="member_joined_channel",
+        )
+        return json_response(result)
     if event.get("type") == "message":
+        if event.get("subtype") == "channel_join":
+            return json_response(
+                {
+                    "ok": True,
+                    "action": "channel_join_waiting_for_member_joined_channel",
+                }
+            )
         if event.get("subtype"):
             return json_response({"ok": True})
         user_id = event.get("user", "")
@@ -4503,6 +5075,34 @@ async def handle_request(request: Any, env: Any) -> Any:
 
     if method == "GET" and normalized_path == "/api/workspaces-public":
         return json_response(await public_connections_payload(env))
+
+    if method in ("GET", "HEAD") and normalized_path == "/logo-hit":
+        params = parse_qs(parsed_url.query)
+        tracking_id = str((params.get("tid") or [""])[0] or "").strip()
+        ip_address = (
+            request.headers.get("cf-connecting-ip")
+            or request.headers.get("CF-Connecting-IP")
+            or request.headers.get("x-forwarded-for")
+            or request.headers.get("X-Forwarded-For")
+            or ""
+        ).split(",")[0].strip()
+        user_agent = (
+            request.headers.get("user-agent")
+            or request.headers.get("User-Agent")
+            or ""
+        )
+        if tracking_id:
+            await db_mark_join_message_verified_by_tracking(
+                env, tracking_id, ip_address, user_agent
+            )
+        return build_response(
+            "",
+            status=302,
+            headers={
+                "location": blt_logo_url(env),
+                "cache-control": "no-store",
+            },
+        )
 
     if normalized_path == configured_admin_path and method == "GET":
         return await handle_admin_get(request, env)
