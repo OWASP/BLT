@@ -1,6 +1,11 @@
 # BLT-Tomato
 Scripts related to projects mainly for high level OWASP project management
-1) Funding https://owasp-blt.github.io/BLT-Tomato/
+1) Funding site served from `public/`
+
+## Cloudflare
+
+This is a static Cloudflare site. The publish directory is `public/`, and
+`wrangler.toml` points both Pages and Workers Static Assets at that folder.
 
 ## Manually Triggering the Workflow
 
