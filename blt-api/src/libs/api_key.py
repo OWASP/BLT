@@ -19,7 +19,7 @@ PUBLIC_API_KEY_PATHS = {
     "/",
     "/v2",
     "/auth",
-    "/blt-api.svg",
+    "/blt-api.png",
     "/dashboard",
     "/health",
     "/v2/health",

@@ -52,7 +52,7 @@ router = Router()
 
 # Homepage and health check
 router.add_route("GET", "/", handle_homepage)
-router.add_route("GET", "/blt-api.svg", handle_blt_api_logo)
+router.add_route("GET", "/blt-api.png", handle_blt_api_logo)
 router.add_route("GET", "/dashboard", handle_dashboard)
 router.add_route("GET", "/auth", handle_auth_page)
 router.add_route("GET", "/health", handle_health)

@@ -49,13 +49,13 @@ class TestHomepageHandler:
     async def test_homepage_returns_landing_page_html(self):
         content = await _body(handle_homepage)
 
-        assert "<!DOCTYPE html>" in content
+        assert "<!doctype html>" in content.lower()
         assert "BLT API" in content
         assert "Build with" in content
         assert "Everything you need to test a route" in content
         assert "The dashboard keeps route docs" in content
-        assert 'src="/blt-api.svg"' in content
-        assert 'src="/blt-api.png"' not in content
+        assert 'src="/blt-api.png"' in content
+        assert 'src="/blt-api.svg"' not in content
 
     @pytest.mark.asyncio
     async def test_homepage_links_to_dashboard_route_not_html_or_v2_page(self):
@@ -78,16 +78,17 @@ class TestHomepageHandler:
     @pytest.mark.asyncio
     async def test_blt_api_logo_asset_is_served(self):
         response = await handle_blt_api_logo(
-            MockRequest(url="https://blt-api.workers.dev/blt-api.svg"),
+            MockRequest(url="https://blt-api.workers.dev/blt-api.png"),
             MockEnv(),
             path_params={},
             query_params={},
-            path="/blt-api.svg",
+            path="/blt-api.png",
         )
 
         assert response.status == 200
-        assert "image/svg+xml" in response.headers["Content-Type"]
-        assert "<svg" in response.body
+        assert response.headers["Content-Type"] == "image/webp"
+        assert isinstance(response.body, bytes)
+        assert response.body.startswith(b"RIFF")
 
 
 class TestDashboardHandler:
@@ -117,6 +118,10 @@ class TestDashboardHandler:
             "/v2/users",
             "/v2/domains",
             "/v2/organizations",
+            "/v2/jobs",
+            "/v2/jobs/{id}/view",
+            "/v2/hackathons",
+            "/v2/hackathons/{id}/register",
         ]:
             assert route in content
 
@@ -127,10 +132,25 @@ class TestDashboardHandler:
         assert "sendRequestButton" in content
         assert "async function sendRequest" in content
         assert "fetch(request.url, fetchOptions)" in content
+        assert "function shouldUseDemoResponse" in content
+        assert "function buildDemoResponse" in content
         assert "responseBody" in content
         assert "copyCurlButton" not in content
         assert "curlOutput" not in content
         assert "Generated cURL" not in content
+
+    @pytest.mark.asyncio
+    async def test_dashboard_signed_out_try_it_uses_demo_without_fetching(self):
+        content = await _body(handle_dashboard, url="https://api.example.com/dashboard", path="/dashboard")
+
+        send_start = content.index("async function sendRequest()")
+        send_end = content.index("function extractUsername", send_start)
+        send_body = content[send_start:send_end]
+
+        assert "if (shouldUseDemoResponse(activeRoute))" in send_body
+        assert "await simulateDemoResponse(activeRoute, start);" in send_body
+        assert send_body.index("await simulateDemoResponse(activeRoute, start);") < send_body.index("fetch(request.url, fetchOptions)")
+        assert "Demo response. Sign in and create an API key to send live requests." in content
 
     @pytest.mark.asyncio
     async def test_dashboard_contains_api_key_panel(self):
@@ -142,8 +162,8 @@ class TestDashboardHandler:
         assert "apiKeyList" in content
         assert "X-BLT-API-Key" in content
         assert "blt-dashboard-api-key" in content
-        assert 'src="/blt-api.svg"' in content
-        assert 'src="/blt-api.png"' not in content
+        assert 'src="/blt-api.png"' in content
+        assert 'src="/blt-api.svg"' not in content
 
     @pytest.mark.asyncio
     async def test_dashboard_profile_modal_omits_manual_api_key_controls(self):
@@ -211,9 +231,40 @@ class TestDashboardHandler:
 
             route_paths = {(route.method, route.pattern) for route in main.router.routes}
             assert ("GET", "/dashboard") in route_paths
+            assert ("GET", "/blt-api.png") in route_paths
             assert ("GET", "/dashboard.html") not in route_paths
             assert ("GET", "/v2/dashboard") not in route_paths
             assert ("GET", "/v2/dashboard.html") not in route_paths
             assert ("GET", "/v2") not in route_paths
+
+        assert sys.modules.get("workers") is previous_workers
+
+    def test_new_user_owned_api_routes_are_registered_for_discovery(self, monkeypatch):
+        previous_workers = sys.modules.get("workers")
+        workers_mod = types.ModuleType("workers")
+
+        class WorkerEntrypoint:
+            pass
+
+        setattr(workers_mod, "WorkerEntrypoint", WorkerEntrypoint)
+        with monkeypatch.context() as patch_context:
+            patch_context.setitem(sys.modules, "workers", workers_mod)
+            main = importlib.reload(sys.modules["main"]) if "main" in sys.modules else importlib.import_module("main")
+
+            route_paths = {(route.method, route.pattern) for route in main.router.routes}
+            for route in [
+                ("GET", "/v2/jobs"),
+                ("POST", "/v2/jobs"),
+                ("GET", "/v2/jobs/{id}"),
+                ("PATCH", "/v2/jobs/{id}"),
+                ("POST", "/v2/jobs/{id}/view"),
+                ("GET", "/v2/jobs/stats"),
+                ("GET", "/v2/hackathons"),
+                ("POST", "/v2/hackathons"),
+                ("GET", "/v2/hackathons/{slug}"),
+                ("PATCH", "/v2/hackathons/{id}"),
+                ("POST", "/v2/hackathons/{id}/register"),
+            ]:
+                assert route in route_paths
 
         assert sys.modules.get("workers") is previous_workers
