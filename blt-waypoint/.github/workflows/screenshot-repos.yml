@@ -27,14 +27,14 @@ jobs:
 
       - name: Take screenshots
         env:
-          DATA_FILE: data.json
+          DATA_FILE: github_data.json
         run: |
           node - <<'EOF'
           const { chromium } = require('playwright');
           const fs = require('fs');
           const path = require('path');
 
-          const dataFile = process.env.DATA_FILE || 'data.json';
+          const dataFile = process.env.DATA_FILE || 'github_data.json';
           const outDir = path.join('imgs', 'screenshots');
           fs.mkdirSync(outDir, { recursive: true });
 

@@ -8,6 +8,5 @@ fi
 
 mkdir -p public
 
-"$PYTHON_BIN" scripts/generate_github_data.py || echo "Keeping existing github_data.json"
 "$PYTHON_BIN" scripts/generate_gitlab_data.py || echo "Keeping existing gitlab_data.json"
 "$PYTHON_BIN" scripts/generate_main_data.py || echo "Keeping existing main data files"

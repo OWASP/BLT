@@ -25,8 +25,8 @@ const DATA_SOURCES = {
   },
 };
 const MIGRATION_TOTAL_REPOS = 55;
-const MIGRATION_MIGRATED_REPOS = 5;
-const MIGRATION_COMPLETION_POINTS = 100 + 100 + 95 + 90 + 90;
+const MIGRATION_MIGRATED_REPOS = 55;
+const MIGRATION_COMPLETION_POINTS = MIGRATION_TOTAL_REPOS * 100;
 
 // Project board URLs sourced from https://github.com/OWASP-BLT/.github/blob/main/scripts/project_urls.json
 const PROJECT_URLS = {
@@ -233,15 +233,7 @@ function resetDataSourceFilters(source) {
 
 function gitlabMigrationProgress(r) {
   if (typeof r.gitlab_migration_progress === 'number') return r.gitlab_migration_progress;
-  const progress = {
-    'BLT-Next': 100,
-    'BLT-University': 95,
-    'BLT-GSOC': 90,
-    'BLT-Waypoint': 90,
-    'owasp-blt.github.io': 90,
-    'BLT-API': 100,
-  };
-  return progress[r.name] || 0;
+  return gitlabRepoUrl(r) ? 100 : 0;
 }
 
 function repoDisplayName(r) {
@@ -260,15 +252,8 @@ function gitlabMigrationClasses(progress) {
 }
 
 function gitlabRepoUrl(r) {
-  const urls = {
-    'owasp-blt.github.io': 'https://gitlab.com/owasp-blt/blt-waypoint',
-    'BLT-GSOC': 'https://gitlab.com/owasp-blt/blt-gsoc',
-    'BLT-University': 'https://gitlab.com/owasp-blt/blt-university',
-    'BLT-Waypoint': 'https://gitlab.com/owasp-blt/blt-waypoint',
-    'BLT-Next': 'https://gitlab.com/owasp-blt/BLT-Next',
-    'BLT-API': 'https://gitlab.com/owasp-blt/blt-api',
-  };
-  return r.gitlab_url || urls[r.name] || '';
+  if (r.gitlab_url) return r.gitlab_url;
+  return (r.html_url || '').startsWith('https://gitlab.com/') ? r.html_url : '';
 }
 
 function calculateMigrationSummary(repos) {
@@ -418,7 +403,11 @@ function csvToMainPayload(text) {
 
 async function fetchSnapshotPayload(source) {
   if (source.type === 'csv' && window.BLT_MAIN_DATA_CSV) {
-    return csvToMainPayload(window.BLT_MAIN_DATA_CSV);
+    const payload = csvToMainPayload(window.BLT_MAIN_DATA_CSV);
+    if (!payload.repos || payload.repos.length === 0) {
+      throw new Error('Embedded main_data.js did not contain repository rows');
+    }
+    return payload;
   }
 
   const resp = await fetch(`${source.file}?t=${Date.now()}`);
