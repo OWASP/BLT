@@ -1,4 +1,5 @@
 <!doctype html>
+<!-- BLT-API interactive API explorer. Served by handle_dashboard at GET /dashboard. -->
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -77,20 +78,29 @@
         background: rgba(148, 163, 184, 0.75);
         border-radius: 999px;
       }
+      @media (max-width: 767px) {
+        #sidebar {
+          height: 100dvh;
+        }
+      }
     </style>
   </head>
   <body
-    class="bg-white dark:bg-slate-950 text-gray-900 dark:text-slate-100 transition-colors"
+    class="overflow-x-hidden bg-white dark:bg-slate-950 text-gray-900 dark:text-slate-100 transition-colors"
   >
-    <div class="flex h-screen overflow-hidden">
+    <div
+      class="flex min-h-screen flex-col overflow-x-hidden md:h-screen md:flex-row md:overflow-hidden"
+    >
       <aside
         id="sidebar"
-        class="w-64 bg-gray-50 dark:bg-slate-900 border-r border-gray-200 dark:border-slate-800 overflow-hidden flex flex-col"
+        class="fixed inset-0 z-40 hidden md:flex w-full flex-none flex-col overflow-hidden border-r border-gray-200 bg-gray-50 dark:border-slate-800 dark:bg-slate-900 md:static md:z-auto md:w-64"
       >
-        <div class="p-2 border-b border-gray-200 dark:border-slate-800">
+        <div
+          class="flex items-center gap-3 border-b border-gray-200 p-3 dark:border-slate-800 md:p-2"
+        >
           <a
             href="/"
-            class="inline-flex items-center gap-2.5"
+            class="inline-flex min-w-0 items-center gap-2.5"
             aria-label="BLT API home"
           >
             <img src="/blt-api.png" alt="BLT API logo" class="h-14" />
@@ -105,6 +115,28 @@
             </div>
           </a>
 
+          <button
+            id="mobileNavClose"
+            type="button"
+            class="ml-auto inline-flex h-10 w-10 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-700 transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-red-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700 md:hidden"
+            aria-label="Close route menu"
+          >
+            <svg
+              class="h-5 w-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              ></path>
+            </svg>
+          </button>
+
           <span class="sr-only">Route Catalog</span>
         </div>
 
@@ -117,31 +149,91 @@
           />
         </div>
 
-        <nav class="flex-1 sidebar-nav overflow-y-auto" aria-label="API routes">
+        <nav
+          class="min-h-0 flex-1 sidebar-nav overflow-y-auto"
+          aria-label="API routes"
+        >
           <div id="navContainer"></div>
         </nav>
 
         <div
           class="p-4 border-t border-gray-200 dark:border-slate-800 text-xs text-gray-600 dark:text-slate-400"
         >
+          <div class="grid grid-cols-2 gap-2 md:hidden">
+            <a
+              id="mobileHealthLink"
+              href="[[API_BASE_URL]]/health"
+              class="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-red-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
+            >
+              Health
+            </a>
+            <button
+              id="mobileThemeToggle"
+              type="button"
+              class="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-red-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
+              aria-label="Toggle dark mode"
+            >
+              <svg
+                class="h-4 w-4"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                aria-hidden="true"
+              >
+                <path
+                  d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"
+                ></path>
+              </svg>
+              Theme
+            </button>
+          </div>
           <p
             id="endpointCount"
-            class="rounded-full border border-gray-200 bg-white px-3 py-2 text-center font-mono font-semibold text-gray-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+            class="mt-3 rounded-full border border-gray-200 bg-white px-3 py-2 text-center font-mono font-semibold text-gray-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 md:mt-0"
           >
             v2 · Loading endpoints
           </p>
         </div>
       </aside>
 
-      <div class="flex-1 flex flex-col overflow-hidden">
+      <div
+        class="flex min-w-0 flex-1 flex-col overflow-visible md:overflow-hidden"
+      >
         <header
-          class="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 px-8 py-4 flex items-center justify-between"
+          class="flex items-center gap-3 border-b border-gray-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900 md:px-8 md:py-4"
         >
-          <h2 id="pageTitle" class="text-2xl font-bold">BLT API Dashboard</h2>
-          <div class="flex items-center gap-3">
+          <button
+            id="mobileNavToggle"
+            type="button"
+            class="inline-flex h-10 w-10 flex-none items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-700 transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-red-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700 md:hidden"
+            aria-label="Open route menu"
+            aria-controls="sidebar"
+            aria-expanded="false"
+          >
+            <svg
+              class="h-5 w-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 6h16M4 12h16M4 18h16"
+              ></path>
+            </svg>
+          </button>
+          <h2
+            id="pageTitle"
+            class="min-w-0 flex-1 truncate text-lg font-bold sm:text-xl md:text-2xl"
+          >
+            BLT API Dashboard
+          </h2>
+          <div class="ml-auto flex flex-none items-center gap-2 sm:gap-3">
             <a
               href="[[API_BASE_URL]]/health"
-              class="px-3 py-2 text-sm rounded border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-slate-100 hover:bg-gray-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-red-600 dark:focus:ring-red-500"
+              class="hidden px-3 py-2 text-sm rounded border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-slate-100 hover:bg-gray-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-red-600 dark:focus:ring-red-500 md:inline-flex"
             >
               Health
             </a>
@@ -160,7 +252,11 @@
                   aria-hidden="true"
                   >👤</span
                 >
-                <span id="accountStatusChip">Sign up / Sign in</span>
+                <span
+                  id="accountStatusChip"
+                  class="max-w-[9rem] truncate sm:max-w-none"
+                  >Sign up / Sign in</span
+                >
               </button>
               <div
                 id="profileMenu"
@@ -189,7 +285,7 @@
             <button
               id="themeToggle"
               type="button"
-              class="p-2 rounded hover:bg-gray-100 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-red-600 dark:focus:ring-red-500"
+              class="hidden p-2 rounded hover:bg-gray-100 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-red-600 dark:focus:ring-red-500 md:inline-flex"
               aria-label="Toggle dark mode"
             >
               <svg
@@ -206,9 +302,11 @@
           </div>
         </header>
 
-        <main class="flex-1 overflow-hidden flex gap-6 p-8">
-          <div class="flex-1 overflow-y-auto">
-            <div class="space-y-4 pr-2">
+        <main
+          class="flex min-h-0 flex-1 flex-col gap-4 overflow-visible p-4 md:flex-row md:gap-6 md:overflow-hidden md:p-8"
+        >
+          <div class="min-w-0 flex-1 overflow-visible md:overflow-y-auto">
+            <div class="space-y-4 md:pr-2">
               <section
                 class="grid gap-3 md:grid-cols-3"
                 aria-label="API status"
@@ -295,7 +393,7 @@
           </div>
 
           <aside
-            class="w-96 bg-gray-50 dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-slate-800 p-6 flex flex-col overflow-hidden"
+            class="flex w-full flex-none flex-col overflow-visible rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-slate-800 dark:bg-slate-900 md:w-96 md:overflow-hidden md:p-6"
           >
             <div class="flex items-start justify-between gap-3 mb-4">
               <div>
@@ -327,7 +425,9 @@
                 />
               </div>
 
-              <div class="grid grid-cols-[6.5rem_minmax(0,1fr)] gap-2">
+              <div
+                class="grid grid-cols-1 gap-2 sm:grid-cols-[6.5rem_minmax(0,1fr)]"
+              >
                 <div>
                   <label
                     for="methodInput"
@@ -365,7 +465,9 @@
               </button>
             </div>
 
-            <div class="space-y-4 flex-1 overflow-y-auto pt-4">
+            <div
+              class="space-y-4 overflow-visible pt-4 md:flex-1 md:overflow-y-auto"
+            >
               <div id="pathParamsSection" class="hidden">
                 <h3
                   class="text-xs font-bold uppercase text-gray-600 dark:text-slate-400"
@@ -473,7 +575,7 @@
     <!-- ── Auth Modal (sign in / create account) ──────────────────────── -->
     <div
       id="authModal"
-      class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 pt-12"
+      class="fixed inset-0 z-50 hidden flex items-start justify-center overflow-y-auto p-3 py-6 sm:items-center sm:p-4 sm:pt-12"
       role="dialog"
       aria-modal="true"
       aria-labelledby="authModalTitle"
@@ -483,10 +585,12 @@
         class="absolute inset-0 bg-slate-950/60 backdrop-blur-sm"
       ></div>
       <div
-        class="relative w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-slate-900"
+        class="relative max-h-[calc(100vh-2rem)] w-full max-w-md overflow-y-auto rounded-2xl bg-white shadow-2xl dark:bg-slate-900 sm:max-h-none sm:overflow-hidden"
       >
         <!-- gradient header with logo + tabs -->
-        <div class="bg-gradient-to-br from-red-600 to-red-800 px-8 pt-8 pb-6">
+        <div
+          class="bg-gradient-to-br from-red-600 to-red-800 px-5 pb-5 pt-6 sm:px-8 sm:pb-6 sm:pt-8"
+        >
           <button
             id="authModalCloseButton"
             type="button"
@@ -550,7 +654,7 @@
           </div>
         </div>
         <!-- forms area -->
-        <div class="px-8 py-6">
+        <div class="px-5 py-5 sm:px-8 sm:py-6">
           <!-- Sign in form -->
           <form id="authSigninForm" class="space-y-4" novalidate>
             <div>
@@ -608,7 +712,7 @@
           </form>
           <!-- Sign up form (hidden by default) -->
           <form id="authSignupForm" class="hidden space-y-4" novalidate>
-            <div class="grid grid-cols-2 gap-3">
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
                 <label
                   for="authSignupUsername"
@@ -735,7 +839,7 @@
     <!-- ── Profile Modal (signed-in users) ────────────────────────────── -->
     <div
       id="profileModal"
-      class="fixed inset-0 z-50 hidden flex items-center justify-center p-4"
+      class="fixed inset-0 z-50 hidden flex items-start justify-center overflow-y-auto p-3 py-6 sm:items-center sm:p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="profileModalTitle"
@@ -745,11 +849,11 @@
         class="absolute inset-0 bg-slate-950/60 backdrop-blur-sm"
       ></div>
       <div
-        class="relative w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-slate-900"
+        class="relative max-h-[calc(100vh-2rem)] w-full max-w-lg overflow-y-auto rounded-2xl bg-white shadow-2xl dark:bg-slate-900 sm:max-h-none sm:overflow-hidden"
       >
         <!-- profile header -->
         <div
-          class="bg-gradient-to-br from-slate-800 to-slate-900 px-8 pt-8 pb-6"
+          class="bg-gradient-to-br from-slate-800 to-slate-900 px-5 pb-5 pt-6 sm:px-8 sm:pb-6 sm:pt-8"
         >
           <button
             id="profileModalCloseButton"
@@ -771,7 +875,7 @@
               />
             </svg>
           </button>
-          <div class="flex items-center gap-4">
+          <div class="flex flex-wrap items-center gap-3 sm:gap-4">
             <div
               id="profileAvatarLarge"
               class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-red-600 text-2xl font-bold text-white ring-2 ring-red-500/30"
@@ -795,14 +899,16 @@
             <button
               id="profileSignOutButton"
               type="button"
-              class="ml-auto shrink-0 rounded-lg border border-slate-600 px-3 py-1.5 text-xs font-semibold text-slate-300 transition hover:border-red-500/60 hover:bg-red-500/10 hover:text-red-300 focus:outline-none focus:ring-2 focus:ring-red-500"
+              class="shrink-0 rounded-lg border border-slate-600 px-3 py-1.5 text-xs font-semibold text-slate-300 transition hover:border-red-500/60 hover:bg-red-500/10 hover:text-red-300 focus:outline-none focus:ring-2 focus:ring-red-500 sm:ml-auto"
             >
               Sign out
             </button>
           </div>
         </div>
         <!-- scrollable content -->
-        <div class="sidebar-nav max-h-[68vh] overflow-y-auto p-6 space-y-5">
+        <div
+          class="sidebar-nav max-h-[68vh] overflow-y-auto p-4 space-y-5 sm:p-6"
+        >
           <!-- create + list API keys -->
           <div
             class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-slate-800 dark:bg-slate-800"
@@ -821,7 +927,7 @@
                 Refresh
               </button>
             </div>
-            <div class="mb-4 flex gap-2">
+            <div class="mb-4 flex flex-col gap-2 sm:flex-row">
               <input
                 id="apiKeyNameInput"
                 type="text"
@@ -832,7 +938,7 @@
               <button
                 id="createApiKeyButton"
                 type="button"
-                class="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300 dark:hover:bg-red-500/20"
+                class="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300 dark:hover:bg-red-500/20 sm:w-auto"
               >
                 Create
               </button>
@@ -2563,6 +2669,7 @@
 
       const elements = {
         mobileNavToggle: document.getElementById("mobileNavToggle"),
+        mobileNavClose: document.getElementById("mobileNavClose"),
         sidebar: document.getElementById("sidebar"),
         navContainer: document.getElementById("navContainer"),
         searchInput: document.getElementById("searchInput"),
@@ -2578,6 +2685,7 @@
         accountOpenButton: document.getElementById("accountOpenButton"),
         accountStatusChip: document.getElementById("accountStatusChip"),
         themeToggle: document.getElementById("themeToggle"),
+        mobileThemeToggle: document.getElementById("mobileThemeToggle"),
         consoleMethodBadge: document.getElementById("consoleMethodBadge"),
         baseUrlInput: document.getElementById("baseUrlInput"),
         methodInput: document.getElementById("methodInput"),
@@ -2846,7 +2954,7 @@
                       (isActive ? "true" : "false") +
                       '">' +
                       methodBadge(route.method, "shrink-0 mt-0.5") +
-                      '<span class="ml-2 endpoint-code text-xs">' +
+                      '<span class="ml-2 endpoint-code break-all text-xs md:break-normal">' +
                       escapeHtml(route.path) +
                       '</span><span class="mt-1 block truncate text-xs text-gray-500 dark:text-slate-400">' +
                       escapeHtml(route.name) +
@@ -2901,7 +3009,7 @@
           authBadges(route) +
           "</div>" +
           "</div>" +
-          '<button type="button" id="copyPathButton" class="rounded border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm font-semibold text-gray-700 dark:text-slate-100 hover:bg-gray-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-red-600 dark:focus:ring-red-500">Copy path</button>' +
+          '<button type="button" id="copyPathButton" class="w-full rounded border border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm font-semibold text-gray-700 dark:text-slate-100 hover:bg-gray-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-red-600 dark:focus:ring-red-500 sm:w-auto">Copy path</button>' +
           "</div>" +
           renderParameterSection("Path Parameters", pathParams) +
           renderParameterSection("Query Parameters", queryParams) +
@@ -3010,6 +3118,34 @@
         });
       }
 
+      function isMobileNavViewport() {
+        return window.innerWidth < 768;
+      }
+
+      function setMobileNavOpen(isOpen) {
+        if (!elements.sidebar || !elements.mobileNavToggle) return;
+        elements.sidebar.classList.toggle("hidden", !isOpen);
+        elements.sidebar.classList.toggle("flex", isOpen);
+        elements.mobileNavToggle.setAttribute("aria-expanded", String(isOpen));
+        document.body.classList.toggle(
+          "overflow-hidden",
+          isOpen && isMobileNavViewport(),
+        );
+        if (isOpen && elements.searchInput) {
+          window.setTimeout(function () {
+            elements.searchInput.focus();
+          }, 80);
+        }
+      }
+
+      function closeMobileNav() {
+        setMobileNavOpen(false);
+      }
+
+      function openMobileNav() {
+        setMobileNavOpen(true);
+      }
+
       function selectEndpoint(routeId) {
         var route = allRoutes().find(function (item) {
           return item.id === routeId;
@@ -3019,9 +3155,8 @@
         renderNav();
         renderConsole(route);
         renderDetail(route);
-        if (elements.mobileNavToggle && window.innerWidth < 1024) {
-          elements.sidebar.classList.add("hidden");
-          elements.mobileNavToggle.setAttribute("aria-expanded", "false");
+        if (elements.mobileNavToggle && isMobileNavViewport()) {
+          closeMobileNav();
         }
       }
 
@@ -3903,17 +4038,33 @@
         setRequestStatus("Sample body restored.", "success");
       }
 
+      function toggleTheme() {
+        var isDark = document.documentElement.classList.toggle("dark");
+        localStorage.setItem(THEME_STORAGE_KEY, isDark ? "dark" : "light");
+      }
+
       function wireEvents() {
         // ── Mobile nav ────────────────────────────────────────────────────
         if (elements.mobileNavToggle) {
           elements.mobileNavToggle.addEventListener("click", function () {
-            var isHidden = elements.sidebar.classList.toggle("hidden");
-            elements.mobileNavToggle.setAttribute(
-              "aria-expanded",
-              String(!isHidden),
-            );
+            if (elements.sidebar.classList.contains("hidden")) {
+              openMobileNav();
+            } else {
+              closeMobileNav();
+            }
           });
         }
+        if (elements.mobileNavClose) {
+          elements.mobileNavClose.addEventListener("click", closeMobileNav);
+        }
+        window.addEventListener("resize", function () {
+          if (!isMobileNavViewport()) {
+            document.body.classList.remove("overflow-hidden");
+            if (elements.mobileNavToggle) {
+              elements.mobileNavToggle.setAttribute("aria-expanded", "false");
+            }
+          }
+        });
         // ── Endpoint nav ──────────────────────────────────────────────────
         elements.navContainer.addEventListener("click", function (event) {
           var button = event.target.closest("[data-endpoint-id]");
@@ -3930,10 +4081,10 @@
         elements.refreshHealthButton.addEventListener("click", loadHealth);
         elements.refreshStatsButton.addEventListener("click", loadStats);
         // ── Theme toggle ──────────────────────────────────────────────────
-        elements.themeToggle.addEventListener("click", function () {
-          var isDark = document.documentElement.classList.toggle("dark");
-          localStorage.setItem(THEME_STORAGE_KEY, isDark ? "dark" : "light");
-        });
+        elements.themeToggle.addEventListener("click", toggleTheme);
+        if (elements.mobileThemeToggle) {
+          elements.mobileThemeToggle.addEventListener("click", toggleTheme);
+        }
         // ── Header account button ─────────────────────────────────────────
         elements.accountOpenButton.addEventListener("click", function (event) {
           event.stopPropagation();

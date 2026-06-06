@@ -86,9 +86,9 @@ class TestHomepageHandler:
         )
 
         assert response.status == 200
-        assert response.headers["Content-Type"] == "image/webp"
+        assert "image/png" in response.headers["Content-Type"]
         assert isinstance(response.body, bytes)
-        assert response.body.startswith(b"RIFF")
+        assert response.body.startswith(b"\x89PNG\r\n\x1a\n")
 
 
 class TestDashboardHandler:
@@ -164,6 +164,18 @@ class TestDashboardHandler:
         assert "blt-dashboard-api-key" in content
         assert 'src="/blt-api.png"' in content
         assert 'src="/blt-api.svg"' not in content
+
+    @pytest.mark.asyncio
+    async def test_dashboard_mobile_route_catalog_uses_hamburger_menu(self):
+        content = await _body(handle_dashboard, url="https://api.example.com/dashboard", path="/dashboard")
+
+        assert 'id="mobileNavToggle"' in content
+        assert 'aria-controls="sidebar"' in content
+        assert "hidden md:flex" in content
+        assert "fixed inset-0 z-40" in content
+        assert "id=\"mobileThemeToggle\"" in content
+        assert "mobileHealthLink" in content
+        assert "function closeMobileNav()" in content
 
     @pytest.mark.asyncio
     async def test_dashboard_profile_modal_omits_manual_api_key_controls(self):

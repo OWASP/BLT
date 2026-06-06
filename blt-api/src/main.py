@@ -31,6 +31,7 @@ from handlers import (
     handle_hackathons,
     handle_health,
     handle_blt_api_logo,
+    handle_llm_txt,
     handle_dashboard,
     handle_homepage,
     handle_auth_page,
@@ -41,6 +42,7 @@ from handlers import (
     handle_api_keys,
     make_routes_handler
 )
+from route_metadata import metadata_for
 from utils import json_response, error_response, cors_headers
 from libs.db import get_db_safe 
 from libs.api_key import is_api_key_required, is_user_api_key_candidate, validate_api_key_request
@@ -48,98 +50,105 @@ from libs.api_key import is_api_key_required, is_user_api_key_candidate, validat
 # Initialize the router
 router = Router()
 
+
+def _add_route(method: str, pattern: str, handler) -> None:
+    """Register a route with matching /routes discovery metadata."""
+    router.add_route(method, pattern, handler, metadata=metadata_for(method, pattern))
+
+
 # Register routes
 
 # Homepage and health check
-router.add_route("GET", "/", handle_homepage)
-router.add_route("GET", "/blt-api.png", handle_blt_api_logo)
-router.add_route("GET", "/dashboard", handle_dashboard)
-router.add_route("GET", "/auth", handle_auth_page)
-router.add_route("GET", "/health", handle_health)
+_add_route("GET", "/", handle_homepage)
+_add_route("GET", "/blt-api.png", handle_blt_api_logo)
+_add_route("GET", "/llm.txt", handle_llm_txt)
+_add_route("GET", "/dashboard", handle_dashboard)
+_add_route("GET", "/auth", handle_auth_page)
+_add_route("GET", "/health", handle_health)
 
 # Bugs API
-router.add_route("GET", "/bugs/search", handle_bugs)
-router.add_route("GET", "/bugs", handle_bugs)
-router.add_route("POST", "/bugs", handle_bugs)
-router.add_route("PATCH", "/bugs/{id}", handle_bugs)
-router.add_route("GET", "/bugs/{id}", handle_bugs)
+_add_route("GET", "/bugs/search", handle_bugs)
+_add_route("GET", "/bugs", handle_bugs)
+_add_route("POST", "/bugs", handle_bugs)
+_add_route("PATCH", "/bugs/{id}", handle_bugs)
+_add_route("GET", "/bugs/{id}", handle_bugs)
 
 # Users API
-router.add_route("GET", "/users", handle_users)
-router.add_route("POST", "/users", handle_users)
-router.add_route("GET", "/users/{id}", handle_users)
-router.add_route("GET", "/users/{id}/profile", handle_users)
-router.add_route("GET", "/users/{id}/bugs", handle_users)
-router.add_route("GET", "/users/{id}/domains", handle_users)
-router.add_route("GET", "/users/{id}/followers", handle_users)
-router.add_route("GET", "/users/{id}/following", handle_users)
+_add_route("GET", "/users", handle_users)
+_add_route("POST", "/users", handle_users)
+_add_route("GET", "/users/{id}", handle_users)
+_add_route("GET", "/users/{id}/profile", handle_users)
+_add_route("GET", "/users/{id}/bugs", handle_users)
+_add_route("GET", "/users/{id}/domains", handle_users)
+_add_route("GET", "/users/{id}/followers", handle_users)
+_add_route("GET", "/users/{id}/following", handle_users)
 
 # Auth API
-router.add_route("POST", "/api/auth/signup", handle_signup)
-router.add_route("POST", "/api/auth/signin", handle_signin)
-router.add_route("GET", "/api/auth/verify-email", handle_verify_email)
-router.add_route("POST", "/api/auth/verify-local", handle_verify_local)
-router.add_route("GET", "/api/auth/api-keys", handle_api_keys)
-router.add_route("POST", "/api/auth/api-keys", handle_api_keys)
-router.add_route("DELETE", "/api/auth/api-keys/{id}", handle_api_keys)
-router.add_route("POST", "/auth/signup", handle_signup)
-router.add_route("POST", "/auth/signin", handle_signin)
-router.add_route("GET", "/auth/verify-email", handle_verify_email)  # Email verification route
-router.add_route("POST", "/auth/verify-local", handle_verify_local)
-router.add_route("GET", "/auth/api-keys", handle_api_keys)
-router.add_route("POST", "/auth/api-keys", handle_api_keys)
-router.add_route("DELETE", "/auth/api-keys/{id}", handle_api_keys)
+_add_route("POST", "/api/auth/signup", handle_signup)
+_add_route("POST", "/api/auth/signin", handle_signin)
+_add_route("GET", "/api/auth/verify-email", handle_verify_email)
+_add_route("POST", "/api/auth/verify-local", handle_verify_local)
+_add_route("GET", "/api/auth/api-keys", handle_api_keys)
+_add_route("POST", "/api/auth/api-keys", handle_api_keys)
+_add_route("DELETE", "/api/auth/api-keys/{id}", handle_api_keys)
+_add_route("POST", "/auth/signup", handle_signup)
+_add_route("POST", "/auth/signin", handle_signin)
+_add_route("GET", "/auth/verify-email", handle_verify_email)  # Email verification route
+_add_route("POST", "/auth/verify-local", handle_verify_local)
+_add_route("GET", "/auth/api-keys", handle_api_keys)
+_add_route("POST", "/auth/api-keys", handle_api_keys)
+_add_route("DELETE", "/auth/api-keys/{id}", handle_api_keys)
 
 # Domains API
-router.add_route("GET", "/domains", handle_domains)
-router.add_route("GET", "/domains/{id}", handle_domains)
-router.add_route("GET", "/domains/{id}/tags", handle_domains)
+_add_route("GET", "/domains", handle_domains)
+_add_route("GET", "/domains/{id}", handle_domains)
+_add_route("GET", "/domains/{id}/tags", handle_domains)
 
 # Organizations API
-router.add_route("GET", "/organizations", handle_organizations)
-router.add_route("GET", "/organizations/{id}", handle_organizations)
-router.add_route("GET", "/organizations/{id}/domains", handle_organizations)
-router.add_route("GET", "/organizations/{id}/bugs", handle_organizations)
-router.add_route("GET", "/organizations/{id}/managers", handle_organizations)
-router.add_route("GET", "/organizations/{id}/tags", handle_organizations)
-router.add_route("GET", "/organizations/{id}/integrations", handle_organizations)
-router.add_route("GET", "/organizations/{id}/stats", handle_organizations)
+_add_route("GET", "/organizations", handle_organizations)
+_add_route("GET", "/organizations/{id}", handle_organizations)
+_add_route("GET", "/organizations/{id}/domains", handle_organizations)
+_add_route("GET", "/organizations/{id}/bugs", handle_organizations)
+_add_route("GET", "/organizations/{id}/managers", handle_organizations)
+_add_route("GET", "/organizations/{id}/tags", handle_organizations)
+_add_route("GET", "/organizations/{id}/integrations", handle_organizations)
+_add_route("GET", "/organizations/{id}/stats", handle_organizations)
 
 # Projects API
-router.add_route("GET", "/projects", handle_projects)
-router.add_route("GET", "/projects/{id}", handle_projects)
-router.add_route("GET", "/projects/{id}/contributors", handle_projects)
+_add_route("GET", "/projects", handle_projects)
+_add_route("GET", "/projects/{id}", handle_projects)
+_add_route("GET", "/projects/{id}/contributors", handle_projects)
 
 # Bug Hunts API
-router.add_route("GET", "/hunts/active", handle_hunts)
-router.add_route("GET", "/hunts/previous", handle_hunts)
-router.add_route("GET", "/hunts/upcoming", handle_hunts)
-router.add_route("GET", "/hunts", handle_hunts)
-router.add_route("GET", "/hunts/{id}", handle_hunts)
+_add_route("GET", "/hunts/active", handle_hunts)
+_add_route("GET", "/hunts/previous", handle_hunts)
+_add_route("GET", "/hunts/upcoming", handle_hunts)
+_add_route("GET", "/hunts", handle_hunts)
+_add_route("GET", "/hunts/{id}", handle_hunts)
 
 # Stats API
-router.add_route("GET", "/stats", handle_stats)
+_add_route("GET", "/stats", handle_stats)
 
 # Leaderboard API
-router.add_route("GET", "/leaderboard", handle_leaderboard)
-router.add_route("GET", "/leaderboard/monthly", handle_leaderboard)
-router.add_route("GET", "/leaderboard/organizations", handle_leaderboard)
+_add_route("GET", "/leaderboard", handle_leaderboard)
+_add_route("GET", "/leaderboard/monthly", handle_leaderboard)
+_add_route("GET", "/leaderboard/organizations", handle_leaderboard)
 
 # Contributors API
-router.add_route("GET", "/contributors", handle_contributors)
-router.add_route("GET", "/contributors/{id}", handle_contributors)
+_add_route("GET", "/contributors", handle_contributors)
+_add_route("GET", "/contributors/{id}", handle_contributors)
 
 # Repositories API
-router.add_route("GET", "/repos", handle_repos)
-router.add_route("GET", "/repos/{id}", handle_repos)
+_add_route("GET", "/repos", handle_repos)
+_add_route("GET", "/repos/{id}", handle_repos)
 
 # API Discoverability - uses factory pattern to avoid circular imports
-router.add_route("GET", "/routes", make_routes_handler(router))
+_add_route("GET", "/routes", make_routes_handler(router))
 
 def _add_v2_route(method: str, pattern: str, handler) -> None:
     """Register a v2-prefixed route while preserving existing unversioned routes."""
     v2_pattern = "/v2" if pattern == "/" else f"/v2{pattern}"
-    router.add_route(method, v2_pattern, handler)
+    _add_route(method, v2_pattern, handler)
 
 
 # v2 API routes (backward compatible with existing unversioned API routes)

@@ -18,7 +18,7 @@ from .repos import handle_repos
 from .jobs import handle_jobs
 from .hackathons import handle_hackathons
 from .health import handle_health
-from .homepage import handle_blt_api_logo, handle_dashboard, handle_homepage
+from .homepage import handle_blt_api_logo, handle_dashboard, handle_homepage, handle_llm_txt
 from .auth_page import handle_auth_page
 from .auth import handle_api_keys, handle_signup, handle_signin, handle_verify_email, handle_verify_local
 from .routes import make_routes_handler
@@ -38,6 +38,7 @@ __all__ = [
     "handle_hackathons",
     "handle_health",
     "handle_blt_api_logo",
+    "handle_llm_txt",
     "handle_dashboard",
     "handle_homepage",
     "handle_auth_page",
