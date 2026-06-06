@@ -1,4 +1,6 @@
-image: ruby:3.2
+stages:
+  - build
+  - deploy
 
 variables:
   JEKYLL_ENV: production
@@ -11,11 +13,25 @@ cache:
   paths:
     - vendor/bundle
 
-pages:
-  stage: deploy
+build_site:
+  image: ruby:3.2
+  stage: build
   script:
     - bundle install
     - bundle exec jekyll build -d public
+  artifacts:
+    paths:
+      - public
+    expire_in: 1 week
+
+pages:
+  image: alpine:3.20
+  stage: deploy
+  needs:
+    - job: build_site
+      artifacts: true
+  script:
+    - test -d public
   pages:
     publish: public
   artifacts:

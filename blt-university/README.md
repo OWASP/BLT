@@ -4,10 +4,11 @@
 
 [![GitHub Pages](https://img.shields.io/badge/GitHub-Pages-blue?style=flat-square&logo=github)](https://owasp-blt.github.io/BLT-University/)
 [![GitLab Pages](https://img.shields.io/badge/GitLab-Pages-orange?style=flat-square&logo=gitlab)](https://university.owaspblt.org/)
+[![Cloudflare Pages](https://img.shields.io/badge/Cloudflare-Pages-f38020?style=flat-square&logo=cloudflare)](https://university.owaspblt.org/)
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL%203.0-blue.svg?style=flat-square)](LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](CONTRIBUTING.md)
 
-BLT University is a revolutionary **GitHub Pages-based online university** focused on cybersecurity education. We believe security knowledge should be free, collaborative, and community-driven.
+BLT University is a revolutionary **static online university** focused on cybersecurity education. We believe security knowledge should be free, collaborative, and community-driven.
 
 ## 🌟 What Makes Us Different
 
@@ -55,19 +56,19 @@ Want to teach at BLT University? We'd love to have you!
 
 ## 🏗️ How It Works
 
-### GitHub Pages-Based Platform
+### GitLab-Built Static Platform
 
-All courses are hosted as static content on GitHub Pages, making them:
+All courses are built as static content in GitLab CI and published from the same `public/` artifact to GitLab Pages and Cloudflare Pages, making them:
 - **Version Controlled**: Track changes and improvements over time
 - **Collaborative**: Anyone can suggest improvements via pull requests
 - **Transparent**: All course materials are open and visible
-- **Fast & Reliable**: Served through GitHub's global CDN
+- **Fast & Reliable**: Served through static hosting on GitLab and Cloudflare
 
 ### Course Management
 
 - **Course Files**: Stored in `_courses/` directory as Markdown with YAML front matter
 - **Instructor Profiles**: Stored in `_instructors/` directory
-- **Automatic Publishing**: Jekyll builds the site automatically on push
+- **Automatic Publishing**: GitLab CI builds the Jekyll site into `public/` on push
 - **Easy Updates**: Instructors update courses via pull requests
 
 ### Enrollment System
@@ -92,6 +93,8 @@ All courses are hosted as static content on GitHub Pages, making them:
 
 - **Jekyll**: Static site generator
 - **GitHub Pages**: Hosting platform
+- **GitLab Pages**: CI build artifact and static hosting
+- **Cloudflare Pages**: Public production hosting
 - **GitHub Actions**: Automation and workflows
 - **Markdown**: Content format
 - **YAML**: Course metadata
@@ -110,10 +113,21 @@ BLT-University/
 ├── .github/
 │   ├── workflows/        # GitHub Actions
 │   └── ISSUE_TEMPLATE/   # Issue templates
-├── .gitlab-ci.yml        # GitLab Pages deployment
+├── .gitlab-ci.yml        # GitLab build, GitLab Pages, and Cloudflare Pages deployment
+├── wrangler.toml         # Cloudflare Pages output configuration
 ├── _config.yml           # Jekyll configuration
 └── *.html                # Static pages
 ```
+
+### GitLab and Cloudflare Deployment
+
+GitLab CI builds the site once with:
+
+```bash
+bundle exec jekyll build -d public
+```
+
+The `pages` job publishes that artifact to GitLab Pages. Cloudflare Pages deploys automatically from the connected repository using the same Jekyll build command and the `public/` output directory configured in `wrangler.toml`.
 
 ### Local Development
 
@@ -190,6 +204,8 @@ Special thanks to:
 ## 🔗 Links
 
 - **Website**: [https://owasp-blt.github.io/BLT-University/](https://owasp-blt.github.io/BLT-University/)
+- **Cloudflare Pages**: [https://university.owaspblt.org/](https://university.owaspblt.org/)
+- **GitHub Pages**: [https://owasp-blt.github.io/BLT-University/](https://owasp-blt.github.io/BLT-University/)
 - **GitHub**: [https://github.com/OWASP-BLT/BLT-University](https://github.com/OWASP-BLT/BLT-University)
 - **GitLab**: [https://gitlab.com/owasp-blt/blt-university](https://gitlab.com/owasp-blt/blt-university)
 - **OWASP BLT**: [https://github.com/OWASP-BLT](https://github.com/OWASP-BLT)
