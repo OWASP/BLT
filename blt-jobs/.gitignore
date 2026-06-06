@@ -16,5 +16,6 @@ comment.txt
 
 # Node dependencies
 node_modules/
+.npm/
 .worker-assets/
 .wrangler/
