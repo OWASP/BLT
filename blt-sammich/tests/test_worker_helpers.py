@@ -6,6 +6,40 @@ from pathlib import Path
 from src import worker
 
 
+EVENT_INSERT_COLUMNS = [
+    "workspace_id",
+    "event_type",
+    "user_slack_id",
+    "channel_name",
+    "channel_id",
+    "slack_team_id",
+    "api_app_id",
+    "command",
+    "command_text",
+    "is_enterprise_install",
+    "response_url",
+    "team_domain",
+    "trigger_id",
+    "user_name",
+    "slack_token",
+    "request_data",
+    "verified",
+    "status",
+    "created_at",
+    "webhook_body_type",
+    "webhook_event_id",
+    "webhook_event_time",
+    "webhook_event_subtype",
+    "webhook_retry_num",
+    "webhook_retry_reason",
+    "slack_response_data",
+]
+
+
+def event_insert_values(params):
+    return dict(zip(EVENT_INSERT_COLUMNS, params))
+
+
 def test_verify_slack_signature_accepts_valid_request():
     secret = "signing-secret"
     timestamp = "1710000000"
@@ -299,6 +333,19 @@ def test_lettuce_model_tables_are_in_schema_bootstrap():
     assert "DROP TABLE IF EXISTS slack_activity" in schema_sql
     assert "slack_activity" not in worker.ADMIN_TABLE_SCHEMAS
     assert "slack_response_data" in schema_sql
+    for column_name in (
+        "api_app_id",
+        "command",
+        "command_text",
+        "is_enterprise_install",
+        "response_url",
+        "team_domain",
+        "trigger_id",
+        "user_name",
+        "slack_token",
+    ):
+        assert column_name in schema_sql
+        assert (column_name, "TEXT") in worker.ADMIN_TABLE_SCHEMAS["events"]["columns"]
 
 
 def test_public_event_rows_hide_request_payload():
@@ -395,8 +442,9 @@ def test_db_insert_event_persists_slack_team_id_even_without_workspace():
         worker.SCHEMA_READY = original_schema_ready
 
     assert "slack_team_id" in captured["query"]
-    assert captured["params"][0] is None
-    assert captured["params"][5] == "T123"
+    values = event_insert_values(captured["params"])
+    assert values["workspace_id"] is None
+    assert values["slack_team_id"] == "T123"
 
 
 def test_db_insert_event_persists_slack_response_data():
@@ -429,7 +477,63 @@ def test_db_insert_event_persists_slack_response_data():
         worker.SCHEMA_READY = original_schema_ready
 
     assert "slack_response_data" in captured["query"]
-    assert captured["params"][-1] == '{"ok": true}'
+    assert event_insert_values(captured["params"])["slack_response_data"] == '{"ok": true}'
+
+
+def test_db_insert_event_persists_slash_command_fields():
+    captured = {}
+    original_d1_run = worker.d1_run
+    original_schema_ready = worker.SCHEMA_READY
+
+    async def fake_d1_run(env, query, params=None):
+        captured["query"] = query
+        captured["params"] = params
+        return {"success": True}
+
+    env = _Env()
+    setattr(env, "DB", object())
+    worker.d1_run = fake_d1_run
+    worker.SCHEMA_READY = False
+    try:
+        asyncio.run(
+            worker.db_insert_event(
+                env,
+                None,
+                "Command",
+                slack_team_id="T070JPE5BQQ",
+                channel_id="D089QRTC0A1",
+                user_slack_id="U06V72UT0J1",
+                channel_name="directmessage",
+                api_app_id="A0AK9DQG1DG",
+                command="/contrib",
+                command_text="",
+                is_enterprise_install="false",
+                response_url="https://hooks.slack.com/commands/example",
+                team_domain="owaspblt",
+                trigger_id="11296066658550.7018796181840.example",
+                user_name="donnie.brown",
+                slack_token="Wr0cGReWOl8adfvxyV2IuMnr",
+                request_data='{"command": "/contrib"}',
+            )
+        )
+    finally:
+        worker.d1_run = original_d1_run
+        worker.SCHEMA_READY = original_schema_ready
+
+    values = event_insert_values(captured["params"])
+    assert "api_app_id" in captured["query"]
+    assert values["api_app_id"] == "A0AK9DQG1DG"
+    assert values["channel_id"] == "D089QRTC0A1"
+    assert values["channel_name"] == "directmessage"
+    assert values["command"] == "/contrib"
+    assert values["is_enterprise_install"] == "false"
+    assert values["response_url"] == "https://hooks.slack.com/commands/example"
+    assert values["team_domain"] == "owaspblt"
+    assert values["slack_team_id"] == "T070JPE5BQQ"
+    assert values["trigger_id"] == "11296066658550.7018796181840.example"
+    assert values["user_slack_id"] == "U06V72UT0J1"
+    assert values["user_name"] == "donnie.brown"
+    assert values["slack_token"] == "Wr0cGReWOl8adfvxyV2IuMnr"
 
 
 def test_d1_run_normalizes_none_params_before_binding():
@@ -534,10 +638,11 @@ def test_record_activity_logs_slack_post_event_even_without_workspace():
         if "INSERT INTO events" in query
     ]
     assert len(event_inserts) == 1
-    assert event_inserts[0][1][0] is None
-    assert event_inserts[0][1][1] == "Message"
-    assert event_inserts[0][1][5] == "T123"
-    assert "this post should be logged" in event_inserts[0][1][6]
+    values = event_insert_values(event_inserts[0][1])
+    assert values["workspace_id"] is None
+    assert values["event_type"] == "Message"
+    assert values["slack_team_id"] == "T123"
+    assert "this post should be logged" in values["request_data"]
 
 
 def test_record_activity_logs_slack_post_when_workspace_lookup_fails():
@@ -577,9 +682,69 @@ def test_record_activity_logs_slack_post_when_workspace_lookup_fails():
         if "INSERT INTO events" in query
     ]
     assert len(event_inserts) == 1
-    assert event_inserts[0][1][0] is None
-    assert event_inserts[0][1][1] == "Message"
-    assert event_inserts[0][1][5] == "TLOOKUP"
+    values = event_insert_values(event_inserts[0][1])
+    assert values["workspace_id"] is None
+    assert values["event_type"] == "Message"
+    assert values["slack_team_id"] == "TLOOKUP"
+
+
+def test_record_activity_logs_slash_command_fields():
+    captured = []
+    original_d1_run = worker.d1_run
+    original_schema_ready = worker.SCHEMA_READY
+
+    async def fake_d1_run(env, query, params=None):
+        captured.append((query, params))
+        if "SELECT * FROM workspaces" in query:
+            return {"results": []}
+        return {"success": True}
+
+    payload = {
+        "api_app_id": "A0AK9DQG1DG",
+        "channel_id": "D089QRTC0A1",
+        "channel_name": "directmessage",
+        "command": "/contrib",
+        "is_enterprise_install": "false",
+        "response_url": "https://hooks.slack.com/commands/example",
+        "team_domain": "owaspblt",
+        "team_id": "T070JPE5BQQ",
+        "text": "",
+        "token": "Wr0cGReWOl8adfvxyV2IuMnr",
+        "trigger_id": "11296066658550.7018796181840.example",
+        "user_id": "U06V72UT0J1",
+        "user_name": "donnie.brown",
+    }
+    env = _Env()
+    setattr(env, "DB", object())
+    worker.d1_run = fake_d1_run
+    worker.SCHEMA_READY = False
+    try:
+        asyncio.run(worker.record_activity(env, "slash_command", payload))
+    finally:
+        worker.d1_run = original_d1_run
+        worker.SCHEMA_READY = original_schema_ready
+
+    event_inserts = [
+        (query, params)
+        for query, params in captured
+        if "INSERT INTO events" in query
+    ]
+    assert len(event_inserts) == 1
+    values = event_insert_values(event_inserts[0][1])
+    assert values["event_type"] == "Command"
+    assert values["api_app_id"] == "A0AK9DQG1DG"
+    assert values["channel_id"] == "D089QRTC0A1"
+    assert values["channel_name"] == "directmessage"
+    assert values["command"] == "/contrib"
+    assert values["is_enterprise_install"] == "false"
+    assert values["response_url"] == "https://hooks.slack.com/commands/example"
+    assert values["team_domain"] == "owaspblt"
+    assert values["slack_team_id"] == "T070JPE5BQQ"
+    assert values["trigger_id"] == "11296066658550.7018796181840.example"
+    assert values["user_slack_id"] == "U06V72UT0J1"
+    assert values["user_name"] == "donnie.brown"
+    assert values["slack_token"] == "Wr0cGReWOl8adfvxyV2IuMnr"
+    assert '"command": "/contrib"' in values["request_data"]
 
 
 def test_db_upsert_workspace_persists_slack_tokens():

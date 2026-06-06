@@ -163,6 +163,15 @@ ADMIN_TABLE_SCHEMAS = {
             ("channel_name", "TEXT"),
             ("channel_id", "TEXT"),
             ("slack_team_id", "TEXT"),
+            ("api_app_id", "TEXT"),
+            ("command", "TEXT"),
+            ("command_text", "TEXT"),
+            ("is_enterprise_install", "TEXT"),
+            ("response_url", "TEXT"),
+            ("team_domain", "TEXT"),
+            ("trigger_id", "TEXT"),
+            ("user_name", "TEXT"),
+            ("slack_token", "TEXT"),
             ("request_data", "TEXT"),
             ("verified", "INTEGER"),
             ("status", "TEXT"),
@@ -521,6 +530,20 @@ def payload_channel_name(payload: Dict[str, Any]) -> str:
     if isinstance(payload_channel, dict):
         return str(payload_channel.get("name") or "")
     return str(payload.get("channel_name") or event.get("channel_name") or "")
+
+
+def event_slash_command_fields(payload: Dict[str, Any]) -> Dict[str, str]:
+    return {
+        "api_app_id": str(payload.get("api_app_id") or ""),
+        "command": str(payload.get("command") or ""),
+        "command_text": str(payload.get("text") or ""),
+        "is_enterprise_install": str(payload.get("is_enterprise_install") or ""),
+        "response_url": str(payload.get("response_url") or ""),
+        "team_domain": str(payload.get("team_domain") or ""),
+        "trigger_id": str(payload.get("trigger_id") or ""),
+        "user_name": str(payload.get("user_name") or ""),
+        "slack_token": str(payload.get("token") or ""),
+    }
 
 
 def model_event_type_for_activity(activity_kind: str, payload: Dict[str, Any]) -> str:
@@ -916,6 +939,7 @@ async def record_activity(
             )
     event_payload = payload.get("event") or {}
     model_event_type = model_event_type_for_activity(activity_kind, payload)
+    command_fields = event_slash_command_fields(payload)
     try:
         await db_log_event(
             env,
@@ -933,6 +957,15 @@ async def record_activity(
             webhook_event_subtype=str(event_payload.get("subtype") or ""),
             webhook_retry_num=str(payload.get("retry_num") or ""),
             webhook_retry_reason=str(payload.get("retry_reason") or ""),
+            api_app_id=command_fields["api_app_id"],
+            command=command_fields["command"],
+            command_text=command_fields["command_text"],
+            is_enterprise_install=command_fields["is_enterprise_install"],
+            response_url=command_fields["response_url"],
+            team_domain=command_fields["team_domain"],
+            trigger_id=command_fields["trigger_id"],
+            user_name=command_fields["user_name"],
+            slack_token=command_fields["slack_token"],
         )
         log_json_event(
             "model_event_logged",
@@ -1769,6 +1802,15 @@ async def db_log_event(
     webhook_retry_num: str = "",
     webhook_retry_reason: str = "",
     slack_response_data: str = "",
+    api_app_id: str = "",
+    command: str = "",
+    command_text: str = "",
+    is_enterprise_install: str = "",
+    response_url: str = "",
+    team_domain: str = "",
+    trigger_id: str = "",
+    user_name: str = "",
+    slack_token: str = "",
 ) -> bool:
     return await db_insert_event(
         env,
@@ -1788,6 +1830,15 @@ async def db_log_event(
         webhook_retry_num=webhook_retry_num,
         webhook_retry_reason=webhook_retry_reason,
         slack_response_data=slack_response_data,
+        api_app_id=api_app_id,
+        command=command,
+        command_text=command_text,
+        is_enterprise_install=is_enterprise_install,
+        response_url=response_url,
+        team_domain=team_domain,
+        trigger_id=trigger_id,
+        user_name=user_name,
+        slack_token=slack_token,
     )
 
 
@@ -1810,6 +1861,15 @@ async def db_insert_event(
     webhook_retry_num: str = "",
     webhook_retry_reason: str = "",
     slack_response_data: str = "",
+    api_app_id: str = "",
+    command: str = "",
+    command_text: str = "",
+    is_enterprise_install: str = "",
+    response_url: str = "",
+    team_domain: str = "",
+    trigger_id: str = "",
+    user_name: str = "",
+    slack_token: str = "",
 ) -> bool:
     await ensure_schema(env)
     created = created_at or utc_now()
@@ -1837,10 +1897,11 @@ async def db_insert_event(
             env,
             (
                 "INSERT INTO events (workspace_id, event_type, user_slack_id, channel_name, "
-                "channel_id, slack_team_id, request_data, verified, status, created_at, webhook_body_type, "
-                "webhook_event_id, webhook_event_time, webhook_event_subtype, webhook_retry_num, webhook_retry_reason, "
-                "slack_response_data) "
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                "channel_id, slack_team_id, api_app_id, command, command_text, is_enterprise_install, "
+                "response_url, team_domain, trigger_id, user_name, slack_token, request_data, verified, status, "
+                "created_at, webhook_body_type, webhook_event_id, webhook_event_time, webhook_event_subtype, "
+                "webhook_retry_num, webhook_retry_reason, slack_response_data) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
             ),
             [
                 workspace_id,
@@ -1849,6 +1910,15 @@ async def db_insert_event(
                 channel_name or "",
                 channel_id or "",
                 slack_team_id or "",
+                api_app_id or "",
+                command or "",
+                command_text or "",
+                is_enterprise_install or "",
+                response_url or "",
+                team_domain or "",
+                trigger_id or "",
+                user_name or "",
+                slack_token or "",
                 request_data or "",
                 1 if verified else 0,
                 status or "success",
@@ -1863,7 +1933,21 @@ async def db_insert_event(
             ],
         )
     except Exception as error:
-        if "slack_response_data" in str(error):
+        missing_optional_event_column = any(
+            column_name in str(error)
+            for column_name in (
+                "api_app_id",
+                "command_text",
+                "is_enterprise_install",
+                "response_url",
+                "team_domain",
+                "trigger_id",
+                "user_name",
+                "slack_token",
+                "slack_response_data",
+            )
+        )
+        if missing_optional_event_column:
             try:
                 await d1_run(
                     env,
@@ -2032,7 +2116,7 @@ async def db_get_events(
         await d1_run(
             env,
             (
-                "SELECT e.*, e.user_slack_id AS user_name FROM events e "
+                "SELECT e.* FROM events e "
                 "WHERE e.workspace_id = ? ORDER BY e.created_at DESC LIMIT ?"
             ),
             [workspace_id, int(limit or 20)],
