@@ -1,22 +1,37 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>BLT Jobs - Connect Talent with Opportunities</title>
-    <meta name="description" content="A community-driven job board for the OWASP BLT ecosystem. Post a job or feature your profile to connect with talent." />
-    <link rel="icon" href="./assets/images/blt-logo.png" type="image/png">
+    <meta
+      name="description"
+      content="A community-driven job board for the OWASP BLT ecosystem. Post a job or feature your profile to connect with talent."
+    />
+    <link rel="icon" href="./assets/images/blt-logo.png" type="image/png" />
 
     <!-- Open Graph Metadata -->
-    <meta property="og:title" content="BLT Jobs - Connect Talent with Opportunities" />
-    <meta property="og:description" content="A community-driven job board for the OWASP BLT ecosystem. Post a job or feature your profile to connect with talent." />
+    <meta
+      property="og:title"
+      content="BLT Jobs - Connect Talent with Opportunities"
+    />
+    <meta
+      property="og:description"
+      content="A community-driven job board for the OWASP BLT ecosystem. Post a job or feature your profile to connect with talent."
+    />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://jobs.owaspblt.org/" />
 
     <!-- Twitter Card Metadata -->
     <meta name="twitter:card" content="summary" />
-    <meta name="twitter:title" content="BLT Jobs - Connect Talent with Opportunities" />
-    <meta name="twitter:description" content="A community-driven job board for the OWASP BLT ecosystem. Post a job or feature your profile to connect with talent." />
+    <meta
+      name="twitter:title"
+      content="BLT Jobs - Connect Talent with Opportunities"
+    />
+    <meta
+      name="twitter:description"
+      content="A community-driven job board for the OWASP BLT ecosystem. Post a job or feature your profile to connect with talent."
+    />
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -24,247 +39,980 @@
         darkMode: "class",
         theme: {
           extend: {
-            fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+            fontFamily: { sans: ["Inter", "system-ui", "sans-serif"] },
           },
         },
       };
     </script>
-    <script>
-      (function () {
-        const savedTheme = localStorage.getItem("theme");
-        if (savedTheme === "dark") document.documentElement.classList.add("dark");
-        else if (savedTheme === "light") document.documentElement.classList.remove("dark");
-        else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) document.documentElement.classList.add("dark");
-      })();
-    </script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    />
+    <style>
+      .dot-field {
+        background-image: radial-gradient(
+          rgba(17, 24, 39, 0.12) 1px,
+          transparent 1px
+        );
+        background-size: 18px 18px;
+        mask-image: radial-gradient(circle at center, black 0, transparent 72%);
+        -webkit-mask-image: radial-gradient(
+          circle at center,
+          black 0,
+          transparent 72%
+        );
+      }
+      .dark .dot-field {
+        background-image: radial-gradient(
+          rgba(255, 255, 255, 0.08) 1px,
+          transparent 1px
+        );
+      }
+      .feature-divider::before,
+      .feature-divider::after {
+        content: "";
+        height: 1px;
+        flex: 1;
+      }
+      .feature-divider::before {
+        background: linear-gradient(to right, transparent, #e5e7eb);
+      }
+      .feature-divider::after {
+        background: linear-gradient(to left, transparent, #e5e7eb);
+      }
+      .dark .feature-divider::before {
+        background: linear-gradient(to right, transparent, #374151);
+      }
+      .dark .feature-divider::after {
+        background: linear-gradient(to left, transparent, #374151);
+      }
+      .wave-dots i {
+        position: absolute;
+        width: 0.25rem;
+        height: 0.25rem;
+        border-radius: 999px;
+        background: #d1d5db;
+        animation: wave 2s infinite ease-in-out;
+      }
+      .dark .wave-dots i {
+        background: #4b5563;
+      }
+      .wave-dots i:nth-child(1) {
+        top: 0;
+        left: 0;
+      }
+      .wave-dots i:nth-child(2) {
+        top: 0;
+        left: 1rem;
+      }
+      .wave-dots i:nth-child(3) {
+        top: 0.25rem;
+        left: 0.5rem;
+        animation-delay: 0.35s;
+      }
+      .wave-dots i:nth-child(4) {
+        top: 0.5rem;
+        left: 0;
+        animation-delay: 0.55s;
+      }
+      .wave-dots i:nth-child(5) {
+        top: 0.5rem;
+        left: 1rem;
+        animation-delay: 0.55s;
+      }
+      .wave-dots i:nth-child(6) {
+        top: 0.75rem;
+        left: 0.5rem;
+        animation-delay: 0.85s;
+      }
+      @keyframes wave {
+        0%,
+        100% {
+          transform: translateY(0);
+          opacity: 0.5;
+        }
+        50% {
+          transform: translateY(-3px);
+          opacity: 1;
+        }
+      }
+      .section-kicker-bar {
+        position: relative;
+        padding-left: 0.55rem;
+      }
+      .section-kicker-bar::before {
+        content: "";
+        position: absolute;
+        top: 0.18rem;
+        left: 0;
+        width: 3px;
+        height: 1.1rem;
+        border-radius: 0 2px 2px 0;
+        background: #ef4444;
+      }
+      .footer-panel::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0.04;
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 1) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 1) 1px, transparent 1px);
+        background-size: 40px 40px;
+      }
+      .footer-links p {
+        margin: 0 0 0.35rem;
+        color: #6b7280;
+        font-size: 0.625rem;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+      .footer-links a {
+        display: block;
+        color: #d1d5db;
+        font-size: 0.875rem;
+        line-height: 1.55;
+        transition: color 180ms ease;
+      }
+      .footer-links a:hover {
+        color: white;
+      }
+      .job-card-preview {
+        transition:
+          transform 0.2s ease,
+          box-shadow 0.2s ease;
+      }
+      .job-card-preview:hover {
+        transform: translateY(-1px);
+      }
+      .mobile-menu.open {
+        display: flex;
+      }
+      .mobile-toggle.active span:nth-child(1) {
+        transform: translateY(6px) rotate(45deg);
+      }
+      .mobile-toggle.active span:nth-child(2) {
+        opacity: 0;
+      }
+      .mobile-toggle.active span:nth-child(3) {
+        transform: translateY(-6px) rotate(-45deg);
+      }
+    </style>
   </head>
-  <body class="min-h-screen bg-gradient-to-b from-slate-50 via-red-50/40 to-white font-sans text-slate-900 antialiased dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 dark:text-gray-100">
-    <div id="navbar-placeholder"></div>
+  <body
+    class="min-h-screen overflow-x-hidden bg-gray-50 font-sans text-gray-900 antialiased selection:bg-red-100 selection:text-red-700"
+  >
+    <header
+      class="fixed inset-x-0 top-0 z-50 border-b border-black/5 bg-white/90 backdrop-blur-[18px]"
+      id="site-header"
+    >
+      <div
+        class="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-4 max-md:px-4"
+      >
+        <a
+          href="./index.html"
+          class="inline-flex items-center gap-2.5"
+          aria-label="BLT Jobs home"
+        >
+          <img
+            src="assets/images/blt-logo.png"
+            alt="BLT Jobs logo"
+            class="h-12 w-12 p-1"
+          />
+          <span class="text-lg font-medium tracking-tight text-gray-900"
+            >BLT Jobs</span
+          >
+        </a>
 
-    <main class="mx-auto max-w-7xl px-4 pt-28 pb-12 sm:px-6 lg:px-8">
-      <header class="mb-12 text-center">
-        <span class="inline-flex items-center gap-1.5 rounded-full border border-red-600/30 bg-[#feeae9] px-3 py-1 text-xs font-semibold text-red-600 dark:border-red-500/40 dark:bg-red-900/30 dark:text-red-400">
-          <i class="fa-solid fa-layer-group" aria-hidden="true"></i>
-          OWASP BLT Community
-        </span>
-        <h1 class="mt-4 text-4xl font-bold tracking-tight sm:text-5xl dark:text-white">
-          Connect Talent with Opportunities
-        </h1>
-        <p class="mt-4 text-lg text-slate-600 dark:text-gray-400">
-          A community-driven job board for the OWASP BLT ecosystem
-        </p>
-      </header>
+        <nav
+          class="hidden items-center gap-7 md:flex"
+          aria-label="Primary navigation"
+        >
+          <a
+            class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+            href="#how-it-works"
+            >How it works</a
+          >
+          <a
+            class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+            href="./jobs.html"
+            >Browse Jobs</a
+          >
+          <a
+            class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+            href="./seekers.html"
+            >Find Talent</a
+          >
+          <a
+            class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+            href="./leaderboard.html"
+            >Leaderboard</a
+          >
+          <a
+            class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+            href="https://gitlab.com/owasp-blt/blt-jobs"
+            target="_blank"
+            rel="noopener noreferrer"
+            >Source</a
+          >
+        </nav>
 
-      <div class="grid gap-6 md:grid-cols-2">
-        <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-          <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-red-100 dark:bg-red-900/30">
-            <i class="fa-solid fa-building text-xl text-red-600 dark:text-red-400" aria-hidden="true"></i>
-          </div>
-          <h2 class="text-xl font-semibold dark:text-white">Post a Job</h2>
-          <p class="mt-2 text-sm text-slate-600 dark:text-gray-400">
-            Looking for talent? Submit a job posting via pull request and reach our community of skilled professionals.
-          </p>
-          <a href="./add.html" class="mt-4 inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700">
-            Post a Job
-            <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
-          </a>
+        <div class="hidden items-center gap-3 md:flex">
+          <a
+            class="rounded-md px-3 py-2 text-sm text-gray-600 transition-colors duration-150 hover:bg-gray-100 hover:text-gray-900"
+            href="./seekers.html"
+            >Find Talent</a
+          >
+          <a
+            class="inline-flex items-center justify-center rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-4 py-2 text-sm font-medium text-white shadow-[0_10px_24px_-18px_rgba(220,38,38,.8)] transition duration-200 hover:-translate-y-px"
+            href="./add.html"
+            >Post a Job</a
+          >
         </div>
 
-        <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-          <div class="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-red-100 dark:bg-red-900/30">
-            <i class="fa-solid fa-user text-xl text-red-600 dark:text-red-400" aria-hidden="true"></i>
-          </div>
-          <h2 class="text-xl font-semibold dark:text-white">Feature Your Profile</h2>
-          <p class="mt-2 text-sm text-slate-600 dark:text-gray-400">
-            Looking for opportunities? Create your profile to showcase your skills and connect with potential employers.
-          </p>
-          <a href="./add.html#seekers" class="mt-4 inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700">
-            Create Profile
-            <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
-          </a>
-        </div>
+        <button
+          class="mobile-toggle hidden h-8 w-8 cursor-pointer flex-col items-center justify-center gap-[5px] border-0 bg-transparent max-md:flex"
+          id="mobile-toggle"
+          type="button"
+          aria-label="Toggle menu"
+          aria-expanded="false"
+          aria-controls="mobile-menu"
+        >
+          <span
+            class="block h-px w-5 bg-gray-600 transition duration-200"
+          ></span>
+          <span
+            class="block h-px w-5 bg-gray-600 transition duration-200"
+          ></span>
+          <span
+            class="block h-px w-5 bg-gray-600 transition duration-200"
+          ></span>
+        </button>
       </div>
 
-      <section class="mt-12">
-        <h2 class="mb-6 text-2xl font-bold dark:text-white">How It Works</h2>
-        <div class="grid gap-6 md:grid-cols-3">
-          <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-            <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-red-600 text-white font-bold">
-              1
-            </div>
-            <h3 class="font-semibold dark:text-white">Submit via GitLab</h3>
-            <p class="mt-2 text-sm text-slate-600 dark:text-gray-400">
-              Open an issue or paste a job URL. We use templates so you do not need to edit raw files.
-            </p>
-          </div>
-          <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-            <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-red-600 text-white font-bold">
-              2
-            </div>
-            <h3 class="font-semibold dark:text-white">Automated Processing</h3>
-            <p class="mt-2 text-sm text-slate-600 dark:text-gray-400">
-              Our GitLab pipeline builds job and seeker data from markdown and can scrape job URLs from issues.
-            </p>
-          </div>
-          <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-            <div class="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-red-600 text-white font-bold">
-              3
-            </div>
-            <h3 class="font-semibold dark:text-white">Connect & Grow</h3>
-            <p class="mt-2 text-sm text-slate-600 dark:text-gray-400">
-              Your listing appears on the site, helping you connect with opportunities or talent.
-            </p>
-          </div>
-        </div>
-      </section>
+      <nav
+        class="mobile-menu hidden flex-col gap-4 border-t border-gray-100 bg-white/95 px-6 py-4 backdrop-blur-md"
+        id="mobile-menu"
+        aria-label="Mobile navigation"
+      >
+        <a
+          class="text-sm text-gray-600 transition-colors hover:text-gray-900"
+          href="#how-it-works"
+          >How it works</a
+        >
+        <a
+          class="text-sm text-gray-600 transition-colors hover:text-gray-900"
+          href="./jobs.html"
+          >Browse Jobs</a
+        >
+        <a
+          class="text-sm text-gray-600 transition-colors hover:text-gray-900"
+          href="./seekers.html"
+          >Find Talent</a
+        >
+        <a
+          class="text-sm text-gray-600 transition-colors hover:text-gray-900"
+          href="./leaderboard.html"
+          >Leaderboard</a
+        >
+        <a
+          class="text-sm text-gray-600 transition-colors hover:text-gray-900"
+          href="https://gitlab.com/owasp-blt/blt-jobs"
+          target="_blank"
+          rel="noopener noreferrer"
+          >Source</a
+        >
+        <a
+          class="inline-flex items-center justify-center rounded-md border border-gray-200 bg-white px-5 py-3 text-sm font-medium text-gray-700 transition duration-200 hover:border-gray-300 hover:bg-gray-50"
+          href="./seekers.html"
+          >Find Talent</a
+        >
+        <a
+          class="inline-flex items-center justify-center rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-5 py-3 text-sm font-medium text-white transition duration-200 hover:-translate-y-px"
+          href="./add.html"
+          >Post a Job</a
+        >
+      </nav>
+    </header>
 
-      <section class="mt-12">
-        <h2 class="mb-6 text-2xl font-bold dark:text-white">Auto import from these job sites:</h2>
-        <div class="grid gap-6 md:grid-cols-2">
-          <div class="flex flex-wrap items-center gap-6 rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-            <a href="https://greenhouse.io" target="_blank" rel="noopener noreferrer" class="flex flex-col items-center gap-2 rounded-lg p-3 transition hover:bg-slate-50 dark:hover:bg-gray-700" title="Greenhouse">
-              <img src="assets/images/greenhouse-logo.svg" alt="Greenhouse" class="h-10 w-10 rounded object-contain" width="40" height="40" loading="lazy" />
-              <span class="text-xs font-medium text-slate-600 dark:text-gray-400">Greenhouse</span>
-            </a>
-            <a href="https://lever.co" target="_blank" rel="noopener noreferrer" class="flex flex-col items-center gap-2 rounded-lg p-3 transition hover:bg-slate-50 dark:hover:bg-gray-700" title="Lever">
-              <img src="assets/images/lever-logo.svg" alt="Lever" class="h-10 w-10 rounded object-contain" width="40" height="40" loading="lazy" />
-              <span class="text-xs font-medium text-slate-600 dark:text-gray-400">Lever</span>
-            </a>
-            <a href="https://workable.com" target="_blank" rel="noopener noreferrer" class="flex flex-col items-center gap-2 rounded-lg p-3 transition hover:bg-slate-50 dark:hover:bg-gray-700" title="Workable">
-              <img src="assets/images/workable-logo.svg" alt="Workable" class="h-10 w-10 rounded object-contain" width="40" height="40" loading="lazy" />
-              <span class="text-xs font-medium text-slate-600 dark:text-gray-400">Workable</span>
-            </a>
-            <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" class="flex flex-col items-center gap-2 rounded-lg p-3 transition hover:bg-slate-50 dark:hover:bg-gray-700" title="LinkedIn">
-              <img src="assets/images/linkedin-logo.svg" alt="LinkedIn" class="h-10 w-10 rounded object-contain" width="40" height="40" loading="lazy" />
-              <span class="text-xs font-medium text-slate-600 dark:text-gray-400">LinkedIn</span>
-            </a>
-            <a href="https://indeed.com" target="_blank" rel="noopener noreferrer" class="flex flex-col items-center gap-2 rounded-lg p-3 transition hover:bg-slate-50 dark:hover:bg-gray-700" title="Indeed">
-              <img src="assets/images/indeed-logo.svg" alt="Indeed" class="h-10 w-10 rounded object-contain" width="40" height="40" loading="lazy" />
-              <span class="text-xs font-medium text-slate-600 dark:text-gray-400">Indeed</span>
-            </a>
-            <span class="flex flex-col items-center gap-2 rounded-lg p-3 text-slate-500 dark:text-gray-400">
-              <span class="flex h-10 w-10 items-center justify-center rounded bg-slate-100 dark:bg-gray-700">
-                <i class="fa-solid fa-globe text-xl" aria-hidden="true"></i>
-              </span>
-              <span class="text-xs font-medium">& most career pages</span>
-            </span>
-          </div>
-          <div class="flex flex-col justify-center rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-            <h3 class="mb-1 font-semibold dark:text-white">Quick Add Job URL</h3>
-            <p class="mb-4 text-sm text-slate-500 dark:text-gray-400">Paste a job link and we'll open a pre-filled GitLab issue to import it.</p>
-            <form id="quick-add-form" class="flex gap-2" novalidate>
-              <input id="quick-add-url" type="url" placeholder="https://boards.greenhouse.io/…" required
-                class="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 shadow-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-400 dark:focus:border-red-500" />
-              <button type="submit"
-                class="shrink-0 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
-                Add
-              </button>
-            </form>
-            <p id="quick-add-error" class="mt-2 hidden text-xs text-red-600 dark:text-red-400">Please enter a valid URL.</p>
-          </div>
-        </div>
-      </section>
-
-      <section class="mt-12">
-        <div class="grid gap-6 lg:grid-cols-3">
-          <div class="lg:col-span-2 rounded-xl border border-slate-200 bg-white p-8 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-            <h2 class="mb-4 text-2xl font-bold dark:text-white">Recent Listings</h2>
-            <div id="recent-listings" class="space-y-4">
-              <p class="text-slate-600 dark:text-gray-400">Loading recent listings...</p>
-            </div>
-            <div class="mt-6 flex gap-4">
-              <a href="./jobs.html" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
-                View All Jobs
-                <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
-              </a>
-              <a href="./seekers.html" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
-                View All Seekers
-                <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
-              </a>
-            </div>
-          </div>
-
-          <div class="rounded-xl border border-slate-200 bg-white p-8 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-            <h2 class="mb-4 text-2xl font-bold dark:text-white">
-              <i class="fa-solid fa-trophy text-yellow-500 mr-2" aria-hidden="true"></i>
-              Top Contributors
-            </h2>
-            <p class="mb-6 text-sm text-slate-600 dark:text-gray-400">Community members who have contributed the most job listings</p>
-            <div id="homepage-leaderboard" class="space-y-3">
-              <p class="text-slate-600 dark:text-gray-400">Loading leaderboard...</p>
-            </div>
-            <div class="mt-6">
-              <a href="./leaderboard.html" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
-                View Full Leaderboard
-                <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="mt-12">
-        <div class="flex items-center justify-between mb-6">
-          <h2 class="text-2xl font-bold dark:text-white">
-            <i class="fa-solid fa-users text-red-600 dark:text-red-400 mr-2" aria-hidden="true"></i>
-            Recent Job Seekers
-          </h2>
-          <a href="./seekers.html" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
-            View All Seekers
-            <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+    <main>
+      <!-- ─── HERO ─────────────────────────────────────────────────────── -->
+      <section
+        class="relative flex min-h-[42rem] items-start justify-center px-4 pb-14 pt-48 max-md:min-h-[36rem] max-md:pt-32"
+        aria-label="Hero"
+      >
+        <div
+          class="dot-field pointer-events-none absolute inset-x-0 top-16 z-[1] mx-auto h-[38rem] w-[min(94rem,180vw)] opacity-80"
+          aria-hidden="true"
+        ></div>
+        <div
+          class="relative z-[2] flex w-full flex-col items-center text-center"
+        >
+          <a
+            class="inline-flex max-w-[min(40rem,calc(100vw_-_2rem))] items-center gap-3 rounded-full bg-white/50 py-[.15rem] pl-[.15rem] pr-4 text-sm font-medium text-gray-900 shadow-[0_10px_30px_-16px_rgba(220,38,38,.45),0_0_0_1px_rgba(0,0,0,.09)] backdrop-blur-[1px] dark:bg-gray-900/60 dark:text-gray-100 max-md:text-[.72rem]"
+            href="./jobs.html"
+            aria-label="Browse open jobs"
+          >
+            <span
+              class="flex-none rounded-full border border-gray-200 bg-gray-50 px-[.65rem] py-1 text-xs text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
+              >Open</span
+            >
+            <span class="truncate"
+              >Community job board powered by GitLab &amp; OWASP BLT.</span
+            >
           </a>
+          <h1
+            class="mt-7 text-[clamp(3.2rem,9.5vw,6.5rem)] font-bold leading-[.93] tracking-[-.05em] text-gray-900 dark:text-white"
+          >
+            Find Your Next.<br /><span class="text-red-600">Post</span> Your
+            Best.
+          </h1>
+          <p
+            class="mt-6 max-w-[42rem] text-[clamp(1rem,1.5vw,1.2rem)] leading-[1.6] text-gray-600 dark:text-gray-400 text-balance"
+          >
+            A community-driven job board for the OWASP BLT ecosystem — browse
+            open roles, surface your skills, and connect with talent that cares
+            about security.
+          </p>
+          <div
+            class="mt-8 flex items-center justify-center gap-3 max-md:w-full max-md:flex-col max-md:px-4"
+          >
+            <a
+              class="inline-flex items-center justify-center rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-5 py-3 text-base font-medium text-white shadow-[0_0_0_2px_rgba(0,0,0,.04),0_10px_24px_-14px_rgba(220,38,38,.8)] transition duration-200 hover:-translate-y-px"
+              href="./jobs.html"
+              >Browse Open Jobs</a
+            >
+            <a
+              class="inline-flex items-center justify-center rounded-md border border-gray-200 bg-white px-5 py-3 text-base font-medium text-gray-700 transition duration-200 hover:border-gray-300 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+              href="./add.html"
+              >Post a Job</a
+            >
+          </div>
         </div>
-        <div id="recent-seekers" class="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-          <p class="col-span-full text-slate-600 dark:text-gray-400">Loading recent job seekers...</p>
+      </section>
+
+      <!-- ─── DIVIDER ─────────────────────────────────────────────────── -->
+      <div
+        class="feature-divider mx-auto my-10 flex w-[min(72rem,calc(100%_-_2rem))] items-center gap-3 text-gray-400"
+        aria-hidden="true"
+      >
+        <span class="wave-dots relative h-4 w-5 flex-none"
+          ><i></i><i></i><i></i><i></i><i></i><i></i
+        ></span>
+      </div>
+
+      <!-- ─── HOW IT WORKS ───────────────────────────────────────────── -->
+      <section
+        id="how-it-works"
+        class="w-full px-4 pb-24 pt-10 max-md:pb-16"
+        aria-labelledby="how-heading"
+      >
+        <div class="mx-auto w-[min(64rem,calc(100%_-_1rem))]">
+          <div class="mx-auto mb-10 max-w-[42rem] text-center">
+            <span
+              class="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 py-1 font-mono text-xs font-medium uppercase tracking-[.16em] text-red-600 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-400"
+              >How It Works</span
+            >
+            <h2
+              id="how-heading"
+              class="mt-4 text-[clamp(2.1rem,4vw,3rem)] font-semibold leading-[1.05] tracking-[-.04em] text-balance dark:text-white"
+            >
+              Three steps to connect.
+            </h2>
+            <p
+              class="mx-auto mt-4 max-w-[40rem] text-base leading-[1.6] text-gray-600 dark:text-gray-400"
+            >
+              No proprietary dashboards. Just GitLab, markdown, and an automated
+              pipeline that does the heavy lifting.
+            </p>
+          </div>
+          <div
+            class="grid grid-cols-3 gap-3 max-lg:grid-cols-2 max-md:grid-cols-1"
+          >
+            <article
+              class="rounded-xl bg-white p-6 shadow-[inset_0_0_0_1px_rgba(17,24,39,.1)] dark:bg-gray-800 dark:shadow-[inset_0_0_0_1px_rgba(255,255,255,.07)]"
+            >
+              <div
+                class="flex h-12 w-12 items-center justify-center rounded-full border border-gray-200 bg-gray-50 font-mono text-sm font-semibold text-red-600 dark:border-gray-700 dark:bg-gray-700 dark:text-red-400"
+              >
+                01
+              </div>
+              <h3 class="mt-6 text-lg font-semibold dark:text-white">
+                Submit via GitLab
+              </h3>
+              <p
+                class="mt-3 text-sm leading-6 text-gray-600 dark:text-gray-400"
+              >
+                Open an issue or paste a job URL. Templates mean you never have
+                to edit raw JSON files.
+              </p>
+            </article>
+            <article
+              class="rounded-xl bg-white p-6 shadow-[inset_0_0_0_1px_rgba(17,24,39,.1)] dark:bg-gray-800 dark:shadow-[inset_0_0_0_1px_rgba(255,255,255,.07)]"
+            >
+              <div
+                class="flex h-12 w-12 items-center justify-center rounded-full border border-gray-200 bg-gray-50 font-mono text-sm font-semibold text-red-600 dark:border-gray-700 dark:bg-gray-700 dark:text-red-400"
+              >
+                02
+              </div>
+              <h3 class="mt-6 text-lg font-semibold dark:text-white">
+                Automated Processing
+              </h3>
+              <p
+                class="mt-3 text-sm leading-6 text-gray-600 dark:text-gray-400"
+              >
+                Our CI pipeline builds listing data from markdown and scrapes
+                structured details from supported job-site URLs.
+              </p>
+            </article>
+            <article
+              class="rounded-xl bg-white p-6 shadow-[inset_0_0_0_1px_rgba(17,24,39,.1)] dark:bg-gray-800 dark:shadow-[inset_0_0_0_1px_rgba(255,255,255,.07)]"
+            >
+              <div
+                class="flex h-12 w-12 items-center justify-center rounded-full border border-gray-200 bg-gray-50 font-mono text-sm font-semibold text-red-600 dark:border-gray-700 dark:bg-gray-700 dark:text-red-400"
+              >
+                03
+              </div>
+              <h3 class="mt-6 text-lg font-semibold dark:text-white">
+                Connect &amp; Grow
+              </h3>
+              <p
+                class="mt-3 text-sm leading-6 text-gray-600 dark:text-gray-400"
+              >
+                Your listing goes live on the site, reaching a community of
+                security-minded engineers and employers.
+              </p>
+            </article>
+          </div>
         </div>
+      </section>
+
+      <!-- ─── QUICK ADD SPLIT ────────────────────────────────────────── -->
+      <section
+        class="w-full px-4 pb-24 pt-6 max-md:pb-16"
+        aria-labelledby="quick-add-heading"
+      >
+        <div
+          class="mx-auto grid w-[min(72rem,calc(100%_-_1rem))] items-center gap-10 lg:grid-cols-[1fr_1.1fr]"
+        >
+          <div>
+            <h2
+              id="quick-add-heading"
+              class="section-kicker-bar text-lg font-semibold text-red-500"
+            >
+              Job Sites
+            </h2>
+            <p
+              class="mt-2 text-[clamp(2rem,3vw,2.5rem)] font-semibold leading-[1.05] tracking-[-.04em] text-balance dark:text-white"
+            >
+              Auto-import from the platforms you already use.
+            </p>
+            <p
+              class="mt-4 max-w-[36rem] text-base leading-[1.65] text-gray-600 dark:text-gray-400"
+            >
+              Paste a link from any supported job board and we'll open a
+              pre-filled GitLab issue to pull in all the details automatically.
+            </p>
+            <div class="mt-8 flex flex-wrap items-center gap-4">
+              <a
+                href="https://greenhouse.io"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="flex flex-col items-center gap-1.5 rounded-xl border border-gray-200 bg-white p-3 transition hover:border-red-200 hover:shadow-sm dark:border-gray-700 dark:bg-gray-800"
+                title="Greenhouse"
+              >
+                <img
+                  src="assets/images/greenhouse-logo.svg"
+                  alt="Greenhouse"
+                  class="h-9 w-9 object-contain"
+                  width="36"
+                  height="36"
+                  loading="lazy"
+                />
+                <span
+                  class="text-[.65rem] font-medium text-gray-500 dark:text-gray-400"
+                  >Greenhouse</span
+                >
+              </a>
+              <a
+                href="https://lever.co"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="flex flex-col items-center gap-1.5 rounded-xl border border-gray-200 bg-white p-3 transition hover:border-red-200 hover:shadow-sm dark:border-gray-700 dark:bg-gray-800"
+                title="Lever"
+              >
+                <img
+                  src="assets/images/lever-logo.svg"
+                  alt="Lever"
+                  class="h-9 w-9 object-contain"
+                  width="36"
+                  height="36"
+                  loading="lazy"
+                />
+                <span
+                  class="text-[.65rem] font-medium text-gray-500 dark:text-gray-400"
+                  >Lever</span
+                >
+              </a>
+              <a
+                href="https://workable.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="flex flex-col items-center gap-1.5 rounded-xl border border-gray-200 bg-white p-3 transition hover:border-red-200 hover:shadow-sm dark:border-gray-700 dark:bg-gray-800"
+                title="Workable"
+              >
+                <img
+                  src="assets/images/workable-logo.svg"
+                  alt="Workable"
+                  class="h-9 w-9 object-contain"
+                  width="36"
+                  height="36"
+                  loading="lazy"
+                />
+                <span
+                  class="text-[.65rem] font-medium text-gray-500 dark:text-gray-400"
+                  >Workable</span
+                >
+              </a>
+              <a
+                href="https://linkedin.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="flex flex-col items-center gap-1.5 rounded-xl border border-gray-200 bg-white p-3 transition hover:border-red-200 hover:shadow-sm dark:border-gray-700 dark:bg-gray-800"
+                title="LinkedIn"
+              >
+                <img
+                  src="assets/images/linkedin-logo.svg"
+                  alt="LinkedIn"
+                  class="h-9 w-9 object-contain"
+                  width="36"
+                  height="36"
+                  loading="lazy"
+                />
+                <span
+                  class="text-[.65rem] font-medium text-gray-500 dark:text-gray-400"
+                  >LinkedIn</span
+                >
+              </a>
+              <a
+                href="https://indeed.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="flex flex-col items-center gap-1.5 rounded-xl border border-gray-200 bg-white p-3 transition hover:border-red-200 hover:shadow-sm dark:border-gray-700 dark:bg-gray-800"
+                title="Indeed"
+              >
+                <img
+                  src="assets/images/indeed-logo.svg"
+                  alt="Indeed"
+                  class="h-9 w-9 object-contain"
+                  width="36"
+                  height="36"
+                  loading="lazy"
+                />
+                <span
+                  class="text-[.65rem] font-medium text-gray-500 dark:text-gray-400"
+                  >Indeed</span
+                >
+              </a>
+              <span
+                class="flex flex-col items-center gap-1.5 rounded-xl border border-dashed border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-800"
+              >
+                <span class="flex h-9 w-9 items-center justify-center">
+                  <i
+                    class="fa-solid fa-globe text-lg text-gray-400"
+                    aria-hidden="true"
+                  ></i>
+                </span>
+                <span class="text-[.65rem] font-medium text-gray-400"
+                  >+ most career pages</span
+                >
+              </span>
+            </div>
+          </div>
+
+          <div
+            class="rounded-3xl border border-gray-200 bg-white p-6 shadow-[0_22px_60px_-45px_rgba(15,23,42,.6)] dark:border-gray-700 dark:bg-gray-800"
+          >
+            <div
+              class="rounded-2xl border border-gray-100 bg-gray-50 p-5 dark:border-gray-700 dark:bg-gray-900"
+            >
+              <div class="mb-4 flex items-center justify-between">
+                <span
+                  class="font-sans text-sm font-semibold text-gray-900 dark:text-white"
+                  >Quick Add Job URL</span
+                >
+                <span
+                  class="rounded-full bg-emerald-50 px-2 py-1 text-[.65rem] font-semibold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                  >ready</span
+                >
+              </div>
+              <p class="mb-4 text-sm text-gray-500 dark:text-gray-400">
+                Paste a job link and we'll open a pre-filled GitLab issue to
+                import it.
+              </p>
+              <form id="quick-add-form" class="flex gap-2" novalidate>
+                <input
+                  id="quick-add-url"
+                  type="url"
+                  placeholder="https://boards.greenhouse.io/…"
+                  required
+                  class="min-w-0 flex-1 rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 shadow-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-500 dark:focus:border-red-500"
+                />
+                <button
+                  type="submit"
+                  class="shrink-0 rounded-lg border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:-translate-y-px focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                >
+                  Add
+                </button>
+              </form>
+              <p
+                id="quick-add-error"
+                class="mt-2 hidden text-xs text-red-600 dark:text-red-400"
+              >
+                Please enter a valid URL.
+              </p>
+              <div
+                class="mt-4 grid grid-cols-2 gap-2 font-mono text-xs text-gray-500"
+              >
+                <div
+                  class="rounded-lg bg-white px-3 py-2 shadow-sm dark:bg-gray-800"
+                >
+                  greenhouse.io ✓
+                </div>
+                <div
+                  class="rounded-lg bg-white px-3 py-2 shadow-sm dark:bg-gray-800"
+                >
+                  lever.co ✓
+                </div>
+                <div
+                  class="rounded-lg bg-white px-3 py-2 shadow-sm dark:bg-gray-800"
+                >
+                  linkedin.com ✓
+                </div>
+                <div
+                  class="rounded-lg bg-white px-3 py-2 shadow-sm dark:bg-gray-800"
+                >
+                  workable.com ✓
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── DIVIDER ─────────────────────────────────────────────────── -->
+      <div
+        class="feature-divider mx-auto my-4 flex w-[min(72rem,calc(100%_-_2rem))] items-center gap-3 text-gray-400"
+        aria-hidden="true"
+      >
+        <span class="wave-dots relative h-4 w-5 flex-none"
+          ><i></i><i></i><i></i><i></i><i></i><i></i
+        ></span>
+      </div>
+
+      <!-- ─── RECENT LISTINGS + LEADERBOARD ────────────────────────── -->
+      <section
+        id="listings"
+        class="w-full px-4 pb-24 pt-10 max-md:pb-16"
+        aria-labelledby="listings-heading"
+      >
+        <div class="mx-auto w-[min(72rem,calc(100%_-_1rem))]">
+          <div class="max-w-[38rem] mb-10">
+            <h2
+              id="listings-heading"
+              class="section-kicker-bar text-lg font-semibold text-red-500"
+            >
+              Live Board
+            </h2>
+            <p
+              class="mt-2 text-[clamp(2rem,3vw,2.5rem)] font-semibold leading-[1.05] tracking-[-.04em] dark:text-white"
+            >
+              What's open right now.
+            </p>
+            <p
+              class="mt-4 text-base leading-[1.6] text-gray-600 dark:text-gray-400"
+            >
+              Fresh listings from the community, sorted by date. Full search and
+              filtering on the jobs page.
+            </p>
+          </div>
+
+          <div class="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
+            <!-- Recent Listings -->
+            <div
+              class="rounded-2xl border border-gray-200 bg-white p-7 shadow-[inset_0_0_0_1px_rgba(17,24,39,.06)] dark:border-gray-700 dark:bg-gray-800"
+            >
+              <div class="mb-5 flex items-center justify-between">
+                <h3 class="font-semibold text-gray-900 dark:text-white">
+                  Recent Jobs
+                </h3>
+                <a
+                  href="./jobs.html"
+                  class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-600 transition hover:border-gray-300 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+                >
+                  View all
+                  <i
+                    class="fa-solid fa-arrow-right text-[.6rem]"
+                    aria-hidden="true"
+                  ></i>
+                </a>
+              </div>
+              <div id="recent-listings" class="space-y-3">
+                <p class="text-sm text-gray-500 dark:text-gray-400">
+                  Loading recent listings…
+                </p>
+              </div>
+              <div
+                class="mt-5 pt-4 border-t border-gray-100 dark:border-gray-700"
+              >
+                <a
+                  href="./seekers.html"
+                  class="inline-flex items-center gap-1.5 text-sm font-medium text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                >
+                  <i class="fa-solid fa-users text-xs" aria-hidden="true"></i>
+                  Browse job seekers
+                </a>
+              </div>
+            </div>
+
+            <!-- Leaderboard -->
+            <div
+              class="rounded-2xl border border-gray-200 bg-white p-7 shadow-[inset_0_0_0_1px_rgba(17,24,39,.06)] dark:border-gray-700 dark:bg-gray-800"
+            >
+              <div class="mb-5 flex items-center justify-between">
+                <h3 class="font-semibold text-gray-900 dark:text-white">
+                  <i
+                    class="fa-solid fa-trophy text-yellow-500 mr-1.5"
+                    aria-hidden="true"
+                  ></i>
+                  Top Contributors
+                </h3>
+                <a
+                  href="./leaderboard.html"
+                  class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-600 transition hover:border-gray-300 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+                >
+                  Full board
+                  <i
+                    class="fa-solid fa-arrow-right text-[.6rem]"
+                    aria-hidden="true"
+                  ></i>
+                </a>
+              </div>
+              <p class="mb-5 text-sm text-gray-500 dark:text-gray-400">
+                Community members with the most job listings added.
+              </p>
+              <div id="homepage-leaderboard" class="space-y-2">
+                <p class="text-sm text-gray-500 dark:text-gray-400">
+                  Loading leaderboard…
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── JOB SEEKERS ───────────────────────────────────────────── -->
+      <section
+        id="seekers"
+        class="w-full px-4 pb-24 pt-6 max-md:pb-16"
+        aria-labelledby="seekers-heading"
+      >
+        <div class="mx-auto w-[min(72rem,calc(100%_-_1rem))]">
+          <div class="mb-8 flex items-end justify-between gap-4 flex-wrap">
+            <div>
+              <h2
+                id="seekers-heading"
+                class="section-kicker-bar text-lg font-semibold text-red-500"
+              >
+                Talent Pool
+              </h2>
+              <p
+                class="mt-2 text-[clamp(2rem,3vw,2.5rem)] font-semibold leading-[1.05] tracking-[-.04em] dark:text-white"
+              >
+                Skilled people, open to work.
+              </p>
+            </div>
+            <a
+              href="./seekers.html"
+              class="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:border-gray-300 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+            >
+              View All Seekers
+              <i class="fa-solid fa-arrow-right text-xs" aria-hidden="true"></i>
+            </a>
+          </div>
+          <div
+            id="recent-seekers"
+            class="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
+          >
+            <p class="col-span-full text-sm text-gray-500 dark:text-gray-400">
+              Loading recent job seekers…
+            </p>
+          </div>
+          <div class="mt-8 text-center">
+            <a
+              href="./add.html#seekers"
+              class="inline-flex items-center justify-center gap-2 rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-5 py-3 text-sm font-medium text-white shadow-[0_10px_24px_-14px_rgba(220,38,38,.8)] transition duration-200 hover:-translate-y-px"
+            >
+              <i class="fa-solid fa-user-plus text-xs" aria-hidden="true"></i>
+              Feature Your Profile
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── CTA + DARK FOOTER ─────────────────────────────────────── -->
+      <section
+        class="ml-[calc(50%_-_50vw)] w-screen overflow-hidden px-4 pt-4"
+        id="cta"
+        aria-labelledby="cta-heading"
+      >
+        <div
+          class="relative mx-auto flex w-[min(42rem,100%)] flex-col items-center gap-3 text-center"
+        >
+          <span
+            class="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 py-1 font-mono text-xs font-medium uppercase tracking-[.16em] text-red-600 dark:border-red-900/50 dark:bg-red-900/20 dark:text-red-400"
+            >OWASP BLT Project</span
+          >
+          <h2
+            id="cta-heading"
+            class="mt-1 text-[clamp(1.5rem,7vw,4rem)] font-medium leading-[1.05] tracking-[-.045em] text-gray-900 dark:text-white"
+          >
+            Start connecting<br />with the community.
+          </h2>
+          <p
+            class="m-0 max-w-[31rem] text-sm leading-[1.6] text-gray-500 dark:text-gray-400"
+          >
+            Post a role, showcase your skills, or browse opportunities — all
+            driven by open-source tooling you can contribute to.
+          </p>
+          <div
+            class="mb-2 flex items-center justify-center gap-3 max-md:w-full max-md:flex-col max-md:px-4"
+          >
+            <a
+              class="inline-flex items-center justify-center rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-5 py-3 text-sm font-medium text-white shadow-[0_10px_24px_-14px_rgba(220,38,38,.8)] transition duration-200 hover:-translate-y-px"
+              href="./jobs.html"
+              >Browse Jobs</a
+            >
+            <a
+              class="inline-flex items-center justify-center rounded-md border border-gray-200 bg-white px-5 py-3 text-sm font-medium text-gray-700 transition duration-200 hover:border-gray-300 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+              href="./add.html"
+              >Post a Job</a
+            >
+          </div>
+        </div>
+
+        <footer
+          class="footer-panel relative mt-14 w-full overflow-hidden rounded-t-3xl border border-white/5 bg-[#0e0d0c] py-6 pb-8 text-white max-md:rounded-t-[.8rem]"
+        >
+          <h2
+            class="relative m-0 px-2 text-center text-[clamp(2.8rem,11vw,8.5rem)] font-light leading-[.9] text-white"
+          >
+            jobs.owaspblt.org
+          </h2>
+          <div
+            class="relative mx-auto mt-3 h-[3px] w-16 rounded-full bg-red-600"
+            aria-hidden="true"
+          ></div>
+          <div
+            class="footer-links relative mx-auto mt-8 grid max-w-6xl grid-cols-4 gap-8 px-6 font-mono max-md:grid-cols-2 max-md:gap-6"
+          >
+            <div>
+              <p>Browse</p>
+              <a href="./jobs.html">Open Jobs</a>
+              <a href="./seekers.html">Job Seekers</a>
+              <a href="./leaderboard.html">Leaderboard</a>
+            </div>
+            <div>
+              <p>Contribute</p>
+              <a href="./add.html">Post a Job</a>
+              <a href="./add.html#seekers">Add Profile</a>
+              <a href="./saved-jobs.html">Saved Jobs</a>
+            </div>
+            <div>
+              <p>Project</p>
+              <a
+                href="https://gitlab.com/owasp-blt/blt-jobs"
+                target="_blank"
+                rel="noopener noreferrer"
+                >GitLab</a
+              >
+              <a
+                href="https://github.com/OWASP-BLT/BLT"
+                target="_blank"
+                rel="noopener noreferrer"
+                >OWASP BLT repo</a
+              >
+            </div>
+            <div>
+              <p>OWASP</p>
+              <a
+                href="https://owaspblt.org"
+                target="_blank"
+                rel="noopener noreferrer"
+                >OWASP BLT</a
+              >
+              <a
+                href="https://owasp.org/www-project-bug-logging-tool/"
+                target="_blank"
+                rel="noopener noreferrer"
+                >Foundation page</a
+              >
+              <a
+                href="https://owasp.org"
+                target="_blank"
+                rel="noopener noreferrer"
+                >owasp.org</a
+              >
+            </div>
+          </div>
+        </footer>
       </section>
     </main>
 
-    <footer class="mt-16 border-t border-slate-200 bg-white py-8 dark:border-gray-700 dark:bg-gray-900">
-      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div class="flex flex-col items-center justify-between gap-4 sm:flex-row">
-          <p class="text-sm text-slate-600 dark:text-gray-400">
-            © 2026 OWASP BLT Jobs. Part of the <a href="https://owasp.org/www-project-bug-logging-tool/" target="_blank" class="font-medium text-red-600 hover:text-red-700">OWASP BLT Project</a>
-          </p>
-          <div class="flex gap-4">
-            <a href="https://gitlab.com/owasp-blt/blt-jobs" target="_blank" aria-label="GitLab Repository" class="text-slate-600 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-500">
-              <i class="fa-brands fa-gitlab text-xl" aria-hidden="true"></i>
-            </a>
-          </div>
-        </div>
-      </div>
-    </footer>
-
-    <script src="assets/js/theme.js"></script>
     <script src="assets/js/saved-jobs.js"></script>
-    <script src="assets/js/navbar.js"></script>
     <script src="assets/js/sanitize.js"></script>
     <script>
       (function () {
         var params = new URLSearchParams(window.location.search);
-        var repo = params.get('repo') || 'owasp-blt/blt-jobs';
-        var form = document.getElementById('quick-add-form');
-        var input = document.getElementById('quick-add-url');
-        var error = document.getElementById('quick-add-error');
+        var repo = params.get("repo") || "owasp-blt/blt-jobs";
+        var form = document.getElementById("quick-add-form");
+        var input = document.getElementById("quick-add-url");
+        var error = document.getElementById("quick-add-error");
         if (form) {
-          form.addEventListener('submit', function (e) {
+          form.addEventListener("submit", function (e) {
             e.preventDefault();
-            var url = input ? input.value.trim() : '';
+            var url = input ? input.value.trim() : "";
             if (!url || !/^https?:\/\/[^\s]+\.[^\s]+/.test(url)) {
-              if (error) error.classList.remove('hidden');
+              if (error) error.classList.remove("hidden");
               return;
             }
-            if (error) error.classList.add('hidden');
-            var description = '### Job Posting URL\\n' + url + '\\n\\n/label ~"job-posting-from-link"';
-            window.open('https://gitlab.com/' + repo + '/-/issues/new?issue[title]=' + encodeURIComponent('Job Post from Link') + '&issue[description]=' + encodeURIComponent(description), '_blank', 'noopener,noreferrer');
+            if (error) error.classList.add("hidden");
+            var description =
+              "### Job Posting URL\\n" +
+              url +
+              '\\n\\n/label ~"job-posting-from-link"';
+            window.open(
+              "https://gitlab.com/" +
+                repo +
+                "/-/issues/new?issue[title]=" +
+                encodeURIComponent("Job Post from Link") +
+                "&issue[description]=" +
+                encodeURIComponent(description),
+              "_blank",
+              "noopener,noreferrer",
+            );
           });
           if (input) {
-            input.addEventListener('input', function () {
-              if (error) error.classList.add('hidden');
+            input.addEventListener("input", function () {
+              if (error) error.classList.add("hidden");
             });
           }
         }
@@ -272,131 +1020,215 @@
     </script>
     <script>
       (function () {
-        const container = document.getElementById('recent-listings');
+        const container = document.getElementById("recent-listings");
         if (!container) return;
         function esc(s) {
-          const d = document.createElement('div');
+          const d = document.createElement("div");
           d.textContent = s;
           return d.innerHTML;
         }
         function fmtDate(iso) {
-          if (!iso) return '';
+          if (!iso) return "";
           var d = new Date(iso);
-          if (isNaN(d.getTime())) return '';
-          return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+          if (isNaN(d.getTime())) return "";
+          return d.toLocaleDateString(undefined, {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+          });
         }
         Promise.all([
-          fetch('data/jobs.json', { cache: 'no-cache' }).then(function (r) { return r.ok ? r.json() : { jobs: [] }; }),
-          fetch('data/seekers.json', { cache: 'no-cache' }).then(function (r) { return r.ok ? r.json() : { seekers: [] }; })
-        ]).then(function (results) {
-          var allJobs = Array.isArray(results[0].jobs) ? results[0].jobs : [];
-          allJobs.sort(function (a, b) {
-            var ta = a.created_at ? new Date(a.created_at).getTime() : 0;
-            var tb = b.created_at ? new Date(b.created_at).getTime() : 0;
-            return tb - ta;
+          fetch("data/jobs.json", { cache: "no-cache" }).then(function (r) {
+            return r.ok ? r.json() : { jobs: [] };
+          }),
+          fetch("data/seekers.json", { cache: "no-cache" }).then(function (r) {
+            return r.ok ? r.json() : { seekers: [] };
+          }),
+        ])
+          .then(function (results) {
+            var allJobs = Array.isArray(results[0].jobs) ? results[0].jobs : [];
+            allJobs.sort(function (a, b) {
+              var ta = a.created_at ? new Date(a.created_at).getTime() : 0;
+              var tb = b.created_at ? new Date(b.created_at).getTime() : 0;
+              return tb - ta;
+            });
+            var jobs = allJobs.slice(0, 3);
+            var seekers = Array.isArray(results[1].seekers)
+              ? results[1].seekers.slice(0, 2)
+              : [];
+            if (jobs.length === 0 && seekers.length === 0) {
+              container.innerHTML =
+                '<p class="text-sm text-gray-500 dark:text-gray-400">No listings yet. Be the first to <a href="./add.html" class="font-medium text-red-600 hover:text-red-700 dark:text-red-400">post a job</a> or <a href="./add.html#seekers" class="font-medium text-red-600 hover:text-red-700 dark:text-red-400">create your profile</a>.</p>';
+              return;
+            }
+            var html = "";
+            if (jobs.length > 0) {
+              jobs.forEach(function (j) {
+                var meta = "";
+                if (j.created_at)
+                  meta +=
+                    '<span class="flex items-center gap-1"><i class="fa-solid fa-calendar-days text-[.6rem]" aria-hidden="true"></i> ' +
+                    esc(fmtDate(j.created_at)) +
+                    "</span>";
+                if (j.added_by)
+                  meta +=
+                    '<span class="flex items-center gap-1"><i class="fa-solid fa-user text-[.6rem]" aria-hidden="true"></i> ' +
+                    (j.added_by_url
+                      ? '<a href="' +
+                        esc(j.added_by_url) +
+                        '" target="_blank" rel="noopener noreferrer" class="font-medium text-red-600 hover:text-red-700 dark:text-red-400">@' +
+                        esc(j.added_by) +
+                        "</a>"
+                      : "@" + esc(j.added_by)) +
+                    "</span>";
+                html +=
+                  '<div class="job-card-preview rounded-xl border border-gray-100 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900">';
+                html +=
+                  '<a href="job.html?id=' +
+                  encodeURIComponent(j.id) +
+                  '" class="font-medium text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 text-sm">' +
+                  esc(j.title || "Untitled") +
+                  (j.organization_name
+                    ? ' <span class="text-gray-500 dark:text-gray-400 font-normal">· ' +
+                      esc(j.organization_name) +
+                      "</span>"
+                    : "") +
+                  "</a>";
+                if (meta)
+                  html +=
+                    '<div class="mt-2 flex flex-wrap gap-3 text-xs text-gray-400 dark:text-gray-500">' +
+                    meta +
+                    "</div>";
+                html += "</div>";
+              });
+            }
+            if (seekers.length > 0) {
+              html +=
+                '<div class="pt-1"><p class="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2 dark:text-gray-500">Recent Seekers</p><div class="space-y-2">';
+              seekers.forEach(function (s) {
+                html +=
+                  '<div class="rounded-xl border border-gray-100 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900"><a href="seeker.html?id=' +
+                  encodeURIComponent(s.id || "") +
+                  '" class="text-sm font-medium text-red-600 hover:text-red-700 dark:text-red-400">' +
+                  esc(s.name || "Anonymous") +
+                  (s.headline
+                    ? ' <span class="text-gray-500 font-normal dark:text-gray-400">· ' +
+                      esc(s.headline) +
+                      "</span>"
+                    : "") +
+                  "</a></div>";
+              });
+              html += "</div></div>";
+            }
+            container.innerHTML = html;
+          })
+          .catch(function () {
+            container.innerHTML =
+              '<p class="text-sm text-gray-500 dark:text-gray-400">No listings yet. Be the first to submit!</p>';
           });
-          var jobs = allJobs.slice(0, 3);
-          var seekers = Array.isArray(results[1].seekers) ? results[1].seekers.slice(0, 2) : [];
-          if (jobs.length === 0 && seekers.length === 0) {
-            container.innerHTML = '<p class="text-slate-600">No listings yet. Be the first to <a href="./add.html" class="font-medium text-red-600 hover:text-red-700">post a job</a> or <a href="./add.html#seekers" class="font-medium text-red-600 hover:text-red-700">create your profile</a>.</p>';
-            return;
-          }
-          var html = '';
-          if (jobs.length > 0) {
-            html += '<div class="mb-4"><h3 class="font-semibold mb-2 dark:text-white">Recent Jobs</h3><div class="space-y-2">';
-            jobs.forEach(function (j) {
-              var meta = '';
-              if (j.created_at) meta += '<span class="flex items-center gap-1"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i> ' + esc(fmtDate(j.created_at)) + '</span>';
-              if (j.added_by) meta += '<span class="flex items-center gap-1"><i class="fa-solid fa-user" aria-hidden="true"></i> ' + (j.added_by_url ? '<a href="' + esc(j.added_by_url) + '" target="_blank" rel="noopener noreferrer" class="font-medium text-red-600 hover:text-red-700 dark:text-red-400">@' + esc(j.added_by) + '</a>' : '@' + esc(j.added_by)) + '</span>';
-              html += '<div class="rounded-lg border border-slate-200 dark:border-gray-700 p-3">';
-              html += '<a href="job.html?id=' + encodeURIComponent(j.id) + '" class="font-medium text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">' + esc(j.title || 'Untitled') + (j.organization_name ? ' – ' + esc(j.organization_name) : '') + '</a>';
-              if (meta) html += '<div class="mt-1 flex flex-wrap gap-3 text-xs text-slate-500 dark:text-gray-400">' + meta + '</div>';
-              html += '</div>';
-            });
-            html += '</div></div>';
-          }
-          if (seekers.length > 0) {
-            html += '<div><h3 class="font-semibold mb-2 dark:text-white">Recent Job Seekers</h3><div class="space-y-2">';
-            seekers.forEach(function (s) {
-              html += '<div class="rounded-lg border border-slate-200 dark:border-gray-700 p-3"><a href="seeker.html?id=' + encodeURIComponent(s.id || '') + '" class="font-medium text-red-600 hover:text-red-700 dark:text-red-400">' + esc(s.name || 'Anonymous') + (s.headline ? ' – ' + esc(s.headline) : '') + '</a></div>';
-            });
-            html += '</div></div>';
-          }
-          container.innerHTML = html;
-        }).catch(function () {
-          container.innerHTML = '<p class="text-slate-600 dark:text-gray-400">No listings yet. Be the first to submit!</p>';
-        });
       })();
     </script>
     <script>
       (function () {
-        var MEDAL_ICONS = ['🥇', '🥈', '🥉'];
-        var container = document.getElementById('homepage-leaderboard');
+        var MEDAL_ICONS = ["🥇", "🥈", "🥉"];
+        var container = document.getElementById("homepage-leaderboard");
         if (!container) return;
         function esc(s) {
-          var d = document.createElement('div');
+          var d = document.createElement("div");
           d.textContent = s;
           return d.innerHTML;
         }
-        fetch('data/jobs.json', { cache: 'no-cache' })
-          .then(function (r) { return r.ok ? r.json() : { jobs: [] }; })
+        fetch("data/jobs.json", { cache: "no-cache" })
+          .then(function (r) {
+            return r.ok ? r.json() : { jobs: [] };
+          })
           .then(function (data) {
             var jobs = Array.isArray(data.jobs) ? data.jobs : [];
             var counts = {};
             var profileUrls = {};
             jobs.forEach(function (job) {
-              var user = (job.added_by || '').trim();
+              var user = (job.added_by || "").trim();
               if (user) {
                 counts[user] = (counts[user] || 0) + 1;
                 if (job.added_by_url) profileUrls[user] = job.added_by_url;
               }
             });
             var ranked = Object.keys(counts)
-              .map(function (user) { return { user: user, count: counts[user], profileUrl: profileUrls[user] || '' }; })
-              .sort(function (a, b) { return b.count - a.count || a.user.localeCompare(b.user); })
+              .map(function (user) {
+                return {
+                  user: user,
+                  count: counts[user],
+                  profileUrl: profileUrls[user] || "",
+                };
+              })
+              .sort(function (a, b) {
+                return b.count - a.count || a.user.localeCompare(b.user);
+              })
               .slice(0, 5);
             if (ranked.length === 0) {
-              container.innerHTML = '<p class="text-slate-600 dark:text-gray-400">No contributors yet. Be the first to <a href="./add.html" class="font-medium text-red-600 hover:text-red-700">post a job</a>!</p>';
+              container.innerHTML =
+                '<p class="text-sm text-gray-500 dark:text-gray-400">No contributors yet. Be the first to <a href="./add.html" class="font-medium text-red-600 hover:text-red-700 dark:text-red-400">post a job</a>!</p>';
               return;
             }
-            var html = '<div class="divide-y divide-slate-100 dark:divide-gray-700">';
+            var html =
+              '<div class="divide-y divide-gray-100 dark:divide-gray-700">';
             ranked.forEach(function (entry, i) {
-              var medal = MEDAL_ICONS[i] || ('#' + (i + 1));
-              html += '<div class="flex items-center gap-4 py-3">';
-              html += '<span class="w-8 text-center text-lg">' + medal + '</span>';
-              html += '<span class="flex h-8 w-8 items-center justify-center rounded-full bg-red-100 text-xs font-bold text-red-700 dark:bg-red-900/30 dark:text-red-300">@</span>';
-              html += entry.profileUrl ? '<a href="' + esc(entry.profileUrl) + '" target="_blank" rel="noopener noreferrer" class="flex-1 font-medium text-slate-900 dark:text-gray-100 hover:text-red-600 dark:hover:text-red-400">@' + esc(entry.user) + '</a>' : '<span class="flex-1 font-medium">@' + esc(entry.user) + '</span>';
-              html += '<span class="inline-flex items-center gap-1 rounded-full bg-red-50 px-3 py-1 text-sm font-semibold text-red-700 dark:bg-red-900/30 dark:text-red-400"><i class="fa-solid fa-briefcase text-xs" aria-hidden="true"></i> ' + entry.count + ' job' + (entry.count !== 1 ? 's' : '') + '</span>';
-              html += '</div>';
+              var medal = MEDAL_ICONS[i] || "#" + (i + 1);
+              html += '<div class="flex items-center gap-3 py-3">';
+              html +=
+                '<span class="w-7 text-center text-base">' + medal + "</span>";
+              html +=
+                '<span class="flex h-7 w-7 items-center justify-center rounded-full bg-red-100 text-xs font-bold text-red-700 dark:bg-red-900/30 dark:text-red-300">@</span>';
+              html += entry.profileUrl
+                ? '<a href="' +
+                  esc(entry.profileUrl) +
+                  '" target="_blank" rel="noopener noreferrer" class="flex-1 text-sm font-medium text-gray-900 dark:text-gray-100 hover:text-red-600 dark:hover:text-red-400">@' +
+                  esc(entry.user) +
+                  "</a>"
+                : '<span class="flex-1 text-sm font-medium text-gray-900 dark:text-gray-100">@' +
+                  esc(entry.user) +
+                  "</span>";
+              html +=
+                '<span class="inline-flex items-center gap-1 rounded-full bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700 dark:bg-red-900/30 dark:text-red-400"><i class="fa-solid fa-briefcase text-[.6rem]" aria-hidden="true"></i> ' +
+                entry.count +
+                "</span>";
+              html += "</div>";
             });
-            html += '</div>';
+            html += "</div>";
             container.innerHTML = html;
           })
           .catch(function () {
-            container.innerHTML = '<p class="text-slate-600 dark:text-gray-400">Unable to load leaderboard.</p>';
+            container.innerHTML =
+              '<p class="text-sm text-gray-500 dark:text-gray-400">Unable to load leaderboard.</p>';
           });
       })();
     </script>
     <script>
       (function () {
-        var seekersContainer = document.getElementById('recent-seekers');
+        var seekersContainer = document.getElementById("recent-seekers");
         if (!seekersContainer) return;
-        var esc = window.Sanitize ? window.Sanitize.esc : function (s) {
-          var d = document.createElement('div'); d.textContent = s; return d.innerHTML;
-        };
+        var esc = window.Sanitize
+          ? window.Sanitize.esc
+          : function (s) {
+              var d = document.createElement("div");
+              d.textContent = s;
+              return d.innerHTML;
+            };
         function githubUsernameFromUrl(url) {
-          if (!url) return '';
+          if (!url) return "";
           try {
             var u = new URL(url);
-            if (u.hostname === 'github.com') {
-              var parts = u.pathname.replace(/^\//, '').split('/');
-              return parts[0] || '';
+            if (u.hostname === "github.com") {
+              var parts = u.pathname.replace(/^\//, "").split("/");
+              return parts[0] || "";
             }
           } catch (e) {}
-          return '';
+          return "";
         }
-        fetch('data/seekers.json', { cache: 'no-cache' })
-          .then(function (r) { return r.ok ? r.json() : { seekers: [] }; })
+        fetch("data/seekers.json", { cache: "no-cache" })
+          .then(function (r) {
+            return r.ok ? r.json() : { seekers: [] };
+          })
           .then(function (data) {
             var allSeekers = Array.isArray(data.seekers) ? data.seekers : [];
             allSeekers.sort(function (a, b) {
@@ -406,32 +1238,78 @@
             });
             var seekers = allSeekers.slice(0, 10);
             if (seekers.length === 0) {
-              seekersContainer.innerHTML = '<p class="col-span-full text-slate-600 dark:text-gray-400">No job seekers yet. Be the first to <a href="./add.html#seekers" class="font-medium text-red-600 hover:text-red-700">create your profile</a>!</p>';
+              seekersContainer.innerHTML =
+                '<p class="col-span-full text-sm text-gray-500 dark:text-gray-400">No job seekers yet. Be the first to <a href="./add.html#seekers" class="font-medium text-red-600 hover:text-red-700 dark:text-red-400">create your profile</a>!</p>';
               return;
             }
-            var html = '';
+            var html = "";
             seekers.forEach(function (s) {
-              var username = githubUsernameFromUrl(s.github || '');
-              var avatarSrc = esc(username
-                ? 'https://github.com/' + username + '.png?size=80'
-                : 'https://github.com/ghost.png');
-              var name = esc(s.name || 'Anonymous');
-              var headline = esc(s.headline || '');
-              var profileUrl = esc('seeker.html?id=' + encodeURIComponent(s.id || ''));
-              html += '<a href="' + profileUrl + '" class="flex flex-col items-center gap-3 rounded-xl border border-slate-200 bg-white p-4 text-center shadow-sm transition hover:border-red-400 hover:shadow-md dark:border-gray-700 dark:bg-gray-800 dark:hover:border-red-500">';
-              html += '<img src="' + avatarSrc + '" alt="' + name + '" width="64" height="64" class="h-16 w-16 rounded-full border-2 border-slate-200 dark:border-gray-600 object-cover" loading="lazy" onerror="this.src=\'https://github.com/ghost.png\'" />';
+              var username = githubUsernameFromUrl(s.github || "");
+              var avatarSrc = esc(
+                username
+                  ? "https://github.com/" + username + ".png?size=80"
+                  : "https://github.com/ghost.png",
+              );
+              var name = esc(s.name || "Anonymous");
+              var headline = esc(s.headline || "");
+              var profileUrl = esc(
+                "seeker.html?id=" + encodeURIComponent(s.id || ""),
+              );
+              html +=
+                '<a href="' +
+                profileUrl +
+                '" class="flex flex-col items-center gap-3 rounded-2xl border border-gray-200 bg-white p-4 text-center shadow-[inset_0_0_0_1px_rgba(17,24,39,.06)] transition hover:-translate-y-0.5 hover:border-red-200 hover:shadow-md dark:border-gray-700 dark:bg-gray-800 dark:hover:border-red-700">';
+              html +=
+                '<img src="' +
+                avatarSrc +
+                '" alt="' +
+                name +
+                '" width="64" height="64" class="h-16 w-16 rounded-full border-2 border-gray-100 dark:border-gray-700 object-cover" loading="lazy" onerror="this.src=\'https://github.com/ghost.png\'" />';
               html += '<div class="min-w-0 w-full">';
-              html += '<p class="truncate text-sm font-semibold text-slate-900 dark:text-gray-100">' + name + '</p>';
-              if (headline) html += '<p class="truncate text-xs text-slate-500 dark:text-gray-400 mt-0.5">' + headline + '</p>';
-              if (username) html += '<p class="truncate text-xs text-red-600 dark:text-red-400 mt-0.5">@' + esc(username) + '</p>';
-              html += '</div>';
-              html += '</a>';
+              html +=
+                '<p class="truncate text-sm font-semibold text-gray-900 dark:text-gray-100">' +
+                name +
+                "</p>";
+              if (headline)
+                html +=
+                  '<p class="truncate text-xs text-gray-500 dark:text-gray-400 mt-0.5">' +
+                  headline +
+                  "</p>";
+              if (username)
+                html +=
+                  '<p class="truncate text-xs text-red-600 dark:text-red-400 mt-0.5">@' +
+                  esc(username) +
+                  "</p>";
+              html += "</div>";
+              html += "</a>";
             });
             seekersContainer.innerHTML = html;
           })
           .catch(function () {
-            seekersContainer.innerHTML = '<p class="col-span-full text-slate-600 dark:text-gray-400">Unable to load recent job seekers.</p>';
+            seekersContainer.innerHTML =
+              '<p class="col-span-full text-sm text-gray-500 dark:text-gray-400">Unable to load recent job seekers.</p>';
           });
+      })();
+    </script>
+    <script>
+      (function () {
+        var mobileToggle = document.getElementById("mobile-toggle");
+        var mobileMenu = document.getElementById("mobile-menu");
+        if (mobileToggle && mobileMenu) {
+          mobileToggle.addEventListener("click", function () {
+            var open = !mobileMenu.classList.contains("open");
+            mobileMenu.classList.toggle("open", open);
+            mobileToggle.classList.toggle("active", open);
+            mobileToggle.setAttribute("aria-expanded", String(open));
+          });
+          mobileMenu.querySelectorAll("a").forEach(function (link) {
+            link.addEventListener("click", function () {
+              mobileMenu.classList.remove("open");
+              mobileToggle.classList.remove("active");
+              mobileToggle.setAttribute("aria-expanded", "false");
+            });
+          });
+        }
       })();
     </script>
   </body>

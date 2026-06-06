@@ -59,6 +59,8 @@ The pipeline is defined in `.gitlab-ci.yml`. Add these masked CI/CD variables in
 
 Create a GitLab pipeline schedule for periodic submission processing and stale job expiry. The same maintenance jobs can also be started manually from the GitLab pipeline UI.
 
+If `GITLAB_TOKEN` is not configured or is not exposed to a pipeline, GitLab skips the `process_submissions` job. The `expire_jobs` maintenance job can still run on the schedule.
+
 ## Cloudflare Workers
 
 `wrangler.toml` serves the committed static site assets with `404.html` handling. Run:

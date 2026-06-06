@@ -22,8 +22,8 @@ validate:
 process_submissions:
   stage: maintenance
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "schedule"'
-    - if: '$CI_PIPELINE_SOURCE == "web"'
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && $GITLAB_TOKEN'
+    - if: '$CI_PIPELINE_SOURCE == "web" && $GITLAB_TOKEN'
       when: manual
   before_script:
     - apt-get update
