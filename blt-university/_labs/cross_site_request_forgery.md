@@ -116,34 +116,94 @@ tasks:
     type: simulation
     order: 3
     simulation:
+      engine: csrf-form
       type: basic_csrf
       scenario: email_change
       target_url: /profile/update
+      vulnerable_code: |
+        app.post('/profile/update', requireLogin, (req, res) => {
+          const email = req.body.email;
+          updateEmail(req.user.id, email);
+          res.redirect('/profile');
+        });
+      vulnerable_lines:
+        - 3
+      explain:
+        question: Why can another site trigger this email change?
+        options:
+          - id: missing_request_intent
+            label: The endpoint trusts the session cookie but does not verify a CSRF token or request origin.
+          - id: weak_email_format
+            label: The email address is not long enough.
+          - id: missing_database_index
+            label: The database table is missing an index.
+        answer: missing_request_intent
+      expected_patterns:
+        - csrf_token
+        - server_validation
+        - same_site_cookie
       vulnerable_parameters:
         - email
       success_payload: "<form action='/profile/update' method='POST'><input name='email' value='attacker@evil.com'></form>"
       success_criteria: HTML form that performs unauthorized email change.
       difficulty: beginner
+      fix_starter_code: |
+        app.post('/profile/update', requireLogin, (req, res) => {
+          const email = req.body.email;
+          updateEmail(req.user.id, email);
+          res.redirect('/profile');
+        });
       hints:
         - Create an HTML form that submits to the target URL.
         - The form should change the email to a value you control.
         - Use POST method for the form submission.
         - The target site does not validate CSRF tokens.
+        - Defend this endpoint by requiring and verifying a CSRF token.
+        - SameSite=Lax or SameSite=Strict cookies reduce cross-site request risk.
 
   - name: CSRF with Auto-Submit
     description: Create a CSRF attack that automatically submits when the page loads.
     type: simulation
     order: 4
     simulation:
+      engine: csrf-auto-submit
       type: auto_submit_csrf
       scenario: fund_transfer
       target_url: /transfer/money
+      vulnerable_code: |
+        app.post('/transfer/money', requireLogin, (req, res) => {
+          const { amount, to_account } = req.body;
+          transferMoney(req.user.id, to_account, amount);
+          res.redirect('/account');
+        });
+      vulnerable_lines:
+        - 3
+      explain:
+        question: Why can an auto-submitting form trigger this transfer?
+        options:
+          - id: browser_sends_cookies
+            label: The browser includes the victim's session cookies, and the endpoint does not verify a CSRF token.
+          - id: amount_too_large
+            label: The amount is too large.
+          - id: missing_redirect
+            label: Redirects cause CSRF by themselves.
+        answer: browser_sends_cookies
+      expected_patterns:
+        - csrf_token
+        - server_validation
+        - same_site_cookie
       vulnerable_parameters:
         - amount
         - to_account
       success_payload: "<form id='csrf' action='/transfer/money' method='POST'><input name='amount' value='1000'><input name='to_account' value='attacker'></form><script>document.getElementById('csrf').submit()</script>"
       success_criteria: Auto-submitting form that transfers funds without user interaction.
       difficulty: intermediate
+      fix_starter_code: |
+        app.post('/transfer/money', requireLogin, (req, res) => {
+          const { amount, to_account } = req.body;
+          transferMoney(req.user.id, to_account, amount);
+          res.redirect('/account');
+        });
       hints:
         - Create a form that submits automatically using JavaScript.
         - Include hidden input fields for amount and destination account.
@@ -155,14 +215,45 @@ tasks:
     type: simulation
     order: 5
     simulation:
+      engine: csrf-image
       type: image_csrf
       scenario: account_deletion
       target_url: /account/delete
+      vulnerable_code: |
+        app.get('/account/delete', requireLogin, (req, res) => {
+          if (req.query.confirm === 'yes') {
+            deleteAccount(req.user.id);
+          }
+          res.redirect('/goodbye');
+        });
+      vulnerable_lines:
+        - 3
+      explain:
+        question: Why can an image tag trigger this account deletion?
+        options:
+          - id: get_changes_state
+            label: Loading an image sends a GET request, and this GET route performs a destructive action without CSRF validation.
+          - id: image_has_password
+            label: The image file contains the user's password.
+          - id: hidden_style
+            label: Hidden images can bypass TLS.
+        answer: get_changes_state
+      expected_patterns:
+        - csrf_token
+        - server_validation
+        - same_site_cookie
       vulnerable_parameters:
         - confirm
       success_payload: "<img src='/account/delete?confirm=yes' style='display:none'>"
       success_criteria: Hidden image that triggers account deletion via GET request.
       difficulty: beginner
+      fix_starter_code: |
+        app.get('/account/delete', requireLogin, (req, res) => {
+          if (req.query.confirm === 'yes') {
+            deleteAccount(req.user.id);
+          }
+          res.redirect('/goodbye');
+        });
       hints:
         - Use an img tag with the vulnerable URL as the src.
         - Include the required parameters in the URL query string.
@@ -174,14 +265,43 @@ tasks:
     type: simulation
     order: 6
     simulation:
+      engine: csrf-ajax
       type: ajax_csrf
       scenario: password_change
       target_url: /account/password
+      vulnerable_code: |
+        app.post('/account/password', requireLogin, (req, res) => {
+          const password = req.body.new_password;
+          changePassword(req.user.id, password);
+          res.json({ ok: true });
+        });
+      vulnerable_lines:
+        - 3
+      explain:
+        question: Why does an AJAX password change still need CSRF protection?
+        options:
+          - id: ajax_state_change
+            label: The request changes state and trusts ambient session cookies without verifying a CSRF token.
+          - id: json_is_safe
+            label: JSON requests cannot change server state.
+          - id: passwords_are_short
+            label: Short passwords automatically cause CSRF.
+        answer: ajax_state_change
+      expected_patterns:
+        - csrf_token
+        - server_validation
+        - same_site_cookie
       vulnerable_parameters:
         - new_password
       success_payload: "<script>fetch('/account/password', {method: 'POST', body: 'new_password=hacked123', headers: {'Content-Type': 'application/x-www-form-urlencoded'}})</script>"
       success_criteria: JavaScript code that changes user password via AJAX.
       difficulty: advanced
+      fix_starter_code: |
+        app.post('/account/password', requireLogin, (req, res) => {
+          const password = req.body.new_password;
+          changePassword(req.user.id, password);
+          res.json({ ok: true });
+        });
       hints:
         - Use JavaScript `fetch()` or `XMLHttpRequest`.
         - Send a POST request to the vulnerable endpoint.
@@ -250,4 +370,3 @@ tasks:
         - D) Tokens are validated on every request
       answer: B
 ---
-
