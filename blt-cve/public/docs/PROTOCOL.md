@@ -2,7 +2,7 @@
 
 ## Overview
 
-The BLT-CVE protocol defines a standards-driven, machine-readable, cryptographically verifiable, decentralized vulnerability registry that operates entirely on static hosting (GitHub Pages) and automated CI/CD (GitHub Actions).
+The BLT-CVE protocol defines a standards-driven, machine-readable, cryptographically verifiable, decentralized vulnerability registry that operates entirely on static hosting and automated CI/CD.
 
 This document specifies the data format, ID scheme, validation rules, and operational procedures for the BLT vulnerability namespace.
 
@@ -31,14 +31,14 @@ BLT-YYYY-NNNN
 - IDs **must** be unique within the registry.
 - IDs are **immutable** once merged into `main`.
 - IDs **must not** be reused, even after deletion.
-- The year component **must** match the folder under `/cves/YYYY/`.
+- The year component **must** match the folder under `public/cves/YYYY/`.
 - The filename **must** be `BLT-YYYY-NNNN.json`.
 
 ---
 
 ## 3. Entry Format
 
-Each vulnerability entry is a JSON file conforming to `/schema/blt-cve-schema.json`.
+Each vulnerability entry is a JSON file conforming to `public/schema/blt-cve-schema.json`.
 
 ### Required Fields
 
@@ -84,19 +84,20 @@ Each vulnerability entry is a JSON file conforming to `/schema/blt-cve-schema.js
 ## 4. Directory Layout
 
 ```
-/cves/
-  /YYYY/
-    BLT-YYYY-NNNN.json
-/schema/
-  blt-cve-schema.json
-/index.json
-/feed.json
-/federation.json
-/docs/
-  PROTOCOL.md
-  GOVERNANCE.md
-  FEDERATION.md
-  SECURITY.md
+/public/
+  /cves/
+    /YYYY/
+      BLT-YYYY-NNNN.json
+  /schema/
+    blt-cve-schema.json
+  /index.json
+  /feed.json
+  /federation.json
+  /docs/
+    PROTOCOL.md
+    GOVERNANCE.md
+    FEDERATION.md
+    SECURITY.md
 /scripts/
   build_index.py
 .github/workflows/
@@ -109,9 +110,9 @@ Each vulnerability entry is a JSON file conforming to `/schema/blt-cve-schema.js
 
 The automated validator (`.github/workflows/validate.yml`) enforces:
 
-1. Each JSON file in `/cves/**` **must** validate against the schema.
+1. Each JSON file in `public/cves/**` **must** validate against the schema.
 2. The `id` field **must** match the filename (e.g., `BLT-2026-0001.json` → `id: "BLT-2026-0001"`).
-3. The year in `id` **must** match the containing folder (e.g., `cves/2026/`).
+3. The year in `id` **must** match the containing folder (e.g., `public/cves/2026/`).
 4. No two files may share the same `id`.
 5. All required fields must be present and non-empty.
 

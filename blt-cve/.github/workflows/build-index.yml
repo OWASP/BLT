@@ -4,7 +4,9 @@ on:
   push:
     branches: [main]
     paths:
-      - 'cves/**'
+      - 'public/cves/**'
+      - 'public/schema/**'
+      - 'scripts/build_index.py'
 
 permissions:
   contents: write
@@ -30,10 +32,10 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add index.json feed.json
+          git add public/index.json public/feed.json
           if git diff --cached --quiet; then
-            echo "No changes to index.json or feed.json"
+            echo "No changes to public/index.json or public/feed.json"
           else
-            git commit -m "chore: regenerate index.json and feed.json [skip ci]"
+            git commit -m "chore: regenerate CVE index and feed [skip ci]"
             git push
           fi

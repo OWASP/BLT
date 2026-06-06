@@ -35,8 +35,8 @@ Current maintainers are listed in the repository's `CODEOWNERS` file (if present
 ## 3. Submission Process
 
 1. Fork the repository.
-2. Create a new file under `/cves/YYYY/BLT-YYYY-DRAFT.json` (use `DRAFT` as a placeholder).
-3. Fill in all required fields per `/schema/blt-cve-schema.json`.
+2. Create a new file under `public/cves/YYYY/BLT-YYYY-DRAFT.json` (use `DRAFT` as a placeholder).
+3. Fill in all required fields per `public/schema/blt-cve-schema.json`.
 4. Open a Pull Request. The automated validator will check your entry.
 5. A maintainer reviews the entry for accuracy and policy compliance.
 6. The maintainer assigns the final sequential ID and renames the file.

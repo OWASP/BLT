@@ -1,0 +1,8 @@
+{
+  "namespace": "BLT",
+  "public_key": "TBD",
+  "index_url": "https://cve.owaspblt.org/index.json",
+  "feed_url": "https://cve.owaspblt.org/feed.json",
+  "schema_url": "https://cve.owaspblt.org/schema/blt-cve-schema.json",
+  "contact": "https://github.com/OWASP-BLT/BLT-CVE/issues"
+}

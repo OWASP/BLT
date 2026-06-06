@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-Regenerate /index.json and /feed.json from the contents of /cves/**.
+Regenerate public/index.json and public/feed.json from public/cves/**.
 
 Run this script after adding or modifying CVE entries, then commit
-the updated index.json and feed.json alongside your changes.
+the updated public/index.json and public/feed.json alongside your changes.
 """
 
 import json
@@ -12,11 +12,12 @@ import sys
 from datetime import datetime, timezone
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CVES_DIR = os.path.join(REPO_ROOT, "cves")
-INDEX_PATH = os.path.join(REPO_ROOT, "index.json")
-FEED_PATH = os.path.join(REPO_ROOT, "feed.json")
+PUBLIC_DIR = os.path.join(REPO_ROOT, "public")
+CVES_DIR = os.path.join(PUBLIC_DIR, "cves")
+INDEX_PATH = os.path.join(PUBLIC_DIR, "index.json")
+FEED_PATH = os.path.join(PUBLIC_DIR, "feed.json")
 
-PAGES_BASE = "https://owasp-blt.github.io/BLT-CVE"
+BASE_URL = os.environ.get("BLT_CVE_BASE_URL", "https://cve.owaspblt.org").rstrip("/")
 
 
 def collect_entries():
@@ -72,7 +73,7 @@ def build_feed(entries, now_ts):
                 "published": entry.get("published", ""),
                 "modified": entry.get("modified", ""),
                 "severity": entry.get("severity", {}).get("cvss_score"),
-                "url": f"{PAGES_BASE}{rel}",
+                "url": f"{BASE_URL}{rel}",
             }
             for eid, rel, entry in entries
         ],
@@ -95,7 +96,10 @@ def main():
     write_json(INDEX_PATH, index)
     write_json(FEED_PATH, feed)
 
-    print(f"Generated index.json and feed.json with {len(entries)} entr{'y' if len(entries) == 1 else 'ies'}.")
+    print(
+        f"Generated public/index.json and public/feed.json with "
+        f"{len(entries)} entr{'y' if len(entries) == 1 else 'ies'}."
+    )
 
 
 if __name__ == "__main__":

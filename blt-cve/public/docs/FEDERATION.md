@@ -14,9 +14,9 @@ Each registry publishes a `/federation.json` file at its root:
 {
   "namespace": "BLT",
   "public_key": "TBD",
-  "index_url": "https://owasp-blt.github.io/BLT-CVE/index.json",
-  "feed_url": "https://owasp-blt.github.io/BLT-CVE/feed.json",
-  "schema_url": "https://owasp-blt.github.io/BLT-CVE/schema/blt-cve-schema.json",
+  "index_url": "https://cve.owaspblt.org/index.json",
+  "feed_url": "https://cve.owaspblt.org/feed.json",
+  "schema_url": "https://cve.owaspblt.org/schema/blt-cve-schema.json",
   "contact": "https://github.com/OWASP-BLT/BLT-CVE/issues"
 }
 ```
@@ -37,7 +37,7 @@ Each registry publishes a `/federation.json` file at its root:
 To create a read-only mirror:
 
 1. Fork `OWASP-BLT/BLT-CVE` on GitHub.
-2. Enable GitHub Pages on the fork (deploy from `main` branch).
+2. Publish the fork's `public/` directory with static hosting.
 3. Set up a scheduled GitHub Actions workflow to `git pull` from upstream and push to the fork.
 4. Publish your own `/federation.json` pointing to your mirror's URLs.
 
@@ -100,7 +100,7 @@ Any organization can implement a compatible registry by:
 2. Replacing the `BLT` namespace with your own (e.g., `ACME`).
 3. Updating `/federation.json` with your namespace and URLs.
 4. Following the same schema and directory structure.
-5. Publishing your registry on GitHub Pages.
+5. Publishing your registry from the `public/` directory.
 
 Your registry's IDs will be `ACME-YYYY-NNNN` and will not conflict with BLT IDs.
 
@@ -110,6 +110,6 @@ Your registry's IDs will be `ACME-YYYY-NNNN` and will not conflict with BLT IDs.
 
 | Namespace | URL | Status |
 |-----------|-----|--------|
-| BLT       | https://owasp-blt.github.io/BLT-CVE/ | Active (canonical) |
+| BLT       | https://cve.owaspblt.org/ | Active (canonical) |
 
 To add your registry to this list, open a Pull Request updating this table.

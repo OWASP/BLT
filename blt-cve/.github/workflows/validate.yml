@@ -4,8 +4,9 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - 'cves/**'
-      - 'schema/**'
+      - 'public/cves/**'
+      - 'public/schema/**'
+      - 'scripts/**'
 
 jobs:
   validate:
@@ -47,10 +48,10 @@ jobs:
       - name: Regenerate index and feed
         run: python scripts/build_index.py
 
-      - name: Check index.json is up to date
+      - name: Check index and feed are up to date
         run: |
-          if ! git diff --quiet index.json feed.json; then
-            echo "ERROR: index.json or feed.json is out of date. Run scripts/build_index.py locally and commit the result."
-            git diff index.json feed.json
+          if ! git diff --quiet public/index.json public/feed.json; then
+            echo "ERROR: public/index.json or public/feed.json is out of date. Run scripts/build_index.py locally and commit the result."
+            git diff public/index.json public/feed.json
             exit 1
           fi

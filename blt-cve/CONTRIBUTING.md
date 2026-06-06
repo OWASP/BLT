@@ -21,8 +21,8 @@ This project follows the OWASP Code of Conduct. Please be respectful and constru
    git checkout -b add/BLT-YYYY-NNNN
    ```
 
-3. **Create a new CVE entry** following the schema in `/schema/blt-cve-schema.json`.
-   Place the file at `cves/YYYY/BLT-YYYY-DRAFT.json` (maintainers will assign the final ID).
+3. **Create a new CVE entry** following the schema in `public/schema/blt-cve-schema.json`.
+   Place the file at `public/cves/YYYY/BLT-YYYY-DRAFT.json` (maintainers will assign the final ID).
 
 4. **Validate your entry locally**
    ```bash
@@ -46,8 +46,8 @@ This project follows the OWASP Code of Conduct. Please be respectful and constru
 
 Files to update when relevant:
 - `README.md` – overview and usage
-- `docs/PROTOCOL.md` – data format & ID rules
-- `docs/GOVERNANCE.md` – maintainer & disclosure policy
+- `public/docs/PROTOCOL.md` – data format & ID rules
+- `public/docs/GOVERNANCE.md` – maintainer & disclosure policy
 
 ## Commit Messages
 
@@ -62,7 +62,7 @@ Prefixes: `add:`, `fix:`, `docs:`, `chore:`
 
 ## Review Process
 
-1. Automated schema validation runs on all PRs targeting `cves/**`.
+1. Automated schema validation runs on all PRs targeting `public/cves/**`.
 2. Code review by maintainers.
 3. Maintainer assigns the final sequential ID, renames the file, and merges.
 4. The index is regenerated automatically after merge.

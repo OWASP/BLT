@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-Validate all BLT CVE JSON files in /cves/** against the JSON schema.
+Validate all BLT CVE JSON files in public/cves/** against the JSON schema.
 
 Checks:
-  - Each file validates against schema/blt-cve-schema.json
+  - Each file validates against public/schema/blt-cve-schema.json
   - The 'id' field matches the filename
   - The year in the 'id' matches the containing folder
   - No duplicate IDs across the registry
@@ -21,8 +21,9 @@ except ImportError:
     sys.exit(1)
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SCHEMA_PATH = os.path.join(REPO_ROOT, "schema", "blt-cve-schema.json")
-CVES_DIR = os.path.join(REPO_ROOT, "cves")
+PUBLIC_DIR = os.path.join(REPO_ROOT, "public")
+SCHEMA_PATH = os.path.join(PUBLIC_DIR, "schema", "blt-cve-schema.json")
+CVES_DIR = os.path.join(PUBLIC_DIR, "cves")
 
 ID_PATTERN = re.compile(r"^BLT-(\d{4})-\d{4}$")
 
@@ -33,7 +34,7 @@ def load_schema():
 
 
 def collect_cve_files():
-    """Yield (year_folder, filepath) for every .json file under /cves."""
+    """Yield (year_folder, filepath) for every .json file under public/cves."""
     for year in sorted(os.listdir(CVES_DIR)):
         year_dir = os.path.join(CVES_DIR, year)
         if not os.path.isdir(year_dir):
@@ -103,7 +104,7 @@ def validate():
 
 def main():
     if not os.path.isdir(CVES_DIR):
-        print("No /cves directory found – nothing to validate.")
+        print("No public/cves directory found - nothing to validate.")
         sys.exit(0)
 
     print("Validating BLT CVE entries...")

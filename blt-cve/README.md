@@ -1,6 +1,6 @@
 # BLT-CVE: Decentralized, Federated Vulnerability Registry
 
-A standards-driven, machine-readable, cryptographically verifiable, federated vulnerability namespace that runs entirely on **GitHub Pages** and **GitHub Actions** — no backend required.
+A standards-driven, machine-readable, cryptographically verifiable, federated vulnerability namespace that runs entirely on **Cloudflare static hosting** and automation — no backend required.
 
 > ⚠️ BLT IDs are **not** MITRE-issued CVE IDs. They are community-assigned identifiers within the OWASP BLT ecosystem. Always cross-reference with official CVE sources for production security decisions.
 
@@ -9,7 +9,7 @@ A standards-driven, machine-readable, cryptographically verifiable, federated vu
 ## 🎯 Purpose
 
 - Provide a community-operated vulnerability registry under the `BLT` namespace.
-- Store all data as static JSON, served from GitHub Pages.
+- Store all published data as static JSON under `public/`, served by Cloudflare.
 - Enable automated validation and index generation via GitHub Actions.
 - Support federation so other organizations can mirror or aggregate entries.
 - Remain entirely forkable and server-free.
@@ -37,25 +37,27 @@ Example: `BLT-2026-0001`
 ## 📁 Repository Structure
 
 ```
-/cves/
-  /2026/
-    BLT-2026-0001.json      ← individual vulnerability entries
-/schema/
-  blt-cve-schema.json       ← JSON schema for entries
-/index.json                 ← machine-readable master index
-/feed.json                  ← full metadata feed
-/federation.json            ← federation manifest
-/docs/
-  PROTOCOL.md               ← data format & ID rules
-  GOVERNANCE.md             ← maintainer & disclosure policy
-  FEDERATION.md             ← how to mirror/aggregate
-  SECURITY.md               ← trust model & key management
+/public/
+  /cves/
+    /2026/
+      BLT-2026-0001.json    ← individual vulnerability entries
+  /schema/
+    blt-cve-schema.json     ← JSON schema for entries
+  /index.json               ← machine-readable master index
+  /feed.json                ← full metadata feed
+  /federation.json          ← federation manifest
+  /docs/
+    PROTOCOL.md             ← data format & ID rules
+    GOVERNANCE.md           ← maintainer & disclosure policy
+    FEDERATION.md           ← how to mirror/aggregate
+    SECURITY.md             ← trust model & key management
 /scripts/
   validate_cves.py          ← local validation script
   build_index.py            ← regenerates index.json & feed.json
 .github/workflows/
   validate.yml              ← PR validation workflow
   build-index.yml           ← auto-regenerate index on merge
+wrangler.toml               ← Cloudflare publish root configuration
 ```
 
 ---
@@ -63,8 +65,8 @@ Example: `BLT-2026-0001`
 ## 📤 How to Submit a Vulnerability
 
 1. **Fork** this repository.
-2. Create a new file: `cves/YYYY/BLT-YYYY-DRAFT.json` (use `DRAFT` as a placeholder ID).
-3. Fill in all required fields following the schema in `/schema/blt-cve-schema.json`.
+2. Create a new file: `public/cves/YYYY/BLT-YYYY-DRAFT.json` (use `DRAFT` as a placeholder ID).
+3. Fill in all required fields following the schema in `public/schema/blt-cve-schema.json`.
 4. Run local validation:
    ```bash
    pip install jsonschema
@@ -108,9 +110,9 @@ Example: `BLT-2026-0001`
 
 Every entry must:
 
-- Conform to `/schema/blt-cve-schema.json`.
+- Conform to `public/schema/blt-cve-schema.json`.
 - Have an `id` that matches the filename (`BLT-YYYY-NNNN.json`).
-- Have a year in the `id` that matches its parent folder (`cves/YYYY/`).
+- Have a year in the `id` that matches its parent folder (`public/cves/YYYY/`).
 - Have a unique `id` across the entire registry.
 - Include all required fields: `id`, `published`, `modified`, `title`, `description`, `affected`, `severity`, `references`, `reporter`.
 
@@ -118,7 +120,7 @@ The `validate.yml` GitHub Actions workflow enforces these rules on every PR.
 
 ---
 
-## 🌐 Machine-Readable Endpoints (GitHub Pages)
+## 🌐 Machine-Readable Endpoints (Cloudflare)
 
 | URL | Description |
 |-----|-------------|
@@ -132,7 +134,7 @@ The `validate.yml` GitHub Actions workflow enforces these rules on every PR.
 
 ## 🔗 Federation
 
-Other organizations can mirror or aggregate this registry. See [docs/FEDERATION.md](docs/FEDERATION.md) for details, including:
+Other organizations can mirror or aggregate this registry. See [public/docs/FEDERATION.md](public/docs/FEDERATION.md) for details, including:
 
 - How to set up a mirror.
 - How to aggregate entries from multiple registries.
@@ -142,9 +144,9 @@ Other organizations can mirror or aggregate this registry. See [docs/FEDERATION.
 
 ## 🔐 Security & Governance
 
-- [docs/SECURITY.md](docs/SECURITY.md) — trust model, GPG signing, Sigstore plan, key rotation.
-- [docs/GOVERNANCE.md](docs/GOVERNANCE.md) — maintainer responsibilities, disclosure policy, abuse handling.
-- [docs/PROTOCOL.md](docs/PROTOCOL.md) — full protocol specification.
+- [public/docs/SECURITY.md](public/docs/SECURITY.md) — trust model, GPG signing, Sigstore plan, key rotation.
+- [public/docs/GOVERNANCE.md](public/docs/GOVERNANCE.md) — maintainer responsibilities, disclosure policy, abuse handling.
+- [public/docs/PROTOCOL.md](public/docs/PROTOCOL.md) — full protocol specification.
 
 ---
 
@@ -154,7 +156,7 @@ Other organizations can mirror or aggregate this registry. See [docs/FEDERATION.
 |--------|-----------|---------|
 | Authority | MITRE / CNAs | OWASP BLT community |
 | ID format | CVE-YYYY-NNNNN | BLT-YYYY-NNNN |
-| Infrastructure | Centralized | GitHub Pages (static) |
+| Infrastructure | Centralized | Cloudflare static assets |
 | Forkable | No | Yes |
 | Backend required | Yes | No |
 
