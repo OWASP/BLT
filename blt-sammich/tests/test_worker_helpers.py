@@ -345,6 +345,131 @@ def test_db_insert_event_persists_slack_team_id_even_without_workspace():
     assert captured["params"][5] == "T123"
 
 
+def test_db_insert_event_retries_when_slack_team_id_column_is_missing():
+    captured = []
+    original_d1_run = worker.d1_run
+    original_schema_ready = worker.SCHEMA_READY
+
+    async def fake_d1_run(env, query, params=None):
+        captured.append((query, params))
+        if "slack_team_id" in query:
+            raise RuntimeError("no such column: slack_team_id")
+        return {"success": True}
+
+    env = _Env()
+    setattr(env, "DB", object())
+    worker.d1_run = fake_d1_run
+    worker.SCHEMA_READY = False
+    try:
+        asyncio.run(
+            worker.db_insert_event(
+                env,
+                None,
+                "Message",
+                user_slack_id="U123",
+                channel_id="C123",
+                slack_team_id="T123",
+                request_data='{"team_id": "T123", "event": {"type": "message"}}',
+            )
+        )
+    finally:
+        worker.d1_run = original_d1_run
+        worker.SCHEMA_READY = original_schema_ready
+
+    assert len(captured) == 2
+    assert "slack_team_id" in captured[0][0]
+    assert "slack_team_id" not in captured[1][0]
+    assert captured[1][1][0] is None
+    assert captured[1][1][1] == "Message"
+
+
+def test_record_activity_logs_slack_post_event_even_without_workspace():
+    captured = []
+    original_d1_run = worker.d1_run
+    original_schema_ready = worker.SCHEMA_READY
+
+    async def fake_d1_run(env, query, params=None):
+        captured.append((query, params))
+        if "SELECT * FROM workspaces" in query:
+            return {"results": []}
+        return {"success": True}
+
+    payload = {
+        "type": "event_callback",
+        "event_id": "EvPOST",
+        "event_time": "1710000000",
+        "team_id": "T123",
+        "event": {
+            "type": "message",
+            "user": "U123",
+            "channel": "C123",
+            "text": "this post should be logged",
+        },
+    }
+    env = _Env()
+    setattr(env, "DB", object())
+    worker.d1_run = fake_d1_run
+    worker.SCHEMA_READY = False
+    try:
+        asyncio.run(worker.record_activity(env, "event", payload))
+    finally:
+        worker.d1_run = original_d1_run
+        worker.SCHEMA_READY = original_schema_ready
+
+    event_inserts = [
+        (query, params)
+        for query, params in captured
+        if "INSERT INTO events" in query
+    ]
+    assert len(event_inserts) == 1
+    assert event_inserts[0][1][0] is None
+    assert event_inserts[0][1][1] == "Message"
+    assert event_inserts[0][1][5] == "T123"
+    assert "this post should be logged" in event_inserts[0][1][6]
+
+
+def test_record_activity_logs_slack_post_when_workspace_lookup_fails():
+    captured = []
+    original_d1_run = worker.d1_run
+    original_schema_ready = worker.SCHEMA_READY
+
+    async def fake_d1_run(env, query, params=None):
+        captured.append((query, params))
+        if "SELECT * FROM workspaces" in query:
+            raise RuntimeError("no such table: workspaces")
+        return {"success": True}
+
+    payload = {
+        "type": "event_callback",
+        "team_id": "TLOOKUP",
+        "event": {
+            "type": "message",
+            "user": "U123",
+            "channel": "C123",
+            "text": "log me even when lookup fails",
+        },
+    }
+    env = _Env()
+    setattr(env, "DB", object())
+    worker.d1_run = fake_d1_run
+    worker.SCHEMA_READY = False
+    try:
+        asyncio.run(worker.record_activity(env, "event", payload))
+    finally:
+        worker.d1_run = original_d1_run
+        worker.SCHEMA_READY = original_schema_ready
+
+    event_inserts = [
+        (query, params)
+        for query, params in captured
+        if "INSERT INTO events" in query
+    ]
+    assert len(event_inserts) == 1
+    assert event_inserts[0][1][0] is None
+    assert event_inserts[0][1][1] == "Message"
+    assert event_inserts[0][1][5] == "TLOOKUP"
+
+
 def test_db_upsert_workspace_persists_slack_tokens():
     captured = {}
     original_d1_run = worker.d1_run

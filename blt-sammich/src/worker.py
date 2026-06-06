@@ -652,11 +652,20 @@ async def record_activity(
             received_at,
         ],
     )
+    workspace_id = None
+    if team_id:
+        try:
+            workspace = await db_get_workspace_by_team(env, team_id)
+            workspace_id = workspace.get("id") if workspace else None
+        except Exception as error:
+            log_exception_one_line(
+                error,
+                "record_activity_workspace_lookup_failed",
+                {"team_id": team_id},
+            )
+    event_payload = payload.get("event") or {}
+    model_event_type = model_event_type_for_activity(activity_kind, payload)
     try:
-        workspace = await db_get_workspace_by_team(env, team_id) if team_id else None
-        workspace_id = workspace.get("id") if workspace else None
-        event_payload = payload.get("event") or {}
-        model_event_type = model_event_type_for_activity(activity_kind, payload)
         await db_log_event(
             env,
             workspace_id,
@@ -1533,33 +1542,69 @@ async def db_insert_event(
     webhook_retry_reason: str = "",
 ) -> bool:
     await ensure_schema(env)
-    await d1_run(
-        env,
-        (
-            "INSERT INTO events (workspace_id, event_type, user_slack_id, channel_name, "
-            "channel_id, slack_team_id, request_data, verified, status, created_at, webhook_body_type, "
-            "webhook_event_id, webhook_event_time, webhook_event_subtype, webhook_retry_num, webhook_retry_reason) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-        ),
-        [
-            workspace_id,
-            event_type,
-            user_slack_id or "",
-            channel_name or "",
-            channel_id or "",
-            slack_team_id or "",
-            request_data or "",
-            1 if verified else 0,
-            status or "success",
-            created_at or utc_now(),
-            webhook_body_type or "",
-            webhook_event_id or "",
-            webhook_event_time or "",
-            webhook_event_subtype or "",
-            webhook_retry_num or "",
-            webhook_retry_reason or "",
-        ],
-    )
+    created = created_at or utc_now()
+    common_params = [
+        workspace_id,
+        event_type,
+        user_slack_id or "",
+        channel_name or "",
+        channel_id or "",
+        request_data or "",
+        1 if verified else 0,
+        status or "success",
+        created,
+        webhook_body_type or "",
+        webhook_event_id or "",
+        webhook_event_time or "",
+        webhook_event_subtype or "",
+        webhook_retry_num or "",
+        webhook_retry_reason or "",
+    ]
+    try:
+        await d1_run(
+            env,
+            (
+                "INSERT INTO events (workspace_id, event_type, user_slack_id, channel_name, "
+                "channel_id, slack_team_id, request_data, verified, status, created_at, webhook_body_type, "
+                "webhook_event_id, webhook_event_time, webhook_event_subtype, webhook_retry_num, webhook_retry_reason) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+            ),
+            [
+                workspace_id,
+                event_type,
+                user_slack_id or "",
+                channel_name or "",
+                channel_id or "",
+                slack_team_id or "",
+                request_data or "",
+                1 if verified else 0,
+                status or "success",
+                created,
+                webhook_body_type or "",
+                webhook_event_id or "",
+                webhook_event_time or "",
+                webhook_event_subtype or "",
+                webhook_retry_num or "",
+                webhook_retry_reason or "",
+            ],
+        )
+    except Exception as error:
+        if "slack_team_id" not in str(error):
+            raise
+        log_json_event(
+            "events_insert_retry_without_slack_team_id",
+            {"event_type": event_type, "slack_team_id": slack_team_id or ""},
+        )
+        await d1_run(
+            env,
+            (
+                "INSERT INTO events (workspace_id, event_type, user_slack_id, channel_name, "
+                "channel_id, request_data, verified, status, created_at, webhook_body_type, "
+                "webhook_event_id, webhook_event_time, webhook_event_subtype, webhook_retry_num, webhook_retry_reason) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+            ),
+            common_params,
+        )
     return True
 
 
