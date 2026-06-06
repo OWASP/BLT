@@ -1598,6 +1598,20 @@ async def db_update_workspace_installer(
     return True
 
 
+async def db_update_workspace_bot_user_id(
+    env: Any, team_id: str, bot_user_id: str
+) -> bool:
+    if not team_id or not bot_user_id:
+        return False
+    await ensure_schema(env)
+    await d1_run(
+        env,
+        "UPDATE teams SET bot_user_id = ?, updated_at = ? WHERE team_id = ?",
+        [bot_user_id, utc_now(), team_id],
+    )
+    return True
+
+
 async def db_update_workspace_channel_member_counts(
     env: Any, workspace_id: Any, channel_count: int = 0, member_count: int = 0
 ) -> bool:
@@ -2609,6 +2623,47 @@ def build_public_events(events: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     ]
 
 
+def build_team_join_history(
+    rows: List[Dict[str, Any]], today: Optional[datetime] = None
+) -> List[Dict[str, Any]]:
+    base = today or datetime.now(timezone.utc)
+    if base.tzinfo is None:
+        base = base.replace(tzinfo=timezone.utc)
+    base_date = base.astimezone(timezone.utc).date()
+    counts_by_day = {}
+    for row in rows or []:
+        day = str(row.get("day") or "").strip()
+        if day:
+            counts_by_day[day] = int(row.get("joins") or row.get("count") or 0)
+    history = []
+    for index in range(29, -1, -1):
+        day = (base_date - timedelta(days=index)).isoformat()
+        history.append({"date": day, "joins": counts_by_day.get(day, 0)})
+    return history
+
+
+async def db_get_team_join_history(
+    env: Any, workspace_id: Any, days: int = 30
+) -> List[Dict[str, Any]]:
+    await ensure_schema(env)
+    days = max(1, int(days or 30))
+    start_date = (
+        datetime.now(timezone.utc) - timedelta(days=days - 1)
+    ).date().isoformat()
+    rows = result_rows(
+        await d1_run(
+            env,
+            (
+                "SELECT substr(created_at, 1, 10) AS day, COUNT(*) AS joins "
+                "FROM events WHERE workspace_id = ? AND event_type = 'Team_Join' "
+                "AND created_at >= ? GROUP BY day ORDER BY day ASC"
+            ),
+            [workspace_id, "{0}T00:00:00+00:00".format(start_date)],
+        )
+    )
+    return build_team_join_history(rows)
+
+
 async def db_purge_events(env: Any, workspace_id: Any) -> Dict[str, Any]:
     await ensure_schema(env)
     result = await d1_run(env, "DELETE FROM events WHERE workspace_id = ?", [workspace_id])
@@ -2826,6 +2881,7 @@ async def db_list_workspaces_public(env: Any) -> List[Dict[str, Any]]:
         row["channel_count"] = int(row.get("channel_count") or 0)
         row["member_count"] = int(row.get("member_count") or 0)
         row["repo_count"] = int(row.get("repo_count") or 0)
+        row["team_join_history"] = await db_get_team_join_history(env, row.get("id"))
     return rows
 
 
@@ -3676,6 +3732,7 @@ async def slack_api_send_ephemeral(
 
 
 async def slack_api_publish_home(user_id: str, env: Any, team_id: str = "") -> None:
+    user_id = str(user_id or "").strip()
     if not user_id:
         return
     try:
@@ -3690,6 +3747,39 @@ async def slack_api_publish_home(user_id: str, env: Any, team_id: str = "") -> N
     if not token:
         token = env_value(env, "SLACK_BOT_TOKEN")
     if not token:
+        return
+    bot_user_id = ""
+    try:
+        bot_user_id = await db_get_workspace_bot_user_id(env, team_id=team_id)
+    except Exception as error:
+        log_exception_one_line(
+            error,
+            "slack_home_bot_user_lookup_failed",
+            {"team_id": team_id, "user_id": user_id},
+        )
+    if not bot_user_id:
+        ok, auth_payload, _ = await fetch_json(
+            "https://slack.com/api/auth.test",
+            headers={
+                "Authorization": "Bearer {0}".format(token),
+            },
+        )
+        if ok and auth_payload.get("ok"):
+            bot_user_id = str(auth_payload.get("user_id") or "").strip()
+            if bot_user_id and team_id:
+                try:
+                    await db_update_workspace_bot_user_id(env, team_id, bot_user_id)
+                except Exception as error:
+                    log_exception_one_line(
+                        error,
+                        "slack_home_bot_user_cache_failed",
+                        {"team_id": team_id, "bot_user_id": bot_user_id},
+                    )
+    if bot_user_id and user_id == bot_user_id:
+        log_json_event(
+            "slack_home_publish_skipped_bot_user",
+            {"team_id": team_id, "user_id": user_id},
+        )
         return
     request_payload = {"user_id": user_id, "view": app_home_view()}
     ok, payload, status_code = await fetch_json(

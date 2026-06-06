@@ -88,6 +88,7 @@ def test_app_home_view_lists_available_commands():
     assert "/contrib" in encoded
     assert "/stats" in encoded
     assert "/discover [search term]" in encoded
+    assert "/blt-welcome" in encoded
     assert "/installed_apps" in encoded
 
 
@@ -691,6 +692,22 @@ def test_public_event_rows_hide_request_payload():
             "created_at": "2026-06-06T00:00:00+00:00",
         }
     ]
+
+
+def test_team_join_history_fills_last_30_days():
+    history = worker.build_team_join_history(
+        [
+            {"day": "2026-05-09", "joins": 2},
+            {"day": "2026-06-06", "joins": 5},
+        ],
+        today=worker.datetime(2026, 6, 6, tzinfo=worker.timezone.utc),
+    )
+
+    assert len(history) == 30
+    assert history[0] == {"date": "2026-05-08", "joins": 0}
+    assert history[1] == {"date": "2026-05-09", "joins": 2}
+    assert history[-1] == {"date": "2026-06-06", "joins": 5}
+    assert sum(day["joins"] for day in history) == 7
 
 
 def test_slack_message_event_metadata_is_extracted_for_logging():
@@ -2042,8 +2059,12 @@ def test_slack_api_publish_home_uses_views_publish_shape():
     original_fetch_json = worker.fetch_json
     original_log_response = worker.log_slack_api_response
     original_bot_token = worker.db_get_workspace_bot_token
+    original_bot_user_id = worker.db_get_workspace_bot_user_id
 
     async def fake_fetch_json(url, method="GET", headers=None, body=None):
+        captured.setdefault("urls", []).append(url)
+        if url == "https://slack.com/api/auth.test":
+            return True, {"ok": True, "user_id": "UBOT"}, 200
         captured["url"] = url
         captured["method"] = method
         captured["headers"] = headers
@@ -2056,15 +2077,20 @@ def test_slack_api_publish_home_uses_views_publish_shape():
     async def fake_bot_token(env, team_id="", channel_id=""):
         return "xoxb-token"
 
+    async def fake_bot_user_id(env, team_id="", channel_id=""):
+        return "UBOT"
+
     worker.fetch_json = fake_fetch_json
     worker.log_slack_api_response = fake_log_response
     worker.db_get_workspace_bot_token = fake_bot_token
+    worker.db_get_workspace_bot_user_id = fake_bot_user_id
     try:
         asyncio.run(worker.slack_api_publish_home("U123", _Env(), team_id="T123"))
     finally:
         worker.fetch_json = original_fetch_json
         worker.log_slack_api_response = original_log_response
         worker.db_get_workspace_bot_token = original_bot_token
+        worker.db_get_workspace_bot_user_id = original_bot_user_id
 
     assert captured["url"] == "https://slack.com/api/views.publish"
     assert captured["method"] == "POST"
@@ -2073,6 +2099,56 @@ def test_slack_api_publish_home_uses_views_publish_shape():
     assert captured["body"]["view"]["type"] == "home"
     assert "/stats" in str(captured["body"]["view"])
     assert captured["logged"] is True
+
+
+def test_slack_api_publish_home_skips_bot_user_from_auth_test():
+    captured = {"urls": [], "updates": []}
+    original_fetch_json = worker.fetch_json
+    original_log_response = worker.log_slack_api_response
+    original_bot_token = worker.db_get_workspace_bot_token
+    original_bot_user_id = worker.db_get_workspace_bot_user_id
+    original_update_bot_user_id = worker.db_update_workspace_bot_user_id
+
+    async def fake_fetch_json(url, method="GET", headers=None, body=None):
+        captured["urls"].append(url)
+        if url == "https://slack.com/api/auth.test":
+            return True, {"ok": True, "user_id": "U04TJF11F"}, 200
+        return True, {"ok": True}, 200
+
+    async def fake_log_response(*args, **kwargs):
+        captured["logged"] = True
+
+    async def fake_bot_token(env, team_id="", channel_id=""):
+        return "xoxb-token"
+
+    async def fake_bot_user_id(env, team_id="", channel_id=""):
+        return ""
+
+    async def fake_update_bot_user_id(env, team_id, bot_user_id):
+        captured["updates"].append((team_id, bot_user_id))
+        return True
+
+    worker.fetch_json = fake_fetch_json
+    worker.log_slack_api_response = fake_log_response
+    worker.db_get_workspace_bot_token = fake_bot_token
+    worker.db_get_workspace_bot_user_id = fake_bot_user_id
+    worker.db_update_workspace_bot_user_id = fake_update_bot_user_id
+    try:
+        asyncio.run(
+            worker.slack_api_publish_home(
+                "U04TJF11F", _Env(), team_id="T04T40NHX"
+            )
+        )
+    finally:
+        worker.fetch_json = original_fetch_json
+        worker.log_slack_api_response = original_log_response
+        worker.db_get_workspace_bot_token = original_bot_token
+        worker.db_get_workspace_bot_user_id = original_bot_user_id
+        worker.db_update_workspace_bot_user_id = original_update_bot_user_id
+
+    assert captured["urls"] == ["https://slack.com/api/auth.test"]
+    assert captured["updates"] == [("T04T40NHX", "U04TJF11F")]
+    assert "logged" not in captured
 
 
 def test_slack_api_post_message_logs_slack_response_payload():

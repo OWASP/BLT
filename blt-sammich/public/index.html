@@ -367,6 +367,37 @@
         return "bg-gray-50 text-gray-700 border-gray-200";
       };
       const statusChip = (status) => `<span class="px-2 py-1 rounded-md border text-xs font-semibold ${statusClass(status)}">${escapeHtml(status || "unknown")}</span>`;
+      const shortDate = (dateText) => {
+        const date = new Date(String(dateText || "") + "T00:00:00Z");
+        if (!Number.isFinite(date.getTime())) return "";
+        return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+      };
+      const renderTeamJoinChart = (history) => {
+        const rows = Array.isArray(history) ? history : [];
+        const total = rows.reduce((sum, row) => sum + Number(row.joins || 0), 0);
+        const maxJoins = Math.max(1, ...rows.map((row) => Number(row.joins || 0)));
+        const bars = rows.map((row) => {
+          const joins = Number(row.joins || 0);
+          const height = joins > 0 ? Math.max(10, Math.round((joins / maxJoins) * 56)) : 3;
+          const label = `${shortDate(row.date)}: ${formatNumber(joins)} join${joins === 1 ? "" : "s"}`;
+          return `<div class="flex-1 min-w-[3px] rounded-t bg-red-500/80" style="height:${height}px" title="${escapeHtml(label)}" aria-label="${escapeHtml(label)}"></div>`;
+        }).join("");
+        return `
+          <div class="mb-4 border border-gray-100 rounded-md bg-white p-3">
+            <div class="mb-2 flex items-center justify-between gap-3">
+              <span class="text-xs font-semibold text-gray-600">Team joins, last 30 days</span>
+              <span class="text-xs font-bold text-gray-900">${formatNumber(total)}</span>
+            </div>
+            <div class="flex h-14 items-end gap-[2px]" role="img" aria-label="Team joins over the past 30 days">
+              ${bars || `<div class="h-[3px] w-full rounded bg-gray-200"></div>`}
+            </div>
+            <div class="mt-2 flex justify-between text-[10px] text-gray-400">
+              <span>30d ago</span>
+              <span>Today</span>
+            </div>
+          </div>
+        `;
+      };
 
       function renderStats(stats) {
         const container = document.getElementById("connection-stats");
@@ -414,6 +445,7 @@
                 <div class="bg-gray-50 rounded-md p-2"><div class="font-bold text-gray-900">${formatNumber(workspace.channel_count)}</div><div class="text-gray-500">channels</div></div>
                 <div class="bg-gray-50 rounded-md p-2"><div class="font-bold text-gray-900">${formatNumber(workspace.member_count)}</div><div class="text-gray-500">members</div></div>
               </div>
+              ${renderTeamJoinChart(workspace.team_join_history)}
               <div class="flex flex-wrap gap-2">
                 ${invite ? `<a href="${escapeHtml(invite)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-xs font-semibold text-red-700 bg-red-50 border border-red-200 rounded-md px-2 py-1 hover:bg-red-100"><i class="fas fa-user-plus"></i>Join</a>` : ""}
                 ${github ? `<a href="${escapeHtml(github)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-xs font-semibold text-gray-700 bg-gray-50 border border-gray-200 rounded-md px-2 py-1 hover:bg-gray-100"><i class="fab fa-github"></i>GitHub</a>` : ""}
