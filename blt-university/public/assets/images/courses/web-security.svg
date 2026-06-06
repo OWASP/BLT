@@ -1,0 +1,22 @@
+<svg width="800" height="400" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3498db;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2c3e50;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="800" height="400" fill="url(#bg-gradient)"/>
+  <g transform="translate(400, 200)">
+    <!-- Shield icon -->
+    <path d="M 0,-80 L -60,-40 L -60,20 Q -60,80 0,100 Q 60,80 60,20 L 60,-40 Z" 
+          fill="none" stroke="white" stroke-width="8" opacity="0.9"/>
+    <path d="M 0,-60 L -40,-30 L -40,15 Q -40,60 0,75 Q 40,60 40,15 L 40,-30 Z" 
+          fill="white" opacity="0.2"/>
+    <!-- Lock icon in center -->
+    <rect x="-15" y="-5" width="30" height="35" rx="3" fill="white" opacity="0.9"/>
+    <path d="M -10,-5 L -10,-15 Q -10,-25 0,-25 Q 10,-25 10,-15 L 10,-5" 
+          fill="none" stroke="white" stroke-width="6" opacity="0.9"/>
+  </g>
+  <text x="400" y="320" font-family="Arial, sans-serif" font-size="36" font-weight="bold" 
+        fill="white" text-anchor="middle" opacity="0.95">Web Application Security</text>
+</svg>

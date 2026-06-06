@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cross-Site Request Forgery - BLT University</title>
+    <meta name="description" content="Learn CSRF attacks and defenses through focused security exercises.">
+    
+    <!-- Begin Jekyll SEO tag v2.9.0 -->
+<title>Cross-Site Request Forgery | BLT University</title>
+<meta name="generator" content="Jekyll v4.4.1" />
+<meta property="og:title" content="Cross-Site Request Forgery" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Learn CSRF attacks and defenses through focused security exercises." />
+<meta name="twitter:description" property="og:description" content="Learn CSRF attacks and defenses through focused security exercises." />
+<link rel="canonical" href="https://university.owaspblt.org/labs/cross_site_request_forgery/" />
+<meta property="og:url" content="https://university.owaspblt.org/labs/cross_site_request_forgery/" />
+<meta property="og:site_name" content="BLT University" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2026-06-06T02:09:36+00:00" />
+<meta property="article:modified_time" content="2026-06-06T02:09:36+00:00" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="Cross-Site Request Forgery" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2026-06-06T02:09:36+00:00","datePublished":"2026-06-06T02:09:36+00:00","description":"Learn CSRF attacks and defenses through focused security exercises.","headline":"Cross-Site Request Forgery","mainEntityOfPage":{"@type":"WebPage","@id":"https://university.owaspblt.org/labs/cross_site_request_forgery/"},"url":"https://university.owaspblt.org/labs/cross_site_request_forgery/"}</script>
+<!-- End Jekyll SEO tag -->
+
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script>
+        if (localStorage.getItem("theme") === "dark") {
+          document.documentElement.classList.add("dark");
+        }
+    </script>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif']
+                    },
+                    colors: {
+                        bltRed: '#dc2626',
+                        bltRedLight: '#fef2f2',
+                        bltRedHover: '#b91c1c',
+                        bltDark: '#0f172a'
+                    },
+                    boxShadow: {
+                        soft: '0 20px 40px -15px rgba(0,0,0,0.05)',
+                        float: '0 30px 60px -15px rgba(0,0,0,0.08)'
+                    }
+                }
+            }
+        }
+        </script>
+</head>
+<body class="bg-[#fafafa] dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans antialiased selection:bg-bltRed selection:text-white flex flex-col min-h-screen">
+    
+    <!-- Hidden Checkbox -->
+    <input type="checkbox" id="menu-toggle" class="peer hidden">
+<header class="sticky top-0 z-50 w-full border-b border-gray-200 bg-white/80 backdrop-blur-md transition-colors duration-300 dark:border-gray-800 dark:bg-gray-900/90">
+    <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
+        
+        <a href="/" class="flex items-center gap-3 group">
+            <div class="flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg bg-white p-1 shadow-sm ring-1 ring-gray-200 transition group-hover:ring-bltRed/50">
+                <img src="/assets/images/blt-logo.png"
+                     alt="OWASP BLT Logo"
+                     class="h-full w-full object-contain">
+            </div>
+            <span class="text-lg font-bold tracking-tight text-gray-900 dark:text-white">
+                BLT University
+            </span>
+        </a>
+
+        <nav class="hidden items-center gap-8 md:flex">
+            
+                
+                
+                <a href="/"
+                   class="relative text-sm font-medium transition-colors text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+                    Home
+                    
+                </a>
+            
+                
+                
+                <a href="/courses/"
+                   class="relative text-sm font-medium transition-colors text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+                    Courses
+                    
+                </a>
+            
+                
+                
+                <a href="/enroll/"
+                   class="relative text-sm font-medium transition-colors text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+                    Enroll
+                    
+                </a>
+            
+                
+                
+                <a href="/request/"
+                   class="relative text-sm font-medium transition-colors text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+                    Request a Course
+                    
+                </a>
+            
+                
+                
+                <a href="/instructors/"
+                   class="relative text-sm font-medium transition-colors text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+                    Instructors
+                    
+                </a>
+            
+                
+                
+                <a href="/labs/"
+                   class="relative text-sm font-medium transition-colors text-bltRed">
+                    Labs
+                    
+                        <span class="absolute -bottom-[21px] left-0 h-0.5 w-full bg-bltRed"></span>
+                    
+                </a>
+            
+                
+                
+                <a href="/about/"
+                   class="relative text-sm font-medium transition-colors text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+                    About
+                    
+                </a>
+            
+        </nav>
+
+        <div class="flex items-center gap-4">
+            <!-- Theme Toggle -->
+            <button id="theme-toggle" 
+                    aria-label="Toggle Dark Mode"
+                    class="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white">
+                <i id="theme-icon" class="fas fa-sun hidden dark:block"></i>
+                <i id="theme-icon-dark" class="fas fa-moon block dark:hidden"></i>
+            </button>
+            <!-- Menu Icon -->
+                <label for="menu-toggle"
+                    class="md:hidden rounded-lg p-2 text-gray-500 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800">
+                    <i class="fas fa-bars"></i>
+                </label>
+        </div>
+    </div>
+
+</header>
+ <!-- MOBILE SIDEBAR -->
+    <div class="fixed top-0 left-0 h-full w-64 bg-white dark:bg-gray-900 shadow-lg 
+                transform -translate-x-full transition-transform duration-300 
+                peer-checked:translate-x-0 md:hidden z-50">
+
+        <div class="p-6 flex flex-col gap-6">
+
+            <!-- Close Button -->
+            <label for="menu-toggle"
+                class="self-end cursor-pointer text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+                <i class="fas fa-times text-xl"></i>
+            </label>
+
+            <!-- Links -->
+            
+                <a href="/"
+                   class="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+                    Home
+                </a>
+            
+                <a href="/courses/"
+                   class="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+                    Courses
+                </a>
+            
+                <a href="/enroll/"
+                   class="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+                    Enroll
+                </a>
+            
+                <a href="/request/"
+                   class="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+                    Request a Course
+                </a>
+            
+                <a href="/instructors/"
+                   class="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+                    Instructors
+                </a>
+            
+                <a href="/labs/"
+                   class="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+                    Labs
+                </a>
+            
+                <a href="/about/"
+                   class="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+                    About
+                </a>
+            
+
+        </div>
+    </div>
+
+    
+    <script defer src="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1"></script>
+<script id="lab-data" type="application/json">[{"name":"Introduction to CSRF","description":"Learn the fundamentals of Cross-Site Request Forgery attacks and their impact.","type":"theory","order":1,"heading":"What is Cross-Site Request Forgery (CSRF)?","content":"Cross-Site Request Forgery (CSRF) is an attack that forces authenticated users to submit unintended requests to a web application. The attacker tricks the victim into executing unwanted actions on a web application where they are currently authenticated.\n\n### How CSRF Works\n\n1. User logs into a legitimate website, such as online banking.\n2. User visits a malicious website while still logged in.\n3. Malicious site sends a request to the legitimate site using the user's session.\n4. The legitimate site processes the request as if the user intended it.\n\n### Common CSRF Attack Vectors\n\n- **HTML Forms:** Auto-submitting forms with hidden fields\n- **Image Tags:** Using `img src` to trigger GET requests\n- **JavaScript:** AJAX requests from malicious sites\n- **Links:** Tricking users to click malicious links\n\n### Example CSRF Attack\n\n```html\n<!-- Malicious HTML page -->\n<form action=\"https://bank.com/transfer\" method=\"POST\" id=\"csrf-form\">\n    <input type=\"hidden\" name=\"amount\" value=\"1000\">\n    <input type=\"hidden\" name=\"to_account\" value=\"attacker_account\">\n<\/form>\n<script>document.getElementById('csrf-form').submit();<\/script>\n```\n\n### Impact of CSRF\n\n- Unauthorized fund transfers\n- Account settings changes\n- Password modifications\n- Data deletion or modification\n","mcq":{"question":"What is required for a CSRF attack to be successful?","options":["A) The victim must visit a malicious website","B) The victim must be authenticated to the target site","C) The target site must lack CSRF protection","D) All of the above"],"answer":"D"}},{"name":"CSRF Protection Mechanisms","description":"Learn about different methods to prevent CSRF attacks.","type":"theory","order":2,"heading":"CSRF Protection Mechanisms","content":"There are several effective methods to prevent CSRF attacks. The key is to ensure that requests genuinely originate from the authenticated user.\n\n### 1. CSRF Tokens\n\nThe most common and effective protection method:\n\n- Generate a unique, unpredictable token for each session\n- Include the token in all state-changing requests\n- Verify the token on the server before processing requests\n\n```html\n<form method=\"POST\">\n    <input type=\"hidden\" name=\"csrf_token\" value=\"abc123xyz789\">\n    <input type=\"text\" name=\"email\">\n    <button type=\"submit\">Update Email<\/button>\n<\/form>\n```\n\n### 2. SameSite Cookie Attribute\n\nPrevents cookies from being sent with cross-site requests:\n\n```http\nSet-Cookie: sessionid=abc123; SameSite=Strict\nSet-Cookie: sessionid=abc123; SameSite=Lax\n```\n\n### 3. Origin and Referer Headers\n\nVerify that requests come from the expected origin:\n\n- Check the Origin header matches your domain\n- Validate the Referer header, though it is less reliable\n\n### 4. Double Submit Cookie\n\nStore CSRF token in both a cookie and request parameter:\n\n- Set CSRF token as a cookie\n- Include the same token in a form or header\n- Verify both values match\n","mcq":{"question":"Which CSRF protection method is considered the most secure?","options":["A) Checking Referer header only","B) Using SameSite=Lax cookies","C) CSRF tokens with proper validation","D) Origin header validation only"],"answer":"C"}},{"name":"Basic CSRF Attack - Email Change","description":"Practice exploiting a CSRF vulnerability to change user email address.","type":"simulation","order":3,"simulation":{"engine":"csrf-form","type":"basic_csrf","scenario":"email_change","target_url":"/profile/update","vulnerable_code":"app.post('/profile/update', requireLogin, (req, res) => {\n  const email = req.body.email;\n  updateEmail(req.user.id, email);\n  res.redirect('/profile');\n});\n","vulnerable_lines":[3],"explain":{"question":"Why can another site trigger this email change?","options":[{"id":"missing_request_intent","label":"The endpoint trusts the session cookie but does not verify a CSRF token or request origin."},{"id":"weak_email_format","label":"The email address is not long enough."},{"id":"missing_database_index","label":"The database table is missing an index."}],"answer":"missing_request_intent"},"expected_patterns":["csrf_token","server_validation","same_site_cookie"],"vulnerable_parameters":["email"],"success_payload":"<form action='/profile/update' method='POST'><input name='email' value='attacker@evil.com'><\/form>","success_criteria":"HTML form that performs unauthorized email change.","difficulty":"beginner","fix_starter_code":"app.post('/profile/update', requireLogin, (req, res) => {\n  const email = req.body.email;\n  updateEmail(req.user.id, email);\n  res.redirect('/profile');\n});\n","hints":["Create an HTML form that submits to the target URL.","The form should change the email to a value you control.","Use POST method for the form submission.","The target site does not validate CSRF tokens.","Defend this endpoint by requiring and verifying a CSRF token.","SameSite=Lax or SameSite=Strict cookies reduce cross-site request risk."]}},{"name":"CSRF with Auto-Submit","description":"Create a CSRF attack that automatically submits when the page loads.","type":"simulation","order":4,"simulation":{"engine":"csrf-auto-submit","type":"auto_submit_csrf","scenario":"fund_transfer","target_url":"/transfer/money","vulnerable_code":"app.post('/transfer/money', requireLogin, (req, res) => {\n  const { amount, to_account } = req.body;\n  transferMoney(req.user.id, to_account, amount);\n  res.redirect('/account');\n});\n","vulnerable_lines":[3],"explain":{"question":"Why can an auto-submitting form trigger this transfer?","options":[{"id":"browser_sends_cookies","label":"The browser includes the victim's session cookies, and the endpoint does not verify a CSRF token."},{"id":"amount_too_large","label":"The amount is too large."},{"id":"missing_redirect","label":"Redirects cause CSRF by themselves."}],"answer":"browser_sends_cookies"},"expected_patterns":["csrf_token","server_validation","same_site_cookie"],"vulnerable_parameters":["amount","to_account"],"success_payload":"<form id='csrf' action='/transfer/money' method='POST'><input name='amount' value='1000'><input name='to_account' value='attacker'><\/form><script>document.getElementById('csrf').submit()<\/script>","success_criteria":"Auto-submitting form that transfers funds without user interaction.","difficulty":"intermediate","fix_starter_code":"app.post('/transfer/money', requireLogin, (req, res) => {\n  const { amount, to_account } = req.body;\n  transferMoney(req.user.id, to_account, amount);\n  res.redirect('/account');\n});\n","hints":["Create a form that submits automatically using JavaScript.","Include hidden input fields for amount and destination account.","Use `document.getElementById().submit()` to auto-submit.","The form should transfer money to your account."]}},{"name":"Image-based CSRF Attack","description":"Exploit CSRF using image tags for GET-based vulnerable endpoints.","type":"simulation","order":5,"simulation":{"engine":"csrf-image","type":"image_csrf","scenario":"account_deletion","target_url":"/account/delete","vulnerable_code":"app.get('/account/delete', requireLogin, (req, res) => {\n  if (req.query.confirm === 'yes') {\n    deleteAccount(req.user.id);\n  }\n  res.redirect('/goodbye');\n});\n","vulnerable_lines":[3],"explain":{"question":"Why can an image tag trigger this account deletion?","options":[{"id":"get_changes_state","label":"Loading an image sends a GET request, and this GET route performs a destructive action without CSRF validation."},{"id":"image_has_password","label":"The image file contains the user's password."},{"id":"hidden_style","label":"Hidden images can bypass TLS."}],"answer":"get_changes_state"},"expected_patterns":["csrf_token","server_validation","same_site_cookie"],"vulnerable_parameters":["confirm"],"success_payload":"<img src='/account/delete?confirm=yes' style='display:none'>","success_criteria":"Hidden image that triggers account deletion via GET request.","difficulty":"beginner","fix_starter_code":"app.get('/account/delete', requireLogin, (req, res) => {\n  if (req.query.confirm === 'yes') {\n    deleteAccount(req.user.id);\n  }\n  res.redirect('/goodbye');\n});\n","hints":["Use an img tag with the vulnerable URL as the src.","Include the required parameters in the URL query string.","Hide the image so the user does not see it.","The request happens when the image loads."]}},{"name":"CSRF with AJAX","description":"Perform CSRF attacks using JavaScript and AJAX requests.","type":"simulation","order":6,"simulation":{"engine":"csrf-ajax","type":"ajax_csrf","scenario":"password_change","target_url":"/account/password","vulnerable_code":"app.post('/account/password', requireLogin, (req, res) => {\n  const password = req.body.new_password;\n  changePassword(req.user.id, password);\n  res.json({ ok: true });\n});\n","vulnerable_lines":[3],"explain":{"question":"Why does an AJAX password change still need CSRF protection?","options":[{"id":"ajax_state_change","label":"The request changes state and trusts ambient session cookies without verifying a CSRF token."},{"id":"json_is_safe","label":"JSON requests cannot change server state."},{"id":"passwords_are_short","label":"Short passwords automatically cause CSRF."}],"answer":"ajax_state_change"},"expected_patterns":["csrf_token","server_validation","same_site_cookie"],"vulnerable_parameters":["new_password"],"success_payload":"<script>fetch('/account/password', {method: 'POST', body: 'new_password=hacked123', headers: {'Content-Type': 'application/x-www-form-urlencoded'}})<\/script>","success_criteria":"JavaScript code that changes user password via AJAX.","difficulty":"advanced","fix_starter_code":"app.post('/account/password', requireLogin, (req, res) => {\n  const password = req.body.new_password;\n  changePassword(req.user.id, password);\n  res.json({ ok: true });\n});\n","hints":["Use JavaScript `fetch()` or `XMLHttpRequest`.","Send a POST request to the vulnerable endpoint.","Include the new password in the request body.","Set proper Content-Type header for form data."]}},{"name":"CSRF Token Bypass Techniques","description":"Learn methods to bypass weak CSRF token implementations.","type":"theory","order":7,"heading":"CSRF Token Bypass Techniques","content":"Even when CSRF tokens are implemented, they may have weaknesses that can be exploited by attackers.\n\n### Common Bypass Techniques\n\n#### 1. Missing Token Validation\n\n- Application accepts requests without CSRF tokens\n- Simply omit the token from the request\n- Server does not enforce token presence\n\n#### 2. Predictable Tokens\n\n- Tokens generated using weak algorithms\n- Sequential or timestamp-based tokens\n- Reused tokens across sessions\n\n#### 3. Token Leakage\n\n- Tokens exposed in URLs through GET parameters\n- Tokens in Referer headers\n- Tokens accessible via XSS\n\n#### 4. Subdomain Attacks\n\n- Weak domain validation\n- Accepting requests from any subdomain\n- Cookie scope issues\n\n### Testing for CSRF Vulnerabilities\n\n1. Remove CSRF token and replay request.\n2. Change token value to invalid or empty.\n3. Use token from a different session.\n4. Check if token is validated on the server.\n5. Test with different HTTP methods.\n\n### Example Bypass\n\n```http\n# Original request with token\nPOST /transfer HTTP/1.1\ncsrf_token=abc123&amount=100&to=victim\n\n# Bypass attempt - remove token\nPOST /transfer HTTP/1.1\namount=100&to=attacker\n```\n","mcq":{"question":"Which scenario makes CSRF tokens ineffective?","options":["A) Tokens are generated using strong randomness","B) Server accepts requests without validating tokens","C) Tokens are properly tied to user sessions","D) Tokens are validated on every request"],"answer":"B"}}]</script>
+
+
+
+<article class="bg-[#fafafa] dark:bg-gray-950 transition-colors duration-300 min-h-screen">
+    <section class="bg-bltDark text-white pt-10 md:pt-12 pb-16 md:pb-20 relative overflow-hidden border-b border-white/5">
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_82%_18%,rgba(220,38,38,0.12),transparent_34%)]"></div>
+
+        <div class="max-w-7xl mx-auto px-6 relative z-10">
+            <div class="grid lg:grid-cols-[1fr_340px] gap-8 items-center">
+                <div>
+                    <div class="flex flex-wrap items-center gap-3 mb-5">
+                        <span class="px-2.5 py-1 bg-bltRed text-white rounded-md text-[10px] font-bold uppercase tracking-wider">Web Security</span>
+                        <span class="px-2.5 py-1 bg-white/10 border border-white/20 rounded-md text-[10px] font-semibold uppercase tracking-wider">beginner</span>
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white/10 border border-white/20 rounded-md text-[10px] font-semibold uppercase tracking-wider">
+                            <i class="ph-bold ph-clock text-sm text-bltRed"></i>
+                            45 mins
+                        </span>
+                    </div>
+
+                    <h1 class="font-display text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-4 leading-tight max-w-4xl">Cross-Site Request Forgery</h1>
+                    <p class="text-sm md:text-base text-gray-400 leading-relaxed max-w-2xl">Learn CSRF attacks and defenses through focused security exercises.</p>
+
+                    <div class="mt-7 grid gap-4 text-xs md:text-sm text-gray-300 sm:grid-cols-3 max-w-3xl">
+                        <div class="flex items-center gap-2">
+                            <i class="ph-bold ph-flask text-lg text-bltRed"></i>
+                            <span class="font-semibold text-white">Hands-on Labs</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="ph-bold ph-globe-hemisphere-west text-lg text-bltRed"></i>
+                            <span class="font-semibold text-white">Real-world Scenarios</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="ph-bold ph-lightning text-lg text-bltRed"></i>
+                            <span class="font-semibold text-white">Immediate Feedback</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="hidden lg:block">
+                    <div class="h-[190px] rounded-2xl border border-white/10 bg-white/5 p-3 shadow-2xl">
+                        <div class="h-full rounded-2xl border border-white/10 bg-gray-950/70 overflow-hidden">
+                            <div class="flex h-7 items-center gap-1.5 border-b border-white/10 bg-white/5 px-3">
+                                <span class="h-2 w-2 rounded-full bg-red-400"></span>
+                                <span class="h-2 w-2 rounded-full bg-yellow-400"></span>
+                                <span class="h-2 w-2 rounded-full bg-green-400"></span>
+                            </div>
+                            
+                            <div class="p-4">
+                                <div class="mb-4 flex items-center justify-between">
+                                    <div>
+                                        <div class="mb-2 h-2 w-32 rounded-full bg-gray-700"></div>
+                                        <div class="h-2 w-20 rounded-full bg-gray-800"></div>
+                                    </div>
+                                    <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-bltRed/90 text-white">
+                                        <i class="ph-bold ph-arrows-clockwise text-xl"></i>
+                                    </div>
+                                </div>
+                                <div class="rounded-xl border border-red-500/40 bg-red-950/25 p-3">
+                                    <div class="mb-2 h-2 w-28 rounded-full bg-red-200/30"></div>
+                                    <div class="space-y-2">
+                                        <div class="h-2 rounded-full bg-gray-700"></div>
+                                        <div class="h-2 rounded-full bg-gray-700 w-4/5"></div>
+                                        <div class="h-6 rounded-lg bg-red-500/25 border border-red-400/30"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <main data-lab-root data-lab-id="cross-site-request-forgery" class="max-w-7xl mx-auto px-6 w-full grid grid-cols-1 lg:grid-cols-12 gap-8 -mt-8 relative z-20 pb-24">
+        <div class="lg:col-span-8 min-w-0">
+            <div class="bg-white dark:bg-gray-900 p-5 md:p-8 rounded-[2rem] shadow-soft border border-gray-100 dark:border-gray-800 transition-colors">
+                
+                <section data-lab-task data-task-index="0" class="">
+                    <header class="flex flex-col sm:flex-row sm:items-start gap-4 pb-6 mb-6 border-b border-gray-100 dark:border-gray-800">
+                        <div class="w-11 h-11 rounded-2xl bg-bltRedLight dark:bg-red-900/30 text-bltRed flex items-center justify-center font-bold text-base shrink-0">
+                            1
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-3 mb-2">
+                                <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white leading-tight m-0">Introduction to CSRF</h2>
+                                <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-red-50 text-bltRed dark:bg-red-900/20">
+                                    theory
+                                </span>
+                            </div>
+                            
+                            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed m-0">Learn the fundamentals of Cross-Site Request Forgery attacks and their impact.</p>
+                            
+                        </div>
+                    </header>
+
+                    
+                    <div class="mb-8">
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                            <i class="ph-fill ph-clipboard-text text-bltRed"></i>
+                            What is Cross-Site Request Forgery (CSRF)?
+                        </h3>
+                        <div class="prose prose-sm md:prose-base max-w-none prose-headings:text-gray-900 dark:prose-headings:text-white prose-headings:font-bold prose-h3:text-lg prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-a:text-bltRed prose-pre:bg-gray-950 prose-pre:border prose-pre:border-gray-800 prose-pre:overflow-x-auto dark:prose-invert">
+                            <p>Cross-Site Request Forgery (CSRF) is an attack that forces authenticated users to submit unintended requests to a web application. The attacker tricks the victim into executing unwanted actions on a web application where they are currently authenticated.</p>
+
+<h3 id="how-csrf-works">How CSRF Works</h3>
+
+<ol>
+  <li>User logs into a legitimate website, such as online banking.</li>
+  <li>User visits a malicious website while still logged in.</li>
+  <li>Malicious site sends a request to the legitimate site using the user’s session.</li>
+  <li>The legitimate site processes the request as if the user intended it.</li>
+</ol>
+
+<h3 id="common-csrf-attack-vectors">Common CSRF Attack Vectors</h3>
+
+<ul>
+  <li><strong>HTML Forms:</strong> Auto-submitting forms with hidden fields</li>
+  <li><strong>Image Tags:</strong> Using <code class="language-plaintext highlighter-rouge">img src</code> to trigger GET requests</li>
+  <li><strong>JavaScript:</strong> AJAX requests from malicious sites</li>
+  <li><strong>Links:</strong> Tricking users to click malicious links</li>
+</ul>
+
+<h3 id="example-csrf-attack">Example CSRF Attack</h3>
+
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">&lt;!-- Malicious HTML page --&gt;</span>
+<span class="nt">&lt;form</span> <span class="na">action=</span><span class="s">"https://bank.com/transfer"</span> <span class="na">method=</span><span class="s">"POST"</span> <span class="na">id=</span><span class="s">"csrf-form"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;input</span> <span class="na">type=</span><span class="s">"hidden"</span> <span class="na">name=</span><span class="s">"amount"</span> <span class="na">value=</span><span class="s">"1000"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;input</span> <span class="na">type=</span><span class="s">"hidden"</span> <span class="na">name=</span><span class="s">"to_account"</span> <span class="na">value=</span><span class="s">"attacker_account"</span><span class="nt">&gt;</span>
+<span class="nt">&lt;/form&gt;</span>
+<span class="nt">&lt;script&gt;</span><span class="nb">document</span><span class="p">.</span><span class="nf">getElementById</span><span class="p">(</span><span class="dl">'</span><span class="s1">csrf-form</span><span class="dl">'</span><span class="p">).</span><span class="nf">submit</span><span class="p">();</span><span class="nt">&lt;/script&gt;</span>
+</code></pre></div></div>
+
+<h3 id="impact-of-csrf">Impact of CSRF</h3>
+
+<ul>
+  <li>Unauthorized fund transfers</li>
+  <li>Account settings changes</li>
+  <li>Password modifications</li>
+  <li>Data deletion or modification</li>
+</ul>
+
+                        </div>
+                    </div>
+
+                    
+                    <div data-mcq class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-800/40 p-5 md:p-6">
+                        <h3 class="font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2 text-base">
+                            <i class="ph-bold ph-question text-bltRed"></i>
+                            Knowledge Check
+                        </h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-300 mb-5">What is required for a CSRF attack to be successful?</p>
+                        <div class="space-y-3">
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="A" data-correct-answer="D" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>A) The victim must visit a malicious website</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="B" data-correct-answer="D" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>B) The victim must be authenticated to the target site</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="C" data-correct-answer="D" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>C) The target site must lack CSRF protection</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="D" data-correct-answer="D" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>D) All of the above</span>
+                            </button>
+                            
+                        </div>
+                        <p data-mcq-feedback aria-live="polite" class="hidden mt-4 text-sm font-semibold"></p>
+                    </div>
+                    
+                    
+                </section>
+                
+                <section data-lab-task data-task-index="1" class="hidden">
+                    <header class="flex flex-col sm:flex-row sm:items-start gap-4 pb-6 mb-6 border-b border-gray-100 dark:border-gray-800">
+                        <div class="w-11 h-11 rounded-2xl bg-bltRedLight dark:bg-red-900/30 text-bltRed flex items-center justify-center font-bold text-base shrink-0">
+                            2
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-3 mb-2">
+                                <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white leading-tight m-0">CSRF Protection Mechanisms</h2>
+                                <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-red-50 text-bltRed dark:bg-red-900/20">
+                                    theory
+                                </span>
+                            </div>
+                            
+                            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed m-0">Learn about different methods to prevent CSRF attacks.</p>
+                            
+                        </div>
+                    </header>
+
+                    
+                    <div class="mb-8">
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                            <i class="ph-fill ph-clipboard-text text-bltRed"></i>
+                            CSRF Protection Mechanisms
+                        </h3>
+                        <div class="prose prose-sm md:prose-base max-w-none prose-headings:text-gray-900 dark:prose-headings:text-white prose-headings:font-bold prose-h3:text-lg prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-a:text-bltRed prose-pre:bg-gray-950 prose-pre:border prose-pre:border-gray-800 prose-pre:overflow-x-auto dark:prose-invert">
+                            <p>There are several effective methods to prevent CSRF attacks. The key is to ensure that requests genuinely originate from the authenticated user.</p>
+
+<h3 id="1-csrf-tokens">1. CSRF Tokens</h3>
+
+<p>The most common and effective protection method:</p>
+
+<ul>
+  <li>Generate a unique, unpredictable token for each session</li>
+  <li>Include the token in all state-changing requests</li>
+  <li>Verify the token on the server before processing requests</li>
+</ul>
+
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;form</span> <span class="na">method=</span><span class="s">"POST"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;input</span> <span class="na">type=</span><span class="s">"hidden"</span> <span class="na">name=</span><span class="s">"csrf_token"</span> <span class="na">value=</span><span class="s">"abc123xyz789"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;input</span> <span class="na">type=</span><span class="s">"text"</span> <span class="na">name=</span><span class="s">"email"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;button</span> <span class="na">type=</span><span class="s">"submit"</span><span class="nt">&gt;</span>Update Email<span class="nt">&lt;/button&gt;</span>
+<span class="nt">&lt;/form&gt;</span>
+</code></pre></div></div>
+
+<h3 id="2-samesite-cookie-attribute">2. SameSite Cookie Attribute</h3>
+
+<p>Prevents cookies from being sent with cross-site requests:</p>
+
+<div class="language-http highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="err">Set-Cookie: sessionid=abc123; SameSite=Strict
+Set-Cookie: sessionid=abc123; SameSite=Lax
+</span></code></pre></div></div>
+
+<h3 id="3-origin-and-referer-headers">3. Origin and Referer Headers</h3>
+
+<p>Verify that requests come from the expected origin:</p>
+
+<ul>
+  <li>Check the Origin header matches your domain</li>
+  <li>Validate the Referer header, though it is less reliable</li>
+</ul>
+
+<h3 id="4-double-submit-cookie">4. Double Submit Cookie</h3>
+
+<p>Store CSRF token in both a cookie and request parameter:</p>
+
+<ul>
+  <li>Set CSRF token as a cookie</li>
+  <li>Include the same token in a form or header</li>
+  <li>Verify both values match</li>
+</ul>
+
+                        </div>
+                    </div>
+
+                    
+                    <div data-mcq class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-800/40 p-5 md:p-6">
+                        <h3 class="font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2 text-base">
+                            <i class="ph-bold ph-question text-bltRed"></i>
+                            Knowledge Check
+                        </h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-300 mb-5">Which CSRF protection method is considered the most secure?</p>
+                        <div class="space-y-3">
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="A" data-correct-answer="C" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>A) Checking Referer header only</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="B" data-correct-answer="C" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>B) Using SameSite=Lax cookies</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="C" data-correct-answer="C" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>C) CSRF tokens with proper validation</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="D" data-correct-answer="C" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>D) Origin header validation only</span>
+                            </button>
+                            
+                        </div>
+                        <p data-mcq-feedback aria-live="polite" class="hidden mt-4 text-sm font-semibold"></p>
+                    </div>
+                    
+                    
+                </section>
+                
+                <section data-lab-task data-task-index="2" class="hidden">
+                    <header class="flex flex-col sm:flex-row sm:items-start gap-4 pb-6 mb-6 border-b border-gray-100 dark:border-gray-800">
+                        <div class="w-11 h-11 rounded-2xl bg-bltRedLight dark:bg-red-900/30 text-bltRed flex items-center justify-center font-bold text-base shrink-0">
+                            3
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-3 mb-2">
+                                <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white leading-tight m-0">Basic CSRF Attack - Email Change</h2>
+                                <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                                    simulation
+                                </span>
+                            </div>
+                            
+                            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed m-0">Practice exploiting a CSRF vulnerability to change user email address.</p>
+                            
+                        </div>
+                    </header>
+
+                    
+                    <div class="space-y-5">
+                        <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-800/40 p-5 md:p-6">
+                            <h3 class="font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2 text-base">
+                                <i class="ph-bold ph-target text-bltRed"></i>
+                                Simulation Objective
+                            </h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-0">Practice exploiting a CSRF vulnerability to change user email address.</p>
+                        </div>
+
+                        
+                        <div data-simulation-root data-task-index="2" data-simulation-engine="csrf-form"></div>
+
+                        <div class="grid sm:grid-cols-2 gap-4">
+                            <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-900 p-5">
+                                <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Target</h4>
+                                <p class="text-sm font-semibold text-gray-800 dark:text-gray-200 m-0">/profile/update</p>
+                            </div>
+                            <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-900 p-5">
+                                <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Scenario</h4>
+                                <p class="text-sm font-semibold text-gray-800 dark:text-gray-200 m-0">Email change</p>
+                            </div>
+                        </div>
+
+                        
+                        
+                    </div>
+                    
+                </section>
+                
+                <section data-lab-task data-task-index="3" class="hidden">
+                    <header class="flex flex-col sm:flex-row sm:items-start gap-4 pb-6 mb-6 border-b border-gray-100 dark:border-gray-800">
+                        <div class="w-11 h-11 rounded-2xl bg-bltRedLight dark:bg-red-900/30 text-bltRed flex items-center justify-center font-bold text-base shrink-0">
+                            4
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-3 mb-2">
+                                <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white leading-tight m-0">CSRF with Auto-Submit</h2>
+                                <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                                    simulation
+                                </span>
+                            </div>
+                            
+                            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed m-0">Create a CSRF attack that automatically submits when the page loads.</p>
+                            
+                        </div>
+                    </header>
+
+                    
+                    <div class="space-y-5">
+                        <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-800/40 p-5 md:p-6">
+                            <h3 class="font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2 text-base">
+                                <i class="ph-bold ph-target text-bltRed"></i>
+                                Simulation Objective
+                            </h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-0">Create a CSRF attack that automatically submits when the page loads.</p>
+                        </div>
+
+                        
+                        <div data-simulation-root data-task-index="3" data-simulation-engine="csrf-auto-submit"></div>
+
+                        <div class="grid sm:grid-cols-2 gap-4">
+                            <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-900 p-5">
+                                <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Target</h4>
+                                <p class="text-sm font-semibold text-gray-800 dark:text-gray-200 m-0">/transfer/money</p>
+                            </div>
+                            <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-900 p-5">
+                                <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Scenario</h4>
+                                <p class="text-sm font-semibold text-gray-800 dark:text-gray-200 m-0">Fund transfer</p>
+                            </div>
+                        </div>
+
+                        
+                        
+                    </div>
+                    
+                </section>
+                
+                <section data-lab-task data-task-index="4" class="hidden">
+                    <header class="flex flex-col sm:flex-row sm:items-start gap-4 pb-6 mb-6 border-b border-gray-100 dark:border-gray-800">
+                        <div class="w-11 h-11 rounded-2xl bg-bltRedLight dark:bg-red-900/30 text-bltRed flex items-center justify-center font-bold text-base shrink-0">
+                            5
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-3 mb-2">
+                                <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white leading-tight m-0">Image-based CSRF Attack</h2>
+                                <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                                    simulation
+                                </span>
+                            </div>
+                            
+                            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed m-0">Exploit CSRF using image tags for GET-based vulnerable endpoints.</p>
+                            
+                        </div>
+                    </header>
+
+                    
+                    <div class="space-y-5">
+                        <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-800/40 p-5 md:p-6">
+                            <h3 class="font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2 text-base">
+                                <i class="ph-bold ph-target text-bltRed"></i>
+                                Simulation Objective
+                            </h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-0">Exploit CSRF using image tags for GET-based vulnerable endpoints.</p>
+                        </div>
+
+                        
+                        <div data-simulation-root data-task-index="4" data-simulation-engine="csrf-image"></div>
+
+                        <div class="grid sm:grid-cols-2 gap-4">
+                            <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-900 p-5">
+                                <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Target</h4>
+                                <p class="text-sm font-semibold text-gray-800 dark:text-gray-200 m-0">/account/delete</p>
+                            </div>
+                            <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-900 p-5">
+                                <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Scenario</h4>
+                                <p class="text-sm font-semibold text-gray-800 dark:text-gray-200 m-0">Account deletion</p>
+                            </div>
+                        </div>
+
+                        
+                        
+                    </div>
+                    
+                </section>
+                
+                <section data-lab-task data-task-index="5" class="hidden">
+                    <header class="flex flex-col sm:flex-row sm:items-start gap-4 pb-6 mb-6 border-b border-gray-100 dark:border-gray-800">
+                        <div class="w-11 h-11 rounded-2xl bg-bltRedLight dark:bg-red-900/30 text-bltRed flex items-center justify-center font-bold text-base shrink-0">
+                            6
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-3 mb-2">
+                                <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white leading-tight m-0">CSRF with AJAX</h2>
+                                <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                                    simulation
+                                </span>
+                            </div>
+                            
+                            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed m-0">Perform CSRF attacks using JavaScript and AJAX requests.</p>
+                            
+                        </div>
+                    </header>
+
+                    
+                    <div class="space-y-5">
+                        <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-800/40 p-5 md:p-6">
+                            <h3 class="font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2 text-base">
+                                <i class="ph-bold ph-target text-bltRed"></i>
+                                Simulation Objective
+                            </h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-0">Perform CSRF attacks using JavaScript and AJAX requests.</p>
+                        </div>
+
+                        
+                        <div data-simulation-root data-task-index="5" data-simulation-engine="csrf-ajax"></div>
+
+                        <div class="grid sm:grid-cols-2 gap-4">
+                            <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-900 p-5">
+                                <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Target</h4>
+                                <p class="text-sm font-semibold text-gray-800 dark:text-gray-200 m-0">/account/password</p>
+                            </div>
+                            <div class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-900 p-5">
+                                <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Scenario</h4>
+                                <p class="text-sm font-semibold text-gray-800 dark:text-gray-200 m-0">Password change</p>
+                            </div>
+                        </div>
+
+                        
+                        
+                    </div>
+                    
+                </section>
+                
+                <section data-lab-task data-task-index="6" class="hidden">
+                    <header class="flex flex-col sm:flex-row sm:items-start gap-4 pb-6 mb-6 border-b border-gray-100 dark:border-gray-800">
+                        <div class="w-11 h-11 rounded-2xl bg-bltRedLight dark:bg-red-900/30 text-bltRed flex items-center justify-center font-bold text-base shrink-0">
+                            7
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-3 mb-2">
+                                <h2 class="text-xl md:text-2xl font-bold text-gray-900 dark:text-white leading-tight m-0">CSRF Token Bypass Techniques</h2>
+                                <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-red-50 text-bltRed dark:bg-red-900/20">
+                                    theory
+                                </span>
+                            </div>
+                            
+                            <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed m-0">Learn methods to bypass weak CSRF token implementations.</p>
+                            
+                        </div>
+                    </header>
+
+                    
+                    <div class="mb-8">
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                            <i class="ph-fill ph-clipboard-text text-bltRed"></i>
+                            CSRF Token Bypass Techniques
+                        </h3>
+                        <div class="prose prose-sm md:prose-base max-w-none prose-headings:text-gray-900 dark:prose-headings:text-white prose-headings:font-bold prose-h3:text-lg prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-li:text-gray-600 dark:prose-li:text-gray-400 prose-a:text-bltRed prose-pre:bg-gray-950 prose-pre:border prose-pre:border-gray-800 prose-pre:overflow-x-auto dark:prose-invert">
+                            <p>Even when CSRF tokens are implemented, they may have weaknesses that can be exploited by attackers.</p>
+
+<h3 id="common-bypass-techniques">Common Bypass Techniques</h3>
+
+<h4 id="1-missing-token-validation">1. Missing Token Validation</h4>
+
+<ul>
+  <li>Application accepts requests without CSRF tokens</li>
+  <li>Simply omit the token from the request</li>
+  <li>Server does not enforce token presence</li>
+</ul>
+
+<h4 id="2-predictable-tokens">2. Predictable Tokens</h4>
+
+<ul>
+  <li>Tokens generated using weak algorithms</li>
+  <li>Sequential or timestamp-based tokens</li>
+  <li>Reused tokens across sessions</li>
+</ul>
+
+<h4 id="3-token-leakage">3. Token Leakage</h4>
+
+<ul>
+  <li>Tokens exposed in URLs through GET parameters</li>
+  <li>Tokens in Referer headers</li>
+  <li>Tokens accessible via XSS</li>
+</ul>
+
+<h4 id="4-subdomain-attacks">4. Subdomain Attacks</h4>
+
+<ul>
+  <li>Weak domain validation</li>
+  <li>Accepting requests from any subdomain</li>
+  <li>Cookie scope issues</li>
+</ul>
+
+<h3 id="testing-for-csrf-vulnerabilities">Testing for CSRF Vulnerabilities</h3>
+
+<ol>
+  <li>Remove CSRF token and replay request.</li>
+  <li>Change token value to invalid or empty.</li>
+  <li>Use token from a different session.</li>
+  <li>Check if token is validated on the server.</li>
+  <li>Test with different HTTP methods.</li>
+</ol>
+
+<h3 id="example-bypass">Example Bypass</h3>
+
+<div class="language-http highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="err"># Original request with token
+</span><span class="nf">POST</span> <span class="nn">/transfer</span> <span class="k">HTTP</span><span class="o">/</span><span class="m">1.1</span>
+<span class="s">csrf_token=abc123&amp;amount=100&amp;to=victim</span>
+
+# Bypass attempt - remove token
+POST /transfer HTTP/1.1
+amount=100&amp;to=attacker
+</code></pre></div></div>
+
+                        </div>
+                    </div>
+
+                    
+                    <div data-mcq class="rounded-2xl border border-gray-100 dark:border-gray-700 bg-gray-50/70 dark:bg-gray-800/40 p-5 md:p-6">
+                        <h3 class="font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2 text-base">
+                            <i class="ph-bold ph-question text-bltRed"></i>
+                            Knowledge Check
+                        </h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-300 mb-5">Which scenario makes CSRF tokens ineffective?</p>
+                        <div class="space-y-3">
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="A" data-correct-answer="B" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>A) Tokens are generated using strong randomness</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="B" data-correct-answer="B" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>B) Server accepts requests without validating tokens</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="C" data-correct-answer="B" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>C) Tokens are properly tied to user sessions</span>
+                            </button>
+                            
+                            
+                            <button type="button" data-mcq-option data-option-letter="D" data-correct-answer="B" aria-pressed="false" class="w-full flex items-center gap-3 text-left p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-bltRed hover:bg-red-50 dark:hover:bg-red-900/10 transition-all text-sm text-gray-700 dark:text-gray-300">
+                                <span data-option-marker class="w-5 h-5 rounded-full border border-gray-300 dark:border-gray-600 flex items-center justify-center shrink-0"></span>
+                                <span>D) Tokens are validated on every request</span>
+                            </button>
+                            
+                        </div>
+                        <p data-mcq-feedback aria-live="polite" class="hidden mt-4 text-sm font-semibold"></p>
+                    </div>
+                    
+                    
+                </section>
+                
+
+                <footer class="mt-8 pt-6 border-t border-gray-100 dark:border-gray-800 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+                    <button type="button" data-lab-prev class="inline-flex items-center justify-center gap-2 px-5 py-3 border border-gray-200 dark:border-gray-700 rounded-xl text-sm font-semibold text-gray-500 dark:text-gray-400 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-800 transition-all">
+                        <i class="ph-bold ph-arrow-left"></i>
+                        Previous
+                    </button>
+                    <button type="button" data-lab-next class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-bltRed text-white rounded-xl text-sm font-bold shadow-lg shadow-red-100 dark:shadow-none hover:bg-bltRedHover transition-all">
+                        Next
+                        <i class="ph-bold ph-arrow-right"></i>
+                    </button>
+                </footer>
+            </div>
+        </div>
+
+        <aside class="lg:col-span-4 min-w-0 space-y-6">
+            <div class="bg-white dark:bg-gray-900 p-6 rounded-[2rem] shadow-soft border border-gray-100 dark:border-gray-800">
+                <h3 class="text-base font-bold text-gray-900 dark:text-white mb-5 flex items-center gap-2">
+                    <i class="ph-bold ph-chart-line-up text-bltRed"></i>
+                    Lab Progress
+                </h3>
+                <div class="mb-6">
+                    <div class="flex justify-between text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">
+                        <span>Completion</span>
+                        <span data-lab-percent>0%</span>
+                    </div>
+                    <div class="w-full h-2.5 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
+                        <div data-lab-progress class="h-full w-0 bg-bltRed rounded-full transition-all duration-300"></div>
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    
+                    <button type="button" data-lab-jump data-task-index="0" class="w-full flex items-center gap-3 text-left p-3 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-all">
+                        <span data-step-badge class="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 shrink-0">1</span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-sm font-semibold text-gray-800 dark:text-gray-200">Introduction to CSRF</span>
+                            <span data-step-state class="block text-xs text-gray-400">Locked</span>
+                        </span>
+                    </button>
+                    
+                    <button type="button" data-lab-jump data-task-index="1" class="w-full flex items-center gap-3 text-left p-3 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-all">
+                        <span data-step-badge class="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 shrink-0">2</span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-sm font-semibold text-gray-800 dark:text-gray-200">CSRF Protection Mechanisms</span>
+                            <span data-step-state class="block text-xs text-gray-400">Locked</span>
+                        </span>
+                    </button>
+                    
+                    <button type="button" data-lab-jump data-task-index="2" class="w-full flex items-center gap-3 text-left p-3 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-all">
+                        <span data-step-badge class="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 shrink-0">3</span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-sm font-semibold text-gray-800 dark:text-gray-200">Basic CSRF Attack - Email Change</span>
+                            <span data-step-state class="block text-xs text-gray-400">Locked</span>
+                        </span>
+                    </button>
+                    
+                    <button type="button" data-lab-jump data-task-index="3" class="w-full flex items-center gap-3 text-left p-3 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-all">
+                        <span data-step-badge class="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 shrink-0">4</span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-sm font-semibold text-gray-800 dark:text-gray-200">CSRF with Auto-Submit</span>
+                            <span data-step-state class="block text-xs text-gray-400">Locked</span>
+                        </span>
+                    </button>
+                    
+                    <button type="button" data-lab-jump data-task-index="4" class="w-full flex items-center gap-3 text-left p-3 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-all">
+                        <span data-step-badge class="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 shrink-0">5</span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-sm font-semibold text-gray-800 dark:text-gray-200">Image-based CSRF Attack</span>
+                            <span data-step-state class="block text-xs text-gray-400">Locked</span>
+                        </span>
+                    </button>
+                    
+                    <button type="button" data-lab-jump data-task-index="5" class="w-full flex items-center gap-3 text-left p-3 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-all">
+                        <span data-step-badge class="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 shrink-0">6</span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-sm font-semibold text-gray-800 dark:text-gray-200">CSRF with AJAX</span>
+                            <span data-step-state class="block text-xs text-gray-400">Locked</span>
+                        </span>
+                    </button>
+                    
+                    <button type="button" data-lab-jump data-task-index="6" class="w-full flex items-center gap-3 text-left p-3 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-all">
+                        <span data-step-badge class="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 shrink-0">7</span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block truncate text-sm font-semibold text-gray-800 dark:text-gray-200">CSRF Token Bypass Techniques</span>
+                            <span data-step-state class="block text-xs text-gray-400">Locked</span>
+                        </span>
+                    </button>
+                    
+                </div>
+            </div>
+
+            <div class="bg-gray-900 dark:bg-gray-800/80 p-6 rounded-[2rem] text-white relative overflow-hidden group border border-transparent dark:border-gray-700">
+                <div class="absolute -right-4 -bottom-4 opacity-10 pointer-events-none text-bltRed">
+                    <i class="ph-fill ph-shield-check text-8xl"></i>
+                </div>
+                <h3 class="text-lg font-bold mb-3 relative z-10">Practice Security</h3>
+                <p class="text-gray-400 text-sm leading-relaxed mb-5 relative z-10">
+                    These labs are educational simulations designed for ethical cybersecurity learning.
+                </p>
+                <div class="space-y-3 text-xs text-gray-300 relative z-10">
+                    <div class="flex items-center gap-2"><i class="ph-bold ph-check text-bltRed"></i>OWASP aligned content</div>
+                    <div class="flex items-center gap-2"><i class="ph-bold ph-check text-bltRed"></i>Interactive challenge tasks</div>
+                    <div class="flex items-center gap-2"><i class="ph-bold ph-check text-bltRed"></i>Beginner friendly guidance</div>
+                    <div class="flex items-center gap-2"><i class="ph-bold ph-check text-bltRed"></i>Instant feedback and hints</div>
+                </div>
+            </div>
+        </aside>
+    </main>
+</article>
+
+<script src="/assets/js/labs/main.js?v=1780711776"></script>
+
+    
+    <footer class="bg-slate-900 border-t border-slate-800 mt-auto">
+    <div class="max-w-7xl mx-auto px-6 pt-10 md:pt-16 pb-12 grid grid-cols-1 md:grid-cols-4 gap-12">
+        <div class="col-span-1">
+            <a href="/"
+             class="flex items-center gap-3 font-display font-bold text-xl text-white mb-6">
+                <img src="/assets/images/blt-logo.png" alt="Logo" class="w-8 h-8 object-contain">
+                BLT University
+             </a>
+            <p class="text-sm leading-relaxed text-slate-400 mb-6">
+                A cybersecurity-focused online university powered by GitHub Pages and GitLab Pages. Learn, teach, and collaborate on ...
+            </p>
+            <div
+                 class="inline-flex items-center px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-xs font-bold uppercase tracking-widest text-slate-300 shadow-lg">
+                <span class="w-1 h-1 rounded-full bg-bltRed mr-1.5 animate-pulse"></span>
+                ESTABLISHED 2026
+            </div>
+        </div>
+
+        <div>
+            <h4 class="text-white font-bold text-xs uppercase tracking-widest mb-6">Quick Links</h4>
+            <ul class="space-y-4 text-sm font-medium text-slate-400">
+                <li><a href="/courses/"
+                        class="hover:text-white hover:translate-x-1 transition-all inline-block">Browse Courses</a></li>
+                <li><a href="/enroll/"
+                        class="hover:text-white hover:translate-x-1 transition-all inline-block">Enroll Now</a></li>
+                <li><a href="/instructors/"
+                        class="hover:text-white hover:translate-x-1 transition-all inline-block">Our Instructors</a>
+                </li>
+            </ul>
+        </div>
+
+        <div>
+            <h4 class="text-white font-bold text-xs uppercase tracking-widest mb-6">Get Involved</h4>
+            <ul class="space-y-4 text-sm font-medium text-slate-400">
+                <li><a href="https://github.com/OWASP-BLT/BLT-University" target="_blank"
+                        class="hover:text-white hover:translate-x-1 transition-all inline-block">GitHub Repository</a>
+                </li>
+                <li><a href="https://gitlab.com/owasp-blt/blt-university" target="_blank"
+                        class="hover:text-white hover:translate-x-1 transition-all inline-flex items-center gap-2">
+                        <i class="ph-bold ph-gitlab-logo"></i> GitLab Repository</a>
+                </li>
+                <li><a href="/contributing/"
+                        class="hover:text-white hover:translate-x-1 transition-all inline-block">Become an
+                        Instructor</a></li>
+            </ul>
+        </div>
+
+        <div>
+            <h4 class="text-white font-bold text-xs uppercase tracking-widest mb-6">License</h4>
+            <p class="text-sm font-medium text-slate-400 leading-relaxed mb-4">
+                This project is open-source and licensed under <a href="https://www.gnu.org/licenses/agpl-3.0.en.html"
+                    target="_blank" class="text-bltRed font-bold hover:text-white transition-colors">AGPL-3.0</a>.
+            </p>
+            <div class="flex flex-wrap gap-4">
+                <a href="https://github.com/OWASP-BLT" target="_blank"
+                   aria-label="OWASP Github" title="OWASP Github"
+                    class="text-slate-400 hover:text-white transition-colors">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path
+                            d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+                    </svg>
+                </a>
+                <a href="https://gitlab.com/owasp-blt" target="_blank"
+                   aria-label="OWASP BLT on GitLab" title="OWASP BLT on GitLab"
+                    class="text-slate-400 hover:text-white transition-colors">
+                    <i class="ph-bold ph-gitlab-logo text-xl"></i>
+                </a>
+                <a href="https://owasp.org/slack/invite" target="_blank" rel="noopener noreferrer"
+   aria-label="OWASP Slack" title="OWASP Slack"
+   class="text-slate-400 hover:text-white transition-colors">
+   <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+       <path d="M5.1 15.9c0 1.4-1.1 2.5-2.5 2.5S0 17.3 0 15.9s1.1-2.5 2.5-2.5h2.6v2.5zm1.3 0c0-1.4 1.1-2.5 2.5-2.5s2.5 1.1 2.5 2.5v6.6c0 1.4-1.1 2.5-2.5 2.5s-2.5-1.1-2.5-2.5v-6.6zm2.5-10.8c-1.4 0-2.5-1.1-2.5-2.5S7.5 0 8.9 0s2.5 1.1 2.5 2.5v2.6H8.9zm0 1.3c1.4 0 2.5 1.1 2.5 2.5s-1.1 2.5-2.5 2.5H2.3C.9 11.4-.2 10.3-.2 8.9s1.1-2.5 2.5-2.5h6.6zm10.8 2.5c0-1.4 1.1-2.5 2.5-2.5s2.5 1.1 2.5 2.5-1.1 2.5-2.5 2.5h-2.6V8.9zm-1.3 0c0 1.4-1.1 2.5-2.5 2.5s-2.5-1.1-2.5-2.5V2.3C13.4.9 14.5-.2 15.9-.2s2.5 1.1 2.5 2.5v6.6zm-2.5 10.8c1.4 0 2.5 1.1 2.5 2.5s-1.1 2.5-2.5 2.5-2.5-1.1-2.5-2.5v-2.6h2.5zm0-1.3c-1.4 0-2.5-1.1-2.5-2.5s1.1-2.5 2.5-2.5h6.6c1.4 0 2.5 1.1 2.5 2.5s-1.1 2.5-2.5 2.5h-6.6z"/>
+   </svg>
+</a>
+                <!-- Facebook -->
+<a href="https://www.facebook.com/OWASPFoundation" target="_blank" rel="noopener noreferrer"
+   aria-label="OWASP Facebook" title="OWASP Facebook"
+   class="text-slate-400 hover:text-white transition-colors">
+   <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+       <path d="M22 12a10 10 0 10-11.5 9.9v-7H7v-3h3.5V9.5c0-3.5 2-5.5 5-5.5 1.4 0 2.8.2 2.8.2v3h-1.6c-1.6 0-2.1 1-2.1 2v2.4H18l-.5 3h-2.8v7A10 10 0 0022 12z"/>
+   </svg>
+</a>
+
+<!-- Twitter -->
+<a href="https://twitter.com/owasp" target="_blank" rel="noopener noreferrer"
+   aria-label="OWASP Twitter" title="OWASP Twitter"
+   class="text-slate-400 hover:text-white transition-colors">
+   <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+       <path d="M22.46 6c-.77.35-1.6.58-2.46.69a4.3 4.3 0 001.88-2.37 8.59 8.59 0 01-2.72 1.04 4.28 4.28 0 00-7.3 3.9A12.14 12.14 0 013 4.8a4.28 4.28 0 001.32 5.72A4.2 4.2 0 012.8 10v.05a4.28 4.28 0 003.44 4.2 4.3 4.3 0 01-1.93.07 4.29 4.29 0 004 3 8.6 8.6 0 01-5.3 1.83A8.77 8.77 0 012 19.54 12.13 12.13 0 008.56 21c7.87 0 12.17-6.52 12.17-12.17 0-.18 0-.35-.01-.53A8.7 8.7 0 0024 5.1a8.5 8.5 0 01-2.54.7z"/>
+   </svg>
+</a>
+
+<!-- LinkedIn -->
+<a href="https://www.linkedin.com/company/owasp" target="_blank" rel="noopener noreferrer"
+   aria-label="OWASP LinkedIn" title="OWASP LinkedIn"
+   class="text-slate-400 hover:text-white transition-colors">
+   <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+       <path d="M20.45 20.45h-3.55v-5.4c0-1.3-.03-2.97-1.8-2.97-1.8 0-2.07 1.4-2.07 2.85v5.52H9.48V9h3.4v1.56h.05c.47-.9 1.6-1.85 3.3-1.85 3.53 0 4.18 2.32 4.18 5.34v6.4zM5.34 7.43a2.06 2.06 0 110-4.12 2.06 2.06 0 010 4.12zM7.12 20.45H3.56V9h3.56v11.45z"/>
+   </svg>
+</a>
+
+<!-- YouTube -->
+<a href="https://www.youtube.com/user/OWASPGLOBAL" target="_blank" rel="noopener noreferrer"
+   aria-label="OWASP YouTube" title="OWASP YouTube"
+   class="text-slate-400 hover:text-white transition-colors">
+   <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+       <path d="M23.5 6.2a2.9 2.9 0 00-2-2C19.7 3.7 12 3.7 12 3.7s-7.7 0-9.5.5a2.9 2.9 0 00-2 2A30 30 0 000 12a30 30 0 00.5 5.8 2.9 2.9 0 002 2c1.8.5 9.5.5 9.5.5s7.7 0 9.5-.5a2.9 2.9 0 002-2A30 30 0 0024 12a30 30 0 00-.5-5.8zM9.8 15.5v-7l6.2 3.5-6.2 3.5z"/>
+   </svg>
+</a>
+
+<!-- Mastodon / Infosec -->
+<a href="https://infosec.exchange/@owasp" target="_blank" rel="noopener noreferrer"
+   aria-label="OWASP Mastodon" title="OWASP Mastodon"
+   class="text-slate-400 hover:text-white transition-colors">
+   <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+       <path d="M12 2C6.48 2 3 5.58 3 10.24c0 3.35 1.78 5.33 4.72 5.33.74 0 1.46-.1 2.13-.29v1.86c0 1.3.8 2.03 2.25 2.03 1.57 0 2.42-.8 2.42-2.2v-2.3c.7.14 1.43.22 2.16.22 2.93 0 4.72-1.98 4.72-5.33C21.4 5.58 17.52 2 12 2zm3.34 9.5h-1.5v-3.2c0-.68-.28-1.02-.83-1.02-.61 0-.91.4-.91 1.18v1.86h-1.5V8.46c0-.78-.3-1.18-.91-1.18-.55 0-.83.34-.83 1.02v3.2h-1.5V8.2c0-1.7 1.04-2.6 2.47-2.6.87 0 1.52.33 1.95.99.45-.66 1.15-.99 2.07-.99 1.38 0 2.42.9 2.42 2.6v3.3z"/>
+   </svg>
+</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="border-t border-slate-800/50"></div>
+
+    <div class="py-8 px-6 bg-slate-900/50">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <p class="text-slate-500 text-xs font-medium">
+                &copy; 2026 BLT University. Built with
+                pride by the 
+                <a href="https://owasp.org/slack/invite" target="_blank" rel="noopener noreferrer"
+               class="text-bltRed font-bold hover:underline"
+               aria-label="Join OWASP Slack Community"
+               title="Join OWASP Slack Community">
+               OWASP Community
+            </a>.
+            </p>
+            <div class="flex items-center gap-6">
+                <p class="text-slate-500 text-xs uppercase tracking-widest font-bold">
+                    Powered by <span class="text-white">GitHub Pages</span> and <span class="text-white">GitLab Pages</span>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+    
+    <script src="/assets/js/main.js?v=1780711776"></script>
+</body>
+</html>
