@@ -71,7 +71,7 @@ All projects are developed transparently under OWASP governance with AGPL-3.0 li
 1. The preserved GitHub record is stored in `public/github_data.json`
 2. GitLab statistics are generated from the GitLab API via GitLab CI and stored in `public/gitlab_data.json`
 3. JavaScript dynamically renders the dashboard
-4. GitLab CI refreshes the committed `public/` data files and deploys `public/` to Cloudflare Pages
+4. Cloudflare automatically serves the committed `public/` directory
 5. Users can search, sort, and filter in real-time
 
 ---
@@ -97,13 +97,7 @@ GitLab builds the static site with:
 sh scripts/build_static.sh
 ```
 
-The committed Pages output directory is `public/`. The GitLab pipeline refreshes the data files there, keeps that folder as a short-lived build artifact, then deploys it to Cloudflare Pages with:
-
-```bash
-npx --yes wrangler pages deploy public --project-name "$CLOUDFLARE_PROJECT_NAME" --branch "$CI_COMMIT_BRANCH"
-```
-
-Set `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` in GitLab CI/CD variables, and configure a GitLab pipeline schedule for the daily refresh.
+The committed Pages output directory is `public/`. GitLab refreshes the data files there on the configured schedule, and Cloudflare handles deployment automatically from the repository.
 
 ### Usage
 - **Search:** Type in the search bar to find repositories

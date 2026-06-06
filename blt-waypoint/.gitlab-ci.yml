@@ -2,7 +2,6 @@ image: node:22-bookworm
 
 stages:
   - build
-  - deploy
 
 variables:
   CLOUDFLARE_PROJECT_NAME: "blt-waypoint"
@@ -20,17 +19,6 @@ build_site:
     paths:
       - public
     expire_in: 1 day
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "schedule"'
-    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
-
-deploy_cloudflare:
-  stage: deploy
-  needs:
-    - job: build_site
-      artifacts: true
-  script:
-    - npx --yes wrangler pages deploy public --project-name "$CLOUDFLARE_PROJECT_NAME" --branch "$CI_COMMIT_BRANCH"
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
