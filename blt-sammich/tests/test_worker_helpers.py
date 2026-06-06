@@ -567,6 +567,29 @@ def test_render_admin_channel_refresh_button_only_for_teams():
     assert "refresh_workspace_channels" not in html
 
 
+def test_render_admin_row_table_includes_bulk_delete_controls():
+    html = worker.render_admin_row_table(
+        {
+            "selected_table": "channels",
+            "schema": worker.ADMIN_TABLE_SCHEMAS["channels"],
+            "rows": [
+                {"id": 1, "workspace_id": 1, "channel_id": "C123"},
+                {"id": 2, "workspace_id": 1, "channel_id": "C456"},
+            ],
+            "sort_column": "id",
+            "sort_direction": "DESC",
+        },
+        "/private-admin",
+    )
+
+    assert 'name="action" value="db_bulk_delete"' in html
+    assert 'name="table" value="channels"' in html
+    assert "Delete selected" in html
+    assert 'name="row_pk__0" value="1"' in html
+    assert 'name="row_pk__1" value="2"' in html
+    assert 'form="admin-bulk-delete-form"' in html
+
+
 def test_render_admin_row_table_collapses_payload_columns_to_one_line():
     html = worker.render_admin_row_table(
         {
@@ -590,6 +613,18 @@ def test_render_admin_row_table_collapses_payload_columns_to_one_line():
     assert 'title="{ &quot;command&quot;: &quot;/blt&quot;, &quot;text&quot;: &quot;help&quot; }"' in html
     assert "whitespace-pre-wrap" not in html
     assert "break-words" not in html
+
+
+def test_admin_bulk_delete_pk_values_dedupes_selected_rows():
+    assert worker.admin_bulk_delete_pk_values(
+        {
+            "row_pk__0": "1",
+            "row_pk__1": "2",
+            "row_pk__2": "1",
+            "row_pk__3": "",
+            "table": "channels",
+        }
+    ) == ["1", "2"]
 
 
 def test_render_admin_html_shows_edit_form_on_edit_page():
@@ -1904,6 +1939,35 @@ def test_db_admin_confirmed_delete_cascades_children_before_parent():
     delete_queries = [query for query, _ in captured if query.startswith("DELETE FROM")]
     assert "DELETE FROM channels WHERE id = ?" in delete_queries
     assert delete_queries[-1] == "DELETE FROM teams WHERE id = ?"
+
+
+def test_admin_bulk_delete_action_deletes_each_selected_row():
+    deleted = []
+    original_delete = worker.db_admin_delete_row_cascade
+
+    async def fake_delete(env, table_name, pk_value):
+        deleted.append((table_name, pk_value))
+
+    env = _Env()
+    setattr(env, "ADMIN_URL", "/private-admin")
+    worker.db_admin_delete_row_cascade = fake_delete
+    try:
+        asyncio.run(
+            worker.handle_admin_form_action(
+                env,
+                {
+                    "action": "db_bulk_delete",
+                    "table": "channels",
+                    "row_pk__0": "1",
+                    "row_pk__1": "2",
+                    "row_pk__2": "1",
+                },
+            )
+        )
+    finally:
+        worker.db_admin_delete_row_cascade = original_delete
+
+    assert deleted == [("channels", "1"), ("channels", "2")]
 
 
 def test_db_admin_rejects_unknown_table_names():

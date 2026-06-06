@@ -4208,6 +4208,19 @@ def admin_table_cell_text(value: Any) -> str:
     return re.sub(r"\s+", " ", text).strip()
 
 
+def admin_bulk_delete_pk_values(form: Dict[str, str]) -> List[str]:
+    values = []
+    seen = set()
+    for key in sorted(form):
+        if not key.startswith("row_pk__"):
+            continue
+        value = str(form.get(key) or "").strip()
+        if value and value not in seen:
+            values.append(value)
+            seen.add(value)
+    return values
+
+
 def render_admin_table_cell(column_name: str, value: Any) -> str:
     text = admin_table_cell_text(value)
     max_width = "max-w-[34rem]" if column_name in (
@@ -4753,7 +4766,13 @@ def render_admin_row_table(context: Dict[str, Any], admin_url: str) -> str:
     schema = context["schema"]
     sort_column = context.get("sort_column") or schema["pk"]
     sort_direction = context.get("sort_direction") or "DESC"
-    header_cells = []
+    bulk_form_id = "admin-bulk-delete-form"
+    header_cells = [
+        '<th class="sticky top-0 z-10 w-10 border-b border-gray-200 bg-gray-50 px-3 py-2 text-center text-xs font-bold text-gray-600">'
+        '<input type="checkbox" aria-label="Select all rows" class="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500" '
+        'onclick="document.querySelectorAll(&#x27;[data-admin-row-checkbox]&#x27;).forEach(function(checkbox) { checkbox.checked = this.checked; }, this)" />'
+        "</th>"
+    ]
     for column_name, _ in schema["columns"]:
         next_direction = "desc" if column_name == sort_column and sort_direction == "ASC" else "asc"
         marker = ""
@@ -4774,9 +4793,18 @@ def render_admin_row_table(context: Dict[str, Any], admin_url: str) -> str:
     )
     rows = []
     pk = schema["pk"]
-    for row in context["rows"]:
+    for index, row in enumerate(context["rows"]):
         pk_value = str(row.get(pk) if row.get(pk) is not None else "")
-        cells = []
+        cells = [
+            '<td class="border-b border-gray-100 px-3 py-1 text-center align-middle">'
+            '<input form="{0}" data-admin-row-checkbox type="checkbox" name="row_pk__{1}" value="{2}" '
+            'aria-label="Select row {2}" class="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-red-500" />'
+            "</td>".format(
+                bulk_form_id,
+                index,
+                html_escape(pk_value),
+            )
+        ]
         for column_name, _ in schema["columns"]:
             cells.append(render_admin_table_cell(column_name, row.get(column_name)))
         cells.append(
@@ -4804,17 +4832,28 @@ def render_admin_row_table(context: Dict[str, Any], admin_url: str) -> str:
     if not rows:
         rows.append(
             '<tr><td colspan="{0}" class="px-3 py-10 text-center text-sm text-gray-400">No rows found.</td></tr>'.format(
-                len(schema["columns"]) + 1
+                len(schema["columns"]) + 2
             )
         )
     return """
+    <form id="{bulk_form_id}" method="post" action="{admin_url}" class="mb-3 flex justify-end">
+      <input type="hidden" name="action" value="db_bulk_delete" />
+      <input type="hidden" name="table" value="{selected_table}" />
+      <button class="inline-flex items-center justify-center gap-2 rounded-lg border border-red-200 px-3 py-2 text-sm font-semibold text-red-700 hover:border-red-300 hover:bg-red-50" type="submit" onclick="return confirm('Delete selected rows?')"><i class="fas fa-trash"></i>Delete selected</button>
+    </form>
     <div class="overflow-auto rounded border border-gray-200 max-h-[calc(100vh-250px)]">
       <table class="min-w-full border-collapse text-sm">
         <thead><tr>{headers}</tr></thead>
         <tbody>{rows}</tbody>
       </table>
     </div>
-    """.format(headers="".join(header_cells), rows="\n".join(rows))
+    """.format(
+        admin_url=html_escape(admin_url),
+        bulk_form_id=bulk_form_id,
+        selected_table=html_escape(selected_table),
+        headers="".join(header_cells),
+        rows="\n".join(rows),
+    )
 
 
 def render_admin_form_page(context: Dict[str, Any], admin_url: str) -> str:
@@ -5031,6 +5070,16 @@ async def handle_admin_form_action(env: Any, form: Dict[str, str]) -> Any:
             return admin_redirect(env, "Unknown database table")
         await db_admin_delete_row_cascade(env, table_name, form.get("pk", ""))
         return admin_redirect(env, "Row deleted", table_name)
+    if action == "db_bulk_delete":
+        table_name = form.get("table", "")
+        if table_name not in ADMIN_TABLE_SCHEMAS:
+            return admin_redirect(env, "Unknown database table")
+        pk_values = admin_bulk_delete_pk_values(form)
+        if not pk_values:
+            return admin_redirect(env, "No rows selected", table_name)
+        for pk_value in pk_values:
+            await db_admin_delete_row_cascade(env, table_name, pk_value)
+        return admin_redirect(env, "Deleted {0} rows".format(len(pk_values)), table_name)
     if action == "refresh_workspace_channels":
         result = await refresh_workspace_channels_from_slack(env, form.get("pk", ""))
         return admin_redirect(
