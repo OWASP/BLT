@@ -2886,9 +2886,11 @@ async def list_connected_workspaces(env: Any) -> List[Dict[str, Any]]:
 
     by_team: Dict[str, Dict[str, Any]] = {}
     for row in connected_rows:
+        row["connected_workspace_id"] = row.get("id")
         team_key = str(row.get("team_id") or "connected:{0}".format(row.get("id")))
         by_team[team_key] = row
     for row in workspace_rows:
+        row["workspace_id"] = row.get("id")
         team_key = str(row.get("team_id") or "workspace:{0}".format(row.get("id")))
         existing = by_team.get(team_key, {})
         merged = dict(existing)
@@ -4108,7 +4110,7 @@ def render_admin_html(
     workspace_rows = []
     for ws in workspaces:
         team_id = str(ws.get("team_id") or "")
-        workspace_id = str(ws.get("id") or "")
+        workspace_id = str(ws.get("workspace_id") or "")
         workspace_rows.append(
             "<tr class=\"border-t align-top\">"
             "<td class=\"py-3 pr-4 font-semibold\">{0}</td>"
