@@ -19,6 +19,8 @@ theme: minima
 markdown: kramdown
 permalink: pretty
 port: 4001
+include:
+  - _pages
 
 # Collections
 collections:
@@ -54,14 +56,30 @@ defaults:
 
 # Exclude from processing
 exclude:
+  - .agents/
+  - .codex/
+  - .git/
+  - .github/
+  - .gitignore
+  - .gitlab-ci.yml
+  - CNAME
+  - CONTRIBUTING.md
+  - FIX_PROPOSAL.md
   - Gemfile
   - Gemfile.lock
+  - LICENSE
+  - QUICKSTART.md
   - node_modules
+  - public/
+  - README.md
+  - SETUP.md
+  - wrangler.toml
+  - _config.yml
+  - assets/images/courses/README.md
   - vendor/bundle/
   - vendor/cache/
   - vendor/gems/
   - vendor/ruby/
-  - README.md
 
 # Plugins
 plugins:

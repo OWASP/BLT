@@ -32,6 +32,7 @@ pages:
       artifacts: true
   script:
     - test -d public
+    - test -f public/index.html
   pages:
     publish: public
   artifacts:
@@ -55,6 +56,7 @@ commit_built_pages:
     - git rm -r --ignore-unmatch public
     - mkdir public
     - cp -R /tmp/built-public/. public/
+    - test -f public/index.html
     - git add -f public
     - |
       if git diff --cached --quiet; then

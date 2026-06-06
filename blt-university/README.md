@@ -103,6 +103,7 @@ All courses are built as static content in GitLab CI and published from the same
 
 ```
 BLT-University/
+├── _pages/                # Source pages rendered into public URLs
 ├── _courses/              # Course content files
 ├── _instructors/          # Instructor profiles
 ├── _layouts/              # Jekyll layouts
@@ -115,8 +116,8 @@ BLT-University/
 │   └── ISSUE_TEMPLATE/   # Issue templates
 ├── .gitlab-ci.yml        # GitLab build, GitLab Pages, and Cloudflare Pages deployment
 ├── wrangler.toml         # Cloudflare Pages output configuration
-├── _config.yml           # Jekyll configuration
-└── *.html                # Static pages
+├── public/               # Generated pages committed by GitLab CI for Cloudflare
+└── _config.yml           # Jekyll configuration
 ```
 
 ### GitLab and Cloudflare Deployment
