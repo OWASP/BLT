@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Coding Practices - BLT University</title>
+    <meta name="description" content="Learn to write secure code from the ground up. Covers common vulnerabilities, secure design patterns, and defensive programming techniques across multiple languages.">
+    
+    <!-- Begin Jekyll SEO tag v2.9.0 -->
+<title>Secure Coding Practices | BLT University</title>
+<meta name="generator" content="Jekyll v4.4.1" />
+<meta property="og:title" content="Secure Coding Practices" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Learn to write secure code from the ground up. Covers common vulnerabilities, secure design patterns, and defensive programming techniques across multiple languages." />
+<meta name="twitter:description" property="og:description" content="Learn to write secure code from the ground up. Covers common vulnerabilities, secure design patterns, and defensive programming techniques across multiple languages." />
+<link rel="canonical" href="https://university.owaspblt.org/courses/secure-coding-practices/" />
+<meta property="og:url" content="https://university.owaspblt.org/courses/secure-coding-practices/" />
+<meta property="og:site_name" content="BLT University" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2026-06-06T02:09:36+00:00" />
+<meta property="article:modified_time" content="2026-06-06T02:09:36+00:00" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="Secure Coding Practices" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2026-06-06T02:09:36+00:00","datePublished":"2026-06-06T02:09:36+00:00","description":"Learn to write secure code from the ground up. Covers common vulnerabilities, secure design patterns, and defensive programming techniques across multiple languages.","headline":"Secure Coding Practices","mainEntityOfPage":{"@type":"WebPage","@id":"https://university.owaspblt.org/courses/secure-coding-practices/"},"url":"https://university.owaspblt.org/courses/secure-coding-practices/"}</script>
+<!-- End Jekyll SEO tag -->
+
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script>
+        if (localStorage.getItem("theme") === "dark") {
+          document.documentElement.classList.add("dark");
+        }
+    </script>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif']
+                    },
+                    colors: {
+                        bltRed: '#dc2626',
+                        bltRedLight: '#fef2f2',
+                        bltRedHover: '#b91c1c',
+                        bltDark: '#0f172a'
+                    },
+                    boxShadow: {
+                        soft: '0 20px 40px -15px rgba(0,0,0,0.05)',
+                        float: '0 30px 60px -15px rgba(0,0,0,0.08)'
+                    }
+                }
+            }
+        }
+        </script>
+</head>
+<body class="bg-[#fafafa] dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans antialiased selection:bg-bltRed selection:text-white flex flex-col min-h-screen">
+    
+    <!-- Hidden Checkbox -->
+    <input type="checkbox" id="menu-toggle" class="peer hidden">
+<header class="sticky top-0 z-50 w-full border-b border-gray-200 bg-white/80 backdrop-blur-md transition-colors duration-300 dark:border-gray-800 dark:bg-gray-900/90">
+    <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
+        
+        <a href="/" class="flex items-center gap-3 group">
+            <div class="flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg bg-white p-1 shadow-sm ring-1 ring-gray-200 transition group-hover:ring-bltRed/50">
+                <img src="/assets/images/blt-logo.png"
+                     alt="OWASP BLT Logo"
+                     class="h-full w-full object-contain">
+            </div>
+            <span class="text-lg font-bold tracking-tight text-gray-900 dark:text-white">
+                BLT University
+            </span>
+        </a>
+
+        <nav class="hidden items-center gap-8 md:flex">
+            
+                
+                
+                <a href="/"
+                   class="relative text-sm font-medium transition-colors text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+                    Home
+                    
+                </a>
+            
+                
+                
+                <a href="/courses/"
+                   class="relative text-sm font-medium transition-colors text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+                    Courses
+                    
+                </a>
+            
+                
+                
+                <a href="/enroll/"
+                   class="relative text-sm font-medium transition-colors text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+                    Enroll
+                    
+                </a>
+            
+                
+                
+                <a href="/request/"
+                   class="relative text-sm font-medium transition-colors text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+                    Request a Course
+                    
+                </a>
+            
+                
+                
+                <a href="/instructors/"
+                   class="relative text-sm font-medium transition-colors text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+                    Instructors
+                    
+                </a>
+            
+                
+                
+                <a href="/labs/"
+                   class="relative text-sm font-medium transition-colors text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+                    Labs
+                    
+                </a>
+            
+                
+                
+                <a href="/about/"
+                   class="relative text-sm font-medium transition-colors text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+                    About
+                    
+                </a>
+            
+        </nav>
+
+        <div class="flex items-center gap-4">
+            <!-- Theme Toggle -->
+            <button id="theme-toggle" 
+                    aria-label="Toggle Dark Mode"
+                    class="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white">
+                <i id="theme-icon" class="fas fa-sun hidden dark:block"></i>
+                <i id="theme-icon-dark" class="fas fa-moon block dark:hidden"></i>
+            </button>
+            <!-- Menu Icon -->
+                <label for="menu-toggle"
+                    class="md:hidden rounded-lg p-2 text-gray-500 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800">
+                    <i class="fas fa-bars"></i>
+                </label>
+        </div>
+    </div>
+
+</header>
+ <!-- MOBILE SIDEBAR -->
+    <div class="fixed top-0 left-0 h-full w-64 bg-white dark:bg-gray-900 shadow-lg 
+                transform -translate-x-full transition-transform duration-300 
+                peer-checked:translate-x-0 md:hidden z-50">
+
+        <div class="p-6 flex flex-col gap-6">
+
+            <!-- Close Button -->
+            <label for="menu-toggle"
+                class="self-end cursor-pointer text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+                <i class="fas fa-times text-xl"></i>
+            </label>
+
+            <!-- Links -->
+            
+                <a href="/"
+                   class="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+                    Home
+                </a>
+            
+                <a href="/courses/"
+                   class="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+                    Courses
+                </a>
+            
+                <a href="/enroll/"
+                   class="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+                    Enroll
+                </a>
+            
+                <a href="/request/"
+                   class="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+                    Request a Course
+                </a>
+            
+                <a href="/instructors/"
+                   class="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+                    Instructors
+                </a>
+            
+                <a href="/labs/"
+                   class="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+                    Labs
+                </a>
+            
+                <a href="/about/"
+                   class="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
+                    About
+                </a>
+            
+
+        </div>
+    </div>
+
+    
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+<article class="bg-[#fafafa] dark:bg-gray-950 transition-colors duration-300 min-h-screen">
+    <section class="bg-bltDark text-white pt-20 pb-32 relative overflow-hidden">
+        <div class="absolute top-0 right-1/4 w-[500px] h-[500px] bg-red-500/10 rounded-full filter blur-[120px] pointer-events-none"></div>
+        <div class="absolute inset-0 z-0">
+            <img src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=1200&q=80" class="w-full h-full object-cover opacity-10 mix-blend-overlay">
+        </div>
+        
+        <div class="max-w-7xl mx-auto px-6 relative z-10">
+            <div class="flex items-center gap-3 mb-6">
+                <span class="px-2.5 py-0.5 bg-bltRed text-white rounded-md text-[10px] font-bold uppercase tracking-wider">Secure Coding</span>
+                <span class="px-2.5 py-0.5 bg-white/10 backdrop-blur-md text-white border border-white/20 rounded-md text-[10px] font-semibold uppercase tracking-wider">Intermediate</span>
+            </div>
+            <h1 class="font-display text-3xl md:text-5xl font-bold tracking-tight mb-8 leading-tight max-w-4xl">Secure Coding Practices</h1>
+            <div class="flex flex-wrap items-center gap-6 text-xs md:text-sm text-gray-400">
+                <div class="flex items-center gap-2">
+                    <i class="ph-bold ph-user-circle text-lg text-bltRed"></i> 
+                    <strong class="text-white">Dr. Sarah Chen</strong>
+                </div>
+                <div class="flex items-center gap-2">
+                    <i class="ph-bold ph-clock text-lg text-bltRed"></i> 
+                    <strong class="text-white">6 weeks</strong>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <main class="max-w-7xl mx-auto px-6 w-full grid grid-cols-1 lg:grid-cols-12 gap-8 -mt-12 relative z-20 pb-24">
+        
+        <div class="lg:col-span-8 space-y-8">
+            <div class="bg-white dark:bg-gray-900 p-8 md:p-12 rounded-[2.5rem] shadow-soft border border-gray-100 dark:border-gray-800 transition-colors">
+                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-8 flex items-center gap-3">
+                    <i class="ph-fill ph-info text-bltRed"></i> Course Overview
+                </h2>
+                <div class="prose prose-sm md:prose-base max-w-none prose-headings:text-gray-900 dark:prose-headings:text-white prose-headings:font-bold prose-h2:text-xl prose-a:text-bltRed prose-p:text-gray-600 dark:prose-p:text-gray-400 dark:prose-invert mb-8">
+                   <h2 id="course-overview">Course Overview</h2>
+
+<p>Secure Coding Practices teaches developers how to write secure applications from the start. Learn to identify and fix vulnerabilities before they reach production.</p>
+
+<h3 id="what-youll-learn">What You’ll Learn</h3>
+
+<ul>
+  <li>Apply secure development lifecycle principles</li>
+  <li>Implement proper input validation</li>
+  <li>Use cryptography correctly</li>
+  <li>Build secure authentication systems</li>
+  <li>Conduct security-focused code reviews</li>
+</ul>
+
+<h3 id="languages-covered">Languages Covered</h3>
+
+<ul>
+  <li>Python</li>
+  <li>Java</li>
+  <li>JavaScript/Node.js</li>
+  <li>C/C++</li>
+</ul>
+
+<p><a href="/enroll/?course=secure-coding-practices">Enroll now</a> to level up your secure coding skills!</p>
+
+                </div>
+
+                
+                <div class="mt-12 pt-10 border-t border-gray-50 dark:border-gray-800">
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-10 flex items-center gap-3">
+                        <i class="ph-fill ph-map-trifold text-bltRed"></i> Detailed Syllabus
+                    </h2>
+                    <div class="space-y-4">
+                        
+                        <div class="group border border-gray-100 dark:border-gray-700 rounded-3xl p-6 hover:border-red-100 dark:hover:border-red-900/40 transition-all bg-gray-50/30 dark:bg-gray-800/20">
+                            <div class="flex items-start gap-6">
+                                <div class="w-12 h-12 rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-700 text-gray-900 dark:text-white flex items-center justify-center font-bold text-lg shadow-sm group-hover:bg-bltRed group-hover:text-white transition-all">
+                                    01
+                                </div>
+                                <div class="flex-1">
+                                    <h3 class="font-bold text-gray-900 dark:text-white text-lg mb-2">Secure Development Lifecycle</h3>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 leading-relaxed">Integrating security into development</p>
+                                    
+                                    <ul class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-xs text-gray-600 dark:text-gray-400">
+                                        
+                                        <li class="flex items-center gap-2">
+                                            <i class="ph-bold ph-check text-bltRed"></i> Threat Modeling
+                                        </li>
+                                        
+                                        <li class="flex items-center gap-2">
+                                            <i class="ph-bold ph-check text-bltRed"></i> Security Requirements
+                                        </li>
+                                        
+                                        <li class="flex items-center gap-2">
+                                            <i class="ph-bold ph-check text-bltRed"></i> Secure Design Principles
+                                        </li>
+                                        
+                                        <li class="flex items-center gap-2">
+                                            <i class="ph-bold ph-check text-bltRed"></i> Code Review Practices
+                                        </li>
+                                        
+                                    </ul>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="group border border-gray-100 dark:border-gray-700 rounded-3xl p-6 hover:border-red-100 dark:hover:border-red-900/40 transition-all bg-gray-50/30 dark:bg-gray-800/20">
+                            <div class="flex items-start gap-6">
+                                <div class="w-12 h-12 rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-700 text-gray-900 dark:text-white flex items-center justify-center font-bold text-lg shadow-sm group-hover:bg-bltRed group-hover:text-white transition-all">
+                                    02
+                                </div>
+                                <div class="flex-1">
+                                    <h3 class="font-bold text-gray-900 dark:text-white text-lg mb-2">Input Validation and Sanitization</h3>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 leading-relaxed">Preventing injection attacks</p>
+                                    
+                                    <ul class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-xs text-gray-600 dark:text-gray-400">
+                                        
+                                        <li class="flex items-center gap-2">
+                                            <i class="ph-bold ph-check text-bltRed"></i> Input Validation Techniques
+                                        </li>
+                                        
+                                        <li class="flex items-center gap-2">
+                                            <i class="ph-bold ph-check text-bltRed"></i> Output Encoding
+                                        </li>
+                                        
+                                        <li class="flex items-center gap-2">
+                                            <i class="ph-bold ph-check text-bltRed"></i> Parameterized Queries
+                                        </li>
+                                        
+                                        <li class="flex items-center gap-2">
+                                            <i class="ph-bold ph-check text-bltRed"></i> Template Security
+                                        </li>
+                                        
+                                    </ul>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="group border border-gray-100 dark:border-gray-700 rounded-3xl p-6 hover:border-red-100 dark:hover:border-red-900/40 transition-all bg-gray-50/30 dark:bg-gray-800/20">
+                            <div class="flex items-start gap-6">
+                                <div class="w-12 h-12 rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-700 text-gray-900 dark:text-white flex items-center justify-center font-bold text-lg shadow-sm group-hover:bg-bltRed group-hover:text-white transition-all">
+                                    03
+                                </div>
+                                <div class="flex-1">
+                                    <h3 class="font-bold text-gray-900 dark:text-white text-lg mb-2">Authentication and Authorization</h3>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 leading-relaxed">Secure access control</p>
+                                    
+                                    <ul class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-xs text-gray-600 dark:text-gray-400">
+                                        
+                                        <li class="flex items-center gap-2">
+                                            <i class="ph-bold ph-check text-bltRed"></i> Password Storage
+                                        </li>
+                                        
+                                        <li class="flex items-center gap-2">
+                                            <i class="ph-bold ph-check text-bltRed"></i> Session Management
+                                        </li>
+                                        
+                                        <li class="flex items-center gap-2">
+                                            <i class="ph-bold ph-check text-bltRed"></i> OAuth and JWT
+                                        </li>
+                                        
+                                        <li class="flex items-center gap-2">
+                                            <i class="ph-bold ph-check text-bltRed"></i> RBAC Implementation
+                                        </li>
+                                        
+                                    </ul>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="group border border-gray-100 dark:border-gray-700 rounded-3xl p-6 hover:border-red-100 dark:hover:border-red-900/40 transition-all bg-gray-50/30 dark:bg-gray-800/20">
+                            <div class="flex items-start gap-6">
+                                <div class="w-12 h-12 rounded-2xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-700 text-gray-900 dark:text-white flex items-center justify-center font-bold text-lg shadow-sm group-hover:bg-bltRed group-hover:text-white transition-all">
+                                    04
+                                </div>
+                                <div class="flex-1">
+                                    <h3 class="font-bold text-gray-900 dark:text-white text-lg mb-2">Cryptography in Code</h3>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4 leading-relaxed">Using encryption properly</p>
+                                    
+                                    <ul class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-xs text-gray-600 dark:text-gray-400">
+                                        
+                                        <li class="flex items-center gap-2">
+                                            <i class="ph-bold ph-check text-bltRed"></i> Crypto Library Usage
+                                        </li>
+                                        
+                                        <li class="flex items-center gap-2">
+                                            <i class="ph-bold ph-check text-bltRed"></i> Key Management
+                                        </li>
+                                        
+                                        <li class="flex items-center gap-2">
+                                            <i class="ph-bold ph-check text-bltRed"></i> Random Number Generation
+                                        </li>
+                                        
+                                        <li class="flex items-center gap-2">
+                                            <i class="ph-bold ph-check text-bltRed"></i> Common Crypto Mistakes
+                                        </li>
+                                        
+                                    </ul>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+
+        <aside class="lg:col-span-4 space-y-6">
+
+            
+            
+            <div class="bg-white dark:bg-gray-900 p-8 rounded-[2.5rem] shadow-soft border border-gray-100 dark:border-gray-800">
+                <h3 class="text-base font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+                    <i class="ph-bold ph-chalkboard-teacher text-bltRed"></i> Instructor
+                </h3>
+                <div class="flex items-center gap-4">
+                    <div class="w-14 h-14 rounded-full border-2 border-gray-100 dark:border-gray-800 overflow-hidden shrink-0 bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                        
+                        <i class="ph-bold ph-user text-2xl text-gray-400"></i>
+                        
+                    </div>
+                    <div>
+                        
+                        <a href="/instructors/sarah-chen/" class="font-bold text-gray-900 dark:text-white hover:text-bltRed transition-colors">Dr. Sarah Chen</a>
+                        
+                        
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Cryptography & Web Security Expert</p>
+                        
+                    </div>
+                </div>
+            </div>
+            
+
+            <div class="bg-white dark:bg-gray-900 p-8 rounded-[2.5rem] shadow-soft border border-gray-100 dark:border-gray-800 relative overflow-hidden group">
+                <div class="absolute top-0 left-0 w-full h-1.5 bg-bltRed"></div>
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-6">Enroll Now</h3>
+                
+                <div class="mb-8 space-y-4">
+                    <div class="bg-gray-50 dark:bg-gray-800/50 p-5 rounded-2xl border border-gray-100 dark:border-gray-700">
+                        <h4 class="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-2">Prerequisites</h4>
+                        <p class="text-xs text-gray-700 dark:text-gray-300 leading-relaxed font-medium">
+                            Programming experience in at least one language
+                        </p>
+                    </div>
+                </div>
+
+                <a href="https://github.com/OWASP-BLT/BLT-University/issues/new?template=enrollment.yml"
+                   class="w-full flex items-center justify-center gap-3 px-6 py-4 bg-bltRed text-white text-sm font-bold rounded-2xl shadow-lg shadow-red-100 dark:shadow-none hover:bg-bltRedHover hover:-translate-y-1 transition-all">
+                    <i class="ph-bold ph-github-logo text-xl"></i>
+                    Enroll via GitHub
+                </a>
+                <a href="https://gitlab.com/owasp-blt/blt-university/-/issues/new"
+                   class="mt-3 w-full flex items-center justify-center gap-3 px-6 py-4 bg-gray-900 text-white text-sm font-bold rounded-2xl shadow-lg dark:shadow-none hover:bg-gray-800 hover:-translate-y-1 transition-all">
+                    <i class="ph-bold ph-gitlab-logo text-xl"></i>
+                    Enroll via GitLab
+                </a>
+
+                <p class="mt-4 text-[10px] text-center text-gray-400 dark:text-gray-500 font-bold uppercase tracking-widest">
+                    <i class="ph-bold ph-broadcast text-bltRed"></i> Enrollment is Open
+                </p>
+            </div>
+
+            
+            <div class="bg-white dark:bg-gray-900 p-8 rounded-[2.5rem] shadow-soft border border-gray-100 dark:border-gray-800">
+                <h3 class="text-base font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+                    <i class="ph-bold ph-folder-open text-bltRed"></i> Course Resources
+                </h3>
+                <ul class="space-y-3">
+                    
+                    <li>
+                        <a href="https://www.youtube.com/watch?v=R-4_DbV1Su4" class="flex items-center gap-3 p-3 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-all group">
+                            <div class="w-8 h-8 rounded-lg bg-gray-50 dark:bg-gray-800 flex items-center justify-center group-hover:bg-white dark:group-hover:bg-gray-700 transition-colors">
+                                <i class="ph-bold ph-file-text text-lg text-gray-400 dark:text-gray-500 group-hover:text-bltRed"></i>
+                            </div>
+                            <span class="text-xs font-bold text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white">Secure Coding Fundamentals</span>
+                        </a>
+                    </li>
+                    
+                    <li>
+                        <a href="https://owasp.org/www-project-secure-coding-practices-quick-reference-guide/" class="flex items-center gap-3 p-3 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-all group">
+                            <div class="w-8 h-8 rounded-lg bg-gray-50 dark:bg-gray-800 flex items-center justify-center group-hover:bg-white dark:group-hover:bg-gray-700 transition-colors">
+                                <i class="ph-bold ph-file-text text-lg text-gray-400 dark:text-gray-500 group-hover:text-bltRed"></i>
+                            </div>
+                            <span class="text-xs font-bold text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white">OWASP Secure Coding Practices</span>
+                        </a>
+                    </li>
+                    
+                </ul>
+            </div>
+            
+
+            <div class="bg-gray-900 dark:bg-gray-800/80 p-8 rounded-[2.5rem] text-white relative overflow-hidden group border border-transparent dark:border-gray-700">
+                <div class="absolute -right-4 -bottom-4 opacity-10 group-hover:scale-110 transition-transform pointer-events-none">
+                    <i class="ph-fill ph-seal-check text-8xl"></i>
+                </div>
+                <h4 class="font-bold text-sm uppercase tracking-widest text-bltRed mb-2">Verification</h4>
+                <h3 class="text-lg font-bold mb-4 relative z-10 leading-tight">Industry Verified Certificate</h3>
+                <p class="text-gray-400 text-xs leading-relaxed mb-6 relative z-10">
+                    Earn a completion certificate verified through Git commit signatures on our public chain.
+                </p>
+                <a href="/about/" class="text-xs font-bold text-white border-b border-white/20 hover:border-bltRed transition-colors">Learn about verification →</a>
+            </div>
+        </aside>
+    </main>
+</article>
+
+    
+    <footer class="bg-slate-900 border-t border-slate-800 mt-auto">
+    <div class="max-w-7xl mx-auto px-6 pt-10 md:pt-16 pb-12 grid grid-cols-1 md:grid-cols-4 gap-12">
+        <div class="col-span-1">
+            <a href="/"
+             class="flex items-center gap-3 font-display font-bold text-xl text-white mb-6">
+                <img src="/assets/images/blt-logo.png" alt="Logo" class="w-8 h-8 object-contain">
+                BLT University
+             </a>
+            <p class="text-sm leading-relaxed text-slate-400 mb-6">
+                A cybersecurity-focused online university powered by GitHub Pages and GitLab Pages. Learn, teach, and collaborate on ...
+            </p>
+            <div
+                 class="inline-flex items-center px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-xs font-bold uppercase tracking-widest text-slate-300 shadow-lg">
+                <span class="w-1 h-1 rounded-full bg-bltRed mr-1.5 animate-pulse"></span>
+                ESTABLISHED 2026
+            </div>
+        </div>
+
+        <div>
+            <h4 class="text-white font-bold text-xs uppercase tracking-widest mb-6">Quick Links</h4>
+            <ul class="space-y-4 text-sm font-medium text-slate-400">
+                <li><a href="/courses/"
+                        class="hover:text-white hover:translate-x-1 transition-all inline-block">Browse Courses</a></li>
+                <li><a href="/enroll/"
+                        class="hover:text-white hover:translate-x-1 transition-all inline-block">Enroll Now</a></li>
+                <li><a href="/instructors/"
+                        class="hover:text-white hover:translate-x-1 transition-all inline-block">Our Instructors</a>
+                </li>
+            </ul>
+        </div>
+
+        <div>
+            <h4 class="text-white font-bold text-xs uppercase tracking-widest mb-6">Get Involved</h4>
+            <ul class="space-y-4 text-sm font-medium text-slate-400">
+                <li><a href="https://github.com/OWASP-BLT/BLT-University" target="_blank"
+                        class="hover:text-white hover:translate-x-1 transition-all inline-block">GitHub Repository</a>
+                </li>
+                <li><a href="https://gitlab.com/owasp-blt/blt-university" target="_blank"
+                        class="hover:text-white hover:translate-x-1 transition-all inline-flex items-center gap-2">
+                        <i class="ph-bold ph-gitlab-logo"></i> GitLab Repository</a>
+                </li>
+                <li><a href="/contributing/"
+                        class="hover:text-white hover:translate-x-1 transition-all inline-block">Become an
+                        Instructor</a></li>
+            </ul>
+        </div>
+
+        <div>
+            <h4 class="text-white font-bold text-xs uppercase tracking-widest mb-6">License</h4>
+            <p class="text-sm font-medium text-slate-400 leading-relaxed mb-4">
+                This project is open-source and licensed under <a href="https://www.gnu.org/licenses/agpl-3.0.en.html"
+                    target="_blank" class="text-bltRed font-bold hover:text-white transition-colors">AGPL-3.0</a>.
+            </p>
+            <div class="flex flex-wrap gap-4">
+                <a href="https://github.com/OWASP-BLT" target="_blank"
+                   aria-label="OWASP Github" title="OWASP Github"
+                    class="text-slate-400 hover:text-white transition-colors">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path
+                            d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+                    </svg>
+                </a>
+                <a href="https://gitlab.com/owasp-blt" target="_blank"
+                   aria-label="OWASP BLT on GitLab" title="OWASP BLT on GitLab"
+                    class="text-slate-400 hover:text-white transition-colors">
+                    <i class="ph-bold ph-gitlab-logo text-xl"></i>
+                </a>
+                <a href="https://owasp.org/slack/invite" target="_blank" rel="noopener noreferrer"
+   aria-label="OWASP Slack" title="OWASP Slack"
+   class="text-slate-400 hover:text-white transition-colors">
+   <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+       <path d="M5.1 15.9c0 1.4-1.1 2.5-2.5 2.5S0 17.3 0 15.9s1.1-2.5 2.5-2.5h2.6v2.5zm1.3 0c0-1.4 1.1-2.5 2.5-2.5s2.5 1.1 2.5 2.5v6.6c0 1.4-1.1 2.5-2.5 2.5s-2.5-1.1-2.5-2.5v-6.6zm2.5-10.8c-1.4 0-2.5-1.1-2.5-2.5S7.5 0 8.9 0s2.5 1.1 2.5 2.5v2.6H8.9zm0 1.3c1.4 0 2.5 1.1 2.5 2.5s-1.1 2.5-2.5 2.5H2.3C.9 11.4-.2 10.3-.2 8.9s1.1-2.5 2.5-2.5h6.6zm10.8 2.5c0-1.4 1.1-2.5 2.5-2.5s2.5 1.1 2.5 2.5-1.1 2.5-2.5 2.5h-2.6V8.9zm-1.3 0c0 1.4-1.1 2.5-2.5 2.5s-2.5-1.1-2.5-2.5V2.3C13.4.9 14.5-.2 15.9-.2s2.5 1.1 2.5 2.5v6.6zm-2.5 10.8c1.4 0 2.5 1.1 2.5 2.5s-1.1 2.5-2.5 2.5-2.5-1.1-2.5-2.5v-2.6h2.5zm0-1.3c-1.4 0-2.5-1.1-2.5-2.5s1.1-2.5 2.5-2.5h6.6c1.4 0 2.5 1.1 2.5 2.5s-1.1 2.5-2.5 2.5h-6.6z"/>
+   </svg>
+</a>
+                <!-- Facebook -->
+<a href="https://www.facebook.com/OWASPFoundation" target="_blank" rel="noopener noreferrer"
+   aria-label="OWASP Facebook" title="OWASP Facebook"
+   class="text-slate-400 hover:text-white transition-colors">
+   <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+       <path d="M22 12a10 10 0 10-11.5 9.9v-7H7v-3h3.5V9.5c0-3.5 2-5.5 5-5.5 1.4 0 2.8.2 2.8.2v3h-1.6c-1.6 0-2.1 1-2.1 2v2.4H18l-.5 3h-2.8v7A10 10 0 0022 12z"/>
+   </svg>
+</a>
+
+<!-- Twitter -->
+<a href="https://twitter.com/owasp" target="_blank" rel="noopener noreferrer"
+   aria-label="OWASP Twitter" title="OWASP Twitter"
+   class="text-slate-400 hover:text-white transition-colors">
+   <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+       <path d="M22.46 6c-.77.35-1.6.58-2.46.69a4.3 4.3 0 001.88-2.37 8.59 8.59 0 01-2.72 1.04 4.28 4.28 0 00-7.3 3.9A12.14 12.14 0 013 4.8a4.28 4.28 0 001.32 5.72A4.2 4.2 0 012.8 10v.05a4.28 4.28 0 003.44 4.2 4.3 4.3 0 01-1.93.07 4.29 4.29 0 004 3 8.6 8.6 0 01-5.3 1.83A8.77 8.77 0 012 19.54 12.13 12.13 0 008.56 21c7.87 0 12.17-6.52 12.17-12.17 0-.18 0-.35-.01-.53A8.7 8.7 0 0024 5.1a8.5 8.5 0 01-2.54.7z"/>
+   </svg>
+</a>
+
+<!-- LinkedIn -->
+<a href="https://www.linkedin.com/company/owasp" target="_blank" rel="noopener noreferrer"
+   aria-label="OWASP LinkedIn" title="OWASP LinkedIn"
+   class="text-slate-400 hover:text-white transition-colors">
+   <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+       <path d="M20.45 20.45h-3.55v-5.4c0-1.3-.03-2.97-1.8-2.97-1.8 0-2.07 1.4-2.07 2.85v5.52H9.48V9h3.4v1.56h.05c.47-.9 1.6-1.85 3.3-1.85 3.53 0 4.18 2.32 4.18 5.34v6.4zM5.34 7.43a2.06 2.06 0 110-4.12 2.06 2.06 0 010 4.12zM7.12 20.45H3.56V9h3.56v11.45z"/>
+   </svg>
+</a>
+
+<!-- YouTube -->
+<a href="https://www.youtube.com/user/OWASPGLOBAL" target="_blank" rel="noopener noreferrer"
+   aria-label="OWASP YouTube" title="OWASP YouTube"
+   class="text-slate-400 hover:text-white transition-colors">
+   <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+       <path d="M23.5 6.2a2.9 2.9 0 00-2-2C19.7 3.7 12 3.7 12 3.7s-7.7 0-9.5.5a2.9 2.9 0 00-2 2A30 30 0 000 12a30 30 0 00.5 5.8 2.9 2.9 0 002 2c1.8.5 9.5.5 9.5.5s7.7 0 9.5-.5a2.9 2.9 0 002-2A30 30 0 0024 12a30 30 0 00-.5-5.8zM9.8 15.5v-7l6.2 3.5-6.2 3.5z"/>
+   </svg>
+</a>
+
+<!-- Mastodon / Infosec -->
+<a href="https://infosec.exchange/@owasp" target="_blank" rel="noopener noreferrer"
+   aria-label="OWASP Mastodon" title="OWASP Mastodon"
+   class="text-slate-400 hover:text-white transition-colors">
+   <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+       <path d="M12 2C6.48 2 3 5.58 3 10.24c0 3.35 1.78 5.33 4.72 5.33.74 0 1.46-.1 2.13-.29v1.86c0 1.3.8 2.03 2.25 2.03 1.57 0 2.42-.8 2.42-2.2v-2.3c.7.14 1.43.22 2.16.22 2.93 0 4.72-1.98 4.72-5.33C21.4 5.58 17.52 2 12 2zm3.34 9.5h-1.5v-3.2c0-.68-.28-1.02-.83-1.02-.61 0-.91.4-.91 1.18v1.86h-1.5V8.46c0-.78-.3-1.18-.91-1.18-.55 0-.83.34-.83 1.02v3.2h-1.5V8.2c0-1.7 1.04-2.6 2.47-2.6.87 0 1.52.33 1.95.99.45-.66 1.15-.99 2.07-.99 1.38 0 2.42.9 2.42 2.6v3.3z"/>
+   </svg>
+</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="border-t border-slate-800/50"></div>
+
+    <div class="py-8 px-6 bg-slate-900/50">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <p class="text-slate-500 text-xs font-medium">
+                &copy; 2026 BLT University. Built with
+                pride by the 
+                <a href="https://owasp.org/slack/invite" target="_blank" rel="noopener noreferrer"
+               class="text-bltRed font-bold hover:underline"
+               aria-label="Join OWASP Slack Community"
+               title="Join OWASP Slack Community">
+               OWASP Community
+            </a>.
+            </p>
+            <div class="flex items-center gap-6">
+                <p class="text-slate-500 text-xs uppercase tracking-widest font-bold">
+                    Powered by <span class="text-white">GitHub Pages</span> and <span class="text-white">GitLab Pages</span>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+    
+    <script src="/assets/js/main.js?v=1780711776"></script>
+</body>
+</html>
