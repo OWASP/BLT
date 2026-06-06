@@ -280,6 +280,85 @@ ADMIN_TABLE_SCHEMAS = {
         ],
     },
 }
+ADMIN_CASCADE_RELATIONSHIPS = [
+    {
+        "parent_table": "workspaces",
+        "parent_column": "id",
+        "child_table": "channels",
+        "child_column": "workspace_id",
+        "action": "delete",
+    },
+    {
+        "parent_table": "workspaces",
+        "parent_column": "id",
+        "child_table": "repositories",
+        "child_column": "workspace_id",
+        "action": "delete",
+    },
+    {
+        "parent_table": "workspaces",
+        "parent_column": "id",
+        "child_table": "github_organizations",
+        "child_column": "workspace_id",
+        "action": "delete",
+    },
+    {
+        "parent_table": "workspaces",
+        "parent_column": "id",
+        "child_table": "events",
+        "child_column": "workspace_id",
+        "action": "delete",
+    },
+    {
+        "parent_table": "workspaces",
+        "parent_column": "id",
+        "child_table": "join_messages",
+        "child_column": "workspace_id",
+        "action": "delete",
+    },
+    {
+        "parent_table": "workspaces",
+        "parent_column": "id",
+        "child_table": "user_workspaces",
+        "child_column": "workspace_id",
+        "action": "delete",
+    },
+    {
+        "parent_table": "workspaces",
+        "parent_column": "team_id",
+        "child_table": "connected_workspaces",
+        "child_column": "team_id",
+        "action": "delete",
+    },
+    {
+        "parent_table": "workspaces",
+        "parent_column": "team_id",
+        "child_table": "workspace_installations",
+        "child_column": "team_id",
+        "action": "delete",
+    },
+    {
+        "parent_table": "users",
+        "parent_column": "id",
+        "child_table": "sessions",
+        "child_column": "user_id",
+        "action": "delete",
+    },
+    {
+        "parent_table": "users",
+        "parent_column": "id",
+        "child_table": "user_workspaces",
+        "child_column": "user_id",
+        "action": "delete",
+    },
+    {
+        "parent_table": "join_messages",
+        "parent_column": "id",
+        "child_table": "channels",
+        "child_column": "join_message_id",
+        "action": "null",
+    },
+]
 
 
 def _to_js_options(value: Dict[str, Any]) -> Any:
@@ -3707,6 +3786,94 @@ def admin_row_identity(table_name: str, schema: Dict[str, Any], pk_value: str) -
     return "{0}.{1} {2}".format(table_name, schema["pk"], pk_value)
 
 
+def admin_row_pk_value(table_name: str, row: Dict[str, Any]) -> str:
+    schema = admin_table_schema(table_name)
+    value = row.get(schema["pk"])
+    return str(value if value is not None else "")
+
+
+def admin_row_summary(table_name: str, row: Dict[str, Any]) -> str:
+    schema = admin_table_schema(table_name)
+    pk_value = admin_row_pk_value(table_name, row)
+    title = admin_row_title(row, schema)
+    detail = admin_row_detail(row, schema)
+    identity = admin_row_identity(table_name, schema, pk_value)
+    if detail:
+        return "{0} - {1} - {2}".format(identity, title, detail)
+    return "{0} - {1}".format(identity, title)
+
+
+def admin_cascade_relationships_for(table_name: str) -> List[Dict[str, str]]:
+    return [
+        relationship
+        for relationship in ADMIN_CASCADE_RELATIONSHIPS
+        if relationship["parent_table"] == table_name
+    ]
+
+
+async def db_admin_related_tree(
+    env: Any,
+    table_name: str,
+    row: Dict[str, Any],
+    visited: Optional[set] = None,
+) -> List[Dict[str, Any]]:
+    visited = visited or set()
+    parent_key = (table_name, admin_row_pk_value(table_name, row))
+    if parent_key in visited:
+        return []
+    visited.add(parent_key)
+    related = []
+    for relationship in admin_cascade_relationships_for(table_name):
+        parent_value = row.get(relationship["parent_column"])
+        if parent_value in (None, ""):
+            continue
+        child_table = relationship["child_table"]
+        child_schema = admin_table_schema(child_table)
+        rows = result_rows(
+            await d1_run(
+                env,
+                "SELECT * FROM {0} WHERE {1} = ? ORDER BY {2} DESC LIMIT 100".format(
+                    child_table,
+                    relationship["child_column"],
+                    child_schema["pk"],
+                ),
+                [parent_value],
+            )
+        )
+        children = []
+        if relationship["action"] == "delete":
+            for child_row in rows:
+                children.append(
+                    {
+                        "table": child_table,
+                        "row": child_row,
+                        "children": await db_admin_related_tree(
+                            env, child_table, child_row, visited
+                        ),
+                    }
+                )
+        else:
+            children = [{"table": child_table, "row": child_row, "children": []} for child_row in rows]
+        related.append(
+            {
+                "relationship": relationship,
+                "rows": children,
+                "count": len(rows),
+            }
+        )
+    visited.discard(parent_key)
+    return related
+
+
+def admin_cascade_count(related_tree: List[Dict[str, Any]]) -> int:
+    total = 0
+    for group in related_tree:
+        total += int(group.get("count") or 0)
+        for child in group.get("rows") or []:
+            total += admin_cascade_count(child.get("children") or [])
+    return total
+
+
 async def db_admin_table_counts(env: Any) -> Dict[str, Any]:
     counts: Dict[str, Any] = {}
     for table_name in ADMIN_TABLE_SCHEMAS:
@@ -3758,12 +3925,26 @@ async def db_admin_get_row(
 
 
 async def db_admin_context(
-    env: Any, selected_table: str = "", edit_pk: str = "", add_row: bool = False
+    env: Any,
+    selected_table: str = "",
+    edit_pk: str = "",
+    add_row: bool = False,
+    confirm_delete_pk: str = "",
 ) -> Dict[str, Any]:
     table_name = selected_table if selected_table in ADMIN_TABLE_SCHEMAS else "workspaces"
     counts = await db_admin_table_counts(env)
     rows = await db_admin_rows(env, table_name)
     edit_row = await db_admin_get_row(env, table_name, edit_pk) if edit_pk else None
+    confirm_delete_row = (
+        await db_admin_get_row(env, table_name, confirm_delete_pk)
+        if confirm_delete_pk
+        else None
+    )
+    confirm_related = (
+        await db_admin_related_tree(env, table_name, confirm_delete_row)
+        if confirm_delete_row
+        else []
+    )
     return {
         "tables": list(ADMIN_TABLE_SCHEMAS.keys()),
         "counts": counts,
@@ -3773,6 +3954,9 @@ async def db_admin_context(
         "edit_row": edit_row,
         "edit_pk": edit_pk,
         "add_row": bool(add_row),
+        "confirm_delete_pk": confirm_delete_pk,
+        "confirm_delete_row": confirm_delete_row,
+        "confirm_related": confirm_related,
     }
 
 
@@ -3831,6 +4015,58 @@ async def db_admin_delete_row(env: Any, table_name: str, pk_value: str) -> None:
     )
 
 
+async def db_admin_delete_row_cascade(
+    env: Any,
+    table_name: str,
+    pk_value: str,
+    visited: Optional[set] = None,
+) -> None:
+    table_name = require_admin_table_name(table_name)
+    schema = admin_table_schema(table_name)
+    row = await db_admin_get_row(env, table_name, pk_value)
+    if not row:
+        return
+    visited = visited or set()
+    row_key = (table_name, str(pk_value))
+    if row_key in visited:
+        return
+    visited.add(row_key)
+    for relationship in admin_cascade_relationships_for(table_name):
+        parent_value = row.get(relationship["parent_column"])
+        if parent_value in (None, ""):
+            continue
+        child_table = relationship["child_table"]
+        child_schema = admin_table_schema(child_table)
+        if relationship["action"] == "null":
+            await d1_run(
+                env,
+                "UPDATE {0} SET {1} = NULL WHERE {1} = ?".format(
+                    child_table, relationship["child_column"]
+                ),
+                [parent_value],
+            )
+            continue
+        child_rows = result_rows(
+            await d1_run(
+                env,
+                "SELECT * FROM {0} WHERE {1} = ? ORDER BY {2} DESC".format(
+                    child_table,
+                    relationship["child_column"],
+                    child_schema["pk"],
+                ),
+                [parent_value],
+            )
+        )
+        for child_row in child_rows:
+            child_pk = child_row.get(child_schema["pk"])
+            if child_pk is not None:
+                await db_admin_delete_row_cascade(
+                    env, child_table, str(child_pk), visited
+                )
+    await db_admin_delete_row(env, table_name, pk_value)
+    visited.discard(row_key)
+
+
 def render_admin_db_field(
     column_name: str,
     column_type: str,
@@ -3855,6 +4091,96 @@ def render_admin_db_field(
         '<div><label class="block text-xs font-semibold mb-1">{0}</label>'
         '<input name="field__{1}" type="{2}" value="{3}" class="w-full border border-gray-300 rounded px-2 py-1 font-mono text-xs"{4} /></div>'
     ).format(label, html_escape(column_name), input_type, html_escape(text), required_attr)
+
+
+def render_admin_cascade_tree(groups: List[Dict[str, Any]], depth: int = 0) -> str:
+    if not groups:
+        return (
+            '<div class="rounded border border-dashed border-gray-200 p-3 text-sm text-gray-500">'
+            "No related records were found."
+            "</div>"
+        )
+    html_parts = []
+    indent_class = "ml-4" if depth else ""
+    for group in groups:
+        relationship = group["relationship"]
+        action_label = "will be deleted"
+        if relationship["action"] == "null":
+            action_label = "will be detached"
+        rows = group.get("rows") or []
+        html_parts.append(
+            '<div class="{0} rounded border border-gray-200 p-3">'
+            '<div class="mb-2 flex items-center justify-between gap-3">'
+            '<span class="text-sm font-bold">{1}</span>'
+            '<span class="text-xs text-gray-500">{2} {3}</span>'
+            '</div>'.format(
+                indent_class,
+                html_escape(relationship["child_table"]),
+                int(group.get("count") or 0),
+                html_escape(action_label),
+            )
+        )
+        if rows:
+            html_parts.append('<div class="space-y-2">')
+            for child in rows:
+                child_table = child["table"]
+                child_row = child["row"]
+                html_parts.append(
+                    '<div class="rounded bg-gray-50 p-2">'
+                    '<div class="font-mono text-xs text-gray-700">{0}</div>'
+                    '{1}'
+                    '</div>'.format(
+                        html_escape(admin_row_summary(child_table, child_row)),
+                        render_admin_cascade_tree(child.get("children") or [], depth + 1)
+                        if child.get("children")
+                        else "",
+                    )
+                )
+            html_parts.append("</div>")
+        else:
+            html_parts.append('<div class="text-sm text-gray-400">No matching rows.</div>')
+        html_parts.append("</div>")
+    return "\n".join(html_parts)
+
+
+def render_admin_delete_confirm_html(context: Dict[str, Any], admin_url: str) -> str:
+    table_name = context["selected_table"]
+    schema = context["schema"]
+    row = context.get("confirm_delete_row") or {}
+    pk_value = str(context.get("confirm_delete_pk") or admin_row_pk_value(table_name, row))
+    related = context.get("confirm_related") or []
+    related_count = admin_cascade_count(related)
+    return """
+    <div class="min-w-0 border border-red-200 bg-red-50 rounded-lg p-4 space-y-4">
+      <div>
+        <h3 class="font-bold text-red-800">Confirm delete</h3>
+        <p class="mt-1 text-sm text-red-700">Deleting {identity} will also affect {related_count} related records.</p>
+      </div>
+      <div class="rounded bg-white p-3">
+        <div class="text-xs font-bold uppercase tracking-wide text-gray-500">Selected record</div>
+        <div class="mt-1 font-mono text-xs text-gray-800">{summary}</div>
+      </div>
+      <div class="space-y-3">
+        <div class="text-xs font-bold uppercase tracking-wide text-gray-500">Related data</div>
+        {related_tree}
+      </div>
+      <form method="post" action="{admin_url}" class="grid gap-2 sm:grid-cols-2">
+        <input type="hidden" name="action" value="db_delete_confirmed" />
+        <input type="hidden" name="table" value="{table_name}" />
+        <input type="hidden" name="pk" value="{pk_value}" />
+        <button class="w-full px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700" type="submit">Delete selected and related records</button>
+        <a href="{admin_url}?table={table_name}&edit={pk_value}" class="w-full px-4 py-2 border border-gray-300 bg-white text-center text-gray-700 rounded-lg font-semibold hover:border-gray-400">Cancel</a>
+      </form>
+    </div>
+    """.format(
+        admin_url=html_escape(admin_url),
+        table_name=html_escape(table_name),
+        pk_value=html_escape(pk_value),
+        identity=html_escape(admin_row_identity(table_name, schema, pk_value)),
+        summary=html_escape(admin_row_summary(table_name, row)),
+        related_count=related_count,
+        related_tree=render_admin_cascade_tree(related),
+    )
 
 
 def render_database_admin_html(context: Dict[str, Any], admin_url: str) -> str:
@@ -3916,6 +4242,7 @@ def render_database_admin_html(context: Dict[str, Any], admin_url: str) -> str:
     edit_row = context.get("edit_row")
     editing = bool(edit_row)
     adding = bool(context.get("add_row"))
+    confirming_delete = bool(context.get("confirm_delete_row"))
     form_action = "db_update" if editing else "db_create"
     form_title = "Edit {0}".format(selected_table) if editing else "Add {0}".format(selected_table)
     form_fields = []
@@ -3931,6 +4258,9 @@ def render_database_admin_html(context: Dict[str, Any], admin_url: str) -> str:
             html_escape(str((edit_row or {}).get(pk) or context.get("edit_pk") or ""))
         )
     form_panel = (
+        render_admin_delete_confirm_html(context, admin_url)
+        if confirming_delete
+        else (
         """
         <form method="post" action="{admin_url}" class="min-w-0 border border-gray-200 rounded-lg p-4 space-y-3">
           <h3 class="font-bold">{form_title}</h3>
@@ -3950,8 +4280,12 @@ def render_database_admin_html(context: Dict[str, Any], admin_url: str) -> str:
             form_fields="\n".join(form_fields),
             button_text="Save Changes" if editing else "Create Row",
             delete_button=(
-                '<button class="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:border-red-300 hover:text-red-700" '
-                'type="submit" onclick="this.form.elements[\'action\'].value=\'db_delete\'; return confirm(\'Delete this row?\')">Delete Row</button>'
+                '<a class="block w-full px-4 py-2 border border-gray-300 text-center text-gray-700 rounded-lg font-semibold hover:border-red-300 hover:text-red-700" '
+                'href="{0}?table={1}&confirm_delete={2}">Delete Row</a>'.format(
+                    html_escape(admin_url),
+                    html_escape(selected_table),
+                    html_escape(str((edit_row or {}).get(pk) or context.get("edit_pk") or "")),
+                )
                 if editing
                 else ""
             ),
@@ -3961,6 +4295,7 @@ def render_database_admin_html(context: Dict[str, Any], admin_url: str) -> str:
             '<div class="min-w-0 border border-dashed border-gray-200 rounded-lg p-6 text-sm text-gray-500">'
             "Select a row to edit it, or use Add row to create a new record."
             "</div>"
+        )
         )
     )
 
@@ -4056,6 +4391,7 @@ async def handle_admin_get(request: Any, env: Any) -> Any:
     selected_table = params.get("table", ["workspaces"])[0]
     edit_pk = params.get("edit", [""])[0]
     add_db_row = params.get("add", [""])[0] == "1"
+    confirm_delete_pk = params.get("confirm_delete", [""])[0]
     try:
         return html_response(
             render_admin_html(
@@ -4063,7 +4399,7 @@ async def handle_admin_get(request: Any, env: Any) -> Any:
                 [],
                 [],
                 database_context=await db_admin_context(
-                    env, selected_table, edit_pk, add_db_row
+                    env, selected_table, edit_pk, add_db_row, confirm_delete_pk
                 ),
                 message=message,
             )
@@ -4092,7 +4428,16 @@ async def handle_admin_form_action(env: Any, form: Dict[str, str]) -> Any:
         if action == "db_update":
             await db_admin_update_row(env, table_name, form.get("pk", ""), form)
             return admin_redirect(env, "Row updated", table_name)
-        await db_admin_delete_row(env, table_name, form.get("pk", ""))
+        return redirect_response(
+            admin_path(env)
+            + "?"
+            + urlencode({"table": table_name, "confirm_delete": form.get("pk", "")})
+        )
+    if action == "db_delete_confirmed":
+        table_name = form.get("table", "")
+        if table_name not in ADMIN_TABLE_SCHEMAS:
+            return admin_redirect(env, "Unknown database table")
+        await db_admin_delete_row_cascade(env, table_name, form.get("pk", ""))
         return admin_redirect(env, "Row deleted", table_name)
     return redirect_response(admin_path(env) + "?message=No+changes+made")
 

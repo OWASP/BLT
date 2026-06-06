@@ -1313,6 +1313,95 @@ def test_db_admin_create_update_delete_use_whitelisted_table_schema():
     assert captured[2] == ("DELETE FROM managed_servers WHERE id = ?", ["7"])
 
 
+def test_db_admin_related_tree_nests_cascade_records():
+    original_d1_run = worker.d1_run
+    original_schema_ready = worker.SCHEMA_READY
+
+    async def fake_d1_run(env, query, params=None):
+        if "FROM channels WHERE workspace_id" in query:
+            return {
+                "results": [
+                    {
+                        "id": 10,
+                        "workspace_id": 1,
+                        "channel_id": "C123",
+                        "channel_name": "general",
+                    }
+                ]
+            }
+        if "FROM user_workspaces WHERE workspace_id" in query:
+            return {
+                "results": [
+                    {"id": 20, "user_id": 7, "workspace_id": 1, "role": "owner"}
+                ]
+            }
+        if "FROM connected_workspaces WHERE team_id" in query:
+            return {
+                "results": [
+                    {"id": 30, "team_id": "T123", "team_name": "Security Team"}
+                ]
+            }
+        return {"results": []}
+
+    env = _Env()
+    setattr(env, "DB", object())
+    worker.d1_run = fake_d1_run
+    worker.SCHEMA_READY = False
+    try:
+        related = asyncio.run(
+            worker.db_admin_related_tree(
+                env,
+                "workspaces",
+                {"id": 1, "team_id": "T123", "team_name": "Security Team"},
+            )
+        )
+    finally:
+        worker.d1_run = original_d1_run
+        worker.SCHEMA_READY = original_schema_ready
+
+    rendered = worker.render_admin_cascade_tree(related)
+    assert "channels" in rendered
+    assert "channels.id 10" in rendered
+    assert "user_workspaces" in rendered
+    assert "connected_workspaces" in rendered
+    assert worker.admin_cascade_count(related) == 3
+
+
+def test_db_admin_confirmed_delete_cascades_children_before_parent():
+    captured = []
+    original_d1_run = worker.d1_run
+    original_schema_ready = worker.SCHEMA_READY
+
+    async def fake_d1_run(env, query, params=None):
+        captured.append((query, params))
+        if "SELECT * FROM workspaces WHERE id = ?" in query:
+            return {"results": [{"id": 1, "team_id": "T123", "team_name": "Security Team"}]}
+        if "SELECT * FROM channels WHERE id = ?" in query:
+            return {"results": [{"id": 10, "workspace_id": 1, "channel_id": "C123"}]}
+        if "SELECT * FROM channels WHERE workspace_id = ?" in query:
+            return {"results": [{"id": 10, "workspace_id": 1, "channel_id": "C123"}]}
+        if "SELECT * FROM connected_workspaces WHERE id = ?" in query:
+            return {"results": [{"id": 30, "team_id": "T123"}]}
+        if "SELECT * FROM connected_workspaces WHERE team_id = ?" in query:
+            return {"results": [{"id": 30, "team_id": "T123"}]}
+        return {"results": []}
+
+    env = _Env()
+    setattr(env, "DB", object())
+    worker.d1_run = fake_d1_run
+    worker.SCHEMA_READY = False
+    try:
+        asyncio.run(worker.db_admin_delete_row_cascade(env, "workspaces", "1"))
+    finally:
+        worker.d1_run = original_d1_run
+        worker.SCHEMA_READY = original_schema_ready
+
+    delete_queries = [query for query, _ in captured if query.startswith("DELETE FROM")]
+    assert "DELETE FROM channels WHERE id = ?" in delete_queries
+    assert "DELETE FROM connected_workspaces WHERE id = ?" in delete_queries
+    assert delete_queries[-1] == "DELETE FROM workspaces WHERE id = ?"
+
+
 def test_db_admin_rejects_unknown_table_names():
     try:
         worker.require_admin_table_name("managed_servers; DROP TABLE users")
