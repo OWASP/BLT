@@ -219,6 +219,8 @@ def test_render_admin_html_includes_workspaces_and_servers():
     assert "Security Team" in html
     assert "Production" in html
     assert "/private-admin" in html
+    assert "slack_app_token" in html
+    assert "slack_bot_token" in html
 
 
 def test_lettuce_model_tables_are_in_schema_bootstrap():
@@ -341,3 +343,86 @@ def test_db_insert_event_persists_slack_team_id_even_without_workspace():
     assert "slack_team_id" in captured["query"]
     assert captured["params"][0] is None
     assert captured["params"][5] == "T123"
+
+
+def test_db_upsert_workspace_persists_slack_tokens():
+    captured = {}
+    original_d1_run = worker.d1_run
+    original_schema_ready = worker.SCHEMA_READY
+
+    async def fake_d1_run(env, query, params=None):
+        if "INSERT INTO workspaces" in query:
+            captured["query"] = query
+            captured["params"] = params
+            return {"success": True}
+        if "SELECT * FROM workspaces" in query:
+            return {"results": [{"id": 9}]}
+        return {"success": True}
+
+    env = _Env()
+    setattr(env, "DB", object())
+    worker.d1_run = fake_d1_run
+    worker.SCHEMA_READY = False
+    try:
+        workspace_id = asyncio.run(
+            worker.db_upsert_workspace(
+                env,
+                team_id="T123",
+                team_name="Security Team",
+                app_token="xapp-token",
+                bot_token="xoxb-token",
+            )
+        )
+    finally:
+        worker.d1_run = original_d1_run
+        worker.SCHEMA_READY = original_schema_ready
+
+    assert workspace_id == 9
+    assert "app_token" in captured["query"]
+    assert "bot_token" in captured["query"]
+    assert captured["params"][3] == "xapp-token"
+    assert captured["params"][4] == "xoxb-token"
+
+
+def test_direct_bot_message_detection_handles_im_channel():
+    assert worker.is_direct_bot_message({"channel_type": "im", "channel": "C123"})
+    assert worker.is_direct_bot_message({"channel": "D123"})
+    assert not worker.is_direct_bot_message({"channel_type": "channel", "channel": "C123"})
+
+
+def test_handle_event_payload_replies_to_direct_message():
+    sent = {}
+    original_post_message = worker.slack_api_post_message
+    original_json_response = worker.json_response
+
+    async def fake_post_message(channel_id, text, env, team_id=""):
+        sent["channel_id"] = channel_id
+        sent["text"] = text
+        sent["team_id"] = team_id
+
+    worker.slack_api_post_message = fake_post_message
+    worker.json_response = lambda payload, status=200, headers=None: payload
+    try:
+        asyncio.run(
+            worker.handle_event_payload(
+                {
+                    "type": "event_callback",
+                    "team_id": "T123",
+                    "event": {
+                        "type": "message",
+                        "channel_type": "im",
+                        "channel": "D123",
+                        "user": "U123",
+                        "text": "hello",
+                    },
+                },
+                _Env(),
+            )
+        )
+    finally:
+        worker.slack_api_post_message = original_post_message
+        worker.json_response = original_json_response
+
+    assert sent["channel_id"] == "D123"
+    assert sent["team_id"] == "T123"
+    assert "/stats" in sent["text"]

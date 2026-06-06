@@ -776,16 +776,37 @@ async def db_get_workspace_by_channel_id(
     )
 
 
+async def db_get_workspace_bot_token(
+    env: Any, team_id: str = "", channel_id: str = ""
+) -> str:
+    try:
+        getattr(env, "DB")
+    except Exception:
+        return ""
+    await ensure_schema(env)
+    row = None
+    if team_id:
+        row = await db_get_workspace_by_team(env, team_id)
+    if not row and channel_id:
+        row = await db_get_workspace_by_channel_id(env, channel_id)
+    return str(
+        (row or {}).get("bot_token") or (row or {}).get("access_token") or ""
+    )
+
+
 async def db_upsert_workspace(
     env: Any,
     team_id: str,
     team_name: str,
     access_token: str = "",
+    app_token: str = "",
+    bot_token: str = "",
     bot_user_id: str = "",
     app_id: str = "",
     app_name: str = "",
     app_icon_url: str = "",
     icon_url: str = "",
+    invite_link: str = "",
     manifest_yaml: str = "",
     installer_slack_user_id: str = "",
     installer_name: str = "",
@@ -798,16 +819,19 @@ async def db_upsert_workspace(
         env,
         (
             "INSERT INTO workspaces ("
-            "team_id, team_name, access_token, bot_user_id, app_id, app_name, app_icon_url, "
-            "icon_url, manifest_yaml, installer_slack_user_id, installer_name, created_at, updated_at"
-            ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
+            "team_id, team_name, access_token, app_token, bot_token, bot_user_id, app_id, app_name, app_icon_url, "
+            "icon_url, invite_link, manifest_yaml, installer_slack_user_id, installer_name, created_at, updated_at"
+            ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
             "ON CONFLICT(team_id, app_id) DO UPDATE SET "
             "team_name = excluded.team_name, "
             "access_token = CASE WHEN excluded.access_token != '' THEN excluded.access_token ELSE workspaces.access_token END, "
+            "app_token = CASE WHEN excluded.app_token != '' THEN excluded.app_token ELSE workspaces.app_token END, "
+            "bot_token = CASE WHEN excluded.bot_token != '' THEN excluded.bot_token ELSE workspaces.bot_token END, "
             "bot_user_id = CASE WHEN excluded.bot_user_id != '' THEN excluded.bot_user_id ELSE workspaces.bot_user_id END, "
             "app_name = CASE WHEN excluded.app_name != '' THEN excluded.app_name ELSE workspaces.app_name END, "
             "app_icon_url = CASE WHEN excluded.app_icon_url != '' THEN excluded.app_icon_url ELSE workspaces.app_icon_url END, "
             "icon_url = CASE WHEN excluded.icon_url != '' THEN excluded.icon_url ELSE workspaces.icon_url END, "
+            "invite_link = CASE WHEN excluded.invite_link != '' THEN excluded.invite_link ELSE workspaces.invite_link END, "
             "manifest_yaml = CASE WHEN excluded.manifest_yaml != '' THEN excluded.manifest_yaml ELSE workspaces.manifest_yaml END, "
             "installer_slack_user_id = CASE WHEN excluded.installer_slack_user_id != '' THEN excluded.installer_slack_user_id ELSE workspaces.installer_slack_user_id END, "
             "installer_name = CASE WHEN excluded.installer_name != '' THEN excluded.installer_name ELSE workspaces.installer_name END, "
@@ -817,11 +841,14 @@ async def db_upsert_workspace(
             team_id,
             team_name or team_id,
             access_token or "",
+            app_token or "",
+            bot_token or access_token or "",
             bot_user_id or "",
             app_id or "",
             app_name or "",
             app_icon_url or "",
             icon_url or app_icon_url or "",
+            invite_link or "",
             manifest_yaml or "",
             installer_slack_user_id or "",
             installer_name or "",
@@ -2472,8 +2499,32 @@ def interaction_response(payload: Dict[str, Any]) -> Dict[str, Any]:
     return {"text": "Interaction received.", "replace_original": False}
 
 
-async def slack_api_post_message(channel_id: str, text: str, env: Any) -> None:
-    token = env_value(env, "SLACK_BOT_TOKEN")
+def is_direct_bot_message(event: Dict[str, Any]) -> bool:
+    channel_id = str(event.get("channel") or "")
+    channel_type = str(event.get("channel_type") or "")
+    return channel_type == "im" or channel_id.startswith("D")
+
+
+def bot_direct_message_response(text: str = "") -> str:
+    cleaned = str(text or "").strip()
+    if cleaned.lower() in ("help", "hi", "hello", "hey", "/blt"):
+        return help_response()["text"]
+    if cleaned:
+        return (
+            "I heard you. I can help with OWASP project discovery and BLT stats. "
+            "Try `/contrib`, `/stats`, `/discover security`, `/gsoc25`, or `/installed_apps`."
+        )
+    return help_response()["text"]
+
+
+async def slack_api_post_message(
+    channel_id: str, text: str, env: Any, team_id: str = ""
+) -> None:
+    token = await db_get_workspace_bot_token(
+        env, team_id=team_id, channel_id=channel_id
+    )
+    if not token:
+        token = env_value(env, "SLACK_BOT_TOKEN")
     if not token:
         return
     await fetch_json(
@@ -2492,6 +2543,7 @@ async def handle_event_payload(payload: Dict[str, Any], env: Any) -> Any:
         return json_response({"challenge": payload.get("challenge", "")})
 
     event = payload.get("event") or {}
+    team_id = payload_team_id(payload)
     if event.get("type") == "app_mention":
         channel_id = event.get("channel")
         if channel_id:
@@ -2499,17 +2551,18 @@ async def handle_event_payload(payload: Dict[str, Any], env: Any) -> Any:
                 channel_id,
                 "Try /contributors, /project, /repo, or /ghissue from the slash command menu.",
                 env,
+                team_id=team_id,
             )
     if event.get("type") == "team_join":
-        team_id = payload.get("team_id", "")
         user_id = event.get("user", {}).get("id")
         welcome_message = render_team_join_message(event, team_id)
         if user_id and welcome_message:
-            await slack_api_post_message(user_id, welcome_message, env)
+            await slack_api_post_message(
+                user_id, welcome_message, env, team_id=team_id
+            )
     if event.get("type") == "message":
         if event.get("subtype"):
             return json_response({"ok": True})
-        team_id = payload.get("team_id", "")
         user_id = event.get("user", "")
         channel_id = event.get("channel", "")
         installer_user_id = await get_workspace_installer(env, team_id)
@@ -2518,6 +2571,15 @@ async def handle_event_payload(payload: Dict[str, Any], env: Any) -> Any:
                 channel_id,
                 current_config_message(env, team_id, installer_user_id),
                 env,
+                team_id=team_id,
+            )
+            return json_response({"ok": True})
+        if channel_id and is_direct_bot_message(event):
+            await slack_api_post_message(
+                channel_id,
+                bot_direct_message_response(str(event.get("text") or "")),
+                env,
+                team_id=team_id,
             )
     return json_response({"ok": True})
 
@@ -2646,6 +2708,8 @@ def render_admin_html(
           </div>
           <div><label class="block text-sm font-semibold mb-1">Invite Link</label><input name="invite_link" class="w-full border border-gray-300 rounded-lg px-3 py-2" /></div>
           <div><label class="block text-sm font-semibold mb-1">GitHub Org URL</label><input name="github_org_url" class="w-full border border-gray-300 rounded-lg px-3 py-2" /></div>
+          <div><label class="block text-sm font-semibold mb-1">Slack App Token</label><input name="slack_app_token" type="password" autocomplete="off" placeholder="xapp-..." class="w-full border border-gray-300 rounded-lg px-3 py-2" /></div>
+          <div><label class="block text-sm font-semibold mb-1">Slack Bot Token</label><input name="slack_bot_token" type="password" autocomplete="off" placeholder="xoxb-..." class="w-full border border-gray-300 rounded-lg px-3 py-2" /></div>
           <button class="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700" type="submit"><i class="fas fa-save"></i>Save Workspace</button>
         </form>
       </div>
@@ -2703,14 +2767,24 @@ async def handle_admin_post(request: Any, env: Any) -> Any:
     form = parse_form_encoded(body_text)
     action = form.get("action", "")
     if action == "save_workspace":
+        team_id = form.get("team_id", "").strip()
+        team_name = form.get("team_name", "").strip()
         await upsert_connected_workspace(
             env,
-            form.get("team_id", "").strip(),
-            form.get("team_name", "").strip(),
+            team_id,
+            team_name,
             invite_link=form.get("invite_link", "").strip(),
             github_org_url=form.get("github_org_url", "").strip(),
             channel_count=int(form.get("channel_count") or 0),
             member_count=int(form.get("member_count") or 0),
+        )
+        await db_upsert_workspace(
+            env,
+            team_id=team_id,
+            team_name=team_name,
+            app_token=form.get("slack_app_token", "").strip(),
+            bot_token=form.get("slack_bot_token", "").strip(),
+            invite_link=form.get("invite_link", "").strip(),
         )
         return redirect_response(admin_path(env) + "?message=Workspace+saved")
     if action == "save_server":
@@ -2802,6 +2876,7 @@ async def handle_oauth_callback(request_url: Any, env: Any) -> Any:
         team_id=str(payload.get("team", {}).get("id") or ""),
         team_name=str(team_name),
         access_token=str(payload.get("access_token") or ""),
+        bot_token=str(payload.get("access_token") or ""),
         bot_user_id=str(payload.get("bot_user_id") or ""),
         app_id=str(payload.get("app_id") or ""),
         installer_slack_user_id=str(payload.get("authed_user", {}).get("id") or ""),
