@@ -3872,6 +3872,20 @@ async def handle_request(request: Any, env: Any) -> Any:
             headers={"location": install_url},
         )
 
+    if method == "GET" and normalized_path in ("/slack/events", "/slack/commands"):
+        endpoint_name = (
+            "slack_events"
+            if normalized_path == "/slack/events"
+            else "slack_commands"
+        )
+        return json_response(
+            {
+                "ok": True,
+                "endpoint": endpoint_name,
+                "method": "POST required",
+            }
+        )
+
     if method == "POST" and normalized_path in ("/slack/commands", "/slack/events"):
         body_text = str(await request.text())
 

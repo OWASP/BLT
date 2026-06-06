@@ -96,6 +96,46 @@ def test_manifest_subscribes_to_app_home_opened():
     assert "- app_home_opened" in manifest
 
 
+def test_get_slack_endpoints_return_health_payloads():
+    original_json_response = worker.json_response
+    worker.json_response = lambda payload, status=200: {
+        "payload": payload,
+        "status": status,
+    }
+    try:
+        events_response = asyncio.run(
+            worker.handle_request(
+                _RouteRequest("GET", "https://sammich.owaspblt.org/slack/events/"),
+                _Env(),
+            )
+        )
+        commands_response = asyncio.run(
+            worker.handle_request(
+                _RouteRequest("GET", "https://sammich.owaspblt.org/slack/commands"),
+                _Env(),
+            )
+        )
+    finally:
+        worker.json_response = original_json_response
+
+    assert events_response == {
+        "payload": {
+            "ok": True,
+            "endpoint": "slack_events",
+            "method": "POST required",
+        },
+        "status": 200,
+    }
+    assert commands_response == {
+        "payload": {
+            "ok": True,
+            "endpoint": "slack_commands",
+            "method": "POST required",
+        },
+        "status": 200,
+    }
+
+
 def test_repo_response_without_query_returns_blocks():
     response = worker.repo_response("")
     assert response["blocks"]
@@ -212,6 +252,17 @@ class _Headers:
 class _Request:
     def __init__(self, authorization):
         self.headers = _Headers({"authorization": authorization})
+
+
+class _RouteRequest:
+    def __init__(self, method, url, body=""):
+        self.method = method
+        self.url = url
+        self.headers = _Headers({})
+        self.body = body
+
+    async def text(self):
+        return self.body
 
 
 def test_admin_path_uses_default_and_normalizes_env_value():
