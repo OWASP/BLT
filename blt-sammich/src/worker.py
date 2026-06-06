@@ -639,18 +639,35 @@ def payload_channel_metadata(payload: Dict[str, Any]) -> Dict[str, Any]:
         channel_obj = event_channel
     elif isinstance(event.get("item"), dict) and isinstance(event["item"].get("channel"), dict):
         channel_obj = event["item"]["channel"]
+    metadata = slack_channel_metadata(channel_obj)
+    if not metadata.get("channel_id"):
+        metadata["channel_id"] = str(payload_channel_id(payload) or "")
+    if not metadata.get("channel_name"):
+        metadata["channel_name"] = str(
+            payload_channel_name(payload) or metadata.get("channel_id") or ""
+        )
+    if not metadata.get("is_private"):
+        channel_type = str(event.get("channel_type") or "")
+        metadata["is_private"] = bool_int(channel_type == "im")
+    if not metadata.get("is_im"):
+        channel_type = str(event.get("channel_type") or "")
+        metadata["is_im"] = bool_int(channel_type == "im")
+    return metadata
+
+
+def slack_channel_metadata(channel_obj: Dict[str, Any]) -> Dict[str, Any]:
+    channel_obj = channel_obj if isinstance(channel_obj, dict) else {}
     topic = channel_obj.get("topic") if isinstance(channel_obj.get("topic"), dict) else {}
     purpose = (
         channel_obj.get("purpose") if isinstance(channel_obj.get("purpose"), dict) else {}
     )
-    channel_type = str(event.get("channel_type") or channel_obj.get("channel_type") or "")
+    channel_type = str(channel_obj.get("channel_type") or "")
     return {
-        "channel_id": str(channel_obj.get("id") or payload_channel_id(payload) or ""),
+        "channel_id": str(channel_obj.get("id") or ""),
         "channel_name": str(
             channel_obj.get("name")
             or channel_obj.get("name_normalized")
-            or payload_channel_name(payload)
-            or payload_channel_id(payload)
+            or channel_obj.get("id")
             or ""
         ),
         "member_count": int(
@@ -1504,6 +1521,88 @@ async def db_update_workspace_channel_member_counts(
         [int(channel_count or 0), int(member_count or 0), utc_now(), workspace_id],
     )
     return True
+
+
+async def refresh_workspace_channels_from_slack(
+    env: Any, workspace_id: Any
+) -> Dict[str, Any]:
+    workspace = await db_get_workspace_by_id(env, workspace_id)
+    if not workspace:
+        raise ValueError("Workspace was not found.")
+    token = str(
+        workspace.get("bot_token")
+        or workspace.get("access_token")
+        or env_value(env, "SLACK_BOT_TOKEN")
+        or ""
+    ).strip()
+    if not token:
+        raise ValueError("Workspace does not have a Slack token.")
+
+    cursor = ""
+    channels: List[Dict[str, Any]] = []
+    while True:
+        query = {
+            "exclude_archived": "false",
+            "limit": "1000",
+            "types": "public_channel,private_channel,mpim,im",
+        }
+        if cursor:
+            query["cursor"] = cursor
+        ok, payload, _ = await fetch_json(
+            "https://slack.com/api/conversations.list?{0}".format(urlencode(query)),
+            headers={"Authorization": "Bearer {0}".format(token)},
+        )
+        if not ok or not payload.get("ok", False):
+            raise RuntimeError(
+                "Slack channel refresh failed: {0}".format(
+                    payload.get("error") or "request_failed"
+                )
+            )
+        page_channels = payload.get("channels") or []
+        for channel in page_channels:
+            if isinstance(channel, dict):
+                channels.append(channel)
+        cursor = str((payload.get("response_metadata") or {}).get("next_cursor") or "")
+        if not cursor:
+            break
+
+    channel_count = 0
+    member_total = 0
+    for channel in channels:
+        metadata = slack_channel_metadata(channel)
+        channel_id = str(metadata.get("channel_id") or "").strip()
+        if not channel_id:
+            continue
+        channel_count += 1
+        member_total += int(metadata.get("member_count") or 0)
+        await db_upsert_channel(
+            env,
+            workspace_id,
+            channel_id,
+            str(metadata.get("channel_name") or channel_id),
+            member_count=int(metadata.get("member_count") or 0),
+            topic=str(metadata.get("topic") or ""),
+            purpose=str(metadata.get("purpose") or ""),
+            is_private=int(metadata.get("is_private") or 0),
+            is_channel=int(metadata.get("is_channel") or 0),
+            is_group=int(metadata.get("is_group") or 0),
+            is_im=int(metadata.get("is_im") or 0),
+            is_mpim=int(metadata.get("is_mpim") or 0),
+            is_archived=int(metadata.get("is_archived") or 0),
+            is_general=int(metadata.get("is_general") or 0),
+            is_shared=int(metadata.get("is_shared") or 0),
+            is_ext_shared=int(metadata.get("is_ext_shared") or 0),
+            is_org_shared=int(metadata.get("is_org_shared") or 0),
+            is_pending_ext_shared=int(metadata.get("is_pending_ext_shared") or 0),
+            is_member=int(metadata.get("is_member") or 0),
+            creator=str(metadata.get("creator") or ""),
+            locale=str(metadata.get("locale") or ""),
+            metadata_json=str(metadata.get("metadata_json") or ""),
+        )
+    await db_update_workspace_channel_member_counts(
+        env, workspace_id, channel_count, member_total
+    )
+    return {"channel_count": channel_count, "member_count": member_total}
 
 
 async def db_update_workspace_invite_link(
@@ -4040,10 +4139,21 @@ def render_admin_row_table(context: Dict[str, Any], admin_url: str) -> str:
             '<td class="border-b border-gray-100 px-3 py-2 text-right align-top whitespace-nowrap">'
             '<a class="font-semibold text-red-600 hover:text-red-700" href="{0}?table={1}&edit={2}">Edit</a>'
             '<a class="ml-3 font-semibold text-gray-500 hover:text-red-700" href="{0}?table={1}&confirm_delete={2}">Delete</a>'
+            '{3}'
             "</td>".format(
                 html_escape(admin_url),
                 html_escape(selected_table),
                 html_escape(pk_value),
+                (
+                    '<form method="post" action="{0}" class="mt-2 inline-block">'
+                    '<input type="hidden" name="action" value="refresh_workspace_channels" />'
+                    '<input type="hidden" name="table" value="workspaces" />'
+                    '<input type="hidden" name="pk" value="{1}" />'
+                    '<button class="font-semibold text-blue-600 hover:text-blue-700" type="submit">Refresh channels</button>'
+                    '</form>'
+                ).format(html_escape(admin_url), html_escape(pk_value))
+                if selected_table == "workspaces"
+                else "",
             )
         )
         rows.append('<tr class="hover:bg-red-50/40">{0}</tr>'.format("".join(cells)))
@@ -4277,6 +4387,13 @@ async def handle_admin_form_action(env: Any, form: Dict[str, str]) -> Any:
             return admin_redirect(env, "Unknown database table")
         await db_admin_delete_row_cascade(env, table_name, form.get("pk", ""))
         return admin_redirect(env, "Row deleted", table_name)
+    if action == "refresh_workspace_channels":
+        result = await refresh_workspace_channels_from_slack(env, form.get("pk", ""))
+        return admin_redirect(
+            env,
+            "Refreshed {0} channels".format(result.get("channel_count") or 0),
+            "workspaces",
+        )
     return redirect_response(admin_path(env) + "?message=No+changes+made")
 
 

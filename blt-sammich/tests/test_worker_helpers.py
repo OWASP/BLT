@@ -512,6 +512,26 @@ def test_render_admin_html_includes_database_admin_context():
     assert "team_name ▲" in html
     assert "Edit" in html
     assert "Delete" in html
+    assert "Refresh channels" in html
+    assert "refresh_workspace_channels" in html
+
+
+def test_render_admin_channel_refresh_button_only_for_workspaces():
+    env = _Env()
+    setattr(env, "ADMIN_URL", "/private-admin")
+    html = worker.render_admin_row_table(
+        {
+            "selected_table": "channels",
+            "schema": worker.ADMIN_TABLE_SCHEMAS["channels"],
+            "rows": [{"id": 1, "workspace_id": 1, "channel_id": "C123"}],
+            "sort_column": "id",
+            "sort_direction": "DESC",
+        },
+        "/private-admin",
+    )
+
+    assert "Refresh channels" not in html
+    assert "refresh_workspace_channels" not in html
 
 
 def test_render_admin_html_shows_edit_form_on_edit_page():
@@ -1250,6 +1270,96 @@ def test_db_upsert_workspace_persists_slack_tokens():
     assert "bot_token" in captured["query"]
     assert captured["params"][3] == "xapp-token"
     assert captured["params"][4] == "xoxb-token"
+
+
+def test_refresh_workspace_channels_fetches_pages_and_persists_metadata():
+    calls = {"fetch_urls": [], "channel_params": [], "count_params": None}
+    original_fetch_json = worker.fetch_json
+    original_d1_run = worker.d1_run
+    original_schema_ready = worker.SCHEMA_READY
+
+    async def fake_fetch_json(url, method="GET", headers=None, body=None):
+        calls["fetch_urls"].append(url)
+        assert headers["Authorization"] == "Bearer xoxb-workspace"
+        if "cursor=page-2" in url:
+            return (
+                True,
+                {
+                    "ok": True,
+                    "channels": [
+                        {
+                            "id": "G123",
+                            "name": "private-project",
+                            "is_group": True,
+                            "is_private": True,
+                            "num_members": 2,
+                            "purpose": {"value": "Private planning"},
+                        }
+                    ],
+                    "response_metadata": {"next_cursor": ""},
+                },
+                200,
+            )
+        return (
+            True,
+            {
+                "ok": True,
+                "channels": [
+                    {
+                        "id": "C123",
+                        "name": "general",
+                        "is_channel": True,
+                        "is_general": True,
+                        "num_members": 42,
+                        "topic": {"value": "Security"},
+                        "creator": "U999",
+                    }
+                ],
+                "response_metadata": {"next_cursor": "page-2"},
+            },
+            200,
+        )
+
+    async def fake_d1_run(env, query, params=None):
+        if "SELECT * FROM workspaces WHERE id = ?" in query:
+            return {
+                "results": [
+                    {"id": 7, "team_id": "T123", "bot_token": "xoxb-workspace"}
+                ]
+            }
+        if "INSERT INTO channels" in query:
+            calls["channel_params"].append(params)
+            return {"success": True}
+        if "UPDATE workspaces SET channel_count" in query:
+            calls["count_params"] = params
+            return {"success": True}
+        return {"success": True}
+
+    env = _Env()
+    setattr(env, "DB", object())
+    worker.fetch_json = fake_fetch_json
+    worker.d1_run = fake_d1_run
+    worker.SCHEMA_READY = True
+    try:
+        result = asyncio.run(worker.refresh_workspace_channels_from_slack(env, 7))
+    finally:
+        worker.fetch_json = original_fetch_json
+        worker.d1_run = original_d1_run
+        worker.SCHEMA_READY = original_schema_ready
+
+    assert result == {"channel_count": 2, "member_count": 44}
+    assert len(calls["fetch_urls"]) == 2
+    assert calls["channel_params"][0][1] == "C123"
+    assert calls["channel_params"][0][2] == "general"
+    assert calls["channel_params"][0][3] == 42
+    assert calls["channel_params"][0][4] == "Security"
+    assert calls["channel_params"][0][18] == "U999"
+    assert '"name":"general"' in calls["channel_params"][0][20]
+    assert calls["channel_params"][1][1] == "G123"
+    assert calls["channel_params"][1][6] == 1
+    assert calls["count_params"][0] == 2
+    assert calls["count_params"][1] == 44
+    assert calls["count_params"][3] == 7
 
 
 def test_db_upsert_slack_app_persists_app_secrets():
