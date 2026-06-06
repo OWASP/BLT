@@ -554,21 +554,25 @@ def test_lettuce_model_tables_are_in_schema_bootstrap():
     )
 
     for table_name in (
-        "workspace_installations",
-        "connected_workspaces",
         "slack_apps",
-        "managed_servers",
         "workspaces",
         "channels",
         "repositories",
         "github_organizations",
         "events",
-        "join_messages",
         "users",
         "sessions",
-        "user_workspaces",
     ):
         assert "CREATE TABLE IF NOT EXISTS {0}".format(table_name) in schema_sql
+    for table_name in (
+        "workspace_installations",
+        "connected_workspaces",
+        "managed_servers",
+        "join_messages",
+        "user_workspaces",
+    ):
+        assert "DROP TABLE IF EXISTS {0}".format(table_name) in schema_sql
+        assert table_name not in worker.ADMIN_TABLE_SCHEMAS
     assert "DROP TABLE IF EXISTS slack_activity" in schema_sql
     assert "slack_activity" not in worker.ADMIN_TABLE_SCHEMAS
     assert "slack_response_data" in schema_sql
@@ -1308,12 +1312,16 @@ def test_db_admin_create_update_delete_use_whitelisted_table_schema():
         asyncio.run(
             worker.db_admin_create_row(
                 env,
-                "managed_servers",
+                "slack_apps",
                 {
-                    "field__name": "Production",
-                    "field__url": "https://example.com",
-                    "field__status": "online",
-                    "field__description": "Main endpoint",
+                    "field__app_id": "A123",
+                    "field__app_name": "Sammich",
+                    "field__app_icon_url": "https://example.com/icon.png",
+                    "field__client_id": "123.456",
+                    "field__client_secret": "client-secret",
+                    "field__signing_secret": "signing-secret",
+                    "field__app_token": "xapp-token",
+                    "field__manifest_yaml": "display_information:",
                     "field__created_at": "2026-06-06T00:00:00+00:00",
                     "field__updated_at": "2026-06-06T00:00:00+00:00",
                 },
@@ -1322,29 +1330,37 @@ def test_db_admin_create_update_delete_use_whitelisted_table_schema():
         asyncio.run(
             worker.db_admin_update_row(
                 env,
-                "managed_servers",
+                "slack_apps",
                 "7",
                 {
-                    "field__name": "Production 2",
-                    "field__url": "https://example.com",
-                    "field__status": "degraded",
-                    "field__description": "Updated",
+                    "field__app_id": "A123",
+                    "field__app_name": "Sammich 2",
+                    "field__app_icon_url": "https://example.com/icon.png",
+                    "field__client_id": "123.456",
+                    "field__client_secret": "client-secret",
+                    "field__signing_secret": "signing-secret",
+                    "field__app_token": "xapp-token",
+                    "field__manifest_yaml": "display_information:",
                     "field__created_at": "2026-06-06T00:00:00+00:00",
                     "field__updated_at": "2026-06-06T01:00:00+00:00",
                 },
             )
         )
-        asyncio.run(worker.db_admin_delete_row(env, "managed_servers", "7"))
+        asyncio.run(worker.db_admin_delete_row(env, "slack_apps", "7"))
     finally:
         worker.d1_run = original_d1_run
         worker.SCHEMA_READY = original_schema_ready
 
-    assert captured[0][0].startswith("INSERT INTO managed_servers")
-    assert "id" not in captured[0][0].split("(", 1)[1].split(")", 1)[0]
-    assert captured[0][1][0] == "Production"
-    assert captured[1][0].startswith("UPDATE managed_servers SET")
+    assert captured[0][0].startswith("INSERT INTO slack_apps")
+    inserted_columns = [
+        column.strip()
+        for column in captured[0][0].split("(", 1)[1].split(")", 1)[0].split(",")
+    ]
+    assert "id" not in inserted_columns
+    assert captured[0][1][0] == "A123"
+    assert captured[1][0].startswith("UPDATE slack_apps SET")
     assert captured[1][1][-1] == "7"
-    assert captured[2] == ("DELETE FROM managed_servers WHERE id = ?", ["7"])
+    assert captured[2] == ("DELETE FROM slack_apps WHERE id = ?", ["7"])
 
 
 def test_db_admin_related_tree_nests_cascade_records():
@@ -1361,18 +1377,6 @@ def test_db_admin_related_tree_nests_cascade_records():
                         "channel_id": "C123",
                         "channel_name": "general",
                     }
-                ]
-            }
-        if "FROM user_workspaces WHERE workspace_id" in query:
-            return {
-                "results": [
-                    {"id": 20, "user_id": 7, "workspace_id": 1, "role": "owner"}
-                ]
-            }
-        if "FROM connected_workspaces WHERE team_id" in query:
-            return {
-                "results": [
-                    {"id": 30, "team_id": "T123", "team_name": "Security Team"}
                 ]
             }
         return {"results": []}
@@ -1396,9 +1400,9 @@ def test_db_admin_related_tree_nests_cascade_records():
     rendered = worker.render_admin_cascade_tree(related)
     assert "channels" in rendered
     assert "channels.id 10" in rendered
-    assert "user_workspaces" in rendered
-    assert "connected_workspaces" in rendered
-    assert worker.admin_cascade_count(related) == 3
+    assert "user_workspaces" not in rendered
+    assert "connected_workspaces" not in rendered
+    assert worker.admin_cascade_count(related) == 1
 
 
 def test_db_admin_confirmed_delete_cascades_children_before_parent():
@@ -1414,10 +1418,6 @@ def test_db_admin_confirmed_delete_cascades_children_before_parent():
             return {"results": [{"id": 10, "workspace_id": 1, "channel_id": "C123"}]}
         if "SELECT * FROM channels WHERE workspace_id = ?" in query:
             return {"results": [{"id": 10, "workspace_id": 1, "channel_id": "C123"}]}
-        if "SELECT * FROM connected_workspaces WHERE id = ?" in query:
-            return {"results": [{"id": 30, "team_id": "T123"}]}
-        if "SELECT * FROM connected_workspaces WHERE team_id = ?" in query:
-            return {"results": [{"id": 30, "team_id": "T123"}]}
         return {"results": []}
 
     env = _Env()
@@ -1432,13 +1432,12 @@ def test_db_admin_confirmed_delete_cascades_children_before_parent():
 
     delete_queries = [query for query, _ in captured if query.startswith("DELETE FROM")]
     assert "DELETE FROM channels WHERE id = ?" in delete_queries
-    assert "DELETE FROM connected_workspaces WHERE id = ?" in delete_queries
     assert delete_queries[-1] == "DELETE FROM workspaces WHERE id = ?"
 
 
 def test_db_admin_rejects_unknown_table_names():
     try:
-        worker.require_admin_table_name("managed_servers; DROP TABLE users")
+        worker.require_admin_table_name("slack_apps; DROP TABLE users")
     except ValueError as error:
         assert "Unknown database table" in str(error)
     else:

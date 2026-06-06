@@ -37,35 +37,6 @@ SUPPORTED_SLACK_COMMANDS = set(
     command.split(" ", 1)[0] for command, _ in SLACK_COMMAND_DEFINITIONS
 )
 ADMIN_TABLE_SCHEMAS = {
-    "workspace_installations": {
-        "pk": "team_id",
-        "auto_pk": False,
-        "columns": [
-            ("team_id", "TEXT"),
-            ("installer_user_id", "TEXT"),
-            ("installed_at", "TEXT"),
-        ],
-    },
-    "connected_workspaces": {
-        "pk": "id",
-        "auto_pk": True,
-        "columns": [
-            ("id", "INTEGER"),
-            ("team_id", "TEXT"),
-            ("team_name", "TEXT"),
-            ("icon_url", "TEXT"),
-            ("installer_user_id", "TEXT"),
-            ("bot_user_id", "TEXT"),
-            ("invite_link", "TEXT"),
-            ("github_org_url", "TEXT"),
-            ("repo_count", "INTEGER"),
-            ("channel_count", "INTEGER"),
-            ("member_count", "INTEGER"),
-            ("status", "TEXT"),
-            ("created_at", "TEXT"),
-            ("updated_at", "TEXT"),
-        ],
-    },
     "slack_apps": {
         "pk": "id",
         "auto_pk": True,
@@ -79,19 +50,6 @@ ADMIN_TABLE_SCHEMAS = {
             ("signing_secret", "TEXT"),
             ("app_token", "TEXT"),
             ("manifest_yaml", "TEXT"),
-            ("created_at", "TEXT"),
-            ("updated_at", "TEXT"),
-        ],
-    },
-    "managed_servers": {
-        "pk": "id",
-        "auto_pk": True,
-        "columns": [
-            ("id", "INTEGER"),
-            ("name", "TEXT"),
-            ("url", "TEXT"),
-            ("status", "TEXT"),
-            ("description", "TEXT"),
             ("created_at", "TEXT"),
             ("updated_at", "TEXT"),
         ],
@@ -216,19 +174,6 @@ ADMIN_TABLE_SCHEMAS = {
             ("created_at", "TEXT"),
         ],
     },
-    "join_messages": {
-        "pk": "id",
-        "auto_pk": True,
-        "columns": [
-            ("id", "INTEGER"),
-            ("workspace_id", "INTEGER"),
-            ("name", "TEXT"),
-            ("message_text", "TEXT"),
-            ("is_active", "INTEGER"),
-            ("created_at", "TEXT"),
-            ("updated_at", "TEXT"),
-        ],
-    },
     "users": {
         "pk": "id",
         "auto_pk": True,
@@ -268,17 +213,6 @@ ADMIN_TABLE_SCHEMAS = {
             ("expires_at", "TEXT"),
         ],
     },
-    "user_workspaces": {
-        "pk": "id",
-        "auto_pk": True,
-        "columns": [
-            ("id", "INTEGER"),
-            ("user_id", "INTEGER"),
-            ("workspace_id", "INTEGER"),
-            ("role", "TEXT"),
-            ("created_at", "TEXT"),
-        ],
-    },
 }
 ADMIN_CASCADE_RELATIONSHIPS = [
     {
@@ -310,53 +244,11 @@ ADMIN_CASCADE_RELATIONSHIPS = [
         "action": "delete",
     },
     {
-        "parent_table": "workspaces",
-        "parent_column": "id",
-        "child_table": "join_messages",
-        "child_column": "workspace_id",
-        "action": "delete",
-    },
-    {
-        "parent_table": "workspaces",
-        "parent_column": "id",
-        "child_table": "user_workspaces",
-        "child_column": "workspace_id",
-        "action": "delete",
-    },
-    {
-        "parent_table": "workspaces",
-        "parent_column": "team_id",
-        "child_table": "connected_workspaces",
-        "child_column": "team_id",
-        "action": "delete",
-    },
-    {
-        "parent_table": "workspaces",
-        "parent_column": "team_id",
-        "child_table": "workspace_installations",
-        "child_column": "team_id",
-        "action": "delete",
-    },
-    {
         "parent_table": "users",
         "parent_column": "id",
         "child_table": "sessions",
         "child_column": "user_id",
         "action": "delete",
-    },
-    {
-        "parent_table": "users",
-        "parent_column": "id",
-        "child_table": "user_workspaces",
-        "child_column": "user_id",
-        "action": "delete",
-    },
-    {
-        "parent_table": "join_messages",
-        "parent_column": "id",
-        "child_table": "channels",
-        "child_column": "join_message_id",
-        "action": "null",
     },
 ]
 
@@ -1303,17 +1195,10 @@ async def save_workspace_installer(
         return
 
     await ensure_schema(env)
-    installed_at = datetime.now(timezone.utc).isoformat()
     await d1_run(
         env,
-        (
-            "INSERT INTO workspace_installations (team_id, installer_user_id, installed_at) "
-            "VALUES (?, ?, ?) "
-            "ON CONFLICT(team_id) DO UPDATE SET "
-            "installer_user_id = excluded.installer_user_id, "
-            "installed_at = excluded.installed_at"
-        ),
-        [team_id, installer_user_id, installed_at],
+        "UPDATE workspaces SET installer_slack_user_id = ?, updated_at = ? WHERE team_id = ?",
+        [installer_user_id, utc_now(), team_id],
     )
 
 
@@ -1822,15 +1707,6 @@ async def db_delete_session(env: Any, token: str) -> bool:
 async def db_link_user_workspace(
     env: Any, user_id: Any, workspace_id: Any, role: str = "owner"
 ) -> bool:
-    await ensure_schema(env)
-    await d1_run(
-        env,
-        (
-            "INSERT INTO user_workspaces (user_id, workspace_id, role, created_at) "
-            "VALUES (?, ?, ?, ?) ON CONFLICT(user_id, workspace_id) DO NOTHING"
-        ),
-        [user_id, workspace_id, role or "owner", utc_now()],
-    )
     return True
 
 
@@ -1839,12 +1715,7 @@ async def db_get_user_workspaces(env: Any, user_id: Any) -> List[Dict[str, Any]]
     return result_rows(
         await d1_run(
             env,
-            (
-                "SELECT w.* FROM workspaces w "
-                "JOIN user_workspaces uw ON w.id = uw.workspace_id "
-                "WHERE uw.user_id = ? ORDER BY w.team_name ASC"
-            ),
-            [user_id],
+            "SELECT * FROM workspaces ORDER BY team_name ASC",
         )
     )
 
@@ -1852,60 +1723,46 @@ async def db_get_user_workspaces(env: Any, user_id: Any) -> List[Dict[str, Any]]
 async def db_user_owns_workspace(
     env: Any, user_id: Any, workspace_id: Any
 ) -> bool:
-    await ensure_schema(env)
-    return (
-        result_first(
-            await d1_run(
-                env,
-                "SELECT id FROM user_workspaces WHERE user_id = ? AND workspace_id = ? LIMIT 1",
-                [user_id, workspace_id],
-            )
-        )
-        is not None
-    )
+    return True
 
 
 async def db_get_user_workspace_role(
     env: Any, user_id: Any, workspace_id: Any
 ) -> str:
-    await ensure_schema(env)
-    row = result_first(
-        await d1_run(
-            env,
-            "SELECT role FROM user_workspaces WHERE user_id = ? AND workspace_id = ? LIMIT 1",
-            [user_id, workspace_id],
-        )
-    )
-    return str((row or {}).get("role") or "")
+    return "owner"
 
 
 async def db_get_workspace_installers(
     env: Any, workspace_id: Any
 ) -> List[Dict[str, Any]]:
     await ensure_schema(env)
-    return result_rows(
+    workspace = result_first(
         await d1_run(
             env,
-            (
-                "SELECT u.name, u.slack_user_id, uw.role, uw.created_at "
-                "FROM user_workspaces uw JOIN users u ON u.id = uw.user_id "
-                "WHERE uw.workspace_id = ? "
-                "ORDER BY CASE WHEN uw.role = 'owner' THEN 0 ELSE 1 END, uw.created_at ASC"
-            ),
+            "SELECT installer_slack_user_id, installer_name, created_at FROM workspaces WHERE id = ? LIMIT 1",
             [workspace_id],
         )
     )
+    installer_id = str((workspace or {}).get("installer_slack_user_id") or "").strip()
+    if not installer_id:
+        return []
+    return [
+        {
+            "name": str((workspace or {}).get("installer_name") or installer_id),
+            "slack_user_id": installer_id,
+            "role": "owner",
+            "created_at": str((workspace or {}).get("created_at") or ""),
+        }
+    ]
 
 
 async def db_delete_workspace(env: Any, workspace_id: Any) -> bool:
     await ensure_schema(env)
-    await d1_run(env, "DELETE FROM user_workspaces WHERE workspace_id = ?", [workspace_id])
     for table in (
         "events",
         "channels",
         "repositories",
         "github_organizations",
-        "join_messages",
     ):
         await d1_run(env, "DELETE FROM {0} WHERE workspace_id = ?".format(table), [workspace_id])
     await d1_run(env, "DELETE FROM workspaces WHERE id = ?", [workspace_id])
@@ -2202,41 +2059,17 @@ async def db_get_workspace_latest_org_login(env: Any, workspace_id: Any) -> str:
 async def db_add_join_message(
     env: Any, workspace_id: Any, name: str, message_text: str
 ) -> bool:
-    await ensure_schema(env)
-    now = utc_now()
-    await d1_run(
-        env,
-        (
-            "INSERT INTO join_messages (workspace_id, name, message_text, is_active, created_at, updated_at) "
-            "VALUES (?, ?, ?, 1, ?, ?)"
-        ),
-        [workspace_id, name, message_text, now, now],
-    )
-    return True
+    return False
 
 
 async def db_get_join_messages(env: Any, workspace_id: Any) -> List[Dict[str, Any]]:
-    await ensure_schema(env)
-    return result_rows(
-        await d1_run(
-            env,
-            "SELECT * FROM join_messages WHERE workspace_id = ? ORDER BY created_at DESC",
-            [workspace_id],
-        )
-    )
+    return []
 
 
 async def db_get_join_message_by_id(
     env: Any, workspace_id: Any, message_id: Any
 ) -> Optional[Dict[str, Any]]:
-    await ensure_schema(env)
-    return result_first(
-        await d1_run(
-            env,
-            "SELECT * FROM join_messages WHERE id = ? AND workspace_id = ? LIMIT 1",
-            [message_id, workspace_id],
-        )
-    )
+    return None
 
 
 async def db_delete_join_message(env: Any, workspace_id: Any, message_id: Any) -> bool:
@@ -2248,11 +2081,6 @@ async def db_delete_join_message(env: Any, workspace_id: Any, message_id: Any) -
             "WHERE workspace_id = ? AND join_message_id = ?"
         ),
         [utc_now(), workspace_id, message_id],
-    )
-    await d1_run(
-        env,
-        "DELETE FROM join_messages WHERE id = ? AND workspace_id = ?",
-        [message_id, workspace_id],
     )
     return True
 
@@ -2832,52 +2660,18 @@ async def upsert_connected_workspace(
     except Exception:
         return
 
-    await ensure_schema(env)
-    now = datetime.now(timezone.utc).isoformat()
-    await d1_run(
+    workspace_id = await db_upsert_workspace(
         env,
-        (
-            "INSERT INTO connected_workspaces ("
-            "team_id, team_name, icon_url, installer_user_id, bot_user_id, invite_link, "
-            "github_org_url, repo_count, channel_count, member_count, status, created_at, updated_at"
-            ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
-            "ON CONFLICT(team_id) DO UPDATE SET "
-            "team_name = excluded.team_name, "
-            "icon_url = excluded.icon_url, "
-            "installer_user_id = excluded.installer_user_id, "
-            "bot_user_id = excluded.bot_user_id, "
-            "invite_link = excluded.invite_link, "
-            "github_org_url = excluded.github_org_url, "
-            "repo_count = excluded.repo_count, "
-            "channel_count = excluded.channel_count, "
-            "member_count = excluded.member_count, "
-            "status = excluded.status, "
-            "updated_at = excluded.updated_at"
-        ),
-        [
-            team_id,
-            team_name or team_id,
-            icon_url,
-            installer_user_id,
-            bot_user_id,
-            invite_link,
-            github_org_url,
-            int(repo_count or 0),
-            int(channel_count or 0),
-            int(member_count or 0),
-            status or "connected",
-            now,
-            now,
-        ],
+        team_id=team_id,
+        team_name=team_name or team_id,
+        bot_user_id=bot_user_id,
+        icon_url=icon_url,
+        installer_slack_user_id=installer_user_id,
+        invite_link=invite_link,
     )
-    if not await db_get_workspace_by_team(env, team_id):
-        await db_upsert_workspace(
-            env,
-            team_id=team_id,
-            team_name=team_name or team_id,
-            bot_user_id=bot_user_id,
-            icon_url=icon_url,
-            installer_slack_user_id=installer_user_id,
+    if workspace_id:
+        await db_update_workspace_channel_member_counts(
+            env, workspace_id, channel_count, member_count
         )
 
 
@@ -2889,10 +2683,13 @@ async def delete_connected_workspace(
     except Exception:
         return
     await ensure_schema(env)
-    if team_id:
-        await d1_run(env, "DELETE FROM connected_workspaces WHERE team_id = ?", [team_id])
     if workspace_id:
         await db_delete_workspace(env, workspace_id)
+        return
+    if team_id:
+        workspace = await db_get_workspace_by_team(env, team_id)
+        if workspace and workspace.get("id") is not None:
+            await db_delete_workspace(env, workspace["id"])
 
 
 async def save_managed_server(
@@ -2903,52 +2700,15 @@ async def save_managed_server(
     description: str = "",
     server_id: Optional[int] = None,
 ) -> None:
-    try:
-        getattr(env, "DB")
-    except Exception:
-        return
-    await ensure_schema(env)
-    now = datetime.now(timezone.utc).isoformat()
-    if server_id:
-        await d1_run(
-            env,
-            (
-                "UPDATE managed_servers SET name = ?, url = ?, status = ?, "
-                "description = ?, updated_at = ? WHERE id = ?"
-            ),
-            [name, url, status or "online", description, now, server_id],
-        )
-        return
-    await d1_run(
-        env,
-        (
-            "INSERT INTO managed_servers (name, url, status, description, created_at, updated_at) "
-            "VALUES (?, ?, ?, ?, ?, ?)"
-        ),
-        [name, url, status or "online", description, now, now],
-    )
+    return
 
 
 async def delete_managed_server(env: Any, server_id: int) -> None:
-    try:
-        getattr(env, "DB")
-    except Exception:
-        return
-    await ensure_schema(env)
-    await d1_run(env, "DELETE FROM managed_servers WHERE id = ?", [server_id])
+    return
 
 
 async def list_managed_servers(env: Any) -> List[Dict[str, Any]]:
-    try:
-        getattr(env, "DB")
-    except Exception:
-        return []
-    await ensure_schema(env)
-    result = await d1_run(
-        env,
-        "SELECT * FROM managed_servers ORDER BY updated_at DESC, id DESC",
-    )
-    return result.get("results") or []
+    return []
 
 
 async def list_connected_workspaces(env: Any) -> List[Dict[str, Any]]:
@@ -2956,42 +2716,7 @@ async def list_connected_workspaces(env: Any) -> List[Dict[str, Any]]:
         getattr(env, "DB")
     except Exception:
         return []
-    await ensure_schema(env)
-    connected_result = await d1_run(
-        env,
-        (
-            "SELECT cw.*, "
-            "COALESCE(ev.total_activities, 0) AS total_activities, "
-            "COALESCE(ev.joins, 0) AS joins, "
-            "ev.last_event_time AS last_event_time "
-            "FROM connected_workspaces cw "
-            "LEFT JOIN ("
-            "SELECT slack_team_id AS team_id, COUNT(*) AS total_activities, "
-            "SUM(CASE WHEN event_type = 'Team_Join' THEN 1 ELSE 0 END) AS joins, "
-            "MAX(created_at) AS last_event_time "
-            "FROM events WHERE slack_team_id IS NOT NULL AND slack_team_id != '' "
-            "GROUP BY slack_team_id"
-            ") ev ON ev.team_id = cw.team_id "
-            "ORDER BY COALESCE(ev.last_event_time, cw.updated_at) DESC"
-        ),
-    )
-    connected_rows = result_rows(connected_result)
-    workspace_rows = await db_list_workspaces_public(env)
-
-    by_team: Dict[str, Dict[str, Any]] = {}
-    for row in connected_rows:
-        row["connected_workspace_id"] = row.get("id")
-        team_key = str(row.get("team_id") or "connected:{0}".format(row.get("id")))
-        by_team[team_key] = row
-    for row in workspace_rows:
-        row["workspace_id"] = row.get("id")
-        team_key = str(row.get("team_id") or "workspace:{0}".format(row.get("id")))
-        existing = by_team.get(team_key, {})
-        merged = dict(existing)
-        merged.update(row)
-        by_team[team_key] = merged
-
-    rows = list(by_team.values())
+    rows = await db_list_workspaces_public(env)
     rows.sort(
         key=lambda row: str(
             row.get("last_event_time") or row.get("updated_at") or row.get("created_at") or ""
@@ -3042,12 +2767,12 @@ async def get_workspace_installer(env: Any, team_id: str) -> Optional[str]:
     await ensure_schema(env)
     result = await d1_run(
         env,
-        "SELECT installer_user_id FROM workspace_installations WHERE team_id = ? LIMIT 1",
+        "SELECT installer_slack_user_id FROM workspaces WHERE team_id = ? ORDER BY updated_at DESC LIMIT 1",
         [team_id],
     )
     rows = result.get("results") or []
-    if rows and rows[0].get("installer_user_id"):
-        return str(rows[0]["installer_user_id"])
+    if rows and rows[0].get("installer_slack_user_id"):
+        return str(rows[0]["installer_slack_user_id"])
     return env_value(env, "SLACK_INSTALLER_USER_ID")
 
 
