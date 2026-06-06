@@ -98,14 +98,28 @@ def test_manifest_subscribes_to_app_home_opened():
 
 def test_get_slack_endpoints_return_health_payloads():
     original_json_response = worker.json_response
+    original_record_activity = worker.record_activity
+    logged = []
+
+    async def fake_record_activity(env, activity_kind, payload):
+        logged.append((activity_kind, payload))
+
     worker.json_response = lambda payload, status=200: {
         "payload": payload,
         "status": status,
     }
+    worker.record_activity = fake_record_activity
     try:
         events_response = asyncio.run(
             worker.handle_request(
-                _RouteRequest("GET", "https://sammich.owaspblt.org/slack/events/"),
+                _RouteRequest(
+                    "GET",
+                    "https://sammich.owaspblt.org/slack/events/",
+                    headers={
+                        "user-agent": "Chrome test",
+                        "cf-ray": "a0788b78edb67cae",
+                    },
+                ),
                 _Env(),
             )
         )
@@ -116,8 +130,19 @@ def test_get_slack_endpoints_return_health_payloads():
             )
         )
     finally:
+        worker.record_activity = original_record_activity
         worker.json_response = original_json_response
 
+    assert len(logged) == 2
+    assert logged[0][0] == "http_request"
+    assert logged[0][1]["type"] == "http_request"
+    assert logged[0][1]["method"] == "GET"
+    assert logged[0][1]["path"] == "/slack/events/"
+    assert logged[0][1]["normalized_path"] == "/slack/events"
+    assert logged[0][1]["headers"]["user-agent"] == "Chrome test"
+    assert logged[0][1]["headers"]["cf-ray"] == "a0788b78edb67cae"
+    assert logged[1][0] == "http_request"
+    assert logged[1][1]["normalized_path"] == "/slack/commands"
     assert events_response == {
         "payload": {
             "ok": True,
@@ -248,6 +273,9 @@ class _Headers:
     def get(self, name, default=""):
         return self.values.get(name.lower(), default)
 
+    def items(self):
+        return self.values.items()
+
 
 class _Request:
     def __init__(self, authorization):
@@ -255,10 +283,10 @@ class _Request:
 
 
 class _RouteRequest:
-    def __init__(self, method, url, body=""):
+    def __init__(self, method, url, body="", headers=None):
         self.method = method
         self.url = url
-        self.headers = _Headers({})
+        self.headers = _Headers(headers or {})
         self.body = body
 
     async def text(self):
@@ -796,6 +824,51 @@ def test_record_activity_logs_slash_command_fields():
     assert values["user_name"] == "donnie.brown"
     assert values["slack_token"] == "Wr0cGReWOl8adfvxyV2IuMnr"
     assert '"command": "/contrib"' in values["request_data"]
+
+
+def test_record_activity_logs_http_request_events():
+    captured = []
+    original_d1_run = worker.d1_run
+    original_schema_ready = worker.SCHEMA_READY
+
+    async def fake_d1_run(env, query, params=None):
+        captured.append((query, params))
+        return {"success": True}
+
+    payload = {
+        "type": "http_request",
+        "method": "GET",
+        "url": "https://sammich.owaspblt.org/slack/events",
+        "path": "/slack/events",
+        "headers": {
+            "user-agent": "Chrome test",
+            "cf-ray": "a0788b78edb67cae",
+        },
+        "cf": {"colo": "EWR", "country": "US"},
+    }
+    env = _Env()
+    setattr(env, "DB", object())
+    worker.d1_run = fake_d1_run
+    worker.SCHEMA_READY = False
+    try:
+        asyncio.run(worker.record_activity(env, "http_request", payload))
+    finally:
+        worker.d1_run = original_d1_run
+        worker.SCHEMA_READY = original_schema_ready
+
+    event_inserts = [
+        (query, params)
+        for query, params in captured
+        if "INSERT INTO events" in query
+    ]
+    assert len(event_inserts) == 1
+    values = event_insert_values(event_inserts[0][1])
+    assert values["workspace_id"] is None
+    assert values["event_type"] == "Http_Request"
+    assert values["status"] == "success"
+    assert values["webhook_body_type"] == "http_request"
+    assert '"path": "/slack/events"' in values["request_data"]
+    assert '"cf-ray": "a0788b78edb67cae"' in values["request_data"]
 
 
 def test_db_upsert_workspace_persists_slack_tokens():

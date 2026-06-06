@@ -561,7 +561,61 @@ def model_event_type_for_activity(activity_kind: str, payload: Dict[str, Any]) -
         return "App_Mention"
     if raw_type == "message":
         return "Message"
+    if raw_type == "http_request":
+        return "Http_Request"
     return str(raw_type or activity_kind)
+
+
+def request_headers_payload(request: Any) -> Dict[str, str]:
+    headers: Dict[str, str] = {}
+    request_headers = getattr(request, "headers", None)
+    if not request_headers:
+        return headers
+    try:
+        for key, value in request_headers.items():
+            headers[str(key).lower()] = str(value)
+        return headers
+    except Exception:
+        pass
+    common_header_names = (
+        "accept",
+        "accept-language",
+        "cf-connecting-ip",
+        "cf-ipcountry",
+        "cf-ray",
+        "cf-visitor",
+        "host",
+        "sec-fetch-mode",
+        "sec-fetch-site",
+        "user-agent",
+        "x-forwarded-proto",
+        "x-real-ip",
+    )
+    for header_name in common_header_names:
+        try:
+            value = request_headers.get(header_name, "")
+        except Exception:
+            value = ""
+        if value:
+            headers[header_name] = str(value)
+    return headers
+
+
+def request_event_payload(request: Any, path: str, normalized_path: str) -> Dict[str, Any]:
+    cf_data = {}
+    try:
+        cf_data = to_python(getattr(request, "cf"))
+    except Exception:
+        cf_data = {}
+    return {
+        "type": "http_request",
+        "method": str(getattr(request, "method", "")).upper(),
+        "url": str(getattr(request, "url", "")),
+        "path": path,
+        "normalized_path": normalized_path,
+        "headers": request_headers_payload(request),
+        "cf": cf_data if isinstance(cf_data, dict) else {},
+    }
 
 
 def verify_slack_signature(
@@ -3877,6 +3931,11 @@ async def handle_request(request: Any, env: Any) -> Any:
             "slack_events"
             if normalized_path == "/slack/events"
             else "slack_commands"
+        )
+        await record_activity(
+            env,
+            "http_request",
+            request_event_payload(request, path, normalized_path),
         )
         return json_response(
             {
