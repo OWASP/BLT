@@ -53,6 +53,9 @@ yarn-error.log*
 dist/
 build/
 public/
+!public/
+public/*
+!public/.gitkeep
 
 # OS generated files
 .Spotlight-V100
