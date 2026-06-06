@@ -65,13 +65,14 @@ All projects are developed transparently under OWASP governance with AGPL-3.0 li
 - **Frontend:** HTML5, CSS3, JavaScript
 - **Styling:** Tailwind CSS
 - **Data:** JSON-based repository metadata
-- **Hosting:** GitLab Pages
+- **Hosting:** Cloudflare Pages
 
 ### How It Works
-1. Data is generated from the GitHub and GitLab APIs via GitLab CI
+1. Data is generated from the GitHub and GitLab APIs in GitLab CI
 2. Repository statistics are compiled into `github_data.json` and `gitlab_data.json`
 3. JavaScript dynamically renders the dashboard
-4. Users can search, sort, and filter in real-time
+4. GitLab CI refreshes the committed `public/` data files and deploys `public/` to Cloudflare Pages
+5. Users can search, sort, and filter in real-time
 
 ---
 
@@ -84,9 +85,25 @@ git clone https://gitlab.com/owasp-blt/blt-waypoint.git
 cd blt-waypoint
 
 # Start a local server
-python -m http.server 8000
+python -m http.server 8000 -d public
 # Open http://localhost:8000
 ```
+
+### GitLab Build, Cloudflare Hosting
+
+GitLab builds the static site with:
+
+```bash
+sh scripts/build_static.sh
+```
+
+The committed Pages output directory is `public/`. The GitLab pipeline refreshes the data files there, keeps that folder as a short-lived build artifact, then deploys it to Cloudflare Pages with:
+
+```bash
+npx --yes wrangler pages deploy public --project-name "$CLOUDFLARE_PROJECT_NAME" --branch "$CI_COMMIT_BRANCH"
+```
+
+Set `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` in GitLab CI/CD variables, and configure a GitLab pipeline schedule for the daily refresh.
 
 ### Usage
 - **Search:** Type in the search bar to find repositories

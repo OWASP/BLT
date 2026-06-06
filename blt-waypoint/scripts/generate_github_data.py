@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 
 API = "https://api.github.com"
 ORG = os.getenv("GITHUB_ORG", "OWASP-BLT")
-OUT = os.getenv("GITHUB_DATA_OUT", "github_data.json")
+OUT = os.getenv("GITHUB_DATA_OUT", "public/github_data.json")
 TOKEN = os.getenv("GITHUB_TOKEN") or os.getenv("GH_TOKEN")
 HOMEPAGE_OVERRIDES = {
     "owasp-blt.github.io": "https://waypoint.owaspblt.org",

@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 
 API = "https://gitlab.com/api/v4"
 GROUP = os.getenv("GITLAB_GROUP", "owasp-blt")
-OUT = os.getenv("GITLAB_DATA_OUT", "gitlab_data.json")
+OUT = os.getenv("GITLAB_DATA_OUT", "public/gitlab_data.json")
 GITLAB_TOKEN = os.getenv("GITLAB_TOKEN")
 CI_JOB_TOKEN = os.getenv("CI_JOB_TOKEN")
 

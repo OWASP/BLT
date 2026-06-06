@@ -2,10 +2,12 @@
 import csv
 import json
 import os
+from datetime import datetime, timezone
 
-SOURCE = os.getenv("MAIN_DATA_SOURCE", "github_data.json")
-OUT = os.getenv("MAIN_DATA_OUT", "main_data.csv")
-JS_OUT = os.getenv("MAIN_DATA_JS_OUT", "main_data.js")
+SOURCE = os.getenv("MAIN_DATA_SOURCE", "public/github_data.json")
+OUT = os.getenv("MAIN_DATA_OUT", "public/main_data.csv")
+JS_OUT = os.getenv("MAIN_DATA_JS_OUT", "public/main_data.js")
+JSON_OUT = os.getenv("MAIN_DATA_JSON_OUT", "public/main_data.json")
 MIGRATION_PROGRESS = {
     "BLT-Next": 100,
     "BLT-API": 100,
@@ -41,12 +43,13 @@ def main():
     with open(SOURCE, "r", encoding="utf-8") as f:
         github = json.load(f)
 
+    repos = []
     with open(OUT, "w", encoding="utf-8", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=FIELDS)
         writer.writeheader()
         for repo in github.get("repos", []):
             name = repo.get("name")
-            writer.writerow({
+            row = {
                 "id": repo.get("id"),
                 "name": name,
                 "full_name": repo.get("full_name"),
@@ -60,6 +63,11 @@ def main():
                 "updated_at": repo.get("updated_at"),
                 "gitlab_migration_progress": MIGRATION_PROGRESS.get(name, 0),
                 "gitlab_url": GITLAB_URLS.get(name, ""),
+            }
+            writer.writerow(row)
+            repos.append({
+                **row,
+                "topics": repo.get("topics", []),
             })
 
     with open(OUT, "r", encoding="utf-8") as f:
@@ -69,6 +77,24 @@ def main():
         f.write("window.BLT_MAIN_DATA_CSV = ")
         json.dump(csv_text, f)
         f.write(";\n")
+
+    total_repos = len(repos)
+    completion_points = sum(repo["gitlab_migration_progress"] for repo in repos)
+    payload = {
+        "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "source": "main",
+        "org": github.get("org", "OWASP-BLT"),
+        "migration": {
+            "migrated_repos": sum(1 for repo in repos if repo["gitlab_migration_progress"] > 0),
+            "total_repos": total_repos,
+            "percent": round(completion_points / total_repos, 1) if total_repos else 0,
+        },
+        "repos": repos,
+    }
+
+    with open(JSON_OUT, "w", encoding="utf-8") as f:
+        json.dump(payload, f, separators=(",", ":"))
+        f.write("\n")
 
 
 if __name__ == "__main__":
