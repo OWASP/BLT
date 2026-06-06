@@ -16,19 +16,3 @@ directory = "./public"
 [vars]
 # Non-secret runtime config
 CORS_ORIGINS = "https://ketchup.owaspblt.org,http://localhost:5173"
-
-# Workers KV namespace — stores encrypted finding bodies and evidence blobs
-[[kv_namespaces]]
-binding  = "WORKSPACE_KV"
-id       = "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"
-preview_id = "REPLACE_WITH_YOUR_PREVIEW_KV_NAMESPACE_ID"
-
-# D1 database — stores workspace/finding metadata (unencrypted, queryable)
-[[d1_databases]]
-binding  = "DB"
-database_name = "blt-ketchup-db"
-database_id   = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
-
-# Secrets (set via `wrangler secret put ROOT_SECRET`)
-# ROOT_SECRET : 32-byte hex string used for HKDF key derivation
-# Never commit actual secret values here.
