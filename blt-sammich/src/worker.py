@@ -5,6 +5,7 @@ import hmac
 import io
 import json
 import time
+import traceback
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -501,7 +502,19 @@ def log_exception_one_line(
     context: str,
     extra: Optional[Dict[str, Any]] = None,
 ) -> None:
-    return None
+    stack = "".join(
+        traceback.format_exception(type(error), error, error.__traceback__)
+    ).replace("\n", "\\n")
+    payload = {
+        "level": "error",
+        "context": context,
+        "error_type": type(error).__name__,
+        "error": str(error),
+        "stack": stack,
+    }
+    if extra:
+        payload["extra"] = extra
+    print(json.dumps(payload, separators=(",", ":"), sort_keys=True))
 
 
 def log_json_event(event: str, payload: Dict[str, Any]) -> None:
@@ -1035,7 +1048,7 @@ async def ensure_schema(env: Any) -> None:
 async def record_activity(
     env: Any, activity_kind: str, payload: Dict[str, Any]
 ) -> None:
-    if activity_kind == "http_request":
+    if activity_kind == "http_request" or payload.get("type") == "http_request":
         return
 
     try:
@@ -2252,6 +2265,8 @@ async def db_insert_event(
     user_name: str = "",
     slack_token: str = "",
 ) -> bool:
+    if str(event_type or "").lower() == "http_request":
+        return False
     await ensure_schema(env)
     created = created_at or utc_now()
     common_params = [
@@ -3516,9 +3531,16 @@ async def handle_event_payload(payload: Dict[str, Any], env: Any) -> Any:
     team_id = payload_team_id(payload)
     if event.get("type") == "app_home_opened":
         if str(event.get("tab") or "home") == "home":
-            await slack_api_publish_home(
-                str(event.get("user") or ""), env, team_id=team_id
-            )
+            user_id = str(event.get("user") or "")
+            try:
+                await slack_api_publish_home(user_id, env, team_id=team_id)
+            except Exception as error:
+                log_exception_one_line(
+                    error,
+                    "app_home_publish_failed",
+                    {"team_id": team_id, "user_id": user_id},
+                )
+            return json_response({"ok": True})
     if event.get("type") == "app_mention":
         channel_id = event.get("channel")
         if channel_id:
@@ -3679,6 +3701,10 @@ def admin_row_detail(row: Dict[str, Any], schema: Dict[str, Any]) -> str:
         if len(detail_parts) >= 2:
             break
     return " | ".join(detail_parts)
+
+
+def admin_row_identity(table_name: str, schema: Dict[str, Any], pk_value: str) -> str:
+    return "{0}.{1} {2}".format(table_name, schema["pk"], pk_value)
 
 
 async def db_admin_table_counts(env: Any) -> Dict[str, Any]:
@@ -3878,7 +3904,7 @@ def render_database_admin_html(context: Dict[str, Any], admin_url: str) -> str:
                 html_escape(selected_table),
                 html_escape(pk_value),
                 html_escape(admin_row_title(row, schema)),
-                html_escape("{0} {1}".format(pk, pk_value)),
+                html_escape(admin_row_identity(selected_table, schema, pk_value)),
                 detail_html,
             )
         )
@@ -3939,7 +3965,7 @@ def render_database_admin_html(context: Dict[str, Any], admin_url: str) -> str:
     )
 
     return """
-    <section class="bg-white rounded-lg shadow p-6 mb-8">
+    <section class="bg-white rounded-lg shadow p-6">
       <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-5">
         <div>
           <h2 class="text-xl font-bold">Database Admin</h2>
@@ -3947,14 +3973,14 @@ def render_database_admin_html(context: Dict[str, Any], admin_url: str) -> str:
         </div>
         <a href="{admin_url}?table={selected_table}&add=1" class="inline-flex items-center gap-2 text-sm font-semibold text-red-600"><i class="fas fa-plus"></i>Add row</a>
       </div>
-      <div class="grid gap-6 lg:grid-cols-[220px_minmax(260px,360px)_1fr]">
+      <div class="grid gap-6 lg:grid-cols-[260px_minmax(320px,460px)_minmax(0,1fr)]">
         <nav aria-label="Database tables" class="space-y-2">
           <h3 class="text-xs font-bold uppercase tracking-wide text-gray-500">Tables</h3>
           <div class="space-y-2">{table_links}</div>
         </nav>
         <div class="min-w-0 space-y-2">
           <h3 class="text-xs font-bold uppercase tracking-wide text-gray-500">Rows in {selected_table}</h3>
-          <div class="max-h-[720px] space-y-2 overflow-y-auto pr-1">{rows}</div>
+          <div class="max-h-[calc(100vh-220px)] space-y-2 overflow-y-auto pr-1">{rows}</div>
         </div>
         {form_panel}
       </div>
@@ -3965,107 +3991,6 @@ def render_database_admin_html(context: Dict[str, Any], admin_url: str) -> str:
         rows="\n".join(row_html),
         selected_table=html_escape(selected_table),
         form_panel=form_panel,
-    )
-
-
-def admin_field_value(row: Optional[Dict[str, Any]], name: str, default: Any = "") -> str:
-    if not row:
-        return str(default)
-    value = row.get(name)
-    return str(default if value is None else value)
-
-
-def render_workspace_admin_form(
-    admin_url: str, workspace: Optional[Dict[str, Any]] = None
-) -> str:
-    editing = bool(workspace)
-    title = "Edit Workspace" if editing else "Add Workspace"
-    button_text = "Save Workspace" if editing else "Create Workspace"
-    hidden_workspace_id = ""
-    if editing and workspace:
-        hidden_workspace_id = '<input type="hidden" name="workspace_id" value="{0}" />'.format(
-            html_escape(admin_field_value(workspace, "id"))
-        )
-    return """
-    <section class="bg-white rounded-lg shadow p-6 mb-8">
-      <div class="flex items-center justify-between gap-4 mb-4">
-        <h2 class="text-xl font-bold">{title}</h2>
-        <a href="{admin_url}" class="text-sm font-semibold text-gray-500 hover:text-red-600">Cancel</a>
-      </div>
-      <form method="post" action="{admin_url}" class="grid gap-4 lg:grid-cols-2">
-        <input type="hidden" name="action" value="save_workspace" />
-        {hidden_workspace_id}
-        <div><label class="block text-sm font-semibold mb-1">Team ID</label><input name="team_id" required value="{team_id}" class="w-full border border-gray-300 rounded-lg px-3 py-2" /></div>
-        <div><label class="block text-sm font-semibold mb-1">Team Name</label><input name="team_name" required value="{team_name}" class="w-full border border-gray-300 rounded-lg px-3 py-2" /></div>
-        <div><label class="block text-sm font-semibold mb-1">Channels</label><input name="channel_count" type="number" min="0" value="{channel_count}" class="w-full border border-gray-300 rounded-lg px-3 py-2" /></div>
-        <div><label class="block text-sm font-semibold mb-1">Members</label><input name="member_count" type="number" min="0" value="{member_count}" class="w-full border border-gray-300 rounded-lg px-3 py-2" /></div>
-        <div><label class="block text-sm font-semibold mb-1">Invite Link</label><input name="invite_link" value="{invite_link}" class="w-full border border-gray-300 rounded-lg px-3 py-2" /></div>
-        <div><label class="block text-sm font-semibold mb-1">GitHub Org URL</label><input name="github_org_url" value="{github_org_url}" class="w-full border border-gray-300 rounded-lg px-3 py-2" /></div>
-        <div><label class="block text-sm font-semibold mb-1">Slack App ID</label><input name="slack_app_id" value="{app_id}" placeholder="A..." class="w-full border border-gray-300 rounded-lg px-3 py-2" /></div>
-        <div><label class="block text-sm font-semibold mb-1">Slack Client ID</label><input name="slack_client_id" autocomplete="off" class="w-full border border-gray-300 rounded-lg px-3 py-2" /></div>
-        <div><label class="block text-sm font-semibold mb-1">Slack App Token</label><input name="slack_app_token" type="password" autocomplete="off" placeholder="xapp-..." class="w-full border border-gray-300 rounded-lg px-3 py-2" /></div>
-        <div><label class="block text-sm font-semibold mb-1">Slack Bot Token</label><input name="slack_bot_token" type="password" autocomplete="off" placeholder="xoxb-..." class="w-full border border-gray-300 rounded-lg px-3 py-2" /></div>
-        <div><label class="block text-sm font-semibold mb-1">Slack Client Secret</label><input name="slack_client_secret" type="password" autocomplete="off" class="w-full border border-gray-300 rounded-lg px-3 py-2" /></div>
-        <div><label class="block text-sm font-semibold mb-1">Slack Signing Secret</label><input name="slack_signing_secret" type="password" autocomplete="off" class="w-full border border-gray-300 rounded-lg px-3 py-2" /></div>
-        <div class="lg:col-span-2"><button class="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700" type="submit"><i class="fas fa-save"></i>{button_text}</button></div>
-      </form>
-    </section>
-    """.format(
-        title=html_escape(title),
-        admin_url=html_escape(admin_url),
-        hidden_workspace_id=hidden_workspace_id,
-        team_id=html_escape(admin_field_value(workspace, "team_id")),
-        team_name=html_escape(admin_field_value(workspace, "team_name")),
-        channel_count=html_escape(admin_field_value(workspace, "channel_count", 0)),
-        member_count=html_escape(admin_field_value(workspace, "member_count", 0)),
-        invite_link=html_escape(admin_field_value(workspace, "invite_link")),
-        github_org_url=html_escape(admin_field_value(workspace, "github_org_url")),
-        app_id=html_escape(admin_field_value(workspace, "app_id")),
-        button_text=html_escape(button_text),
-    )
-
-
-def render_server_admin_form(
-    admin_url: str, server: Optional[Dict[str, Any]] = None
-) -> str:
-    editing = bool(server)
-    title = "Edit Server" if editing else "Add Server"
-    button_text = "Save Server" if editing else "Create Server"
-    status = admin_field_value(server, "status", "online")
-    options = []
-    for option in ("online", "degraded", "offline"):
-        selected = " selected" if option == status else ""
-        options.append('<option{0}>{1}</option>'.format(selected, html_escape(option)))
-    hidden_server_id = ""
-    if editing and server:
-        hidden_server_id = '<input type="hidden" name="server_id" value="{0}" />'.format(
-            html_escape(admin_field_value(server, "id"))
-        )
-    return """
-    <section class="bg-white rounded-lg shadow p-6 mb-8">
-      <div class="flex items-center justify-between gap-4 mb-4">
-        <h2 class="text-xl font-bold">{title}</h2>
-        <a href="{admin_url}" class="text-sm font-semibold text-gray-500 hover:text-red-600">Cancel</a>
-      </div>
-      <form method="post" action="{admin_url}" class="grid gap-4 lg:grid-cols-2">
-        <input type="hidden" name="action" value="save_server" />
-        {hidden_server_id}
-        <div><label class="block text-sm font-semibold mb-1">Name</label><input name="name" required value="{name}" class="w-full border border-gray-300 rounded-lg px-3 py-2" /></div>
-        <div><label class="block text-sm font-semibold mb-1">URL</label><input name="url" required value="{url}" class="w-full border border-gray-300 rounded-lg px-3 py-2" /></div>
-        <div><label class="block text-sm font-semibold mb-1">Status</label><select name="status" class="w-full border border-gray-300 rounded-lg px-3 py-2">{options}</select></div>
-        <div><label class="block text-sm font-semibold mb-1">Description</label><textarea name="description" class="w-full border border-gray-300 rounded-lg px-3 py-2" rows="3">{description}</textarea></div>
-        <div class="lg:col-span-2"><button class="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700" type="submit"><i class="fas fa-server"></i>{button_text}</button></div>
-      </form>
-    </section>
-    """.format(
-        title=html_escape(title),
-        admin_url=html_escape(admin_url),
-        hidden_server_id=hidden_server_id,
-        name=html_escape(admin_field_value(server, "name")),
-        url=html_escape(admin_field_value(server, "url")),
-        options="".join(options),
-        description=html_escape(admin_field_value(server, "description")),
-        button_text=html_escape(button_text),
     )
 
 
@@ -4080,102 +4005,6 @@ def render_admin_html(
     edit_server_id: str = "",
 ) -> str:
     admin_url = admin_path(env)
-    selected_workspace = None
-    if edit_workspace_team_id:
-        selected_workspace = next(
-            (
-                ws
-                for ws in workspaces
-                if str(ws.get("team_id") or "") == edit_workspace_team_id
-            ),
-            None,
-        )
-    selected_server = None
-    if edit_server_id:
-        selected_server = next(
-            (
-                server
-                for server in servers
-                if str(server.get("id") or "") == str(edit_server_id)
-            ),
-            None,
-        )
-    workspace_form_html = ""
-    if admin_mode == "add_workspace" or selected_workspace:
-        workspace_form_html = render_workspace_admin_form(admin_url, selected_workspace)
-    server_form_html = ""
-    if admin_mode == "add_server" or selected_server:
-        server_form_html = render_server_admin_form(admin_url, selected_server)
-
-    workspace_rows = []
-    for ws in workspaces:
-        team_id = str(ws.get("team_id") or "")
-        workspace_id = str(ws.get("workspace_id") or "")
-        workspace_rows.append(
-            "<tr class=\"border-t align-top\">"
-            "<td class=\"py-3 pr-4 font-semibold\">{0}</td>"
-            "<td class=\"py-3 pr-4 font-mono text-xs text-gray-500\">{1}</td>"
-            "<td class=\"py-3 pr-4\">{2}</td>"
-            "<td class=\"py-3 pr-4 text-right\">{3}</td>"
-            "<td class=\"py-3 pr-4 text-right\">{4}</td>"
-            "<td class=\"py-3 pr-4 text-right\">{5}</td>"
-            "<td class=\"py-3 text-right whitespace-nowrap\">"
-            "<a class=\"text-red-600 hover:text-red-700 font-semibold text-sm mr-3\" href=\"{6}?edit_workspace={7}\">Edit</a>"
-            "<form method=\"post\" action=\"{6}\" class=\"inline\" onsubmit=\"return confirm('Delete this workspace?')\">"
-            "<input type=\"hidden\" name=\"action\" value=\"delete_workspace\" />"
-            "<input type=\"hidden\" name=\"team_id\" value=\"{7}\" />"
-            "<input type=\"hidden\" name=\"workspace_id\" value=\"{8}\" />"
-            "<button class=\"text-gray-500 hover:text-red-700 font-semibold text-sm\" type=\"submit\">Delete</button>"
-            "</form>"
-            "</td>"
-            "</tr>".format(
-                html_escape(ws.get("team_name") or "Workspace"),
-                html_escape(team_id),
-                render_status_chip(str(ws.get("status") or "connected")),
-                int(ws.get("total_activities") or 0),
-                int(ws.get("channel_count") or 0),
-                int(ws.get("member_count") or 0),
-                html_escape(admin_url),
-                html_escape(team_id),
-                html_escape(workspace_id),
-            )
-        )
-    if not workspace_rows:
-        workspace_rows.append(
-            '<tr><td colspan="7" class="py-8 text-center text-gray-400">No connected workspaces yet.</td></tr>'
-        )
-
-    server_rows = []
-    for server in servers:
-        server_id = int(server.get("id") or 0)
-        server_rows.append(
-            "<tr class=\"border-t align-top\">"
-            "<td class=\"py-3 pr-4 font-semibold\">{0}</td>"
-            "<td class=\"py-3 pr-4\"><a class=\"text-red-600 hover:underline\" href=\"{1}\" target=\"_blank\" rel=\"noopener noreferrer\">{1}</a></td>"
-            "<td class=\"py-3 pr-4\">{2}</td>"
-            "<td class=\"py-3 pr-4 text-sm text-gray-500\">{3}</td>"
-            "<td class=\"py-3 text-right whitespace-nowrap\">"
-            "<a class=\"text-red-600 hover:text-red-700 font-semibold text-sm mr-3\" href=\"{4}?edit_server={5}\">Edit</a>"
-            "<form method=\"post\" action=\"{4}\" class=\"inline\">"
-            "<input type=\"hidden\" name=\"action\" value=\"delete_server\" />"
-            "<input type=\"hidden\" name=\"server_id\" value=\"{5}\" />"
-            "<button class=\"text-red-600 hover:text-red-700 font-semibold text-sm\" type=\"submit\">Delete</button>"
-            "</form>"
-            "</td>"
-            "</tr>".format(
-                html_escape(server.get("name") or "Server"),
-                html_escape(server.get("url") or "#"),
-                render_status_chip(str(server.get("status") or "online")),
-                html_escape(server.get("description") or ""),
-                admin_url,
-                server_id,
-            )
-        )
-    if not server_rows:
-        server_rows.append(
-            '<tr><td colspan="5" class="py-8 text-center text-gray-400">No managed servers yet.</td></tr>'
-        )
-
     alert = ""
     if message:
         alert = (
@@ -4199,51 +4028,21 @@ def render_admin_html(
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 </head>
 <body class="bg-gray-50 text-gray-900">
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <main class="w-full px-4 sm:px-6 lg:px-8 py-8">
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
       <div>
         <h1 class="text-3xl font-bold">BLT-Sammich Admin</h1>
-        <p class="text-gray-500 text-sm">Manage connected Slack workspaces and public server cards.</p>
+        <p class="text-gray-500 text-sm">Browse, edit, create, and delete database records.</p>
       </div>
       <a href="/" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-semibold hover:bg-gray-50"><i class="fas fa-home"></i>Homepage</a>
     </div>
     {alert}
-    <section class="bg-white rounded-lg shadow p-6 mb-8">
-      <div class="flex items-center justify-between gap-4 mb-4">
-        <h2 class="text-xl font-bold">Connected Workspaces</h2>
-        <a href="{admin_url}?mode=add_workspace" class="inline-flex items-center gap-2 px-3 py-2 bg-red-600 text-white rounded-lg text-sm font-semibold hover:bg-red-700"><i class="fas fa-plus"></i>Add Workspace</a>
-      </div>
-      <div class="overflow-x-auto">
-        <table class="w-full text-sm">
-          <thead><tr class="text-left text-gray-500"><th class="py-2 pr-4">Name</th><th class="py-2 pr-4">Team ID</th><th class="py-2 pr-4">Status</th><th class="py-2 pr-4 text-right">Activities</th><th class="py-2 pr-4 text-right">Channels</th><th class="py-2 pr-4 text-right">Members</th><th class="py-2 text-right">Actions</th></tr></thead>
-          <tbody>{workspace_rows}</tbody>
-        </table>
-      </div>
-    </section>
-    {workspace_form_html}
-    <section class="bg-white rounded-lg shadow p-6 mb-8">
-      <div class="flex items-center justify-between gap-4 mb-4">
-        <h2 class="text-xl font-bold">Managed Servers</h2>
-        <a href="{admin_url}?mode=add_server" class="inline-flex items-center gap-2 px-3 py-2 bg-red-600 text-white rounded-lg text-sm font-semibold hover:bg-red-700"><i class="fas fa-plus"></i>Add Server</a>
-      </div>
-      <div class="overflow-x-auto">
-        <table class="w-full text-sm">
-          <thead><tr class="text-left text-gray-500"><th class="py-2 pr-4">Name</th><th class="py-2 pr-4">URL</th><th class="py-2 pr-4">Status</th><th class="py-2 pr-4">Description</th><th class="py-2 text-right">Actions</th></tr></thead>
-          <tbody>{server_rows}</tbody>
-        </table>
-      </div>
-    </section>
-    {server_form_html}
     {database_admin_html}
   </main>
 </body>
 </html>""".format(
         alert=alert,
         admin_url=html_escape(admin_url),
-        workspace_rows="\n".join(workspace_rows),
-        workspace_form_html=workspace_form_html,
-        server_rows="\n".join(server_rows),
-        server_form_html=server_form_html,
         database_admin_html=database_admin_html,
     )
 
@@ -4257,80 +4056,32 @@ async def handle_admin_get(request: Any, env: Any) -> Any:
     selected_table = params.get("table", ["workspaces"])[0]
     edit_pk = params.get("edit", [""])[0]
     add_db_row = params.get("add", [""])[0] == "1"
-    admin_mode = params.get("mode", [""])[0]
-    edit_workspace_team_id = params.get("edit_workspace", [""])[0]
-    edit_server_id = params.get("edit_server", [""])[0]
-    return html_response(
-        render_admin_html(
-            env,
-            await list_connected_workspaces(env),
-            await list_managed_servers(env),
-            database_context=await db_admin_context(
-                env, selected_table, edit_pk, add_db_row
-            ),
-            message=message,
-            admin_mode=admin_mode,
-            edit_workspace_team_id=edit_workspace_team_id,
-            edit_server_id=edit_server_id,
+    try:
+        return html_response(
+            render_admin_html(
+                env,
+                [],
+                [],
+                database_context=await db_admin_context(
+                    env, selected_table, edit_pk, add_db_row
+                ),
+                message=message,
+            )
         )
-    )
+    except Exception as error:
+        log_exception_one_line(
+            error,
+            "admin_get_failed",
+            {"table": selected_table, "edit": edit_pk, "add": add_db_row},
+        )
+        return html_response(
+            "<h1>Admin error</h1><p>{0}</p>".format(html_escape(str(error))),
+            status=500,
+        )
 
 
-async def handle_admin_post(request: Any, env: Any) -> Any:
-    if not is_admin_request(request, env):
-        return basic_auth_response()
-    body_text = str(await request.text())
-    form = parse_form_encoded(body_text)
+async def handle_admin_form_action(env: Any, form: Dict[str, str]) -> Any:
     action = form.get("action", "")
-    if action == "save_workspace":
-        team_id = form.get("team_id", "").strip()
-        team_name = form.get("team_name", "").strip()
-        await upsert_connected_workspace(
-            env,
-            team_id,
-            team_name,
-            invite_link=form.get("invite_link", "").strip(),
-            github_org_url=form.get("github_org_url", "").strip(),
-            channel_count=int(form.get("channel_count") or 0),
-            member_count=int(form.get("member_count") or 0),
-        )
-        await db_upsert_workspace(
-            env,
-            team_id=team_id,
-            team_name=team_name,
-            bot_token=form.get("slack_bot_token", "").strip(),
-            app_id=form.get("slack_app_id", "").strip(),
-            invite_link=form.get("invite_link", "").strip(),
-        )
-        await db_upsert_slack_app(
-            env,
-            app_id=form.get("slack_app_id", "").strip(),
-            client_id=form.get("slack_client_id", "").strip(),
-            client_secret=form.get("slack_client_secret", "").strip(),
-            signing_secret=form.get("slack_signing_secret", "").strip(),
-            app_token=form.get("slack_app_token", "").strip(),
-        )
-        return redirect_response(admin_path(env) + "?message=Workspace+saved")
-    if action == "delete_workspace":
-        await delete_connected_workspace(
-            env,
-            form.get("team_id", "").strip(),
-            form.get("workspace_id", "").strip(),
-        )
-        return redirect_response(admin_path(env) + "?message=Workspace+deleted")
-    if action == "save_server":
-        await save_managed_server(
-            env,
-            form.get("name", "").strip(),
-            form.get("url", "").strip(),
-            form.get("status", "online").strip(),
-            form.get("description", "").strip(),
-            int(form.get("server_id") or 0) or None,
-        )
-        return redirect_response(admin_path(env) + "?message=Server+saved")
-    if action == "delete_server":
-        await delete_managed_server(env, int(form.get("server_id") or 0))
-        return redirect_response(admin_path(env) + "?message=Server+deleted")
     if action in ("db_create", "db_update", "db_delete"):
         table_name = form.get("table", "")
         if table_name not in ADMIN_TABLE_SCHEMAS:
@@ -4344,6 +4095,28 @@ async def handle_admin_post(request: Any, env: Any) -> Any:
         await db_admin_delete_row(env, table_name, form.get("pk", ""))
         return admin_redirect(env, "Row deleted", table_name)
     return redirect_response(admin_path(env) + "?message=No+changes+made")
+
+
+async def handle_admin_post(request: Any, env: Any) -> Any:
+    if not is_admin_request(request, env):
+        return basic_auth_response()
+    body_text = str(await request.text())
+    form = parse_form_encoded(body_text)
+    try:
+        return await handle_admin_form_action(env, form)
+    except Exception as error:
+        table_name = form.get("table", "")
+        extra = {
+            "action": form.get("action", ""),
+            "table": table_name,
+            "pk": form.get("pk", ""),
+        }
+        log_exception_one_line(error, "admin_post_failed", extra)
+        if table_name in ADMIN_TABLE_SCHEMAS:
+            return admin_redirect(env, "Error: {0}".format(str(error)), table_name)
+        return redirect_response(
+            admin_path(env) + "?" + urlencode({"message": "Error: {0}".format(str(error))})
+        )
 
 
 async def handle_oauth_callback(request_url: Any, env: Any) -> Any:
@@ -4619,12 +4392,5 @@ class Default(WorkerEntrypoint):
         try:
             return await handle_request(request, self.env)
         except Exception as error:
-            log_exception_one_line(
-                error,
-                "unhandled_fetch_exception",
-                {
-                    "url": str(request.url),
-                    "method": str(request.method).upper(),
-                },
-            )
+            log_exception_one_line(error, "unhandled_fetch_exception")
             return build_response("Internal Server Error", status=500)

@@ -1,5 +1,7 @@
 import base64
 import asyncio
+import contextlib
+import io
 import json
 from pathlib import Path
 
@@ -440,47 +442,33 @@ def test_basic_auth_rejects_missing_config():
     assert not worker.is_admin_request(_Request("Basic " + token), _Env())
 
 
-def test_render_admin_html_includes_workspaces_and_servers():
+def test_render_admin_html_focuses_on_database_admin():
     env = _Env()
     setattr(env, "ADMIN_URL", "/private-admin")
     html = worker.render_admin_html(
         env,
-        [
-            {
-                "team_name": "Security Team",
-                "team_id": "T123",
-                "id": 2,
-                "status": "connected",
-                "total_activities": 7,
-                "channel_count": 3,
-                "member_count": 42,
-            }
-        ],
-        [
-            {
-                "id": 1,
-                "name": "Production",
-                "url": "https://example.com",
-                "status": "online",
-                "description": "Main endpoint",
-            }
-        ],
-        admin_mode="add_workspace",
+        [],
+        [],
+        database_context={
+            "tables": ["workspaces"],
+            "counts": {"workspaces": 1},
+            "selected_table": "workspaces",
+            "schema": worker.ADMIN_TABLE_SCHEMAS["workspaces"],
+            "rows": [{"id": 1, "team_id": "T123", "team_name": "Security Team"}],
+            "edit_row": None,
+            "edit_pk": "",
+            "add_row": False,
+        },
     )
 
+    assert "Database Admin" in html
     assert "Security Team" in html
-    assert "Production" in html
+    assert "workspaces.id 1" in html
     assert "/private-admin" in html
-    assert "Add Workspace" in html
-    assert "Add Server" in html
-    assert "Edit" in html
-    assert "Delete" in html
-    assert "slack_app_token" in html
-    assert "slack_bot_token" in html
-    assert "slack_app_id" in html
-    assert "slack_client_id" in html
-    assert "slack_client_secret" in html
-    assert "slack_signing_secret" in html
+    assert "Connected Workspaces" not in html
+    assert "Managed Servers" not in html
+    assert "Add Workspace" not in html
+    assert "Add Server" not in html
 
 
 def test_render_admin_html_includes_database_admin_context():
@@ -1172,6 +1160,8 @@ def test_record_activity_ignores_http_request_events():
     worker.SCHEMA_READY = False
     try:
         asyncio.run(worker.record_activity(env, "http_request", payload))
+        asyncio.run(worker.record_activity(env, "event", payload))
+        inserted = asyncio.run(worker.db_insert_event(env, None, "Http_Request"))
     finally:
         worker.d1_run = original_d1_run
         worker.SCHEMA_READY = original_schema_ready
@@ -1182,6 +1172,7 @@ def test_record_activity_ignores_http_request_events():
         if "INSERT INTO events" in query
     ]
     assert event_inserts == []
+    assert inserted is False
 
 
 def test_db_upsert_workspace_persists_slack_tokens():
@@ -1439,7 +1430,7 @@ def test_handle_event_payload_publishes_app_home_commands():
     worker.slack_api_publish_home = fake_publish_home
     worker.json_response = lambda payload, status=200, headers=None: payload
     try:
-        asyncio.run(
+        response = asyncio.run(
             worker.handle_event_payload(
                 {
                     "type": "event_callback",
@@ -1457,6 +1448,42 @@ def test_handle_event_payload_publishes_app_home_commands():
         worker.json_response = original_json_response
 
     assert published == {"user_id": "U123", "team_id": "T123"}
+    assert response == {"ok": True}
+
+
+def test_handle_event_payload_acknowledges_app_home_publish_errors():
+    original_publish_home = worker.slack_api_publish_home
+    original_json_response = worker.json_response
+
+    async def fake_publish_home(user_id, env, team_id=""):
+        raise RuntimeError("views.publish failed")
+
+    worker.slack_api_publish_home = fake_publish_home
+    worker.json_response = lambda payload, status=200, headers=None: payload
+    try:
+        captured = io.StringIO()
+        with contextlib.redirect_stdout(captured):
+            response = asyncio.run(
+                worker.handle_event_payload(
+                    {
+                        "type": "event_callback",
+                        "team_id": "T123",
+                        "event": {
+                            "type": "app_home_opened",
+                            "user": "U123",
+                            "tab": "home",
+                        },
+                    },
+                    _Env(),
+                )
+            )
+    finally:
+        worker.slack_api_publish_home = original_publish_home
+        worker.json_response = original_json_response
+
+    assert response == {"ok": True}
+    assert "app_home_publish_failed" in captured.getvalue()
+    assert "views.publish failed" in captured.getvalue()
 
 
 def test_slack_api_publish_home_uses_views_publish_shape():
