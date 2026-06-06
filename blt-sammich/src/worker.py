@@ -48,6 +48,15 @@ def to_python(value: Any) -> Any:
         return value
 
 
+def normalize_d1_param(value: Any) -> Any:
+    value = to_python(value)
+    if value is None:
+        return ""
+    if str(type(value)).endswith(".JsProxy'>") and str(value) == "undefined":
+        return ""
+    return value
+
+
 def env_value(env: Any, name: str, default: Optional[str] = None) -> Optional[str]:
     try:
         value = getattr(env, name)
@@ -601,7 +610,7 @@ async def d1_run(
 ) -> Dict[str, Any]:
     statement = env.DB.prepare(sql)
     if params:
-        statement = statement.bind(*params)
+        statement = statement.bind(*[normalize_d1_param(param) for param in params])
     result = await statement.run()
     return to_python(result)
 

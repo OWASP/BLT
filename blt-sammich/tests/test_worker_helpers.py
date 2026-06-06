@@ -345,6 +345,31 @@ def test_db_insert_event_persists_slack_team_id_even_without_workspace():
     assert captured["params"][5] == "T123"
 
 
+def test_d1_run_normalizes_none_params_before_binding():
+    captured = {}
+
+    class _Statement:
+        def bind(self, *params):
+            captured["params"] = params
+            return self
+
+        async def run(self):
+            return {"success": True}
+
+    class _DB:
+        def prepare(self, query):
+            captured["query"] = query
+            return _Statement()
+
+    env = _Env()
+    setattr(env, "DB", _DB())
+
+    result = asyncio.run(worker.d1_run(env, "INSERT INTO example VALUES (?, ?)", [None, "ok"]))
+
+    assert result == {"success": True}
+    assert captured["params"] == ("", "ok")
+
+
 def test_db_insert_event_retries_when_slack_team_id_column_is_missing():
     captured = []
     original_d1_run = worker.d1_run
