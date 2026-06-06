@@ -1,7 +1,7 @@
 name = "blt-profiles"
 main = "src/index.py"
 compatibility_date = "2026-06-05"
-compatibility_flags = [ "python_workers" ]
+compatibility_flags = [ "python_workers", "disable_python_external_sdk" ]
 
 [assets]
 directory = "./public"

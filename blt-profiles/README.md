@@ -258,7 +258,6 @@ BLT-Profiles/
 ├── src/
 │   └── index.py
 │
-├── requirements.txt
 ├── wrangler.toml
 │
 └── .gitlab/
@@ -424,7 +423,6 @@ The barrier to participation should remain low.
 * Cloudflare Workers
 * Cloudflare Static Assets
 * Python
-* pip
 * HTML
 * Tailwind CSS
 * Browser JavaScript
@@ -438,10 +436,7 @@ The barrier to participation should remain low.
 The site is configured for Cloudflare Workers Static Assets.
 
 ```bash
-python -m venv .venv
-. .venv/bin/activate
-python -m pip install -r requirements.txt
-pywrangler deploy
+wrangler deploy
 ```
 
 The Worker serves:
@@ -454,8 +449,8 @@ The Worker serves:
 Set these Cloudflare Worker secrets:
 
 ```bash
-pywrangler secret put GITLAB_ACCESS_TOKEN
-pywrangler secret put GITLAB_WEBHOOK_TOKEN
+wrangler secret put GITLAB_ACCESS_TOKEN
+wrangler secret put GITLAB_WEBHOOK_TOKEN
 ```
 
 Required Worker variables are defined in `wrangler.toml`:
