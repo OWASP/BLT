@@ -1,5 +1,6 @@
 import base64
 import asyncio
+import json
 from pathlib import Path
 
 from src import worker
@@ -47,10 +48,18 @@ def test_app_home_view_lists_available_commands():
     encoded = str(view)
 
     assert view["type"] == "home"
+    assert "blocks" in view
     assert "/contrib" in encoded
     assert "/stats" in encoded
     assert "/discover [search term]" in encoded
     assert "/installed_apps" in encoded
+
+
+def test_manifest_subscribes_to_app_home_opened():
+    manifest = (Path(__file__).resolve().parents[1] / "manifest.yaml").read_text()
+
+    assert "home_tab_enabled: true" in manifest
+    assert "- app_home_opened" in manifest
 
 
 def test_repo_response_without_query_returns_blocks():
@@ -273,7 +282,6 @@ def test_lettuce_model_tables_are_in_schema_bootstrap():
     )
 
     for table_name in (
-        "slack_activity",
         "workspace_installations",
         "connected_workspaces",
         "managed_servers",
@@ -288,6 +296,9 @@ def test_lettuce_model_tables_are_in_schema_bootstrap():
         "user_workspaces",
     ):
         assert "CREATE TABLE IF NOT EXISTS {0}".format(table_name) in schema_sql
+    assert "DROP TABLE IF EXISTS slack_activity" in schema_sql
+    assert "slack_activity" not in worker.ADMIN_TABLE_SCHEMAS
+    assert "slack_response_data" in schema_sql
 
 
 def test_public_event_rows_hide_request_payload():
@@ -386,6 +397,39 @@ def test_db_insert_event_persists_slack_team_id_even_without_workspace():
     assert "slack_team_id" in captured["query"]
     assert captured["params"][0] is None
     assert captured["params"][5] == "T123"
+
+
+def test_db_insert_event_persists_slack_response_data():
+    captured = {}
+    original_d1_run = worker.d1_run
+    original_schema_ready = worker.SCHEMA_READY
+
+    async def fake_d1_run(env, query, params=None):
+        captured["query"] = query
+        captured["params"] = params
+        return {"success": True}
+
+    env = _Env()
+    setattr(env, "DB", object())
+    worker.d1_run = fake_d1_run
+    worker.SCHEMA_READY = False
+    try:
+        asyncio.run(
+            worker.db_insert_event(
+                env,
+                None,
+                "Slack_API_Response",
+                slack_team_id="T123",
+                request_data='{"api_method": "chat.postMessage"}',
+                slack_response_data='{"ok": true}',
+            )
+        )
+    finally:
+        worker.d1_run = original_d1_run
+        worker.SCHEMA_READY = original_schema_ready
+
+    assert "slack_response_data" in captured["query"]
+    assert captured["params"][-1] == '{"ok": true}'
 
 
 def test_d1_run_normalizes_none_params_before_binding():
@@ -718,6 +762,104 @@ def test_handle_event_payload_publishes_app_home_commands():
         worker.json_response = original_json_response
 
     assert published == {"user_id": "U123", "team_id": "T123"}
+
+
+def test_slack_api_publish_home_uses_views_publish_shape():
+    captured = {}
+    original_fetch_json = worker.fetch_json
+    original_log_response = worker.log_slack_api_response
+    original_bot_token = worker.db_get_workspace_bot_token
+
+    async def fake_fetch_json(url, method="GET", headers=None, body=None):
+        captured["url"] = url
+        captured["method"] = method
+        captured["headers"] = headers
+        captured["body"] = json.loads(body or "{}")
+        return True, {"ok": True}, 200
+
+    async def fake_log_response(*args, **kwargs):
+        captured["logged"] = True
+
+    async def fake_bot_token(env, team_id="", channel_id=""):
+        return "xoxb-token"
+
+    worker.fetch_json = fake_fetch_json
+    worker.log_slack_api_response = fake_log_response
+    worker.db_get_workspace_bot_token = fake_bot_token
+    try:
+        asyncio.run(worker.slack_api_publish_home("U123", _Env(), team_id="T123"))
+    finally:
+        worker.fetch_json = original_fetch_json
+        worker.log_slack_api_response = original_log_response
+        worker.db_get_workspace_bot_token = original_bot_token
+
+    assert captured["url"] == "https://slack.com/api/views.publish"
+    assert captured["method"] == "POST"
+    assert captured["headers"]["Authorization"] == "Bearer xoxb-token"
+    assert captured["body"]["user_id"] == "U123"
+    assert captured["body"]["view"]["type"] == "home"
+    assert "/stats" in str(captured["body"]["view"])
+    assert captured["logged"] is True
+
+
+def test_slack_api_post_message_logs_slack_response_payload():
+    captured = {}
+    original_fetch_json = worker.fetch_json
+    original_log_response = worker.log_slack_api_response
+    original_bot_token = worker.db_get_workspace_bot_token
+
+    async def fake_fetch_json(url, method="GET", headers=None, body=None):
+        captured["url"] = url
+        captured["body"] = body
+        return True, {"ok": True, "ts": "123.456"}, 200
+
+    async def fake_log_response(
+        env,
+        team_id,
+        channel_id,
+        user_id,
+        api_method,
+        request_payload,
+        response_payload,
+        ok,
+        status_code,
+    ):
+        captured["log"] = {
+            "team_id": team_id,
+            "channel_id": channel_id,
+            "api_method": api_method,
+            "request_payload": request_payload,
+            "response_payload": response_payload,
+            "ok": ok,
+            "status_code": status_code,
+        }
+
+    async def fake_bot_token(env, team_id="", channel_id=""):
+        return "xoxb-token"
+
+    worker.fetch_json = fake_fetch_json
+    worker.log_slack_api_response = fake_log_response
+    worker.db_get_workspace_bot_token = fake_bot_token
+    try:
+        asyncio.run(
+            worker.slack_api_post_message(
+                "C123",
+                "hello",
+                _Env(),
+                team_id="T123",
+            )
+        )
+    finally:
+        worker.fetch_json = original_fetch_json
+        worker.log_slack_api_response = original_log_response
+        worker.db_get_workspace_bot_token = original_bot_token
+
+    assert captured["url"] == "https://slack.com/api/chat.postMessage"
+    assert captured["log"]["team_id"] == "T123"
+    assert captured["log"]["channel_id"] == "C123"
+    assert captured["log"]["api_method"] == "chat.postMessage"
+    assert captured["log"]["response_payload"] == {"ok": True, "ts": "123.456"}
+    assert captured["log"]["ok"] is True
 
 
 def test_handle_event_payload_replies_when_bot_is_mentioned_in_channel_message():

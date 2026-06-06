@@ -67,6 +67,7 @@ settings:
   event_subscriptions:
     request_url: https://sammich.owaspblt.org/slack/events
     bot_events:
+      - app_home_opened
       - app_mention
       - message.channels
       - message.groups

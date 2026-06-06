@@ -37,21 +37,6 @@ SUPPORTED_SLACK_COMMANDS = set(
     command.split(" ", 1)[0] for command, _ in SLACK_COMMAND_DEFINITIONS
 )
 ADMIN_TABLE_SCHEMAS = {
-    "slack_activity": {
-        "pk": "id",
-        "auto_pk": True,
-        "columns": [
-            ("id", "INTEGER"),
-            ("activity_kind", "TEXT"),
-            ("slack_type", "TEXT"),
-            ("command_name", "TEXT"),
-            ("team_id", "TEXT"),
-            ("user_id", "TEXT"),
-            ("channel_id", "TEXT"),
-            ("payload_json", "TEXT"),
-            ("received_at", "TEXT"),
-        ],
-    },
     "workspace_installations": {
         "pk": "team_id",
         "auto_pk": False,
@@ -187,6 +172,7 @@ ADMIN_TABLE_SCHEMAS = {
             ("webhook_event_subtype", "TEXT"),
             ("webhook_retry_num", "TEXT"),
             ("webhook_retry_reason", "TEXT"),
+            ("slack_response_data", "TEXT"),
             ("created_at", "TEXT"),
         ],
     },
@@ -876,29 +862,19 @@ async def record_activity(
     team_id = payload_team_id(payload)
     user_id = payload_user_id(payload)
     channel_id = payload_channel_id(payload)
+    channel_name = payload_channel_name(payload)
     payload_json = json.dumps(payload, sort_keys=True)
-
-    await d1_run(
-        env,
-        (
-            "INSERT INTO slack_activity ("
-            "activity_kind, slack_type, command_name, team_id, user_id, channel_id, payload_json, received_at"
-            ") VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
-        ),
-        [
-            activity_kind,
-            slack_type,
-            command_name,
-            team_id,
-            user_id,
-            channel_id,
-            payload_json,
-            received_at,
-        ],
-    )
     workspace_id = None
     if team_id:
         try:
+            team = payload.get("team") if isinstance(payload.get("team"), dict) else {}
+            workspace_id = await db_upsert_workspace(
+                env,
+                team_id=team_id,
+                team_name=str(
+                    team.get("name") or payload.get("team_name") or team_id
+                ),
+            )
             workspace = await db_get_workspace_by_team(env, team_id)
             workspace_id = workspace.get("id") if workspace else None
         except Exception as error:
@@ -906,6 +882,37 @@ async def record_activity(
                 error,
                 "record_activity_workspace_lookup_failed",
                 {"team_id": team_id},
+            )
+    if user_id:
+        try:
+            await db_get_or_create_user(
+                env, user_id, team_id or "unknown", user_id, "", ""
+            )
+        except Exception as error:
+            log_exception_one_line(
+                error,
+                "record_activity_user_upsert_failed",
+                {"team_id": team_id, "user_id": user_id},
+            )
+    if workspace_id and channel_id:
+        try:
+            await db_upsert_channel(
+                env,
+                workspace_id,
+                channel_id,
+                channel_name or channel_id,
+                is_private=(
+                    1
+                    if str((payload.get("event") or {}).get("channel_type") or "")
+                    == "im"
+                    else 0
+                ),
+            )
+        except Exception as error:
+            log_exception_one_line(
+                error,
+                "record_activity_channel_upsert_failed",
+                {"workspace_id": workspace_id, "channel_id": channel_id},
             )
     event_payload = payload.get("event") or {}
     model_event_type = model_event_type_for_activity(activity_kind, payload)
@@ -915,7 +922,7 @@ async def record_activity(
             workspace_id,
             model_event_type,
             user_slack_id=user_id or "",
-            channel_name=payload_channel_name(payload),
+            channel_name=channel_name,
             channel_id=channel_id or "",
             slack_team_id=team_id,
             request_data=payload_json,
@@ -1761,6 +1768,7 @@ async def db_log_event(
     webhook_event_subtype: str = "",
     webhook_retry_num: str = "",
     webhook_retry_reason: str = "",
+    slack_response_data: str = "",
 ) -> bool:
     return await db_insert_event(
         env,
@@ -1779,6 +1787,7 @@ async def db_log_event(
         webhook_event_subtype=webhook_event_subtype,
         webhook_retry_num=webhook_retry_num,
         webhook_retry_reason=webhook_retry_reason,
+        slack_response_data=slack_response_data,
     )
 
 
@@ -1800,6 +1809,7 @@ async def db_insert_event(
     webhook_event_subtype: str = "",
     webhook_retry_num: str = "",
     webhook_retry_reason: str = "",
+    slack_response_data: str = "",
 ) -> bool:
     await ensure_schema(env)
     created = created_at or utc_now()
@@ -1819,15 +1829,18 @@ async def db_insert_event(
         webhook_event_subtype or "",
         webhook_retry_num or "",
         webhook_retry_reason or "",
+        slack_response_data or "",
     ]
+    common_params_without_response = common_params[:-1]
     try:
         await d1_run(
             env,
             (
                 "INSERT INTO events (workspace_id, event_type, user_slack_id, channel_name, "
                 "channel_id, slack_team_id, request_data, verified, status, created_at, webhook_body_type, "
-                "webhook_event_id, webhook_event_time, webhook_event_subtype, webhook_retry_num, webhook_retry_reason) "
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                "webhook_event_id, webhook_event_time, webhook_event_subtype, webhook_retry_num, webhook_retry_reason, "
+                "slack_response_data) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
             ),
             [
                 workspace_id,
@@ -1846,25 +1859,84 @@ async def db_insert_event(
                 webhook_event_subtype or "",
                 webhook_retry_num or "",
                 webhook_retry_reason or "",
+                slack_response_data or "",
             ],
         )
     except Exception as error:
+        if "slack_response_data" in str(error):
+            try:
+                await d1_run(
+                    env,
+                    (
+                        "INSERT INTO events (workspace_id, event_type, user_slack_id, channel_name, "
+                        "channel_id, slack_team_id, request_data, verified, status, created_at, webhook_body_type, "
+                        "webhook_event_id, webhook_event_time, webhook_event_subtype, webhook_retry_num, webhook_retry_reason) "
+                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                    ),
+                    [
+                        workspace_id,
+                        event_type,
+                        user_slack_id or "",
+                        channel_name or "",
+                        channel_id or "",
+                        slack_team_id or "",
+                        request_data or "",
+                        1 if verified else 0,
+                        status or "success",
+                        created,
+                        webhook_body_type or "",
+                        webhook_event_id or "",
+                        webhook_event_time or "",
+                        webhook_event_subtype or "",
+                        webhook_retry_num or "",
+                        webhook_retry_reason or "",
+                    ],
+                )
+            except Exception as fallback_error:
+                if "slack_team_id" not in str(fallback_error):
+                    raise
+                await d1_run(
+                    env,
+                    (
+                        "INSERT INTO events (workspace_id, event_type, user_slack_id, channel_name, "
+                        "channel_id, request_data, verified, status, created_at, webhook_body_type, "
+                        "webhook_event_id, webhook_event_time, webhook_event_subtype, webhook_retry_num, webhook_retry_reason) "
+                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                    ),
+                    common_params_without_response,
+                )
+            return True
         if "slack_team_id" not in str(error):
             raise
         log_json_event(
             "events_insert_retry_without_slack_team_id",
             {"event_type": event_type, "slack_team_id": slack_team_id or ""},
         )
-        await d1_run(
-            env,
-            (
-                "INSERT INTO events (workspace_id, event_type, user_slack_id, channel_name, "
-                "channel_id, request_data, verified, status, created_at, webhook_body_type, "
-                "webhook_event_id, webhook_event_time, webhook_event_subtype, webhook_retry_num, webhook_retry_reason) "
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-            ),
-            common_params,
-        )
+        try:
+            await d1_run(
+                env,
+                (
+                    "INSERT INTO events (workspace_id, event_type, user_slack_id, channel_name, "
+                    "channel_id, request_data, verified, status, created_at, webhook_body_type, "
+                    "webhook_event_id, webhook_event_time, webhook_event_subtype, webhook_retry_num, webhook_retry_reason, "
+                    "slack_response_data) "
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                ),
+                common_params,
+            )
+        except Exception as fallback_error:
+            if "slack_response_data" not in str(fallback_error):
+                raise
+            await d1_run(
+                env,
+                (
+                    "INSERT INTO events (workspace_id, event_type, user_slack_id, channel_name, "
+                    "channel_id, request_data, verified, status, created_at, webhook_body_type, "
+                    "webhook_event_id, webhook_event_time, webhook_event_subtype, webhook_retry_num, webhook_retry_reason) "
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                ),
+                common_params_without_response,
+            )
     return True
 
 
@@ -2316,17 +2388,18 @@ async def list_connected_workspaces(env: Any) -> List[Dict[str, Any]]:
         env,
         (
             "SELECT cw.*, "
-            "COALESCE(sa.total_activities, 0) AS total_activities, "
-            "COALESCE(sa.joins, 0) AS joins, "
-            "sa.last_event_time AS last_event_time "
+            "COALESCE(ev.total_activities, 0) AS total_activities, "
+            "COALESCE(ev.joins, 0) AS joins, "
+            "ev.last_event_time AS last_event_time "
             "FROM connected_workspaces cw "
             "LEFT JOIN ("
-            "SELECT team_id, COUNT(*) AS total_activities, "
-            "SUM(CASE WHEN slack_type = 'team_join' THEN 1 ELSE 0 END) AS joins, "
-            "MAX(received_at) AS last_event_time "
-            "FROM slack_activity WHERE team_id IS NOT NULL GROUP BY team_id"
-            ") sa ON sa.team_id = cw.team_id "
-            "ORDER BY COALESCE(sa.last_event_time, cw.updated_at) DESC"
+            "SELECT slack_team_id AS team_id, COUNT(*) AS total_activities, "
+            "SUM(CASE WHEN event_type = 'Team_Join' THEN 1 ELSE 0 END) AS joins, "
+            "MAX(created_at) AS last_event_time "
+            "FROM events WHERE slack_team_id IS NOT NULL AND slack_team_id != '' "
+            "GROUP BY slack_team_id"
+            ") ev ON ev.team_id = cw.team_id "
+            "ORDER BY COALESCE(ev.last_event_time, cw.updated_at) DESC"
         ),
     )
     connected_rows = result_rows(connected_result)
@@ -2413,8 +2486,8 @@ async def installed_apps_summary(env: Any) -> str:
     result = await d1_run(
         env,
         (
-            "SELECT COUNT(DISTINCT team_id) AS teams, COUNT(*) AS events "
-            "FROM slack_activity WHERE team_id IS NOT NULL"
+            "SELECT COUNT(DISTINCT slack_team_id) AS teams, COUNT(*) AS events "
+            "FROM events WHERE slack_team_id IS NOT NULL AND slack_team_id != ''"
         ),
     )
     rows = result.get("results") or []
@@ -2821,6 +2894,59 @@ def bot_direct_message_response(text: str = "") -> str:
     return help_response()["text"]
 
 
+async def log_slack_api_response(
+    env: Any,
+    team_id: str,
+    channel_id: str,
+    user_id: str,
+    api_method: str,
+    request_payload: Dict[str, Any],
+    response_payload: Dict[str, Any],
+    ok: bool,
+    status_code: int,
+) -> None:
+    try:
+        getattr(env, "DB")
+    except Exception:
+        return
+    workspace_id = None
+    try:
+        workspace = await db_get_workspace_by_team(env, team_id) if team_id else None
+        workspace_id = workspace.get("id") if workspace else None
+    except Exception as error:
+        log_exception_one_line(
+            error,
+            "slack_api_response_workspace_lookup_failed",
+            {"team_id": team_id, "api_method": api_method},
+        )
+    try:
+        await db_log_event(
+            env,
+            workspace_id,
+            "Slack_API_Response",
+            user_slack_id=user_id or "",
+            channel_id=channel_id or "",
+            slack_team_id=team_id or "",
+            request_data=json.dumps(
+                {
+                    "api_method": api_method,
+                    "request": request_payload,
+                    "status_code": status_code,
+                },
+                sort_keys=True,
+            ),
+            slack_response_data=json.dumps(response_payload or {}, sort_keys=True),
+            status="success" if ok else "error",
+            webhook_body_type="slack_api",
+        )
+    except Exception as error:
+        log_exception_one_line(
+            error,
+            "slack_api_response_log_failed",
+            {"team_id": team_id, "api_method": api_method},
+        )
+
+
 async def slack_api_post_message(
     channel_id: str, text: str, env: Any, team_id: str = ""
 ) -> None:
@@ -2831,14 +2957,26 @@ async def slack_api_post_message(
         token = env_value(env, "SLACK_BOT_TOKEN")
     if not token:
         return
-    await fetch_json(
+    request_payload = {"channel": channel_id, "text": text}
+    ok, payload, status_code = await fetch_json(
         "https://slack.com/api/chat.postMessage",
         method="POST",
         headers={
             "Authorization": "Bearer {0}".format(token),
             "Content-Type": "application/json",
         },
-        body=json.dumps({"channel": channel_id, "text": text}),
+        body=json.dumps(request_payload),
+    )
+    await log_slack_api_response(
+        env,
+        team_id=team_id,
+        channel_id=channel_id,
+        user_id="",
+        api_method="chat.postMessage",
+        request_payload=request_payload,
+        response_payload=payload,
+        ok=ok and bool(payload.get("ok", True)),
+        status_code=status_code,
     )
 
 
@@ -2850,14 +2988,26 @@ async def slack_api_publish_home(user_id: str, env: Any, team_id: str = "") -> N
         token = env_value(env, "SLACK_BOT_TOKEN")
     if not token:
         return
-    await fetch_json(
+    request_payload = {"user_id": user_id, "view": app_home_view()}
+    ok, payload, status_code = await fetch_json(
         "https://slack.com/api/views.publish",
         method="POST",
         headers={
             "Authorization": "Bearer {0}".format(token),
             "Content-Type": "application/json",
         },
-        body=json.dumps({"user_id": user_id, "view": app_home_view()}),
+        body=json.dumps(request_payload),
+    )
+    await log_slack_api_response(
+        env,
+        team_id=team_id,
+        channel_id="",
+        user_id=user_id,
+        api_method="views.publish",
+        request_payload=request_payload,
+        response_payload=payload,
+        ok=ok and bool(payload.get("ok", True)),
+        status_code=status_code,
     )
 
 
@@ -2868,9 +3018,10 @@ async def handle_event_payload(payload: Dict[str, Any], env: Any) -> Any:
     event = payload.get("event") or {}
     team_id = payload_team_id(payload)
     if event.get("type") == "app_home_opened":
-        await slack_api_publish_home(
-            str(event.get("user") or ""), env, team_id=team_id
-        )
+        if str(event.get("tab") or "home") == "home":
+            await slack_api_publish_home(
+                str(event.get("user") or ""), env, team_id=team_id
+            )
     if event.get("type") == "app_mention":
         channel_id = event.get("channel")
         if channel_id:
