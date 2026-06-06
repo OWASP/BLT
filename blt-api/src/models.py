@@ -76,6 +76,21 @@ class UserApiKey(Model):
     table_name = "user_api_keys"
 
 
+class Job(Model):
+    """Maps to user-owned job posts."""
+    table_name = "jobs"
+
+
+class Hackathon(Model):
+    """Maps to user-owned hackathons."""
+    table_name = "hackathons"
+
+
+class HackathonRegistration(Model):
+    """Maps to registrations for user-owned hackathons."""
+    table_name = "hackathon_registrations"
+
+
 class UserFollow(Model):
     """Maps to the ``user_follows`` junction table (users ↔ users)."""
     table_name = "user_follows"
