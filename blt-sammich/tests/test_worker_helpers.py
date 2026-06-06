@@ -450,10 +450,10 @@ def test_render_admin_html_focuses_on_database_admin():
         [],
         [],
         database_context={
-            "tables": ["workspaces"],
-            "counts": {"workspaces": 1},
-            "selected_table": "workspaces",
-            "schema": worker.ADMIN_TABLE_SCHEMAS["workspaces"],
+            "tables": ["teams"],
+            "counts": {"teams": 1},
+            "selected_table": "teams",
+            "schema": worker.ADMIN_TABLE_SCHEMAS["teams"],
             "rows": [{"id": 1, "team_id": "T123", "team_name": "Security Team"}],
             "edit_row": None,
             "edit_pk": "",
@@ -466,7 +466,7 @@ def test_render_admin_html_focuses_on_database_admin():
     assert "Database Admin" in html
     assert "Security Team" in html
     assert "<th" in html
-    assert "href=\"/private-admin?table=workspaces&sort=team_id&direction=asc\"" in html
+    assert "href=\"/private-admin?table=teams&sort=team_id&direction=asc\"" in html
     assert "/private-admin" in html
     assert "Connected Workspaces" not in html
     assert "Managed Servers" not in html
@@ -482,10 +482,10 @@ def test_render_admin_html_includes_database_admin_context():
         [],
         [],
         database_context={
-            "tables": ["workspaces", "events"],
-            "counts": {"workspaces": 1, "events": 2},
-            "selected_table": "workspaces",
-            "schema": worker.ADMIN_TABLE_SCHEMAS["workspaces"],
+            "tables": ["teams", "events"],
+            "counts": {"teams": 1, "events": 2},
+            "selected_table": "teams",
+            "schema": worker.ADMIN_TABLE_SCHEMAS["teams"],
             "rows": [
                 {
                     "id": 1,
@@ -507,7 +507,7 @@ def test_render_admin_html_includes_database_admin_context():
     assert "Tables" in html
     assert "Admin" in html
     assert "Rows" in html
-    assert "workspaces" in html
+    assert "teams" in html
     assert "Security Team" in html
     assert "team_name ▲" in html
     assert "Edit" in html
@@ -516,7 +516,7 @@ def test_render_admin_html_includes_database_admin_context():
     assert "refresh_workspace_channels" in html
 
 
-def test_render_admin_channel_refresh_button_only_for_workspaces():
+def test_render_admin_channel_refresh_button_only_for_teams():
     env = _Env()
     setattr(env, "ADMIN_URL", "/private-admin")
     html = worker.render_admin_row_table(
@@ -542,10 +542,10 @@ def test_render_admin_html_shows_edit_form_on_edit_page():
         [],
         [],
         database_context={
-            "tables": ["workspaces"],
-            "counts": {"workspaces": 1},
-            "selected_table": "workspaces",
-            "schema": worker.ADMIN_TABLE_SCHEMAS["workspaces"],
+            "tables": ["teams"],
+            "counts": {"teams": 1},
+            "selected_table": "teams",
+            "schema": worker.ADMIN_TABLE_SCHEMAS["teams"],
             "rows": [],
             "edit_row": {
                 "id": 1,
@@ -561,7 +561,7 @@ def test_render_admin_html_shows_edit_form_on_edit_page():
         },
     )
 
-    assert "Edit workspaces" in html
+    assert "Edit teams" in html
     assert "db_update" in html
     assert "Delete Row" in html
     assert "Back to table" in html
@@ -575,16 +575,17 @@ def test_lettuce_model_tables_are_in_schema_bootstrap():
 
     for table_name in (
         "slack_apps",
-        "workspaces",
         "channels",
         "repositories",
         "github_organizations",
         "events",
         "users",
-        "sessions",
     ):
         assert "CREATE TABLE IF NOT EXISTS {0}".format(table_name) in schema_sql
+    assert "CREATE TABLE IF NOT EXISTS workspaces" in schema_sql
+    assert "ALTER TABLE workspaces RENAME TO teams" in schema_sql
     for table_name in (
+        "sessions",
         "workspace_installations",
         "connected_workspaces",
         "managed_servers",
@@ -948,7 +949,7 @@ def test_record_activity_logs_slack_post_event_even_without_workspace():
 
     async def fake_d1_run(env, query, params=None):
         captured.append((query, params))
-        if "SELECT * FROM workspaces" in query:
+        if "SELECT * FROM teams" in query:
             return {"results": []}
         return {"success": True}
 
@@ -994,8 +995,8 @@ def test_record_activity_logs_slack_post_when_workspace_lookup_fails():
 
     async def fake_d1_run(env, query, params=None):
         captured.append((query, params))
-        if "SELECT * FROM workspaces" in query:
-            raise RuntimeError("no such table: workspaces")
+        if "SELECT * FROM teams" in query:
+            raise RuntimeError("no such table: teams")
         return {"success": True}
 
     payload = {
@@ -1037,7 +1038,7 @@ def test_record_activity_logs_slash_command_fields():
 
     async def fake_d1_run(env, query, params=None):
         captured.append((query, params))
-        if "SELECT * FROM workspaces" in query:
+        if "SELECT * FROM teams" in query:
             return {"results": []}
         return {"success": True}
 
@@ -1079,7 +1080,7 @@ def test_record_activity_logs_slash_command_fields():
     workspace_inserts = [
         (query, params)
         for query, params in captured
-        if "INSERT INTO workspaces" in query
+        if "INSERT INTO teams" in query
     ]
     assert len(app_inserts) == 1
     assert app_inserts[0][1][0] == "A0AK9DQG1DG"
@@ -1110,7 +1111,7 @@ def test_record_activity_stores_slack_user_and_channel_metadata():
 
     async def fake_d1_run(env, query, params=None):
         captured.append((query, params))
-        if "SELECT * FROM workspaces" in query:
+        if "SELECT * FROM teams" in query:
             return {"results": [{"id": 5}]}
         if "SELECT * FROM users" in query:
             return {"results": []}
@@ -1181,15 +1182,16 @@ def test_record_activity_stores_slack_user_and_channel_metadata():
 
     assert len(channel_inserts) == 1
     assert channel_inserts[0][1][0] == 5
-    assert channel_inserts[0][1][1] == "C123"
-    assert channel_inserts[0][1][2] == "general"
-    assert channel_inserts[0][1][3] == 42
-    assert channel_inserts[0][1][4] == "Security"
-    assert channel_inserts[0][1][5] == "Project discussion"
-    assert channel_inserts[0][1][7] == 1
-    assert channel_inserts[0][1][12] == 1
-    assert channel_inserts[0][1][18] == "U999"
-    assert '"name":"general"' in channel_inserts[0][1][20]
+    assert channel_inserts[0][1][1] == "T123"
+    assert channel_inserts[0][1][2] == "C123"
+    assert channel_inserts[0][1][3] == "general"
+    assert channel_inserts[0][1][4] == 42
+    assert channel_inserts[0][1][5] == "Security"
+    assert channel_inserts[0][1][6] == "Project discussion"
+    assert channel_inserts[0][1][8] == 1
+    assert channel_inserts[0][1][13] == 1
+    assert channel_inserts[0][1][19] == "U999"
+    assert '"name":"general"' in channel_inserts[0][1][21]
 
 
 def test_record_activity_ignores_http_request_events():
@@ -1239,11 +1241,11 @@ def test_db_upsert_workspace_persists_slack_tokens():
     original_schema_ready = worker.SCHEMA_READY
 
     async def fake_d1_run(env, query, params=None):
-        if "INSERT INTO workspaces" in query:
+        if "INSERT INTO teams" in query:
             captured["query"] = query
             captured["params"] = params
             return {"success": True}
-        if "SELECT * FROM workspaces" in query:
+        if "SELECT * FROM teams" in query:
             return {"results": [{"id": 9}]}
         return {"success": True}
 
@@ -1268,6 +1270,7 @@ def test_db_upsert_workspace_persists_slack_tokens():
     assert workspace_id == 9
     assert "app_token" in captured["query"]
     assert "bot_token" in captured["query"]
+    assert "ON CONFLICT(team_id) DO UPDATE" in captured["query"]
     assert captured["params"][3] == "xapp-token"
     assert captured["params"][4] == "xoxb-token"
 
@@ -1321,7 +1324,7 @@ def test_refresh_workspace_channels_fetches_pages_and_persists_metadata():
         )
 
     async def fake_d1_run(env, query, params=None):
-        if "SELECT * FROM workspaces WHERE id = ?" in query:
+        if "SELECT * FROM teams WHERE id = ?" in query:
             return {
                 "results": [
                     {"id": 7, "team_id": "T123", "bot_token": "xoxb-workspace"}
@@ -1330,7 +1333,7 @@ def test_refresh_workspace_channels_fetches_pages_and_persists_metadata():
         if "INSERT INTO channels" in query:
             calls["channel_params"].append(params)
             return {"success": True}
-        if "UPDATE workspaces SET channel_count" in query:
+        if "UPDATE teams SET channel_count" in query:
             calls["count_params"] = params
             return {"success": True}
         return {"success": True}
@@ -1349,17 +1352,73 @@ def test_refresh_workspace_channels_fetches_pages_and_persists_metadata():
 
     assert result == {"channel_count": 2, "member_count": 44}
     assert len(calls["fetch_urls"]) == 2
-    assert calls["channel_params"][0][1] == "C123"
-    assert calls["channel_params"][0][2] == "general"
-    assert calls["channel_params"][0][3] == 42
-    assert calls["channel_params"][0][4] == "Security"
-    assert calls["channel_params"][0][18] == "U999"
-    assert '"name":"general"' in calls["channel_params"][0][20]
-    assert calls["channel_params"][1][1] == "G123"
-    assert calls["channel_params"][1][6] == 1
+    assert calls["channel_params"][0][1] == "T123"
+    assert calls["channel_params"][0][2] == "C123"
+    assert calls["channel_params"][0][3] == "general"
+    assert calls["channel_params"][0][4] == 42
+    assert calls["channel_params"][0][5] == "Security"
+    assert calls["channel_params"][0][19] == "U999"
+    assert '"name":"general"' in calls["channel_params"][0][21]
+    assert calls["channel_params"][1][2] == "G123"
+    assert calls["channel_params"][1][7] == 1
     assert calls["count_params"][0] == 2
     assert calls["count_params"][1] == 44
     assert calls["count_params"][3] == 7
+
+
+def test_refresh_workspace_channels_missing_scope_names_workspace_and_scopes():
+    original_fetch_json = worker.fetch_json
+    original_d1_run = worker.d1_run
+    original_schema_ready = worker.SCHEMA_READY
+
+    async def fake_fetch_json(url, method="GET", headers=None, body=None):
+        return (
+            True,
+            {
+                "ok": False,
+                "error": "missing_scope",
+                "needed": "channels:read,groups:read",
+                "provided": "chat:write",
+            },
+            200,
+        )
+
+    async def fake_d1_run(env, query, params=None):
+        if "SELECT * FROM teams WHERE id = ?" in query:
+            return {
+                "results": [
+                    {
+                        "id": 7,
+                        "team_id": "T123",
+                        "team_name": "Security Team",
+                        "bot_token": "xoxb-workspace",
+                    }
+                ]
+            }
+        return {"success": True}
+
+    env = _Env()
+    setattr(env, "DB", object())
+    worker.fetch_json = fake_fetch_json
+    worker.d1_run = fake_d1_run
+    worker.SCHEMA_READY = True
+    try:
+        try:
+            asyncio.run(worker.refresh_workspace_channels_from_slack(env, 7))
+            raised = ""
+        except RuntimeError as error:
+            raised = str(error)
+    finally:
+        worker.fetch_json = original_fetch_json
+        worker.d1_run = original_d1_run
+        worker.SCHEMA_READY = original_schema_ready
+
+    assert "missing_scope" in raised
+    assert "workspace_id 7" in raised
+    assert "team_id T123" in raised
+    assert "team_name Security Team" in raised
+    assert "needed scopes channels:read,groups:read" in raised
+    assert "provided scopes chat:write" in raised
 
 
 def test_db_upsert_slack_app_persists_app_secrets():
@@ -1499,7 +1558,7 @@ def test_db_admin_related_tree_nests_cascade_records():
         related = asyncio.run(
             worker.db_admin_related_tree(
                 env,
-                "workspaces",
+                "teams",
                 {"id": 1, "team_id": "T123", "team_name": "Security Team"},
             )
         )
@@ -1522,7 +1581,7 @@ def test_db_admin_confirmed_delete_cascades_children_before_parent():
 
     async def fake_d1_run(env, query, params=None):
         captured.append((query, params))
-        if "SELECT * FROM workspaces WHERE id = ?" in query:
+        if "SELECT * FROM teams WHERE id = ?" in query:
             return {"results": [{"id": 1, "team_id": "T123", "team_name": "Security Team"}]}
         if "SELECT * FROM channels WHERE id = ?" in query:
             return {"results": [{"id": 10, "workspace_id": 1, "channel_id": "C123"}]}
@@ -1535,14 +1594,14 @@ def test_db_admin_confirmed_delete_cascades_children_before_parent():
     worker.d1_run = fake_d1_run
     worker.SCHEMA_READY = False
     try:
-        asyncio.run(worker.db_admin_delete_row_cascade(env, "workspaces", "1"))
+        asyncio.run(worker.db_admin_delete_row_cascade(env, "teams", "1"))
     finally:
         worker.d1_run = original_d1_run
         worker.SCHEMA_READY = original_schema_ready
 
     delete_queries = [query for query, _ in captured if query.startswith("DELETE FROM")]
     assert "DELETE FROM channels WHERE id = ?" in delete_queries
-    assert delete_queries[-1] == "DELETE FROM workspaces WHERE id = ?"
+    assert delete_queries[-1] == "DELETE FROM teams WHERE id = ?"
 
 
 def test_db_admin_rejects_unknown_table_names():
