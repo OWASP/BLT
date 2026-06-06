@@ -2,17 +2,7 @@
 # Docs: https://developers.cloudflare.com/workers/wrangler/configuration/
 
 name            = "blt-ketchup"
-main            = "worker.py"
 compatibility_date = "2024-09-23"
-compatibility_flags = ["python_workers"]
-
-# Python runtime (Pyodide-based WASM execution)
-[build]
-command = ""
 
 [assets]
 directory = "./public"
-
-[vars]
-# Non-secret runtime config
-CORS_ORIGINS = "https://ketchup.owaspblt.org,http://localhost:5173"
