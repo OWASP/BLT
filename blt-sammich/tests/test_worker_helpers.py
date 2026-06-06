@@ -161,6 +161,60 @@ def test_get_slack_endpoints_return_health_payloads():
     }
 
 
+def test_post_slack_events_logs_before_signature_verification():
+    original_record_activity = worker.record_activity
+    original_build_response = worker.build_response
+    logged = []
+
+    async def fake_record_activity(env, activity_kind, payload):
+        logged.append((activity_kind, payload))
+
+    worker.record_activity = fake_record_activity
+    worker.build_response = lambda body, status=200, content_type="text/plain; charset=utf-8", headers=None: {
+        "body": body,
+        "status": status,
+    }
+    try:
+        response = asyncio.run(
+            worker.handle_request(
+                _RouteRequest(
+                    "POST",
+                    "https://sammich.owaspblt.org/slack/events",
+                    body=json.dumps(
+                        {
+                            "type": "event_callback",
+                            "team_id": "T123",
+                            "event": {
+                                "type": "message",
+                                "channel": "C123",
+                                "user": "U123",
+                                "text": "log before auth",
+                            },
+                        }
+                    ),
+                    headers={
+                        "content-type": "application/json",
+                        "user-agent": "Slackbot test",
+                    },
+                ),
+                _Env(),
+            )
+        )
+    finally:
+        worker.build_response = original_build_response
+        worker.record_activity = original_record_activity
+
+    assert response == {"body": "Invalid Slack signature.", "status": 401}
+    assert len(logged) == 2
+    assert logged[0][0] == "http_request"
+    assert logged[0][1]["method"] == "POST"
+    assert logged[0][1]["normalized_path"] == "/slack/events"
+    assert "log before auth" in logged[0][1]["raw_body"]
+    assert logged[1][0] == "event"
+    assert logged[1][1]["team_id"] == "T123"
+    assert logged[1][1]["event"]["text"] == "log before auth"
+
+
 def test_repo_response_without_query_returns_blocks():
     response = worker.repo_response("")
     assert response["blocks"]

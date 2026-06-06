@@ -601,13 +601,15 @@ def request_headers_payload(request: Any) -> Dict[str, str]:
     return headers
 
 
-def request_event_payload(request: Any, path: str, normalized_path: str) -> Dict[str, Any]:
+def request_event_payload(
+    request: Any, path: str, normalized_path: str, body_text: str = ""
+) -> Dict[str, Any]:
     cf_data = {}
     try:
         cf_data = to_python(getattr(request, "cf"))
     except Exception:
         cf_data = {}
-    return {
+    payload = {
         "type": "http_request",
         "method": str(getattr(request, "method", "")).upper(),
         "url": str(getattr(request, "url", "")),
@@ -616,6 +618,9 @@ def request_event_payload(request: Any, path: str, normalized_path: str) -> Dict
         "headers": request_headers_payload(request),
         "cf": cf_data if isinstance(cf_data, dict) else {},
     }
+    if body_text:
+        payload["raw_body"] = body_text
+    return payload
 
 
 def verify_slack_signature(
@@ -3947,16 +3952,40 @@ async def handle_request(request: Any, env: Any) -> Any:
 
     if method == "POST" and normalized_path in ("/slack/commands", "/slack/events"):
         body_text = str(await request.text())
+        content_type = request.headers.get("content-type", "")
+        parsed_events_payload: Dict[str, Any] = {}
 
-        # Slack URL verification can be sent before signing secret wiring is complete.
         if normalized_path == "/slack/events":
-            try:
-                verification_payload = json.loads(body_text or "{}")
-            except json.JSONDecodeError:
-                verification_payload = {}
-            if verification_payload.get("type") == "url_verification":
+            await record_activity(
+                env,
+                "http_request",
+                request_event_payload(request, path, normalized_path, body_text),
+            )
+            if "application/x-www-form-urlencoded" in content_type:
+                form = parse_form_encoded(body_text)
+                if form.get("payload"):
+                    try:
+                        parsed_events_payload = json.loads(form["payload"])
+                    except json.JSONDecodeError:
+                        parsed_events_payload = {
+                            "type": "unparseable_interaction",
+                            "raw_body": body_text,
+                        }
+                    await record_activity(env, "interaction", parsed_events_payload)
+            else:
+                try:
+                    parsed_events_payload = json.loads(body_text or "{}")
+                except json.JSONDecodeError:
+                    parsed_events_payload = {
+                        "type": "unparseable_event",
+                        "raw_body": body_text,
+                    }
+                await record_activity(env, "event", parsed_events_payload)
+
+            # Slack URL verification can be sent before signing secret wiring is complete.
+            if parsed_events_payload.get("type") == "url_verification":
                 return json_response(
-                    {"challenge": verification_payload.get("challenge", "")}
+                    {"challenge": parsed_events_payload.get("challenge", "")}
                 )
 
         signing_secret = env_value(env, "SLACK_SIGNING_SECRET", "") or ""
@@ -3965,12 +3994,10 @@ async def handle_request(request: Any, env: Any) -> Any:
         if not verify_slack_signature(signing_secret, timestamp, body_text, signature):
             return build_response("Invalid Slack signature.", status=401)
 
-        content_type = request.headers.get("content-type", "")
         if "application/x-www-form-urlencoded" in content_type:
             form = parse_form_encoded(body_text)
             if normalized_path == "/slack/events" and form.get("payload"):
-                payload = json.loads(form["payload"])
-                await record_activity(env, "interaction", payload)
+                payload = parsed_events_payload or json.loads(form["payload"])
                 return json_response(interaction_response(payload))
 
             await record_activity(env, "slash_command", form)
@@ -3997,8 +4024,13 @@ async def handle_request(request: Any, env: Any) -> Any:
             )
             return json_response(response_payload)
 
-        payload = json.loads(body_text or "{}")
-        await record_activity(env, "event", payload)
+        payload = (
+            parsed_events_payload
+            if normalized_path == "/slack/events"
+            else json.loads(body_text or "{}")
+        )
+        if normalized_path != "/slack/events":
+            await record_activity(env, "event", payload)
         return await handle_event_payload(payload, env)
 
     try:
