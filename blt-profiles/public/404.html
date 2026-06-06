@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
 <head>
@@ -38,20 +39,20 @@
   <!-- ── NAV ── -->
   <header class="bg-white border-b border-[#E5E5E5] sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
-      <a href="index.html" class="flex items-center gap-2 font-bold text-xl tracking-tight" aria-label="BLT Profiles home">
+      <a id="homeLink" href="index.html" class="flex items-center gap-2 font-bold text-xl tracking-tight" aria-label="BLT Profiles home">
         <span class="text-[#E10101]"><i class="fa-solid fa-bug" aria-hidden="true"></i></span>
         <span>BLT<span class="text-[#E10101]"> Profiles</span></span>
       </a>
       <nav class="hidden md:flex items-center gap-6 text-sm font-medium" aria-label="Main navigation">
-        <a href="index.html" class="text-gray-600 hover:text-[#E10101]">Home</a>
-        <a href="https://github.com/OWASP-BLT/BLT-Profiles/issues/new/choose" target="_blank" rel="noopener"
+        <a id="navHome" href="index.html" class="text-gray-600 hover:text-[#E10101]">Home</a>
+        <a href="https://gitlab.com/owasp-blt/blt-profiles/-/issues/new?issuable_template=Add%20Profile" target="_blank" rel="noopener"
            class="text-gray-600 hover:text-[#E10101]">Add Profile</a>
-        <a href="https://github.com/OWASP-BLT/BLT-Profiles" target="_blank" rel="noopener"
+        <a href="https://gitlab.com/owasp-blt/blt-profiles" target="_blank" rel="noopener"
            class="text-gray-600 hover:text-[#E10101]">
-          <i class="fa-brands fa-github text-lg" aria-hidden="true"></i> GitHub
+          <i class="fa-brands fa-gitlab text-lg" aria-hidden="true"></i> GitLab
         </a>
       </nav>
-      <a href="index.html" class="btn-outline inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-semibold">
+      <a id="allProfilesLink" href="index.html" class="btn-outline inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-semibold">
         <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
         All Profiles
       </a>
@@ -61,13 +62,35 @@
   <!-- ── NOT FOUND banner (hidden by default) ── -->
   <div id="notFoundBanner" class="hidden bg-red-50 border-b border-red-200 px-4 py-3 text-center text-sm text-red-700" role="alert">
     <i class="fa-solid fa-circle-exclamation mr-1" aria-hidden="true"></i>
-    Profile not found. <a href="index.html" class="font-semibold underline">Back to profiles</a> or
-    <a href="https://github.com/OWASP-BLT/BLT-Profiles/issues/new/choose" target="_blank" rel="noopener"
+    Profile not found. <a id="notFoundHome" href="index.html" class="font-semibold underline">Back to profiles</a> or
+    <a href="https://gitlab.com/owasp-blt/blt-profiles/-/issues/new?issuable_template=Add%20Profile" target="_blank" rel="noopener"
        class="font-semibold underline">add yours</a>.
   </div>
 
+  <!-- ── 404 fallback (shown when path is not a username) ── -->
+  <div id="notFoundPage" class="hidden flex-1 bg-[#111827] text-white flex flex-col items-center justify-center px-4 py-24">
+    <div class="text-center max-w-md">
+      <div class="text-8xl mb-6">
+        <i class="fa-solid fa-bug text-[#E10101]" aria-hidden="true"></i>
+      </div>
+      <h1 class="text-5xl font-extrabold mb-2">404</h1>
+      <p class="text-gray-400 text-lg mb-8">This page does not exist — or a profile hasn't been created yet.</p>
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+        <a id="notFoundPageHome" href="index.html"
+           class="btn-primary inline-flex items-center gap-2 px-5 py-2.5 rounded-md font-semibold transition-colors">
+          <i class="fa-solid fa-house" aria-hidden="true"></i> Back to Home
+        </a>
+        <a href="https://gitlab.com/owasp-blt/blt-profiles/-/issues/new?issuable_template=Add%20Profile"
+           target="_blank" rel="noopener"
+           class="inline-flex items-center gap-2 px-5 py-2.5 rounded-md font-semibold border border-white/20 text-white hover:bg-white/10 transition-colors">
+          <i class="fa-solid fa-user-plus" aria-hidden="true"></i> Add Your Profile
+        </a>
+      </div>
+    </div>
+  </div>
+
   <!-- ── LOADING spinner ── -->
-  <div id="loadingSpinner" class="flex-1 flex items-center justify-center py-24" role="status" aria-label="Loading profile">
+  <div id="loadingSpinner" class="hidden flex-1 flex items-center justify-center py-24" role="status" aria-label="Loading profile">
     <i class="fa-solid fa-circle-notch fa-spin text-[#E10101] text-4xl" aria-hidden="true"></i>
   </div>
 
@@ -414,8 +437,8 @@
     <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
       <p>© <span id="footerYear"></span> <a href="https://owasp.org/www-project-bug-logging-tool/" target="_blank" rel="noopener" class="text-[#E10101] hover:underline">OWASP BLT</a>. All rights reserved.</p>
       <div class="flex items-center gap-5">
-        <a href="https://github.com/OWASP-BLT/BLT-Profiles" target="_blank" rel="noopener" aria-label="GitHub repository"
-           class="hover:text-white transition-colors"><i class="fa-brands fa-github text-lg" aria-hidden="true"></i></a>
+        <a href="https://gitlab.com/owasp-blt/blt-profiles" target="_blank" rel="noopener" aria-label="GitLab repository"
+           class="hover:text-white transition-colors"><i class="fa-brands fa-gitlab text-lg" aria-hidden="true"></i></a>
         <a href="https://owasp.org" target="_blank" rel="noopener" aria-label="OWASP website"
            class="hover:text-white transition-colors"><i class="fa-solid fa-globe text-lg" aria-hidden="true"></i></a>
       </div>
@@ -425,36 +448,66 @@
   <script>
     document.getElementById('footerYear').textContent = new Date().getFullYear();
 
+    // ── Determine base path and username from URL ────────────────────────────────
+    // Static hosts can serve 404.html for unknown paths, keeping the original URL.
+    // e.g. /BLT-Profiles/username or /username
+    (function() {
+      var path = window.location.pathname;
+      var parts = path.replace(/^\//, '').split('/').filter(Boolean);
+      var last = parts[parts.length - 1] || '';
+
+      // Only treat as a profile path if the last segment has no file extension
+      if (!last || last.indexOf('.') !== -1) {
+        document.getElementById('notFoundPage').classList.remove('hidden');
+        return;
+      }
+
+      // Compute the base URL (everything up to and including the repo subfolder,
+      // so relative fetches like "profiles/user.json" resolve correctly).
+      var base = path.substring(0, path.lastIndexOf(last));
+
+      // Fix up nav links to be relative to base
+      var homeHref = base + 'index.html';
+      document.getElementById('homeLink').href = homeHref;
+      document.getElementById('navHome').href = homeHref;
+      document.getElementById('allProfilesLink').href = homeHref;
+      document.getElementById('notFoundHome').href = homeHref;
+      document.getElementById('notFoundPageHome').href = homeHref;
+
+      document.getElementById('loadingSpinner').classList.remove('hidden');
+      loadProfile(last, base);
+    })();
+
     // ── Helpers ─────────────────────────────────────────────────────────────────
     function escHtml(str) {
       return String(str || '')
         .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-        .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
     }
 
     function setText(id, val) {
-      const el = document.getElementById(id);
+      var el = document.getElementById(id);
       if (el) el.textContent = val != null ? val : '–';
     }
 
     function setHtml(id, html) {
-      const el = document.getElementById(id);
+      var el = document.getElementById(id);
       if (el) el.innerHTML = html;
     }
 
     function fmtDate(iso) {
       if (!iso) return '–';
       try { return new Date(iso).toLocaleDateString('en-US', {year:'numeric',month:'short',day:'numeric'}); }
-      catch { return iso; }
+      catch(e) { return iso; }
     }
 
     // ── Sidebar active state ─────────────────────────────────────────────────────
-    const sidebarLinks = document.querySelectorAll('.sidebar-link');
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
+    var sidebarLinks = document.querySelectorAll('.sidebar-link');
+    var observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
         if (entry.isIntersecting) {
-          const id = entry.target.id;
-          sidebarLinks.forEach(l => {
+          var id = entry.target.id;
+          sidebarLinks.forEach(function(l) {
             l.classList.toggle('sidebar-link-active', l.getAttribute('href') === '#' + id);
           });
         }
@@ -462,29 +515,19 @@
     }, { threshold: 0.3 });
 
     // ── Profile loading ──────────────────────────────────────────────────────────
-    async function loadProfile() {
-      const params = new URLSearchParams(window.location.search);
-      const username = (params.get('user') || '').trim();
+    async function loadProfile(username, base) {
+      var spinner  = document.getElementById('loadingSpinner');
+      var main     = document.getElementById('mainContent');
+      var notFound = document.getElementById('notFoundBanner');
 
-      const spinner  = document.getElementById('loadingSpinner');
-      const main     = document.getElementById('mainContent');
-      const notFound = document.getElementById('notFoundBanner');
+      document.title = '@' + username + ' — BLT Profile';
 
-      if (!username) {
-        spinner.classList.add('hidden');
-        notFound.classList.remove('hidden');
-        return;
-      }
-
-      // Update page title early
-      document.title = `@${username} — BLT Profile`;
-
-      let profile;
+      var profile;
       try {
-        const res = await fetch(`profiles/${encodeURIComponent(username)}.json?_=` + Date.now());
+        var res = await fetch(base + 'profiles/' + encodeURIComponent(username) + '.json?_=' + Date.now());
         if (!res.ok) throw new Error('not found');
         profile = await res.json();
-      } catch (e) {
+      } catch(e) {
         spinner.classList.add('hidden');
         notFound.classList.remove('hidden');
         return;
@@ -494,31 +537,29 @@
       spinner.classList.add('hidden');
       main.classList.remove('hidden');
 
-      // Start intersection observers
-      document.querySelectorAll('main section[id]').forEach(s => observer.observe(s));
+      document.querySelectorAll('main section[id]').forEach(function(s) { observer.observe(s); });
     }
 
     function renderProfile(p) {
-      // Page title & meta
-      document.title = `@${p.username} — BLT Profile`;
+      document.title = '@' + p.username + ' — BLT Profile';
 
       // ── Header ──
-      const initials = (p.name || p.username || '?')[0].toUpperCase();
-      const avatarEl = document.getElementById('headerAvatar');
+      var initials = (p.name || p.username || '?')[0].toUpperCase();
+      var avatarEl = document.getElementById('headerAvatar');
       if (p.avatar) {
-        const img = document.createElement('img');
-        img.src = escHtml(p.avatar);
+        var img = document.createElement('img');
+        img.src = p.avatar;
         img.alt = escHtml(p.username) + ' avatar';
         img.className = 'w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover ring-4 ring-white/20';
         img.addEventListener('error', function() {
-          const span = document.createElement('span');
+          var span = document.createElement('span');
           span.className = 'w-20 h-20 rounded-full bg-[#feeae9] flex items-center justify-center text-[#E10101] font-bold text-3xl';
           span.textContent = initials;
           this.replaceWith(span);
         });
         avatarEl.appendChild(img);
       } else {
-        const span = document.createElement('span');
+        var span = document.createElement('span');
         span.className = 'w-20 h-20 rounded-full bg-[#feeae9] flex items-center justify-center text-[#E10101] font-bold text-3xl';
         span.textContent = initials;
         avatarEl.appendChild(span);
@@ -528,117 +569,110 @@
       setText('headerUsername', '@' + p.username);
       setText('headerRole', p.role || 'Cybersecurity Professional');
       setText('headerRankBadge', p.rank || 'Newcomer');
-      setText('statFollowers', p.followers ?? '–');
-      setText('statFollowing', p.following ?? '–');
+      setText('statFollowers', p.followers != null ? p.followers : '–');
+      setText('statFollowing', p.following != null ? p.following : '–');
 
       // Social links
-      const socialItems = [];
-      if (p.github) socialItems.push(`<a href="${escHtml(p.github)}" target="_blank" rel="noopener"
-          class="inline-flex items-center gap-1.5 text-sm text-gray-300 hover:text-white transition-colors" aria-label="GitHub profile">
-          <i class="fa-brands fa-github" aria-hidden="true"></i> @${escHtml(p.username)}</a>`);
-      if (p.linkedin) socialItems.push(`<a href="${escHtml(p.linkedin)}" target="_blank" rel="noopener"
-          class="inline-flex items-center gap-1.5 text-sm text-gray-300 hover:text-white transition-colors" aria-label="LinkedIn profile">
-          <i class="fa-brands fa-linkedin" aria-hidden="true"></i> LinkedIn</a>`);
+      var socialItems = [];
+      if (p.github) socialItems.push('<a href="' + escHtml(p.github) + '" target="_blank" rel="noopener"' +
+          ' class="inline-flex items-center gap-1.5 text-sm text-gray-300 hover:text-white transition-colors" aria-label="GitHub profile">' +
+          '<i class="fa-brands fa-github" aria-hidden="true"></i> @' + escHtml(p.username) + '</a>');
+      if (p.linkedin) socialItems.push('<a href="' + escHtml(p.linkedin) + '" target="_blank" rel="noopener"' +
+          ' class="inline-flex items-center gap-1.5 text-sm text-gray-300 hover:text-white transition-colors" aria-label="LinkedIn profile">' +
+          '<i class="fa-brands fa-linkedin" aria-hidden="true"></i> LinkedIn</a>');
       setHtml('headerSocial', socialItems.join(''));
 
       // Wallet
       setText('walletId', p.wallet || 'Not provided');
 
       // Tags
-      const tags = (p.tags || []);
-      const tagsHtml = tags.length
-        ? tags.map(t => `<span class="inline-flex items-center gap-1 text-xs bg-[#feeae9] text-[#E10101] font-medium px-2.5 py-1 rounded-full">
-            <i class="fa-solid fa-tag text-[10px]" aria-hidden="true"></i>${escHtml(t)}</span>`).join('')
+      var tags = p.tags || [];
+      var tagsHtml = tags.length
+        ? tags.map(function(t) { return '<span class="inline-flex items-center gap-1 text-xs bg-[#feeae9] text-[#E10101] font-medium px-2.5 py-1 rounded-full">' +
+            '<i class="fa-solid fa-tag text-[10px]" aria-hidden="true"></i>' + escHtml(t) + '</span>'; }).join('')
         : '<span class="text-xs text-gray-400">No tags yet</span>';
       setHtml('userTags', tagsHtml);
 
       // ── Streak ──
-      const s = p.streak || {};
-      setText('currentStreak', s.current ?? 0);
-      setText('longestStreak', s.longest ?? 0);
-      setText('daysVisited', s.days_visited ?? 0);
+      var s = p.streak || {};
+      setText('currentStreak', s.current != null ? s.current : 0);
+      setText('longestStreak', s.longest != null ? s.longest : 0);
+      setText('daysVisited', s.days_visited != null ? s.days_visited : 0);
       setText('lastVisit', fmtDate(s.last_visit));
       setText('lastCheckin', 'Check-in: ' + fmtDate(s.last_checkin));
 
-      const milestone = 30;
-      const pct = Math.min(100, Math.round(((s.current || 0) / milestone) * 100));
-      const fill = document.getElementById('streakProgressFill');
-      const bar  = document.getElementById('streakProgressBar');
+      var milestone = 30;
+      var pct = Math.min(100, Math.round(((s.current || 0) / milestone) * 100));
+      var fill = document.getElementById('streakProgressFill');
+      var bar  = document.getElementById('streakProgressBar');
       if (fill) fill.style.width = pct + '%';
       if (bar)  bar.setAttribute('aria-valuenow', pct);
-      setText('streakProgressLabel', `${s.current || 0} / ${milestone} day milestone`);
+      setText('streakProgressLabel', (s.current || 0) + ' / ' + milestone + ' day milestone');
 
       // ── Q&A ──
-      const q = p.questions || {};
+      var q = p.questions || {};
       setText('q1', q.involvement || '–');
       setText('q2', q.evolution || '–');
       setText('q3', q.achievement || '–');
 
       // ── Issue stats ──
-      const is = p.issue_stats || {};
-      setText('issueGeneral', is.general ?? 0);
-      setText('issueFunctional', is.functional ?? 0);
-      setText('issuePerformance', is.performance ?? 0);
-      setText('issueSecurity', is.security ?? 0);
-      setText('issueTypo', is.typo ?? 0);
-      setText('issueDesign', is.design ?? 0);
-      const issueTotal = (is.general||0)+(is.functional||0)+(is.performance||0)+(is.security||0)+(is.typo||0)+(is.design||0);
+      var is = p.issue_stats || {};
+      setText('issueGeneral', is.general != null ? is.general : 0);
+      setText('issueFunctional', is.functional != null ? is.functional : 0);
+      setText('issuePerformance', is.performance != null ? is.performance : 0);
+      setText('issueSecurity', is.security != null ? is.security : 0);
+      setText('issueTypo', is.typo != null ? is.typo : 0);
+      setText('issueDesign', is.design != null ? is.design : 0);
+      var issueTotal = (is.general||0)+(is.functional||0)+(is.performance||0)+(is.security||0)+(is.typo||0)+(is.design||0);
       setText('issueTotal', issueTotal);
 
       // ── User stats ──
-      const us = p.stats || {};
-      setText('statBugsReported', us.bugs_reported ?? 0);
-      setText('statOpenIssues', us.open_issues ?? 0);
-      setText('statClosedIssues', us.closed_issues ?? 0);
+      var us = p.stats || {};
+      setText('statBugsReported', us.bugs_reported != null ? us.bugs_reported : 0);
+      setText('statOpenIssues', us.open_issues != null ? us.open_issues : 0);
+      setText('statClosedIssues', us.closed_issues != null ? us.closed_issues : 0);
 
       // ── Bacon ──
-      const b = p.bacon || {};
-      setText('baconEarned', b.earned ?? 0);
-      setText('baconPending', b.pending ?? 0);
-      setText('baconCompleted', b.completed ?? 0);
-      const subLink = document.getElementById('viewSubmissionsLink');
+      var b = p.bacon || {};
+      setText('baconEarned', b.earned != null ? b.earned : 0);
+      setText('baconPending', b.pending != null ? b.pending : 0);
+      setText('baconCompleted', b.completed != null ? b.completed : 0);
+      var subLink = document.getElementById('viewSubmissionsLink');
       if (subLink && p.github) subLink.href = p.github + '?tab=issues';
 
       // ── PRs ──
-      const pr = p.prs || {};
-      setText('prTotal', pr.total ?? 0);
-      setText('prMerged', pr.merged ?? 0);
-      setText('prOpen', pr.open ?? 0);
-      setText('prClosed', pr.closed ?? 0);
+      var pr = p.prs || {};
+      setText('prTotal', pr.total != null ? pr.total : 0);
+      setText('prMerged', pr.merged != null ? pr.merged : 0);
+      setText('prOpen', pr.open != null ? pr.open : 0);
+      setText('prClosed', pr.closed != null ? pr.closed : 0);
       setText('contributorRank', p.rank || 'Newcomer');
 
-      const prItems = (p.pr_list || []);
-      const prListEl = document.getElementById('prList');
+      var prItems = p.pr_list || [];
+      var prListEl = document.getElementById('prList');
       if (prItems.length) {
-        prListEl.innerHTML = prItems.map(item => `
-          <li class="flex items-start gap-3 text-sm py-2 border-b border-[#E5E5E5] last:border-0">
-            <span class="mt-0.5 w-5 h-5 flex-shrink-0 rounded-full flex items-center justify-center text-xs
-              ${item.state === 'merged' ? 'bg-purple-100 text-purple-600' : item.state === 'open' ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-500'}">
-              <i class="fa-solid ${item.state === 'merged' ? 'fa-code-merge' : item.state === 'open' ? 'fa-code-pull-request' : 'fa-xmark'}" aria-hidden="true"></i>
-            </span>
-            <div class="flex-1 min-w-0">
-              <p class="font-medium truncate">${escHtml(item.title)}</p>
-              ${item.url ? `<a href="${escHtml(item.url)}" target="_blank" rel="noopener"
-                class="text-xs text-[#E10101] hover:underline">${escHtml(item.repo || item.url)}</a>` : ''}
-            </div>
-          </li>`).join('');
+        prListEl.innerHTML = prItems.map(function(item) { return '<li class="flex items-start gap-3 text-sm py-2 border-b border-[#E5E5E5] last:border-0">' +
+          '<span class="mt-0.5 w-5 h-5 flex-shrink-0 rounded-full flex items-center justify-center text-xs ' +
+            (item.state === 'merged' ? 'bg-purple-100 text-purple-600' : item.state === 'open' ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-500') + '">' +
+            '<i class="fa-solid ' + (item.state === 'merged' ? 'fa-code-merge' : item.state === 'open' ? 'fa-code-pull-request' : 'fa-xmark') + '" aria-hidden="true"></i>' +
+          '</span>' +
+          '<div class="flex-1 min-w-0">' +
+            '<p class="font-medium truncate">' + escHtml(item.title) + '</p>' +
+            (item.url ? '<a href="' + escHtml(item.url) + '" target="_blank" rel="noopener" class="text-xs text-[#E10101] hover:underline">' + escHtml(item.repo || item.url) + '</a>' : '') +
+          '</div></li>'; }).join('');
       }
 
       // ── Badges ──
-      const bdgs = (p.badges || []);
+      var bdgs = p.badges || [];
       if (bdgs.length) {
-        setHtml('badgeList', bdgs.map(bg => `
-          <div class="flex flex-col items-center gap-1.5 bg-gray-50 border border-[#E5E5E5] rounded-xl px-4 py-3 min-w-[80px] text-center">
-            <span class="text-2xl" role="img" aria-label="${escHtml(bg.name)}">${escHtml(bg.icon || '🏅')}</span>
-            <span class="text-xs font-medium text-gray-700">${escHtml(bg.name)}</span>
-          </div>`).join(''));
+        setHtml('badgeList', bdgs.map(function(bg) { return '<div class="flex flex-col items-center gap-1.5 bg-gray-50 border border-[#E5E5E5] rounded-xl px-4 py-3 min-w-[80px] text-center">' +
+          '<span class="text-2xl" role="img" aria-label="' + escHtml(bg.name) + '">' + escHtml(bg.icon || '🏅') + '</span>' +
+          '<span class="text-xs font-medium text-gray-700">' + escHtml(bg.name) + '</span></div>'; }).join(''));
       }
 
       // ── Monthly Report ──
       setText('topFinding', p.monthly_report ? p.monthly_report.top_finding : '–');
     }
-
-    loadProfile();
   </script>
 </body>
 </html>

@@ -2,6 +2,7 @@
 __pycache__/
 *.py[cod]
 *.pyo
+.venv/
 
 # macOS
 .DS_Store

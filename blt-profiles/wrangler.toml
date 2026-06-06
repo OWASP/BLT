@@ -1,0 +1,15 @@
+name = "blt-profiles"
+main = "src/index.py"
+compatibility_date = "2026-06-05"
+compatibility_flags = [ "python_workers" ]
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
+not_found_handling = "404-page"
+run_worker_first = true
+
+[vars]
+GITLAB_PROJECT_PATH = "owasp-blt/blt-profiles"
+GITLAB_DEFAULT_BRANCH = "main"
+PUBLIC_SITE_URL = "https://profiles.owaspblt.org"

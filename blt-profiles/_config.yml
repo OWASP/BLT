@@ -1,9 +1,0 @@
-# GitHub Pages configuration
-# Using plain HTML — no Jekyll processing needed
-theme: null
-
-# Exclude source files not needed in published site
-exclude:
-  - README.md
-  - "*.py"
-  - ".github/"
