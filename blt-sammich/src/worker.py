@@ -3907,6 +3907,41 @@ async def db_admin_rows(env: Any, table_name: str) -> List[Dict[str, Any]]:
         return []
 
 
+def admin_sort_params(
+    table_name: str, sort_column: str = "", sort_direction: str = ""
+) -> Tuple[str, str]:
+    schema = admin_table_schema(table_name)
+    columns = [name for name, _ in schema["columns"]]
+    column = sort_column if sort_column in columns else schema["pk"]
+    direction = "ASC" if str(sort_direction).lower() == "asc" else "DESC"
+    return column, direction
+
+
+async def db_admin_rows_sorted(
+    env: Any, table_name: str, sort_column: str = "", sort_direction: str = ""
+) -> List[Dict[str, Any]]:
+    table_name = require_admin_table_name(table_name)
+    sort_column, sort_direction = admin_sort_params(
+        table_name, sort_column, sort_direction
+    )
+    try:
+        return result_rows(
+            await d1_run(
+                env,
+                "SELECT * FROM {0} ORDER BY {1} {2} LIMIT 100".format(
+                    table_name, sort_column, sort_direction
+                ),
+            )
+        )
+    except Exception as error:
+        log_exception_one_line(
+            error,
+            "db_admin_rows_failed",
+            {"table": table_name, "sort": sort_column, "direction": sort_direction},
+        )
+        return []
+
+
 async def db_admin_get_row(
     env: Any, table_name: str, pk_value: str
 ) -> Optional[Dict[str, Any]]:
@@ -3930,10 +3965,15 @@ async def db_admin_context(
     edit_pk: str = "",
     add_row: bool = False,
     confirm_delete_pk: str = "",
+    sort_column: str = "",
+    sort_direction: str = "",
 ) -> Dict[str, Any]:
     table_name = selected_table if selected_table in ADMIN_TABLE_SCHEMAS else "workspaces"
+    sort_column, sort_direction = admin_sort_params(
+        table_name, sort_column, sort_direction
+    )
     counts = await db_admin_table_counts(env)
-    rows = await db_admin_rows(env, table_name)
+    rows = await db_admin_rows_sorted(env, table_name, sort_column, sort_direction)
     edit_row = await db_admin_get_row(env, table_name, edit_pk) if edit_pk else None
     confirm_delete_row = (
         await db_admin_get_row(env, table_name, confirm_delete_pk)
@@ -3957,6 +3997,8 @@ async def db_admin_context(
         "confirm_delete_pk": confirm_delete_pk,
         "confirm_delete_row": confirm_delete_row,
         "confirm_related": confirm_related,
+        "sort_column": sort_column,
+        "sort_direction": sort_direction,
     }
 
 
@@ -4183,18 +4225,47 @@ def render_admin_delete_confirm_html(context: Dict[str, Any], admin_url: str) ->
     )
 
 
-def render_database_admin_html(context: Dict[str, Any], admin_url: str) -> str:
+def render_admin_breadcrumbs(context: Dict[str, Any], admin_url: str) -> str:
+    table_name = context["selected_table"]
+    crumbs = [
+        '<a class="text-gray-500 hover:text-red-600" href="{0}">Admin</a>'.format(
+            html_escape(admin_url)
+        ),
+        '<a class="text-gray-500 hover:text-red-600" href="{0}?table={1}">{1}</a>'.format(
+            html_escape(admin_url), html_escape(table_name)
+        ),
+    ]
+    if context.get("add_row"):
+        crumbs.append('<span class="text-gray-900">Add</span>')
+    elif context.get("edit_row"):
+        crumbs.append(
+            '<span class="text-gray-900">Edit {0}</span>'.format(
+                html_escape(context.get("edit_pk") or "")
+            )
+        )
+    elif context.get("confirm_delete_row"):
+        crumbs.append(
+            '<span class="text-gray-900">Delete {0}</span>'.format(
+                html_escape(context.get("confirm_delete_pk") or "")
+            )
+        )
+    else:
+        crumbs.append('<span class="text-gray-900">Rows</span>')
+    return '<nav class="mb-4 flex flex-wrap items-center gap-2 text-sm">{0}</nav>'.format(
+        '<span class="text-gray-300">/</span>'.join(crumbs)
+    )
+
+
+def render_admin_table_links(context: Dict[str, Any], admin_url: str) -> str:
     selected_table = context["selected_table"]
-    schema = context["schema"]
-    pk = schema["pk"]
-    table_links = []
+    links = []
     for table_name in context["tables"]:
         active = (
             " border-red-600 bg-red-50 text-red-700"
             if table_name == selected_table
             else " border-gray-200 bg-white text-gray-700 hover:border-gray-300"
         )
-        table_links.append(
+        links.append(
             '<a class="flex items-center justify-between gap-3 border rounded px-3 py-2 text-xs font-semibold{0}" href="{1}?table={2}"><span class="truncate">{2}</span><span class="text-[10px] opacity-70">{3}</span></a>'.format(
                 active,
                 html_escape(admin_url),
@@ -4202,130 +4273,164 @@ def render_database_admin_html(context: Dict[str, Any], admin_url: str) -> str:
                 html_escape(context["counts"].get(table_name, "?")),
             )
         )
+    return "\n".join(links)
 
-    row_html = []
+
+def render_admin_row_table(context: Dict[str, Any], admin_url: str) -> str:
+    selected_table = context["selected_table"]
+    schema = context["schema"]
+    sort_column = context.get("sort_column") or schema["pk"]
+    sort_direction = context.get("sort_direction") or "DESC"
+    header_cells = []
+    for column_name, _ in schema["columns"]:
+        next_direction = "desc" if column_name == sort_column and sort_direction == "ASC" else "asc"
+        marker = ""
+        if column_name == sort_column:
+            marker = " ▲" if sort_direction == "ASC" else " ▼"
+        header_cells.append(
+            '<th class="sticky top-0 z-10 border-b border-gray-200 bg-gray-50 px-3 py-2 text-left text-xs font-bold text-gray-600">'
+            '<a class="whitespace-nowrap hover:text-red-600" href="{0}?table={1}&sort={2}&direction={3}">{2}{4}</a></th>'.format(
+                html_escape(admin_url),
+                html_escape(selected_table),
+                html_escape(column_name),
+                next_direction,
+                marker,
+            )
+        )
+    header_cells.append(
+        '<th class="sticky top-0 z-10 border-b border-gray-200 bg-gray-50 px-3 py-2 text-right text-xs font-bold text-gray-600">Actions</th>'
+    )
+    rows = []
+    pk = schema["pk"]
     for row in context["rows"]:
         pk_value = str(row.get(pk) if row.get(pk) is not None else "")
-        active = (
-            " border-red-600 bg-red-50"
-            if pk_value and pk_value == str(context.get("edit_pk") or "")
-            else " border-gray-200 bg-white hover:border-gray-300"
-        )
-        detail = admin_row_detail(row, schema)
-        detail_html = (
-            '<div class="mt-1 truncate text-[11px] text-gray-500">{0}</div>'.format(
-                html_escape(detail)
+        cells = []
+        for column_name, _ in schema["columns"]:
+            cells.append(
+                '<td class="border-b border-gray-100 px-3 py-2 align-top font-mono text-xs text-gray-800"><div class="max-w-[28rem] whitespace-pre-wrap break-words">{0}</div></td>'.format(
+                    html_escape(str(row.get(column_name) if row.get(column_name) is not None else ""))
+                )
             )
-            if detail
-            else ""
-        )
-        row_html.append(
-            '<a class="block border rounded px-3 py-2{0}" href="{1}?table={2}&edit={3}">'
-            '<div class="flex items-center justify-between gap-3">'
-            '<span class="truncate text-sm font-semibold text-gray-900">{4}</span>'
-            '<span class="shrink-0 rounded bg-gray-100 px-2 py-0.5 font-mono text-[10px] text-gray-500">{5}</span>'
-            '</div>{6}</a>'.format(
-                active,
+        cells.append(
+            '<td class="border-b border-gray-100 px-3 py-2 text-right align-top whitespace-nowrap">'
+            '<a class="font-semibold text-red-600 hover:text-red-700" href="{0}?table={1}&edit={2}">Edit</a>'
+            '<a class="ml-3 font-semibold text-gray-500 hover:text-red-700" href="{0}?table={1}&confirm_delete={2}">Delete</a>'
+            "</td>".format(
                 html_escape(admin_url),
                 html_escape(selected_table),
                 html_escape(pk_value),
-                html_escape(admin_row_title(row, schema)),
-                html_escape(admin_row_identity(selected_table, schema, pk_value)),
-                detail_html,
             )
         )
-    if not row_html:
-        row_html.append(
-            '<div class="rounded border border-dashed border-gray-200 py-8 text-center text-sm text-gray-400">No rows found.</div>'
+        rows.append('<tr class="hover:bg-red-50/40">{0}</tr>'.format("".join(cells)))
+    if not rows:
+        rows.append(
+            '<tr><td colspan="{0}" class="px-3 py-10 text-center text-sm text-gray-400">No rows found.</td></tr>'.format(
+                len(schema["columns"]) + 1
+            )
         )
+    return """
+    <div class="overflow-auto rounded border border-gray-200 max-h-[calc(100vh-250px)]">
+      <table class="min-w-full border-collapse text-sm">
+        <thead><tr>{headers}</tr></thead>
+        <tbody>{rows}</tbody>
+      </table>
+    </div>
+    """.format(headers="".join(header_cells), rows="\n".join(rows))
 
+
+def render_admin_form_page(context: Dict[str, Any], admin_url: str) -> str:
+    selected_table = context["selected_table"]
+    schema = context["schema"]
+    pk = schema["pk"]
     edit_row = context.get("edit_row")
     editing = bool(edit_row)
-    adding = bool(context.get("add_row"))
-    confirming_delete = bool(context.get("confirm_delete_row"))
     form_action = "db_update" if editing else "db_create"
     form_title = "Edit {0}".format(selected_table) if editing else "Add {0}".format(selected_table)
     form_fields = []
-    if editing or adding:
-        for column_name, column_type in admin_editable_columns(schema):
-            value = (edit_row or {}).get(column_name, "")
-            required = bool(column_name == pk and not schema.get("auto_pk"))
-            form_fields.append(render_admin_db_field(column_name, column_type, value, required))
-
+    for column_name, column_type in admin_editable_columns(schema):
+        value = (edit_row or {}).get(column_name, "")
+        required = bool(column_name == pk and not schema.get("auto_pk"))
+        form_fields.append(render_admin_db_field(column_name, column_type, value, required))
     hidden_pk = ""
     if editing:
         hidden_pk = '<input type="hidden" name="pk" value="{0}" />'.format(
             html_escape(str((edit_row or {}).get(pk) or context.get("edit_pk") or ""))
         )
-    form_panel = (
-        render_admin_delete_confirm_html(context, admin_url)
-        if confirming_delete
-        else (
-        """
-        <form method="post" action="{admin_url}" class="min-w-0 border border-gray-200 rounded-lg p-4 space-y-3">
-          <h3 class="font-bold">{form_title}</h3>
-          <input type="hidden" name="action" value="{form_action}" />
-          <input type="hidden" name="table" value="{selected_table}" />
-          {hidden_pk}
-          <div class="space-y-3 max-h-[640px] overflow-y-auto pr-1">{form_fields}</div>
-          <button class="w-full px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700" type="submit">{button_text}</button>
-          {delete_button}
-        </form>
-        """.format(
-            admin_url=html_escape(admin_url),
-            form_title=html_escape(form_title),
-            form_action=form_action,
-            selected_table=html_escape(selected_table),
-            hidden_pk=hidden_pk,
-            form_fields="\n".join(form_fields),
-            button_text="Save Changes" if editing else "Create Row",
-            delete_button=(
-                '<a class="block w-full px-4 py-2 border border-gray-300 text-center text-gray-700 rounded-lg font-semibold hover:border-red-300 hover:text-red-700" '
-                'href="{0}?table={1}&confirm_delete={2}">Delete Row</a>'.format(
-                    html_escape(admin_url),
-                    html_escape(selected_table),
-                    html_escape(str((edit_row or {}).get(pk) or context.get("edit_pk") or "")),
-                )
-                if editing
-                else ""
-            ),
+    delete_link = ""
+    if editing:
+        delete_link = (
+            '<a class="px-4 py-2 border border-gray-300 text-center text-gray-700 rounded-lg font-semibold hover:border-red-300 hover:text-red-700" '
+            'href="{0}?table={1}&confirm_delete={2}">Delete Row</a>'.format(
+                html_escape(admin_url),
+                html_escape(selected_table),
+                html_escape(str((edit_row or {}).get(pk) or context.get("edit_pk") or "")),
+            )
         )
-        if editing or adding
-        else (
-            '<div class="min-w-0 border border-dashed border-gray-200 rounded-lg p-6 text-sm text-gray-500">'
-            "Select a row to edit it, or use Add row to create a new record."
-            "</div>"
-        )
-        )
-    )
-
     return """
-    <section class="bg-white rounded-lg shadow p-6">
-      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-5">
-        <div>
-          <h2 class="text-xl font-bold">Database Admin</h2>
-          <p class="text-sm text-gray-500">Pick a table, choose a row, then edit the record.</p>
-        </div>
-        <a href="{admin_url}?table={selected_table}&add=1" class="inline-flex items-center gap-2 text-sm font-semibold text-red-600"><i class="fas fa-plus"></i>Add row</a>
+    <section class="rounded-lg bg-white p-6 shadow">
+      <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 class="text-xl font-bold">{form_title}</h2>
+        <a class="text-sm font-semibold text-gray-500 hover:text-red-600" href="{admin_url}?table={selected_table}">Back to table</a>
       </div>
-      <div class="grid gap-6 lg:grid-cols-[260px_minmax(320px,460px)_minmax(0,1fr)]">
-        <nav aria-label="Database tables" class="space-y-2">
-          <h3 class="text-xs font-bold uppercase tracking-wide text-gray-500">Tables</h3>
-          <div class="space-y-2">{table_links}</div>
-        </nav>
-        <div class="min-w-0 space-y-2">
-          <h3 class="text-xs font-bold uppercase tracking-wide text-gray-500">Rows in {selected_table}</h3>
-          <div class="max-h-[calc(100vh-220px)] space-y-2 overflow-y-auto pr-1">{rows}</div>
+      <form method="post" action="{admin_url}" class="space-y-4">
+        <input type="hidden" name="action" value="{form_action}" />
+        <input type="hidden" name="table" value="{selected_table}" />
+        {hidden_pk}
+        <div class="grid gap-4 lg:grid-cols-2">{form_fields}</div>
+        <div class="flex flex-col gap-2 sm:flex-row">
+          <button class="px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700" type="submit">{button_text}</button>
+          {delete_link}
         </div>
-        {form_panel}
-      </div>
+      </form>
     </section>
     """.format(
         admin_url=html_escape(admin_url),
-        table_links="\n".join(table_links),
-        rows="\n".join(row_html),
         selected_table=html_escape(selected_table),
-        form_panel=form_panel,
+        form_title=html_escape(form_title),
+        form_action=form_action,
+        hidden_pk=hidden_pk,
+        form_fields="\n".join(form_fields),
+        button_text="Save Changes" if editing else "Create Row",
+        delete_link=delete_link,
+    )
+
+
+def render_database_admin_html(context: Dict[str, Any], admin_url: str) -> str:
+    selected_table = context["selected_table"]
+    if context.get("confirm_delete_row"):
+        main_content = render_admin_delete_confirm_html(context, admin_url)
+    elif context.get("add_row") or context.get("edit_row"):
+        main_content = render_admin_form_page(context, admin_url)
+    else:
+        main_content = """
+        <section class="rounded-lg bg-white p-6 shadow">
+          <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 class="text-xl font-bold">{selected_table}</h2>
+              <p class="text-sm text-gray-500">Full table data. Click a column heading to sort.</p>
+            </div>
+            <a href="{admin_url}?table={selected_table}&add=1" class="inline-flex items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"><i class="fas fa-plus"></i>Add row</a>
+          </div>
+          {table}
+        </section>
+        """.format(
+            admin_url=html_escape(admin_url),
+            selected_table=html_escape(selected_table),
+            table=render_admin_row_table(context, admin_url),
+        )
+    return """
+    {breadcrumbs}
+    <div class="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
+      <nav aria-label="Database tables" class="space-y-2">
+        <h3 class="text-xs font-bold uppercase tracking-wide text-gray-500">Tables</h3>
+        <div class="space-y-2">{table_links}</div>
+      </nav>
+      <div class="min-w-0">{main_content}</div>
+    </div>
+    """.format(
+        breadcrumbs=render_admin_breadcrumbs(context, admin_url),
+        table_links=render_admin_table_links(context, admin_url),
+        main_content=main_content,
     )
 
 
@@ -4366,7 +4471,7 @@ def render_admin_html(
   <main class="w-full px-4 sm:px-6 lg:px-8 py-8">
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
       <div>
-        <h1 class="text-3xl font-bold">BLT-Sammich Admin</h1>
+        <h1 class="text-3xl font-bold">BLT-Sammich Database Admin</h1>
         <p class="text-gray-500 text-sm">Browse, edit, create, and delete database records.</p>
       </div>
       <a href="/" class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-semibold hover:bg-gray-50"><i class="fas fa-home"></i>Homepage</a>
@@ -4392,6 +4497,8 @@ async def handle_admin_get(request: Any, env: Any) -> Any:
     edit_pk = params.get("edit", [""])[0]
     add_db_row = params.get("add", [""])[0] == "1"
     confirm_delete_pk = params.get("confirm_delete", [""])[0]
+    sort_column = params.get("sort", [""])[0]
+    sort_direction = params.get("direction", [""])[0]
     try:
         return html_response(
             render_admin_html(
@@ -4399,7 +4506,13 @@ async def handle_admin_get(request: Any, env: Any) -> Any:
                 [],
                 [],
                 database_context=await db_admin_context(
-                    env, selected_table, edit_pk, add_db_row, confirm_delete_pk
+                    env,
+                    selected_table,
+                    edit_pk,
+                    add_db_row,
+                    confirm_delete_pk,
+                    sort_column,
+                    sort_direction,
                 ),
                 message=message,
             )

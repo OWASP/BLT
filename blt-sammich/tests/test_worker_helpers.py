@@ -458,12 +458,15 @@ def test_render_admin_html_focuses_on_database_admin():
             "edit_row": None,
             "edit_pk": "",
             "add_row": False,
+            "sort_column": "id",
+            "sort_direction": "DESC",
         },
     )
 
     assert "Database Admin" in html
     assert "Security Team" in html
-    assert "workspaces.id 1" in html
+    assert "<th" in html
+    assert "href=\"/private-admin?table=workspaces&sort=team_id&direction=asc\"" in html
     assert "/private-admin" in html
     assert "Connected Workspaces" not in html
     assert "Managed Servers" not in html
@@ -492,6 +495,38 @@ def test_render_admin_html_includes_database_admin_context():
                     "updated_at": "2026-06-06T00:00:00+00:00",
                 }
             ],
+            "edit_row": None,
+            "edit_pk": "",
+            "add_row": False,
+            "sort_column": "team_name",
+            "sort_direction": "ASC",
+        },
+    )
+
+    assert "Database Admin" in html
+    assert "Tables" in html
+    assert "Admin" in html
+    assert "Rows" in html
+    assert "workspaces" in html
+    assert "Security Team" in html
+    assert "team_name ▲" in html
+    assert "Edit" in html
+    assert "Delete" in html
+
+
+def test_render_admin_html_shows_edit_form_on_edit_page():
+    env = _Env()
+    setattr(env, "ADMIN_URL", "/private-admin")
+    html = worker.render_admin_html(
+        env,
+        [],
+        [],
+        database_context={
+            "tables": ["workspaces"],
+            "counts": {"workspaces": 1},
+            "selected_table": "workspaces",
+            "schema": worker.ADMIN_TABLE_SCHEMAS["workspaces"],
+            "rows": [],
             "edit_row": {
                 "id": 1,
                 "team_id": "T123",
@@ -501,16 +536,15 @@ def test_render_admin_html_includes_database_admin_context():
             },
             "edit_pk": "1",
             "add_row": False,
+            "sort_column": "id",
+            "sort_direction": "DESC",
         },
     )
 
-    assert "Database Admin" in html
-    assert "Tables" in html
-    assert "Rows in workspaces" in html
-    assert "workspaces" in html
-    assert "Security Team" in html
+    assert "Edit workspaces" in html
     assert "db_update" in html
     assert "Delete Row" in html
+    assert "Back to table" in html
 
 
 def test_lettuce_model_tables_are_in_schema_bootstrap():
