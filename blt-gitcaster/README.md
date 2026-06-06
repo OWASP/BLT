@@ -81,8 +81,13 @@ The page fetches data from the GitHub Events API and processes it in real-time:
 - **Modular Design**: Separate classes for SoundEffects, TTS, AI Commentary, and Main Sportscaster
 
 ### Files
-- `index.html` - Main UI structure and styling
-- `sportscaster.js` - Core JavaScript functionality
+- `public/index.html` - Main UI structure and styling
+- `public/landing.html` - About/landing page
+- `public/sportscaster.js` - Core JavaScript functionality
+
+### Cloudflare
+This site is configured for Cloudflare with `public/` as the deployable asset directory.
+The `wrangler.toml` file points both Cloudflare Pages and Workers Static Assets at `public/`.
 
 ### API Integration
 - **GitHub Events API**: Real-time public events
@@ -137,8 +142,8 @@ To run locally:
 git clone https://github.com/OWASP-BLT/Github_Sportscaster.git
 cd Github_Sportscaster
 
-# Serve the files (any HTTP server works)
-python3 -m http.server 8080
+# Serve the public folder (any HTTP server works)
+python3 -m http.server 8080 --directory public
 
 # Open http://localhost:8080 in your browser
 ```
