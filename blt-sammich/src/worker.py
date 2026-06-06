@@ -5,7 +5,6 @@ import hmac
 import io
 import json
 import time
-import traceback
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -502,25 +501,11 @@ def log_exception_one_line(
     context: str,
     extra: Optional[Dict[str, Any]] = None,
 ) -> None:
-    stack = "".join(
-        traceback.format_exception(type(error), error, error.__traceback__)
-    ).replace("\n", "\\n")
-    payload = {
-        "level": "error",
-        "context": context,
-        "error_type": type(error).__name__,
-        "error": str(error),
-        "stack": stack,
-    }
-    if extra:
-        payload["extra"] = extra
-    print(json.dumps(payload, separators=(",", ":")))
+    return None
 
 
 def log_json_event(event: str, payload: Dict[str, Any]) -> None:
-    record = {"level": "info", "event": event}
-    record.update(payload)
-    print(json.dumps(record, separators=(",", ":"), sort_keys=True))
+    return None
 
 
 def payload_team_id(payload: Dict[str, Any]) -> str:
@@ -739,63 +724,6 @@ def model_event_type_for_activity(activity_kind: str, payload: Dict[str, Any]) -
     if raw_type == "http_request":
         return "Http_Request"
     return str(raw_type or activity_kind)
-
-
-def request_headers_payload(request: Any) -> Dict[str, str]:
-    headers: Dict[str, str] = {}
-    request_headers = getattr(request, "headers", None)
-    if not request_headers:
-        return headers
-    try:
-        for key, value in request_headers.items():
-            headers[str(key).lower()] = str(value)
-        return headers
-    except Exception:
-        pass
-    common_header_names = (
-        "accept",
-        "accept-language",
-        "cf-connecting-ip",
-        "cf-ipcountry",
-        "cf-ray",
-        "cf-visitor",
-        "host",
-        "sec-fetch-mode",
-        "sec-fetch-site",
-        "user-agent",
-        "x-forwarded-proto",
-        "x-real-ip",
-    )
-    for header_name in common_header_names:
-        try:
-            value = request_headers.get(header_name, "")
-        except Exception:
-            value = ""
-        if value:
-            headers[header_name] = str(value)
-    return headers
-
-
-def request_event_payload(
-    request: Any, path: str, normalized_path: str, body_text: str = ""
-) -> Dict[str, Any]:
-    cf_data = {}
-    try:
-        cf_data = to_python(getattr(request, "cf"))
-    except Exception:
-        cf_data = {}
-    payload = {
-        "type": "http_request",
-        "method": str(getattr(request, "method", "")).upper(),
-        "url": str(getattr(request, "url", "")),
-        "path": path,
-        "normalized_path": normalized_path,
-        "headers": request_headers_payload(request),
-        "cf": cf_data if isinstance(cf_data, dict) else {},
-    }
-    if body_text:
-        payload["raw_body"] = body_text
-    return payload
 
 
 def verify_slack_signature(
@@ -1107,6 +1035,9 @@ async def ensure_schema(env: Any) -> None:
 async def record_activity(
     env: Any, activity_kind: str, payload: Dict[str, Any]
 ) -> None:
+    if activity_kind == "http_request":
+        return
+
     try:
         getattr(env, "DB")
     except Exception:
@@ -4348,11 +4279,6 @@ async def handle_request(request: Any, env: Any) -> Any:
             if normalized_path == "/slack/events"
             else "slack_commands"
         )
-        await record_activity(
-            env,
-            "http_request",
-            request_event_payload(request, path, normalized_path),
-        )
         return json_response(
             {
                 "ok": True,
@@ -4367,11 +4293,6 @@ async def handle_request(request: Any, env: Any) -> Any:
         parsed_events_payload: Dict[str, Any] = {}
 
         if normalized_path == "/slack/events":
-            await record_activity(
-                env,
-                "http_request",
-                request_event_payload(request, path, normalized_path, body_text),
-            )
             if "application/x-www-form-urlencoded" in content_type:
                 form = parse_form_encoded(body_text)
                 if form.get("payload"):

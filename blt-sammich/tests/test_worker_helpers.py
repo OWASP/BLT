@@ -133,16 +133,7 @@ def test_get_slack_endpoints_return_health_payloads():
         worker.record_activity = original_record_activity
         worker.json_response = original_json_response
 
-    assert len(logged) == 2
-    assert logged[0][0] == "http_request"
-    assert logged[0][1]["type"] == "http_request"
-    assert logged[0][1]["method"] == "GET"
-    assert logged[0][1]["path"] == "/slack/events/"
-    assert logged[0][1]["normalized_path"] == "/slack/events"
-    assert logged[0][1]["headers"]["user-agent"] == "Chrome test"
-    assert logged[0][1]["headers"]["cf-ray"] == "a0788b78edb67cae"
-    assert logged[1][0] == "http_request"
-    assert logged[1][1]["normalized_path"] == "/slack/commands"
+    assert logged == []
     assert events_response == {
         "payload": {
             "ok": True,
@@ -161,7 +152,7 @@ def test_get_slack_endpoints_return_health_payloads():
     }
 
 
-def test_post_slack_events_logs_before_signature_verification():
+def test_post_slack_events_logs_event_before_signature_verification():
     original_record_activity = worker.record_activity
     original_build_response = worker.build_response
     logged = []
@@ -205,14 +196,10 @@ def test_post_slack_events_logs_before_signature_verification():
         worker.record_activity = original_record_activity
 
     assert response == {"body": "Invalid Slack signature.", "status": 401}
-    assert len(logged) == 2
-    assert logged[0][0] == "http_request"
-    assert logged[0][1]["method"] == "POST"
-    assert logged[0][1]["normalized_path"] == "/slack/events"
-    assert "log before auth" in logged[0][1]["raw_body"]
-    assert logged[1][0] == "event"
-    assert logged[1][1]["team_id"] == "T123"
-    assert logged[1][1]["event"]["text"] == "log before auth"
+    assert len(logged) == 1
+    assert logged[0][0] == "event"
+    assert logged[0][1]["team_id"] == "T123"
+    assert logged[0][1]["event"]["text"] == "log before auth"
 
 
 def test_post_slack_events_can_verify_with_database_signing_secret():
@@ -288,7 +275,7 @@ def test_post_slack_events_can_verify_with_database_signing_secret():
     assert response == {"ok": True, "handled": True}
     assert handled["app_id"] == "A123"
     assert handled["payload"]["event"]["text"] == "verified by db secret"
-    assert [entry[0] for entry in logged] == ["http_request", "event"]
+    assert [entry[0] for entry in logged] == ["event"]
 
 
 def test_repo_response_without_query_returns_blocks():
@@ -1143,7 +1130,7 @@ def test_record_activity_stores_slack_user_and_channel_metadata():
     assert '"name":"general"' in channel_inserts[0][1][20]
 
 
-def test_record_activity_logs_http_request_events():
+def test_record_activity_ignores_http_request_events():
     captured = []
     original_d1_run = worker.d1_run
     original_schema_ready = worker.SCHEMA_READY
@@ -1178,14 +1165,7 @@ def test_record_activity_logs_http_request_events():
         for query, params in captured
         if "INSERT INTO events" in query
     ]
-    assert len(event_inserts) == 1
-    values = event_insert_values(event_inserts[0][1])
-    assert values["workspace_id"] is None
-    assert values["event_type"] == "Http_Request"
-    assert values["status"] == "success"
-    assert values["webhook_body_type"] == "http_request"
-    assert '"path": "/slack/events"' in values["request_data"]
-    assert '"cf-ray": "a0788b78edb67cae"' in values["request_data"]
+    assert event_inserts == []
 
 
 def test_db_upsert_workspace_persists_slack_tokens():
