@@ -2,8 +2,5 @@ name = "blt-waypoint"
 compatibility_date = "2026-06-05"
 pages_build_output_dir = "./public"
 
-[build]
-command = "sh scripts/build_static.sh"
-
 [assets]
 directory = "./public"
