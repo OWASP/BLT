@@ -1,5 +1,7 @@
 # BLT-Sammich Slack Bot
 
+Version: `0.1.0`
+
 **BLT-Sammich** is a feature-rich Slack bot built for the OWASP BLT (Bug Logging Tool) community. This bot helps teams interact with GitHub repositories, track contributors, manage projects, and discover OWASP resources directly from Slack.
 
 > **Note:** The core functionality of this bot has been merged into the [main BLT repository](https://github.com/OWASP-BLT/BLT). This repository serves as the standalone implementation and development base for the BLT Slack bot.
