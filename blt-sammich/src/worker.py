@@ -66,6 +66,23 @@ ADMIN_TABLE_SCHEMAS = {
             ("updated_at", "TEXT"),
         ],
     },
+    "slack_apps": {
+        "pk": "id",
+        "auto_pk": True,
+        "columns": [
+            ("id", "INTEGER"),
+            ("app_id", "TEXT"),
+            ("app_name", "TEXT"),
+            ("app_icon_url", "TEXT"),
+            ("client_id", "TEXT"),
+            ("client_secret", "TEXT"),
+            ("signing_secret", "TEXT"),
+            ("app_token", "TEXT"),
+            ("manifest_yaml", "TEXT"),
+            ("created_at", "TEXT"),
+            ("updated_at", "TEXT"),
+        ],
+    },
     "managed_servers": {
         "pk": "id",
         "auto_pk": True,
@@ -116,6 +133,20 @@ ADMIN_TABLE_SCHEMAS = {
             ("topic", "TEXT"),
             ("purpose", "TEXT"),
             ("is_private", "INTEGER"),
+            ("is_channel", "INTEGER"),
+            ("is_group", "INTEGER"),
+            ("is_im", "INTEGER"),
+            ("is_mpim", "INTEGER"),
+            ("is_archived", "INTEGER"),
+            ("is_general", "INTEGER"),
+            ("is_shared", "INTEGER"),
+            ("is_ext_shared", "INTEGER"),
+            ("is_org_shared", "INTEGER"),
+            ("is_pending_ext_shared", "INTEGER"),
+            ("is_member", "INTEGER"),
+            ("creator", "TEXT"),
+            ("locale", "TEXT"),
+            ("metadata_json", "TEXT"),
             ("send_join_message", "INTEGER"),
             ("join_message_id", "INTEGER"),
             ("join_delivery_mode", "TEXT"),
@@ -206,9 +237,23 @@ ADMIN_TABLE_SCHEMAS = {
             ("slack_user_id", "TEXT"),
             ("team_id", "TEXT"),
             ("name", "TEXT"),
+            ("real_name", "TEXT"),
             ("email", "TEXT"),
             ("access_token", "TEXT"),
             ("avatar_url", "TEXT"),
+            ("deleted", "INTEGER"),
+            ("is_bot", "INTEGER"),
+            ("is_admin", "INTEGER"),
+            ("is_owner", "INTEGER"),
+            ("is_primary_owner", "INTEGER"),
+            ("is_restricted", "INTEGER"),
+            ("is_ultra_restricted", "INTEGER"),
+            ("is_app_user", "INTEGER"),
+            ("tz", "TEXT"),
+            ("tz_label", "TEXT"),
+            ("tz_offset", "INTEGER"),
+            ("profile_json", "TEXT"),
+            ("metadata_json", "TEXT"),
             ("created_at", "TEXT"),
             ("updated_at", "TEXT"),
         ],
@@ -497,9 +542,16 @@ def payload_team_id(payload: Dict[str, Any]) -> str:
 def payload_user_id(payload: Dict[str, Any]) -> str:
     event = payload.get("event") or {}
     user_profile = event.get("user_profile") or {}
+    payload_user = payload.get("user")
+    event_user = event.get("user")
+    if isinstance(payload_user, dict):
+        payload_user = payload_user.get("id") or payload_user.get("user_id")
+    if isinstance(event_user, dict):
+        event_user = event_user.get("id") or event_user.get("user_id")
     return str(
         payload.get("user_id")
-        or event.get("user")
+        or payload_user
+        or event_user
         or event.get("bot_id")
         or user_profile.get("id")
         or ""
@@ -530,6 +582,129 @@ def payload_channel_name(payload: Dict[str, Any]) -> str:
     if isinstance(payload_channel, dict):
         return str(payload_channel.get("name") or "")
     return str(payload.get("channel_name") or event.get("channel_name") or "")
+
+
+def payload_app_id(payload: Dict[str, Any]) -> str:
+    return str(payload.get("api_app_id") or payload.get("app_id") or "")
+
+
+def bool_int(value: Any) -> int:
+    if isinstance(value, str):
+        return 1 if value.lower() in ("1", "true", "yes", "on") else 0
+    return 1 if value else 0
+
+
+def compact_json(value: Any) -> str:
+    if not value:
+        return ""
+    try:
+        return json.dumps(value, sort_keys=True, separators=(",", ":"))
+    except Exception:
+        return str(value)
+
+
+def payload_user_metadata(payload: Dict[str, Any]) -> Dict[str, Any]:
+    event = payload.get("event") if isinstance(payload.get("event"), dict) else {}
+    user_obj: Dict[str, Any] = {}
+    raw_user = event.get("user") or payload.get("user")
+    if isinstance(raw_user, dict):
+        user_obj = raw_user
+    elif isinstance(event.get("user_profile"), dict):
+        user_obj = {"id": event.get("user"), "profile": event.get("user_profile")}
+    elif isinstance(payload.get("authed_user"), dict):
+        user_obj = payload.get("authed_user") or {}
+    profile = user_obj.get("profile") if isinstance(user_obj.get("profile"), dict) else {}
+    user_id = str(
+        user_obj.get("id")
+        or user_obj.get("user_id")
+        or payload_user_id(payload)
+        or ""
+    )
+    name = str(
+        user_obj.get("name")
+        or profile.get("display_name")
+        or profile.get("real_name")
+        or payload.get("user_name")
+        or user_id
+        or ""
+    )
+    real_name = str(user_obj.get("real_name") or profile.get("real_name") or "")
+    avatar_url = str(
+        profile.get("image_512")
+        or profile.get("image_192")
+        or profile.get("image_72")
+        or user_obj.get("avatar_url")
+        or ""
+    )
+    return {
+        "slack_user_id": user_id,
+        "team_id": str(user_obj.get("team_id") or payload_team_id(payload) or "unknown"),
+        "name": name,
+        "real_name": real_name,
+        "email": str(user_obj.get("email") or profile.get("email") or ""),
+        "avatar_url": avatar_url,
+        "deleted": bool_int(user_obj.get("deleted")),
+        "is_bot": bool_int(user_obj.get("is_bot")),
+        "is_admin": bool_int(user_obj.get("is_admin")),
+        "is_owner": bool_int(user_obj.get("is_owner")),
+        "is_primary_owner": bool_int(user_obj.get("is_primary_owner")),
+        "is_restricted": bool_int(user_obj.get("is_restricted")),
+        "is_ultra_restricted": bool_int(user_obj.get("is_ultra_restricted")),
+        "is_app_user": bool_int(user_obj.get("is_app_user")),
+        "tz": str(user_obj.get("tz") or ""),
+        "tz_label": str(user_obj.get("tz_label") or ""),
+        "tz_offset": int(user_obj.get("tz_offset") or 0),
+        "profile_json": compact_json(profile),
+        "metadata_json": compact_json(user_obj),
+    }
+
+
+def payload_channel_metadata(payload: Dict[str, Any]) -> Dict[str, Any]:
+    event = payload.get("event") if isinstance(payload.get("event"), dict) else {}
+    channel_obj: Dict[str, Any] = {}
+    raw_channel = payload.get("channel")
+    event_channel = event.get("channel")
+    if isinstance(raw_channel, dict):
+        channel_obj = raw_channel
+    elif isinstance(event_channel, dict):
+        channel_obj = event_channel
+    elif isinstance(event.get("item"), dict) and isinstance(event["item"].get("channel"), dict):
+        channel_obj = event["item"]["channel"]
+    topic = channel_obj.get("topic") if isinstance(channel_obj.get("topic"), dict) else {}
+    purpose = (
+        channel_obj.get("purpose") if isinstance(channel_obj.get("purpose"), dict) else {}
+    )
+    channel_type = str(event.get("channel_type") or channel_obj.get("channel_type") or "")
+    return {
+        "channel_id": str(channel_obj.get("id") or payload_channel_id(payload) or ""),
+        "channel_name": str(
+            channel_obj.get("name")
+            or channel_obj.get("name_normalized")
+            or payload_channel_name(payload)
+            or payload_channel_id(payload)
+            or ""
+        ),
+        "member_count": int(
+            channel_obj.get("num_members") or channel_obj.get("member_count") or 0
+        ),
+        "topic": str(topic.get("value") or channel_obj.get("topic") or ""),
+        "purpose": str(purpose.get("value") or channel_obj.get("purpose") or ""),
+        "is_private": bool_int(channel_obj.get("is_private") or channel_type == "im"),
+        "is_channel": bool_int(channel_obj.get("is_channel")),
+        "is_group": bool_int(channel_obj.get("is_group")),
+        "is_im": bool_int(channel_obj.get("is_im") or channel_type == "im"),
+        "is_mpim": bool_int(channel_obj.get("is_mpim")),
+        "is_archived": bool_int(channel_obj.get("is_archived")),
+        "is_general": bool_int(channel_obj.get("is_general")),
+        "is_shared": bool_int(channel_obj.get("is_shared")),
+        "is_ext_shared": bool_int(channel_obj.get("is_ext_shared")),
+        "is_org_shared": bool_int(channel_obj.get("is_org_shared")),
+        "is_pending_ext_shared": bool_int(channel_obj.get("is_pending_ext_shared")),
+        "is_member": bool_int(channel_obj.get("is_member")),
+        "creator": str(channel_obj.get("creator") or ""),
+        "locale": str(channel_obj.get("locale") or ""),
+        "metadata_json": compact_json(channel_obj),
+    }
 
 
 def event_slash_command_fields(payload: Dict[str, Any]) -> Dict[str, str]:
@@ -945,8 +1120,21 @@ async def record_activity(
     user_id = payload_user_id(payload)
     channel_id = payload_channel_id(payload)
     channel_name = payload_channel_name(payload)
+    app_id = payload_app_id(payload)
+    user_metadata = payload_user_metadata(payload)
+    channel_metadata = payload_channel_metadata(payload)
     payload_json = json.dumps(payload, sort_keys=True)
     workspace_id = None
+    command_fields = event_slash_command_fields(payload)
+    if app_id:
+        try:
+            await db_upsert_slack_app(env, app_id=app_id)
+        except Exception as error:
+            log_exception_one_line(
+                error,
+                "record_activity_slack_app_upsert_failed",
+                {"app_id": app_id, "team_id": team_id},
+            )
     if team_id:
         try:
             team = payload.get("team") if isinstance(payload.get("team"), dict) else {}
@@ -956,8 +1144,13 @@ async def record_activity(
                 team_name=str(
                     team.get("name") or payload.get("team_name") or team_id
                 ),
+                app_id=app_id,
             )
-            workspace = await db_get_workspace_by_team(env, team_id)
+            workspace = (
+                await db_get_workspace_by_team_and_app(env, team_id, app_id)
+                if app_id
+                else await db_get_workspace_by_team(env, team_id)
+            )
             workspace_id = workspace.get("id") if workspace else None
         except Exception as error:
             log_exception_one_line(
@@ -968,7 +1161,27 @@ async def record_activity(
     if user_id:
         try:
             await db_get_or_create_user(
-                env, user_id, team_id or "unknown", user_id, "", ""
+                env,
+                user_id,
+                user_metadata.get("team_id") or team_id or "unknown",
+                user_metadata.get("name") or user_id,
+                user_metadata.get("email") or "",
+                "",
+                user_metadata.get("avatar_url") or "",
+                real_name=user_metadata.get("real_name") or "",
+                deleted=int(user_metadata.get("deleted") or 0),
+                is_bot=int(user_metadata.get("is_bot") or 0),
+                is_admin=int(user_metadata.get("is_admin") or 0),
+                is_owner=int(user_metadata.get("is_owner") or 0),
+                is_primary_owner=int(user_metadata.get("is_primary_owner") or 0),
+                is_restricted=int(user_metadata.get("is_restricted") or 0),
+                is_ultra_restricted=int(user_metadata.get("is_ultra_restricted") or 0),
+                is_app_user=int(user_metadata.get("is_app_user") or 0),
+                tz=user_metadata.get("tz") or "",
+                tz_label=user_metadata.get("tz_label") or "",
+                tz_offset=int(user_metadata.get("tz_offset") or 0),
+                profile_json=user_metadata.get("profile_json") or "",
+                metadata_json=user_metadata.get("metadata_json") or "",
             )
         except Exception as error:
             log_exception_one_line(
@@ -982,13 +1195,29 @@ async def record_activity(
                 env,
                 workspace_id,
                 channel_id,
-                channel_name or channel_id,
+                channel_metadata.get("channel_name") or channel_name or channel_id,
+                member_count=int(channel_metadata.get("member_count") or 0),
+                topic=channel_metadata.get("topic") or "",
+                purpose=channel_metadata.get("purpose") or "",
                 is_private=(
                     1
-                    if str((payload.get("event") or {}).get("channel_type") or "")
-                    == "im"
+                    if int(channel_metadata.get("is_private") or 0)
                     else 0
                 ),
+                is_channel=int(channel_metadata.get("is_channel") or 0),
+                is_group=int(channel_metadata.get("is_group") or 0),
+                is_im=int(channel_metadata.get("is_im") or 0),
+                is_mpim=int(channel_metadata.get("is_mpim") or 0),
+                is_archived=int(channel_metadata.get("is_archived") or 0),
+                is_general=int(channel_metadata.get("is_general") or 0),
+                is_shared=int(channel_metadata.get("is_shared") or 0),
+                is_ext_shared=int(channel_metadata.get("is_ext_shared") or 0),
+                is_org_shared=int(channel_metadata.get("is_org_shared") or 0),
+                is_pending_ext_shared=int(channel_metadata.get("is_pending_ext_shared") or 0),
+                is_member=int(channel_metadata.get("is_member") or 0),
+                creator=channel_metadata.get("creator") or "",
+                locale=channel_metadata.get("locale") or "",
+                metadata_json=channel_metadata.get("metadata_json") or "",
             )
         except Exception as error:
             log_exception_one_line(
@@ -998,7 +1227,6 @@ async def record_activity(
             )
     event_payload = payload.get("event") or {}
     model_event_type = model_event_type_for_activity(activity_kind, payload)
-    command_fields = event_slash_command_fields(payload)
     try:
         await db_log_event(
             env,
@@ -1128,6 +1356,67 @@ async def db_get_workspace_by_channel_id(
     )
 
 
+async def db_upsert_slack_app(
+    env: Any,
+    app_id: str,
+    app_name: str = "",
+    app_icon_url: str = "",
+    client_id: str = "",
+    client_secret: str = "",
+    signing_secret: str = "",
+    app_token: str = "",
+    manifest_yaml: str = "",
+) -> Optional[int]:
+    if not app_id:
+        return None
+    await ensure_schema(env)
+    now = utc_now()
+    await d1_run(
+        env,
+        (
+            "INSERT INTO slack_apps ("
+            "app_id, app_name, app_icon_url, client_id, client_secret, signing_secret, app_token, manifest_yaml, created_at, updated_at"
+            ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
+            "ON CONFLICT(app_id) DO UPDATE SET "
+            "app_name = CASE WHEN excluded.app_name != '' THEN excluded.app_name ELSE slack_apps.app_name END, "
+            "app_icon_url = CASE WHEN excluded.app_icon_url != '' THEN excluded.app_icon_url ELSE slack_apps.app_icon_url END, "
+            "client_id = CASE WHEN excluded.client_id != '' THEN excluded.client_id ELSE slack_apps.client_id END, "
+            "client_secret = CASE WHEN excluded.client_secret != '' THEN excluded.client_secret ELSE slack_apps.client_secret END, "
+            "signing_secret = CASE WHEN excluded.signing_secret != '' THEN excluded.signing_secret ELSE slack_apps.signing_secret END, "
+            "app_token = CASE WHEN excluded.app_token != '' THEN excluded.app_token ELSE slack_apps.app_token END, "
+            "manifest_yaml = CASE WHEN excluded.manifest_yaml != '' THEN excluded.manifest_yaml ELSE slack_apps.manifest_yaml END, "
+            "updated_at = excluded.updated_at"
+        ),
+        [
+            app_id,
+            app_name or "",
+            app_icon_url or "",
+            client_id or "",
+            client_secret or "",
+            signing_secret or "",
+            app_token or "",
+            manifest_yaml or "",
+            now,
+            now,
+        ],
+    )
+    row = result_first(
+        await d1_run(env, "SELECT id FROM slack_apps WHERE app_id = ? LIMIT 1", [app_id])
+    )
+    return int(row["id"]) if row and row.get("id") is not None else None
+
+
+async def db_get_slack_app_by_app_id(
+    env: Any, app_id: str
+) -> Optional[Dict[str, Any]]:
+    if not app_id:
+        return None
+    await ensure_schema(env)
+    return result_first(
+        await d1_run(env, "SELECT * FROM slack_apps WHERE app_id = ? LIMIT 1", [app_id])
+    )
+
+
 async def db_get_workspace_bot_token(
     env: Any, team_id: str = "", channel_id: str = ""
 ) -> str:
@@ -1160,6 +1449,18 @@ async def db_get_workspace_bot_user_id(
     if not row and channel_id:
         row = await db_get_workspace_by_channel_id(env, channel_id)
     return str((row or {}).get("bot_user_id") or "")
+
+
+async def db_get_slack_app_signing_secret(
+    env: Any, app_id: str = ""
+) -> str:
+    try:
+        getattr(env, "DB")
+    except Exception:
+        return ""
+    await ensure_schema(env)
+    row = await db_get_slack_app_by_app_id(env, app_id)
+    return str((row or {}).get("signing_secret") or "")
 
 
 async def db_upsert_workspace(
@@ -1351,6 +1652,20 @@ async def db_get_or_create_user(
     email: str,
     access_token: str,
     avatar_url: str = "",
+    real_name: str = "",
+    deleted: int = 0,
+    is_bot: int = 0,
+    is_admin: int = 0,
+    is_owner: int = 0,
+    is_primary_owner: int = 0,
+    is_restricted: int = 0,
+    is_ultra_restricted: int = 0,
+    is_app_user: int = 0,
+    tz: str = "",
+    tz_label: str = "",
+    tz_offset: int = 0,
+    profile_json: str = "",
+    metadata_json: str = "",
 ) -> Optional[Dict[str, Any]]:
     if not slack_user_id:
         return None
@@ -1368,15 +1683,31 @@ async def db_get_or_create_user(
         await d1_run(
             env,
             (
-                "UPDATE users SET name = ?, email = ?, access_token = ?, avatar_url = ?, "
-                "team_id = ?, updated_at = ? WHERE slack_user_id = ?"
+                "UPDATE users SET name = ?, real_name = ?, email = ?, access_token = ?, avatar_url = ?, "
+                "team_id = ?, deleted = ?, is_bot = ?, is_admin = ?, is_owner = ?, is_primary_owner = ?, "
+                "is_restricted = ?, is_ultra_restricted = ?, is_app_user = ?, tz = ?, tz_label = ?, "
+                "tz_offset = ?, profile_json = ?, metadata_json = ?, updated_at = ? WHERE slack_user_id = ?"
             ),
             [
                 effective_name,
+                real_name or existing.get("real_name") or "",
                 email or "",
                 access_token or "",
                 avatar_url or "",
                 team_id or "unknown",
+                int(deleted or 0),
+                int(is_bot or 0),
+                int(is_admin or 0),
+                int(is_owner or 0),
+                int(is_primary_owner or 0),
+                int(is_restricted or 0),
+                int(is_ultra_restricted or 0),
+                int(is_app_user or 0),
+                tz or "",
+                tz_label or "",
+                int(tz_offset or 0),
+                profile_json or existing.get("profile_json") or "",
+                metadata_json or existing.get("metadata_json") or "",
                 now,
                 slack_user_id,
             ],
@@ -1385,16 +1716,32 @@ async def db_get_or_create_user(
         await d1_run(
             env,
             (
-                "INSERT INTO users (slack_user_id, team_id, name, email, access_token, avatar_url, created_at, updated_at) "
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+                "INSERT INTO users (slack_user_id, team_id, name, real_name, email, access_token, avatar_url, "
+                "deleted, is_bot, is_admin, is_owner, is_primary_owner, is_restricted, is_ultra_restricted, "
+                "is_app_user, tz, tz_label, tz_offset, profile_json, metadata_json, created_at, updated_at) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
             ),
             [
                 slack_user_id,
                 team_id or "unknown",
                 name or slack_user_id,
+                real_name or "",
                 email or "",
                 access_token or "",
                 avatar_url or "",
+                int(deleted or 0),
+                int(is_bot or 0),
+                int(is_admin or 0),
+                int(is_owner or 0),
+                int(is_primary_owner or 0),
+                int(is_restricted or 0),
+                int(is_ultra_restricted or 0),
+                int(is_app_user or 0),
+                tz or "",
+                tz_label or "",
+                int(tz_offset or 0),
+                profile_json or "",
+                metadata_json or "",
                 now,
                 now,
             ],
@@ -1551,6 +1898,20 @@ async def db_upsert_channel(
     topic: str = "",
     purpose: str = "",
     is_private: int = 0,
+    is_channel: int = 0,
+    is_group: int = 0,
+    is_im: int = 0,
+    is_mpim: int = 0,
+    is_archived: int = 0,
+    is_general: int = 0,
+    is_shared: int = 0,
+    is_ext_shared: int = 0,
+    is_org_shared: int = 0,
+    is_pending_ext_shared: int = 0,
+    is_member: int = 0,
+    creator: str = "",
+    locale: str = "",
+    metadata_json: str = "",
 ) -> bool:
     await ensure_schema(env)
     now = utc_now()
@@ -1558,14 +1919,30 @@ async def db_upsert_channel(
         env,
         (
             "INSERT INTO channels (workspace_id, channel_id, channel_name, member_count, "
-            "topic, purpose, is_private, created_at, updated_at) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) "
+            "topic, purpose, is_private, is_channel, is_group, is_im, is_mpim, is_archived, "
+            "is_general, is_shared, is_ext_shared, is_org_shared, is_pending_ext_shared, is_member, "
+            "creator, locale, metadata_json, created_at, updated_at) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
             "ON CONFLICT(workspace_id, channel_id) DO UPDATE SET "
             "channel_name = excluded.channel_name, "
             "member_count = excluded.member_count, "
             "topic = excluded.topic, "
             "purpose = excluded.purpose, "
             "is_private = excluded.is_private, "
+            "is_channel = excluded.is_channel, "
+            "is_group = excluded.is_group, "
+            "is_im = excluded.is_im, "
+            "is_mpim = excluded.is_mpim, "
+            "is_archived = excluded.is_archived, "
+            "is_general = excluded.is_general, "
+            "is_shared = excluded.is_shared, "
+            "is_ext_shared = excluded.is_ext_shared, "
+            "is_org_shared = excluded.is_org_shared, "
+            "is_pending_ext_shared = excluded.is_pending_ext_shared, "
+            "is_member = excluded.is_member, "
+            "creator = excluded.creator, "
+            "locale = excluded.locale, "
+            "metadata_json = excluded.metadata_json, "
             "updated_at = excluded.updated_at"
         ),
         [
@@ -1576,6 +1953,20 @@ async def db_upsert_channel(
             topic or "",
             purpose or "",
             1 if is_private else 0,
+            int(is_channel or 0),
+            int(is_group or 0),
+            int(is_im or 0),
+            int(is_mpim or 0),
+            int(is_archived or 0),
+            int(is_general or 0),
+            int(is_shared or 0),
+            int(is_ext_shared or 0),
+            int(is_org_shared or 0),
+            int(is_pending_ext_shared or 0),
+            int(is_member or 0),
+            creator or "",
+            locale or "",
+            metadata_json or "",
             now,
             now,
         ],
@@ -3683,8 +4074,12 @@ def render_admin_html(
           </div>
           <div><label class="block text-sm font-semibold mb-1">Invite Link</label><input name="invite_link" class="w-full border border-gray-300 rounded-lg px-3 py-2" /></div>
           <div><label class="block text-sm font-semibold mb-1">GitHub Org URL</label><input name="github_org_url" class="w-full border border-gray-300 rounded-lg px-3 py-2" /></div>
+          <div><label class="block text-sm font-semibold mb-1">Slack App ID</label><input name="slack_app_id" placeholder="A..." class="w-full border border-gray-300 rounded-lg px-3 py-2" /></div>
+          <div><label class="block text-sm font-semibold mb-1">Slack Client ID</label><input name="slack_client_id" autocomplete="off" class="w-full border border-gray-300 rounded-lg px-3 py-2" /></div>
           <div><label class="block text-sm font-semibold mb-1">Slack App Token</label><input name="slack_app_token" type="password" autocomplete="off" placeholder="xapp-..." class="w-full border border-gray-300 rounded-lg px-3 py-2" /></div>
           <div><label class="block text-sm font-semibold mb-1">Slack Bot Token</label><input name="slack_bot_token" type="password" autocomplete="off" placeholder="xoxb-..." class="w-full border border-gray-300 rounded-lg px-3 py-2" /></div>
+          <div><label class="block text-sm font-semibold mb-1">Slack Client Secret</label><input name="slack_client_secret" type="password" autocomplete="off" class="w-full border border-gray-300 rounded-lg px-3 py-2" /></div>
+          <div><label class="block text-sm font-semibold mb-1">Slack Signing Secret</label><input name="slack_signing_secret" type="password" autocomplete="off" class="w-full border border-gray-300 rounded-lg px-3 py-2" /></div>
           <button class="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700" type="submit"><i class="fas fa-save"></i>Save Workspace</button>
         </form>
       </div>
@@ -3762,9 +4157,17 @@ async def handle_admin_post(request: Any, env: Any) -> Any:
             env,
             team_id=team_id,
             team_name=team_name,
-            app_token=form.get("slack_app_token", "").strip(),
             bot_token=form.get("slack_bot_token", "").strip(),
+            app_id=form.get("slack_app_id", "").strip(),
             invite_link=form.get("invite_link", "").strip(),
+        )
+        await db_upsert_slack_app(
+            env,
+            app_id=form.get("slack_app_id", "").strip(),
+            client_id=form.get("slack_client_id", "").strip(),
+            client_secret=form.get("slack_client_secret", "").strip(),
+            signing_secret=form.get("slack_signing_secret", "").strip(),
+            app_token=form.get("slack_app_token", "").strip(),
         )
         return redirect_response(admin_path(env) + "?message=Workspace+saved")
     if action == "save_server":
@@ -3863,6 +4266,14 @@ async def handle_oauth_callback(request_url: Any, env: Any) -> Any:
         )
 
     team_name = payload.get("team", {}).get("name") or "your workspace"
+    await db_upsert_slack_app(
+        env,
+        app_id=str(payload.get("app_id") or ""),
+        client_id=env_value(env, "SLACK_CLIENT_ID", "") or "",
+        client_secret=env_value(env, "SLACK_CLIENT_SECRET", "") or "",
+        signing_secret=env_value(env, "SLACK_SIGNING_SECRET", "") or "",
+        app_token=env_value(env, "SLACK_APP_TOKEN", "") or "",
+    )
     await db_upsert_workspace(
         env,
         team_id=str(payload.get("team", {}).get("id") or ""),
@@ -3989,6 +4400,28 @@ async def handle_request(request: Any, env: Any) -> Any:
                 )
 
         signing_secret = env_value(env, "SLACK_SIGNING_SECRET", "") or ""
+        secret_app_id = ""
+        if normalized_path == "/slack/events":
+            secret_app_id = payload_app_id(parsed_events_payload)
+        elif "application/x-www-form-urlencoded" in content_type:
+            signature_form = parse_form_encoded(body_text)
+            secret_app_id = payload_app_id(signature_form)
+        try:
+            db_signing_secret = await db_get_slack_app_signing_secret(
+                env,
+                app_id=secret_app_id,
+            )
+        except Exception as error:
+            log_exception_one_line(
+                error,
+                "slack_signing_secret_lookup_failed",
+                {
+                    "app_id": secret_app_id,
+                },
+            )
+            db_signing_secret = ""
+        if db_signing_secret:
+            signing_secret = db_signing_secret
         timestamp = request.headers.get("x-slack-request-timestamp", "")
         signature = request.headers.get("x-slack-signature", "")
         if not verify_slack_signature(signing_secret, timestamp, body_text, signature):

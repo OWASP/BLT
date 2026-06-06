@@ -215,6 +215,82 @@ def test_post_slack_events_logs_before_signature_verification():
     assert logged[1][1]["event"]["text"] == "log before auth"
 
 
+def test_post_slack_events_can_verify_with_database_signing_secret():
+    import hashlib
+    import hmac
+
+    original_record_activity = worker.record_activity
+    original_handle_event_payload = worker.handle_event_payload
+    original_json_response = worker.json_response
+    original_signing_secret = worker.db_get_slack_app_signing_secret
+    body = json.dumps(
+        {
+            "type": "event_callback",
+            "api_app_id": "A123",
+            "team_id": "T123",
+            "event": {
+                "type": "message",
+                "channel": "C123",
+                "user": "U123",
+                "text": "verified by db secret",
+            },
+        }
+    )
+    timestamp = str(int(worker.time.time()))
+    db_secret = "db-signing-secret"
+    signature = "v0=" + hmac.new(
+        db_secret.encode("utf-8"),
+        "v0:{0}:{1}".format(timestamp, body).encode("utf-8"),
+        hashlib.sha256,
+    ).hexdigest()
+    logged = []
+    handled = {}
+
+    async def fake_record_activity(env, activity_kind, payload):
+        logged.append((activity_kind, payload))
+
+    async def fake_handle_event_payload(payload, env):
+        handled["payload"] = payload
+        return {"ok": True, "handled": True}
+
+    async def fake_signing_secret(env, app_id=""):
+        handled["app_id"] = app_id
+        return db_secret
+
+    env = _Env()
+    setattr(env, "SLACK_SIGNING_SECRET", "wrong-env-secret")
+    worker.record_activity = fake_record_activity
+    worker.handle_event_payload = fake_handle_event_payload
+    worker.db_get_slack_app_signing_secret = fake_signing_secret
+    worker.json_response = lambda payload, status=200: payload
+    try:
+        response = asyncio.run(
+            worker.handle_request(
+                _RouteRequest(
+                    "POST",
+                    "https://sammich.owaspblt.org/slack/events",
+                    body=body,
+                    headers={
+                        "content-type": "application/json",
+                        "x-slack-request-timestamp": timestamp,
+                        "x-slack-signature": signature,
+                    },
+                ),
+                env,
+            )
+        )
+    finally:
+        worker.json_response = original_json_response
+        worker.db_get_slack_app_signing_secret = original_signing_secret
+        worker.handle_event_payload = original_handle_event_payload
+        worker.record_activity = original_record_activity
+
+    assert response == {"ok": True, "handled": True}
+    assert handled["app_id"] == "A123"
+    assert handled["payload"]["event"]["text"] == "verified by db secret"
+    assert [entry[0] for entry in logged] == ["http_request", "event"]
+
+
 def test_repo_response_without_query_returns_blocks():
     response = worker.repo_response("")
     assert response["blocks"]
@@ -408,6 +484,10 @@ def test_render_admin_html_includes_workspaces_and_servers():
     assert "/private-admin" in html
     assert "slack_app_token" in html
     assert "slack_bot_token" in html
+    assert "slack_app_id" in html
+    assert "slack_client_id" in html
+    assert "slack_client_secret" in html
+    assert "slack_signing_secret" in html
 
 
 def test_render_admin_html_includes_database_admin_context():
@@ -451,6 +531,7 @@ def test_lettuce_model_tables_are_in_schema_bootstrap():
     for table_name in (
         "workspace_installations",
         "connected_workspaces",
+        "slack_apps",
         "managed_servers",
         "workspaces",
         "channels",
@@ -466,6 +547,30 @@ def test_lettuce_model_tables_are_in_schema_bootstrap():
     assert "DROP TABLE IF EXISTS slack_activity" in schema_sql
     assert "slack_activity" not in worker.ADMIN_TABLE_SCHEMAS
     assert "slack_response_data" in schema_sql
+    assert "client_secret" in schema_sql
+    assert "signing_secret" in schema_sql
+    assert ("client_secret", "TEXT") in worker.ADMIN_TABLE_SCHEMAS["slack_apps"]["columns"]
+    assert ("signing_secret", "TEXT") in worker.ADMIN_TABLE_SCHEMAS["slack_apps"]["columns"]
+    for column_name in (
+        "real_name",
+        "is_bot",
+        "is_admin",
+        "tz",
+        "profile_json",
+        "metadata_json",
+    ):
+        assert column_name in schema_sql
+        assert column_name in [name for name, _ in worker.ADMIN_TABLE_SCHEMAS["users"]["columns"]]
+    for column_name in (
+        "is_channel",
+        "is_im",
+        "is_archived",
+        "creator",
+        "locale",
+        "metadata_json",
+    ):
+        assert column_name in schema_sql
+        assert column_name in [name for name, _ in worker.ADMIN_TABLE_SCHEMAS["channels"]["columns"]]
     for column_name in (
         "api_app_id",
         "command",
@@ -542,6 +647,61 @@ def test_slack_bot_message_event_metadata_is_extracted_for_logging():
     assert worker.payload_user_id(payload) == "B123"
     assert worker.payload_channel_id(payload) == "C999"
     assert worker.model_event_type_for_activity("event", payload) == "Message"
+
+
+def test_slack_user_and_channel_objects_are_extracted_for_models():
+    payload = {
+        "type": "event_callback",
+        "team_id": "T123",
+        "event": {
+            "type": "message",
+            "user": {
+                "id": "U123",
+                "team_id": "T123",
+                "name": "donnie",
+                "real_name": "Donnie Brown",
+                "is_bot": False,
+                "is_admin": True,
+                "tz": "America/New_York",
+                "tz_label": "Eastern Daylight Time",
+                "tz_offset": -14400,
+                "profile": {
+                    "email": "donnie@example.com",
+                    "image_192": "https://example.com/avatar.png",
+                },
+            },
+            "channel": {
+                "id": "C123",
+                "name": "general",
+                "is_channel": True,
+                "is_archived": False,
+                "is_general": True,
+                "num_members": 42,
+                "creator": "U999",
+                "topic": {"value": "Security"},
+                "purpose": {"value": "Project discussion"},
+            },
+            "text": "hello",
+        },
+    }
+
+    user = worker.payload_user_metadata(payload)
+    channel = worker.payload_channel_metadata(payload)
+
+    assert worker.payload_user_id(payload) == "U123"
+    assert user["real_name"] == "Donnie Brown"
+    assert user["email"] == "donnie@example.com"
+    assert user["is_admin"] == 1
+    assert user["tz_offset"] == -14400
+    assert '"email":"donnie@example.com"' in user["profile_json"]
+    assert worker.payload_channel_id(payload) == "C123"
+    assert channel["channel_name"] == "general"
+    assert channel["member_count"] == 42
+    assert channel["is_channel"] == 1
+    assert channel["is_general"] == 1
+    assert channel["creator"] == "U999"
+    assert channel["topic"] == "Security"
+    assert '"name":"general"' in channel["metadata_json"]
 
 
 def test_db_insert_event_persists_slack_team_id_even_without_workspace():
@@ -862,6 +1022,20 @@ def test_record_activity_logs_slash_command_fields():
         for query, params in captured
         if "INSERT INTO events" in query
     ]
+    app_inserts = [
+        (query, params)
+        for query, params in captured
+        if "INSERT INTO slack_apps" in query
+    ]
+    workspace_inserts = [
+        (query, params)
+        for query, params in captured
+        if "INSERT INTO workspaces" in query
+    ]
+    assert len(app_inserts) == 1
+    assert app_inserts[0][1][0] == "A0AK9DQG1DG"
+    assert len(workspace_inserts) == 1
+    assert workspace_inserts[0][1][6] == "A0AK9DQG1DG"
     assert len(event_inserts) == 1
     values = event_insert_values(event_inserts[0][1])
     assert values["event_type"] == "Command"
@@ -878,6 +1052,95 @@ def test_record_activity_logs_slash_command_fields():
     assert values["user_name"] == "donnie.brown"
     assert values["slack_token"] == "Wr0cGReWOl8adfvxyV2IuMnr"
     assert '"command": "/contrib"' in values["request_data"]
+
+
+def test_record_activity_stores_slack_user_and_channel_metadata():
+    captured = []
+    original_d1_run = worker.d1_run
+    original_schema_ready = worker.SCHEMA_READY
+
+    async def fake_d1_run(env, query, params=None):
+        captured.append((query, params))
+        if "SELECT * FROM workspaces" in query:
+            return {"results": [{"id": 5}]}
+        if "SELECT * FROM users" in query:
+            return {"results": []}
+        if "SELECT id FROM slack_apps" in query:
+            return {"results": [{"id": 3}]}
+        return {"success": True}
+
+    payload = {
+        "type": "event_callback",
+        "api_app_id": "A123",
+        "team_id": "T123",
+        "event": {
+            "type": "message",
+            "user": {
+                "id": "U123",
+                "team_id": "T123",
+                "name": "donnie",
+                "real_name": "Donnie Brown",
+                "is_admin": True,
+                "tz": "America/New_York",
+                "profile": {
+                    "email": "donnie@example.com",
+                    "image_192": "https://example.com/avatar.png",
+                },
+            },
+            "channel": {
+                "id": "C123",
+                "name": "general",
+                "num_members": 42,
+                "is_channel": True,
+                "is_general": True,
+                "creator": "U999",
+                "topic": {"value": "Security"},
+                "purpose": {"value": "Project discussion"},
+            },
+            "text": "hello",
+        },
+    }
+    env = _Env()
+    setattr(env, "DB", object())
+    worker.d1_run = fake_d1_run
+    worker.SCHEMA_READY = False
+    try:
+        asyncio.run(worker.record_activity(env, "event", payload))
+    finally:
+        worker.d1_run = original_d1_run
+        worker.SCHEMA_READY = original_schema_ready
+
+    user_inserts = [
+        (query, params)
+        for query, params in captured
+        if "INSERT INTO users" in query
+    ]
+    channel_inserts = [
+        (query, params)
+        for query, params in captured
+        if "INSERT INTO channels" in query
+    ]
+
+    assert len(user_inserts) == 1
+    assert user_inserts[0][1][0] == "U123"
+    assert user_inserts[0][1][2] == "donnie"
+    assert user_inserts[0][1][3] == "Donnie Brown"
+    assert user_inserts[0][1][4] == "donnie@example.com"
+    assert user_inserts[0][1][9] == 1
+    assert '"email":"donnie@example.com"' in user_inserts[0][1][18]
+    assert '"real_name":"Donnie Brown"' in user_inserts[0][1][19]
+
+    assert len(channel_inserts) == 1
+    assert channel_inserts[0][1][0] == 5
+    assert channel_inserts[0][1][1] == "C123"
+    assert channel_inserts[0][1][2] == "general"
+    assert channel_inserts[0][1][3] == 42
+    assert channel_inserts[0][1][4] == "Security"
+    assert channel_inserts[0][1][5] == "Project discussion"
+    assert channel_inserts[0][1][7] == 1
+    assert channel_inserts[0][1][12] == 1
+    assert channel_inserts[0][1][18] == "U999"
+    assert '"name":"general"' in channel_inserts[0][1][20]
 
 
 def test_record_activity_logs_http_request_events():
@@ -962,6 +1225,49 @@ def test_db_upsert_workspace_persists_slack_tokens():
     assert "bot_token" in captured["query"]
     assert captured["params"][3] == "xapp-token"
     assert captured["params"][4] == "xoxb-token"
+
+
+def test_db_upsert_slack_app_persists_app_secrets():
+    captured = {}
+    original_d1_run = worker.d1_run
+    original_schema_ready = worker.SCHEMA_READY
+
+    async def fake_d1_run(env, query, params=None):
+        if "INSERT INTO slack_apps" in query:
+            captured["query"] = query
+            captured["params"] = params
+            return {"success": True}
+        if "SELECT id FROM slack_apps" in query:
+            return {"results": [{"id": 7}]}
+        return {"success": True}
+
+    env = _Env()
+    setattr(env, "DB", object())
+    worker.d1_run = fake_d1_run
+    worker.SCHEMA_READY = False
+    try:
+        app_row_id = asyncio.run(
+            worker.db_upsert_slack_app(
+                env,
+                app_id="A123",
+                client_id="123.456",
+                client_secret="client-secret",
+                signing_secret="signing-secret",
+                app_token="xapp-token",
+            )
+        )
+    finally:
+        worker.d1_run = original_d1_run
+        worker.SCHEMA_READY = original_schema_ready
+
+    assert app_row_id == 7
+    assert "client_secret" in captured["query"]
+    assert "signing_secret" in captured["query"]
+    assert captured["params"][0] == "A123"
+    assert captured["params"][3] == "123.456"
+    assert captured["params"][4] == "client-secret"
+    assert captured["params"][5] == "signing-secret"
+    assert captured["params"][6] == "xapp-token"
 
 
 def test_db_admin_create_update_delete_use_whitelisted_table_schema():
