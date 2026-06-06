@@ -2950,9 +2950,17 @@ async def log_slack_api_response(
 async def slack_api_post_message(
     channel_id: str, text: str, env: Any, team_id: str = ""
 ) -> None:
-    token = await db_get_workspace_bot_token(
-        env, team_id=team_id, channel_id=channel_id
-    )
+    try:
+        token = await db_get_workspace_bot_token(
+            env, team_id=team_id, channel_id=channel_id
+        )
+    except Exception as error:
+        log_exception_one_line(
+            error,
+            "slack_post_token_lookup_failed",
+            {"team_id": team_id, "channel_id": channel_id},
+        )
+        token = ""
     if not token:
         token = env_value(env, "SLACK_BOT_TOKEN")
     if not token:
@@ -2983,7 +2991,15 @@ async def slack_api_post_message(
 async def slack_api_publish_home(user_id: str, env: Any, team_id: str = "") -> None:
     if not user_id:
         return
-    token = await db_get_workspace_bot_token(env, team_id=team_id)
+    try:
+        token = await db_get_workspace_bot_token(env, team_id=team_id)
+    except Exception as error:
+        log_exception_one_line(
+            error,
+            "slack_home_token_lookup_failed",
+            {"team_id": team_id, "user_id": user_id},
+        )
+        token = ""
     if not token:
         token = env_value(env, "SLACK_BOT_TOKEN")
     if not token:
@@ -3043,12 +3059,28 @@ async def handle_event_payload(payload: Dict[str, Any], env: Any) -> Any:
             return json_response({"ok": True})
         user_id = event.get("user", "")
         channel_id = event.get("channel", "")
-        bot_user_id = await db_get_workspace_bot_user_id(
-            env, team_id=team_id, channel_id=channel_id
-        )
+        bot_user_id = ""
+        try:
+            bot_user_id = await db_get_workspace_bot_user_id(
+                env, team_id=team_id, channel_id=channel_id
+            )
+        except Exception as error:
+            log_exception_one_line(
+                error,
+                "bot_user_lookup_failed",
+                {"team_id": team_id, "channel_id": channel_id},
+            )
         if bot_user_id and user_id == bot_user_id:
             return json_response({"ok": True})
-        installer_user_id = await get_workspace_installer(env, team_id)
+        installer_user_id = ""
+        try:
+            installer_user_id = await get_workspace_installer(env, team_id) or ""
+        except Exception as error:
+            log_exception_one_line(
+                error,
+                "installer_lookup_failed",
+                {"team_id": team_id, "channel_id": channel_id},
+            )
         if installer_user_id and user_id == installer_user_id and channel_id:
             await slack_api_post_message(
                 channel_id,

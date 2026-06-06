@@ -732,6 +732,56 @@ def test_handle_event_payload_replies_to_direct_message():
     assert "/stats" in sent["text"]
 
 
+def test_handle_event_payload_replies_to_direct_message_when_db_lookups_fail():
+    sent = {}
+    original_post_message = worker.slack_api_post_message
+    original_bot_user_id = worker.db_get_workspace_bot_user_id
+    original_installer = worker.get_workspace_installer
+    original_json_response = worker.json_response
+
+    async def fake_post_message(channel_id, text, env, team_id=""):
+        sent["channel_id"] = channel_id
+        sent["text"] = text
+        sent["team_id"] = team_id
+
+    async def failing_bot_user_id(env, team_id="", channel_id=""):
+        raise RuntimeError("D1 unavailable")
+
+    async def failing_installer(env, team_id):
+        raise RuntimeError("D1 unavailable")
+
+    worker.slack_api_post_message = fake_post_message
+    worker.db_get_workspace_bot_user_id = failing_bot_user_id
+    worker.get_workspace_installer = failing_installer
+    worker.json_response = lambda payload, status=200, headers=None: payload
+    try:
+        asyncio.run(
+            worker.handle_event_payload(
+                {
+                    "type": "event_callback",
+                    "team_id": "T123",
+                    "event": {
+                        "type": "message",
+                        "channel_type": "im",
+                        "channel": "D123",
+                        "user": "U123",
+                        "text": "help",
+                    },
+                },
+                _Env(),
+            )
+        )
+    finally:
+        worker.slack_api_post_message = original_post_message
+        worker.db_get_workspace_bot_user_id = original_bot_user_id
+        worker.get_workspace_installer = original_installer
+        worker.json_response = original_json_response
+
+    assert sent["channel_id"] == "D123"
+    assert sent["team_id"] == "T123"
+    assert "/stats" in sent["text"]
+
+
 def test_handle_event_payload_publishes_app_home_commands():
     published = {}
     original_publish_home = worker.slack_api_publish_home
@@ -860,6 +910,39 @@ def test_slack_api_post_message_logs_slack_response_payload():
     assert captured["log"]["api_method"] == "chat.postMessage"
     assert captured["log"]["response_payload"] == {"ok": True, "ts": "123.456"}
     assert captured["log"]["ok"] is True
+
+
+def test_slack_api_post_message_falls_back_to_env_token_when_db_lookup_fails():
+    captured = {}
+    original_fetch_json = worker.fetch_json
+    original_log_response = worker.log_slack_api_response
+    original_bot_token = worker.db_get_workspace_bot_token
+
+    async def fake_fetch_json(url, method="GET", headers=None, body=None):
+        captured["authorization"] = headers.get("Authorization", "")
+        captured["body"] = json.loads(body or "{}")
+        return True, {"ok": True}, 200
+
+    async def fake_log_response(*args, **kwargs):
+        return None
+
+    async def failing_bot_token(env, team_id="", channel_id=""):
+        raise RuntimeError("D1 unavailable")
+
+    env = _Env()
+    setattr(env, "SLACK_BOT_TOKEN", "xoxb-env-token")
+    worker.fetch_json = fake_fetch_json
+    worker.log_slack_api_response = fake_log_response
+    worker.db_get_workspace_bot_token = failing_bot_token
+    try:
+        asyncio.run(worker.slack_api_post_message("D123", "hello", env, team_id="T123"))
+    finally:
+        worker.fetch_json = original_fetch_json
+        worker.log_slack_api_response = original_log_response
+        worker.db_get_workspace_bot_token = original_bot_token
+
+    assert captured["authorization"] == "Bearer xoxb-env-token"
+    assert captured["body"] == {"channel": "D123", "text": "hello"}
 
 
 def test_handle_event_payload_replies_when_bot_is_mentioned_in_channel_message():
