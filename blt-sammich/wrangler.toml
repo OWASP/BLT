@@ -2,7 +2,8 @@ name = "blt-sammich"
 main = "src/worker.py"
 compatibility_date = "2026-03-22"
 compatibility_flags = ["python_workers"]
-workers_dev = true
+workers_dev = false
+preview_urls = false
 
 [build]
 command = "./script/migrate.sh"

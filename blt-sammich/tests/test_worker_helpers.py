@@ -42,6 +42,17 @@ def test_project_response_without_query_returns_blocks():
     assert response["text"] == "Choose a project to inspect."
 
 
+def test_app_home_view_lists_available_commands():
+    view = worker.app_home_view()
+    encoded = str(view)
+
+    assert view["type"] == "home"
+    assert "/contrib" in encoded
+    assert "/stats" in encoded
+    assert "/discover [search term]" in encoded
+    assert "/installed_apps" in encoded
+
+
 def test_repo_response_without_query_returns_blocks():
     response = worker.repo_response("")
     assert response["blocks"]
@@ -221,6 +232,38 @@ def test_render_admin_html_includes_workspaces_and_servers():
     assert "/private-admin" in html
     assert "slack_app_token" in html
     assert "slack_bot_token" in html
+
+
+def test_render_admin_html_includes_database_admin_context():
+    env = _Env()
+    setattr(env, "ADMIN_URL", "/private-admin")
+    html = worker.render_admin_html(
+        env,
+        [],
+        [],
+        database_context={
+            "tables": ["workspaces", "events"],
+            "counts": {"workspaces": 1, "events": 2},
+            "selected_table": "workspaces",
+            "schema": worker.ADMIN_TABLE_SCHEMAS["workspaces"],
+            "rows": [
+                {
+                    "id": 1,
+                    "team_id": "T123",
+                    "team_name": "Security Team",
+                    "created_at": "2026-06-06T00:00:00+00:00",
+                    "updated_at": "2026-06-06T00:00:00+00:00",
+                }
+            ],
+            "edit_row": None,
+            "edit_pk": "",
+        },
+    )
+
+    assert "Database Admin" in html
+    assert "workspaces" in html
+    assert "Security Team" in html
+    assert "db_create" in html
 
 
 def test_lettuce_model_tables_are_in_schema_bootstrap():
@@ -534,10 +577,77 @@ def test_db_upsert_workspace_persists_slack_tokens():
     assert captured["params"][4] == "xoxb-token"
 
 
+def test_db_admin_create_update_delete_use_whitelisted_table_schema():
+    captured = []
+    original_d1_run = worker.d1_run
+    original_schema_ready = worker.SCHEMA_READY
+
+    async def fake_d1_run(env, query, params=None):
+        captured.append((query, params))
+        return {"success": True}
+
+    env = _Env()
+    setattr(env, "DB", object())
+    worker.d1_run = fake_d1_run
+    worker.SCHEMA_READY = False
+    try:
+        asyncio.run(
+            worker.db_admin_create_row(
+                env,
+                "managed_servers",
+                {
+                    "field__name": "Production",
+                    "field__url": "https://example.com",
+                    "field__status": "online",
+                    "field__description": "Main endpoint",
+                    "field__created_at": "2026-06-06T00:00:00+00:00",
+                    "field__updated_at": "2026-06-06T00:00:00+00:00",
+                },
+            )
+        )
+        asyncio.run(
+            worker.db_admin_update_row(
+                env,
+                "managed_servers",
+                "7",
+                {
+                    "field__name": "Production 2",
+                    "field__url": "https://example.com",
+                    "field__status": "degraded",
+                    "field__description": "Updated",
+                    "field__created_at": "2026-06-06T00:00:00+00:00",
+                    "field__updated_at": "2026-06-06T01:00:00+00:00",
+                },
+            )
+        )
+        asyncio.run(worker.db_admin_delete_row(env, "managed_servers", "7"))
+    finally:
+        worker.d1_run = original_d1_run
+        worker.SCHEMA_READY = original_schema_ready
+
+    assert captured[0][0].startswith("INSERT INTO managed_servers")
+    assert "id" not in captured[0][0].split("(", 1)[1].split(")", 1)[0]
+    assert captured[0][1][0] == "Production"
+    assert captured[1][0].startswith("UPDATE managed_servers SET")
+    assert captured[1][1][-1] == "7"
+    assert captured[2] == ("DELETE FROM managed_servers WHERE id = ?", ["7"])
+
+
+def test_db_admin_rejects_unknown_table_names():
+    try:
+        worker.require_admin_table_name("managed_servers; DROP TABLE users")
+    except ValueError as error:
+        assert "Unknown database table" in str(error)
+    else:
+        raise AssertionError("unknown table name was accepted")
+
+
 def test_direct_bot_message_detection_handles_im_channel():
     assert worker.is_direct_bot_message({"channel_type": "im", "channel": "C123"})
     assert worker.is_direct_bot_message({"channel": "D123"})
     assert not worker.is_direct_bot_message({"channel_type": "channel", "channel": "C123"})
+    assert worker.message_mentions_bot({"text": "<@U999> hello"}, "U999")
+    assert not worker.message_mentions_bot({"text": "hello"}, "U999")
 
 
 def test_handle_event_payload_replies_to_direct_message():
@@ -576,3 +686,119 @@ def test_handle_event_payload_replies_to_direct_message():
     assert sent["channel_id"] == "D123"
     assert sent["team_id"] == "T123"
     assert "/stats" in sent["text"]
+
+
+def test_handle_event_payload_publishes_app_home_commands():
+    published = {}
+    original_publish_home = worker.slack_api_publish_home
+    original_json_response = worker.json_response
+
+    async def fake_publish_home(user_id, env, team_id=""):
+        published["user_id"] = user_id
+        published["team_id"] = team_id
+
+    worker.slack_api_publish_home = fake_publish_home
+    worker.json_response = lambda payload, status=200, headers=None: payload
+    try:
+        asyncio.run(
+            worker.handle_event_payload(
+                {
+                    "type": "event_callback",
+                    "team_id": "T123",
+                    "event": {
+                        "type": "app_home_opened",
+                        "user": "U123",
+                    },
+                },
+                _Env(),
+            )
+        )
+    finally:
+        worker.slack_api_publish_home = original_publish_home
+        worker.json_response = original_json_response
+
+    assert published == {"user_id": "U123", "team_id": "T123"}
+
+
+def test_handle_event_payload_replies_when_bot_is_mentioned_in_channel_message():
+    sent = {}
+    original_post_message = worker.slack_api_post_message
+    original_bot_user_id = worker.db_get_workspace_bot_user_id
+    original_json_response = worker.json_response
+
+    async def fake_post_message(channel_id, text, env, team_id=""):
+        sent["channel_id"] = channel_id
+        sent["text"] = text
+        sent["team_id"] = team_id
+
+    async def fake_bot_user_id(env, team_id="", channel_id=""):
+        return "U999"
+
+    worker.slack_api_post_message = fake_post_message
+    worker.db_get_workspace_bot_user_id = fake_bot_user_id
+    worker.json_response = lambda payload, status=200, headers=None: payload
+    try:
+        asyncio.run(
+            worker.handle_event_payload(
+                {
+                    "type": "event_callback",
+                    "team_id": "T123",
+                    "event": {
+                        "type": "message",
+                        "channel_type": "channel",
+                        "channel": "C123",
+                        "user": "U123",
+                        "text": "<@U999> hello",
+                    },
+                },
+                _Env(),
+            )
+        )
+    finally:
+        worker.slack_api_post_message = original_post_message
+        worker.db_get_workspace_bot_user_id = original_bot_user_id
+        worker.json_response = original_json_response
+
+    assert sent["channel_id"] == "C123"
+    assert sent["team_id"] == "T123"
+    assert "/stats" in sent["text"]
+
+
+def test_handle_event_payload_does_not_reply_to_bot_self_message():
+    sent = {}
+    original_post_message = worker.slack_api_post_message
+    original_bot_user_id = worker.db_get_workspace_bot_user_id
+    original_json_response = worker.json_response
+
+    async def fake_post_message(channel_id, text, env, team_id=""):
+        sent["channel_id"] = channel_id
+
+    async def fake_bot_user_id(env, team_id="", channel_id=""):
+        return "U999"
+
+    worker.slack_api_post_message = fake_post_message
+    worker.db_get_workspace_bot_user_id = fake_bot_user_id
+    worker.json_response = lambda payload, status=200, headers=None: payload
+    try:
+        asyncio.run(
+            worker.handle_event_payload(
+                {
+                    "type": "event_callback",
+                    "team_id": "T123",
+                    "event": {
+                        "type": "message",
+                        "channel_type": "im",
+                        "channel": "D123",
+                        "user": "U999",
+                        "text": "hello",
+                    },
+                },
+                _Env(),
+            )
+        )
+    finally:
+        worker.slack_api_post_message = original_post_message
+        worker.db_get_workspace_bot_user_id = original_bot_user_id
+        worker.json_response = original_json_response
+
+    assert sent == {}

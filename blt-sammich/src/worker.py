@@ -25,13 +25,220 @@ except ImportError:
 
 PROJECTS_PER_PAGE = 100
 SCHEMA_READY = False
-SUPPORTED_SLACK_COMMANDS = {
-    "/contrib",
-    "/stats",
-    "/discover",
-    "/gsoc25",
-    "/blt",
-    "/installed_apps",
+SLACK_COMMAND_DEFINITIONS = [
+    ("/contrib", "Guide to contributing to OWASP projects"),
+    ("/stats", "Show OWASP project and Sammich connection stats"),
+    ("/discover [search term]", "Discover OWASP projects to work on"),
+    ("/gsoc25 [technology, mentor, or project]", "Find OWASP GSoC project details"),
+    ("/blt", "Show Sammich command help"),
+    ("/installed_apps", "List installed apps and logged activity"),
+]
+SUPPORTED_SLACK_COMMANDS = set(
+    command.split(" ", 1)[0] for command, _ in SLACK_COMMAND_DEFINITIONS
+)
+ADMIN_TABLE_SCHEMAS = {
+    "slack_activity": {
+        "pk": "id",
+        "auto_pk": True,
+        "columns": [
+            ("id", "INTEGER"),
+            ("activity_kind", "TEXT"),
+            ("slack_type", "TEXT"),
+            ("command_name", "TEXT"),
+            ("team_id", "TEXT"),
+            ("user_id", "TEXT"),
+            ("channel_id", "TEXT"),
+            ("payload_json", "TEXT"),
+            ("received_at", "TEXT"),
+        ],
+    },
+    "workspace_installations": {
+        "pk": "team_id",
+        "auto_pk": False,
+        "columns": [
+            ("team_id", "TEXT"),
+            ("installer_user_id", "TEXT"),
+            ("installed_at", "TEXT"),
+        ],
+    },
+    "connected_workspaces": {
+        "pk": "id",
+        "auto_pk": True,
+        "columns": [
+            ("id", "INTEGER"),
+            ("team_id", "TEXT"),
+            ("team_name", "TEXT"),
+            ("icon_url", "TEXT"),
+            ("installer_user_id", "TEXT"),
+            ("bot_user_id", "TEXT"),
+            ("invite_link", "TEXT"),
+            ("github_org_url", "TEXT"),
+            ("repo_count", "INTEGER"),
+            ("channel_count", "INTEGER"),
+            ("member_count", "INTEGER"),
+            ("status", "TEXT"),
+            ("created_at", "TEXT"),
+            ("updated_at", "TEXT"),
+        ],
+    },
+    "managed_servers": {
+        "pk": "id",
+        "auto_pk": True,
+        "columns": [
+            ("id", "INTEGER"),
+            ("name", "TEXT"),
+            ("url", "TEXT"),
+            ("status", "TEXT"),
+            ("description", "TEXT"),
+            ("created_at", "TEXT"),
+            ("updated_at", "TEXT"),
+        ],
+    },
+    "workspaces": {
+        "pk": "id",
+        "auto_pk": True,
+        "columns": [
+            ("id", "INTEGER"),
+            ("team_id", "TEXT"),
+            ("team_name", "TEXT"),
+            ("icon_url", "TEXT"),
+            ("app_id", "TEXT"),
+            ("app_name", "TEXT"),
+            ("app_icon_url", "TEXT"),
+            ("manifest_yaml", "TEXT"),
+            ("installer_slack_user_id", "TEXT"),
+            ("installer_name", "TEXT"),
+            ("channel_count", "INTEGER"),
+            ("member_count", "INTEGER"),
+            ("invite_link", "TEXT"),
+            ("access_token", "TEXT"),
+            ("app_token", "TEXT"),
+            ("bot_token", "TEXT"),
+            ("bot_user_id", "TEXT"),
+            ("created_at", "TEXT"),
+            ("updated_at", "TEXT"),
+        ],
+    },
+    "channels": {
+        "pk": "id",
+        "auto_pk": True,
+        "columns": [
+            ("id", "INTEGER"),
+            ("workspace_id", "INTEGER"),
+            ("channel_id", "TEXT"),
+            ("channel_name", "TEXT"),
+            ("member_count", "INTEGER"),
+            ("topic", "TEXT"),
+            ("purpose", "TEXT"),
+            ("is_private", "INTEGER"),
+            ("send_join_message", "INTEGER"),
+            ("join_message_id", "INTEGER"),
+            ("join_delivery_mode", "TEXT"),
+            ("created_at", "TEXT"),
+            ("updated_at", "TEXT"),
+        ],
+    },
+    "repositories": {
+        "pk": "id",
+        "auto_pk": True,
+        "columns": [
+            ("id", "INTEGER"),
+            ("workspace_id", "INTEGER"),
+            ("repo_url", "TEXT"),
+            ("repo_name", "TEXT"),
+            ("description", "TEXT"),
+            ("language", "TEXT"),
+            ("stars", "INTEGER"),
+            ("source_type", "TEXT"),
+            ("metadata_json", "TEXT"),
+            ("created_at", "TEXT"),
+        ],
+    },
+    "github_organizations": {
+        "pk": "id",
+        "auto_pk": True,
+        "columns": [
+            ("id", "INTEGER"),
+            ("workspace_id", "INTEGER"),
+            ("org_login", "TEXT"),
+            ("org_type", "TEXT"),
+            ("metadata_json", "TEXT"),
+            ("created_at", "TEXT"),
+            ("updated_at", "TEXT"),
+        ],
+    },
+    "events": {
+        "pk": "id",
+        "auto_pk": True,
+        "columns": [
+            ("id", "INTEGER"),
+            ("workspace_id", "INTEGER"),
+            ("event_type", "TEXT"),
+            ("user_slack_id", "TEXT"),
+            ("channel_name", "TEXT"),
+            ("channel_id", "TEXT"),
+            ("slack_team_id", "TEXT"),
+            ("request_data", "TEXT"),
+            ("verified", "INTEGER"),
+            ("status", "TEXT"),
+            ("webhook_body_type", "TEXT"),
+            ("webhook_event_id", "TEXT"),
+            ("webhook_event_time", "TEXT"),
+            ("webhook_event_subtype", "TEXT"),
+            ("webhook_retry_num", "TEXT"),
+            ("webhook_retry_reason", "TEXT"),
+            ("created_at", "TEXT"),
+        ],
+    },
+    "join_messages": {
+        "pk": "id",
+        "auto_pk": True,
+        "columns": [
+            ("id", "INTEGER"),
+            ("workspace_id", "INTEGER"),
+            ("name", "TEXT"),
+            ("message_text", "TEXT"),
+            ("is_active", "INTEGER"),
+            ("created_at", "TEXT"),
+            ("updated_at", "TEXT"),
+        ],
+    },
+    "users": {
+        "pk": "id",
+        "auto_pk": True,
+        "columns": [
+            ("id", "INTEGER"),
+            ("slack_user_id", "TEXT"),
+            ("team_id", "TEXT"),
+            ("name", "TEXT"),
+            ("email", "TEXT"),
+            ("access_token", "TEXT"),
+            ("avatar_url", "TEXT"),
+            ("created_at", "TEXT"),
+            ("updated_at", "TEXT"),
+        ],
+    },
+    "sessions": {
+        "pk": "id",
+        "auto_pk": False,
+        "columns": [
+            ("id", "TEXT"),
+            ("user_id", "INTEGER"),
+            ("created_at", "TEXT"),
+            ("expires_at", "TEXT"),
+        ],
+    },
+    "user_workspaces": {
+        "pk": "id",
+        "auto_pk": True,
+        "columns": [
+            ("id", "INTEGER"),
+            ("user_id", "INTEGER"),
+            ("workspace_id", "INTEGER"),
+            ("role", "TEXT"),
+            ("created_at", "TEXT"),
+        ],
+    },
 }
 
 
@@ -380,6 +587,34 @@ def chunked(items: List[str], size: int) -> List[List[str]]:
 
 def make_section_block(text: str) -> Dict[str, Any]:
     return {"type": "section", "text": {"type": "mrkdwn", "text": text}}
+
+
+def available_commands_text(include_descriptions: bool = False) -> str:
+    lines = []
+    for command, description in SLACK_COMMAND_DEFINITIONS:
+        if include_descriptions:
+            lines.append("• `{0}` - {1}".format(command, description))
+        else:
+            lines.append("• {0}".format(command))
+    return "\n".join(lines)
+
+
+def app_home_view() -> Dict[str, Any]:
+    return {
+        "type": "home",
+        "blocks": [
+            {
+                "type": "header",
+                "text": {"type": "plain_text", "text": "BLT Sammich", "emoji": True},
+            },
+            make_section_block(
+                "Use these commands from any Slack channel where Sammich is available."
+            ),
+            make_section_block(
+                "*Available commands*\n{0}".format(available_commands_text(True))
+            ),
+        ],
+    }
 
 
 def build_project_selection_blocks(project_names: List[str]) -> List[Dict[str, Any]]:
@@ -810,6 +1045,22 @@ async def db_get_workspace_bot_token(
     return str(
         (row or {}).get("bot_token") or (row or {}).get("access_token") or ""
     )
+
+
+async def db_get_workspace_bot_user_id(
+    env: Any, team_id: str = "", channel_id: str = ""
+) -> str:
+    try:
+        getattr(env, "DB")
+    except Exception:
+        return ""
+    await ensure_schema(env)
+    row = None
+    if team_id:
+        row = await db_get_workspace_by_team(env, team_id)
+    if not row and channel_id:
+        row = await db_get_workspace_by_channel_id(env, channel_id)
+    return str((row or {}).get("bot_user_id") or "")
 
 
 async def db_upsert_workspace(
@@ -2244,15 +2495,7 @@ async def create_github_issue(title: str, env: Any) -> Tuple[bool, str]:
 
 
 def help_response() -> Dict[str, Any]:
-    text = (
-        "Available commands:\n"
-        "• /contrib\n"
-        "• /stats\n"
-        "• /discover [search term]\n"
-        "• /gsoc25 [technology, mentor, or project]\n"
-        "• /installed_apps\n"
-        "• /blt"
-    )
+    text = "Available commands:\n{0}".format(available_commands_text())
     return {
         "response_type": "ephemeral",
         "text": text,
@@ -2559,6 +2802,13 @@ def is_direct_bot_message(event: Dict[str, Any]) -> bool:
     return channel_type == "im" or channel_id.startswith("D")
 
 
+def message_mentions_bot(event: Dict[str, Any], bot_user_id: str = "") -> bool:
+    text = str(event.get("text") or "")
+    if not bot_user_id:
+        return False
+    return "<@{0}>".format(bot_user_id) in text
+
+
 def bot_direct_message_response(text: str = "") -> str:
     cleaned = str(text or "").strip()
     if cleaned.lower() in ("help", "hi", "hello", "hey", "/blt"):
@@ -2592,18 +2842,41 @@ async def slack_api_post_message(
     )
 
 
+async def slack_api_publish_home(user_id: str, env: Any, team_id: str = "") -> None:
+    if not user_id:
+        return
+    token = await db_get_workspace_bot_token(env, team_id=team_id)
+    if not token:
+        token = env_value(env, "SLACK_BOT_TOKEN")
+    if not token:
+        return
+    await fetch_json(
+        "https://slack.com/api/views.publish",
+        method="POST",
+        headers={
+            "Authorization": "Bearer {0}".format(token),
+            "Content-Type": "application/json",
+        },
+        body=json.dumps({"user_id": user_id, "view": app_home_view()}),
+    )
+
+
 async def handle_event_payload(payload: Dict[str, Any], env: Any) -> Any:
     if payload.get("type") == "url_verification":
         return json_response({"challenge": payload.get("challenge", "")})
 
     event = payload.get("event") or {}
     team_id = payload_team_id(payload)
+    if event.get("type") == "app_home_opened":
+        await slack_api_publish_home(
+            str(event.get("user") or ""), env, team_id=team_id
+        )
     if event.get("type") == "app_mention":
         channel_id = event.get("channel")
         if channel_id:
             await slack_api_post_message(
                 channel_id,
-                "Try /contributors, /project, /repo, or /ghissue from the slash command menu.",
+                bot_direct_message_response(str(event.get("text") or "")),
                 env,
                 team_id=team_id,
             )
@@ -2619,6 +2892,11 @@ async def handle_event_payload(payload: Dict[str, Any], env: Any) -> Any:
             return json_response({"ok": True})
         user_id = event.get("user", "")
         channel_id = event.get("channel", "")
+        bot_user_id = await db_get_workspace_bot_user_id(
+            env, team_id=team_id, channel_id=channel_id
+        )
+        if bot_user_id and user_id == bot_user_id:
+            return json_response({"ok": True})
         installer_user_id = await get_workspace_installer(env, team_id)
         if installer_user_id and user_id == installer_user_id and channel_id:
             await slack_api_post_message(
@@ -2628,7 +2906,9 @@ async def handle_event_payload(payload: Dict[str, Any], env: Any) -> Any:
                 team_id=team_id,
             )
             return json_response({"ok": True})
-        if channel_id and is_direct_bot_message(event):
+        if channel_id and (
+            is_direct_bot_message(event) or message_mentions_bot(event, bot_user_id)
+        ):
             await slack_api_post_message(
                 channel_id,
                 bot_direct_message_response(str(event.get("text") or "")),
@@ -2652,10 +2932,320 @@ def render_status_chip(status: str) -> str:
     )
 
 
+def admin_table_schema(table_name: str) -> Dict[str, Any]:
+    return ADMIN_TABLE_SCHEMAS.get(table_name) or ADMIN_TABLE_SCHEMAS["workspaces"]
+
+
+def require_admin_table_name(table_name: str) -> str:
+    if table_name not in ADMIN_TABLE_SCHEMAS:
+        raise ValueError("Unknown database table: {0}".format(table_name))
+    return table_name
+
+
+def admin_redirect(env: Any, message: str = "", table_name: str = "") -> Any:
+    query: Dict[str, str] = {}
+    if table_name:
+        query["table"] = table_name
+    if message:
+        query["message"] = message
+    location = admin_path(env)
+    if query:
+        location += "?" + urlencode(query)
+    return redirect_response(location)
+
+
+def coerce_admin_db_value(column_type: str, value: str) -> Any:
+    raw = str(value or "")
+    if column_type == "INTEGER":
+        if raw.strip() == "":
+            return 0
+        try:
+            return int(raw)
+        except ValueError:
+            return 0
+    return raw
+
+
+def admin_editable_columns(schema: Dict[str, Any]) -> List[Tuple[str, str]]:
+    pk = schema["pk"]
+    if schema.get("auto_pk"):
+        return [(name, kind) for name, kind in schema["columns"] if name != pk]
+    return list(schema["columns"])
+
+
+def admin_form_value(form: Dict[str, str], column_name: str, column_type: str) -> Any:
+    return coerce_admin_db_value(column_type, form.get("field__" + column_name, ""))
+
+
+def admin_cell_text(value: Any) -> str:
+    text = str(value if value is not None else "")
+    if len(text) > 140:
+        return text[:137] + "..."
+    return text
+
+
+async def db_admin_table_counts(env: Any) -> Dict[str, Any]:
+    counts: Dict[str, Any] = {}
+    for table_name in ADMIN_TABLE_SCHEMAS:
+        try:
+            row = result_first(
+                await d1_run(env, "SELECT COUNT(*) AS n FROM {0}".format(table_name))
+            )
+            counts[table_name] = int((row or {}).get("n") or 0)
+        except Exception:
+            counts[table_name] = "?"
+    return counts
+
+
+async def db_admin_rows(env: Any, table_name: str) -> List[Dict[str, Any]]:
+    table_name = require_admin_table_name(table_name)
+    schema = admin_table_schema(table_name)
+    pk = schema["pk"]
+    try:
+        return result_rows(
+            await d1_run(
+                env,
+                "SELECT * FROM {0} ORDER BY {1} DESC LIMIT 100".format(table_name, pk),
+            )
+        )
+    except Exception as error:
+        log_exception_one_line(
+            error,
+            "db_admin_rows_failed",
+            {"table": table_name},
+        )
+        return []
+
+
+async def db_admin_get_row(
+    env: Any, table_name: str, pk_value: str
+) -> Optional[Dict[str, Any]]:
+    table_name = require_admin_table_name(table_name)
+    schema = admin_table_schema(table_name)
+    pk = schema["pk"]
+    if not pk_value:
+        return None
+    return result_first(
+        await d1_run(
+            env,
+            "SELECT * FROM {0} WHERE {1} = ? LIMIT 1".format(table_name, pk),
+            [pk_value],
+        )
+    )
+
+
+async def db_admin_context(
+    env: Any, selected_table: str = "", edit_pk: str = ""
+) -> Dict[str, Any]:
+    table_name = selected_table if selected_table in ADMIN_TABLE_SCHEMAS else "workspaces"
+    counts = await db_admin_table_counts(env)
+    rows = await db_admin_rows(env, table_name)
+    edit_row = await db_admin_get_row(env, table_name, edit_pk) if edit_pk else None
+    return {
+        "tables": list(ADMIN_TABLE_SCHEMAS.keys()),
+        "counts": counts,
+        "selected_table": table_name,
+        "schema": admin_table_schema(table_name),
+        "rows": rows,
+        "edit_row": edit_row,
+        "edit_pk": edit_pk,
+    }
+
+
+async def db_admin_create_row(
+    env: Any, table_name: str, form: Dict[str, str]
+) -> None:
+    table_name = require_admin_table_name(table_name)
+    schema = admin_table_schema(table_name)
+    fields = []
+    values = []
+    for column_name, column_type in admin_editable_columns(schema):
+        if schema.get("auto_pk") and column_name == schema["pk"]:
+            continue
+        fields.append(column_name)
+        values.append(admin_form_value(form, column_name, column_type))
+    placeholders = ", ".join("?" for _ in fields)
+    await d1_run(
+        env,
+        "INSERT INTO {0} ({1}) VALUES ({2})".format(
+            table_name, ", ".join(fields), placeholders
+        ),
+        values,
+    )
+
+
+async def db_admin_update_row(
+    env: Any, table_name: str, pk_value: str, form: Dict[str, str]
+) -> None:
+    table_name = require_admin_table_name(table_name)
+    schema = admin_table_schema(table_name)
+    pk = schema["pk"]
+    fields = []
+    values = []
+    for column_name, column_type in schema["columns"]:
+        if column_name == pk:
+            continue
+        fields.append("{0} = ?".format(column_name))
+        values.append(admin_form_value(form, column_name, column_type))
+    values.append(pk_value)
+    await d1_run(
+        env,
+        "UPDATE {0} SET {1} WHERE {2} = ?".format(
+            table_name, ", ".join(fields), pk
+        ),
+        values,
+    )
+
+
+async def db_admin_delete_row(env: Any, table_name: str, pk_value: str) -> None:
+    table_name = require_admin_table_name(table_name)
+    schema = admin_table_schema(table_name)
+    await d1_run(
+        env,
+        "DELETE FROM {0} WHERE {1} = ?".format(table_name, schema["pk"]),
+        [pk_value],
+    )
+
+
+def render_admin_db_field(
+    column_name: str,
+    column_type: str,
+    value: Any = "",
+    required: bool = False,
+) -> str:
+    text = str(value if value is not None else "")
+    label = html_escape(column_name)
+    required_attr = " required" if required else ""
+    if len(text) > 80 or column_name.endswith("_json") or column_name in (
+        "request_data",
+        "manifest_yaml",
+        "message_text",
+        "metadata_json",
+    ):
+        return (
+            '<div><label class="block text-xs font-semibold mb-1">{0}</label>'
+            '<textarea name="field__{1}" class="w-full border border-gray-300 rounded px-2 py-1 font-mono text-xs" rows="4"{2}>{3}</textarea></div>'
+        ).format(label, html_escape(column_name), required_attr, html_escape(text))
+    input_type = "number" if column_type == "INTEGER" else "text"
+    return (
+        '<div><label class="block text-xs font-semibold mb-1">{0}</label>'
+        '<input name="field__{1}" type="{2}" value="{3}" class="w-full border border-gray-300 rounded px-2 py-1 font-mono text-xs"{4} /></div>'
+    ).format(label, html_escape(column_name), input_type, html_escape(text), required_attr)
+
+
+def render_database_admin_html(context: Dict[str, Any], admin_url: str) -> str:
+    selected_table = context["selected_table"]
+    schema = context["schema"]
+    pk = schema["pk"]
+    table_links = []
+    for table_name in context["tables"]:
+        active = " bg-red-600 text-white" if table_name == selected_table else " bg-white text-gray-700"
+        table_links.append(
+            '<a class="inline-flex items-center gap-2 border border-gray-200 rounded px-3 py-2 text-xs font-semibold{0}" href="{1}?table={2}">{2}<span class="text-[10px] opacity-70">{3}</span></a>'.format(
+                active,
+                html_escape(admin_url),
+                html_escape(table_name),
+                html_escape(context["counts"].get(table_name, "?")),
+            )
+        )
+
+    header_cells = "".join(
+        '<th class="py-2 pr-4">{0}</th>'.format(html_escape(name))
+        for name, _ in schema["columns"]
+    )
+    row_html = []
+    for row in context["rows"]:
+        pk_value = str(row.get(pk) if row.get(pk) is not None else "")
+        cells = "".join(
+            '<td class="py-2 pr-4 max-w-xs truncate font-mono text-xs">{0}</td>'.format(
+                html_escape(admin_cell_text(row.get(name, "")))
+            )
+            for name, _ in schema["columns"]
+        )
+        row_html.append(
+            '<tr class="border-t align-top">{0}<td class="py-2 text-right whitespace-nowrap">'
+            '<a class="text-red-600 font-semibold mr-3" href="{1}?table={2}&edit={3}">Edit</a>'
+            '<form method="post" action="{1}" class="inline" onsubmit="return confirm(\'Delete this row?\')">'
+            '<input type="hidden" name="action" value="db_delete" />'
+            '<input type="hidden" name="table" value="{2}" />'
+            '<input type="hidden" name="pk" value="{3}" />'
+            '<button class="text-gray-500 hover:text-red-700 font-semibold" type="submit">Delete</button>'
+            '</form></td></tr>'.format(
+                cells,
+                html_escape(admin_url),
+                html_escape(selected_table),
+                html_escape(pk_value),
+            )
+        )
+    if not row_html:
+        row_html.append(
+            '<tr><td colspan="{0}" class="py-6 text-center text-gray-400">No rows found.</td></tr>'.format(
+                len(schema["columns"]) + 1
+            )
+        )
+
+    edit_row = context.get("edit_row")
+    editing = bool(edit_row)
+    form_action = "db_update" if editing else "db_create"
+    form_title = "Edit {0}".format(selected_table) if editing else "Add {0}".format(selected_table)
+    form_fields = []
+    for column_name, column_type in admin_editable_columns(schema):
+        value = (edit_row or {}).get(column_name, "")
+        required = bool(column_name == pk and not schema.get("auto_pk"))
+        form_fields.append(render_admin_db_field(column_name, column_type, value, required))
+
+    hidden_pk = ""
+    if editing:
+        hidden_pk = '<input type="hidden" name="pk" value="{0}" />'.format(
+            html_escape(str((edit_row or {}).get(pk) or context.get("edit_pk") or ""))
+        )
+
+    return """
+    <section class="bg-white rounded-lg shadow p-6 mb-8">
+      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-5">
+        <div>
+          <h2 class="text-xl font-bold">Database Admin</h2>
+          <p class="text-sm text-gray-500">Browse, add, edit, and delete D1 rows.</p>
+        </div>
+        <a href="{admin_url}" class="text-sm font-semibold text-red-600">Reset view</a>
+      </div>
+      <div class="flex flex-wrap gap-2 mb-6">{table_links}</div>
+      <div class="grid xl:grid-cols-[1fr_360px] gap-6">
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead><tr class="text-left text-gray-500">{header_cells}<th class="py-2 text-right">Actions</th></tr></thead>
+            <tbody>{rows}</tbody>
+          </table>
+        </div>
+        <form method="post" action="{admin_url}" class="border border-gray-200 rounded-lg p-4 space-y-3">
+          <h3 class="font-bold">{form_title}</h3>
+          <input type="hidden" name="action" value="{form_action}" />
+          <input type="hidden" name="table" value="{selected_table}" />
+          {hidden_pk}
+          <div class="space-y-3 max-h-[640px] overflow-y-auto pr-1">{form_fields}</div>
+          <button class="w-full px-4 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700" type="submit">{button_text}</button>
+        </form>
+      </div>
+    </section>
+    """.format(
+        admin_url=html_escape(admin_url),
+        table_links="\n".join(table_links),
+        header_cells=header_cells,
+        rows="\n".join(row_html),
+        form_title=html_escape(form_title),
+        form_action=form_action,
+        selected_table=html_escape(selected_table),
+        hidden_pk=hidden_pk,
+        form_fields="\n".join(form_fields),
+        button_text="Save Changes" if editing else "Create Row",
+    )
+
+
 def render_admin_html(
     env: Any,
     workspaces: List[Dict[str, Any]],
     servers: List[Dict[str, Any]],
+    database_context: Optional[Dict[str, Any]] = None,
     message: str = "",
 ) -> str:
     admin_url = admin_path(env)
@@ -2720,6 +3310,11 @@ def render_admin_html(
             + html_escape(message)
             + "</div>"
         )
+    database_admin_html = (
+        render_database_admin_html(database_context, admin_url)
+        if database_context
+        else ""
+    )
 
     return """<!DOCTYPE html>
 <html lang="en">
@@ -2788,6 +3383,7 @@ def render_admin_html(
         </table>
       </div>
     </section>
+    {database_admin_html}
   </main>
 </body>
 </html>""".format(
@@ -2795,6 +3391,7 @@ def render_admin_html(
         admin_url=html_escape(admin_url),
         workspace_rows="\n".join(workspace_rows),
         server_rows="\n".join(server_rows),
+        database_admin_html=database_admin_html,
     )
 
 
@@ -2804,11 +3401,14 @@ async def handle_admin_get(request: Any, env: Any) -> Any:
     parsed_url = urlparse(request.url)
     params = parse_qs(parsed_url.query)
     message = params.get("message", [""])[0]
+    selected_table = params.get("table", ["workspaces"])[0]
+    edit_pk = params.get("edit", [""])[0]
     return html_response(
         render_admin_html(
             env,
             await list_connected_workspaces(env),
             await list_managed_servers(env),
+            database_context=await db_admin_context(env, selected_table, edit_pk),
             message=message,
         )
     )
@@ -2853,6 +3453,18 @@ async def handle_admin_post(request: Any, env: Any) -> Any:
     if action == "delete_server":
         await delete_managed_server(env, int(form.get("server_id") or 0))
         return redirect_response(admin_path(env) + "?message=Server+deleted")
+    if action in ("db_create", "db_update", "db_delete"):
+        table_name = form.get("table", "")
+        if table_name not in ADMIN_TABLE_SCHEMAS:
+            return admin_redirect(env, "Unknown database table")
+        if action == "db_create":
+            await db_admin_create_row(env, table_name, form)
+            return admin_redirect(env, "Row created", table_name)
+        if action == "db_update":
+            await db_admin_update_row(env, table_name, form.get("pk", ""), form)
+            return admin_redirect(env, "Row updated", table_name)
+        await db_admin_delete_row(env, table_name, form.get("pk", ""))
+        return admin_redirect(env, "Row deleted", table_name)
     return redirect_response(admin_path(env) + "?message=No+changes+made")
 
 
