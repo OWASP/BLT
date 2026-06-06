@@ -4203,6 +4203,24 @@ def admin_cell_text(value: Any) -> str:
     return text
 
 
+def admin_table_cell_text(value: Any) -> str:
+    text = str(value if value is not None else "")
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def render_admin_table_cell(column_name: str, value: Any) -> str:
+    text = admin_table_cell_text(value)
+    max_width = "max-w-[34rem]" if column_name in (
+        "request_data",
+        "slack_response_data",
+    ) else "max-w-[18rem]"
+    return (
+        '<td class="border-b border-gray-100 px-3 py-1 align-middle font-mono text-xs text-gray-800">'
+        '<div class="{0} overflow-hidden truncate whitespace-nowrap" title="{1}">{2}</div>'
+        "</td>"
+    ).format(max_width, html_escape(text), html_escape(text))
+
+
 def admin_row_title(row: Dict[str, Any], schema: Dict[str, Any]) -> str:
     for column_name in (
         "team_name",
@@ -4760,13 +4778,9 @@ def render_admin_row_table(context: Dict[str, Any], admin_url: str) -> str:
         pk_value = str(row.get(pk) if row.get(pk) is not None else "")
         cells = []
         for column_name, _ in schema["columns"]:
-            cells.append(
-                '<td class="border-b border-gray-100 px-3 py-2 align-top font-mono text-xs text-gray-800"><div class="max-w-[28rem] whitespace-pre-wrap break-words">{0}</div></td>'.format(
-                    html_escape(str(row.get(column_name) if row.get(column_name) is not None else ""))
-                )
-            )
+            cells.append(render_admin_table_cell(column_name, row.get(column_name)))
         cells.append(
-            '<td class="border-b border-gray-100 px-3 py-2 text-right align-top whitespace-nowrap">'
+            '<td class="border-b border-gray-100 px-3 py-1 text-right align-middle whitespace-nowrap">'
             '<a class="font-semibold text-red-600 hover:text-red-700" href="{0}?table={1}&edit={2}">Edit</a>'
             '<a class="ml-3 font-semibold text-gray-500 hover:text-red-700" href="{0}?table={1}&confirm_delete={2}">Delete</a>'
             '{3}'

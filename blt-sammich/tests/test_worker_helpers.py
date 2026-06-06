@@ -567,6 +567,31 @@ def test_render_admin_channel_refresh_button_only_for_teams():
     assert "refresh_workspace_channels" not in html
 
 
+def test_render_admin_row_table_collapses_payload_columns_to_one_line():
+    html = worker.render_admin_row_table(
+        {
+            "selected_table": "events",
+            "schema": worker.ADMIN_TABLE_SCHEMAS["events"],
+            "rows": [
+                {
+                    "id": 1,
+                    "request_data": '{\n  "command": "/blt",\n  "text": "help"\n}',
+                    "slack_response_data": '{\n  "ok": true\n}',
+                }
+            ],
+            "sort_column": "id",
+            "sort_direction": "DESC",
+        },
+        "/private-admin",
+    )
+
+    assert '{ "command": "/blt", "text": "help" }' in html
+    assert '{ "ok": true }' in html
+    assert 'title="{ &quot;command&quot;: &quot;/blt&quot;, &quot;text&quot;: &quot;help&quot; }"' in html
+    assert "whitespace-pre-wrap" not in html
+    assert "break-words" not in html
+
+
 def test_render_admin_html_shows_edit_form_on_edit_page():
     env = _Env()
     setattr(env, "ADMIN_URL", "/private-admin")
