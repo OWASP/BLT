@@ -1,4 +1,5 @@
 import base64
+import asyncio
 from pathlib import Path
 
 from src import worker
@@ -267,3 +268,76 @@ def test_public_event_rows_hide_request_payload():
             "created_at": "2026-06-06T00:00:00+00:00",
         }
     ]
+
+
+def test_slack_message_event_metadata_is_extracted_for_logging():
+    payload = {
+        "type": "event_callback",
+        "event_id": "Ev123",
+        "event": {
+            "type": "message",
+            "team": "T123",
+            "user": "U123",
+            "channel": "C123",
+            "text": "hello from a post",
+        },
+        "authorizations": [{"team_id": "T123"}],
+    }
+
+    assert worker.payload_team_id(payload) == "T123"
+    assert worker.payload_user_id(payload) == "U123"
+    assert worker.payload_channel_id(payload) == "C123"
+    assert worker.model_event_type_for_activity("event", payload) == "Message"
+
+
+def test_slack_bot_message_event_metadata_is_extracted_for_logging():
+    payload = {
+        "type": "event_callback",
+        "event": {
+            "type": "message",
+            "subtype": "bot_message",
+            "team": "T999",
+            "bot_id": "B123",
+            "channel": "C999",
+        },
+    }
+
+    assert worker.payload_team_id(payload) == "T999"
+    assert worker.payload_user_id(payload) == "B123"
+    assert worker.payload_channel_id(payload) == "C999"
+    assert worker.model_event_type_for_activity("event", payload) == "Message"
+
+
+def test_db_insert_event_persists_slack_team_id_even_without_workspace():
+    captured = {}
+    original_d1_run = worker.d1_run
+    original_schema_ready = worker.SCHEMA_READY
+
+    async def fake_d1_run(env, query, params=None):
+        captured["query"] = query
+        captured["params"] = params
+        return {"success": True}
+
+    env = _Env()
+    setattr(env, "DB", object())
+    worker.d1_run = fake_d1_run
+    worker.SCHEMA_READY = False
+    try:
+        asyncio.run(
+            worker.db_insert_event(
+                env,
+                None,
+                "Message",
+                user_slack_id="U123",
+                channel_id="C123",
+                slack_team_id="T123",
+                request_data='{"event": {"type": "message"}}',
+            )
+        )
+    finally:
+        worker.d1_run = original_d1_run
+        worker.SCHEMA_READY = original_schema_ready
+
+    assert "slack_team_id" in captured["query"]
+    assert captured["params"][0] is None
+    assert captured["params"][5] == "T123"

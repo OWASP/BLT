@@ -267,6 +267,78 @@ def log_json_event(event: str, payload: Dict[str, Any]) -> None:
     print(json.dumps(record, separators=(",", ":"), sort_keys=True))
 
 
+def payload_team_id(payload: Dict[str, Any]) -> str:
+    event = payload.get("event") or {}
+    authorizations = payload.get("authorizations") or []
+    if isinstance(authorizations, list) and authorizations:
+        auth_team_id = (authorizations[0] or {}).get("team_id")
+    else:
+        auth_team_id = ""
+    return str(
+        payload.get("team_id")
+        or (payload.get("team") or {}).get("id")
+        or event.get("team")
+        or auth_team_id
+        or ""
+    )
+
+
+def payload_user_id(payload: Dict[str, Any]) -> str:
+    event = payload.get("event") or {}
+    user_profile = event.get("user_profile") or {}
+    return str(
+        payload.get("user_id")
+        or event.get("user")
+        or event.get("bot_id")
+        or user_profile.get("id")
+        or ""
+    )
+
+
+def payload_channel_id(payload: Dict[str, Any]) -> str:
+    event = payload.get("event") or {}
+    payload_channel = payload.get("channel")
+    event_channel = event.get("channel")
+    item = event.get("item") or {}
+    if isinstance(payload_channel, dict):
+        payload_channel = payload_channel.get("id")
+    if isinstance(event_channel, dict):
+        event_channel = event_channel.get("id")
+    return str(
+        payload.get("channel_id")
+        or payload_channel
+        or event_channel
+        or item.get("channel")
+        or ""
+    )
+
+
+def payload_channel_name(payload: Dict[str, Any]) -> str:
+    event = payload.get("event") or {}
+    payload_channel = payload.get("channel")
+    if isinstance(payload_channel, dict):
+        return str(payload_channel.get("name") or "")
+    return str(payload.get("channel_name") or event.get("channel_name") or "")
+
+
+def model_event_type_for_activity(activity_kind: str, payload: Dict[str, Any]) -> str:
+    event = payload.get("event") or {}
+    raw_type = (
+        "Command"
+        if activity_kind == "slash_command"
+        else "Interaction"
+        if activity_kind == "interaction"
+        else event.get("type") or payload.get("type") or activity_kind
+    )
+    if raw_type == "team_join":
+        return "Team_Join"
+    if raw_type == "app_mention":
+        return "App_Mention"
+    if raw_type == "message":
+        return "Message"
+    return str(raw_type or activity_kind)
+
+
 def verify_slack_signature(
     signing_secret: str,
     timestamp: str,
@@ -557,9 +629,9 @@ async def record_activity(
     received_at = datetime.now(timezone.utc).isoformat()
     slack_type = payload.get("type") or payload.get("event", {}).get("type")
     command_name = payload.get("command")
-    team_id = payload.get("team_id")
-    user_id = payload.get("user_id") or payload.get("event", {}).get("user")
-    channel_id = payload.get("channel_id") or payload.get("channel", {}).get("id")
+    team_id = payload_team_id(payload)
+    user_id = payload_user_id(payload)
+    channel_id = payload_channel_id(payload)
     payload_json = json.dumps(payload, sort_keys=True)
 
     await d1_run(
@@ -581,31 +653,38 @@ async def record_activity(
         ],
     )
     try:
-        workspace = await db_get_workspace_by_team(env, team_id)
-        if workspace and workspace.get("id"):
-            event_payload = payload.get("event") or {}
-            model_event_type = (
-                "Command"
-                if activity_kind == "slash_command"
-                else event_payload.get("type")
-                or payload.get("type")
-                or activity_kind
-            )
-            if model_event_type == "team_join":
-                model_event_type = "Team_Join"
-            await db_log_event(
-                env,
-                workspace.get("id"),
-                str(model_event_type),
-                user_slack_id=user_id or "",
-                channel_id=channel_id or "",
-                request_data=payload_json,
-                status="success",
-                webhook_body_type=str(payload.get("type") or ""),
-                webhook_event_id=str(payload.get("event_id") or ""),
-                webhook_event_time=str(payload.get("event_time") or ""),
-                webhook_event_subtype=str(event_payload.get("subtype") or ""),
-            )
+        workspace = await db_get_workspace_by_team(env, team_id) if team_id else None
+        workspace_id = workspace.get("id") if workspace else None
+        event_payload = payload.get("event") or {}
+        model_event_type = model_event_type_for_activity(activity_kind, payload)
+        await db_log_event(
+            env,
+            workspace_id,
+            model_event_type,
+            user_slack_id=user_id or "",
+            channel_name=payload_channel_name(payload),
+            channel_id=channel_id or "",
+            slack_team_id=team_id,
+            request_data=payload_json,
+            status="success",
+            webhook_body_type=str(payload.get("type") or ""),
+            webhook_event_id=str(payload.get("event_id") or ""),
+            webhook_event_time=str(payload.get("event_time") or ""),
+            webhook_event_subtype=str(event_payload.get("subtype") or ""),
+            webhook_retry_num=str(payload.get("retry_num") or ""),
+            webhook_retry_reason=str(payload.get("retry_reason") or ""),
+        )
+        log_json_event(
+            "model_event_logged",
+            {
+                "activity_kind": activity_kind,
+                "event_type": model_event_type,
+                "team_id": team_id,
+                "workspace_id": workspace_id,
+                "channel_id": channel_id,
+                "user_id": user_id,
+            },
+        )
     except Exception as error:
         log_exception_one_line(error, "record_model_activity_failed")
 
@@ -1379,6 +1458,7 @@ async def db_log_event(
     request_data: str = "",
     verified: int = 0,
     channel_id: str = "",
+    slack_team_id: str = "",
     webhook_body_type: str = "",
     webhook_event_id: str = "",
     webhook_event_time: str = "",
@@ -1396,6 +1476,7 @@ async def db_log_event(
         request_data=request_data,
         verified=verified,
         channel_id=channel_id,
+        slack_team_id=slack_team_id,
         webhook_body_type=webhook_body_type,
         webhook_event_id=webhook_event_id,
         webhook_event_time=webhook_event_time,
@@ -1416,6 +1497,7 @@ async def db_insert_event(
     request_data: str = "",
     verified: int = 0,
     channel_id: str = "",
+    slack_team_id: str = "",
     webhook_body_type: str = "",
     webhook_event_id: str = "",
     webhook_event_time: str = "",
@@ -1428,9 +1510,9 @@ async def db_insert_event(
         env,
         (
             "INSERT INTO events (workspace_id, event_type, user_slack_id, channel_name, "
-            "channel_id, request_data, verified, status, created_at, webhook_body_type, "
+            "channel_id, slack_team_id, request_data, verified, status, created_at, webhook_body_type, "
             "webhook_event_id, webhook_event_time, webhook_event_subtype, webhook_retry_num, webhook_retry_reason) "
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         ),
         [
             workspace_id,
@@ -1438,6 +1520,7 @@ async def db_insert_event(
             user_slack_id or "",
             channel_name or "",
             channel_id or "",
+            slack_team_id or "",
             request_data or "",
             1 if verified else 0,
             status or "success",
