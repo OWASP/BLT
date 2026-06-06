@@ -39,3 +39,34 @@ pages:
       - public
   rules:
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+
+commit_built_pages:
+  image: alpine:3.20
+  stage: deploy
+  needs:
+    - job: build_site
+      artifacts: true
+  before_script:
+    - apk add --no-cache git
+  script:
+    - mv public /tmp/built-public
+    - git config user.name "${GITLAB_USER_NAME:-GitLab CI}"
+    - git config user.email "${GITLAB_USER_EMAIL:-gitlab-ci@users.noreply.gitlab.com}"
+    - git rm -r --ignore-unmatch public
+    - mkdir public
+    - cp -R /tmp/built-public/. public/
+    - git add -f public
+    - |
+      if git diff --cached --quiet; then
+        echo "No generated page changes to commit."
+        exit 0
+      fi
+    - git commit -m "Build static pages [skip ci]"
+    - |
+      if [ -n "$CI_PUSH_TOKEN" ]; then
+        git push "https://oauth2:${CI_PUSH_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git" "HEAD:${CI_COMMIT_BRANCH}"
+      else
+        git push "https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git" "HEAD:${CI_COMMIT_BRANCH}"
+      fi
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'

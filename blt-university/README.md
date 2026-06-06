@@ -127,7 +127,9 @@ GitLab CI builds the site once with:
 bundle exec jekyll build -d public
 ```
 
-The `pages` job publishes that artifact to GitLab Pages. Cloudflare Pages deploys automatically from the connected repository using the same Jekyll build command and the `public/` output directory configured in `wrangler.toml`.
+The `pages` job publishes that artifact to GitLab Pages. The `commit_built_pages` job commits the generated `public/` files back to the default branch with `[skip ci]`, which lets Cloudflare Pages deploy automatically from the connected repository using the `public/` output directory configured in `wrangler.toml`.
+
+If `CI_JOB_TOKEN` is not allowed to push to the repository, configure a masked GitLab CI/CD variable named `CI_PUSH_TOKEN` with a project access token that can write to the default branch.
 
 ### Local Development
 
