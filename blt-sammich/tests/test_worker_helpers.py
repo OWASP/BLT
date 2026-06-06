@@ -449,6 +449,7 @@ def test_render_admin_html_includes_workspaces_and_servers():
             {
                 "team_name": "Security Team",
                 "team_id": "T123",
+                "id": 2,
                 "status": "connected",
                 "total_activities": 7,
                 "channel_count": 3,
@@ -464,11 +465,16 @@ def test_render_admin_html_includes_workspaces_and_servers():
                 "description": "Main endpoint",
             }
         ],
+        admin_mode="add_workspace",
     )
 
     assert "Security Team" in html
     assert "Production" in html
     assert "/private-admin" in html
+    assert "Add Workspace" in html
+    assert "Add Server" in html
+    assert "Edit" in html
+    assert "Delete" in html
     assert "slack_app_token" in html
     assert "slack_bot_token" in html
     assert "slack_app_id" in html
@@ -498,15 +504,25 @@ def test_render_admin_html_includes_database_admin_context():
                     "updated_at": "2026-06-06T00:00:00+00:00",
                 }
             ],
-            "edit_row": None,
-            "edit_pk": "",
+            "edit_row": {
+                "id": 1,
+                "team_id": "T123",
+                "team_name": "Security Team",
+                "created_at": "2026-06-06T00:00:00+00:00",
+                "updated_at": "2026-06-06T00:00:00+00:00",
+            },
+            "edit_pk": "1",
+            "add_row": False,
         },
     )
 
     assert "Database Admin" in html
+    assert "Tables" in html
+    assert "Rows in workspaces" in html
     assert "workspaces" in html
     assert "Security Team" in html
-    assert "db_create" in html
+    assert "db_update" in html
+    assert "Delete Row" in html
 
 
 def test_lettuce_model_tables_are_in_schema_bootstrap():
