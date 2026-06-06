@@ -15,6 +15,8 @@ from .stats import handle_stats
 from .leaderboard import handle_leaderboard
 from .contributors import handle_contributors
 from .repos import handle_repos
+from .jobs import handle_jobs
+from .hackathons import handle_hackathons
 from .health import handle_health
 from .homepage import handle_blt_api_logo, handle_dashboard, handle_homepage, handle_llm_txt
 from .auth_page import handle_auth_page
@@ -32,6 +34,8 @@ __all__ = [
     "handle_leaderboard",
     "handle_contributors",
     "handle_repos",
+    "handle_jobs",
+    "handle_hackathons",
     "handle_health",
     "handle_blt_api_logo",
     "handle_llm_txt",

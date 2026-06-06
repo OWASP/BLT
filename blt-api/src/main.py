@@ -27,6 +27,8 @@ from handlers import (
     handle_leaderboard,
     handle_contributors, 
     handle_repos,
+    handle_jobs,
+    handle_hackathons,
     handle_health,
     handle_blt_api_logo,
     handle_llm_txt,
@@ -209,6 +211,19 @@ _add_v2_route("GET", "/contributors/{id}", handle_contributors)
 
 _add_v2_route("GET", "/repos", handle_repos)
 _add_v2_route("GET", "/repos/{id}", handle_repos)
+
+_add_v2_route("GET", "/jobs/stats", handle_jobs)
+_add_v2_route("GET", "/jobs", handle_jobs)
+_add_v2_route("POST", "/jobs", handle_jobs)
+_add_v2_route("POST", "/jobs/{id}/view", handle_jobs)
+_add_v2_route("GET", "/jobs/{id}", handle_jobs)
+_add_v2_route("PATCH", "/jobs/{id}", handle_jobs)
+
+_add_v2_route("GET", "/hackathons", handle_hackathons)
+_add_v2_route("POST", "/hackathons", handle_hackathons)
+_add_v2_route("POST", "/hackathons/{id}/register", handle_hackathons)
+_add_v2_route("GET", "/hackathons/{slug}", handle_hackathons)
+_add_v2_route("PATCH", "/hackathons/{id}", handle_hackathons)
 # v2 API discoverability
 _add_v2_route("GET", "/routes", make_routes_handler(router))
 

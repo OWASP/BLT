@@ -965,6 +965,7 @@
       const SESSION_TOKEN_STORAGE_KEY = "blt-dashboard-session-token";
       const SESSION_USERNAME_STORAGE_KEY = "blt-dashboard-session-username";
       const THEME_STORAGE_KEY = "blt-theme";
+      const DEMO_RESPONSE_DELAY_MS = 450;
       let activeRoute = null;
       let sessionToken = "";
       let sessionUsername = "";
@@ -2173,6 +2174,497 @@
             },
           ],
         },
+        {
+          name: "Jobs",
+          summary:
+            "Create, list, update, track, and summarize jobs owned by your API account.",
+          routes: [
+            {
+              id: "jobs-list",
+              name: "List jobs",
+              method: "GET",
+              path: "/v2/jobs",
+              summary:
+                "List jobs created by the authenticated user API-key owner.",
+              auth: { apiKey: true, bearer: false },
+              queryParams: [
+                {
+                  name: "page",
+                  type: "integer",
+                  required: false,
+                  example: "1",
+                  description: "Page number.",
+                },
+                {
+                  name: "per_page",
+                  type: "integer",
+                  required: false,
+                  example: "20",
+                  description: "Items per page.",
+                },
+                {
+                  name: "status",
+                  type: "string",
+                  required: false,
+                  example: "open",
+                  description: "draft, open, or closed.",
+                },
+              ],
+              sampleResponse: {
+                success: true,
+                data: [
+                  {
+                    id: 9,
+                    title: "Security Engineer",
+                    company_name: "OWASP BLT",
+                    status: "open",
+                    views: 12,
+                  },
+                ],
+                pagination: { page: 1, per_page: 20, count: 1, total: 1 },
+              },
+              errors: [
+                { status: 401, message: "User API key required." },
+                { status: 503, message: "Database connection failed." },
+              ],
+            },
+            {
+              id: "jobs-get",
+              name: "Get job",
+              method: "GET",
+              path: "/v2/jobs/{id}",
+              summary:
+                "Fetch one job if it belongs to the authenticated user API-key owner.",
+              auth: { apiKey: true, bearer: false },
+              pathParams: [
+                {
+                  name: "id",
+                  type: "integer",
+                  required: true,
+                  example: "9",
+                  description: "Job ID.",
+                },
+              ],
+              sampleResponse: {
+                success: true,
+                data: {
+                  id: 9,
+                  title: "Security Engineer",
+                  description: "Work on BLT integrations.",
+                  status: "open",
+                  views: 12,
+                },
+              },
+              errors: [
+                { status: 400, message: "Invalid job ID." },
+                { status: 401, message: "User API key required." },
+                { status: 404, message: "Job not found." },
+              ],
+            },
+            {
+              id: "jobs-create",
+              name: "Create job",
+              method: "POST",
+              path: "/v2/jobs",
+              summary:
+                "Create a user-owned job for the authenticated API account.",
+              auth: { apiKey: true, bearer: false },
+              bodySchema: [
+                {
+                  name: "title",
+                  type: "string",
+                  required: true,
+                  description: "Job title.",
+                },
+                {
+                  name: "description",
+                  type: "string",
+                  required: true,
+                  description: "Job description.",
+                },
+                {
+                  name: "company_name",
+                  type: "string",
+                  required: false,
+                  description: "Company or team name.",
+                },
+                {
+                  name: "job_type",
+                  type: "string",
+                  required: false,
+                  description:
+                    "full-time, part-time, contract, internship, or other.",
+                },
+                {
+                  name: "apply_url",
+                  type: "string",
+                  required: false,
+                  description: "Application URL.",
+                },
+              ],
+              sampleBody: {
+                title: "Security Engineer",
+                description: "Work on BLT integrations.",
+                company_name: "OWASP BLT",
+                location: "Remote",
+                job_type: "full-time",
+              },
+              sampleResponse: {
+                success: true,
+                message: "Job created successfully",
+                data: {
+                  id: 10,
+                  title: "Security Engineer",
+                  created_by_user_id: 42,
+                  status: "open",
+                },
+              },
+              errors: [
+                { status: 400, message: "Missing or invalid fields." },
+                { status: 401, message: "User API key required." },
+              ],
+            },
+            {
+              id: "jobs-update",
+              name: "Update job",
+              method: "PATCH",
+              path: "/v2/jobs/{id}",
+              summary:
+                "Update a job owned by the authenticated user API-key owner.",
+              auth: { apiKey: true, bearer: false },
+              pathParams: [
+                {
+                  name: "id",
+                  type: "integer",
+                  required: true,
+                  example: "9",
+                  description: "Job ID.",
+                },
+              ],
+              bodySchema: [
+                {
+                  name: "status",
+                  type: "string",
+                  required: false,
+                  description: "draft, open, or closed.",
+                },
+                {
+                  name: "description",
+                  type: "string",
+                  required: false,
+                  description: "Replacement description.",
+                },
+                {
+                  name: "is_active",
+                  type: "boolean",
+                  required: false,
+                  description: "Whether the job is active.",
+                },
+              ],
+              sampleBody: { status: "closed" },
+              sampleResponse: {
+                success: true,
+                message: "Job updated successfully",
+                data: { id: 9, status: "closed" },
+              },
+              errors: [
+                { status: 400, message: "Invalid job ID or body." },
+                { status: 401, message: "User API key required." },
+                { status: 404, message: "Job not found." },
+              ],
+            },
+            {
+              id: "jobs-view",
+              name: "Record job view",
+              method: "POST",
+              path: "/v2/jobs/{id}/view",
+              summary:
+                "Increment the view count for a job owned by the API account.",
+              auth: { apiKey: true, bearer: false },
+              pathParams: [
+                {
+                  name: "id",
+                  type: "integer",
+                  required: true,
+                  example: "9",
+                  description: "Job ID.",
+                },
+              ],
+              sampleResponse: {
+                success: true,
+                message: "Job view recorded",
+                data: { id: 9, views: 13 },
+              },
+              errors: [
+                { status: 400, message: "Invalid job ID." },
+                { status: 401, message: "User API key required." },
+                { status: 404, message: "Job not found." },
+              ],
+            },
+            {
+              id: "jobs-stats",
+              name: "Job stats",
+              method: "GET",
+              path: "/v2/jobs/stats",
+              summary:
+                "Return aggregate counts for jobs owned by the API account.",
+              auth: { apiKey: true, bearer: false },
+              sampleResponse: {
+                success: true,
+                data: {
+                  total_jobs: 12,
+                  active_jobs: 10,
+                  open_jobs: 8,
+                  closed_jobs: 4,
+                },
+              },
+              errors: [{ status: 401, message: "User API key required." }],
+            },
+          ],
+        },
+        {
+          name: "Hackathons",
+          summary:
+            "Create, list, update, and register participants for user-owned hackathons.",
+          routes: [
+            {
+              id: "hackathons-list",
+              name: "List hackathons",
+              method: "GET",
+              path: "/v2/hackathons",
+              summary:
+                "List hackathons created by the authenticated user API-key owner.",
+              auth: { apiKey: true, bearer: false },
+              queryParams: [
+                {
+                  name: "page",
+                  type: "integer",
+                  required: false,
+                  example: "1",
+                  description: "Page number.",
+                },
+                {
+                  name: "per_page",
+                  type: "integer",
+                  required: false,
+                  example: "20",
+                  description: "Items per page.",
+                },
+              ],
+              sampleResponse: {
+                success: true,
+                data: [
+                  {
+                    id: 7,
+                    title: "BLT Build Day",
+                    slug: "blt-build-day",
+                    status: "upcoming",
+                  },
+                ],
+                pagination: { page: 1, per_page: 20, count: 1, total: 1 },
+              },
+              errors: [{ status: 401, message: "User API key required." }],
+            },
+            {
+              id: "hackathons-get",
+              name: "Get hackathon",
+              method: "GET",
+              path: "/v2/hackathons/{slug}",
+              summary:
+                "Fetch one hackathon by slug if it belongs to the API account.",
+              auth: { apiKey: true, bearer: false },
+              pathParams: [
+                {
+                  name: "slug",
+                  type: "string",
+                  required: true,
+                  example: "blt-build-day",
+                  description: "Hackathon slug.",
+                },
+              ],
+              sampleResponse: {
+                success: true,
+                data: {
+                  id: 7,
+                  title: "BLT Build Day",
+                  slug: "blt-build-day",
+                  status: "upcoming",
+                  registration_count: 18,
+                },
+              },
+              errors: [
+                { status: 401, message: "User API key required." },
+                { status: 404, message: "Hackathon not found." },
+              ],
+            },
+            {
+              id: "hackathons-create",
+              name: "Create hackathon",
+              method: "POST",
+              path: "/v2/hackathons",
+              summary:
+                "Create a user-owned hackathon for the authenticated API account.",
+              auth: { apiKey: true, bearer: false },
+              bodySchema: [
+                {
+                  name: "title",
+                  type: "string",
+                  required: true,
+                  description: "Hackathon title.",
+                },
+                {
+                  name: "slug",
+                  type: "string",
+                  required: true,
+                  description: "Unique slug for this user.",
+                },
+                {
+                  name: "starts_at",
+                  type: "datetime",
+                  required: true,
+                  description: "Start timestamp.",
+                },
+                {
+                  name: "ends_at",
+                  type: "datetime",
+                  required: true,
+                  description: "End timestamp.",
+                },
+                {
+                  name: "capacity",
+                  type: "integer",
+                  required: false,
+                  description: "Optional participant cap.",
+                },
+              ],
+              sampleBody: {
+                title: "BLT Build Day",
+                slug: "blt-build-day",
+                starts_at: "2026-07-01 00:00:00",
+                ends_at: "2026-07-03 00:00:00",
+                capacity: 100,
+              },
+              sampleResponse: {
+                success: true,
+                message: "Hackathon created successfully",
+                data: {
+                  id: 7,
+                  title: "BLT Build Day",
+                  slug: "blt-build-day",
+                  created_by_user_id: 42,
+                },
+              },
+              errors: [
+                { status: 400, message: "Missing or invalid fields." },
+                { status: 401, message: "User API key required." },
+              ],
+            },
+            {
+              id: "hackathons-update",
+              name: "Update hackathon",
+              method: "PATCH",
+              path: "/v2/hackathons/{id}",
+              summary:
+                "Update a hackathon owned by the authenticated API account.",
+              auth: { apiKey: true, bearer: false },
+              pathParams: [
+                {
+                  name: "id",
+                  type: "integer",
+                  required: true,
+                  example: "7",
+                  description: "Hackathon ID.",
+                },
+              ],
+              bodySchema: [
+                {
+                  name: "title",
+                  type: "string",
+                  required: false,
+                  description: "Replacement title.",
+                },
+                {
+                  name: "capacity",
+                  type: "integer",
+                  required: false,
+                  description: "Replacement capacity.",
+                },
+                {
+                  name: "is_published",
+                  type: "boolean",
+                  required: false,
+                  description: "Publishing state.",
+                },
+              ],
+              sampleBody: { capacity: 150 },
+              sampleResponse: {
+                success: true,
+                message: "Hackathon updated successfully",
+                data: { id: 7, capacity: 150, status: "upcoming" },
+              },
+              errors: [
+                { status: 400, message: "Invalid hackathon ID or body." },
+                { status: 401, message: "User API key required." },
+                { status: 404, message: "Hackathon not found." },
+              ],
+            },
+            {
+              id: "hackathons-register",
+              name: "Register participant",
+              method: "POST",
+              path: "/v2/hackathons/{id}/register",
+              summary:
+                "Register a participant for a hackathon owned by the API account.",
+              auth: { apiKey: true, bearer: false },
+              pathParams: [
+                {
+                  name: "id",
+                  type: "integer",
+                  required: true,
+                  example: "7",
+                  description: "Hackathon ID.",
+                },
+              ],
+              bodySchema: [
+                {
+                  name: "email",
+                  type: "string",
+                  required: true,
+                  description: "Participant email.",
+                },
+                {
+                  name: "name",
+                  type: "string",
+                  required: false,
+                  description: "Participant name.",
+                },
+              ],
+              sampleBody: {
+                email: "participant@example.com",
+                name: "Participant",
+              },
+              sampleResponse: {
+                success: true,
+                message: "Hackathon registration created successfully",
+                data: {
+                  id: 21,
+                  hackathon_id: 7,
+                  participant_name: "Participant",
+                  status: "registered",
+                },
+              },
+              errors: [
+                { status: 400, message: "Invalid email or hackathon ID." },
+                { status: 401, message: "User API key required." },
+                { status: 404, message: "Hackathon not found." },
+                {
+                  status: 409,
+                  message: "Duplicate registration or capacity reached.",
+                },
+              ],
+            },
+          ],
+        },
       ];
 
       const elements = {
@@ -2848,8 +3340,57 @@
         return "";
       }
 
+      function shouldUseDemoResponse(route) {
+        return Boolean(route) && !sessionToken;
+      }
+
+      function buildDemoResponse(route) {
+        var sample =
+          route && route.sampleResponse
+            ? JSON.parse(JSON.stringify(route.sampleResponse))
+            : { success: true };
+        return {
+          statusText: "200 Demo",
+          body: sample,
+        };
+      }
+
+      function wait(ms) {
+        return new Promise(function (resolve) {
+          window.setTimeout(resolve, ms);
+        });
+      }
+
+      async function simulateDemoResponse(route, start) {
+        setRequestStatus("Preparing demo response...", "info");
+        elements.sendRequestButton.disabled = true;
+        elements.copyResponseButton.disabled = true;
+        elements.responseBody.textContent = "Loading demo response...";
+        elements.responseTime.textContent = "";
+        await wait(DEMO_RESPONSE_DELAY_MS);
+        var demo = buildDemoResponse(route);
+        var elapsed = Math.round(performance.now() - start);
+        var displayText = prettyJson(demo.body);
+        lastResponseText = displayText;
+        elements.responseBody.textContent = displayText;
+        elements.copyResponseButton.disabled = false;
+        setResponseMeta(demo.statusText, elapsed + "ms", true);
+        setRequestStatus(
+          "Demo response. Sign in and create an API key to send live requests.",
+          "success",
+        );
+        elements.sendRequestButton.disabled = false;
+      }
+
       async function sendRequest() {
         if (!activeRoute) return;
+        var start = performance.now();
+
+        if (shouldUseDemoResponse(activeRoute)) {
+          await simulateDemoResponse(activeRoute, start);
+          return;
+        }
+
         var request;
         try {
           request = buildRequest(activeRoute, {
@@ -2866,7 +3407,6 @@
         elements.copyResponseButton.disabled = true;
         elements.responseBody.textContent = "Loading...";
         elements.responseTime.textContent = "";
-        var start = performance.now();
 
         try {
           var fetchOptions = {
