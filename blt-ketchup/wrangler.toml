@@ -4,6 +4,7 @@
 name            = "blt-ketchup"
 main            = "worker.py"
 compatibility_date = "2024-09-23"
+compatibility_flags = ["python_workers"]
 
 # Python runtime (Pyodide-based WASM execution)
 [build]
@@ -31,4 +32,3 @@ database_id   = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
 # Secrets (set via `wrangler secret put ROOT_SECRET`)
 # ROOT_SECRET : 32-byte hex string used for HKDF key derivation
 # Never commit actual secret values here.
-
