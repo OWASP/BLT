@@ -177,6 +177,7 @@ ADMIN_TABLE_SCHEMAS = {
             ("webhook_retry_num", "TEXT"),
             ("webhook_retry_reason", "TEXT"),
             ("slack_response_data", "TEXT"),
+            ("internal_error", "TEXT"),
             ("created_at", "TEXT"),
         ],
     },
@@ -2430,6 +2431,7 @@ async def db_log_event(
     trigger_id: str = "",
     user_name: str = "",
     slack_token: str = "",
+    internal_error: str = "",
 ) -> bool:
     return await db_insert_event(
         env,
@@ -2458,6 +2460,7 @@ async def db_log_event(
         trigger_id=trigger_id,
         user_name=user_name,
         slack_token=slack_token,
+        internal_error=internal_error,
     )
 
 
@@ -2489,6 +2492,7 @@ async def db_insert_event(
     trigger_id: str = "",
     user_name: str = "",
     slack_token: str = "",
+    internal_error: str = "",
 ) -> bool:
     if str(event_type or "").lower() == "http_request":
         return False
@@ -2521,8 +2525,8 @@ async def db_insert_event(
                 "channel_id, slack_team_id, api_app_id, command, command_text, is_enterprise_install, "
                 "response_url, team_domain, trigger_id, user_name, slack_token, request_data, verified, status, "
                 "created_at, webhook_body_type, webhook_event_id, webhook_event_time, webhook_event_subtype, "
-                "webhook_retry_num, webhook_retry_reason, slack_response_data) "
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                "webhook_retry_num, webhook_retry_reason, slack_response_data, internal_error) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
             ),
             [
                 workspace_id,
@@ -2551,6 +2555,7 @@ async def db_insert_event(
                 webhook_retry_num or "",
                 webhook_retry_reason or "",
                 slack_response_data or "",
+                internal_error or "",
             ],
         )
     except Exception as error:
@@ -2566,6 +2571,7 @@ async def db_insert_event(
                 "user_name",
                 "slack_token",
                 "slack_response_data",
+                "internal_error",
             )
         )
         if missing_optional_event_column:
@@ -3673,11 +3679,45 @@ def bot_direct_message_response(text: str = "") -> str:
     return help_response()["text"]
 
 
+def slack_api_internal_error(
+    api_method: str,
+    request_payload: Dict[str, Any],
+    response_payload: Dict[str, Any],
+    team_id: str = "",
+    app_id: str = "",
+) -> str:
+    if not isinstance(response_payload, dict) or response_payload.get("ok"):
+        return ""
+    error_code = str(response_payload.get("error") or "").strip()
+    if api_method == "conversations.open" and error_code == "user_not_found":
+        user_id = str((request_payload or {}).get("users") or "").strip()
+        return (
+            "Slack could not find user {0} with the bot token used for app {1} "
+            "in team {2}. Verify slack_apps.bot_token is an xoxb token from the same "
+            "Slack app/workspace, then reinstall or update bot_user_id if needed."
+        ).format(user_id or "(missing)", app_id or "(unknown)", team_id or "(unknown)")
+    if api_method == "chat.postMessage" and error_code == "channel_not_found":
+        channel_id = str((request_payload or {}).get("channel") or "").strip()
+        return (
+            "Slack could not find channel {0} with the bot token used for app {1} "
+            "in team {2}. For DMs this usually means the token belongs to a different "
+            "app/workspace or the bot is not installed for that DM context."
+        ).format(channel_id or "(missing)", app_id or "(unknown)", team_id or "(unknown)")
+    if error_code == "missing_scope":
+        return "Slack token is missing required scopes: {0}".format(
+            response_payload.get("needed") or "(unknown)"
+        )
+    if error_code:
+        return "Slack API returned {0} for {1}.".format(error_code, api_method)
+    return ""
+
+
 async def log_slack_api_response(
     env: Any,
     team_id: str,
     channel_id: str,
     user_id: str,
+    app_id: str,
     api_method: str,
     request_payload: Dict[str, Any],
     response_payload: Dict[str, Any],
@@ -3706,6 +3746,7 @@ async def log_slack_api_response(
             user_slack_id=user_id or "",
             channel_id=channel_id or "",
             slack_team_id=team_id or "",
+            api_app_id=app_id or "",
             request_data=json.dumps(
                 {
                     "api_method": api_method,
@@ -3715,6 +3756,13 @@ async def log_slack_api_response(
                 sort_keys=True,
             ),
             slack_response_data=json.dumps(response_payload or {}, sort_keys=True),
+            internal_error=slack_api_internal_error(
+                api_method,
+                request_payload,
+                response_payload,
+                team_id=team_id,
+                app_id=app_id,
+            ),
             status="success" if ok else "error",
             webhook_body_type="slack_api",
         )
@@ -3774,6 +3822,7 @@ async def slack_api_call(
         team_id=team_id,
         channel_id=channel_id,
         user_id=user_id,
+        app_id=app_id,
         api_method=api_method,
         request_payload=request_payload,
         response_payload=payload,
@@ -4051,6 +4100,7 @@ async def slack_api_publish_home(user_id: str, env: Any, team_id: str = "") -> N
         team_id=team_id,
         channel_id="",
         user_id=user_id,
+        app_id="",
         api_method="views.publish",
         request_payload=request_payload,
         response_payload=payload,

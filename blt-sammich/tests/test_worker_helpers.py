@@ -35,6 +35,7 @@ EVENT_INSERT_COLUMNS = [
     "webhook_retry_num",
     "webhook_retry_reason",
     "slack_response_data",
+    "internal_error",
 ]
 
 
@@ -700,6 +701,7 @@ def test_lettuce_model_tables_are_in_schema_bootstrap():
     assert "DROP TABLE IF EXISTS slack_activity" in schema_sql
     assert "slack_activity" not in worker.ADMIN_TABLE_SCHEMAS
     assert "slack_response_data" in schema_sql
+    assert "internal_error" in schema_sql
     assert "client_secret" in schema_sql
     assert "signing_secret" in schema_sql
     assert "bot_token" in schema_sql
@@ -738,6 +740,7 @@ def test_lettuce_model_tables_are_in_schema_bootstrap():
         "trigger_id",
         "user_name",
         "slack_token",
+        "internal_error",
     ):
         assert column_name in schema_sql
         assert (column_name, "TEXT") in worker.ADMIN_TABLE_SCHEMAS["events"]["columns"]
@@ -936,6 +939,7 @@ def test_db_insert_event_persists_slack_response_data():
                 slack_team_id="T123",
                 request_data='{"api_method": "chat.postMessage"}',
                 slack_response_data='{"ok": true}',
+                internal_error="diagnostic text",
             )
         )
     finally:
@@ -944,6 +948,52 @@ def test_db_insert_event_persists_slack_response_data():
 
     assert "slack_response_data" in captured["query"]
     assert event_insert_values(captured["params"])["slack_response_data"] == '{"ok": true}'
+    assert event_insert_values(captured["params"])["internal_error"] == "diagnostic text"
+
+
+def test_log_slack_api_response_adds_internal_error_for_invalid_user():
+    captured = {}
+    original_d1_run = worker.d1_run
+    original_schema_ready = worker.SCHEMA_READY
+
+    async def fake_d1_run(env, query, params=None):
+        if "SELECT * FROM teams" in query:
+            return {"results": [{"id": 15, "team_id": "T04T40NHX"}]}
+        if "INSERT INTO events" in query:
+            captured["query"] = query
+            captured["params"] = params
+            return {"success": True}
+        return {"success": True}
+
+    env = _Env()
+    setattr(env, "DB", object())
+    worker.d1_run = fake_d1_run
+    worker.SCHEMA_READY = True
+    try:
+        asyncio.run(
+            worker.log_slack_api_response(
+                env,
+                team_id="T04T40NHX",
+                channel_id="",
+                user_id="U04TJF11F",
+                app_id="A089A036135",
+                api_method="conversations.open",
+                request_payload={"users": "U04TJF11F"},
+                response_payload={"ok": False, "error": "user_not_found"},
+                ok=False,
+                status_code=200,
+            )
+        )
+    finally:
+        worker.d1_run = original_d1_run
+        worker.SCHEMA_READY = original_schema_ready
+
+    values = event_insert_values(captured["params"])
+    assert values["workspace_id"] == 15
+    assert values["api_app_id"] == "A089A036135"
+    assert values["status"] == "error"
+    assert "could not find user U04TJF11F" in values["internal_error"]
+    assert "A089A036135" in values["internal_error"]
 
 
 def test_db_insert_event_persists_slash_command_fields():
@@ -2641,6 +2691,7 @@ def test_slack_api_post_message_logs_slack_response_payload():
         team_id,
         channel_id,
         user_id,
+        app_id,
         api_method,
         request_payload,
         response_payload,
@@ -2650,6 +2701,7 @@ def test_slack_api_post_message_logs_slack_response_payload():
         captured["log"] = {
             "team_id": team_id,
             "channel_id": channel_id,
+            "app_id": app_id,
             "api_method": api_method,
             "request_payload": request_payload,
             "response_payload": response_payload,
@@ -2682,6 +2734,7 @@ def test_slack_api_post_message_logs_slack_response_payload():
     assert captured["url"] == "https://slack.com/api/chat.postMessage"
     assert captured["log"]["team_id"] == "T123"
     assert captured["log"]["channel_id"] == "C123"
+    assert captured["log"]["app_id"] == "A089A036135"
     assert captured["log"]["api_method"] == "chat.postMessage"
     assert captured["log"]["response_payload"] == {"ok": True, "ts": "123.456"}
     assert captured["log"]["ok"] is True
