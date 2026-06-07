@@ -84,10 +84,6 @@ ADMIN_TABLE_SCHEMAS = {
             ("channel_count", "INTEGER"),
             ("member_count", "INTEGER"),
             ("invite_link", "TEXT"),
-            ("access_token", "TEXT"),
-            ("app_token", "TEXT"),
-            ("bot_token", "TEXT"),
-            ("bot_user_id", "TEXT"),
             ("created_at", "TEXT"),
             ("updated_at", "TEXT"),
         ],
@@ -1714,20 +1710,23 @@ async def db_get_workspace_bot_token(
     except Exception:
         return ""
     await ensure_schema(env)
+    lookup_app_id = str(app_id or "").strip()
     row = None
-    if team_id and app_id:
-        row = await db_get_workspace_by_team_and_app(env, team_id, app_id)
-    if app_id and not row:
-        app_row = await db_get_slack_app_by_app_id(env, app_id)
-        if app_row and (app_row.get("bot_token") or app_row.get("app_token")):
-            return str(app_row.get("bot_token") or app_row.get("app_token") or "")
-    if team_id:
-        row = row or await db_get_workspace_by_team(env, team_id)
-    if not row and channel_id:
+    if not lookup_app_id and team_id:
+        row = await db_get_workspace_by_team(env, team_id)
+        lookup_app_id = str((row or {}).get("app_id") or "").strip()
+    if not lookup_app_id and channel_id:
         row = await db_get_workspace_by_channel_id(env, channel_id)
-    return str(
-        (row or {}).get("bot_token") or (row or {}).get("access_token") or ""
-    )
+        lookup_app_id = str((row or {}).get("app_id") or "").strip()
+    if lookup_app_id:
+        app_row = await db_get_slack_app_by_app_id(env, lookup_app_id)
+        if app_row and app_row.get("bot_token"):
+            return str(app_row.get("bot_token") or "")
+    if app_id:
+        app_row = await db_get_slack_app_by_app_id(env, app_id)
+        if app_row and app_row.get("bot_token"):
+            return str(app_row.get("bot_token") or "")
+    return ""
 
 
 async def db_get_workspace_bot_user_id(
@@ -1738,18 +1737,23 @@ async def db_get_workspace_bot_user_id(
     except Exception:
         return ""
     await ensure_schema(env)
+    lookup_app_id = str(app_id or "").strip()
     row = None
-    if team_id and app_id:
-        row = await db_get_workspace_by_team_and_app(env, team_id, app_id)
-    if app_id and not row:
+    if not lookup_app_id and team_id:
+        row = await db_get_workspace_by_team(env, team_id)
+        lookup_app_id = str((row or {}).get("app_id") or "").strip()
+    if not lookup_app_id and channel_id:
+        row = await db_get_workspace_by_channel_id(env, channel_id)
+        lookup_app_id = str((row or {}).get("app_id") or "").strip()
+    if lookup_app_id:
+        app_row = await db_get_slack_app_by_app_id(env, lookup_app_id)
+        if app_row and app_row.get("bot_user_id"):
+            return str(app_row.get("bot_user_id") or "")
+    if app_id:
         app_row = await db_get_slack_app_by_app_id(env, app_id)
         if app_row and app_row.get("bot_user_id"):
             return str(app_row.get("bot_user_id") or "")
-    if team_id:
-        row = row or await db_get_workspace_by_team(env, team_id)
-    if not row and channel_id:
-        row = await db_get_workspace_by_channel_id(env, channel_id)
-    return str((row or {}).get("bot_user_id") or "")
+    return ""
 
 
 def token_kind(token: str) -> str:
@@ -1777,47 +1781,50 @@ async def workspace_slack_token_details(
     row = None
     if team_id and app_id:
         row = await db_get_workspace_by_team_and_app(env, team_id, app_id)
-        token = str((row or {}).get("bot_token") or (row or {}).get("access_token") or "")
-        if token:
-            return {
-                "token": token,
-                "source": "teams.bot_token" if (row or {}).get("bot_token") else "teams.access_token",
-                "token_kind": token_kind(token),
-                "team_id": str((row or {}).get("team_id") or team_id),
-                "app_id": str((row or {}).get("app_id") or app_id),
-            }
     if app_id:
         app_row = await db_get_slack_app_by_app_id(env, app_id)
-        token = str((app_row or {}).get("bot_token") or (app_row or {}).get("app_token") or "")
+        token = str((app_row or {}).get("bot_token") or "")
         if token:
             return {
                 "token": token,
-                "source": "slack_apps.bot_token" if (app_row or {}).get("bot_token") else "slack_apps.app_token",
+                "source": "slack_apps.bot_token",
                 "token_kind": token_kind(token),
                 "team_id": team_id,
                 "app_id": str((app_row or {}).get("app_id") or app_id),
             }
     if team_id:
         row = await db_get_workspace_by_team(env, team_id)
-        token = str((row or {}).get("bot_token") or (row or {}).get("access_token") or "")
+        row_app_id = str((row or {}).get("app_id") or "").strip()
+        if row_app_id:
+            app_row = await db_get_slack_app_by_app_id(env, row_app_id)
+            token = str((app_row or {}).get("bot_token") or "")
+        else:
+            app_row = None
+            token = ""
         if token:
             return {
                 "token": token,
-                "source": "teams.bot_token" if (row or {}).get("bot_token") else "teams.access_token",
+                "source": "slack_apps.bot_token",
                 "token_kind": token_kind(token),
                 "team_id": str((row or {}).get("team_id") or team_id),
-                "app_id": str((row or {}).get("app_id") or ""),
+                "app_id": str((app_row or {}).get("app_id") or row_app_id),
             }
     if channel_id:
         row = await db_get_workspace_by_channel_id(env, channel_id)
-        token = str((row or {}).get("bot_token") or (row or {}).get("access_token") or "")
+        row_app_id = str((row or {}).get("app_id") or "").strip()
+        if row_app_id:
+            app_row = await db_get_slack_app_by_app_id(env, row_app_id)
+            token = str((app_row or {}).get("bot_token") or "")
+        else:
+            app_row = None
+            token = ""
         if token:
             return {
                 "token": token,
-                "source": "channel_workspace.bot_token" if (row or {}).get("bot_token") else "channel_workspace.access_token",
+                "source": "slack_apps.bot_token",
                 "token_kind": token_kind(token),
                 "team_id": str((row or {}).get("team_id") or ""),
-                "app_id": str((row or {}).get("app_id") or ""),
+                "app_id": str((app_row or {}).get("app_id") or row_app_id),
             }
     env_token = env_value(env, "SLACK_BOT_TOKEN") or ""
     return {
@@ -1866,16 +1873,12 @@ async def db_upsert_workspace(
         env,
         (
             "INSERT INTO teams ("
-            "team_id, team_name, access_token, app_token, bot_token, bot_user_id, app_id, app_name, app_icon_url, "
+            "team_id, team_name, app_id, app_name, app_icon_url, "
             "icon_url, invite_link, manifest_yaml, installer_slack_user_id, installer_name, created_at, updated_at"
-            ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
+            ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
             "ON CONFLICT(team_id) DO UPDATE SET "
             "team_name = excluded.team_name, "
-            "access_token = CASE WHEN excluded.access_token != '' THEN excluded.access_token ELSE teams.access_token END, "
-            "app_token = CASE WHEN excluded.app_token != '' THEN excluded.app_token ELSE teams.app_token END, "
-            "bot_token = CASE WHEN excluded.bot_token != '' THEN excluded.bot_token ELSE teams.bot_token END, "
-            "bot_user_id = CASE WHEN excluded.bot_user_id != '' THEN excluded.bot_user_id ELSE teams.bot_user_id END, "
-            "app_id = CASE WHEN excluded.app_id != '' AND (excluded.access_token != '' OR excluded.bot_token != '') THEN excluded.app_id ELSE teams.app_id END, "
+            "app_id = CASE WHEN excluded.app_id != '' THEN excluded.app_id ELSE teams.app_id END, "
             "app_name = CASE WHEN excluded.app_name != '' THEN excluded.app_name ELSE teams.app_name END, "
             "app_icon_url = CASE WHEN excluded.app_icon_url != '' THEN excluded.app_icon_url ELSE teams.app_icon_url END, "
             "icon_url = CASE WHEN excluded.icon_url != '' THEN excluded.icon_url ELSE teams.icon_url END, "
@@ -1888,10 +1891,6 @@ async def db_upsert_workspace(
         [
             team_id,
             team_name or team_id,
-            access_token or "",
-            app_token or "",
-            bot_token or access_token or "",
-            bot_user_id or "",
             app_id or "",
             app_name or "",
             app_icon_url or "",
@@ -1966,15 +1965,21 @@ async def db_update_workspace_installer(
 
 
 async def db_update_workspace_bot_user_id(
-    env: Any, team_id: str, bot_user_id: str
+    env: Any, team_id: str, bot_user_id: str, app_id: str = ""
 ) -> bool:
     if not team_id or not bot_user_id:
         return False
     await ensure_schema(env)
+    lookup_app_id = str(app_id or "").strip()
+    if not lookup_app_id:
+        workspace = await db_get_workspace_by_team(env, team_id)
+        lookup_app_id = str((workspace or {}).get("app_id") or "").strip()
+    if not lookup_app_id:
+        return False
     await d1_run(
         env,
-        "UPDATE teams SET bot_user_id = ?, updated_at = ? WHERE team_id = ?",
-        [bot_user_id, utc_now(), team_id],
+        "UPDATE slack_apps SET bot_user_id = ?, updated_at = ? WHERE app_id = ?",
+        [bot_user_id, utc_now(), lookup_app_id],
     )
     return True
 
@@ -1998,8 +2003,11 @@ async def refresh_workspace_channels_from_slack(
     if not workspace:
         raise ValueError("Workspace was not found.")
     token = str(
-        workspace.get("bot_token")
-        or workspace.get("access_token")
+        await db_get_workspace_bot_token(
+            env,
+            team_id=str(workspace.get("team_id") or ""),
+            app_id=str(workspace.get("app_id") or ""),
+        )
         or env_value(env, "SLACK_BOT_TOKEN")
         or ""
     ).strip()
@@ -4341,7 +4349,9 @@ async def slack_api_send_ephemeral(
     )
 
 
-async def slack_api_publish_home(user_id: str, env: Any, team_id: str = "") -> None:
+async def slack_api_publish_home(
+    user_id: str, env: Any, team_id: str = "", app_id: str = ""
+) -> None:
     user_id = str(user_id or "").strip()
     if not user_id:
         return
@@ -4360,12 +4370,12 @@ async def slack_api_publish_home(user_id: str, env: Any, team_id: str = "") -> N
                 {"team_id": team_id, "user_id": user_id},
             )
     try:
-        token = await db_get_workspace_bot_token(env, team_id=team_id)
+        token = await db_get_workspace_bot_token(env, team_id=team_id, app_id=app_id)
     except Exception as error:
         log_exception_one_line(
             error,
             "slack_home_token_lookup_failed",
-            {"team_id": team_id, "user_id": user_id},
+            {"team_id": team_id, "user_id": user_id, "app_id": app_id},
         )
         token = ""
     if not token:
@@ -4374,12 +4384,14 @@ async def slack_api_publish_home(user_id: str, env: Any, team_id: str = "") -> N
         return
     bot_user_id = ""
     try:
-        bot_user_id = await db_get_workspace_bot_user_id(env, team_id=team_id)
+        bot_user_id = await db_get_workspace_bot_user_id(
+            env, team_id=team_id, app_id=app_id
+        )
     except Exception as error:
         log_exception_one_line(
             error,
             "slack_home_bot_user_lookup_failed",
-            {"team_id": team_id, "user_id": user_id},
+            {"team_id": team_id, "user_id": user_id, "app_id": app_id},
         )
     if not bot_user_id:
         ok, auth_payload, _ = await fetch_json(
@@ -4392,12 +4404,18 @@ async def slack_api_publish_home(user_id: str, env: Any, team_id: str = "") -> N
             bot_user_id = str(auth_payload.get("user_id") or "").strip()
             if bot_user_id and team_id:
                 try:
-                    await db_update_workspace_bot_user_id(env, team_id, bot_user_id)
+                    await db_update_workspace_bot_user_id(
+                        env, team_id, bot_user_id, app_id=app_id
+                    )
                 except Exception as error:
                     log_exception_one_line(
                         error,
                         "slack_home_bot_user_cache_failed",
-                        {"team_id": team_id, "bot_user_id": bot_user_id},
+                        {
+                            "team_id": team_id,
+                            "bot_user_id": bot_user_id,
+                            "app_id": app_id,
+                        },
                     )
     if bot_user_id and user_id == bot_user_id:
         log_json_event(
@@ -4758,7 +4776,9 @@ async def handle_event_payload(payload: Dict[str, Any], env: Any) -> Any:
         if str(event.get("tab") or "home") == "home":
             user_id = str(event.get("user") or "")
             try:
-                await slack_api_publish_home(user_id, env, team_id=team_id)
+                await slack_api_publish_home(
+                    user_id, env, team_id=team_id, app_id=app_id
+                )
             except Exception as error:
                 log_exception_one_line(
                     error,
@@ -5931,14 +5951,13 @@ async def handle_oauth_callback(request_url: Any, env: Any) -> Any:
         client_secret=env_value(env, "SLACK_CLIENT_SECRET", "") or "",
         signing_secret=env_value(env, "SLACK_SIGNING_SECRET", "") or "",
         app_token=env_value(env, "SLACK_APP_TOKEN", "") or "",
+        bot_token=str(payload.get("access_token") or ""),
+        bot_user_id=str(payload.get("bot_user_id") or ""),
     )
     await db_upsert_workspace(
         env,
         team_id=str(payload.get("team", {}).get("id") or ""),
         team_name=str(team_name),
-        access_token=str(payload.get("access_token") or ""),
-        bot_token=str(payload.get("access_token") or ""),
-        bot_user_id=str(payload.get("bot_user_id") or ""),
         app_id=str(payload.get("app_id") or ""),
         installer_slack_user_id=str(payload.get("authed_user", {}).get("id") or ""),
     )

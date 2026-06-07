@@ -767,6 +767,15 @@ def test_lettuce_model_tables_are_in_schema_bootstrap():
     assert ("settings_test_status", "TEXT") in worker.ADMIN_TABLE_SCHEMAS["slack_apps"]["columns"]
     assert ("settings_test_result", "TEXT") in worker.ADMIN_TABLE_SCHEMAS["slack_apps"]["columns"]
     assert ("settings_tested_at", "TEXT") in worker.ADMIN_TABLE_SCHEMAS["slack_apps"]["columns"]
+    assert "ALTER TABLE teams DROP COLUMN access_token" in schema_sql
+    assert "ALTER TABLE teams DROP COLUMN app_token" in schema_sql
+    assert "ALTER TABLE teams DROP COLUMN bot_token" in schema_sql
+    assert "ALTER TABLE teams DROP COLUMN bot_user_id" in schema_sql
+    team_columns = [name for name, _ in worker.ADMIN_TABLE_SCHEMAS["teams"]["columns"]]
+    assert "access_token" not in team_columns
+    assert "app_token" not in team_columns
+    assert "bot_token" not in team_columns
+    assert "bot_user_id" not in team_columns
     for column_name in (
         "real_name",
         "is_bot",
@@ -1465,7 +1474,7 @@ def test_record_activity_ignores_http_request_events():
     assert inserted is False
 
 
-def test_db_upsert_workspace_persists_slack_tokens():
+def test_db_upsert_workspace_persists_workspace_metadata_without_slack_tokens():
     captured = {}
     original_d1_run = worker.d1_run
     original_schema_ready = worker.SCHEMA_READY
@@ -1489,8 +1498,6 @@ def test_db_upsert_workspace_persists_slack_tokens():
                 env,
                 team_id="T123",
                 team_name="Security Team",
-                app_token="xapp-token",
-                bot_token="xoxb-token",
                 app_id="A089A036135",
             )
         )
@@ -1499,13 +1506,13 @@ def test_db_upsert_workspace_persists_slack_tokens():
         worker.SCHEMA_READY = original_schema_ready
 
     assert workspace_id == 9
-    assert "app_token" in captured["query"]
-    assert "bot_token" in captured["query"]
+    assert "access_token" not in captured["query"]
+    assert "app_token" not in captured["query"]
+    assert "bot_token" not in captured["query"]
+    assert "bot_user_id" not in captured["query"]
     assert "ON CONFLICT(team_id) DO UPDATE" in captured["query"]
-    assert "excluded.access_token != '' OR excluded.bot_token != ''" in captured["query"]
-    assert captured["params"][3] == "xapp-token"
-    assert captured["params"][4] == "xoxb-token"
-    assert captured["params"][6] == "A089A036135"
+    assert "excluded.access_token != '' OR excluded.bot_token != ''" not in captured["query"]
+    assert captured["params"][2] == "A089A036135"
 
 
 def test_db_get_workspace_bot_token_prefers_matching_app_row():
