@@ -1,205 +1,66 @@
-# Contributing to OWASP BLT
+# Contributing to OWASP BLT docs
 
-Thank you for your interest in contributing to OWASP BLT! We welcome contributions from everyone, regardless of your level of experience.
+## Start from the right repository
 
-## Table of Contents
+OWASP BLT is documented across several repositories. Start in the repository that owns the change:
 
-- [Code of Conduct](#code-of-conduct)
-- [Getting Started](#getting-started)
-  - [Development Environment Setup](#development-environment-setup)
-  - [Docker Setup (Recommended)](#docker-setup-recommended)
-  - [Vagrant Setup](#vagrant-setup)
-  - [Python Virtual Environment Setup](#python-virtual-environment-setup)
-- [Making Contributions](#making-contributions)
-  - [Finding Issues to Work On](#finding-issues-to-work-on)
-  - [Creating a Pull Request](#creating-a-pull-request)
-  - [Pull Request Guidelines](#pull-request-guidelines)
-- [Coding Standards](#coding-standards)
-- [Testing](#testing)
-- [Documentation](#documentation)
-- [Community](#community)
+| Repository | Current status | Use it for |
+| ---------- | -------------- | ---------- |
+| [BLT-docs](https://gitlab.com/owasp-blt/blt-docs) | Current documentation repository | MkDocs pages, documentation navigation, writing standards, and contributor guidance. |
+| [BLT-API](https://gitlab.com/owasp-blt/blt-api) | Current API repository | API service work, platform integration code, API tests, and API-owned operational notes. |
+| [BLT-Jobs](https://gitlab.com/owasp-blt/blt-jobs) | Current jobs/community repository | Jobs portal work, community portal content, and related automation workflows. |
+| Other BLT support repositories | Migration status should be confirmed | Metadata, project catalog, discovery, and automation modules that may still have historical GitHub locations. |
 
-## Code of Conduct
+If a repository is migration-pending or unclear, confirm the current location with maintainers before opening new work.
 
-By participating in this project, you agree to abide by our Code of Conduct. Please be respectful and considerate of others when contributing to the project.
+## Work from an issue or work item
 
-## Getting Started
+Use GitLab issues or work items when the repository has a confirmed GitLab home. Link the issue or work item in the merge request so reviewers can understand the reason for the change.
 
-### Development Environment Setup
+For migration-pending repositories, ask maintainers where new work should be tracked before starting. Avoid opening duplicate issues across historical GitHub repositories and current GitLab repositories.
 
-Before you start contributing, you'll need to set up your development environment. We provide multiple options for setting up the project.
+## Keep changes reviewable
 
-#### Prerequisites
+Prefer small, focused merge requests. A documentation change should usually cover one topic, one workflow, or one repository page.
 
-- Git
-- Python 3.11.2 (recommended)
-- PostgreSQL
-- Docker and Docker Compose (for Docker setup)
+Avoid large rewrites unless maintainers have agreed on the scope first. If a larger cleanup is needed, split it into reviewable parts such as navigation changes, content rewrites, link updates, and follow-up corrections.
 
-### Docker Setup (Recommended)
+## Documentation contribution workflow
 
-1. Clone the repository:
+1. Create a branch with a short, descriptive name.
+2. Edit Markdown under `docs/`.
+3. Update `mkdocs.yml` navigation when adding, moving, or renaming pages.
+4. Run the strict documentation build:
 
    ```bash
-   git clone https://github.com/OWASP-BLT/BLT.git
-   cd BLT
+   uvx --with-requirements requirements.txt mkdocs build --strict
    ```
 
-2. Configure environment variables:
+5. Open a merge request with a summary of the change and the verification command you ran.
 
-   ```bash
-   cp .env.example .env
-   ```
+## Code contribution workflow
 
-   Modify the `.env` file as per your local setup.
+Use the setup, test, and deployment instructions from the repository that owns the code. Do not copy setup commands from another BLT repository unless that repository explicitly shares the same tooling.
 
-3. Ensure LF Line Endings:
-   If you're working on a Windows machine, ensure all files use LF line endings:
+For code changes:
 
-   ```bash
-   git config --global core.autocrlf input
-   ```
+- Follow the repository-specific development setup.
+- Run the relevant tests before opening a merge request.
+- Do not commit secrets, API keys, tokens, generated credentials, or local `.env` files.
+- Avoid changing unrelated files.
+- Keep generated output out of the commit unless the repository explicitly requires it.
 
-4. Build and start the Docker containers:
+## Review checklist
 
-   ```bash
-   docker-compose build
-   docker-compose up
-   ```
+- [ ] The change uses a professional, direct tone.
+- [ ] The change contains no emojis.
+- [ ] Internal links are relative and resolve in MkDocs.
+- [ ] External repository links use confirmed GitLab locations where migration is complete.
+- [ ] Migration-pending repositories are labeled as such.
+- [ ] Product and architecture claims are supported by current repository context.
+- [ ] `uvx --with-requirements requirements.txt mkdocs build --strict` passes.
+- [ ] Screenshots, diagrams, or assets are included only when they are needed and reviewed.
 
-5. Access the application at http://localhost:8000
+## Communication
 
-### Vagrant Setup
-
-1. Install [Vagrant](https://www.vagrantup.com/) and [VirtualBox](https://www.virtualbox.org/)
-
-2. Start Vagrant:
-
-   ```bash
-   vagrant up
-   vagrant ssh
-   cd BLT
-   ```
-
-3. Set up the application:
-
-   ```bash
-   python manage.py migrate
-   python manage.py createsuperuser
-   python manage.py collectstatic
-   python manage.py runserver
-   ```
-
-4. Access the application at http://localhost:8000
-
-### Python Virtual Environment Setup
-
-1. Install Python 3.11.2 (using pyenv or another tool):
-
-   ```bash
-   pyenv install 3.11.2
-   ```
-
-2. Set up Poetry and virtual environment:
-
-   ```bash
-   pip install poetry
-   poetry shell
-   poetry install
-   ```
-
-3. Set up the application:
-
-   ```bash
-   python manage.py migrate
-   python3 manage.py loaddata website/fixtures/initial_data.json
-   python manage.py createsuperuser
-   python manage.py collectstatic
-   python manage.py runserver
-   ```
-
-4. Access the application at http://localhost:8000
-
-## Making Contributions
-
-### Finding Issues to Work On
-
-- Check the [Issues](https://github.com/OWASP-BLT/BLT/issues) page for open issues
-- Look for issues labeled with `good first issue` if you're new to the project
-- Comment on an issue to express your interest in working on it
-
-### Creating a Pull Request
-
-1. Create a new branch for your feature or bugfix:
-
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
-
-2. Make your changes and commit them with descriptive commit messages:
-
-   ```bash
-   git commit -m "Add feature: your feature description"
-   ```
-
-3. Push your branch to your fork:
-
-   ```bash
-   git push origin feature/your-feature-name
-   ```
-
-4. Create a Pull Request from your branch to the main repository
-
-### Pull Request Guidelines
-
-- Ensure your code follows the project's coding standards
-- Include tests for new features or bug fixes
-- Update documentation as needed
-- Make sure all tests pass before submitting
-- Keep pull requests focused on a single issue or feature
-- Provide a clear description of the changes in your PR
-
-## Coding Standards
-
-We use several tools to maintain code quality:
-
-- Black for code formatting
-- isort for import sorting
-- ruff for linting
-
-You can run these tools using Poetry:
-
-```bash
-poetry run black .
-poetry run isort .
-poetry run ruff .
-```
-
-We also use pre-commit hooks to ensure code quality. Install them with:
-
-```bash
-poetry run pre-commit install
-```
-
-## Testing
-
-When adding new features or fixing bugs, please include appropriate tests. Run the tests with:
-
-```bash
-python manage.py test
-```
-
-## Documentation
-
-If you're adding new features or making significant changes, please update the documentation accordingly. This includes:
-
-- Code comments
-- README updates
-- Wiki updates (if applicable)
-
-## Community
-
-- Join the [OWASP Slack channel](https://owasp.org/slack/invite) to connect with other contributors
-- Ask questions and share ideas
-
-Thank you for contributing to OWASP BLT!
+Use project maintainers, GitLab discussions, issues, and work items to clarify scope before making broad changes. OWASP community channels, including OWASP Slack, can help contributors find the right maintainer or project area, but implementation decisions should be recorded in the repository that owns the work.

@@ -99,9 +99,9 @@ plugins:
 
 extra:
   social:
-    - icon: fontawesome/brands/github
-      link: https://github.com/OWASP-BLT/BLT
-      name: BLT on GitHub
+    - icon: fontawesome/brands/gitlab
+      link: https://gitlab.com/owasp-blt/blt-docs
+      name: BLT Docs on GitLab
     - icon: fontawesome/brands/slack
       link: https://owasp.org/slack/invite
       name: OWASP Slack
@@ -120,7 +120,7 @@ nav:
   - Getting Started:
       - Setup Guide: getting-started/setup.md
       - Project Proposal: getting-started/proposal.md
-      - All Projects: getting-started/projects.md
+      - Project Map: getting-started/projects.md
   - Features:
       - Overview: features/overview.md
   - User Guide:
@@ -157,6 +157,11 @@ nav:
           - Terms & Conditions: user-guide/terms.md
   - Developer Guide:
       - Contributing: developer-guide/contributing.md
+      - Platform Architecture: developer-guide/platform-architecture.md
+      - Documentation Maintenance: developer-guide/docs-maintenance.md
+      - Writing Documentation: developer-guide/writing-docs.md
+      - Agentic Development: developer-guide/agentic-development.md
+      - Deployment: developer-guide/deployment.md
       - Bot Setup: developer-guide/bot-setup.md
   - Repositories:
       - BLT-API: repositories/blt-api.md
