@@ -702,8 +702,12 @@ def test_lettuce_model_tables_are_in_schema_bootstrap():
     assert "slack_response_data" in schema_sql
     assert "client_secret" in schema_sql
     assert "signing_secret" in schema_sql
+    assert "bot_token" in schema_sql
+    assert "bot_user_id" in schema_sql
     assert ("client_secret", "TEXT") in worker.ADMIN_TABLE_SCHEMAS["slack_apps"]["columns"]
     assert ("signing_secret", "TEXT") in worker.ADMIN_TABLE_SCHEMAS["slack_apps"]["columns"]
+    assert ("bot_token", "TEXT") in worker.ADMIN_TABLE_SCHEMAS["slack_apps"]["columns"]
+    assert ("bot_user_id", "TEXT") in worker.ADMIN_TABLE_SCHEMAS["slack_apps"]["columns"]
     for column_name in (
         "real_name",
         "is_bot",
@@ -1391,7 +1395,7 @@ def test_db_upsert_workspace_persists_slack_tokens():
     assert "app_token" in captured["query"]
     assert "bot_token" in captured["query"]
     assert "ON CONFLICT(team_id) DO UPDATE" in captured["query"]
-    assert "app_id = CASE WHEN excluded.app_id != ''" in captured["query"]
+    assert "excluded.access_token != '' OR excluded.bot_token != ''" in captured["query"]
     assert captured["params"][3] == "xapp-token"
     assert captured["params"][4] == "xoxb-token"
     assert captured["params"][6] == "A089A036135"
@@ -1445,6 +1449,101 @@ def test_db_get_workspace_bot_token_prefers_matching_app_row():
     assert token == "xoxb-app-specific"
     assert captured["queries"][0][1] == ["T123", "A089A036135"]
     assert len(captured["queries"]) == 1
+
+
+def test_db_get_workspace_bot_token_falls_back_to_slack_app_row():
+    captured = {"queries": []}
+    original_d1_run = worker.d1_run
+    original_schema_ready = worker.SCHEMA_READY
+
+    async def fake_d1_run(env, query, params=None):
+        captured["queries"].append((query, params))
+        if "WHERE team_id = ? AND app_id = ?" in query:
+            return {"results": []}
+        if "FROM slack_apps WHERE app_id = ?" in query:
+            return {
+                "results": [
+                    {
+                        "id": 3,
+                        "app_id": "A089A036135",
+                        "bot_token": "xoxb-app-row",
+                        "bot_user_id": "UBOT",
+                    }
+                ]
+            }
+        if "WHERE team_id = ?" in query:
+            return {
+                "results": [
+                    {
+                        "id": 7,
+                        "team_id": "T123",
+                        "bot_token": "xoxb-team-row",
+                    }
+                ]
+            }
+        return {"success": True}
+
+    env = _Env()
+    setattr(env, "DB", object())
+    worker.d1_run = fake_d1_run
+    worker.SCHEMA_READY = True
+    try:
+        token = asyncio.run(
+            worker.db_get_workspace_bot_token(
+                env, team_id="T123", app_id="A089A036135"
+            )
+        )
+        bot_user_id = asyncio.run(
+            worker.db_get_workspace_bot_user_id(
+                env, team_id="T123", app_id="A089A036135"
+            )
+        )
+    finally:
+        worker.d1_run = original_d1_run
+        worker.SCHEMA_READY = original_schema_ready
+
+    assert token == "xoxb-app-row"
+    assert bot_user_id == "UBOT"
+    assert captured["queries"][0][1] == ["T123", "A089A036135"]
+    assert captured["queries"][1][1] == ["A089A036135"]
+
+
+def test_db_upsert_workspace_does_not_relabel_app_id_without_token():
+    captured = {}
+    original_d1_run = worker.d1_run
+    original_schema_ready = worker.SCHEMA_READY
+
+    async def fake_d1_run(env, query, params=None):
+        if "INSERT INTO teams" in query:
+            captured["query"] = query
+            captured["params"] = params
+            return {"success": True}
+        if "SELECT * FROM teams" in query:
+            return {"results": [{"id": 9}]}
+        return {"success": True}
+
+    env = _Env()
+    setattr(env, "DB", object())
+    worker.d1_run = fake_d1_run
+    worker.SCHEMA_READY = True
+    try:
+        workspace_id = asyncio.run(
+            worker.db_upsert_workspace(
+                env,
+                team_id="T123",
+                team_name="Security Team",
+                app_id="A089A036135",
+            )
+        )
+    finally:
+        worker.d1_run = original_d1_run
+        worker.SCHEMA_READY = original_schema_ready
+
+    assert workspace_id == 9
+    assert captured["params"][2] == ""
+    assert captured["params"][4] == ""
+    assert captured["params"][6] == "A089A036135"
+    assert "excluded.access_token != '' OR excluded.bot_token != ''" in captured["query"]
 
 
 def test_refresh_workspace_channels_fetches_pages_and_persists_metadata():
@@ -1981,6 +2080,8 @@ def test_db_upsert_slack_app_persists_app_secrets():
                 client_secret="client-secret",
                 signing_secret="signing-secret",
                 app_token="xapp-token",
+                bot_token="xoxb-token",
+                bot_user_id="UBOT",
             )
         )
     finally:
@@ -1995,6 +2096,8 @@ def test_db_upsert_slack_app_persists_app_secrets():
     assert captured["params"][4] == "client-secret"
     assert captured["params"][5] == "signing-secret"
     assert captured["params"][6] == "xapp-token"
+    assert captured["params"][7] == "xoxb-token"
+    assert captured["params"][8] == "UBOT"
 
 
 def test_db_admin_create_update_delete_use_whitelisted_table_schema():
@@ -2023,6 +2126,8 @@ def test_db_admin_create_update_delete_use_whitelisted_table_schema():
                     "field__client_secret": "client-secret",
                     "field__signing_secret": "signing-secret",
                     "field__app_token": "xapp-token",
+                    "field__bot_token": "xoxb-token",
+                    "field__bot_user_id": "UBOT",
                     "field__manifest_yaml": "display_information:",
                     "field__created_at": "2026-06-06T00:00:00+00:00",
                     "field__updated_at": "2026-06-06T00:00:00+00:00",
@@ -2042,6 +2147,8 @@ def test_db_admin_create_update_delete_use_whitelisted_table_schema():
                     "field__client_secret": "client-secret",
                     "field__signing_secret": "signing-secret",
                     "field__app_token": "xapp-token",
+                    "field__bot_token": "xoxb-token",
+                    "field__bot_user_id": "UBOT",
                     "field__manifest_yaml": "display_information:",
                     "field__created_at": "2026-06-06T00:00:00+00:00",
                     "field__updated_at": "2026-06-06T01:00:00+00:00",
@@ -2627,6 +2734,64 @@ def test_slack_api_post_direct_response_reopens_dm_when_channel_missing():
     }
     assert [post["channel_id"] for post in captured["posts"]] == ["DOLD", "DNEW"]
     assert captured["posts"][1]["app_id"] == "A089A036135"
+
+
+def test_slack_api_post_direct_response_uses_env_token_when_db_token_cannot_see_dm():
+    captured = {"calls": []}
+    original_call = worker.slack_api_call
+
+    async def fake_call(
+        env,
+        api_method,
+        request_payload,
+        team_id="",
+        channel_id="",
+        user_id="",
+        app_id="",
+        token="",
+    ):
+        captured["calls"].append(
+            {
+                "api_method": api_method,
+                "request": request_payload,
+                "team_id": team_id,
+                "channel_id": channel_id,
+                "user_id": user_id,
+                "app_id": app_id,
+                "token": token,
+            }
+        )
+        if api_method == "chat.postMessage" and token == "":
+            return {"ok": False, "error": "channel_not_found"}
+        if api_method == "chat.postMessage" and token == "xoxb-env-current":
+            return {"ok": True, "ts": "123.456"}
+        return {"ok": False, "error": "unexpected_call"}
+
+    env = _Env()
+    setattr(env, "SLACK_BOT_TOKEN", "xoxb-env-current")
+    worker.slack_api_call = fake_call
+    try:
+        result = asyncio.run(
+            worker.slack_api_post_direct_response(
+                {"channel": "D089KE85SE9", "user": "U04TJF11F"},
+                "Available commands:",
+                env,
+                team_id="T04T40NHX",
+                app_id="A089A036135",
+            )
+        )
+    finally:
+        worker.slack_api_call = original_call
+
+    assert result == {"ok": True, "ts": "123.456"}
+    assert [call["api_method"] for call in captured["calls"]] == [
+        "chat.postMessage",
+        "chat.postMessage",
+    ]
+    assert captured["calls"][0]["token"] == ""
+    assert captured["calls"][1]["token"] == "xoxb-env-current"
+    assert captured["calls"][1]["channel_id"] == "D089KE85SE9"
+    assert captured["calls"][1]["app_id"] == "A089A036135"
 
 
 def test_slack_api_post_message_falls_back_to_env_token_when_db_lookup_fails():

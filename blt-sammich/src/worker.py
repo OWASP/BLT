@@ -52,6 +52,8 @@ ADMIN_TABLE_SCHEMAS = {
             ("client_secret", "TEXT"),
             ("signing_secret", "TEXT"),
             ("app_token", "TEXT"),
+            ("bot_token", "TEXT"),
+            ("bot_user_id", "TEXT"),
             ("manifest_yaml", "TEXT"),
             ("created_at", "TEXT"),
             ("updated_at", "TEXT"),
@@ -1281,6 +1283,8 @@ async def record_activity(
                 if app_id
                 else await db_get_workspace_by_team(env, team_id)
             )
+            if not workspace and app_id:
+                workspace = await db_get_workspace_by_team(env, team_id)
             workspace_id = workspace.get("id") if workspace else None
         except Exception as error:
             log_exception_one_line(
@@ -1489,6 +1493,8 @@ async def db_upsert_slack_app(
     client_secret: str = "",
     signing_secret: str = "",
     app_token: str = "",
+    bot_token: str = "",
+    bot_user_id: str = "",
     manifest_yaml: str = "",
 ) -> Optional[int]:
     if not app_id:
@@ -1499,8 +1505,8 @@ async def db_upsert_slack_app(
         env,
         (
             "INSERT INTO slack_apps ("
-            "app_id, app_name, app_icon_url, client_id, client_secret, signing_secret, app_token, manifest_yaml, created_at, updated_at"
-            ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
+            "app_id, app_name, app_icon_url, client_id, client_secret, signing_secret, app_token, bot_token, bot_user_id, manifest_yaml, created_at, updated_at"
+            ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
             "ON CONFLICT(app_id) DO UPDATE SET "
             "app_name = CASE WHEN excluded.app_name != '' THEN excluded.app_name ELSE slack_apps.app_name END, "
             "app_icon_url = CASE WHEN excluded.app_icon_url != '' THEN excluded.app_icon_url ELSE slack_apps.app_icon_url END, "
@@ -1508,6 +1514,8 @@ async def db_upsert_slack_app(
             "client_secret = CASE WHEN excluded.client_secret != '' THEN excluded.client_secret ELSE slack_apps.client_secret END, "
             "signing_secret = CASE WHEN excluded.signing_secret != '' THEN excluded.signing_secret ELSE slack_apps.signing_secret END, "
             "app_token = CASE WHEN excluded.app_token != '' THEN excluded.app_token ELSE slack_apps.app_token END, "
+            "bot_token = CASE WHEN excluded.bot_token != '' THEN excluded.bot_token ELSE slack_apps.bot_token END, "
+            "bot_user_id = CASE WHEN excluded.bot_user_id != '' THEN excluded.bot_user_id ELSE slack_apps.bot_user_id END, "
             "manifest_yaml = CASE WHEN excluded.manifest_yaml != '' THEN excluded.manifest_yaml ELSE slack_apps.manifest_yaml END, "
             "updated_at = excluded.updated_at"
         ),
@@ -1519,6 +1527,8 @@ async def db_upsert_slack_app(
             client_secret or "",
             signing_secret or "",
             app_token or "",
+            bot_token or "",
+            bot_user_id or "",
             manifest_yaml or "",
             now,
             now,
@@ -1552,6 +1562,10 @@ async def db_get_workspace_bot_token(
     row = None
     if team_id and app_id:
         row = await db_get_workspace_by_team_and_app(env, team_id, app_id)
+    if app_id and not row:
+        app_row = await db_get_slack_app_by_app_id(env, app_id)
+        if app_row and (app_row.get("bot_token") or app_row.get("app_token")):
+            return str(app_row.get("bot_token") or app_row.get("app_token") or "")
     if team_id:
         row = row or await db_get_workspace_by_team(env, team_id)
     if not row and channel_id:
@@ -1572,6 +1586,10 @@ async def db_get_workspace_bot_user_id(
     row = None
     if team_id and app_id:
         row = await db_get_workspace_by_team_and_app(env, team_id, app_id)
+    if app_id and not row:
+        app_row = await db_get_slack_app_by_app_id(env, app_id)
+        if app_row and app_row.get("bot_user_id"):
+            return str(app_row.get("bot_user_id") or "")
     if team_id:
         row = row or await db_get_workspace_by_team(env, team_id)
     if not row and channel_id:
@@ -1625,7 +1643,7 @@ async def db_upsert_workspace(
             "app_token = CASE WHEN excluded.app_token != '' THEN excluded.app_token ELSE teams.app_token END, "
             "bot_token = CASE WHEN excluded.bot_token != '' THEN excluded.bot_token ELSE teams.bot_token END, "
             "bot_user_id = CASE WHEN excluded.bot_user_id != '' THEN excluded.bot_user_id ELSE teams.bot_user_id END, "
-            "app_id = CASE WHEN excluded.app_id != '' THEN excluded.app_id ELSE teams.app_id END, "
+            "app_id = CASE WHEN excluded.app_id != '' AND (excluded.access_token != '' OR excluded.bot_token != '') THEN excluded.app_id ELSE teams.app_id END, "
             "app_name = CASE WHEN excluded.app_name != '' THEN excluded.app_name ELSE teams.app_name END, "
             "app_icon_url = CASE WHEN excluded.app_icon_url != '' THEN excluded.app_icon_url ELSE teams.app_icon_url END, "
             "icon_url = CASE WHEN excluded.icon_url != '' THEN excluded.icon_url ELSE teams.icon_url END, "
@@ -3846,6 +3864,20 @@ async def slack_api_post_direct_response(
     )
     if send_result.get("ok") or send_result.get("error") != "channel_not_found":
         return send_result
+    env_token = env_value(env, "SLACK_BOT_TOKEN") or ""
+    if env_token:
+        env_send_result = await slack_api_call(
+            env,
+            "chat.postMessage",
+            {"channel": channel_id, "text": text},
+            team_id=team_id,
+            channel_id=channel_id,
+            user_id=user_id,
+            app_id=app_id,
+            token=env_token,
+        )
+        if env_send_result.get("ok"):
+            return env_send_result
     if not user_id:
         return send_result
     dm_response = await slack_api_open_conversation(
@@ -3854,9 +3886,32 @@ async def slack_api_post_direct_response(
         team_id=team_id,
         app_id=app_id,
     )
+    if not dm_response.get("ok") and dm_response.get("error") == "user_not_found" and env_token:
+        dm_response = await slack_api_call(
+            env,
+            "conversations.open",
+            {"users": user_id},
+            team_id=team_id,
+            user_id=user_id,
+            app_id=app_id,
+            token=env_token,
+        )
     dm_channel = slack_response_channel_id(dm_response)
     if not dm_response.get("ok") or not dm_channel or dm_channel == channel_id:
         return send_result
+    if env_token:
+        env_dm_send_result = await slack_api_call(
+            env,
+            "chat.postMessage",
+            {"channel": dm_channel, "text": text},
+            team_id=team_id,
+            channel_id=dm_channel,
+            user_id=user_id,
+            app_id=app_id,
+            token=env_token,
+        )
+        if env_dm_send_result.get("ok"):
+            return env_dm_send_result
     return await slack_api_post_message(
         dm_channel,
         text,
