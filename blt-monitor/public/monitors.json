@@ -43,8 +43,8 @@
   },
   {
     "id": "owasp_bumper",
-    "name": "BLT OWASP Bumper",
-    "url": "https://owasp-bumper.owaspblt.org",
+    "name": "BLT Bumper",
+    "url": "https://bumper.owaspblt.org",
     "keyword": "OWASP",
     "enabled": true
   },
