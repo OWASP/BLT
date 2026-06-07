@@ -51,7 +51,7 @@
   {
     "id": "owasp_projects",
     "name": "BLT OWASP Projects",
-    "url": "https://owasp-projects.owaspblt.org",
+    "url": "https://projects.owaspblt.org",
     "keyword": "OWASP",
     "enabled": true
   },
