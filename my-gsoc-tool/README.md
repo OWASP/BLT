@@ -24,15 +24,15 @@ A comprehensive, automated dashboard for Google Summer of Code students to showc
 
 Click the "Fork" button at the top right of this page to create your own copy of this dashboard.
 
-### Step 2: Enable GitHub Pages
+### Step 2: Deploy on Cloudflare
 
-1. Go to your forked repository's **Settings** → **Pages**
-2. Under "Source", select **GitHub Actions**
-3. Save the changes
+1. Create a Cloudflare Pages project from this repository
+2. Set the build output directory to `public`
+3. Leave the build command empty
 
 ### Step 3: Customize Your Dashboard
 
-Edit `config.json` with your information:
+Edit `public/config.json` with your information:
 
 ```json
 {
@@ -75,13 +75,13 @@ Edit `config.json` with your information:
 }
 ```
 
-That's it! Your dashboard will be live at `https://YOUR-USERNAME.github.io/MY-GSOC-TOOL/`
+That's it! Cloudflare will serve the dashboard from the `public/` folder.
 
 ## 📖 Detailed Usage
 
 ### Adding Blog Posts
 
-Edit `data/blog-posts.json`:
+Edit `public/data/blog-posts.json`:
 
 ```json
 [
@@ -97,7 +97,7 @@ Edit `data/blog-posts.json`:
 
 ### Adding Weekly Updates
 
-Edit `data/weekly-updates.json`:
+Edit `public/data/weekly-updates.json`:
 
 ```json
 [
@@ -111,7 +111,7 @@ Edit `data/weekly-updates.json`:
 
 ### Adding Mentor Feedback
 
-Edit `data/feedback.json`:
+Edit `public/data/feedback.json`:
 
 ```json
 [
@@ -125,7 +125,7 @@ Edit `data/feedback.json`:
 
 ### Adding Milestones
 
-Edit `data/milestones.json`:
+Edit `public/data/milestones.json`:
 
 ```json
 [
@@ -146,11 +146,11 @@ The dashboard includes a GitHub Actions workflow that:
 
 1. **Automatically fetches your GitHub contributions** (commits, PRs, issues, reviews)
 2. **Updates the data** daily at midnight UTC
-3. **Deploys to GitHub Pages** automatically
+3. **Keeps the static data ready for Cloudflare** automatically
 
 The workflow runs:
 - Daily at midnight UTC (scheduled)
-- When you push changes to `config.json` or `data/` files
+- When you push changes to `public/config.json` or `public/data/` files
 - Manually via the Actions tab
 
 ### Manual Trigger
@@ -164,7 +164,7 @@ To manually update your dashboard:
 
 ### Colors & Styling
 
-Edit `styles.css` to customize the appearance. The CSS uses CSS variables for easy theme customization:
+Edit `public/styles.css` to customize the appearance. The CSS uses CSS variables for easy theme customization:
 
 ```css
 :root {
@@ -177,11 +177,11 @@ Edit `styles.css` to customize the appearance. The CSS uses CSS variables for ea
 
 ### Layout
 
-Modify `index.html` to change the dashboard layout or add new sections.
+Modify `public/index.html` to change the dashboard layout or add new sections.
 
 ### Data Processing
 
-The `dashboard.js` file handles all data loading and rendering. Modify it to add custom data processing logic.
+The `public/dashboard.js` file handles all data loading and rendering. Modify it to add custom data processing logic.
 
 ## 📋 File Structure
 
@@ -190,16 +190,18 @@ MY-GSOC-TOOL/
 ├── .github/
 │   └── workflows/
 │       └── update-dashboard.yml  # GitHub Actions workflow
-├── data/
-│   ├── github-contributions.json # Auto-generated GitHub data
-│   ├── blog-posts.json          # Your blog posts
-│   ├── feedback.json            # Mentor feedback
-│   ├── weekly-updates.json      # Weekly progress
-│   └── milestones.json          # Your achievements
-├── index.html                    # Dashboard HTML
-├── styles.css                    # Dashboard styles
-├── dashboard.js                  # Dashboard logic
-├── config.json                   # Your personal config
+├── public/                       # Cloudflare static site root
+│   ├── data/
+│   │   ├── github-contributions.json # Auto-generated GitHub data
+│   │   ├── blog-posts.json           # Your blog posts
+│   │   ├── feedback.json             # Mentor feedback
+│   │   ├── weekly-updates.json       # Weekly progress
+│   │   └── milestones.json           # Your achievements
+│   ├── index.html                # Dashboard HTML
+│   ├── styles.css                # Dashboard styles
+│   ├── dashboard.js              # Dashboard logic
+│   └── config.json               # Your personal config
+├── wrangler.toml                 # Cloudflare asset config
 └── README.md                     # This file
 ```
 
@@ -207,19 +209,19 @@ MY-GSOC-TOOL/
 
 ### Dashboard not updating?
 
-1. Check that GitHub Pages is enabled in Settings → Pages
+1. Check that Cloudflare is serving `public` as the output directory
 2. Verify the GitHub Actions workflow ran successfully in the Actions tab
-3. Make sure `config.json` has valid JSON syntax
+3. Make sure `public/config.json` has valid JSON syntax
 
 ### GitHub contributions not showing?
 
-1. Ensure your `config.json` has the correct GitHub username
+1. Ensure your `public/config.json` has the correct GitHub username
 2. Check that the GitHub Actions workflow has the necessary permissions
 3. Verify your repository activity is public
 
 ### Custom domain?
 
-Add a `CNAME` file to the repository root with your domain name, and configure your DNS settings.
+Configure the custom domain in Cloudflare and point DNS at the Cloudflare project.
 
 ## 🤝 Contributing
 

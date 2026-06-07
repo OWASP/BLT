@@ -1,5 +1,5 @@
-# Simple workflow for deploying static content to GitHub Pages
-name: Deploy static content to Pages
+# Simple workflow for validating the Cloudflare static output folder
+name: Validate static public folder
 
 on:
   # Runs on pushes targeting the default branch
@@ -9,7 +9,7 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages if this workflow is used there
 permissions:
   contents: read
   pages: write
@@ -36,8 +36,8 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # Upload entire repository
-          path: '.'
-      - name: Deploy to GitHub Pages
+          # Upload the static site root
+          path: 'public'
+      - name: Deploy public folder to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

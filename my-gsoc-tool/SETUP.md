@@ -16,23 +16,22 @@ Welcome to your GSoC Dashboard! This guide will walk you through setting up your
 2. Wait for GitHub to create your fork
 3. You now have your own copy at `https://github.com/YOUR-USERNAME/MY-GSOC-TOOL`
 
-### 2. Enable GitHub Pages
+### 2. Deploy on Cloudflare
 
-GitHub Pages will host your dashboard for free:
+Cloudflare will host your dashboard from the `public/` folder:
 
-1. Go to your forked repository
-2. Click **Settings** (gear icon in the top menu)
-3. Scroll down and click **Pages** in the left sidebar
-4. Under **Source**, select **GitHub Actions** from the dropdown
-5. Click **Save**
+1. Create a Cloudflare Pages project from this repository
+2. Leave the build command empty
+3. Set the build output directory to `public`
+4. Deploy the project
 
-Your dashboard will be available at: `https://YOUR-USERNAME.github.io/MY-GSOC-TOOL/`
+Cloudflare will provide a project URL after the first deploy.
 
 ### 3. Configure Your Personal Information
 
-#### Edit `config.json`
+#### Edit `public/config.json`
 
-This is the main configuration file for your dashboard. Click on `config.json` in your repository and then click the pencil icon to edit.
+This is the main configuration file for your dashboard. Click on `public/config.json` in your repository and then click the pencil icon to edit.
 
 Replace the placeholder values with your information:
 
@@ -83,7 +82,7 @@ After editing, scroll down and click **Commit changes**.
 
 ### 4. Add Your Content
 
-#### Blog Posts (`data/blog-posts.json`)
+#### Blog Posts (`public/data/blog-posts.json`)
 
 Add your GSoC blog posts:
 
@@ -106,7 +105,7 @@ Add your GSoC blog posts:
 ]
 ```
 
-#### Weekly Updates (`data/weekly-updates.json`)
+#### Weekly Updates (`public/data/weekly-updates.json`)
 
 Track your weekly progress:
 
@@ -125,7 +124,7 @@ Track your weekly progress:
 ]
 ```
 
-#### Mentor Feedback (`data/feedback.json`)
+#### Mentor Feedback (`public/data/feedback.json`)
 
 Document feedback from your mentor:
 
@@ -144,7 +143,7 @@ Document feedback from your mentor:
 ]
 ```
 
-#### Milestones (`data/milestones.json`)
+#### Milestones (`public/data/milestones.json`)
 
 Celebrate your achievements:
 
@@ -188,8 +187,8 @@ The dashboard automatically fetches your GitHub activity! The workflow:
 
 1. Runs daily at midnight UTC
 2. Fetches your commits, pull requests, issues, and reviews
-3. Updates `data/github-contributions.json`
-4. Deploys the updated dashboard to GitHub Pages
+3. Updates `public/data/github-contributions.json`
+4. Leaves the updated dashboard ready for Cloudflare to serve from `public/`
 
 **Manual Update:**
 1. Go to the **Actions** tab in your repository
@@ -198,19 +197,13 @@ The dashboard automatically fetches your GitHub activity! The workflow:
 
 ### 6. View Your Dashboard
 
-After setup, your dashboard will be live at:
-
-```
-https://YOUR-USERNAME.github.io/MY-GSOC-TOOL/
-```
-
-Give it a few minutes for the initial deployment to complete.
+After setup, your dashboard will be live at the URL Cloudflare gives your Pages project. Give it a few minutes for the initial deployment to complete.
 
 ## 🎨 Customization Tips
 
 ### Change Colors
 
-Edit `styles.css` and modify the CSS variables:
+Edit `public/styles.css` and modify the CSS variables:
 
 ```css
 :root {
@@ -223,7 +216,7 @@ Edit `styles.css` and modify the CSS variables:
 
 ### Add Custom Sections
 
-Edit `index.html` to add your own sections following the existing card pattern:
+Edit `public/index.html` to add your own sections following the existing card pattern:
 
 ```html
 <section class="card">
@@ -236,7 +229,7 @@ Edit `index.html` to add your own sections following the existing card pattern:
 
 ### Modify Layout
 
-The dashboard uses CSS Grid. Edit the grid in `styles.css`:
+The dashboard uses CSS Grid. Edit the grid in `public/styles.css`:
 
 ```css
 .content-grid {
@@ -263,7 +256,7 @@ Once your dashboard is live, share it:
 **Problem:** The page shows a 404 error.
 
 **Solution:**
-1. Check that GitHub Pages is enabled (Settings → Pages)
+1. Check that Cloudflare is serving the `public` output directory
 2. Verify the source is set to "GitHub Actions"
 3. Check the Actions tab to see if the workflow ran successfully
 
@@ -274,7 +267,7 @@ Once your dashboard is live, share it:
 **Solution:**
 1. Go to Actions tab and manually trigger the workflow
 2. Check if the workflow has proper permissions
-3. Verify your GitHub username in `config.json` is correct
+3. Verify your GitHub username in `public/config.json` is correct
 4. Make sure your contributions are public (not in private repos)
 
 ### Invalid JSON Errors

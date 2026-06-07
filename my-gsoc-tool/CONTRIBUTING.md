@@ -121,11 +121,13 @@ We love new ideas! To suggest a feature:
 MY-GSOC-TOOL/
 ├── .github/
 │   └── workflows/       # GitHub Actions workflows
-├── data/                # JSON data files
-├── index.html          # Main HTML file
-├── styles.css          # All styles
-├── dashboard.js        # All JavaScript
-├── config.json         # Configuration
+├── public/              # Cloudflare static site root
+│   ├── data/            # JSON data files
+│   ├── index.html       # Main HTML file
+│   ├── styles.css       # All styles
+│   ├── dashboard.js     # All JavaScript
+│   └── config.json      # Configuration
+├── wrangler.toml        # Cloudflare asset config
 └── docs/               # Documentation
 ```
 
@@ -218,19 +220,19 @@ If you discover a security vulnerability:
 ### Data Flow
 
 ```
-config.json → dashboard.js → Renders to HTML
+public/config.json → public/dashboard.js → Renders to HTML
      ↓
-data/*.json → dashboard.js → Updates sections
+public/data/*.json → public/dashboard.js → Updates sections
      ↓
-GitHub API → GitHub Actions → data/github-contributions.json
+GitHub API → GitHub Actions → public/data/github-contributions.json
 ```
 
 ### Key Components
 
-1. **Configuration** (`config.json`): User's personal information
-2. **Data Files** (`data/`): Dynamic content that changes over time
-3. **Dashboard Logic** (`dashboard.js`): Loads and renders all data
-4. **Styling** (`styles.css`): All visual presentation
+1. **Configuration** (`public/config.json`): User's personal information
+2. **Data Files** (`public/data/`): Dynamic content that changes over time
+3. **Dashboard Logic** (`public/dashboard.js`): Loads and renders all data
+4. **Styling** (`public/styles.css`): All visual presentation
 5. **Automation** (`.github/workflows/`): Automatic updates
 
 ## 🎨 Design Guidelines

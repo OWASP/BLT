@@ -9,8 +9,8 @@ on:
     branches:
       - main
     paths:
-      - 'config.json'
-      - 'data/**'
+      - 'public/config.json'
+      - 'public/data/**'
 
 permissions:
   contents: write
@@ -42,7 +42,7 @@ jobs:
           const https = require('https');
 
           // Read config
-          const config = JSON.parse(fs.readFileSync('config.json', 'utf8'));
+          const config = JSON.parse(fs.readFileSync('public/config.json', 'utf8'));
           
           // Extract GitHub username from URL
           const githubUrl = config.student?.github || '';
@@ -149,7 +149,7 @@ jobs:
                 lastUpdated: new Date().toISOString()
               };
 
-              fs.writeFileSync('data/github-contributions.json', JSON.stringify(output, null, 2));
+              fs.writeFileSync('public/data/github-contributions.json', JSON.stringify(output, null, 2));
               console.log('GitHub data updated successfully!');
               console.log('Stats:', stats);
             } catch (error) {
@@ -168,7 +168,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/github-contributions.json
+          git add public/data/github-contributions.json
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else
@@ -194,8 +194,8 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'
+          path: 'public'
 
-      - name: Deploy to GitHub Pages
+      - name: Deploy public folder to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
