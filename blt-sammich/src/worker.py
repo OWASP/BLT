@@ -1610,8 +1610,6 @@ async def db_update_slack_app_settings_test(
 def slack_app_settings_required_checks(app_row: Dict[str, Any]) -> List[Dict[str, Any]]:
     required_fields = [
         ("app_id", "Slack app ID"),
-        ("client_id", "OAuth client ID"),
-        ("client_secret", "OAuth client secret"),
         ("signing_secret", "request signing secret"),
         ("bot_token", "bot token"),
     ]
@@ -1695,18 +1693,6 @@ async def test_slack_app_settings(env: Any, app_row_id: Any) -> Dict[str, Any]:
                     "error": str(error),
                 }
             )
-
-    app_token = str(app_row.get("app_token") or "").strip()
-    if app_token:
-        app_token_kind = token_kind(app_token)
-        checks.append(
-            {
-                "name": "app_token_type",
-                "label": "app-level token type",
-                "ok": app_token_kind == "xapp",
-                "message": app_token_kind,
-            }
-        )
 
     failed_checks = [check for check in checks if not check.get("ok")]
     status = "success" if not failed_checks else "failed"

@@ -2221,10 +2221,7 @@ def test_slack_app_settings_test_records_success():
                     {
                         "id": 7,
                         "app_id": "A123",
-                        "client_id": "123.456",
-                        "client_secret": "client-secret",
                         "signing_secret": "signing-secret",
-                        "app_token": "xapp-token",
                         "bot_token": "xoxb-token",
                         "bot_user_id": "U089A2Y2AAW",
                     }
@@ -2310,9 +2307,9 @@ def test_slack_app_settings_test_records_missing_required_values_without_fetch()
     failed_names = {
         check["name"] for check in stored_result["checks"] if not check["ok"]
     }
-    assert {"client_id", "client_secret", "signing_secret", "bot_token"}.issubset(
-        failed_names
-    )
+    assert {"signing_secret", "bot_token"}.issubset(failed_names)
+    assert "client_id" not in failed_names
+    assert "client_secret" not in failed_names
     assert captured["params"][0] == "failed"
 
 
