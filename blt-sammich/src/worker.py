@@ -664,6 +664,18 @@ def payload_app_id(payload: Dict[str, Any]) -> str:
     return str(payload.get("api_app_id") or payload.get("app_id") or "")
 
 
+def payload_authorized_bot_user_id(payload: Dict[str, Any]) -> str:
+    authorizations = payload.get("authorizations") or []
+    if not isinstance(authorizations, list):
+        return ""
+    for authorization in authorizations:
+        if not isinstance(authorization, dict):
+            continue
+        if bool_int(authorization.get("is_bot")):
+            return str(authorization.get("user_id") or "")
+    return ""
+
+
 def bool_int(value: Any) -> int:
     if isinstance(value, str):
         return 1 if value.lower() in ("1", "true", "yes", "on") else 0
@@ -1530,7 +1542,7 @@ async def db_get_slack_app_by_app_id(
 
 
 async def db_get_workspace_bot_token(
-    env: Any, team_id: str = "", channel_id: str = ""
+    env: Any, team_id: str = "", channel_id: str = "", app_id: str = ""
 ) -> str:
     try:
         getattr(env, "DB")
@@ -1538,8 +1550,10 @@ async def db_get_workspace_bot_token(
         return ""
     await ensure_schema(env)
     row = None
+    if team_id and app_id:
+        row = await db_get_workspace_by_team_and_app(env, team_id, app_id)
     if team_id:
-        row = await db_get_workspace_by_team(env, team_id)
+        row = row or await db_get_workspace_by_team(env, team_id)
     if not row and channel_id:
         row = await db_get_workspace_by_channel_id(env, channel_id)
     return str(
@@ -1548,7 +1562,7 @@ async def db_get_workspace_bot_token(
 
 
 async def db_get_workspace_bot_user_id(
-    env: Any, team_id: str = "", channel_id: str = ""
+    env: Any, team_id: str = "", channel_id: str = "", app_id: str = ""
 ) -> str:
     try:
         getattr(env, "DB")
@@ -1556,8 +1570,10 @@ async def db_get_workspace_bot_user_id(
         return ""
     await ensure_schema(env)
     row = None
+    if team_id and app_id:
+        row = await db_get_workspace_by_team_and_app(env, team_id, app_id)
     if team_id:
-        row = await db_get_workspace_by_team(env, team_id)
+        row = row or await db_get_workspace_by_team(env, team_id)
     if not row and channel_id:
         row = await db_get_workspace_by_channel_id(env, channel_id)
     return str((row or {}).get("bot_user_id") or "")
@@ -1609,6 +1625,7 @@ async def db_upsert_workspace(
             "app_token = CASE WHEN excluded.app_token != '' THEN excluded.app_token ELSE teams.app_token END, "
             "bot_token = CASE WHEN excluded.bot_token != '' THEN excluded.bot_token ELSE teams.bot_token END, "
             "bot_user_id = CASE WHEN excluded.bot_user_id != '' THEN excluded.bot_user_id ELSE teams.bot_user_id END, "
+            "app_id = CASE WHEN excluded.app_id != '' THEN excluded.app_id ELSE teams.app_id END, "
             "app_name = CASE WHEN excluded.app_name != '' THEN excluded.app_name ELSE teams.app_name END, "
             "app_icon_url = CASE WHEN excluded.app_icon_url != '' THEN excluded.app_icon_url ELSE teams.app_icon_url END, "
             "icon_url = CASE WHEN excluded.icon_url != '' THEN excluded.icon_url ELSE teams.icon_url END, "
@@ -3692,17 +3709,17 @@ async def log_slack_api_response(
 
 
 async def workspace_slack_token(
-    env: Any, team_id: str = "", channel_id: str = ""
+    env: Any, team_id: str = "", channel_id: str = "", app_id: str = ""
 ) -> str:
     try:
         token = await db_get_workspace_bot_token(
-            env, team_id=team_id, channel_id=channel_id
+            env, team_id=team_id, channel_id=channel_id, app_id=app_id
         )
     except Exception as error:
         log_exception_one_line(
             error,
             "slack_post_token_lookup_failed",
-            {"team_id": team_id, "channel_id": channel_id},
+            {"team_id": team_id, "channel_id": channel_id, "app_id": app_id},
         )
         token = ""
     if not token:
@@ -3717,10 +3734,11 @@ async def slack_api_call(
     team_id: str = "",
     channel_id: str = "",
     user_id: str = "",
+    app_id: str = "",
     token: str = "",
 ) -> Dict[str, Any]:
     token = token or await workspace_slack_token(
-        env, team_id=team_id, channel_id=channel_id
+        env, team_id=team_id, channel_id=channel_id, app_id=app_id
     )
     if not token:
         return {"ok": False, "error": "missing_slack_token"}
@@ -3755,6 +3773,7 @@ async def slack_api_send_message(
     text: str,
     env: Any,
     team_id: str = "",
+    app_id: str = "",
     blocks: Optional[List[Dict[str, Any]]] = None,
     branding_tracking_id: str = "",
 ) -> Dict[str, Any]:
@@ -3775,17 +3794,20 @@ async def slack_api_send_message(
         request_payload,
         team_id=team_id,
         channel_id=channel_id,
+        app_id=app_id,
     )
 
 
 async def slack_api_post_message(
-    channel_id: str, text: str, env: Any, team_id: str = ""
-) -> None:
-    await slack_api_send_message(channel_id, text, env, team_id=team_id)
+    channel_id: str, text: str, env: Any, team_id: str = "", app_id: str = ""
+) -> Dict[str, Any]:
+    return await slack_api_send_message(
+        channel_id, text, env, team_id=team_id, app_id=app_id
+    )
 
 
 async def slack_api_open_conversation(
-    user_id: str, env: Any, team_id: str = ""
+    user_id: str, env: Any, team_id: str = "", app_id: str = ""
 ) -> Dict[str, Any]:
     return await slack_api_call(
         env,
@@ -3793,6 +3815,54 @@ async def slack_api_open_conversation(
         {"users": user_id},
         team_id=team_id,
         user_id=user_id,
+        app_id=app_id,
+    )
+
+
+def slack_response_channel_id(response: Dict[str, Any]) -> str:
+    if not isinstance(response, dict):
+        return ""
+    channel = response.get("channel")
+    if isinstance(channel, dict):
+        return str(channel.get("id") or "")
+    return str(channel or "")
+
+
+async def slack_api_post_direct_response(
+    event: Dict[str, Any],
+    text: str,
+    env: Any,
+    team_id: str = "",
+    app_id: str = "",
+) -> Dict[str, Any]:
+    channel_id = str(event.get("channel") or "").strip()
+    user_id = str(event.get("user") or "").strip()
+    send_result = await slack_api_post_message(
+        channel_id,
+        text,
+        env,
+        team_id=team_id,
+        app_id=app_id,
+    )
+    if send_result.get("ok") or send_result.get("error") != "channel_not_found":
+        return send_result
+    if not user_id:
+        return send_result
+    dm_response = await slack_api_open_conversation(
+        user_id,
+        env,
+        team_id=team_id,
+        app_id=app_id,
+    )
+    dm_channel = slack_response_channel_id(dm_response)
+    if not dm_response.get("ok") or not dm_channel or dm_channel == channel_id:
+        return send_result
+    return await slack_api_post_message(
+        dm_channel,
+        text,
+        env,
+        team_id=team_id,
+        app_id=app_id,
     )
 
 
@@ -3802,6 +3872,7 @@ async def slack_api_send_ephemeral(
     text: str,
     env: Any,
     team_id: str = "",
+    app_id: str = "",
     blocks: Optional[List[Dict[str, Any]]] = None,
     branding_tracking_id: str = "",
 ) -> Dict[str, Any]:
@@ -3828,6 +3899,7 @@ async def slack_api_send_ephemeral(
         team_id=team_id,
         channel_id=channel_id,
         user_id=user_id,
+        app_id=app_id,
     )
 
 
@@ -4242,6 +4314,7 @@ async def handle_event_payload(payload: Dict[str, Any], env: Any) -> Any:
 
     event = payload.get("event") or {}
     team_id = payload_team_id(payload)
+    app_id = payload_app_id(payload)
     if event.get("type") == "app_home_opened":
         if str(event.get("tab") or "home") == "home":
             user_id = str(event.get("user") or "")
@@ -4262,6 +4335,7 @@ async def handle_event_payload(payload: Dict[str, Any], env: Any) -> Any:
                 bot_direct_message_response(str(event.get("text") or "")),
                 env,
                 team_id=team_id,
+                app_id=app_id,
             )
     if event.get("type") == "team_join":
         result = await handle_team_join_event(env, event, team_id=team_id, envelope=payload)
@@ -4295,14 +4369,15 @@ async def handle_event_payload(payload: Dict[str, Any], env: Any) -> Any:
         bot_user_id = ""
         try:
             bot_user_id = await db_get_workspace_bot_user_id(
-                env, team_id=team_id, channel_id=channel_id
+                env, team_id=team_id, channel_id=channel_id, app_id=app_id
             )
         except Exception as error:
             log_exception_one_line(
                 error,
                 "bot_user_lookup_failed",
-                {"team_id": team_id, "channel_id": channel_id},
+                {"team_id": team_id, "channel_id": channel_id, "app_id": app_id},
             )
+        bot_user_id = bot_user_id or payload_authorized_bot_user_id(payload)
         if bot_user_id and user_id == bot_user_id:
             return json_response({"ok": True})
         installer_user_id = ""
@@ -4320,16 +4395,18 @@ async def handle_event_payload(payload: Dict[str, Any], env: Any) -> Any:
                 current_config_message(env, team_id, installer_user_id),
                 env,
                 team_id=team_id,
+                app_id=app_id,
             )
             return json_response({"ok": True})
         if channel_id and (
             is_direct_bot_message(event) or message_mentions_bot(event, bot_user_id)
         ):
-            await slack_api_post_message(
-                channel_id,
+            await slack_api_post_direct_response(
+                event,
                 bot_direct_message_response(str(event.get("text") or "")),
                 env,
                 team_id=team_id,
+                app_id=app_id,
             )
     return json_response({"ok": True})
 

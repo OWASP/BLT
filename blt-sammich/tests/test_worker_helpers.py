@@ -1380,6 +1380,7 @@ def test_db_upsert_workspace_persists_slack_tokens():
                 team_name="Security Team",
                 app_token="xapp-token",
                 bot_token="xoxb-token",
+                app_id="A089A036135",
             )
         )
     finally:
@@ -1390,8 +1391,60 @@ def test_db_upsert_workspace_persists_slack_tokens():
     assert "app_token" in captured["query"]
     assert "bot_token" in captured["query"]
     assert "ON CONFLICT(team_id) DO UPDATE" in captured["query"]
+    assert "app_id = CASE WHEN excluded.app_id != ''" in captured["query"]
     assert captured["params"][3] == "xapp-token"
     assert captured["params"][4] == "xoxb-token"
+    assert captured["params"][6] == "A089A036135"
+
+
+def test_db_get_workspace_bot_token_prefers_matching_app_row():
+    captured = {"queries": []}
+    original_d1_run = worker.d1_run
+    original_schema_ready = worker.SCHEMA_READY
+
+    async def fake_d1_run(env, query, params=None):
+        captured["queries"].append((query, params))
+        if "WHERE team_id = ? AND app_id = ?" in query:
+            return {
+                "results": [
+                    {
+                        "id": 9,
+                        "team_id": "T123",
+                        "app_id": "A089A036135",
+                        "bot_token": "xoxb-app-specific",
+                    }
+                ]
+            }
+        if "WHERE team_id = ?" in query:
+            return {
+                "results": [
+                    {
+                        "id": 7,
+                        "team_id": "T123",
+                        "app_id": "AOLD",
+                        "bot_token": "xoxb-old",
+                    }
+                ]
+            }
+        return {"success": True}
+
+    env = _Env()
+    setattr(env, "DB", object())
+    worker.d1_run = fake_d1_run
+    worker.SCHEMA_READY = True
+    try:
+        token = asyncio.run(
+            worker.db_get_workspace_bot_token(
+                env, team_id="T123", app_id="A089A036135"
+            )
+        )
+    finally:
+        worker.d1_run = original_d1_run
+        worker.SCHEMA_READY = original_schema_ready
+
+    assert token == "xoxb-app-specific"
+    assert captured["queries"][0][1] == ["T123", "A089A036135"]
+    assert len(captured["queries"]) == 1
 
 
 def test_refresh_workspace_channels_fetches_pages_and_persists_metadata():
@@ -1617,6 +1670,7 @@ def test_slack_api_send_ephemeral_adds_tracking_branding_block():
         team_id="",
         channel_id="",
         user_id="",
+        app_id="",
         token="",
     ):
         captured["api_method"] = api_method
@@ -2131,21 +2185,24 @@ def test_direct_bot_message_detection_handles_im_channel():
 
 def test_handle_event_payload_replies_to_direct_message():
     sent = {}
-    original_post_message = worker.slack_api_post_message
+    original_direct_response = worker.slack_api_post_direct_response
     original_json_response = worker.json_response
 
-    async def fake_post_message(channel_id, text, env, team_id=""):
-        sent["channel_id"] = channel_id
+    async def fake_direct_response(event, text, env, team_id="", app_id=""):
+        sent["channel_id"] = event.get("channel")
         sent["text"] = text
         sent["team_id"] = team_id
+        sent["app_id"] = app_id
+        return {"ok": True}
 
-    worker.slack_api_post_message = fake_post_message
+    worker.slack_api_post_direct_response = fake_direct_response
     worker.json_response = lambda payload, status=200, headers=None: payload
     try:
         asyncio.run(
             worker.handle_event_payload(
                 {
                     "type": "event_callback",
+                    "api_app_id": "A089A036135",
                     "team_id": "T123",
                     "event": {
                         "type": "message",
@@ -2159,33 +2216,36 @@ def test_handle_event_payload_replies_to_direct_message():
             )
         )
     finally:
-        worker.slack_api_post_message = original_post_message
+        worker.slack_api_post_direct_response = original_direct_response
         worker.json_response = original_json_response
 
     assert sent["channel_id"] == "D123"
     assert sent["team_id"] == "T123"
+    assert sent["app_id"] == "A089A036135"
     assert "/stats" in sent["text"]
 
 
 def test_handle_event_payload_replies_to_direct_message_when_db_lookups_fail():
     sent = {}
-    original_post_message = worker.slack_api_post_message
+    original_direct_response = worker.slack_api_post_direct_response
     original_bot_user_id = worker.db_get_workspace_bot_user_id
     original_installer = worker.get_workspace_installer
     original_json_response = worker.json_response
 
-    async def fake_post_message(channel_id, text, env, team_id=""):
-        sent["channel_id"] = channel_id
+    async def fake_direct_response(event, text, env, team_id="", app_id=""):
+        sent["channel_id"] = event.get("channel")
         sent["text"] = text
         sent["team_id"] = team_id
+        sent["app_id"] = app_id
+        return {"ok": True}
 
-    async def failing_bot_user_id(env, team_id="", channel_id=""):
+    async def failing_bot_user_id(env, team_id="", channel_id="", app_id=""):
         raise RuntimeError("D1 unavailable")
 
     async def failing_installer(env, team_id):
         raise RuntimeError("D1 unavailable")
 
-    worker.slack_api_post_message = fake_post_message
+    worker.slack_api_post_direct_response = fake_direct_response
     worker.db_get_workspace_bot_user_id = failing_bot_user_id
     worker.get_workspace_installer = failing_installer
     worker.json_response = lambda payload, status=200, headers=None: payload
@@ -2194,6 +2254,7 @@ def test_handle_event_payload_replies_to_direct_message_when_db_lookups_fail():
             worker.handle_event_payload(
                 {
                     "type": "event_callback",
+                    "api_app_id": "A089A036135",
                     "team_id": "T123",
                     "event": {
                         "type": "message",
@@ -2207,13 +2268,14 @@ def test_handle_event_payload_replies_to_direct_message_when_db_lookups_fail():
             )
         )
     finally:
-        worker.slack_api_post_message = original_post_message
+        worker.slack_api_post_direct_response = original_direct_response
         worker.db_get_workspace_bot_user_id = original_bot_user_id
         worker.get_workspace_installer = original_installer
         worker.json_response = original_json_response
 
     assert sent["channel_id"] == "D123"
     assert sent["team_id"] == "T123"
+    assert sent["app_id"] == "A089A036135"
     assert "/stats" in sent["text"]
 
 
@@ -2309,7 +2371,8 @@ def test_slack_api_publish_home_uses_views_publish_shape():
     async def fake_get_workspace(env, team_id):
         return {"id": 7, "team_id": team_id, "team_name": "OWASP"}
 
-    async def fake_bot_token(env, team_id="", channel_id=""):
+    async def fake_bot_token(env, team_id="", channel_id="", app_id=""):
+        captured["token_app_id"] = app_id
         return "xoxb-token"
 
     async def fake_bot_user_id(env, team_id="", channel_id=""):
@@ -2364,7 +2427,8 @@ def test_slack_api_publish_home_skips_bot_user_from_auth_test():
     async def fake_log_response(*args, **kwargs):
         captured["logged"] = True
 
-    async def fake_bot_token(env, team_id="", channel_id=""):
+    async def fake_bot_token(env, team_id="", channel_id="", app_id=""):
+        captured["token_app_id"] = app_id
         return "xoxb-token"
 
     async def fake_bot_user_id(env, team_id="", channel_id=""):
@@ -2425,7 +2489,8 @@ def test_slack_api_publish_home_skips_invalid_home_user_response():
     async def fake_log_response(*args, **kwargs):
         captured["logged"] = True
 
-    async def fake_bot_token(env, team_id="", channel_id=""):
+    async def fake_bot_token(env, team_id="", channel_id="", app_id=""):
+        captured["token_app_id"] = app_id
         return "xoxb-token"
 
     async def fake_bot_user_id(env, team_id="", channel_id=""):
@@ -2485,7 +2550,8 @@ def test_slack_api_post_message_logs_slack_response_payload():
             "status_code": status_code,
         }
 
-    async def fake_bot_token(env, team_id="", channel_id=""):
+    async def fake_bot_token(env, team_id="", channel_id="", app_id=""):
+        captured["token_app_id"] = app_id
         return "xoxb-token"
 
     worker.fetch_json = fake_fetch_json
@@ -2498,6 +2564,7 @@ def test_slack_api_post_message_logs_slack_response_payload():
                 "hello",
                 _Env(),
                 team_id="T123",
+                app_id="A089A036135",
             )
         )
     finally:
@@ -2511,6 +2578,55 @@ def test_slack_api_post_message_logs_slack_response_payload():
     assert captured["log"]["api_method"] == "chat.postMessage"
     assert captured["log"]["response_payload"] == {"ok": True, "ts": "123.456"}
     assert captured["log"]["ok"] is True
+    assert captured["token_app_id"] == "A089A036135"
+
+
+def test_slack_api_post_direct_response_reopens_dm_when_channel_missing():
+    captured = {"posts": [], "opened": None}
+    original_post_message = worker.slack_api_post_message
+    original_open = worker.slack_api_open_conversation
+
+    async def fake_post_message(channel_id, text, env, team_id="", app_id=""):
+        captured["posts"].append(
+            {
+                "channel_id": channel_id,
+                "text": text,
+                "team_id": team_id,
+                "app_id": app_id,
+            }
+        )
+        if channel_id == "DOLD":
+            return {"ok": False, "error": "channel_not_found"}
+        return {"ok": True, "channel": channel_id}
+
+    async def fake_open(user_id, env, team_id="", app_id=""):
+        captured["opened"] = {"user_id": user_id, "team_id": team_id, "app_id": app_id}
+        return {"ok": True, "channel": {"id": "DNEW"}}
+
+    worker.slack_api_post_message = fake_post_message
+    worker.slack_api_open_conversation = fake_open
+    try:
+        result = asyncio.run(
+            worker.slack_api_post_direct_response(
+                {"channel": "DOLD", "user": "U04TJF11F"},
+                "Available commands:",
+                _Env(),
+                team_id="T04T40NHX",
+                app_id="A089A036135",
+            )
+        )
+    finally:
+        worker.slack_api_post_message = original_post_message
+        worker.slack_api_open_conversation = original_open
+
+    assert result["ok"] is True
+    assert captured["opened"] == {
+        "user_id": "U04TJF11F",
+        "team_id": "T04T40NHX",
+        "app_id": "A089A036135",
+    }
+    assert [post["channel_id"] for post in captured["posts"]] == ["DOLD", "DNEW"]
+    assert captured["posts"][1]["app_id"] == "A089A036135"
 
 
 def test_slack_api_post_message_falls_back_to_env_token_when_db_lookup_fails():
@@ -2527,7 +2643,7 @@ def test_slack_api_post_message_falls_back_to_env_token_when_db_lookup_fails():
     async def fake_log_response(*args, **kwargs):
         return None
 
-    async def failing_bot_token(env, team_id="", channel_id=""):
+    async def failing_bot_token(env, team_id="", channel_id="", app_id=""):
         raise RuntimeError("D1 unavailable")
 
     env = _Env()
@@ -2548,19 +2664,22 @@ def test_slack_api_post_message_falls_back_to_env_token_when_db_lookup_fails():
 
 def test_handle_event_payload_replies_when_bot_is_mentioned_in_channel_message():
     sent = {}
-    original_post_message = worker.slack_api_post_message
+    original_direct_response = worker.slack_api_post_direct_response
     original_bot_user_id = worker.db_get_workspace_bot_user_id
     original_json_response = worker.json_response
 
-    async def fake_post_message(channel_id, text, env, team_id=""):
-        sent["channel_id"] = channel_id
+    async def fake_direct_response(event, text, env, team_id="", app_id=""):
+        sent["channel_id"] = event.get("channel")
         sent["text"] = text
         sent["team_id"] = team_id
+        sent["app_id"] = app_id
+        return {"ok": True}
 
-    async def fake_bot_user_id(env, team_id="", channel_id=""):
+    async def fake_bot_user_id(env, team_id="", channel_id="", app_id=""):
+        sent["lookup_app_id"] = app_id
         return "U999"
 
-    worker.slack_api_post_message = fake_post_message
+    worker.slack_api_post_direct_response = fake_direct_response
     worker.db_get_workspace_bot_user_id = fake_bot_user_id
     worker.json_response = lambda payload, status=200, headers=None: payload
     try:
@@ -2568,6 +2687,7 @@ def test_handle_event_payload_replies_when_bot_is_mentioned_in_channel_message()
             worker.handle_event_payload(
                 {
                     "type": "event_callback",
+                    "api_app_id": "A089A036135",
                     "team_id": "T123",
                     "event": {
                         "type": "message",
@@ -2581,28 +2701,31 @@ def test_handle_event_payload_replies_when_bot_is_mentioned_in_channel_message()
             )
         )
     finally:
-        worker.slack_api_post_message = original_post_message
+        worker.slack_api_post_direct_response = original_direct_response
         worker.db_get_workspace_bot_user_id = original_bot_user_id
         worker.json_response = original_json_response
 
     assert sent["channel_id"] == "C123"
     assert sent["team_id"] == "T123"
+    assert sent["app_id"] == "A089A036135"
+    assert sent["lookup_app_id"] == "A089A036135"
     assert "/stats" in sent["text"]
 
 
 def test_handle_event_payload_does_not_reply_to_bot_self_message():
     sent = {}
-    original_post_message = worker.slack_api_post_message
+    original_direct_response = worker.slack_api_post_direct_response
     original_bot_user_id = worker.db_get_workspace_bot_user_id
     original_json_response = worker.json_response
 
-    async def fake_post_message(channel_id, text, env, team_id=""):
-        sent["channel_id"] = channel_id
+    async def fake_direct_response(event, text, env, team_id="", app_id=""):
+        sent["channel_id"] = event.get("channel")
+        return {"ok": True}
 
-    async def fake_bot_user_id(env, team_id="", channel_id=""):
+    async def fake_bot_user_id(env, team_id="", channel_id="", app_id=""):
         return "U999"
 
-    worker.slack_api_post_message = fake_post_message
+    worker.slack_api_post_direct_response = fake_direct_response
     worker.db_get_workspace_bot_user_id = fake_bot_user_id
     worker.json_response = lambda payload, status=200, headers=None: payload
     try:
@@ -2623,7 +2746,7 @@ def test_handle_event_payload_does_not_reply_to_bot_self_message():
             )
         )
     finally:
-        worker.slack_api_post_message = original_post_message
+        worker.slack_api_post_direct_response = original_direct_response
         worker.db_get_workspace_bot_user_id = original_bot_user_id
         worker.json_response = original_json_response
 
