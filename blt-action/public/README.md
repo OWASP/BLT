@@ -1,10 +1,10 @@
-# BLT-Action GitHub Pages
+# BLT-Action Cloudflare Site
 
-This directory contains the GitHub Pages website for the OWASP BLT-Action project.
+This directory contains the Cloudflare-hosted website for the OWASP BLT-Action project.
 
 ## 🌐 Live Site
 
-Visit: [https://owasp-blt.github.io/BLT-Action/](https://owasp-blt.github.io/BLT-Action/)
+The Cloudflare project should publish this `public/` directory.
 
 ## 📋 Design Specifications
 
@@ -40,10 +40,10 @@ This site follows the **BLT Official Style Guide** with the following specificat
 
 ## 🚀 Deployment
 
-The site is automatically deployed via GitHub Actions when changes are pushed to the `main` branch:
-- Workflow file: `.github/workflows/deploy-pages.yml`
-- Trigger: Push to `main` branch with changes in `docs/**`
-- Manual trigger: Available via workflow_dispatch
+Cloudflare should serve this directory as static assets:
+- Publish directory: `public`
+- Wrangler config: `wrangler.toml`
+- Assets directory: `./public`
 
 ## 📱 Responsive Design
 
@@ -85,7 +85,7 @@ Full dark mode support using Tailwind's dark mode classes:
 To test the site locally:
 
 ```bash
-cd docs
+cd public
 python3 -m http.server 8080
 # Visit http://localhost:8080 in your browser
 ```

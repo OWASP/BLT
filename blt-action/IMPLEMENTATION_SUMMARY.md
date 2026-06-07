@@ -1,22 +1,21 @@
-# BLT-Action GitHub Pages - Implementation Summary
+# BLT-Action Cloudflare Site - Implementation Summary
 
 ## 📦 What Was Created
 
 ### New Files Added
 
-1. **`docs/index.html`** (1,023 lines)
-   - Complete GitHub Pages website
+1. **`public/index.html`** (1,023 lines)
+   - Complete static website
    - Pure HTML with Tailwind CSS and Font Awesome
    - Fully responsive and accessible design
    - Dark mode support
 
-2. **`.github/workflows/deploy-pages.yml`** (39 lines)
-   - Automated deployment workflow
-   - Triggers on push to main branch (docs/** changes)
-   - Manual dispatch option available
+2. **`wrangler.toml`**
+   - Cloudflare config for the committed static site
+   - Points Pages output and static assets at `./public`
 
-3. **`docs/README.md`** (114 lines)
-   - Documentation for the GitHub Pages site
+3. **`public/README.md`** (114 lines)
+   - Documentation for the Cloudflare site
    - Design specifications and component standards
    - Development and deployment instructions
 
@@ -96,12 +95,12 @@
 ## 🔄 What Changed
 
 ### Files Added
-- `docs/index.html` - Main GitHub Pages site
-- `docs/README.md` - Documentation
-- `.github/workflows/deploy-pages.yml` - Deployment workflow
+- `public/index.html` - Main static site
+- `public/README.md` - Documentation
+- `wrangler.toml` - Cloudflare deployment config
 
-### No Files Modified
-All changes are new additions. No existing files were modified.
+### Files Moved/Updated
+The static site now lives under `public/` for Cloudflare, and the old GitHub Pages workflow has been removed.
 
 ## ♻️ Reuse Notes
 
@@ -236,24 +235,16 @@ tailwind.config = {
 
 ## 🚀 Deployment Instructions
 
-### Enable GitHub Pages
+### Deploy on Cloudflare
 
-1. Go to repository Settings → Pages
-2. Source: GitHub Actions
-3. The workflow will automatically deploy on the next push to main
-
-### Manual Deployment
-
-1. Go to Actions tab
-2. Select "Deploy to GitHub Pages" workflow
-3. Click "Run workflow"
-4. Select branch: main
-5. Click "Run workflow" button
+1. Configure the Cloudflare project for this repository.
+2. Set the publish directory to `public`.
+3. Cloudflare can also read `wrangler.toml`, which points static assets at `./public`.
 
 ## 📊 Site Structure
 
 ```
-BLT-Action GitHub Pages
+BLT-Action Cloudflare Site
 ├── Navigation (Sticky Header)
 │   ├── Logo & Brand
 │   ├── Desktop Menu (Features, Installation, Usage, API)
@@ -309,12 +300,12 @@ BLT-Action GitHub Pages
 ✅ Accessibility standards met (WCAG)
 ✅ Dark mode support included
 ✅ Copy-paste ready code examples
-✅ Automated deployment workflow
+✅ Cloudflare static asset config
 ✅ Clean, maintainable code structure
 
 ## 🔗 Related Resources
 
-- **Live Site**: https://owasp-blt.github.io/BLT-Action/ (after deployment)
+- **Live Site**: Cloudflare deployment URL
 - **Repository**: https://github.com/OWASP-BLT/BLT-Action
 - **Design System**: https://owasp-blt.github.io/BLT-Design/
 - **OWASP BLT**: https://owaspblt.org
