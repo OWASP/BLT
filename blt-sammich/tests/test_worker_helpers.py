@@ -1758,6 +1758,138 @@ def test_blt_welcome_command_sends_welcome_dm():
     assert captured["logs"][0][1] == "Team_Join_Welcome"
 
 
+def test_handle_team_join_event_uses_joined_users_team_for_real_member_dm():
+    captured = {"workspace_lookups": [], "opened": None, "sent": None, "logs": []}
+    original_get_workspace = worker.db_get_workspace_by_team
+    original_bot_user_id = worker.db_get_workspace_bot_user_id
+    original_has_event = worker.db_has_team_join_welcome_event_id
+    original_get_channels = worker.db_get_channels
+    original_open = worker.slack_api_open_conversation
+    original_send = worker.slack_api_send_message
+    original_log = worker.db_log_event
+
+    async def fake_get_workspace(env, team_id):
+        captured["workspace_lookups"].append(team_id)
+        if team_id == "TUSER":
+            return {"id": 7, "team_id": team_id, "team_name": "OWASP"}
+        return None
+
+    async def fake_bot_user_id(env, team_id="", channel_id=""):
+        return "UBOT"
+
+    async def fake_has_event(env, workspace_id, event_id):
+        return False
+
+    async def fake_get_channels(env, workspace_id):
+        return []
+
+    async def fake_open(user_id, env, team_id=""):
+        captured["opened"] = {"user_id": user_id, "team_id": team_id}
+        return {"ok": True, "channel": {"id": "D123"}}
+
+    async def fake_send(
+        channel_id,
+        text,
+        env,
+        team_id="",
+        blocks=None,
+        branding_tracking_id="",
+    ):
+        captured["sent"] = {
+            "channel_id": channel_id,
+            "team_id": team_id,
+            "blocks": blocks,
+        }
+        return {"ok": True, "ts": "123.456"}
+
+    async def fake_log(env, workspace_id, event_type, **kwargs):
+        captured["logs"].append((workspace_id, event_type, kwargs))
+        return True
+
+    worker.db_get_workspace_by_team = fake_get_workspace
+    worker.db_get_workspace_bot_user_id = fake_bot_user_id
+    worker.db_has_team_join_welcome_event_id = fake_has_event
+    worker.db_get_channels = fake_get_channels
+    worker.slack_api_open_conversation = fake_open
+    worker.slack_api_send_message = fake_send
+    worker.db_log_event = fake_log
+    try:
+        result = asyncio.run(
+            worker.handle_team_join_event(
+                _Env(),
+                {"user": {"id": "UREAL", "team_id": "TUSER", "is_bot": False}},
+                team_id="TENVELOPE",
+                envelope={"event_id": "Ev0B8WD26Q5A", "event_time": 1710000000},
+            )
+        )
+    finally:
+        worker.db_get_workspace_by_team = original_get_workspace
+        worker.db_get_workspace_bot_user_id = original_bot_user_id
+        worker.db_has_team_join_welcome_event_id = original_has_event
+        worker.db_get_channels = original_get_channels
+        worker.slack_api_open_conversation = original_open
+        worker.slack_api_send_message = original_send
+        worker.db_log_event = original_log
+
+    assert result == {"ok": True, "action": "team_join_welcome_sent"}
+    assert captured["workspace_lookups"][0] == "TUSER"
+    assert captured["opened"] == {"user_id": "UREAL", "team_id": "TUSER"}
+    assert captured["sent"]["team_id"] == "TUSER"
+    assert captured["logs"][0][2]["slack_team_id"] == "TUSER"
+    request_data = json.loads(captured["logs"][0][2]["request_data"])
+    assert request_data["source_team_id"] == "TENVELOPE"
+    assert request_data["user_team_id"] == "TUSER"
+
+
+def test_handle_team_join_event_skips_bot_user_before_opening_dm():
+    captured = {"opened": False, "logs": []}
+    original_get_workspace = worker.db_get_workspace_by_team
+    original_bot_user_id = worker.db_get_workspace_bot_user_id
+    original_open = worker.slack_api_open_conversation
+    original_log = worker.db_log_event
+
+    async def fake_get_workspace(env, team_id):
+        return {"id": 7, "team_id": team_id, "team_name": "OWASP"}
+
+    async def fake_bot_user_id(env, team_id="", channel_id=""):
+        return "UBOT"
+
+    async def fake_open(user_id, env, team_id=""):
+        captured["opened"] = True
+        return {"ok": True, "channel": {"id": "D123"}}
+
+    async def fake_log(env, workspace_id, event_type, **kwargs):
+        captured["logs"].append((workspace_id, event_type, kwargs))
+        return True
+
+    worker.db_get_workspace_by_team = fake_get_workspace
+    worker.db_get_workspace_bot_user_id = fake_bot_user_id
+    worker.slack_api_open_conversation = fake_open
+    worker.db_log_event = fake_log
+    try:
+        result = asyncio.run(
+            worker.handle_team_join_event(
+                _Env(),
+                {"user": {"id": "UBOT", "team_id": "T123", "is_bot": True}},
+                team_id="T123",
+                envelope={"event_id": "EvBOT", "event_time": 1710000000},
+            )
+        )
+    finally:
+        worker.db_get_workspace_by_team = original_get_workspace
+        worker.db_get_workspace_bot_user_id = original_bot_user_id
+        worker.slack_api_open_conversation = original_open
+        worker.db_log_event = original_log
+
+    assert result == {
+        "ok": True,
+        "action": "team_join_welcome_skipped",
+        "reason": "bot_user",
+    }
+    assert captured["opened"] is False
+    assert captured["logs"][0][2]["status"] == "skipped"
+
+
 def test_db_upsert_slack_app_persists_app_secrets():
     captured = {}
     original_d1_run = worker.d1_run

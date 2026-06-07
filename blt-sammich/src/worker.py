@@ -649,6 +649,19 @@ def bool_int(value: Any) -> int:
     return 1 if value else 0
 
 
+def team_join_user_skip_reason(user_obj: Dict[str, Any], bot_user_id: str = "") -> str:
+    user_id = str((user_obj or {}).get("id") or "").strip()
+    if bool_int((user_obj or {}).get("deleted")):
+        return "deleted_user"
+    if bool_int((user_obj or {}).get("is_bot")):
+        return "bot_user"
+    if bool_int((user_obj or {}).get("is_app_user")):
+        return "app_user"
+    if bot_user_id and user_id and user_id == bot_user_id:
+        return "bot_user"
+    return ""
+
+
 def compact_json(value: Any) -> str:
     if not value:
         return ""
@@ -3805,16 +3818,78 @@ async def slack_api_publish_home(user_id: str, env: Any, team_id: str = "") -> N
 
 
 async def handle_team_join_event(
-    env: Any, event: Dict[str, Any], team_id: str = "", envelope: Optional[Dict[str, Any]] = None
+    env: Any,
+    event: Dict[str, Any],
+    team_id: str = "",
+    envelope: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     user_obj = event.get("user") if isinstance(event.get("user"), dict) else {}
     user_id = str(user_obj.get("id") or event.get("user") or "").strip()
     if not user_id:
         return {"ok": False, "error": "missing_user_id"}
 
-    workspace = await db_get_workspace_by_team(env, team_id) if team_id else None
+    user_team_id = str(user_obj.get("team_id") or "").strip()
+    effective_team_id = user_team_id or team_id
+    workspace = (
+        await db_get_workspace_by_team(env, effective_team_id)
+        if effective_team_id
+        else None
+    )
+    if not workspace and team_id and team_id != effective_team_id:
+        workspace = await db_get_workspace_by_team(env, team_id)
+        if workspace:
+            effective_team_id = team_id
     workspace_id = (workspace or {}).get("id")
-    event_id = str((envelope or {}).get("event_id") or event.get("_event_id") or "").strip()
+    event_id = str(
+        (envelope or {}).get("event_id") or event.get("_event_id") or ""
+    ).strip()
+    bot_user_id = ""
+    try:
+        bot_user_id = await db_get_workspace_bot_user_id(
+            env, team_id=effective_team_id
+        )
+    except Exception as error:
+        log_exception_one_line(
+            error,
+            "team_join_bot_user_lookup_failed",
+            {
+                "team_id": effective_team_id,
+                "event_id": event_id,
+                "user_id": user_id,
+            },
+        )
+    skip_reason = team_join_user_skip_reason(user_obj or {"id": user_id}, bot_user_id)
+    if skip_reason:
+        if workspace_id:
+            await db_log_event(
+                env,
+                workspace_id,
+                "Team_Join_Welcome",
+                user_slack_id=user_id,
+                status="skipped",
+                channel_name="Direct Message",
+                request_data=json.dumps(
+                    {
+                        "stage": "preflight",
+                        "event_id": event_id,
+                        "reason": skip_reason,
+                        "source_team_id": team_id,
+                        "user_team_id": user_team_id,
+                    },
+                    separators=(",", ":"),
+                ),
+                channel_id="",
+                slack_team_id=effective_team_id,
+                webhook_body_type="event_callback",
+                webhook_event_id=event_id,
+                webhook_event_time=str((envelope or {}).get("event_time") or ""),
+                webhook_event_subtype="team_join",
+            )
+        return {
+            "ok": True,
+            "action": "team_join_welcome_skipped",
+            "reason": skip_reason,
+        }
     if workspace_id and event_id:
         try:
             if await db_has_team_join_welcome_event_id(env, workspace_id, event_id):
@@ -3823,12 +3898,12 @@ async def handle_team_join_event(
             log_exception_one_line(
                 error,
                 "team_join_duplicate_lookup_failed",
-                {"team_id": team_id, "event_id": event_id},
+                {"team_id": effective_team_id, "event_id": event_id},
             )
 
     welcome_text = render_team_join_message(
         {"user": user_obj or {"id": user_id}},
-        team_id,
+        effective_team_id,
     )
     if not welcome_text:
         return {"ok": True, "action": "team_join_no_template"}
@@ -3853,13 +3928,16 @@ async def handle_team_join_event(
         {"type": "section", "text": {"type": "mrkdwn", "text": welcome_text.strip()}}
     ]
 
-    dm_response = await slack_api_open_conversation(user_id, env, team_id=team_id)
+    dm_response = await slack_api_open_conversation(
+        user_id, env, team_id=effective_team_id
+    )
     dm_channel = ""
     if isinstance(dm_response.get("channel"), dict):
         dm_channel = str((dm_response.get("channel") or {}).get("id") or "")
     elif dm_response.get("channel"):
         dm_channel = str(dm_response.get("channel") or "")
     if not dm_response.get("ok") or not dm_channel:
+        error_code = dm_response.get("error") or "dm_open_failed"
         if workspace_id:
             await db_log_event(
                 env,
@@ -3872,25 +3950,27 @@ async def handle_team_join_event(
                     {
                         "stage": "open_conversation",
                         "event_id": event_id,
-                        "error": dm_response.get("error") or "dm_open_failed",
+                        "error": error_code,
+                        "source_team_id": team_id,
+                        "user_team_id": user_team_id,
                     },
                     separators=(",", ":"),
                 ),
                 channel_id="",
-                slack_team_id=team_id,
+                slack_team_id=effective_team_id,
                 webhook_body_type="event_callback",
                 webhook_event_id=event_id,
                 webhook_event_time=str((envelope or {}).get("event_time") or ""),
                 webhook_event_subtype="team_join",
             )
-        return {"ok": False, "error": dm_response.get("error") or "dm_open_failed"}
+        return {"ok": False, "error": error_code}
 
     logo_tracking_id = secrets.token_hex(12)
     send_result = await slack_api_send_message(
         dm_channel,
         "Welcome to the OWASP Slack Community!",
         env,
-        team_id=team_id,
+        team_id=effective_team_id,
         blocks=blocks,
         branding_tracking_id=logo_tracking_id,
     )
@@ -3908,12 +3988,14 @@ async def handle_team_join_event(
                     "event_id": event_id,
                     "logo_url": blt_logo_url(env),
                     "logo_tracking_id": logo_tracking_id,
+                    "source_team_id": team_id,
+                    "user_team_id": user_team_id,
                     "slack_response": send_result,
                 },
                 separators=(",", ":"),
             ),
             channel_id=dm_channel,
-            slack_team_id=team_id,
+            slack_team_id=effective_team_id,
             slack_response_data=json.dumps(send_result, sort_keys=True),
             webhook_body_type="event_callback",
             webhook_event_id=event_id,
