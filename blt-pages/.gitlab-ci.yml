@@ -1,0 +1,26 @@
+stages:
+  - test
+  - build
+
+test:
+  image: mcr.microsoft.com/playwright:v1.51.0-noble
+  stage: test
+  script:
+    - npm ci
+    - npm test
+
+update_leaderboard:
+  image: python:3.12
+  stage: build
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+    - if: '$CI_PIPELINE_SOURCE == "push"'
+  script:
+    - python scripts/generate_leaderboard.py
+    - test -f public/index.html
+    - test -f public/data/leaderboard.json
+  artifacts:
+    paths:
+      - public/
+    expire_in: 1 week

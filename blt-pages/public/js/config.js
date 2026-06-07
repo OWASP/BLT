@@ -10,11 +10,12 @@ const BLT_CONFIG = {
   /* ── Brand ── */
   ORG_NAME: "OWASP BLT",
   LOGO_URL:
-    "https://github.com/OWASP-BLT/BLT/raw/main/website/static/img/logos/logo.png",
+    "static/logo.png",
 
-  /* ── Repository ── */
-  REPO_OWNER: "OWASP-BLT",
-  REPO_NAME: "BLT-Pages",
+  /* ── GitLab project ── */
+  PROJECT_PATH: "owasp-blt/blt-pages",
+  PROJECT_URL: "https://gitlab.com/owasp-blt/blt-pages",
+  ISSUE_TEMPLATE: "Bug",
 
   /* ── External services ── */
   BLT_ZERO_URL: "https://zero.owaspblt.org",

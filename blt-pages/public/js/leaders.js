@@ -1,6 +1,6 @@
 /**
  * OWASP BLT – Leaders Page JavaScript
- * Handles elections, nominations, voting via GitHub Issues (zero-backend).
+ * Handles elections, nominations, voting via GitLab Issues (zero-backend).
  * License: AGPLv3
  */
 
@@ -11,6 +11,13 @@ let activeTab = 'elections';
 
 /** In-memory cache for reaction sets — avoids re-fetching on repeated modal opens. */
 const reactorsCache = new Map();
+const GITLAB_PROJECT_PATH = BLT_CONFIG.PROJECT_PATH || 'owasp-blt/blt-pages';
+const GITLAB_PROJECT_API_PATH = encodeURIComponent(GITLAB_PROJECT_PATH);
+const GITLAB_GROUP_PATH = GITLAB_PROJECT_PATH.split('/')[0];
+const GITLAB_PROJECT_URL = BLT_CONFIG.PROJECT_URL || `https://gitlab.com/${GITLAB_PROJECT_PATH}`;
+const GITLAB_ISSUES_URL = `${GITLAB_PROJECT_URL}/-/issues`;
+const GITLAB_NEW_ISSUE_URL = `${GITLAB_ISSUES_URL}/new`;
+const GITLAB_API_BASE = `https://gitlab.com/api/v4/projects/${GITLAB_PROJECT_API_PATH}`;
 
 /* ── Bootstrap ── */
 document.addEventListener('DOMContentLoaded', () => {
@@ -83,7 +90,7 @@ async function loadLeadersData() {
 }
 
 /**
- * Fetches ALL public repos from the OWASP-BLT org via GitHub API (paginated).
+ * Fetches ALL public repos from the OWASP-BLT org via GitLab API (paginated).
  * Caches results in sessionStorage for 10 minutes to avoid rate-limit exhaustion.
  * Filters out repos tagged with the "gsoc" topic.
  */
@@ -105,12 +112,12 @@ async function mergeOrgRepos() {
     const MAX_PAGES = 20;
     for (let page = 1; page <= MAX_PAGES; page++) {
       const res = await fetch(
-        `https://api.github.com/orgs/${BLT_CONFIG.REPO_OWNER}/repos?per_page=100&page=${page}&sort=updated&type=public`,
-        { headers: { Accept: 'application/vnd.github+json' } }
+        `https://gitlab.com/api/v4/groups/${encodeURIComponent(GITLAB_GROUP_PATH)}/projects?per_page=100&page=${page}&order_by=updated_at&sort=desc&include_subgroups=true`,
+        { headers: { Accept: 'application/json' } }
       );
       if (!res.ok) {
         if (res.status === 403 && res.headers.get('X-RateLimit-Remaining') === '0') {
-          showToast('GitHub API rate limit reached — showing cached projects only.');
+          showToast('GitLab API rate limit reached — showing cached projects only.');
         }
         break;
       }
@@ -127,7 +134,7 @@ async function mergeOrgRepos() {
         repos: allRepos.map(r => ({
           name: r.name,
           description: r.description || '',
-          html_url: r.html_url,
+          html_url: r.web_url,
           archived: r.archived,
           topics: r.topics || []
         }))
@@ -135,7 +142,7 @@ async function mergeOrgRepos() {
     } catch { /* sessionStorage quota exceeded or unavailable — skip caching */ }
     applyFetchedRepos(allRepos);
   } catch {
-    // GitHub API unavailable — use only leaders.json projects
+    // GitLab API unavailable — use only leaders.json projects
   }
 }
 
@@ -147,8 +154,8 @@ function applyFetchedRepos(allRepos) {
       id: r.name.toLowerCase(),
       name: r.name,
       description: r.description || '',
-      repo_url: r.html_url,
-      maintainer: BLT_CONFIG.REPO_OWNER,
+      repo_url: r.web_url,
+      maintainer: GITLAB_GROUP_PATH,
       active: !r.archived,
       gsoc: false,
       _fromApi: true
@@ -193,7 +200,7 @@ function renderAll() {
   renderPastWinners();
 }
 
-/* ── Session (GitHub login stored in localStorage) ── */
+/* ── Session (GitLab login stored in localStorage) ── */
 function restoreSession() {
   try {
     const saved = localStorage.getItem('blt-gh-user');
@@ -215,7 +222,7 @@ function updateAuthUI() {
     loginBtn.classList.add('hidden');
     userChip.classList.remove('hidden');
     userChip.classList.add('flex');  // must be flex, not block
-    if (userAvatar) userAvatar.src = currentUser.avatar_url || `https://github.com/${currentUser.login}.png`;
+    if (userAvatar) userAvatar.src = currentUser.avatar_url || `https://gitlab.com/${currentUser.login}.png`;
     if (userLogin) {
       userLogin.textContent = currentUser.login;
       // Show unverified badge for prompt-entered usernames
@@ -247,18 +254,18 @@ function logout() {
   renderAll();
 }
 
-/* ── GitHub OAuth (Device Flow redirect pattern) ── */
-// Since this is a static site, we use GitHub OAuth App redirect.
-// The user is sent to GitHub, then back to this page with ?gh_login=<login>&gh_avatar=<url>
+/* ── GitLab OAuth (Device Flow redirect pattern) ── */
+// Since this is a static site, we use GitLab OAuth App redirect.
+// The user is sent to GitLab, then back to this page with ?gl_login=<login>&gl_avatar=<url>
 // In production, a lightweight serverless function (Vercel/Netlify) handles the token exchange.
-// For the static demo, we simulate login via a prompt (contributors enter their GitHub username).
+// For the static demo, we simulate login via a prompt (contributors enter their GitLab username).
 document.addEventListener('DOMContentLoaded', () => {
   const params = new URLSearchParams(window.location.search);
-  if (params.get('gh_login')) {
+  if (params.get('gl_login')) {
     currentUser = {
-      login: params.get('gh_login'),
-      avatar_url: params.get('gh_avatar') || `https://github.com/${params.get('gh_login')}.png`,
-      html_url: `https://github.com/${params.get('gh_login')}`,
+      login: params.get('gl_login'),
+      avatar_url: params.get('gl_avatar') || `https://gitlab.com/${params.get('gl_login')}.png`,
+      html_url: `https://gitlab.com/${params.get('gl_login')}`,
       verified: false  // URL-param flow is unverified until real OAuth is wired up
     };
     localStorage.setItem('blt-gh-user', JSON.stringify(currentUser));
@@ -271,7 +278,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const loginBtnMobile = document.getElementById('gh-login-btn-mobile');
 
   function doLogin() {
-    // TODO: replace with real GitHub OAuth redirect when a serverless callback is available.
+    // TODO: replace with real GitLab OAuth redirect when a serverless callback is available.
     // For now, show an inline input rather than a blocking prompt().
     const existing = document.getElementById('demo-login-input');
     if (existing) { existing.focus(); return; }
@@ -280,7 +287,7 @@ document.addEventListener('DOMContentLoaded', () => {
     wrap.id = 'demo-login-input';
     wrap.className = 'fixed inset-x-0 bottom-0 z-[300] bg-white dark:bg-dark-surface border-t border-neutral-border dark:border-gray-700 p-4 flex items-center gap-3 shadow-lg';
     wrap.innerHTML = `
-      <input id="demo-login-field" type="text" placeholder="GitHub username (demo — unverified)"
+      <input id="demo-login-field" type="text" placeholder="GitLab username (demo — unverified)"
         class="flex-1 rounded-xl border border-neutral-border dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
       <button id="demo-login-confirm" class="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 transition-colors">Sign in</button>
       <button id="demo-login-cancel" class="rounded-xl border border-neutral-border dark:border-gray-600 px-4 py-2 text-sm font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">Cancel</button>`;
@@ -295,8 +302,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!login) return;
       currentUser = {
         login,
-        avatar_url: `https://github.com/${login}.png`,
-        html_url: `https://github.com/${login}`,
+        avatar_url: `https://gitlab.com/${login}.png`,
+        html_url: `https://gitlab.com/${login}`,
         verified: false
       };
       localStorage.setItem('blt-gh-user', JSON.stringify(currentUser));
@@ -402,7 +409,7 @@ async function openElectionModal(electionId) {
     <p class="text-sm">Loading nominees and vote counts…</p>
   </div>`;
 
-  // Fetch live 👍 counts from GitHub reactions API for voting_open, closed, and finalized
+  // Fetch live 👍 counts from GitLab reactions API for voting_open, closed, and finalized
   const canVote = el.status === 'voting_open';
   const showVotes = ['voting_open', 'closed', 'finalized'].includes(el.status);
   if (showVotes) await loadVoteCounts(electionId);
@@ -446,7 +453,7 @@ async function openElectionModal(electionId) {
       ${escHtml(el.eligibility_note)}</p>` : ''}
     ${canVote ? `<p class="text-xs text-gray-400 mb-4 flex items-center gap-1.5">
       <svg class="fa-icon text-primary" aria-hidden="true"><use href="#fa-circle-info"></use></svg>
-      Vote counts are live 👍 reactions on each nomination's GitHub Issue. Click "Vote on GitHub" to cast yours.
+      Vote counts are live 👍 reactions on each nomination's GitLab Issue. Click "Vote on GitLab" to cast yours.
     </p>` : ''}
     <div id="modal-nominees">${nomineesByRole}</div>
     <div class="mt-4 flex gap-3 flex-wrap">${nominateBtn}</div>`;
@@ -460,7 +467,7 @@ async function openElectionModal(electionId) {
   // Safe avatar fallback — avoids inline onerror XSS risk
   body.querySelectorAll('img[data-fallback-login]').forEach(img => {
     img.addEventListener('error', () => {
-      img.src = `https://github.com/identicons/${encodeURIComponent(img.dataset.fallbackLogin)}.png`;
+      img.style.visibility = 'hidden';
     }, { once: true });
   });
 
@@ -490,7 +497,7 @@ function nomineeCard(nom, canVote, maxVotes, showVotes) {
       data-vote-nominee="${escHtml(nom.nominee_login)}"
       data-vote-role="${escHtml(nom.role)}"
       class="vote-on-gh mt-3 inline-flex items-center gap-1.5 rounded-lg border border-primary px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary hover:text-white transition-colors">
-      👍 Vote on GitHub
+      👍 Vote on GitLab
     </button>`;
   }
 
@@ -504,19 +511,19 @@ function nomineeCard(nom, canVote, maxVotes, showVotes) {
   ).join('');
 
   const issueLink = nom.issue_number
-    ? `<a href="https://github.com/${BLT_CONFIG.REPO_OWNER}/${BLT_CONFIG.REPO_NAME}/issues/${nom.issue_number}"
+    ? `<a href="${GITLAB_ISSUES_URL}/${nom.issue_number}"
          target="_blank" rel="noopener noreferrer"
          class="text-xs text-gray-400 hover:text-primary transition-colors mt-1 inline-flex items-center gap-1">
-         <svg class="fa-icon" aria-hidden="true"><use href="#fa-github"></use></svg>#${nom.issue_number}
+         <svg class="fa-icon" aria-hidden="true"><use href="#fa-gitlab"></use></svg>#${nom.issue_number}
        </a>` : '';
 
   return `<div class="surface-card rounded-xl p-4 mb-3">
     <div class="flex items-center gap-3 mb-2">
-      <img src="${escHtml(nom.nominee_avatar || `https://github.com/${nom.nominee_login}.png`)}"
+      <img src="${escHtml(nom.nominee_avatar || `https://gitlab.com/${nom.nominee_login}.png`)}"
            alt="${escHtml(nom.nominee_login)}" class="w-9 h-9 rounded-full border border-neutral-border dark:border-gray-700" loading="lazy"
            data-fallback-login="${escHtml(nom.nominee_login)}" />
       <div class="min-w-0 flex-1">
-        <a href="https://github.com/${escHtml(nom.nominee_login)}" target="_blank" rel="noopener noreferrer"
+        <a href="https://gitlab.com/${escHtml(nom.nominee_login)}" target="_blank" rel="noopener noreferrer"
            class="font-bold text-gray-900 dark:text-white hover:text-primary transition-colors text-sm">
           ${escHtml(nom.nominee_login)}
         </a>${selfTag}
@@ -544,7 +551,7 @@ function openNominationForm(electionId) {
   if (!formModal || !formBody) return;
 
   if (!currentUser) {
-    showToast('Please sign in with GitHub before nominating.');
+    showToast('Please sign in with GitLab before nominating.');
     return;
   }
 
@@ -561,10 +568,10 @@ function openNominationForm(electionId) {
         </select>
       </div>
       <div>
-        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1" for="nom-nominee">Nominee GitHub Username</label>
+        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1" for="nom-nominee">Nominee GitLab Username</label>
         <input id="nom-nominee" type="text" value="${escHtml(currentUser.login)}"
           class="w-full rounded-xl border border-neutral-border dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-          placeholder="github-username" />
+          placeholder="gitlab-username" />
         <p class="text-xs text-gray-400 mt-1">Leave as your username to self-nominate.</p>
       </div>
       <div>
@@ -611,7 +618,7 @@ function openNominationForm(electionId) {
   });
 }
 
-/* ── Submit Nomination (via GitHub Issue) ── */
+/* ── Submit Nomination (via GitLab Issue) ── */
 function submitNomination(electionId, el, project) {
   const role = document.getElementById('nom-role').value.trim();
   const nominee = document.getElementById('nom-nominee').value.trim();
@@ -649,24 +656,24 @@ function submitNomination(electionId, el, project) {
     `_Submitted via BLT Leaders page_`
   ].join('\n');
 
-  const issueUrl = `https://github.com/${BLT_CONFIG.REPO_OWNER}/${BLT_CONFIG.REPO_NAME}/issues/new?`
-    + `title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}&labels=nomination,leadership`;
+  const issueUrl = `${GITLAB_NEW_ISSUE_URL}?`
+    + `issue[title]=${encodeURIComponent(title)}&issue[description]=${encodeURIComponent(body)}&label_name[]=nomination&label_name[]=leadership`;
 
   window.open(issueUrl, '_blank', 'noopener,noreferrer');
 
   document.getElementById('nomination-modal').classList.add('hidden');
   document.getElementById('nomination-modal').classList.remove('flex');
 
-  showToast('Nomination opened as a GitHub Issue. Submit it to complete your nomination.');
+  showToast('Nomination opened as a GitLab Issue. Submit it to complete your nomination.');
 }
 
-/* ── Voting via GitHub Reactions ── */
+/* ── Voting via GitLab Reactions ── */
 // Each nomination has an issue_number. Votes = 👍 reactions on that issue.
-// To vote: user clicks "Vote on GitHub" → taken to the issue to react with 👍.
-// Vote counts are fetched live from the GitHub reactions API.
+// To vote: user clicks "Vote on GitLab" → taken to the issue to react with 👍.
+// Vote counts are fetched live from the GitLab reactions API.
 
 /**
- * Fetch the set of GitHub user node_ids who 👍'd an issue (paginated).
+ * Fetch the set of GitLab user node_ids who 👍'd an issue (paginated).
  * Null-safe: skips reactions where r.user is null (deleted accounts).
  */
 async function fetchThumbsUpReactors(issueNumber) {
@@ -677,13 +684,15 @@ async function fetchThumbsUpReactors(issueNumber) {
   try {
     for (let page = 1; page <= MAX_PAGES; page++) {
       const res = await fetch(
-        `https://api.github.com/repos/${BLT_CONFIG.REPO_OWNER}/${BLT_CONFIG.REPO_NAME}/issues/${issueNumber}/reactions?content=%2B1&per_page=100&page=${page}`,
-        { headers: { Accept: 'application/vnd.github+json' } }
+        `${GITLAB_API_BASE}/issues/${issueNumber}/award_emoji?per_page=100&page=${page}`,
+        { headers: { Accept: 'application/json' } }
       );
       if (!res.ok) break;
       const data = await res.json();
       if (!Array.isArray(data) || data.length === 0) break;
-      data.forEach(r => { if (r.user?.node_id) reactors.add(r.user.node_id); });
+      data
+        .filter(r => r.name === 'thumbsup')
+        .forEach(r => { if (r.user?.id) reactors.add(r.user.id); });
       if (data.length < 100) break;
     }
   } catch { /* network error — return what we have */ }
@@ -731,17 +740,17 @@ async function loadVoteCounts(electionId) {
 }
 
 /**
- * "Vote" button just takes the user to the GitHub issue to 👍 it.
- * No backend needed — GitHub enforces one reaction per account.
+ * "Vote" button just takes the user to the GitLab issue to 👍 it.
+ * No backend needed — GitLab enforces one reaction per account.
  */
 function openVoteIssue(issueNumber, nomineeLogin, role) {
   if (!currentUser) {
-    showToast('Sign in with GitHub first, then 👍 the nomination issue to vote.');
+    showToast('Sign in with GitLab first, then 👍 the nomination issue to vote.');
     return;
   }
-  const url = `https://github.com/${BLT_CONFIG.REPO_OWNER}/${BLT_CONFIG.REPO_NAME}/issues/${issueNumber}`;
+  const url = `${GITLAB_ISSUES_URL}/${issueNumber}`;
   window.open(url, '_blank', 'noopener,noreferrer');
-  showToast(`👍 the issue on GitHub to cast your vote for @${nomineeLogin} as ${role}.`);
+  showToast(`👍 the issue on GitLab to cast your vote for @${nomineeLogin} as ${role}.`);
 }
 
 /* ── Direct Nomination (any project, no admin required) ── */
@@ -758,12 +767,12 @@ function openDirectNominationForm(preselectedProjectId) {
   const nomineeDefault = currentUser ? escHtml(currentUser.login) : '';
   const anonNote = currentUser ? '' : `
     <p class="text-xs text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg px-3 py-2 mb-2">
-      <strong>Note:</strong> You are not signed in. Your GitHub identity won't be recorded as the nominator — sign in with GitHub before submitting if you want to be credited.
+      <strong>Note:</strong> You are not signed in. Your GitLab identity won't be recorded as the nominator — sign in with GitLab before submitting if you want to be credited.
     </p>`;
 
   formBody.innerHTML = `
     <h3 class="text-xl font-extrabold text-gray-900 dark:text-white mb-1">Start a Nomination</h3>
-    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Nominate yourself or another contributor for any project leadership role. A GitHub Issue will be created — votes are 👍 reactions on that issue.</p>
+    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Nominate yourself or another contributor for any project leadership role. A GitLab Issue will be created — votes are 👍 reactions on that issue.</p>
     <form id="direct-nomination-form" class="space-y-4">
       ${anonNote}
       <div>
@@ -781,10 +790,10 @@ function openDirectNominationForm(preselectedProjectId) {
         </select>
       </div>
       <div>
-        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1" for="dn-nominee">Nominee GitHub Username</label>
+        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1" for="dn-nominee">Nominee GitLab Username</label>
         <input id="dn-nominee" type="text" value="${nomineeDefault}"
           class="w-full rounded-xl border border-neutral-border dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-          placeholder="github-username" />
+          placeholder="gitlab-username" />
         <p class="text-xs text-gray-400 mt-1">Leave as your username to self-nominate.</p>
       </div>
       <div>
@@ -808,7 +817,7 @@ function openDirectNominationForm(preselectedProjectId) {
       <div class="flex gap-3 pt-2">
         <button type="submit"
           class="flex-1 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-700 transition-colors">
-          Submit Nomination via GitHub Issue
+          Submit Nomination via GitLab Issue
         </button>
         <button type="button" id="dn-cancel"
           class="rounded-xl border border-neutral-border dark:border-gray-600 px-4 py-2.5 text-sm font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
@@ -872,13 +881,13 @@ function submitDirectNomination() {
     `_Submitted via BLT Leaders page. Vote by reacting with 👍 on this issue._`
   ].filter(line => line !== null).join('\n');
 
-  const issueUrl = `https://github.com/${BLT_CONFIG.REPO_OWNER}/${BLT_CONFIG.REPO_NAME}/issues/new?`
-    + `title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}&labels=nomination,leadership`;
+  const issueUrl = `${GITLAB_NEW_ISSUE_URL}?`
+    + `issue[title]=${encodeURIComponent(title)}&issue[description]=${encodeURIComponent(body)}&label_name[]=nomination&label_name[]=leadership`;
 
   window.open(issueUrl, '_blank', 'noopener,noreferrer');
   document.getElementById('nomination-modal').classList.add('hidden');
   document.getElementById('nomination-modal').classList.remove('flex');
-  showToast('Nomination opened as a GitHub Issue. Submit it to complete your nomination — votes are 👍 reactions.');
+  showToast('Nomination opened as a GitLab Issue. Submit it to complete your nomination — votes are 👍 reactions.');
 }
 
 /* ── Projects Panel ── */
@@ -901,7 +910,7 @@ function renderProjects() {
     const gsocTag = p.gsoc ? `<span class="ml-2 text-xs bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 rounded-full px-2 py-0.5">GSoC</span>` : '';
     const leadersHtml = winners.length
       ? winners.map(w => `<span class="inline-flex items-center gap-1.5 text-xs font-medium text-gray-700 dark:text-gray-300">
-          <img src="${escHtml(w.avatar || `https://github.com/${w.login}.png`)}" class="w-5 h-5 rounded-full" loading="lazy"
+          <img src="${escHtml(w.avatar || `https://gitlab.com/${w.login}.png`)}" class="w-5 h-5 rounded-full" loading="lazy"
                data-fallback-login="${escHtml(w.login)}" />
           ${escHtml(w.login)} <span class="text-gray-400">(${escHtml(w.role)})</span>
         </span>`).join('')
@@ -918,7 +927,7 @@ function renderProjects() {
       <div class="flex items-center justify-between gap-3 flex-wrap pt-1 border-t border-neutral-border dark:border-gray-700">
         <a href="${escHtml(p.repo_url || '#')}" target="_blank" rel="noopener noreferrer"
            class="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400 hover:text-primary transition-colors">
-          <svg class="fa-icon" aria-hidden="true"><use href="#fa-github"></use></svg>View Repo
+          <svg class="fa-icon" aria-hidden="true"><use href="#fa-gitlab"></use></svg>View Repo
         </a>
         <div class="flex items-center gap-2 flex-wrap">
           ${activeEl ? `<button data-open-election="${escHtml(activeEl.id)}"
@@ -948,7 +957,7 @@ function renderProjects() {
   // Safe avatar fallback for project leader chips
   container.querySelectorAll('img[data-fallback-login]').forEach(img => {
     img.addEventListener('error', () => {
-      img.src = `https://github.com/identicons/${encodeURIComponent(img.dataset.fallbackLogin)}.png`;
+      img.style.visibility = 'hidden';
     }, { once: true });
   });
 }
@@ -976,11 +985,11 @@ function renderPastWinners() {
     const date = new Date(pw.finalized_at).toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
     const winnersHtml = (pw.winners || []).map(w => `
       <div class="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-800">
-        <img src="${escHtml(w.avatar || `https://github.com/${w.login}.png`)}"
+        <img src="${escHtml(w.avatar || `https://gitlab.com/${w.login}.png`)}"
              alt="${escHtml(w.login)}" class="w-10 h-10 rounded-full border-2 border-primary" loading="lazy"
              data-fallback-login="${escHtml(w.login)}" />
         <div class="min-w-0">
-          <a href="https://github.com/${escHtml(w.login)}" target="_blank" rel="noopener noreferrer"
+          <a href="https://gitlab.com/${escHtml(w.login)}" target="_blank" rel="noopener noreferrer"
              class="font-bold text-gray-900 dark:text-white hover:text-primary transition-colors text-sm">
             ${escHtml(w.login)}
           </a>
@@ -1003,7 +1012,7 @@ function renderPastWinners() {
   // Safe avatar fallback for past winners
   container.querySelectorAll('img[data-fallback-login]').forEach(img => {
     img.addEventListener('error', () => {
-      img.src = `https://github.com/identicons/${encodeURIComponent(img.dataset.fallbackLogin)}.png`;
+      img.style.visibility = 'hidden';
     }, { once: true });
   });
 }

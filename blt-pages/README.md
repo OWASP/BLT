@@ -2,9 +2,9 @@
 
 [![OWASP](https://img.shields.io/badge/OWASP-Project-blue?logo=owasp)](https://owasp.org/www-project-bug-logging-tool/)
 [![License: AGPLv3](https://img.shields.io/badge/License-AGPL_v3-red.svg)](https://www.gnu.org/licenses/agpl-3.0)
-[![GitHub Pages](https://img.shields.io/badge/Deployed-GitHub_Pages-222?logo=github)](https://owasp-blt.github.io/BLT-Pages/)
+[![Cloudflare](https://img.shields.io/badge/Deployed-Cloudflare-F38020?logo=cloudflare)](https://pages.owaspblt.org/)
 
-Community-powered bug-reporting platform built on GitHub Pages, part of the
+Community-powered bug-reporting platform hosted from `public/` on Cloudflare, part of the
 [OWASP Bug Logging Tool (BLT)](https://owasp.org/www-project-bug-logging-tool/) project.
 
 ---
@@ -14,9 +14,9 @@ Community-powered bug-reporting platform built on GitHub Pages, part of the
 | Feature | Description |
 |---|---|
 | 🐛 **Public bug reports** | 404/500 errors, functional, performance, typos, design, IP violations |
-| 🕶️ **Anonymous reporting** | Submit via [BLT-API](https://blt.owasp.org/api) — no GitHub account required |
+| 🕶️ **Anonymous reporting** | Submit via [BLT-API](https://blt.owasp.org/api) — no GitLab account required |
 | 🔒 **Security vulnerabilities** | Zero-log, zero-tracking via [BLT-Zero](https://zero.owaspblt.org) |
-| 🏆 **Leaderboard** | Auto-updated every 6 h by GitHub Actions |
+| 🏆 **Leaderboard** | Generated from GitLab issues |
 
 ---
 
@@ -24,7 +24,8 @@ Community-powered bug-reporting platform built on GitHub Pages, part of the
 
 - **Pure HTML + Tailwind CSS** (CDN) — no build step
 - **Font Awesome** (CDN)
-- **GitHub Actions** for leaderboard generation
+- **GitLab CI** for tests and leaderboard generation
+- **Cloudflare Workers Static Assets** serving `public/`
 - **BLT-API** for anonymous report submission
 
 ---
@@ -36,28 +37,26 @@ static file server:
 
 ```bash
 # Python
-python -m http.server 8080
+python -m http.server 8080 --directory public
 
 # Node
-npx serve .
+npx serve public
 ```
 
 ---
 
-## GitHub Actions
+## GitLab CI
 
 | Workflow | Trigger | Purpose |
 |---|---|---|
-| `update-leaderboard.yml` | Schedule (6 h) · issue events · manual | Regenerates `data/leaderboard.json` from all `bug`-labelled issues |
+| `.gitlab-ci.yml` | Push · schedule · manual | Runs tests and regenerates `public/data/leaderboard.json` from all `bug`-labelled GitLab issues |
 
 ---
 
 ## Issue Template
 
-Bug reports use the structured YAML template at
-[`.github/ISSUE_TEMPLATE/bug_report.yml`](.github/ISSUE_TEMPLATE/bug_report.yml).
-Fields include `title`, `link`, `LOGO_URL`, and `ORG_NAME` so the template is
-generic and reusable across forks.
+Bug reports use the GitLab issue template at
+[`.gitlab/issue_templates/Bug.md`](.gitlab/issue_templates/Bug.md).
 
 ---
 

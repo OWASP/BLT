@@ -2,15 +2,16 @@
 """
 Generate leaderboard data and pre-render index.html for OWASP BLT Pages.
 
-Fetches all bug-labelled issues from GitHub, builds leaderboard / commenter /
+Fetches all bug-labelled issues from GitLab, builds leaderboard / commenter /
 domain / recent-bug statistics, writes ``data/leaderboard.json``, and patches
 ``index.html`` with server-side-rendered (SSR) content so the page is useful
 even when JavaScript is blocked.
 
 Required environment variables:
-  GITHUB_TOKEN      – Personal access token or Actions secret
-  GITHUB_REPOSITORY – owner/repo  (e.g. OWASP-BLT/BLT-Pages)
-  GITHUB_SHA        – Current commit SHA (optional; used in timestamp link)
+  GITLAB_TOKEN      - Personal/project access token (optional)
+  CI_JOB_TOKEN      - GitLab CI job token (optional fallback)
+  CI_PROJECT_PATH   - namespace/project (e.g. owasp-blt/blt-pages)
+  CI_COMMIT_SHA     - Current commit SHA (optional; used in timestamp link)
 
 License: AGPLv3
 """
@@ -29,31 +30,37 @@ import urllib.error
 # ---------------------------------------------------------------------------
 # Configuration from environment
 # ---------------------------------------------------------------------------
-TOKEN = os.environ.get("GITHUB_TOKEN", "")
-REPOSITORY = os.environ.get("GITHUB_REPOSITORY", "OWASP-BLT/BLT-Pages")
-COMMIT_SHA = os.environ.get("GITHUB_SHA", "")
+TOKEN = os.environ.get("GITLAB_TOKEN", "")
+JOB_TOKEN = os.environ.get("CI_JOB_TOKEN", "")
+PROJECT_PATH = os.environ.get("CI_PROJECT_PATH", "owasp-blt/blt-pages")
+COMMIT_SHA = os.environ.get("CI_COMMIT_SHA", "")
+PUBLIC_DIR = os.environ.get("PUBLIC_DIR", "public")
 
-if "/" not in REPOSITORY:
-    print(f"ERROR: GITHUB_REPOSITORY must be 'owner/repo', got: {REPOSITORY}", file=sys.stderr)
+if "/" not in PROJECT_PATH:
+    print(f"ERROR: CI_PROJECT_PATH must be 'namespace/project', got: {PROJECT_PATH}", file=sys.stderr)
     sys.exit(1)
 
-OWNER, REPO = REPOSITORY.split("/", 1)
-BASE_URL = f"https://api.github.com/repos/{OWNER}/{REPO}"
+PROJECT_API_PATH = urllib.parse.quote(PROJECT_PATH, safe="")
+BASE_URL = f"https://gitlab.com/api/v4/projects/{PROJECT_API_PATH}"
+PROJECT_URL = f"https://gitlab.com/{PROJECT_PATH}"
+NEW_BUG_URL = f"{PROJECT_URL}/-/issues/new?issuable_template=Bug"
+ISSUES_URL = f"{PROJECT_URL}/-/issues"
 
 HEADERS = {
-    "Accept": "application/vnd.github+json",
-    "X-GitHub-Api-Version": "2022-11-28",
+    "Accept": "application/json",
     "User-Agent": "BLT-Pages-leaderboard-generator",
 }
 if TOKEN:
-    HEADERS["Authorization"] = f"Bearer {TOKEN}"
+    HEADERS["PRIVATE-TOKEN"] = TOKEN
+elif JOB_TOKEN:
+    HEADERS["JOB-TOKEN"] = JOB_TOKEN
 
 # ---------------------------------------------------------------------------
-# GitHub API helpers
+# GitLab API helpers
 # ---------------------------------------------------------------------------
 
 def paginate(url, params=None):
-    """Fetch every page of a GitHub list endpoint and return all items."""
+    """Fetch every page of a GitLab list endpoint and return all items."""
     items = []
     page = 1
     while True:
@@ -68,6 +75,7 @@ def paginate(url, params=None):
         req = urllib.request.Request(paged_url, headers=HEADERS)
         try:
             with urllib.request.urlopen(req) as resp:
+                resp_headers = resp.headers
                 data = json.loads(resp.read().decode())
         except urllib.error.HTTPError as exc:
             print(f"HTTP {exc.code} for {paged_url}: {exc.reason}", file=sys.stderr)
@@ -75,9 +83,10 @@ def paginate(url, params=None):
         if not data:
             break
         items.extend(data)
-        if len(data) < 100:
+        next_page = resp_headers.get("X-Next-Page", "")
+        if not next_page and len(data) < 100:
             break
-        page += 1
+        page = int(next_page) if next_page else page + 1
     return items
 
 # ---------------------------------------------------------------------------
@@ -116,6 +125,47 @@ def extract_first_image(body):
     if html:
         return html.group(1)
     return None
+
+
+def user_login(user):
+    return user.get("username") or user.get("login") or "unknown"
+
+
+def user_profile_url(user):
+    return user.get("web_url") or user.get("html_url") or f"https://gitlab.com/{user_login(user)}"
+
+
+def user_avatar_url(user):
+    return user.get("avatar_url") or f"https://gitlab.com/uploads/-/system/user/avatar/{user_login(user)}"
+
+
+def issue_body(issue):
+    return issue.get("description") or issue.get("body") or ""
+
+
+def issue_url(issue):
+    return issue.get("web_url") or issue.get("html_url") or f"{ISSUES_URL}/{issue.get('iid', issue.get('number', ''))}"
+
+
+def issue_number(issue):
+    return issue.get("iid") or issue.get("number")
+
+
+def issue_comment_count(issue):
+    return issue.get("user_notes_count", issue.get("comments", 0))
+
+
+def normalize_reactions(awards):
+    counts = {}
+    for award in awards:
+        name = award.get("name")
+        if name == "thumbsup":
+            name = "+1"
+        elif name == "thumbsdown":
+            name = "-1"
+        if name:
+            counts[name] = counts.get(name, 0) + 1
+    return counts
 
 # ---------------------------------------------------------------------------
 # HTML-rendering helpers
@@ -198,7 +248,7 @@ def render_leaderboard_rows(leaderboard):
             '<svg class="fa-icon text-4xl text-gray-300 dark:text-gray-600 block mb-3" aria-hidden="true">'
             '<use href="#fa-trophy"></use></svg>'
             'No reports yet. Be the first to '
-            '<a href="https://github.com/OWASP-BLT/BLT-Pages/issues/new?template=bug_report.yml" '
+            f'<a href="{NEW_BUG_URL}" '
             'class="text-primary underline hover:no-underline">report a bug</a>!'
             '</td></tr>'
         )
@@ -207,8 +257,8 @@ def render_leaderboard_rows(leaderboard):
     for entry in leaderboard:
         rank = entry["rank"]
         pct = min(100.0, entry["count"] / max_lb * 100)
-        profile_url = esc(entry.get("profile_url") or f"https://github.com/{entry['login']}")
-        avatar_url = esc(entry.get("avatar_url") or f"https://github.com/{entry['login']}.png")
+        profile_url = esc(entry.get("profile_url") or f"https://gitlab.com/{entry['login']}")
+        avatar_url = esc(entry.get("avatar_url") or "")
         login = esc(entry["login"])
         rows.append(
             f'<tr class="{_row_class(rank)} transition-colors">'
@@ -218,7 +268,7 @@ def render_leaderboard_rows(leaderboard):
             f'class="flex items-center gap-3 group min-w-0">'
             f'<img src="{avatar_url}" alt="{login}&#039;s avatar" '
             f'class="w-8 h-8 rounded-full border border-neutral-border dark:border-gray-700 flex-shrink-0" '
-            f'loading="lazy" onerror="this.src=&#039;https://github.com/identicons/{login}.png&#039;" />'
+            f'loading="lazy" />'
             f'<span class="font-medium text-gray-900 dark:text-white group-hover:text-primary '
             f'transition-colors truncate min-w-0 flex-1">{login}</span></a>'
             f'<div class="flex sm:hidden items-center gap-2 mt-1 pl-11">'
@@ -248,7 +298,7 @@ def render_commenters_rows(commenters):
             '<svg class="fa-icon text-4xl text-gray-300 dark:text-gray-600 block mb-3" aria-hidden="true">'
             '<use href="#fa-comment"></use></svg>'
             'No comments yet. Start a conversation on a '
-            '<a href="https://github.com/OWASP-BLT/BLT-Pages/issues" '
+            f'<a href="{ISSUES_URL}" '
             'class="text-primary underline hover:no-underline" '
             'target="_blank" rel="noopener noreferrer">bug report</a>!'
             '</td></tr>'
@@ -258,8 +308,8 @@ def render_commenters_rows(commenters):
     for entry in commenters:
         rank = entry["rank"]
         pct = min(100.0, entry["count"] / max_cm * 100)
-        profile_url = esc(entry.get("profile_url") or f"https://github.com/{entry['login']}")
-        avatar_url = esc(entry.get("avatar_url") or f"https://github.com/{entry['login']}.png")
+        profile_url = esc(entry.get("profile_url") or f"https://gitlab.com/{entry['login']}")
+        avatar_url = esc(entry.get("avatar_url") or "")
         login = esc(entry["login"])
         rows.append(
             f'<tr class="{_row_class(rank)} transition-colors">'
@@ -269,7 +319,7 @@ def render_commenters_rows(commenters):
             f'class="flex items-center gap-3 group min-w-0">'
             f'<img src="{avatar_url}" alt="{login}&#039;s avatar" '
             f'class="w-8 h-8 rounded-full border border-neutral-border dark:border-gray-700 flex-shrink-0" '
-            f'loading="lazy" onerror="this.src=&#039;https://github.com/identicons/{login}.png&#039;" />'
+            f'loading="lazy" />'
             f'<span class="font-medium text-gray-900 dark:text-white group-hover:text-primary '
             f'transition-colors truncate min-w-0 flex-1">{login}</span></a>'
             f'<div class="flex sm:hidden items-center gap-2 mt-1 pl-11">'
@@ -299,7 +349,7 @@ def render_domains_rows(domains):
             '<svg class="fa-icon text-4xl text-gray-300 dark:text-gray-600 block mb-3" aria-hidden="true">'
             '<use href="#fa-globe"></use></svg>'
             'No domain data yet. '
-            '<a href="https://github.com/OWASP-BLT/BLT-Pages/issues/new?template=bug_report.yml" '
+            f'<a href="{NEW_BUG_URL}" '
             'class="text-primary underline hover:no-underline">Be the first to report a bug!</a>'
             '</td></tr>'
         )
@@ -350,7 +400,7 @@ def render_recent_bugs(bugs):
             '<svg class="fa-icon text-4xl text-gray-300 dark:text-gray-600 block mb-3" aria-hidden="true">'
             '<use href="#fa-bug"></use></svg>'
             'No bug reports yet. '
-            '<a href="https://github.com/OWASP-BLT/BLT-Pages/issues/new?template=bug_report.yml" '
+            f'<a href="{NEW_BUG_URL}" '
             'class="text-primary hover:underline">Be the first to report!</a></div>'
         )
     cards = []
@@ -373,8 +423,8 @@ def render_recent_bugs(bugs):
 
         dt = datetime.fromisoformat(bug["created_at"].replace("Z", "+00:00"))
         date = _fmt_date(dt)
-        avatar_url = esc(bug["user"].get("avatar_url") or f"https://github.com/{bug['user']['login']}.png")
-        profile_url = esc(bug["user"].get("profile_url") or f"https://github.com/{bug['user']['login']}")
+        avatar_url = esc(bug["user"].get("avatar_url") or "")
+        profile_url = esc(bug["user"].get("profile_url") or f"https://gitlab.com/{bug['user']['login']}")
         login = esc(bug["user"]["login"])
         reactions_html = ssr_reactions(bug.get("reactions"))
 
@@ -395,8 +445,8 @@ def render_recent_bugs(bugs):
         comment_html = ""
         if isinstance(comment_count, int) and comment_count > 0 and bug.get("latest_comment"):
             c = bug["latest_comment"]["user"]
-            c_avatar = esc(c.get("avatar_url") or f"https://github.com/{c['login']}.png")
-            c_profile = esc(c.get("profile_url") or f"https://github.com/{c['login']}")
+            c_avatar = esc(c.get("avatar_url") or "")
+            c_profile = esc(c.get("profile_url") or f"https://gitlab.com/{c['login']}")
             c_login = esc(c["login"])
             c_body = esc(re.sub(r"\s+", " ", (bug["latest_comment"].get("body") or "")).strip())
             c_label = "1 comment" if comment_count == 1 else f"{fmt(comment_count)} comments"
@@ -406,7 +456,7 @@ def render_recent_bugs(bugs):
                 f'<a href="{c_profile}" target="_blank" rel="noopener noreferrer" class="flex-shrink-0">'
                 f'<img src="{c_avatar}" alt="{c_login}&#039;s avatar" '
                 f'class="w-6 h-6 rounded-full border border-neutral-border dark:border-gray-700" '
-                f'loading="lazy" onerror="this.src=&#039;https://github.com/identicons/{c_login}.png&#039;" /></a>'
+                f'loading="lazy" /></a>'
                 f'<div class="min-w-0 flex-1">'
                 f'<p class="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">{c_body}</p>'
                 f'<a href="{esc(bug["html_url"])}" target="_blank" rel="noopener noreferrer" '
@@ -437,7 +487,7 @@ def render_recent_bugs(bugs):
             f'class="flex items-center gap-2 group">'
             f'<img src="{avatar_url}" alt="{login}&#039;s avatar" '
             f'class="w-7 h-7 rounded-full border border-neutral-border dark:border-gray-700" '
-            f'loading="lazy" onerror="this.src=&#039;https://github.com/identicons/{login}.png&#039;" />'
+            f'loading="lazy" />'
             f'<span class="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-primary transition-colors">'
             f'{login}</span></a>{reactions_html}</div>'
             f'<span class="text-xs text-gray-400 dark:text-gray-500">{date}</span></div>'
@@ -508,7 +558,7 @@ def patch_html(html, payload):
         sha = payload.get("commit_sha", "")
         homepage_ts = f"Last updated: {esc(updated_full)}"
         if sha and re.match(r"^[0-9a-f]{7,40}$", sha, re.I):
-            commit_url = f"https://github.com/{REPOSITORY}/commit/{sha}"
+            commit_url = f"{PROJECT_URL}/-/commit/{sha}"
             homepage_ts += (
                 f' &mdash; <a href="{esc(commit_url)}" target="_blank" '
                 f'rel="noopener noreferrer" class="hover:underline">{esc(sha[:7])}</a>'
@@ -583,27 +633,28 @@ def patch_html(html, payload):
 # ---------------------------------------------------------------------------
 
 def main():
-    print(f"Fetching issues for {OWNER}/{REPO} …")
+    print(f"Fetching issues for {PROJECT_PATH} …")
 
     # Fetch all bug-labelled issues (all states)
     all_issues = paginate(f"{BASE_URL}/issues", {"state": "all", "labels": "bug"})
-    bug_issues = [i for i in all_issues if not i.get("pull_request")]
+    bug_issues = all_issues
     print(f"  {len(bug_issues)} bug issues found")
 
     # ── Leaderboard ──────────────────────────────────────────────────────────
     counts = {}
     org_set = set()
     for issue in bug_issues:
-        login = issue["user"]["login"]
+        login = user_login(issue["author"])
         if login not in counts:
             counts[login] = {
                 "count": 0,
-                "avatar_url": issue["user"]["avatar_url"],
-                "profile_url": issue["user"]["html_url"],
+                "avatar_url": user_avatar_url(issue["author"]),
+                "profile_url": user_profile_url(issue["author"]),
             }
         counts[login]["count"] += 1
-        if issue.get("body"):
-            m = re.search(r"### Organization Name.*?\n\n(.+)", issue["body"], re.DOTALL)
+        body = issue_body(issue)
+        if body:
+            m = re.search(r"### Organization Name.*?\n\n(.+)", body, re.DOTALL)
             if m:
                 org_set.add(m.group(1).strip().split("\n")[0])
 
@@ -617,7 +668,7 @@ def main():
     # ── Top domains ───────────────────────────────────────────────────────────
     domain_counts = {}
     for issue in bug_issues:
-        domain = extract_domain(issue.get("body"))
+        domain = extract_domain(issue_body(issue))
         if domain:
             domain_counts[domain] = domain_counts.get(domain, 0) + 1
 
@@ -631,12 +682,13 @@ def main():
     # ── Top commenters & comment map ─────────────────────────────────────────
     print("  Fetching comments …")
 
-    issues_needing_comments = [i for i in bug_issues if i["comments"] > 0]
+    issues_needing_comments = [i for i in bug_issues if issue_comment_count(i) > 0]
 
     def fetch_comments(issue):
-        return issue["number"], paginate(f"{BASE_URL}/issues/{issue['number']}/comments")
+        number = issue_number(issue)
+        return number, paginate(f"{BASE_URL}/issues/{number}/notes")
 
-    issue_comments_map = {i["number"]: [] for i in bug_issues}
+    issue_comments_map = {issue_number(i): [] for i in bug_issues}
     with ThreadPoolExecutor(max_workers=10) as executor:
         futures = {executor.submit(fetch_comments, issue): issue for issue in issues_needing_comments}
         for future in as_completed(futures):
@@ -646,14 +698,16 @@ def main():
     comment_counts = {}
     for comments in issue_comments_map.values():
         for comment in comments:
-            c_login = comment["user"]["login"]
+            if comment.get("system"):
+                continue
+            c_login = user_login(comment["author"])
             if c_login.endswith("[bot]"):
                 continue
             if c_login not in comment_counts:
                 comment_counts[c_login] = {
                     "count": 0,
-                    "avatar_url": comment["user"]["avatar_url"],
-                    "profile_url": comment["user"]["html_url"],
+                    "avatar_url": user_avatar_url(comment["author"]),
+                    "profile_url": user_profile_url(comment["author"]),
                 }
             comment_counts[c_login]["count"] += 1
 
@@ -672,36 +726,34 @@ def main():
     )
     recent_bugs = []
     for issue in open_bugs[:3]:
-        comments = issue_comments_map.get(issue["number"], [])
+        comments = issue_comments_map.get(issue_number(issue), [])
         latest_comment = comments[-1] if comments else None
-        reactions = {
-            k: v
-            for k, v in (issue.get("reactions") or {}).items()
-            if k in ("+1", "-1", "laugh", "hooray", "confused", "heart", "rocket", "eyes")
-            and v > 0
-        }
+        reactions = normalize_reactions(
+            paginate(f"{BASE_URL}/issues/{issue_number(issue)}/award_emoji")
+        )
+        reactions = {k: v for k, v in reactions.items() if k in REACTION_EMOJIS and v > 0}
         recent_bugs.append({
-            "number": issue["number"],
+            "number": issue_number(issue),
             "title": issue["title"],
-            "html_url": issue["html_url"],
+            "html_url": issue_url(issue),
             "created_at": issue["created_at"],
-            "comment_count": issue["comments"],
+            "comment_count": issue_comment_count(issue),
             "user": {
-                "login": issue["user"]["login"],
-                "avatar_url": issue["user"]["avatar_url"],
-                "profile_url": issue["user"]["html_url"],
+                "login": user_login(issue["author"]),
+                "avatar_url": user_avatar_url(issue["author"]),
+                "profile_url": user_profile_url(issue["author"]),
             },
-            "image_url": extract_first_image(issue.get("body")),
-            "domain": extract_domain(issue.get("body")),
+            "image_url": extract_first_image(issue_body(issue)),
+            "domain": extract_domain(issue_body(issue)),
             "reactions": reactions,
             "latest_comment": {
                 "body": latest_comment["body"],
                 "created_at": latest_comment["created_at"],
-                "html_url": latest_comment["html_url"],
+                "html_url": latest_comment.get("web_url") or issue_url(issue),
                 "user": {
-                    "login": latest_comment["user"]["login"],
-                    "avatar_url": latest_comment["user"]["avatar_url"],
-                    "profile_url": latest_comment["user"]["html_url"],
+                    "login": user_login(latest_comment["author"]),
+                    "avatar_url": user_avatar_url(latest_comment["author"]),
+                    "profile_url": user_profile_url(latest_comment["author"]),
                 },
             } if latest_comment else None,
         })
@@ -722,14 +774,16 @@ def main():
     }
 
     # ── Write JSON ────────────────────────────────────────────────────────────
-    os.makedirs("data", exist_ok=True)
-    with open("data/leaderboard.json", "w", encoding="utf-8") as fh:
+    data_dir = os.path.join(PUBLIC_DIR, "data")
+    os.makedirs(data_dir, exist_ok=True)
+    leaderboard_path = os.path.join(data_dir, "leaderboard.json")
+    with open(leaderboard_path, "w", encoding="utf-8") as fh:
         json.dump(payload, fh, indent=2, ensure_ascii=False)
         fh.write("\n")
-    print("  Wrote data/leaderboard.json")
+    print(f"  Wrote {leaderboard_path}")
 
     # ── Patch index.html and leaderboard.html ──────────────────────────────────────────────────────
-    for html_file in ["index.html", "leaderboard.html"]:
+    for html_file in [os.path.join(PUBLIC_DIR, "index.html"), os.path.join(PUBLIC_DIR, "leaderboard.html")]:
         if not os.path.exists(html_file):
             print(f"  Skipping {html_file} (not found)")
             continue
