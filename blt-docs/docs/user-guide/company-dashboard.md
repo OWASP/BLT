@@ -1,45 +1,32 @@
-### Detailed Description of the "Company Dashboard" UI Component and the url path is "https://blt.owasp.org/domain/{company_name}/" for the OWASP Bug Logging Tool (BLT) Application
+# Company dashboard
 
-#### 1. Component Overview
-The Company Dashboard in the OWASP Bug Logging Tool (BLT) application is designed to provide a comprehensive overview of all bugs reported for a specific company. This public dashboard allows users to view and track issues related to the company’s applications, fostering transparency and collaboration. The primary functionalities include listing open and closed bugs, providing detailed bug descriptions, and facilitating user interactions such as commenting and subscribing to bug updates.
+The company dashboard shows BLT information for a specific organization or company. It is useful for reviewing reports, activity, and organization details in one place.
 
-#### 2. User Interaction
-Users interact with the Company Dashboard through the following steps:
-1. **Browsing Reported Bugs**: Users can view a list of all reported bugs for the company, categorized as open or closed.
-2. **Viewing Bug Details**: By clicking on a bug report, users can access detailed information about the issue, including descriptions, screenshots, and user comments.
-3. **Subscribing to Bug Updates**: Users can subscribe to receive updates on new bugs reported for the company by clicking the "Subscribe" button.
-4. **Commenting on Bugs**: Logged-in users can add comments to bug reports to discuss issues further or provide additional insights.
-5. **Sharing Bugs**: Users can share bug reports via social media or other platforms using the share button.
+## When to use this page
 
-#### 3. Key Elements
-- **Company Information**: Displays the company name, logo, and contact email.
-- **Bug List**: A list of all reported bugs for the company, categorized into open and closed tabs.
-- **Bug Report Items**: Each bug report includes a title, description snippet, status (open/closed), tags (e.g., General, Security), user who reported it, and the time since it was reported.
-- **Subscription Button**: Allows users to subscribe to updates for bugs reported for the company.
-- **Top Bug Hunters**: Displays a list of users who have reported the most bugs for the company, with their usernames and bug counts.
-- **Pagination Controls**: Allows users to navigate through multiple pages of bug reports.
+- You are reviewing reports associated with an organization.
+- You maintain organization information in BLT.
+- You want to understand status or activity for a specific company.
+- You are preparing to triage reports or coordinate a bug hunt.
 
-#### 4. Visual Design
-- **Layout**: The dashboard is organized with the company information at the top, followed by the bug list in a tabbed format for open and closed bugs. The top bug hunters and subscription options are placed on the right sidebar.
-- **Color Scheme**: Consistent with the BLT branding, the color scheme uses red, white, and grey tones. Tags and status indicators use specific colors (e.g., green for open, red for closed) to provide visual cues.
-- **Typography**: Modern, readable fonts are used for all text elements, ensuring clarity and ease of reading.
-- **Visual Cues**: Interactive elements such as buttons and links are highlighted with colors and hover effects to indicate functionality.
+## Main actions
 
-#### 5. Accessibility Features
-- **Keyboard Navigation**: All interactive elements are accessible via keyboard shortcuts, enabling users with mobility impairments to navigate and interact with the dashboard.
-- **Screen Reader Compatibility**: The page is designed to be compatible with screen readers, which read out the text and labels to visually impaired users, aiding navigation and interaction.
-- **High Contrast**: Text and interactive elements have high contrast against the background, making it easier for users with visual impairments to read the content.
-- **Descriptive Labels**: All interactive elements, such as buttons and links, have clear and descriptive labels to ensure users understand their purpose and functionality.
+1. Open the company dashboard from a company listing, scoreboard, or direct company link.
+2. Review the organization name and identifying details.
+3. Check visible bug reports, status indicators, activity, and comments.
+4. Use available filters or tabs to focus on open, closed, or relevant reports.
+5. If you have permission, update organization information or settings carefully.
 
-#### 6. Error Handling
-The Company Dashboard includes several mechanisms to handle errors and provide feedback to users:
-- **Error Messages**: If an error occurs while loading the dashboard or subscribing to updates, clear and concise error messages are displayed to inform the user and provide steps to resolve the issue.
-- **Validation Feedback**: The comment section provides real-time validation feedback to ensure that users enter valid input before submitting their comments.
-- **Fallback Content**: If a bug report or other elements fail to load, the page provides fallback messages or placeholders to maintain a smooth user experience.
+## What to check
 
-#### 7. Performance
-The dashboard is designed with several features to enhance performance and user experience:
-- **Optimized Loading**: The page is optimized to load quickly, with asynchronous loading of non-critical elements to ensure that users can start interacting with the content without delay.
-- **Responsive Design**: The layout is fully responsive, adapting to different screen sizes and devices, ensuring a consistent and accessible experience across desktops, tablets, and mobile devices.
-- **Lazy Loading**: Bug report items and other media elements are loaded as needed, reducing initial load times and improving overall performance.
-- **Efficient Data Retrieval**: The page uses efficient data retrieval techniques to fetch and display bug reports quickly, minimizing wait times and enhancing user satisfaction.
+- Confirm that you are viewing the correct organization before making changes.
+- Review report status and recent activity before contacting users or maintainers.
+- Do not change organization data unless you have permission and accurate information.
+- If starting or coordinating a bug hunt, confirm scope and triage responsibilities first.
+
+## Related pages
+
+- [Company listing](company-listing.md)
+- [Company scoreboard](company-scoreboard.md)
+- [Start a bug hunt](start-bughunt.md)
+- [Issue page](issue-page.md)

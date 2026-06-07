@@ -1,44 +1,38 @@
-### Detailed Description of the "Place a Bid" UI Component and the url path is "https://blt.owasp.org/bidding/" for the OWASP Bug Logging Tool (BLT) Application
+# Place a bid
 
-#### 1. Component Overview
-The "Place a Bid" UI component in the OWASP Bug Logging Tool (BLT) application allows users to bid on resolving specific issues reported in the system. This component's primary functionality is to facilitate the bidding process, enabling users to propose their solutions and compete for rewards or recognition.
+Bidding is a workflow for expressing interest in work related to an issue where that feature is enabled. Availability, fields, and review rules can vary by deployment.
 
-#### 2. User Interaction
-Users interact with the "Place a Bid" component through the following steps:
-1. **Issue Link**: Users enter the link to the specific issue they are interested in bidding on.
-2. **Fetch Details**: Clicking the "Fetch" button retrieves and displays the issue details.
-3. **Submit Bid**: Users enter their bid amount in the provided input field.
-4. **Submit Bid**: Clicking the "Submit Bid" button submits their bid for consideration.
-5. **Submit Pull Request**: Users can submit their pull request by clicking the "Submit Your Pull Request" button, integrating their solution into the system.
+## When bidding applies
 
-#### 3. Key Elements
-- **Issue Link Input Field**: Allows users to paste the link of the issue they want to bid on.
-- **Fetch Button**: Retrieves the issue details based on the provided link.
-- **New Bid Input Field**: Users enter the amount they are willing to bid for resolving the issue.
-- **Submit Bid Button**: Submits the user's bid for the issue.
-- **Submit Pull Request Button**: Facilitates the submission of the user's solution through a pull request.
+- The active BLT deployment shows a bidding option.
+- The issue is eligible for bids under the current workflow.
+- You understand the issue scope and the expected contribution or resolution path.
+- You have the account permissions required to submit a bid.
 
-#### 4. Visual Design
-- **Layout**: The layout is simple and straightforward, with input fields and buttons arranged vertically for easy access.
-- **Color Scheme**: The component uses a clean design with blue buttons for actions and a red button for submitting pull requests, ensuring clear visual differentiation.
-- **Typography**: Utilizes a modern, readable font for labels and buttons, enhancing usability.
-- **Visual Cues**: Includes clear labels and button text to guide users through the bidding process.
+## Information to review before bidding
 
-#### 5. Accessibility Features
-- **Keyboard Navigation**: All elements are accessible via keyboard, allowing users with mobility impairments to navigate and use the component.
-- **Screen Reader Compatibility**: The input fields and buttons are labeled clearly for screen readers, aiding visually impaired users.
-- **High Contrast**: Text and interactive elements have high contrast against the background, making them easily visible.
-- **Descriptive Labels**: All elements have descriptive labels to ensure users understand their purpose and functionality.
+- The issue summary, description, status, and comments.
+- Any scope notes, maintainer instructions, or linked project information.
+- Whether the issue is still active and needs work.
+- Any visible requirements for submitting a related contribution, such as a pull request link.
 
-#### 6. Error Handling
-The "Place a Bid" component includes several mechanisms for handling errors and providing feedback to users:
-- **Input Validation**: Ensures that the issue link and bid amount are valid before submission.
-- **Error Messages**: Displays clear error messages if the link is invalid or if the bid amount is not entered correctly.
-- **Feedback**: Provides feedback to users upon successful bid submission or if there are any issues with the process.
+## How to submit a bid
 
-#### 7. Performance
-The component is designed with several features to enhance performance and user experience:
-- **Optimized Loading**: Ensures quick retrieval of issue details when the "Fetch" button is clicked.
-- **Responsive Design**: Adapts to different screen sizes and devices, providing a consistent experience across desktops, tablets, and mobile devices.
-- **Efficient Data Handling**: Utilizes efficient methods to fetch and submit data, minimizing wait times.
-- **Scalability**: Designed to handle multiple bids and submissions, maintaining performance even with a high volume of users.
+1. Sign in if required.
+2. Open the bidding page or bidding control from the issue page.
+3. Enter or select the issue the bid applies to.
+4. Review the issue details displayed by the form.
+5. Enter the bid information requested by the deployment.
+6. Submit the bid.
+
+## What to check afterward
+
+- Confirm that the bid appears submitted or recorded by the page.
+- Watch the issue for maintainer comments or status changes.
+- Do not assume payment, assignment, escrow, or reward terms unless they are explicitly shown by the active deployment or agreed through the appropriate project process.
+
+## Related pages
+
+- [Issue page](issue-page.md)
+- [Report a bug](report-bug.md)
+- [User profile](user-profile.md)

@@ -1,35 +1,31 @@
-**Component Overview**:
-The profile page on the BugLog Tool (BLT) platform, accessible at `https://blt.owasp.org/profile/{user_name}/`, serves as a comprehensive dashboard for individual users. Its primary functionalities include displaying user information, activity, bug reports, and interaction options like sending tips or editing profile details.
+# User profile
 
-**User Interaction**:
-Users interact with this component by viewing their profile information, editing details, checking their bug reporting statistics, and monitoring their activities. Key interactions include uploading a profile picture, entering a Bitcoin address for tips, viewing different categories of bug reports, and accessing options to hide issues or delete the account.
+A user profile shows account and activity information for a BLT user. The exact fields depend on the active deployment and the permissions of the viewer.
 
-**Key Elements**:
-1. **Profile Picture Upload**: Allows users to upload a profile picture via a "Choose File" button. The picture is displayed prominently at the top left.
-2. **User Information**: Displays the user's name and various statistics such as the number of bugs reported, points earned, open issues, and closed issues.
-3. **Tabs (Stats, Followers, Following, Bookmarks)**: Users can switch between these tabs to view different sets of data related to their profile and activities.
-4. **Bug Reporting Statistics**: Categorizes reported bugs into General, Number, Functional, Performance, Security, Typo, and Design.
-5. **Bitcoin Address Entry**: Users can enter their Bitcoin address to receive tips.
-6. **Send a Tip Button**: Allows other users to send tips for valuable contributions.
-7. **Delete Account Button**: Provides the option to delete the user’s account from the platform.
-8. **Activity and Top Bug Findings**: Displays the user's recent activities and top bug findings.
+## When to use this page
 
-**Visual Design**:
-The layout is clean and straightforward, with a focus on usability. The profile picture and user stats are displayed prominently. The use of bold colors (red, green, blue) for buttons and stats makes key actions and information easily distinguishable. The typography is simple and readable, with clear section headings and well-organized content blocks. Icons are used effectively to represent different bug categories and actions.
+- You want to review your own account information.
+- You want to see visible activity for another user.
+- You need context about reports, comments, or contributions linked to a profile.
+- You want to manage account details where profile editing is available.
 
-**Accessibility Features**:
-1. **Alt Text for Images**: Ensures profile pictures and icons have descriptive alt text for screen readers.
-2. **Keyboard Navigation**: The interface is navigable via keyboard, allowing users to tab through buttons and input fields.
-3. **Color Contrast**: The color scheme provides sufficient contrast to aid users with visual impairments.
+## Main actions
 
-**Error Handling**:
-1. **Profile Picture Upload Errors**: Displays error messages if the uploaded file is not in an acceptable format or exceeds the size limit.
-2. **Form Validation**: Ensures that mandatory fields, such as Bitcoin address, are correctly formatted and filled before submission.
-3. **Deletion Confirmation**: Confirms before permanently deleting an account, preventing accidental deletions.
+1. Open the profile from the navigation, a leaderboard, a comment, or an issue page.
+2. Review visible profile details such as username, public activity, reports, or contribution summaries.
+3. If viewing your own profile, update editable information only when needed.
+4. Use account actions, such as password changes, from the appropriate settings or authentication page.
 
-**Performance**:
-1. **Optimized Images**: Profile pictures and other images are optimized for faster loading times.
-2. **Efficient Data Loading**: Data related to user activities and bug reports are fetched asynchronously to enhance page load performance.
-3. **Responsive Design**: The profile page is designed to be responsive, ensuring it works well on both desktop and mobile devices.
+## What to check
 
-Overall, the profile page on BLT is designed to provide users with a comprehensive and user-friendly interface for managing their bug reporting activities and personal information on the platform. The clean layout, accessibility features, and efficient performance optimizations contribute to a positive user experience.
+- Do not publish sensitive personal information in profile fields.
+- Treat activity summaries as context, not as a complete measure of a user's work.
+- Respect privacy and permission boundaries when viewing other profiles.
+- If you change account information, confirm that the updated details are correct.
+
+## Related pages
+
+- [Log in](login-page.md)
+- [Change password](change-password.md)
+- [Community members](community-members.md)
+- [Global leaderboard](global-leaderboard.md)

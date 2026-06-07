@@ -1,28 +1,31 @@
-The OWASP Bug Logging Tool (BLT) is a free, open-source web application designed to enable users to report software or hardware bugs found on any website. Launched as an official OWASP project in 2016, BLT encourages responsible disclosure and improves internet security by allowing anyone to submit bug reports. It has evolved significantly since its inception, becoming an OWASP production project in May 2023 and participating in the Google Summer of Code (GSoC) program for multiple years.
+# BLT details
 
-### Key Features and Functionality
+This page summarizes the BLT user-facing product and the scope of these docs.
 
-1. **User Participation**: BLT allows users to report bugs they encounter on any website. Users earn points for each bug reported, and verified bugs can earn additional points. This gamified approach incentivizes bug hunting and ensures active participation.
+## Project overview
 
-2. **Bug Reporting Process**:
-   - **Account Creation**: Users need to create an account to log into the BLT platform.
-   - **Bug Submission**: Users describe the bug, attach a screenshot, and submit the report.
-   - **Verification**: Bugs are verified through a community-driven process, where other users and the company confirm the validity of the report.
+BLT stands for Bug Logging Tool. It is an OWASP open source project for reporting, tracking, and coordinating bugs and security-related issues.
 
-3. **Rewards System**: Users can win rewards by participating in company-sponsored bug hunts, earning prize money through tips, and competing for grand prizes or jackpots. Companies can launch their own bug hunts and set specific rewards for discovering bugs on their websites.
+The user-facing BLT experience includes workflows for reporting bugs, reviewing issue pages, browsing activity, and working with organization or community views where those modules are enabled.
 
-4. **Community and Contribution**: BLT fosters a vibrant community with regular updates and contributions from users. The project welcomes contributions and has guidelines for new contributors. It also participates in various initiatives like the OWASP Incubator Project Initiative and GSoC, highlighting its commitment to community-driven development.
+## Documentation scope
 
-### Technical Details
+These docs focus on how to use and understand the documented BLT workflows. They do not replace the active deployment, project maintainers, or OWASP policy resources.
 
-- **Open Source**: BLT is licensed under the GNU Affero General Public License 3.0, ensuring it remains free and open for anyone to use and contribute to.
-- **Development and Maintenance**: The project is continuously updated with new features and improvements, supported by contributions from the community and participation in development programs like GSoC.
+Use the user guide for interface workflows. Use the developer guide and repository pages when you want to contribute code, documentation, or project maintenance work.
 
-### How to Get Involved
+## Related platform modules
 
-Anyone interested in contributing to the OWASP BLT project can:
-- **Report Bugs**: Use the platform to report any bugs encountered on websites.
-- **Participate in Bug Hunts**: Join company-sponsored bug hunts to earn rewards.
-- **Contribute to Development**: Follow the contribution guidelines available on the OWASP website to get started with development and enhancement of BLT.
+- Authentication and account pages.
+- Bug reporting and issue detail pages.
+- Company, organization, and bug hunt pages.
+- Leaderboard, statistics, and activity pages.
+- Community, profile, invite, media, and trademark search pages.
 
-BLT means Bug Logging Tool project from OWASP foundation .
+## Related pages
+
+- [About OWASP BLT](about-us.md)
+- [Home page](home-page.md)
+- [Report a bug](report-bug.md)
+- [OWASP BLT overview](details-from-owasp.md)
+- [Contributing](../developer-guide/contributing.md)
