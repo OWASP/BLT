@@ -65,7 +65,7 @@
   {
     "id": "owasp_metadata",
     "name": "BLT OWASP Metadata",
-    "url": "https://owasp-metadata.owaspblt.org",
+    "url": "https://metadata.owaspblt.org",
     "keyword": "OWASP",
     "enabled": true
   },
