@@ -80,11 +80,21 @@ def test_project_response_without_query_returns_blocks():
 
 
 def test_app_home_view_lists_available_commands():
-    view = worker.app_home_view()
+    view = worker.app_home_view(
+        user_id="U123",
+        team_name="OWASP",
+        base_url="https://sammich.example",
+        version="9.8.7",
+    )
     encoded = str(view)
 
     assert view["type"] == "home"
     assert "blocks" in view
+    assert "Welcome to BLT Sammich, <@U123>" in encoded
+    assert "OWASP" in encoded
+    assert "Open Dashboard" in encoded
+    assert "https://sammich.example" in encoded
+    assert "Running version `9.8.7`" in encoded
     assert "/contrib" in encoded
     assert "/stats" in encoded
     assert "/discover [search term]" in encoded
@@ -2279,6 +2289,7 @@ def test_slack_api_publish_home_uses_views_publish_shape():
     captured = {}
     original_fetch_json = worker.fetch_json
     original_log_response = worker.log_slack_api_response
+    original_get_workspace = worker.db_get_workspace_by_team
     original_bot_token = worker.db_get_workspace_bot_token
     original_bot_user_id = worker.db_get_workspace_bot_user_id
 
@@ -2295,6 +2306,9 @@ def test_slack_api_publish_home_uses_views_publish_shape():
     async def fake_log_response(*args, **kwargs):
         captured["logged"] = True
 
+    async def fake_get_workspace(env, team_id):
+        return {"id": 7, "team_id": team_id, "team_name": "OWASP"}
+
     async def fake_bot_token(env, team_id="", channel_id=""):
         return "xoxb-token"
 
@@ -2303,13 +2317,18 @@ def test_slack_api_publish_home_uses_views_publish_shape():
 
     worker.fetch_json = fake_fetch_json
     worker.log_slack_api_response = fake_log_response
+    worker.db_get_workspace_by_team = fake_get_workspace
     worker.db_get_workspace_bot_token = fake_bot_token
     worker.db_get_workspace_bot_user_id = fake_bot_user_id
     try:
-        asyncio.run(worker.slack_api_publish_home("U123", _Env(), team_id="T123"))
+        env = _Env()
+        setattr(env, "BASE_URL", "https://sammich.example")
+        setattr(env, "APP_VERSION", "9.8.7")
+        asyncio.run(worker.slack_api_publish_home("U123", env, team_id="T123"))
     finally:
         worker.fetch_json = original_fetch_json
         worker.log_slack_api_response = original_log_response
+        worker.db_get_workspace_by_team = original_get_workspace
         worker.db_get_workspace_bot_token = original_bot_token
         worker.db_get_workspace_bot_user_id = original_bot_user_id
 
@@ -2318,7 +2337,12 @@ def test_slack_api_publish_home_uses_views_publish_shape():
     assert captured["headers"]["Authorization"] == "Bearer xoxb-token"
     assert captured["body"]["user_id"] == "U123"
     assert captured["body"]["view"]["type"] == "home"
-    assert "/stats" in str(captured["body"]["view"])
+    encoded_view = str(captured["body"]["view"])
+    assert "/stats" in encoded_view
+    assert "Welcome to BLT Sammich, <@U123>" in encoded_view
+    assert "OWASP" in encoded_view
+    assert "https://sammich.example" in encoded_view
+    assert "Running version `9.8.7`" in encoded_view
     assert captured["logged"] is True
 
 

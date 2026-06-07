@@ -296,6 +296,7 @@ def load_text_file(path: Path) -> Optional[str]:
 ROOT_DIR = Path(__file__).resolve().parents[1]
 PROJECT_DATA = load_json_file(ROOT_DIR / "data" / "projects.json")
 REPO_DATA = load_json_file(ROOT_DIR / "data" / "repos.json")
+APP_VERSION = load_text_file(ROOT_DIR / "VERSION") or "unknown"
 
 
 def get_team_message_template(team_id: str, event_name: str) -> Optional[str]:
@@ -429,6 +430,14 @@ def app_base_url(env: Any) -> str:
 
 def blt_logo_url(env: Any) -> str:
     return "{0}/static/logo.png".format(app_base_url(env))
+
+
+def app_version(env: Any = None) -> str:
+    if env is not None:
+        configured_version = env_value(env, "APP_VERSION") or env_value(env, "VERSION")
+        if configured_version:
+            return configured_version
+    return APP_VERSION
 
 
 def build_blt_branding_block(
@@ -870,7 +879,28 @@ def available_commands_text(include_descriptions: bool = False) -> str:
     return "\n".join(lines)
 
 
-def app_home_view() -> Dict[str, Any]:
+def app_home_view(
+    user_id: str = "",
+    team_name: str = "",
+    base_url: str = "",
+    version: str = APP_VERSION,
+) -> Dict[str, Any]:
+    greeting = "Welcome to BLT Sammich."
+    if user_id:
+        greeting = "Welcome to BLT Sammich, <@{0}>.".format(user_id)
+    workspace_line = ""
+    if team_name:
+        workspace_line = "\nYou are connected to *{0}*.".format(team_name)
+    actions: List[Dict[str, Any]] = []
+    if base_url:
+        actions.append(
+            {
+                "type": "button",
+                "text": {"type": "plain_text", "text": "Open Dashboard"},
+                "url": base_url,
+                "action_id": "open_sammich_dashboard",
+            }
+        )
     return {
         "type": "home",
         "blocks": [
@@ -879,11 +909,56 @@ def app_home_view() -> Dict[str, Any]:
                 "text": {"type": "plain_text", "text": "BLT Sammich", "emoji": True},
             },
             make_section_block(
-                "Use these commands from any Slack channel where Sammich is available."
+                "*{0}*{1}\nI help OWASP contributors discover projects, inspect community activity, and get oriented quickly.".format(
+                    greeting,
+                    workspace_line,
+                )
             ),
+            {"type": "divider"},
+            make_section_block(
+                "*Start here*\n"
+                "• `/discover api security` to find projects by topic\n"
+                "• `/stats` to see community and project activity\n"
+                "• `/contrib` for a quick contribution path\n"
+                "• `/blt-welcome` to resend your welcome DM"
+            ),
+            {
+                "type": "section",
+                "fields": [
+                    {
+                        "type": "mrkdwn",
+                        "text": "*Project matching*\nFind OWASP repos by keyword.",
+                    },
+                    {
+                        "type": "mrkdwn",
+                        "text": "*Activity snapshots*\nCheck contributor and workspace stats.",
+                    },
+                    {
+                        "type": "mrkdwn",
+                        "text": "*Onboarding*\nGet a clean welcome message anytime.",
+                    },
+                    {
+                        "type": "mrkdwn",
+                        "text": "*Admin visibility*\nReview connected apps and logged activity.",
+                    },
+                ],
+            },
+            {"type": "divider"},
             make_section_block(
                 "*Available commands*\n{0}".format(available_commands_text(True))
             ),
+            *([{"type": "actions", "elements": actions}] if actions else []),
+            {
+                "type": "context",
+                "elements": [
+                    {
+                        "type": "mrkdwn",
+                        "text": "Sammich responds in channels, DMs, and this Home tab. Running version `{0}`.".format(
+                            version or "unknown"
+                        ),
+                    }
+                ],
+            },
         ],
     }
 
@@ -3748,6 +3823,16 @@ async def slack_api_publish_home(user_id: str, env: Any, team_id: str = "") -> N
     user_id = str(user_id or "").strip()
     if not user_id:
         return
+    workspace_name = ""
+    try:
+        workspace = await db_get_workspace_by_team(env, team_id) if team_id else None
+        workspace_name = str((workspace or {}).get("team_name") or "").strip()
+    except Exception as error:
+        log_exception_one_line(
+            error,
+            "slack_home_workspace_lookup_failed",
+            {"team_id": team_id, "user_id": user_id},
+        )
     try:
         token = await db_get_workspace_bot_token(env, team_id=team_id)
     except Exception as error:
@@ -3794,7 +3879,15 @@ async def slack_api_publish_home(user_id: str, env: Any, team_id: str = "") -> N
             {"team_id": team_id, "user_id": user_id},
         )
         return
-    request_payload = {"user_id": user_id, "view": app_home_view()}
+    request_payload = {
+        "user_id": user_id,
+        "view": app_home_view(
+            user_id=user_id,
+            team_name=workspace_name,
+            base_url=app_base_url(env),
+            version=app_version(env),
+        ),
+    }
     ok, payload, status_code = await fetch_json(
         "https://slack.com/api/views.publish",
         method="POST",
