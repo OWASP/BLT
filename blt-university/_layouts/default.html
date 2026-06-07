@@ -10,7 +10,7 @@
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <script>
         if (localStorage.getItem("theme") === "dark") {
@@ -24,24 +24,121 @@
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['Inter', 'sans-serif']
+                        sans: ['Geist', 'Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
+                        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace']
                     },
                     colors: {
                         bltRed: '#dc2626',
-                        bltRedLight: '#fef2f2',
+                        bltRedLight: '#fee2e2',
                         bltRedHover: '#b91c1c',
-                        bltDark: '#0f172a'
+                        bltDark: '#111827',
+                        bltCoral: '#ef4444',
+                        bltFooter: '#0e0d0c'
                     },
                     boxShadow: {
-                        soft: '0 20px 40px -15px rgba(0,0,0,0.05)',
-                        float: '0 30px 60px -15px rgba(0,0,0,0.08)'
+                        soft: '0 1px 2px rgba(17,24,39,0.04)',
+                        float: '0 10px 24px -18px rgba(220,38,38,.8)'
                     }
                 }
             }
         }
         </script>
+    <style>
+        .dot-field {
+            background-image: radial-gradient(rgba(17, 24, 39, 0.18) 1px, transparent 1px);
+            background-size: 18px 18px;
+            mask-image: radial-gradient(circle at center, black 0, transparent 74%);
+            -webkit-mask-image: radial-gradient(circle at center, black 0, transparent 74%);
+        }
+        .mobile-menu.open {
+            display: flex;
+        }
+        .mobile-toggle.active span:nth-child(1) {
+            transform: translateY(6px) rotate(45deg);
+        }
+        .mobile-toggle.active span:nth-child(2) {
+            opacity: 0;
+        }
+        .mobile-toggle.active span:nth-child(3) {
+            transform: translateY(-6px) rotate(-45deg);
+        }
+        .feature-divider::before,
+        .feature-divider::after {
+            content: "";
+            height: 1px;
+            flex: 1;
+        }
+        .feature-divider::before {
+            background: linear-gradient(to right, transparent, #e5e7eb);
+        }
+        .feature-divider::after {
+            background: linear-gradient(to left, transparent, #e5e7eb);
+        }
+        .wave-dots i {
+            position: absolute;
+            width: 0.25rem;
+            height: 0.25rem;
+            border-radius: 999px;
+            background: #d1d5db;
+            animation: wave 2s infinite ease-in-out;
+        }
+        .wave-dots i:nth-child(1) { top: 0; left: 0; }
+        .wave-dots i:nth-child(2) { top: 0; left: 1rem; }
+        .wave-dots i:nth-child(3) { top: 0.25rem; left: 0.5rem; animation-delay: 0.35s; }
+        .wave-dots i:nth-child(4) { top: 0.5rem; left: 0; animation-delay: 0.55s; }
+        .wave-dots i:nth-child(5) { top: 0.5rem; left: 1rem; animation-delay: 0.55s; }
+        .wave-dots i:nth-child(6) { top: 0.75rem; left: 0.5rem; animation-delay: 0.85s; }
+        .section-kicker.with-bar::before {
+            content: "";
+            position: absolute;
+            top: 0.18rem;
+            left: -0.55rem;
+            width: 3px;
+            height: 1.25rem;
+            border-radius: 0 2px 2px 0;
+            background: #ef4444;
+        }
+        .footer-panel::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0.04;
+            background-image:
+              linear-gradient(rgba(255,255,255,1) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+        .footer-links p {
+            margin: 0 0 0.35rem;
+            color: #6b7280;
+            font-size: 0.625rem;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+        }
+        .footer-links a {
+            display: block;
+            color: #d1d5db;
+            font-size: 0.875rem;
+            line-height: 1.55;
+            transition: color 180ms ease;
+        }
+        .footer-links a:hover {
+            color: white;
+        }
+        @keyframes wave {
+            0%, 100% {
+                transform: translateY(0);
+                opacity: 0.5;
+            }
+            50% {
+                transform: translateY(-3px);
+                opacity: 1;
+            }
+        }
+    </style>
 </head>
-<body class="bg-[#fafafa] dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans antialiased selection:bg-bltRed selection:text-white flex flex-col min-h-screen">
+<body class="min-h-screen overflow-x-hidden bg-gray-50 font-sans text-gray-900 antialiased selection:bg-red-100 selection:text-red-700 dark:bg-slate-950 dark:text-slate-100 flex flex-col">
     
     {% include header.html %}
     

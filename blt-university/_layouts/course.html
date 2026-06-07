@@ -4,7 +4,7 @@ layout: default
 <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
 <article class="bg-[#fafafa] dark:bg-gray-950 transition-colors duration-300 min-h-screen">
-    <section class="bg-bltDark text-white pt-20 pb-32 relative overflow-hidden">
+    <section class="bg-bltDark text-white pt-36 pb-32 relative overflow-hidden">
         <div class="absolute top-0 right-1/4 w-[500px] h-[500px] bg-red-500/10 rounded-full filter blur-[120px] pointer-events-none"></div>
         <div class="absolute inset-0 z-0">
             <img src="{{ page.image | default: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=1200&q=80' | relative_url }}" class="w-full h-full object-cover opacity-10 mix-blend-overlay">
@@ -117,13 +117,10 @@ layout: default
                     </div>
                 </div>
 
-                <a href="https://github.com/OWASP-BLT/BLT-University/issues/new?template=enrollment.yml"
-                   class="w-full flex items-center justify-center gap-3 px-6 py-4 bg-bltRed text-white text-sm font-bold rounded-2xl shadow-lg shadow-red-100 dark:shadow-none hover:bg-bltRedHover hover:-translate-y-1 transition-all">
-                    <i class="ph-bold ph-github-logo text-xl"></i>
-                    Enroll via GitHub
-                </a>
                 <a href="https://gitlab.com/owasp-blt/blt-university/-/issues/new"
-                   class="mt-3 w-full flex items-center justify-center gap-3 px-6 py-4 bg-gray-900 text-white text-sm font-bold rounded-2xl shadow-lg dark:shadow-none hover:bg-gray-800 hover:-translate-y-1 transition-all">
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   class="w-full flex items-center justify-center gap-3 px-6 py-4 bg-bltRed text-white text-sm font-bold rounded-2xl shadow-lg shadow-red-100 dark:shadow-none hover:bg-bltRedHover hover:-translate-y-1 transition-all">
                     <i class="ph-bold ph-gitlab-logo text-xl"></i>
                     Enroll via GitLab
                 </a>

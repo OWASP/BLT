@@ -1,74 +1,94 @@
-<!-- Hidden Checkbox -->
-    <input type="checkbox" id="menu-toggle" class="peer hidden">
-<header class="sticky top-0 z-50 w-full border-b border-gray-200 bg-white/80 backdrop-blur-md transition-colors duration-300 dark:border-gray-800 dark:bg-gray-900/90">
-    <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
-        
-        <a href="{{ '/' | relative_url }}" class="flex items-center gap-3 group">
-            <div class="flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg bg-white p-1 shadow-sm ring-1 ring-gray-200 transition group-hover:ring-bltRed/50">
-                <img src="{{ '/assets/images/blt-logo.png' | relative_url }}"
-                     alt="OWASP BLT Logo"
-                     class="h-full w-full object-contain">
-            </div>
-            <span class="text-lg font-bold tracking-tight text-gray-900 dark:text-white">
-                {{ site.university.name | default: "BLT University" }}
-            </span>
-        </a>
+<header
+  class="fixed inset-x-0 top-0 z-50 border-b border-black/5 bg-white shadow-sm"
+  id="site-header"
+>
+  <div
+    class="relative mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-4 max-lg:px-4"
+  >
+    <a
+      href="{{ '/' | relative_url }}"
+      class="inline-flex items-center gap-2.5"
+      aria-label="BLT University home"
+    >
+      <img
+        src="{{ '/assets/images/blt-university-logo.png' | relative_url }}"
+        alt="BLT University logo"
+        class="h-12 sm:h-14"
+      />
+      <div class="flex flex-col">
+        <span class="text-sm font-semibold tracking-tight">BLT University</span>
+      </div>
+    </a>
 
-        <nav class="hidden items-center gap-8 md:flex">
-            {% for item in site.navigation %}
-                {% assign is_active = false %}
-                {% if page.url == item.url %}
-                    {% assign is_active = true %}
-                {% elsif item.url == "/labs/" and page.url contains "/labs/" %}
-                    {% assign is_active = true %}
-                {% endif %}
-                <a href="{{ item.url | relative_url }}"
-                   class="relative text-sm font-medium transition-colors {% if is_active %}text-bltRed{% else %}text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white{% endif %}">
-                    {{ item.title }}
-                    {% if is_active %}
-                        <span class="absolute -bottom-[21px] left-0 h-0.5 w-full bg-bltRed"></span>
-                    {% endif %}
-                </a>
-            {% endfor %}
-        </nav>
+    <nav
+      class="absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 items-center gap-7 lg:flex"
+      aria-label="Primary navigation"
+    >
+      {% assign header_navigation = site.header_navigation | default: site.navigation %}
+      {% for item in header_navigation %}
+      <a
+        class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+        href="{{ item.url | relative_url }}"
+        >{{ item.title }}</a
+      >
+      {% endfor %}
+    </nav>
 
-        <div class="flex items-center gap-4">
-            <!-- Theme Toggle -->
-            <button id="theme-toggle" 
-                    aria-label="Toggle Dark Mode"
-                    class="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white">
-                <i id="theme-icon" class="fas fa-sun hidden dark:block"></i>
-                <i id="theme-icon-dark" class="fas fa-moon block dark:hidden"></i>
-            </button>
-            <!-- Menu Icon -->
-                <label for="menu-toggle"
-                    class="md:hidden rounded-lg p-2 text-gray-500 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800">
-                    <i class="fas fa-bars"></i>
-                </label>
-        </div>
+    <div class="hidden items-center gap-3 lg:flex">
+      {% assign header_actions = site.header_actions %}
+      {% for item in header_actions %}
+      {% if item.style == "primary" %}
+      <a
+        class="inline-flex items-center justify-center rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-4 py-2 text-sm font-medium text-white shadow-[0_10px_24px_-18px_rgba(220,38,38,.8)] transition duration-200 hover:-translate-y-px"
+        href="{{ item.url | relative_url }}"
+        >{{ item.title }}</a
+      >
+      {% else %}
+      <a
+        class="rounded-md px-3 py-2 text-sm text-gray-600 transition-colors duration-150 hover:bg-gray-100 hover:text-gray-900"
+        href="{{ item.url | relative_url }}"
+        >{{ item.title }}</a
+      >
+      {% endif %}
+      {% endfor %}
     </div>
 
+    <button
+      class="mobile-toggle hidden h-8 w-8 cursor-pointer flex-col items-center justify-center gap-[5px] border-0 bg-transparent max-lg:flex"
+      id="mobile-toggle"
+      type="button"
+      aria-label="Toggle menu"
+      aria-expanded="false"
+      aria-controls="mobile-menu"
+    >
+      <span class="block h-px w-5 bg-gray-600 transition duration-200"></span>
+      <span class="block h-px w-5 bg-gray-600 transition duration-200"></span>
+      <span class="block h-px w-5 bg-gray-600 transition duration-200"></span>
+    </button>
+  </div>
+
+  <nav
+    class="mobile-menu hidden flex-col gap-4 border-t border-gray-100 bg-white px-6 py-4"
+    id="mobile-menu"
+    aria-label="Mobile navigation"
+  >
+    {% for item in header_navigation %}
+    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="{{ item.url | relative_url }}">{{ item.title }}</a>
+    {% endfor %}
+    {% for item in header_actions %}
+    {% if item.style == "primary" %}
+    <a
+      class="inline-flex items-center justify-center rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-5 py-3 text-sm font-medium text-white transition duration-200 hover:-translate-y-px"
+      href="{{ item.url | relative_url }}"
+      >{{ item.title }}</a
+    >
+    {% else %}
+    <a
+      class="inline-flex items-center justify-center rounded-md border border-gray-200 bg-white px-5 py-3 text-sm font-medium text-gray-700 transition duration-200 hover:border-gray-300 hover:bg-gray-50"
+      href="{{ item.url | relative_url }}"
+      >{{ item.title }}</a
+    >
+    {% endif %}
+    {% endfor %}
+  </nav>
 </header>
- <!-- MOBILE SIDEBAR -->
-    <div class="fixed top-0 left-0 h-full w-64 bg-white dark:bg-gray-900 shadow-lg 
-                transform -translate-x-full transition-transform duration-300 
-                peer-checked:translate-x-0 md:hidden z-50">
-
-        <div class="p-6 flex flex-col gap-6">
-
-            <!-- Close Button -->
-            <label for="menu-toggle"
-                class="self-end cursor-pointer text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
-                <i class="fas fa-times text-xl"></i>
-            </label>
-
-            <!-- Links -->
-            {% for item in site.navigation %}
-                <a href="{{ item.url | relative_url }}"
-                   class="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
-                    {{ item.title }}
-                </a>
-            {% endfor %}
-
-        </div>
-    </div>

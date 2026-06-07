@@ -4,18 +4,18 @@
 
 /* CSS Variables */
 :root {
-    --primary-color: #2c3e50;
-    --secondary-color: #3498db;
-    --accent-color: #e74c3c;
-    --success-color: #27ae60;
-    --warning-color: #f39c12;
-    --text-color: #333;
-    --text-light: #666;
-    --bg-color: #fff;
-    --bg-light: #f8f9fa;
-    --border-color: #dee2e6;
-    --shadow: 0 2px 8px rgba(0,0,0,0.1);
-    --shadow-hover: 0 4px 16px rgba(0,0,0,0.15);
+    --primary-color: #111827;
+    --secondary-color: #dc2626;
+    --accent-color: #ef4444;
+    --success-color: #16a34a;
+    --warning-color: #f59e0b;
+    --text-color: #111827;
+    --text-light: #6b7280;
+    --bg-color: #f9fafb;
+    --bg-light: #ffffff;
+    --border-color: #e5e7eb;
+    --shadow: 0 1px 2px rgba(17,24,39,0.04);
+    --shadow-hover: 0 10px 24px -18px rgba(220,38,38,.8);
 }
 
 /* BLT Dark Mode Theme */
@@ -44,7 +44,7 @@ html.dark {
 }
 
 body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    font-family: "Geist", "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     line-height: 1.6;
     color: var(--text-color);
     background-color: var(--bg-color);
@@ -78,64 +78,7 @@ a {
 }
 
 a:hover {
-    color: var(--primary-color);
-}
-
-/* Header */
-.site-header {
-    background: linear-gradient(135deg, var(--primary-color) 0%, #34495e 100%);
-    color: white;
-    padding: 1rem 0;
-    box-shadow: var(--shadow);
-}
-
-.header-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 1rem;
-}
-
-.site-branding {
-    flex: 1;
-}
-
-.site-title {
-    font-size: 1.75rem;
-    font-weight: bold;
-    color: white;
-    text-decoration: none;
-}
-
-.site-title:hover {
-    color: #ecf0f1;
-}
-
-.site-tagline {
-    font-size: 0.9rem;
-    color: #ecf0f1;
-    margin: 0;
-}
-
-.site-navigation ul {
-    display: flex;
-    list-style: none;
-    gap: 1.5rem;
-    flex-wrap: wrap;
-}
-
-.site-navigation a {
-    color: white;
-    font-weight: 500;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    transition: background-color 0.3s;
-}
-
-.site-navigation a:hover,
-.site-navigation a.active {
-    background-color: rgba(255,255,255,0.1);
+    color: var(--accent-color);
 }
 
 /* Main Content */
@@ -861,16 +804,6 @@ code {
 
 /* Responsive Design */
 @media (max-width: 768px) {
-    .header-content {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-    
-    .site-navigation ul {
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-    
     .hero h1 {
         font-size: 2rem;
     }
@@ -914,4 +847,9 @@ code {
     .btn {
         width: 100%;
     }
+}
+
+.prose :where(a):not(:where([class~="not-prose"],[class~="not-prose"] *)) {
+    color: #dc2626;
+    font-weight: 600;
 }
