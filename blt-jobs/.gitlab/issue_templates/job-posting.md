@@ -1,3 +1,6 @@
+<!-- Published job listings become public Markdown in this repository.
+Do not include private applicant notes, private phone numbers, identity documents, secrets, or any data that should not become public Git history. -->
+
 <!-- Name of the hiring company -->
 ## Company Name
 
@@ -20,6 +23,8 @@
 ## Requirements
 
 ## How to Apply
+
+<!-- Use an external application URL or an email address that is intentionally public. -->
 
 <!-- Optional -->
 ## Additional Information

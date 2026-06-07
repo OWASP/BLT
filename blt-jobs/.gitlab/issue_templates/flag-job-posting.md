@@ -3,7 +3,7 @@
 
 ## Reason for Flagging
 
-<!-- Optional -->
+<!-- Optional. Do not include private applicant data or secrets. -->
 ## Additional Details
 
 /label ~"flag-job-posting"
