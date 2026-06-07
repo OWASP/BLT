@@ -43,6 +43,9 @@ Check the API documentation for BLT below:
 - Swagger API Documentations can be found at the root domain /swagger/
 - Postman API Documentations: [Postman Docs](https://documenter.getpostman.com/view/19782933/VUqpscyV).
 
+### Cloudflare Deployment
+The static landing page is served from `public/`. Cloudflare should use `public` as the publish directory, and Wrangler is configured to deploy the same folder as static assets.
+
 ### Resources
 - Join the [OWASP Slack Channel](https://owasp.org/slack/invite) and ask questions at **#project-blt**
 - Github activity can be seen in Slack **#blt-github**.
