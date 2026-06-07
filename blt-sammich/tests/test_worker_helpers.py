@@ -647,8 +647,8 @@ def test_render_admin_row_table_collapses_payload_columns_to_one_line():
         "/private-admin",
     )
 
-    assert '{ "command": "/blt", "text": "help" }' in html
-    assert '{ "ok": true }' in html
+    assert "{ &quot;command&quot;: &quot;/blt&quot;, &quot;text&quot;: &quot;help&quot; }" in html
+    assert "{ &quot;ok&quot;: true }" in html
     assert 'title="{ &quot;command&quot;: &quot;/blt&quot;, &quot;text&quot;: &quot;help&quot; }"' in html
     assert "whitespace-pre-wrap" not in html
     assert "break-words" not in html
@@ -697,6 +697,29 @@ def test_render_admin_html_shows_edit_form_on_edit_page():
     assert "db_update" in html
     assert "Delete Row" in html
     assert "Back to table" in html
+
+
+def test_render_admin_edit_form_pretty_prints_json_fields():
+    html = worker.render_admin_form_page(
+        {
+            "selected_table": "events",
+            "schema": worker.ADMIN_TABLE_SCHEMAS["events"],
+            "edit_row": {
+                "id": 1,
+                "request_data": '{"event":{"type":"message"},"ok":true}',
+                "slack_response_data": '{"ok":false,"error":"user_not_found"}',
+            },
+            "edit_pk": "1",
+            "add_row": False,
+        },
+        "/private-admin",
+    )
+
+    assert "{\n  &quot;event&quot;: {\n    &quot;type&quot;: &quot;message&quot;\n  }," in html
+    assert "  &quot;ok&quot;: true\n}" in html
+    assert "{\n  &quot;error&quot;: &quot;user_not_found&quot;,\n  &quot;ok&quot;: false\n}" in html
+    assert 'name="field__request_data"' in html
+    assert 'rows="8"' in html
 
 
 def test_lettuce_model_tables_are_in_schema_bootstrap():

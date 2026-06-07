@@ -39,6 +39,11 @@ SLACK_COMMAND_DEFINITIONS = [
 SUPPORTED_SLACK_COMMANDS = set(
     command.split(" ", 1)[0] for command, _ in SLACK_COMMAND_DEFINITIONS
 )
+ADMIN_JSON_TEXT_COLUMNS = {
+    "request_data",
+    "slack_response_data",
+    "settings_test_result",
+}
 ADMIN_TABLE_SCHEMAS = {
     "slack_apps": {
         "pk": "id",
@@ -534,6 +539,21 @@ def html_escape(text: Any) -> str:
         .replace('"', "&quot;")
         .replace("'", "&#x27;")
     )
+
+
+def is_admin_json_column(column_name: str) -> bool:
+    return column_name.endswith("_json") or column_name in ADMIN_JSON_TEXT_COLUMNS
+
+
+def pretty_admin_json_text(column_name: str, value: Any) -> str:
+    text = str(value if value is not None else "")
+    if not text.strip() or not is_admin_json_column(column_name):
+        return text
+    try:
+        payload = json.loads(text)
+    except Exception:
+        return text
+    return json.dumps(payload, indent=2, sort_keys=True)
 
 
 def admin_path(env: Any) -> str:
@@ -5310,16 +5330,29 @@ def render_admin_db_field(
     text = str(value if value is not None else "")
     label = html_escape(column_name)
     required_attr = " required" if required else ""
-    if len(text) > 80 or column_name.endswith("_json") or column_name in (
+    is_textarea = len(text) > 80 or column_name.endswith("_json") or column_name in (
         "request_data",
         "manifest_yaml",
         "message_text",
         "metadata_json",
-    ):
+        "settings_test_result",
+        "slack_response_data",
+    )
+    if is_textarea:
+        display_text = pretty_admin_json_text(column_name, text)
+        row_count = 4
+        if is_admin_json_column(column_name):
+            row_count = min(24, max(8, display_text.count("\n") + 2))
         return (
             '<div><label class="block text-xs font-semibold mb-1">{0}</label>'
-            '<textarea name="field__{1}" class="w-full border border-gray-300 rounded px-2 py-1 font-mono text-xs" rows="4"{2}>{3}</textarea></div>'
-        ).format(label, html_escape(column_name), required_attr, html_escape(text))
+            '<textarea name="field__{1}" class="w-full border border-gray-300 rounded px-2 py-1 font-mono text-xs" rows="{2}"{3}>{4}</textarea></div>'
+        ).format(
+            label,
+            html_escape(column_name),
+            row_count,
+            required_attr,
+            html_escape(display_text),
+        )
     input_type = "number" if column_type == "INTEGER" else "text"
     return (
         '<div><label class="block text-xs font-semibold mb-1">{0}</label>'
