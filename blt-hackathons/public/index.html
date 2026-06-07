@@ -3,33 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BLT Hackathons - Open Source Hackathon Platform</title>
-    <meta name="description" content="Browse and participate in open source hackathons">
-    
+    <title>BLT Hackathons - OWASP BLT Contribution Events</title>
+    <meta name="description" content="Browse OWASP BLT contribution events, warmups, hackathons, and generated participation stats.">
+
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+    <link rel="stylesheet" href="css/blt-theme.css">
+    <script src="js/theme.js"></script>
+
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         }
-        .hackathon-card {
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .hackathon-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-        }
-        
-        /* Mobile-specific styles */
+
         @media (max-width: 640px) {
             .btn-text {
                 display: none;
             }
         }
+
         @media (min-width: 641px) {
             .btn-icon-only {
                 display: none;
@@ -37,134 +32,327 @@
         }
     </style>
 </head>
-<body class="bg-gray-50">
-    <!-- Navigation -->
-    <nav class="bg-white shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                <div class="flex items-center">
-                    <i class="fas fa-trophy text-red-600 text-2xl mr-3"></i>
-                    <h1 class="text-xl font-bold text-gray-900" id="site-title">BLT Hackathons</h1>
-                </div>
-                <div class="flex items-center space-x-2 sm:space-x-4">
-                    <a href="https://github.com/OWASP-BLT/BLT-Hackathons/issues/new?template=create-hackathon.yml"
-                       target="_blank"
-                       rel="noopener noreferrer"
-                       class="px-3 py-2 sm:px-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center space-x-2"
-                       aria-label="Create a new hackathon">
-                        <i class="fas fa-plus"></i>
-                        <span class="btn-text">Create Hackathon</span>
-                    </a>
-                    <a href="https://github.com/OWASP-BLT/BLT-Hackathons" target="_blank" 
-                       rel="noopener noreferrer"
-                       class="px-3 py-2 sm:px-4 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium flex items-center space-x-2"
-                       aria-label="Contribute on GitHub">
-                        <i class="fab fa-github"></i>
-                        <span class="btn-text">Contribute on GitHub</span>
-                    </a>
-                    <a href="https://github.com/OWASP-BLT" target="_blank" 
-                       rel="noopener noreferrer"
-                       class="text-gray-600 hover:text-gray-900 hidden sm:block">
-                        <i class="fab fa-github text-2xl"></i>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </nav>
+<body class="blt-page bg-gray-50">
+    <header id="site-header" class="blt-site-header" style="position: sticky;">
+        <div class="blt-container">
+            <div class="flex h-16 items-center justify-between gap-4">
+                <a href="#top" class="inline-flex min-w-0 items-center gap-3" aria-label="BLT Hackathons home">
+                    <span class="blt-wordmark-mark" aria-hidden="true">
+                        <i class="fas fa-trophy"></i>
+                    </span>
+                    <span class="truncate text-base font-bold tracking-tight sm:text-lg" id="site-title">BLT Hackathons</span>
+                </a>
 
-    <!-- Hero Section -->
-    <div class="bg-gradient-to-r from-red-600 to-red-800 text-white py-8 sm:py-12 lg:py-16">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4" id="hero-title">Open Source Hackathons</h2>
-            <p class="text-base sm:text-lg lg:text-xl mb-4 sm:mb-6" id="hero-description">
-                Join our community hackathons and contribute to open source projects
-            </p>
-        </div>
-    </div>
+                <nav class="hidden items-center gap-6 lg:flex" aria-label="Primary navigation">
+                    <a href="#events" class="blt-nav-link">Events</a>
+                    <a href="#how-it-works" class="blt-nav-link">How it works</a>
+                    <a href="#gsoc-warmup" class="blt-nav-link">GSoC warmup</a>
+                    <a href="#provider-support" class="blt-nav-link">Providers</a>
+                </nav>
 
-    <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <!-- Hackathons Grid -->
-        <div class="mb-12">
-            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 sm:mb-8">
-                <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-4 sm:mb-0">Available Hackathons</h2>
-                <div class="flex flex-wrap gap-2 sm:gap-4">
-                    <button onclick="filterHackathons('all')" 
-                            class="filter-btn px-3 sm:px-4 py-2 rounded-lg bg-red-600 text-white font-medium text-sm sm:text-base"
-                            data-filter="all">
-                        All
+                <div class="flex items-center gap-2 sm:gap-3">
+                    <button type="button"
+                            class="blt-theme-toggle inline-flex h-10 w-10 items-center justify-center rounded-md transition-colors"
+                            data-theme-toggle
+                            aria-label="Switch to dark theme"
+                            aria-pressed="false">
+                        <i class="fas fa-moon" data-theme-icon aria-hidden="true"></i>
                     </button>
-                    <button onclick="filterHackathons('ongoing')" 
-                            class="filter-btn px-3 sm:px-4 py-2 rounded-lg bg-gray-200 text-gray-700 font-medium hover:bg-gray-300 text-sm sm:text-base"
-                            data-filter="ongoing">
-                        Ongoing
-                    </button>
-                    <button onclick="filterHackathons('upcoming')" 
-                            class="filter-btn px-3 sm:px-4 py-2 rounded-lg bg-gray-200 text-gray-700 font-medium hover:bg-gray-300 text-sm sm:text-base"
-                            data-filter="upcoming">
-                        Upcoming
-                    </button>
-                    <button onclick="filterHackathons('ended')" 
-                            class="filter-btn px-3 sm:px-4 py-2 rounded-lg bg-gray-200 text-gray-700 font-medium hover:bg-gray-300 text-sm sm:text-base"
-                            data-filter="ended">
-                        Ended
-                    </button>
+                    <a href="#maintainer-cta"
+                       class="blt-button blt-button-primary px-3 py-2 text-sm sm:px-4"
+                       aria-label="Create or propose a contribution event">
+                        <i class="fas fa-plus" aria-hidden="true"></i>
+                        <span class="btn-text">Create event</span>
+                        <span class="btn-icon-only">Create</span>
+                    </a>
                 </div>
             </div>
-            
-            <div id="hackathons-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-                <!-- Hackathon cards will be inserted here -->
-                <div class="col-span-full text-center py-12">
-                    <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
-                    <p class="mt-4 text-gray-600">Loading hackathons...</p>
+        </div>
+    </header>
+
+    <main id="top">
+        <section class="blt-hero blt-radial-bg" aria-labelledby="hero-title">
+            <div class="blt-container">
+                <div class="grid items-center gap-10 py-16 sm:py-20 lg:grid-cols-[1.05fr_0.95fr] lg:py-24">
+                    <div>
+                        <span class="blt-badge blt-badge-red mb-5">OWASP BLT contribution events</span>
+                        <h1 id="hero-title" class="max-w-4xl text-4xl font-bold leading-tight tracking-tight text-gray-900 sm:text-5xl lg:text-6xl">
+                            Contribution events for OWASP BLT builders
+                        </h1>
+                        <p id="hero-description" class="mt-5 max-w-2xl text-lg leading-8 text-gray-600">
+                            Join focused hackathons, mentoring warmups, and contribution drives that turn issues, reviews, pull requests, and repository work into visible community progress.
+                        </p>
+                        <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+                            <a href="#events" class="blt-button blt-button-primary px-5 py-3">
+                                <i class="fas fa-calendar-check" aria-hidden="true"></i>
+                                Browse events
+                            </a>
+                            <a href="https://gitlab.com/owasp-blt/blt-hackathons"
+                               target="_blank"
+                               rel="noopener noreferrer"
+                               class="blt-button blt-button-secondary px-5 py-3">
+                                <i class="fab fa-gitlab" aria-hidden="true"></i>
+                                Canonical project
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="blt-hero-panel" aria-label="Contribution event snapshot">
+                        <div class="flex items-center justify-between gap-4 border-b border-gray-200 pb-4">
+                            <div>
+                                <p class="text-xs font-bold uppercase tracking-widest text-red-600">Live static hub</p>
+                                <p class="mt-1 text-sm text-gray-500">Generated summaries, event filters, and contributor activity in one page.</p>
+                            </div>
+                            <span class="blt-mini-icon" aria-hidden="true"><i class="fas fa-code-branch"></i></span>
+                        </div>
+                        <div class="mt-5 grid gap-3">
+                            <div class="blt-snapshot-row">
+                                <span><i class="fas fa-layer-group" aria-hidden="true"></i> Events</span>
+                                <strong data-platform-stat="events">--</strong>
+                            </div>
+                            <div class="blt-snapshot-row">
+                                <span><i class="fas fa-users" aria-hidden="true"></i> Participants</span>
+                                <strong data-platform-stat="participants">--</strong>
+                            </div>
+                            <div class="blt-snapshot-row">
+                                <span><i class="fas fa-code-pull-request" aria-hidden="true"></i> Pull requests</span>
+                                <strong data-platform-stat="prs">--</strong>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            
-            <div id="no-hackathons" class="hidden text-center py-12">
-                <i class="fas fa-calendar-times text-6xl text-gray-300 mb-4"></i>
-                <p class="text-xl text-gray-600">No hackathons found</p>
-            </div>
-        </div>
+        </section>
 
-        <!-- About Section -->
-        <div class="bg-white rounded-lg shadow-lg p-4 sm:p-6 lg:p-8 mb-8">
-            <h2 class="text-xl sm:text-2xl font-bold mb-4 text-gray-900">About BLT Hackathons</h2>
-            <div class="prose max-w-none text-gray-700">
-                <p class="mb-4">
-                    Welcome to the BLT (Bug Logging Tool) Hackathon platform! We host regular hackathons 
-                    to encourage contributions to our open source projects and build a stronger community.
-                </p>
-                <p class="mb-4">
-                    Each hackathon features:
-                </p>
-                <ul class="list-disc list-inside mb-4 space-y-2">
-                    <li>Real-time leaderboards tracking contributions</li>
-                    <li>Multiple repositories to contribute to</li>
-                    <li>Prizes and recognition for top contributors</li>
-                    <li>A welcoming community of developers</li>
-                </ul>
-                <p>
-                    Pick a hackathon above to get started, or check out our 
-                    <a href="https://github.com/OWASP-BLT" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:underline">
-                        GitHub organization
-                    </a> 
-                    to learn more about our projects.
-                </p>
+        <section id="platform-stats" class="blt-stats-band" aria-labelledby="platform-stats-title">
+            <div class="blt-container">
+                <div class="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                    <div>
+                        <span class="blt-badge mb-3">Platform stats</span>
+                        <h2 id="platform-stats-title" class="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">Contribution activity at a glance</h2>
+                    </div>
+                    <p class="max-w-xl text-sm leading-6 text-gray-500">Totals are rendered from generated event summaries in <span class="font-mono">public/hackathon-data</span>.</p>
+                </div>
+                <div id="platform-stats-grid" class="grid grid-cols-2 gap-3 lg:grid-cols-5">
+                    <div class="blt-stat-card"><span>--</span><p>Events tracked</p></div>
+                    <div class="blt-stat-card"><span>--</span><p>Pull requests</p></div>
+                    <div class="blt-stat-card"><span>--</span><p>Merged PRs</p></div>
+                    <div class="blt-stat-card"><span>--</span><p>Participants</p></div>
+                    <div class="blt-stat-card"><span>--</span><p>Repositories</p></div>
+                </div>
             </div>
-        </div>
+        </section>
+
+        <section id="featured-event" class="blt-section" aria-labelledby="featured-event-title">
+            <div class="blt-container">
+                <div class="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                    <div>
+                        <span class="blt-badge blt-badge-red mb-3">Featured event</span>
+                        <h2 id="featured-event-title" class="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">Start with the most relevant event</h2>
+                    </div>
+                    <a href="#events" class="blt-text-link">View all events <i class="fas fa-arrow-down" aria-hidden="true"></i></a>
+                </div>
+                <div id="featured-event-content" class="blt-featured-event">
+                    <div class="flex items-center justify-center py-12 text-gray-500">
+                        <div class="inline-block h-8 w-8 animate-spin rounded-full border-b-2 border-red-600" aria-hidden="true"></div>
+                        <span class="ml-3">Loading featured event...</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="events" class="blt-section blt-section-muted" aria-labelledby="events-title">
+            <div class="blt-container">
+                <div class="mb-6 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+                    <div>
+                        <span class="blt-badge mb-3">Events</span>
+                        <h2 id="events-title" class="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">Browse contribution events</h2>
+                        <p class="mt-3 max-w-2xl text-sm leading-6 text-gray-600">Use the existing filters to find active, upcoming, and completed BLT events while the cards continue loading generated summary JSON.</p>
+                    </div>
+                    <div class="blt-filter-group" aria-label="Filter contribution events">
+                        <button onclick="filterHackathons('all')"
+                                class="filter-btn is-active"
+                                data-filter="all"
+                                type="button">
+                            All
+                        </button>
+                        <button onclick="filterHackathons('ongoing')"
+                                class="filter-btn"
+                                data-filter="ongoing"
+                                type="button">
+                            Ongoing
+                        </button>
+                        <button onclick="filterHackathons('upcoming')"
+                                class="filter-btn"
+                                data-filter="upcoming"
+                                type="button">
+                            Upcoming
+                        </button>
+                        <button onclick="filterHackathons('ended')"
+                                class="filter-btn"
+                                data-filter="ended"
+                                type="button">
+                            Ended
+                        </button>
+                    </div>
+                </div>
+
+                <div id="hackathons-grid" class="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+                    <div class="col-span-full text-center py-12">
+                        <div class="inline-block h-12 w-12 animate-spin rounded-full border-b-2 border-red-600" aria-hidden="true"></div>
+                        <p class="mt-4 text-gray-600">Loading hackathons...</p>
+                    </div>
+                </div>
+
+                <div id="no-hackathons" class="hidden text-center py-12">
+                    <i class="fas fa-calendar-times text-5xl text-gray-300" aria-hidden="true"></i>
+                    <p class="mt-4 text-lg text-gray-600">No hackathons found</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="how-it-works" class="blt-section" aria-labelledby="how-it-works-title">
+            <div class="blt-container">
+                <div class="mx-auto max-w-3xl text-center">
+                    <span class="blt-badge blt-badge-red mb-3">How it works</span>
+                    <h2 id="how-it-works-title" class="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">A simple path from issue to recognized contribution</h2>
+                    <p class="mt-4 text-base leading-7 text-gray-600">BLT contribution events give contributors a focused window, maintainers a clear leaderboard, and the community a public record of useful work.</p>
+                </div>
+                <div class="mt-8 grid gap-4 md:grid-cols-3">
+                    <article class="blt-process-card">
+                        <span class="blt-step-number">01</span>
+                        <h3>Pick an event</h3>
+                        <p>Choose an active or upcoming event, review its rules, and follow the linked repository guidance.</p>
+                    </article>
+                    <article class="blt-process-card">
+                        <span class="blt-step-number">02</span>
+                        <h3>Contribute work</h3>
+                        <p>Submit issues, pull requests, reviews, and fixes during the event window so generated summaries can count them.</p>
+                    </article>
+                    <article class="blt-process-card">
+                        <span class="blt-step-number">03</span>
+                        <h3>Track progress</h3>
+                        <p>Open the event dashboard to see participant totals, repositories, merged PRs, and leaderboard movement.</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section id="gsoc-warmup" class="blt-section blt-section-muted" aria-labelledby="gsoc-warmup-title">
+            <div class="blt-container">
+                <div class="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+                    <div>
+                        <span class="blt-badge blt-badge-red mb-3">GSoC warmup</span>
+                        <h2 id="gsoc-warmup-title" class="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">Practice before mentoring season begins</h2>
+                        <p class="mt-4 text-base leading-7 text-gray-600">Warmup events help contributors build a visible history before Google Summer of Code style programs. They are useful for learning the BLT codebase, proving follow-through, and getting comfortable with review cycles.</p>
+                    </div>
+                    <div class="grid gap-3 sm:grid-cols-2">
+                        <div class="blt-mini-card">
+                            <i class="fas fa-route" aria-hidden="true"></i>
+                            <h3>Onboarding signal</h3>
+                            <p>Show steady activity before formal proposal periods.</p>
+                        </div>
+                        <div class="blt-mini-card">
+                            <i class="fas fa-comments" aria-hidden="true"></i>
+                            <h3>Review practice</h3>
+                            <p>Learn how maintainers expect issues, PRs, and discussions to move.</p>
+                        </div>
+                        <div class="blt-mini-card">
+                            <i class="fas fa-shield-alt" aria-hidden="true"></i>
+                            <h3>Security context</h3>
+                            <p>Work inside OWASP BLT projects while learning responsible contribution norms.</p>
+                        </div>
+                        <div class="blt-mini-card">
+                            <i class="fas fa-chart-line" aria-hidden="true"></i>
+                            <h3>Visible record</h3>
+                            <p>Generated summaries keep contribution activity easy to inspect.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="provider-support" class="blt-section" aria-labelledby="provider-support-title">
+            <div class="blt-container">
+                <div class="grid gap-8 lg:grid-cols-[1fr_0.9fr] lg:items-center">
+                    <div>
+                        <span class="blt-badge mb-3">Provider support</span>
+                        <h2 id="provider-support-title" class="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">Provider-neutral event pages with generated data</h2>
+                        <p class="mt-4 text-base leading-7 text-gray-600">This hub keeps wording centered on contribution events while the current generated summaries continue to power cards, stats, and event dashboards. GitHub and GitLab references remain where they describe current project infrastructure.</p>
+                    </div>
+                    <div class="blt-provider-grid">
+                        <div class="blt-provider-tile">
+                            <i class="fab fa-github" aria-hidden="true"></i>
+                            <span>GitHub activity</span>
+                        </div>
+                        <div class="blt-provider-tile">
+                            <i class="fab fa-gitlab" aria-hidden="true"></i>
+                            <span>GitLab project home</span>
+                        </div>
+                        <div class="blt-provider-tile">
+                            <i class="fas fa-file-code" aria-hidden="true"></i>
+                            <span>Static JSON summaries</span>
+                        </div>
+                        <div class="blt-provider-tile">
+                            <i class="fas fa-lock" aria-hidden="true"></i>
+                            <span>Escaped config text</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="maintainer-cta" class="blt-section blt-cta-section" aria-labelledby="maintainer-cta-title">
+            <div class="blt-container">
+                <div class="blt-cta-panel">
+                    <div>
+                        <span class="blt-badge blt-badge-red mb-3">Maintainers</span>
+                        <h2 id="maintainer-cta-title" class="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">Create or propose a BLT contribution event</h2>
+                        <p class="mt-4 max-w-2xl text-base leading-7 text-gray-600">Use the canonical project to coordinate event setup, then keep generated summaries in the existing static data flow.</p>
+                    </div>
+                    <div class="flex flex-col gap-3 sm:flex-row lg:flex-col">
+                        <a href="https://gitlab.com/owasp-blt/blt-hackathons"
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           class="blt-button blt-button-primary px-5 py-3">
+                            <i class="fab fa-gitlab" aria-hidden="true"></i>
+                            Open GitLab project
+                        </a>
+                        <a href="https://github.com/OWASP-BLT/BLT-Hackathons/issues/new?template=create-hackathon.yml"
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           class="blt-button blt-button-secondary px-5 py-3">
+                            <i class="fas fa-plus" aria-hidden="true"></i>
+                            Existing create-event template
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-white border-t mt-12">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center text-gray-600">
-            <div id="github-api-info" class="mb-3 text-gray-500"></div>
-            <p>
-                Powered by 
-                <a href="https://github.com/OWASP-BLT/BLT-Hackathons" 
-                   class="text-red-600 hover:underline" target="_blank" rel="noopener noreferrer">
-                    BLT-Hackathons
-                </a>
-            </p>
+    <footer id="site-footer" class="blt-footer">
+        <div class="blt-container">
+            <div id="github-api-info" class="mb-5 text-sm text-gray-500"></div>
+            <div class="grid gap-8 border-t border-gray-200 pt-6 md:grid-cols-[1.2fr_0.8fr_0.8fr]">
+                <div>
+                    <p class="text-sm font-semibold text-gray-900">BLT Hackathons</p>
+                    <p class="mt-2 max-w-xl text-sm leading-6 text-gray-500">A static hub for OWASP BLT contribution events, generated event summaries, and community participation.</p>
+                </div>
+                <div>
+                    <p class="text-sm font-semibold text-gray-900">Canonical project</p>
+                    <a id="canonical-project-link"
+                       href="https://gitlab.com/owasp-blt/blt-hackathons"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       class="blt-footer-link">GitLab BLT-Hackathons</a>
+                </div>
+                <div>
+                    <p class="text-sm font-semibold text-gray-900">OWASP BLT ecosystem</p>
+                    <a href="https://owaspblt.org" target="_blank" rel="noopener noreferrer" class="blt-footer-link">OWASP BLT</a>
+                    <a href="https://owasp.org/www-project-bug-logging-tool/" target="_blank" rel="noopener noreferrer" class="blt-footer-link">OWASP project page</a>
+                </div>
+            </div>
         </div>
     </footer>
 

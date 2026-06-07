@@ -1,157 +1,395 @@
 /**
  * Index Page Logic
- * Displays list of all hackathons
+ * Displays the all-events contribution hub.
  */
 
 class HackathonIndex {
     constructor(config) {
-        this.config = config;
+        this.config = config || {};
         this.currentFilter = 'all';
         this.hackathonStats = {};
+        this.loadedSummaries = 0;
+        this.loadedAt = null;
     }
 
     /**
-     * Initialize the index page
+     * Initialize the index page.
      */
     async init() {
         this.loadedAt = new Date();
         const global = this.config.global || {};
-        
-        // Update site title
-        if (global.siteName) {
-            document.getElementById('site-title').textContent = global.siteName;
-            document.getElementById('hero-title').textContent = global.siteName;
-            document.title = global.siteName;
+        const siteTitle = document.getElementById('site-title');
+
+        if (global.siteName && siteTitle) {
+            siteTitle.textContent = String(global.siteName);
+            document.title = `${String(global.siteName)} - OWASP BLT Contribution Events`;
         }
 
-        if (global.siteDescription) {
-            document.getElementById('hero-description').textContent = global.siteDescription;
-        }
-
-        // Load stats for all hackathons, then render
         await this.loadAllStats();
+        this.renderPlatformStats();
+        this.renderFeaturedEvent();
         this.renderHackathons();
     }
 
     /**
-     * Load pre-fetched stats for all hackathons
+     * Return configured hackathons as a defensive copy.
+     */
+    getHackathons() {
+        return Array.isArray(this.config.hackathons) ? [...this.config.hackathons] : [];
+    }
+
+    /**
+     * Load pre-fetched stats for all hackathons.
      */
     async loadAllStats() {
-        const fetches = (this.config.hackathons || []).map(async hackathon => {
+        const fetches = this.getHackathons().map(async hackathon => {
+            const slug = String(hackathon.slug || '').trim();
+            if (!slug) return;
+
             try {
-                const response = await fetch(`hackathon-data/${hackathon.slug}-summary.json`);
-                if (response.ok) {
-                    const summary = await response.json();
-
-                    // Calculate days active: elapsed days from start up to today (capped at end date)
-                    const startDate = new Date(hackathon.startTime);
-                    const endDate = new Date(hackathon.endTime);
-                    const now = new Date();
-                    const effectiveEnd = now < endDate ? now : endDate;
-                    const daysActive = now < startDate
-                        ? 0
-                        : Math.floor((effectiveEnd - startDate) / (1000 * 60 * 60 * 24));
-
-                    this.hackathonStats[hackathon.slug] = {
-                        participantCount: summary.participantCount || 0,
-                        totalPRs: summary.totalPRs || 0,
-                        mergedPRs: summary.mergedPRs || 0,
-                        totalIssues: summary.totalIssues || 0,
-                        repositories: summary.repositories || 0,
-                        topContributors: summary.topContributors || [],
-                        daysActive,
-                    };
+                const response = await fetch(`hackathon-data/${encodeURIComponent(slug)}-summary.json`);
+                if (!response.ok) {
+                    this.hackathonStats[slug] = this.buildStats(hackathon, null, false);
+                    return;
                 }
-            } catch (e) {
-                console.warn(`Failed to load stats for ${hackathon.slug}:`, e);
+
+                const summary = await response.json();
+                this.hackathonStats[slug] = this.buildStats(hackathon, summary, true);
+                this.loadedSummaries += 1;
+            } catch (error) {
+                console.warn(`Failed to load stats for ${slug}:`, error);
+                this.hackathonStats[slug] = this.buildStats(hackathon, null, false);
             }
         });
+
         await Promise.all(fetches);
     }
 
     /**
-     * Get status of a hackathon
+     * Normalize summary values into safe display stats.
+     */
+    buildStats(hackathon, summary, summaryAvailable) {
+        const safeSummary = summary && typeof summary === 'object' ? summary : {};
+        const topContributors = Array.isArray(safeSummary.topContributors)
+            ? safeSummary.topContributors.slice(0, 4).map(rawContributor => {
+                const contributor = rawContributor && typeof rawContributor === 'object' ? rawContributor : {};
+                return {
+                    username: String(contributor.username || 'Contributor'),
+                    avatar: this.safeUrl(contributor.avatar, ''),
+                    url: this.safeUrl(contributor.url, '#'),
+                    mergedCount: this.toSafeInteger(contributor.mergedCount),
+                };
+            })
+            : [];
+
+        return {
+            participantCount: this.toSafeInteger(safeSummary.participantCount),
+            totalPRs: this.toSafeInteger(safeSummary.totalPRs),
+            mergedPRs: this.toSafeInteger(safeSummary.mergedPRs),
+            totalIssues: this.toSafeInteger(safeSummary.totalIssues),
+            repositories: this.toSafeInteger(safeSummary.repositories),
+            topContributors,
+            daysActive: this.calculateDaysActive(hackathon),
+            summaryAvailable,
+        };
+    }
+
+    /**
+     * Calculate elapsed active days from config dates.
+     */
+    calculateDaysActive(hackathon) {
+        const startDate = new Date(hackathon.startTime);
+        const endDate = new Date(hackathon.endTime);
+
+        if (!this.isValidDate(startDate) || !this.isValidDate(endDate)) {
+            return 0;
+        }
+
+        const now = new Date();
+        const effectiveEnd = now < endDate ? now : endDate;
+
+        if (now < startDate) {
+            return 0;
+        }
+
+        return Math.max(0, Math.floor((effectiveEnd - startDate) / (1000 * 60 * 60 * 24)));
+    }
+
+    /**
+     * Get status of a hackathon.
      */
     getHackathonStatus(hackathon) {
         const now = new Date();
         const startDate = new Date(hackathon.startTime);
         const endDate = new Date(hackathon.endTime);
 
+        if (!this.isValidDate(startDate) || !this.isValidDate(endDate)) {
+            return {
+                status: 'upcoming',
+                label: 'Schedule pending',
+                class: 'blt-status blt-status--upcoming',
+            };
+        }
+
         if (now < startDate) {
             return {
                 status: 'upcoming',
                 label: 'Upcoming',
-                class: 'bg-blue-100 text-blue-800'
+                class: 'blt-status blt-status--upcoming',
             };
-        } else if (now > endDate) {
+        }
+
+        if (now > endDate) {
             return {
                 status: 'ended',
                 label: 'Ended',
-                class: 'bg-gray-100 text-gray-800'
-            };
-        } else {
-            return {
-                status: 'ongoing',
-                label: 'Ongoing',
-                class: 'bg-green-100 text-green-800'
+                class: 'blt-status blt-status--ended',
             };
         }
+
+        return {
+            status: 'ongoing',
+            label: 'Ongoing',
+            class: 'blt-status blt-status--ongoing',
+        };
     }
 
     /**
-     * Format date range for display
+     * Sort hackathons: ongoing first, then upcoming, then ended.
+     */
+    getSortedHackathons(hackathons = this.getHackathons()) {
+        const statusOrder = { ongoing: 0, upcoming: 1, ended: 2 };
+
+        return [...hackathons].sort((a, b) => {
+            const statusA = this.getHackathonStatus(a);
+            const statusB = this.getHackathonStatus(b);
+            const orderA = statusOrder[statusA.status] ?? 3;
+            const orderB = statusOrder[statusB.status] ?? 3;
+
+            if (orderA !== orderB) {
+                return orderA - orderB;
+            }
+
+            if (statusA.status === 'ended') {
+                return new Date(b.endTime) - new Date(a.endTime);
+            }
+
+            return new Date(a.startTime) - new Date(b.startTime);
+        });
+    }
+
+    /**
+     * Pick the most relevant active/upcoming event, falling back to recent ended events.
+     */
+    getFeaturedHackathon() {
+        const sorted = this.getSortedHackathons();
+        return sorted.find(hackathon => {
+            const status = this.getHackathonStatus(hackathon).status;
+            return status === 'ongoing' || status === 'upcoming';
+        }) || sorted[0] || null;
+    }
+
+    /**
+     * Format date range for display.
      */
     formatDateRange(startTime, endTime) {
         const startDate = new Date(startTime);
         const endDate = new Date(endTime);
         const options = { year: 'numeric', month: 'short', day: 'numeric' };
-        
+
+        if (!this.isValidDate(startDate) || !this.isValidDate(endDate)) {
+            return 'Dates to be announced';
+        }
+
         return `${startDate.toLocaleDateString('en-US', options)} - ${endDate.toLocaleDateString('en-US', options)}`;
     }
 
     /**
-     * Get time remaining for upcoming or ongoing hackathons
+     * Get time remaining for upcoming or ongoing hackathons.
      */
     getTimeRemaining(hackathon) {
         const now = new Date();
         const startDate = new Date(hackathon.startTime);
         const endDate = new Date(hackathon.endTime);
 
+        if (!this.isValidDate(startDate) || !this.isValidDate(endDate)) {
+            return 'Schedule pending';
+        }
+
         if (now < startDate) {
             const daysUntil = Math.ceil((startDate - now) / (1000 * 60 * 60 * 24));
             return `Starts in ${daysUntil} day${daysUntil !== 1 ? 's' : ''}`;
-        } else if (now <= endDate) {
+        }
+
+        if (now <= endDate) {
             const remaining = endDate - now;
             const days = Math.floor(remaining / (1000 * 60 * 60 * 24));
             const hours = Math.floor((remaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            
+
             if (days > 0) {
                 return `${days} day${days !== 1 ? 's' : ''} remaining`;
-            } else if (hours > 0) {
-                return `${hours} hour${hours !== 1 ? 's' : ''} remaining`;
-            } else {
-                return 'Ending soon';
             }
-        } else {
-            return 'Ended';
+
+            if (hours > 0) {
+                return `${hours} hour${hours !== 1 ? 's' : ''} remaining`;
+            }
+
+            return 'Ending soon';
+        }
+
+        return 'Ended';
+    }
+
+    /**
+     * Render the platform stats band from loaded summaries.
+     */
+    renderPlatformStats() {
+        const container = document.getElementById('platform-stats-grid');
+        if (!container) return;
+
+        const stats = this.aggregatePlatformStats();
+        const cards = [
+            { label: 'Events tracked', value: stats.events },
+            { label: 'Pull requests', value: stats.totalPRs },
+            { label: 'Merged PRs', value: stats.mergedPRs },
+            { label: 'Participants', value: stats.participants },
+            { label: 'Repositories', value: stats.repositories },
+        ];
+
+        container.innerHTML = cards.map(card => `
+            <div class="blt-stat-card">
+                <span>${this.formatNumber(card.value)}</span>
+                <p>${this.escapeHtml(card.label)}</p>
+            </div>
+        `).join('');
+
+        this.updateSnapshotStat('events', stats.events);
+        this.updateSnapshotStat('participants', stats.participants);
+        this.updateSnapshotStat('prs', stats.totalPRs);
+    }
+
+    /**
+     * Aggregate platform stats.
+     */
+    aggregatePlatformStats() {
+        const hackathons = this.getHackathons();
+        const statsList = hackathons
+            .map(hackathon => this.hackathonStats[hackathon.slug])
+            .filter(Boolean);
+        const repositoryFallback = new Set();
+
+        hackathons.forEach(hackathon => {
+            const repositories = hackathon.github && Array.isArray(hackathon.github.repositories)
+                ? hackathon.github.repositories
+                : [];
+            repositories.forEach(repository => repositoryFallback.add(String(repository)));
+        });
+
+        const totals = statsList.reduce((accumulator, stats) => ({
+            participants: accumulator.participants + stats.participantCount,
+            totalPRs: accumulator.totalPRs + stats.totalPRs,
+            mergedPRs: accumulator.mergedPRs + stats.mergedPRs,
+            totalIssues: accumulator.totalIssues + stats.totalIssues,
+            repositories: Math.max(accumulator.repositories, stats.repositories),
+        }), {
+            participants: 0,
+            totalPRs: 0,
+            mergedPRs: 0,
+            totalIssues: 0,
+            repositories: 0,
+        });
+
+        return {
+            ...totals,
+            events: hackathons.length,
+            activeOrUpcoming: hackathons.filter(hackathon => {
+                const status = this.getHackathonStatus(hackathon).status;
+                return status === 'ongoing' || status === 'upcoming';
+            }).length,
+            summaryCount: this.loadedSummaries,
+            repositories: totals.repositories || repositoryFallback.size,
+        };
+    }
+
+    /**
+     * Update hero snapshot stat if the element exists.
+     */
+    updateSnapshotStat(name, value) {
+        const element = document.querySelector(`[data-platform-stat="${name}"]`);
+        if (element) {
+            element.textContent = this.formatNumber(value);
         }
     }
 
     /**
-     * Render all hackathons
+     * Render the featured active/upcoming event panel.
+     */
+    renderFeaturedEvent() {
+        const container = document.getElementById('featured-event-content');
+        if (!container) return;
+
+        const hackathon = this.getFeaturedHackathon();
+        if (!hackathon) {
+            container.innerHTML = `
+                <div class="p-6 text-center text-gray-600">
+                    <i class="fas fa-calendar-times text-4xl text-gray-300" aria-hidden="true"></i>
+                    <p class="mt-3">No contribution events are configured yet.</p>
+                </div>
+            `;
+            return;
+        }
+
+        const status = this.getHackathonStatus(hackathon);
+        const stats = this.getStatsFor(hackathon);
+        const dateRange = this.formatDateRange(hackathon.startTime, hackathon.endTime);
+        const timeRemaining = this.getTimeRemaining(hackathon);
+        const description = this.getDescriptionPreview(hackathon.description, 260);
+        const detailUrl = `hackathon.html?slug=${encodeURIComponent(hackathon.slug)}`;
+
+        container.innerHTML = `
+            <div class="blt-featured-layout">
+                ${this.renderEventMedia(hackathon, status, true)}
+                <div class="blt-featured-copy">
+                    <div>
+                        <span class="${status.class}">${this.escapeHtml(status.label)}</span>
+                        <h3 class="mt-4 text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">${this.escapeHtml(hackathon.name)}</h3>
+                        <p class="mt-3 text-base leading-7 text-gray-600">${this.escapeHtml(description)}</p>
+                    </div>
+                    <div>
+                        <div class="mb-4 grid gap-3 text-sm text-gray-600 sm:grid-cols-2">
+                            <div><i class="far fa-calendar mr-2 text-red-600" aria-hidden="true"></i>${this.escapeHtml(dateRange)}</div>
+                            <div><i class="far fa-clock mr-2 text-red-600" aria-hidden="true"></i>${this.escapeHtml(timeRemaining)}</div>
+                            ${hackathon.organizer ? `<div class="sm:col-span-2"><i class="fas fa-users mr-2 text-red-600" aria-hidden="true"></i>Organized by ${this.escapeHtml(hackathon.organizer)}</div>` : ''}
+                        </div>
+                        ${this.renderStatsGrid(stats, true)}
+                        ${this.renderSummaryNote(stats)}
+                        <a href="${this.escapeHtml(detailUrl)}" class="blt-button blt-button-primary mt-5 px-5 py-3">
+                            View event dashboard
+                            <i class="fas fa-arrow-right" aria-hidden="true"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    /**
+     * Render all hackathons.
      */
     renderHackathons(filter = 'all') {
-        this.currentFilter = filter;
+        const allowedFilters = new Set(['all', 'ongoing', 'upcoming', 'ended']);
+        this.currentFilter = allowedFilters.has(filter) ? filter : 'all';
+
         const container = document.getElementById('hackathons-grid');
         const noHackathonsMsg = document.getElementById('no-hackathons');
-        
-        let hackathons = this.config.hackathons;
-        
-        // Filter hackathons
-        if (filter !== 'all') {
-            hackathons = hackathons.filter(h => {
-                const status = this.getHackathonStatus(h);
-                return status.status === filter;
+        if (!container || !noHackathonsMsg) return;
+
+        let hackathons = this.getSortedHackathons();
+
+        if (this.currentFilter !== 'all') {
+            hackathons = hackathons.filter(hackathon => {
+                const status = this.getHackathonStatus(hackathon);
+                return status.status === this.currentFilter;
             });
         }
 
@@ -164,200 +402,187 @@ class HackathonIndex {
         container.classList.remove('hidden');
         noHackathonsMsg.classList.add('hidden');
 
-        // Sort hackathons: ongoing first, then upcoming, then ended
-        hackathons.sort((a, b) => {
-            const statusA = this.getHackathonStatus(a);
-            const statusB = this.getHackathonStatus(b);
-            
-            const statusOrder = { ongoing: 0, upcoming: 1, ended: 2 };
-            const orderA = statusOrder[statusA.status];
-            const orderB = statusOrder[statusB.status];
-            
-            if (orderA !== orderB) {
-                return orderA - orderB;
-            }
-            
-            // If same status, sort by date (most recent first for ended, earliest first for others)
-            if (statusA.status === 'ended') {
-                return new Date(b.endTime) - new Date(a.endTime);
-            } else {
-                return new Date(a.startTime) - new Date(b.startTime);
-            }
-        });
-
-        container.innerHTML = hackathons.map(hackathon => {
-            const status = this.getHackathonStatus(hackathon);
-            const dateRange = this.formatDateRange(hackathon.startTime, hackathon.endTime);
-            const timeRemaining = this.getTimeRemaining(hackathon);
-            const descriptionTrimmed = hackathon.description.trim();
-            const descriptionPreview = descriptionTrimmed.substring(0, 150);
-            const needsEllipsis = descriptionTrimmed.length > 150;
-            const stats = this.hackathonStats[hackathon.slug];
-
-            const statsHtml = stats ? `
-                        <div class="grid grid-cols-3 gap-2 mb-4">
-                            <div class="text-center p-2 bg-gray-50 rounded-lg">
-                                <div class="text-lg font-bold text-red-600">${stats.participantCount.toLocaleString()}</div>
-                                <div class="text-xs text-gray-500">Participants</div>
-                            </div>
-                            <div class="text-center p-2 bg-gray-50 rounded-lg">
-                                <div class="text-lg font-bold text-red-600">${stats.totalPRs.toLocaleString()}</div>
-                                <div class="text-xs text-gray-500">Pull Requests</div>
-                            </div>
-                            <div class="text-center p-2 bg-gray-50 rounded-lg">
-                                <div class="text-lg font-bold text-red-600">${stats.mergedPRs.toLocaleString()}</div>
-                                <div class="text-xs text-gray-500">Merged PRs</div>
-                            </div>
-                            <div class="text-center p-2 bg-gray-50 rounded-lg">
-                                <div class="text-lg font-bold text-red-600">${stats.totalIssues.toLocaleString()}</div>
-                                <div class="text-xs text-gray-500">Issues</div>
-                            </div>
-                            <div class="text-center p-2 bg-gray-50 rounded-lg">
-                                <div class="text-lg font-bold text-red-600">${stats.repositories.toLocaleString()}</div>
-                                <div class="text-xs text-gray-500">Repositories</div>
-                            </div>
-                            <div class="text-center p-2 bg-gray-50 rounded-lg">
-                                <div class="text-lg font-bold text-red-600">${stats.daysActive.toLocaleString()}</div>
-                                <div class="text-xs text-gray-500">Days Active</div>
-                            </div>
-                        </div>
-                        ${stats.topContributors && stats.topContributors.length > 0 ? `
-                        <div class="flex items-center gap-2 mb-4">
-                            <span class="text-xs text-gray-500 whitespace-nowrap">Top contributors:</span>
-                            <div class="flex -space-x-2">
-                                ${stats.topContributors.map((c, i) => `
-                                <a href="${this.escapeHtml(c.url)}" target="_blank" rel="noopener noreferrer"
-                                   title="${this.escapeHtml(c.username)} — ${c.mergedCount} merged PR${c.mergedCount !== 1 ? 's' : ''}">
-                                    <img src="${this.escapeHtml(c.avatar)}" alt="${this.escapeHtml(c.username)}"
-                                         class="w-8 h-8 rounded-full border-2 border-white shadow-sm"
-                                         onerror="this.src='https://github.com/identicons/${this.escapeHtml(c.username)}.png'">
-                                </a>`).join('')}
-                            </div>
-                        </div>
-                        ` : ''}` : '';
-
-            return `
-                <div class="hackathon-card bg-white rounded-lg shadow-lg overflow-hidden" data-status="${status.status}">
-                    ${hackathon.bannerImage ? `
-                    <div class="h-48 bg-cover bg-center relative" style="background-image: url('${hackathon.bannerImage}');">
-                        <div class="absolute top-4 right-4">
-                            <span class="px-3 py-1 rounded-full text-sm font-medium ${status.class}">
-                                ${status.label}
-                            </span>
-                        </div>
-                    </div>
-                    ` : `
-                    <div class="bg-gradient-to-r from-red-600 to-red-800 p-6 text-white">
-                        <div class="flex justify-between items-start mb-2">
-                            <h3 class="text-xl font-bold flex-grow">${this.escapeHtml(hackathon.name)}</h3>
-                            <span class="px-3 py-1 rounded-full text-sm font-medium ${status.class}">
-                                ${status.label}
-                            </span>
-                        </div>
-                        <p class="text-sm opacity-90">
-                            <i class="far fa-calendar mr-1"></i>
-                            ${dateRange}
-                        </p>
-                        <p class="text-sm mt-1 opacity-90">
-                            <i class="far fa-clock mr-1"></i>
-                            ${timeRemaining}
-                        </p>
-                    </div>
-                    `}
-                    
-                    <div class="p-6">
-                        ${hackathon.bannerImage ? `
-                        <h3 class="text-xl font-bold mb-2 text-gray-900">${this.escapeHtml(hackathon.name)}</h3>
-                        ` : ''}
-                        ${hackathon.organizer ? `
-                        <div class="flex items-center text-sm text-gray-500 mb-2">
-                            <i class="fas fa-users mr-2"></i>
-                            <span>Organized by ${this.escapeHtml(hackathon.organizer)}</span>
-                        </div>
-                        ` : ''}
-                        ${hackathon.bannerImage ? `
-                        <div class="flex items-center text-sm text-gray-600 mb-2">
-                            <i class="far fa-calendar mr-2"></i>
-                            <span>${dateRange}</span>
-                        </div>
-                        <div class="flex items-center text-sm text-gray-600 mb-4">
-                            <i class="far fa-clock mr-2"></i>
-                            <span>${timeRemaining}</span>
-                        </div>
-                        ` : ''}
-                        <p class="text-gray-700 mb-4 line-clamp-3">
-                            ${this.escapeHtml(descriptionPreview)}${needsEllipsis ? '...' : ''}
-                        </p>
-                        
-                        ${statsHtml}
-                        
-                        <a href="hackathon.html?slug=${encodeURIComponent(hackathon.slug)}" 
-                           class="block w-full text-center px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition">
-                            View Details
-                            <i class="fas fa-arrow-right ml-2"></i>
-                        </a>
-                    </div>
-                </div>
-            `;
-        }).join('');
+        container.innerHTML = hackathons.map(hackathon => this.renderHackathonCard(hackathon)).join('');
     }
 
     /**
-     * Update API info section in footer with token status and rate limit details
+     * Render a single event card.
      */
-    async updateApiInfo() {
+    renderHackathonCard(hackathon) {
+        const status = this.getHackathonStatus(hackathon);
+        const dateRange = this.formatDateRange(hackathon.startTime, hackathon.endTime);
+        const timeRemaining = this.getTimeRemaining(hackathon);
+        const description = this.getDescriptionPreview(hackathon.description, 170);
+        const stats = this.getStatsFor(hackathon);
+        const detailUrl = `hackathon.html?slug=${encodeURIComponent(hackathon.slug)}`;
+
+        return `
+            <article class="hackathon-card" data-status="${this.escapeHtml(status.status)}">
+                ${this.renderEventMedia(hackathon, status, false)}
+                <div class="blt-event-body">
+                    <div>
+                        <h3 class="text-xl font-bold leading-tight text-gray-900">${this.escapeHtml(hackathon.name)}</h3>
+                        <div class="mt-3 grid gap-2 text-sm text-gray-600">
+                            ${hackathon.organizer ? `<div><i class="fas fa-users mr-2 text-red-600" aria-hidden="true"></i>${this.escapeHtml(hackathon.organizer)}</div>` : ''}
+                            <div><i class="far fa-calendar mr-2 text-red-600" aria-hidden="true"></i>${this.escapeHtml(dateRange)}</div>
+                            <div><i class="far fa-clock mr-2 text-red-600" aria-hidden="true"></i>${this.escapeHtml(timeRemaining)}</div>
+                        </div>
+                        <p class="blt-line-clamp mt-4 text-sm leading-6 text-gray-600">${this.escapeHtml(description)}</p>
+                    </div>
+
+                    <div>
+                        ${this.renderStatsGrid(stats, false)}
+                        ${this.renderSummaryNote(stats)}
+                    </div>
+
+                    ${this.renderTopContributors(stats)}
+
+                    <a href="${this.escapeHtml(detailUrl)}"
+                       class="blt-button blt-button-primary mt-auto px-4 py-2.5 text-sm">
+                        View details
+                        <i class="fas fa-arrow-right" aria-hidden="true"></i>
+                    </a>
+                </div>
+            </article>
+        `;
+    }
+
+    /**
+     * Render event media with a status badge.
+     */
+    renderEventMedia(hackathon, status, featured) {
+        const imageUrl = this.safeUrl(hackathon.bannerImage, '');
+        const name = String(hackathon.name || 'Contribution event');
+        const mediaClass = featured ? 'blt-featured-media' : 'blt-event-media';
+
+        if (imageUrl) {
+            return `
+                <div class="${mediaClass}">
+                    <img src="${this.escapeHtml(imageUrl)}" alt="${this.escapeHtml(name)} banner" loading="lazy">
+                    ${featured ? '' : `<span class="${status.class}">${this.escapeHtml(status.label)}</span>`}
+                </div>
+            `;
+        }
+
+        return `
+            <div class="${mediaClass} flex items-center justify-center text-white">
+                <div class="text-center">
+                    <i class="fas fa-code-branch text-4xl" aria-hidden="true"></i>
+                    <p class="mt-3 text-sm font-bold uppercase tracking-widest">Contribution event</p>
+                </div>
+                ${featured ? '' : `<span class="${status.class}">${this.escapeHtml(status.label)}</span>`}
+            </div>
+        `;
+    }
+
+    /**
+     * Render compact stats for an event.
+     */
+    renderStatsGrid(stats, featured) {
+        const cells = featured
+            ? [
+                ['Participants', stats.participantCount],
+                ['Pull requests', stats.totalPRs],
+                ['Merged PRs', stats.mergedPRs],
+            ]
+            : [
+                ['Participants', stats.participantCount],
+                ['Merged PRs', stats.mergedPRs],
+                ['Days active', stats.daysActive],
+            ];
+
+        return `
+            <div class="blt-event-stat-grid">
+                ${cells.map(([label, value]) => `
+                    <div class="blt-event-stat">
+                        <strong>${this.formatNumber(value)}</strong>
+                        <span>${this.escapeHtml(label)}</span>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+
+    /**
+     * Render a short missing-summary note.
+     */
+    renderSummaryNote(stats) {
+        if (stats.summaryAvailable) {
+            return '';
+        }
+
+        return '<p class="mt-3 text-xs font-medium text-gray-500">Generated summary data is not available yet.</p>';
+    }
+
+    /**
+     * Render top contributor avatars when summary data includes them.
+     */
+    renderTopContributors(stats) {
+        if (!stats.topContributors.length) {
+            return '';
+        }
+
+        return `
+            <div class="blt-top-contributors">
+                <span class="text-xs font-bold uppercase tracking-wide text-gray-500">Top contributors</span>
+                <div class="flex -space-x-2">
+                    ${stats.topContributors.map(contributor => {
+                        const username = String(contributor.username || 'Contributor');
+                        const fallbackAvatar = `https://github.com/identicons/${encodeURIComponent(username)}.png`;
+                        const avatar = contributor.avatar || fallbackAvatar;
+                        const url = contributor.url || '#';
+                        const title = `${username} - ${this.formatNumber(contributor.mergedCount)} merged PR${contributor.mergedCount !== 1 ? 's' : ''}`;
+
+                        return `
+                            <a href="${this.escapeHtml(url)}" target="_blank" rel="noopener noreferrer" title="${this.escapeHtml(title)}">
+                                <img src="${this.escapeHtml(avatar)}"
+                                     alt="${this.escapeHtml(username)}"
+                                     class="blt-top-contributor-avatar"
+                                     loading="lazy"
+                                     onerror="this.onerror=null;this.src='https://github.com/identicons/anonymous.png';">
+                            </a>
+                        `;
+                    }).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    /**
+     * Get normalized stats for a hackathon.
+     */
+    getStatsFor(hackathon) {
+        const slug = String(hackathon.slug || '').trim();
+        return this.hackathonStats[slug] || this.buildStats(hackathon, null, false);
+    }
+
+    /**
+     * Update info section in footer with static summary status.
+     */
+    updateApiInfo() {
         const infoEl = document.getElementById('github-api-info');
         if (!infoEl) return;
 
-        // Check if any hackathon has a token configured
-        const hackathons = (this.config.hackathons || []);
-        const hasToken = hackathons.some(h => h.github && typeof h.github.token === 'string' && h.github.token.length > 0);
-
-        const tokenHtml = hasToken
-            ? '<span class="inline-flex items-center gap-1 text-green-600"><i class="fas fa-key"></i> GitHub Token: Active</span>'
-            : '<span class="inline-flex items-center gap-1 text-yellow-600"><i class="fas fa-exclamation-triangle"></i> No GitHub Token (unauthenticated – 60 req/hr limit)</span>';
-
-        // Fetch rate limit using the first hackathon's token if available.
-        // All hackathons sharing the same token will have the same rate limit bucket.
-        const baseURL = 'https://api.github.com';
-        const firstToken = hackathons.find(h => h.github && typeof h.github.token === 'string' && h.github.token.length > 0);
-        const token = firstToken ? firstToken.github.token : null;
-        const headers = { 'Accept': 'application/vnd.github.v3+json' };
-        if (token) headers['Authorization'] = `Bearer ${token}`;
-
-        let rateLimitHtml = '';
-        try {
-            const response = await fetch(`${baseURL}/rate_limit`, { headers });
-            if (response.ok) {
-                const data = await response.json();
-                const rl = data.rate;
-                const resetDate = new Date(rl.reset * 1000);
-                const resetTime = resetDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZoneName: 'short' });
-                const pct = Math.round((rl.remaining / rl.limit) * 100);
-                const barColor = pct > 50 ? 'bg-green-500' : pct > 20 ? 'bg-yellow-500' : 'bg-red-500';
-                rateLimitHtml = `
-                    <span class="text-gray-400">|</span>
-                    <span>API calls: <strong>${rl.remaining}</strong> / ${rl.limit} remaining</span>
-                    <span class="inline-block w-16 h-2 rounded-full bg-gray-200 align-middle">
-                        <span class="block h-2 rounded-full ${barColor}" style="width:${pct}%"></span>
-                    </span>
-                    <span class="text-gray-400">|</span>
-                    <span>Resets at <strong>${resetTime}</strong></span>`;
-            }
-        } catch (e) {
-            console.warn('Failed to fetch rate limit:', e);
-        }
-
+        const stats = this.aggregatePlatformStats();
+        const summaryLabel = `${this.formatNumber(stats.summaryCount)} generated summar${stats.summaryCount === 1 ? 'y' : 'ies'} loaded`;
+        const eventLabel = `${this.formatNumber(stats.activeOrUpcoming)} active or upcoming event${stats.activeOrUpcoming === 1 ? '' : 's'}`;
         const lastUpdatedHtml = this.loadedAt
-            ? `<span class="text-gray-400">|</span><span>Updated <span id="last-updated-time" title="${this.loadedAt.toLocaleString()}">${this.timeAgo(this.loadedAt)}</span></span>`
+            ? `<span class="text-gray-400">|</span><span>Updated <span id="last-updated-time" title="${this.escapeHtml(this.loadedAt.toLocaleString())}">${this.timeAgo(this.loadedAt)}</span></span>`
             : '';
 
-        infoEl.innerHTML = `<div class="flex flex-wrap items-center justify-center gap-2 text-sm">${tokenHtml}${rateLimitHtml}${lastUpdatedHtml}</div>`;
+        infoEl.innerHTML = `
+            <div class="flex flex-wrap items-center justify-center gap-2">
+                <span>${this.escapeHtml(summaryLabel)}</span>
+                <span class="text-gray-400">|</span>
+                <span>${this.escapeHtml(eventLabel)}</span>
+                ${lastUpdatedHtml}
+            </div>
+        `;
         this.startLastUpdatedRefresh();
     }
 
     /**
-     * Start periodic refresh of the "last updated" relative time in the footer
+     * Start periodic refresh of the "last updated" relative time in the footer.
      */
     startLastUpdatedRefresh() {
         const infoEl = document.getElementById('github-api-info');
@@ -370,7 +595,7 @@ class HackathonIndex {
     }
 
     /**
-     * Return a human-readable relative time string (e.g. "just now", "3 minutes ago")
+     * Return a human-readable relative time string.
      */
     timeAgo(date) {
         const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
@@ -384,33 +609,105 @@ class HackathonIndex {
     }
 
     /**
-     * Escape HTML to prevent XSS
+     * Return a short text preview without cutting mid-word when possible.
      */
-    escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
+    getDescriptionPreview(description, maxLength) {
+        const text = String(description || '').replace(/\s+/g, ' ').trim();
+        if (text.length <= maxLength) {
+            return text;
+        }
+
+        const truncated = text.slice(0, maxLength).trim();
+        const lastSpace = truncated.lastIndexOf(' ');
+        const preview = lastSpace > 80 ? truncated.slice(0, lastSpace) : truncated;
+        return `${preview}...`;
+    }
+
+    /**
+     * Convert API/config numeric values into safe non-negative integers.
+     */
+    toSafeInteger(value) {
+        const number = Number(value);
+        if (!Number.isFinite(number) || number < 0) {
+            return 0;
+        }
+
+        return Math.floor(number);
+    }
+
+    /**
+     * Format numbers consistently.
+     */
+    formatNumber(value) {
+        return this.toSafeInteger(value).toLocaleString();
+    }
+
+    /**
+     * Validate date objects.
+     */
+    isValidDate(date) {
+        return date instanceof Date && Number.isFinite(date.getTime());
+    }
+
+    /**
+     * Escape HTML to prevent XSS.
+     */
+    escapeHtml(value) {
+        return String(value ?? '').replace(/[&<>"']/g, character => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;',
+        })[character]);
+    }
+
+    /**
+     * Allow only browser-safe URL protocols and relative URLs.
+     */
+    safeUrl(value, fallback = '#') {
+        const raw = String(value || '').trim();
+        if (!raw || /[\u0000-\u001F\u007F<>"']/u.test(raw)) {
+            return fallback;
+        }
+
+        if (/^(javascript|data|vbscript):/i.test(raw)) {
+            return fallback;
+        }
+
+        try {
+            const base = typeof window !== 'undefined' ? window.location.href : 'https://example.invalid/';
+            const parsed = new URL(raw, base);
+            if (['http:', 'https:', 'file:'].includes(parsed.protocol)) {
+                return raw;
+            }
+        } catch (error) {
+            return fallback;
+        }
+
+        return fallback;
     }
 }
 
 /**
- * Filter hackathons by status
+ * Filter hackathons by status.
  */
 function filterHackathons(status) {
-    // Update button styles
-    document.querySelectorAll('.filter-btn').forEach(btn => {
-        if (btn.dataset.filter === status) {
-            btn.className = 'filter-btn px-3 sm:px-4 py-2 rounded-lg bg-red-600 text-white font-medium text-sm sm:text-base';
-        } else {
-            btn.className = 'filter-btn px-3 sm:px-4 py-2 rounded-lg bg-gray-200 text-gray-700 font-medium hover:bg-gray-300 text-sm sm:text-base';
-        }
+    const allowedFilters = new Set(['all', 'ongoing', 'upcoming', 'ended']);
+    const nextStatus = allowedFilters.has(status) ? status : 'all';
+
+    document.querySelectorAll('.filter-btn').forEach(button => {
+        const isActive = button.dataset.filter === nextStatus;
+        button.classList.toggle('is-active', isActive);
+        button.setAttribute('aria-pressed', String(isActive));
     });
 
-    // Re-render with filter
-    window.hackathonIndex.renderHackathons(status);
+    if (window.hackathonIndex) {
+        window.hackathonIndex.renderHackathons(nextStatus);
+    }
 }
 
-// Initialize when DOM is loaded
+// Initialize when DOM is loaded.
 document.addEventListener('DOMContentLoaded', async () => {
     window.hackathonIndex = new HackathonIndex(HACKATHONS_CONFIG);
     await window.hackathonIndex.init();

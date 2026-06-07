@@ -4,276 +4,316 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title id="hackathon-title">Hackathon Dashboard</title>
-    <meta name="description" content="Track your hackathon progress with leaderboards, charts, and prizes">
-    
+    <meta name="description" content="Track hackathon progress with leaderboards, charts, eligible repositories, and prizes">
+
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
+
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-        }
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,.3);
-            border-radius: 50%;
-            border-top-color: #fff;
-            animation: spin 1s ease-in-out infinite;
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        .trophy-gold { color: #FFD700; }
-        .trophy-silver { color: #C0C0C0; }
-        .trophy-bronze { color: #CD7F32; }
-        
-        /* Skeleton Loading Styles */
-        .skeleton {
-            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-            background-size: 200% 100%;
-            animation: loading 1.5s ease-in-out infinite;
-            border-radius: 4px;
-        }
-        
-        @keyframes loading {
-            0% {
-                background-position: 200% 0;
-            }
-            100% {
-                background-position: -200% 0;
-            }
-        }
-        
-        .skeleton-text {
-            height: 1rem;
-            margin-bottom: 0.5rem;
-        }
-        
-        .skeleton-title {
-            height: 1.5rem;
-            width: 60%;
-            margin-bottom: 0.75rem;
-        }
-        
-        .skeleton-avatar {
-            width: 2rem;
-            height: 2rem;
-            border-radius: 50%;
-        }
-        
-        .skeleton-repo-card {
-            height: 120px;
-        }
-        
-        .skeleton-leaderboard-item {
-            height: 80px;
-        }
-        
-        /* Mobile-specific styles */
-        @media (max-width: 640px) {
-            .btn-text {
-                display: none;
-            }
-        }
-        @media (min-width: 641px) {
-            .btn-icon-only {
-                display: none;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="css/blt-theme.css">
+    <script src="js/theme.js"></script>
 </head>
-<body class="bg-gray-50">
-    <!-- Navigation -->
-    <nav class="bg-white shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                <div class="flex items-center">
-                    <a href="index.html" class="text-gray-600 hover:text-gray-900 mr-3 sm:mr-4" title="Back to all hackathons">
-                        <i class="fas fa-arrow-left text-lg sm:text-xl"></i>
-                    </a>
-                    <i class="fas fa-trophy text-red-600 text-xl sm:text-2xl mr-2 sm:mr-3"></i>
-                    <h1 class="text-base sm:text-lg lg:text-xl font-bold text-gray-900" id="nav-title">Hackathon Dashboard</h1>
-                </div>
-                <div class="flex items-center space-x-2 sm:space-x-4">
-                    <a href="https://github.com/OWASP-BLT/BLT-Hackathons" target="_blank" 
-                       rel="noopener noreferrer"
-                       class="px-3 py-2 sm:px-4 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium flex items-center space-x-2 text-sm sm:text-base"
-                       aria-label="Contribute on GitHub">
-                        <i class="fab fa-github"></i>
-                        <span class="btn-text">Contribute on GitHub</span>
-                    </a>
-                    <span id="hackathon-status" class="px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium"></span>
-                </div>
-            </div>
-        </div>
-    </nav>
+<body class="blt-page blt-grid-bg dashboard-page">
+    <header class="blt-site-header dashboard-header" style="position: sticky;">
+        <div class="blt-container dashboard-header-inner">
+            <a href="index.html" class="dashboard-back-link" aria-label="Back to events">
+                <i class="fas fa-arrow-left" aria-hidden="true"></i>
+                <span>Back to events</span>
+            </a>
 
-    <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <!-- Banner Section -->
-        <div class="relative rounded-lg overflow-hidden mb-4 h-48 sm:h-56 lg:h-64 bg-gradient-to-r from-red-600 to-red-800 flex items-center justify-center" id="banner-section">
-            <div class="text-center text-white p-4" id="banner-text">
-                <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2" id="hackathon-name">Loading...</h2>
-                <p class="text-base sm:text-lg lg:text-xl mb-2" id="hackathon-dates"></p>
-                <p class="text-sm sm:text-base lg:text-lg" id="time-remaining"></p>
-            </div>
-        </div>
-
-        <!-- Time Range -->
-        <div class="bg-white rounded-lg shadow px-4 sm:px-6 py-3 mb-4 flex flex-wrap items-center gap-2 text-sm text-gray-700" id="time-range-bar">
-            <i class="fas fa-calendar-alt text-red-600"></i>
-            <span class="font-semibold">Time Range:</span>
-            <span id="time-range-display">Loading...</span>
-        </div>
-
-        <!-- Quick Stats -->
-        <div class="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-3 lg:gap-4 mb-6 sm:mb-8">
-            <div class="bg-white rounded-lg shadow p-2 sm:p-4 lg:p-6 text-center">
-                <h3 class="text-xs sm:text-sm lg:text-base font-semibold text-gray-700">Participants</h3>
-                <p class="text-lg sm:text-2xl lg:text-3xl font-bold text-red-600" id="participant-count">0</p>
-            </div>
-            <div class="bg-white rounded-lg shadow p-2 sm:p-4 lg:p-6 text-center">
-                <h3 class="text-xs sm:text-sm lg:text-base font-semibold text-gray-700">Pull Requests</h3>
-                <p class="text-lg sm:text-2xl lg:text-3xl font-bold text-red-600" id="pr-count">0</p>
-            </div>
-            <div class="bg-white rounded-lg shadow p-2 sm:p-4 lg:p-6 text-center">
-                <h3 class="text-xs sm:text-sm lg:text-base font-semibold text-gray-700">Merged PRs</h3>
-                <p class="text-lg sm:text-2xl lg:text-3xl font-bold text-red-600" id="merged-pr-count">0</p>
-            </div>
-            <div class="bg-white rounded-lg shadow p-2 sm:p-4 lg:p-6 text-center">
-                <h3 class="text-xs sm:text-sm lg:text-base font-semibold text-gray-700">Issues</h3>
-                <p class="text-lg sm:text-2xl lg:text-3xl font-bold text-red-600" id="issue-count">0</p>
-            </div>
-            <div class="bg-white rounded-lg shadow p-2 sm:p-4 lg:p-6 text-center">
-                <h3 class="text-xs sm:text-sm lg:text-base font-semibold text-gray-700">Repositories</h3>
-                <p class="text-lg sm:text-2xl lg:text-3xl font-bold text-red-600" id="repo-count">0</p>
-            </div>
-            <div class="bg-white rounded-lg shadow p-2 sm:p-4 lg:p-6 text-center">
-                <h3 class="text-xs sm:text-sm lg:text-base font-semibold text-gray-700">Days Active</h3>
-                <p class="text-lg sm:text-2xl lg:text-3xl font-bold text-red-600" id="days-active-count">0</p>
-            </div>
-        </div>
-
-        <!-- PR Activity Chart -->
-        <div class="bg-white rounded-lg shadow p-4 sm:p-6 mb-6 sm:mb-8">
-            <h2 class="text-xl sm:text-2xl font-bold mb-4 text-gray-800">Pull Request Activity</h2>
-            <div class="h-48 sm:h-56 lg:h-64">
-                <canvas id="prActivityChart"></canvas>
-            </div>
-        </div>
-
-        <!-- Leaderboards Section -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 mb-6 sm:mb-8">
-            <!-- Leaderboard -->
-            <div class="bg-white rounded-lg shadow p-4 sm:p-6">
-                <h2 class="text-xl sm:text-2xl font-bold mb-4 text-gray-800">
-                    <i class="fas fa-medal mr-2 text-red-600"></i>
-                    Leaderboard
-                </h2>
-                <div id="leaderboard" class="space-y-3">
-                    <!-- Skeleton Loading -->
-                    <div class="skeleton skeleton-leaderboard-item rounded-lg"></div>
-                    <div class="skeleton skeleton-leaderboard-item rounded-lg"></div>
-                    <div class="skeleton skeleton-leaderboard-item rounded-lg"></div>
+            <div class="dashboard-header-title">
+                <span class="blt-wordmark-mark" aria-hidden="true">
+                    <i class="fas fa-trophy"></i>
+                </span>
+                <div>
+                    <p class="dashboard-header-kicker">Hackathon dashboard</p>
+                    <h1 id="nav-title">Hackathon Dashboard</h1>
                 </div>
             </div>
 
-            <!-- Review Leaderboard -->
-            <div class="bg-white rounded-lg shadow p-4 sm:p-6">
-                <h2 class="text-xl sm:text-2xl font-bold mb-4 text-gray-800">
-                    <i class="fas fa-medal mr-2 text-red-600"></i>
-                    Review Leaderboard
-                </h2>
-                <div id="review-leaderboard" class="space-y-3">
-                    <!-- Skeleton Loading -->
-                    <div class="skeleton skeleton-leaderboard-item rounded-lg"></div>
-                    <div class="skeleton skeleton-leaderboard-item rounded-lg"></div>
-                    <div class="skeleton skeleton-leaderboard-item rounded-lg"></div>
-                </div>
+            <div class="dashboard-header-actions">
+                <span id="hackathon-status" class="blt-status blt-status--upcoming">Loading</span>
+                <a href="https://gitlab.com/owasp-blt/blt-hackathons" target="_blank" rel="noopener noreferrer" class="blt-button blt-button-secondary dashboard-header-button" aria-label="Open BLT-Hackathons source on GitLab">
+                    <i class="fab fa-gitlab" aria-hidden="true"></i>
+                    <span>Source</span>
+                </a>
+                <a href="https://gitlab.com/owasp-blt/blt-hackathons/-/issues" target="_blank" rel="noopener noreferrer" class="blt-button blt-button-primary dashboard-header-button" aria-label="Contribute to BLT-Hackathons on GitLab">
+                    <i class="fas fa-code-branch" aria-hidden="true"></i>
+                    <span>Contribute</span>
+                </a>
+                <button type="button"
+                        class="blt-theme-toggle dashboard-icon-button"
+                        data-theme-toggle
+                        aria-label="Switch to dark theme"
+                        aria-pressed="false">
+                    <i class="fas fa-moon" data-theme-icon aria-hidden="true"></i>
+                </button>
             </div>
         </div>
+    </header>
 
-        <!-- Main Content Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
-            <!-- Left Column - Info & Repositories -->
-            <div class="lg:col-span-2">
-                <!-- Description -->
-                <div class="bg-white rounded-lg shadow p-4 sm:p-6 mb-6 sm:mb-8">
-                    <h2 class="text-xl sm:text-2xl font-bold mb-4 text-gray-800">About this Hackathon</h2>
-                    <div class="prose max-w-none" id="hackathon-description">
-                        <p class="text-gray-600">Loading description...</p>
+    <main>
+        <section class="dashboard-hero blt-radial-bg" id="banner-section" aria-labelledby="hackathon-name">
+            <div class="blt-container dashboard-hero-grid">
+                <div class="dashboard-hero-copy" id="banner-text">
+                    <p class="blt-badge blt-badge-red">Live event data</p>
+                    <h2 id="hackathon-name">Loading...</h2>
+                    <p class="dashboard-hero-description" id="hackathon-description">Loading event details...</p>
+
+                    <div class="dashboard-hero-meta" aria-label="Event timing">
+                        <div>
+                            <span>Date range</span>
+                            <strong id="hackathon-dates">Loading...</strong>
+                        </div>
+                        <div>
+                            <span>Countdown</span>
+                            <strong id="time-remaining">Loading...</strong>
+                        </div>
                     </div>
-                    <div class="mt-6" id="rules-section" style="display: none;">
-                        <h3 class="text-lg sm:text-xl font-semibold mb-2 text-gray-800">Rules</h3>
-                        <div class="prose max-w-none whitespace-pre-line" id="hackathon-rules"></div>
+
+                    <div class="dashboard-hero-actions">
+                        <a href="#leaderboard-card" class="blt-button blt-button-primary">
+                            <i class="fas fa-medal" aria-hidden="true"></i>
+                            <span>View leaderboard</span>
+                        </a>
+                        <a href="#repositories-card" class="blt-button blt-button-secondary">
+                            <i class="fas fa-code-branch" aria-hidden="true"></i>
+                            <span>Eligible repositories</span>
+                        </a>
                     </div>
+
+                    <div id="dashboard-error" class="dashboard-error hidden" role="alert"></div>
                 </div>
 
-                <!-- Repositories -->
-                <div class="bg-white rounded-lg shadow p-4 sm:p-6 mb-6 sm:mb-8">
-                    <h2 class="text-xl sm:text-2xl font-bold mb-4 text-gray-800">
-                        <i class="fas fa-code-branch mr-2 text-red-600"></i>
-                        Repositories <span id="repositories-title" aria-live="polite">(0)</span>
-                    </h2>
-                    <div id="repositories-list" class="space-y-4">
-                        <!-- Skeleton Loading -->
-                        <div class="skeleton skeleton-repo-card rounded-lg"></div>
-                        <div class="skeleton skeleton-repo-card rounded-lg"></div>
-                        <div class="skeleton skeleton-repo-card rounded-lg"></div>
+                <aside class="dashboard-hero-panel" aria-labelledby="hero-timeline-title">
+                    <div class="dashboard-panel-heading">
+                        <div>
+                            <p class="dashboard-eyebrow">Progress</p>
+                            <h3 id="hero-timeline-title">Event timeline</h3>
+                        </div>
+                        <i class="fas fa-calendar-check" aria-hidden="true"></i>
                     </div>
-                </div>
+                    <div class="dashboard-progress-shell" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                        <div class="dashboard-progress-fill" id="timeline-progress-bar"></div>
+                    </div>
+                    <p class="dashboard-progress-label" id="timeline-progress-label">Calculating progress...</p>
+                    <div class="dashboard-timeline-points" aria-label="Timeline markers">
+                        <div>
+                            <span>Start</span>
+                            <strong id="timeline-start-date">--</strong>
+                        </div>
+                        <div>
+                            <span>Now</span>
+                            <strong id="timeline-current-date">--</strong>
+                        </div>
+                        <div>
+                            <span>End</span>
+                            <strong id="timeline-end-date">--</strong>
+                        </div>
+                    </div>
+                </aside>
             </div>
+        </section>
 
-            <!-- Right Column - Sponsors -->
-            <div class="lg:col-span-1">
-                <!-- Sponsors -->
-                <div class="bg-white rounded-lg shadow p-4 sm:p-6">
-                    <h2 class="text-xl sm:text-2xl font-bold mb-4 text-gray-800">
-                        <i class="fas fa-handshake mr-2 text-red-600"></i>
-                        Sponsors
-                    </h2>
-                    <div id="sponsors-list">
-                        <p class="text-gray-600 italic">No sponsors configured.</p>
+        <section class="blt-container dashboard-stats" aria-label="Hackathon statistics">
+            <article class="dashboard-stat-card">
+                <i class="fas fa-users" aria-hidden="true"></i>
+                <span id="participant-count">0</span>
+                <p>Participants</p>
+            </article>
+            <article class="dashboard-stat-card">
+                <i class="fas fa-code-pull-request" aria-hidden="true"></i>
+                <span id="pr-count">0</span>
+                <p id="pr-stat-label">PRs / MRs</p>
+            </article>
+            <article class="dashboard-stat-card">
+                <i class="fas fa-check-circle" aria-hidden="true"></i>
+                <span id="merged-pr-count">0</span>
+                <p id="merged-pr-stat-label">Merged PRs / MRs</p>
+            </article>
+            <article class="dashboard-stat-card">
+                <i class="fas fa-circle-dot" aria-hidden="true"></i>
+                <span id="issue-count">0</span>
+                <p>Issues</p>
+            </article>
+            <article class="dashboard-stat-card">
+                <i class="fas fa-diagram-project" aria-hidden="true"></i>
+                <span id="repo-count">0</span>
+                <p>Repositories</p>
+            </article>
+            <article class="dashboard-stat-card">
+                <i class="fas fa-clock" aria-hidden="true"></i>
+                <span id="days-active-count">0</span>
+                <p>Days active</p>
+            </article>
+        </section>
+
+        <section class="blt-container dashboard-grid dashboard-grid-top">
+            <article class="dashboard-card" id="timeline-panel" aria-labelledby="timeline-heading">
+                <div class="dashboard-card-header">
+                    <div>
+                        <p class="dashboard-eyebrow">Schedule</p>
+                        <h2 id="timeline-heading">Event timeline</h2>
+                    </div>
+                    <i class="fas fa-hourglass-half" aria-hidden="true"></i>
+                </div>
+                <div class="dashboard-timeline-list">
+                    <div class="dashboard-timeline-row">
+                        <span class="dashboard-timeline-dot"></span>
+                        <div>
+                            <strong>Start window</strong>
+                            <p id="timeline-start-date-detail">Loading...</p>
+                        </div>
+                    </div>
+                    <div class="dashboard-timeline-row is-current">
+                        <span class="dashboard-timeline-dot"></span>
+                        <div>
+                            <strong>Current status</strong>
+                            <p id="timeline-current-status">Loading event status...</p>
+                        </div>
+                    </div>
+                    <div class="dashboard-timeline-row">
+                        <span class="dashboard-timeline-dot"></span>
+                        <div>
+                            <strong>End window</strong>
+                            <p id="timeline-end-date-detail">Loading...</p>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
+            </article>
+
+            <article class="dashboard-card dashboard-chart-card" aria-labelledby="chart-heading">
+                <div class="dashboard-card-header">
+                    <div>
+                        <p class="dashboard-eyebrow">Activity trend</p>
+                        <h2 id="chart-heading">Pull request activity</h2>
+                    </div>
+                    <i class="fas fa-chart-column" aria-hidden="true"></i>
+                </div>
+                <div class="dashboard-chart-shell">
+                    <canvas id="prActivityChart"></canvas>
+                    <div id="chart-empty-state" class="dashboard-empty-state hidden">
+                        <i class="fas fa-chart-simple" aria-hidden="true"></i>
+                        <p>No activity data is available yet.</p>
+                    </div>
+                </div>
+            </article>
+        </section>
+
+        <section class="blt-container dashboard-grid dashboard-grid-leaderboards">
+            <article class="dashboard-card" id="leaderboard-card" aria-labelledby="leaderboard-heading">
+                <div class="dashboard-card-header">
+                    <div>
+                        <p class="dashboard-eyebrow">Contribution leaderboard</p>
+                        <h2 id="leaderboard-heading">Leaderboard</h2>
+                    </div>
+                    <i class="fas fa-medal" aria-hidden="true"></i>
+                </div>
+                <div id="leaderboard" class="dashboard-list" aria-live="polite" aria-busy="true">
+                    <div class="skeleton skeleton-leaderboard-item"></div>
+                    <div class="skeleton skeleton-leaderboard-item"></div>
+                    <div class="skeleton skeleton-leaderboard-item"></div>
+                </div>
+            </article>
+
+            <article class="dashboard-card" id="review-card" aria-labelledby="review-heading">
+                <div class="dashboard-card-header">
+                    <div>
+                        <p class="dashboard-eyebrow">Review and activity leaderboard</p>
+                        <h2 id="review-heading">Review leaderboard</h2>
+                    </div>
+                    <i class="fas fa-comments" aria-hidden="true"></i>
+                </div>
+                <div id="review-leaderboard" class="dashboard-list" aria-live="polite" aria-busy="true">
+                    <div class="skeleton skeleton-leaderboard-item"></div>
+                    <div class="skeleton skeleton-leaderboard-item"></div>
+                    <div class="skeleton skeleton-leaderboard-item"></div>
+                </div>
+            </article>
+        </section>
+
+        <section class="blt-container dashboard-detail-grid">
+            <article class="dashboard-card dashboard-about-card" aria-labelledby="about-heading">
+                <div class="dashboard-card-header">
+                    <div>
+                        <p class="dashboard-eyebrow">About</p>
+                        <h2 id="about-heading">About this hackathon</h2>
+                    </div>
+                    <i class="fas fa-circle-info" aria-hidden="true"></i>
+                </div>
+                <div id="rules-section" class="dashboard-rules">
+                    <h3>Rules</h3>
+                    <div id="hackathon-rules">Rules are loading...</div>
+                </div>
+            </article>
+
+            <article class="dashboard-card" id="repositories-card" aria-labelledby="repositories-heading">
+                <div class="dashboard-card-header">
+                    <div>
+                        <p class="dashboard-eyebrow">Eligible repositories</p>
+                        <h2 id="repositories-heading">Eligible repositories <span id="repositories-title" aria-live="polite">(0)</span></h2>
+                    </div>
+                    <i class="fas fa-code-branch" aria-hidden="true"></i>
+                </div>
+                <div id="repositories-list" class="dashboard-repo-list" aria-live="polite" aria-busy="true">
+                    <div class="skeleton skeleton-repo-card"></div>
+                    <div class="skeleton skeleton-repo-card"></div>
+                    <div class="skeleton skeleton-repo-card"></div>
+                </div>
+            </article>
+
+            <article class="dashboard-card dashboard-sponsors-card" aria-labelledby="sponsors-heading">
+                <div class="dashboard-card-header">
+                    <div>
+                        <p class="dashboard-eyebrow">Sponsors &amp; prizes</p>
+                        <h2 id="sponsors-heading">Sponsors &amp; prizes</h2>
+                    </div>
+                    <i class="fas fa-handshake" aria-hidden="true"></i>
+                </div>
+                <div id="sponsors-list" aria-live="polite">
+                    <div class="dashboard-empty-state">
+                        <i class="fas fa-gift" aria-hidden="true"></i>
+                        <p>No sponsors or prizes announced yet.</p>
+                    </div>
+                </div>
+            </article>
+        </section>
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-white border-t mt-12">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center text-gray-600">
-            <div id="github-api-info" class="mb-3 text-gray-500"></div>
-            <p>Powered by <a href="https://github.com/OWASP-BLT/BLT-Hackathons" class="text-red-600 hover:underline" target="_blank" rel="noopener noreferrer">BLT-Hackathons</a></p>
+    <footer class="blt-footer dashboard-footer">
+        <div class="blt-container dashboard-footer-inner">
+            <div>
+                <p class="dashboard-eyebrow">Data freshness</p>
+                <div id="data-freshness" class="dashboard-freshness">
+                    <div id="github-api-info">Waiting for generated data...</div>
+                </div>
+            </div>
+            <p>Powered by <a href="https://gitlab.com/owasp-blt/blt-hackathons" class="blt-text-link" target="_blank" rel="noopener noreferrer">BLT-Hackathons</a></p>
         </div>
     </footer>
 
     <!-- Sponsor Modal -->
-    <div id="sponsor-modal" class="fixed inset-0 z-50 items-center justify-center bg-black bg-opacity-50 hidden" role="dialog" aria-modal="true" aria-labelledby="sponsor-modal-title">
-        <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4 p-6">
+    <div id="sponsor-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/60 px-4" role="dialog" aria-modal="true" aria-labelledby="sponsor-modal-title">
+        <div class="dashboard-modal-panel w-full max-w-md p-6">
             <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-bold text-gray-900" id="sponsor-modal-title">
+                <h2 class="text-xl font-bold" id="sponsor-modal-title">
                     <i class="fas fa-handshake mr-2 text-red-600"></i>Become a Sponsor
                 </h2>
-                <button onclick="closeSponsorModal()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none" aria-label="Close">&times;</button>
+                <button onclick="closeSponsorModal()" class="dashboard-modal-close" aria-label="Close">&times;</button>
             </div>
 
             <p class="text-sm text-gray-600 mb-4">
                 Fill in your details below. Clicking <strong>Submit</strong> will open a GitHub issue pre-filled with your information.
             </p>
 
-            <div class="bg-yellow-50 border border-yellow-300 rounded-lg p-3 mb-4 text-sm text-yellow-800">
+            <div class="dashboard-modal-note mb-4">
                 <i class="fas fa-info-circle mr-1"></i>
                 <strong>Payment note:</strong> Payment must be made directly to the contributors through
-                <a href="https://github.com/sponsors" target="_blank" rel="noopener noreferrer" class="underline hover:text-yellow-900">GitHub Sponsors</a>.
+                <a href="https://github.com/sponsors" target="_blank" rel="noopener noreferrer">GitHub Sponsors</a>.
             </div>
 
             <div class="space-y-4">
@@ -294,7 +334,7 @@
                 </div>
                 <div>
                     <label for="sponsor-message" class="block text-sm font-medium text-gray-700 mb-1">Additional Notes (optional)</label>
-                    <textarea id="sponsor-message" rows="3" placeholder="Any extra information you'd like to share…"
+                    <textarea id="sponsor-message" rows="3" placeholder="Any extra information you'd like to share..."
                               class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"></textarea>
                 </div>
             </div>
@@ -352,7 +392,7 @@
                 ? document.getElementById('hackathon-name').textContent.trim()
                 : 'BLT Hackathon';
 
-            const title = encodeURIComponent(`[Sponsor]: ${name} – ${hackathonName}`);
+            const title = encodeURIComponent(`[Sponsor]: ${name} - ${hackathonName}`);
             let body = `**Hackathon:** ${hackathonName}\n**Sponsor Name / Company:** ${name}\n`;
             if (website) body += `**Website:** ${website}\n`;
             body += `**Sponsorship Amount:** ${amount}\n`;
