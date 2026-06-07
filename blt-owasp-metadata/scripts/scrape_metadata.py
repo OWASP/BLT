@@ -9,8 +9,8 @@ from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import yaml   
 
-DATA_DIR = Path("data")
-DATA_DIR.mkdir(exist_ok=True)
+DATA_DIR = Path("public") / "data"
+DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 ORGS = ["OWASP"]                      
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")

@@ -59,7 +59,7 @@ This project:
 
 ## Data Outputs
 
-The scraper generates several data files in the `data/` directory:
+The scraper generates several data files in the `public/data/` directory so they are served with the static Cloudflare site:
 
 | File | Description |
 |------|-------------|
@@ -103,18 +103,20 @@ The standardized metadata from this project will be consumed by the OWASP Slack 
 ```
 ├── scripts/
 │   └── scrape_metadata.py    # Main scraper script
-├── data/                     # Generated metadata files
-├── index.html                # Metadata explorer UI
-├── charts.html               # Analytics dashboard
-├── diagram.html              # Project Wayfinder diagram
-├── mermaid-diagram.html      # SDLC integration diagram
-├── app.js                    # Explorer application logic
-├── charts.js                 # Analytics charts logic
-├── diagram.js                # Project Wayfinder logic
-├── mermaid-diagram.js        # SDLC diagram logic
-├── mermaid.min.js            # Mermaid library for diagrams
-├── styles.css                # Shared styles
-└── charts.css                # Analytics-specific styles
+├── public/                   # Cloudflare static asset root
+│   ├── data/                 # Generated metadata files
+│   ├── index.html            # Metadata explorer UI
+│   ├── charts.html           # Analytics dashboard
+│   ├── diagram.html          # Project Wayfinder diagram
+│   ├── mermaid-diagram.html  # SDLC integration diagram
+│   ├── app.js                # Explorer application logic
+│   ├── charts.js             # Analytics charts logic
+│   ├── diagram.js            # Project Wayfinder logic
+│   ├── mermaid-diagram.js    # SDLC diagram logic
+│   ├── mermaid.min.js        # Mermaid library for diagrams
+│   ├── styles.css            # Shared styles
+│   └── charts.css            # Analytics-specific styles
+└── wrangler.toml             # Cloudflare static assets config
 ```
 
 ## Usage
@@ -134,7 +136,7 @@ python scripts/scrape_metadata.py
 
 ### Viewing the Data
 
-Visit the **[Live Dashboard](https://owasp-blt.github.io/OWASP-metadata/)** to explore the metadata interactively, or run locally by opening `index.html` in a browser.
+Visit the **[Live Dashboard](https://owasp-blt.github.io/OWASP-metadata/)** to explore the metadata interactively, or run locally by opening `public/index.html` in a browser.
 
 For analytics and visualizations, visit the **[Analytics Dashboard](https://owasp-blt.github.io/OWASP-metadata/charts.html)**.
 
