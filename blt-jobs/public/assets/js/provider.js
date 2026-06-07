@@ -8,6 +8,7 @@
       : defaultRepo;
   const repositoryUrl = "https://gitlab.com/" + repo;
   const sourceRef = "main";
+  const iconClass = "fa-brands fa-gitlab";
 
   function encodePath(relativePath) {
     return String(relativePath || "")
@@ -22,12 +23,13 @@
   }
 
   function sourceFileUrl(relativePath) {
-    return repositoryUrl + "/-/blob/" + encodeURIComponent(sourceRef) + "/" + encodePath(relativePath);
+    return repositoryUrl + "/-/blob/" + sourceRef + "/" + encodePath(relativePath);
   }
 
   window.BLTProvider = {
     id: "gitlab",
     name: "GitLab",
+    iconClass,
     repositoryUrl,
     sourceRef,
     issueUrl,

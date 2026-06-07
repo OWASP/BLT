@@ -9,6 +9,7 @@
 
   const provider = window.BLTProvider || {
     name: "GitLab",
+    iconClass: "fa-brands fa-gitlab",
     repositoryUrl: "https://gitlab.com/owasp-blt/blt-jobs",
   };
 
@@ -53,7 +54,7 @@
 
   const gitlabLinkHtml = `
     <a id="nav-gitlab" href="${provider.repositoryUrl}" target="_blank" rel="noreferrer noopener" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">
-      <i class="fa-brands fa-gitlab" aria-hidden="true"></i>
+      <i class="${provider.iconClass || "fa-solid fa-code-branch"}" aria-hidden="true"></i>
       ${provider.name}
     </a>
   `;
@@ -85,7 +86,7 @@
             ${mobileLinksHtml}
             <div class="px-3 py-2">
                <a href="${provider.repositoryUrl}" target="_blank" rel="noreferrer noopener" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700">
-                <i class="fa-brands fa-gitlab" aria-hidden="true"></i>
+                <i class="${provider.iconClass || "fa-solid fa-code-branch"}" aria-hidden="true"></i>
                 ${provider.name}
               </a>
             </div>

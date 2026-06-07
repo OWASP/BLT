@@ -23,9 +23,19 @@ function providerName(providerId) {
   return DEFAULT_PROVIDER_NAME;
 }
 
+function providerIconClass(providerId) {
+  if (providerId === "github") return "fa-brands fa-github";
+  if (providerId === "gitlab") return "fa-brands fa-gitlab";
+  if (providerId === "gitea" || providerId === "forgejo" || providerId === "generic-git") {
+    return "fa-solid fa-code-branch";
+  }
+  return "fa-solid fa-code-branch";
+}
+
 function createProviderConfig(options = {}) {
   const id = options.providerId || process.env.BLT_PROVIDER_ID || DEFAULT_PROVIDER_ID;
   const name = options.providerName || process.env.BLT_PROVIDER_NAME || providerName(id);
+  const iconClass = options.iconClass || process.env.BLT_PROVIDER_ICON_CLASS || providerIconClass(id);
   const repositoryUrl = trimTrailingSlash(
     options.repositoryUrl || process.env.BLT_REPOSITORY_URL || DEFAULT_REPOSITORY_URL
   );
@@ -34,8 +44,8 @@ function createProviderConfig(options = {}) {
   function sourceFileUrl(relativePath) {
     const encoded = encodePath(relativePath);
     if (!repositoryUrl || !encoded) return "";
-    if (id === "github") return `${repositoryUrl}/blob/${encodeURIComponent(sourceRef)}/${encoded}`;
-    if (id === "gitlab") return `${repositoryUrl}/-/blob/${encodeURIComponent(sourceRef)}/${encoded}`;
+    if (id === "github") return `${repositoryUrl}/blob/${sourceRef}/${encoded}`;
+    if (id === "gitlab") return `${repositoryUrl}/-/blob/${sourceRef}/${encoded}`;
     return `${repositoryUrl}`;
   }
 
@@ -52,6 +62,7 @@ function createProviderConfig(options = {}) {
   return {
     id,
     name,
+    iconClass,
     repositoryUrl,
     sourceRef,
     issueUrl,
@@ -62,6 +73,7 @@ function createProviderConfig(options = {}) {
           provider: {
             id,
             name,
+            icon_class: iconClass,
             repository_url: repositoryUrl,
             source_ref: sourceRef,
           },

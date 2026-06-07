@@ -301,6 +301,7 @@
     "provider": {
       "id": "gitlab",
       "name": "GitLab",
+      "icon_class": "fa-brands fa-gitlab",
       "repository_url": "https://gitlab.com/owasp-blt/blt-jobs",
       "source_ref": "main"
     }

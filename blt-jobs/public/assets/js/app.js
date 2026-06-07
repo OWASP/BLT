@@ -187,6 +187,8 @@ function renderJobs(jobs) {
             : "")
       );
       const sourcePlatform = esc(job.source_platform || (window.BLTProvider && window.BLTProvider.id) || "gitlab");
+      const sourceIconClass =
+        (window.BLTProvider && window.BLTProvider.iconClass) || "fa-solid fa-code-branch";
       const workMode = inferWorkMode(job);
       const workBadge = workModeBadgeHtml(workMode);
 
@@ -286,7 +288,7 @@ function renderJobs(jobs) {
               ${
                 sourceFileUrl
                   ? `<a href="${esc(sourceFileUrl)}" target="_blank" rel="noopener" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
-                       <i class="fa-brands fa-gitlab" aria-hidden="true"></i> View source
+                       <i class="${esc(sourceIconClass)}" aria-hidden="true"></i> View source
                        <span class="sr-only">on ${sourcePlatform}</span>
                      </a>`
                   : ""

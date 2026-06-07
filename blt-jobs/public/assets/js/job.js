@@ -126,6 +126,8 @@ function renderJob(job) {
   const sourceIssueUrl = safeUrl(job.source_issue_url || "");
   const reviewStatus = job.review_status || "";
   const sourcePlatform = job.source_platform || (window.BLTProvider && window.BLTProvider.id) || "gitlab";
+  const sourceIconClass =
+    (window.BLTProvider && window.BLTProvider.iconClass) || "fa-solid fa-code-branch";
 
   const flagIssueTitle = encodeURIComponent(`[FLAG] ${job.title || "Untitled"} @ ${job.organization_name || "Unknown organization"}`);
   const flagDescription = `### Job ID\n${job.id}\n\n### Reason for Flagging\n\n### Additional Details\n\n/label ~"flag-job-posting"`;
@@ -318,7 +320,7 @@ function renderJob(job) {
                   ? `<div class="mb-4 flex flex-wrap items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
                        ${
                          sourceFileUrl
-                           ? `<a href="${esc(sourceFileUrl)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 font-medium text-[#e74c3c] hover:text-red-700 dark:hover:text-red-400"><i class="fa-brands fa-gitlab" aria-hidden="true"></i> Source Markdown</a>`
+                           ? `<a href="${esc(sourceFileUrl)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 font-medium text-[#e74c3c] hover:text-red-700 dark:hover:text-red-400"><i class="${esc(sourceIconClass)}" aria-hidden="true"></i> Source Markdown</a>`
                            : ""
                        }
                        ${

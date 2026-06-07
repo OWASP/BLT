@@ -1084,7 +1084,12 @@
         var params = new URLSearchParams(window.location.search);
         var provider = window.BLTProvider || {
           issueUrl: function () {
-            var repo = params.get("repo") || "owasp-blt/blt-jobs";
+            var repoParam = params.get("repo");
+            var repo =
+              typeof repoParam === "string" &&
+              /^[A-Za-z0-9._-]+\/[A-Za-z0-9._-]+$/.test(repoParam)
+                ? repoParam
+                : "owasp-blt/blt-jobs";
             return "https://gitlab.com/" + repo + "/-/issues/new";
           },
         };
