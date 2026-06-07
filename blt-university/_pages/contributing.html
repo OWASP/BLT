@@ -4,82 +4,86 @@ title: Contributing Guide
 permalink: /contributing/
 ---
 
-<script src="https://unpkg.com/@phosphor-icons/web"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/@phosphor-icons/web@2.1.1"></script>
 
-<section class="relative pt-16 pb-24 overflow-hidden bg-white dark:bg-gray-900 border-b border-gray-50 dark:border-gray-800 text-center transition-colors">
-    <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(220,38,38,0.04),transparent_50%)] -z-10"></div>
-    <div class="max-w-4xl mx-auto px-6 relative z-10">
-        <h1 class="font-display text-3xl md:text-4xl font-bold text-gray-900 dark:text-white tracking-tight mb-4 leading-tight">
-            Become an <span class="text-transparent bg-clip-text bg-gradient-to-r from-bltRed to-red-600">Instructor</span>
-        </h1>
-        <p class="text-sm md:text-base text-gray-500 dark:text-gray-400 max-w-xl mx-auto font-medium leading-relaxed">
-            Share your cybersecurity expertise with our global open-source community through hands-on education.
-        </p>
-    </div>
+<section class="relative px-4 pb-16 pt-40 text-center">
+  <div class="dot-field pointer-events-none absolute inset-x-0 top-24 z-[1] mx-auto h-72 w-full opacity-60" aria-hidden="true"></div>
+  <div class="relative z-[2] mx-auto max-w-4xl">
+    <span class="inline-flex items-center rounded-full border border-red-200 bg-red-50 px-3 py-1 font-mono text-xs font-medium uppercase tracking-[.16em] text-red-600">Become an Instructor</span>
+    <h1 class="mt-5 text-[clamp(2.25rem,4vw,3.1rem)] font-semibold leading-[1.05] tracking-[-.04em] text-gray-900">Teach practical security.</h1>
+    <p class="mx-auto mt-6 max-w-2xl text-base leading-7 text-gray-600">Share focused cybersecurity lessons, labs, and resources through the open BLT University workflow.</p>
+  </div>
 </section>
 
-<main class="max-w-6xl mx-auto px-6 py-16 space-y-20 dark:bg-gray-900 transition-colors">
-    
-    <section>
-        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-10 flex items-center justify-center gap-3">
-            <i class="ph-fill ph-star text-bltRed"></i> Why Teach at BLT University?
-        </h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="p-6 bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-soft">
-                <i class="ph-bold ph-globe-hemisphere-west text-bltRed text-2xl mb-4"></i>
-                <h3 class="font-bold text-gray-900 dark:text-white mb-2">Global Audience</h3>
-                <p class="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">Share your knowledge with a global audience of cybersecurity students and professionals.</p>
-            </div>
-            <div class="p-6 bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-soft">
-                <i class="ph-bold ph-identification-badge text-bltRed text-2xl mb-4"></i>
-                <h3 class="font-bold text-gray-900 dark:text-white mb-2">Build Reputation</h3>
-                <p class="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">Establish yourself as a thought leader and build your reputation in the infosec community.</p>
-            </div>
-            <div class="p-6 bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-soft">
-                <i class="ph-bold ph-users-three text-bltRed text-2xl mb-4"></i>
-                <h3 class="font-bold text-gray-900 dark:text-white mb-2">Keep Skills Sharp</h3>
-                <p class="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">Keep your skills sharp by teaching others and collaborating with other professionals.</p>
-            </div>
-        </div>
-    </section>
+<main class="mx-auto w-[min(72rem,calc(100%_-_2rem))] pb-24">
+  <section class="grid grid-cols-1 gap-4 md:grid-cols-3">
+    <article class="rounded-2xl border border-gray-200 bg-white p-6 transition hover:-translate-y-0.5 hover:border-red-200">
+      <div class="flex h-12 w-12 items-center justify-center rounded-full border border-gray-200 bg-gray-50 text-red-600">
+        <i class="ph-bold ph-globe-hemisphere-west text-xl"></i>
+      </div>
+      <h2 class="mt-6 text-lg font-semibold text-gray-900">Reach learners</h2>
+      <p class="mt-3 text-sm leading-6 text-gray-600">Publish courses for a global open-source community of students and practitioners.</p>
+    </article>
+    <article class="rounded-2xl border border-gray-200 bg-white p-6 transition hover:-translate-y-0.5 hover:border-red-200">
+      <div class="flex h-12 w-12 items-center justify-center rounded-full border border-gray-200 bg-gray-50 text-red-600">
+        <i class="ph-bold ph-identification-badge text-xl"></i>
+      </div>
+      <h2 class="mt-6 text-lg font-semibold text-gray-900">Build reputation</h2>
+      <p class="mt-3 text-sm leading-6 text-gray-600">Turn your expertise into reusable lessons, examples, and public contribution history.</p>
+    </article>
+    <article class="rounded-2xl border border-gray-200 bg-white p-6 transition hover:-translate-y-0.5 hover:border-red-200">
+      <div class="flex h-12 w-12 items-center justify-center rounded-full border border-gray-200 bg-gray-50 text-red-600">
+        <i class="ph-bold ph-users-three text-xl"></i>
+      </div>
+      <h2 class="mt-6 text-lg font-semibold text-gray-900">Collaborate openly</h2>
+      <p class="mt-3 text-sm leading-6 text-gray-600">Improve security education with feedback from maintainers, instructors, and learners.</p>
+    </article>
+  </section>
 
-    <section class="max-w-4xl mx-auto">
-        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-12 text-center">How to Create a Course</h2>
-        
-        <div class="space-y-12 relative before:absolute before:inset-0 before:ml-[1.4rem] before:h-full before:w-0.5 before:bg-gradient-to-b before:from-red-100 before:to-transparent dark:before:from-red-900/20">
-            
-            <div class="relative flex items-start gap-8 group">
-                <div class="flex items-center justify-center w-12 h-12 rounded-full border-4 border-white dark:border-gray-900 bg-gray-900 dark:bg-gray-800 text-white font-bold shadow-md shrink-0 z-10">01</div>
-                <div class="bg-white dark:bg-gray-800 p-8 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-soft flex-1">
-                    <h3 class="font-bold text-xl text-gray-900 dark:text-white mb-2">Fork the Repository</h3>
-                    <p class="text-gray-500 dark:text-gray-400 leading-relaxed text-sm">Start by forking the <a href="https://github.com/OWASP-BLT/BLT-University" target="_blank" class="text-bltRed font-bold hover:underline">BLT-University repository</a> on GitHub or the <a href="https://gitlab.com/owasp-blt/blt-university" target="_blank" class="text-bltRed font-bold hover:underline">GitLab mirror</a>.</p>
-                </div>
-            </div>
+  <section class="mt-14 grid grid-cols-1 items-start gap-6 lg:grid-cols-[1fr_24rem]">
+    <div class="rounded-3xl border border-gray-200 bg-white p-6 shadow-[0_22px_60px_-45px_rgba(15,23,42,.75)] md:p-8">
+      <div class="mb-8">
+        <p class="font-mono text-xs font-semibold uppercase tracking-[.16em] text-red-600">Course Workflow</p>
+        <h2 class="mt-2 text-[clamp(2rem,3vw,2.55rem)] font-semibold leading-[1.05] tracking-[-.04em] text-gray-900">Four steps to publish.</h2>
+      </div>
 
-            <div class="relative flex items-start gap-8 group">
-                <div class="flex items-center justify-center w-12 h-12 rounded-full border-4 border-white dark:border-gray-900 bg-gray-900 dark:bg-gray-800 text-white font-bold shadow-md shrink-0 z-10">02</div>
-                <div class="bg-white dark:bg-gray-800 p-8 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-soft flex-1 overflow-hidden">
-                    <h3 class="font-bold text-xl text-gray-900 dark:text-white mb-2">Create Instructor Profile</h3>
-                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Add a new file in the <code class="bg-gray-100 dark:bg-gray-900 px-2 py-1 rounded text-bltRed">_instructors</code> directory:</p>
-                    <pre class="bg-gray-900 dark:bg-black/30 text-gray-300 p-5 rounded-2xl text-[11px] overflow-x-auto border border-gray-800 font-mono leading-relaxed shadow-inner"><code>---
+      <div class="space-y-4">
+        <article class="rounded-2xl bg-gray-50 p-5">
+          <div class="flex flex-col gap-4 sm:flex-row sm:items-start">
+            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-900 font-mono text-sm font-semibold text-white">01</span>
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900">Fork the repository</h3>
+              <p class="mt-2 text-sm leading-6 text-gray-600">Start from the <a href="https://gitlab.com/owasp-blt/blt-university" target="_blank" rel="noopener noreferrer" class="font-semibold text-red-600 hover:underline">BLT University GitLab repository</a> and create a working branch.</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="rounded-2xl bg-gray-50 p-5">
+          <div class="flex flex-col gap-4 sm:flex-row sm:items-start">
+            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-900 font-mono text-sm font-semibold text-white">02</span>
+            <div class="min-w-0 flex-1">
+              <h3 class="text-lg font-semibold text-gray-900">Add your instructor profile</h3>
+              <p class="mt-2 text-sm leading-6 text-gray-600">Create a Markdown file in <code class="rounded-md bg-white px-1.5 py-0.5 text-red-600">_instructors</code> with your name, expertise, avatar, links, and bio.</p>
+              <pre class="mt-5 overflow-x-auto rounded-2xl bg-gray-950 p-5 font-mono text-xs leading-6 text-gray-300"><code>---
 layout: instructor
 title: Your Name
 expertise: Your Area of Expertise
 avatar: /assets/images/instructors/yourname.jpg
-github: yourusername
 linkedin: yourprofile
 ---
 
 Your bio and teaching philosophy goes here...</code></pre>
-                </div>
             </div>
+          </div>
+        </article>
 
-            <div class="relative flex items-start gap-8 group">
-                <div class="flex items-center justify-center w-12 h-12 rounded-full border-4 border-white dark:border-gray-900 bg-gray-900 dark:bg-gray-800 text-white font-bold shadow-md shrink-0 z-10">03</div>
-                <div class="bg-white dark:bg-gray-800 p-8 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-soft flex-1 overflow-hidden">
-                    <h3 class="font-bold text-xl text-gray-900 dark:text-white mb-2">Create Your Course</h3>
-                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Add a new file in the <code class="bg-gray-100 dark:bg-gray-900 px-2 py-1 rounded text-bltRed">_courses</code> directory:</p>
-                    <pre class="bg-gray-900 dark:bg-black/30 text-gray-300 p-5 rounded-2xl text-[11px] overflow-x-auto border border-gray-800 font-mono leading-relaxed shadow-inner"><code>---
+        <article class="rounded-2xl bg-gray-50 p-5">
+          <div class="flex flex-col gap-4 sm:flex-row sm:items-start">
+            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-900 font-mono text-sm font-semibold text-white">03</span>
+            <div class="min-w-0 flex-1">
+              <h3 class="text-lg font-semibold text-gray-900">Create the course file</h3>
+              <p class="mt-2 text-sm leading-6 text-gray-600">Add a course in <code class="rounded-md bg-white px-1.5 py-0.5 text-red-600">_courses</code> with category, level, duration, description, resources, and syllabus sections.</p>
+              <pre class="mt-5 max-h-[34rem] overflow-auto rounded-2xl bg-gray-950 p-5 font-mono text-xs leading-6 text-gray-300"><code>---
 layout: course
 title: Your Course Title
 category: Course Category
@@ -114,96 +118,64 @@ syllabus:
 # Course Content
 
 Your detailed course content goes here using Markdown...</code></pre>
-                </div>
             </div>
+          </div>
+        </article>
 
-            <div class="relative flex items-start gap-8 group">
-                <div class="flex items-center justify-center w-12 h-12 rounded-full border-4 border-white dark:border-gray-900 bg-bltRed text-white font-bold shadow-lg shrink-0 z-10">04</div>
-                <div class="bg-white dark:bg-gray-800 p-8 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-soft flex-1">
-                    <h3 class="font-bold text-xl text-gray-900 dark:text-white mb-2">Submit and Go Live</h3>
-                    <p class="text-gray-500 dark:text-gray-400 leading-relaxed text-sm">Submit a Pull Request. Once our team provides feedback and approves, your course merges and automatically publishes to the live site!</p>
-                </div>
+        <article class="rounded-2xl bg-red-50 p-5">
+          <div class="flex flex-col gap-4 sm:flex-row sm:items-start">
+            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-600 font-mono text-sm font-semibold text-white">04</span>
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900">Open a merge request</h3>
+              <p class="mt-2 text-sm leading-6 text-gray-600">Submit your course for review. Maintainers can help refine structure, clarity, and publishing readiness.</p>
             </div>
-        </div>
-    </section>
+          </div>
+        </article>
+      </div>
+    </div>
 
-    <section class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        <div class="lg:col-span-7 bg-gray-50 dark:bg-gray-800/50 p-8 md:p-10 rounded-[2.5rem] border border-gray-200 dark:border-gray-700">
-            <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-8 flex items-center gap-2">
-                <i class="ph-bold ph-shield-check text-bltRed"></i> Course Guidelines
-            </h2>
-            <ul class="space-y-4">
-                <li class="flex items-start gap-3 text-sm text-gray-600 dark:text-gray-400">
-                    <i class="ph-bold ph-check text-bltRed mt-1"></i>
-                    <span><strong class="dark:text-gray-200">Focus on Cybersecurity:</strong> Content must relate to info-sec.</span>
-                </li>
-                <li class="flex items-start gap-3 text-sm text-gray-600 dark:text-gray-400">
-                    <i class="ph-bold ph-check text-bltRed mt-1"></i>
-                    <span><strong class="dark:text-gray-200">Clear Structure:</strong> Organize content with clear learning objectives.</span>
-                </li>
-                <li class="flex items-start gap-3 text-sm text-gray-600 dark:text-gray-400">
-                    <i class="ph-bold ph-wrench text-bltRed mt-1"></i>
-                    <span><strong class="dark:text-gray-200">Practical Examples:</strong> Include hands-on labs and real scenarios.</span>
-                </li>
-                <li class="flex items-start gap-3 text-sm text-gray-600 dark:text-gray-400">
-                    <i class="ph-bold ph-folders text-bltRed mt-1"></i>
-                    <span><strong class="dark:text-gray-200">Multiple Formats:</strong> Combine videos, docs, and interactive content.</span>
-                </li>
-                <li class="flex items-start gap-3 text-sm text-gray-600 dark:text-gray-400">
-                    <i class="ph-bold ph-git-pull-request text-bltRed mt-1"></i>
-                    <span><strong class="dark:text-gray-200">Open License:</strong> Compatible with AGPL-3.0.</span>
-                </li>
-            </ul>
-        </div>
+    <aside class="space-y-4">
+      <div class="rounded-2xl border border-gray-200 bg-white p-6">
+        <p class="font-mono text-xs font-semibold uppercase tracking-[.16em] text-red-600">Guidelines</p>
+        <ul class="mt-5 space-y-4 text-sm leading-6 text-gray-600">
+          <li class="flex gap-3"><i class="ph-bold ph-check mt-1 text-red-600"></i><span>Keep content focused on cybersecurity practice.</span></li>
+          <li class="flex gap-3"><i class="ph-bold ph-check mt-1 text-red-600"></i><span>Define clear learning objectives and outcomes.</span></li>
+          <li class="flex gap-3"><i class="ph-bold ph-check mt-1 text-red-600"></i><span>Prefer hands-on labs, examples, and real scenarios.</span></li>
+          <li class="flex gap-3"><i class="ph-bold ph-check mt-1 text-red-600"></i><span>Use resources compatible with the project license.</span></li>
+        </ul>
+      </div>
 
-        <div class="lg:col-span-5 space-y-4">
-            <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-6 px-2">Supported Formats</h2>
-            <div class="grid grid-cols-2 gap-4 text-center">
-                <div class="p-5 bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-soft group hover:border-bltRed transition-all">
-                    <i class="ph-bold ph-video-camera text-xl text-bltRed mb-2 block mx-auto"></i>
-                    <p class="text-[10px] font-bold uppercase tracking-widest text-gray-900 dark:text-gray-200">Videos</p>
-                    <p class="text-[9px] text-gray-400 dark:text-gray-500 mt-1">YouTube, Vimeo</p>
-                </div>
-                <div class="p-5 bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-soft group hover:border-bltRed transition-all">
-                    <i class="ph-bold ph-file-pdf text-xl text-bltRed mb-2 block mx-auto"></i>
-                    <p class="text-[10px] font-bold uppercase tracking-widest text-gray-900 dark:text-gray-200">Documents</p>
-                    <p class="text-[9px] text-gray-400 dark:text-gray-500 mt-1">PDFs, Slides</p>
-                </div>
-                <div class="p-5 bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-soft group hover:border-bltRed transition-all">
-                    <i class="ph-bold ph-code text-xl text-bltRed mb-2 block mx-auto"></i>
-                    <p class="text-[10px] font-bold uppercase tracking-widest text-gray-900 dark:text-gray-200">Code</p>
-                    <p class="text-[9px] text-gray-400 dark:text-gray-500 mt-1">GitHub Repos</p>
-                </div>
-                <div class="p-5 bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-soft group hover:border-bltRed transition-all">
-                    <i class="ph-bold ph-pencil-line text-xl text-bltRed mb-2 block mx-auto"></i>
-                    <p class="text-[10px] font-bold uppercase tracking-widest text-gray-900 dark:text-gray-200">Assignments</p>
-                    <p class="text-[9px] text-gray-400 dark:text-gray-500 mt-1">Projects</p>
-                </div>
-            </div>
+      <div class="rounded-2xl border border-gray-200 bg-white p-6">
+        <p class="font-mono text-xs font-semibold uppercase tracking-[.16em] text-red-600">Formats</p>
+        <div class="mt-5 grid grid-cols-2 gap-3 text-center">
+          <div class="rounded-xl bg-gray-50 p-4">
+            <i class="ph-bold ph-video-camera mx-auto block text-xl text-red-600"></i>
+            <p class="mt-2 text-xs font-semibold text-gray-900">Video</p>
+          </div>
+          <div class="rounded-xl bg-gray-50 p-4">
+            <i class="ph-bold ph-file-text mx-auto block text-xl text-red-600"></i>
+            <p class="mt-2 text-xs font-semibold text-gray-900">Docs</p>
+          </div>
+          <div class="rounded-xl bg-gray-50 p-4">
+            <i class="ph-bold ph-code mx-auto block text-xl text-red-600"></i>
+            <p class="mt-2 text-xs font-semibold text-gray-900">Code</p>
+          </div>
+          <div class="rounded-xl bg-gray-50 p-4">
+            <i class="ph-bold ph-flag-checkered mx-auto block text-xl text-red-600"></i>
+            <p class="mt-2 text-xs font-semibold text-gray-900">Projects</p>
+          </div>
         </div>
-    </section>
+      </div>
+    </aside>
+  </section>
 
-    <section class="max-w-4xl mx-auto bg-gray-900 dark:bg-gray-800 p-8 md:p-12 rounded-[3rem] text-white shadow-2xl relative overflow-hidden group text-center border border-transparent dark:border-gray-700">
-        <div class="absolute -right-6 -bottom-6 opacity-10 group-hover:scale-110 transition-transform pointer-events-none">
-            <i class="ph-fill ph-chalkboard-teacher text-[12rem]"></i>
-        </div>
-        <div class="relative z-10">
-            <h2 class="text-2xl font-bold mb-3 tracking-tight">Ready to Build a Course?</h2>
-            <p class="text-gray-400 text-sm mb-10 max-w-lg mx-auto leading-relaxed">
-                Help shape the next generation of security professionals by sharing your cybersecurity expertise.
-            </p>
-            <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <a href="https://github.com/OWASP-BLT/BLT-University/issues/new?template=course-submission.yml" target="_blank" class="px-8 py-3.5 bg-bltRed text-white font-bold rounded-2xl shadow-xl hover:bg-bltRedHover hover:-translate-y-0.5 transition-all text-xs">
-                    Submit Course Proposal
-                </a>
-                <a href="https://github.com/OWASP-BLT/BLT-University" target="_blank" class="px-8 py-3.5 bg-white/10 backdrop-blur-md border border-white/20 text-white font-bold rounded-2xl hover:bg-white hover:text-gray-900 transition-all text-xs">
-                    View on GitHub
-                </a>
-                <a href="https://gitlab.com/owasp-blt/blt-university" target="_blank" class="inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-white/10 backdrop-blur-md border border-white/20 text-white font-bold rounded-2xl hover:bg-white hover:text-gray-900 transition-all text-xs">
-                    <i class="ph-bold ph-gitlab-logo"></i> View on GitLab
-                </a>
-            </div>
-        </div>
-    </section>
-
+  <section class="mt-14 rounded-3xl border border-white/5 bg-bltFooter p-8 text-center text-white md:p-12">
+    <span class="inline-flex items-center rounded-full border border-red-300/30 bg-red-500/10 px-3 py-1 font-mono text-xs font-medium uppercase tracking-[.16em] text-red-300">Ready to contribute?</span>
+    <h2 class="mx-auto mt-5 max-w-2xl text-[clamp(1.75rem,3.5vw,3.1rem)] font-medium leading-[1.05] tracking-[-.045em]">Help build the next course.</h2>
+    <p class="mx-auto mt-4 max-w-xl text-sm leading-6 text-gray-400">Open a GitLab issue or start from the repository to propose new instructor-led material.</p>
+    <div class="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+      <a href="https://gitlab.com/owasp-blt/blt-university/-/issues/new" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-5 py-3 text-sm font-medium text-white transition hover:-translate-y-px">Submit proposal</a>
+      <a href="https://gitlab.com/owasp-blt/blt-university" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center rounded-md border border-white/10 bg-white/5 px-5 py-3 text-sm font-medium text-white transition hover:bg-white hover:text-gray-900">View repository</a>
+    </div>
+  </section>
 </main>

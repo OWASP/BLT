@@ -6,6 +6,7 @@ description: >-
 
 baseurl: ""
 url: "https://university.owaspblt.org"
+display_domain: university.owaspblt.org
 
 # University Information
 university:
@@ -103,6 +104,22 @@ navigation:
     url: /labs/
   - title: About
     url: /about/
+
+header_navigation:
+  - title: Courses
+    url: /courses/
+  - title: Labs
+    url: /labs/
+  - title: Instructors
+    url: /instructors/
+
+header_actions:
+  - title: Request course
+    url: /request/
+    style: secondary
+  - title: Enroll now
+    url: /enroll/
+    style: primary
 
 # Course Categories
 categories:
