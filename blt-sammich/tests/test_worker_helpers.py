@@ -578,6 +578,34 @@ def test_render_admin_channel_refresh_button_only_for_teams():
     assert "refresh_workspace_channels" not in html
 
 
+def test_render_admin_slack_app_test_button_only_for_slack_apps():
+    html = worker.render_admin_row_table(
+        {
+            "selected_table": "slack_apps",
+            "schema": worker.ADMIN_TABLE_SCHEMAS["slack_apps"],
+            "rows": [{"id": 7, "app_id": "A123"}],
+            "sort_column": "id",
+            "sort_direction": "DESC",
+        },
+        "/private-admin",
+    )
+    channel_html = worker.render_admin_row_table(
+        {
+            "selected_table": "channels",
+            "schema": worker.ADMIN_TABLE_SCHEMAS["channels"],
+            "rows": [{"id": 1, "workspace_id": 1, "channel_id": "C123"}],
+            "sort_column": "id",
+            "sort_direction": "DESC",
+        },
+        "/private-admin",
+    )
+
+    assert "Test settings" in html
+    assert "test_slack_app_settings" in html
+    assert "Test settings" not in channel_html
+    assert "test_slack_app_settings" not in channel_html
+
+
 def test_render_admin_row_table_includes_bulk_delete_controls():
     html = worker.render_admin_row_table(
         {
@@ -706,10 +734,16 @@ def test_lettuce_model_tables_are_in_schema_bootstrap():
     assert "signing_secret" in schema_sql
     assert "bot_token" in schema_sql
     assert "bot_user_id" in schema_sql
+    assert "settings_test_status" in schema_sql
+    assert "settings_test_result" in schema_sql
+    assert "settings_tested_at" in schema_sql
     assert ("client_secret", "TEXT") in worker.ADMIN_TABLE_SCHEMAS["slack_apps"]["columns"]
     assert ("signing_secret", "TEXT") in worker.ADMIN_TABLE_SCHEMAS["slack_apps"]["columns"]
     assert ("bot_token", "TEXT") in worker.ADMIN_TABLE_SCHEMAS["slack_apps"]["columns"]
     assert ("bot_user_id", "TEXT") in worker.ADMIN_TABLE_SCHEMAS["slack_apps"]["columns"]
+    assert ("settings_test_status", "TEXT") in worker.ADMIN_TABLE_SCHEMAS["slack_apps"]["columns"]
+    assert ("settings_test_result", "TEXT") in worker.ADMIN_TABLE_SCHEMAS["slack_apps"]["columns"]
+    assert ("settings_tested_at", "TEXT") in worker.ADMIN_TABLE_SCHEMAS["slack_apps"]["columns"]
     for column_name in (
         "real_name",
         "is_bot",
@@ -1821,6 +1855,7 @@ def test_slack_api_send_ephemeral_adds_tracking_branding_block():
         user_id="",
         app_id="",
         token="",
+        token_source="",
     ):
         captured["api_method"] = api_method
         captured["payload"] = request_payload
@@ -2150,6 +2185,114 @@ def test_db_upsert_slack_app_persists_app_secrets():
     assert captured["params"][8] == "UBOT"
 
 
+def test_slack_app_settings_test_records_success():
+    captured = {}
+    original_d1_run = worker.d1_run
+    original_fetch_json = worker.fetch_json
+    original_schema_ready = worker.SCHEMA_READY
+
+    async def fake_d1_run(env, query, params=None):
+        if "SELECT * FROM slack_apps WHERE id = ?" in query:
+            return {
+                "results": [
+                    {
+                        "id": 7,
+                        "app_id": "A123",
+                        "client_id": "123.456",
+                        "client_secret": "client-secret",
+                        "signing_secret": "signing-secret",
+                        "app_token": "xapp-token",
+                        "bot_token": "xoxb-token",
+                        "bot_user_id": "U089A2Y2AAW",
+                    }
+                ]
+            }
+        if "UPDATE slack_apps SET settings_test_status" in query:
+            captured["query"] = query
+            captured["params"] = params
+            return {"success": True}
+        return {"success": True}
+
+    async def fake_fetch_json(url, method="GET", headers=None, body=None):
+        captured["fetch"] = (url, headers)
+        return (
+            True,
+            {
+                "ok": True,
+                "team": "BLT",
+                "team_id": "T04T40NHX",
+                "user_id": "U089A2Y2AAW",
+                "bot_id": "B123",
+            },
+            200,
+        )
+
+    env = _Env()
+    setattr(env, "DB", object())
+    worker.d1_run = fake_d1_run
+    worker.fetch_json = fake_fetch_json
+    worker.SCHEMA_READY = False
+    try:
+        result = asyncio.run(worker.test_slack_app_settings(env, 7))
+    finally:
+        worker.d1_run = original_d1_run
+        worker.fetch_json = original_fetch_json
+        worker.SCHEMA_READY = original_schema_ready
+
+    assert result["status"] == "success"
+    assert captured["fetch"][0] == "https://slack.com/api/auth.test"
+    assert captured["fetch"][1]["Authorization"] == "Bearer xoxb-token"
+    assert captured["params"][0] == "success"
+    stored_result = json.loads(captured["params"][1])
+    assert stored_result["app_id"] == "A123"
+    assert any(
+        check["name"] == "bot_auth_test" and check["team_id"] == "T04T40NHX"
+        for check in stored_result["checks"]
+    )
+    assert captured["params"][2] == result["tested_at"]
+    assert captured["params"][-1] == "7"
+
+
+def test_slack_app_settings_test_records_missing_required_values_without_fetch():
+    captured = {}
+    original_d1_run = worker.d1_run
+    original_fetch_json = worker.fetch_json
+    original_schema_ready = worker.SCHEMA_READY
+
+    async def fake_d1_run(env, query, params=None):
+        if "SELECT * FROM slack_apps WHERE id = ?" in query:
+            return {"results": [{"id": 7, "app_id": "A123"}]}
+        if "UPDATE slack_apps SET settings_test_status" in query:
+            captured["params"] = params
+            return {"success": True}
+        return {"success": True}
+
+    async def fake_fetch_json(url, method="GET", headers=None, body=None):
+        raise AssertionError("Slack should not be called when bot_token is missing")
+
+    env = _Env()
+    setattr(env, "DB", object())
+    worker.d1_run = fake_d1_run
+    worker.fetch_json = fake_fetch_json
+    worker.SCHEMA_READY = False
+    try:
+        result = asyncio.run(worker.test_slack_app_settings(env, 7))
+    finally:
+        worker.d1_run = original_d1_run
+        worker.fetch_json = original_fetch_json
+        worker.SCHEMA_READY = original_schema_ready
+
+    assert result["status"] == "failed"
+    stored_result = json.loads(captured["params"][1])
+    failed_names = {
+        check["name"] for check in stored_result["checks"] if not check["ok"]
+    }
+    assert {"client_id", "client_secret", "signing_secret", "bot_token"}.issubset(
+        failed_names
+    )
+    assert captured["params"][0] == "failed"
+
+
 def test_db_admin_create_update_delete_use_whitelisted_table_schema():
     captured = []
     original_d1_run = worker.d1_run
@@ -2321,6 +2464,42 @@ def test_admin_bulk_delete_action_deletes_each_selected_row():
         worker.db_admin_delete_row_cascade = original_delete
 
     assert deleted == [("channels", "1"), ("channels", "2")]
+
+
+def test_admin_form_action_tests_slack_app_settings():
+    captured = {}
+    original_test = worker.test_slack_app_settings
+    original_redirect = worker.admin_redirect
+
+    async def fake_test(env, app_row_id):
+        captured["app_row_id"] = app_row_id
+        return {"status": "success"}
+
+    def fake_redirect(env, message="", table_name=""):
+        captured["redirect"] = (message, table_name)
+        return {"redirected": True}
+
+    env = _Env()
+    worker.test_slack_app_settings = fake_test
+    worker.admin_redirect = fake_redirect
+    try:
+        response = asyncio.run(
+            worker.handle_admin_form_action(
+                env,
+                {
+                    "action": "test_slack_app_settings",
+                    "table": "slack_apps",
+                    "pk": "7",
+                },
+            )
+        )
+    finally:
+        worker.test_slack_app_settings = original_test
+        worker.admin_redirect = original_redirect
+
+    assert response == {"redirected": True}
+    assert captured["app_row_id"] == "7"
+    assert captured["redirect"] == ("Slack app settings test success", "slack_apps")
 
 
 def test_db_admin_rejects_unknown_table_names():
@@ -2697,6 +2876,7 @@ def test_slack_api_post_message_logs_slack_response_payload():
         response_payload,
         ok,
         status_code,
+        diagnostics=None,
     ):
         captured["log"] = {
             "team_id": team_id,
@@ -2707,6 +2887,7 @@ def test_slack_api_post_message_logs_slack_response_payload():
             "response_payload": response_payload,
             "ok": ok,
             "status_code": status_code,
+            "diagnostics": diagnostics,
         }
 
     async def fake_bot_token(env, team_id="", channel_id="", app_id=""):
@@ -2739,6 +2920,94 @@ def test_slack_api_post_message_logs_slack_response_payload():
     assert captured["log"]["response_payload"] == {"ok": True, "ts": "123.456"}
     assert captured["log"]["ok"] is True
     assert captured["token_app_id"] == "A089A036135"
+
+
+def test_slack_api_call_records_auth_and_user_diagnostics_on_invalid_user():
+    captured = {}
+    original_fetch_json = worker.fetch_json
+    original_log_response = worker.log_slack_api_response
+    original_token_details = worker.workspace_slack_token_details
+
+    async def fake_fetch_json(url, method="GET", headers=None, body=None):
+        captured.setdefault("urls", []).append(url)
+        if url == "https://slack.com/api/conversations.open":
+            return True, {"ok": False, "error": "user_not_found"}, 200
+        if url == "https://slack.com/api/auth.test":
+            return (
+                True,
+                {
+                    "ok": True,
+                    "team_id": "TOTHER",
+                    "user_id": "UBOT",
+                    "bot_id": "B123",
+                },
+                200,
+            )
+        if url == "https://slack.com/api/users.info":
+            captured["users_info_body"] = json.loads(body or "{}")
+            return True, {"ok": False, "error": "user_not_found"}, 200
+        return True, {"ok": False, "error": "unexpected_url"}, 404
+
+    async def fake_log_response(
+        env,
+        team_id,
+        channel_id,
+        user_id,
+        app_id,
+        api_method,
+        request_payload,
+        response_payload,
+        ok,
+        status_code,
+        diagnostics=None,
+    ):
+        captured["log"] = {
+            "team_id": team_id,
+            "user_id": user_id,
+            "app_id": app_id,
+            "api_method": api_method,
+            "response_payload": response_payload,
+            "ok": ok,
+            "diagnostics": diagnostics or {},
+        }
+
+    async def fake_token_details(env, team_id="", channel_id="", app_id=""):
+        return {
+            "token": "xoxb-current",
+            "source": "slack_apps.bot_token",
+            "token_kind": "xoxb",
+            "team_id": "T04T40NHX",
+            "app_id": app_id,
+        }
+
+    worker.fetch_json = fake_fetch_json
+    worker.log_slack_api_response = fake_log_response
+    worker.workspace_slack_token_details = fake_token_details
+    try:
+        result = asyncio.run(
+            worker.slack_api_open_conversation(
+                "U04TJF11F", _Env(), team_id="T04T40NHX", app_id="A089A036135"
+            )
+        )
+    finally:
+        worker.fetch_json = original_fetch_json
+        worker.log_slack_api_response = original_log_response
+        worker.workspace_slack_token_details = original_token_details
+
+    assert result == {"ok": False, "error": "user_not_found"}
+    assert captured["urls"] == [
+        "https://slack.com/api/conversations.open",
+        "https://slack.com/api/auth.test",
+        "https://slack.com/api/users.info",
+    ]
+    diagnostics = captured["log"]["diagnostics"]
+    assert diagnostics["token_source"] == "slack_apps.bot_token"
+    assert diagnostics["token_kind"] == "xoxb"
+    assert diagnostics["expected_team_id"] == "T04T40NHX"
+    assert diagnostics["expected_app_id"] == "A089A036135"
+    assert diagnostics["auth_test"]["team_id"] == "TOTHER"
+    assert diagnostics["users_info"]["error"] == "user_not_found"
+    assert captured["users_info_body"] == {"user": "U04TJF11F"}
 
 
 def test_slack_api_post_direct_response_reopens_dm_when_channel_missing():
@@ -2802,6 +3071,7 @@ def test_slack_api_post_direct_response_uses_env_token_when_db_token_cannot_see_
         user_id="",
         app_id="",
         token="",
+        token_source="",
     ):
         captured["calls"].append(
             {
@@ -2812,6 +3082,7 @@ def test_slack_api_post_direct_response_uses_env_token_when_db_token_cannot_see_
                 "user_id": user_id,
                 "app_id": app_id,
                 "token": token,
+                "token_source": token_source,
             }
         )
         if api_method == "chat.postMessage" and token == "":

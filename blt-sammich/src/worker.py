@@ -55,6 +55,9 @@ ADMIN_TABLE_SCHEMAS = {
             ("bot_token", "TEXT"),
             ("bot_user_id", "TEXT"),
             ("manifest_yaml", "TEXT"),
+            ("settings_test_status", "TEXT"),
+            ("settings_test_result", "TEXT"),
+            ("settings_tested_at", "TEXT"),
             ("created_at", "TEXT"),
             ("updated_at", "TEXT"),
         ],
@@ -1552,6 +1555,151 @@ async def db_get_slack_app_by_app_id(
     )
 
 
+async def db_get_slack_app_by_id(
+    env: Any, app_row_id: Any
+) -> Optional[Dict[str, Any]]:
+    row_id = str(app_row_id or "").strip()
+    if not row_id:
+        return None
+    await ensure_schema(env)
+    return result_first(
+        await d1_run(env, "SELECT * FROM slack_apps WHERE id = ? LIMIT 1", [row_id])
+    )
+
+
+async def db_update_slack_app_settings_test(
+    env: Any, app_row_id: Any, status: str, result: Dict[str, Any], tested_at: str
+) -> None:
+    await ensure_schema(env)
+    await d1_run(
+        env,
+        (
+            "UPDATE slack_apps SET settings_test_status = ?, settings_test_result = ?, "
+            "settings_tested_at = ?, updated_at = ? WHERE id = ?"
+        ),
+        [
+            status,
+            json.dumps(result, sort_keys=True),
+            tested_at,
+            tested_at,
+            str(app_row_id or ""),
+        ],
+    )
+
+
+def slack_app_settings_required_checks(app_row: Dict[str, Any]) -> List[Dict[str, Any]]:
+    required_fields = [
+        ("app_id", "Slack app ID"),
+        ("client_id", "OAuth client ID"),
+        ("client_secret", "OAuth client secret"),
+        ("signing_secret", "request signing secret"),
+        ("bot_token", "bot token"),
+    ]
+    checks = []
+    for field_name, label in required_fields:
+        present = bool(str(app_row.get(field_name) or "").strip())
+        checks.append(
+            {
+                "name": field_name,
+                "label": label,
+                "ok": present,
+                "message": "set" if present else "missing",
+            }
+        )
+    return checks
+
+
+async def test_slack_app_settings(env: Any, app_row_id: Any) -> Dict[str, Any]:
+    app_row = await db_get_slack_app_by_id(env, app_row_id)
+    if not app_row:
+        raise ValueError("Slack app was not found.")
+
+    tested_at = utc_now()
+    checks = slack_app_settings_required_checks(app_row)
+    bot_token = str(app_row.get("bot_token") or "").strip()
+    bot_token_kind = token_kind(bot_token) if bot_token else "missing"
+    checks.append(
+        {
+            "name": "bot_token_type",
+            "label": "bot token type",
+            "ok": bot_token_kind == "xoxb",
+            "message": bot_token_kind,
+        }
+    )
+
+    if bot_token:
+        try:
+            ok, payload, status_code = await fetch_json(
+                "https://slack.com/api/auth.test",
+                headers={"Authorization": "Bearer {0}".format(bot_token)},
+            )
+            slack_ok = bool(ok and payload.get("ok", False))
+            auth_check: Dict[str, Any] = {
+                "name": "bot_auth_test",
+                "label": "Slack auth.test",
+                "ok": slack_ok,
+                "status_code": status_code,
+            }
+            if slack_ok:
+                auth_check.update(
+                    {
+                        "team_id": str(payload.get("team_id") or ""),
+                        "user_id": str(payload.get("user_id") or ""),
+                        "bot_id": str(payload.get("bot_id") or ""),
+                        "team": str(payload.get("team") or ""),
+                    }
+                )
+                expected_bot_user_id = str(app_row.get("bot_user_id") or "").strip()
+                actual_bot_user_id = str(payload.get("user_id") or "").strip()
+                if expected_bot_user_id and actual_bot_user_id != expected_bot_user_id:
+                    auth_check["ok"] = False
+                    auth_check["message"] = (
+                        "bot_user_id mismatch: expected {0}, got {1}".format(
+                            expected_bot_user_id,
+                            actual_bot_user_id or "unknown",
+                        )
+                    )
+            else:
+                auth_check["error"] = str(payload.get("error") or "request_failed")
+                if payload.get("needed"):
+                    auth_check["needed"] = str(payload.get("needed") or "")
+                if payload.get("provided"):
+                    auth_check["provided"] = str(payload.get("provided") or "")
+            checks.append(auth_check)
+        except Exception as error:
+            checks.append(
+                {
+                    "name": "bot_auth_test",
+                    "label": "Slack auth.test",
+                    "ok": False,
+                    "error": str(error),
+                }
+            )
+
+    app_token = str(app_row.get("app_token") or "").strip()
+    if app_token:
+        app_token_kind = token_kind(app_token)
+        checks.append(
+            {
+                "name": "app_token_type",
+                "label": "app-level token type",
+                "ok": app_token_kind == "xapp",
+                "message": app_token_kind,
+            }
+        )
+
+    failed_checks = [check for check in checks if not check.get("ok")]
+    status = "success" if not failed_checks else "failed"
+    result = {
+        "status": status,
+        "tested_at": tested_at,
+        "app_id": str(app_row.get("app_id") or ""),
+        "checks": checks,
+    }
+    await db_update_slack_app_settings_test(env, app_row_id, status, result, tested_at)
+    return result
+
+
 async def db_get_workspace_bot_token(
     env: Any, team_id: str = "", channel_id: str = "", app_id: str = ""
 ) -> str:
@@ -1596,6 +1744,83 @@ async def db_get_workspace_bot_user_id(
     if not row and channel_id:
         row = await db_get_workspace_by_channel_id(env, channel_id)
     return str((row or {}).get("bot_user_id") or "")
+
+
+def token_kind(token: str) -> str:
+    token_text = str(token or "")
+    if "-" not in token_text:
+        return "unknown"
+    return token_text.split("-", 1)[0]
+
+
+async def workspace_slack_token_details(
+    env: Any, team_id: str = "", channel_id: str = "", app_id: str = ""
+) -> Dict[str, Any]:
+    try:
+        getattr(env, "DB")
+    except Exception:
+        env_token = env_value(env, "SLACK_BOT_TOKEN") or ""
+        return {
+            "token": env_token,
+            "source": "env.SLACK_BOT_TOKEN" if env_token else "missing",
+            "token_kind": token_kind(env_token),
+            "team_id": team_id,
+            "app_id": app_id,
+        }
+    await ensure_schema(env)
+    row = None
+    if team_id and app_id:
+        row = await db_get_workspace_by_team_and_app(env, team_id, app_id)
+        token = str((row or {}).get("bot_token") or (row or {}).get("access_token") or "")
+        if token:
+            return {
+                "token": token,
+                "source": "teams.bot_token" if (row or {}).get("bot_token") else "teams.access_token",
+                "token_kind": token_kind(token),
+                "team_id": str((row or {}).get("team_id") or team_id),
+                "app_id": str((row or {}).get("app_id") or app_id),
+            }
+    if app_id:
+        app_row = await db_get_slack_app_by_app_id(env, app_id)
+        token = str((app_row or {}).get("bot_token") or (app_row or {}).get("app_token") or "")
+        if token:
+            return {
+                "token": token,
+                "source": "slack_apps.bot_token" if (app_row or {}).get("bot_token") else "slack_apps.app_token",
+                "token_kind": token_kind(token),
+                "team_id": team_id,
+                "app_id": str((app_row or {}).get("app_id") or app_id),
+            }
+    if team_id:
+        row = await db_get_workspace_by_team(env, team_id)
+        token = str((row or {}).get("bot_token") or (row or {}).get("access_token") or "")
+        if token:
+            return {
+                "token": token,
+                "source": "teams.bot_token" if (row or {}).get("bot_token") else "teams.access_token",
+                "token_kind": token_kind(token),
+                "team_id": str((row or {}).get("team_id") or team_id),
+                "app_id": str((row or {}).get("app_id") or ""),
+            }
+    if channel_id:
+        row = await db_get_workspace_by_channel_id(env, channel_id)
+        token = str((row or {}).get("bot_token") or (row or {}).get("access_token") or "")
+        if token:
+            return {
+                "token": token,
+                "source": "channel_workspace.bot_token" if (row or {}).get("bot_token") else "channel_workspace.access_token",
+                "token_kind": token_kind(token),
+                "team_id": str((row or {}).get("team_id") or ""),
+                "app_id": str((row or {}).get("app_id") or ""),
+            }
+    env_token = env_value(env, "SLACK_BOT_TOKEN") or ""
+    return {
+        "token": env_token,
+        "source": "env.SLACK_BOT_TOKEN" if env_token else "missing",
+        "token_kind": token_kind(env_token),
+        "team_id": team_id,
+        "app_id": app_id,
+    }
 
 
 async def db_get_slack_app_signing_secret(
@@ -3712,6 +3937,78 @@ def slack_api_internal_error(
     return ""
 
 
+async def slack_api_failure_diagnostics(
+    env: Any,
+    api_method: str,
+    request_payload: Dict[str, Any],
+    response_payload: Dict[str, Any],
+    token: str,
+    token_details: Dict[str, Any],
+    team_id: str = "",
+    app_id: str = "",
+) -> Dict[str, Any]:
+    diagnostics: Dict[str, Any] = {
+        "token_present": bool(token),
+        "token_kind": token_kind(token),
+        "token_source": token_details.get("source") or "explicit",
+        "token_source_team_id": token_details.get("team_id") or "",
+        "token_source_app_id": token_details.get("app_id") or "",
+        "expected_team_id": team_id or "",
+        "expected_app_id": app_id or "",
+    }
+    if not token or not isinstance(response_payload, dict) or response_payload.get("ok"):
+        return diagnostics
+    headers = {"Authorization": "Bearer {0}".format(token)}
+    try:
+        auth_ok, auth_payload, auth_status = await fetch_json(
+            "https://slack.com/api/auth.test",
+            headers=headers,
+        )
+        diagnostics["auth_test"] = {
+            "http_ok": bool(auth_ok),
+            "status_code": auth_status,
+            "ok": bool(auth_payload.get("ok")),
+            "error": auth_payload.get("error") or "",
+            "team_id": auth_payload.get("team_id") or "",
+            "user_id": auth_payload.get("user_id") or "",
+            "bot_id": auth_payload.get("bot_id") or "",
+        }
+    except Exception as error:
+        diagnostics["auth_test"] = {
+            "ok": False,
+            "error": "diagnostic_failed:{0}".format(type(error).__name__),
+        }
+    user_id = str((request_payload or {}).get("users") or "").strip()
+    if api_method == "conversations.open" and user_id:
+        try:
+            users_ok, users_payload, users_status = await fetch_json(
+                "https://slack.com/api/users.info",
+                method="POST",
+                headers={
+                    "Authorization": "Bearer {0}".format(token),
+                    "Content-Type": "application/json; charset=utf-8",
+                },
+                body=json.dumps({"user": user_id}),
+            )
+            diagnostics["users_info"] = {
+                "http_ok": bool(users_ok),
+                "status_code": users_status,
+                "ok": bool(users_payload.get("ok")),
+                "error": users_payload.get("error") or "",
+                "user_id": user_id,
+                "team_id": ((users_payload.get("user") or {}).get("team_id") or ""),
+                "is_bot": bool((users_payload.get("user") or {}).get("is_bot") or False),
+                "deleted": bool((users_payload.get("user") or {}).get("deleted") or False),
+            }
+        except Exception as error:
+            diagnostics["users_info"] = {
+                "ok": False,
+                "user_id": user_id,
+                "error": "diagnostic_failed:{0}".format(type(error).__name__),
+            }
+    return diagnostics
+
+
 async def log_slack_api_response(
     env: Any,
     team_id: str,
@@ -3723,6 +4020,7 @@ async def log_slack_api_response(
     response_payload: Dict[str, Any],
     ok: bool,
     status_code: int,
+    diagnostics: Optional[Dict[str, Any]] = None,
 ) -> None:
     try:
         getattr(env, "DB")
@@ -3752,6 +4050,7 @@ async def log_slack_api_response(
                     "api_method": api_method,
                     "request": request_payload,
                     "status_code": status_code,
+                    "diagnostics": diagnostics or {},
                 },
                 sort_keys=True,
             ),
@@ -3778,9 +4077,10 @@ async def workspace_slack_token(
     env: Any, team_id: str = "", channel_id: str = "", app_id: str = ""
 ) -> str:
     try:
-        token = await db_get_workspace_bot_token(
+        details = await workspace_slack_token_details(
             env, team_id=team_id, channel_id=channel_id, app_id=app_id
         )
+        token = str(details.get("token") or "")
     except Exception as error:
         log_exception_one_line(
             error,
@@ -3788,8 +4088,6 @@ async def workspace_slack_token(
             {"team_id": team_id, "channel_id": channel_id, "app_id": app_id},
         )
         token = ""
-    if not token:
-        token = env_value(env, "SLACK_BOT_TOKEN")
     return token or ""
 
 
@@ -3802,10 +4100,22 @@ async def slack_api_call(
     user_id: str = "",
     app_id: str = "",
     token: str = "",
+    token_source: str = "",
 ) -> Dict[str, Any]:
-    token = token or await workspace_slack_token(
-        env, team_id=team_id, channel_id=channel_id, app_id=app_id
-    )
+    token_details: Dict[str, Any] = {}
+    if token:
+        token_details = {
+            "token": token,
+            "source": token_source or "explicit",
+            "token_kind": token_kind(token),
+            "team_id": team_id,
+            "app_id": app_id,
+        }
+    else:
+        token_details = await workspace_slack_token_details(
+            env, team_id=team_id, channel_id=channel_id, app_id=app_id
+        )
+        token = str(token_details.get("token") or "")
     if not token:
         return {"ok": False, "error": "missing_slack_token"}
     ok, payload, status_code = await fetch_json(
@@ -3816,6 +4126,20 @@ async def slack_api_call(
             "Content-Type": "application/json; charset=utf-8",
         },
         body=json.dumps(request_payload),
+    )
+    diagnostics = (
+        await slack_api_failure_diagnostics(
+            env,
+            api_method,
+            request_payload,
+            payload,
+            token,
+            token_details,
+            team_id=team_id,
+            app_id=app_id,
+        )
+        if not (ok and bool(payload.get("ok", False)))
+        else {}
     )
     await log_slack_api_response(
         env,
@@ -3828,6 +4152,7 @@ async def slack_api_call(
         response_payload=payload,
         ok=ok and bool(payload.get("ok", False)),
         status_code=status_code,
+        diagnostics=diagnostics,
     )
     if not isinstance(payload, dict):
         payload = {}
@@ -3924,6 +4249,7 @@ async def slack_api_post_direct_response(
             user_id=user_id,
             app_id=app_id,
             token=env_token,
+            token_source="env.SLACK_BOT_TOKEN",
         )
         if env_send_result.get("ok"):
             return env_send_result
@@ -3944,6 +4270,7 @@ async def slack_api_post_direct_response(
             user_id=user_id,
             app_id=app_id,
             token=env_token,
+            token_source="env.SLACK_BOT_TOKEN",
         )
     dm_channel = slack_response_channel_id(dm_response)
     if not dm_response.get("ok") or not dm_channel or dm_channel == channel_id:
@@ -3958,6 +4285,7 @@ async def slack_api_post_direct_response(
             user_id=user_id,
             app_id=app_id,
             token=env_token,
+            token_source="env.SLACK_BOT_TOKEN",
         )
         if env_dm_send_result.get("ok"):
             return env_dm_send_result
@@ -5186,6 +5514,25 @@ def render_admin_row_table(context: Dict[str, Any], admin_url: str) -> str:
         ]
         for column_name, _ in schema["columns"]:
             cells.append(render_admin_table_cell(column_name, row.get(column_name)))
+        row_actions = ""
+        if selected_table == "teams":
+            row_actions = (
+                '<form method="post" action="{0}" class="mt-2 inline-block">'
+                '<input type="hidden" name="action" value="refresh_workspace_channels" />'
+                '<input type="hidden" name="table" value="teams" />'
+                '<input type="hidden" name="pk" value="{1}" />'
+                '<button class="font-semibold text-blue-600 hover:text-blue-700" type="submit">Refresh channels</button>'
+                '</form>'
+            ).format(html_escape(admin_url), html_escape(pk_value))
+        if selected_table == "slack_apps":
+            row_actions = (
+                '<form method="post" action="{0}" class="mt-2 inline-block">'
+                '<input type="hidden" name="action" value="test_slack_app_settings" />'
+                '<input type="hidden" name="table" value="slack_apps" />'
+                '<input type="hidden" name="pk" value="{1}" />'
+                '<button class="font-semibold text-blue-600 hover:text-blue-700" type="submit">Test settings</button>'
+                '</form>'
+            ).format(html_escape(admin_url), html_escape(pk_value))
         cells.append(
             '<td class="border-b border-gray-100 px-3 py-1 text-right align-middle whitespace-nowrap">'
             '<a class="font-semibold text-red-600 hover:text-red-700" href="{0}?table={1}&edit={2}">Edit</a>'
@@ -5195,16 +5542,7 @@ def render_admin_row_table(context: Dict[str, Any], admin_url: str) -> str:
                 html_escape(admin_url),
                 html_escape(selected_table),
                 html_escape(pk_value),
-                (
-                    '<form method="post" action="{0}" class="mt-2 inline-block">'
-                    '<input type="hidden" name="action" value="refresh_workspace_channels" />'
-                    '<input type="hidden" name="table" value="teams" />'
-                    '<input type="hidden" name="pk" value="{1}" />'
-                    '<button class="font-semibold text-blue-600 hover:text-blue-700" type="submit">Refresh channels</button>'
-                    '</form>'
-                ).format(html_escape(admin_url), html_escape(pk_value))
-                if selected_table == "teams"
-                else "",
+                row_actions,
             )
         )
         rows.append('<tr class="hover:bg-red-50/40">{0}</tr>'.format("".join(cells)))
@@ -5465,6 +5803,13 @@ async def handle_admin_form_action(env: Any, form: Dict[str, str]) -> Any:
             env,
             "Refreshed {0} channels".format(result.get("channel_count") or 0),
             "teams",
+        )
+    if action == "test_slack_app_settings":
+        result = await test_slack_app_settings(env, form.get("pk", ""))
+        return admin_redirect(
+            env,
+            "Slack app settings test {0}".format(result.get("status") or "complete"),
+            "slack_apps",
         )
     return redirect_response(admin_path(env) + "?message=No+changes+made")
 
