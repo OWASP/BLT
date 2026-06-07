@@ -117,10 +117,23 @@ function renderJob(job) {
   const requirements = job.requirements || "";
   const applicationInstructions = job.application_instructions || "";
   const addedBy = esc(normalizeString(job.added_by));
+  const sourceFileUrl = safeUrl(
+    job.source_file_url ||
+      (window.BLTProvider && window.BLTProvider.sourceFileUrl
+        ? window.BLTProvider.sourceFileUrl(`jobs/${job.id}.md`)
+        : "")
+  );
+  const sourceIssueUrl = safeUrl(job.source_issue_url || "");
+  const reviewStatus = job.review_status || "";
+  const sourcePlatform = job.source_platform || (window.BLTProvider && window.BLTProvider.id) || "gitlab";
 
   const flagIssueTitle = encodeURIComponent(`[FLAG] ${job.title || "Untitled"} @ ${job.organization_name || "Unknown organization"}`);
   const flagDescription = `### Job ID\n${job.id}\n\n### Reason for Flagging\n\n### Additional Details\n\n/label ~"flag-job-posting"`;
-  const flagUrl = `https://gitlab.com/owasp-blt/blt-jobs/-/issues/new?issue[title]=${flagIssueTitle}&issue[description]=${encodeURIComponent(flagDescription)}`;
+  const issueBase =
+    window.BLTProvider && window.BLTProvider.issueUrl
+      ? window.BLTProvider.issueUrl()
+      : "https://gitlab.com/owasp-blt/blt-jobs/-/issues/new";
+  const flagUrl = `${issueBase}?issue[title]=${flagIssueTitle}&issue[description]=${encodeURIComponent(flagDescription)}`;
 
   root.innerHTML = `
     <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
@@ -300,6 +313,27 @@ function renderJob(job) {
 
             <!-- Report Job -->
             <div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+              ${
+                sourceFileUrl || sourceIssueUrl || reviewStatus
+                  ? `<div class="mb-4 flex flex-wrap items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
+                       ${
+                         sourceFileUrl
+                           ? `<a href="${esc(sourceFileUrl)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 font-medium text-[#e74c3c] hover:text-red-700 dark:hover:text-red-400"><i class="fa-brands fa-gitlab" aria-hidden="true"></i> Source Markdown</a>`
+                           : ""
+                       }
+                       ${
+                         sourceIssueUrl
+                           ? `<a href="${esc(sourceIssueUrl)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 font-medium text-[#e74c3c] hover:text-red-700 dark:hover:text-red-400"><i class="fa-solid fa-circle-dot" aria-hidden="true"></i> Source issue</a>`
+                           : ""
+                       }
+                       ${
+                         reviewStatus
+                           ? `<span class="inline-flex items-center gap-1"><i class="fa-solid fa-code-branch" aria-hidden="true"></i> ${esc(sourcePlatform)} · ${esc(reviewStatus)}</span>`
+                           : ""
+                       }
+                     </div>`
+                  : ""
+              }
               <a href="${flagUrl}"
                  target="_blank"
                  rel="noopener noreferrer"

@@ -1,6 +1,7 @@
 let allJobs = [];
 
 function esc(s) { return window.Sanitize.esc(s); }
+function safeUrl(url) { return window.Sanitize.safeUrl(url); }
 
 function normalizeString(value) {
   return (value || "").toString().toLowerCase();
@@ -179,6 +180,13 @@ function renderJobs(jobs) {
       const createdAt = esc(job.created_at || "");
       const addedBy = esc(job.added_by || "");
       const addedByUrl = safeUrl(job.added_by_url || "");
+      const sourceFileUrl = safeUrl(
+        job.source_file_url ||
+          (window.BLTProvider && window.BLTProvider.sourceFileUrl
+            ? window.BLTProvider.sourceFileUrl(`jobs/${job.id}.md`)
+            : "")
+      );
+      const sourcePlatform = esc(job.source_platform || (window.BLTProvider && window.BLTProvider.id) || "gitlab");
       const workMode = inferWorkMode(job);
       const workBadge = workModeBadgeHtml(workMode);
 
@@ -263,16 +271,26 @@ function renderJobs(jobs) {
                 ${addedBySpan}
               </div>
               <div class="mt-4">
-                <a href="job.html?id=${encodeURIComponent(job.id)}" class="font-medium text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">
-                  View Details <i class="fa-solid fa-arrow-right text-xs" aria-hidden="true"></i>
-                </a>
-              </div>
-            </div>
-            <div class="flex gap-2">
-              <div id="bookmark-${job.id}"></div>
-              <a href="https://gitlab.com/owasp-blt/blt-jobs/-/blob/main/jobs/${encodeURIComponent(job.id)}.md" target="_blank" rel="noopener" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
-                <i class="fa-brands fa-gitlab" aria-hidden="true"></i> View on GitLab
+              <a href="job.html?id=${encodeURIComponent(job.id)}" class="font-medium text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">
+                View Details <i class="fa-solid fa-arrow-right text-xs" aria-hidden="true"></i>
               </a>
+              ${
+                job.review_status
+                  ? `<span class="ml-3 inline-flex items-center gap-1 text-xs text-slate-500 dark:text-gray-500"><i class="fa-solid fa-code-branch" aria-hidden="true"></i> ${esc(job.review_status)}</span>`
+                  : ""
+              }
+            </div>
+          </div>
+          <div class="flex gap-2">
+            <div id="bookmark-${job.id}"></div>
+              ${
+                sourceFileUrl
+                  ? `<a href="${esc(sourceFileUrl)}" target="_blank" rel="noopener" class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                       <i class="fa-brands fa-gitlab" aria-hidden="true"></i> View source
+                       <span class="sr-only">on ${sourcePlatform}</span>
+                     </a>`
+                  : ""
+              }
             </div>
           </div>
         </div>

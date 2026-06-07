@@ -70,6 +70,12 @@ function renderSeekers(seekers) {
       const email = s.email || "";
       const twitter = s.twitter || "";
       const resumeUrl = s.resume_url || "";
+      const sourceFileUrl = safeUrl(
+        s.source_file_url ||
+          (window.BLTProvider && window.BLTProvider.sourceFileUrl
+            ? window.BLTProvider.sourceFileUrl(`seekers/${s.id}.md`)
+            : "")
+      );
       
       // Build social links
       const socialLinks = [];
@@ -80,6 +86,7 @@ function renderSeekers(seekers) {
       if (safeUrl(twitter)) socialLinks.push(`<a href="${esc(twitter)}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600" title="Twitter/X"><i class="fa-brands fa-x-twitter" aria-hidden="true"></i></a>`);
       if (safeUrl(resumeUrl)) socialLinks.push(`<a href="${esc(resumeUrl)}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 transition hover:bg-red-100 dark:border-red-800 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50" title="Download Resume"><i class="fa-solid fa-file-pdf" aria-hidden="true"></i></a>`);
       if (email) socialLinks.push(`<a href="mailto:${esc(email)}" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600" title="Email"><i class="fa-solid fa-envelope" aria-hidden="true"></i></a>`);
+      if (sourceFileUrl) socialLinks.push(`<a href="${esc(sourceFileUrl)}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:bg-slate-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600" title="Source Markdown"><i class="fa-solid fa-code-branch" aria-hidden="true"></i></a>`);
 
       // Build GitHub avatar URL from github profile link
       const githubUsername = github ? github.replace(/^https?:\/\/github\.com\//i, "").split("/")[0] : "";

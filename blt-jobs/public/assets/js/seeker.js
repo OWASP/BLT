@@ -170,6 +170,15 @@ function renderSeeker(seeker) {
   const email = seeker.email || "";
   const twitter = seeker.twitter || "";
   const resumeUrl = seeker.resume_url || "";
+  const sourceFileUrl = safeUrl(
+    seeker.source_file_url ||
+      (window.BLTProvider && window.BLTProvider.sourceFileUrl
+        ? window.BLTProvider.sourceFileUrl(`seekers/${seeker.id}.md`)
+        : "")
+  );
+  const sourceIssueUrl = safeUrl(seeker.source_issue_url || "");
+  const reviewStatus = seeker.review_status || "";
+  const sourcePlatform = seeker.source_platform || (window.BLTProvider && window.BLTProvider.id) || "gitlab";
 
   const { availabilityStatus, skills, about, workExperience, projects, certifications, workSamples, lookingFor } = parseSeekerContent(seeker);
   const initials = getInitials(name);
@@ -184,6 +193,7 @@ function renderSeeker(seeker) {
   if (safeUrl(twitter)) contactLinks.push(`<a href="${esc(twitter)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 transition hover:bg-gray-50 dark:hover:bg-gray-700"><i class="fa-brands fa-x-twitter" aria-hidden="true"></i> Twitter</a>`);
   if (safeUrl(resumeUrl)) contactLinks.push(`<a href="${esc(resumeUrl)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700"><i class="fa-solid fa-file-pdf" aria-hidden="true"></i> Resume</a>`);
   if (email) contactLinks.push(`<a href="mailto:${esc(email)}" class="inline-flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 transition hover:bg-gray-50 dark:hover:bg-gray-700"><i class="fa-solid fa-envelope" aria-hidden="true"></i> Email</a>`);
+  if (sourceFileUrl) contactLinks.push(`<a href="${esc(sourceFileUrl)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 transition hover:bg-gray-50 dark:hover:bg-gray-700"><i class="fa-solid fa-code-branch" aria-hidden="true"></i> Source</a>`);
 
   document.title = `${name} — BLT Jobs`;
 
@@ -217,6 +227,22 @@ function renderSeeker(seeker) {
               contactLinks.length > 0
                 ? `<div class="mt-6 flex flex-wrap gap-3">
                      ${contactLinks.join("")}
+                   </div>`
+                : ""
+            }
+            ${
+              sourceIssueUrl || reviewStatus
+                ? `<div class="mt-4 flex flex-wrap items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
+                     ${
+                       sourceIssueUrl
+                         ? `<a href="${esc(sourceIssueUrl)}" target="_blank" rel="noopener noreferrer" class="font-medium text-red-600 hover:text-red-700 dark:text-red-400">Source issue</a>`
+                         : ""
+                     }
+                     ${
+                       reviewStatus
+                         ? `<span class="inline-flex items-center gap-1"><i class="fa-solid fa-code-branch" aria-hidden="true"></i> ${esc(sourcePlatform)} · ${esc(reviewStatus)}</span>`
+                         : ""
+                     }
                    </div>`
                 : ""
             }
