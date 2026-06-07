@@ -2,9 +2,9 @@
     "name": "blt-ossh",
     "version": "1.0.0",
     "description": "Open Source Sorting Hat - AI-powered GitHub profile analyzer with community profiles",
-    "main": "index.html",
+    "main": "public/index.html",
     "scripts": {
-        "dev": "python -m http.server 8000",
+        "dev": "python -m http.server 8000 --directory public",
         "sync": "node scripts/sync-profiles.js",
         "test": "echo \"No tests yet\" && exit 0"
     },

@@ -11,7 +11,7 @@ import requests
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
-CATALOG_PATH = Path(__file__).resolve().parent.parent / "data" / "ossh_catalog.json"
+CATALOG_PATH = Path(__file__).resolve().parent.parent / "public" / "data" / "ossh_catalog.json"
 DISCORD_API_URL = "https://discord.com/api/v10/discovery/search"
 MAX_CHANNELS = 200
 

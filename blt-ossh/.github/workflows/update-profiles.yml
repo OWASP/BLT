@@ -116,9 +116,9 @@ jobs:
               profiles: profiles
             };
 
-            fs.mkdirSync('data', { recursive: true });
+            fs.mkdirSync('public/data', { recursive: true });
             fs.writeFileSync(
-              'data/profiles.json',
+              'public/data/profiles.json',
               JSON.stringify(payload, null, 2) + '\\n'
             );
 
@@ -128,7 +128,7 @@ jobs:
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name  "github-actions[bot]"
-          git add data/profiles.json
+          git add public/data/profiles.json
           # Only commit if there are actual changes
           git diff --staged --quiet || \
             git commit -m "chore: update profiles data [skip ci]"

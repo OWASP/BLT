@@ -1,6 +1,6 @@
 # BLT-OSSH Architecture
 
-This project is a pure static web application hosted on GitHub Pages and deployed automatically via GitHub Actions.
+This project is a pure static web application hosted on Cloudflare from the `public/` directory.
 
 ## 📁 Project Structure
 
@@ -8,15 +8,24 @@ This project is a pure static web application hosted on GitHub Pages and deploye
 BLT-OSSH/
 ├── .github/
 │   └── workflows/
-│       └── deploy.yml      # GitHub Actions: build & deploy to GitHub Pages
-├── static/
-│   └── logo.png            # BLT logo asset
-└── index.html              # Single-page application (HTML + CSS + JS)
+│       ├── update-catalog.yml
+│       └── update-profiles.yml
+├── public/
+│   ├── data/
+│   │   ├── ossh_catalog.json
+│   │   └── profiles.json
+│   ├── static/
+│   │   └── logo.png
+│   ├── js/
+│   │   └── app.js
+│   ├── index.html
+│   └── community.html
+└── wrangler.toml
 ```
 
 ## 🏗️ Architecture Overview
 
-The application is a **single HTML file** (`index.html`) that:
+The application is a static browser app served from `public/` that:
 
 1. Renders the UI using Tailwind CSS (loaded from CDN)
 2. Accepts a GitHub username from the user
@@ -31,7 +40,7 @@ There is no server-side component — everything runs in the browser.
 ```
 User enters username
        ↓
-index.html (JavaScript)
+public/index.html (JavaScript)
        ↓
 GET https://api.github.com/users/{username}
 GET https://api.github.com/users/{username}/repos
@@ -43,15 +52,16 @@ displayResults() — DOM update
 
 ## 🚀 Deployment
 
-Deployments are triggered automatically on every push to `main` via the GitHub Actions workflow (`.github/workflows/deploy.yml`):
+Cloudflare serves the checked-in `public/` directory directly. `wrangler.toml` declares the publish root for both Cloudflare Pages and Workers Static Assets style deploys:
 
-1. **Checkout** — clone the repository
-2. **Configure Pages** — set up GitHub Pages environment
-3. **Prepare site files** — copy `index.html` and `static/` into `_site/`
-4. **Upload artifact** — upload `_site/` as a Pages artifact
-5. **Deploy** — publish the artifact to GitHub Pages
+```toml
+pages_build_output_dir = "public"
 
-To enable GitHub Pages for the repository, go to **Settings → Pages** and set the source to **GitHub Actions**.
+[assets]
+directory = "public"
+```
+
+GitHub Actions remain only for refreshing static JSON data under `public/data/`.
 
 ## 📝 Code Organization Principles
 
@@ -62,6 +72,7 @@ To enable GitHub Pages for the repository, go to **Settings → Pages** and set 
 
 ## 📚 Further Reading
 
-- [GitHub Pages Documentation](https://docs.github.com/en/pages)
+- [Cloudflare Pages Documentation](https://developers.cloudflare.com/pages/)
+- [Cloudflare Workers Static Assets](https://developers.cloudflare.com/workers/static-assets/)
 - [GitHub Actions Documentation](https://docs.github.com/en/actions)
 - [GitHub REST API](https://docs.github.com/en/rest)
