@@ -3906,6 +3906,15 @@ def message_mentions_bot(event: Dict[str, Any], bot_user_id: str = "") -> bool:
     return "<@{0}>".format(bot_user_id) in text
 
 
+def is_bot_authored_message(event: Dict[str, Any], bot_user_id: str = "") -> bool:
+    if event.get("bot_id") or event.get("bot_profile"):
+        return True
+    if str(event.get("subtype") or "") == "bot_message":
+        return True
+    user_id = str(event.get("user") or "")
+    return bool(bot_user_id and user_id and user_id == bot_user_id)
+
+
 def bot_direct_message_response(text: str = "") -> str:
     cleaned = str(text or "").strip()
     if cleaned.lower() in ("help", "hi", "hello", "hey", "/blt"):
@@ -4825,6 +4834,8 @@ async def handle_event_payload(payload: Dict[str, Any], env: Any) -> Any:
             return json_response({"ok": True})
         user_id = event.get("user", "")
         channel_id = event.get("channel", "")
+        if is_bot_authored_message(event):
+            return json_response({"ok": True})
         bot_user_id = ""
         try:
             bot_user_id = await db_get_workspace_bot_user_id(
@@ -4837,7 +4848,7 @@ async def handle_event_payload(payload: Dict[str, Any], env: Any) -> Any:
                 {"team_id": team_id, "channel_id": channel_id, "app_id": app_id},
             )
         bot_user_id = bot_user_id or payload_authorized_bot_user_id(payload)
-        if bot_user_id and user_id == bot_user_id:
+        if is_bot_authored_message(event, bot_user_id):
             return json_response({"ok": True})
         installer_user_id = ""
         try:

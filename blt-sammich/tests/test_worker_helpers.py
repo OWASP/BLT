@@ -2544,6 +2544,11 @@ def test_direct_bot_message_detection_handles_im_channel():
     assert not worker.is_direct_bot_message({"channel_type": "channel", "channel": "C123"})
     assert worker.message_mentions_bot({"text": "<@U999> hello"}, "U999")
     assert not worker.message_mentions_bot({"text": "hello"}, "U999")
+    assert worker.is_bot_authored_message({"subtype": "bot_message"})
+    assert worker.is_bot_authored_message({"bot_id": "B123"})
+    assert worker.is_bot_authored_message({"bot_profile": {"id": "B123"}})
+    assert worker.is_bot_authored_message({"user": "U999"}, "U999")
+    assert not worker.is_bot_authored_message({"user": "U123"}, "U999")
 
 
 def test_handle_event_payload_replies_to_direct_message():
@@ -3266,4 +3271,46 @@ def test_handle_event_payload_does_not_reply_to_bot_self_message():
         worker.db_get_workspace_bot_user_id = original_bot_user_id
         worker.json_response = original_json_response
 
+    assert sent == {}
+
+
+def test_handle_event_payload_does_not_reply_to_bot_message_when_lookup_fails():
+    sent = {}
+    original_direct_response = worker.slack_api_post_direct_response
+    original_bot_user_id = worker.db_get_workspace_bot_user_id
+    original_json_response = worker.json_response
+
+    async def fake_direct_response(event, text, env, team_id="", app_id=""):
+        sent["channel_id"] = event.get("channel")
+        return {"ok": True}
+
+    async def failing_bot_user_id(env, team_id="", channel_id="", app_id=""):
+        raise RuntimeError("D1 unavailable")
+
+    worker.slack_api_post_direct_response = fake_direct_response
+    worker.db_get_workspace_bot_user_id = failing_bot_user_id
+    worker.json_response = lambda payload, status=200, headers=None: payload
+    try:
+        response = asyncio.run(
+            worker.handle_event_payload(
+                {
+                    "type": "event_callback",
+                    "team_id": "T123",
+                    "event": {
+                        "type": "message",
+                        "channel_type": "im",
+                        "channel": "D123",
+                        "bot_id": "B123",
+                        "text": "I heard you. I can help with OWASP project discovery and BLT stats.",
+                    },
+                },
+                _Env(),
+            )
+        )
+    finally:
+        worker.slack_api_post_direct_response = original_direct_response
+        worker.db_get_workspace_bot_user_id = original_bot_user_id
+        worker.json_response = original_json_response
+
+    assert response == {"ok": True}
     assert sent == {}
