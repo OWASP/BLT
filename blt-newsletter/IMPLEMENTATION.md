@@ -1,15 +1,15 @@
 # BLT Newsletter - Implementation Summary
 
 ## Overview
-This repository contains a newsletter signup and management system for the OWASP Bug Logging Tool (BLT) platform, implemented as a static GitHub Pages site with GitHub Actions for automated newsletter distribution.
+This repository contains a newsletter signup and management system for the OWASP Bug Logging Tool (BLT) platform, implemented as a static Cloudflare site with GitHub Actions for automated newsletter distribution.
 
 ## Architecture
 
-### Static Site (GitHub Pages)
-- **No backend server required** - runs entirely on GitHub Pages
-- **Client-side subscription** - form submits directly to GitHub Issues API
+### Static Site (Cloudflare)
+- **Static frontend** - runs as Cloudflare assets
+- **Cloudflare subscription function** - form submits to `/api/subscribe`, which creates GitHub issues
 - **Zero maintenance** - no servers to manage or scale
-- **Free hosting** - GitHub Pages is free for public repositories
+- **Public folder hosting** - deploys the `public/` directory
 
 ### Subscription Management (GitHub Issues)
 - Subscribers are stored as GitHub Issues
@@ -28,7 +28,7 @@ This repository contains a newsletter signup and management system for the OWASP
 ## What Was Built
 
 ### Frontend (Static HTML/CSS/JS)
-- **Newsletter Landing Page** (`index.html`):
+- **Newsletter Landing Page** (`public/index.html`):
   - Responsive design using BLT-Design styling
   - Hero section with BLT branding
   - Feature highlights (Stats, New Features, Security, Community)
@@ -36,10 +36,15 @@ This repository contains a newsletter signup and management system for the OWASP
   - BLT platform statistics display
   - Mobile-first responsive layout
 
+- **Subscribe Function** (`functions/api/subscribe.js`):
+  - Validates subscription requests on Cloudflare
+  - Uses a Cloudflare `GITHUB_TOKEN` secret to create GitHub issues
+  - Keeps the GitHub token out of browser code
+
 ### GitHub Actions Workflows
-- **Deploy to GitHub Pages** (`.github/workflows/deploy-pages.yml`):
+- **Deploy static site** (`.github/workflows/deploy-pages.yml`):
   - Triggered on push to main
-  - Deploys static site to GitHub Pages
+  - Uploads the `public/` static site artifact
   - No build step required
 
 - **Send Newsletter** (`.github/workflows/send-newsletter.yml`):
@@ -63,7 +68,7 @@ This repository contains a newsletter signup and management system for the OWASP
   - Easy to edit, no HTML required
 
 ### Documentation
-- **README.md**: Complete setup and usage guide for GitHub Pages
+- **README.md**: Complete setup and usage guide for Cloudflare static hosting
 - **TESTING.md**: Testing procedures for static site and Actions
 - **CONTRIBUTING.md**: Contribution guidelines
 - **newsletters/README.md**: Newsletter template guide
@@ -74,7 +79,7 @@ This repository contains a newsletter signup and management system for the OWASP
 ✅ RFC 5322 compliant email validation (client-side)  
 ✅ GitHub secrets for SendGrid API key  
 ✅ SRI integrity for CDN resources  
-✅ No backend to secure or maintain  
+✅ GitHub token stays in Cloudflare secrets  
 ✅ Public subscriber data (consider for your use case)  
 
 ### Design
@@ -96,7 +101,7 @@ This repository contains a newsletter signup and management system for the OWASP
 
 ### Developer Experience
 ✅ No server setup required  
-✅ Free hosting on GitHub Pages  
+✅ Static hosting on Cloudflare  
 ✅ Simple workflow for sending newsletters  
 ✅ Clear documentation  
 ✅ Version control for newsletter content  
@@ -105,12 +110,12 @@ This repository contains a newsletter signup and management system for the OWASP
 
 ### Subscription Flow
 
-1. **User visits** the GitHub Pages site
+1. **User visits** the Cloudflare site
 2. **User fills form** with name (optional) and email (required)
 3. **User checks consent** checkbox to opt-in
 4. **Form validates** email using RFC 5322 regex
-5. **JavaScript submits** to GitHub Issues API
-6. **New issue created** with label `newsletter-subscription`
+5. **JavaScript submits** to `/api/subscribe`
+6. **Cloudflare Function creates** an issue with label `newsletter-subscription`
 7. **Success message** displayed to user
 
 ### Newsletter Flow
@@ -165,25 +170,26 @@ The workflow uses SendGrid for email delivery:
 
 To use this system:
 
-1. **Enable GitHub Pages**: Settings > Pages > Source: GitHub Actions
-2. **Add GitHub Secrets**:
+1. **Configure Cloudflare**: Set the output directory to `public`
+2. **Add Cloudflare Secret**:
+   - `GITHUB_TOKEN`
+3. **Add GitHub Secrets**:
    - `SENDGRID_API_KEY`
    - `SENDGRID_FROM_EMAIL`
-3. **Create Issue Label**: `newsletter-subscription`
-4. **Enable Issues**: Settings > General > Features
+4. **Create Issue Label**: `newsletter-subscription`
+5. **Enable Issues**: Settings > General > Features
 
 ## Deployment
 
 The site deploys automatically:
 1. Push to main branch
-2. GitHub Actions runs deploy workflow
-3. Site goes live on GitHub Pages
-4. Available at `https://[org].github.io/[repo]/`
+2. Cloudflare builds from the repository
+3. Site goes live from the `public/` directory
 
 ## Testing
 
 ### Static Site
-- Open `index.html` locally or visit GitHub Pages URL
+- Serve `public/` locally or visit the Cloudflare URL
 - Test form submission (creates real issue)
 - Verify responsive design
 - Check accessibility
@@ -196,23 +202,23 @@ The site deploys automatically:
 
 ## Removed Components
 
-The following were removed in conversion to GitHub Pages:
+The following legacy backend pieces are not required:
 - ❌ `server.js` - Node.js Express server
 - ❌ `package.json` - Node dependencies (backend)
-- ❌ `public/` directory - Moved to root
+- ✅ `public/` directory - Cloudflare static asset root
 - ❌ `.env.example` - Secrets now in GitHub
 - ❌ `Dockerfile` - No server to containerize
 - ❌ `docker-compose.yml` - No services to orchestrate
 
-## Benefits of GitHub Pages Approach
+## Benefits of Cloudflare Static Hosting
 
 1. **Zero Cost**: Free hosting and Actions
 2. **Zero Maintenance**: No servers to manage
-3. **High Availability**: GitHub's infrastructure
+3. **High Availability**: Cloudflare's infrastructure
 4. **Version Control**: All content in Git
 5. **Simple Workflow**: Markdown → Email
 6. **Scalable**: GitHub handles traffic
-7. **Secure**: No backend to attack
+7. **Secure**: Minimal Cloudflare Function keeps secrets server-side
 
 ## Limitations
 

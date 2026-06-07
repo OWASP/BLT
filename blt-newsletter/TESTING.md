@@ -5,11 +5,12 @@
 ### Prerequisites
 - Modern web browser
 - Internet connection (for CDN resources)
+- Cloudflare Pages Functions or `wrangler pages dev public` for testing real subscriptions
 
 ### Test Cases
 
 #### 1. Page Load
-- Open `index.html` in a browser or visit the GitHub Pages URL
+- Serve `public/` locally or visit the Cloudflare URL
 - Verify BLT branding appears correctly
 - Check that all styles load properly
 - Verify responsive design on different screen sizes
@@ -145,12 +146,12 @@ Test on different devices:
 - [ ] HTTPS enabled (in production)
 - [ ] No XSS vulnerabilities
 
-## GitHub Pages Deployment
+## Cloudflare Deployment
 
 ### 1. Verify Deployment
 - Push to main branch
-- Wait for Actions to complete
-- Visit GitHub Pages URL
+- Wait for Cloudflare deployment to complete
+- Visit the Cloudflare URL
 - Verify site is live
 
 ### 2. Check DNS/SSL
@@ -162,8 +163,8 @@ Test on different devices:
 
 ### Form Not Submitting
 - Check browser console for errors
-- Verify GitHub API is accessible
-- Check repository name in JavaScript
+- Verify the Cloudflare `GITHUB_TOKEN` secret is set
+- Check Cloudflare Function logs for `/api/subscribe`
 
 ### Newsletter Not Sending
 - Verify SendGrid secrets are set
@@ -172,9 +173,9 @@ Test on different devices:
 - Check SendGrid dashboard
 
 ### Page Not Loading
-- Check GitHub Pages is enabled
-- Verify source branch is correct
-- Check for deployment errors in Actions
+- Check that Cloudflare is serving the `public/` directory
+- Verify the source branch is correct
+- Check for deployment errors in Cloudflare
 
 ## Automated Testing (Future)
 

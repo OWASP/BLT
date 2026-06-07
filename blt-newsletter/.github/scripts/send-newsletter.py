@@ -108,7 +108,7 @@ def create_email_template(content_html):
   <div class="footer">
     <p>You're receiving this because you subscribed to the BLT Newsletter.</p>
     <p>
-      <a href="https://owasp-blt.github.io/BLT-Newsletter/">Visit our website</a> | 
+      <a href="https://newsletter.owaspblt.org/">Visit our website</a> | 
       <a href="https://github.com/OWASP-BLT">GitHub</a>
     </p>
     <p style="margin-top: 20px; font-size: 12px;">

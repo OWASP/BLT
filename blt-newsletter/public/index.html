@@ -241,18 +241,6 @@
 
     <!-- JavaScript -->
     <script>
-      // Derive the newsletter repo dynamically so the page works correctly
-      const NEWSLETTER_REPO = (() => {
-        const { hostname, pathname } = window.location;
-        const ghPagesMatch = hostname.match(/^([^.]+)\.github\.io$/i);
-        if (ghPagesMatch) {
-          const org = ghPagesMatch[1];
-          const repo = pathname.split('/').filter(Boolean)[0] || 'BLT-Newsletter';
-          return `${org}/${repo}`;
-        }
-        return 'OWASP-BLT/BLT-Newsletter';
-      })();
-
       const form = document.getElementById('newsletter-form');
       const submitBtn = document.getElementById('submit-btn');
       const btnText = document.getElementById('btn-text');
@@ -290,20 +278,15 @@
         messageDiv.classList.add('hidden');
 
         try {
-          // Create a GitHub issue to track the subscription
-          const issueTitle = `Newsletter Subscription: ${email}`;
-          const issueBody = `New newsletter subscription request:\n\n- **Name:** ${name || 'Not provided'}\n- **Email:** ${email}\n- **Subscribed:** ${new Date().toISOString()}\n\n---\n*This issue was automatically created by the newsletter signup form.*`;
-          
-          const response = await fetch(`https://api.github.com/repos/${NEWSLETTER_REPO}/issues`, {
+          const response = await fetch('/api/subscribe', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'Accept': 'application/vnd.github.v3+json',
+              'Accept': 'application/json',
             },
             body: JSON.stringify({
-              title: issueTitle,
-              body: issueBody,
-              labels: ['newsletter-subscription']
+              name,
+              email
             }),
           });
 
@@ -326,8 +309,7 @@
               <div class="flex items-start gap-2">
                 <i class="fa-solid fa-circle-xmark mt-0.5 text-red-600" aria-hidden="true"></i>
                 <div>
-                  <strong>Error:</strong> Unable to process subscription via GitHub API (Status: ${response.status}). 
-                  This may require repository permissions or a personal access token. 
+                  <strong>Error:</strong> Unable to process subscription (Status: ${response.status}). 
                   Please try again or email us directly at <strong>newsletter@blt.owasp.org</strong>
                 </div>
               </div>

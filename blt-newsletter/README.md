@@ -1,6 +1,6 @@
 # BLT Newsletter
 
-A newsletter signup and management system for the OWASP Bug Logging Tool (BLT) platform, built as a static GitHub Pages site with GitHub Actions for automated newsletter delivery.
+A newsletter signup and management system for the OWASP Bug Logging Tool (BLT) platform, built as a static Cloudflare site with GitHub Actions for automated newsletter delivery.
 
 ## Features
 
@@ -12,12 +12,12 @@ A newsletter signup and management system for the OWASP Bug Logging Tool (BLT) p
 - 🔒 **Opt-in Subscription**: GDPR-compliant consent-based subscription
 - 📊 **Platform Stats**: Display key BLT metrics on the landing page
 - 📱 **Responsive Design**: Mobile-first, works on all device sizes
-- 🚀 **GitHub Pages**: Static site hosted on GitHub Pages (no server required)
+- 🚀 **Cloudflare Hosting**: Static site served from the `public/` folder (no server required)
 
 ## Architecture
 
-### Static Site (GitHub Pages)
-The newsletter signup page is a static HTML site hosted on GitHub Pages. When users subscribe:
+### Static Site (Cloudflare)
+The newsletter signup page is a static HTML site hosted on Cloudflare from the `public/` folder. When users subscribe:
 1. The form submits to GitHub Issues API
 2. A new issue is created with label `newsletter-subscription`
 3. The issue contains the subscriber's email and name
@@ -32,18 +32,19 @@ Newsletters are sent via a manual GitHub Actions workflow:
 ## Tech Stack
 
 - **Frontend**: HTML, Tailwind CSS, Vanilla JavaScript
-- **Hosting**: GitHub Pages (static site)
+- **Hosting**: Cloudflare static assets from `public/`
 - **Automation**: GitHub Actions
 - **Email Service**: SendGrid API
 - **Design System**: OWASP BLT-Design
 
 ## Setup
 
-### 1. Enable GitHub Pages
+### 1. Configure Cloudflare
 
-1. Go to repository **Settings** > **Pages**
-2. Set **Source** to "GitHub Actions"
-3. The site will be deployed automatically on push to main
+1. Create a Cloudflare Pages project or Worker for this repository
+2. Use `public` as the build output directory
+3. Deploy with `wrangler pages deploy public` or Cloudflare's connected Git deployment
+4. Add a `GITHUB_TOKEN` Cloudflare secret that can create issues in this repository
 
 ### 2. Configure GitHub Secrets
 
@@ -51,6 +52,16 @@ Add the following secrets in **Settings** > **Secrets and variables** > **Action
 
 - `SENDGRID_API_KEY`: Your SendGrid API key
 - `SENDGRID_FROM_EMAIL`: Verified sender email (e.g., `newsletter@blt.owasp.org`)
+
+Add this secret in Cloudflare for the signup function:
+
+- `GITHUB_TOKEN`: Fine-grained GitHub token with Issues read/write access for this repository
+
+With Wrangler, set it with:
+
+```bash
+wrangler pages secret put GITHUB_TOKEN
+```
 
 ### 3. Enable Issues
 
@@ -125,11 +136,11 @@ The markdown is automatically converted to HTML and wrapped in a BLT-branded ema
 To test the site locally:
 
 ```bash
-# Or use Python's http.server
-python3 -m http.server 8000
+# Use Python's http.server from the public folder
+python3 -m http.server 8000 --directory public
 
 # Or use npx (if you have Node.js installed)
-npx http-server
+npx http-server public
 ```
 
 Visit `http://localhost:8000` to see the site.
@@ -151,10 +162,10 @@ Use the GitHub API or run the "Get subscribers" step from the Actions workflow m
 Edit `.github/scripts/send-newsletter.py` to modify the email template HTML.
 
 ### Change Signup Form
-Edit `index.html` to modify the signup form appearance or behavior.
+Edit `public/index.html` to modify the signup form appearance or behavior.
 
 ### Modify Stats
-Update the stats section in `index.html`:
+Update the stats section in `public/index.html`:
 ```html
 <div class="mb-2 text-3xl font-bold text-red-600">5000+</div>
 <div class="text-sm text-slate-600">Bugs Reported</div>
@@ -162,10 +173,10 @@ Update the stats section in `index.html`:
 
 ## Workflows
 
-### Deploy to GitHub Pages
+### Deploy Static Site
 - **Trigger**: Push to main branch or manual dispatch
 - **File**: `.github/workflows/deploy-pages.yml`
-- **Purpose**: Deploys the static site to GitHub Pages
+- **Purpose**: Deploys the `public/` static site artifact
 
 ### Send Newsletter
 - **Trigger**: Manual dispatch only
@@ -175,6 +186,7 @@ Update the stats section in `index.html`:
 ## Security Considerations
 
 - API keys are stored as GitHub secrets
+- The signup form uses a Cloudflare Function so the GitHub token is never exposed to the browser
 - Email validation is performed client-side
 - GitHub API rate limits apply (5000 requests/hour for authenticated)
 - Subscribers are stored as public GitHub issues (emails are visible)
