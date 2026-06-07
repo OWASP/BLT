@@ -1,302 +1,69 @@
 # BLT-API
 
-**Full-featured REST API for OWASP BLT running on Cloudflare Workers**
+BLT-API is the API service and platform integration layer for OWASP BLT.
 
-- **Repository**: [OWASP-BLT/BLT-API](https://github.com/OWASP-BLT/BLT-API)
-- **Language**: Python
-- **License**: AGPL-3.0
+## Current repository status
 
----
+The current repository is [owasp-blt/blt-api](https://gitlab.com/owasp-blt/blt-api).
 
-## Overview
+## Purpose
 
-BLT-API is a high-performance, edge-deployed REST API that interfaces with all aspects of the [OWASP BLT](https://github.com/OWASP-BLT/BLT) project. Built using Python on Cloudflare Workers, it provides efficient, globally-distributed access to BLT's bug bounty platform data.
+BLT-API owns API behavior and integration points for the BLT platform. Current documentation direction references Python on Cloudflare Workers and Cloudflare D1 where those are used by the API repository, but exact runtime, database, and deployment details should be confirmed in BLT-API before changing code.
 
-## Key Features
+The `/v2` API path is the current API documentation direction. Do not document unstable endpoints as final until the owning repository treats them as stable.
 
-- 🚀 **Edge-deployed** — Runs on Cloudflare's global network for low latency
-- 🐍 **Python-powered** — Built with Python for Cloudflare Workers
-- 🗄️ **D1 Database** — Uses Cloudflare D1 (SQLite) for data persistence
-- 🔒 **Secure** — CORS enabled, authentication support
-- 📊 **Full API Coverage** — Access to bugs, users, domains, organizations, projects, hunts, and more
-- 📖 **Well-documented** — Comprehensive API documentation
-- ⚡ **Fast** — Optimized for quick cold starts and efficient execution
+## Best starting points
 
----
+Contribute here when the work involves API behavior, API tests, request or response contracts, platform integrations, API access gates, or database-backed API changes.
 
-## Quick Start
+Good first review areas include:
 
-### Prerequisites
+- API documentation that needs to distinguish stable `/v2` behavior from exploratory endpoints.
+- Tests for documented API behavior.
+- Clarifying access control and identity documentation.
+- Repository-local setup notes maintained by the API repository.
 
-- Python 3.12+
-- Node.js 18+
-- [uv](https://github.com/astral-sh/uv) (Python package manager)
-- [Wrangler](https://developers.cloudflare.com/workers/cli-wrangler/) (Cloudflare Workers CLI)
+## Local development notes
 
-### Installation
+Use the BLT-API repository's own README, configuration files, and test instructions for local development. Do not rely on commands copied from BLT-docs or older GitHub-era pages unless the current repository still documents them.
 
-```bash
-# Clone the repository
-git clone https://github.com/OWASP-BLT/BLT-API.git
-cd BLT-API
+Keep local environment files and secrets out of git. Use placeholder names for variables in documentation, not real values.
 
-# Install dependencies
-uv sync
+## Migrations
 
-# Install workers-py
-uv tool install workers-py
-```
+Database or schema migrations belong in BLT-API. When documenting migration-related work, keep BLT-docs at the concept level and link contributors to the API repository for exact commands.
 
-### Local Development
+Migration notes should explain:
 
-```bash
-# Setup local database
-wrangler d1 migrations apply blt-api --local
-wrangler d1 execute blt-api --local --file=test_data.sql
+- What data or schema area is affected.
+- Whether the change is local-only, staging, or production-facing.
+- What verification was run.
+- How rollback or remediation should be handled by maintainers.
 
-# Start the development server
-wrangler dev --port 8787
-# The API will be available at http://localhost:8787
-```
+Do not publish production database identifiers, credentials, or one-off operational commands in BLT-docs.
 
-### Running Tests
+## Dashboard and API exploration
 
-```bash
-# Install test dependencies
-uv sync --extra dev
+Use repository-owned tools, dashboards, or API exploration pages when BLT-API provides them. BLT-docs can describe how contributors should approach exploration, but endpoint catalogs and request examples should stay close to the API code unless they are stable user-facing documentation.
 
-# Run unit tests
-uv run pytest
+For `/v2`, document stable concepts and routes only after maintainers confirm they are ready. Label experimental or migration-era API notes clearly.
 
-# Run specific test file
-uv run pytest tests/test_router.py -v
-```
+## API access and identity concepts
 
----
+`X-BLT-API-Key` should be described as an API access gate for protected API access. It is separate from user identity.
 
-## API Endpoints
+JWT or session concepts represent user identity or authenticated user flows where the application uses them. Do not treat an API key as a user session, and do not describe JWT/session implementation details unless BLT-API currently documents those details.
 
-### Health Check
+## Documentation notes
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/` | API status and available endpoints |
-| GET | `/health` | Health check endpoint |
+Keep BLT-docs focused on contributor-facing API concepts, architecture boundaries, and stable documentation conventions. When API behavior changes, update the API repository first or in the same merge request as any BLT-docs update.
 
-### Bugs
+## Documentation boundaries
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/bugs` | List all bugs (paginated) |
-| GET | `/bugs/{id}` | Get a specific bug with screenshots and tags |
-| POST | `/bugs` | Create a new bug |
-| GET | `/bugs/search?q={query}` | Search bugs by URL or description |
+BLT-API should own exact setup commands, endpoint behavior, migration commands, test commands, and deployment details. BLT-docs should not become a replacement API reference for unstable endpoints or repository-owned operations.
 
-**Query Parameters for `GET /bugs`:**
+## Related pages
 
-- `page` — Page number (default: 1)
-- `per_page` — Items per page (default: 20, max: 100)
-- `status` — Filter by status (e.g., `open`, `closed`, `reviewing`)
-- `domain` — Filter by domain ID
-- `verified` — Filter by verification status (`true` or `false`)
-
-### Users
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/users` | List all users (paginated) |
-| GET | `/users/{id}` | Get a specific user |
-| GET | `/users/{id}/profile` | Get user profile with statistics |
-| GET | `/users/{id}/bugs` | Get bugs reported by user |
-| GET | `/users/{id}/domains` | Get domains submitted by user |
-| GET | `/users/{id}/followers` | Get users following this user |
-| GET | `/users/{id}/following` | Get users this user follows |
-
-### Domains
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/domains` | List all domains (paginated) |
-| GET | `/domains/{id}` | Get a specific domain |
-| GET | `/domains/{id}/tags` | Get tags for a domain |
-
-### Organizations
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/organizations` | List all organizations (paginated) |
-| GET | `/organizations/{id}` | Get a specific organization |
-| GET | `/organizations/{id}/repos` | Get organization repositories |
-| GET | `/organizations/{id}/projects` | Get organization projects |
-
-### Projects
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/projects` | List all projects (paginated) |
-| GET | `/projects/{id}` | Get a specific project |
-| GET | `/projects/{id}/contributors` | Get project contributors |
-
-### Bug Hunts
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/hunts` | List all bug hunts |
-| GET | `/hunts/{id}` | Get a specific hunt |
-| GET | `/hunts/active` | Get currently active hunts |
-| GET | `/hunts/previous` | Get past hunts |
-| GET | `/hunts/upcoming` | Get upcoming hunts |
-
-### Statistics
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/stats` | Get platform statistics |
-
-### Leaderboard
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/leaderboard` | Get global leaderboard |
-| GET | `/leaderboard/monthly` | Get monthly leaderboard |
-| GET | `/leaderboard/organizations` | Get organization leaderboard |
-
-### Contributors & Repositories
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/contributors` | List all contributors |
-| GET | `/contributors/{id}` | Get a specific contributor |
-| GET | `/repos` | List repositories |
-| GET | `/repos/{id}` | Get a specific repository |
-
----
-
-## Response Format
-
-All API responses follow a consistent JSON format:
-
-**Success Response:**
-```json
-{
-  "success": true,
-  "data": { "..." : "..." },
-  "pagination": {
-    "page": 1,
-    "per_page": 20,
-    "count": 10,
-    "total": 100
-  }
-}
-```
-
-**Error Response:**
-```json
-{
-  "error": true,
-  "message": "Error description",
-  "status": 400
-}
-```
-
----
-
-## Database
-
-This project uses Cloudflare D1 (SQLite) for data persistence. Some endpoints query the D1 database directly, while others proxy to the BLT backend API.
-
-**D1-Integrated Endpoints:** `/domains`, `/domains/{id}/tags`, `/bugs`, `/bugs/{id}`
-
-```bash
-# Apply migrations locally
-wrangler d1 migrations apply blt-api --local
-
-# Load test data
-wrangler d1 execute blt-api --local --file=test_data.sql
-
-# Apply to production
-wrangler d1 migrations apply blt-api --remote
-```
-
----
-
-## Project Structure
-
-```
-BLT-API/
-├── src/
-│   ├── main.py             # Worker entry point
-│   ├── router.py           # URL routing
-│   ├── utils.py            # Utility functions
-│   ├── client.py           # BLT backend HTTP client
-│   ├── libs/
-│   │   └── db.py           # Database helpers
-│   └── handlers/           # Request handlers
-│       ├── bugs.py
-│       ├── users.py
-│       ├── domains.py
-│       ├── organizations.py
-│       ├── projects.py
-│       ├── hunts.py
-│       ├── stats.py
-│       ├── leaderboard.py
-│       ├── contributors.py
-│       ├── repos.py
-│       └── health.py
-├── migrations/             # D1 database migrations
-├── docs/
-│   └── DATABASE.md         # D1 database guide
-├── tests/
-├── test_data.sql           # Sample data for development
-├── wrangler.toml           # Cloudflare Workers config
-└── pyproject.toml          # Python project config
-```
-
----
-
-## Environment Variables
-
-Configure these in `wrangler.toml`:
-
-| Variable | Description |
-|----------|-------------|
-| `BLT_API_BASE_URL` | BLT backend API URL |
-| `BLT_WEBSITE_URL` | BLT website URL |
-| `JWT_SECRET` | Secret key for JWT tokens |
-| `MAILGUN_API_KEY` | Mailgun API key for email |
-| `MAILGUN_DOMAIN` | Mailgun domain |
-
----
-
-## Deployment
-
-```bash
-# Login to Cloudflare (first time only)
-wrangler login
-
-# Deploy to production (migrations run automatically)
-wrangler deploy
-```
-
-The project is configured to automatically run D1 migrations before every deployment via the build command in `wrangler.toml`.
-
----
-
-## Authentication
-
-Some endpoints require authentication. Pass the auth token in the request header:
-
-```bash
-curl -H "Authorization: Token YOUR_API_TOKEN" https://your-worker.workers.dev/bugs
-```
-
----
-
-## Contributing
-
-See [CONTRIBUTING.md](https://github.com/OWASP-BLT/BLT-API/blob/main/CONTRIBUTING.md) for detailed setup instructions and development guidelines.
-
-## Related Projects
-
-- [OWASP BLT](https://github.com/OWASP-BLT/BLT) — Main BLT project
-- [BLT Website](https://blt.owasp.org) — Live BLT platform
+- [Platform Architecture](../developer-guide/platform-architecture.md)
+- [Contributing](../developer-guide/contributing.md)
+- [Documentation Maintenance](../developer-guide/docs-maintenance.md)

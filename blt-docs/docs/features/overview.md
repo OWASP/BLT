@@ -1,180 +1,55 @@
-# BugHeist Platform Features
+# BLT feature overview
 
-## 🐛 Core Features
+## What BLT provides
 
-### Bug Bounty Platform
-- **Bug Reporting System**
-  - Detailed bug submission forms
-  - File attachment support
-  - Bug categorization and tagging
-  - Severity level classification
-  - Bug status tracking
-  - Comment and discussion system
+OWASP Bug Logging Tool (BLT) is a project ecosystem for reporting bugs, tracking issue activity, organizing contributor work, maintaining project metadata, and connecting related platform modules. The documentation should describe confirmed behavior clearly and avoid treating exploratory or historical ideas as live functionality.
 
-- **Bounty Management**
-  - Bounty creation and management
-  - Bidding system for bug fixes
-  - Bounty payout processing
-  - Payment tracking and history
-  - Multiple payment method support
+BLT is documented as a set of related modules rather than a single repository. The main public documentation belongs in BLT-docs, API and integration details belong with BLT-API, jobs and automation workflows belong with BLT-Jobs, and repository metadata should be documented only when the current source is confirmed.
 
-### User Management
-- **User Profiles**
-  - Customizable user profiles
-  - Achievement badges
-  - Skill showcase
-  - Activity history
-  - Social media integration
+## User workflows
 
-- **Authentication & Security**
-  - Multi-factor authentication
-  - OAuth integration (GitHub, Google)
-  - IP tracking and reporting
-  - Account security settings
-  - Privacy controls
+The user guide covers common BLT workflows from the perspective of someone using the platform:
 
-### Community Features
-- **Social Interaction**
-  - Real-time messaging
-  - Team collaboration
-  - Friend system
-  - Activity feed
-  - Comment and discussion threads
+- Reporting a bug with enough detail for review.
+- Reviewing issue details, status, comments, and related activity.
+- Creating an account, signing in, and managing account access.
+- Viewing leaderboards, weekly activity, statistics, and profile pages.
+- Browsing company, project, and bug hunt views where those pages are documented.
+- Finding community pages such as member lists, invitations, and BLT TV references.
 
-- **Leaderboards & Gamification**
-  - Global leaderboard
-  - Monthly rankings
-  - Team leaderboards
-  - Achievement system
-  - Point-based rewards
+Some existing user-guide pages may describe older interface behavior. Treat those pages as workflow references until they are reviewed against the current platform.
 
-## 🎯 Specialized Features
+## Contributor workflows
 
-### Bug Hunting Tools
-- **Bug Scanner**
-  - OWASP compliance checking
-  - Similarity scanning
-  - Domain analysis
-  - IP tracking
-  - Automated vulnerability detection
+Contributor documentation should help people choose the right work area before editing code or docs:
 
-- **GitHub Integration**
-  - Issue tracking
-  - Pull request analysis
-  - Repository integration
-  - Issue synchronization
-  - Code review tools
+- Use the project map to select the right repository for documentation, API, jobs, metadata, or user-guide work.
+- Start from an issue, merge request, or clearly scoped work item.
+- Keep documentation updates focused and verify them with a strict MkDocs build.
+- Use BLT-API documentation for API behavior and integration details.
+- Use BLT-Jobs documentation for jobs, community portal, and automation workflows.
+- Follow repository-specific setup instructions when working outside BLT-docs.
 
-### Organization Features
-- **Team Management**
-  - Team creation and management
-  - Role-based access control
-  - Team challenges
-  - Team statistics
-  - Member management
+## Platform modules
 
-- **Project Management**
-  - Project tracking
-  - Bug assignment
-  - Progress monitoring
-  - Project analytics
-  - Custom project settings
+| Module | Current role | Documentation posture |
+| ------ | ------------ | --------------------- |
+| BLT-docs | MkDocs documentation hub for user, contributor, repository, and maintenance documentation. | Confirmed active GitLab repository. |
+| BLT-API | API service and platform integration layer for BLT. | Confirmed active GitLab repository; document behavior from implementation. |
+| BLT-Jobs | Jobs/community portal and automation workflow module. | Confirmed active GitLab repository; keep setup and deployment notes specific to this module. |
+| BLT-OWASP metadata/projects | Repository and project metadata used to organize BLT and OWASP project information. | Document only confirmed sources and label migration status clearly. |
+| Legacy/historical UI docs | Existing user-facing pages that may describe earlier BLT interface behavior. | Preserve useful workflow context, but verify before presenting as current behavior. |
 
-### Educational Resources
-- **Learning Platform**
-  - Educational content
-  - Tutorials and guides
-  - Best practices
-  - Security guidelines
-  - Training materials
+## API and integration direction
 
-- **Hackathons & Challenges**
-  - Hackathon hosting
-  - Challenge creation
-  - Competition management
-  - Results tracking
-  - Prize distribution
+BLT-API is the API layer for the platform. Documentation should explain confirmed concepts and avoid promising endpoints, integrations, or deployment behavior that has not been checked against the current implementation.
 
-## 🛠️ Technical Features
+API docs should distinguish API-key access from user identity, browser session, and JWT concepts. If a page describes authentication or authorization, it should state which access model it is describing and where the behavior is implemented.
 
-### Platform Infrastructure
-- **Real-time Features**
-  - WebSocket support
-  - Live notifications
-  - Real-time chat
-  - Instant updates
-  - Video conferencing
+## Current and planned documentation scope
 
-- **API & Integration**
-  - RESTful API
-  - Third-party integrations
-  - Webhook support
-  - Custom integrations
-  - API documentation
-
-### Analytics & Reporting
-- **Statistics & Analytics**
-  - User statistics
-  - Bug tracking metrics
-  - Project analytics
-  - Performance monitoring
-  - Custom reports
-
-- **Dashboard & Monitoring**
-  - Custom dashboards
-  - Status monitoring
-  - Performance tracking
-  - System health checks
-  - Usage analytics
-
-## 🌐 Additional Features
-
-### Content Management
-- **Blog & Documentation**
-  - Blog platform
-  - Documentation system
-  - Knowledge base
-  - FAQ management
-  - Content versioning
-
-- **Search & Discovery**
-  - Advanced search
-  - Filtering options
-  - Tag-based navigation
-  - Content categorization
-  - Search history
-
-### Security & Compliance
-- **Security Features**
-  - IP tracking
-  - Banned apps management
-  - Security scanning
-  - Compliance checking
-  - Privacy controls
-
-- **Legal & Compliance**
-  - Terms of service
-  - Privacy policy
-  - Trademark management
-  - Legal documentation
-  - Compliance tracking
-
-## 🚀 Future Features (Roadmap)
-- Enhanced mobile support
-- Advanced AI-powered bug detection
-- Expanded payment options
-- Improved collaboration tools
-- Advanced analytics dashboard
-- Extended API capabilities
-- Enhanced security features
-- More integration options
-
-## 🔧 Technical Stack
-- Backend: Django
-- Frontend: Tailwind CSS
-- Database: SQLite/PostgreSQL
-- Real-time: WebSocket
-- Authentication: OAuth2
-- Payment Processing: Multiple providers
-- API: RESTful
-- Deployment: Docker support 
+| Scope | What belongs here | Documentation posture |
+| ----- | ----------------- | --------------------- |
+| Current documented | BLT-docs setup, contributor routing, high-level feature overview, and existing user-guide workflows. | Keep accurate, concise, and linked from navigation. |
+| In progress | API documentation, repository-specific setup notes, jobs automation notes, and platform architecture explanations. | Ground each page in confirmed repository behavior before expanding. |
+| Needs confirmation | Historical GitHub repositories, older UI pages, advanced integrations, rewards, scanners, and deployment claims. | Label as historical or migration-pending until confirmed by maintainers or current code. |
