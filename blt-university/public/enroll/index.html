@@ -26,7 +26,7 @@
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <script>
         if (localStorage.getItem("theme") === "dark") {
@@ -40,430 +40,434 @@
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['Inter', 'sans-serif']
+                        sans: ['Geist', 'Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
+                        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace']
                     },
                     colors: {
                         bltRed: '#dc2626',
-                        bltRedLight: '#fef2f2',
+                        bltRedLight: '#fee2e2',
                         bltRedHover: '#b91c1c',
-                        bltDark: '#0f172a'
+                        bltDark: '#111827',
+                        bltCoral: '#ef4444',
+                        bltFooter: '#0e0d0c'
                     },
                     boxShadow: {
-                        soft: '0 20px 40px -15px rgba(0,0,0,0.05)',
-                        float: '0 30px 60px -15px rgba(0,0,0,0.08)'
+                        soft: '0 1px 2px rgba(17,24,39,0.04)',
+                        float: '0 10px 24px -18px rgba(220,38,38,.8)'
                     }
                 }
             }
         }
         </script>
+    <style>
+        .dot-field {
+            background-image: radial-gradient(rgba(17, 24, 39, 0.18) 1px, transparent 1px);
+            background-size: 18px 18px;
+            mask-image: radial-gradient(circle at center, black 0, transparent 74%);
+            -webkit-mask-image: radial-gradient(circle at center, black 0, transparent 74%);
+        }
+        .mobile-menu.open {
+            display: flex;
+        }
+        .mobile-toggle.active span:nth-child(1) {
+            transform: translateY(6px) rotate(45deg);
+        }
+        .mobile-toggle.active span:nth-child(2) {
+            opacity: 0;
+        }
+        .mobile-toggle.active span:nth-child(3) {
+            transform: translateY(-6px) rotate(-45deg);
+        }
+        .feature-divider::before,
+        .feature-divider::after {
+            content: "";
+            height: 1px;
+            flex: 1;
+        }
+        .feature-divider::before {
+            background: linear-gradient(to right, transparent, #e5e7eb);
+        }
+        .feature-divider::after {
+            background: linear-gradient(to left, transparent, #e5e7eb);
+        }
+        .wave-dots i {
+            position: absolute;
+            width: 0.25rem;
+            height: 0.25rem;
+            border-radius: 999px;
+            background: #d1d5db;
+            animation: wave 2s infinite ease-in-out;
+        }
+        .wave-dots i:nth-child(1) { top: 0; left: 0; }
+        .wave-dots i:nth-child(2) { top: 0; left: 1rem; }
+        .wave-dots i:nth-child(3) { top: 0.25rem; left: 0.5rem; animation-delay: 0.35s; }
+        .wave-dots i:nth-child(4) { top: 0.5rem; left: 0; animation-delay: 0.55s; }
+        .wave-dots i:nth-child(5) { top: 0.5rem; left: 1rem; animation-delay: 0.55s; }
+        .wave-dots i:nth-child(6) { top: 0.75rem; left: 0.5rem; animation-delay: 0.85s; }
+        .section-kicker.with-bar::before {
+            content: "";
+            position: absolute;
+            top: 0.18rem;
+            left: -0.55rem;
+            width: 3px;
+            height: 1.25rem;
+            border-radius: 0 2px 2px 0;
+            background: #ef4444;
+        }
+        .footer-panel::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0.04;
+            background-image:
+              linear-gradient(rgba(255,255,255,1) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+        .footer-links p {
+            margin: 0 0 0.35rem;
+            color: #6b7280;
+            font-size: 0.625rem;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+        }
+        .footer-links a {
+            display: block;
+            color: #d1d5db;
+            font-size: 0.875rem;
+            line-height: 1.55;
+            transition: color 180ms ease;
+        }
+        .footer-links a:hover {
+            color: white;
+        }
+        @keyframes wave {
+            0%, 100% {
+                transform: translateY(0);
+                opacity: 0.5;
+            }
+            50% {
+                transform: translateY(-3px);
+                opacity: 1;
+            }
+        }
+    </style>
 </head>
-<body class="bg-[#fafafa] dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans antialiased selection:bg-bltRed selection:text-white flex flex-col min-h-screen">
+<body class="min-h-screen overflow-x-hidden bg-gray-50 font-sans text-gray-900 antialiased selection:bg-red-100 selection:text-red-700 dark:bg-slate-950 dark:text-slate-100 flex flex-col">
     
-    <!-- Hidden Checkbox -->
-    <input type="checkbox" id="menu-toggle" class="peer hidden">
-<header class="sticky top-0 z-50 w-full border-b border-gray-200 bg-white/80 backdrop-blur-md transition-colors duration-300 dark:border-gray-800 dark:bg-gray-900/90">
-    <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
-        
-        <a href="/" class="flex items-center gap-3 group">
-            <div class="flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg bg-white p-1 shadow-sm ring-1 ring-gray-200 transition group-hover:ring-bltRed/50">
-                <img src="/assets/images/blt-logo.png"
-                     alt="OWASP BLT Logo"
-                     class="h-full w-full object-contain">
-            </div>
-            <span class="text-lg font-bold tracking-tight text-gray-900 dark:text-white">
-                BLT University
-            </span>
-        </a>
+    <header
+  class="fixed inset-x-0 top-0 z-50 border-b border-black/5 bg-white shadow-sm"
+  id="site-header"
+>
+  <div
+    class="relative mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-4 max-lg:px-4"
+  >
+    <a
+      href="/"
+      class="inline-flex items-center gap-2.5"
+      aria-label="BLT University home"
+    >
+      <img
+        src="/assets/images/blt-university-logo.png"
+        alt="BLT University logo"
+        class="h-12 sm:h-14"
+      />
+      <div class="flex flex-col">
+        <span class="text-sm font-semibold tracking-tight">BLT University</span>
+      </div>
+    </a>
 
-        <nav class="hidden items-center gap-8 md:flex">
-            
-                
-                
-                <a href="/"
-                   class="relative text-sm font-medium transition-colors text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
-                    Home
-                    
-                </a>
-            
-                
-                
-                <a href="/courses/"
-                   class="relative text-sm font-medium transition-colors text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
-                    Courses
-                    
-                </a>
-            
-                
-                
-                <a href="/enroll/"
-                   class="relative text-sm font-medium transition-colors text-bltRed">
-                    Enroll
-                    
-                        <span class="absolute -bottom-[21px] left-0 h-0.5 w-full bg-bltRed"></span>
-                    
-                </a>
-            
-                
-                
-                <a href="/request/"
-                   class="relative text-sm font-medium transition-colors text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
-                    Request a Course
-                    
-                </a>
-            
-                
-                
-                <a href="/instructors/"
-                   class="relative text-sm font-medium transition-colors text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
-                    Instructors
-                    
-                </a>
-            
-                
-                
-                <a href="/labs/"
-                   class="relative text-sm font-medium transition-colors text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
-                    Labs
-                    
-                </a>
-            
-                
-                
-                <a href="/about/"
-                   class="relative text-sm font-medium transition-colors text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
-                    About
-                    
-                </a>
-            
-        </nav>
+    <nav
+      class="absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 items-center gap-7 lg:flex"
+      aria-label="Primary navigation"
+    >
+      
+      
+      <a
+        class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+        href="/courses/"
+        >Courses</a
+      >
+      
+      <a
+        class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+        href="/labs/"
+        >Labs</a
+      >
+      
+      <a
+        class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+        href="/instructors/"
+        >Instructors</a
+      >
+      
+    </nav>
 
-        <div class="flex items-center gap-4">
-            <!-- Theme Toggle -->
-            <button id="theme-toggle" 
-                    aria-label="Toggle Dark Mode"
-                    class="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white">
-                <i id="theme-icon" class="fas fa-sun hidden dark:block"></i>
-                <i id="theme-icon-dark" class="fas fa-moon block dark:hidden"></i>
-            </button>
-            <!-- Menu Icon -->
-                <label for="menu-toggle"
-                    class="md:hidden rounded-lg p-2 text-gray-500 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800">
-                    <i class="fas fa-bars"></i>
-                </label>
-        </div>
+    <div class="hidden items-center gap-3 lg:flex">
+      
+      
+      
+      <a
+        class="rounded-md px-3 py-2 text-sm text-gray-600 transition-colors duration-150 hover:bg-gray-100 hover:text-gray-900"
+        href="/request/"
+        >Request course</a
+      >
+      
+      
+      
+      <a
+        class="inline-flex items-center justify-center rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-4 py-2 text-sm font-medium text-white shadow-[0_10px_24px_-18px_rgba(220,38,38,.8)] transition duration-200 hover:-translate-y-px"
+        href="/enroll/"
+        >Enroll now</a
+      >
+      
+      
     </div>
 
+    <button
+      class="mobile-toggle hidden h-8 w-8 cursor-pointer flex-col items-center justify-center gap-[5px] border-0 bg-transparent max-lg:flex"
+      id="mobile-toggle"
+      type="button"
+      aria-label="Toggle menu"
+      aria-expanded="false"
+      aria-controls="mobile-menu"
+    >
+      <span class="block h-px w-5 bg-gray-600 transition duration-200"></span>
+      <span class="block h-px w-5 bg-gray-600 transition duration-200"></span>
+      <span class="block h-px w-5 bg-gray-600 transition duration-200"></span>
+    </button>
+  </div>
+
+  <nav
+    class="mobile-menu hidden flex-col gap-4 border-t border-gray-100 bg-white px-6 py-4"
+    id="mobile-menu"
+    aria-label="Mobile navigation"
+  >
+    
+    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/courses/">Courses</a>
+    
+    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/labs/">Labs</a>
+    
+    <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/instructors/">Instructors</a>
+    
+    
+    
+    <a
+      class="inline-flex items-center justify-center rounded-md border border-gray-200 bg-white px-5 py-3 text-sm font-medium text-gray-700 transition duration-200 hover:border-gray-300 hover:bg-gray-50"
+      href="/request/"
+      >Request course</a
+    >
+    
+    
+    
+    <a
+      class="inline-flex items-center justify-center rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-5 py-3 text-sm font-medium text-white transition duration-200 hover:-translate-y-px"
+      href="/enroll/"
+      >Enroll now</a
+    >
+    
+    
+  </nav>
 </header>
- <!-- MOBILE SIDEBAR -->
-    <div class="fixed top-0 left-0 h-full w-64 bg-white dark:bg-gray-900 shadow-lg 
-                transform -translate-x-full transition-transform duration-300 
-                peer-checked:translate-x-0 md:hidden z-50">
-
-        <div class="p-6 flex flex-col gap-6">
-
-            <!-- Close Button -->
-            <label for="menu-toggle"
-                class="self-end cursor-pointer text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
-                <i class="fas fa-times text-xl"></i>
-            </label>
-
-            <!-- Links -->
-            
-                <a href="/"
-                   class="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
-                    Home
-                </a>
-            
-                <a href="/courses/"
-                   class="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
-                    Courses
-                </a>
-            
-                <a href="/enroll/"
-                   class="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
-                    Enroll
-                </a>
-            
-                <a href="/request/"
-                   class="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
-                    Request a Course
-                </a>
-            
-                <a href="/instructors/"
-                   class="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
-                    Instructors
-                </a>
-            
-                <a href="/labs/"
-                   class="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
-                    Labs
-                </a>
-            
-                <a href="/about/"
-                   class="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white">
-                    About
-                </a>
-            
-
-        </div>
-    </div>
 
     
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
-<section class="relative pt-16 pb-24 overflow-hidden bg-white dark:bg-gray-900 border-b border-gray-50 dark:border-gray-800 transition-colors duration-300">
-    <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(220,38,38,0.04),transparent_50%)] -z-10"></div>
-    
-    <div class="max-w-4xl mx-auto px-6 text-center relative z-10">
-        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-bltRedLight dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 text-bltRed text-[10px] font-bold tracking-widest uppercase mb-6 shadow-sm">
-            <i class="ph-bold ph-broadcast animate-pulse"></i> Enrollment Open
-        </div>
-        <h1 class="font-display text-3xl md:text-4xl font-bold tracking-tight text-gray-900 dark:text-white mb-4 leading-tight">
-            Start Your <span class="text-bltRed">Cyber Journey</span>
-        </h1>
-        <p class="text-sm md:text-base text-gray-500 dark:text-gray-400 max-w-lg mx-auto font-medium leading-relaxed">
-            Join a global community of practitioners learning cybersecurity via hands-on, open-source Git workflows.
-        </p>
-    </div>
+<section class="relative px-4 pb-16 pt-40 text-center">
+  <div class="dot-field pointer-events-none absolute inset-x-0 top-24 z-[1] mx-auto h-72 w-full opacity-60" aria-hidden="true"></div>
+  <div class="relative z-[2] mx-auto max-w-4xl">
+    <span class="inline-flex items-center rounded-full border border-red-200 bg-red-50 px-3 py-1 font-mono text-xs font-medium uppercase tracking-[.16em] text-red-600">
+      Enrollment Open
+    </span>
+    <h1 class="mt-5 text-[clamp(2.25rem,4vw,3.1rem)] font-semibold leading-[1.05] tracking-[-.04em] text-gray-900">
+      Start your cybersecurity track.
+    </h1>
+    <p class="mx-auto mt-6 max-w-2xl text-base leading-7 text-gray-600">
+      Choose a course, set up your contribution account, and request access through the open BLT University workflow.
+    </p>
+  </div>
 </section>
 
-<main class="max-w-6xl mx-auto px-6 py-16 dark:bg-gray-900 transition-colors duration-300">
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
-        
-        <div class="lg:col-span-8 bg-white dark:bg-gray-800 p-8 md:p-10 rounded-[2.5rem] shadow-soft border border-gray-100 dark:border-gray-700">
-            <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-10 flex items-center gap-3">
-                <i class="ph-fill ph-rocket-launch text-bltRed"></i> Enrollment Roadmap
-            </h2>
-            
-            <div class="space-y-10 relative before:absolute before:inset-0 before:ml-[1.15rem] before:h-full before:w-0.5 before:bg-gradient-to-b before:from-red-100 dark:before:from-red-900/40 before:to-transparent">
-                <div class="relative flex items-start gap-6 group">
-                    <div class="flex items-center justify-center w-10 h-10 rounded-full border-4 border-white dark:border-gray-800 bg-gray-900 dark:bg-gray-700 text-white font-bold shadow-md shrink-0 z-10">01</div>
-                    <div class="pt-1">
-                        <h3 class="font-bold text-lg text-gray-900 dark:text-white mb-1">Choose Your Track</h3>
-                        <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">Select a module from our <a href="/courses/" class="text-bltRed font-bold hover:underline">catalog</a> that matches your career goals.</p>
-                    </div>
-                </div>
+<main class="mx-auto w-[min(72rem,calc(100%_-_2rem))] pb-24">
+  <section class="grid grid-cols-1 gap-4 md:grid-cols-3">
+    <article class="rounded-2xl border border-gray-200 bg-white p-6 transition hover:-translate-y-0.5 hover:border-red-200">
+      <div class="flex h-12 w-12 items-center justify-center rounded-full border border-gray-200 bg-gray-50 font-mono text-sm font-semibold text-red-600">01</div>
+      <h2 class="mt-6 text-lg font-semibold text-gray-900">Pick a learning path</h2>
+      <p class="mt-3 text-sm leading-6 text-gray-600">Start with the course or lab that best matches your current security goals.</p>
+    </article>
+    <article class="rounded-2xl border border-gray-200 bg-white p-6 transition hover:-translate-y-0.5 hover:border-red-200">
+      <div class="flex h-12 w-12 items-center justify-center rounded-full border border-gray-200 bg-gray-50 font-mono text-sm font-semibold text-red-600">02</div>
+      <h2 class="mt-6 text-lg font-semibold text-gray-900">Use GitLab</h2>
+      <p class="mt-3 text-sm leading-6 text-gray-600">Enrollment happens in public issues so progress stays transparent and community-friendly.</p>
+    </article>
+    <article class="rounded-2xl border border-gray-200 bg-white p-6 transition hover:-translate-y-0.5 hover:border-red-200">
+      <div class="flex h-12 w-12 items-center justify-center rounded-full border border-gray-200 bg-gray-50 font-mono text-sm font-semibold text-red-600">03</div>
+      <h2 class="mt-6 text-lg font-semibold text-gray-900">Begin practicing</h2>
+      <p class="mt-3 text-sm leading-6 text-gray-600">Move from reading to hands-on labs and contribute improvements as you learn.</p>
+    </article>
+  </section>
 
-                <div class="relative flex items-start gap-6 group">
-                    <div class="flex items-center justify-center w-10 h-10 rounded-full border-4 border-white dark:border-gray-800 bg-gray-900 dark:bg-gray-700 text-white font-bold shadow-md shrink-0 z-10">02</div>
-                    <div class="pt-1">
-                        <h3 class="font-bold text-lg text-gray-900 dark:text-white mb-1">GitHub Setup</h3>
-                        <p class="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">Create a <a href="https://github.com/signup" class="text-bltRed font-bold hover:underline">free account</a> to manage your hands-on lab repository.</p>
-                    </div>
-                </div>
-
-                <div class="relative flex items-start gap-6 group">
-                    <div class="flex items-center justify-center w-10 h-10 rounded-full border-4 border-white dark:border-gray-800 bg-bltRed text-white font-bold shadow-md shrink-0 z-10">03</div>
-                    <div class="pt-1">
-                        <h3 class="font-bold text-lg text-gray-900 dark:text-white mb-2">Submit Enrollment Issue</h3>
-                        <p class="text-sm text-gray-500 dark:text-gray-400 mb-6 leading-relaxed">Submit your request on GitHub to receive your automated lab access.</p>
-                        <div class="flex flex-col sm:flex-row gap-3">
-                            <a href="https://github.com/OWASP-BLT/BLT-University/issues/new?template=enrollment.yml"
-                            class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-bltRed text-white text-xs font-bold rounded-xl shadow-lg dark:shadow-none hover:bg-bltRedHover transition-all">
-                            <i class="ph-bold ph-github-logo text-base"></i> Submit via GitHub
-                         </a>
-                            <a href="https://gitlab.com/owasp-blt/blt-university/-/issues/new"
-                            class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gray-900 text-white text-xs font-bold rounded-xl shadow-lg dark:shadow-none hover:bg-gray-800 transition-all">
-                            <i class="ph-bold ph-gitlab-logo text-base"></i> Submit via GitLab
-                         </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
+  <section class="mt-14 grid grid-cols-1 items-start gap-6 lg:grid-cols-[1fr_24rem]">
+    <div class="rounded-3xl border border-gray-200 bg-white p-6 shadow-[0_22px_60px_-45px_rgba(15,23,42,.75)] md:p-8">
+      <div class="mb-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p class="font-mono text-xs font-semibold uppercase tracking-[.16em] text-red-600">Enrollment Roadmap</p>
+          <h2 class="mt-2 text-[clamp(2rem,3vw,2.55rem)] font-semibold leading-[1.05] tracking-[-.04em] text-gray-900">
+            Three steps to join a track.
+          </h2>
         </div>
+      </div>
 
-        <div class="lg:col-span-4 space-y-4">
-            <div class="bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm flex items-start gap-4 transition-colors">
-                <div class="w-10 h-10 rounded-xl bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 flex items-center justify-center shrink-0">
-                    <i class="ph-bold ph-globe text-xl"></i>
-                </div>
-                <div>
-                    <h3 class="font-bold text-gray-900 dark:text-white text-xs uppercase tracking-widest mb-1">100% Open Source</h3>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">Free to learn and contribute for everyone.</p>
-                </div>
-            </div>
-
-            <div class="bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm flex items-start gap-4 transition-colors">
-                <div class="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
-                    <i class="ph-bold ph-seal-check text-xl"></i>
-                </div>
-                <div>
-                    <h3 class="font-bold text-gray-900 dark:text-white text-xs uppercase tracking-widest mb-1">Verified Skills</h3>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">Certificates verified via unique Git hashes.</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Community Section -->
-    <div class="mt-16 bg-gray-900 dark:bg-gray-800 p-8 md:p-12 rounded-[2.5rem] text-white shadow-xl relative overflow-hidden group border border-transparent dark:border-gray-700 transition-colors">
-        <div class="absolute -right-6 -bottom-6 opacity-10 group-hover:scale-110 transition-transform pointer-events-none">
-            <i class="ph-fill ph-question text-9xl"></i>
-        </div>
-        <div class="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8 text-center md:text-left">
+      <div class="space-y-4">
+        <div class="rounded-2xl bg-gray-50 p-5">
+          <div class="flex flex-col gap-4 sm:flex-row sm:items-start">
+            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-900 font-mono text-sm font-semibold text-white">01</span>
             <div>
-                <h3 class="text-2xl font-bold mb-2">Stuck or Confused?</h3>
-                <p class="text-gray-400 text-sm max-w-md">Our global community is here to help you navigate your journey.</p>
+              <h3 class="text-lg font-semibold text-gray-900">Choose your track</h3>
+              <p class="mt-2 text-sm leading-6 text-gray-600">Compare the <a href="/courses/" class="font-semibold text-red-600 hover:underline">course catalog</a> and pick the module that matches your next goal.</p>
             </div>
-            <a href="https://github.com/OWASP-BLT/BLT-University/issues"
-               class="whitespace-nowrap px-8 py-4 bg-white/10 dark:bg-gray-900/40 backdrop-blur-md border border-white/20 dark:border-white/10 rounded-2xl font-bold text-sm hover:bg-white hover:text-bltRed transition-all">
-               Open Discussions
-            </a>
-            <a href="https://gitlab.com/owasp-blt/blt-university/-/issues"
-               class="whitespace-nowrap px-8 py-4 bg-white/10 dark:bg-gray-900/40 backdrop-blur-md border border-white/20 dark:border-white/10 rounded-2xl font-bold text-sm hover:bg-white hover:text-bltRed transition-all inline-flex items-center gap-2">
-               <i class="ph-bold ph-gitlab-logo"></i> GitLab Issues
-            </a>
+          </div>
         </div>
+
+        <div class="rounded-2xl bg-gray-50 p-5">
+          <div class="flex flex-col gap-4 sm:flex-row sm:items-start">
+            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-900 font-mono text-sm font-semibold text-white">02</span>
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900">Set up your account</h3>
+              <p class="mt-2 text-sm leading-6 text-gray-600">Use your GitLab account to follow enrollment issues, course updates, and contribution workflows.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="rounded-2xl bg-red-50 p-5">
+          <div class="flex flex-col gap-4 sm:flex-row sm:items-start">
+            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-600 font-mono text-sm font-semibold text-white">03</span>
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900">Submit enrollment</h3>
+              <p class="mt-2 text-sm leading-6 text-gray-600">Open an enrollment issue so maintainers can route you to the right course workflow.</p>
+              <div class="mt-5 flex flex-col gap-3 sm:flex-row">
+                <a href="https://gitlab.com/owasp-blt/blt-university/-/issues/new" target="_blank" rel="noopener noreferrer" data-enrollment-button class="inline-flex items-center justify-center gap-2 rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-5 py-3 text-sm font-medium text-white shadow-[0_10px_24px_-14px_rgba(220,38,38,.8)] transition hover:-translate-y-px">
+                  <i class="ph-bold ph-gitlab-logo text-base"></i>
+                  Submit via GitLab
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
+
+    <aside class="space-y-4">
+      <div class="rounded-2xl border border-gray-200 bg-white p-6">
+        <div class="flex items-start gap-4">
+          <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-green-50 text-green-600">
+            <i class="ph-bold ph-globe text-xl"></i>
+          </div>
+          <div>
+            <h3 class="text-xs font-semibold uppercase tracking-[.16em] text-gray-900">100% Open Source</h3>
+            <p class="mt-2 text-sm leading-6 text-gray-600">Free to learn, inspect, improve, and share.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="rounded-2xl border border-gray-200 bg-white p-6">
+        <div class="flex items-start gap-4">
+          <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+            <i class="ph-bold ph-seal-check text-xl"></i>
+          </div>
+          <div>
+            <h3 class="text-xs font-semibold uppercase tracking-[.16em] text-gray-900">Verified Skills</h3>
+            <p class="mt-2 text-sm leading-6 text-gray-600">Completion evidence can connect back to public Git workflows.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="rounded-2xl border border-gray-200 bg-white p-6">
+        <div class="flex items-start gap-4">
+          <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-red-50 text-red-600">
+            <i class="ph-bold ph-users-three text-xl"></i>
+          </div>
+          <div>
+            <h3 class="text-xs font-semibold uppercase tracking-[.16em] text-gray-900">Community Support</h3>
+            <p class="mt-2 text-sm leading-6 text-gray-600">Ask questions and learn with contributors, instructors, and peers.</p>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </section>
+
+  <section class="mt-14 rounded-3xl border border-white/5 bg-bltFooter p-8 text-center text-white md:p-12">
+    <span class="inline-flex items-center rounded-full border border-red-300/30 bg-red-500/10 px-3 py-1 font-mono text-xs font-medium uppercase tracking-[.16em] text-red-300">Need help?</span>
+    <h2 class="mx-auto mt-5 max-w-2xl text-[clamp(1.75rem,3.5vw,3.1rem)] font-medium leading-[1.05] tracking-[-.045em]">Not sure where to start?</h2>
+    <p class="mx-auto mt-4 max-w-xl text-sm leading-6 text-gray-400">Open a GitLab issue and the community can help you choose the right learning path.</p>
+    <div class="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+      <a href="https://gitlab.com/owasp-blt/blt-university/-/issues" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-5 py-3 text-sm font-medium text-white transition hover:-translate-y-px">Open GitLab issues</a>
+    </div>
+  </section>
 </main>
 
     
-    <footer class="bg-slate-900 border-t border-slate-800 mt-auto">
-    <div class="max-w-7xl mx-auto px-6 pt-10 md:pt-16 pb-12 grid grid-cols-1 md:grid-cols-4 gap-12">
-        <div class="col-span-1">
-            <a href="/"
-             class="flex items-center gap-3 font-display font-bold text-xl text-white mb-6">
-                <img src="/assets/images/blt-logo.png" alt="Logo" class="w-8 h-8 object-contain">
-                BLT University
-             </a>
-            <p class="text-sm leading-relaxed text-slate-400 mb-6">
-                A cybersecurity-focused online university powered by GitHub Pages and GitLab Pages. Learn, teach, and collaborate on ...
-            </p>
-            <div
-                 class="inline-flex items-center px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-xs font-bold uppercase tracking-widest text-slate-300 shadow-lg">
-                <span class="w-1 h-1 rounded-full bg-bltRed mr-1.5 animate-pulse"></span>
-                ESTABLISHED 2026
-            </div>
-        </div>
-
-        <div>
-            <h4 class="text-white font-bold text-xs uppercase tracking-widest mb-6">Quick Links</h4>
-            <ul class="space-y-4 text-sm font-medium text-slate-400">
-                <li><a href="/courses/"
-                        class="hover:text-white hover:translate-x-1 transition-all inline-block">Browse Courses</a></li>
-                <li><a href="/enroll/"
-                        class="hover:text-white hover:translate-x-1 transition-all inline-block">Enroll Now</a></li>
-                <li><a href="/instructors/"
-                        class="hover:text-white hover:translate-x-1 transition-all inline-block">Our Instructors</a>
-                </li>
-            </ul>
-        </div>
-
-        <div>
-            <h4 class="text-white font-bold text-xs uppercase tracking-widest mb-6">Get Involved</h4>
-            <ul class="space-y-4 text-sm font-medium text-slate-400">
-                <li><a href="https://github.com/OWASP-BLT/BLT-University" target="_blank"
-                        class="hover:text-white hover:translate-x-1 transition-all inline-block">GitHub Repository</a>
-                </li>
-                <li><a href="https://gitlab.com/owasp-blt/blt-university" target="_blank"
-                        class="hover:text-white hover:translate-x-1 transition-all inline-flex items-center gap-2">
-                        <i class="ph-bold ph-gitlab-logo"></i> GitLab Repository</a>
-                </li>
-                <li><a href="/contributing/"
-                        class="hover:text-white hover:translate-x-1 transition-all inline-block">Become an
-                        Instructor</a></li>
-            </ul>
-        </div>
-
-        <div>
-            <h4 class="text-white font-bold text-xs uppercase tracking-widest mb-6">License</h4>
-            <p class="text-sm font-medium text-slate-400 leading-relaxed mb-4">
-                This project is open-source and licensed under <a href="https://www.gnu.org/licenses/agpl-3.0.en.html"
-                    target="_blank" class="text-bltRed font-bold hover:text-white transition-colors">AGPL-3.0</a>.
-            </p>
-            <div class="flex flex-wrap gap-4">
-                <a href="https://github.com/OWASP-BLT" target="_blank"
-                   aria-label="OWASP Github" title="OWASP Github"
-                    class="text-slate-400 hover:text-white transition-colors">
-                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                        <path
-                            d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
-                    </svg>
-                </a>
-                <a href="https://gitlab.com/owasp-blt" target="_blank"
-                   aria-label="OWASP BLT on GitLab" title="OWASP BLT on GitLab"
-                    class="text-slate-400 hover:text-white transition-colors">
-                    <i class="ph-bold ph-gitlab-logo text-xl"></i>
-                </a>
-                <a href="https://owasp.org/slack/invite" target="_blank" rel="noopener noreferrer"
-   aria-label="OWASP Slack" title="OWASP Slack"
-   class="text-slate-400 hover:text-white transition-colors">
-   <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
-       <path d="M5.1 15.9c0 1.4-1.1 2.5-2.5 2.5S0 17.3 0 15.9s1.1-2.5 2.5-2.5h2.6v2.5zm1.3 0c0-1.4 1.1-2.5 2.5-2.5s2.5 1.1 2.5 2.5v6.6c0 1.4-1.1 2.5-2.5 2.5s-2.5-1.1-2.5-2.5v-6.6zm2.5-10.8c-1.4 0-2.5-1.1-2.5-2.5S7.5 0 8.9 0s2.5 1.1 2.5 2.5v2.6H8.9zm0 1.3c1.4 0 2.5 1.1 2.5 2.5s-1.1 2.5-2.5 2.5H2.3C.9 11.4-.2 10.3-.2 8.9s1.1-2.5 2.5-2.5h6.6zm10.8 2.5c0-1.4 1.1-2.5 2.5-2.5s2.5 1.1 2.5 2.5-1.1 2.5-2.5 2.5h-2.6V8.9zm-1.3 0c0 1.4-1.1 2.5-2.5 2.5s-2.5-1.1-2.5-2.5V2.3C13.4.9 14.5-.2 15.9-.2s2.5 1.1 2.5 2.5v6.6zm-2.5 10.8c1.4 0 2.5 1.1 2.5 2.5s-1.1 2.5-2.5 2.5-2.5-1.1-2.5-2.5v-2.6h2.5zm0-1.3c-1.4 0-2.5-1.1-2.5-2.5s1.1-2.5 2.5-2.5h6.6c1.4 0 2.5 1.1 2.5 2.5s-1.1 2.5-2.5 2.5h-6.6z"/>
-   </svg>
-</a>
-                <!-- Facebook -->
-<a href="https://www.facebook.com/OWASPFoundation" target="_blank" rel="noopener noreferrer"
-   aria-label="OWASP Facebook" title="OWASP Facebook"
-   class="text-slate-400 hover:text-white transition-colors">
-   <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-       <path d="M22 12a10 10 0 10-11.5 9.9v-7H7v-3h3.5V9.5c0-3.5 2-5.5 5-5.5 1.4 0 2.8.2 2.8.2v3h-1.6c-1.6 0-2.1 1-2.1 2v2.4H18l-.5 3h-2.8v7A10 10 0 0022 12z"/>
-   </svg>
-</a>
-
-<!-- Twitter -->
-<a href="https://twitter.com/owasp" target="_blank" rel="noopener noreferrer"
-   aria-label="OWASP Twitter" title="OWASP Twitter"
-   class="text-slate-400 hover:text-white transition-colors">
-   <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-       <path d="M22.46 6c-.77.35-1.6.58-2.46.69a4.3 4.3 0 001.88-2.37 8.59 8.59 0 01-2.72 1.04 4.28 4.28 0 00-7.3 3.9A12.14 12.14 0 013 4.8a4.28 4.28 0 001.32 5.72A4.2 4.2 0 012.8 10v.05a4.28 4.28 0 003.44 4.2 4.3 4.3 0 01-1.93.07 4.29 4.29 0 004 3 8.6 8.6 0 01-5.3 1.83A8.77 8.77 0 012 19.54 12.13 12.13 0 008.56 21c7.87 0 12.17-6.52 12.17-12.17 0-.18 0-.35-.01-.53A8.7 8.7 0 0024 5.1a8.5 8.5 0 01-2.54.7z"/>
-   </svg>
-</a>
-
-<!-- LinkedIn -->
-<a href="https://www.linkedin.com/company/owasp" target="_blank" rel="noopener noreferrer"
-   aria-label="OWASP LinkedIn" title="OWASP LinkedIn"
-   class="text-slate-400 hover:text-white transition-colors">
-   <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-       <path d="M20.45 20.45h-3.55v-5.4c0-1.3-.03-2.97-1.8-2.97-1.8 0-2.07 1.4-2.07 2.85v5.52H9.48V9h3.4v1.56h.05c.47-.9 1.6-1.85 3.3-1.85 3.53 0 4.18 2.32 4.18 5.34v6.4zM5.34 7.43a2.06 2.06 0 110-4.12 2.06 2.06 0 010 4.12zM7.12 20.45H3.56V9h3.56v11.45z"/>
-   </svg>
-</a>
-
-<!-- YouTube -->
-<a href="https://www.youtube.com/user/OWASPGLOBAL" target="_blank" rel="noopener noreferrer"
-   aria-label="OWASP YouTube" title="OWASP YouTube"
-   class="text-slate-400 hover:text-white transition-colors">
-   <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-       <path d="M23.5 6.2a2.9 2.9 0 00-2-2C19.7 3.7 12 3.7 12 3.7s-7.7 0-9.5.5a2.9 2.9 0 00-2 2A30 30 0 000 12a30 30 0 00.5 5.8 2.9 2.9 0 002 2c1.8.5 9.5.5 9.5.5s7.7 0 9.5-.5a2.9 2.9 0 002-2A30 30 0 0024 12a30 30 0 00-.5-5.8zM9.8 15.5v-7l6.2 3.5-6.2 3.5z"/>
-   </svg>
-</a>
-
-<!-- Mastodon / Infosec -->
-<a href="https://infosec.exchange/@owasp" target="_blank" rel="noopener noreferrer"
-   aria-label="OWASP Mastodon" title="OWASP Mastodon"
-   class="text-slate-400 hover:text-white transition-colors">
-   <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-       <path d="M12 2C6.48 2 3 5.58 3 10.24c0 3.35 1.78 5.33 4.72 5.33.74 0 1.46-.1 2.13-.29v1.86c0 1.3.8 2.03 2.25 2.03 1.57 0 2.42-.8 2.42-2.2v-2.3c.7.14 1.43.22 2.16.22 2.93 0 4.72-1.98 4.72-5.33C21.4 5.58 17.52 2 12 2zm3.34 9.5h-1.5v-3.2c0-.68-.28-1.02-.83-1.02-.61 0-.91.4-.91 1.18v1.86h-1.5V8.46c0-.78-.3-1.18-.91-1.18-.55 0-.83.34-.83 1.02v3.2h-1.5V8.2c0-1.7 1.04-2.6 2.47-2.6.87 0 1.52.33 1.95.99.45-.66 1.15-.99 2.07-.99 1.38 0 2.42.9 2.42 2.6v3.3z"/>
-   </svg>
-</a>
-            </div>
-        </div>
+    <footer
+  class="footer-panel relative mt-14 w-full overflow-hidden rounded-t-3xl border border-white/5 bg-bltFooter py-10 pb-8 text-white max-md:rounded-t-[.8rem]"
+>
+  <h2
+    class="relative m-0 break-all px-2 text-center text-[clamp(2rem,5vw,4.5rem)] font-light leading-[1.02] tracking-[-.045em] text-white sm:break-normal"
+  >
+    university.owaspblt.org
+  </h2>
+  <div
+    class="relative mx-auto mt-3 h-[3px] w-16 rounded-full bg-red-600"
+    aria-hidden="true"
+  ></div>
+  <div
+    class="footer-links relative mx-auto mt-8 grid max-w-6xl grid-cols-1 gap-6 px-6 font-mono sm:grid-cols-2 md:grid-cols-4 md:gap-8"
+  >
+    <div>
+      <p>Docs</p>
+      <a href="/courses/">Courses</a>
+      <a href="/labs/">Labs</a>
     </div>
-
-    <div class="border-t border-slate-800/50"></div>
-
-    <div class="py-8 px-6 bg-slate-900/50">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-            <p class="text-slate-500 text-xs font-medium">
-                &copy; 2026 BLT University. Built with
-                pride by the 
-                <a href="https://owasp.org/slack/invite" target="_blank" rel="noopener noreferrer"
-               class="text-bltRed font-bold hover:underline"
-               aria-label="Join OWASP Slack Community"
-               title="Join OWASP Slack Community">
-               OWASP Community
-            </a>.
-            </p>
-            <div class="flex items-center gap-6">
-                <p class="text-slate-500 text-xs uppercase tracking-widest font-bold">
-                    Powered by <span class="text-white">GitHub Pages</span> and <span class="text-white">GitLab Pages</span>
-                </p>
-            </div>
-        </div>
+    <div>
+      <p>Learn</p>
+      <a href="/enroll/">Enroll</a>
+      <a href="/instructors/">Instructors</a>
+      <a href="/request/">Request Course</a>
     </div>
+    <div>
+      <p>Project</p>
+      <a
+        href="https://gitlab.com/owasp-blt/blt-university"
+        target="_blank"
+        rel="noopener noreferrer"
+        >GitLab repo</a
+      >
+    </div>
+    <div>
+      <p>OWASP</p>
+      <a
+        href="https://owaspblt.org"
+        target="_blank"
+        rel="noopener noreferrer"
+        >OWASP BLT</a
+      >
+      <a
+        href="https://owasp.org/www-project-bug-logging-tool/"
+        target="_blank"
+        rel="noopener noreferrer"
+        >Foundation page</a
+      >
+      <a
+        href="https://owasp.org"
+        target="_blank"
+        rel="noopener noreferrer"
+        >owasp.org</a
+      >
+    </div>
+  </div>
 </footer>
 
     
-    <script src="/assets/js/main.js?v=1780713999"></script>
+    <script src="/assets/js/main.js?v=1780841500"></script>
 </body>
 </html>

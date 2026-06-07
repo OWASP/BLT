@@ -1,51 +1,28 @@
-// Load saved theme
-if (localStorage.getItem("theme") === "dark") {
-    document.documentElement.classList.add("dark");
-}
-
 document.addEventListener('DOMContentLoaded', function() {
-    
-    // Dark mode toggle
-    const toggle = document.getElementById("theme-toggle");
-    if (toggle) {
-        toggle.addEventListener("click", () => {
+    const mobileToggle = document.getElementById("mobile-toggle");
+    const mobileMenu = document.getElementById("mobile-menu");
 
-            document.documentElement.classList.toggle("dark");
-
-            if (document.documentElement.classList.contains("dark")) {
-                localStorage.setItem("theme", "dark");
-
-            } else {
-                localStorage.setItem("theme", "light");
-            }
-
-        });
-    }
-
-    // Mobile navigation menu
-    const mobileMenu = document.getElementById('mobile-menu');
-    const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
-    const mobileMenuClose = document.getElementById('mobile-menu-close');
-    const mobileMenuBackdrop = document.querySelector('[data-mobile-menu-backdrop]');
-
-    if (mobileMenu && mobileMenuToggle) {
-        function setMobileMenuOpen(isOpen) {
-            mobileMenu.classList.toggle('hidden', !isOpen);
-            document.body.classList.toggle('overflow-hidden', isOpen);
-            mobileMenuToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-            mobileMenuToggle.setAttribute('aria-label', isOpen ? 'Close navigation menu' : 'Open navigation menu');
-        }
-
-        mobileMenuToggle.addEventListener('click', () => {
-            setMobileMenuOpen(mobileMenu.classList.contains('hidden'));
+    if (mobileToggle && mobileMenu) {
+        mobileToggle.addEventListener("click", function () {
+            const open = !mobileMenu.classList.contains("open");
+            mobileMenu.classList.toggle("open", open);
+            mobileToggle.classList.toggle("active", open);
+            mobileToggle.setAttribute("aria-expanded", String(open));
         });
 
-        mobileMenuClose?.addEventListener('click', () => setMobileMenuOpen(false));
-        mobileMenuBackdrop?.addEventListener('click', () => setMobileMenuOpen(false));
+        mobileMenu.querySelectorAll("a").forEach(function (link) {
+            link.addEventListener("click", function () {
+                mobileMenu.classList.remove("open");
+                mobileToggle.classList.remove("active");
+                mobileToggle.setAttribute("aria-expanded", "false");
+            });
+        });
 
         document.addEventListener('keydown', event => {
             if (event.key === 'Escape') {
-                setMobileMenuOpen(false);
+                mobileMenu.classList.remove("open");
+                mobileToggle.classList.remove("active");
+                mobileToggle.setAttribute("aria-expanded", "false");
             }
         });
     }
@@ -56,6 +33,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const searchFilter = document.getElementById('search-filter');
     const coursesGrid = document.getElementById('courses-grid');
     const noResults = document.getElementById('no-results');
+    const clearCourseFilters = document.querySelector('[data-clear-course-filters]');
 
     if (categoryFilter && levelFilter && searchFilter && coursesGrid) {
         function filterCourses() {
@@ -97,6 +75,12 @@ document.addEventListener('DOMContentLoaded', function() {
         categoryFilter.addEventListener('change', filterCourses);
         levelFilter.addEventListener('change', filterCourses);
         searchFilter.addEventListener('input', filterCourses);
+        clearCourseFilters?.addEventListener('click', () => {
+            searchFilter.value = '';
+            categoryFilter.value = '';
+            levelFilter.value = '';
+            filterCourses();
+        });
 
         // Initial filter
         filterCourses();
@@ -391,15 +375,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const courseParam = urlParams.get('course');
     const titleParam = urlParams.get('title');
 
-    if (courseParam && window.location.pathname.includes('/enroll/')) {
-        if (titleParam) {
-            const enrollButton = document.querySelector('[data-enrollment-button]');
-            if (enrollButton) {
-                const currentHref = enrollButton.getAttribute('href');
-                const separator = currentHref.includes('?') ? '&' : '?';
-                const prefilledTitle = `[ENROLLMENT] ${titleParam} - `;
-                enrollButton.setAttribute('href', currentHref + separator + `title=${encodeURIComponent(prefilledTitle)}`);
-            }
+    if ((courseParam || titleParam) && window.location.pathname.includes('/enroll/')) {
+        const enrollButton = document.querySelector('[data-enrollment-button]');
+        if (enrollButton) {
+            const currentHref = enrollButton.getAttribute('href');
+            const separator = currentHref.includes('?') ? '&' : '?';
+            const courseTitle = titleParam || (courseParam ? courseParam.replace(/-/g, ' ') : '');
+            const prefilledTitle = `[ENROLLMENT] ${courseTitle} - `;
+            enrollButton.setAttribute('href', currentHref + separator + `title=${encodeURIComponent(prefilledTitle)}`);
         }
     }
 
@@ -417,11 +400,4 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Add active class to current navigation item
-    const currentPath = window.location.pathname;
-    document.querySelectorAll('.site-navigation a').forEach(link => {
-        if (link.getAttribute('href') === currentPath) {
-            link.classList.add('active');
-        }
-    });
 });
