@@ -1,6 +1,6 @@
 name = "blt-monitor"
 main = "worker.py"
-compatibility_date = "2026-05-30"
+compatibility_date = "2026-06-07"
 compatibility_flags = [ "python_workers", "disable_python_external_sdk" ]
 
 [[kv_namespaces]]

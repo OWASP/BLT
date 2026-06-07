@@ -72,13 +72,14 @@ class Default(WorkerEntrypoint):
 
     async def scheduled(self, controller, env, ctx):
         shard = int(controller.scheduledTime // SHARD_INTERVAL_MS) % HISTORY_SHARDS
-        await self.run_monitors(shard)
+        await self.run_monitors(shard, env)
 
-    async def run_monitors(self, shard):
-        monitors = await self.load_monitors()
-        histories = await self.load_histories(shard)
+    async def run_monitors(self, shard, env=None):
+        env = env or self.env
+        monitors = await self.load_monitors(env)
+        histories = await self.load_histories(shard, env)
         if not histories:
-            histories = await self.load_legacy_histories(monitors, shard)
+            histories = await self.load_legacy_histories(monitors, shard, env)
         results = []
 
         for monitor in monitors:
@@ -96,12 +97,13 @@ class Default(WorkerEntrypoint):
             self.add_history_entry(histories, monitor_id, result)
             results.append({"id": monitor_id, **result})
 
-        await self.save_histories(shard, histories)
-        await self.notify_failures(monitors, results)
+        await self.save_histories(shard, histories, env)
+        await self.notify_failures(monitors, results, env)
         return results
 
-    async def load_monitors(self):
-        response = await self.env.ASSETS.fetch("https://assets.local/monitors.json")
+    async def load_monitors(self, env=None):
+        env = env or self.env
+        response = await env.ASSETS.fetch("https://assets.local/monitors.json")
         if not response.ok:
             raise RuntimeError("Unable to load monitors.json")
         return json.loads(await response.text())
@@ -167,8 +169,9 @@ class Default(WorkerEntrypoint):
         await self.save_histories(shard, histories)
         return history
 
-    async def notify_failures(self, monitors, results):
-        webhook_url = getattr(self.env, "SLACK_WEBHOOK_URL", "")
+    async def notify_failures(self, monitors, results, env=None):
+        env = env or self.env
+        webhook_url = getattr(env, "SLACK_WEBHOOK_URL", "")
         failed_ids = {result["id"] for result in results if result["status"] == "failure"}
         if not webhook_url or not failed_ids:
             return
@@ -181,11 +184,13 @@ class Default(WorkerEntrypoint):
         await self.send_slack(
             "Website Monitor Alert\n"
             "One or more monitors detected issues:\n"
-            + "\n".join(failed_monitors)
+            + "\n".join(failed_monitors),
+            env,
         )
 
-    async def send_slack(self, message):
-        webhook_url = getattr(self.env, "SLACK_WEBHOOK_URL", "")
+    async def send_slack(self, message, env=None):
+        env = env or self.env
+        webhook_url = getattr(env, "SLACK_WEBHOOK_URL", "")
         if not webhook_url:
             return False
 
@@ -207,8 +212,8 @@ class Default(WorkerEntrypoint):
             all_histories.update(await self.load_histories(shard))
         return all_histories
 
-    async def load_histories(self, shard):
-        raw_history = await self.history_store.get(self.histories_key(shard))
+    async def load_histories(self, shard, env=None):
+        raw_history = await self.history_store(env).get(self.histories_key(shard))
         if not raw_history:
             return {}
 
@@ -218,7 +223,7 @@ class Default(WorkerEntrypoint):
         except json.JSONDecodeError:
             return {}
 
-    async def load_legacy_histories(self, monitors, shard):
+    async def load_legacy_histories(self, monitors, shard, env=None):
         histories = {}
         for monitor in monitors:
             monitor_id = str(monitor.get("id", ""))
@@ -228,7 +233,7 @@ class Default(WorkerEntrypoint):
             ):
                 continue
 
-            raw_history = await self.history_store.get(self.history_key(monitor_id))
+            raw_history = await self.history_store(env).get(self.history_key(monitor_id))
             if not raw_history:
                 continue
 
@@ -240,8 +245,8 @@ class Default(WorkerEntrypoint):
                 continue
         return histories
 
-    async def save_histories(self, shard, histories):
-        await self.history_store.put(self.histories_key(shard), json.dumps(histories))
+    async def save_histories(self, shard, histories, env=None):
+        await self.history_store(env).put(self.histories_key(shard), json.dumps(histories))
 
     @staticmethod
     def add_history_entry(histories, monitor_id, entry):
@@ -265,9 +270,9 @@ class Default(WorkerEntrypoint):
             (index + 1) * byte for index, byte in enumerate(monitor_id.encode("utf-8"))
         ) % HISTORY_SHARDS
 
-    @property
-    def history_store(self):
-        return getattr(self.env, HISTORY_BINDING)
+    def history_store(self, env=None):
+        env = env or self.env
+        return getattr(env, HISTORY_BINDING)
 
     def is_authorized(self, request):
         expected_token = getattr(self.env, "INGEST_TOKEN", "")
