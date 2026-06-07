@@ -1,38 +1,41 @@
-# Funding Proposal
+# BLT documentation and platform transformation overview
 
-## Introduction
+## Purpose of the transformation
 
-We are seeking funding to support the continued development and maintenance of **OWASP BLT**. As part of our growth strategy, we plan to onboard a group of talented interns to contribute to the development of new features, improve usability, and expand the reach of the project. This proposal outlines our funding requirements and the planned allocation of those funds.
+BLT is being documented around a clearer modular structure so contributors can understand where work belongs and how the platform pieces relate to each other. The goal is to move away from stale project dumps and toward focused documentation for BLT-docs, BLT-API, BLT-Jobs, repository metadata, and user workflows.
 
-## Intern Program Plan
+## Documentation goals
 
-As part of our initiative, we plan to engage **10 contributors** under the Google Summer of Code (GSoC) model. We have already secured **4 official GSoC slots**, each funded at **$3,000**, amounting to a total of **$12,000** in confirmed support.
+- Make BLT-docs the source of truth for contributor-facing documentation.
+- Route contributors to the correct repository before they start work.
+- Separate user workflows from developer and maintainer guidance.
+- Keep API documentation grounded in the current BLT-API implementation.
+- Label historical or migration-pending repositories clearly.
+- Remove stale badges, unsupported metrics, and outdated feature claims.
 
-To ensure parity and fairness for all selected contributors, we are seeking additional funding to support the remaining **6 contributors** with the same stipend amount as those officially accepted into GSoC.
+## Platform direction
 
-### Intern Funding Breakdown
+The BLT platform direction is modular. BLT-docs provides the documentation hub, BLT-API provides the API and integration layer, BLT-Jobs covers jobs and automation workflows, repository metadata helps organize project information, and user-guide pages explain common BLT workflows.
 
-- **6 Interns x $3,000 = $18,000**
+This structure should make it easier to maintain documentation without implying that every historical repository or proposed feature is active.
 
-This funding will enable us to attract and retain high-quality contributors, maintain consistency, and deliver planned feature milestones efficiently.
+## Repository migration awareness
 
-## Use of Funds
+Confirmed GitLab repositories should be documented first. Current confirmed repositories include BLT-docs, BLT-API, and BLT-Jobs. Other repositories may still appear on GitHub while migration details are reviewed.
 
-The funds raised through this proposal will be used to:
+When a repository is migration-pending or historical, documentation should say so plainly. Do not replace links, rename repositories, or describe migration status as complete unless it has been confirmed.
 
-- **Support Interns**: Provide stipends to 6 contributors not covered by official GSoC funding.
-- **Accelerate Feature Development**: Speed up the implementation of new functionalities and improvements.
-- **Hackathons**: Run monthly hackathons to encourage community contribution and innovation. 
-- **Improve UX/UI**: Work with designers to enhance the usability and appeal of OWASP BLT.
-- **Marketing and Outreach**: Promote the project to expand our contributor base and end-user adoption.
-- **Operational Costs**: Cover infrastructure, hosting, tooling, and necessary subscriptions.
+## How contributors can use this plan
 
-## Expected Outcomes
+Contributors can use this plan to decide where to start, what to verify, and how to scope documentation changes. A good contribution should identify the relevant module, update only the pages needed for the work item, and run the repository's verification commands before review.
 
-By securing this funding, we aim to:
+For documentation changes, start with the local setup guide, then use the project map to confirm the correct module and repository.
 
-- Accelerate the delivery of new features and fixes.
-- Foster a more vibrant, inclusive contributor community.
-- Match the quality, experience, and opportunities provided to all interns, regardless of GSoC selection.
-- Improve overall project usability and adoption within the OWASP ecosystem and beyond.
-- Ensure long-term sustainability through better contributor engagement and visibility.
+## Current priority areas
+
+- Keep the public documentation entry points concise and accurate.
+- Document confirmed GitLab repositories before migration-pending repositories.
+- Update user-guide pages against current workflows.
+- Expand BLT-API documentation only from confirmed implementation details.
+- Add repository-specific setup and maintenance notes where they are missing.
+- Remove stale proposal text, unsupported claims, and old repository metrics.
