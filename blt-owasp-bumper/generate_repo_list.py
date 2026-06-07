@@ -2002,6 +2002,10 @@ def main():
     print("Generating HTML page...")
     html = generate_html(repos, org.upper())
 
+    output_dir = os.path.dirname(output_file)
+    if output_dir:
+        os.makedirs(output_dir, exist_ok=True)
+
     with open(output_file, 'w', encoding='utf-8') as f:
         f.write(html)
 

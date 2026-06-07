@@ -264,6 +264,18 @@ Customize behavior with these environment variables:
 | `FETCH_SPARKLINES` | `true` | Enable 52-week activity charts | `export FETCH_SPARKLINES=false` |
 | `FETCH_METADATA` | `true` | Enable index.md parsing & PR counts | `export FETCH_METADATA=false` |
 
+## GitLab and Cloudflare
+
+This repository now builds the dashboard in GitLab and exposes the generated
+site from `public/` for Cloudflare.
+
+- `.gitlab-ci.yml` runs `python3 generate_repo_list.py` with
+  `OUTPUT_FILE=public/index.html`.
+- `wrangler.toml` points both `pages_build_output_dir` and `[assets].directory`
+  at `public`.
+- Cloudflare can deploy the repository as a static asset project with
+  `public/` as the served output directory.
+
 ### 🎯 Advanced Examples
 
 ```bash
@@ -323,7 +335,10 @@ Want to add more features? Here are some ideas:
 ```
 OWASP-Bumper/
 ├── 📄 generate_repo_list.py    # Main Python script (generates HTML)
-├── 📄 index.html               # Generated output (auto-generated)
+├── 📁 public/
+│   └── 📄 index.html           # Generated Cloudflare output
+├── 📄 .gitlab-ci.yml           # GitLab Pages/static build pipeline
+├── 📄 wrangler.toml            # Cloudflare static asset configuration
 ├── 📁 .github/
 │   └── 📁 workflows/
 │       └── 📄 generate-repo-list.yml   # GitHub Actions workflow
