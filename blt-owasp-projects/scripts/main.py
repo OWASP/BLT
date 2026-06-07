@@ -7,7 +7,9 @@ GITHUB_API_URL = "https://api.github.com"
 ORG_NAME = "owasp"
 REPO_PREFIX = "www-project"
 OUTPUT_FILE = "www_project_repos.json"
-SLACK_WEBHOOK_URL = os.environ["SLACK_WEBHOOK_URL"]
+OUTPUT_DIR = os.environ.get("OUTPUT_DIR", "public")
+OUTPUT_PATH = os.path.join(OUTPUT_DIR, OUTPUT_FILE)
+SLACK_WEBHOOK_URL = os.environ.get("SLACK_WEBHOOK_URL")
 MAX_SNIPPET_LENGTH = 500
 
 def get_repos(headers):
@@ -76,6 +78,10 @@ def get_project_snippet(repo_name, headers):
     return ""
 
 def send_slack_alert(new_repos, headers):
+    if not SLACK_WEBHOOK_URL:
+        print("No SLACK_WEBHOOK_URL set, skipping Slack notification")
+        return
+
     message = "New OWASP project repositories detected:\n"
     for repo in new_repos:
         repo_url = f"https://github.com/{repo['full_name']}"
@@ -97,7 +103,7 @@ def main():
     www_project_repos = filter_and_format_repos(repos)
 
     try:
-        with open(OUTPUT_FILE, "r") as f:
+        with open(OUTPUT_PATH, "r") as f:
             old_repos = json.load(f)
     except FileNotFoundError:
         old_repos = []
@@ -106,7 +112,8 @@ def main():
     if new_repos:
         send_slack_alert(new_repos, headers)
 
-    with open(OUTPUT_FILE, "w") as f:
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
+    with open(OUTPUT_PATH, "w") as f:
         json.dump(www_project_repos, f, indent=2)
 
 if __name__ == "__main__":

@@ -8,7 +8,7 @@ GITHUB_API_URL = "https://api.github.com"
 ORG_NAME = "owasp"
 REPO_PREFIX = "www-project"
 OUTPUT_FILE = "www_project_repos.json"
-SLACK_WEBHOOK_URL = os.environ["SLACK_WEBHOOK_URL_SWEEP"]
+SLACK_WEBHOOK_URL = os.environ.get("SLACK_WEBHOOK_URL_SWEEP")
 SEARCH_STRING = "This is an example of a Project or Chapter Page"
 
 headers = {"Authorization": f"token {os.environ['GITHUB_TOKEN']}"}
@@ -61,6 +61,10 @@ def check_last_updated_date(repo_full_name):
     return None
 
 def send_slack_alert(repo_full_name):
+    if not SLACK_WEBHOOK_URL:
+        print("No SLACK_WEBHOOK_URL_SWEEP set, skipping Slack notification")
+        return
+
     repo_url = f"https://github.com/{repo_full_name}"
     message_text = f"Repo *<{repo_url}|{repo_full_name}>* has not been updated in over a month. Check index.md."
     

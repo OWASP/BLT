@@ -5,8 +5,9 @@ import time
 
 GITHUB_API_URL = "https://api.github.com"
 ORG_NAME = "OWASP"
-OUTPUT_FILE = "issues.json"
-KNOWN_IDS_FILE = "known_issue_ids.json"
+OUTPUT_DIR = os.environ.get("OUTPUT_DIR", "public")
+OUTPUT_FILE = os.path.join(OUTPUT_DIR, "issues.json")
+KNOWN_IDS_FILE = os.path.join(OUTPUT_DIR, "known_issue_ids.json")
 SLACK_WEBHOOK_URL = os.environ.get("SLACK_NEW_ISSUES_WEBHOOK")
 ACCESS_TOKEN = os.environ.get("ACCESS_TOKEN") or os.environ.get("GITHUB_TOKEN")
 
@@ -33,6 +34,7 @@ def load_existing_issue_ids():
 def save_known_issue_ids(existing_ids, new_ids):
     """Persist the union of all seen issue IDs."""
     combined = sorted(existing_ids | new_ids)
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
     with open(KNOWN_IDS_FILE, "w") as f:
         json.dump(combined, f)
 
@@ -157,6 +159,7 @@ def main():
 
     save_known_issue_ids(existing_ids, new_ids)
 
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
     with open(OUTPUT_FILE, "w") as f:
         json.dump(formatted_issues, f, indent=2)
 

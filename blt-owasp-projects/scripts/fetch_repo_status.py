@@ -2,6 +2,9 @@ import requests
 import json
 import os
 
+OUTPUT_DIR = os.environ.get('OUTPUT_DIR', 'public')
+OUTPUT_FILE = os.path.join(OUTPUT_DIR, 'repo_status.json')
+
 projects_url = 'https://raw.githubusercontent.com/OWASP/owasp.github.io/main/_data/projects.json'
 response = requests.get(projects_url)
 projects = response.json()
@@ -78,7 +81,8 @@ for project in projects:
         except Exception as e:
             print(f"Error fetching status for {code_url}: {e}")
 
-print('writing repo_status.json')
+print(f'writing {OUTPUT_FILE}')
 
-with open('repo_status.json', 'w') as outfile:
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+with open(OUTPUT_FILE, 'w') as outfile:
     json.dump(repo_statuses, outfile, indent=2)

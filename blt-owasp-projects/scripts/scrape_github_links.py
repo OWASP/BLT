@@ -1,7 +1,12 @@
 import json
+import os
 import re
 import requests
 from bs4 import BeautifulSoup
+
+OUTPUT_DIR = os.environ.get("OUTPUT_DIR", "public")
+INPUT_FILE = os.path.join(OUTPUT_DIR, "www_project_repos.json")
+OUTPUT_FILE = os.path.join(OUTPUT_DIR, "project_repos_links.json")
 
 def check_url_exists(url):
     """Check if a URL returns a 404 status code."""
@@ -31,7 +36,7 @@ def extract_github_links(url, project_name):
     
     return list(github_links)
 
-with open('www_project_repos.json', 'r') as f:
+with open(INPUT_FILE, 'r') as f:
     data = json.load(f)
 
 project_links = []
@@ -48,5 +53,6 @@ for project in data:
             'repo_links': repo_links
         })
 
-with open('project_repos_links.json', 'w') as f:
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+with open(OUTPUT_FILE, 'w') as f:
     json.dump(project_links, f, indent=2)
