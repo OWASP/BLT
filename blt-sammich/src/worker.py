@@ -5518,6 +5518,17 @@ def render_admin_table_links(context: Dict[str, Any], admin_url: str) -> str:
     return "\n".join(links)
 
 
+def admin_table_refresh_url(context: Dict[str, Any], admin_url: str) -> str:
+    schema = context["schema"]
+    query = {"table": context["selected_table"]}
+    sort_column = context.get("sort_column") or schema["pk"]
+    sort_direction = context.get("sort_direction") or "DESC"
+    if sort_column != schema["pk"] or sort_direction.upper() != "DESC":
+        query["sort"] = sort_column
+        query["direction"] = sort_direction.lower()
+    return "{0}?{1}".format(admin_url, urlencode(query))
+
+
 def render_admin_row_table(context: Dict[str, Any], admin_url: str) -> str:
     selected_table = context["selected_table"]
     schema = context["schema"]
@@ -5682,6 +5693,7 @@ def render_admin_form_page(context: Dict[str, Any], admin_url: str) -> str:
 
 def render_database_admin_html(context: Dict[str, Any], admin_url: str) -> str:
     selected_table = context["selected_table"]
+    refresh_url = admin_table_refresh_url(context, admin_url)
     if context.get("confirm_delete_row"):
         main_content = render_admin_delete_confirm_html(context, admin_url)
     elif context.get("add_row") or context.get("edit_row"):
@@ -5694,13 +5706,17 @@ def render_database_admin_html(context: Dict[str, Any], admin_url: str) -> str:
               <h2 class="text-xl font-bold">{selected_table}</h2>
               <p class="text-sm text-gray-500">Full table data. Click a column heading to sort.</p>
             </div>
-            <a href="{admin_url}?table={selected_table}&add=1" class="inline-flex items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"><i class="fas fa-plus"></i>Add row</a>
+            <div class="flex flex-col gap-2 sm:flex-row">
+              <a href="{refresh_url}" class="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:border-gray-300 hover:bg-gray-50"><i class="fas fa-rotate-right"></i>Refresh</a>
+              <a href="{admin_url}?table={selected_table}&add=1" class="inline-flex items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"><i class="fas fa-plus"></i>Add row</a>
+            </div>
           </div>
           {table}
         </section>
         """.format(
             admin_url=html_escape(admin_url),
             selected_table=html_escape(selected_table),
+            refresh_url=html_escape(refresh_url),
             table=render_admin_row_table(context, admin_url),
         )
     return """

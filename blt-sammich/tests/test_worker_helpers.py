@@ -511,6 +511,8 @@ def test_render_admin_html_focuses_on_database_admin():
     assert "Security Team" in html
     assert "<th" in html
     assert "href=\"/private-admin?table=teams&sort=team_id&direction=asc\"" in html
+    assert "Refresh" in html
+    assert "href=\"/private-admin?table=teams\"" in html
     assert "/private-admin" in html
     assert "Connected Workspaces" not in html
     assert "Managed Servers" not in html
@@ -554,6 +556,7 @@ def test_render_admin_html_includes_database_admin_context():
     assert "teams" in html
     assert "Security Team" in html
     assert "team_name ▲" in html
+    assert "href=\"/private-admin?table=teams&amp;sort=team_name&amp;direction=asc\"" in html
     assert "Edit" in html
     assert "Delete" in html
     assert "Refresh channels" in html
