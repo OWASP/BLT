@@ -5,6 +5,9 @@ compatibility_flags = ["python_workers"]
 workers_dev = false
 preview_urls = false
 
+[vars]
+APP_VERSION = "0.1.0"
+
 [build]
 command = "./script/migrate.sh"
 

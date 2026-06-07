@@ -440,6 +440,18 @@ def app_version(env: Any = None) -> str:
     return APP_VERSION
 
 
+def is_invalid_home_user_response(payload: Dict[str, Any]) -> bool:
+    if not isinstance(payload, dict):
+        return False
+    if payload.get("ok"):
+        return False
+    if payload.get("error") != "invalid_arguments":
+        return False
+    response_metadata = payload.get("response_metadata") or {}
+    messages = response_metadata.get("messages") or []
+    return any("invalid `user_id`" in str(message) for message in messages)
+
+
 def build_blt_branding_block(
     env: Any, channel_id: str = "", user_id: str = "", tracking_id: str = ""
 ) -> Dict[str, Any]:
@@ -3717,7 +3729,7 @@ async def slack_api_call(
         method="POST",
         headers={
             "Authorization": "Bearer {0}".format(token),
-            "Content-Type": "application/json",
+            "Content-Type": "application/json; charset=utf-8",
         },
         body=json.dumps(request_payload),
     )
@@ -3825,14 +3837,18 @@ async def slack_api_publish_home(user_id: str, env: Any, team_id: str = "") -> N
         return
     workspace_name = ""
     try:
+        getattr(env, "DB")
         workspace = await db_get_workspace_by_team(env, team_id) if team_id else None
         workspace_name = str((workspace or {}).get("team_name") or "").strip()
     except Exception as error:
-        log_exception_one_line(
-            error,
-            "slack_home_workspace_lookup_failed",
-            {"team_id": team_id, "user_id": user_id},
-        )
+        if "DB" in str(error):
+            workspace_name = ""
+        else:
+            log_exception_one_line(
+                error,
+                "slack_home_workspace_lookup_failed",
+                {"team_id": team_id, "user_id": user_id},
+            )
     try:
         token = await db_get_workspace_bot_token(env, team_id=team_id)
     except Exception as error:
@@ -3893,10 +3909,16 @@ async def slack_api_publish_home(user_id: str, env: Any, team_id: str = "") -> N
         method="POST",
         headers={
             "Authorization": "Bearer {0}".format(token),
-            "Content-Type": "application/json",
+            "Content-Type": "application/json; charset=utf-8",
         },
         body=json.dumps(request_payload),
     )
+    if is_invalid_home_user_response(payload):
+        log_json_event(
+            "slack_home_publish_skipped_invalid_user",
+            {"team_id": team_id, "user_id": user_id, "status_code": status_code},
+        )
+        return
     await log_slack_api_response(
         env,
         team_id=team_id,

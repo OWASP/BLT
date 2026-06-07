@@ -2335,6 +2335,7 @@ def test_slack_api_publish_home_uses_views_publish_shape():
     assert captured["url"] == "https://slack.com/api/views.publish"
     assert captured["method"] == "POST"
     assert captured["headers"]["Authorization"] == "Bearer xoxb-token"
+    assert captured["headers"]["Content-Type"] == "application/json; charset=utf-8"
     assert captured["body"]["user_id"] == "U123"
     assert captured["body"]["view"]["type"] == "home"
     encoded_view = str(captured["body"]["view"])
@@ -2394,6 +2395,62 @@ def test_slack_api_publish_home_skips_bot_user_from_auth_test():
     assert captured["urls"] == ["https://slack.com/api/auth.test"]
     assert captured["updates"] == [("T04T40NHX", "U04TJF11F")]
     assert "logged" not in captured
+
+
+def test_slack_api_publish_home_skips_invalid_home_user_response():
+    captured = {"logged": False}
+    original_fetch_json = worker.fetch_json
+    original_log_response = worker.log_slack_api_response
+    original_bot_token = worker.db_get_workspace_bot_token
+    original_bot_user_id = worker.db_get_workspace_bot_user_id
+
+    async def fake_fetch_json(url, method="GET", headers=None, body=None):
+        captured["url"] = url
+        captured["headers"] = headers
+        captured["body"] = json.loads(body or "{}")
+        return (
+            True,
+            {
+                "ok": False,
+                "error": "invalid_arguments",
+                "response_metadata": {
+                    "messages": ["[ERROR] invalid `user_id`"],
+                    "warnings": ["missing_charset"],
+                },
+                "warning": "missing_charset",
+            },
+            200,
+        )
+
+    async def fake_log_response(*args, **kwargs):
+        captured["logged"] = True
+
+    async def fake_bot_token(env, team_id="", channel_id=""):
+        return "xoxb-token"
+
+    async def fake_bot_user_id(env, team_id="", channel_id=""):
+        return "UBOT"
+
+    worker.fetch_json = fake_fetch_json
+    worker.log_slack_api_response = fake_log_response
+    worker.db_get_workspace_bot_token = fake_bot_token
+    worker.db_get_workspace_bot_user_id = fake_bot_user_id
+    try:
+        asyncio.run(
+            worker.slack_api_publish_home(
+                "U04TJF11F", _Env(), team_id="T04T40NHX"
+            )
+        )
+    finally:
+        worker.fetch_json = original_fetch_json
+        worker.log_slack_api_response = original_log_response
+        worker.db_get_workspace_bot_token = original_bot_token
+        worker.db_get_workspace_bot_user_id = original_bot_user_id
+
+    assert captured["url"] == "https://slack.com/api/views.publish"
+    assert captured["headers"]["Content-Type"] == "application/json; charset=utf-8"
+    assert captured["body"]["user_id"] == "U04TJF11F"
+    assert captured["logged"] is False
 
 
 def test_slack_api_post_message_logs_slack_response_payload():
