@@ -2,11 +2,12 @@
   "name": "blt-jobs",
   "private": true,
   "scripts": {
+    "test": "node --test tests/*.test.js",
     "build:jobs": "node scripts/build-jobs.js",
     "validate:jobs": "node scripts/validate-jobs.js",
     "list:jobs": "node scripts/list-jobs-status.js",
     "expire:jobs": "node scripts/expire-jobs.js",
-    "crawl:jobs": "node scripts/scheduled-crawl.js",
+    "discover:candidates": "node scripts/scheduled-crawl.js",
     "build:worker": "npm run build:jobs",
     "deploy:worker": "npm run build:worker && npx wrangler@4 deploy"
   },

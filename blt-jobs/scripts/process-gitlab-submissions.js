@@ -37,6 +37,7 @@ function issueEnv(issue) {
     ...process.env,
     ISSUE_USER: issue.author?.username || "",
     ISSUE_USER_URL: issue.author?.web_url || "",
+    ISSUE_URL: issue.web_url || `${projectUrl}/-/issues/${issue.iid}`,
   };
 }
 

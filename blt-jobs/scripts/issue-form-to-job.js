@@ -6,7 +6,7 @@
 const fs = require("fs");
 const path = require("path");
 
-const JOBS_DIR = path.join(__dirname, "..", "jobs");
+const JOBS_DIR = process.env.BLT_JOBS_DIR || path.join(__dirname, "..", "jobs");
 
 function parseFormBody(body) {
   const data = {};
@@ -29,6 +29,34 @@ function slugify(s) {
     .replace(/[-\s]+/g, "-")
     .replace(/^-|-$/g, "")
     || "job";
+}
+
+function extractFirstUrl(value) {
+  const match = String(value || "").match(/https?:\/\/[^\s)>\]]+/i);
+  return match ? match[0].replace(/[.,]+$/, "") : "";
+}
+
+function extractFirstEmail(value) {
+  const match = String(value || "").match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
+  return match ? match[0].replace(/[.,]+$/, "") : "";
+}
+
+function inferApplicationMode(applicationUrl, applicationEmail, instructions) {
+  if (applicationUrl) return "external_url";
+  if (applicationEmail) return "email";
+  if (instructions) return "instructions";
+  return "not_provided";
+}
+
+function inferPublicContactPolicy(applicationUrl, applicationEmail, instructions) {
+  if (applicationEmail) return "public_email";
+  if (applicationUrl) return "external_apply";
+  if (instructions) return "application_instructions";
+  return "not_provided";
+}
+
+function outputRelativePath(filePath) {
+  return path.relative(path.dirname(JOBS_DIR), filePath);
 }
 
 function main() {
@@ -59,7 +87,8 @@ function main() {
 
   const created = new Date().toISOString().replace(/\.\d{3}Z$/, "Z");
   const addedBy = (process.env.ISSUE_USER || "").trim();
-  const applicationUrl = website || "";
+  const applicationUrl = extractFirstUrl(howToApply) || website || "";
+  const applicationEmail = extractFirstEmail(howToApply);
 
   const descriptionBody = [description, requirements ? `## Requirements\n\n${requirements}` : "", howToApply ? `## How to Apply\n\n${howToApply}` : "", additionalInfo ? `## Additional Information\n\n${additionalInfo}` : ""].filter(Boolean).join("\n\n");
 
@@ -72,14 +101,25 @@ function main() {
     salary_range: salaryRange || "",
     date_posted: created,
     expires_at: "",
-    application_email: "",
+    application_mode: inferApplicationMode(applicationUrl, applicationEmail, howToApply),
+    application_email: applicationEmail || "",
     application_url: applicationUrl || "",
     application_instructions: howToApply || "",
+    public_contact_policy: inferPublicContactPolicy(applicationUrl, applicationEmail, howToApply),
     requirements: requirements || "",
     created_at: created,
+    updated_at: "",
+    last_verified_at: "",
     views_count: 0,
     added_by: addedBy || "",
     added_by_url: (process.env.ISSUE_USER_URL || "").trim(),
+    source_platform: "gitlab",
+    source_issue_url: (process.env.ISSUE_URL || process.env.CI_JOB_URL || "").trim(),
+    source_merge_request_url: "",
+    source_commit_url: "",
+    submission_type: "issue",
+    review_status: "submitted",
+    reviewed_by: "",
     needs_manual_review: false,
   };
 
@@ -92,7 +132,18 @@ function main() {
 
   fs.mkdirSync(JOBS_DIR, { recursive: true });
   fs.writeFileSync(outPath, lines.join("\n"), "utf8");
-  console.log(path.relative(process.cwd(), outPath));
+  console.log(outputRelativePath(outPath));
 }
 
-main();
+if (require.main === module) {
+  main();
+}
+
+module.exports = {
+  extractFirstEmail,
+  extractFirstUrl,
+  inferApplicationMode,
+  inferPublicContactPolicy,
+  parseFormBody,
+  slugify,
+};
