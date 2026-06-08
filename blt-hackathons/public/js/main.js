@@ -151,13 +151,11 @@ class HackathonDashboard {
         this.setText('nav-title', eventName);
         this.setText('hackathon-name', eventName);
 
-        // Update banner image if provided
+        // Keep the dashboard banner neutral; configured images are shown in listings only.
         const bannerSection = document.getElementById('banner-section');
-        if (this.config.bannerImage) {
-            const bannerUrl = this.safeUrl(this.config.bannerImage, '');
-            if (bannerSection && bannerUrl) {
-                bannerSection.style.backgroundImage = `url("${bannerUrl.replace(/"/g, '%22')}")`;
-            }
+        if (bannerSection) {
+            bannerSection.style.backgroundImage = 'none';
+            bannerSection.style.backgroundColor = '#f6f6f6';
         }
 
         // Update description

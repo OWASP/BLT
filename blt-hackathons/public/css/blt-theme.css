@@ -272,7 +272,7 @@ body.blt-page {
 
 .blt-stat-card span {
     display: block;
-    color: var(--blt-red);
+    color: var(--blt-text);
     font-size: clamp(1.65rem, 4vw, 2.35rem);
     font-weight: 800;
     line-height: 1;
