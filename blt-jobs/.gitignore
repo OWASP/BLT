@@ -13,9 +13,14 @@ Thumbs.db
 *.tmp
 *.bak
 comment.txt
+.env.production
 
 # Node dependencies
 node_modules/
 .npm/
 .worker-assets/
 .wrangler/
+
+# Python cache
+__pycache__/
+*.pyc
