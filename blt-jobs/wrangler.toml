@@ -7,6 +7,7 @@ main = "src/worker.py"
 [assets]
 directory = "./public"
 binding = "ASSETS"
+run_worker_first = ["/admin-*", "/api/admin/*"]
 html_handling = "auto-trailing-slash"
 not_found_handling = "404-page"
 
