@@ -1,7 +1,7 @@
 name = "blt-jobs"
 account_id = "4a11615c97ec0ffcbb7952a061aada19"
 compatibility_date = "2026-05-31"
-compatibility_flags = ["python_workers"]
+compatibility_flags = ["python_workers", "disable_python_external_sdk"]
 main = "src/worker.py"
 
 [assets]
