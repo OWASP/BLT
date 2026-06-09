@@ -1,175 +1,1028 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BLT Hackathons - Open Source Hackathon Platform</title>
-    <meta name="description" content="Browse and participate in open source hackathons">
-    
-    <!-- Tailwind CSS CDN -->
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BLT Hackathons - OWASP BLT Contribution Events</title>
+    <meta
+      name="description"
+      content="Browse OWASP BLT contribution events, warmups, hackathons, and generated participation stats."
+    />
+
+    <script>
+      window.tailwind = window.tailwind || {};
+      window.tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              blt: { red: "#dc2626", coral: "#ef4444", ink: "#111827" },
+            },
+            fontFamily: {
+              sans: [
+                "Inter",
+                "ui-sans-serif",
+                "system-ui",
+                "-apple-system",
+                "BlinkMacSystemFont",
+                "Segoe UI",
+                "sans-serif",
+              ],
+              mono: [
+                "ui-monospace",
+                "SFMono-Regular",
+                "Menlo",
+                "Monaco",
+                "Consolas",
+                "monospace",
+              ],
+            },
+          },
+        },
+      };
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="css/blt-theme.css" />
+    <script src="js/theme.js"></script>
+
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      /* ── Mobile nav ── */
+      .mobile-menu.open {
+        display: flex;
+      }
+      .mobile-toggle.active span:nth-child(1) {
+        transform: translateY(6px) rotate(45deg);
+      }
+      .mobile-toggle.active span:nth-child(2) {
+        opacity: 0;
+      }
+      .mobile-toggle.active span:nth-child(3) {
+        transform: translateY(-6px) rotate(-45deg);
+      }
+
+      /* ── Hero dot field ── */
+      .dot-field {
+        background-image: radial-gradient(
+          rgba(17, 24, 39, 0.15) 1px,
+          transparent 1px
+        );
+        background-size: 18px 18px;
+        mask-image: radial-gradient(circle at center, black 0, transparent 74%);
+        -webkit-mask-image: radial-gradient(
+          circle at center,
+          black 0,
+          transparent 74%
+        );
+      }
+
+      /* ── Wave dots divider ── */
+      .feature-divider::before,
+      .feature-divider::after {
+        content: "";
+        height: 1px;
+        flex: 1;
+      }
+      .feature-divider::before {
+        background: linear-gradient(to right, transparent, #e5e7eb);
+      }
+      .feature-divider::after {
+        background: linear-gradient(to left, transparent, #e5e7eb);
+      }
+      .wave-dots i {
+        position: absolute;
+        width: 0.25rem;
+        height: 0.25rem;
+        border-radius: 999px;
+        background: #d1d5db;
+        animation: wave 2s infinite ease-in-out;
+      }
+      .wave-dots i:nth-child(1) {
+        top: 0;
+        left: 0;
+      }
+      .wave-dots i:nth-child(2) {
+        top: 0;
+        left: 1rem;
+      }
+      .wave-dots i:nth-child(3) {
+        top: 0.25rem;
+        left: 0.5rem;
+        animation-delay: 0.35s;
+      }
+      .wave-dots i:nth-child(4) {
+        top: 0.5rem;
+        left: 0;
+        animation-delay: 0.55s;
+      }
+      .wave-dots i:nth-child(5) {
+        top: 0.5rem;
+        left: 1rem;
+        animation-delay: 0.55s;
+      }
+      .wave-dots i:nth-child(6) {
+        top: 0.75rem;
+        left: 0.5rem;
+        animation-delay: 0.85s;
+      }
+      @keyframes wave {
+        0%,
+        100% {
+          transform: translateY(0);
+          opacity: 0.5;
         }
-        .hackathon-card {
-            transition: transform 0.2s, box-shadow 0.2s;
+        50% {
+          transform: translateY(-3px);
+          opacity: 1;
         }
-        .hackathon-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-        }
-        
-        /* Mobile-specific styles */
-        @media (max-width: 640px) {
-            .btn-text {
-                display: none;
-            }
-        }
-        @media (min-width: 641px) {
-            .btn-icon-only {
-                display: none;
-            }
-        }
+      }
+
+      /* ── Section kicker left-bar ── */
+      .section-kicker.with-bar::before {
+        content: "";
+        position: absolute;
+        top: 0.18rem;
+        left: -0.55rem;
+        width: 3px;
+        height: 1.25rem;
+        border-radius: 0 2px 2px 0;
+        background: #ef4444;
+      }
+
+      /* ── Dark footer grid overlay ── */
+      .footer-panel::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0.04;
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 1) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 1) 1px, transparent 1px);
+        background-size: 40px 40px;
+      }
+      .footer-links p {
+        margin: 0 0 0.35rem;
+        color: #6b7280;
+        font-size: 0.625rem;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+      .footer-links a {
+        display: block;
+        color: #d1d5db;
+        font-size: 0.875rem;
+        line-height: 1.55;
+        transition: color 180ms ease;
+      }
+      .footer-links a:hover {
+        color: white;
+      }
+
+      /* ── Hero inline stats ── */
+      .hero-stat strong {
+        display: block;
+        font-size: 1.7rem;
+        font-weight: 800;
+        color: #111827;
+        line-height: 1;
+      }
+      .hero-stat span {
+        display: block;
+        margin-top: 0.2rem;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: #9ca3af;
+      }
     </style>
-</head>
-<body class="bg-gray-50">
-    <!-- Navigation -->
-    <nav class="bg-white shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                <div class="flex items-center">
-                    <i class="fas fa-trophy text-red-600 text-2xl mr-3"></i>
-                    <h1 class="text-xl font-bold text-gray-900" id="site-title">BLT Hackathons</h1>
-                </div>
-                <div class="flex items-center space-x-2 sm:space-x-4">
-                    <a href="https://github.com/OWASP-BLT/BLT-Hackathons/issues/new?template=create-hackathon.yml"
-                       target="_blank"
-                       rel="noopener noreferrer"
-                       class="px-3 py-2 sm:px-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center space-x-2"
-                       aria-label="Create a new hackathon">
-                        <i class="fas fa-plus"></i>
-                        <span class="btn-text">Create Hackathon</span>
-                    </a>
-                    <a href="https://github.com/OWASP-BLT/BLT-Hackathons" target="_blank" 
-                       rel="noopener noreferrer"
-                       class="px-3 py-2 sm:px-4 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium flex items-center space-x-2"
-                       aria-label="Contribute on GitHub">
-                        <i class="fab fa-github"></i>
-                        <span class="btn-text">Contribute on GitHub</span>
-                    </a>
-                    <a href="https://github.com/OWASP-BLT" target="_blank" 
-                       rel="noopener noreferrer"
-                       class="text-gray-600 hover:text-gray-900 hidden sm:block">
-                        <i class="fab fa-github text-2xl"></i>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </nav>
+  </head>
+  <body
+    class="min-h-screen overflow-x-hidden bg-gray-50 font-sans text-gray-900 antialiased selection:bg-red-100 selection:text-red-700"
+  >
+    <!-- ══ Header ══ -->
+    <header
+      class="fixed inset-x-0 top-0 z-50 border-b border-black/5 bg-white/90 backdrop-blur-[18px]"
+      id="site-header"
+    >
+      <div
+        class="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-4 max-md:px-4"
+      >
+        <a
+          href="#top"
+          class="inline-flex items-center gap-2.5"
+          aria-label="BLT Hackathons home"
+        >
+          <span
+            class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-red-100 bg-white text-red-600 shadow-sm"
+            aria-hidden="true"
+          >
+            <i class="fas fa-trophy text-sm"></i>
+          </span>
+          <span
+            class="text-sm font-semibold tracking-tight text-gray-900"
+            id="site-title"
+            >BLT Hackathons</span
+          >
+        </a>
 
-    <!-- Hero Section -->
-    <div class="bg-gradient-to-r from-red-600 to-red-800 text-white py-8 sm:py-12 lg:py-16">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4" id="hero-title">Open Source Hackathons</h2>
-            <p class="text-base sm:text-lg lg:text-xl mb-4 sm:mb-6" id="hero-description">
-                Join our community hackathons and contribute to open source projects
+        <nav
+          class="hidden items-center gap-7 md:flex"
+          aria-label="Primary navigation"
+        >
+          <a
+            class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+            href="#events"
+            >Events</a
+          >
+          <a
+            class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+            href="#how-it-works"
+            >How it works</a
+          >
+          <a
+            class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+            href="#gsoc-warmup"
+            >GSoC warmup</a
+          >
+          <a
+            class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900"
+            href="#provider-support"
+            >Providers</a
+          >
+        </nav>
+
+        <div class="hidden items-center gap-3 md:flex">
+          <a
+            class="inline-flex items-center justify-center gap-1.5 rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-4 py-2 text-sm font-medium text-white shadow-[0_10px_24px_-18px_rgba(220,38,38,.8)] transition duration-200 hover:-translate-y-px"
+            href="#maintainer-cta"
+          >
+            <i class="fas fa-plus text-xs" aria-hidden="true"></i>
+            Create event
+          </a>
+        </div>
+
+        <button
+          class="mobile-toggle hidden h-8 w-8 cursor-pointer flex-col items-center justify-center gap-[5px] border-0 bg-transparent max-md:flex"
+          id="mobile-toggle"
+          type="button"
+          aria-label="Toggle menu"
+          aria-expanded="false"
+          aria-controls="mobile-menu"
+        >
+          <span
+            class="block h-px w-5 bg-gray-600 transition duration-200"
+          ></span>
+          <span
+            class="block h-px w-5 bg-gray-600 transition duration-200"
+          ></span>
+          <span
+            class="block h-px w-5 bg-gray-600 transition duration-200"
+          ></span>
+        </button>
+      </div>
+
+      <nav
+        class="mobile-menu hidden flex-col gap-4 border-t border-gray-100 bg-white/95 px-6 py-4 backdrop-blur-md"
+        id="mobile-menu"
+        aria-label="Mobile navigation"
+      >
+        <a
+          class="text-sm text-gray-600 transition-colors hover:text-gray-900"
+          href="#events"
+          >Events</a
+        >
+        <a
+          class="text-sm text-gray-600 transition-colors hover:text-gray-900"
+          href="#how-it-works"
+          >How it works</a
+        >
+        <a
+          class="text-sm text-gray-600 transition-colors hover:text-gray-900"
+          href="#gsoc-warmup"
+          >GSoC warmup</a
+        >
+        <a
+          class="text-sm text-gray-600 transition-colors hover:text-gray-900"
+          href="#provider-support"
+          >Providers</a
+        >
+        <a
+          class="inline-flex items-center justify-center gap-1.5 rounded-md border border-gray-200 bg-white px-5 py-3 text-sm font-medium text-gray-700 transition duration-200 hover:border-gray-300 hover:bg-gray-50"
+          href="#maintainer-cta"
+          >Create event</a
+        >
+      </nav>
+    </header>
+
+    <main id="top">
+      <!-- ══ Hero ══ -->
+      <section
+        class="relative flex min-h-[46rem] items-start justify-center px-4 pb-14 pt-52 max-md:min-h-[40rem] max-md:pt-36"
+        aria-labelledby="hero-title"
+      >
+        <div
+          class="dot-field pointer-events-none absolute inset-x-0 top-24 z-[1] mx-auto h-[38rem] w-[min(94rem,180vw)] opacity-70"
+          aria-hidden="true"
+        ></div>
+        <div
+          class="relative z-[2] flex w-full max-w-3xl flex-col items-center text-center"
+        >
+          <!-- Pill badge -->
+          <a
+            class="inline-flex max-w-[min(40rem,calc(100vw-2rem))] items-center gap-3 rounded-full bg-white/40 py-[.15rem] pl-[.15rem] pr-3 text-sm font-medium text-gray-900 shadow-[0_10px_30px_-16px_rgba(220,38,38,.45),0_0_0_1px_rgba(0,0,0,.1)] backdrop-blur-[1px] max-md:text-[.72rem]"
+            href="#events"
+            aria-label="Browse contribution events"
+          >
+            <span
+              class="flex-none rounded-full border border-gray-200 bg-gray-50 px-[.65rem] py-1 text-xs text-gray-600"
+              >Live</span
+            >
+            <span class="truncate"
+              >Contribution events and generated summaries are now
+              available.</span
+            >
+          </a>
+
+          <!-- Headline -->
+          <h1
+            id="hero-title"
+            class="mt-7 text-[clamp(3rem,8.5vw,6.2rem)] font-bold leading-[.92] tracking-[-.053em] text-gray-900"
+          >
+            Contribution<br />events for OWASP
+            <span class="text-red-600">BLT</span>.
+          </h1>
+          <p
+            id="hero-description"
+            class="mt-6 max-w-[40rem] text-[clamp(1rem,1.5vw,1.18rem)] leading-[1.65] text-gray-600 text-balance"
+          >
+            Join focused hackathons, mentoring warmups, and contribution drives
+            that turn issues, reviews, and pull requests into visible community
+            progress.
+          </p>
+
+          <!-- CTAs -->
+          <div
+            class="mt-8 flex items-center justify-center gap-3 max-md:w-full max-md:flex-col max-md:px-4"
+          >
+            <a
+              class="inline-flex items-center justify-center gap-2 rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-5 py-3 text-base font-medium text-white shadow-[0_0_0_2px_rgba(0,0,0,.04),0_10px_24px_-14px_rgba(220,38,38,.8)] transition duration-200 hover:-translate-y-px"
+              href="#events"
+            >
+              <i class="fas fa-calendar-check text-sm" aria-hidden="true"></i>
+              Browse events
+            </a>
+            <a
+              class="inline-flex items-center justify-center gap-2 rounded-md border border-gray-200 bg-white px-5 py-3 text-base font-medium text-gray-700 transition duration-200 hover:border-gray-300 hover:bg-gray-50"
+              href="https://gitlab.com/owasp-blt/blt-hackathons"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <i class="fab fa-gitlab text-sm" aria-hidden="true"></i>
+              Canonical project
+            </a>
+          </div>
+
+          <!-- Quick stats row — JS hooks preserved -->
+          <div
+            class="mt-12 flex items-center justify-center gap-8 max-sm:gap-4"
+          >
+            <div class="hero-stat text-center">
+              <strong data-platform-stat="events">--</strong>
+              <span>Events</span>
+            </div>
+            <div class="h-8 w-px bg-gray-200" aria-hidden="true"></div>
+            <div class="hero-stat text-center">
+              <strong data-platform-stat="participants">--</strong>
+              <span>Participants</span>
+            </div>
+            <div class="h-8 w-px bg-gray-200" aria-hidden="true"></div>
+            <div class="hero-stat text-center">
+              <strong data-platform-stat="prs">--</strong>
+              <span>Pull requests</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ Wave-dots divider ══ -->
+      <div
+        class="feature-divider mx-auto my-10 flex w-[min(72rem,calc(100%-2rem))] items-center gap-3 text-gray-500"
+        aria-hidden="true"
+      >
+        <span class="wave-dots relative h-4 w-5 flex-none"
+          ><i></i><i></i><i></i><i></i><i></i><i></i
+        ></span>
+      </div>
+
+      <!-- ══ Platform stats ══ -->
+      <section
+        id="platform-stats"
+        class="w-full px-4 pb-20 pt-4"
+        aria-labelledby="platform-stats-title"
+      >
+        <div class="mx-auto w-[min(72rem,calc(100%-1rem))]">
+          <div
+            class="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between"
+          >
+            <div>
+              <span
+                class="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1 font-mono text-xs font-medium uppercase tracking-[.16em] text-gray-500"
+                >Platform stats</span
+              >
+              <h2
+                id="platform-stats-title"
+                class="mt-4 text-[clamp(2rem,3.5vw,2.75rem)] font-semibold leading-[1.05] tracking-[-.04em]"
+              >
+                Contribution activity at a glance
+              </h2>
+            </div>
+            <p class="max-w-xs text-sm leading-6 text-gray-500">
+              Totals from generated event summaries in
+              <span class="font-mono text-gray-700">public/hackathon-data</span
+              >.
             </p>
+          </div>
+          <div
+            id="platform-stats-grid"
+            class="grid grid-cols-2 gap-3 lg:grid-cols-5"
+          >
+            <div class="blt-stat-card">
+              <span>--</span>
+              <p>Events tracked</p>
+            </div>
+            <div class="blt-stat-card">
+              <span>--</span>
+              <p>Pull requests</p>
+            </div>
+            <div class="blt-stat-card">
+              <span>--</span>
+              <p>Merged PRs</p>
+            </div>
+            <div class="blt-stat-card">
+              <span>--</span>
+              <p>Participants</p>
+            </div>
+            <div class="blt-stat-card">
+              <span>--</span>
+              <p>Repositories</p>
+            </div>
+          </div>
         </div>
-    </div>
+      </section>
 
-    <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <!-- Hackathons Grid -->
-        <div class="mb-12">
-            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 sm:mb-8">
-                <h2 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-4 sm:mb-0">Available Hackathons</h2>
-                <div class="flex flex-wrap gap-2 sm:gap-4">
-                    <button onclick="filterHackathons('all')" 
-                            class="filter-btn px-3 sm:px-4 py-2 rounded-lg bg-red-600 text-white font-medium text-sm sm:text-base"
-                            data-filter="all">
-                        All
-                    </button>
-                    <button onclick="filterHackathons('ongoing')" 
-                            class="filter-btn px-3 sm:px-4 py-2 rounded-lg bg-gray-200 text-gray-700 font-medium hover:bg-gray-300 text-sm sm:text-base"
-                            data-filter="ongoing">
-                        Ongoing
-                    </button>
-                    <button onclick="filterHackathons('upcoming')" 
-                            class="filter-btn px-3 sm:px-4 py-2 rounded-lg bg-gray-200 text-gray-700 font-medium hover:bg-gray-300 text-sm sm:text-base"
-                            data-filter="upcoming">
-                        Upcoming
-                    </button>
-                    <button onclick="filterHackathons('ended')" 
-                            class="filter-btn px-3 sm:px-4 py-2 rounded-lg bg-gray-200 text-gray-700 font-medium hover:bg-gray-300 text-sm sm:text-base"
-                            data-filter="ended">
-                        Ended
-                    </button>
-                </div>
+      <!-- ══ Wave-dots divider ══ -->
+      <div
+        class="feature-divider mx-auto my-10 flex w-[min(72rem,calc(100%-2rem))] items-center gap-3 text-gray-500"
+        aria-hidden="true"
+      >
+        <span class="wave-dots relative h-4 w-5 flex-none"
+          ><i></i><i></i><i></i><i></i><i></i><i></i
+        ></span>
+      </div>
+
+      <!-- ══ Featured event ══ -->
+      <section
+        id="featured-event"
+        class="w-full px-4 pb-20 pt-4"
+        aria-labelledby="featured-event-title"
+      >
+        <div class="mx-auto w-[min(72rem,calc(100%-1rem))]">
+          <div
+            class="mb-8 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between"
+          >
+            <div>
+              <span
+                class="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 py-1 font-mono text-xs font-medium uppercase tracking-[.16em] text-red-600"
+                >Featured event</span
+              >
+              <h2
+                id="featured-event-title"
+                class="mt-4 text-[clamp(2rem,3.5vw,2.75rem)] font-semibold leading-[1.05] tracking-[-.04em]"
+              >
+                Start with the most relevant event
+              </h2>
             </div>
-            
-            <div id="hackathons-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-                <!-- Hackathon cards will be inserted here -->
-                <div class="col-span-full text-center py-12">
-                    <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
-                    <p class="mt-4 text-gray-600">Loading hackathons...</p>
-                </div>
+            <a
+              href="#events"
+              class="inline-flex items-center gap-1.5 text-sm font-medium text-red-600 hover:underline"
+            >
+              View all events
+              <i class="fas fa-arrow-down text-xs" aria-hidden="true"></i>
+            </a>
+          </div>
+          <div id="featured-event-content" class="blt-featured-event">
+            <div class="flex items-center justify-center py-12 text-gray-500">
+              <div
+                class="inline-block h-8 w-8 animate-spin rounded-full border-b-2 border-red-600"
+                aria-hidden="true"
+              ></div>
+              <span class="ml-3">Loading featured event...</span>
             </div>
-            
-            <div id="no-hackathons" class="hidden text-center py-12">
-                <i class="fas fa-calendar-times text-6xl text-gray-300 mb-4"></i>
-                <p class="text-xl text-gray-600">No hackathons found</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ Events grid ══ -->
+      <section
+        id="events"
+        class="w-full border-y border-gray-100 bg-gray-50/80 px-4 pb-24 pt-12"
+        aria-labelledby="events-title"
+      >
+        <div class="mx-auto w-[min(72rem,calc(100%-1rem))]">
+          <div
+            class="mb-8 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between"
+          >
+            <div>
+              <span
+                class="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1 font-mono text-xs font-medium uppercase tracking-[.16em] text-gray-500"
+                >Events</span
+              >
+              <h2
+                id="events-title"
+                class="mt-4 text-[clamp(2rem,3.5vw,2.75rem)] font-semibold leading-[1.05] tracking-[-.04em]"
+              >
+                Browse contribution events
+              </h2>
+              <p class="mt-3 max-w-2xl text-sm leading-6 text-gray-500">
+                Use the filters to find active, upcoming, and completed BLT
+                events while cards load generated summary JSON.
+              </p>
             </div>
+            <div
+              class="flex flex-wrap gap-2"
+              aria-label="Filter contribution events"
+            >
+              <button
+                onclick="filterHackathons('all')"
+                class="filter-btn is-active"
+                data-filter="all"
+                type="button"
+              >
+                All
+              </button>
+              <button
+                onclick="filterHackathons('ongoing')"
+                class="filter-btn"
+                data-filter="ongoing"
+                type="button"
+              >
+                Ongoing
+              </button>
+              <button
+                onclick="filterHackathons('upcoming')"
+                class="filter-btn"
+                data-filter="upcoming"
+                type="button"
+              >
+                Upcoming
+              </button>
+              <button
+                onclick="filterHackathons('ended')"
+                class="filter-btn"
+                data-filter="ended"
+                type="button"
+              >
+                Ended
+              </button>
+            </div>
+          </div>
+          <div
+            id="hackathons-grid"
+            class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3"
+          >
+            <div class="col-span-full py-12 text-center">
+              <div
+                class="inline-block h-12 w-12 animate-spin rounded-full border-b-2 border-red-600"
+                aria-hidden="true"
+              ></div>
+              <p class="mt-4 text-gray-600">Loading hackathons...</p>
+            </div>
+          </div>
+          <div id="no-hackathons" class="hidden py-12 text-center">
+            <i
+              class="fas fa-calendar-times text-5xl text-gray-300"
+              aria-hidden="true"
+            ></i>
+            <p class="mt-4 text-lg text-gray-600">No hackathons found</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ Wave-dots divider ══ -->
+      <div
+        class="feature-divider mx-auto my-10 flex w-[min(72rem,calc(100%-2rem))] items-center gap-3 text-gray-500"
+        aria-hidden="true"
+      >
+        <span class="wave-dots relative h-4 w-5 flex-none"
+          ><i></i><i></i><i></i><i></i><i></i><i></i
+        ></span>
+      </div>
+
+      <!-- ══ How it works ══ -->
+      <section
+        id="how-it-works"
+        class="w-full px-4 pb-24 pt-4"
+        aria-labelledby="how-it-works-title"
+      >
+        <div class="mx-auto w-[min(64rem,calc(100%-1rem))]">
+          <div class="mx-auto mb-10 max-w-[42rem] text-center">
+            <span
+              class="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 py-1 font-mono text-xs font-medium uppercase tracking-[.16em] text-red-600"
+              >How it works</span
+            >
+            <h2
+              id="how-it-works-title"
+              class="mt-4 text-[clamp(2rem,3.5vw,2.75rem)] font-semibold leading-[1.05] tracking-[-.04em] text-balance"
+            >
+              A simple path from issue to recognized contribution
+            </h2>
+            <p
+              class="mx-auto mt-4 max-w-[40rem] text-base leading-[1.6] text-gray-600"
+            >
+              BLT contribution events give contributors a focused window,
+              maintainers a clear leaderboard, and the community a public record
+              of useful work.
+            </p>
+          </div>
+          <div
+            class="grid grid-cols-3 gap-3 max-lg:grid-cols-2 max-md:grid-cols-1"
+          >
+            <article
+              class="rounded-xl bg-white p-6 shadow-[inset_0_0_0_1px_rgba(17,24,39,.1)]"
+            >
+              <div
+                class="flex h-12 w-12 items-center justify-center rounded-full border border-gray-200 bg-gray-50 font-mono text-sm font-semibold text-red-600"
+              >
+                01
+              </div>
+              <h3 class="mt-6 text-lg font-semibold">Pick an event</h3>
+              <p class="mt-3 text-sm leading-6 text-gray-600">
+                Choose an active or upcoming event, review its rules, and follow
+                the linked repository guidance.
+              </p>
+            </article>
+            <article
+              class="rounded-xl bg-white p-6 shadow-[inset_0_0_0_1px_rgba(17,24,39,.1)]"
+            >
+              <div
+                class="flex h-12 w-12 items-center justify-center rounded-full border border-gray-200 bg-gray-50 font-mono text-sm font-semibold text-red-600"
+              >
+                02
+              </div>
+              <h3 class="mt-6 text-lg font-semibold">Contribute work</h3>
+              <p class="mt-3 text-sm leading-6 text-gray-600">
+                Submit issues, pull requests, reviews, and fixes during the
+                event window so generated summaries can count them.
+              </p>
+            </article>
+            <article
+              class="rounded-xl bg-white p-6 shadow-[inset_0_0_0_1px_rgba(17,24,39,.1)]"
+            >
+              <div
+                class="flex h-12 w-12 items-center justify-center rounded-full border border-gray-200 bg-gray-50 font-mono text-sm font-semibold text-red-600"
+              >
+                03
+              </div>
+              <h3 class="mt-6 text-lg font-semibold">Track progress</h3>
+              <p class="mt-3 text-sm leading-6 text-gray-600">
+                Open the event dashboard to see participant totals,
+                repositories, merged PRs, and leaderboard movement.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ GSoC warmup — section-kicker layout ══ -->
+      <section
+        id="gsoc-warmup"
+        class="w-full px-4 pb-24 pt-6"
+        aria-labelledby="gsoc-warmup-title"
+      >
+        <div
+          class="mx-auto grid w-[min(72rem,calc(100%-1rem))] items-center gap-10 lg:grid-cols-[.88fr_1.12fr]"
+        >
+          <div>
+            <h2
+              id="gsoc-warmup-title"
+              class="section-kicker with-bar relative m-0 text-lg font-semibold leading-tight tracking-[-.01em] text-red-500"
+            >
+              GSoC warmup
+            </h2>
+            <p
+              class="mt-2 text-[clamp(2rem,3vw,2.55rem)] font-semibold leading-[1.05] tracking-[-.04em] text-balance"
+            >
+              Practice before mentoring season begins.
+            </p>
+            <p
+              class="mt-4 max-w-[36rem] text-base leading-[1.65] text-gray-600"
+            >
+              Warmup events help contributors build a visible history before
+              Google Summer of Code style programs. Useful for learning the BLT
+              codebase, proving follow-through, and getting comfortable with
+              review cycles.
+            </p>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div
+              class="rounded-2xl border border-gray-200 bg-white p-5 transition hover:-translate-y-0.5 hover:border-red-200"
+            >
+              <i
+                class="fas fa-route text-red-600 text-lg"
+                aria-hidden="true"
+              ></i>
+              <h3 class="mt-4 text-sm font-semibold text-gray-900">
+                Onboarding signal
+              </h3>
+              <p class="mt-2 text-sm leading-6 text-gray-600">
+                Show steady activity before formal proposal periods.
+              </p>
+            </div>
+            <div
+              class="rounded-2xl border border-gray-200 bg-white p-5 transition hover:-translate-y-0.5 hover:border-red-200"
+            >
+              <i
+                class="fas fa-comments text-red-600 text-lg"
+                aria-hidden="true"
+              ></i>
+              <h3 class="mt-4 text-sm font-semibold text-gray-900">
+                Review practice
+              </h3>
+              <p class="mt-2 text-sm leading-6 text-gray-600">
+                Learn how maintainers expect issues, PRs, and discussions to
+                move.
+              </p>
+            </div>
+            <div
+              class="rounded-2xl border border-gray-200 bg-white p-5 transition hover:-translate-y-0.5 hover:border-red-200"
+            >
+              <i
+                class="fas fa-shield-alt text-red-600 text-lg"
+                aria-hidden="true"
+              ></i>
+              <h3 class="mt-4 text-sm font-semibold text-gray-900">
+                Security context
+              </h3>
+              <p class="mt-2 text-sm leading-6 text-gray-600">
+                Work inside OWASP BLT projects while learning responsible
+                contribution norms.
+              </p>
+            </div>
+            <div
+              class="rounded-2xl border border-gray-200 bg-white p-5 transition hover:-translate-y-0.5 hover:border-red-200"
+            >
+              <i
+                class="fas fa-chart-line text-red-600 text-lg"
+                aria-hidden="true"
+              ></i>
+              <h3 class="mt-4 text-sm font-semibold text-gray-900">
+                Visible record
+              </h3>
+              <p class="mt-2 text-sm leading-6 text-gray-600">
+                Generated summaries keep contribution activity easy to inspect.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ Wave-dots divider ══ -->
+      <div
+        class="feature-divider mx-auto my-10 flex w-[min(72rem,calc(100%-2rem))] items-center gap-3 text-gray-500"
+        aria-hidden="true"
+      >
+        <span class="wave-dots relative h-4 w-5 flex-none"
+          ><i></i><i></i><i></i><i></i><i></i><i></i
+        ></span>
+      </div>
+
+      <!-- ══ Provider support — section-kicker layout reversed ══ -->
+      <section
+        id="provider-support"
+        class="w-full px-4 pb-24 pt-6"
+        aria-labelledby="provider-support-title"
+      >
+        <div
+          class="mx-auto grid w-[min(72rem,calc(100%-1rem))] items-center gap-10 lg:grid-cols-[1.12fr_.88fr]"
+        >
+          <div class="grid grid-cols-2 gap-3">
+            <div
+              class="rounded-2xl border border-gray-200 bg-white p-5 transition hover:-translate-y-0.5 hover:border-red-200"
+            >
+              <i
+                class="fab fa-github text-xl text-gray-800"
+                aria-hidden="true"
+              ></i>
+              <p class="mt-4 text-sm font-semibold text-gray-900">
+                GitHub activity
+              </p>
+            </div>
+            <div
+              class="rounded-2xl border border-gray-200 bg-white p-5 transition hover:-translate-y-0.5 hover:border-red-200"
+            >
+              <i
+                class="fab fa-gitlab text-xl text-orange-500"
+                aria-hidden="true"
+              ></i>
+              <p class="mt-4 text-sm font-semibold text-gray-900">
+                GitLab project home
+              </p>
+            </div>
+            <div
+              class="rounded-2xl border border-gray-200 bg-white p-5 transition hover:-translate-y-0.5 hover:border-red-200"
+            >
+              <i
+                class="fas fa-file-code text-xl text-blue-600"
+                aria-hidden="true"
+              ></i>
+              <p class="mt-4 text-sm font-semibold text-gray-900">
+                Static JSON summaries
+              </p>
+            </div>
+            <div
+              class="rounded-2xl border border-gray-200 bg-white p-5 transition hover:-translate-y-0.5 hover:border-red-200"
+            >
+              <i
+                class="fas fa-lock text-xl text-green-600"
+                aria-hidden="true"
+              ></i>
+              <p class="mt-4 text-sm font-semibold text-gray-900">
+                Escaped config text
+              </p>
+            </div>
+          </div>
+          <div>
+            <h2
+              id="provider-support-title"
+              class="section-kicker with-bar relative m-0 text-lg font-semibold leading-tight tracking-[-.01em] text-red-500"
+            >
+              Provider support
+            </h2>
+            <p
+              class="mt-2 text-[clamp(2rem,3vw,2.55rem)] font-semibold leading-[1.05] tracking-[-.04em] text-balance"
+            >
+              Provider-neutral event pages with generated data.
+            </p>
+            <p
+              class="mt-4 max-w-[36rem] text-base leading-[1.65] text-gray-600"
+            >
+              This hub keeps wording centered on contribution events while
+              generated summaries continue to power cards, stats, and
+              dashboards. GitHub and GitLab references remain where they
+              describe current project infrastructure.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ CTA + dark footer panel ══ -->
+      <section
+        class="ml-[calc(50%-50vw)] w-screen overflow-hidden px-4 pt-4"
+        id="maintainer-cta"
+        aria-labelledby="maintainer-cta-title"
+      >
+        <div
+          class="relative mx-auto flex w-[min(48rem,100%)] flex-col items-center gap-3 text-center"
+        >
+          <span
+            class="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 py-1 font-mono text-xs font-medium uppercase tracking-[.16em] text-red-600"
+            >Maintainers</span
+          >
+          <h2
+            id="maintainer-cta-title"
+            class="mt-1 text-[clamp(1.75rem,7vw,4rem)] font-medium leading-[1.05] tracking-[-.045em] text-gray-900"
+          >
+            Create or propose a<br />BLT contribution event.
+          </h2>
+          <p class="m-0 max-w-[34rem] text-sm leading-[1.6] text-gray-500">
+            Use the canonical project to coordinate event setup, then keep
+            generated summaries in the existing static data flow.
+          </p>
+          <div
+            class="mb-2 flex items-center justify-center gap-3 max-md:w-full max-md:flex-col max-md:px-4"
+          >
+            <a
+              class="inline-flex items-center justify-center gap-2 rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-5 py-3 text-sm font-medium text-white shadow-[0_10px_24px_-14px_rgba(220,38,38,.8)] transition duration-200 hover:-translate-y-px"
+              href="https://gitlab.com/owasp-blt/blt-hackathons"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <i class="fab fa-gitlab text-xs" aria-hidden="true"></i>
+              Open GitLab project
+            </a>
+            <a
+              class="inline-flex items-center justify-center gap-2 rounded-md border border-gray-200 bg-white px-5 py-3 text-sm font-medium text-gray-700 transition duration-200 hover:border-gray-300 hover:bg-gray-50"
+              href="https://gitlab.com/owasp-blt/blt-hackathons/-/issues/new"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <i class="fas fa-plus text-xs" aria-hidden="true"></i>
+              Open GitLab issue
+            </a>
+          </div>
         </div>
 
-        <!-- About Section -->
-        <div class="bg-white rounded-lg shadow-lg p-4 sm:p-6 lg:p-8 mb-8">
-            <h2 class="text-xl sm:text-2xl font-bold mb-4 text-gray-900">About BLT Hackathons</h2>
-            <div class="prose max-w-none text-gray-700">
-                <p class="mb-4">
-                    Welcome to the BLT (Bug Logging Tool) Hackathon platform! We host regular hackathons 
-                    to encourage contributions to our open source projects and build a stronger community.
-                </p>
-                <p class="mb-4">
-                    Each hackathon features:
-                </p>
-                <ul class="list-disc list-inside mb-4 space-y-2">
-                    <li>Real-time leaderboards tracking contributions</li>
-                    <li>Multiple repositories to contribute to</li>
-                    <li>Prizes and recognition for top contributors</li>
-                    <li>A welcoming community of developers</li>
-                </ul>
-                <p>
-                    Pick a hackathon above to get started, or check out our 
-                    <a href="https://github.com/OWASP-BLT" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:underline">
-                        GitHub organization
-                    </a> 
-                    to learn more about our projects.
-                </p>
+        <!-- Dark footer panel -->
+        <footer
+          id="site-footer"
+          class="footer-panel relative mt-14 w-full overflow-hidden rounded-t-3xl border border-white/5 bg-[#0e0d0c] py-6 pb-10 text-white max-md:rounded-t-[.8rem]"
+        >
+          <h2
+            class="relative m-0 px-2 text-center text-[clamp(2rem,8vw,6.5rem)] font-light leading-[.92] text-white/85"
+          >
+            hackathons.owaspblt.org
+          </h2>
+          <div
+            class="relative mx-auto mt-3 h-[3px] w-16 rounded-full bg-red-600"
+            aria-hidden="true"
+          ></div>
+          <div
+            id="github-api-info"
+            class="relative mt-4 text-center font-mono text-xs text-gray-400"
+          ></div>
+          <div
+            class="footer-links relative mx-auto mt-8 grid max-w-5xl grid-cols-4 gap-8 px-6 font-mono max-md:grid-cols-2 max-md:gap-6"
+          >
+            <div>
+              <p>Events</p>
+              <a href="#events">Browse all</a>
+              <a href="#featured-event">Featured</a>
+              <a href="#how-it-works">How it works</a>
             </div>
-        </div>
+            <div>
+              <p>Community</p>
+              <a href="#gsoc-warmup">GSoC warmup</a>
+              <a href="#provider-support">Providers</a>
+              <a href="#maintainer-cta">Create event</a>
+            </div>
+            <div>
+              <p>Project</p>
+              <a
+                id="canonical-project-link"
+                href="https://gitlab.com/owasp-blt/blt-hackathons"
+                target="_blank"
+                rel="noopener noreferrer"
+                >GitLab project</a
+              >
+              <a
+                href="https://gitlab.com/owasp-blt/blt-hackathons"
+                target="_blank"
+                rel="noopener noreferrer"
+                >GitLab repo</a
+              >
+            </div>
+            <div>
+              <p>OWASP</p>
+              <a
+                href="https://owaspblt.org"
+                target="_blank"
+                rel="noopener noreferrer"
+                >OWASP BLT</a
+              >
+              <a
+                href="https://owasp.org/www-project-bug-logging-tool/"
+                target="_blank"
+                rel="noopener noreferrer"
+                >Foundation page</a
+              >
+              <a
+                href="https://owasp.org"
+                target="_blank"
+                rel="noopener noreferrer"
+                >owasp.org</a
+              >
+            </div>
+          </div>
+        </footer>
+      </section>
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-white border-t mt-12">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center text-gray-600">
-            <div id="github-api-info" class="mb-3 text-gray-500"></div>
-            <p>
-                Powered by 
-                <a href="https://github.com/OWASP-BLT/BLT-Hackathons" 
-                   class="text-red-600 hover:underline" target="_blank" rel="noopener noreferrer">
-                    BLT-Hackathons
-                </a>
-            </p>
-        </div>
-    </footer>
-
-    <!-- JavaScript -->
     <script src="js/hackathons-config.js"></script>
     <script src="js/index.js"></script>
-</body>
+    <script>
+      (function () {
+        var mobileToggle = document.getElementById("mobile-toggle");
+        var mobileMenu = document.getElementById("mobile-menu");
+        if (mobileToggle && mobileMenu) {
+          mobileToggle.addEventListener("click", function () {
+            var open = !mobileMenu.classList.contains("open");
+            mobileMenu.classList.toggle("open", open);
+            mobileToggle.classList.toggle("active", open);
+            mobileToggle.setAttribute("aria-expanded", String(open));
+          });
+          mobileMenu.querySelectorAll("a").forEach(function (link) {
+            link.addEventListener("click", function () {
+              mobileMenu.classList.remove("open");
+              mobileToggle.classList.remove("active");
+              mobileToggle.setAttribute("aria-expanded", "false");
+            });
+          });
+        }
+      })();
+    </script>
+  </body>
 </html>

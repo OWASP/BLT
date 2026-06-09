@@ -16,6 +16,21 @@ class HackathonDashboard {
         // Store resolved repositories (set during initialization)
         // Contains the merged list of explicit repositories and organization repositories
         this.repositories = null;
+        this.changeLabels = this.provider === 'gitlab'
+            ? {
+                singular: 'merge request',
+                plural: 'merge requests',
+                shortPlural: 'MRs',
+                titlePlural: 'Merge requests',
+                titleMerged: 'Merged MRs',
+            }
+            : {
+                singular: 'pull request',
+                plural: 'pull requests',
+                shortPlural: 'PRs',
+                titlePlural: 'Pull requests',
+                titleMerged: 'Merged PRs',
+            };
     }
 
     /**
@@ -129,32 +144,34 @@ class HackathonDashboard {
      * Update basic hackathon information
      */
     updateBasicInfo() {
-        // Update title
-        document.getElementById('hackathon-title').textContent = this.config.name;
-        document.getElementById('nav-title').textContent = this.config.name;
-        document.getElementById('hackathon-name').textContent = this.config.name;
+        this.updateProviderLabels();
 
-        // Update banner image if provided
+        const eventName = this.config.name || 'Hackathon Dashboard';
+        this.setText('hackathon-title', eventName);
+        this.setText('nav-title', eventName);
+        this.setText('hackathon-name', eventName);
+
+        // Keep the dashboard banner neutral; configured images are shown in listings only.
         const bannerSection = document.getElementById('banner-section');
-        if (this.config.bannerImage) {
-            bannerSection.style.backgroundImage = `url('${this.config.bannerImage}')`;
-            bannerSection.style.backgroundSize = 'cover';
-            bannerSection.style.backgroundPosition = 'center';
-            const bannerText = document.getElementById('banner-text');
-            if (bannerText) {
-                bannerText.classList.add('bg-black', 'bg-opacity-50', 'rounded-lg', 'px-6', 'py-4');
-            }
+        if (bannerSection) {
+            bannerSection.style.backgroundImage = 'none';
+            bannerSection.style.backgroundColor = '#f6f6f6';
         }
 
         // Update description
-        document.getElementById('hackathon-description').innerHTML =
-            `<p class="text-gray-700">${this.escapeHtml(this.config.description.trim())}</p>`;
+        this.setText(
+            'hackathon-description',
+            (this.config.description || 'Track progress, activity, repositories, and prizes for this hackathon.').trim()
+        );
 
         // Update rules if provided
+        const rulesSection = document.getElementById('rules-section');
         if (this.config.rules) {
-            document.getElementById('rules-section').style.display = 'block';
-            document.getElementById('hackathon-rules').innerHTML =
-                `<p class="text-gray-700">${this.escapeHtml(this.config.rules.trim())}</p>`;
+            if (rulesSection) rulesSection.hidden = false;
+            this.setText('hackathon-rules', this.config.rules.trim());
+        } else {
+            if (rulesSection) rulesSection.hidden = false;
+            this.setText('hackathon-rules', 'No additional rules have been published for this event.');
         }
 
         // Update dates and status
@@ -162,9 +179,8 @@ class HackathonDashboard {
         const endDate = new Date(this.config.endTime);
         const now = new Date();
 
-        const dateFormat = { year: 'numeric', month: 'long', day: 'numeric' };
-        const dateStr = `${startDate.toLocaleDateString('en-US', dateFormat)} - ${endDate.toLocaleDateString('en-US', dateFormat)}`;
-        document.getElementById('hackathon-dates').textContent = dateStr;
+        const dateStr = `${this.formatDate(startDate)} - ${this.formatDate(endDate)}`;
+        this.setText('hackathon-dates', dateStr);
 
         // Also update the standalone time-range bar at the top of the detail page
         const timeRangeDisplay = document.getElementById('time-range-display');
@@ -176,25 +192,29 @@ class HackathonDashboard {
         let status, statusClass, timeRemaining;
         if (now < startDate) {
             status = 'Upcoming';
-            statusClass = 'bg-blue-100 text-blue-800';
+            statusClass = 'blt-status blt-status--upcoming';
             const daysUntil = Math.ceil((startDate - now) / (1000 * 60 * 60 * 24));
             timeRemaining = `Starts in ${daysUntil} day${daysUntil !== 1 ? 's' : ''}`;
         } else if (now > endDate) {
             status = 'Ended';
-            statusClass = 'bg-gray-100 text-gray-800';
+            statusClass = 'blt-status blt-status--ended';
             timeRemaining = 'This hackathon has ended';
         } else {
             status = 'Ongoing';
-            statusClass = 'bg-green-100 text-green-800';
+            statusClass = 'blt-status blt-status--ongoing';
             const remaining = endDate - now;
             const days = Math.floor(remaining / (1000 * 60 * 60 * 24));
             const hours = Math.floor((remaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
             timeRemaining = `${days} day${days !== 1 ? 's' : ''}, ${hours} hour${hours !== 1 ? 's' : ''} remaining`;
         }
 
-        document.getElementById('hackathon-status').textContent = status;
-        document.getElementById('hackathon-status').className = `px-3 py-1 rounded-full text-sm font-medium ${statusClass}`;
-        document.getElementById('time-remaining').textContent = timeRemaining;
+        const statusEl = document.getElementById('hackathon-status');
+        if (statusEl) {
+            statusEl.textContent = status;
+            statusEl.className = statusClass;
+        }
+        this.setText('time-remaining', timeRemaining);
+        this.updateTimeline(startDate, endDate, status, timeRemaining);
     }
 
     /**
@@ -226,6 +246,43 @@ class HackathonDashboard {
         document.getElementById('days-active-count').textContent = daysActive.toLocaleString();
     }
 
+    updateProviderLabels() {
+        this.setText('pr-stat-label', this.changeLabels.shortPlural);
+        this.setText('merged-pr-stat-label', this.changeLabels.titleMerged);
+        this.setText('chart-heading', `${this.changeLabels.titlePlural} activity`);
+    }
+
+    updateTimeline(startDate, endDate, status, timeRemaining) {
+        const now = new Date();
+        const totalMs = Math.max(endDate - startDate, 1);
+        const elapsedMs = this.clamp(now - startDate, 0, totalMs);
+        const percent = Math.round((elapsedMs / totalMs) * 100);
+        const totalDays = Math.max(Math.ceil(totalMs / (1000 * 60 * 60 * 24)), 1);
+        const elapsedDays = status === 'Upcoming'
+            ? 0
+            : Math.min(Math.floor(elapsedMs / (1000 * 60 * 60 * 24)), totalDays);
+
+        const progressBar = document.getElementById('timeline-progress-bar');
+        if (progressBar) {
+            progressBar.style.width = `${percent}%`;
+            const progressShell = progressBar.closest('[role="progressbar"]');
+            if (progressShell) {
+                progressShell.setAttribute('aria-valuenow', String(percent));
+            }
+        }
+
+        this.setText('timeline-progress-label', `${percent}% complete - ${timeRemaining}`);
+        this.setText('timeline-start-date', this.formatCompactDate(startDate));
+        this.setText('timeline-current-date', this.formatCompactDate(now));
+        this.setText('timeline-end-date', this.formatCompactDate(endDate));
+        this.setText('timeline-start-date-detail', this.formatDateTime(startDate));
+        this.setText('timeline-end-date-detail', this.formatDateTime(endDate));
+        this.setText(
+            'timeline-current-status',
+            `${status}. ${elapsedDays.toLocaleString()} of ${totalDays.toLocaleString()} scheduled day${totalDays !== 1 ? 's' : ''} elapsed.`
+        );
+    }
+
     /**
      * Render the leaderboard
      */
@@ -236,56 +293,55 @@ class HackathonDashboard {
         );
 
         const container = document.getElementById('leaderboard');
+        if (!container) return;
+        container.setAttribute('aria-busy', 'false');
 
         if (leaderboard.length === 0) {
-            container.innerHTML = '<p class="text-gray-500 italic">No contributions yet. Be the first to contribute!</p>';
+            container.innerHTML = this.renderEmptyState(
+                'fa-code-pull-request',
+                `No merged ${this.changeLabels.plural} yet. Be the first to contribute.`
+            );
             return;
         }
 
         container.innerHTML = leaderboard.map((participant, index) => {
             const position = index + 1;
             let trophyIcon = '';
-            let bgClass = '';
 
             if (position === 1) {
                 trophyIcon = '<i class="fas fa-trophy trophy-gold"></i>';
-                bgClass = 'bg-yellow-50';
             } else if (position === 2) {
                 trophyIcon = '<i class="fas fa-trophy trophy-silver"></i>';
-                bgClass = 'bg-gray-50';
             } else if (position === 3) {
                 trophyIcon = '<i class="fas fa-trophy trophy-bronze"></i>';
-                bgClass = 'bg-orange-50';
             }
 
+            const username = participant.username || 'unknown';
+            const safeUsername = this.escapeHtml(username);
+            const participantUrl = this.safeUrl(participant.url, '#');
+            const activityUrl = this.safeUrl(this.getContributorActivityUrl(participant), '#');
+            const avatarHtml = this.renderAvatar(participant.avatar, username);
+            const mergedCount = participant.mergedCount || 0;
+
             return `
-                <div class="p-4 ${bgClass} rounded-lg border border-gray-200">
-                    <div class="flex items-center">
-                        <div class="w-8 h-8 flex items-center justify-center mr-3 bg-gray-100 text-gray-600 rounded-full font-bold">
-                            ${position}
-                        </div>
-                        <img src="${participant.avatar}" alt="${participant.username}"
-                             class="w-8 h-8 rounded-full mr-3" width="32" height="32">
-                        <div class="flex-grow">
-                            <div class="font-medium flex items-center gap-2">
-                                <a href="${participant.url}" target="_blank" class="hover:text-red-600">
-                                    ${this.escapeHtml(participant.username)}
-                                </a>
-                                ${trophyIcon}
-                            </div>
-                            <div class="text-sm text-gray-500">
-                                ${participant.mergedCount} merged PR${participant.mergedCount !== 1 ? 's' : ''}
-                            </div>
-                        </div>
-                        <a href="${this.getContributorActivityUrl(participant)}"
-                           target="_blank" 
-                           rel="noopener noreferrer"
-                           class="ml-2 px-2 sm:px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-xs sm:text-sm font-medium whitespace-nowrap"
-                           title="View contributions by ${this.escapeHtml(participant.username)}">
-                            <i class="fas fa-external-link-alt mr-1"></i>
-                            <span class="hidden sm:inline">View PRs</span>
+                <div class="dashboard-leaderboard-item">
+                    <div class="dashboard-rank">${position}</div>
+                    ${avatarHtml}
+                    <div class="dashboard-leaderboard-name">
+                        <a href="${this.escapeAttribute(participantUrl)}" target="_blank" rel="noopener noreferrer">
+                            ${safeUsername}
                         </a>
+                        ${trophyIcon}
+                        <p>${mergedCount.toLocaleString()} merged ${mergedCount === 1 ? this.changeLabels.singular : this.changeLabels.plural}</p>
                     </div>
+                    <a href="${this.escapeAttribute(activityUrl)}"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       class="dashboard-small-link"
+                       title="View contributions by ${this.escapeAttribute(username)}">
+                        <i class="fas fa-external-link-alt" aria-hidden="true"></i>
+                        <span>View ${this.changeLabels.shortPlural}</span>
+                    </a>
                 </div>
             `;
         }).join('');
@@ -298,56 +354,55 @@ class HackathonDashboard {
         );
 
         const container = document.getElementById('review-leaderboard');
+        if (!container) return;
+        container.setAttribute('aria-busy', 'false');
 
         if (reviewLeaderboard.length === 0) {
-            container.innerHTML = '<p class="text-gray-500 italic">No reviews yet. Be the first to review!</p>';
+            container.innerHTML = this.renderEmptyState(
+                'fa-comments',
+                'No reviews recorded yet. Review activity will appear here after the next data refresh.'
+            );
             return;
         }
 
         container.innerHTML = reviewLeaderboard.map((participant, index) => {
             const position = index + 1;
             let trophyIcon = '';
-            let bgClass = '';
 
             if (position === 1) {
                 trophyIcon = '<i class="fas fa-trophy trophy-gold"></i>';
-                bgClass = 'bg-yellow-50';
             } else if (position === 2) {
                 trophyIcon = '<i class="fas fa-trophy trophy-silver"></i>';
-                bgClass = 'bg-gray-50';
             } else if (position === 3) {
                 trophyIcon = '<i class="fas fa-trophy trophy-bronze"></i>';
-                bgClass = 'bg-orange-50';
             }
 
+            const username = participant.username || 'unknown';
+            const safeUsername = this.escapeHtml(username);
+            const participantUrl = this.safeUrl(participant.url, '#');
+            const reviewUrl = this.safeUrl(this.getReviewActivityUrl(participant), '#');
+            const avatarHtml = this.renderAvatar(participant.avatar, username);
+            const reviewCount = participant.reviewCount || 0;
+
             return `
-                <div class="p-4 ${bgClass} rounded-lg border border-gray-200">
-                    <div class="flex items-center">
-                        <div class="w-8 h-8 flex items-center justify-center mr-3 bg-gray-100 text-gray-600 rounded-full font-bold">
-                            ${position}
-                        </div>
-                        <img src="${participant.avatar}" alt="${participant.username}"
-                             class="w-8 h-8 rounded-full mr-3" width="32" height="32">
-                        <div class="flex-grow">
-                            <div class="font-medium flex items-center gap-2">
-                                <a href="${participant.url}" target="_blank" class="hover:text-red-600">
-                                    ${this.escapeHtml(participant.username)}
-                                </a>
-                                ${trophyIcon}
-                            </div>
-                            <div class="text-sm text-gray-500">
-                                ${participant.reviewCount} review${participant.reviewCount !== 1 ? 's' : ''}
-                            </div>
-                        </div>
-                        <a href="${this.getReviewActivityUrl(participant)}"
-                           target="_blank" 
-                           rel="noopener noreferrer"
-                           class="ml-2 px-2 sm:px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-xs sm:text-sm font-medium whitespace-nowrap"
-                           title="View all reviews by ${this.escapeHtml(participant.username)}">
-                            <i class="fas fa-external-link-alt mr-1"></i>
-                            <span class="hidden sm:inline">View Reviews</span>
+                <div class="dashboard-leaderboard-item">
+                    <div class="dashboard-rank">${position}</div>
+                    ${avatarHtml}
+                    <div class="dashboard-leaderboard-name">
+                        <a href="${this.escapeAttribute(participantUrl)}" target="_blank" rel="noopener noreferrer">
+                            ${safeUsername}
                         </a>
+                        ${trophyIcon}
+                        <p>${reviewCount.toLocaleString()} review${reviewCount !== 1 ? 's' : ''}</p>
                     </div>
+                    <a href="${this.escapeAttribute(reviewUrl)}"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       class="dashboard-small-link"
+                       title="View all reviews by ${this.escapeAttribute(username)}">
+                        <i class="fas fa-external-link-alt" aria-hidden="true"></i>
+                        <span>View reviews</span>
+                    </a>
                 </div>
             `;
         }).join('');
@@ -359,28 +414,58 @@ class HackathonDashboard {
      * @param {Object} dailyMergedPRs  - Map of date string -> merged PR count (pre-computed)
      */
     renderChart(dailyActivity, dailyMergedPRs) {
+        const chartCanvas = document.getElementById('prActivityChart');
+        const emptyState = document.getElementById('chart-empty-state');
+
+        if (!chartCanvas) return;
+
+        const showChartEmptyState = (message) => {
+            chartCanvas.hidden = true;
+            if (emptyState) {
+                emptyState.classList.remove('hidden');
+                emptyState.innerHTML = `
+                    <i class="fas fa-chart-simple" aria-hidden="true"></i>
+                    <p>${this.escapeHtml(message)}</p>
+                `;
+            }
+        };
+
         // Check if Chart.js is available
         if (typeof Chart === 'undefined') {
             console.warn('Chart.js is not available. Skipping chart rendering.');
+            showChartEmptyState('Chart.js is unavailable, so activity cannot be rendered.');
             return;
         }
         
         const dates = Object.keys(dailyActivity).sort();
+        if (dates.length === 0) {
+            showChartEmptyState(`No ${this.changeLabels.plural} were found in the generated activity data.`);
+            return;
+        }
         
         // Use the pre-computed per-day merged count directly
         const data = dates.map(date => (dailyMergedPRs[date] || 0));
 
-        const ctx = document.getElementById('prActivityChart').getContext('2d');
+        chartCanvas.hidden = false;
+        if (emptyState) emptyState.classList.add('hidden');
+
+        const ctx = chartCanvas.getContext('2d');
         if (this.chart) {
             this.chart.destroy();
         }
+
+        const textColor = this.getCssVar('--blt-muted') || '#64748b';
+        const gridColor = this.getCssVar('--blt-border') || 'rgba(0, 0, 0, 0.08)';
+        const tooltipBg = document.documentElement.classList.contains('dark')
+            ? 'rgba(15, 17, 23, 0.94)'
+            : 'rgba(15, 23, 42, 0.92)';
 
         this.chart = new Chart(ctx, {
             type: 'bar',
             data: {
                 labels: dates,
                 datasets: [{
-                    label: 'Pull Requests',
+                    label: this.changeLabels.titleMerged,
                     data: data,
                     backgroundColor: 'rgba(239, 68, 68, 0.8)',
                     borderColor: 'rgba(220, 38, 38, 1)',
@@ -398,7 +483,7 @@ class HackathonDashboard {
                         display: false
                     },
                     tooltip: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        backgroundColor: tooltipBg,
                         padding: 12,
                         titleFont: {
                             size: 14,
@@ -419,8 +504,10 @@ class HackathonDashboard {
                             },
                             label: function(context) {
                                 const value = context.parsed.y;
-                                return value === 1 ? '1 Pull Request' : `${value} Pull Requests`;
-                            }
+                                return value === 1
+                                    ? `1 ${this.changeLabels.singular}`
+                                    : `${value} ${this.changeLabels.plural}`;
+                            }.bind(this)
                         }
                     }
                 },
@@ -431,6 +518,7 @@ class HackathonDashboard {
                             display: false
                         },
                         ticks: {
+                            color: textColor,
                             font: {
                                 size: 11
                             },
@@ -450,10 +538,11 @@ class HackathonDashboard {
                     y: {
                         beginAtZero: true,
                         grid: {
-                            color: 'rgba(0, 0, 0, 0.05)',
+                            color: gridColor,
                             drawBorder: false
                         },
                         ticks: {
+                            color: textColor,
                             precision: 0,
                             font: {
                                 size: 11
@@ -503,6 +592,8 @@ class HackathonDashboard {
      */
     renderRepositories(repoStats, repoData = []) {
         const container = document.getElementById('repositories-list');
+        if (!container) return;
+        container.setAttribute('aria-busy', 'false');
         // Use resolved repositories if available, otherwise fall back to config
         const repositories = this.repositories || this.getConfiguredRepositories();
         
@@ -519,64 +610,76 @@ class HackathonDashboard {
         if (titleElement) {
             titleElement.textContent = `(${repositories.length})`;
         }
+
+        if (repositories.length === 0) {
+            container.innerHTML = this.renderEmptyState(
+                'fa-code-branch',
+                'No eligible repositories or projects are configured for this event.'
+            );
+            return;
+        }
         
         const reposHtml = repositories.map(repoPath => {
             const stats = repoStats[repoPath] || { total: 0, merged: 0, issues: 0, closedIssues: 0 };
             const meta = repoMetaMap[repoPath] || {};
             const urls = this.getRepositoryUrls(repoPath, meta);
+            const providerIcon = this.provider === 'gitlab' ? 'gitlab' : 'github';
+            const repositoryUrl = this.safeUrl(urls.repository, '#');
+            const changesUrl = this.safeUrl(urls.changes, '#');
+            const issuesUrl = this.safeUrl(urls.issues, '#');
+            const language = meta.language ? this.escapeHtml(meta.language) : '';
+            const description = meta.description ? this.escapeHtml(meta.description) : '';
             return `
-                <div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                    <div class="flex items-center justify-between mb-2">
-                        <div class="flex items-center">
-                            <i class="fab fa-${this.provider} text-gray-600 mr-2"></i>
-                            <a href="${urls.repository}" target="_blank"
-                               class="font-medium hover:text-red-600">
+                <article class="dashboard-repo-item">
+                    <div class="dashboard-repo-heading">
+                        <div class="flex items-center gap-2">
+                            <i class="fab fa-${providerIcon}" aria-hidden="true"></i>
+                            <a href="${this.escapeAttribute(repositoryUrl)}" target="_blank" rel="noopener noreferrer">
                                 ${this.escapeHtml(repoPath)}
                             </a>
                         </div>
                         ${meta.stargazers_count !== undefined ? `
-                        <div class="flex items-center text-sm text-gray-500 gap-3">
-                            <span title="Stars"><i class="fas fa-star text-yellow-400 mr-1"></i>${meta.stargazers_count}</span>
-                            <span title="Forks"><i class="fas fa-code-branch text-blue-400 mr-1"></i>${meta.forks_count}</span>
-                            ${meta.language ? `<span title="Language"><i class="fas fa-circle mr-1 text-gray-400"></i>${this.escapeHtml(meta.language)}</span>` : ''}
+                        <div class="dashboard-repo-meta">
+                            <span title="Stars"><i class="fas fa-star" aria-hidden="true"></i>${Number(meta.stargazers_count || 0).toLocaleString()}</span>
+                            <span title="Forks"><i class="fas fa-code-branch" aria-hidden="true"></i>${Number(meta.forks_count || 0).toLocaleString()}</span>
+                            ${language ? `<span title="Language"><i class="fas fa-circle" aria-hidden="true"></i>${language}</span>` : ''}
                         </div>
                         ` : ''}
                     </div>
-                    ${meta.description ? `<p class="text-sm text-gray-600 mb-2">${this.escapeHtml(meta.description)}</p>` : ''}
+                    ${description ? `<p>${description}</p>` : ''}
                     ${this.config.display.showRepoStats ? `
-                        <div class="flex gap-4 text-sm text-gray-600 mb-2">
-                            <span class="flex items-center">
-                                <i class="fas fa-code-branch mr-1 text-blue-500"></i>
-                                <strong>${stats.total}</strong> PRs (<strong>${stats.merged}</strong> merged)
+                        <div class="dashboard-repo-stats">
+                            <span>
+                                <i class="fas fa-code-branch" aria-hidden="true"></i>
+                                <strong>${Number(stats.total || 0).toLocaleString()}</strong> ${this.changeLabels.shortPlural}
+                                (<strong>${Number(stats.merged || 0).toLocaleString()}</strong> merged)
                             </span>
-                            <span class="flex items-center">
-                                <i class="fas fa-circle-dot mr-1 text-green-500"></i>
-                                <strong>${stats.issues || 0}</strong> Issues (<strong>${stats.closedIssues || 0}</strong> closed)
+                            <span>
+                                <i class="fas fa-circle-dot" aria-hidden="true"></i>
+                                <strong>${Number(stats.issues || 0).toLocaleString()}</strong> issues
+                                (<strong>${Number(stats.closedIssues || 0).toLocaleString()}</strong> closed)
                             </span>
                         </div>
                     ` : ''}
-                    <div class="flex gap-2">
-                        <a href="${urls.repository}" target="_blank"
-                           class="inline-flex items-center px-2 py-1 border border-gray-300 text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50">
-                            <i class="fab fa-${this.provider} mr-1"></i>
+                    <div class="dashboard-repo-actions">
+                        <a href="${this.escapeAttribute(repositoryUrl)}" target="_blank" rel="noopener noreferrer" class="dashboard-small-link">
+                            <i class="fab fa-${providerIcon}" aria-hidden="true"></i>
                             ${this.provider === 'gitlab' ? 'GitLab' : 'GitHub'}
                         </a>
-                        <a href="${urls.changes}" target="_blank"
-                           class="inline-flex items-center px-2 py-1 border border-gray-300 text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50">
-                            <i class="fas fa-code-branch mr-1"></i>
+                        <a href="${this.escapeAttribute(changesUrl)}" target="_blank" rel="noopener noreferrer" class="dashboard-small-link">
+                            <i class="fas fa-code-branch" aria-hidden="true"></i>
                             ${this.provider === 'gitlab' ? 'Merge Requests' : 'Pull Requests'}
                         </a>
-                        <a href="${urls.issues}" target="_blank"
-                           class="inline-flex items-center px-2 py-1 border border-gray-300 text-xs font-medium rounded text-gray-700 bg-white hover:bg-gray-50">
-                            <i class="fas fa-circle-dot mr-1"></i>
+                        <a href="${this.escapeAttribute(issuesUrl)}" target="_blank" rel="noopener noreferrer" class="dashboard-small-link">
+                            <i class="fas fa-circle-dot" aria-hidden="true"></i>
                             Issues
                         </a>
                     </div>
-                </div>
+                </article>
             `;
         }).join('');
 
-        container.innerHTML = reposHtml || '<p class="text-gray-600">No repositories configured.</p>';
+        container.innerHTML = reposHtml;
     }
 
     /**
@@ -616,73 +719,92 @@ class HackathonDashboard {
      */
     renderSponsors() {
         const container = document.getElementById('sponsors-list');
+        if (!container) return;
 
         const becomeASponsorBtn = `
-            <div class="mt-4 pt-4 border-t border-gray-200">
-                <button onclick="openSponsorModal()"
-                        class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition-colors">
-                    <i class="fas fa-handshake mr-2"></i>
+            <div class="dashboard-sponsor-cta">
+                <button onclick="openSponsorModal()" class="blt-button blt-button-primary px-4 py-2 text-sm">
+                    <i class="fas fa-handshake" aria-hidden="true"></i>
                     Become a Sponsor
                 </button>
             </div>
         `;
 
-        if (!this.config.sponsors || this.config.sponsors.length === 0) {
-            let html = '<p class="text-gray-500 italic">No sponsors yet.</p>';
-            if (this.config.sponsorNote) {
-                html += `
-                    <div class="mt-4">
-                        <h3 class="text-lg font-semibold mb-2 text-gray-800">Sponsorship Information</h3>
-                        <p class="text-gray-600">${this.escapeHtml(this.config.sponsorNote)}</p>
-                    </div>
-                `;
-            }
-            html += becomeASponsorBtn;
-            container.innerHTML = html;
-            return;
-        }
+        const prizes = Array.isArray(this.config.prizes) ? this.config.prizes : [];
+        const sponsors = Array.isArray(this.config.sponsors) ? this.config.sponsors : [];
+
+        const prizesHtml = prizes.length > 0
+            ? `
+                <div class="dashboard-prize-list">
+                    ${prizes.map(prize => `
+                        <article class="dashboard-prize-item">
+                            <strong>${this.escapeHtml(prize.title || `Prize ${prize.position || ''}`.trim())}</strong>
+                            <p>
+                                ${prize.value ? `<span>${this.escapeHtml(prize.value)}</span> - ` : ''}
+                                ${this.escapeHtml(prize.description || 'Prize details will be announced by the organizers.')}
+                            </p>
+                        </article>
+                    `).join('')}
+                </div>
+            `
+            : this.renderEmptyState('fa-gift', 'No prizes have been announced for this event yet.');
 
         // Group sponsors by level
         const levels = ['platinum', 'gold', 'silver', 'bronze', 'partner'];
         const grouped = {};
         levels.forEach(level => { grouped[level] = []; });
-        this.config.sponsors.forEach(sponsor => {
+        sponsors.forEach(sponsor => {
             if (grouped[sponsor.level]) {
                 grouped[sponsor.level].push(sponsor);
+            } else {
+                grouped.partner.push(sponsor);
             }
         });
 
         const sponsorsHtml = levels.map(level => {
-            const sponsors = grouped[level];
-            if (sponsors.length === 0) return '';
+            const sponsorsForLevel = grouped[level];
+            if (sponsorsForLevel.length === 0) return '';
 
             return `
-                <div class="mb-6 last:mb-0">
-                    <h3 class="text-lg font-semibold mb-3 capitalize">${level} Sponsors</h3>
-                    <div class="grid grid-cols-2 gap-4">
-                        ${sponsors.map(sponsor => `
-                            <a href="${sponsor.website || '#'}" target="_blank"
-                               class="flex flex-col items-center p-3 border rounded-lg hover:bg-gray-50 transition">
-                                ${sponsor.logo ? `
-                                    <img src="${sponsor.logo}" alt="${this.escapeHtml(sponsor.name)}"
-                                         class="h-12 object-contain mb-2">
+                <div class="dashboard-sponsor-list">
+                    ${sponsorsForLevel.map(sponsor => {
+                        const sponsorUrl = this.safeUrl(sponsor.website, '#');
+                        const logoUrl = this.safeUrl(sponsor.logo, '');
+                        const sponsorName = sponsor.name || 'Sponsor';
+                        return `
+                            <a href="${this.escapeAttribute(sponsorUrl)}" target="_blank" rel="noopener noreferrer" class="dashboard-sponsor-item">
+                                ${logoUrl ? `
+                                    <img src="${this.escapeAttribute(logoUrl)}" alt="${this.escapeAttribute(sponsorName)}" class="h-12 object-contain mb-2">
                                 ` : `
-                                    <div class="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center mb-2">
-                                        <span class="text-gray-500 font-bold">${sponsor.name.charAt(0)}</span>
+                                    <div class="dashboard-avatar-placeholder mb-2">
+                                        <span>${this.escapeHtml(sponsorName.charAt(0).toUpperCase())}</span>
                                     </div>
                                 `}
-                                <div class="text-center">
-                                    <div class="text-sm font-medium">${this.escapeHtml(sponsor.name)}</div>
-                                    ${sponsor.amount ? `<div class="text-xs text-green-600 font-semibold mt-1">${this.escapeHtml(sponsor.amount)}</div>` : ''}
-                                </div>
+                                <strong>${this.escapeHtml(sponsorName)}</strong>
+                                <p>${this.escapeHtml(level)} sponsor${sponsor.amount ? ` - ${this.escapeHtml(sponsor.amount)}` : ''}</p>
                             </a>
-                        `).join('')}
-                    </div>
+                        `;
+                    }).join('')}
                 </div>
             `;
         }).join('');
 
-        container.innerHTML = (sponsorsHtml || '<p class="text-gray-500 italic">No sponsors yet.</p>') + becomeASponsorBtn;
+        const sponsorNoteHtml = this.config.sponsorNote
+            ? `<p class="dashboard-progress-label">${this.escapeHtml(this.config.sponsorNote)}</p>`
+            : '';
+
+        container.innerHTML = `
+            <section aria-label="Prizes">
+                <h3 class="dashboard-section-subtitle">Prizes</h3>
+                ${prizesHtml}
+            </section>
+            <section aria-label="Sponsors" class="mt-4">
+                <h3 class="dashboard-section-subtitle">Sponsors</h3>
+                ${sponsorsHtml || this.renderEmptyState('fa-handshake', 'No sponsors are listed yet.')}
+            </section>
+            ${sponsorNoteHtml}
+            ${becomeASponsorBtn}
+        `;
     }
 
     /**
@@ -695,12 +817,12 @@ class HackathonDashboard {
         if (!infoEl) return;
 
         const lastUpdatedHtml = this.loadedAt
-            ? `<span class="inline-flex items-center gap-1 text-green-600"><i class="fas fa-sync-alt"></i> Stats auto-refreshed ${this.provider === 'gitlab' ? 'daily' : 'hourly'}</span>` +
-              `<span class="text-gray-400">|</span>` +
-              `<span>Last updated: <span id="last-updated-time" title="${this.loadedAt.toLocaleString()}">${this.timeAgo(this.loadedAt)}</span></span>`
+            ? `<span><i class="fas fa-sync-alt" aria-hidden="true"></i> Stats auto-refreshed ${this.provider === 'gitlab' ? 'daily' : 'hourly'}</span>` +
+              `<span aria-hidden="true">|</span>` +
+              `<span>Last updated: <span id="last-updated-time" title="${this.escapeAttribute(this.loadedAt.toLocaleString())}">${this.timeAgo(this.loadedAt)}</span></span>`
             : '';
 
-        infoEl.innerHTML = `<div class="flex flex-wrap items-center justify-center gap-2 text-sm">${lastUpdatedHtml}</div>`;
+        infoEl.innerHTML = `<div class="dashboard-freshness-row">${lastUpdatedHtml}</div>`;
         this.startLastUpdatedRefresh();
     }
 
@@ -708,28 +830,47 @@ class HackathonDashboard {
      * Show loading state
      */
     showLoading() {
-        // Could add a loading overlay here
+        ['leaderboard', 'review-leaderboard', 'repositories-list'].forEach(id => {
+            const element = document.getElementById(id);
+            if (element) element.setAttribute('aria-busy', 'true');
+        });
     }
 
     /**
      * Hide loading state
      */
     hideLoading() {
-        // Could remove loading overlay here
+        ['leaderboard', 'review-leaderboard', 'repositories-list'].forEach(id => {
+            const element = document.getElementById(id);
+            if (element) element.setAttribute('aria-busy', 'false');
+        });
     }
 
     /**
      * Show error message
      */
     showError(message) {
-        const banner = document.getElementById('banner-section');
-        banner.innerHTML = `
-            <div class="text-center text-white p-4">
-                <i class="fas fa-exclamation-triangle text-4xl mb-4"></i>
-                <h2 class="text-2xl font-bold mb-2">Error Loading Hackathon</h2>
-                <p class="text-lg">${this.escapeHtml(message)}</p>
-            </div>
-        `;
+        const errorEl = document.getElementById('dashboard-error');
+        if (errorEl) {
+            errorEl.classList.remove('hidden');
+            errorEl.innerHTML = `
+                <i class="fas fa-exclamation-triangle" aria-hidden="true"></i>
+                <span>${this.escapeHtml(message)}</span>
+            `;
+        }
+
+        const dataFreshness = document.getElementById('github-api-info');
+        if (dataFreshness) {
+            dataFreshness.innerHTML = `<div class="dashboard-freshness-row"><span>${this.escapeHtml(message)}</span></div>`;
+        }
+
+        const emptyMessage = 'Generated stats could not be loaded. Try again after the next scheduled data refresh.';
+        const leaderboard = document.getElementById('leaderboard');
+        if (leaderboard) leaderboard.innerHTML = this.renderEmptyState('fa-triangle-exclamation', emptyMessage);
+        const reviewLeaderboard = document.getElementById('review-leaderboard');
+        if (reviewLeaderboard) reviewLeaderboard.innerHTML = this.renderEmptyState('fa-triangle-exclamation', emptyMessage);
+        const repositories = document.getElementById('repositories-list');
+        if (repositories) repositories.innerHTML = this.renderEmptyState('fa-triangle-exclamation', emptyMessage);
     }
 
     /**
@@ -761,6 +902,87 @@ class HackathonDashboard {
         }, 60000);
     }
 
+    setText(id, value) {
+        const element = document.getElementById(id);
+        if (element) element.textContent = value;
+    }
+
+    formatDate(date) {
+        if (!(date instanceof Date) || Number.isNaN(date.getTime())) return 'Date unavailable';
+        return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+        });
+    }
+
+    formatCompactDate(date) {
+        if (!(date instanceof Date) || Number.isNaN(date.getTime())) return '--';
+        return date.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+        });
+    }
+
+    formatDateTime(date) {
+        if (!(date instanceof Date) || Number.isNaN(date.getTime())) return 'Date unavailable';
+        return date.toLocaleString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit',
+        });
+    }
+
+    clamp(value, min, max) {
+        return Math.min(Math.max(value, min), max);
+    }
+
+    renderEmptyState(icon, message) {
+        return `
+            <div class="dashboard-empty-state">
+                <i class="fas ${this.escapeAttribute(icon)}" aria-hidden="true"></i>
+                <p>${this.escapeHtml(message)}</p>
+            </div>
+        `;
+    }
+
+    renderAvatar(url, username) {
+        const avatarUrl = this.safeUrl(url, '');
+        const label = username || 'participant';
+        if (!avatarUrl) {
+            return `<div class="dashboard-avatar-placeholder" aria-hidden="true">${this.escapeHtml(label.charAt(0).toUpperCase() || '?')}</div>`;
+        }
+
+        return `
+            <img src="${this.escapeAttribute(avatarUrl)}"
+                 alt="${this.escapeAttribute(label)} avatar"
+                 width="36"
+                 height="36"
+                 loading="lazy">
+        `;
+    }
+
+    safeUrl(value, fallback = '#') {
+        if (!value || typeof value !== 'string') return fallback;
+
+        try {
+            const parsed = new URL(value, window.location.href);
+            if (['http:', 'https:', 'mailto:'].includes(parsed.protocol)) {
+                return parsed.href;
+            }
+        } catch (error) {
+            return fallback;
+        }
+
+        return fallback;
+    }
+
+    getCssVar(name) {
+        return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    }
+
     /**
      * Return a human-readable relative time string (e.g. "just now", "3 minutes ago")
      */
@@ -782,6 +1004,10 @@ class HackathonDashboard {
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
+    }
+
+    escapeAttribute(text) {
+        return this.escapeHtml(String(text)).replace(/`/g, '&#96;');
     }
 }
 

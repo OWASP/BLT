@@ -1,380 +1,1047 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title id="hackathon-title">Hackathon Dashboard</title>
-    <meta name="description" content="Track your hackathon progress with leaderboards, charts, and prizes">
-    
-    <!-- Tailwind CSS CDN -->
+    <meta
+      name="description"
+      content="Track hackathon progress with leaderboards, charts, eligible repositories, and prizes"
+    />
+
+    <script>
+      window.tailwind = window.tailwind || {};
+      window.tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              blt: { red: "#dc2626", coral: "#ef4444", ink: "#111827" },
+            },
+            fontFamily: {
+              sans: [
+                "Inter",
+                "ui-sans-serif",
+                "system-ui",
+                "-apple-system",
+                "BlinkMacSystemFont",
+                "Segoe UI",
+                "sans-serif",
+              ],
+              mono: [
+                "ui-monospace",
+                "SFMono-Regular",
+                "Menlo",
+                "Monaco",
+                "Consolas",
+                "monospace",
+              ],
+            },
+          },
+        },
+      };
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="css/blt-theme.css" />
+    <script src="js/theme.js"></script>
+
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      /* ── dot field for hero ── */
+      .dot-field {
+        background-image: radial-gradient(
+          rgba(17, 24, 39, 0.14) 1px,
+          transparent 1px
+        );
+        background-size: 18px 18px;
+        mask-image: radial-gradient(circle at center, black 0, transparent 72%);
+        -webkit-mask-image: radial-gradient(
+          circle at center,
+          black 0,
+          transparent 72%
+        );
+      }
+
+      /* ── wave-dots divider ── */
+      .feature-divider::before,
+      .feature-divider::after {
+        content: "";
+        height: 1px;
+        flex: 1;
+      }
+      .feature-divider::before {
+        background: linear-gradient(to right, transparent, #e5e7eb);
+      }
+      .feature-divider::after {
+        background: linear-gradient(to left, transparent, #e5e7eb);
+      }
+      .wave-dots i {
+        position: absolute;
+        width: 0.25rem;
+        height: 0.25rem;
+        border-radius: 999px;
+        background: #d1d5db;
+        animation: wave 2s infinite ease-in-out;
+      }
+      .wave-dots i:nth-child(1) {
+        top: 0;
+        left: 0;
+      }
+      .wave-dots i:nth-child(2) {
+        top: 0;
+        left: 1rem;
+      }
+      .wave-dots i:nth-child(3) {
+        top: 0.25rem;
+        left: 0.5rem;
+        animation-delay: 0.35s;
+      }
+      .wave-dots i:nth-child(4) {
+        top: 0.5rem;
+        left: 0;
+        animation-delay: 0.55s;
+      }
+      .wave-dots i:nth-child(5) {
+        top: 0.5rem;
+        left: 1rem;
+        animation-delay: 0.55s;
+      }
+      .wave-dots i:nth-child(6) {
+        top: 0.75rem;
+        left: 0.5rem;
+        animation-delay: 0.85s;
+      }
+      @keyframes wave {
+        0%,
+        100% {
+          transform: translateY(0);
+          opacity: 0.5;
         }
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,.3);
-            border-radius: 50%;
-            border-top-color: #fff;
-            animation: spin 1s ease-in-out infinite;
+        50% {
+          transform: translateY(-3px);
+          opacity: 1;
         }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+      }
+
+      /* ── section kicker left-bar ── */
+      .section-kicker.with-bar::before {
+        content: "";
+        position: absolute;
+        top: 0.18rem;
+        left: -0.55rem;
+        width: 3px;
+        height: 1.25rem;
+        border-radius: 0 2px 2px 0;
+        background: #ef4444;
+      }
+
+      /* ── dark footer grid ── */
+      .footer-panel::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0.04;
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 1) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 1) 1px, transparent 1px);
+        background-size: 40px 40px;
+      }
+
+      /* ── progress bar ── */
+      .dash-progress-track {
+        height: 6px;
+        border-radius: 999px;
+        background: #f3f4f6;
+        overflow: hidden;
+      }
+      .dash-progress-fill {
+        height: 100%;
+        border-radius: 999px;
+        background: linear-gradient(to right, #ef4444, #dc2626);
+        transition: width 0.6s ease;
+      }
+
+      /* ── skeleton shimmer ── */
+      .skeleton {
+        background: linear-gradient(
+          90deg,
+          #f3f4f6 25%,
+          #e9eaec 50%,
+          #f3f4f6 75%
+        );
+        background-size: 200% 100%;
+        animation: shimmer 1.4s infinite;
+        border-radius: 8px;
+      }
+      @keyframes shimmer {
+        0% {
+          background-position: 200% 0;
         }
-        .trophy-gold { color: #FFD700; }
-        .trophy-silver { color: #C0C0C0; }
-        .trophy-bronze { color: #CD7F32; }
-        
-        /* Skeleton Loading Styles */
-        .skeleton {
-            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-            background-size: 200% 100%;
-            animation: loading 1.5s ease-in-out infinite;
-            border-radius: 4px;
+        100% {
+          background-position: -200% 0;
         }
-        
-        @keyframes loading {
-            0% {
-                background-position: 200% 0;
-            }
-            100% {
-                background-position: -200% 0;
-            }
-        }
-        
-        .skeleton-text {
-            height: 1rem;
-            margin-bottom: 0.5rem;
-        }
-        
-        .skeleton-title {
-            height: 1.5rem;
-            width: 60%;
-            margin-bottom: 0.75rem;
-        }
-        
-        .skeleton-avatar {
-            width: 2rem;
-            height: 2rem;
-            border-radius: 50%;
-        }
-        
-        .skeleton-repo-card {
-            height: 120px;
-        }
-        
-        .skeleton-leaderboard-item {
-            height: 80px;
-        }
-        
-        /* Mobile-specific styles */
-        @media (max-width: 640px) {
-            .btn-text {
-                display: none;
-            }
-        }
-        @media (min-width: 641px) {
-            .btn-icon-only {
-                display: none;
-            }
-        }
+      }
+      .skeleton-leaderboard-item {
+        height: 3.5rem;
+        margin-bottom: 0.5rem;
+      }
+      .skeleton-repo-card {
+        height: 5rem;
+        margin-bottom: 0.5rem;
+      }
+
+      /* ── stat number ── */
+      .dash-stat strong {
+        display: block;
+        font-size: clamp(1.6rem, 3.5vw, 2.25rem);
+        font-weight: 800;
+        color: #111827;
+        line-height: 1;
+      }
+      .dash-stat p {
+        margin-top: 0.3rem;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: #9ca3af;
+      }
     </style>
-</head>
-<body class="bg-gray-50">
-    <!-- Navigation -->
-    <nav class="bg-white shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                <div class="flex items-center">
-                    <a href="index.html" class="text-gray-600 hover:text-gray-900 mr-3 sm:mr-4" title="Back to all hackathons">
-                        <i class="fas fa-arrow-left text-lg sm:text-xl"></i>
-                    </a>
-                    <i class="fas fa-trophy text-red-600 text-xl sm:text-2xl mr-2 sm:mr-3"></i>
-                    <h1 class="text-base sm:text-lg lg:text-xl font-bold text-gray-900" id="nav-title">Hackathon Dashboard</h1>
-                </div>
-                <div class="flex items-center space-x-2 sm:space-x-4">
-                    <a href="https://github.com/OWASP-BLT/BLT-Hackathons" target="_blank" 
-                       rel="noopener noreferrer"
-                       class="px-3 py-2 sm:px-4 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium flex items-center space-x-2 text-sm sm:text-base"
-                       aria-label="Contribute on GitHub">
-                        <i class="fab fa-github"></i>
-                        <span class="btn-text">Contribute on GitHub</span>
-                    </a>
-                    <span id="hackathon-status" class="px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium"></span>
-                </div>
-            </div>
+  </head>
+  <body
+    class="min-h-screen overflow-x-hidden bg-gray-50 font-sans text-gray-900 antialiased selection:bg-red-100 selection:text-red-700"
+  >
+    <!-- ══ Header ══ -->
+    <header
+      class="fixed inset-x-0 top-0 z-50 border-b border-black/5 bg-white/90 backdrop-blur-[18px]"
+      id="site-header"
+    >
+      <div
+        class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-3.5 max-md:px-4"
+      >
+        <!-- Back -->
+        <a
+          href="index.html"
+          class="inline-flex items-center gap-2 text-sm font-medium text-gray-500 transition-colors hover:text-gray-900"
+          aria-label="Back to events"
+        >
+          <i class="fas fa-arrow-left text-xs" aria-hidden="true"></i>
+          <span class="hidden sm:inline">Back to events</span>
+        </a>
+
+        <!-- Actions -->
+        <div class="flex items-center gap-2">
+          <span
+            id="hackathon-status"
+            class="blt-status blt-status--upcoming hidden sm:inline-flex"
+            >Loading</span
+          >
+          <a
+            href="https://gitlab.com/owasp-blt/blt-hackathons"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="hidden items-center justify-center gap-1.5 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition hover:bg-gray-50 sm:inline-flex"
+          >
+            <i
+              class="fab fa-gitlab text-xs text-orange-500"
+              aria-hidden="true"
+            ></i>
+            Source
+          </a>
+          <a
+            href="https://gitlab.com/owasp-blt/blt-hackathons/-/issues"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center justify-center gap-1.5 rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-3 py-1.5 text-xs font-medium text-white transition hover:-translate-y-px"
+          >
+            <i class="fas fa-code-branch text-xs" aria-hidden="true"></i>
+            Contribute
+          </a>
         </div>
-    </nav>
+      </div>
+    </header>
 
-    <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <!-- Banner Section -->
-        <div class="relative rounded-lg overflow-hidden mb-4 h-48 sm:h-56 lg:h-64 bg-gradient-to-r from-red-600 to-red-800 flex items-center justify-center" id="banner-section">
-            <div class="text-center text-white p-4" id="banner-text">
-                <h2 class="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2" id="hackathon-name">Loading...</h2>
-                <p class="text-base sm:text-lg lg:text-xl mb-2" id="hackathon-dates"></p>
-                <p class="text-sm sm:text-base lg:text-lg" id="time-remaining"></p>
+    <main class="pt-[3.5rem]">
+      <!-- ══ Page header ══ -->
+      <section
+        class="border-b border-gray-100 bg-[#f6f6f6]"
+        id="banner-section"
+        aria-labelledby="hackathon-name"
+      >
+        <div
+          class="mx-auto max-w-7xl px-6 pb-8 pt-8 max-md:px-4"
+          id="banner-text"
+        >
+          <!-- Breadcrumb-style status row -->
+          <div class="mb-4 flex flex-wrap items-center gap-3">
+            <span
+              class="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 py-1 font-mono text-xs font-medium uppercase tracking-[.16em] text-red-600"
+              >Live event data</span
+            >
+          </div>
+
+          <!-- Title + description -->
+          <h2
+            id="hackathon-name"
+            class="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl"
+          >
+            Loading...
+          </h2>
+          <p
+            class="mt-2 max-w-3xl text-sm leading-6 text-gray-500"
+            id="hackathon-description"
+          >
+            Loading event details...
+          </p>
+
+          <!-- Meta + CTAs row -->
+          <div class="mt-5 flex flex-wrap items-center gap-6">
+            <div class="flex flex-wrap gap-6">
+              <div>
+                <p
+                  class="font-mono text-[.6rem] font-semibold uppercase tracking-[.16em] text-gray-400"
+                >
+                  Date range
+                </p>
+                <strong
+                  class="mt-0.5 block text-sm font-semibold text-gray-800"
+                  id="hackathon-dates"
+                  >Loading...</strong
+                >
+              </div>
+              <div>
+                <p
+                  class="font-mono text-[.6rem] font-semibold uppercase tracking-[.16em] text-gray-400"
+                >
+                  Countdown
+                </p>
+                <strong
+                  class="mt-0.5 block text-sm font-semibold text-gray-800"
+                  id="time-remaining"
+                  >Loading...</strong
+                >
+              </div>
             </div>
+
+            <div class="flex flex-wrap items-center gap-2 sm:ml-auto">
+              <a
+                href="#leaderboard-card"
+                class="inline-flex items-center justify-center gap-2 rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-4 py-2 text-sm font-medium text-white shadow-[0_10px_24px_-14px_rgba(220,38,38,.8)] transition hover:-translate-y-px"
+              >
+                <i class="fas fa-medal text-xs" aria-hidden="true"></i>
+                View leaderboard
+              </a>
+              <a
+                href="#repositories-card"
+                class="inline-flex items-center justify-center gap-2 rounded-md border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:border-gray-300 hover:bg-gray-50"
+              >
+                <i class="fas fa-code-branch text-xs" aria-hidden="true"></i>
+                Repositories
+              </a>
+            </div>
+          </div>
+
+          <div
+            id="dashboard-error"
+            class="dashboard-error hidden mt-4"
+            role="alert"
+          ></div>
         </div>
 
-        <!-- Time Range -->
-        <div class="bg-white rounded-lg shadow px-4 sm:px-6 py-3 mb-4 flex flex-wrap items-center gap-2 text-sm text-gray-700" id="time-range-bar">
-            <i class="fas fa-calendar-alt text-red-600"></i>
-            <span class="font-semibold">Time Range:</span>
-            <span id="time-range-display">Loading...</span>
+        <!-- Progress bar strip at bottom of header -->
+        <div class="mx-auto max-w-7xl px-6 pb-4 max-md:px-4">
+          <div class="flex items-center gap-3">
+            <div
+              class="dash-progress-track flex-1"
+              role="progressbar"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              aria-valuenow="0"
+            >
+              <div
+                class="dash-progress-fill"
+                id="timeline-progress-bar"
+                style="width: 0%"
+              ></div>
+            </div>
+            <p
+              class="flex-none font-mono text-[.65rem] font-semibold text-gray-400"
+              id="timeline-progress-label"
+            >
+              --
+            </p>
+          </div>
+          <div class="mt-1 flex justify-between">
+            <span
+              class="font-mono text-[.58rem] text-gray-400"
+              id="timeline-start-date"
+              >--</span
+            >
+            <span
+              class="font-mono text-[.58rem] text-gray-400"
+              id="timeline-current-date"
+              >--</span
+            >
+            <span
+              class="font-mono text-[.58rem] text-gray-400"
+              id="timeline-end-date"
+              >--</span
+            >
+          </div>
         </div>
+      </section>
 
-        <!-- Quick Stats -->
-        <div class="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-3 lg:gap-4 mb-6 sm:mb-8">
-            <div class="bg-white rounded-lg shadow p-2 sm:p-4 lg:p-6 text-center">
-                <h3 class="text-xs sm:text-sm lg:text-base font-semibold text-gray-700">Participants</h3>
-                <p class="text-lg sm:text-2xl lg:text-3xl font-bold text-red-600" id="participant-count">0</p>
-            </div>
-            <div class="bg-white rounded-lg shadow p-2 sm:p-4 lg:p-6 text-center">
-                <h3 class="text-xs sm:text-sm lg:text-base font-semibold text-gray-700">Pull Requests</h3>
-                <p class="text-lg sm:text-2xl lg:text-3xl font-bold text-red-600" id="pr-count">0</p>
-            </div>
-            <div class="bg-white rounded-lg shadow p-2 sm:p-4 lg:p-6 text-center">
-                <h3 class="text-xs sm:text-sm lg:text-base font-semibold text-gray-700">Merged PRs</h3>
-                <p class="text-lg sm:text-2xl lg:text-3xl font-bold text-red-600" id="merged-pr-count">0</p>
-            </div>
-            <div class="bg-white rounded-lg shadow p-2 sm:p-4 lg:p-6 text-center">
-                <h3 class="text-xs sm:text-sm lg:text-base font-semibold text-gray-700">Issues</h3>
-                <p class="text-lg sm:text-2xl lg:text-3xl font-bold text-red-600" id="issue-count">0</p>
-            </div>
-            <div class="bg-white rounded-lg shadow p-2 sm:p-4 lg:p-6 text-center">
-                <h3 class="text-xs sm:text-sm lg:text-base font-semibold text-gray-700">Repositories</h3>
-                <p class="text-lg sm:text-2xl lg:text-3xl font-bold text-red-600" id="repo-count">0</p>
-            </div>
-            <div class="bg-white rounded-lg shadow p-2 sm:p-4 lg:p-6 text-center">
-                <h3 class="text-xs sm:text-sm lg:text-base font-semibold text-gray-700">Days Active</h3>
-                <p class="text-lg sm:text-2xl lg:text-3xl font-bold text-red-600" id="days-active-count">0</p>
-            </div>
+      <div id="hero-timeline-title" class="sr-only">Event timeline</div>
+
+      <!-- ══ Stats band ══ -->
+      <section
+        class="border-b border-gray-100 bg-white"
+        aria-label="Hackathon statistics"
+      >
+        <div class="mx-auto max-w-7xl px-6 py-8 max-md:px-4">
+          <div class="flex flex-wrap items-center justify-between gap-6">
+            <article class="dash-stat text-center">
+              <strong id="participant-count">0</strong>
+              <p>Participants</p>
+            </article>
+            <div
+              class="h-8 w-px bg-gray-200 max-sm:hidden"
+              aria-hidden="true"
+            ></div>
+            <article class="dash-stat text-center">
+              <strong id="pr-count">0</strong>
+              <p id="pr-stat-label">PRs / MRs</p>
+            </article>
+            <div
+              class="h-8 w-px bg-gray-200 max-sm:hidden"
+              aria-hidden="true"
+            ></div>
+            <article class="dash-stat text-center">
+              <strong id="merged-pr-count">0</strong>
+              <p id="merged-pr-stat-label">Merged PRs / MRs</p>
+            </article>
+            <div
+              class="h-8 w-px bg-gray-200 max-sm:hidden"
+              aria-hidden="true"
+            ></div>
+            <article class="dash-stat text-center">
+              <strong id="issue-count">0</strong>
+              <p>Issues</p>
+            </article>
+            <div
+              class="h-8 w-px bg-gray-200 max-sm:hidden"
+              aria-hidden="true"
+            ></div>
+            <article class="dash-stat text-center">
+              <strong id="repo-count">0</strong>
+              <p>Repositories</p>
+            </article>
+            <div
+              class="h-8 w-px bg-gray-200 max-sm:hidden"
+              aria-hidden="true"
+            ></div>
+            <article class="dash-stat text-center">
+              <strong id="days-active-count">0</strong>
+              <p>Days active</p>
+            </article>
+          </div>
         </div>
+      </section>
 
-        <!-- PR Activity Chart -->
-        <div class="bg-white rounded-lg shadow p-4 sm:p-6 mb-6 sm:mb-8">
-            <h2 class="text-xl sm:text-2xl font-bold mb-4 text-gray-800">Pull Request Activity</h2>
-            <div class="h-48 sm:h-56 lg:h-64">
-                <canvas id="prActivityChart"></canvas>
+      <!-- ══ Wave-dots divider ══ -->
+      <div
+        class="feature-divider mx-auto my-10 flex w-[min(72rem,calc(100%-2rem))] items-center gap-3 text-gray-500"
+        aria-hidden="true"
+      >
+        <span class="wave-dots relative h-4 w-5 flex-none"
+          ><i></i><i></i><i></i><i></i><i></i><i></i
+        ></span>
+      </div>
+
+      <!-- ══ Timeline + Chart ══ -->
+      <div
+        class="mx-auto grid max-w-7xl gap-4 px-6 pb-6 max-md:px-4 lg:grid-cols-[.45fr_1fr]"
+      >
+        <article
+          class="rounded-xl bg-white p-6 shadow-[inset_0_0_0_1px_rgba(17,24,39,.1)]"
+          id="timeline-panel"
+          aria-labelledby="timeline-heading"
+        >
+          <div class="mb-5 flex items-center justify-between gap-3">
+            <div>
+              <p
+                class="font-mono text-[.6rem] font-semibold uppercase tracking-[.16em] text-gray-400"
+              >
+                Schedule
+              </p>
+              <h2
+                id="timeline-heading"
+                class="mt-1 text-lg font-semibold text-gray-900"
+              >
+                Event timeline
+              </h2>
             </div>
-        </div>
-
-        <!-- Leaderboards Section -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 mb-6 sm:mb-8">
-            <!-- Leaderboard -->
-            <div class="bg-white rounded-lg shadow p-4 sm:p-6">
-                <h2 class="text-xl sm:text-2xl font-bold mb-4 text-gray-800">
-                    <i class="fas fa-medal mr-2 text-red-600"></i>
-                    Leaderboard
-                </h2>
-                <div id="leaderboard" class="space-y-3">
-                    <!-- Skeleton Loading -->
-                    <div class="skeleton skeleton-leaderboard-item rounded-lg"></div>
-                    <div class="skeleton skeleton-leaderboard-item rounded-lg"></div>
-                    <div class="skeleton skeleton-leaderboard-item rounded-lg"></div>
-                </div>
+            <span
+              class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-100 bg-gray-50 text-red-600"
+              aria-hidden="true"
+            >
+              <i class="fas fa-hourglass-half text-sm"></i>
+            </span>
+          </div>
+          <div class="space-y-4">
+            <div class="flex gap-3">
+              <span
+                class="mt-1.5 h-2.5 w-2.5 flex-none rounded-full border-2 border-gray-300 bg-white"
+              ></span>
+              <div>
+                <strong class="block text-sm font-semibold text-gray-800"
+                  >Start window</strong
+                >
+                <p
+                  class="mt-0.5 text-sm text-gray-500"
+                  id="timeline-start-date-detail"
+                >
+                  Loading...
+                </p>
+              </div>
             </div>
-
-            <!-- Review Leaderboard -->
-            <div class="bg-white rounded-lg shadow p-4 sm:p-6">
-                <h2 class="text-xl sm:text-2xl font-bold mb-4 text-gray-800">
-                    <i class="fas fa-medal mr-2 text-red-600"></i>
-                    Review Leaderboard
-                </h2>
-                <div id="review-leaderboard" class="space-y-3">
-                    <!-- Skeleton Loading -->
-                    <div class="skeleton skeleton-leaderboard-item rounded-lg"></div>
-                    <div class="skeleton skeleton-leaderboard-item rounded-lg"></div>
-                    <div class="skeleton skeleton-leaderboard-item rounded-lg"></div>
-                </div>
+            <div class="flex gap-3">
+              <span
+                class="mt-1.5 h-2.5 w-2.5 flex-none rounded-full border-2 border-red-500 bg-red-500 shadow-[0_0_0_3px_rgba(239,68,68,.2)]"
+              ></span>
+              <div>
+                <strong class="block text-sm font-semibold text-red-600"
+                  >Current status</strong
+                >
+                <p
+                  class="mt-0.5 text-sm text-gray-500"
+                  id="timeline-current-status"
+                >
+                  Loading event status...
+                </p>
+              </div>
             </div>
-        </div>
-
-        <!-- Main Content Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
-            <!-- Left Column - Info & Repositories -->
-            <div class="lg:col-span-2">
-                <!-- Description -->
-                <div class="bg-white rounded-lg shadow p-4 sm:p-6 mb-6 sm:mb-8">
-                    <h2 class="text-xl sm:text-2xl font-bold mb-4 text-gray-800">About this Hackathon</h2>
-                    <div class="prose max-w-none" id="hackathon-description">
-                        <p class="text-gray-600">Loading description...</p>
-                    </div>
-                    <div class="mt-6" id="rules-section" style="display: none;">
-                        <h3 class="text-lg sm:text-xl font-semibold mb-2 text-gray-800">Rules</h3>
-                        <div class="prose max-w-none whitespace-pre-line" id="hackathon-rules"></div>
-                    </div>
-                </div>
-
-                <!-- Repositories -->
-                <div class="bg-white rounded-lg shadow p-4 sm:p-6 mb-6 sm:mb-8">
-                    <h2 class="text-xl sm:text-2xl font-bold mb-4 text-gray-800">
-                        <i class="fas fa-code-branch mr-2 text-red-600"></i>
-                        Repositories <span id="repositories-title" aria-live="polite">(0)</span>
-                    </h2>
-                    <div id="repositories-list" class="space-y-4">
-                        <!-- Skeleton Loading -->
-                        <div class="skeleton skeleton-repo-card rounded-lg"></div>
-                        <div class="skeleton skeleton-repo-card rounded-lg"></div>
-                        <div class="skeleton skeleton-repo-card rounded-lg"></div>
-                    </div>
-                </div>
+            <div class="flex gap-3">
+              <span
+                class="mt-1.5 h-2.5 w-2.5 flex-none rounded-full border-2 border-gray-300 bg-white"
+              ></span>
+              <div>
+                <strong class="block text-sm font-semibold text-gray-800"
+                  >End window</strong
+                >
+                <p
+                  class="mt-0.5 text-sm text-gray-500"
+                  id="timeline-end-date-detail"
+                >
+                  Loading...
+                </p>
+              </div>
             </div>
+          </div>
+        </article>
 
-            <!-- Right Column - Sponsors -->
-            <div class="lg:col-span-1">
-                <!-- Sponsors -->
-                <div class="bg-white rounded-lg shadow p-4 sm:p-6">
-                    <h2 class="text-xl sm:text-2xl font-bold mb-4 text-gray-800">
-                        <i class="fas fa-handshake mr-2 text-red-600"></i>
-                        Sponsors
-                    </h2>
-                    <div id="sponsors-list">
-                        <p class="text-gray-600 italic">No sponsors configured.</p>
-                    </div>
-                </div>
+        <article
+          class="rounded-xl bg-white p-6 shadow-[inset_0_0_0_1px_rgba(17,24,39,.1)]"
+          aria-labelledby="chart-heading"
+        >
+          <div class="mb-5 flex items-center justify-between gap-3">
+            <div>
+              <p
+                class="font-mono text-[.6rem] font-semibold uppercase tracking-[.16em] text-gray-400"
+              >
+                Activity trend
+              </p>
+              <h2
+                id="chart-heading"
+                class="mt-1 text-lg font-semibold text-gray-900"
+              >
+                Pull request activity
+              </h2>
             </div>
-        </div>
+            <span
+              class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-100 bg-gray-50 text-red-600"
+              aria-hidden="true"
+            >
+              <i class="fas fa-chart-column text-sm"></i>
+            </span>
+          </div>
+          <div class="relative min-h-[14rem]">
+            <canvas id="prActivityChart"></canvas>
+            <div
+              id="chart-empty-state"
+              class="absolute inset-0 hidden flex-col items-center justify-center gap-2 text-center"
+            >
+              <i
+                class="fas fa-chart-simple text-3xl text-gray-300"
+                aria-hidden="true"
+              ></i>
+              <p class="text-sm text-gray-500">
+                No activity data is available yet.
+              </p>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <!-- ══ Wave-dots divider ══ -->
+      <div
+        class="feature-divider mx-auto my-10 flex w-[min(72rem,calc(100%-2rem))] items-center gap-3 text-gray-500"
+        aria-hidden="true"
+      >
+        <span class="wave-dots relative h-4 w-5 flex-none"
+          ><i></i><i></i><i></i><i></i><i></i><i></i
+        ></span>
+      </div>
+
+      <!-- ══ Leaderboards ══ -->
+      <div
+        class="mx-auto grid max-w-7xl gap-4 px-6 pb-6 max-md:px-4 lg:grid-cols-2"
+      >
+        <article
+          class="rounded-xl bg-white p-6 shadow-[inset_0_0_0_1px_rgba(17,24,39,.1)]"
+          id="leaderboard-card"
+          aria-labelledby="leaderboard-heading"
+        >
+          <div class="mb-5 flex items-center justify-between gap-3">
+            <div>
+              <p
+                class="font-mono text-[.6rem] font-semibold uppercase tracking-[.16em] text-gray-400"
+              >
+                Contribution leaderboard
+              </p>
+              <h2
+                id="leaderboard-heading"
+                class="mt-1 text-lg font-semibold text-gray-900"
+              >
+                Leaderboard
+              </h2>
+            </div>
+            <span
+              class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-100 bg-gray-50 text-red-600"
+              aria-hidden="true"
+            >
+              <i class="fas fa-medal text-sm"></i>
+            </span>
+          </div>
+          <div
+            id="leaderboard"
+            class="dashboard-list space-y-1"
+            aria-live="polite"
+            aria-busy="true"
+          >
+            <div class="skeleton skeleton-leaderboard-item"></div>
+            <div class="skeleton skeleton-leaderboard-item"></div>
+            <div class="skeleton skeleton-leaderboard-item"></div>
+          </div>
+        </article>
+
+        <article
+          class="rounded-xl bg-white p-6 shadow-[inset_0_0_0_1px_rgba(17,24,39,.1)]"
+          id="review-card"
+          aria-labelledby="review-heading"
+        >
+          <div class="mb-5 flex items-center justify-between gap-3">
+            <div>
+              <p
+                class="font-mono text-[.6rem] font-semibold uppercase tracking-[.16em] text-gray-400"
+              >
+                Review and activity leaderboard
+              </p>
+              <h2
+                id="review-heading"
+                class="mt-1 text-lg font-semibold text-gray-900"
+              >
+                Review leaderboard
+              </h2>
+            </div>
+            <span
+              class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-100 bg-gray-50 text-red-600"
+              aria-hidden="true"
+            >
+              <i class="fas fa-comments text-sm"></i>
+            </span>
+          </div>
+          <div
+            id="review-leaderboard"
+            class="dashboard-list space-y-1"
+            aria-live="polite"
+            aria-busy="true"
+          >
+            <div class="skeleton skeleton-leaderboard-item"></div>
+            <div class="skeleton skeleton-leaderboard-item"></div>
+            <div class="skeleton skeleton-leaderboard-item"></div>
+          </div>
+        </article>
+      </div>
+
+      <!-- ══ Wave-dots divider ══ -->
+      <div
+        class="feature-divider mx-auto my-10 flex w-[min(72rem,calc(100%-2rem))] items-center gap-3 text-gray-500"
+        aria-hidden="true"
+      >
+        <span class="wave-dots relative h-4 w-5 flex-none"
+          ><i></i><i></i><i></i><i></i><i></i><i></i
+        ></span>
+      </div>
+
+      <!-- ══ About (full width) ══ -->
+      <div class="mx-auto max-w-7xl px-6 pb-4 max-md:px-4">
+        <article
+          class="rounded-xl bg-white p-6 shadow-[inset_0_0_0_1px_rgba(17,24,39,.1)]"
+          aria-labelledby="about-heading"
+        >
+          <div class="mb-5 flex items-center justify-between gap-3">
+            <div>
+              <p
+                class="font-mono text-[.6rem] font-semibold uppercase tracking-[.16em] text-gray-400"
+              >
+                About
+              </p>
+              <h2
+                id="about-heading"
+                class="mt-1 text-lg font-semibold text-gray-900"
+              >
+                About this hackathon
+              </h2>
+            </div>
+            <span
+              class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-100 bg-gray-50 text-red-600"
+              aria-hidden="true"
+            >
+              <i class="fas fa-circle-info text-sm"></i>
+            </span>
+          </div>
+          <div
+            id="rules-section"
+            class="dashboard-rules prose prose-sm max-w-none text-gray-600"
+          >
+            <h3 class="text-sm font-semibold text-gray-900">Rules</h3>
+            <div
+              id="hackathon-rules"
+              class="mt-2 text-sm leading-6 text-gray-600"
+            >
+              Rules are loading...
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <!-- ══ Repos + Sponsors (50/50) ══ -->
+      <div
+        class="mx-auto grid max-w-7xl gap-4 px-6 pb-10 max-md:px-4 lg:grid-cols-2"
+      >
+        <!-- Repositories -->
+        <article
+          class="rounded-xl bg-white p-6 shadow-[inset_0_0_0_1px_rgba(17,24,39,.1)]"
+          id="repositories-card"
+          aria-labelledby="repositories-heading"
+        >
+          <div class="mb-5 flex items-center justify-between gap-3">
+            <div>
+              <p
+                class="font-mono text-[.6rem] font-semibold uppercase tracking-[.16em] text-gray-400"
+              >
+                Eligible repositories
+              </p>
+              <h2
+                id="repositories-heading"
+                class="mt-1 text-lg font-semibold text-gray-900"
+              >
+                Repositories
+                <span
+                  id="repositories-title"
+                  class="font-mono text-sm font-normal text-gray-400"
+                  aria-live="polite"
+                  >(0)</span
+                >
+              </h2>
+            </div>
+            <span
+              class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-100 bg-gray-50 text-red-600"
+              aria-hidden="true"
+            >
+              <i class="fas fa-code-branch text-sm"></i>
+            </span>
+          </div>
+          <div
+            id="repositories-list"
+            class="dashboard-repo-list space-y-2"
+            aria-live="polite"
+            aria-busy="true"
+          >
+            <div class="skeleton skeleton-repo-card"></div>
+            <div class="skeleton skeleton-repo-card"></div>
+            <div class="skeleton skeleton-repo-card"></div>
+          </div>
+        </article>
+
+        <!-- Sponsors -->
+        <article
+          class="rounded-xl bg-white p-6 shadow-[inset_0_0_0_1px_rgba(17,24,39,.1)]"
+          aria-labelledby="sponsors-heading"
+        >
+          <div class="mb-5 flex items-center justify-between gap-3">
+            <div>
+              <p
+                class="font-mono text-[.6rem] font-semibold uppercase tracking-[.16em] text-gray-400"
+              >
+                Sponsors &amp; prizes
+              </p>
+              <h2
+                id="sponsors-heading"
+                class="mt-1 text-lg font-semibold text-gray-900"
+              >
+                Sponsors &amp; prizes
+              </h2>
+            </div>
+            <span
+              class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-100 bg-gray-50 text-red-600"
+              aria-hidden="true"
+            >
+              <i class="fas fa-handshake text-sm"></i>
+            </span>
+          </div>
+          <div id="sponsors-list" aria-live="polite">
+            <div class="flex flex-col items-center gap-2 py-6 text-center">
+              <i
+                class="fas fa-gift text-3xl text-gray-300"
+                aria-hidden="true"
+              ></i>
+              <p class="text-sm text-gray-500">
+                No sponsors or prizes announced yet.
+              </p>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <!-- ══ CTA + dark footer ══ -->
+      <section class="ml-[calc(50%-50vw)] w-screen overflow-hidden px-4 pt-4">
+        <footer
+          id="site-footer"
+          class="footer-panel relative overflow-hidden rounded-t-3xl border border-white/5 bg-[#0e0d0c] pb-10 pt-8 text-white max-md:rounded-t-[.8rem]"
+        >
+          <h2
+            class="relative m-0 px-2 text-center text-[clamp(1.6rem,6vw,5rem)] font-light leading-[.92] text-white/75"
+          >
+            hackathons.owaspblt.org
+          </h2>
+          <div
+            class="relative mx-auto mt-3 h-[3px] w-14 rounded-full bg-red-600"
+            aria-hidden="true"
+          ></div>
+        </footer>
+      </section>
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-white border-t mt-12">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center text-gray-600">
-            <div id="github-api-info" class="mb-3 text-gray-500"></div>
-            <p>Powered by <a href="https://github.com/OWASP-BLT/BLT-Hackathons" class="text-red-600 hover:underline" target="_blank" rel="noopener noreferrer">BLT-Hackathons</a></p>
+    <!-- ══ Sponsor Modal ══ -->
+    <div
+      id="sponsor-modal"
+      class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 px-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="sponsor-modal-title"
+    >
+      <div
+        class="w-full max-w-md rounded-2xl bg-white p-6 shadow-[0_32px_80px_-24px_rgba(0,0,0,.6)]"
+      >
+        <div class="mb-4 flex items-center justify-between">
+          <h2
+            class="text-lg font-semibold text-gray-900"
+            id="sponsor-modal-title"
+          >
+            <i class="fas fa-handshake mr-2 text-red-600"></i>Become a Sponsor
+          </h2>
+          <button
+            onclick="closeSponsorModal()"
+            class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 text-lg leading-none transition hover:bg-gray-50"
+            aria-label="Close"
+          >
+            &times;
+          </button>
         </div>
-    </footer>
 
-    <!-- Sponsor Modal -->
-    <div id="sponsor-modal" class="fixed inset-0 z-50 items-center justify-center bg-black bg-opacity-50 hidden" role="dialog" aria-modal="true" aria-labelledby="sponsor-modal-title">
-        <div class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4 p-6">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-bold text-gray-900" id="sponsor-modal-title">
-                    <i class="fas fa-handshake mr-2 text-red-600"></i>Become a Sponsor
-                </h2>
-                <button onclick="closeSponsorModal()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none" aria-label="Close">&times;</button>
-            </div>
+        <p class="text-sm leading-6 text-gray-600 mb-4">
+          Fill in your details below. Clicking <strong>Submit</strong> will open
+          a GitLab issue pre-filled with your information.
+        </p>
 
-            <p class="text-sm text-gray-600 mb-4">
-                Fill in your details below. Clicking <strong>Submit</strong> will open a GitHub issue pre-filled with your information.
-            </p>
-
-            <div class="bg-yellow-50 border border-yellow-300 rounded-lg p-3 mb-4 text-sm text-yellow-800">
-                <i class="fas fa-info-circle mr-1"></i>
-                <strong>Payment note:</strong> Payment must be made directly to the contributors through
-                <a href="https://github.com/sponsors" target="_blank" rel="noopener noreferrer" class="underline hover:text-yellow-900">GitHub Sponsors</a>.
-            </div>
-
-            <div class="space-y-4">
-                <div>
-                    <label for="sponsor-name" class="block text-sm font-medium text-gray-700 mb-1">Name / Company <span class="text-red-500">*</span></label>
-                    <input type="text" id="sponsor-name" placeholder="e.g., Acme Corp or your GitHub username"
-                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500">
-                </div>
-                <div>
-                    <label for="sponsor-website" class="block text-sm font-medium text-gray-700 mb-1">Website (optional)</label>
-                    <input type="url" id="sponsor-website" placeholder="https://example.com"
-                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500">
-                </div>
-                <div>
-                    <label for="sponsor-amount" class="block text-sm font-medium text-gray-700 mb-1">Sponsorship Amount <span class="text-red-500">*</span></label>
-                    <input type="text" id="sponsor-amount" placeholder="e.g., $50"
-                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500">
-                </div>
-                <div>
-                    <label for="sponsor-message" class="block text-sm font-medium text-gray-700 mb-1">Additional Notes (optional)</label>
-                    <textarea id="sponsor-message" rows="3" placeholder="Any extra information you'd like to share…"
-                              class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"></textarea>
-                </div>
-            </div>
-
-            <div id="sponsor-modal-error" class="hidden mt-3 text-sm text-red-600"></div>
-
-            <div class="flex justify-end space-x-3 mt-6">
-                <button onclick="closeSponsorModal()"
-                        class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
-                    Cancel
-                </button>
-                <button onclick="submitSponsorForm()"
-                        class="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors flex items-center space-x-2">
-                    <i class="fas fa-external-link-alt"></i>
-                    <span>Submit via GitHub</span>
-                </button>
-            </div>
+        <div
+          class="mb-4 flex gap-2 rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-700"
+        >
+          <i class="fas fa-info-circle mt-0.5 flex-none text-blue-500"></i>
+          <span
+            ><strong>Payment note:</strong> Payment must be made directly to the
+            contributors through
+            <a
+              href="https://github.com/sponsors"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="underline"
+              >GitHub Sponsors</a
+            >.</span
+          >
         </div>
+
+        <div class="space-y-4">
+          <div>
+            <label
+              for="sponsor-name"
+              class="block text-sm font-medium text-gray-700 mb-1"
+              >Name / Company <span class="text-red-500">*</span></label
+            >
+            <input
+              type="text"
+              id="sponsor-name"
+              placeholder="e.g., Acme Corp or your GitHub username"
+              class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm transition focus:border-red-400 focus:outline-none focus:ring-2 focus:ring-red-200"
+            />
+          </div>
+          <div>
+            <label
+              for="sponsor-website"
+              class="block text-sm font-medium text-gray-700 mb-1"
+              >Website (optional)</label
+            >
+            <input
+              type="url"
+              id="sponsor-website"
+              placeholder="https://example.com"
+              class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm transition focus:border-red-400 focus:outline-none focus:ring-2 focus:ring-red-200"
+            />
+          </div>
+          <div>
+            <label
+              for="sponsor-amount"
+              class="block text-sm font-medium text-gray-700 mb-1"
+              >Sponsorship Amount <span class="text-red-500">*</span></label
+            >
+            <input
+              type="text"
+              id="sponsor-amount"
+              placeholder="e.g., $50"
+              class="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm transition focus:border-red-400 focus:outline-none focus:ring-2 focus:ring-red-200"
+            />
+          </div>
+          <div>
+            <label
+              for="sponsor-message"
+              class="block text-sm font-medium text-gray-700 mb-1"
+              >Additional Notes (optional)</label
+            >
+            <textarea
+              id="sponsor-message"
+              rows="3"
+              placeholder="Any extra information you'd like to share..."
+              class="w-full resize-none rounded-lg border border-gray-200 px-3 py-2 text-sm transition focus:border-red-400 focus:outline-none focus:ring-2 focus:ring-red-200"
+            ></textarea>
+          </div>
+        </div>
+
+        <div
+          id="sponsor-modal-error"
+          class="hidden mt-3 text-sm text-red-600"
+        ></div>
+
+        <div class="mt-6 flex justify-end gap-3">
+          <button
+            onclick="closeSponsorModal()"
+            class="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+          >
+            Cancel
+          </button>
+          <button
+            onclick="submitSponsorForm()"
+            class="inline-flex items-center gap-2 rounded-lg border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-4 py-2 text-sm font-medium text-white transition hover:-translate-y-px"
+          >
+            <i class="fas fa-external-link-alt text-xs"></i>
+            Submit via GitLab
+          </button>
+        </div>
+      </div>
     </div>
 
-    <!-- Main JavaScript -->
-    <!-- Optional legacy single-hackathon configuration (defines HACKATHON_CONFIG if used) -->
     <script src="js/config.js"></script>
     <script src="js/hackathons-config.js"></script>
     <script src="js/github-api.js"></script>
     <script src="js/main.js"></script>
 
     <script>
-        function openSponsorModal() {
-            document.getElementById('sponsor-modal').classList.remove('hidden');
-            document.getElementById('sponsor-name').focus();
+      function openSponsorModal() {
+        document.getElementById("sponsor-modal").classList.remove("hidden");
+        document.getElementById("sponsor-modal").classList.add("flex");
+        document.getElementById("sponsor-name").focus();
+      }
+
+      function closeSponsorModal() {
+        document.getElementById("sponsor-modal").classList.add("hidden");
+        document.getElementById("sponsor-modal").classList.remove("flex");
+        document.getElementById("sponsor-modal-error").classList.add("hidden");
+        document.getElementById("sponsor-modal-error").textContent = "";
+      }
+
+      function submitSponsorForm() {
+        var name = document.getElementById("sponsor-name").value.trim();
+        var website = document.getElementById("sponsor-website").value.trim();
+        var amount = document.getElementById("sponsor-amount").value.trim();
+        var message = document.getElementById("sponsor-message").value.trim();
+        var errorEl = document.getElementById("sponsor-modal-error");
+
+        if (!name || !amount) {
+          errorEl.textContent =
+            "Please fill in the required fields (Name and Sponsorship Amount).";
+          errorEl.classList.remove("hidden");
+          return;
         }
+        errorEl.classList.add("hidden");
 
-        function closeSponsorModal() {
-            document.getElementById('sponsor-modal').classList.add('hidden');
-            document.getElementById('sponsor-modal-error').classList.add('hidden');
-            document.getElementById('sponsor-modal-error').textContent = '';
-        }
+        var hackathonName = document.getElementById("hackathon-name")
+          ? document.getElementById("hackathon-name").textContent.trim()
+          : "BLT Hackathon";
 
-        function submitSponsorForm() {
-            const name = document.getElementById('sponsor-name').value.trim();
-            const website = document.getElementById('sponsor-website').value.trim();
-            const amount = document.getElementById('sponsor-amount').value.trim();
-            const message = document.getElementById('sponsor-message').value.trim();
-            const errorEl = document.getElementById('sponsor-modal-error');
+        var title = encodeURIComponent(
+          "[Sponsor]: " + name + " - " + hackathonName,
+        );
+        var body =
+          "**Hackathon:** " +
+          hackathonName +
+          "\n**Sponsor Name / Company:** " +
+          name +
+          "\n";
+        if (website) body += "**Website:** " + website + "\n";
+        body += "**Sponsorship Amount:** " + amount + "\n";
+        if (message) body += "\n**Additional Notes:**\n" + message + "\n";
+        body +=
+          "\n---\n_Payment will be made directly to contributors through [GitHub Sponsors](https://github.com/sponsors)._";
 
-            if (!name || !amount) {
-                errorEl.textContent = 'Please fill in the required fields (Name and Sponsorship Amount).';
-                errorEl.classList.remove('hidden');
-                return;
-            }
-            errorEl.classList.add('hidden');
+        var url =
+          "https://gitlab.com/owasp-blt/blt-hackathons/-/issues/new?issue%5Btitle%5D=" +
+          title +
+          "&issue%5Bdescription%5D=" +
+          encodeURIComponent(body) +
+          "&labels=sponsorship";
+        window.open(url, "_blank", "noopener,noreferrer");
+        closeSponsorModal();
+      }
 
-            const hackathonName = document.getElementById('hackathon-name')
-                ? document.getElementById('hackathon-name').textContent.trim()
-                : 'BLT Hackathon';
-
-            const title = encodeURIComponent(`[Sponsor]: ${name} – ${hackathonName}`);
-            let body = `**Hackathon:** ${hackathonName}\n**Sponsor Name / Company:** ${name}\n`;
-            if (website) body += `**Website:** ${website}\n`;
-            body += `**Sponsorship Amount:** ${amount}\n`;
-            if (message) body += `\n**Additional Notes:**\n${message}\n`;
-            body += `\n---\n_Payment will be made directly to contributors through [GitHub Sponsors](https://github.com/sponsors)._`;
-
-            const url = `https://github.com/OWASP-BLT/BLT-Hackathons/issues/new?title=${title}&body=${encodeURIComponent(body)}&labels=sponsorship`;
-            window.open(url, '_blank', 'noopener,noreferrer');
-            closeSponsorModal();
-        }
-
-        // Close modal on backdrop click
-        document.getElementById('sponsor-modal').addEventListener('click', function(e) {
-            if (e.target === this) closeSponsorModal();
+      document
+        .getElementById("sponsor-modal")
+        .addEventListener("click", function (e) {
+          if (e.target === this) closeSponsorModal();
         });
 
-        // Close modal on Escape key only when it is visible
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && !document.getElementById('sponsor-modal').classList.contains('hidden')) {
-                closeSponsorModal();
-            }
-        });
+      document.addEventListener("keydown", function (e) {
+        if (
+          e.key === "Escape" &&
+          !document.getElementById("sponsor-modal").classList.contains("hidden")
+        ) {
+          closeSponsorModal();
+        }
+      });
     </script>
-</body>
+  </body>
 </html>

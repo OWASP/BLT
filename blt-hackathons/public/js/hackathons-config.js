@@ -5,6 +5,66 @@
  * Each hackathon has a unique slug used in the URL.
  */
 
+const OWASP_BLT_GITLAB_PROJECTS = [
+    "owasp-blt/blt",
+    "owasp-blt/blt-action",
+    "owasp-blt/blt-api",
+    "owasp-blt/blt-autopatch",
+    "owasp-blt/blt-byte",
+    "owasp-blt/blt-cve",
+    "owasp-blt/blt-dash",
+    "owasp-blt/blt-design",
+    "owasp-blt/blt-design-contest",
+    "owasp-blt/blt-docs",
+    "owasp-blt/blt-enforcement",
+    "owasp-blt/blt-extension",
+    "owasp-blt/blt-flutter",
+    "owasp-blt/blt-gitcaster",
+    "owasp-blt/blt-gsoc",
+    "owasp-blt/blt-hackathons",
+    "owasp-blt/blt-hackerhouse",
+    "owasp-blt/blt-ideas",
+    "owasp-blt/blt-jobs",
+    "owasp-blt/blt-ketchup",
+    "owasp-blt/blt-leaf",
+    "owasp-blt/blt-lettuce",
+    "owasp-blt/blt-mayo",
+    "owasp-blt/blt-mcp",
+    "owasp-blt/blt-monitor",
+    "owasp-blt/blt-netguardian",
+    "owasp-blt/blt-netguardian-client",
+    "owasp-blt/blt-newsletter",
+    "owasp-blt/blt-next",
+    "owasp-blt/blt-nexus",
+    "owasp-blt/blt-ossh",
+    "owasp-blt/blt-owasp-bumper",
+    "owasp-blt/blt-owasp-metadata",
+    "owasp-blt/blt-owasp-projects",
+    "owasp-blt/blt-owasp-wich",
+    "owasp-blt/blt-pages",
+    "owasp-blt/blt-panini",
+    "owasp-blt/blt-pool",
+    "owasp-blt/blt-preflight",
+    "owasp-blt/blt-profiles",
+    "owasp-blt/blt-rewards",
+    "owasp-blt/blt-safecloak",
+    "owasp-blt/blt-sammich",
+    "owasp-blt/blt-sizzle",
+    "owasp-blt/blt-start",
+    "owasp-blt/blt-timer-flutter",
+    "owasp-blt/blt-timer-web",
+    "owasp-blt/blt-toasty",
+    "owasp-blt/blt-tomato",
+    "owasp-blt/blt-university",
+    "owasp-blt/blt-vanish",
+    "owasp-blt/blt-vanish-flutter",
+    "owasp-blt/blt-waypoint",
+    "owasp-blt/blt-zero",
+    "owasp-blt/coderabbit",
+    "owasp-blt/dot_github",
+    "owasp-blt/my-gsoc-tool",
+];
+
 const HACKATHONS_CONFIG = {
     // List of all hackathons
     hackathons: [
@@ -130,6 +190,51 @@ const HACKATHONS_CONFIG = {
             bannerImage: "images/How-do-hackathons-work-1024x576.png"
         },
         {
+            // Unique identifier for URL (no spaces, lowercase recommended)
+            slug: "gsoc-2027-warmup",
+
+            // Basic Information
+            name: "GSOC 2027 Warmup",
+            description: `GSOC 2027 Warmup - Preparation event for Google Summer of Code contributors in the OWASP BLT GitLab group.`,
+            organizer: "OWASP BLT",
+
+            // Optional rules section
+            rules: `
+                1. All merge requests must be submitted during the hackathon period (Nov 01, 2026 - May 09, 2027)
+                2. Merge requests must be merged to count towards the leaderboard
+                3. All projects in the OWASP BLT GitLab group are eligible
+                4. Be respectful and follow each project's contribution guidelines
+                5. Have fun and learn something new!
+            `,
+
+            // Hackathon Timeline (ISO 8601 format)
+            startTime: "2026-11-01T00:00:00Z",
+            endTime: "2027-05-09T23:59:59Z",
+
+            // GitLab Configuration
+            provider: "gitlab",
+            gitlab: {
+                token: "",
+                url: "https://gitlab.com",
+                group: "owasp-blt",
+                projects: OWASP_BLT_GITLAB_PROJECTS
+            },
+
+            // Prizes Configuration
+            prizes: [],
+
+            // Sponsors Configuration (optional)
+            sponsors: [],
+
+            // Display Options
+            display: {
+                showRepoStats: true,
+                maxLeaderboardEntries: Infinity,
+                showPRsInLeaderboard: true,
+                showReviewsInLeaderboard: true
+            }
+        },
+        {
             slug: "may-2025-hackathon",
             name: "May Hackathon $100 prize",
             description: `This hackathon will focus on only issues with the $5 bounty on them. The prize is $100 to the person with the most merged PRs within the time period.`,
@@ -238,7 +343,7 @@ const HACKATHONS_CONFIG = {
         siteName: "BLT Hackathons",
         siteDescription: "Open source hackathon platform",
         organizationName: "OWASP BLT",
-        organizationUrl: "https://github.com/OWASP-BLT"
+        organizationUrl: "https://gitlab.com/owasp-blt"
     }
 };
 
