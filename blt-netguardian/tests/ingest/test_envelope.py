@@ -5,8 +5,8 @@ from pathlib import Path
 
 import pytest
 
-from ng.canonicalize import payload_digest_hex
-from ng.envelope import (
+from ingest.canonicalize import payload_digest_hex
+from ingest.envelope import (
     check_clock_skew,
     parse_issued_at_utc,
     prepare_signed_envelope,
@@ -16,7 +16,7 @@ from ng.envelope import (
     verify_envelope_signature,
     verify_payload_digest_field,
 )
-from ng.errors import IngestError, IngestErrorCode
+from ingest.errors import IngestError, IngestErrorCode
 
 FIXTURES = Path(__file__).parent / "fixtures" / "canonical_vectors.json"
 
@@ -64,7 +64,7 @@ def test_payload_digest_mismatch(base_envelope):
 
 def test_body_digest_header(base_envelope):
     body = json.dumps(base_envelope, separators=(",", ":")).encode()
-    from ng.canonicalize import body_digest_hex
+    from ingest.canonicalize import body_digest_hex
 
     verify_body_digest(body, f"sha256={body_digest_hex(body)}")
     with pytest.raises(IngestError):

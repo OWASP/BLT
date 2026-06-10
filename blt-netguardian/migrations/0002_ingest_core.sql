@@ -1,10 +1,6 @@
--- NetGuardian GSoC — core D1 schema (Week 1, Day 3)
--- Apply: wrangler d1 execute blt-netguardian --remote --file=migrations/ng/0001_core.sql
--- Local: wrangler d1 execute blt-netguardian --local --file=migrations/ng/0001_core.sql
---
--- Coexists with legacy scanner tables in schema.sql (jobs, tasks, targets, vulnerabilities).
+-- NetGuardian ingest + triage tables (ztr-finding-1)
+-- Applied via: wrangler d1 migrations apply blt-netguardian
 
--- Per-org sender credentials metadata (secrets in Worker Secrets, not D1)
 CREATE TABLE IF NOT EXISTS sender_keys (
   org_id TEXT NOT NULL,
   sender_id TEXT NOT NULL,
@@ -20,7 +16,6 @@ CREATE TABLE IF NOT EXISTS sender_keys (
 CREATE INDEX IF NOT EXISTS idx_sender_keys_active
   ON sender_keys (org_id, sender_id, active);
 
--- Raw accepted envelopes (audit + replay source of truth)
 CREATE TABLE IF NOT EXISTS envelopes (
   id TEXT PRIMARY KEY,
   org_id TEXT NOT NULL,
@@ -40,8 +35,6 @@ CREATE TABLE IF NOT EXISTS envelopes (
 CREATE INDEX IF NOT EXISTS idx_envelopes_org_received
   ON envelopes (org_id, received_at DESC);
 
--- Triage findings (denormalized from payload_plaintext)
--- 1:1 with envelopes: each finding links exactly one envelope; each envelope maps to at most one finding.
 CREATE TABLE IF NOT EXISTS findings (
   id TEXT PRIMARY KEY,
   org_id TEXT NOT NULL,
@@ -59,7 +52,6 @@ CREATE TABLE IF NOT EXISTS findings (
   FOREIGN KEY (envelope_id) REFERENCES envelopes(id)
 );
 
--- Back-link envelope -> finding (column added after findings table exists)
 ALTER TABLE envelopes ADD COLUMN finding_id TEXT REFERENCES findings(id);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_envelopes_finding_id
   ON envelopes (finding_id);
@@ -73,7 +65,6 @@ CREATE INDEX IF NOT EXISTS idx_findings_org_fingerprint
 CREATE INDEX IF NOT EXISTS idx_findings_org_cve
   ON findings (org_id, cve_id);
 
--- Large evidence in R2; metadata only in D1
 CREATE TABLE IF NOT EXISTS evidence_meta (
   id TEXT PRIMARY KEY,
   org_id TEXT NOT NULL,
@@ -89,7 +80,6 @@ CREATE TABLE IF NOT EXISTS evidence_meta (
 CREATE INDEX IF NOT EXISTS idx_evidence_meta_finding
   ON evidence_meta (finding_id);
 
--- Immutable access audit (decrypt, export, convert-to-issue)
 CREATE TABLE IF NOT EXISTS access_logs (
   id TEXT PRIMARY KEY,
   org_id TEXT NOT NULL,
@@ -104,7 +94,6 @@ CREATE TABLE IF NOT EXISTS access_logs (
 CREATE INDEX IF NOT EXISTS idx_access_logs_finding
   ON access_logs (finding_id, created_at DESC);
 
--- Verified events for downstream (Rewards, RepoTrust, University)
 CREATE TABLE IF NOT EXISTS events_outbox (
   id TEXT PRIMARY KEY,
   org_id TEXT NOT NULL,
@@ -125,7 +114,6 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_events_outbox_dedupe
 CREATE INDEX IF NOT EXISTS idx_events_outbox_pending
   ON events_outbox (status, created_at);
 
--- Simple daily counters for mentor metrics (Week 3+ dashboards)
 CREATE TABLE IF NOT EXISTS ng_metrics (
   org_id TEXT NOT NULL,
   day TEXT NOT NULL,
