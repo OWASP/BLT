@@ -1,4 +1,4 @@
-"""NetGuardian GSoC — ingest contract helpers (ztr-finding-1)."""
+"""ztr-finding-1 ingest contract helpers (canonicalize, envelope, errors)."""
 
 from .canonicalize import (
     body_digest_hex,

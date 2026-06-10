@@ -31,12 +31,12 @@ head_sampling_rate = 1
 # D1 Database Binding
 # Replace the placeholder ID below with your actual Cloudflare D1 database ID.
 # Create a D1 database via: wrangler d1 create blt-netguardian
-# Apply the schema via: wrangler d1 execute blt-netguardian --file=schema.sql
+# Apply migrations via: wrangler d1 migrations apply blt-netguardian
 [[d1_databases]]
 binding = "DB"
 database_name = "blt-netguardian"
 database_id = "529b739a-6643-4574-9210-99ecd384f085"
-migrations_dir = "migrations/ng"
+migrations_dir = "migrations"
 
 # Note: Durable Objects removed - not implemented yet
 # Note: Build configuration removed - Workers Python runtime doesn't need pip install
