@@ -6,4 +6,20 @@
 
 # Optional: For enhanced functionality
 # requests>=2.28.0  # For future GitHub API integration
-# pyyaml>=6.0       # For YAML configuration support
+# pyyaml>=6.0       # For YAML configuration support 
+
+# BLT Preflight - RAG Pipeline
+# Dependencies for RAG Pipeline 
+
+# Core RAG Dependencies
+sentence-transformers>=3.0.0     # For embeddings (all-MiniLM-L6-v2)
+chromadb>=0.5.0                  # Vector database
+tqdm>=4.66.0                     # Progress bar
+
+# Optional / Future use
+fastapi>=0.104.0                 # For advisory server 
+uvicorn>=0.24.0                  # ASGI server for FastAPI
+pyyaml>=6.0                      # For configuration files
+
+# Development & Testing
+pytest>=8.0.0
