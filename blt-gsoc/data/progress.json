@@ -1,0 +1,95 @@
+{
+  "updated": "2026-06-11T16:07:44+00:00",
+  "days": {
+    "2026-06-11": {
+      "Pritz395": {
+        "commits": 0,
+        "checkin": false,
+        "slack": {
+          "owasp": false,
+          "blt": false
+        }
+      },
+      "e-esakman": {
+        "commits": 2,
+        "checkin": false,
+        "slack": {
+          "owasp": false,
+          "blt": false
+        }
+      },
+      "mdkaifansari04": {
+        "commits": 0,
+        "checkin": false,
+        "slack": {
+          "owasp": false,
+          "blt": false
+        }
+      },
+      "ananya-09": {
+        "commits": 0,
+        "checkin": false,
+        "slack": {
+          "owasp": false,
+          "blt": false
+        }
+      },
+      "S3DFX-CYBER": {
+        "commits": 0,
+        "checkin": false,
+        "slack": {
+          "owasp": false,
+          "blt": false
+        }
+      },
+      "ojaswa072": {
+        "commits": 0,
+        "checkin": false,
+        "slack": {
+          "owasp": false,
+          "blt": false
+        }
+      },
+      "Nachiket-Roy": {
+        "commits": 0,
+        "checkin": false,
+        "slack": {
+          "owasp": false,
+          "blt": false
+        }
+      },
+      "karunarapolu": {
+        "commits": 0,
+        "checkin": false,
+        "slack": {
+          "owasp": false,
+          "blt": false
+        }
+      },
+      "Rudra-rps": {
+        "commits": 0,
+        "checkin": false,
+        "slack": {
+          "owasp": false,
+          "blt": false
+        }
+      },
+      "Sidd190": {
+        "commits": 0,
+        "checkin": false,
+        "slack": {
+          "owasp": false,
+          "blt": false
+        }
+      },
+      "Jayant2908": {
+        "commits": 0,
+        "checkin": false,
+        "slack": {
+          "owasp": false,
+          "blt": false
+        }
+      }
+    }
+  }
+}

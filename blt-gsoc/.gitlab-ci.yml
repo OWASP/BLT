@@ -1,12 +1,52 @@
-image: alpine:latest
+stages:
+  - update
+  - deploy
 
+# ── Daily progress data ──────────────────────────────────────────────────────
+# Runs on a pipeline schedule (CI/CD → Schedules, e.g. "0 23 * * *").
+# Fills data/progress.json for the current day via scripts/update_progress.py
+# and commits the result back to the default branch.
+#
+# Required CI/CD variables:
+#   CI_PUSH_TOKEN      - project access token with write_repository scope
+#   GITLAB_TOKEN       - (optional) API token for higher rate limits
+#   SLACK_TOKEN_OWASP  - Slack user token (search:read) for the OWASP workspace
+#   SLACK_TOKEN_BLT    - Slack user token (search:read) for the BLT workspace
+update-progress:
+  stage: update
+  image: python:3.12-alpine
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+  script:
+    - apk add --no-cache git
+    - python3 scripts/update_progress.py
+    - git config user.name "$GITLAB_USER_NAME"
+    - git config user.email "$GITLAB_USER_EMAIL"
+    - git add data/progress.json
+    - |
+      if git diff --cached --quiet; then
+        echo "no changes"
+      else
+        git commit -m "chore: update progress data for $(date -u +%F)"
+        git push "https://gitlab-ci-token:${CI_PUSH_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git" "HEAD:${CI_DEFAULT_BRANCH}" -o ci.skip
+      fi
+  artifacts:
+    paths:
+      - data/progress.json
+
+# ── Site build ───────────────────────────────────────────────────────────────
+# Builds and serves the public/ directory. Cloudflare Pages deploys
+# automatically via webhook using the same output directory (see wrangler.toml).
 pages:
   stage: deploy
+  image: alpine:latest
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      needs: [update-progress]
   script:
-    - mkdir public
-    - cp -r CNAME README.md css favicon.ico gsoc2026.html images index.html js mentor-guide.html pr-report.html public/
+    - rm -rf public && mkdir public
+    - cp -r CNAME css favicon.ico gsoc2026.html images index.html js mentor-guide.html pr-report.html progress-tracker.html data public/
   artifacts:
     paths:
       - public
-  rules:
-    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
