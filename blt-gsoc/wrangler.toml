@@ -1,6 +1,8 @@
-# Cloudflare Pages configuration. Deploys happen automatically via webhook;
+# Cloudflare Workers configuration. Deploys happen automatically via webhook;
 # the public/ directory is committed to the repo, so no build command is
-# needed — the site is always served from public/.
+# needed — the site is served as static assets from public/.
 name = "blt-gsoc"
 compatibility_date = "2026-06-11"
-pages_build_output_dir = "public"
+
+[assets]
+directory = "./public"
