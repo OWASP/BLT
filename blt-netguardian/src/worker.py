@@ -28,10 +28,15 @@ from utils.storage import JobStateStore, TaskQueueStore, TargetRegistryStore, Vu
 from scanners.coordinator import ScannerCoordinator
 from scanners.autonomous_discovery import AutonomousDiscovery
 from scanners.contact_notifier import ContactNotifier
+from ingest.errors import IngestError, IngestErrorCode
+from ingest.ingest_service import ingest_error_response, process_ingest
+from ingest.store import IngestStore
 
 
 class BLTWorker:
     """Main BLT-NetGuardian Worker class - API only."""
+
+    DEFAULT_MAX_BODY = 1_048_576
 
     MAX_LIMIT = 100
     DEFAULT_ALLOWED_ORIGIN = 'https://owasp-blt.github.io'
@@ -98,6 +103,8 @@ class BLTWorker:
                 response = await self.handle_vulnerabilities(request)
             elif path == 'api/ng/health':
                 response = self.handle_ng_health(request)
+            elif path == 'api/ng/ingest':
+                response = await self.handle_ng_ingest(request)
             else:
                 response = self.json_response({'error': 'Not found'}, status=404)
             
@@ -533,8 +540,83 @@ class BLTWorker:
         return self.json_response({
             'status': 'ok',
             'component': 'netguardian',
-            'ingest': 'not_implemented',
+            'ingest': 'ready',
         })
+
+    async def handle_ng_ingest(self, request):
+        """POST /api/ng/ingest — verify ztr-finding-1 envelope and persist to D1."""
+        if request.method != 'POST':
+            return self.json_response({'error': 'Method not allowed'}, status=405)
+
+        db = getattr(self.env, 'DB', None)
+        if db is None:
+            return self.json_response({
+                'error': 'service_unavailable',
+                'message': 'ingest storage not configured',
+            }, status=503)
+
+        max_body = self._ingest_max_body_bytes()
+        raw_body = await self._read_request_body(request)
+        if len(raw_body) > max_body:
+            result = ingest_error_response(IngestError(
+                IngestErrorCode.PAYLOAD_TOO_LARGE,
+                f'request body exceeds {max_body} bytes',
+            ))
+            return self.json_response(result.body, status=result.status, headers=result.headers)
+
+        digest_header = self.get_request_header(request, 'X-BLT-Body-Digest') or self.get_request_header(
+            request, 'x-blt-body-digest'
+        )
+
+        try:
+            envelope = json.loads(raw_body.decode('utf-8'))
+        except (UnicodeDecodeError, json.JSONDecodeError):
+            result = ingest_error_response(IngestError(
+                IngestErrorCode.INVALID_ENVELOPE, 'invalid JSON body',
+            ))
+            return self.json_response(result.body, status=result.status, headers=result.headers)
+
+        if not isinstance(envelope, dict):
+            result = ingest_error_response(IngestError(
+                IngestErrorCode.INVALID_ENVELOPE, 'envelope must be a JSON object',
+            ))
+            return self.json_response(result.body, status=result.status, headers=result.headers)
+
+        try:
+            result = await process_ingest(
+                raw_body=raw_body,
+                body_digest_header=digest_header,
+                envelope=envelope,
+                env=self.env,
+                db=db,
+                store=IngestStore(db),
+                new_id=lambda label: self.generate_id(
+                    f'{label}-{envelope.get("org_id")}-{envelope.get("nonce")}'
+                ),
+            )
+        except IngestError as exc:
+            result = ingest_error_response(exc)
+
+        return self.json_response(result.body, status=result.status, headers=result.headers)
+
+    async def _read_request_body(self, request) -> bytes:
+        text = getattr(request, 'body', None)
+        if isinstance(text, bytes):
+            return text
+        if isinstance(text, str):
+            return text.encode('utf-8')
+        if hasattr(request, 'text'):
+            return (await request.text()).encode('utf-8')
+        return b''
+
+    def _ingest_max_body_bytes(self) -> int:
+        raw = getattr(self.env, 'NG_INGEST_MAX_BODY_BYTES', None)
+        if raw is None:
+            return self.DEFAULT_MAX_BODY
+        try:
+            return int(str(raw))
+        except ValueError:
+            return self.DEFAULT_MAX_BODY
     
     async def handle_vulnerabilities(self, request):
         """Get vulnerabilities from the database."""
@@ -591,7 +673,7 @@ class BLTWorker:
         headers = {
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-API-Key',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-API-Key, X-BLT-Body-Digest, X-BLT-Timestamp',
             'Access-Control-Max-Age': '86400',
             'Vary': 'Origin'
         }
@@ -620,6 +702,8 @@ class BLTWorker:
 
     def requires_authentication(self, path: str, method: str) -> bool:
         """Protect API routes; reads can be toggled with AUTHENTICATE_READ_ENDPOINTS."""
+        if path == 'api/ng/ingest':
+            return False
         if not path.startswith('api/'):
             return False
         if method in self.MUTATING_METHODS:
