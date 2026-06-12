@@ -49,7 +49,9 @@ curl -fsSL https://<site>/install.sh | bash
 
 A headless smoke test covers mesh discovery, bidirectional roster visibility,
 channel propagation, mesh flooding, direct messages, and cross-IP loopback
-simulation (built by default):
+simulation (built by default). Test nodes use a private discovery tag, so
+they do not appear in a running SafeCloak Chat window on the same machine or
+LAN:
 
 ```sh
 QT_QPA_PLATFORM=offscreen ./build/safecloak-tests

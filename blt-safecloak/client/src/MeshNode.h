@@ -32,7 +32,7 @@ public:
     static constexpr quint16 kTcpPortRange = 10;
 
     MeshNode(const SslIdentity &identity, const QString &userName,
-             QObject *parent = nullptr);
+             QObject *parent = nullptr, const QString &appTag = QString());
 
     // bindAddress narrows the sockets to a single address — tests use
     // loopback aliases (127.0.0.2, 127.0.0.3) to simulate distinct hosts.
@@ -76,6 +76,7 @@ private:
     SslIdentity m_identity;
     QString m_userName;
     QString m_nodeId;
+    QString m_appTag;
 
     QSslServer m_listener;
     QUdpSocket m_udp;

@@ -19,7 +19,7 @@ constexpr int kAnnounceIntervalMs = 2000;
 constexpr int kNodeTimeoutMs = 15000;
 constexpr int kDialTimeoutMs = 8000;
 constexpr int kSeenCacheLimit = 4096;
-const QString kAppTag = QStringLiteral("safecloak-chat");
+const QString kDefaultAppTag = QStringLiteral("safecloak-chat");
 // Discovery goes out via multicast (looped back locally, so instances on the
 // same machine find each other) and via broadcast as a fallback for networks
 // that filter multicast. Duplicate announcements are harmless.
@@ -58,11 +58,12 @@ QString localAddressSummary()
 } // namespace
 
 MeshNode::MeshNode(const SslIdentity &identity, const QString &userName,
-                   QObject *parent)
+                   QObject *parent, const QString &appTag)
     : ChatBackend(parent),
       m_identity(identity),
       m_userName(userName),
-      m_nodeId(QUuid::createUuid().toString(QUuid::WithoutBraces))
+      m_nodeId(QUuid::createUuid().toString(QUuid::WithoutBraces)),
+      m_appTag(appTag.isEmpty() ? kDefaultAppTag : appTag)
 {
     m_listener.setSslConfiguration(m_identity.serverConfiguration());
     connect(&m_listener, &QSslServer::pendingConnectionAvailable, this,
@@ -128,7 +129,7 @@ QByteArray MeshNode::announcePayload() const
     QJsonArray addresses;
     for (const QHostAddress &address : localIPv4Addresses())
         addresses.append(address.toString());
-    const QJsonObject announce{{"app", kAppTag},
+    const QJsonObject announce{{"app", m_appTag},
                                {"v", 1},
                                {"nodeId", m_nodeId},
                                {"name", m_userName},
@@ -189,7 +190,7 @@ void MeshNode::onDatagram()
         if (!doc.isObject())
             continue;
         const QJsonObject announce = doc.object();
-        if (announce.value("app").toString() != kAppTag)
+        if (announce.value("app").toString() != m_appTag)
             continue;
 
         const QString nodeId = announce.value("nodeId").toString();

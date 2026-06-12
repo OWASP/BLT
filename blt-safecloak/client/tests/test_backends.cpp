@@ -7,6 +7,7 @@
 
 #include <QCoreApplication>
 #include <QTimer>
+#include <QUuid>
 
 #include <functional>
 
@@ -50,9 +51,13 @@ int main(int argc, char *argv[])
         return 1;
     check(!identity.fingerprint().isEmpty(), "certificate fingerprint available");
 
+    const QString testAppTag =
+        QStringLiteral("safecloak-chat-test-") +
+        QUuid::createUuid().toString(QUuid::WithoutBraces);
+
     // --- Two nodes discover each other and flood a message ---
-    MeshNode nodeA(identity, "node-a");
-    MeshNode nodeB(identity, "node-b");
+    MeshNode nodeA(identity, "node-a", nullptr, testAppTag);
+    MeshNode nodeB(identity, "node-b", nullptr, testAppTag);
 
     QString meshReceived;
     int meshPeersA = 0;
@@ -134,8 +139,8 @@ int main(int argc, char *argv[])
     // and the TLS handshake crosses the two endpoints.
     const QHostAddress addrC("127.0.0.2");
     const QHostAddress addrD("127.0.0.3");
-    MeshNode nodeC(identity, "node-c");
-    MeshNode nodeD(identity, "node-d");
+    MeshNode nodeC(identity, "node-c", nullptr, testAppTag);
+    MeshNode nodeD(identity, "node-d", nullptr, testAppTag);
 
     QList<MemberInfo> rosterC, rosterD;
     QString crossIpChat, crossIpDm;
