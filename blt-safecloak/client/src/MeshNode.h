@@ -44,6 +44,11 @@ public:
 
     void sendChat(const QString &channel, const QString &text) override;
     void sendDirect(const QString &targetId, const QString &text) override;
+    void sendFile(const QString &conversation, const QString &fileName,
+                  const QString &mimeType, const QByteArray &data) override;
+    void sendReaction(const QString &conversation, const QString &messageId,
+                      const QString &emoji) override;
+    void setAvatar(const QByteArray &pngData) override;
     void addChannel(const QString &channel) override;
     void shutdown() override;
     QString modeName() const override { return "Mesh"; }
@@ -79,6 +84,19 @@ private:
     bool learnNodeFromPacket(const QJsonObject &packet,
                              const QHostAddress &senderAddress, quint16 senderPort);
     void rememberMessageSender(const QString &nodeId, const QString &name);
+    void broadcastChat(const QString &channel, const QString &text,
+                       const QString &fileName, const QString &mime,
+                       const QByteArray &data);
+    void sendDm(const QString &targetId, const QString &text,
+                const QString &fileName, const QString &mime, const QByteArray &data);
+    void emitIncomingChat(const QJsonObject &m);
+    void emitIncomingDm(const QJsonObject &m, const QString &conversationPeer);
+    void storeChannelHistory(const QJsonObject &m);
+    void applyReaction(const QString &conversation, const QString &target,
+                       const QString &emoji, const QString &reactorId,
+                       const QString &reactorName, bool added);
+    void sendHistoryTo(FramedConnection *connection);
+    void sendAvatarTo(FramedConnection *connection);
     void onIncomingConnection();
     void adoptConnection(FramedConnection *connection);
     void onPeerMessage(FramedConnection *connection, const QJsonObject &message);
@@ -115,6 +133,14 @@ private:
     QSet<QString> m_seenIds;
     QQueue<QString> m_seenOrder;
     QStringList m_channels{"#general", "#random"};
+
+    // Shared-channel history replayed to peers that join later, plus this
+    // node's avatar and the reaction state for seen messages.
+    QByteArray m_avatarPng;
+    QHash<QString, QList<QJsonObject>> m_channelHistory; // channel -> recent msgs
+    // messageId -> emoji -> (reactorId -> reactorName)
+    QHash<QString, QHash<QString, QHash<QString, QString>>> m_reactions;
+    QHash<QString, QString> m_messageConversation; // messageId -> conversation
 
     // Firewall diagnostics. A host firewall that drops inbound traffic is the
     // usual reason peers discover each other but can't form a TLS link.

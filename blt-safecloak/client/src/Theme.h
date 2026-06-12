@@ -116,8 +116,37 @@ QPushButton#ghostButton:hover { color: #f1f5f9; }
 #firewallBannerLabel {
     color: #fecaca; font-size: 13px; background: transparent;
 }
-#messageView {
-    background-color: #0f172a; border: none; padding: 8px;
+#messageView, #messageContainer {
+    background-color: #0f172a; border: none;
+}
+#messageRow:hover { background-color: #131c2e; }
+#messageText { color: #f1f5f9; }
+#fileChip {
+    background-color: #1f2937; border: 1px solid #374151; border-radius: 8px;
+}
+#reactionChip {
+    background-color: #1f2937; border: 1px solid #374151; border-radius: 11px;
+    padding: 1px 8px; font-size: 12px; color: #f1f5f9;
+}
+#reactionChip:hover { border-color: #ff4444; }
+#reactionAdd {
+    background: transparent; border: none; color: #6b7280;
+    font-size: 13px; padding: 1px 4px;
+}
+#reactionAdd:hover { color: #f1f5f9; }
+#iconButton {
+    background: transparent; border: none; font-size: 18px; padding: 2px 6px;
+}
+#iconButton:hover { background-color: #2d3748; border-radius: 6px; }
+/* Settings */
+#settingsTitle { font-size: 20px; font-weight: 800; }
+#avatarPreview {
+    background-color: #111827; border: 1px solid #374151; border-radius: 32px;
+    color: #6b7280; font-size: 11px;
+}
+#networkLog {
+    background-color: #0b1220; border: 1px solid #374151; border-radius: 8px;
+    color: #9ca3af; font-family: monospace; font-size: 12px;
 }
 #composerBar { background-color: #0f172a; border-top: 1px solid #374151; }
 #messageInput {

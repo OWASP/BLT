@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(SafeCloak VERSION 0.6.0 LANGUAGES CXX)
+project(SafeCloak VERSION 0.7.0 LANGUAGES CXX)
 
 # Baked into the binaries: shown in the UI, and the quick-update button uses
 # the source dir to git pull + rebuild when running from a checkout.
@@ -24,6 +24,10 @@ qt_add_executable(safecloak
     src/ChatBackend.h
     src/MeshNode.h
     src/MeshNode.cpp
+    src/MessageRow.h
+    src/MessageRow.cpp
+    src/SettingsDialog.h
+    src/SettingsDialog.cpp
     src/MainWindow.h
     src/MainWindow.cpp
 )

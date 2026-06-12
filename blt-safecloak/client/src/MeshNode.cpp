@@ -733,6 +733,11 @@ void MeshNode::adoptConnection(FramedConnection *connection)
         channels.append(channel);
     connection->sendMessage({{"type", "channels-sync"}, {"list", channels}});
 
+    // Give the newly linked peer our shared-channel backlog and avatar so a
+    // late joiner sees prior history and everyone's picture.
+    sendHistoryTo(connection);
+    sendAvatarTo(connection);
+
     emit systemMessage(connection->remoteName + " is now reachable");
     updateRosterAndStatus();
 }
@@ -763,26 +768,54 @@ void MeshNode::onPeerMessage(FramedConnection *connection, const QJsonObject &me
         rememberMessageSender(message.value("senderId").toString(),
                               message.value("sender").toString());
         mergeChannel(message.value("channel").toString(), false);
+        storeChannelHistory(message);
         flood(message, connection);
-        emit chatMessage(message.value("channel").toString(),
-                         message.value("sender").toString(),
-                         message.value("text").toString(),
-                         qint64(message.value("ts").toDouble()));
+        emitIncomingChat(message);
     } else if (type == "dm") {
         if (!markSeen(message.value("id").toString()))
             return;
-        rememberMessageSender(message.value("from").toString(),
-                              message.value("fromName").toString());
+        rememberMessageSender(message.value("senderId").toString(),
+                              message.value("sender").toString());
         const QString to = message.value("to").toString();
         if (to == m_nodeId) {
-            emit directMessage(message.value("from").toString(),
-                               message.value("fromName").toString(),
-                               message.value("fromName").toString(),
-                               message.value("text").toString(),
-                               qint64(message.value("ts").toDouble()));
+            emitIncomingDm(message, message.value("senderId").toString());
         } else {
             // Not for us: forward so DMs reach peers we have no direct link to.
             flood(message, connection);
+        }
+    } else if (type == "reaction") {
+        if (!markSeen(message.value("id").toString()))
+            return;
+        flood(message, connection);
+        applyReaction(message.value("conversation").toString(),
+                      message.value("target").toString(),
+                      message.value("emoji").toString(),
+                      message.value("reactorId").toString(),
+                      message.value("reactorName").toString(),
+                      message.value("added").toBool());
+    } else if (type == "avatar") {
+        if (!markSeen(message.value("id").toString()))
+            return;
+        flood(message, connection);
+        emit avatarChanged(message.value("senderId").toString(),
+                           QByteArray::fromBase64(
+                               message.value("png").toString().toLatin1()));
+    } else if (type == "history") {
+        // Targeted backlog from a peer we just linked to: replay anything new.
+        for (const auto &value : message.value("entries").toArray()) {
+            const QJsonObject entry = value.toObject();
+            if (!markSeen(entry.value("id").toString()))
+                continue;
+            mergeChannel(entry.value("channel").toString(), false);
+            storeChannelHistory(entry);
+            emitIncomingChat(entry);
+        }
+        for (const auto &value : message.value("reactions").toArray()) {
+            const QJsonObject r = value.toObject();
+            applyReaction(r.value("conversation").toString(),
+                          r.value("target").toString(), r.value("emoji").toString(),
+                          r.value("reactorId").toString(),
+                          r.value("reactorName").toString(), true);
         }
     } else if (type == "channel") {
         if (!markSeen(message.value("id").toString()))
@@ -813,42 +846,203 @@ void MeshNode::onPeerClosed(FramedConnection *connection)
 
 void MeshNode::sendChat(const QString &channel, const QString &text)
 {
-    if (text.trimmed().isEmpty())
-        return;
-    const qint64 ts = QDateTime::currentMSecsSinceEpoch();
-    const QString id = QUuid::createUuid().toString(QUuid::WithoutBraces);
-    markSeen(id);
-    const QJsonObject message{{"type", "chat"}, {"id", id},      {"channel", channel},
-                              {"sender", m_userName}, {"senderId", m_nodeId},
-                              {"text", text},  {"ts", double(ts)}};
-    flood(message, nullptr, true);
-    emit chatMessage(channel, m_userName, text, ts);
+    if (!text.trimmed().isEmpty())
+        broadcastChat(channel, text, {}, {}, {});
 }
 
 void MeshNode::sendDirect(const QString &targetId, const QString &text)
 {
-    if (text.trimmed().isEmpty() || targetId == m_nodeId)
+    if (!text.trimmed().isEmpty())
+        sendDm(targetId, text, {}, {}, {});
+}
+
+void MeshNode::sendFile(const QString &conversation, const QString &fileName,
+                        const QString &mimeType, const QByteArray &data)
+{
+    if (fileName.isEmpty() || data.isEmpty())
+        return;
+    if (conversation.startsWith('@'))
+        sendDm(conversation.mid(1), QString(), fileName, mimeType, data);
+    else
+        broadcastChat(conversation, QString(), fileName, mimeType, data);
+}
+
+void MeshNode::broadcastChat(const QString &channel, const QString &text,
+                             const QString &fileName, const QString &mime,
+                             const QByteArray &data)
+{
+    const qint64 ts = QDateTime::currentMSecsSinceEpoch();
+    const QString id = QUuid::createUuid().toString(QUuid::WithoutBraces);
+    markSeen(id);
+    QJsonObject message{{"type", "chat"}, {"id", id},       {"channel", channel},
+                        {"sender", m_userName}, {"senderId", m_nodeId},
+                        {"text", text},   {"ts", double(ts)}};
+    if (!fileName.isEmpty()) {
+        message.insert("fileName", fileName);
+        message.insert("fileMime", mime);
+        message.insert("file", QString::fromLatin1(data.toBase64()));
+    }
+    storeChannelHistory(message);
+    flood(message, nullptr, true);
+    emitIncomingChat(message);
+}
+
+void MeshNode::sendDm(const QString &targetId, const QString &text,
+                      const QString &fileName, const QString &mime,
+                      const QByteArray &data)
+{
+    if (targetId == m_nodeId)
         return;
     const qint64 ts = QDateTime::currentMSecsSinceEpoch();
     const QString id = QUuid::createUuid().toString(QUuid::WithoutBraces);
     markSeen(id);
-    const QJsonObject message{{"type", "dm"},        {"id", id},
-                              {"from", m_nodeId},    {"fromName", m_userName},
-                              {"to", targetId},      {"text", text},
-                              {"ts", double(ts)}};
+    QJsonObject message{{"type", "dm"},        {"id", id},
+                        {"senderId", m_nodeId}, {"sender", m_userName},
+                        {"to", targetId},      {"text", text},
+                        {"ts", double(ts)}};
+    if (!fileName.isEmpty()) {
+        message.insert("fileName", fileName);
+        message.insert("fileMime", mime);
+        message.insert("file", QString::fromLatin1(data.toBase64()));
+    }
     // Deliver on the direct link when there is one; otherwise route through
     // the mesh (intermediate nodes forward, only the target displays it).
-    if (FramedConnection *peer = m_peers.value(targetId)) {
+    if (FramedConnection *peer = m_peers.value(targetId))
         peer->sendMessage(message);
-        emit systemMessage("Network: sent direct message to " +
-                           peer->remoteName + " via TLS.");
-    } else {
+    else
         flood(message, nullptr, true);
+    // Our own copy of the conversation is keyed by the other party (target).
+    QJsonObject mine = message;
+    emitIncomingDm(mine, targetId);
+}
+
+void MeshNode::sendReaction(const QString &conversation, const QString &messageId,
+                            const QString &emoji)
+{
+    if (messageId.isEmpty() || emoji.isEmpty())
+        return;
+    // Toggle: if we've already reacted with this emoji, remove it.
+    const bool added =
+        !m_reactions.value(messageId).value(emoji).contains(m_nodeId);
+    const QString id = QUuid::createUuid().toString(QUuid::WithoutBraces);
+    markSeen(id);
+    const QJsonObject message{{"type", "reaction"}, {"id", id},
+                              {"conversation", conversation},
+                              {"target", messageId}, {"emoji", emoji},
+                              {"reactorId", m_nodeId}, {"reactorName", m_userName},
+                              {"added", added}};
+    flood(message, nullptr, false);
+    applyReaction(conversation, messageId, emoji, m_nodeId, m_userName, added);
+}
+
+void MeshNode::applyReaction(const QString &conversation, const QString &target,
+                             const QString &emoji, const QString &reactorId,
+                             const QString &reactorName, bool added)
+{
+    if (target.isEmpty() || emoji.isEmpty())
+        return;
+    auto &byEmoji = m_reactions[target][emoji];
+    if (added)
+        byEmoji.insert(reactorId, reactorName);
+    else
+        byEmoji.remove(reactorId);
+    if (byEmoji.isEmpty())
+        m_reactions[target].remove(emoji);
+    const QString conv =
+        conversation.isEmpty() ? m_messageConversation.value(target) : conversation;
+    emit reactionChanged(conv, target, emoji, reactorName, added);
+}
+
+void MeshNode::setAvatar(const QByteArray &pngData)
+{
+    m_avatarPng = pngData;
+    const QString id = QUuid::createUuid().toString(QUuid::WithoutBraces);
+    markSeen(id);
+    const QJsonObject message{{"type", "avatar"}, {"id", id},
+                              {"senderId", m_nodeId}, {"name", m_userName},
+                              {"png", QString::fromLatin1(pngData.toBase64())}};
+    flood(message, nullptr, false);
+    emit avatarChanged(m_nodeId, pngData);
+}
+
+void MeshNode::emitIncomingChat(const QJsonObject &m)
+{
+    ChatMessage cm;
+    cm.id = m.value("id").toString();
+    cm.conversation = m.value("channel").toString();
+    cm.senderId = m.value("senderId").toString();
+    cm.senderName = m.value("sender").toString();
+    cm.text = m.value("text").toString();
+    cm.timestampMs = qint64(m.value("ts").toDouble());
+    cm.fileName = m.value("fileName").toString();
+    cm.fileMime = m.value("fileMime").toString();
+    if (m.contains("file"))
+        cm.fileData = QByteArray::fromBase64(m.value("file").toString().toLatin1());
+    m_messageConversation.insert(cm.id, cm.conversation);
+    emit messageArrived(cm);
+}
+
+void MeshNode::emitIncomingDm(const QJsonObject &m, const QString &conversationPeer)
+{
+    ChatMessage cm;
+    cm.id = m.value("id").toString();
+    cm.conversation = "@" + conversationPeer;
+    cm.senderId = m.value("senderId").toString();
+    cm.senderName = m.value("sender").toString();
+    cm.text = m.value("text").toString();
+    cm.timestampMs = qint64(m.value("ts").toDouble());
+    cm.fileName = m.value("fileName").toString();
+    cm.fileMime = m.value("fileMime").toString();
+    if (m.contains("file"))
+        cm.fileData = QByteArray::fromBase64(m.value("file").toString().toLatin1());
+    m_messageConversation.insert(cm.id, cm.conversation);
+    emit messageArrived(cm);
+}
+
+void MeshNode::storeChannelHistory(const QJsonObject &m)
+{
+    const QString channel = m.value("channel").toString();
+    if (channel.isEmpty())
+        return;
+    QList<QJsonObject> &log = m_channelHistory[channel];
+    log.append(m);
+    while (log.size() > 200)
+        log.removeFirst();
+}
+
+void MeshNode::sendHistoryTo(FramedConnection *connection)
+{
+    QJsonArray entries;
+    for (const QList<QJsonObject> &log : std::as_const(m_channelHistory)) {
+        for (const QJsonObject &m : log)
+            entries.append(m);
     }
-    const QString targetName =
-        m_peers.contains(targetId) ? m_peers.value(targetId)->remoteName
-                                   : m_known.value(targetId).name;
-    emit directMessage(targetId, targetName, m_userName, text, ts);
+    QJsonArray reactions;
+    for (auto it = m_reactions.constBegin(); it != m_reactions.constEnd(); ++it) {
+        for (auto e = it.value().constBegin(); e != it.value().constEnd(); ++e) {
+            for (auto r = e.value().constBegin(); r != e.value().constEnd(); ++r) {
+                reactions.append(QJsonObject{
+                    {"target", it.key()}, {"emoji", e.key()},
+                    {"reactorId", r.key()}, {"reactorName", r.value()},
+                    {"conversation", m_messageConversation.value(it.key())}});
+            }
+        }
+    }
+    if (entries.isEmpty() && reactions.isEmpty())
+        return;
+    connection->sendMessage(
+        {{"type", "history"}, {"entries", entries}, {"reactions", reactions}});
+}
+
+void MeshNode::sendAvatarTo(FramedConnection *connection)
+{
+    if (m_avatarPng.isEmpty())
+        return;
+    connection->sendMessage(
+        {{"type", "avatar"},
+         {"id", QUuid::createUuid().toString(QUuid::WithoutBraces)},
+         {"senderId", m_nodeId}, {"name", m_userName},
+         {"png", QString::fromLatin1(m_avatarPng.toBase64())}});
 }
 
 void MeshNode::addChannel(const QString &channel)

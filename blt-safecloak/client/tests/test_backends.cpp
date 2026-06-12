@@ -63,11 +63,13 @@ int main(int argc, char *argv[])
     int meshPeersA = 0;
     QList<MemberInfo> rosterA, rosterB;
     QStringList channelsB;
-    QObject::connect(&nodeB, &ChatBackend::chatMessage,
-                     [&](const QString &, const QString &sender, const QString &text,
-                         qint64) {
-                         if (sender == "node-a")
-                             meshReceived = text;
+    ChatMessage lastBChat;
+    QObject::connect(&nodeB, &ChatBackend::messageArrived,
+                     [&](const ChatMessage &m) {
+                         if (m.senderName == "node-a" && m.conversation == "#general") {
+                             meshReceived = m.text;
+                             lastBChat = m;
+                         }
                      });
     QObject::connect(&nodeA, &ChatBackend::statusChanged, [&](const QString &status) {
         meshPeersA = status.contains("1 reachable") ? 1 : meshPeersA;
@@ -119,15 +121,54 @@ int main(int argc, char *argv[])
             meshBId = member.id;
     }
     QString meshDmText;
-    QObject::connect(&nodeB, &ChatBackend::directMessage,
-                     [&](const QString &, const QString &, const QString &sender,
-                         const QString &text, qint64) {
-                         if (sender == "node-a")
-                             meshDmText = text;
+    QObject::connect(&nodeB, &ChatBackend::messageArrived,
+                     [&](const ChatMessage &m) {
+                         if (m.senderName == "node-a" && m.conversation.startsWith('@'))
+                             meshDmText = m.text;
                      });
     nodeA.sendDirect(meshBId, "mesh dm");
     check(waitFor([&] { return meshDmText == "mesh dm"; }, 5000),
           "direct message reaches the mesh peer");
+
+    // --- File sharing ---
+    ChatMessage fileMsg;
+    QObject::connect(&nodeB, &ChatBackend::messageArrived, [&](const ChatMessage &m) {
+        if (m.hasFile())
+            fileMsg = m;
+    });
+    const QByteArray gifBytes = QByteArray::fromHex(
+        "47494638396101000100800000000000ffffff21f90400000000002c00000000"
+        "0100010000020144003b");
+    nodeA.sendFile("#general", "tiny.gif", "image/gif", gifBytes);
+    check(waitFor([&] { return fileMsg.hasFile(); }, 5000),
+          "file attachment reaches the mesh peer");
+    check(fileMsg.fileName == "tiny.gif" && fileMsg.fileMime == "image/gif" &&
+              fileMsg.fileData == gifBytes,
+          "file name, mime, and bytes survive the transfer intact");
+
+    // --- Reactions ---
+    QString reactEmoji;
+    int reactCount = 0;
+    QObject::connect(&nodeB, &ChatBackend::reactionChanged,
+                     [&](const QString &, const QString &messageId, const QString &emoji,
+                         const QString &, bool added) {
+                         if (messageId == lastBChat.id && added) {
+                             reactEmoji = emoji;
+                             ++reactCount;
+                         }
+                     });
+    nodeA.sendReaction("#general", lastBChat.id, "\xF0\x9F\x91\x8D");
+    check(waitFor([&] { return reactEmoji == "\xF0\x9F\x91\x8D"; }, 5000),
+          "reaction on a message reaches the mesh peer");
+
+    // --- Avatars ---
+    QByteArray avatarSeen;
+    QObject::connect(&nodeB, &ChatBackend::avatarChanged,
+                     [&](const QString &, const QByteArray &png) { avatarSeen = png; });
+    const QByteArray avatarPng("\x89PNG\r\n\x1a\n fake-avatar-bytes", 27);
+    nodeA.setAvatar(avatarPng);
+    check(waitFor([&] { return avatarSeen == avatarPng; }, 5000),
+          "avatar propagates to the mesh peer");
 
     nodeA.shutdown();
     nodeB.shutdown();
@@ -148,17 +189,13 @@ int main(int argc, char *argv[])
                      [&](const QList<MemberInfo> &m) { rosterC = m; });
     QObject::connect(&nodeD, &ChatBackend::rosterChanged,
                      [&](const QList<MemberInfo> &m) { rosterD = m; });
-    QObject::connect(&nodeD, &ChatBackend::chatMessage,
-                     [&](const QString &channel, const QString &sender,
-                         const QString &text, qint64) {
-                         if (sender == "node-c" && channel == "#general")
-                             crossIpChat = text;
-                     });
-    QObject::connect(&nodeD, &ChatBackend::directMessage,
-                     [&](const QString &, const QString &, const QString &sender,
-                         const QString &text, qint64) {
-                         if (sender == "node-c")
-                             crossIpDm = text;
+    QObject::connect(&nodeD, &ChatBackend::messageArrived,
+                     [&](const ChatMessage &m) {
+                         if (m.senderName == "node-c" && m.conversation == "#general")
+                             crossIpChat = m.text;
+                         else if (m.senderName == "node-c" &&
+                                  m.conversation.startsWith('@'))
+                             crossIpDm = m.text;
                      });
     QObject::connect(&nodeC, &ChatBackend::fatalError,
                      [](const QString &message) { qCritical("node-c: %s", qPrintable(message)); });
@@ -188,6 +225,30 @@ int main(int argc, char *argv[])
 
     nodeC.shutdown();
     nodeD.shutdown();
+
+    // --- History sync: a node that joins late gets the channel backlog ---
+    MeshNode nodeG(identity, "node-g", nullptr, testAppTag);
+    check(nodeG.start(), "history node G starts");
+    nodeG.sendChat("#general", "said before H joined");
+    nodeG.sendChat("#general", "second message before H");
+    // Give G's own history a moment to settle, then bring up H.
+    waitFor([] { return false; }, 300);
+
+    MeshNode nodeH(identity, "node-h", nullptr, testAppTag);
+    QStringList historyTexts;
+    QObject::connect(&nodeH, &ChatBackend::messageArrived, [&](const ChatMessage &m) {
+        if (m.senderName == "node-g")
+            historyTexts.append(m.text);
+    });
+    check(nodeH.start(), "history node H starts");
+    check(waitFor([&] {
+              return historyTexts.contains("said before H joined") &&
+                     historyTexts.contains("second message before H");
+          }, 15000),
+          "late joiner H receives node G's channel history on connect");
+
+    nodeG.shutdown();
+    nodeH.shutdown();
 
     // --- Same display name still means two distinct live members ---
     MeshNode nodeE(identity, "same-name", nullptr, testAppTag);

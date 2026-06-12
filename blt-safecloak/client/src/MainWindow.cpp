@@ -1,12 +1,15 @@
 #include "MainWindow.h"
 
 #include "MeshNode.h"
+#include "MessageRow.h"
+#include "SettingsDialog.h"
 #include "Theme.h"
 
 #include <QApplication>
 #include <QCoreApplication>
 #include <QDateTime>
 #include <QDir>
+#include <QFileDialog>
 #include <QFileInfo>
 #include <QStandardPaths>
 #include <QHBoxLayout>
@@ -15,15 +18,17 @@
 #include <QLineEdit>
 #include <QListWidget>
 #include <QMessageBox>
+#include <QMimeDatabase>
 #include <QProcess>
 #include <QPushButton>
+#include <QScrollArea>
 #include <QScrollBar>
 #include <QSettings>
 #include <QStackedWidget>
 #include <QStyle>
 #include <QSystemTrayIcon>
-#include <QTextBrowser>
 #include <QThread>
+#include <QTimer>
 #include <QVBoxLayout>
 
 #ifndef SAFECLOAK_VERSION
@@ -37,6 +42,7 @@ namespace {
 
 const QString kRepoUrl = QStringLiteral("https://gitlab.com/owasp-blt/blt-safecloak.git");
 const QString kDisplayNameSetting = QStringLiteral("profile/displayName");
+const QString kAvatarSetting = QStringLiteral("profile/avatarPng");
 
 // Directory holding client/CMakeLists.txt to update from: the build-time
 // checkout when it still exists, otherwise a persistent clone managed by the
@@ -194,18 +200,22 @@ void MainWindow::startSession()
     m_setupError->hide();
     m_userName = name;
     saveDisplayName(name);
+    m_userAvatar = QSettings().value(kAvatarSetting).toByteArray();
 
     // Reset chat state.
     m_channels.clear();
     m_currentConversation.clear();
-    m_conversationHtml.clear();
+    m_history.clear();
+    m_visibleRows.clear();
+    m_reactions.clear();
+    m_avatars.clear();
     m_dmNames.clear();
     m_openDms.clear();
     m_unread.clear();
     m_channelList->clear();
     m_dmList->clear();
     m_memberList->clear();
-    m_messageView->clear();
+    rebuildConversationView();
 
     auto *mesh = new MeshNode(m_identity, name, this);
     attachBackend(mesh);
@@ -213,6 +223,8 @@ void MainWindow::startSession()
         return;
 
     if (m_backend) {
+        if (!m_userAvatar.isEmpty())
+            m_backend->setAvatar(m_userAvatar);
         m_encryptionLabel->setText(
             "\xF0\x9F\x94\x92 TLS encrypted · fingerprint " +
             m_identity.fingerprint().left(23) + "…");
@@ -391,11 +403,18 @@ QWidget *MainWindow::buildChatPage()
     m_channelTitle->setObjectName("channelTitle");
     m_encryptionLabel = new QLabel;
     m_encryptionLabel->setObjectName("encryptionLabel");
+    auto *settingsButton = new QPushButton("\xE2\x9A\x99");
+    settingsButton->setObjectName("iconButton");
+    settingsButton->setCursor(Qt::PointingHandCursor);
+    settingsButton->setToolTip("Settings & network log");
+    connect(settingsButton, &QPushButton::clicked, this, &MainWindow::openSettings);
     auto *headerLayout = new QHBoxLayout(header);
     headerLayout->setContentsMargins(18, 12, 18, 12);
     headerLayout->addWidget(m_channelTitle);
     headerLayout->addStretch();
     headerLayout->addWidget(m_encryptionLabel);
+    headerLayout->addSpacing(8);
+    headerLayout->addWidget(settingsButton);
 
     // Firewall banner: hidden until the backend reports the host firewall is
     // blocking SafeCloak, then offers a one-click "Allow through firewall".
@@ -423,12 +442,27 @@ QWidget *MainWindow::buildChatPage()
     connect(firewallDismiss, &QPushButton::clicked, m_firewallBanner,
             &QWidget::hide);
 
-    m_messageView = new QTextBrowser;
-    m_messageView->setObjectName("messageView");
-    m_messageView->setOpenExternalLinks(true);
+    // Scrollable column of message-row widgets (supports avatars, inline
+    // images, animated GIFs, file chips, and reaction bars).
+    m_messageScroll = new QScrollArea;
+    m_messageScroll->setObjectName("messageView");
+    m_messageScroll->setWidgetResizable(true);
+    m_messageScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    m_messageContainer = new QWidget;
+    m_messageContainer->setObjectName("messageContainer");
+    m_messageLayout = new QVBoxLayout(m_messageContainer);
+    m_messageLayout->setContentsMargins(4, 8, 4, 8);
+    m_messageLayout->setSpacing(0);
+    m_messageLayout->addStretch();
+    m_messageScroll->setWidget(m_messageContainer);
 
     auto *composer = new QWidget;
     composer->setObjectName("composerBar");
+    auto *attachButton = new QPushButton("\xF0\x9F\x93\x8E");
+    attachButton->setObjectName("iconButton");
+    attachButton->setCursor(Qt::PointingHandCursor);
+    attachButton->setToolTip("Share a file (any type, including GIFs)");
+    connect(attachButton, &QPushButton::clicked, this, &MainWindow::attachFile);
     m_messageInput = new QLineEdit;
     m_messageInput->setObjectName("messageInput");
     m_messageInput->setPlaceholderText("Message #general");
@@ -437,6 +471,7 @@ QWidget *MainWindow::buildChatPage()
     auto *composerLayout = new QHBoxLayout(composer);
     composerLayout->setContentsMargins(14, 10, 14, 12);
     composerLayout->setSpacing(8);
+    composerLayout->addWidget(attachButton);
     composerLayout->addWidget(m_messageInput);
     composerLayout->addWidget(sendButton);
 
@@ -445,7 +480,7 @@ QWidget *MainWindow::buildChatPage()
     mainColumn->setSpacing(0);
     mainColumn->addWidget(header);
     mainColumn->addWidget(m_firewallBanner);
-    mainColumn->addWidget(m_messageView, 1);
+    mainColumn->addWidget(m_messageScroll, 1);
     mainColumn->addWidget(composer);
 
     auto *layout = new QHBoxLayout(page);
@@ -485,9 +520,10 @@ void MainWindow::attachBackend(ChatBackend *backend)
         leaveSession();
     m_backend = backend;
 
-    connect(backend, &ChatBackend::chatMessage, this, &MainWindow::appendChat);
-    connect(backend, &ChatBackend::directMessage, this, &MainWindow::onDirectMessage);
-    connect(backend, &ChatBackend::systemMessage, this, &MainWindow::appendSystem);
+    connect(backend, &ChatBackend::messageArrived, this, &MainWindow::onMessage);
+    connect(backend, &ChatBackend::reactionChanged, this, &MainWindow::onReaction);
+    connect(backend, &ChatBackend::avatarChanged, this, &MainWindow::onAvatar);
+    connect(backend, &ChatBackend::systemMessage, this, &MainWindow::logSystem);
     connect(backend, &ChatBackend::channelsChanged, this, &MainWindow::setChannels);
     connect(backend, &ChatBackend::rosterChanged, this, &MainWindow::setRoster);
     connect(backend, &ChatBackend::statusChanged, m_statusLine, &QLabel::setText);
@@ -547,7 +583,7 @@ void MainWindow::allowFirewall()
                         "\xE2\x9C\x94 Firewall opened. Peers should connect "
                         "within a few seconds.");
                     m_firewallAllowButton->hide();
-                    appendSystem("Firewall opened for SafeCloak's ports.");
+                    logSystem("Firewall opened for SafeCloak's ports.");
                 } else {
                     m_firewallBannerLabel->setText(
                         "Could not open the firewall" +
@@ -569,54 +605,14 @@ void MainWindow::allowFirewall()
     process->start("pkexec", {"sh", "-c", m_firewallPrivilegedCommand});
 }
 
-// ------------------------------------------------------------------ messages
+// -------------------------------------------------------------- diagnostics
 
-QString MainWindow::senderColor(const QString &sender) const
+void MainWindow::logSystem(const QString &text)
 {
-    const uint hash = qHash(sender);
-    return Theme::kSenderPalette[hash % Theme::kSenderPaletteSize];
-}
-
-// One line per message, Slack-style with the username in front:
-//   12:04  alice  the message text
-QString MainWindow::messageHtml(const QString &sender, const QString &text,
-                                qint64 timestampMs) const
-{
-    const QString time =
-        QDateTime::fromMSecsSinceEpoch(timestampMs).toString("hh:mm");
-    return "<div style='margin:5px 0'>"
-           "<span style='color:#6b7280; font-size:11px'>" + time + "</span>"
-           "&nbsp;&nbsp;"
-           "<span style='color:" + senderColor(sender) + "; font-weight:700'>" +
-           sender.toHtmlEscaped() + "</span>"
-           "&nbsp;&nbsp;"
-           "<span style='color:#f1f5f9'>" + text.toHtmlEscaped() + "</span></div>";
-}
-
-void MainWindow::appendChat(const QString &channel, const QString &sender,
-                            const QString &text, qint64 timestampMs)
-{
-    appendHtml(channel, messageHtml(sender, text, timestampMs));
-    if (sender != m_userName)
-        notifyIfInactive(sender + " in " + channel, text);
-}
-
-void MainWindow::onDirectMessage(const QString &peerId, const QString &peerName,
-                                 const QString &sender, const QString &text,
-                                 qint64 timestampMs)
-{
-    if (!m_dmNames.contains(peerId) || (!peerName.isEmpty() &&
-                                        m_dmNames.value(peerId) != peerName)) {
-        m_dmNames.insert(peerId, peerName.isEmpty() ? QStringLiteral("unknown")
-                                                    : peerName);
+    if (m_settingsDialog) {
+        const QString time = QDateTime::currentDateTime().toString("hh:mm:ss");
+        m_settingsDialog->appendLog(time + "  " + text);
     }
-    if (!m_openDms.contains(peerId)) {
-        m_openDms.append(peerId);
-        refreshDmList();
-    }
-    appendHtml(dmKey(peerId), messageHtml(sender, text, timestampMs));
-    if (sender != m_userName)
-        notifyIfInactive(sender + " sent you a message", text);
 }
 
 void MainWindow::notifyIfInactive(const QString &title, const QString &body)
@@ -634,31 +630,124 @@ void MainWindow::notifyIfInactive(const QString &title, const QString &body)
     m_trayIcon->showMessage(title, cleanBody, QSystemTrayIcon::Information, 6000);
 }
 
-void MainWindow::appendSystem(const QString &text)
+// ------------------------------------------------------------------ messages
+
+QString MainWindow::senderColor(const QString &sender) const
 {
-    const QString html =
-        "<div style='margin:4px 0; color:#9ca3af'><i>· " + text.toHtmlEscaped() +
-        "</i></div>";
-    appendHtml(m_currentConversation.isEmpty() ? QStringLiteral("#general")
-                                               : m_currentConversation,
-               html);
+    const uint hash = qHash(sender);
+    return Theme::kSenderPalette[hash % Theme::kSenderPaletteSize];
 }
 
-void MainWindow::appendHtml(const QString &conversation, const QString &html)
+MessageRow *MainWindow::addMessageRow(const ChatMessage &message)
 {
+    auto *row = new MessageRow(message, senderColor(message.senderName));
+    if (m_avatars.contains(message.senderId))
+        row->setAvatar(m_avatars.value(message.senderId));
+    if (m_reactions.contains(message.id))
+        row->setReactions(m_reactions.value(message.id));
+    connect(row, &MessageRow::reactionToggled, this,
+            [this](const QString &messageId, const QString &emoji) {
+                if (m_backend)
+                    m_backend->sendReaction(m_currentConversation, messageId, emoji);
+            });
+    connect(row, &MessageRow::saveFileRequested, this,
+            &MainWindow::saveIncomingFile);
+    // Insert before the trailing stretch.
+    m_messageLayout->insertWidget(m_messageLayout->count() - 1, row);
+    m_visibleRows.insert(message.id, row);
+    return row;
+}
+
+void MainWindow::rebuildConversationView()
+{
+    // Drop existing rows (keep the trailing stretch at the end).
+    m_visibleRows.clear();
+    while (m_messageLayout->count() > 1) {
+        QLayoutItem *item = m_messageLayout->takeAt(0);
+        if (item->widget())
+            item->widget()->deleteLater();
+        delete item;
+    }
+    for (const ChatMessage &message : m_history.value(m_currentConversation))
+        addMessageRow(message);
+    // Scroll to the bottom once layout settles.
+    QTimer::singleShot(0, this, [this] {
+        m_messageScroll->verticalScrollBar()->setValue(
+            m_messageScroll->verticalScrollBar()->maximum());
+    });
+}
+
+void MainWindow::onMessage(const ChatMessage &message)
+{
+    const QString conversation = message.conversation;
     if (conversation.isEmpty())
         return;
-    m_conversationHtml[conversation] += html;
+
+    // Open a DM tab on first contact. For an incoming DM the author *is* the
+    // other party (senderId == peerId), so that names the conversation; our
+    // own echoed messages (senderId != peerId) must not rename it.
+    if (isDirectConversation(conversation)) {
+        const QString peerId = dmPeerId(conversation);
+        if (message.senderId == peerId && !message.senderName.isEmpty())
+            m_dmNames.insert(peerId, message.senderName);
+        if (!m_openDms.contains(peerId)) {
+            m_openDms.append(peerId);
+            refreshDmList();
+        }
+    }
+
+    m_history[conversation].append(message);
+
     if (conversation == m_currentConversation) {
-        m_messageView->append(html);
-        m_messageView->verticalScrollBar()->setValue(
-            m_messageView->verticalScrollBar()->maximum());
-    } else if (m_channels.contains(conversation) ||
-               (isDirectConversation(conversation) &&
-                m_openDms.contains(dmPeerId(conversation)))) {
+        addMessageRow(message);
+        QTimer::singleShot(0, this, [this] {
+            m_messageScroll->verticalScrollBar()->setValue(
+                m_messageScroll->verticalScrollBar()->maximum());
+        });
+    } else {
         m_unread.insert(conversation);
         refreshChannelList();
         refreshDmList();
+    }
+
+    if (message.senderName != m_userName) {
+        const QString where = isDirectConversation(conversation)
+                                  ? "sent you a message"
+                                  : "in " + conversation;
+        const QString preview =
+            message.hasFile() ? "\xF0\x9F\x93\x8E " + message.fileName : message.text;
+        notifyIfInactive(message.senderName + " " + where, preview);
+    }
+}
+
+void MainWindow::onReaction(const QString &conversation, const QString &messageId,
+                            const QString &emoji, const QString &reactorName,
+                            bool added)
+{
+    Q_UNUSED(conversation);
+    QStringList &reactors = m_reactions[messageId][emoji];
+    if (added) {
+        if (!reactors.contains(reactorName))
+            reactors.append(reactorName);
+    } else {
+        reactors.removeAll(reactorName);
+        if (reactors.isEmpty())
+            m_reactions[messageId].remove(emoji);
+    }
+    if (auto *row = m_visibleRows.value(messageId))
+        row->setReactions(m_reactions.value(messageId));
+}
+
+void MainWindow::onAvatar(const QString &peerId, const QByteArray &pngData)
+{
+    QPixmap pixmap;
+    if (!pixmap.loadFromData(pngData))
+        return;
+    m_avatars.insert(peerId, pixmap);
+    // Update any visible rows authored by this peer.
+    for (auto it = m_visibleRows.constBegin(); it != m_visibleRows.constEnd(); ++it) {
+        if (it.value()->senderId() == peerId)
+            it.value()->setAvatar(pixmap);
     }
 }
 
@@ -745,9 +834,7 @@ void MainWindow::switchConversation(const QString &conversation)
                                             QStringLiteral("unknown"));
     m_channelTitle->setText(title);
     m_messageInput->setPlaceholderText("Message " + title);
-    m_messageView->setHtml(m_conversationHtml.value(conversation));
-    m_messageView->verticalScrollBar()->setValue(
-        m_messageView->verticalScrollBar()->maximum());
+    rebuildConversationView();
 
     // Selection lives in exactly one sidebar list at a time.
     if (isDirectConversation(conversation)) {
@@ -795,4 +882,89 @@ void MainWindow::sendCurrentMessage()
     else
         m_backend->sendChat(m_currentConversation, text);
     m_messageInput->clear();
+}
+
+// ------------------------------------------------------------------- files
+
+void MainWindow::attachFile()
+{
+    if (!m_backend || m_currentConversation.isEmpty())
+        return;
+    const QString path =
+        QFileDialog::getOpenFileName(this, "Share a file", QString(), "All files (*)");
+    if (path.isEmpty())
+        return;
+    QFile file(path);
+    if (!file.open(QIODevice::ReadOnly)) {
+        QMessageBox::warning(this, "Share a file", "Could not read " + path);
+        return;
+    }
+    // Keep LAN transfers reasonable; the wire frame caps at ~96 MB.
+    const qint64 maxBytes = 64ll * 1024 * 1024;
+    if (file.size() > maxBytes) {
+        QMessageBox::warning(this, "Share a file",
+                             "That file is larger than 64 MB. Please share a "
+                             "smaller file.");
+        return;
+    }
+    const QByteArray data = file.readAll();
+    const QFileInfo info(path);
+    const QString mime = QMimeDatabase().mimeTypeForFileNameAndData(path, data).name();
+    m_backend->sendFile(m_currentConversation, info.fileName(), mime, data);
+}
+
+void MainWindow::saveIncomingFile(const QString &fileName, const QByteArray &data)
+{
+    const QString dir =
+        QStandardPaths::writableLocation(QStandardPaths::DownloadLocation);
+    const QString suggested = (dir.isEmpty() ? QDir::homePath() : dir) + "/" + fileName;
+    const QString path =
+        QFileDialog::getSaveFileName(this, "Save file", suggested);
+    if (path.isEmpty())
+        return;
+    QFile file(path);
+    if (!file.open(QIODevice::WriteOnly) || file.write(data) != data.size()) {
+        QMessageBox::warning(this, "Save file", "Could not save to " + path);
+        return;
+    }
+}
+
+// ------------------------------------------------------------------ settings
+
+void MainWindow::openSettings()
+{
+    if (!m_settingsDialog) {
+        m_settingsDialog = new SettingsDialog(SAFECLOAK_VERSION, this);
+        m_settingsDialog->setDisplayName(m_userName);
+        if (!m_userAvatar.isEmpty())
+            m_settingsDialog->setAvatar(m_userAvatar);
+        connect(m_settingsDialog, &SettingsDialog::displayNameChanged, this,
+                &MainWindow::onDisplayNameChanged);
+        connect(m_settingsDialog, &SettingsDialog::avatarChosen, this,
+                &MainWindow::onAvatarChosen);
+    }
+    m_settingsDialog->show();
+    m_settingsDialog->raise();
+    m_settingsDialog->activateWindow();
+}
+
+void MainWindow::onDisplayNameChanged(const QString &name)
+{
+    const QString trimmed = name.trimmed();
+    if (trimmed.isEmpty() || trimmed == m_userName)
+        return;
+    m_userName = trimmed;
+    saveDisplayName(trimmed);
+    // The display name is announced with each peer link; it takes effect for
+    // new messages immediately and for peers on their next reconnect.
+    logSystem("Display name changed to " + trimmed +
+              " (applies to new messages).");
+}
+
+void MainWindow::onAvatarChosen(const QByteArray &pngData)
+{
+    m_userAvatar = pngData;
+    QSettings().setValue(kAvatarSetting, pngData);
+    if (m_backend)
+        m_backend->setAvatar(pngData);
 }

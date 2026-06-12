@@ -27,6 +27,20 @@ discovery ports so nearby peers can still chat even when one direction cannot
 receive unicast replies. It also uses a fixed shared LAN chat port, UDP 45453,
 so every client has a stable place to receive names and messages.
 
+### Messaging features
+
+- **File sharing** — the 📎 button shares any file type (up to 64 MB). Images
+  display inline, GIFs play animated, and other files show as a chip with a
+  Save button. Files travel over the same encrypted mesh as text.
+- **Reactions** — the 🙂+ under a message adds an emoji; reaction chips with
+  counts appear under the message for everyone.
+- **Avatars** — upload a picture in Settings; it is shared with peers and
+  shown as a round avatar to the left of your name on every message.
+- **History sync** — when you join, connected peers replay the shared-channel
+  backlog (and its reactions), so late joiners see what they missed.
+- **Settings window** — the ⚙ button (top-right) holds your display name,
+  avatar, and the network/diagnostic log, keeping the chat itself clean.
+
 ## Building
 
 Requires Qt 6.4+ (Widgets, Network), CMake 3.16+, a C++17 compiler, and the

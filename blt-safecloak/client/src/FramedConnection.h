@@ -30,7 +30,9 @@ signals:
 private:
     void onReadyRead();
 
-    static constexpr quint32 kMaxFrame = 1024 * 1024;
+    // Large enough for shared files (images, GIFs, documents) sent inline as
+    // base64 inside a JSON frame.
+    static constexpr quint32 kMaxFrame = 96u * 1024 * 1024;
 
     QSslSocket *m_socket;
     QByteArray m_buffer;

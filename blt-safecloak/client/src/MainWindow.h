@@ -5,17 +5,22 @@
 
 #include <QHash>
 #include <QMainWindow>
+#include <QMap>
+#include <QPixmap>
 #include <QSet>
 
 #include <functional>
 
+class MessageRow;
+class SettingsDialog;
 class QLabel;
 class QLineEdit;
 class QListWidget;
 class QPushButton;
+class QScrollArea;
 class QStackedWidget;
 class QSystemTrayIcon;
-class QTextBrowser;
+class QVBoxLayout;
 
 class MainWindow : public QMainWindow
 {
@@ -38,13 +43,13 @@ private:
     void attachBackend(ChatBackend *backend);
     void leaveSession(const QString &reason = QString());
 
-    void appendChat(const QString &channel, const QString &sender,
-                    const QString &text, qint64 timestampMs);
-    void onDirectMessage(const QString &peerId, const QString &peerName,
-                         const QString &sender, const QString &text,
-                         qint64 timestampMs);
-    void appendSystem(const QString &text);
-    void appendHtml(const QString &conversation, const QString &html);
+    void onMessage(const ChatMessage &message);
+    void onReaction(const QString &conversation, const QString &messageId,
+                    const QString &emoji, const QString &reactorName, bool added);
+    void onAvatar(const QString &peerId, const QByteArray &pngData);
+    void logSystem(const QString &text);
+    MessageRow *addMessageRow(const ChatMessage &message);
+    void rebuildConversationView();
     void setChannels(const QStringList &channels);
     void setRoster(const QList<MemberInfo> &members);
     // A conversation key is either a channel ("#general") or a direct chat
@@ -55,13 +60,16 @@ private:
     void refreshDmList();
     void promptAddChannel();
     void sendCurrentMessage();
+    void attachFile();
+    void saveIncomingFile(const QString &fileName, const QByteArray &data);
+    void openSettings();
+    void onDisplayNameChanged(const QString &name);
+    void onAvatarChosen(const QByteArray &pngData);
     void showFirewallBanner(const QString &displayCommand,
                             const QString &privilegedCommand);
     void allowFirewall();
     void notifyIfInactive(const QString &title, const QString &body);
     QString senderColor(const QString &sender) const;
-    QString messageHtml(const QString &sender, const QString &text,
-                        qint64 timestampMs) const;
 
     SslIdentity m_identity;
     ChatBackend *m_backend = nullptr;
@@ -86,14 +94,24 @@ private:
     QLabel *m_firewallBannerLabel;
     QPushButton *m_firewallAllowButton;
     QString m_firewallPrivilegedCommand;
-    QTextBrowser *m_messageView;
+    QScrollArea *m_messageScroll;
+    QWidget *m_messageContainer;
+    QVBoxLayout *m_messageLayout; // message rows + a trailing stretch
     QLineEdit *m_messageInput;
+
+    SettingsDialog *m_settingsDialog = nullptr;
 
     QStringList m_channels;
     QString m_currentConversation;
-    QHash<QString, QString> m_conversationHtml; // conversation -> message html
+    // Per-conversation message log and the live rows for the open conversation.
+    QHash<QString, QList<ChatMessage>> m_history;
+    QHash<QString, MessageRow *> m_visibleRows; // messageId -> row (current conv)
+    // messageId -> emoji -> reactor display names.
+    QHash<QString, QMap<QString, QStringList>> m_reactions;
+    QHash<QString, QPixmap> m_avatars;          // senderId -> avatar
     QHash<QString, QString> m_dmNames;          // peerId -> display name
     QStringList m_openDms;                      // peerIds in sidebar order
     QSet<QString> m_unread;
     QString m_userName;
+    QByteArray m_userAvatar;
 };
