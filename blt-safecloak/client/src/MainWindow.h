@@ -123,6 +123,7 @@ private:
     QHash<QString, QPixmap> m_avatars;          // senderId -> avatar
     QHash<QString, QString> m_dmNames;          // peerId -> display name
     QHash<QString, QHash<QString, QString>> m_typing; // conversation -> peerId -> name
+    QStringList m_networkLog;
     QStringList m_openDms;                      // peerIds in sidebar order
     QSet<QString> m_unread;
     QString m_userName;

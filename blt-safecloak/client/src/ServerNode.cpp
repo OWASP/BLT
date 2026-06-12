@@ -11,6 +11,14 @@
 namespace {
 
 constexpr int kSeenCacheLimit = 4096;
+constexpr quint64 kMaxWsPayload = 96ull * 1024 * 1024;
+constexpr int kMaxDisplayNameChars = 32;
+constexpr int kMaxTextChars = 16000;
+constexpr int kMaxFileNameChars = 180;
+constexpr int kMaxMimeChars = 100;
+constexpr qsizetype kMaxFileBytes = 64ll * 1024 * 1024;
+constexpr qsizetype kMaxBase64FileChars = 90ll * 1024 * 1024;
+constexpr qsizetype kMaxAvatarBytes = 256 * 1024;
 
 QByteArray randomKey()
 {
@@ -26,6 +34,47 @@ QString wsPath(const QUrl &url)
     if (url.hasQuery())
         path += "?" + url.query();
     return path;
+}
+
+QString boundedText(const QJsonObject &object, const char *key, int maxChars)
+{
+    QString value = object.value(key).toString();
+    if (value.size() > maxChars)
+        value = value.left(maxChars);
+    return value;
+}
+
+QString safeFileName(const QString &name)
+{
+    QString cleaned = name;
+    cleaned.replace('\\', '/');
+    cleaned = cleaned.section('/', -1).trimmed();
+    cleaned.remove('\0');
+    if (cleaned.isEmpty())
+        cleaned = "file";
+    return cleaned.left(kMaxFileNameChars);
+}
+
+QByteArray boundedBase64(const QJsonObject &object, const char *key,
+                         qsizetype maxBase64Chars, qsizetype maxDecodedBytes)
+{
+    const QString encoded = object.value(key).toString();
+    if (encoded.isEmpty() || encoded.size() > maxBase64Chars)
+        return {};
+    const QByteArray decoded = QByteArray::fromBase64(encoded.toLatin1());
+    if (decoded.size() > maxDecodedBytes)
+        return {};
+    return decoded;
+}
+
+bool messageHasSafePayload(const QJsonObject &message)
+{
+    return message.value("text").toString().size() <= kMaxTextChars &&
+           message.value("sender").toString().size() <= kMaxDisplayNameChars &&
+           message.value("fileName").toString().size() <= kMaxFileNameChars &&
+           message.value("fileMime").toString().size() <= kMaxMimeChars &&
+           message.value("file").toString().size() <= kMaxBase64FileChars &&
+           message.value("png").toString().size() <= 4 * kMaxAvatarBytes / 3 + 8;
 }
 
 } // namespace
@@ -150,6 +199,11 @@ void ServerNode::onSocketReadyRead()
                 len = (len << 8) | uchar(m_readBuffer.at(pos + i));
             pos += 8;
         }
+        if (len > kMaxWsPayload) {
+            emit systemMessage("Server frame exceeded the safe size limit; disconnecting.");
+            m_socket->disconnectFromHost();
+            return;
+        }
         const bool masked = b1 & 0x80;
         QByteArray mask;
         if (masked) {
@@ -177,6 +231,8 @@ void ServerNode::onSocketReadyRead()
 
 void ServerNode::processFrame(const QByteArray &payload)
 {
+    if (quint64(payload.size()) > kMaxWsPayload)
+        return;
     const QJsonDocument doc = QJsonDocument::fromJson(payload);
     if (!doc.isObject())
         return;
@@ -190,6 +246,10 @@ void ServerNode::sendTextFrame(const QByteArray &payload)
 {
     if (!m_wsReady || !m_socket)
         return;
+    if (quint64(payload.size()) > kMaxWsPayload) {
+        emit systemMessage("Message exceeded the safe server frame limit and was not sent.");
+        return;
+    }
     QByteArray frame;
     frame.append(char(0x81));
     if (payload.size() < 126) {
@@ -220,7 +280,7 @@ QJsonObject ServerNode::makeMessage(const QString &type) const
     return {{"type", type},
             {"id", QUuid::createUuid().toString(QUuid::WithoutBraces)},
             {"senderId", m_nodeId},
-            {"sender", m_userName},
+            {"sender", m_userName.left(kMaxDisplayNameChars)},
             {"ts", double(QDateTime::currentMSecsSinceEpoch())}};
 }
 
@@ -253,7 +313,7 @@ void ServerNode::sendChat(const QString &channel, const QString &text)
         return;
     QJsonObject message = makeMessage("chat");
     message.insert("channel", channel);
-    message.insert("text", text);
+    message.insert("text", text.left(kMaxTextChars));
     markSeen(message.value("id").toString());
     storeHistory(message);
     sendEncrypted(message, true);
@@ -266,7 +326,7 @@ void ServerNode::sendDirect(const QString &targetId, const QString &text)
         return;
     QJsonObject message = makeMessage("dm");
     message.insert("to", targetId);
-    message.insert("text", text);
+    message.insert("text", text.left(kMaxTextChars));
     markSeen(message.value("id").toString());
     sendEncrypted(message, true);
     emitDm(message, targetId);
@@ -275,13 +335,13 @@ void ServerNode::sendDirect(const QString &targetId, const QString &text)
 void ServerNode::sendFile(const QString &conversation, const QString &fileName,
                           const QString &mimeType, const QByteArray &data)
 {
-    if (fileName.isEmpty() || data.isEmpty())
+    if (fileName.isEmpty() || data.isEmpty() || data.size() > kMaxFileBytes)
         return;
     if (conversation.startsWith('@')) {
         QJsonObject message = makeMessage("dm");
         message.insert("to", conversation.mid(1));
-        message.insert("fileName", fileName);
-        message.insert("fileMime", mimeType);
+        message.insert("fileName", safeFileName(fileName));
+        message.insert("fileMime", mimeType.left(kMaxMimeChars));
         message.insert("file", QString::fromLatin1(data.toBase64()));
         markSeen(message.value("id").toString());
         sendEncrypted(message, true);
@@ -289,8 +349,8 @@ void ServerNode::sendFile(const QString &conversation, const QString &fileName,
     } else {
         QJsonObject message = makeMessage("chat");
         message.insert("channel", conversation);
-        message.insert("fileName", fileName);
-        message.insert("fileMime", mimeType);
+        message.insert("fileName", safeFileName(fileName));
+        message.insert("fileMime", mimeType.left(kMaxMimeChars));
         message.insert("file", QString::fromLatin1(data.toBase64()));
         markSeen(message.value("id").toString());
         storeHistory(message);
@@ -320,6 +380,8 @@ void ServerNode::sendReaction(const QString &conversation, const QString &messag
 
 void ServerNode::setAvatar(const QByteArray &pngData)
 {
+    if (pngData.size() > kMaxAvatarBytes)
+        return;
     m_avatarPng = pngData;
     QJsonObject message = makeMessage("avatar");
     message.insert("png", QString::fromLatin1(pngData.toBase64()));
@@ -366,6 +428,10 @@ void ServerNode::shutdown()
 
 void ServerNode::handlePlain(const QJsonObject &message)
 {
+    if (!messageHasSafePayload(message)) {
+        emit systemMessage("Dropped oversized or unsafe server payload.");
+        return;
+    }
     const QString type = message.value("type").toString();
     if (type != "typing" && !markSeen(message.value("id").toString()))
         return;
@@ -413,8 +479,11 @@ void ServerNode::handlePlain(const QJsonObject &message)
         emit reactionChanged(message.value("conversation").toString(), target,
                              emoji, reactorName, message.value("added").toBool());
     } else if (type == "avatar") {
-        emit avatarChanged(senderId,
-                           QByteArray::fromBase64(message.value("png").toString().toLatin1()));
+        const QByteArray avatar =
+            boundedBase64(message, "png", 4 * kMaxAvatarBytes / 3 + 8,
+                          kMaxAvatarBytes);
+        if (!avatar.isEmpty())
+            emit avatarChanged(senderId, avatar);
     } else if (type == "typing") {
         emit typingChanged(message.value("conversation").toString(), senderId,
                            sender, message.value("active").toBool());
@@ -424,6 +493,8 @@ void ServerNode::handlePlain(const QJsonObject &message)
             return;
         for (const auto &value : message.value("entries").toArray()) {
             const QJsonObject entry = value.toObject();
+            if (!messageHasSafePayload(entry))
+                continue;
             if (markSeen(entry.value("id").toString())) {
                 storeHistory(entry);
                 emitChat(entry);
@@ -459,13 +530,15 @@ void ServerNode::emitChat(const QJsonObject &message)
     out.id = message.value("id").toString();
     out.conversation = message.value("channel").toString();
     out.senderId = message.value("senderId").toString();
-    out.senderName = message.value("sender").toString();
-    out.text = message.value("text").toString();
+    out.senderName = boundedText(message, "sender", kMaxDisplayNameChars);
+    out.text = boundedText(message, "text", kMaxTextChars);
     out.timestampMs = qint64(message.value("ts").toDouble());
-    out.fileName = message.value("fileName").toString();
-    out.fileMime = message.value("fileMime").toString();
+    out.fileName = safeFileName(message.value("fileName").toString());
+    if (out.fileName == "file" && !message.contains("fileName"))
+        out.fileName.clear();
+    out.fileMime = boundedText(message, "fileMime", kMaxMimeChars);
     if (message.contains("file"))
-        out.fileData = QByteArray::fromBase64(message.value("file").toString().toLatin1());
+        out.fileData = boundedBase64(message, "file", kMaxBase64FileChars, kMaxFileBytes);
     m_messageConversation.insert(out.id, out.conversation);
     emit messageArrived(out);
 }
@@ -476,13 +549,15 @@ void ServerNode::emitDm(const QJsonObject &message, const QString &conversationP
     out.id = message.value("id").toString();
     out.conversation = "@" + conversationPeer;
     out.senderId = message.value("senderId").toString();
-    out.senderName = message.value("sender").toString();
-    out.text = message.value("text").toString();
+    out.senderName = boundedText(message, "sender", kMaxDisplayNameChars);
+    out.text = boundedText(message, "text", kMaxTextChars);
     out.timestampMs = qint64(message.value("ts").toDouble());
-    out.fileName = message.value("fileName").toString();
-    out.fileMime = message.value("fileMime").toString();
+    out.fileName = safeFileName(message.value("fileName").toString());
+    if (out.fileName == "file" && !message.contains("fileName"))
+        out.fileName.clear();
+    out.fileMime = boundedText(message, "fileMime", kMaxMimeChars);
     if (message.contains("file"))
-        out.fileData = QByteArray::fromBase64(message.value("file").toString().toLatin1());
+        out.fileData = boundedBase64(message, "file", kMaxBase64FileChars, kMaxFileBytes);
     m_messageConversation.insert(out.id, out.conversation);
     emit messageArrived(out);
 }

@@ -102,8 +102,8 @@ QT_QPA_PLATFORM=offscreen ./build/safecloak-tests
 - Every mesh peer link is TLS 1.2+. Nothing is ever sent in plaintext over TCP.
 - On first run each installation generates a self-signed RSA-2048
   certificate (stored under the per-user app data directory), which it
-  presents on every inbound connection. Its SHA-256 fingerprint is shown in
-  the chat header.
+  presents on every inbound connection. Its SHA-256 fingerprint is logged in
+  Settings.
 - Because certificates are self-signed, peers are **encrypted but not
   authenticated**: a machine on your LAN could impersonate a mesh node (no
   protection against an active man-in-the-middle on the local network).
@@ -113,6 +113,14 @@ QT_QPA_PLATFORM=offscreen ./build/safecloak-tests
 - Server-room traffic is encrypted before leaving the desktop client. The
   Durable Object relay only sees ciphertext envelopes and may briefly retain
   undelivered ciphertext for reconnect/offline delivery.
+- Incoming names, text, filenames, MIME labels, avatars, file payloads, and
+  WebSocket/frame sizes are bounded before display or decode. Message text and
+  filenames are HTML-escaped in the UI, file-save suggestions are reduced to a
+  basename, and oversized payloads are dropped instead of rendered.
+- Server rooms reject invalid room names, oversized ciphertext, and rooms over
+  the connection cap. This is still defense-in-depth, not a mathematical
+  guarantee that hostile clients can never cause load; deploy rate limits and
+  Cloudflare abuse controls should remain enabled.
 
 ## Troubleshooting: peers see each other but never connect
 
@@ -156,10 +164,10 @@ open immediately — no app restart needed; discovery recovers within seconds.
 - Mesh TLS listeners prefer TCP ports 45464–45473 (falling back to an
   ephemeral port). If peers see each other as "(discovered)" but never
   connect, allow TCP 45464–45473 and UDP 45453–45463 through your firewall.
-- The sidebar status shows your local IPs plus the active UDP and TCP ports.
-  Settings logs discovery, dial attempts, timeouts, socket/TLS errors, and
-  server send/receive activity so you can see exactly where a peer link is
-  failing.
+- The sidebar shows only a short reachable count. Settings logs local IPs,
+  active UDP/LAN/TCP ports, TLS fingerprints, discovery, dial attempts,
+  timeouts, socket/TLS errors, and server send/receive activity so you can see
+  exactly where a peer link is failing.
 - When the app was built from a local checkout, the home screen shows a
   "Quick update" button that pulls the latest version, rebuilds, and
   relaunches the app.

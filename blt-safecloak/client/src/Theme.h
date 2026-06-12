@@ -145,7 +145,7 @@ QPushButton#ghostButton:hover { color: #f1f5f9; }
 /* Settings */
 #settingsTitle { font-size: 20px; font-weight: 800; }
 #avatarPreview {
-    background-color: #111827; border: 1px solid #374151; border-radius: 32px;
+    background-color: #111827; border: 1px solid #374151; border-radius: 14px;
     color: #6b7280; font-size: 11px;
 }
 #networkLog {

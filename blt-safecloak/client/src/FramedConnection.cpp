@@ -18,6 +18,8 @@ void FramedConnection::sendMessage(const QJsonObject &message)
     if (m_socket->state() != QAbstractSocket::ConnectedState)
         return;
     const QByteArray payload = QJsonDocument(message).toJson(QJsonDocument::Compact);
+    if (quint32(payload.size()) > kMaxFrame)
+        return;
     QByteArray frame(4, Qt::Uninitialized);
     qToBigEndian<quint32>(quint32(payload.size()), frame.data());
     frame.append(payload);

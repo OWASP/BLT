@@ -108,7 +108,7 @@ void SettingsDialog::setAvatar(const QByteArray &pngData)
     QPainter painter(&rounded);
     painter.setRenderHint(QPainter::Antialiasing);
     QPainterPath clip;
-    clip.addEllipse(0, 0, kAvatarPreview, kAvatarPreview);
+    clip.addRoundedRect(0, 0, kAvatarPreview, kAvatarPreview, 14, 14);
     painter.setClipPath(clip);
     painter.drawPixmap(0, 0,
                        pixmap.scaled(kAvatarPreview, kAvatarPreview,

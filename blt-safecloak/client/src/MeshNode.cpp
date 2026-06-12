@@ -22,6 +22,13 @@ constexpr int kDialTimeoutMs = 8000;
 constexpr int kSeenCacheLimit = 4096;
 constexpr int kUdpRetryDelaysMs[] = {180, 650, 1400, 2600};
 constexpr int kMessageRetryDelaysMs[] = {250, 900};
+constexpr int kMaxDisplayNameChars = 32;
+constexpr int kMaxTextChars = 16000;
+constexpr int kMaxFileNameChars = 180;
+constexpr int kMaxMimeChars = 100;
+constexpr qsizetype kMaxFileBytes = 64ll * 1024 * 1024;
+constexpr qsizetype kMaxBase64FileChars = 90ll * 1024 * 1024;
+constexpr qsizetype kMaxAvatarBytes = 256 * 1024;
 const QString kDefaultAppTag = QStringLiteral("safecloak-chat");
 // Discovery goes out via multicast (looped back locally, so instances on the
 // same machine find each other) and via broadcast as a fallback for networks
@@ -56,6 +63,49 @@ QString localAddressSummary()
     for (const QHostAddress &address : localIPv4Addresses())
         addresses.append(address.toString());
     return addresses.join(", ");
+}
+
+QString boundedText(const QJsonObject &object, const char *key, int maxChars)
+{
+    QString value = object.value(key).toString();
+    if (value.size() > maxChars)
+        value = value.left(maxChars);
+    return value;
+}
+
+QString safeFileName(const QString &name)
+{
+    QString cleaned = name;
+    cleaned.replace('\\', '/');
+    cleaned = cleaned.section('/', -1).trimmed();
+    cleaned.remove('\0');
+    if (cleaned.isEmpty())
+        cleaned = "file";
+    return cleaned.left(kMaxFileNameChars);
+}
+
+QByteArray boundedBase64(const QJsonObject &object, const char *key,
+                         qsizetype maxBase64Chars, qsizetype maxDecodedBytes)
+{
+    const QString encoded = object.value(key).toString();
+    if (encoded.isEmpty() || encoded.size() > maxBase64Chars)
+        return {};
+    const QByteArray decoded = QByteArray::fromBase64(encoded.toLatin1());
+    if (decoded.size() > maxDecodedBytes)
+        return {};
+    return decoded;
+}
+
+bool messageHasSafePayload(const QJsonObject &message)
+{
+    if (message.value("text").toString().size() > kMaxTextChars ||
+        message.value("sender").toString().size() > kMaxDisplayNameChars ||
+        message.value("fileName").toString().size() > kMaxFileNameChars ||
+        message.value("fileMime").toString().size() > kMaxMimeChars ||
+        message.value("file").toString().size() > kMaxBase64FileChars ||
+        message.value("png").toString().size() > 4 * kMaxAvatarBytes / 3 + 8)
+        return false;
+    return true;
 }
 
 // How to open SafeCloak's inbound ports on a host firewall:
@@ -751,6 +801,10 @@ void MeshNode::adoptConnection(FramedConnection *connection)
 void MeshNode::onPeerMessage(FramedConnection *connection, const QJsonObject &message)
 {
     const QString type = message.value("type").toString();
+    if (!messageHasSafePayload(message)) {
+        emit systemMessage("Dropped oversized or unsafe peer payload.");
+        return;
+    }
 
     if (type == "hello") {
         if (!connection)
@@ -803,13 +857,17 @@ void MeshNode::onPeerMessage(FramedConnection *connection, const QJsonObject &me
         if (!markSeen(message.value("id").toString()))
             return;
         flood(message, connection);
-        emit avatarChanged(message.value("senderId").toString(),
-                           QByteArray::fromBase64(
-                               message.value("png").toString().toLatin1()));
+        const QByteArray avatar =
+            boundedBase64(message, "png", 4 * kMaxAvatarBytes / 3 + 8,
+                          kMaxAvatarBytes);
+        if (!avatar.isEmpty())
+            emit avatarChanged(message.value("senderId").toString(), avatar);
     } else if (type == "history") {
         // Targeted backlog from a peer we just linked to: replay anything new.
         for (const auto &value : message.value("entries").toArray()) {
             const QJsonObject entry = value.toObject();
+            if (!messageHasSafePayload(entry))
+                continue;
             if (!markSeen(entry.value("id").toString()))
                 continue;
             mergeChannel(entry.value("channel").toString(), false);
@@ -901,12 +959,14 @@ void MeshNode::sendDirect(const QString &targetId, const QString &text)
 void MeshNode::sendFile(const QString &conversation, const QString &fileName,
                         const QString &mimeType, const QByteArray &data)
 {
-    if (fileName.isEmpty() || data.isEmpty())
+    if (fileName.isEmpty() || data.isEmpty() || data.size() > kMaxFileBytes)
         return;
     if (conversation.startsWith('@'))
-        sendDm(conversation.mid(1), QString(), fileName, mimeType, data);
+        sendDm(conversation.mid(1), QString(), safeFileName(fileName),
+               mimeType.left(kMaxMimeChars), data);
     else
-        broadcastChat(conversation, QString(), fileName, mimeType, data);
+        broadcastChat(conversation, QString(), safeFileName(fileName),
+                      mimeType.left(kMaxMimeChars), data);
 }
 
 void MeshNode::broadcastChat(const QString &channel, const QString &text,
@@ -917,11 +977,12 @@ void MeshNode::broadcastChat(const QString &channel, const QString &text,
     const QString id = QUuid::createUuid().toString(QUuid::WithoutBraces);
     markSeen(id);
     QJsonObject message{{"type", "chat"}, {"id", id},       {"channel", channel},
-                        {"sender", m_userName}, {"senderId", m_nodeId},
-                        {"text", text},   {"ts", double(ts)}};
+                        {"sender", m_userName.left(kMaxDisplayNameChars)},
+                        {"senderId", m_nodeId},
+                        {"text", text.left(kMaxTextChars)},   {"ts", double(ts)}};
     if (!fileName.isEmpty()) {
-        message.insert("fileName", fileName);
-        message.insert("fileMime", mime);
+        message.insert("fileName", safeFileName(fileName));
+        message.insert("fileMime", mime.left(kMaxMimeChars));
         message.insert("file", QString::fromLatin1(data.toBase64()));
     }
     storeChannelHistory(message);
@@ -939,12 +1000,13 @@ void MeshNode::sendDm(const QString &targetId, const QString &text,
     const QString id = QUuid::createUuid().toString(QUuid::WithoutBraces);
     markSeen(id);
     QJsonObject message{{"type", "dm"},        {"id", id},
-                        {"senderId", m_nodeId}, {"sender", m_userName},
-                        {"to", targetId},      {"text", text},
+                        {"senderId", m_nodeId},
+                        {"sender", m_userName.left(kMaxDisplayNameChars)},
+                        {"to", targetId},      {"text", text.left(kMaxTextChars)},
                         {"ts", double(ts)}};
     if (!fileName.isEmpty()) {
-        message.insert("fileName", fileName);
-        message.insert("fileMime", mime);
+        message.insert("fileName", safeFileName(fileName));
+        message.insert("fileMime", mime.left(kMaxMimeChars));
         message.insert("file", QString::fromLatin1(data.toBase64()));
     }
     // Deliver on the direct link when there is one; otherwise route through
@@ -997,6 +1059,8 @@ void MeshNode::applyReaction(const QString &conversation, const QString &target,
 
 void MeshNode::setAvatar(const QByteArray &pngData)
 {
+    if (pngData.size() > kMaxAvatarBytes)
+        return;
     m_avatarPng = pngData;
     const QString id = QUuid::createUuid().toString(QUuid::WithoutBraces);
     markSeen(id);
@@ -1013,13 +1077,15 @@ void MeshNode::emitIncomingChat(const QJsonObject &m)
     cm.id = m.value("id").toString();
     cm.conversation = m.value("channel").toString();
     cm.senderId = m.value("senderId").toString();
-    cm.senderName = m.value("sender").toString();
-    cm.text = m.value("text").toString();
+    cm.senderName = boundedText(m, "sender", kMaxDisplayNameChars);
+    cm.text = boundedText(m, "text", kMaxTextChars);
     cm.timestampMs = qint64(m.value("ts").toDouble());
-    cm.fileName = m.value("fileName").toString();
-    cm.fileMime = m.value("fileMime").toString();
+    cm.fileName = safeFileName(m.value("fileName").toString());
+    if (cm.fileName == "file" && !m.contains("fileName"))
+        cm.fileName.clear();
+    cm.fileMime = boundedText(m, "fileMime", kMaxMimeChars);
     if (m.contains("file"))
-        cm.fileData = QByteArray::fromBase64(m.value("file").toString().toLatin1());
+        cm.fileData = boundedBase64(m, "file", kMaxBase64FileChars, kMaxFileBytes);
     m_messageConversation.insert(cm.id, cm.conversation);
     emit messageArrived(cm);
 }
@@ -1030,13 +1096,15 @@ void MeshNode::emitIncomingDm(const QJsonObject &m, const QString &conversationP
     cm.id = m.value("id").toString();
     cm.conversation = "@" + conversationPeer;
     cm.senderId = m.value("senderId").toString();
-    cm.senderName = m.value("sender").toString();
-    cm.text = m.value("text").toString();
+    cm.senderName = boundedText(m, "sender", kMaxDisplayNameChars);
+    cm.text = boundedText(m, "text", kMaxTextChars);
     cm.timestampMs = qint64(m.value("ts").toDouble());
-    cm.fileName = m.value("fileName").toString();
-    cm.fileMime = m.value("fileMime").toString();
+    cm.fileName = safeFileName(m.value("fileName").toString());
+    if (cm.fileName == "file" && !m.contains("fileName"))
+        cm.fileName.clear();
+    cm.fileMime = boundedText(m, "fileMime", kMaxMimeChars);
     if (m.contains("file"))
-        cm.fileData = QByteArray::fromBase64(m.value("file").toString().toLatin1());
+        cm.fileData = boundedBase64(m, "file", kMaxBase64FileChars, kMaxFileBytes);
     m_messageConversation.insert(cm.id, cm.conversation);
     emit messageArrived(cm);
 }

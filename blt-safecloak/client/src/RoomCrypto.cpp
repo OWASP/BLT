@@ -13,6 +13,7 @@ constexpr int kKeyBytes = 32;
 constexpr int kNonceBytes = 12;
 constexpr int kTagBytes = 16;
 constexpr int kPbkdfRounds = 210000;
+constexpr qsizetype kMaxPlainBytes = 96ll * 1024 * 1024;
 
 QByteArray saltForRoom(const QString &roomName)
 {
@@ -58,6 +59,8 @@ QJsonObject RoomCrypto::encryptObject(const QJsonObject &plain) const
 
     const QByteArray nonce = randomBytes(kNonceBytes);
     const QByteArray input = QJsonDocument(plain).toJson(QJsonDocument::Compact);
+    if (input.size() > kMaxPlainBytes)
+        return {};
     QByteArray cipher(input.size() + kTagBytes, Qt::Uninitialized);
     QByteArray tag(kTagBytes, Qt::Uninitialized);
 
@@ -104,7 +107,8 @@ QJsonObject RoomCrypto::decryptObject(const QJsonObject &envelope) const
     const QByteArray nonce = QByteArray::fromBase64(envelope.value("nonce").toString().toLatin1());
     const QByteArray tag = QByteArray::fromBase64(envelope.value("tag").toString().toLatin1());
     const QByteArray cipher = QByteArray::fromBase64(envelope.value("body").toString().toLatin1());
-    if (nonce.size() != kNonceBytes || tag.size() != kTagBytes || cipher.isEmpty())
+    if (nonce.size() != kNonceBytes || tag.size() != kTagBytes || cipher.isEmpty() ||
+        cipher.size() > kMaxPlainBytes)
         return {};
 
     QByteArray plain(cipher.size(), Qt::Uninitialized);

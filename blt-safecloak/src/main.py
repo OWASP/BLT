@@ -1,6 +1,7 @@
 # pylint: disable=too-few-public-methods
 import asyncio
 import traceback
+import re
 
 from workers import WorkerEntrypoint, Response
 try:
@@ -20,6 +21,11 @@ PAGES_MAP = {
     '/notes': 'notes.html',
     '/consent': 'consent.html',
 }
+
+ROOM_RE = re.compile(r'^[A-Za-z0-9._-]{1,80}$')
+MAX_ROOM_CONNECTIONS = 128
+MAX_CIPHERTEXT_BYTES = 96 * 1024 * 1024
+MAX_STORED_CIPHERTEXTS = 200
 
 
 class ChatRoom(DurableObject):
@@ -56,6 +62,9 @@ class ChatRoom(DurableObject):
         client = pair[0]
         server = pair[1]
         server.accept()
+        if len(self.sessions) >= MAX_ROOM_CONNECTIONS:
+            server.close(1013, 'room full')
+            return Response(None, status=101, webSocket=client)
         self.sessions.add(server)
 
         stored = await self.state.storage.get('messages') or []
@@ -63,16 +72,30 @@ class ChatRoom(DurableObject):
             server.send(item)
 
         async def persist(ciphertext):
+            if isinstance(ciphertext, str):
+                size = len(ciphertext.encode('utf-8'))
+            else:
+                size = len(ciphertext)
+            if size > MAX_CIPHERTEXT_BYTES:
+                return
             messages = await self.state.storage.get('messages') or []
             messages.append(ciphertext)
             # One-hour, bounded safety buffer. The client dedupes by encrypted
             # plaintext message id after decryption.
-            messages = messages[-500:]
+            messages = messages[-MAX_STORED_CIPHERTEXTS:]
             await self.state.storage.put('messages', messages)
             await self.state.storage.set_alarm(Date.now() + 60 * 60 * 1000)
 
         def on_message(event):
             ciphertext = event.data
+            if isinstance(ciphertext, str):
+                size = len(ciphertext.encode('utf-8'))
+            else:
+                size = len(ciphertext)
+            if size > MAX_CIPHERTEXT_BYTES:
+                server.close(1009, 'message too large')
+                self.sessions.discard(server)
+                return
             stale = []
             for ws in self.sessions:
                 if ws == server:
@@ -128,6 +151,11 @@ class Default(WorkerEntrypoint):
                 room = path.removeprefix('/api/room/').removesuffix('/ws').strip('/')
                 if not room:
                     return Response('Room name required',
+                                    status=400,
+                                    headers=base_headers('text/plain; charset=utf-8',
+                                                         origin=origin))
+                if not ROOM_RE.fullmatch(room):
+                    return Response('Invalid room name',
                                     status=400,
                                     headers=base_headers('text/plain; charset=utf-8',
                                                          origin=origin))

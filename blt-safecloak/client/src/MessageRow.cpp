@@ -22,7 +22,7 @@ const char *kReactionChoices[] = {"\xF0\x9F\x91\x8D", "\xE2\x9D\xA4\xEF\xB8\x8F"
                                   "\xF0\x9F\x98\xAE", "\xF0\x9F\x98\xA2",
                                   "\xF0\x9F\x99\x8F", "\xF0\x9F\x94\xA5"};
 
-// A circular fallback avatar: the sender's initial on a colored disc.
+// A rounded-rectangle fallback avatar: the sender's initial on a colored tile.
 QPixmap initialsAvatar(const QString &name, const QString &color)
 {
     QPixmap pixmap(kAvatarSize, kAvatarSize);
@@ -31,7 +31,7 @@ QPixmap initialsAvatar(const QString &name, const QString &color)
     painter.setRenderHint(QPainter::Antialiasing);
     painter.setBrush(QColor(color));
     painter.setPen(Qt::NoPen);
-    painter.drawEllipse(0, 0, kAvatarSize, kAvatarSize);
+    painter.drawRoundedRect(0, 0, kAvatarSize, kAvatarSize, 9, 9);
     painter.setPen(Qt::white);
     QFont font = painter.font();
     font.setBold(true);
@@ -181,7 +181,7 @@ void MessageRow::setAvatar(const QPixmap &pixmap)
     QPainter painter(&rounded);
     painter.setRenderHint(QPainter::Antialiasing);
     QPainterPath clip;
-    clip.addEllipse(0, 0, kAvatarSize, kAvatarSize);
+    clip.addRoundedRect(0, 0, kAvatarSize, kAvatarSize, 9, 9);
     painter.setClipPath(clip);
     painter.drawPixmap(0, 0,
                        pixmap.scaled(kAvatarSize, kAvatarSize,

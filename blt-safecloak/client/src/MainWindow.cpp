@@ -50,6 +50,7 @@ const QString kAvatarSetting = QStringLiteral("profile/avatarPng");
 const QString kServerUrlSetting = QStringLiteral("server/url");
 const QString kRoomNameSetting = QStringLiteral("server/room");
 const QString kUseServerSetting = QStringLiteral("server/useServer");
+constexpr int kNetworkLogLimit = 2000;
 
 // Directory holding client/CMakeLists.txt to update from: the build-time
 // checkout when it still exists, otherwise a persistent clone managed by the
@@ -163,12 +164,15 @@ QWidget *MainWindow::buildSetupPage()
 
     m_serverUrlEdit = new QLineEdit;
     m_serverUrlEdit->setPlaceholderText("wss://example.com/api/room/general/ws");
+    m_serverUrlEdit->setMaxLength(2048);
     m_serverUrlEdit->setText(QSettings().value(kServerUrlSetting).toString());
     m_roomNameEdit = new QLineEdit;
     m_roomNameEdit->setPlaceholderText("Room name");
+    m_roomNameEdit->setMaxLength(80);
     m_roomNameEdit->setText(QSettings().value(kRoomNameSetting, "general").toString());
     m_passphraseEdit = new QLineEdit;
     m_passphraseEdit->setPlaceholderText("Room passphrase");
+    m_passphraseEdit->setMaxLength(256);
     m_passphraseEdit->setEchoMode(QLineEdit::Password);
 
     auto updateServerFields = [this] {
@@ -301,11 +305,13 @@ void MainWindow::startSession()
     if (m_backend) {
         if (!m_userAvatar.isEmpty())
             m_backend->setAvatar(m_userAvatar);
-        m_encryptionLabel->setText(
-            m_serverModeRadio->isChecked()
-                ? "\xF0\x9F\x94\x92 Room encrypted"
-                : "\xF0\x9F\x94\x92 TLS encrypted · fingerprint " +
-                      m_identity.fingerprint().left(23) + "…");
+        if (m_serverModeRadio->isChecked()) {
+            m_encryptionLabel->setText("\xF0\x9F\x94\x92 Room encrypted");
+            logSystem("Encryption: client-side AES-256-GCM room encryption.");
+        } else {
+            m_encryptionLabel->setText("\xF0\x9F\x94\x92 TLS encrypted");
+            logSystem("TLS fingerprint: " + m_identity.fingerprint());
+        }
         m_stack->setCurrentIndex(1);
         m_messageInput->setFocus();
     }
@@ -544,6 +550,7 @@ QWidget *MainWindow::buildChatPage()
     m_messageInput = new QLineEdit;
     m_messageInput->setObjectName("messageInput");
     m_messageInput->setPlaceholderText("Message #general");
+    m_messageInput->setMaxLength(16000);
     auto *sendButton = new QPushButton("Send");
     sendButton->setObjectName("primaryButton");
     auto *composerLayout = new QHBoxLayout(composer);
@@ -612,7 +619,10 @@ void MainWindow::attachBackend(ChatBackend *backend)
     connect(backend, &ChatBackend::systemMessage, this, &MainWindow::logSystem);
     connect(backend, &ChatBackend::channelsChanged, this, &MainWindow::setChannels);
     connect(backend, &ChatBackend::rosterChanged, this, &MainWindow::setRoster);
-    connect(backend, &ChatBackend::statusChanged, m_statusLine, &QLabel::setText);
+    connect(backend, &ChatBackend::statusChanged, this, [this](const QString &status) {
+        m_statusLine->setText(status.section(" · ", 0, 0));
+        logSystem("Status: " + status);
+    });
     connect(backend, &ChatBackend::firewallBlocking, this, &MainWindow::showFirewallBanner);
     connect(backend, &ChatBackend::fatalError, this, [this](const QString &message) {
         leaveSession();
@@ -695,9 +705,13 @@ void MainWindow::allowFirewall()
 
 void MainWindow::logSystem(const QString &text)
 {
+    const QString time = QDateTime::currentDateTime().toString("hh:mm:ss");
+    const QString line = time + "  " + text;
+    m_networkLog.append(line);
+    while (m_networkLog.size() > kNetworkLogLimit)
+        m_networkLog.removeFirst();
     if (m_settingsDialog) {
-        const QString time = QDateTime::currentDateTime().toString("hh:mm:ss");
-        m_settingsDialog->appendLog(time + "  " + text);
+        m_settingsDialog->appendLog(line);
     }
 }
 
@@ -1070,9 +1084,12 @@ void MainWindow::attachFile()
 
 void MainWindow::saveIncomingFile(const QString &fileName, const QByteArray &data)
 {
+    const QString safeName = QFileInfo(fileName).fileName().left(180);
     const QString dir =
         QStandardPaths::writableLocation(QStandardPaths::DownloadLocation);
-    const QString suggested = (dir.isEmpty() ? QDir::homePath() : dir) + "/" + fileName;
+    const QString suggested =
+        (dir.isEmpty() ? QDir::homePath() : dir) + "/" +
+        (safeName.isEmpty() ? QStringLiteral("file") : safeName);
     const QString path =
         QFileDialog::getSaveFileName(this, "Save file", suggested);
     if (path.isEmpty())
@@ -1093,6 +1110,8 @@ void MainWindow::openSettings()
         m_settingsDialog->setDisplayName(m_userName);
         if (!m_userAvatar.isEmpty())
             m_settingsDialog->setAvatar(m_userAvatar);
+        for (const QString &line : std::as_const(m_networkLog))
+            m_settingsDialog->appendLog(line);
         connect(m_settingsDialog, &SettingsDialog::displayNameChanged, this,
                 &MainWindow::onDisplayNameChanged);
         connect(m_settingsDialog, &SettingsDialog::avatarChosen, this,
