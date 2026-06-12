@@ -1615,7 +1615,7 @@ def test_video_js_local_tile_shows_display_name():
 
 
 def test_video_js_mic_button_hidden_in_walkie_mode():
-
+    """video.js must hide the mic toggle button while walkie-talkie mode is
     active, replacing it with the push-to-talk control to avoid confusion."""
     js = (ROOT / "public/js/video.js").read_text(encoding="utf-8")
     # The mic button visibility should be toggled based on walkieTalkieMode
