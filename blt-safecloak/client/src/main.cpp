@@ -7,7 +7,7 @@
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
-    app.setApplicationName("SafeCloakChat");
+    app.setApplicationName("SafeCloak");
     app.setOrganizationName("OWASP-BLT");
     app.setStyle(QStyleFactory::create("Fusion"));
     app.setStyleSheet(Theme::kStyleSheet);

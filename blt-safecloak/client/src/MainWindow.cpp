@@ -67,7 +67,7 @@ QString dmPeerId(const QString &conversation)
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
-    setWindowTitle("SafeCloak Chat");
+    setWindowTitle("SafeCloak");
     resize(1060, 700);
 
     m_stack = new QStackedWidget(this);
@@ -91,7 +91,7 @@ QWidget *MainWindow::buildSetupPage()
     card->setObjectName("setupCard");
     card->setFixedWidth(420);
 
-    auto *title = new QLabel("<span style='color:#ff4444'>SafeCloak</span> Chat");
+    auto *title = new QLabel("<span style='color:#ff4444'>Safe</span>Cloak");
     title->setObjectName("appTitle");
     title->setAlignment(Qt::AlignHCenter);
     auto *subtitle = new QLabel("Encrypted mesh chat for your local network");
@@ -189,7 +189,6 @@ void MainWindow::startSession()
         return;
 
     if (m_backend) {
-        m_modeBadge->setText(m_backend->modeName().toUpper());
         m_encryptionLabel->setText(
             "\xF0\x9F\x94\x92 TLS encrypted · fingerprint " +
             m_identity.fingerprint().left(23) + "…");
@@ -304,10 +303,8 @@ QWidget *MainWindow::buildChatPage()
     sidebar->setObjectName("sidebar");
     sidebar->setFixedWidth(230);
 
-    auto *workspace = new QLabel("<span style='color:#ff4444'>Safe</span>Cloak Chat");
+    auto *workspace = new QLabel("<span style='color:#ff4444'>Safe</span>Cloak");
     workspace->setObjectName("workspaceName");
-    m_modeBadge = new QLabel("—");
-    m_modeBadge->setObjectName("modeBadge");
     m_statusLine = new QLabel;
     m_statusLine->setObjectName("statusLine");
     m_statusLine->setWordWrap(true);
@@ -342,7 +339,6 @@ QWidget *MainWindow::buildChatPage()
     badgeRow->setContentsMargins(0, 0, 0, 0);
     badgeRow->addWidget(workspace);
     badgeRow->addStretch();
-    badgeRow->addWidget(m_modeBadge);
 
     auto *sidebarLayout = new QVBoxLayout(sidebar);
     sidebarLayout->setContentsMargins(14, 16, 14, 12);
@@ -524,7 +520,7 @@ void MainWindow::appendHtml(const QString &conversation, const QString &html)
         return;
     m_conversationHtml[conversation] += html;
     if (conversation == m_currentConversation) {
-        m_messageView->insertHtml(html);
+        m_messageView->append(html);
         m_messageView->verticalScrollBar()->setValue(
             m_messageView->verticalScrollBar()->maximum());
     } else if (m_channels.contains(conversation) ||

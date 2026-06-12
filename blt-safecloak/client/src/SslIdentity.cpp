@@ -46,7 +46,7 @@ bool SslIdentity::generate(const QString &certPath, const QString &keyPath)
     QProcess openssl;
     openssl.start("openssl",
                   {"req", "-x509", "-newkey", "rsa:2048", "-sha256", "-nodes",
-                   "-days", "3650", "-subj", "/CN=SafeCloak Chat Node",
+                   "-days", "3650", "-subj", "/CN=SafeCloak Node",
                    "-keyout", keyPath, "-out", certPath});
     if (!openssl.waitForStarted(5000)) {
         m_error = "Could not run 'openssl' to generate a TLS certificate. "

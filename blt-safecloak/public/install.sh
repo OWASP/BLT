@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# SafeCloak Chat installer — encrypted LAN chat desktop client (Qt 6).
+# SafeCloak installer — encrypted LAN chat desktop client (Qt 6).
 #
 #   curl -fsSL https://<this-site>/install.sh | bash
 #

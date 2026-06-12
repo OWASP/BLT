@@ -84,10 +84,6 @@ QPushButton#ghostButton:hover { color: #f1f5f9; }
 #workspaceName {
     font-size: 17px; font-weight: 800; padding: 2px 0;
 }
-#modeBadge {
-    color: #fca5a5; font-size: 11px; font-weight: 700;
-    border: 1px solid #7f1d1d; border-radius: 9px; padding: 2px 8px;
-}
 #statusLine { color: #9ca3af; font-size: 11px; }
 #versionLabel { color: #6b7280; font-size: 11px; background: transparent; }
 #sectionLabel {

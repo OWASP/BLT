@@ -114,7 +114,7 @@ bool MeshNode::start(const QHostAddress &bindAddress,
 
     emit channelsChanged(m_channels);
     updateRosterAndStatus();
-    emit systemMessage("Mesh active. Local IP " + localAddressSummary() +
+    emit systemMessage("Ready. Local IP " + localAddressSummary() +
                        "; UDP " + QString::number(m_udp.localPort()) +
                        "; TCP " + QString::number(m_listener.serverPort()) + ".");
 
@@ -558,7 +558,7 @@ void MeshNode::updateRosterAndStatus()
             members.append({it.key(), it->name, "(discovered)", false});
     }
     emit rosterChanged(members);
-    emit statusChanged("Mesh · " + QString::number(m_peers.size()) +
+    emit statusChanged(QString::number(m_peers.size()) +
                        " peer(s) · IP " + localAddressSummary() + " · UDP " +
                        QString::number(m_udp.localPort()) + " · TCP " +
                        QString::number(m_listener.serverPort()) + " · TLS");

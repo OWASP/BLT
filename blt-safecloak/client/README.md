@@ -1,4 +1,4 @@
-# SafeCloak Chat
+# SafeCloak
 
 A Qt 6 desktop chat app for your local network, styled to match the
 BLT-SafeCloak theme. Think Slack, but self-organizing on your LAN with no
@@ -9,7 +9,7 @@ internet dependency: channels, a member list, and TLS-encrypted traffic.
 
 ## Mesh-only chat
 
-SafeCloak Chat has no host/join mode. Every node announces itself over UDP
+SafeCloak has no host/join mode. Every node announces itself over UDP
 (multicast + broadcast + loopback), publishes its usable local IPv4 addresses,
 dials every discovered peer immediately, and floods messages through the mesh
 with duplicate suppression. Nodes appear in the member list as soon as they
@@ -50,7 +50,7 @@ curl -fsSL https://<site>/install.sh | bash
 A headless smoke test covers mesh discovery, bidirectional roster visibility,
 channel propagation, mesh flooding, direct messages, and cross-IP loopback
 simulation (built by default). Test nodes use a private discovery tag, so
-they do not appear in a running SafeCloak Chat window on the same machine or
+they do not appear in a running SafeCloak window on the same machine or
 LAN:
 
 ```sh

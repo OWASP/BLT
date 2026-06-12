@@ -70,7 +70,6 @@ private:
     QLabel *m_updateStatus;
 
     // Chat widgets
-    QLabel *m_modeBadge;
     QLabel *m_statusLine;
     QLabel *m_channelTitle;
     QLabel *m_encryptionLabel;
