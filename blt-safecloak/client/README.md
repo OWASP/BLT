@@ -75,7 +75,15 @@ QT_QPA_PLATFORM=offscreen ./build/safecloak-tests
 - Server mode listens on the port you choose (default 47800).
 - Mesh discovery uses UDP ports 45454–45463 and multicast group
   239.255.43.21; each instance on a machine takes the next free port, so up
-  to 10 instances per host can participate.
+  to 10 instances per host can participate. Announcements go out on every
+  network interface (multicast + each interface's directed broadcast), so
+  machines with docker bridges or VPNs still discover peers on the LAN.
+- Mesh TLS listeners prefer TCP ports 45464–45473 (falling back to an
+  ephemeral port). If peers see each other as "(discovered)" but never
+  connect, allow TCP 45464–45473 and UDP 45454–45463 through your firewall.
+- When the app was built from a local checkout, the home screen shows a
+  "Quick update" button that pulls the latest version, rebuilds, and
+  relaunches the app.
 - Mesh peer links use ephemeral TLS ports; the node with the smaller node id
   normally initiates. If that node can't see the other (some networks drop
   multicast or broadcast in one direction), nodes keep introducing

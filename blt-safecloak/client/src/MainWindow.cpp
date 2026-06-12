@@ -5,22 +5,40 @@
 #include "MeshNode.h"
 #include "Theme.h"
 
+#include <QCoreApplication>
 #include <QDateTime>
+#include <QDir>
 #include <QHBoxLayout>
 #include <QInputDialog>
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
 #include <QMessageBox>
+#include <QProcess>
 #include <QPushButton>
 #include <QRadioButton>
 #include <QScrollBar>
 #include <QSpinBox>
 #include <QStackedWidget>
 #include <QTextBrowser>
+#include <QThread>
 #include <QVBoxLayout>
 
+#ifndef SAFECLOAK_VERSION
+#define SAFECLOAK_VERSION "dev"
+#endif
+#ifndef SAFECLOAK_SOURCE_DIR
+#define SAFECLOAK_SOURCE_DIR ""
+#endif
+
 namespace {
+
+// The quick-update button only works when the binary was built from a local
+// checkout that still exists on this machine.
+bool updateSupported()
+{
+    return QDir(QStringLiteral(SAFECLOAK_SOURCE_DIR)).exists("CMakeLists.txt");
+}
 
 const QString kDmPrefix = QStringLiteral("@");
 
@@ -73,6 +91,9 @@ QWidget *MainWindow::buildSetupPage()
     auto *subtitle = new QLabel("Encrypted chat for your local network");
     subtitle->setObjectName("appSubtitle");
     subtitle->setAlignment(Qt::AlignHCenter);
+    auto *versionLabel = new QLabel("v" SAFECLOAK_VERSION);
+    versionLabel->setObjectName("versionLabel");
+    versionLabel->setAlignment(Qt::AlignHCenter);
 
     m_nameEdit = new QLineEdit;
     m_nameEdit->setPlaceholderText("Display name");
@@ -105,11 +126,23 @@ QWidget *MainWindow::buildSetupPage()
     startButton->setObjectName("primaryButton");
     startButton->setMinimumHeight(40);
 
+    m_updateButton = new QPushButton("\xE2\x9F\xB3 Quick update");
+    m_updateButton->setObjectName("ghostButton");
+    m_updateButton->setCursor(Qt::PointingHandCursor);
+    m_updateButton->setToolTip("Pull the latest version, rebuild, and relaunch");
+    m_updateButton->setVisible(updateSupported());
+    m_updateStatus = new QLabel;
+    m_updateStatus->setObjectName("modeHint");
+    m_updateStatus->setWordWrap(true);
+    m_updateStatus->setAlignment(Qt::AlignHCenter);
+    m_updateStatus->hide();
+
     auto *cardLayout = new QVBoxLayout(card);
     cardLayout->setContentsMargins(28, 28, 28, 28);
     cardLayout->setSpacing(10);
     cardLayout->addWidget(title);
     cardLayout->addWidget(subtitle);
+    cardLayout->addWidget(versionLabel);
     cardLayout->addSpacing(14);
     cardLayout->addWidget(m_nameEdit);
     cardLayout->addSpacing(8);
@@ -125,6 +158,8 @@ QWidget *MainWindow::buildSetupPage()
     cardLayout->addWidget(m_setupError);
     cardLayout->addSpacing(10);
     cardLayout->addWidget(startButton);
+    cardLayout->addWidget(m_updateButton, 0, Qt::AlignHCenter);
+    cardLayout->addWidget(m_updateStatus);
 
     auto *layout = new QVBoxLayout(page);
     layout->addStretch();
@@ -135,6 +170,7 @@ QWidget *MainWindow::buildSetupPage()
         connect(radio, &QRadioButton::toggled, this, &MainWindow::updateSetupFields);
     connect(startButton, &QPushButton::clicked, this, &MainWindow::startSession);
     connect(m_nameEdit, &QLineEdit::returnPressed, this, &MainWindow::startSession);
+    connect(m_updateButton, &QPushButton::clicked, this, &MainWindow::runQuickUpdate);
     updateSetupFields();
 
     return page;
@@ -205,6 +241,67 @@ void MainWindow::startSession()
     }
 }
 
+// --------------------------------------------------------------- quick update
+
+void MainWindow::setUpdateStatus(const QString &status, bool isError)
+{
+    m_updateStatus->setStyleSheet(isError ? "color:#ff6b6b; background:transparent;"
+                                          : "color:#9ca3af; background:transparent;");
+    m_updateStatus->setText(status);
+    m_updateStatus->show();
+}
+
+void MainWindow::runUpdateStep(const QString &program, const QStringList &arguments,
+                               const QString &workingDir,
+                               std::function<void()> onSuccess)
+{
+    auto *process = new QProcess(this);
+    process->setWorkingDirectory(workingDir);
+    connect(process, &QProcess::finished, this,
+            [this, process, onSuccess](int exitCode, QProcess::ExitStatus) {
+                const QString errors =
+                    QString::fromUtf8(process->readAllStandardError()).trimmed();
+                process->deleteLater();
+                if (exitCode != 0) {
+                    setUpdateStatus("Update failed: " + errors.right(300), true);
+                    m_updateButton->setEnabled(true);
+                    return;
+                }
+                onSuccess();
+            });
+    connect(process, &QProcess::errorOccurred, this, [this, process] {
+        setUpdateStatus("Update failed: could not run " + process->program(), true);
+        process->deleteLater();
+        m_updateButton->setEnabled(true);
+    });
+    process->start(program, arguments);
+}
+
+void MainWindow::runQuickUpdate()
+{
+    const QString sourceDir = QStringLiteral(SAFECLOAK_SOURCE_DIR);
+    const QString buildDir = sourceDir + "/build";
+    m_updateButton->setEnabled(false);
+
+    setUpdateStatus("Pulling the latest version...");
+    runUpdateStep("git", {"pull", "--ff-only"}, sourceDir, [this, sourceDir, buildDir] {
+        setUpdateStatus("Configuring...");
+        runUpdateStep("cmake",
+                      {"-S", sourceDir, "-B", buildDir, "-DCMAKE_BUILD_TYPE=Release"},
+                      sourceDir, [this, buildDir] {
+            setUpdateStatus("Rebuilding...");
+            runUpdateStep("cmake",
+                          {"--build", buildDir, "-j",
+                           QString::number(QThread::idealThreadCount())},
+                          buildDir, [this] {
+                setUpdateStatus("Relaunching...");
+                QProcess::startDetached(QCoreApplication::applicationFilePath(), {});
+                QCoreApplication::quit();
+            });
+        });
+    });
+}
+
 // ----------------------------------------------------------------- chat page
 
 QWidget *MainWindow::buildChatPage()
@@ -247,6 +344,8 @@ QWidget *MainWindow::buildChatPage()
     auto *leaveButton = new QPushButton("\xE2\x86\x90 Leave session");
     leaveButton->setObjectName("ghostButton");
     leaveButton->setCursor(Qt::PointingHandCursor);
+    auto *chatVersionLabel = new QLabel("v" SAFECLOAK_VERSION);
+    chatVersionLabel->setObjectName("versionLabel");
 
     auto *badgeRow = new QHBoxLayout;
     badgeRow->setContentsMargins(0, 0, 0, 0);
@@ -266,7 +365,12 @@ QWidget *MainWindow::buildChatPage()
     sidebarLayout->addWidget(m_dmList, 2);
     sidebarLayout->addWidget(membersLabel);
     sidebarLayout->addWidget(m_memberList, 2);
-    sidebarLayout->addWidget(leaveButton);
+    auto *footerRow = new QHBoxLayout;
+    footerRow->setContentsMargins(0, 0, 0, 0);
+    footerRow->addWidget(leaveButton);
+    footerRow->addStretch();
+    footerRow->addWidget(chatVersionLabel);
+    sidebarLayout->addLayout(footerRow);
 
     // Main column
     auto *header = new QWidget;
@@ -375,18 +479,26 @@ QString MainWindow::senderColor(const QString &sender) const
     return Theme::kSenderPalette[hash % Theme::kSenderPaletteSize];
 }
 
-void MainWindow::appendChat(const QString &channel, const QString &sender,
-                            const QString &text, qint64 timestampMs)
+// One line per message, Slack-style with the username in front:
+//   12:04  alice  the message text
+QString MainWindow::messageHtml(const QString &sender, const QString &text,
+                                qint64 timestampMs) const
 {
     const QString time =
         QDateTime::fromMSecsSinceEpoch(timestampMs).toString("hh:mm");
-    const QString html =
-        "<div style='margin:6px 0'>"
-        "<span style='color:" + senderColor(sender) + "; font-weight:700'>" +
-        sender.toHtmlEscaped() + "</span> "
-        "<span style='color:#9ca3af; font-size:11px'>" + time + "</span><br>"
-        "<span style='color:#f1f5f9'>" + text.toHtmlEscaped() + "</span></div>";
-    appendHtml(channel, html);
+    return "<div style='margin:5px 0'>"
+           "<span style='color:#6b7280; font-size:11px'>" + time + "</span>"
+           "&nbsp;&nbsp;"
+           "<span style='color:" + senderColor(sender) + "; font-weight:700'>" +
+           sender.toHtmlEscaped() + "</span>"
+           "&nbsp;&nbsp;"
+           "<span style='color:#f1f5f9'>" + text.toHtmlEscaped() + "</span></div>";
+}
+
+void MainWindow::appendChat(const QString &channel, const QString &sender,
+                            const QString &text, qint64 timestampMs)
+{
+    appendHtml(channel, messageHtml(sender, text, timestampMs));
 }
 
 void MainWindow::onDirectMessage(const QString &peerId, const QString &peerName,
@@ -402,15 +514,7 @@ void MainWindow::onDirectMessage(const QString &peerId, const QString &peerName,
         m_openDms.append(peerId);
         refreshDmList();
     }
-    const QString time =
-        QDateTime::fromMSecsSinceEpoch(timestampMs).toString("hh:mm");
-    const QString html =
-        "<div style='margin:6px 0'>"
-        "<span style='color:" + senderColor(sender) + "; font-weight:700'>" +
-        sender.toHtmlEscaped() + "</span> "
-        "<span style='color:#9ca3af; font-size:11px'>" + time + "</span><br>"
-        "<span style='color:#f1f5f9'>" + text.toHtmlEscaped() + "</span></div>";
-    appendHtml(dmKey(peerId), html);
+    appendHtml(dmKey(peerId), messageHtml(sender, text, timestampMs));
 }
 
 void MainWindow::appendSystem(const QString &text)

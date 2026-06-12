@@ -1,5 +1,12 @@
 cmake_minimum_required(VERSION 3.16)
-project(SafeCloakChat VERSION 0.1.0 LANGUAGES CXX)
+project(SafeCloakChat VERSION 0.2.0 LANGUAGES CXX)
+
+# Baked into the binaries: shown in the UI, and the quick-update button uses
+# the source dir to git pull + rebuild when running from a checkout.
+add_compile_definitions(
+    SAFECLOAK_VERSION="${PROJECT_VERSION}"
+    SAFECLOAK_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}"
+)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -26,26 +33,6 @@ qt_add_executable(safecloak
 )
 
 target_link_libraries(safecloak PRIVATE Qt6::Widgets Qt6::Network)
-
-option(SAFECLOAK_BUILD_SCREENSHOT_TOOL "Build the offscreen screenshot helper" OFF)
-if(SAFECLOAK_BUILD_SCREENSHOT_TOOL)
-    qt_add_executable(safecloak-screenshot
-        tools/screenshot_main.cpp
-        src/SslIdentity.cpp
-        src/FramedConnection.h
-        src/FramedConnection.cpp
-        src/ChatBackend.h
-        src/ChatServer.h
-        src/ChatServer.cpp
-        src/ChatClient.h
-        src/ChatClient.cpp
-        src/MeshNode.h
-        src/MeshNode.cpp
-        src/MainWindow.h
-        src/MainWindow.cpp
-    )
-    target_link_libraries(safecloak-screenshot PRIVATE Qt6::Widgets Qt6::Network)
-endif()
 
 option(SAFECLOAK_BUILD_TESTS "Build the headless backend smoke test" ON)
 if(SAFECLOAK_BUILD_TESTS)

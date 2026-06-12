@@ -6,13 +6,18 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QNetworkDatagram>
+#include <QNetworkInterface>
+#include <QTimer>
 #include <QUuid>
 
 namespace {
 
 constexpr int kAnnounceIntervalMs = 2000;
-constexpr int kNodeTimeoutMs = 8000;
+// Generous: Wi-Fi access points drop multicast/broadcast intermittently, and
+// a node should not vanish from the roster over a few lost announcements.
+constexpr int kNodeTimeoutMs = 15000;
 constexpr int kDialFallbackMs = 6000;
+constexpr int kDialTimeoutMs = 8000;
 constexpr int kSeenCacheLimit = 4096;
 const QString kAppTag = QStringLiteral("safecloak-chat");
 // Discovery goes out via multicast (looped back locally, so instances on the
@@ -37,16 +42,24 @@ MeshNode::MeshNode(const SslIdentity &identity, const QString &userName,
     connect(&m_pruneTimer, &QTimer::timeout, this, &MeshNode::prune);
 }
 
-bool MeshNode::start()
+bool MeshNode::start(const QHostAddress &bindAddress,
+                     const QList<QHostAddress> &announceTargets)
 {
-    if (!m_listener.listen(QHostAddress::Any, 0)) {
+    m_announceTargets = announceTargets;
+
+    bool listening = false;
+    for (quint16 port = kTcpPortBase;
+         port < kTcpPortBase + kTcpPortRange && !listening; ++port) {
+        listening = m_listener.listen(bindAddress, port);
+    }
+    if (!listening && !m_listener.listen(bindAddress, 0)) {
         emit fatalError("Could not open a TLS listener: " + m_listener.errorString());
         return false;
     }
     bool bound = false;
     for (quint16 port = kDiscoveryPortBase;
          port < kDiscoveryPortBase + kDiscoveryPortRange && !bound; ++port) {
-        bound = m_udp.bind(QHostAddress::AnyIPv4, port);
+        bound = m_udp.bind(bindAddress, port);
     }
     if (!bound) {
         emit fatalError("Could not bind a UDP discovery port (" +
@@ -55,7 +68,17 @@ bool MeshNode::start()
                         " all in use): " + m_udp.errorString());
         return false;
     }
+    // Join the group on every multicast-capable interface — machines with
+    // several interfaces (Wi-Fi + docker bridges + VPNs) would otherwise only
+    // receive on whichever one the OS picked by default.
     m_udp.joinMulticastGroup(kMulticastGroup);
+    const auto interfaces = QNetworkInterface::allInterfaces();
+    for (const QNetworkInterface &iface : interfaces) {
+        if ((iface.flags() & QNetworkInterface::IsUp) &&
+            (iface.flags() & QNetworkInterface::IsRunning) &&
+            (iface.flags() & QNetworkInterface::CanMulticast))
+            m_udp.joinMulticastGroup(kMulticastGroup, iface);
+    }
     m_udp.setSocketOption(QAbstractSocket::MulticastLoopbackOption, 1);
 
     emit channelsChanged(m_channels);
@@ -81,14 +104,44 @@ QByteArray MeshNode::announcePayload() const
 void MeshNode::sendAnnounce()
 {
     const QByteArray payload = announcePayload();
+
+    // Collect the directed broadcast address of every usable IPv4 interface.
+    // Announcing per interface (instead of letting the OS pick one route for
+    // 255.255.255.255 / the multicast group) is what makes discovery work on
+    // machines with several interfaces — docker bridges, VPNs, etc. would
+    // otherwise swallow the announcements.
+    QList<QHostAddress> broadcasts{QHostAddress::Broadcast};
+    QList<QNetworkInterface> multicastIfaces;
+    const auto interfaces = QNetworkInterface::allInterfaces();
+    for (const QNetworkInterface &iface : interfaces) {
+        if (!(iface.flags() & QNetworkInterface::IsUp) ||
+            !(iface.flags() & QNetworkInterface::IsRunning) ||
+            (iface.flags() & QNetworkInterface::IsLoopBack))
+            continue;
+        if (iface.flags() & QNetworkInterface::CanMulticast)
+            multicastIfaces.append(iface);
+        const auto entries = iface.addressEntries();
+        for (const QNetworkAddressEntry &entry : entries) {
+            const QHostAddress broadcast = entry.broadcast();
+            if (!broadcast.isNull() && !broadcasts.contains(broadcast))
+                broadcasts.append(broadcast);
+        }
+    }
+
     for (quint16 port = kDiscoveryPortBase;
          port < kDiscoveryPortBase + kDiscoveryPortRange; ++port) {
-        m_udp.writeDatagram(payload, kMulticastGroup, port);
-        m_udp.writeDatagram(payload, QHostAddress::Broadcast, port);
+        for (const QNetworkInterface &iface : std::as_const(multicastIfaces)) {
+            m_udp.setMulticastInterface(iface);
+            m_udp.writeDatagram(payload, kMulticastGroup, port);
+        }
+        for (const QHostAddress &broadcast : std::as_const(broadcasts))
+            m_udp.writeDatagram(payload, broadcast, port);
         // Loopback unicast reaches other instances on this machine even where
         // the OS does not loop multicast/broadcast back to local sockets.
         if (port != m_udp.localPort())
             m_udp.writeDatagram(payload, QHostAddress::LocalHost, port);
+        for (const QHostAddress &target : std::as_const(m_announceTargets))
+            m_udp.writeDatagram(payload, target, port);
     }
 }
 
@@ -156,6 +209,12 @@ void MeshNode::connectToPeer(const QString &nodeId, const KnownNode &node)
             [this, connection](const QJsonObject &m) { onPeerMessage(connection, m); });
     connect(connection, &FramedConnection::closed, this, [this, connection] {
         onPeerClosed(connection);
+    });
+    // Abort dials that hang (filtered port, gone peer) well before the OS
+    // connect timeout, so the retry loop in prune() can take another shot.
+    QTimer::singleShot(kDialTimeoutMs, connection, [connection] {
+        if (!connection->socket()->isEncrypted())
+            connection->socket()->abort(); // emits closed via errorOccurred
     });
 
     socket->connectToHostEncrypted(node.address.toString(), node.tcpPort);
@@ -367,7 +426,8 @@ void MeshNode::prune()
     const qint64 now = QDateTime::currentMSecsSinceEpoch();
     bool changed = false;
     for (auto it = m_known.begin(); it != m_known.end();) {
-        if (now - it->lastSeenMs > kNodeTimeoutMs && !m_peers.contains(it.key())) {
+        if (now - it->lastSeenMs > kNodeTimeoutMs && !m_peers.contains(it.key()) &&
+            !m_pendingDials.contains(it.key())) {
             it = m_known.erase(it);
             changed = true;
             continue;

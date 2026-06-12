@@ -26,11 +26,20 @@ public:
     // instances can run on one machine and still address each other directly.
     static constexpr quint16 kDiscoveryPortBase = 45454;
     static constexpr quint16 kDiscoveryPortRange = 10;
+    // Preferred TLS listener ports (fixed so firewall rules can be written
+    // for them); falls back to an ephemeral port when all are taken.
+    static constexpr quint16 kTcpPortBase = 45464;
+    static constexpr quint16 kTcpPortRange = 10;
 
     MeshNode(const SslIdentity &identity, const QString &userName,
              QObject *parent = nullptr);
 
-    bool start();
+    // bindAddress narrows the sockets to a single address — tests use
+    // loopback aliases (127.0.0.2, 127.0.0.3) to simulate distinct hosts.
+    // announceTargets are extra unicast destinations for announcements,
+    // needed when broadcast/multicast can't reach the simulated hosts.
+    bool start(const QHostAddress &bindAddress = QHostAddress(QHostAddress::AnyIPv4),
+               const QList<QHostAddress> &announceTargets = {});
 
     void sendChat(const QString &channel, const QString &text) override;
     void sendDirect(const QString &targetId, const QString &text) override;
@@ -70,6 +79,7 @@ private:
     QUdpSocket m_udp;
     QTimer m_announceTimer;
     QTimer m_pruneTimer;
+    QList<QHostAddress> m_announceTargets;
 
     QHash<QString, KnownNode> m_known;            // nodeId -> last announcement
     QHash<QString, FramedConnection *> m_peers;   // nodeId -> live link

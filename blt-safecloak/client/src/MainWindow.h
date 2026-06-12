@@ -7,6 +7,8 @@
 #include <QMainWindow>
 #include <QSet>
 
+#include <functional>
+
 class QLabel;
 class QLineEdit;
 class QListWidget;
@@ -27,6 +29,10 @@ private:
     QWidget *buildSetupPage();
     void updateSetupFields();
     void startSession();
+    void runQuickUpdate();
+    void runUpdateStep(const QString &program, const QStringList &arguments,
+                       const QString &workingDir, std::function<void()> onSuccess);
+    void setUpdateStatus(const QString &status, bool isError = false);
 
     // Chat page
     QWidget *buildChatPage();
@@ -51,6 +57,8 @@ private:
     void promptAddChannel();
     void sendCurrentMessage();
     QString senderColor(const QString &sender) const;
+    QString messageHtml(const QString &sender, const QString &text,
+                        qint64 timestampMs) const;
 
     SslIdentity m_identity;
     ChatBackend *m_backend = nullptr;
@@ -65,6 +73,8 @@ private:
     QLineEdit *m_hostEdit;
     QSpinBox *m_portSpin;
     QLabel *m_setupError;
+    QPushButton *m_updateButton;
+    QLabel *m_updateStatus;
 
     // Chat widgets
     QLabel *m_modeBadge;

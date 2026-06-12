@@ -205,6 +205,59 @@ int main(int argc, char *argv[])
     nodeA.shutdown();
     nodeB.shutdown();
 
+    // --- Mesh between two distinct IP addresses ---
+    // Linux routes the whole 127.0.0.0/8 range to loopback, so binding one
+    // node to 127.0.0.2 and the other to 127.0.0.3 simulates two hosts: the
+    // announce carries a real sender address, the dial goes to that address,
+    // and the TLS handshake crosses the two endpoints.
+    const QHostAddress addrC("127.0.0.2");
+    const QHostAddress addrD("127.0.0.3");
+    MeshNode nodeC(identity, "node-c");
+    MeshNode nodeD(identity, "node-d");
+
+    QList<MemberInfo> rosterC, rosterD;
+    QString crossIpChat, crossIpDm;
+    QObject::connect(&nodeC, &ChatBackend::rosterChanged,
+                     [&](const QList<MemberInfo> &m) { rosterC = m; });
+    QObject::connect(&nodeD, &ChatBackend::rosterChanged,
+                     [&](const QList<MemberInfo> &m) { rosterD = m; });
+    QObject::connect(&nodeD, &ChatBackend::chatMessage,
+                     [&](const QString &channel, const QString &sender,
+                         const QString &text, qint64) {
+                         if (sender == "node-c" && channel == "#general")
+                             crossIpChat = text;
+                     });
+    QObject::connect(&nodeD, &ChatBackend::directMessage,
+                     [&](const QString &, const QString &, const QString &sender,
+                         const QString &text, qint64) {
+                         if (sender == "node-c")
+                             crossIpDm = text;
+                     });
+
+    check(nodeC.start(addrC, {addrD}), "mesh node C starts on 127.0.0.2");
+    check(nodeD.start(addrD, {addrC}), "mesh node D starts on 127.0.0.3");
+
+    check(waitFor([&] { return seesConnectedPeer(rosterC, "node-d"); }, 15000),
+          "node C (127.0.0.2) links to node D across IP addresses");
+    check(waitFor([&] { return seesConnectedPeer(rosterD, "node-c"); }, 5000),
+          "node D (127.0.0.3) links to node C across IP addresses");
+
+    nodeC.sendChat("#general", "hello across addresses");
+    check(waitFor([&] { return crossIpChat == "hello across addresses"; }, 5000),
+          "channel message crosses the two IP addresses");
+
+    QString nodeDId;
+    for (const MemberInfo &member : std::as_const(rosterC)) {
+        if (member.name == "node-d")
+            nodeDId = member.id;
+    }
+    nodeC.sendDirect(nodeDId, "dm across addresses");
+    check(waitFor([&] { return crossIpDm == "dm across addresses"; }, 5000),
+          "direct message crosses the two IP addresses");
+
+    nodeC.shutdown();
+    nodeD.shutdown();
+
     qInfo(failures == 0 ? "ALL TESTS PASSED" : "TESTS FAILED");
     return failures == 0 ? 0 : 1;
 }
