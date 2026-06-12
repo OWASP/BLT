@@ -1,2 +1,4 @@
 info.json
 __pycache__/
+.wrangler/
+public/

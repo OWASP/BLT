@@ -1,8 +1,8 @@
-# Cloudflare Workers configuration. Deploys happen automatically via webhook;
-# the public/ directory is committed to the repo, so no build command is
-# needed — the site is served as static assets from public/.
+# Cloudflare Workers configuration. Deploys happen automatically via webhook
+# and serves static assets directly from the repository root. The GitLab CI
+# pipeline builds a temporary public/ directory for GitLab Pages deployment.
 name = "blt-gsoc"
 compatibility_date = "2026-06-11"
 
 [assets]
-directory = "./public"
+directory = "."

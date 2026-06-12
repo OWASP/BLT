@@ -126,10 +126,12 @@ def slack_sent_message(token, username, day):
     return (data.get("messages", {}).get("total") or 0) > 0
 
 
-def slack_for_day(username, day):
+def slack_for_day(slack_info, day):
     result = {}
     for server, env_var in SLACK_SERVERS.items():
         token = os.environ.get(env_var)
+        # Support either a single string username or a dictionary: {"owasp": "user1", "blt": "user2"}
+        username = slack_info.get(server) if isinstance(slack_info, dict) else slack_info
         if token and username:
             result[server] = slack_sent_message(token, username, day)
         else:

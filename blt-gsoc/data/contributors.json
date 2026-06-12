@@ -5,7 +5,7 @@
     { "name": "Ananya",             "github": "ananya-09",      "gitlab": "ananya-09",      "slack": "", "project": "BLT-Vanish",      "repo": "BLT-Vanish-Web" },
     { "name": "Savio D'souza",      "github": "S3DFX-CYBER",    "gitlab": "S3DFX-CYBER",    "slack": "", "project": "BLT-Preflight",   "repo": "BLT-Preflight" },
     { "name": "Ojaswa",             "github": "ojaswa072",      "gitlab": "ojaswa072",      "slack": "", "project": "BLT-Toasty",      "repo": "BLT-Toasty" },
-    { "name": "Nachiket Roy",       "github": "Nachiket-Roy",   "gitlab": "Nachiket-Roy",   "slack": "", "project": "BLT-MCP",         "repo": "BLT-MCP" },
+    { "name": "Nachiket Roy",       "github": "Nachiket-Roy",   "gitlab": "Nachiket_R",     "slack": "rosai", "project": "BLT-MCP",         "repo": "BLT-MCP" },
     { "name": "Karuna Rapolu",      "github": "karunarapolu",   "gitlab": "karunarapolu",   "slack": "", "project": "BLT-SafeCloak",   "repo": "BLT-Safecloak" },
     { "name": "Rudra Pratap Singh", "github": "Rudra-rps",      "gitlab": "Rudra-rps",      "slack": "", "project": "BLT-Hackerhouse", "repo": "BLT-Hackerhouse" },
     { "name": "Sidd190",            "github": "Sidd190",        "gitlab": "Sidd190",        "slack": "", "project": "BLT-Autopatch",   "repo": "BLT-Autopatch" },
