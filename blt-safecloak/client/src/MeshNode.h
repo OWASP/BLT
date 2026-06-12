@@ -61,8 +61,14 @@ private:
     };
 
     QByteArray announcePayload() const;
+    QJsonObject selfPacketMetadata() const;
+    QList<QHostAddress> broadcastAddresses() const;
+    void writeDiscoveryDatagrams(const QByteArray &payload,
+                                 const QList<QHostAddress> &extraTargets = {});
     void sendAnnounce();
     void onDatagram();
+    void learnNodeFromPacket(const QJsonObject &packet,
+                             const QHostAddress &senderAddress, quint16 senderPort);
     void onIncomingConnection();
     void adoptConnection(FramedConnection *connection);
     void onPeerMessage(FramedConnection *connection, const QJsonObject &message);

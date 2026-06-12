@@ -126,23 +126,26 @@ bool MeshNode::start(const QHostAddress &bindAddress,
 
 QByteArray MeshNode::announcePayload() const
 {
-    QJsonArray addresses;
-    for (const QHostAddress &address : localIPv4Addresses())
-        addresses.append(address.toString());
-    const QJsonObject announce{{"app", m_appTag},
-                               {"kind", "announce"},
-                               {"v", 1},
-                               {"nodeId", m_nodeId},
-                               {"name", m_userName},
-                               {"addresses", addresses},
-                               {"port", m_listener.serverPort()}};
+    QJsonObject announce = selfPacketMetadata();
+    announce.insert("kind", "announce");
     return QJsonDocument(announce).toJson(QJsonDocument::Compact);
 }
 
-void MeshNode::sendAnnounce()
+QJsonObject MeshNode::selfPacketMetadata() const
 {
-    const QByteArray payload = announcePayload();
+    QJsonArray addresses;
+    for (const QHostAddress &address : localIPv4Addresses())
+        addresses.append(address.toString());
+    return {{"app", m_appTag},
+            {"v", 1},
+            {"nodeId", m_nodeId},
+            {"name", m_userName},
+            {"addresses", addresses},
+            {"port", m_listener.serverPort()}};
+}
 
+QList<QHostAddress> MeshNode::broadcastAddresses() const
+{
     // Collect the directed broadcast address of every usable IPv4 interface.
     // Announcing per interface (instead of letting the OS pick one route for
     // 255.255.255.255 / the multicast group) is what makes discovery work on
@@ -165,7 +168,22 @@ void MeshNode::sendAnnounce()
                 broadcasts.append(broadcast);
         }
     }
+    return broadcasts;
+}
 
+void MeshNode::writeDiscoveryDatagrams(const QByteArray &payload,
+                                       const QList<QHostAddress> &extraTargets)
+{
+    const QList<QHostAddress> broadcasts = broadcastAddresses();
+    QList<QNetworkInterface> multicastIfaces;
+    const auto interfaces = QNetworkInterface::allInterfaces();
+    for (const QNetworkInterface &iface : interfaces) {
+        if ((iface.flags() & QNetworkInterface::IsUp) &&
+            (iface.flags() & QNetworkInterface::IsRunning) &&
+            !(iface.flags() & QNetworkInterface::IsLoopBack) &&
+            (iface.flags() & QNetworkInterface::CanMulticast))
+            multicastIfaces.append(iface);
+    }
     for (quint16 port = kDiscoveryPortBase;
          port < kDiscoveryPortBase + kDiscoveryPortRange; ++port) {
         for (const QNetworkInterface &iface : std::as_const(multicastIfaces)) {
@@ -178,9 +196,16 @@ void MeshNode::sendAnnounce()
         // the OS does not loop multicast/broadcast back to local sockets.
         if (port != m_udp.localPort())
             m_udp.writeDatagram(payload, QHostAddress::LocalHost, port);
+        for (const QHostAddress &target : std::as_const(extraTargets))
+            m_udp.writeDatagram(payload, target, port);
         for (const QHostAddress &target : std::as_const(m_announceTargets))
             m_udp.writeDatagram(payload, target, port);
     }
+}
+
+void MeshNode::sendAnnounce()
+{
+    writeDiscoveryDatagrams(announcePayload());
 }
 
 void MeshNode::onDatagram()
@@ -196,6 +221,8 @@ void MeshNode::onDatagram()
 
         if (announce.value("kind").toString() == "message") {
             const QJsonObject message = announce.value("message").toObject();
+            learnNodeFromPacket(announce, datagram.senderAddress(),
+                                quint16(datagram.senderPort()));
             if (!message.isEmpty())
                 onPeerMessage(nullptr, message);
             continue;
@@ -273,6 +300,45 @@ void MeshNode::onDatagram()
         if (isNew)
             updateRosterAndStatus();
     }
+}
+
+void MeshNode::learnNodeFromPacket(const QJsonObject &packet,
+                                   const QHostAddress &senderAddress,
+                                   quint16 senderPort)
+{
+    const QString nodeId = packet.value("nodeId").toString();
+    if (nodeId.isEmpty() || nodeId == m_nodeId)
+        return;
+
+    QList<QHostAddress> candidates;
+    if (senderAddress.protocol() == QAbstractSocket::IPv4Protocol)
+        candidates.append(senderAddress);
+    for (const auto &value : packet.value("addresses").toArray()) {
+        const QHostAddress address(value.toString());
+        if (address.protocol() == QAbstractSocket::IPv4Protocol &&
+            !candidates.contains(address))
+            candidates.append(address);
+    }
+    if (candidates.isEmpty())
+        candidates.append(senderAddress);
+
+    KnownNode &node = m_known[nodeId];
+    const bool isNew = node.lastSeenMs == 0;
+    node.name = packet.value("name").toString();
+    node.address = candidates.first();
+    node.addresses = candidates;
+    node.tcpPort = quint16(packet.value("port").toInt());
+    node.udpPort = senderPort;
+    node.lastSeenMs = QDateTime::currentMSecsSinceEpoch();
+    if (isNew)
+        node.firstSeenMs = node.lastSeenMs;
+
+    if (!m_peers.contains(nodeId) && !m_pendingDials.contains(nodeId) &&
+        node.tcpPort > 0) {
+        connectToPeer(nodeId, node);
+    }
+    if (isNew)
+        updateRosterAndStatus();
 }
 
 void MeshNode::connectToPeer(const QString &nodeId, KnownNode &node)
@@ -393,6 +459,8 @@ void MeshNode::onPeerMessage(FramedConnection *connection, const QJsonObject &me
     const QString type = message.value("type").toString();
 
     if (type == "hello") {
+        if (!connection)
+            return;
         const bool firstHello = connection->remoteId.isEmpty();
         connection->remoteId = message.value("nodeId").toString();
         connection->remoteName = message.value("name").toString();
@@ -527,23 +595,49 @@ void MeshNode::flood(const QJsonObject &message, FramedConnection *exclude)
 
 void MeshNode::sendUdpToNode(const KnownNode &node, const QJsonObject &message)
 {
-    if (node.udpPort == 0)
-        return;
-    const QJsonObject packet{{"app", m_appTag}, {"kind", "message"}, {"message", message}};
+    QJsonObject packet = selfPacketMetadata();
+    packet.insert("kind", "message");
+    packet.insert("message", message);
     const QByteArray payload = QJsonDocument(packet).toJson(QJsonDocument::Compact);
 
     QList<QHostAddress> targets = node.addresses;
     if (!targets.contains(node.address))
         targets.prepend(node.address);
-    for (const QHostAddress &target : std::as_const(targets))
-        m_udp.writeDatagram(payload, target, node.udpPort);
+
+    writeDiscoveryDatagrams(payload, targets);
+    if (node.udpPort < kDiscoveryPortBase ||
+        node.udpPort >= kDiscoveryPortBase + kDiscoveryPortRange) {
+        for (const QHostAddress &target : std::as_const(targets))
+            m_udp.writeDatagram(payload, target, node.udpPort);
+    }
 }
 
 void MeshNode::floodUdp(const QJsonObject &message)
 {
-    for (auto it = m_known.constBegin(); it != m_known.constEnd(); ++it) {
-        if (!m_peers.contains(it.key()))
-            sendUdpToNode(it.value(), message);
+    QJsonObject packet = selfPacketMetadata();
+    packet.insert("kind", "message");
+    packet.insert("message", message);
+    const QByteArray payload = QJsonDocument(packet).toJson(QJsonDocument::Compact);
+
+    QList<QHostAddress> targets;
+    for (const KnownNode &node : std::as_const(m_known)) {
+        if (!targets.contains(node.address))
+            targets.append(node.address);
+        for (const QHostAddress &address : node.addresses) {
+            if (!targets.contains(address))
+                targets.append(address);
+        }
+    }
+    writeDiscoveryDatagrams(payload, targets);
+
+    for (const KnownNode &node : std::as_const(m_known)) {
+        if (node.udpPort >= kDiscoveryPortBase &&
+            node.udpPort < kDiscoveryPortBase + kDiscoveryPortRange)
+            continue;
+        for (const QHostAddress &target : node.addresses)
+            m_udp.writeDatagram(payload, target, node.udpPort);
+        if (!node.addresses.contains(node.address))
+            m_udp.writeDatagram(payload, node.address, node.udpPort);
     }
 }
 
