@@ -20,6 +20,7 @@ constexpr int kNodeTimeoutMs = 15000;
 constexpr int kDialTimeoutMs = 8000;
 constexpr int kSeenCacheLimit = 4096;
 constexpr int kUdpRetryDelaysMs[] = {180, 650, 1400, 2600};
+constexpr int kMessageRetryDelaysMs[] = {250, 900};
 const QString kDefaultAppTag = QStringLiteral("safecloak-chat");
 // Discovery goes out via multicast (looped back locally, so instances on the
 // same machine find each other) and via broadcast as a fallback for networks
@@ -275,7 +276,7 @@ void MeshNode::sendLanBusPacket(const QJsonObject &message)
     };
 
     sendOnce();
-    for (int delay : kUdpRetryDelaysMs)
+    for (int delay : kMessageRetryDelaysMs)
         QTimer::singleShot(delay, this, sendOnce);
 }
 
@@ -301,8 +302,11 @@ void MeshNode::onLanDatagram()
         }
         if (kind == "lan-message") {
             const QJsonObject message = packet.value("message").toObject();
-            if (!message.isEmpty())
+            if (!message.isEmpty()) {
+                emit systemMessage("Network: received LAN message from " +
+                                   packet.value("name").toString() + ".");
                 onPeerMessage(nullptr, message);
+            }
         }
     }
 }
@@ -378,8 +382,11 @@ void MeshNode::onDatagram()
             learnNodeFromPacket(announce, datagram.senderAddress(),
                                 quint16(datagram.senderPort()));
             replyWithAnnounce(datagram.senderAddress(), quint16(datagram.senderPort()));
-            if (!message.isEmpty())
+            if (!message.isEmpty()) {
+                emit systemMessage("Network: received UDP message from " +
+                                   announce.value("name").toString() + ".");
                 onPeerMessage(nullptr, message);
+            }
             continue;
         }
 
@@ -498,6 +505,14 @@ bool MeshNode::learnNodeFromPacket(const QJsonObject &packet,
     if (!m_peers.contains(nodeId) && !m_pendingDials.contains(nodeId) &&
         node.tcpPort > 0) {
         connectToPeer(nodeId, node);
+    }
+    if (isNew) {
+        QStringList addressStrings;
+        for (const QHostAddress &address : std::as_const(node.addresses))
+            addressStrings.append(address.toString());
+        emit systemMessage("Discovered " + node.name + " at " +
+                           addressStrings.join(", ") + ":" +
+                           QString::number(node.tcpPort) + " (LAN).");
     }
     if (changed)
         updateRosterAndStatus();
@@ -719,7 +734,7 @@ void MeshNode::sendChat(const QString &channel, const QString &text)
     const QJsonObject message{{"type", "chat"}, {"id", id},      {"channel", channel},
                               {"sender", m_userName}, {"senderId", m_nodeId},
                               {"text", text},  {"ts", double(ts)}};
-    flood(message);
+    flood(message, nullptr, true);
     emit chatMessage(channel, m_userName, text, ts);
 }
 
@@ -736,10 +751,13 @@ void MeshNode::sendDirect(const QString &targetId, const QString &text)
                               {"ts", double(ts)}};
     // Deliver on the direct link when there is one; otherwise route through
     // the mesh (intermediate nodes forward, only the target displays it).
-    if (FramedConnection *peer = m_peers.value(targetId))
+    if (FramedConnection *peer = m_peers.value(targetId)) {
         peer->sendMessage(message);
-    else
-        flood(message);
+        emit systemMessage("Network: sent direct message to " +
+                           peer->remoteName + " via TLS.");
+    } else {
+        flood(message, nullptr, true);
+    }
     const QString targetName =
         m_peers.contains(targetId) ? m_peers.value(targetId)->remoteName
                                    : m_known.value(targetId).name;
@@ -765,80 +783,72 @@ void MeshNode::mergeChannel(const QString &channel, bool announce)
     if (announce) {
         const QString id = QUuid::createUuid().toString(QUuid::WithoutBraces);
         markSeen(id);
-        flood({{"type", "channel"}, {"id", id}, {"name", name}});
+        const QJsonObject message{{"type", "channel"}, {"id", id}, {"name", name}};
+        flood(message, nullptr, true);
     }
 }
 
-void MeshNode::flood(const QJsonObject &message, FramedConnection *exclude)
+void MeshNode::flood(const QJsonObject &message, FramedConnection *exclude,
+                     bool showActivity)
 {
+    int tlsCount = 0;
     for (FramedConnection *peer : std::as_const(m_peers)) {
-        if (peer != exclude)
+        if (peer != exclude) {
             peer->sendMessage(message);
+            ++tlsCount;
+        }
     }
-    sendLanBusPacket(message);
     floodUdp(message);
+    if (showActivity) {
+        emit systemMessage("Network: sent " + message.value("type").toString() +
+                           " to " + QString::number(tlsCount) +
+                           " TLS link(s) and " + QString::number(m_known.size()) +
+                           " known peer(s) by targeted LAN/UDP.");
+    }
 }
 
-void MeshNode::sendUdpToNode(const KnownNode &node, const QJsonObject &message)
+void MeshNode::sendMessageDatagrams(const QJsonObject &message,
+                                    const QList<QHostAddress> &targets,
+                                    quint16 peerUdpPort)
 {
+    if (targets.isEmpty())
+        return;
+
     QJsonObject packet = selfPacketMetadata();
     packet.insert("kind", "message");
     packet.insert("message", message);
     const QByteArray payload = QJsonDocument(packet).toJson(QJsonDocument::Compact);
 
-    QList<QHostAddress> targets = node.addresses;
-    if (!targets.contains(node.address))
-        targets.prepend(node.address);
+    auto sendOnce = [this, payload, targets, peerUdpPort] {
+        for (const QHostAddress &target : targets) {
+            if (m_udp.state() == QAbstractSocket::BoundState) {
+                for (quint16 port = kDiscoveryPortBase;
+                     port < kDiscoveryPortBase + kDiscoveryPortRange; ++port)
+                    m_udp.writeDatagram(payload, target, port);
+                if (peerUdpPort > 0)
+                    m_udp.writeDatagram(payload, target, peerUdpPort);
+            }
+            if (m_lanBus.state() == QAbstractSocket::BoundState)
+                m_lanBus.writeDatagram(payload, target, kLanBusPort);
+        }
+    };
 
-    writeDiscoveryDatagrams(payload, targets);
-    if (node.udpPort < kDiscoveryPortBase ||
-        node.udpPort >= kDiscoveryPortBase + kDiscoveryPortRange) {
-        for (const QHostAddress &target : std::as_const(targets))
-            m_udp.writeDatagram(payload, target, node.udpPort);
-    }
+    sendOnce();
+    for (int delay : kMessageRetryDelaysMs)
+        QTimer::singleShot(delay, this, sendOnce);
 }
 
 void MeshNode::floodUdp(const QJsonObject &message)
 {
-    QJsonObject packet = selfPacketMetadata();
-    packet.insert("kind", "message");
-    packet.insert("message", message);
-    const QByteArray payload = QJsonDocument(packet).toJson(QJsonDocument::Compact);
-
-    QList<QHostAddress> targets;
     for (const KnownNode &node : std::as_const(m_known)) {
-        if (!targets.contains(node.address))
+        QList<QHostAddress> targets;
+        if (!node.address.isNull())
             targets.append(node.address);
         for (const QHostAddress &address : node.addresses) {
             if (!targets.contains(address))
                 targets.append(address);
         }
-    }
-    writeDiscoveryDatagrams(payload, targets);
-
-    for (const KnownNode &node : std::as_const(m_known)) {
-        if (node.udpPort >= kDiscoveryPortBase &&
-            node.udpPort < kDiscoveryPortBase + kDiscoveryPortRange)
-            continue;
-        for (const QHostAddress &target : node.addresses)
-            m_udp.writeDatagram(payload, target, node.udpPort);
-        if (!node.addresses.contains(node.address))
-            m_udp.writeDatagram(payload, node.address, node.udpPort);
-    }
-
-    for (int delay : kUdpRetryDelaysMs) {
-        QTimer::singleShot(delay, this, [this, payload, targets] {
-            writeDiscoveryDatagrams(payload, targets);
-            for (const KnownNode &node : std::as_const(m_known)) {
-                if (node.udpPort >= kDiscoveryPortBase &&
-                    node.udpPort < kDiscoveryPortBase + kDiscoveryPortRange)
-                    continue;
-                for (const QHostAddress &target : node.addresses)
-                    m_udp.writeDatagram(payload, target, node.udpPort);
-                if (!node.addresses.contains(node.address))
-                    m_udp.writeDatagram(payload, node.address, node.udpPort);
-            }
-        });
+        sendMessageDatagrams(message, targets, node.udpPort);
     }
 }
 

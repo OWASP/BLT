@@ -82,9 +82,12 @@ private:
     void onPeerMessage(FramedConnection *connection, const QJsonObject &message);
     void onPeerClosed(FramedConnection *connection);
     void connectToPeer(const QString &nodeId, KnownNode &node);
-    void sendUdpToNode(const KnownNode &node, const QJsonObject &message);
+    void sendMessageDatagrams(const QJsonObject &message,
+                              const QList<QHostAddress> &targets,
+                              quint16 peerUdpPort);
     void floodUdp(const QJsonObject &message);
-    void flood(const QJsonObject &message, FramedConnection *exclude = nullptr);
+    void flood(const QJsonObject &message, FramedConnection *exclude = nullptr,
+               bool showActivity = false);
     bool markSeen(const QString &messageId);
     void prune();
     void updateRosterAndStatus();
