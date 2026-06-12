@@ -63,8 +63,15 @@ class ChatRoom(DurableObject):
         # Different Python Workers versions expose these as ctx/env or state/env.
         self.state = getattr(self, 'ctx', state)
         self.env = env
-        self.sessions = set()
+        # WebSocket JsProxy objects are not hashable in Pyodide, so sessions
+        # are kept in a list and event proxies are keyed by a stable id.
+        self.sessions = []
         self._event_proxies = {}
+
+    @staticmethod
+    def _session_key(server):
+        """Return a hashable key identifying a WebSocket JsProxy."""
+        return getattr(server, 'js_id', None) or id(server)
 
     async def fetch(self, request):
         """Current Python Durable Object HTTP handler name."""
@@ -105,7 +112,7 @@ class ChatRoom(DurableObject):
             return Response(None, status=101, web_socket=client)
 
         server.accept()
-        self.sessions.add(server)
+        self.sessions.append(server)
 
         stored = await self.state.storage.get('messages') or []
         for item in stored:
@@ -170,7 +177,8 @@ class ChatRoom(DurableObject):
         close_proxy = create_proxy(on_close)
         error_proxy = create_proxy(on_close)
 
-        self._event_proxies[server] = (message_proxy, close_proxy, error_proxy)
+        self._event_proxies[self._session_key(server)] = (
+            message_proxy, close_proxy, error_proxy)
 
         server.addEventListener('message', message_proxy)
         server.addEventListener('close', close_proxy)
@@ -179,8 +187,8 @@ class ChatRoom(DurableObject):
         return Response(None, status=101, web_socket=client)
 
     def _cleanup_session(self, server):
-        self.sessions.discard(server)
-        proxies = self._event_proxies.pop(server, None)
+        self.sessions = [ws for ws in self.sessions if ws != server]
+        proxies = self._event_proxies.pop(self._session_key(server), None)
         if proxies:
             for proxy in proxies:
                 try:
