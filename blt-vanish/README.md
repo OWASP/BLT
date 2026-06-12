@@ -433,10 +433,6 @@ API for third-party service integration
 
 ## BLT-Vanish Web — Project Roadmap (GSoC 2026)
 
-## Overview
-
----
-
 This roadmap maps the Community Bonding period and a 12-week development cadence across three phases (Phase 1–3), plus CI, testing, documentation, and final handover. Each phase lists weekly goals, key deliverables, acceptance criteria, and mentor checkpoints.
 
 ---
@@ -588,7 +584,7 @@ The edge network operates as a fast, stateless public metadata distributor.
 
 * **Security Isolations:** Workers are structurally incapable of recording, processing, or logging user PII. 
 
-* **Contract Responsibility:** The edge layer utilizes TypeScript type guards (`isSecurityAlertDTO`) to perform strict symmetric schema validation on requests and responses before passing data payloads down to the client device.
+* **Contract Responsibility:** The edge layer utilizes Python type guards (`isSecurityAlertDTO`) to perform strict symmetric schema validation on requests and responses before passing data payloads down to the client device.
 
 ### 3. The Backend Threat Intelligence Layer
 
@@ -613,18 +609,19 @@ This workflow inspects raw, untrusted links submitted by the user through manual
 
 * **Step A (Local Extraction):** The link is sent to the `UrlSignalExtractor`. It performs on-device analysis to calculate Shannon entropy scores and evaluate malicious lexical indicators:
 
-    * `entropy`: Normalized string randomness evaluation.
-
-    * `suspicious_tokens`: Checks for string sequences matching target phrases like `verify`, `secure`, or `login`.
-
-    * `risky_tld`: Matches against high-frequency scam extensions like `.zip`, `.click`, `.top`, or `.xyz`.
+  * `entropy`: Normalized string randomness evaluation.
+  
+  * `suspicious_tokens`: Checks for string sequences matching target phrases like `verify`, `secure`, or `login`.
+  
+  * `risky_tld`: Matches against high-frequency scam extensions like `.zip`, `.click`, `.top`, or `.xyz`.
 
 * **Step B (Edge Enrichment):** The app strips all unique parameter query context from the domain to mask individual actions and submits the clean host string to the Cloudflare Worker `/api/reputation` endpoint to pull public domain health metrics.
 
-* **Step C (Score Composition):** The client merges local heuristics and public intelligence values using the strict Phase 1 risk composition model:
-    $$Risk = w_1U + w_2M + w_3R$$
+* **Step C (Score Composition):** The client merges local heuristics and public intelligence values using the foundational Phase 1 risk composition model:
 
-    *(Where $U$ represents the URL lexical risk indicators, $M$ represents message indicators, and $R$ represents reputation intelligence signals)*.
+    $$Risk = w_1U + w_2M + w_3R$$
+    
+    *(Where $U$ represents the URL lexical risk indicators, $M$ represents message indicators, and $R$ represents reputation intelligence signals. Note: The weights $w_1, w_2,$ and $w_3$ are starting placeholder configurations subject to precision and false-positive calibration during Phase 1 implementation — see `docs/phase-1-benchmark.md` for current calibration dataset trends)*.
 
 * **Step D (Severity Mapping):** The computed score is passed through a deterministic threshold classifier to map it directly into standardized severity classes:
 
@@ -643,7 +640,7 @@ This workflow tracks internal credential safety and orchestrates password streng
 
 * **Step C (Remediation Checklist Injection):** If the risk score crosses designated limits, a warning is triggered. The `RemediationPlanner` creates a corresponding tracking container called a `RemediationTask` with an initial state marked as `notStarted`.
 
-* **Step D (Orchestration & State Change Monitoring):** When the user executes a task, the `PasswordRotationOrchestrator` runs state rules to guide the change lifecycle (`requested -> applied -> verified -> closed`). Upon hitting a verified status, the task transitions to `completed`, safely updating the encrypted local timeline view.
+* **Step D (Orchestration & State Change Monitoring):** When the user executes a task, the `PasswordRotationOrchestrator` runs state rules to guide the change lifecycle (`requested -> applied -> verified -> completed`). Upon hitting a verified status, the task transitions to `completed`, safely updating the encrypted local timeline view.
 
 ### 3. Privacy-Safe Breach/Dark Web Exposure Pipeline
 
