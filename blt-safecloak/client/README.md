@@ -10,9 +10,10 @@ internet dependency: channels, a member list, and TLS-encrypted traffic.
 ## Mesh-only chat
 
 SafeCloak Chat has no host/join mode. Every node announces itself over UDP
-(multicast + broadcast + loopback), dials every discovered peer immediately,
-and floods messages through the mesh with duplicate suppression. Nodes appear
-in the member list as soon as they are discovered, then lose the
+(multicast + broadcast + loopback), publishes its usable local IPv4 addresses,
+dials every discovered peer immediately, and floods messages through the mesh
+with duplicate suppression. Nodes appear in the member list as soon as they
+are discovered, then lose the
 `(discovered)` note once the encrypted peer link is live.
 
 You get Slack-style channels (`#general` and `#random` by default, "+ Add
@@ -84,5 +85,6 @@ QT_QPA_PLATFORM=offscreen ./build/safecloak-tests
 - When the app was built from a local checkout, the home screen shows a
   "Quick update" button that pulls the latest version, rebuilds, and
   relaunches the app.
-- Every node dials every discovered peer immediately. If both sides dial at
+- Every node dials every discovered peer immediately and rotates through the
+  peer's advertised IP addresses when a dial times out. If both sides dial at
   once, duplicate links are resolved deterministically.

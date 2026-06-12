@@ -25,9 +25,9 @@ const QString kAppTag = QStringLiteral("safecloak-chat");
 // that filter multicast. Duplicate announcements are harmless.
 const QHostAddress kMulticastGroup(QStringLiteral("239.255.43.21"));
 
-QString localAddressSummary()
+QList<QHostAddress> localIPv4Addresses()
 {
-    QStringList addresses;
+    QList<QHostAddress> addresses;
     const auto interfaces = QNetworkInterface::allInterfaces();
     for (const QNetworkInterface &iface : interfaces) {
         if (!(iface.flags() & QNetworkInterface::IsUp) ||
@@ -38,12 +38,20 @@ QString localAddressSummary()
         for (const QNetworkAddressEntry &entry : entries) {
             const QHostAddress address = entry.ip();
             if (address.protocol() == QAbstractSocket::IPv4Protocol &&
-                !addresses.contains(address.toString()))
-                addresses.append(address.toString());
+                !addresses.contains(address))
+                addresses.append(address);
         }
     }
     if (addresses.isEmpty())
-        addresses.append(QHostAddress(QHostAddress::LocalHost).toString());
+        addresses.append(QHostAddress(QHostAddress::LocalHost));
+    return addresses;
+}
+
+QString localAddressSummary()
+{
+    QStringList addresses;
+    for (const QHostAddress &address : localIPv4Addresses())
+        addresses.append(address.toString());
     return addresses.join(", ");
 }
 
@@ -117,10 +125,14 @@ bool MeshNode::start(const QHostAddress &bindAddress,
 
 QByteArray MeshNode::announcePayload() const
 {
+    QJsonArray addresses;
+    for (const QHostAddress &address : localIPv4Addresses())
+        addresses.append(address.toString());
     const QJsonObject announce{{"app", kAppTag},
                                {"v", 1},
                                {"nodeId", m_nodeId},
                                {"name", m_userName},
+                               {"addresses", addresses},
                                {"port", m_listener.serverPort()}};
     return QJsonDocument(announce).toJson(QJsonDocument::Compact);
 }
@@ -187,19 +199,34 @@ void MeshNode::onDatagram()
         const qint64 now = QDateTime::currentMSecsSinceEpoch();
         KnownNode &node = m_known[nodeId];
         const bool isNew = node.lastSeenMs == 0;
+        QList<QHostAddress> candidates;
+        if (datagram.senderAddress().protocol() == QAbstractSocket::IPv4Protocol)
+            candidates.append(datagram.senderAddress());
+        for (const auto &value : announce.value("addresses").toArray()) {
+            const QHostAddress address(value.toString());
+            if (address.protocol() == QAbstractSocket::IPv4Protocol &&
+                !candidates.contains(address))
+                candidates.append(address);
+        }
+        if (candidates.isEmpty())
+            candidates.append(datagram.senderAddress());
         const bool endpointChanged =
-            !isNew && (node.address != datagram.senderAddress() ||
+            !isNew && (node.addresses != candidates ||
                        node.tcpPort != quint16(announce.value("port").toInt()));
         node.name = announce.value("name").toString();
-        node.address = datagram.senderAddress();
+        node.address = candidates.first();
+        node.addresses = candidates;
         node.tcpPort = quint16(announce.value("port").toInt());
         node.lastSeenMs = now;
         if (isNew)
             node.firstSeenMs = now;
 
         if (isNew || endpointChanged) {
+            QStringList addressStrings;
+            for (const QHostAddress &address : std::as_const(node.addresses))
+                addressStrings.append(address.toString());
             emit systemMessage("Discovered " + node.name + " at " +
-                               node.address.toString() + ":" +
+                               addressStrings.join(", ") + ":" +
                                QString::number(node.tcpPort) + " (UDP from " +
                                datagram.senderAddress().toString() + ":" +
                                QString::number(datagram.senderPort()) + ").");
@@ -220,26 +247,45 @@ void MeshNode::onDatagram()
         if (!m_peers.contains(nodeId) &&
             now - node.lastIntroSentMs > kAnnounceIntervalMs / 2) {
             node.lastIntroSentMs = now;
-            m_udp.writeDatagram(announcePayload(), datagram.senderAddress(),
-                                datagram.senderPort());
+            QList<QHostAddress> introTargets = node.addresses;
+            if (!introTargets.contains(datagram.senderAddress()))
+                introTargets.prepend(datagram.senderAddress());
+            const QByteArray payload = announcePayload();
+            for (const QHostAddress &target : std::as_const(introTargets)) {
+                m_udp.writeDatagram(payload, target, datagram.senderPort());
+                for (quint16 port = kDiscoveryPortBase;
+                     port < kDiscoveryPortBase + kDiscoveryPortRange; ++port) {
+                    if (port != datagram.senderPort())
+                        m_udp.writeDatagram(payload, target, port);
+                }
+            }
         }
         if (isNew)
             updateRosterAndStatus();
     }
 }
 
-void MeshNode::connectToPeer(const QString &nodeId, const KnownNode &node)
+void MeshNode::connectToPeer(const QString &nodeId, KnownNode &node)
 {
+    const QList<QHostAddress> addresses =
+        node.addresses.isEmpty() ? QList<QHostAddress>{node.address} : node.addresses;
+    if (addresses.isEmpty() || node.tcpPort == 0)
+        return;
+    const QHostAddress dialAddress =
+        addresses.at(node.nextDialIndex % addresses.size());
+    node.nextDialIndex = (node.nextDialIndex + 1) % addresses.size();
     m_pendingDials.insert(nodeId);
-    emit systemMessage("Dialing " + node.name + " at " + node.address.toString() +
+    emit systemMessage("Dialing " + node.name + " at " + dialAddress.toString() +
                        ":" + QString::number(node.tcpPort) + "...");
 
     auto *socket = new QSslSocket;
     connect(socket, &QSslSocket::errorOccurred, this,
-            [this, nodeId, node, socket](QAbstractSocket::SocketError) {
+            [this, nodeId, name = node.name, dialAddress, socket](QAbstractSocket::SocketError) {
                 m_pendingDials.remove(nodeId);
-                emit systemMessage("Dial to " + node.name + " failed: " +
-                                   socket->errorString() + ".");
+                emit systemMessage("Dial to " + name + " at " +
+                                   dialAddress.toString() + " failed: " +
+                                   socket->errorString() +
+                                   ". Will try another address if one is available.");
                 updateRosterAndStatus();
             });
     connect(socket, &QSslSocket::sslErrors, this,
@@ -273,7 +319,7 @@ void MeshNode::connectToPeer(const QString &nodeId, const KnownNode &node)
         }
     });
 
-    socket->connectToHostEncrypted(node.address.toString(), node.tcpPort);
+    socket->connectToHostEncrypted(dialAddress.toString(), node.tcpPort);
 }
 
 void MeshNode::onIncomingConnection()
