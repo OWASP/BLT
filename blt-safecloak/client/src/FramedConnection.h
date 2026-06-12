@@ -20,6 +20,8 @@ public:
     // Identity of the remote node, filled in once its "hello" arrives.
     QString remoteId;
     QString remoteName;
+    // True if we initiated this connection (used to resolve duplicate links).
+    bool outbound = false;
 
 signals:
     void messageReceived(const QJsonObject &message);

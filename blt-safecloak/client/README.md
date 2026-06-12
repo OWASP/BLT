@@ -16,7 +16,11 @@ internet dependency: channels, a member list, and TLS-encrypted traffic.
 | **Mesh mode** | No server at all. Nodes announce themselves over UDP (multicast + broadcast + loopback), open TLS links to every discovered peer, and flood messages through the mesh with duplicate suppression. Nodes appear in the member list as they are discovered. |
 
 In all modes you get Slack-style channels (`#general` and `#random` by
-default, "+ Add channel" creates more and propagates them to everyone).
+default, "+ Add channel" creates more and propagates them to everyone) and
+direct messages — click a member in the sidebar to start a one-to-one chat.
+In server mode DMs are relayed only between the two parties; in mesh mode
+they go over the direct TLS link when one exists and are otherwise routed
+through intermediate nodes (which forward but never display them).
 
 ## Building
 
@@ -73,4 +77,7 @@ QT_QPA_PLATFORM=offscreen ./build/safecloak-tests
   239.255.43.21; each instance on a machine takes the next free port, so up
   to 10 instances per host can participate.
 - Mesh peer links use ephemeral TLS ports; the node with the smaller node id
-  initiates, so each pair has exactly one link.
+  normally initiates. If that node can't see the other (some networks drop
+  multicast or broadcast in one direction), nodes keep introducing
+  themselves via direct unicast replies and the other side dials after a
+  short grace period; duplicate links are resolved deterministically.

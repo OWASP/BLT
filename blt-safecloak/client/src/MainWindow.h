@@ -1,12 +1,12 @@
 #pragma once
 
+#include "ChatBackend.h"
 #include "SslIdentity.h"
 
 #include <QHash>
 #include <QMainWindow>
 #include <QSet>
 
-class ChatBackend;
 class QLabel;
 class QLineEdit;
 class QListWidget;
@@ -35,11 +35,19 @@ private:
 
     void appendChat(const QString &channel, const QString &sender,
                     const QString &text, qint64 timestampMs);
+    void onDirectMessage(const QString &peerId, const QString &peerName,
+                         const QString &sender, const QString &text,
+                         qint64 timestampMs);
     void appendSystem(const QString &text);
-    void appendHtml(const QString &channel, const QString &html);
+    void appendHtml(const QString &conversation, const QString &html);
     void setChannels(const QStringList &channels);
-    void switchChannel(const QString &channel);
+    void setRoster(const QList<MemberInfo> &members);
+    // A conversation key is either a channel ("#general") or a direct chat
+    // ("@<peerId>").
+    void switchConversation(const QString &conversation);
+    void openDirectChat(const QString &peerId, const QString &peerName);
     void refreshChannelList();
+    void refreshDmList();
     void promptAddChannel();
     void sendCurrentMessage();
     QString senderColor(const QString &sender) const;
@@ -64,12 +72,15 @@ private:
     QLabel *m_channelTitle;
     QLabel *m_encryptionLabel;
     QListWidget *m_channelList;
+    QListWidget *m_dmList;
     QListWidget *m_memberList;
     QTextBrowser *m_messageView;
     QLineEdit *m_messageInput;
 
     QStringList m_channels;
-    QString m_currentChannel;
-    QHash<QString, QString> m_channelHtml; // channel -> accumulated message html
+    QString m_currentConversation;
+    QHash<QString, QString> m_conversationHtml; // conversation -> message html
+    QHash<QString, QString> m_dmNames;          // peerId -> display name
+    QStringList m_openDms;                      // peerIds in sidebar order
     QSet<QString> m_unread;
 };

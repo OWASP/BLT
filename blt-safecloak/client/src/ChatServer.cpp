@@ -94,6 +94,41 @@ void ChatServer::onClientMessage(FramedConnection *client, const QJsonObject &me
                    {"text", text},
                    {"ts", double(ts)}});
         emit chatMessage(channel, client->remoteName, text, ts);
+    } else if (type == "dm") {
+        const QString text = message.value("text").toString();
+        const QString to = message.value("to").toString();
+        if (text.trimmed().isEmpty() || to.isEmpty())
+            return;
+        const qint64 ts = QDateTime::currentMSecsSinceEpoch();
+        QString toName;
+        FramedConnection *target = nullptr;
+        if (to == m_nodeId) {
+            toName = m_userName; // addressed to the host
+        } else {
+            for (FramedConnection *candidate : std::as_const(m_clients)) {
+                if (candidate->remoteId == to) {
+                    target = candidate;
+                    toName = candidate->remoteName;
+                    break;
+                }
+            }
+            if (!target)
+                return; // recipient left; drop silently
+        }
+        const QJsonObject relayed{{"type", "dm"},
+                                  {"from", client->remoteId},
+                                  {"fromName", client->remoteName},
+                                  {"to", to},
+                                  {"toName", toName},
+                                  {"text", text},
+                                  {"ts", double(ts)}};
+        if (target)
+            target->sendMessage(relayed);
+        else
+            emit directMessage(client->remoteId, client->remoteName,
+                               client->remoteName, text, ts);
+        // Echo to the sender so its UI renders from one consistent stream.
+        client->sendMessage(relayed);
     } else if (type == "join") {
         addChannel(message.value("channel").toString());
     }
@@ -121,6 +156,26 @@ void ChatServer::sendChat(const QString &channel, const QString &text)
                {"text", text},
                {"ts", double(ts)}});
     emit chatMessage(channel, m_userName, text, ts);
+}
+
+void ChatServer::sendDirect(const QString &targetId, const QString &text)
+{
+    if (text.trimmed().isEmpty() || targetId == m_nodeId)
+        return;
+    for (FramedConnection *client : std::as_const(m_clients)) {
+        if (client->remoteId == targetId) {
+            const qint64 ts = QDateTime::currentMSecsSinceEpoch();
+            client->sendMessage({{"type", "dm"},
+                                 {"from", m_nodeId},
+                                 {"fromName", m_userName},
+                                 {"to", targetId},
+                                 {"toName", client->remoteName},
+                                 {"text", text},
+                                 {"ts", double(ts)}});
+            emit directMessage(targetId, client->remoteName, m_userName, text, ts);
+            return;
+        }
+    }
 }
 
 void ChatServer::addChannel(const QString &channel)
@@ -158,12 +213,17 @@ void ChatServer::broadcast(const QJsonObject &message)
 
 void ChatServer::broadcastRoster()
 {
-    QStringList members{m_userName + " (host)"};
+    QJsonArray wireMembers{
+        QJsonObject{{"id", m_nodeId}, {"name", m_userName}, {"note", "(host)"}}};
+    QList<MemberInfo> members{{m_nodeId, m_userName, "(host)", true}};
     for (FramedConnection *client : std::as_const(m_clients)) {
-        if (!client->remoteName.isEmpty())
-            members.append(client->remoteName);
+        if (client->remoteName.isEmpty())
+            continue;
+        wireMembers.append(QJsonObject{
+            {"id", client->remoteId}, {"name", client->remoteName}, {"note", ""}});
+        members.append({client->remoteId, client->remoteName, QString(), false});
     }
-    broadcast({{"type", "roster"}, {"members", toJsonArray(members)}});
+    broadcast({{"type", "roster"}, {"members", wireMembers}});
     emit rosterChanged(members);
 }
 

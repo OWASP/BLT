@@ -20,6 +20,27 @@
 #include <QTextBrowser>
 #include <QVBoxLayout>
 
+namespace {
+
+const QString kDmPrefix = QStringLiteral("@");
+
+bool isDirectConversation(const QString &conversation)
+{
+    return conversation.startsWith(kDmPrefix);
+}
+
+QString dmKey(const QString &peerId)
+{
+    return kDmPrefix + peerId;
+}
+
+QString dmPeerId(const QString &conversation)
+{
+    return conversation.mid(1);
+}
+
+} // namespace
+
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
     setWindowTitle("SafeCloak Chat");
@@ -142,10 +163,13 @@ void MainWindow::startSession()
 
     // Reset chat state.
     m_channels.clear();
-    m_currentChannel.clear();
-    m_channelHtml.clear();
+    m_currentConversation.clear();
+    m_conversationHtml.clear();
+    m_dmNames.clear();
+    m_openDms.clear();
     m_unread.clear();
     m_channelList->clear();
+    m_dmList->clear();
     m_memberList->clear();
     m_messageView->clear();
 
@@ -203,16 +227,22 @@ QWidget *MainWindow::buildChatPage()
     auto *channelsLabel = new QLabel("CHANNELS");
     channelsLabel->setObjectName("sectionLabel");
     m_channelList = new QListWidget;
-    m_channelList->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
     auto *addChannelButton = new QPushButton("+ Add channel");
     addChannelButton->setObjectName("ghostButton");
     addChannelButton->setCursor(Qt::PointingHandCursor);
 
+    auto *dmsLabel = new QLabel("DIRECT MESSAGES");
+    dmsLabel->setObjectName("sectionLabel");
+    m_dmList = new QListWidget;
+
     auto *membersLabel = new QLabel("MEMBERS");
     membersLabel->setObjectName("sectionLabel");
+    membersLabel->setToolTip("Click a member to start a direct chat");
     m_memberList = new QListWidget;
     m_memberList->setSelectionMode(QAbstractItemView::NoSelection);
     m_memberList->setFocusPolicy(Qt::NoFocus);
+    m_memberList->setCursor(Qt::PointingHandCursor);
+    m_memberList->setToolTip("Click a member to start a direct chat");
 
     auto *leaveButton = new QPushButton("\xE2\x86\x90 Leave session");
     leaveButton->setObjectName("ghostButton");
@@ -232,6 +262,8 @@ QWidget *MainWindow::buildChatPage()
     sidebarLayout->addWidget(channelsLabel);
     sidebarLayout->addWidget(m_channelList, 3);
     sidebarLayout->addWidget(addChannelButton);
+    sidebarLayout->addWidget(dmsLabel);
+    sidebarLayout->addWidget(m_dmList, 2);
     sidebarLayout->addWidget(membersLabel);
     sidebarLayout->addWidget(m_memberList, 2);
     sidebarLayout->addWidget(leaveButton);
@@ -282,7 +314,19 @@ QWidget *MainWindow::buildChatPage()
     connect(m_channelList, &QListWidget::currentItemChanged, this,
             [this](QListWidgetItem *item, QListWidgetItem *) {
                 if (item)
-                    switchChannel(item->data(Qt::UserRole).toString());
+                    switchConversation(item->data(Qt::UserRole).toString());
+            });
+    connect(m_dmList, &QListWidget::currentItemChanged, this,
+            [this](QListWidgetItem *item, QListWidgetItem *) {
+                if (item)
+                    switchConversation(item->data(Qt::UserRole).toString());
+            });
+    connect(m_memberList, &QListWidget::itemClicked, this,
+            [this](QListWidgetItem *item) {
+                const QString id = item->data(Qt::UserRole).toString();
+                const bool self = item->data(Qt::UserRole + 2).toBool();
+                if (!id.isEmpty() && !self)
+                    openDirectChat(id, item->data(Qt::UserRole + 1).toString());
             });
     connect(addChannelButton, &QPushButton::clicked, this, &MainWindow::promptAddChannel);
     connect(m_messageInput, &QLineEdit::returnPressed, this, &MainWindow::sendCurrentMessage);
@@ -299,14 +343,11 @@ void MainWindow::attachBackend(ChatBackend *backend)
     m_backend = backend;
 
     connect(backend, &ChatBackend::chatMessage, this, &MainWindow::appendChat);
+    connect(backend, &ChatBackend::directMessage, this, &MainWindow::onDirectMessage);
     connect(backend, &ChatBackend::systemMessage, this, &MainWindow::appendSystem);
     connect(backend, &ChatBackend::channelsChanged, this, &MainWindow::setChannels);
+    connect(backend, &ChatBackend::rosterChanged, this, &MainWindow::setRoster);
     connect(backend, &ChatBackend::statusChanged, m_statusLine, &QLabel::setText);
-    connect(backend, &ChatBackend::rosterChanged, this, [this](const QStringList &members) {
-        m_memberList->clear();
-        for (const QString &member : members)
-            m_memberList->addItem("\xE2\x97\x8F " + member);
-    });
     connect(backend, &ChatBackend::fatalError, this, [this](const QString &message) {
         leaveSession();
         m_setupError->setText(message);
@@ -348,38 +389,91 @@ void MainWindow::appendChat(const QString &channel, const QString &sender,
     appendHtml(channel, html);
 }
 
+void MainWindow::onDirectMessage(const QString &peerId, const QString &peerName,
+                                 const QString &sender, const QString &text,
+                                 qint64 timestampMs)
+{
+    if (!m_dmNames.contains(peerId) || (!peerName.isEmpty() &&
+                                        m_dmNames.value(peerId) != peerName)) {
+        m_dmNames.insert(peerId, peerName.isEmpty() ? QStringLiteral("unknown")
+                                                    : peerName);
+    }
+    if (!m_openDms.contains(peerId)) {
+        m_openDms.append(peerId);
+        refreshDmList();
+    }
+    const QString time =
+        QDateTime::fromMSecsSinceEpoch(timestampMs).toString("hh:mm");
+    const QString html =
+        "<div style='margin:6px 0'>"
+        "<span style='color:" + senderColor(sender) + "; font-weight:700'>" +
+        sender.toHtmlEscaped() + "</span> "
+        "<span style='color:#9ca3af; font-size:11px'>" + time + "</span><br>"
+        "<span style='color:#f1f5f9'>" + text.toHtmlEscaped() + "</span></div>";
+    appendHtml(dmKey(peerId), html);
+}
+
 void MainWindow::appendSystem(const QString &text)
 {
     const QString html =
         "<div style='margin:4px 0; color:#9ca3af'><i>· " + text.toHtmlEscaped() +
         "</i></div>";
-    appendHtml(m_currentChannel.isEmpty() ? QStringLiteral("#general") : m_currentChannel,
+    appendHtml(m_currentConversation.isEmpty() ? QStringLiteral("#general")
+                                               : m_currentConversation,
                html);
 }
 
-void MainWindow::appendHtml(const QString &channel, const QString &html)
+void MainWindow::appendHtml(const QString &conversation, const QString &html)
 {
-    if (channel.isEmpty())
+    if (conversation.isEmpty())
         return;
-    m_channelHtml[channel] += html;
-    if (channel == m_currentChannel) {
+    m_conversationHtml[conversation] += html;
+    if (conversation == m_currentConversation) {
         m_messageView->insertHtml(html);
         m_messageView->verticalScrollBar()->setValue(
             m_messageView->verticalScrollBar()->maximum());
-    } else if (m_channels.contains(channel)) {
-        m_unread.insert(channel);
+    } else if (m_channels.contains(conversation) ||
+               (isDirectConversation(conversation) &&
+                m_openDms.contains(dmPeerId(conversation)))) {
+        m_unread.insert(conversation);
         refreshChannelList();
+        refreshDmList();
     }
 }
 
 void MainWindow::setChannels(const QStringList &channels)
 {
     m_channels = channels;
-    if (!m_channels.contains(m_currentChannel))
-        m_currentChannel.clear();
+    if (m_currentConversation.startsWith('#') &&
+        !m_channels.contains(m_currentConversation))
+        m_currentConversation.clear();
     refreshChannelList();
-    if (m_currentChannel.isEmpty() && !m_channels.isEmpty())
-        m_channelList->setCurrentRow(0); // triggers switchChannel
+    if (m_currentConversation.isEmpty() && !m_channels.isEmpty())
+        m_channelList->setCurrentRow(0); // triggers switchConversation
+}
+
+void MainWindow::setRoster(const QList<MemberInfo> &members)
+{
+    m_memberList->clear();
+    for (const MemberInfo &member : members) {
+        QString label = "\xE2\x97\x8F " + member.name;
+        if (!member.note.isEmpty())
+            label += " " + member.note;
+        if (member.self)
+            label += " (you)";
+        auto *item = new QListWidgetItem(label);
+        item->setData(Qt::UserRole, member.id);
+        item->setData(Qt::UserRole + 1, member.name);
+        item->setData(Qt::UserRole + 2, member.self);
+        m_memberList->addItem(item);
+        // Keep DM tab titles in sync with renamed/rediscovered members.
+        if (m_dmNames.contains(member.id) && m_dmNames.value(member.id) != member.name) {
+            m_dmNames.insert(member.id, member.name);
+            refreshDmList();
+            if (m_currentConversation == dmKey(member.id))
+                m_channelTitle->setText(kDmPrefix + member.name);
+        }
+    }
 }
 
 void MainWindow::refreshChannelList()
@@ -391,23 +485,67 @@ void MainWindow::refreshChannelList()
             (m_unread.contains(channel) ? "\xE2\x97\x8F " : "") + channel);
         item->setData(Qt::UserRole, channel);
         m_channelList->addItem(item);
-        if (channel == m_currentChannel)
+        if (channel == m_currentConversation)
             m_channelList->setCurrentItem(item);
     }
 }
 
-void MainWindow::switchChannel(const QString &channel)
+void MainWindow::refreshDmList()
 {
-    if (channel.isEmpty() || channel == m_currentChannel)
+    QSignalBlocker blocker(m_dmList);
+    m_dmList->clear();
+    for (const QString &peerId : std::as_const(m_openDms)) {
+        const QString key = dmKey(peerId);
+        auto *item = new QListWidgetItem(
+            (m_unread.contains(key) ? "\xE2\x97\x8F " : "") + kDmPrefix +
+            m_dmNames.value(peerId, QStringLiteral("unknown")));
+        item->setData(Qt::UserRole, key);
+        m_dmList->addItem(item);
+        if (key == m_currentConversation)
+            m_dmList->setCurrentItem(item);
+    }
+}
+
+void MainWindow::switchConversation(const QString &conversation)
+{
+    if (conversation.isEmpty() || conversation == m_currentConversation)
         return;
-    m_currentChannel = channel;
-    m_unread.remove(channel);
-    m_channelTitle->setText(channel);
-    m_messageInput->setPlaceholderText("Message " + channel);
-    m_messageView->setHtml(m_channelHtml.value(channel));
+    m_currentConversation = conversation;
+    m_unread.remove(conversation);
+
+    QString title = conversation;
+    if (isDirectConversation(conversation))
+        title = kDmPrefix + m_dmNames.value(dmPeerId(conversation),
+                                            QStringLiteral("unknown"));
+    m_channelTitle->setText(title);
+    m_messageInput->setPlaceholderText("Message " + title);
+    m_messageView->setHtml(m_conversationHtml.value(conversation));
     m_messageView->verticalScrollBar()->setValue(
         m_messageView->verticalScrollBar()->maximum());
+
+    // Selection lives in exactly one sidebar list at a time.
+    if (isDirectConversation(conversation)) {
+        QSignalBlocker blocker(m_channelList);
+        m_channelList->clearSelection();
+        m_channelList->setCurrentItem(nullptr);
+    } else {
+        QSignalBlocker blocker(m_dmList);
+        m_dmList->clearSelection();
+        m_dmList->setCurrentItem(nullptr);
+    }
     refreshChannelList();
+    refreshDmList();
+}
+
+void MainWindow::openDirectChat(const QString &peerId, const QString &peerName)
+{
+    m_dmNames.insert(peerId, peerName);
+    if (!m_openDms.contains(peerId)) {
+        m_openDms.append(peerId);
+        refreshDmList();
+    }
+    switchConversation(dmKey(peerId));
+    m_messageInput->setFocus();
 }
 
 void MainWindow::promptAddChannel()
@@ -424,8 +562,11 @@ void MainWindow::promptAddChannel()
 void MainWindow::sendCurrentMessage()
 {
     const QString text = m_messageInput->text().trimmed();
-    if (text.isEmpty() || !m_backend || m_currentChannel.isEmpty())
+    if (text.isEmpty() || !m_backend || m_currentConversation.isEmpty())
         return;
-    m_backend->sendChat(m_currentChannel, text);
+    if (isDirectConversation(m_currentConversation))
+        m_backend->sendDirect(dmPeerId(m_currentConversation), text);
+    else
+        m_backend->sendChat(m_currentConversation, text);
     m_messageInput->clear();
 }

@@ -38,16 +38,13 @@ int main(int argc, char *argv[])
             status->setText("Mesh · 2 peer(s) · TLS");
         if (auto *enc = window.findChild<QLabel *>("encryptionLabel"))
             enc->setText("\xF0\x9F\x94\x92 TLS encrypted · fingerprint 5C:1A:33:F0:9B…");
+        // Lists are created in sidebar order: channels, direct messages, members.
         const auto lists = window.findChildren<QListWidget *>();
-        for (QListWidget *list : lists) {
-            if (list->objectName().isEmpty()) // skip none; identify by parent order
-                continue;
-        }
-        // channel + member lists are unnamed; populate both found lists.
-        if (lists.size() >= 2) {
+        if (lists.size() >= 3) {
             lists[0]->addItems({"#general", "#random", "\xE2\x97\x8F #dev"});
             lists[0]->setCurrentRow(0);
-            lists[1]->addItems({"\xE2\x97\x8F casey (you)", "\xE2\x97\x8F sam",
+            lists[1]->addItems({"@sam", "\xE2\x97\x8F @rio"});
+            lists[2]->addItems({"\xE2\x97\x8F casey (you)", "\xE2\x97\x8F sam",
                                 "\xE2\x97\x8F rio (discovered)"});
         }
         if (auto *view = window.findChild<QTextBrowser *>("messageView")) {

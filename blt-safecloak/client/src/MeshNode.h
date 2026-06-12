@@ -33,6 +33,7 @@ public:
     bool start();
 
     void sendChat(const QString &channel, const QString &text) override;
+    void sendDirect(const QString &targetId, const QString &text) override;
     void addChannel(const QString &channel) override;
     void shutdown() override;
     QString modeName() const override { return "Mesh"; }
@@ -42,7 +43,9 @@ private:
         QString name;
         QHostAddress address;
         quint16 tcpPort = 0;
+        qint64 firstSeenMs = 0;
         qint64 lastSeenMs = 0;
+        qint64 lastIntroSentMs = 0; // throttles unicast introductions
     };
 
     QByteArray announcePayload() const;

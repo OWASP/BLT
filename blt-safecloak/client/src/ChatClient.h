@@ -18,6 +18,7 @@ public:
     void connectToServer(const QString &host, quint16 port);
 
     void sendChat(const QString &channel, const QString &text) override;
+    void sendDirect(const QString &targetId, const QString &text) override;
     void addChannel(const QString &channel) override;
     void shutdown() override;
     QString modeName() const override { return "Client"; }

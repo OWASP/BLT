@@ -12,6 +12,7 @@ namespace {
 
 constexpr int kAnnounceIntervalMs = 2000;
 constexpr int kNodeTimeoutMs = 8000;
+constexpr int kDialFallbackMs = 6000;
 constexpr int kSeenCacheLimit = 4096;
 const QString kAppTag = QStringLiteral("safecloak-chat");
 // Discovery goes out via multicast (looped back locally, so instances on the
@@ -106,26 +107,34 @@ void MeshNode::onDatagram()
         if (nodeId.isEmpty() || nodeId == m_nodeId)
             continue;
 
+        const qint64 now = QDateTime::currentMSecsSinceEpoch();
         KnownNode &node = m_known[nodeId];
         const bool isNew = node.lastSeenMs == 0;
         node.name = announce.value("name").toString();
         node.address = datagram.senderAddress();
         node.tcpPort = quint16(announce.value("port").toInt());
-        node.lastSeenMs = QDateTime::currentMSecsSinceEpoch();
+        node.lastSeenMs = now;
+        if (isNew)
+            node.firstSeenMs = now;
 
-        // Exactly one side dials so each pair gets a single link; the node
-        // with the lexicographically smaller id initiates.
+        // Preferred direction: the node with the smaller id dials, so each
+        // pair normally gets a single link.
         if (!m_peers.contains(nodeId) && !m_pendingDials.contains(nodeId) &&
             m_nodeId < nodeId) {
             connectToPeer(nodeId, node);
         }
-        if (isNew) {
-            // Introduce ourselves directly so the other side learns about us
-            // even if our multicast/broadcast does not reach it.
+        // While there is no link, keep introducing ourselves directly to the
+        // sender. This is what lets the other side learn about us when its
+        // network drops our multicast/broadcast (or a previous introduction
+        // was lost) — throttled so two unconnected nodes don't ping-pong.
+        if (!m_peers.contains(nodeId) &&
+            now - node.lastIntroSentMs > kAnnounceIntervalMs / 2) {
+            node.lastIntroSentMs = now;
             m_udp.writeDatagram(announcePayload(), datagram.senderAddress(),
                                 datagram.senderPort());
-            updateRosterAndStatus();
         }
+        if (isNew)
+            updateRosterAndStatus();
     }
 }
 
@@ -138,6 +147,7 @@ void MeshNode::connectToPeer(const QString &nodeId, const KnownNode &node)
     auto *connection = new FramedConnection(socket, this);
     connection->remoteId = nodeId;
     connection->remoteName = node.name;
+    connection->outbound = true;
 
     connect(socket, &QSslSocket::encrypted, this, [this, connection] {
         adoptConnection(connection);
@@ -178,11 +188,17 @@ void MeshNode::adoptConnection(FramedConnection *connection)
 
     if (FramedConnection *existing = m_peers.value(nodeId)) {
         if (existing != connection) {
-            // Duplicate link (e.g. both sides raced); keep the existing one.
-            connection->disconnect(this);
-            connection->close();
-            connection->deleteLater();
-            return;
+            // Duplicate link (both sides dialed). Both nodes keep the link
+            // whose dialer has the smaller id, so they agree on a survivor.
+            const QString newDialer = connection->outbound ? m_nodeId : nodeId;
+            const QString oldDialer = existing->outbound ? m_nodeId : nodeId;
+            FramedConnection *loser = newDialer < oldDialer ? existing : connection;
+            loser->disconnect(this);
+            loser->close();
+            loser->deleteLater();
+            if (loser == connection)
+                return;
+            m_peers.insert(nodeId, connection);
         }
     } else {
         m_peers.insert(nodeId, connection);
@@ -226,6 +242,20 @@ void MeshNode::onPeerMessage(FramedConnection *connection, const QJsonObject &me
                          message.value("sender").toString(),
                          message.value("text").toString(),
                          qint64(message.value("ts").toDouble()));
+    } else if (type == "dm") {
+        if (!markSeen(message.value("id").toString()))
+            return;
+        const QString to = message.value("to").toString();
+        if (to == m_nodeId) {
+            emit directMessage(message.value("from").toString(),
+                               message.value("fromName").toString(),
+                               message.value("fromName").toString(),
+                               message.value("text").toString(),
+                               qint64(message.value("ts").toDouble()));
+        } else {
+            // Not for us: forward so DMs reach peers we have no direct link to.
+            flood(message, connection);
+        }
     } else if (type == "channel") {
         if (!markSeen(message.value("id").toString()))
             return;
@@ -265,6 +295,29 @@ void MeshNode::sendChat(const QString &channel, const QString &text)
                               {"text", text},  {"ts", double(ts)}};
     flood(message);
     emit chatMessage(channel, m_userName, text, ts);
+}
+
+void MeshNode::sendDirect(const QString &targetId, const QString &text)
+{
+    if (text.trimmed().isEmpty() || targetId == m_nodeId)
+        return;
+    const qint64 ts = QDateTime::currentMSecsSinceEpoch();
+    const QString id = QUuid::createUuid().toString(QUuid::WithoutBraces);
+    markSeen(id);
+    const QJsonObject message{{"type", "dm"},        {"id", id},
+                              {"from", m_nodeId},    {"fromName", m_userName},
+                              {"to", targetId},      {"text", text},
+                              {"ts", double(ts)}};
+    // Deliver on the direct link when there is one; otherwise route through
+    // the mesh (intermediate nodes forward, only the target displays it).
+    if (FramedConnection *peer = m_peers.value(targetId))
+        peer->sendMessage(message);
+    else
+        flood(message);
+    const QString targetName =
+        m_peers.contains(targetId) ? m_peers.value(targetId)->remoteName
+                                   : m_known.value(targetId).name;
+    emit directMessage(targetId, targetName, m_userName, text, ts);
 }
 
 void MeshNode::addChannel(const QString &channel)
@@ -317,9 +370,19 @@ void MeshNode::prune()
         if (now - it->lastSeenMs > kNodeTimeoutMs && !m_peers.contains(it.key())) {
             it = m_known.erase(it);
             changed = true;
-        } else {
-            ++it;
+            continue;
         }
+        // Link establishment safety net: retry as the preferred dialer, and
+        // if the preferred dialer (the other side) has not connected to us
+        // within a grace period — e.g. it cannot receive our announcements —
+        // dial from this side instead. Duplicate links are resolved
+        // deterministically in adoptConnection().
+        if (!m_peers.contains(it.key()) && !m_pendingDials.contains(it.key())) {
+            const bool preferredDialer = m_nodeId < it.key();
+            if (preferredDialer || now - it->firstSeenMs > kDialFallbackMs)
+                connectToPeer(it.key(), it.value());
+        }
+        ++it;
     }
     if (changed)
         updateRosterAndStatus();
@@ -327,13 +390,13 @@ void MeshNode::prune()
 
 void MeshNode::updateRosterAndStatus()
 {
-    QStringList members{m_userName + " (you)"};
+    QList<MemberInfo> members{{m_nodeId, m_userName, QString(), true}};
     for (auto it = m_peers.constBegin(); it != m_peers.constEnd(); ++it)
-        members.append(it.value()->remoteName);
+        members.append({it.key(), it.value()->remoteName, QString(), false});
     // Nodes we can see via discovery but have no link to yet.
     for (auto it = m_known.constBegin(); it != m_known.constEnd(); ++it) {
         if (!m_peers.contains(it.key()))
-            members.append(it->name + " (discovered)");
+            members.append({it.key(), it->name, "(discovered)", false});
     }
     emit rosterChanged(members);
     emit statusChanged("Mesh · " + QString::number(m_peers.size()) + " peer(s) · TLS");

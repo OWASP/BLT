@@ -52,10 +52,25 @@ void ChatClient::onServerMessage(const QJsonObject &message)
         for (const auto &value : message.value("list").toArray())
             channels.append(value.toString());
         emit channelsChanged(channels);
+    } else if (type == "dm") {
+        // The conversation partner is whichever end of the message isn't us.
+        const QString from = message.value("from").toString();
+        const bool outgoing = from == m_nodeId;
+        emit directMessage(
+            outgoing ? message.value("to").toString() : from,
+            outgoing ? message.value("toName").toString()
+                     : message.value("fromName").toString(),
+            message.value("fromName").toString(),
+            message.value("text").toString(),
+            qint64(message.value("ts").toDouble()));
     } else if (type == "roster") {
-        QStringList members;
-        for (const auto &value : message.value("members").toArray())
-            members.append(value.toString());
+        QList<MemberInfo> members;
+        for (const auto &value : message.value("members").toArray()) {
+            const QJsonObject entry = value.toObject();
+            const QString id = entry.value("id").toString();
+            members.append({id, entry.value("name").toString(),
+                            entry.value("note").toString(), id == m_nodeId});
+        }
         emit rosterChanged(members);
     } else if (type == "system") {
         emit systemMessage(message.value("text").toString());
@@ -67,6 +82,13 @@ void ChatClient::sendChat(const QString &channel, const QString &text)
     if (m_connection && !text.trimmed().isEmpty())
         m_connection->sendMessage(
             {{"type", "chat"}, {"channel", channel}, {"text", text}});
+}
+
+void ChatClient::sendDirect(const QString &targetId, const QString &text)
+{
+    if (m_connection && !text.trimmed().isEmpty() && targetId != m_nodeId)
+        m_connection->sendMessage(
+            {{"type", "dm"}, {"to", targetId}, {"text", text}});
 }
 
 void ChatClient::addChannel(const QString &channel)
