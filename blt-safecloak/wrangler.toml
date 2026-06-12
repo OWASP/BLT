@@ -13,7 +13,7 @@ bindings = [
 
 [[migrations]]
 tag = "v1-chat-rooms"
-new_classes = ["ChatRoom"]
+new_sqlite_classes = ["ChatRoom"]
 
 [observability]
 enabled = true
