@@ -53,6 +53,7 @@ private:
         QHostAddress address;
         QList<QHostAddress> addresses;
         quint16 tcpPort = 0;
+        quint16 udpPort = 0;
         int nextDialIndex = 0;
         qint64 firstSeenMs = 0;
         qint64 lastSeenMs = 0;
@@ -67,6 +68,8 @@ private:
     void onPeerMessage(FramedConnection *connection, const QJsonObject &message);
     void onPeerClosed(FramedConnection *connection);
     void connectToPeer(const QString &nodeId, KnownNode &node);
+    void sendUdpToNode(const KnownNode &node, const QJsonObject &message);
+    void floodUdp(const QJsonObject &message);
     void flood(const QJsonObject &message, FramedConnection *exclude = nullptr);
     bool markSeen(const QString &messageId);
     void prune();

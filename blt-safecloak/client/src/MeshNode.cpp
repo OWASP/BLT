@@ -130,6 +130,7 @@ QByteArray MeshNode::announcePayload() const
     for (const QHostAddress &address : localIPv4Addresses())
         addresses.append(address.toString());
     const QJsonObject announce{{"app", m_appTag},
+                               {"kind", "announce"},
                                {"v", 1},
                                {"nodeId", m_nodeId},
                                {"name", m_userName},
@@ -193,6 +194,13 @@ void MeshNode::onDatagram()
         if (announce.value("app").toString() != m_appTag)
             continue;
 
+        if (announce.value("kind").toString() == "message") {
+            const QJsonObject message = announce.value("message").toObject();
+            if (!message.isEmpty())
+                onPeerMessage(nullptr, message);
+            continue;
+        }
+
         const QString nodeId = announce.value("nodeId").toString();
         if (nodeId.isEmpty() || nodeId == m_nodeId)
             continue;
@@ -218,6 +226,7 @@ void MeshNode::onDatagram()
         node.address = candidates.first();
         node.addresses = candidates;
         node.tcpPort = quint16(announce.value("port").toInt());
+        node.udpPort = quint16(datagram.senderPort());
         node.lastSeenMs = now;
         if (isNew)
             node.firstSeenMs = now;
@@ -283,10 +292,10 @@ void MeshNode::connectToPeer(const QString &nodeId, KnownNode &node)
     connect(socket, &QSslSocket::errorOccurred, this,
             [this, nodeId, name = node.name, dialAddress, socket](QAbstractSocket::SocketError) {
                 m_pendingDials.remove(nodeId);
-                emit systemMessage("Dial to " + name + " at " +
+                emit systemMessage("Direct TLS link to " + name + " at " +
                                    dialAddress.toString() + " failed: " +
                                    socket->errorString() +
-                                   ". Will try another address if one is available.");
+                                   ". LAN fallback remains active while retrying.");
                 updateRosterAndStatus();
             });
     connect(socket, &QSslSocket::sslErrors, this,
@@ -315,7 +324,8 @@ void MeshNode::connectToPeer(const QString &nodeId, KnownNode &node)
     // connect timeout, so the retry loop in prune() can take another shot.
     QTimer::singleShot(kDialTimeoutMs, connection, [this, connection] {
         if (!connection->socket()->isEncrypted()) {
-            emit systemMessage("Dial timeout to " + connection->remoteName + ".");
+            emit systemMessage("Direct TLS link to " + connection->remoteName +
+                               " timed out. LAN fallback remains active while retrying.");
             connection->socket()->abort(); // emits closed via errorOccurred
         }
     });
@@ -512,6 +522,29 @@ void MeshNode::flood(const QJsonObject &message, FramedConnection *exclude)
         if (peer != exclude)
             peer->sendMessage(message);
     }
+    floodUdp(message);
+}
+
+void MeshNode::sendUdpToNode(const KnownNode &node, const QJsonObject &message)
+{
+    if (node.udpPort == 0)
+        return;
+    const QJsonObject packet{{"app", m_appTag}, {"kind", "message"}, {"message", message}};
+    const QByteArray payload = QJsonDocument(packet).toJson(QJsonDocument::Compact);
+
+    QList<QHostAddress> targets = node.addresses;
+    if (!targets.contains(node.address))
+        targets.prepend(node.address);
+    for (const QHostAddress &target : std::as_const(targets))
+        m_udp.writeDatagram(payload, target, node.udpPort);
+}
+
+void MeshNode::floodUdp(const QJsonObject &message)
+{
+    for (auto it = m_known.constBegin(); it != m_known.constEnd(); ++it) {
+        if (!m_peers.contains(it.key()))
+            sendUdpToNode(it.value(), message);
+    }
 }
 
 bool MeshNode::markSeen(const QString &messageId)
@@ -555,13 +588,21 @@ void MeshNode::updateRosterAndStatus()
     // Nodes we can see via discovery but have no link to yet.
     for (auto it = m_known.constBegin(); it != m_known.constEnd(); ++it) {
         if (!m_peers.contains(it.key()))
-            members.append({it.key(), it->name, "(discovered)", false});
+            members.append({it.key(), it->name,
+                            it->udpPort == 0 ? QStringLiteral("(discovered)")
+                                             : QString(),
+                            false});
     }
     emit rosterChanged(members);
-    emit statusChanged(QString::number(m_peers.size()) +
-                       " peer(s) · IP " + localAddressSummary() + " · UDP " +
+    int reachableCount = m_peers.size();
+    for (auto it = m_known.constBegin(); it != m_known.constEnd(); ++it) {
+        if (!m_peers.contains(it.key()))
+            ++reachableCount;
+    }
+    emit statusChanged(QString::number(reachableCount) +
+                       " reachable · IP " + localAddressSummary() + " · UDP " +
                        QString::number(m_udp.localPort()) + " · TCP " +
-                       QString::number(m_listener.serverPort()) + " · TLS");
+                       QString::number(m_listener.serverPort()));
 }
 
 void MeshNode::shutdown()

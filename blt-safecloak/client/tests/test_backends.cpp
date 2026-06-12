@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
                              meshReceived = text;
                      });
     QObject::connect(&nodeA, &ChatBackend::statusChanged, [&](const QString &status) {
-        meshPeersA = status.contains("1 peer") ? 1 : meshPeersA;
+        meshPeersA = status.contains("1 reachable") ? 1 : meshPeersA;
     });
     QObject::connect(&nodeA, &ChatBackend::rosterChanged,
                      [&](const QList<MemberInfo> &m) { rosterA = m; });

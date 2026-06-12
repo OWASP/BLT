@@ -21,6 +21,9 @@ channel" creates more and propagates them to everyone) and direct messages:
 click a member in the sidebar to start a one-to-one chat. DMs go over the
 direct TLS link when one exists and are otherwise routed through intermediate
 nodes, which forward but never display them.
+If a peer is visible but its TCP listener times out, SafeCloak keeps retrying
+the direct TLS link and uses the already-working LAN discovery socket as a
+fallback message path so nearby peers can still chat.
 
 ## Building
 
