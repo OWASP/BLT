@@ -82,6 +82,30 @@ QT_QPA_PLATFORM=offscreen ./build/safecloak-tests
 - UDP discovery announcements contain only the display name, a random node id,
   and a port — never message content.
 
+## Troubleshooting: peers see each other but never connect
+
+By far the most common cause is a **host firewall dropping inbound traffic.**
+The symptom is exactly: one computer shows the other as a member and logs
+"Discovered … / Dialing … / Direct TLS link timed out", while the other
+computer doesn't see the first at all. That happens when the second computer's
+firewall blocks inbound — its outbound announcements still get out (so it's
+visible), but nothing can reach it back.
+
+SafeCloak detects an active firewall at startup and prints the exact command
+to fix it in the message pane. Run it **on every computer**, then restart:
+
+```sh
+# ufw (Debian/Ubuntu)
+sudo ufw allow 45453-45463/udp && sudo ufw allow 45464-45473/tcp
+
+# firewalld (Fedora/RHEL)
+sudo firewall-cmd --permanent --add-port=45453-45463/udp --add-port=45464-45473/tcp
+sudo firewall-cmd --reload
+```
+
+No application-level trick can get through a firewall that drops inbound
+packets, so opening these ports is required for the mesh to link up.
+
 ## Network details
 
 - Mesh discovery uses UDP ports 45454–45463 and multicast group

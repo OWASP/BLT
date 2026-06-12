@@ -7,6 +7,7 @@
 #include <QJsonDocument>
 #include <QNetworkDatagram>
 #include <QNetworkInterface>
+#include <QProcess>
 #include <QSslError>
 #include <QTimer>
 #include <QUuid>
@@ -55,6 +56,35 @@ QString localAddressSummary()
     for (const QHostAddress &address : localIPv4Addresses())
         addresses.append(address.toString());
     return addresses.join(", ");
+}
+
+// The port ranges SafeCloak needs open for inbound traffic: UDP 45453-45463
+// (LAN bus + discovery) and TCP 45464-45473 (mesh TLS links).
+const QString kPortRangeUdp = QStringLiteral("45453:45463");
+const QString kPortRangeTcp = QStringLiteral("45464:45473");
+
+// Returns the command to open SafeCloak's ports on whichever host firewall is
+// active, or an empty string when none is detected (or not on Linux). Best
+// effort and root-free: it only checks whether the firewall service is running.
+QString detectFirewallFixCommand()
+{
+    auto serviceActive = [](const QString &service) {
+        QProcess probe;
+        probe.start("systemctl", {"is-active", service});
+        if (!probe.waitForFinished(1500))
+            return false;
+        return probe.readAllStandardOutput().trimmed() == "active";
+    };
+
+    if (serviceActive("ufw"))
+        return "sudo ufw allow " + kPortRangeUdp.split(':').join('-') +
+               "/udp && sudo ufw allow " + kPortRangeTcp.split(':').join('-') + "/tcp";
+    if (serviceActive("firewalld"))
+        return "sudo firewall-cmd --permanent "
+               "--add-port=" + kPortRangeUdp.split(':').join('-') + "/udp "
+               "--add-port=" + kPortRangeTcp.split(':').join('-') + "/tcp "
+               "&& sudo firewall-cmd --reload";
+    return QString();
 }
 
 } // namespace
@@ -136,6 +166,7 @@ bool MeshNode::start(const QHostAddress &bindAddress,
                        "; UDP " + QString::number(m_udp.localPort()) +
                        "; LAN " + QString::number(kLanBusPort) +
                        "; TCP " + QString::number(m_listener.serverPort()) + ".");
+    warnIfLocalFirewall();
 
     sendAnnounce();
     sendLanBusPacket();
@@ -357,6 +388,36 @@ void MeshNode::forgetStaleEndpointUsers(const QString &nodeId,
         updateRosterAndStatus();
 }
 
+void MeshNode::warnIfLocalFirewall()
+{
+    m_firewallFixCommand = detectFirewallFixCommand();
+    if (!m_firewallFixCommand.isEmpty()) {
+        emit systemMessage(
+            "\xE2\x9A\xA0 A firewall is active on this computer. If others can't "
+            "see you, open SafeCloak's ports by running:  " + m_firewallFixCommand);
+    }
+}
+
+// Called when a dial fails or times out. If this node has discovered peers but
+// every dial fails and it has never accepted an inbound connection, its own
+// inbound is almost certainly being dropped — surface the fix once.
+void MeshNode::noteDialFailure()
+{
+    ++m_failedDials;
+    if (m_firewallHintShown || m_inboundEverAccepted || m_failedDials < 2 ||
+        m_known.isEmpty())
+        return;
+    m_firewallHintShown = true;
+    const QString command = m_firewallFixCommand.isEmpty()
+        ? "(ufw)  sudo ufw allow " + kPortRangeUdp.split(':').join('-') +
+              "/udp && sudo ufw allow " + kPortRangeTcp.split(':').join('-') + "/tcp"
+        : m_firewallFixCommand;
+    emit systemMessage(
+        "\xE2\x9A\xA0 Could not open a direct link to any peer, and no one has "
+        "connected in. A firewall is blocking SafeCloak — on the computer others "
+        "can't reach, allow the ports:  " + command);
+}
+
 void MeshNode::sendAnnounce()
 {
     writeDiscoveryDatagrams(announcePayload());
@@ -558,6 +619,7 @@ void MeshNode::connectToPeer(const QString &nodeId, KnownNode &node)
                                    dialAddress.toString() + " failed: " +
                                    socket->errorString() +
                                    ". LAN fallback remains active while retrying.");
+                noteDialFailure();
                 updateRosterAndStatus();
             });
     connect(socket, &QSslSocket::sslErrors, this,
@@ -588,6 +650,7 @@ void MeshNode::connectToPeer(const QString &nodeId, KnownNode &node)
         if (!connection->socket()->isEncrypted()) {
             emit systemMessage("Direct TLS link to " + connection->remoteName +
                                " timed out. LAN fallback remains active while retrying.");
+            noteDialFailure();
             connection->socket()->abort(); // emits closed via errorOccurred
         }
     });
@@ -603,6 +666,8 @@ void MeshNode::onIncomingConnection()
             pending->deleteLater();
             continue;
         }
+        // An inbound connection proves this host's firewall is not blocking us.
+        m_inboundEverAccepted = true;
         auto *connection = new FramedConnection(ssl, this);
         m_handshaking.append(connection);
         connect(connection, &FramedConnection::messageReceived, this,

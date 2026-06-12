@@ -61,6 +61,8 @@ private:
         qint64 lastIntroSentMs = 0; // throttles unicast introductions
     };
 
+    void warnIfLocalFirewall();
+    void noteDialFailure();
     QByteArray announcePayload() const;
     QJsonObject selfPacketMetadata() const;
     QList<QHostAddress> broadcastAddresses() const;
@@ -113,4 +115,11 @@ private:
     QSet<QString> m_seenIds;
     QQueue<QString> m_seenOrder;
     QStringList m_channels{"#general", "#random"};
+
+    // Firewall diagnostics. A host firewall that drops inbound traffic is the
+    // usual reason peers discover each other but can't form a TLS link.
+    QString m_firewallFixCommand; // OS-specific "open the ports" command
+    bool m_inboundEverAccepted = false;
+    int m_failedDials = 0;
+    bool m_firewallHintShown = false;
 };
