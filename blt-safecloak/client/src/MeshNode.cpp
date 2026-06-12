@@ -203,6 +203,17 @@ void MeshNode::writeDiscoveryDatagrams(const QByteArray &payload,
     }
 }
 
+void MeshNode::replyWithAnnounce(const QHostAddress &target, quint16 targetPort)
+{
+    const QByteArray payload = announcePayload();
+    m_udp.writeDatagram(payload, target, targetPort);
+    for (quint16 port = kDiscoveryPortBase;
+         port < kDiscoveryPortBase + kDiscoveryPortRange; ++port) {
+        if (port != targetPort)
+            m_udp.writeDatagram(payload, target, port);
+    }
+}
+
 void MeshNode::sendAnnounce()
 {
     writeDiscoveryDatagrams(announcePayload());
@@ -223,6 +234,7 @@ void MeshNode::onDatagram()
             const QJsonObject message = announce.value("message").toObject();
             learnNodeFromPacket(announce, datagram.senderAddress(),
                                 quint16(datagram.senderPort()));
+            replyWithAnnounce(datagram.senderAddress(), quint16(datagram.senderPort()));
             if (!message.isEmpty())
                 onPeerMessage(nullptr, message);
             continue;
@@ -287,14 +299,8 @@ void MeshNode::onDatagram()
             QList<QHostAddress> introTargets = node.addresses;
             if (!introTargets.contains(datagram.senderAddress()))
                 introTargets.prepend(datagram.senderAddress());
-            const QByteArray payload = announcePayload();
             for (const QHostAddress &target : std::as_const(introTargets)) {
-                m_udp.writeDatagram(payload, target, datagram.senderPort());
-                for (quint16 port = kDiscoveryPortBase;
-                     port < kDiscoveryPortBase + kDiscoveryPortRange; ++port) {
-                    if (port != datagram.senderPort())
-                        m_udp.writeDatagram(payload, target, port);
-                }
+                replyWithAnnounce(target, quint16(datagram.senderPort()));
             }
         }
         if (isNew)
