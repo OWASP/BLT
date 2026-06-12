@@ -2,19 +2,15 @@
 import asyncio
 import traceback
 import re
-import time
-import uuid
+from pathlib import Path
+from urllib.parse import urlparse
 
-from workers import DurableObject, Response, WorkerEntrypoint
+from workers import WorkerEntrypoint, Response
 
 try:
-    from pyodide.ffi import create_proxy
-except ImportError:  # pragma: no cover - only available in Cloudflare Python runtime
-    def create_proxy(callback):
-        return callback
-
-from urllib.parse import urlparse
-from pathlib import Path
+    from workers import DurableObject
+except ImportError:  # pragma: no cover - depends on Cloudflare runtime version
+    DurableObject = object
 
 from libs.utils import html_response, cors_response, base_headers
 
@@ -31,56 +27,22 @@ ROOM_RE = re.compile(r'^[A-Za-z0-9._-]{1,80}$')
 MAX_ROOM_CONNECTIONS = 128
 MAX_CIPHERTEXT_BYTES = 96 * 1024 * 1024
 MAX_STORED_CIPHERTEXTS = 200
-MESSAGE_TTL_MS = 60 * 60 * 1000
 
 
 def _get_binding(env, name):
-    """Return a Worker binding from Python/JS-style env objects."""
+    """Read a Cloudflare binding from either attribute-style or mapping-style env."""
     if env is None:
         return None
-
     try:
         value = getattr(env, name)
         if value is not None:
             return value
-    except Exception:  # pragma: no cover - depends on runtime FFI behavior
+    except Exception:  # pragma: no cover - depends on runtime proxy behavior
         pass
-
     try:
-        value = env[name]
-        if value is not None:
-            return value
-    except Exception:  # pragma: no cover - env is usually attribute-based
-        pass
-
-    try:
-        value = env.get(name)
-        if value is not None:
-            return value
-    except Exception:  # pragma: no cover - env may not be dict-like
-        pass
-
-    return None
-
-
-def _ciphertext_size(ciphertext):
-    if isinstance(ciphertext, str):
-        return len(ciphertext.encode('utf-8'))
-    return len(ciphertext)
-
-
-def _destroy_proxy(proxy):
-    destroy = getattr(proxy, 'destroy', None)
-    if destroy:
-        destroy()
-
-
-class Session:
-    """A connected WebSocket plus the JS callback proxies it owns."""
-
-    def __init__(self, *, ws, proxies):
-        self.ws = ws
-        self.proxies = proxies
+        return env[name]
+    except Exception:  # pragma: no cover - depends on runtime proxy behavior
+        return None
 
 
 class ChatRoom(DurableObject):
@@ -92,138 +54,153 @@ class ChatRoom(DurableObject):
     and purged by alarm.
     """
 
-    def __init__(self, ctx, env):
-        super().__init__(ctx, env)
-        self.ctx = ctx
+    def __init__(self, state, env):
+        try:
+            super().__init__(state, env)
+        except TypeError:  # pragma: no cover - for local fallback object
+            pass
+
+        # Different Python Workers versions expose these as ctx/env or state/env.
+        self.state = getattr(self, 'ctx', state)
         self.env = env
-        self.sessions = {}
+        self.sessions = set()
+        self._event_proxies = {}
 
     async def fetch(self, request):
-        if request.method != 'GET':
-            return Response('Expected GET',
-                            status=405,
-                            headers=base_headers('text/plain; charset=utf-8'))
+        """Current Python Durable Object HTTP handler name."""
+        return await self._handle_fetch(request)
 
+    async def on_fetch(self, request):
+        """Compatibility handler for Python Workers runtimes expecting on_fetch."""
+        return await self._handle_fetch(request)
+
+    async def _handle_fetch(self, request):
         if request.headers.get('Upgrade', '').lower() != 'websocket':
             return Response('Expected WebSocket',
                             status=426,
                             headers=base_headers('text/plain; charset=utf-8'))
 
+        if request.method != 'GET':
+            return Response('Expected GET',
+                            status=400,
+                            headers=base_headers('text/plain; charset=utf-8'))
+
+        # Cloudflare's Python Worker runtime mirrors the JS WebSocketPair API.
+        # Use the Python shape documented by Cloudflare: object_values() and
+        # Response(..., web_socket=client).
         try:
-            from js import WebSocketPair
+            from js import Date, WebSocketPair
+            from pyodide.ffi import create_proxy
         except ImportError:  # pragma: no cover
             return Response('WebSocketPair unavailable in this runtime',
                             status=500,
                             headers=base_headers('text/plain; charset=utf-8'))
 
-        # Cloudflare Python Workers expose JS object values through object_values().
         client, server = WebSocketPair.new().object_values()
-        server.accept()
 
         if len(self.sessions) >= MAX_ROOM_CONNECTIONS:
+            # Accept before returning 101 so the client receives a valid WS close.
+            server.accept()
             server.close(1013, 'room full')
             return Response(None, status=101, web_socket=client)
 
-        session_id = str(uuid.uuid4())
+        server.accept()
+        self.sessions.add(server)
+
+        stored = await self.state.storage.get('messages') or []
+        for item in stored:
+            try:
+                server.send(item)
+            except Exception:
+                break
+
+        async def persist(ciphertext):
+            if isinstance(ciphertext, str):
+                size = len(ciphertext.encode('utf-8'))
+            else:
+                size = len(ciphertext)
+            if size > MAX_CIPHERTEXT_BYTES:
+                return
+
+            messages = await self.state.storage.get('messages') or []
+            messages.append(ciphertext)
+            # One-hour, bounded safety buffer. The client dedupes by encrypted
+            # plaintext message id after decryption.
+            messages = messages[-MAX_STORED_CIPHERTEXTS:]
+            await self.state.storage.put('messages', messages)
+            await self.state.storage.set_alarm(Date.now() + 60 * 60 * 1000)
+
+        async def handle_message(ciphertext):
+            if isinstance(ciphertext, str):
+                size = len(ciphertext.encode('utf-8'))
+            else:
+                size = len(ciphertext)
+
+            if size > MAX_CIPHERTEXT_BYTES:
+                server.close(1009, 'message too large')
+                self._cleanup_session(server)
+                return
+
+            stale = []
+            for ws in list(self.sessions):
+                if ws == server:
+                    continue
+                try:
+                    ws.send(ciphertext)
+                except Exception:
+                    stale.append(ws)
+
+            for ws in stale:
+                self._cleanup_session(ws)
+
+            # Store in the background only when there is no other live client.
+            if len(self.sessions) <= 1:
+                try:
+                    self.state.wait_until(persist(ciphertext))
+                except AttributeError:
+                    await persist(ciphertext)
 
         async def on_message(event):
-            await self._handle_message(session_id, event.data)
+            await handle_message(event.data)
 
         async def on_close(_event=None):
-            await self._drop_session(session_id, close_socket=False)
+            self._cleanup_session(server)
 
         message_proxy = create_proxy(on_message)
         close_proxy = create_proxy(on_close)
         error_proxy = create_proxy(on_close)
 
+        self._event_proxies[server] = (message_proxy, close_proxy, error_proxy)
+
         server.addEventListener('message', message_proxy)
         server.addEventListener('close', close_proxy)
         server.addEventListener('error', error_proxy)
 
-        self.sessions[session_id] = Session(
-            ws=server,
-            proxies=[message_proxy, close_proxy, error_proxy],
-        )
-
-        stored = await self.ctx.storage.get('messages') or []
-        stale = []
-        for item in stored:
-            try:
-                server.send(item)
-            except Exception:
-                stale.append(session_id)
-                break
-
-        for stale_id in stale:
-            await self._drop_session(stale_id, close_socket=True)
-
         return Response(None, status=101, web_socket=client)
 
-    async def _handle_message(self, session_id, ciphertext):
-        session = self.sessions.get(session_id)
-        if not session:
-            return
-
-        if _ciphertext_size(ciphertext) > MAX_CIPHERTEXT_BYTES:
-            await self._drop_session(session_id,
-                                     close_socket=True,
-                                     code=1009,
-                                     reason='message too large')
-            return
-
-        stale = []
-        for other_id, other in list(self.sessions.items()):
-            if other_id == session_id:
-                continue
-            try:
-                other.ws.send(ciphertext)
-            except Exception:
-                stale.append(other_id)
-
-        for stale_id in stale:
-            await self._drop_session(stale_id, close_socket=True)
-
-        # Store in the short replay buffer only when there is no other live client.
-        if len(self.sessions) <= 1:
-            await self._persist(ciphertext)
-
-    async def _persist(self, ciphertext):
-        if _ciphertext_size(ciphertext) > MAX_CIPHERTEXT_BYTES:
-            return
-
-        messages = await self.ctx.storage.get('messages') or []
-        messages.append(ciphertext)
-        messages = messages[-MAX_STORED_CIPHERTEXTS:]
-        await self.ctx.storage.put('messages', messages)
-        self.ctx.storage.setAlarm(int(time.time() * 1000) + MESSAGE_TTL_MS)
-
-    async def _drop_session(self, session_id, *, close_socket=False, code=1000, reason=''):
-        session = self.sessions.pop(session_id, None)
-        if not session:
-            return
-
-        if close_socket:
-            try:
-                session.ws.close(code, reason)
-            except Exception:
-                pass
-
-        for proxy in session.proxies:
-            _destroy_proxy(proxy)
+    def _cleanup_session(self, server):
+        self.sessions.discard(server)
+        proxies = self._event_proxies.pop(server, None)
+        if proxies:
+            for proxy in proxies:
+                try:
+                    proxy.destroy()
+                except Exception:
+                    pass
 
     async def alarm(self):
-        await self.ctx.storage.delete('messages')
+        await self.state.storage.delete('messages')
 
 
 class Default(WorkerEntrypoint):
     """Worker entrypoint for handling HTTP requests and serving content."""
 
     async def fetch(self, request):
-        """Current Python Workers entrypoint."""
+        """Current Python Worker entrypoint."""
         return await self._handle_request(request, getattr(self, 'env', None))
 
     async def on_fetch(self, request, env=None):
-        """Compatibility with older WorkerEntrypoint wrappers."""
+        """Compatibility entrypoint for older wrappers/tests."""
         return await self._handle_request(request, env or getattr(self, 'env', None))
 
     async def _handle_request(self, request, env):
@@ -237,17 +214,16 @@ class Default(WorkerEntrypoint):
             if request.method == 'OPTIONS':
                 return cors_response(origin=origin)
 
-            # WebSocket room route. Keep this before static assets so the upgrade
-            # request can never be swallowed by ASSETS.fetch().
-            if path.startswith('/api/room/') and path.endswith('/ws'):
-                if request.method != 'GET':
-                    return Response('Expected GET',
-                                    status=405,
-                                    headers=base_headers('text/plain; charset=utf-8',
-                                                         origin=origin))
+            # Handle GET requests for HTML pages.
+            if request.method == 'GET' and path in PAGES_MAP:
+                html_path = Path(__file__).parent / 'pages' / PAGES_MAP[path]
+                html_content = html_path.read_text(encoding='utf-8')
+                return html_response(html_content, origin=origin)
 
+            # Handle room WebSockets before static assets.
+            if request.method == 'GET' and path.startswith('/api/room/') and path.endswith('/ws'):
                 if request.headers.get('Upgrade', '').lower() != 'websocket':
-                    return Response('Expected Upgrade: websocket',
+                    return Response('Expected WebSocket upgrade',
                                     status=426,
                                     headers=base_headers('text/plain; charset=utf-8',
                                                          origin=origin))
@@ -265,7 +241,6 @@ class Default(WorkerEntrypoint):
                                     status=400,
                                     headers=base_headers('text/plain; charset=utf-8',
                                                          origin=origin))
-
                 if not ROOM_RE.fullmatch(room):
                     return Response('Invalid room name',
                                     status=400,
@@ -276,13 +251,7 @@ class Default(WorkerEntrypoint):
                 room_stub = chat_rooms.get(room_id)
                 return await room_stub.fetch(request)
 
-            # Handle GET requests for HTML pages.
-            if request.method == 'GET' and path in PAGES_MAP:
-                html_path = Path(__file__).parent / 'pages' / PAGES_MAP[path]
-                html_content = html_path.read_text(encoding='utf-8')
-                return html_response(html_content, origin=origin)
-
-            # Serve static files from the configured assets binding.
+            # Serving static files from the configured assets binding.
             assets = _get_binding(env, 'ASSETS')
             if assets is not None:
                 return await assets.fetch(request)
@@ -296,13 +265,11 @@ class Default(WorkerEntrypoint):
             print(f'[404] Page file not found: {exc}')
             return Response('Not Found',
                             status=404,
-                            headers=base_headers('text/plain; charset=utf-8',
-                                                 origin=origin))
+                            headers=base_headers('text/plain; charset=utf-8', origin=origin))
         except asyncio.CancelledError:
             raise
         except Exception:
             traceback.print_exc()
             return Response('Internal Server Error',
                             status=500,
-                            headers=base_headers('text/plain; charset=utf-8',
-                                                 origin=origin))
+                            headers=base_headers('text/plain; charset=utf-8', origin=origin))
