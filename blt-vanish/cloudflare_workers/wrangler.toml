@@ -14,7 +14,7 @@ name = "blt-vanish-production"
 name = "blt-vanish-development"
 
 [assets]
-directory = "../docs"
+directory = "../web_client"
 run_worker_first = ["/api", "/api/*"]
 
 # Analytics bindings are intentionally omitted to preserve privacy.
