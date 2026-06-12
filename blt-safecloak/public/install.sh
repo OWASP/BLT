@@ -44,7 +44,7 @@ build_from_source() {
     local tool
     for tool in git cmake g++ make openssl; do
         command -v "$tool" >/dev/null 2>&1 ||
-            fail "'$tool' is required to build from source. On Debian/Ubuntu: sudo apt install build-essential cmake git qt6-base-dev openssl"
+            fail "'$tool' is required to build from source. On Debian/Ubuntu: sudo apt install build-essential cmake git qt6-base-dev libssl-dev libxkbcommon-dev libxkbcommon-x11-dev openssl"
     done
     local src
     src=$(mktemp -d)
@@ -52,7 +52,7 @@ build_from_source() {
     git clone --quiet --depth 1 "$REPO_URL.git" "$src"
     cmake -S "$src/client" -B "$src/client/build" -DCMAKE_BUILD_TYPE=Release \
           -DSAFECLOAK_BUILD_TESTS=OFF ||
-        fail "CMake configure failed — is Qt 6 installed? On Debian/Ubuntu: sudo apt install qt6-base-dev"
+        fail "CMake configure failed — are Qt 6, OpenSSL headers, and XKB headers installed? On Debian/Ubuntu: sudo apt install qt6-base-dev libssl-dev libxkbcommon-dev libxkbcommon-x11-dev"
     cmake --build "$src/client/build" -j"$(nproc)"
     cp "$src/client/build/safecloak" "$BIN_PATH"
 }

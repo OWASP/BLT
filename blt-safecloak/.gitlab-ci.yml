@@ -46,7 +46,7 @@ build-client:
     DEBIAN_FRONTEND: noninteractive
   before_script:
     - apt-get update -qq
-    - apt-get install -y -qq build-essential cmake qt6-base-dev openssl ca-certificates
+    - apt-get install -y -qq build-essential cmake qt6-base-dev libssl-dev libxkbcommon-dev libxkbcommon-x11-dev openssl ca-certificates
   script:
     - cmake -S client -B client/build -DCMAKE_BUILD_TYPE=Release
     - cmake --build client/build -j$(nproc)

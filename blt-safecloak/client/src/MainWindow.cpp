@@ -48,6 +48,8 @@ const QString kRepoUrl = QStringLiteral("https://gitlab.com/owasp-blt/blt-safecl
 const QString kDisplayNameSetting = QStringLiteral("profile/displayName");
 const QString kAvatarSetting = QStringLiteral("profile/avatarPng");
 const QString kServerUrlSetting = QStringLiteral("server/url");
+const QString kDefaultServerUrl =
+    QStringLiteral("wss://safecloak.owaspblt.org/api/room/general/ws");
 const QString kRoomNameSetting = QStringLiteral("server/room");
 const QString kUseServerSetting = QStringLiteral("server/useServer");
 constexpr int kNetworkLogLimit = 2000;
@@ -163,9 +165,9 @@ QWidget *MainWindow::buildSetupPage()
     m_serverModeRadio->setChecked(useServer);
 
     m_serverUrlEdit = new QLineEdit;
-    m_serverUrlEdit->setPlaceholderText("wss://example.com/api/room/general/ws");
+    m_serverUrlEdit->setPlaceholderText(kDefaultServerUrl);
     m_serverUrlEdit->setMaxLength(2048);
-    m_serverUrlEdit->setText(QSettings().value(kServerUrlSetting).toString());
+    m_serverUrlEdit->setText(QSettings().value(kServerUrlSetting, kDefaultServerUrl).toString());
     m_roomNameEdit = new QLineEdit;
     m_roomNameEdit->setPlaceholderText("Room name");
     m_roomNameEdit->setMaxLength(80);

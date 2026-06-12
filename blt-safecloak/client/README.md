@@ -60,6 +60,12 @@ Requires Qt 6.4+ (Widgets, Network), CMake 3.16+, OpenSSL development headers,
 a C++17 compiler, and the `openssl` CLI at runtime (used once to generate the
 mesh node certificate).
 
+On Debian/Ubuntu:
+
+```sh
+sudo apt install build-essential cmake git qt6-base-dev libssl-dev libxkbcommon-dev libxkbcommon-x11-dev openssl
+```
+
 ```sh
 cd client
 cmake -B build -DCMAKE_BUILD_TYPE=Release
