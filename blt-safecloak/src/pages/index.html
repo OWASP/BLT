@@ -551,6 +551,43 @@
         </div>
       </section>
 
+      <!-- Desktop client -->
+      <section class="px-4 pb-14 sm:px-6 lg:px-8" aria-labelledby="client-heading">
+        <div class="mx-auto max-w-4xl">
+          <h2
+            class="text-center text-3xl font-extrabold text-gray-900 sm:text-4xl"
+            id="client-heading"
+          >
+            Desktop LAN Chat Client
+          </h2>
+          <p class="mx-auto mt-3 max-w-2xl text-center text-gray-600">
+            A Qt 6 desktop app for TLS-encrypted chat on your local network — host a room, join
+            one, or go serverless with mesh mode. Install it with one command:
+          </p>
+          <div class="surface-card mt-8 rounded-xl p-4 sm:p-5">
+            <div class="flex items-center gap-3">
+              <code
+                id="install-command"
+                class="flex-1 overflow-x-auto whitespace-nowrap rounded-md bg-gray-900 px-4 py-3 font-mono text-sm text-gray-100"
+                >curl -fsSL /install.sh | bash</code
+              >
+              <button
+                id="copy-install"
+                type="button"
+                class="btn-outline-blt rounded-md px-4 py-3 text-sm font-bold transition"
+                aria-label="Copy install command"
+              >
+                <i class="fa-regular fa-copy" aria-hidden="true"></i>
+              </button>
+            </div>
+            <p class="mt-3 text-center text-xs text-gray-500">
+              Linux · downloads the latest CI build or compiles from source · installs to
+              ~/.local/bin
+            </p>
+          </div>
+        </div>
+      </section>
+
       <!-- CTA -->
       <section class="px-4 pb-16 sm:px-6 lg:px-8" aria-label="Call to action">
         <div
@@ -656,6 +693,26 @@
             link.classList.add("active");
           });
         });
+
+        const installCommand = document.getElementById("install-command");
+        const copyInstall = document.getElementById("copy-install");
+        if (installCommand) {
+          installCommand.textContent = `curl -fsSL ${window.location.origin}/install.sh | bash`;
+        }
+        if (copyInstall && installCommand) {
+          copyInstall.addEventListener("click", async () => {
+            try {
+              await navigator.clipboard.writeText(installCommand.textContent);
+              const icon = copyInstall.querySelector("i");
+              icon.className = "fa-solid fa-check";
+              setTimeout(() => {
+                icon.className = "fa-regular fa-copy";
+              }, 1500);
+            } catch {
+              /* clipboard unavailable; the command is still selectable */
+            }
+          });
+        }
       });
     </script>
     <script src="js/ui.js"></script>

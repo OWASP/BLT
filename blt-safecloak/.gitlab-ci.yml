@@ -1,5 +1,6 @@
 stages:
   - test
+  - build
 
 e2e-tests:
   stage: test
@@ -29,3 +30,29 @@ e2e-tests:
     - playwright install chromium --with-deps
   script:
     - pytest tests/ -v --tb=short
+
+# Builds the Qt 6 desktop client and publishes the executable as an artifact.
+# The latest main-branch artifact is what public/install.sh downloads:
+# https://gitlab.com/owasp-blt/blt-safecloak/-/jobs/artifacts/main/raw/client/build/safecloak?job=build-client
+build-client:
+  stage: build
+  image: ubuntu:24.04
+  needs: []
+  timeout: 30 minutes
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"
+    - if: $CI_COMMIT_BRANCH == "main"
+  variables:
+    DEBIAN_FRONTEND: noninteractive
+  before_script:
+    - apt-get update -qq
+    - apt-get install -y -qq build-essential cmake qt6-base-dev openssl ca-certificates
+  script:
+    - cmake -S client -B client/build -DCMAKE_BUILD_TYPE=Release
+    - cmake --build client/build -j$(nproc)
+    - XDG_RUNTIME_DIR=/tmp QT_QPA_PLATFORM=offscreen ./client/build/safecloak-tests
+  artifacts:
+    name: safecloak-linux-x86_64
+    paths:
+      - client/build/safecloak
+    expire_in: 30 days
