@@ -397,6 +397,32 @@ QWidget *MainWindow::buildChatPage()
     headerLayout->addStretch();
     headerLayout->addWidget(m_encryptionLabel);
 
+    // Firewall banner: hidden until the backend reports the host firewall is
+    // blocking SafeCloak, then offers a one-click "Allow through firewall".
+    m_firewallBanner = new QWidget;
+    m_firewallBanner->setObjectName("firewallBanner");
+    m_firewallBannerLabel = new QLabel;
+    m_firewallBannerLabel->setObjectName("firewallBannerLabel");
+    m_firewallBannerLabel->setWordWrap(true);
+    m_firewallAllowButton = new QPushButton("Allow through firewall");
+    m_firewallAllowButton->setObjectName("primaryButton");
+    m_firewallAllowButton->setCursor(Qt::PointingHandCursor);
+    auto *firewallDismiss = new QPushButton("\xE2\x9C\x95");
+    firewallDismiss->setObjectName("ghostButton");
+    firewallDismiss->setCursor(Qt::PointingHandCursor);
+    firewallDismiss->setToolTip("Dismiss");
+    auto *firewallLayout = new QHBoxLayout(m_firewallBanner);
+    firewallLayout->setContentsMargins(16, 10, 12, 10);
+    firewallLayout->setSpacing(10);
+    firewallLayout->addWidget(m_firewallBannerLabel, 1);
+    firewallLayout->addWidget(m_firewallAllowButton);
+    firewallLayout->addWidget(firewallDismiss);
+    m_firewallBanner->hide();
+    connect(m_firewallAllowButton, &QPushButton::clicked, this,
+            &MainWindow::allowFirewall);
+    connect(firewallDismiss, &QPushButton::clicked, m_firewallBanner,
+            &QWidget::hide);
+
     m_messageView = new QTextBrowser;
     m_messageView->setObjectName("messageView");
     m_messageView->setOpenExternalLinks(true);
@@ -418,6 +444,7 @@ QWidget *MainWindow::buildChatPage()
     mainColumn->setContentsMargins(0, 0, 0, 0);
     mainColumn->setSpacing(0);
     mainColumn->addWidget(header);
+    mainColumn->addWidget(m_firewallBanner);
     mainColumn->addWidget(m_messageView, 1);
     mainColumn->addWidget(composer);
 
@@ -464,6 +491,7 @@ void MainWindow::attachBackend(ChatBackend *backend)
     connect(backend, &ChatBackend::channelsChanged, this, &MainWindow::setChannels);
     connect(backend, &ChatBackend::rosterChanged, this, &MainWindow::setRoster);
     connect(backend, &ChatBackend::statusChanged, m_statusLine, &QLabel::setText);
+    connect(backend, &ChatBackend::firewallBlocking, this, &MainWindow::showFirewallBanner);
     connect(backend, &ChatBackend::fatalError, this, [this](const QString &message) {
         leaveSession();
         m_setupError->setText(message);
@@ -482,6 +510,63 @@ void MainWindow::leaveSession(const QString &)
     }
     m_stack->setCurrentIndex(0);
     m_userName.clear();
+}
+
+// ------------------------------------------------------------------ firewall
+
+void MainWindow::showFirewallBanner(const QString &displayCommand,
+                                    const QString &privilegedCommand)
+{
+    m_firewallPrivilegedCommand = privilegedCommand;
+    m_firewallBannerLabel->setText(
+        "\xE2\x9A\xA0 A firewall on this computer may be blocking peers from "
+        "connecting. Click to open SafeCloak's ports (asks for your password).");
+    m_firewallBannerLabel->setToolTip(displayCommand);
+    m_firewallAllowButton->setEnabled(true);
+    m_firewallAllowButton->setText("Allow through firewall");
+    m_firewallBanner->show();
+}
+
+void MainWindow::allowFirewall()
+{
+    if (m_firewallPrivilegedCommand.isEmpty())
+        return;
+    m_firewallAllowButton->setEnabled(false);
+    m_firewallAllowButton->setText("Allowing…");
+
+    auto *process = new QProcess(this);
+    connect(process, &QProcess::finished, this,
+            [this, process](int exitCode, QProcess::ExitStatus) {
+                const QString errors =
+                    QString::fromUtf8(process->readAllStandardError()).trimmed();
+                process->deleteLater();
+                if (exitCode == 0) {
+                    // Ports are open immediately; existing sockets start
+                    // receiving, so discovery recovers within a few seconds.
+                    m_firewallBannerLabel->setText(
+                        "\xE2\x9C\x94 Firewall opened. Peers should connect "
+                        "within a few seconds.");
+                    m_firewallAllowButton->hide();
+                    appendSystem("Firewall opened for SafeCloak's ports.");
+                } else {
+                    m_firewallBannerLabel->setText(
+                        "Could not open the firewall" +
+                        (errors.isEmpty() ? QString() : ": " + errors.right(200)) +
+                        ". Run the command shown in the chat manually.");
+                    m_firewallAllowButton->setEnabled(true);
+                    m_firewallAllowButton->setText("Try again");
+                }
+            });
+    connect(process, &QProcess::errorOccurred, this, [this, process] {
+        process->deleteLater();
+        m_firewallBannerLabel->setText(
+            "Could not launch the privilege helper (pkexec). Run the command "
+            "shown in the chat manually in a terminal.");
+        m_firewallAllowButton->setEnabled(true);
+        m_firewallAllowButton->setText("Try again");
+    });
+    // pkexec shows a graphical password prompt and runs the command as root.
+    process->start("pkexec", {"sh", "-c", m_firewallPrivilegedCommand});
 }
 
 // ------------------------------------------------------------------ messages

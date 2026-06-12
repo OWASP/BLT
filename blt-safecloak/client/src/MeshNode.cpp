@@ -58,15 +58,22 @@ QString localAddressSummary()
     return addresses.join(", ");
 }
 
-// The port ranges SafeCloak needs open for inbound traffic: UDP 45453-45463
-// (LAN bus + discovery) and TCP 45464-45473 (mesh TLS links).
-const QString kPortRangeUdp = QStringLiteral("45453:45463");
-const QString kPortRangeTcp = QStringLiteral("45464:45473");
+// How to open SafeCloak's inbound ports on a host firewall:
+//   display    — what the user would type in a terminal (with sudo)
+//   privileged — the same commands without sudo, to run via pkexec from the
+//                "Allow through firewall" button (pkexec does the elevation)
+// Note the range syntax differs by tool: ufw wants colons (45453:45463),
+// firewalld wants hyphens (45453-45463). Using the wrong one is the cause of
+// ufw's "ERROR: Bad port".
+struct FirewallFix {
+    QString display;
+    QString privileged;
+    bool valid() const { return !display.isEmpty(); }
+};
 
-// Returns the command to open SafeCloak's ports on whichever host firewall is
-// active, or an empty string when none is detected (or not on Linux). Best
-// effort and root-free: it only checks whether the firewall service is running.
-QString detectFirewallFixCommand()
+// Best effort and root-free: only checks whether a firewall service is running.
+// Returns an empty fix when none is detected (or not on Linux).
+FirewallFix detectFirewallFix()
 {
     auto serviceActive = [](const QString &service) {
         QProcess probe;
@@ -76,15 +83,20 @@ QString detectFirewallFixCommand()
         return probe.readAllStandardOutput().trimmed() == "active";
     };
 
-    if (serviceActive("ufw"))
-        return "sudo ufw allow " + kPortRangeUdp.split(':').join('-') +
-               "/udp && sudo ufw allow " + kPortRangeTcp.split(':').join('-') + "/tcp";
-    if (serviceActive("firewalld"))
-        return "sudo firewall-cmd --permanent "
-               "--add-port=" + kPortRangeUdp.split(':').join('-') + "/udp "
-               "--add-port=" + kPortRangeTcp.split(':').join('-') + "/tcp "
-               "&& sudo firewall-cmd --reload";
-    return QString();
+    if (serviceActive("ufw")) {
+        const QString body =
+            "ufw allow 45453:45463/udp && ufw allow 45464:45473/tcp";
+        return {"sudo ufw allow 45453:45463/udp && sudo ufw allow 45464:45473/tcp",
+                body};
+    }
+    if (serviceActive("firewalld")) {
+        const QString ports =
+            "--add-port=45453-45463/udp --add-port=45464-45473/tcp";
+        return {"sudo firewall-cmd --permanent " + ports +
+                    " && sudo firewall-cmd --reload",
+                "firewall-cmd --permanent " + ports + " && firewall-cmd --reload"};
+    }
+    return {};
 }
 
 } // namespace
@@ -390,12 +402,15 @@ void MeshNode::forgetStaleEndpointUsers(const QString &nodeId,
 
 void MeshNode::warnIfLocalFirewall()
 {
-    m_firewallFixCommand = detectFirewallFixCommand();
-    if (!m_firewallFixCommand.isEmpty()) {
-        emit systemMessage(
-            "\xE2\x9A\xA0 A firewall is active on this computer. If others can't "
-            "see you, open SafeCloak's ports by running:  " + m_firewallFixCommand);
-    }
+    const FirewallFix fix = detectFirewallFix();
+    if (!fix.valid())
+        return;
+    m_firewallFixCommand = fix.display;
+    m_firewallPrivilegedCommand = fix.privileged;
+    emit systemMessage(
+        "\xE2\x9A\xA0 A firewall is active on this computer and may block peers. "
+        "Click \"Allow through firewall\" above, or run:  " + fix.display);
+    emit firewallBlocking(fix.display, fix.privileged);
 }
 
 // Called when a dial fails or times out. If this node has discovered peers but
@@ -408,14 +423,21 @@ void MeshNode::noteDialFailure()
         m_known.isEmpty())
         return;
     m_firewallHintShown = true;
-    const QString command = m_firewallFixCommand.isEmpty()
-        ? "(ufw)  sudo ufw allow " + kPortRangeUdp.split(':').join('-') +
-              "/udp && sudo ufw allow " + kPortRangeTcp.split(':').join('-') + "/tcp"
-        : m_firewallFixCommand;
-    emit systemMessage(
-        "\xE2\x9A\xA0 Could not open a direct link to any peer, and no one has "
-        "connected in. A firewall is blocking SafeCloak — on the computer others "
-        "can't reach, allow the ports:  " + command);
+    if (!m_firewallPrivilegedCommand.isEmpty()) {
+        // This machine has a local firewall — offer the one-click fix too.
+        emit systemMessage(
+            "\xE2\x9A\xA0 Could not open a direct link to any peer, and no one "
+            "has connected in. Your firewall is likely blocking SafeCloak — "
+            "click \"Allow through firewall\" above, or run:  " + m_firewallFixCommand);
+        emit firewallBlocking(m_firewallFixCommand, m_firewallPrivilegedCommand);
+    } else {
+        // No local firewall service detected: the block is on the peer's side.
+        emit systemMessage(
+            "\xE2\x9A\xA0 Could not open a direct link to any peer, and no one "
+            "has connected in. A firewall is blocking SafeCloak on the computer "
+            "others can't reach — on that machine run:  "
+            "sudo ufw allow 45453:45463/udp && sudo ufw allow 45464:45473/tcp");
+    }
 }
 
 void MeshNode::sendAnnounce()

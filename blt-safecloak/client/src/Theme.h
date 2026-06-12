@@ -109,6 +109,13 @@ QPushButton#ghostButton:hover { color: #f1f5f9; }
 #chatHeader QLabel { background: transparent; }
 #channelTitle { font-size: 16px; font-weight: 700; }
 #encryptionLabel { color: #9ca3af; font-size: 12px; }
+#firewallBanner {
+    background-color: #3d2419;
+    border-bottom: 1px solid #7f1d1d;
+}
+#firewallBannerLabel {
+    color: #fecaca; font-size: 13px; background: transparent;
+}
 #messageView {
     background-color: #0f172a; border: none; padding: 8px;
 }

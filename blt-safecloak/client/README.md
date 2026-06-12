@@ -91,12 +91,17 @@ computer doesn't see the first at all. That happens when the second computer's
 firewall blocks inbound — its outbound announcements still get out (so it's
 visible), but nothing can reach it back.
 
-SafeCloak detects an active firewall at startup and prints the exact command
-to fix it in the message pane. Run it **on every computer**, then restart:
+SafeCloak detects an active firewall at startup and shows an **"Allow through
+firewall"** button in a banner above the chat. Clicking it runs the right
+command via `pkexec` (a graphical password prompt) — no terminal needed. Do
+this **on every computer**.
+
+To do it by hand instead (note: `ufw` ranges use a **colon**, `firewalld`
+uses a **hyphen** — using the wrong one gives ufw's `ERROR: Bad port`):
 
 ```sh
 # ufw (Debian/Ubuntu)
-sudo ufw allow 45453-45463/udp && sudo ufw allow 45464-45473/tcp
+sudo ufw allow 45453:45463/udp && sudo ufw allow 45464:45473/tcp
 
 # firewalld (Fedora/RHEL)
 sudo firewall-cmd --permanent --add-port=45453-45463/udp --add-port=45464-45473/tcp
@@ -104,7 +109,8 @@ sudo firewall-cmd --reload
 ```
 
 No application-level trick can get through a firewall that drops inbound
-packets, so opening these ports is required for the mesh to link up.
+packets, so opening these ports is required for the mesh to link up. The ports
+open immediately — no app restart needed; discovery recovers within seconds.
 
 ## Network details
 

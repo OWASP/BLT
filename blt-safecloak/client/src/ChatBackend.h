@@ -39,6 +39,11 @@ signals:
                        const QString &sender, const QString &text,
                        qint64 timestampMs);
     void systemMessage(const QString &text);
+    // A host firewall is blocking SafeCloak's inbound ports. `displayCommand`
+    // is the terminal command to fix it; `privilegedCommand` is the same
+    // without sudo, for the UI to run via pkexec when the user clicks "Allow".
+    void firewallBlocking(const QString &displayCommand,
+                          const QString &privilegedCommand);
     void channelsChanged(const QStringList &channels);
     void rosterChanged(const QList<MemberInfo> &members);
     // Short status line for the UI, e.g. "Listening on port 47800".

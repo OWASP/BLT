@@ -118,7 +118,8 @@ private:
 
     // Firewall diagnostics. A host firewall that drops inbound traffic is the
     // usual reason peers discover each other but can't form a TLS link.
-    QString m_firewallFixCommand; // OS-specific "open the ports" command
+    QString m_firewallFixCommand;        // terminal command (with sudo)
+    QString m_firewallPrivilegedCommand; // command body for pkexec (no sudo)
     bool m_inboundEverAccepted = false;
     int m_failedDials = 0;
     bool m_firewallHintShown = false;

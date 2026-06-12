@@ -55,6 +55,9 @@ private:
     void refreshDmList();
     void promptAddChannel();
     void sendCurrentMessage();
+    void showFirewallBanner(const QString &displayCommand,
+                            const QString &privilegedCommand);
+    void allowFirewall();
     void notifyIfInactive(const QString &title, const QString &body);
     QString senderColor(const QString &sender) const;
     QString messageHtml(const QString &sender, const QString &text,
@@ -79,6 +82,10 @@ private:
     QListWidget *m_channelList;
     QListWidget *m_dmList;
     QListWidget *m_memberList;
+    QWidget *m_firewallBanner;
+    QLabel *m_firewallBannerLabel;
+    QPushButton *m_firewallAllowButton;
+    QString m_firewallPrivilegedCommand;
     QTextBrowser *m_messageView;
     QLineEdit *m_messageInput;
 
