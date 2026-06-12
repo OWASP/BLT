@@ -3,6 +3,7 @@
 // Exits 0 on success.
 
 #include "../src/MeshNode.h"
+#include "../src/RoomCrypto.h"
 #include "../src/SslIdentity.h"
 
 #include <QCoreApplication>
@@ -50,6 +51,19 @@ int main(int argc, char *argv[])
     if (!identity.isValid())
         return 1;
     check(!identity.fingerprint().isEmpty(), "certificate fingerprint available");
+
+    RoomCrypto crypto("test-room", "correct horse battery staple");
+    check(crypto.isValid(), "room crypto key derives");
+    const QJsonObject secret{{"type", "chat"}, {"text", "encrypted hello"}};
+    const QJsonObject encrypted = crypto.encryptObject(secret);
+    check(encrypted.value("kind").toString() == "cipher" &&
+              !encrypted.value("body").toString().isEmpty(),
+          "room crypto encrypts to an opaque envelope");
+    check(crypto.decryptObject(encrypted).value("text").toString() == "encrypted hello",
+          "room crypto decrypts a valid envelope");
+    RoomCrypto wrongCrypto("test-room", "wrong passphrase");
+    check(wrongCrypto.decryptObject(encrypted).isEmpty(),
+          "room crypto rejects the wrong passphrase");
 
     const QString testAppTag =
         QStringLiteral("safecloak-chat-test-") +
@@ -105,6 +119,17 @@ int main(int argc, char *argv[])
           "node A's roster shows node B as a connected peer");
     check(waitFor([&] { return seesConnectedPeer(rosterB, "node-a"); }, 5000),
           "node B's roster shows node A as a connected peer (both directions)");
+    auto peerOnline = [](const QList<MemberInfo> &roster, const QString &name) {
+        for (const MemberInfo &member : roster) {
+            if (member.name == name && !member.self)
+                return member.online;
+        }
+        return false;
+    };
+    check(waitFor([&] {
+              return peerOnline(rosterA, "node-b") && peerOnline(rosterB, "node-a");
+          }, 5000),
+          "connected mesh peers are marked online for green dots");
 
     nodeA.sendChat("#general", "mesh hello");
     check(waitFor([&] { return meshReceived == "mesh hello"; }, 5000),
@@ -129,6 +154,26 @@ int main(int argc, char *argv[])
     nodeA.sendDirect(meshBId, "mesh dm");
     check(waitFor([&] { return meshDmText == "mesh dm"; }, 5000),
           "direct message reaches the mesh peer");
+
+    QString typingConversation;
+    QString typingPeer;
+    bool typingActive = false;
+    QObject::connect(&nodeB, &ChatBackend::typingChanged,
+                     [&](const QString &conversation, const QString &peerId,
+                         const QString &, bool active) {
+                         typingConversation = conversation;
+                         typingPeer = peerId;
+                         typingActive = active;
+                     });
+    nodeA.sendTyping("#general", true);
+    check(waitFor([&] {
+              return typingConversation == "#general" && !typingPeer.isEmpty() &&
+                     typingActive;
+          }, 5000),
+          "typing indicator reaches the mesh peer");
+    nodeA.sendTyping("#general", false);
+    check(waitFor([&] { return !typingActive; }, 5000),
+          "typing stopped indicator reaches the mesh peer");
 
     // --- File sharing ---
     ChatMessage fileMsg;
@@ -171,6 +216,8 @@ int main(int argc, char *argv[])
           "avatar propagates to the mesh peer");
 
     nodeA.shutdown();
+    check(waitFor([&] { return !seesConnectedPeer(rosterB, "node-a"); }, 5000),
+          "clean bye removes the leaving mesh peer from the roster");
     nodeB.shutdown();
 
     // --- Mesh between two distinct IP addresses ---

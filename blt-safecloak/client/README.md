@@ -1,20 +1,22 @@
 # SafeCloak
 
-A Qt 6 desktop chat app for your local network, styled to match the
-BLT-SafeCloak theme. Think Slack, but self-organizing on your LAN with no
-internet dependency: channels, a member list, and TLS-encrypted traffic.
+A Qt 6 desktop chat app styled to match the BLT-SafeCloak theme. It can run
+as a self-organizing LAN mesh with TLS peer links, or as an encrypted server
+room relayed through Cloudflare Durable Objects.
 
 ![Setup](docs/page-setup.png)
 ![Chat](docs/page-chat.png)
 
-## Mesh-only chat
+## Chat modes
 
-SafeCloak has no host/join mode. Every node announces itself over UDP
+### LAN mesh
+
+Every node announces itself over UDP
 (multicast + broadcast + loopback), publishes its usable local IPv4 addresses,
 dials every discovered peer immediately, and floods messages through the mesh
 with duplicate suppression. Nodes appear in the member list as soon as they
-are discovered, then lose the
-`(discovered)` note once the encrypted peer link is live.
+are discovered, then lose the `(discovered)` note once the encrypted peer link
+is live. Green member dots mean online; gray means discovered or offline.
 
 You get Slack-style channels (`#general` and `#random` by default, "+ Add
 channel" creates more and propagates them to everyone) and direct messages:
@@ -27,6 +29,14 @@ discovery ports so nearby peers can still chat even when one direction cannot
 receive unicast replies. It also uses a fixed shared LAN chat port, UDP 45453,
 so every client has a stable place to receive names and messages.
 
+### Encrypted server room
+
+The home page can also join a server room with a `ws://` or `wss://` URL, a
+room name, and a passphrase. The client derives an AES-256-GCM room key from
+the room name and passphrase using PBKDF2-HMAC-SHA256. The Cloudflare Durable
+Object only relays ciphertext envelopes; it cannot read names, messages,
+files, typing state, reactions, or avatars.
+
 ### Messaging features
 
 - **File sharing** — the 📎 button shares any file type (up to 64 MB). Images
@@ -37,14 +47,18 @@ so every client has a stable place to receive names and messages.
 - **Avatars** — upload a picture in Settings; it is shared with peers and
   shown as a round avatar to the left of your name on every message.
 - **History sync** — when you join, connected peers replay the shared-channel
-  backlog (and its reactions), so late joiners see what they missed.
+  backlog (and its reactions), so late joiners see what they missed. The
+  desktop client keeps the full in-memory backlog and chunks it for transfer.
+- **Presence and typing** — peers are removed quickly on clean disconnect,
+  member dots show online/offline state, and the composer shows who is typing.
 - **Settings window** — the ⚙ button (top-right) holds your display name,
   avatar, and the network/diagnostic log, keeping the chat itself clean.
 
 ## Building
 
-Requires Qt 6.4+ (Widgets, Network), CMake 3.16+, a C++17 compiler, and the
-`openssl` CLI at runtime (used once to generate the node certificate).
+Requires Qt 6.4+ (Widgets, Network), CMake 3.16+, OpenSSL development headers,
+a C++17 compiler, and the `openssl` CLI at runtime (used once to generate the
+mesh node certificate).
 
 ```sh
 cd client
@@ -72,11 +86,12 @@ curl -fsSL https://<site>/install.sh | bash
 
 ### Tests
 
-A headless smoke test covers mesh discovery, bidirectional roster visibility,
-channel propagation, mesh flooding, direct messages, and cross-IP loopback
-simulation (built by default). Test nodes use a private discovery tag, so
-they do not appear in a running SafeCloak window on the same machine or
-LAN:
+A headless smoke test covers room crypto, mesh discovery, bidirectional roster
+visibility, online dots, clean disconnect removal, typing indicators, channel
+propagation, direct messages, file transfer, reactions, avatars, history sync,
+same-name users, and cross-IP loopback simulation (built by default). Test
+nodes use a private discovery tag, so they do not appear in a running
+SafeCloak window on the same machine or LAN:
 
 ```sh
 QT_QPA_PLATFORM=offscreen ./build/safecloak-tests
@@ -95,6 +110,9 @@ QT_QPA_PLATFORM=offscreen ./build/safecloak-tests
   Compare fingerprints out-of-band if that matters for your threat model.
 - UDP discovery announcements contain only the display name, a random node id,
   and a port — never message content.
+- Server-room traffic is encrypted before leaving the desktop client. The
+  Durable Object relay only sees ciphertext envelopes and may briefly retain
+  undelivered ciphertext for reconnect/offline delivery.
 
 ## Troubleshooting: peers see each other but never connect
 
@@ -139,8 +157,9 @@ open immediately — no app restart needed; discovery recovers within seconds.
   ephemeral port). If peers see each other as "(discovered)" but never
   connect, allow TCP 45464–45473 and UDP 45453–45463 through your firewall.
 - The sidebar status shows your local IPs plus the active UDP and TCP ports.
-  The message pane logs discovery, dial attempts, timeouts, and socket/TLS
-  errors so you can see exactly where a peer link is failing.
+  Settings logs discovery, dial attempts, timeouts, socket/TLS errors, and
+  server send/receive activity so you can see exactly where a peer link is
+  failing.
 - When the app was built from a local checkout, the home screen shows a
   "Quick update" button that pulls the latest version, rebuilds, and
   relaunches the app.

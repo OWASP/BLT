@@ -13,6 +13,7 @@ struct MemberInfo {
     QString name;
     QString note;     // e.g. "(discovered)"
     bool self = false;
+    bool online = false; // live link right now (green dot)
 };
 
 // A single chat message delivered to the UI. `conversation` is either a
@@ -51,6 +52,8 @@ public:
                               const QString &emoji) = 0;
     // Publish this node's avatar (PNG bytes; empty clears it).
     virtual void setAvatar(const QByteArray &pngData) = 0;
+    // Tell peers we started/stopped typing in a conversation.
+    virtual void sendTyping(const QString &conversation, bool active) = 0;
     virtual void addChannel(const QString &channel) = 0;
     virtual void shutdown() = 0;
     virtual QString modeName() const = 0;
@@ -64,6 +67,9 @@ signals:
                          const QString &emoji, const QString &reactorName, bool added);
     // A peer's avatar became available or changed (PNG bytes).
     void avatarChanged(const QString &peerId, const QByteArray &pngData);
+    // A peer started (active=true) or stopped typing in a conversation.
+    void typingChanged(const QString &conversation, const QString &peerId,
+                       const QString &peerName, bool active);
     // Diagnostic/log line (discovery, dials, errors). Shown in Settings, not chat.
     void systemMessage(const QString &text);
     // A host firewall is blocking SafeCloak's inbound ports. `displayCommand`

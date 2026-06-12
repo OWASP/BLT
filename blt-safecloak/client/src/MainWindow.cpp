@@ -2,6 +2,7 @@
 
 #include "MeshNode.h"
 #include "MessageRow.h"
+#include "ServerNode.h"
 #include "SettingsDialog.h"
 #include "Theme.h"
 
@@ -19,8 +20,10 @@
 #include <QListWidget>
 #include <QMessageBox>
 #include <QMimeDatabase>
+#include <QPainter>
 #include <QProcess>
 #include <QPushButton>
+#include <QRadioButton>
 #include <QScrollArea>
 #include <QScrollBar>
 #include <QSettings>
@@ -29,6 +32,7 @@
 #include <QSystemTrayIcon>
 #include <QThread>
 #include <QTimer>
+#include <QUrl>
 #include <QVBoxLayout>
 
 #ifndef SAFECLOAK_VERSION
@@ -43,6 +47,9 @@ namespace {
 const QString kRepoUrl = QStringLiteral("https://gitlab.com/owasp-blt/blt-safecloak.git");
 const QString kDisplayNameSetting = QStringLiteral("profile/displayName");
 const QString kAvatarSetting = QStringLiteral("profile/avatarPng");
+const QString kServerUrlSetting = QStringLiteral("server/url");
+const QString kRoomNameSetting = QStringLiteral("server/room");
+const QString kUseServerSetting = QStringLiteral("server/useServer");
 
 // Directory holding client/CMakeLists.txt to update from: the build-time
 // checkout when it still exists, otherwise a persistent clone managed by the
@@ -81,6 +88,18 @@ void saveDisplayName(const QString &name)
         QSettings().setValue(kDisplayNameSetting, trimmed);
 }
 
+QIcon statusDotIcon(bool online)
+{
+    QPixmap pixmap(12, 12);
+    pixmap.fill(Qt::transparent);
+    QPainter painter(&pixmap);
+    painter.setRenderHint(QPainter::Antialiasing);
+    painter.setPen(Qt::NoPen);
+    painter.setBrush(online ? QColor("#22c55e") : QColor("#6b7280"));
+    painter.drawEllipse(1, 1, 10, 10);
+    return QIcon(pixmap);
+}
+
 } // namespace
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
@@ -98,6 +117,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     m_stack->addWidget(buildSetupPage());
     m_stack->addWidget(buildChatPage());
     setCentralWidget(m_stack);
+
+    m_typingStopTimer = new QTimer(this);
+    m_typingStopTimer->setSingleShot(true);
+    connect(m_typingStopTimer, &QTimer::timeout, this, [this] {
+        sendTypingState(false);
+    });
 
     if (!m_identity.load()) {
         m_setupError->setText(m_identity.errorString());
@@ -118,7 +143,7 @@ QWidget *MainWindow::buildSetupPage()
     auto *title = new QLabel("<span style='color:#ff4444'>Safe</span>Cloak");
     title->setObjectName("appTitle");
     title->setAlignment(Qt::AlignHCenter);
-    auto *subtitle = new QLabel("Encrypted mesh chat for your local network");
+    auto *subtitle = new QLabel("Encrypted chat over LAN mesh or a private server room");
     subtitle->setObjectName("appSubtitle");
     subtitle->setAlignment(Qt::AlignHCenter);
     auto *versionLabel = new QLabel("v" SAFECLOAK_VERSION);
@@ -130,7 +155,33 @@ QWidget *MainWindow::buildSetupPage()
     m_nameEdit->setMaxLength(32);
     m_nameEdit->setText(QSettings().value(kDisplayNameSetting).toString());
 
-    auto *meshHint = new QLabel("No host or join step. Peers discover each other automatically.");
+    m_meshModeRadio = new QRadioButton("LAN mesh");
+    m_serverModeRadio = new QRadioButton("Server room");
+    const bool useServer = QSettings().value(kUseServerSetting, false).toBool();
+    m_meshModeRadio->setChecked(!useServer);
+    m_serverModeRadio->setChecked(useServer);
+
+    m_serverUrlEdit = new QLineEdit;
+    m_serverUrlEdit->setPlaceholderText("wss://example.com/api/room/general/ws");
+    m_serverUrlEdit->setText(QSettings().value(kServerUrlSetting).toString());
+    m_roomNameEdit = new QLineEdit;
+    m_roomNameEdit->setPlaceholderText("Room name");
+    m_roomNameEdit->setText(QSettings().value(kRoomNameSetting, "general").toString());
+    m_passphraseEdit = new QLineEdit;
+    m_passphraseEdit->setPlaceholderText("Room passphrase");
+    m_passphraseEdit->setEchoMode(QLineEdit::Password);
+
+    auto updateServerFields = [this] {
+        const bool enabled = m_serverModeRadio->isChecked();
+        m_serverUrlEdit->setEnabled(enabled);
+        m_roomNameEdit->setEnabled(enabled);
+        m_passphraseEdit->setEnabled(enabled);
+    };
+    connect(m_meshModeRadio, &QRadioButton::toggled, this, updateServerFields);
+    connect(m_serverModeRadio, &QRadioButton::toggled, this, updateServerFields);
+    updateServerFields();
+
+    auto *meshHint = new QLabel("Mesh discovers nearby peers. Server room relays encrypted ciphertext only.");
     meshHint->setObjectName("modeHint");
 
     m_setupError = new QLabel;
@@ -161,6 +212,12 @@ QWidget *MainWindow::buildSetupPage()
     cardLayout->addSpacing(14);
     cardLayout->addWidget(m_nameEdit);
     cardLayout->addSpacing(8);
+    cardLayout->addWidget(m_meshModeRadio);
+    cardLayout->addWidget(m_serverModeRadio);
+    cardLayout->addWidget(m_serverUrlEdit);
+    cardLayout->addWidget(m_roomNameEdit);
+    cardLayout->addWidget(m_passphraseEdit);
+    cardLayout->addSpacing(8);
     cardLayout->addWidget(meshHint);
     cardLayout->addSpacing(8);
     cardLayout->addWidget(m_setupError);
@@ -178,6 +235,12 @@ QWidget *MainWindow::buildSetupPage()
     connect(m_nameEdit, &QLineEdit::returnPressed, this, &MainWindow::startSession);
     connect(m_nameEdit, &QLineEdit::textEdited, this, [](const QString &name) {
         saveDisplayName(name);
+    });
+    connect(m_serverUrlEdit, &QLineEdit::textEdited, this, [](const QString &url) {
+        QSettings().setValue(kServerUrlSetting, url.trimmed());
+    });
+    connect(m_roomNameEdit, &QLineEdit::textEdited, this, [](const QString &room) {
+        QSettings().setValue(kRoomNameSetting, room.trimmed());
     });
     connect(m_updateButton, &QPushButton::clicked, this, &MainWindow::runQuickUpdate);
 
@@ -212,22 +275,37 @@ void MainWindow::startSession()
     m_dmNames.clear();
     m_openDms.clear();
     m_unread.clear();
+    m_typing.clear();
+    m_typingConversation.clear();
+    m_typingStopTimer->stop();
     m_channelList->clear();
     m_dmList->clear();
     m_memberList->clear();
     rebuildConversationView();
 
-    auto *mesh = new MeshNode(m_identity, name, this);
-    attachBackend(mesh);
-    if (!mesh->start())
-        return;
+    QSettings().setValue(kUseServerSetting, m_serverModeRadio->isChecked());
+    if (m_serverModeRadio->isChecked()) {
+        const QUrl url(m_serverUrlEdit->text().trimmed());
+        auto *server = new ServerNode(name, url, m_roomNameEdit->text().trimmed(),
+                                      m_passphraseEdit->text(), this);
+        attachBackend(server);
+        if (!server->start())
+            return;
+    } else {
+        auto *mesh = new MeshNode(m_identity, name, this);
+        attachBackend(mesh);
+        if (!mesh->start())
+            return;
+    }
 
     if (m_backend) {
         if (!m_userAvatar.isEmpty())
             m_backend->setAvatar(m_userAvatar);
         m_encryptionLabel->setText(
-            "\xF0\x9F\x94\x92 TLS encrypted · fingerprint " +
-            m_identity.fingerprint().left(23) + "…");
+            m_serverModeRadio->isChecked()
+                ? "\xF0\x9F\x94\x92 Room encrypted"
+                : "\xF0\x9F\x94\x92 TLS encrypted · fingerprint " +
+                      m_identity.fingerprint().left(23) + "…");
         m_stack->setCurrentIndex(1);
         m_messageInput->setFocus();
     }
@@ -475,12 +553,18 @@ QWidget *MainWindow::buildChatPage()
     composerLayout->addWidget(m_messageInput);
     composerLayout->addWidget(sendButton);
 
+    m_typingLabel = new QLabel;
+    m_typingLabel->setObjectName("typingLabel");
+    m_typingLabel->setFixedHeight(20);
+    m_typingLabel->setText(QString());
+
     auto *mainColumn = new QVBoxLayout;
     mainColumn->setContentsMargins(0, 0, 0, 0);
     mainColumn->setSpacing(0);
     mainColumn->addWidget(header);
     mainColumn->addWidget(m_firewallBanner);
     mainColumn->addWidget(m_messageScroll, 1);
+    mainColumn->addWidget(m_typingLabel);
     mainColumn->addWidget(composer);
 
     auto *layout = new QHBoxLayout(page);
@@ -507,6 +591,7 @@ QWidget *MainWindow::buildChatPage()
                     openDirectChat(id, item->data(Qt::UserRole + 1).toString());
             });
     connect(addChannelButton, &QPushButton::clicked, this, &MainWindow::promptAddChannel);
+    connect(m_messageInput, &QLineEdit::textEdited, this, &MainWindow::onComposerEdited);
     connect(m_messageInput, &QLineEdit::returnPressed, this, &MainWindow::sendCurrentMessage);
     connect(sendButton, &QPushButton::clicked, this, &MainWindow::sendCurrentMessage);
     connect(leaveButton, &QPushButton::clicked, this, [this] { leaveSession(); });
@@ -523,6 +608,7 @@ void MainWindow::attachBackend(ChatBackend *backend)
     connect(backend, &ChatBackend::messageArrived, this, &MainWindow::onMessage);
     connect(backend, &ChatBackend::reactionChanged, this, &MainWindow::onReaction);
     connect(backend, &ChatBackend::avatarChanged, this, &MainWindow::onAvatar);
+    connect(backend, &ChatBackend::typingChanged, this, &MainWindow::onTypingChanged);
     connect(backend, &ChatBackend::systemMessage, this, &MainWindow::logSystem);
     connect(backend, &ChatBackend::channelsChanged, this, &MainWindow::setChannels);
     connect(backend, &ChatBackend::rosterChanged, this, &MainWindow::setRoster);
@@ -751,6 +837,18 @@ void MainWindow::onAvatar(const QString &peerId, const QByteArray &pngData)
     }
 }
 
+void MainWindow::onTypingChanged(const QString &conversation, const QString &peerId,
+                                 const QString &peerName, bool active)
+{
+    if (conversation.isEmpty() || peerId.isEmpty())
+        return;
+    if (active)
+        m_typing[conversation].insert(peerId, peerName);
+    else if (m_typing.contains(conversation))
+        m_typing[conversation].remove(peerId);
+    refreshTypingLabel();
+}
+
 void MainWindow::setChannels(const QStringList &channels)
 {
     m_channels = channels;
@@ -769,7 +867,7 @@ void MainWindow::setRoster(const QList<MemberInfo> &members)
     for (const MemberInfo &member : members)
         ++nameCounts[member.name];
     for (const MemberInfo &member : members) {
-        QString label = "\xE2\x97\x8F " + member.name;
+        QString label = member.name;
         if (nameCounts.value(member.name) > 1 && !member.id.isEmpty())
             label += " [" + member.id.left(6) + "]";
         if (!member.note.isEmpty())
@@ -777,6 +875,7 @@ void MainWindow::setRoster(const QList<MemberInfo> &members)
         if (member.self)
             label += " (you)";
         auto *item = new QListWidgetItem(label);
+        item->setIcon(statusDotIcon(member.online));
         item->setData(Qt::UserRole, member.id);
         item->setData(Qt::UserRole + 1, member.name);
         item->setData(Qt::UserRole + 2, member.self);
@@ -825,6 +924,7 @@ void MainWindow::switchConversation(const QString &conversation)
 {
     if (conversation.isEmpty() || conversation == m_currentConversation)
         return;
+    sendTypingState(false);
     m_currentConversation = conversation;
     m_unread.remove(conversation);
 
@@ -835,6 +935,7 @@ void MainWindow::switchConversation(const QString &conversation)
     m_channelTitle->setText(title);
     m_messageInput->setPlaceholderText("Message " + title);
     rebuildConversationView();
+    refreshTypingLabel();
 
     // Selection lives in exactly one sidebar list at a time.
     if (isDirectConversation(conversation)) {
@@ -877,11 +978,65 @@ void MainWindow::sendCurrentMessage()
     const QString text = m_messageInput->text().trimmed();
     if (text.isEmpty() || !m_backend || m_currentConversation.isEmpty())
         return;
+    sendTypingState(false);
     if (isDirectConversation(m_currentConversation))
         m_backend->sendDirect(dmPeerId(m_currentConversation), text);
     else
         m_backend->sendChat(m_currentConversation, text);
     m_messageInput->clear();
+}
+
+void MainWindow::onComposerEdited(const QString &text)
+{
+    if (!m_backend || m_currentConversation.isEmpty())
+        return;
+    if (text.trimmed().isEmpty()) {
+        sendTypingState(false);
+        return;
+    }
+    sendTypingState(true);
+    m_typingStopTimer->start(2500);
+}
+
+void MainWindow::sendTypingState(bool active)
+{
+    if (!m_backend)
+        return;
+    if (active) {
+        if (m_currentConversation.isEmpty())
+            return;
+        if (m_typingConversation == m_currentConversation &&
+            m_typingStopTimer->isActive())
+            return;
+        m_typingConversation = m_currentConversation;
+        m_backend->sendTyping(m_currentConversation, true);
+        return;
+    }
+    if (!m_typingConversation.isEmpty()) {
+        m_backend->sendTyping(m_typingConversation, false);
+        m_typingConversation.clear();
+    }
+    m_typingStopTimer->stop();
+}
+
+void MainWindow::refreshTypingLabel()
+{
+    QStringList names;
+    const auto active = m_typing.value(m_currentConversation);
+    for (const QString &name : active)
+        names.append(name);
+    names.removeDuplicates();
+
+    if (names.isEmpty()) {
+        m_typingLabel->clear();
+    } else if (names.size() == 1) {
+        m_typingLabel->setText(names.first() + " is typing...");
+    } else if (names.size() == 2) {
+        m_typingLabel->setText(names.at(0) + " and " + names.at(1) +
+                               " are typing...");
+    } else {
+        m_typingLabel->setText(QString::number(names.size()) + " people are typing...");
+    }
 }
 
 // ------------------------------------------------------------------- files

@@ -49,6 +49,7 @@ public:
     void sendReaction(const QString &conversation, const QString &messageId,
                       const QString &emoji) override;
     void setAvatar(const QByteArray &pngData) override;
+    void sendTyping(const QString &conversation, bool active) override;
     void addChannel(const QString &channel) override;
     void shutdown() override;
     QString modeName() const override { return "Mesh"; }
@@ -97,6 +98,7 @@ private:
                        const QString &reactorName, bool added);
     void sendHistoryTo(FramedConnection *connection);
     void sendAvatarTo(FramedConnection *connection);
+    void removeNode(const QString &nodeId, const QString &reason);
     void onIncomingConnection();
     void adoptConnection(FramedConnection *connection);
     void onPeerMessage(FramedConnection *connection, const QJsonObject &message);
@@ -132,6 +134,7 @@ private:
 
     QSet<QString> m_seenIds;
     QQueue<QString> m_seenOrder;
+    QSet<QString> m_departedNodes;
     QStringList m_channels{"#general", "#random"};
 
     // Shared-channel history replayed to peers that join later, plus this

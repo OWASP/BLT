@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(SafeCloak VERSION 0.7.0 LANGUAGES CXX)
+project(SafeCloak VERSION 0.8.0 LANGUAGES CXX)
 
 # Baked into the binaries: shown in the UI, and the quick-update button uses
 # the source dir to git pull + rebuild when running from a checkout.
@@ -13,6 +13,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
 
 find_package(Qt6 6.4 REQUIRED COMPONENTS Widgets Network)
+find_package(OpenSSL REQUIRED)
 
 qt_add_executable(safecloak
     src/main.cpp
@@ -24,6 +25,10 @@ qt_add_executable(safecloak
     src/ChatBackend.h
     src/MeshNode.h
     src/MeshNode.cpp
+    src/RoomCrypto.h
+    src/RoomCrypto.cpp
+    src/ServerNode.h
+    src/ServerNode.cpp
     src/MessageRow.h
     src/MessageRow.cpp
     src/SettingsDialog.h
@@ -32,7 +37,7 @@ qt_add_executable(safecloak
     src/MainWindow.cpp
 )
 
-target_link_libraries(safecloak PRIVATE Qt6::Widgets Qt6::Network)
+target_link_libraries(safecloak PRIVATE Qt6::Widgets Qt6::Network OpenSSL::Crypto)
 
 option(SAFECLOAK_BUILD_TESTS "Build the headless backend smoke test" ON)
 if(SAFECLOAK_BUILD_TESTS)
@@ -44,6 +49,10 @@ if(SAFECLOAK_BUILD_TESTS)
         src/ChatBackend.h
         src/MeshNode.h
         src/MeshNode.cpp
+        src/RoomCrypto.h
+        src/RoomCrypto.cpp
+        src/ServerNode.h
+        src/ServerNode.cpp
     )
-    target_link_libraries(safecloak-tests PRIVATE Qt6::Core Qt6::Network)
+    target_link_libraries(safecloak-tests PRIVATE Qt6::Core Qt6::Network OpenSSL::Crypto)
 endif()

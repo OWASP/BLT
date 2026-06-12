@@ -476,6 +476,8 @@ void MeshNode::onDatagram()
         const QString nodeId = announce.value("nodeId").toString();
         if (nodeId.isEmpty() || nodeId == m_nodeId)
             continue;
+        if (m_departedNodes.contains(nodeId))
+            continue;
 
         const qint64 now = QDateTime::currentMSecsSinceEpoch();
         KnownNode &node = m_known[nodeId];
@@ -552,6 +554,8 @@ bool MeshNode::learnNodeFromPacket(const QJsonObject &packet,
 {
     const QString nodeId = packet.value("nodeId").toString();
     if (nodeId.isEmpty() || nodeId == m_nodeId)
+        return false;
+    if (m_departedNodes.contains(nodeId))
         return false;
 
     QList<QHostAddress> candidates;
@@ -682,6 +686,8 @@ void MeshNode::connectToPeer(const QString &nodeId, KnownNode &node)
 
 void MeshNode::onIncomingConnection()
 {
+    if (!m_listener.isListening())
+        return;
     while (QTcpSocket *pending = m_listener.nextPendingConnection()) {
         auto *ssl = qobject_cast<QSslSocket *>(pending);
         if (!ssl) {
@@ -817,6 +823,19 @@ void MeshNode::onPeerMessage(FramedConnection *connection, const QJsonObject &me
                           r.value("reactorId").toString(),
                           r.value("reactorName").toString(), true);
         }
+    } else if (type == "typing") {
+        if (!markSeen(message.value("id").toString()))
+            return;
+        flood(message, connection);
+        emit typingChanged(message.value("conversation").toString(),
+                           message.value("senderId").toString(),
+                           message.value("sender").toString(),
+                           message.value("active").toBool());
+    } else if (type == "bye") {
+        if (!markSeen(message.value("id").toString()))
+            return;
+        flood(message, connection);
+        removeNode(message.value("senderId").toString(), "left");
     } else if (type == "channel") {
         if (!markSeen(message.value("id").toString()))
             return;
@@ -828,6 +847,28 @@ void MeshNode::onPeerMessage(FramedConnection *connection, const QJsonObject &me
     }
 }
 
+// Drops a node from the member list right away (clean exit via "bye", or a
+// dead link with no fresh announcements).
+void MeshNode::removeNode(const QString &nodeId, const QString &reason)
+{
+    if (nodeId.isEmpty() || nodeId == m_nodeId)
+        return;
+    const QString name = m_peers.contains(nodeId)
+                             ? m_peers.value(nodeId)->remoteName
+                             : m_known.value(nodeId).name;
+    if (FramedConnection *peer = m_peers.take(nodeId)) {
+        peer->disconnect(this);
+        peer->close();
+        peer->deleteLater();
+    }
+    m_pendingDials.remove(nodeId);
+    const bool existed = m_known.remove(nodeId) > 0;
+    m_departedNodes.insert(nodeId);
+    if (existed || !name.isEmpty())
+        emit systemMessage(name + " " + reason);
+    updateRosterAndStatus();
+}
+
 void MeshNode::onPeerClosed(FramedConnection *connection)
 {
     m_handshaking.removeAll(connection);
@@ -837,6 +878,7 @@ void MeshNode::onPeerClosed(FramedConnection *connection)
         if (m_peers.value(nodeId) == connection) {
             m_peers.remove(nodeId);
             emit systemMessage(connection->remoteName + " disconnected");
+            removeNode(nodeId, "left");
         }
     }
     connection->disconnect(this);
@@ -1004,19 +1046,41 @@ void MeshNode::storeChannelHistory(const QJsonObject &m)
     const QString channel = m.value("channel").toString();
     if (channel.isEmpty())
         return;
-    QList<QJsonObject> &log = m_channelHistory[channel];
-    log.append(m);
-    while (log.size() > 200)
-        log.removeFirst();
+    // Unlimited: the full backlog is kept and replayed to late joiners.
+    m_channelHistory[channel].append(m);
 }
 
 void MeshNode::sendHistoryTo(FramedConnection *connection)
 {
+    // The full backlog, chunked so a single frame stays well under the wire
+    // limit even when the history contains shared files.
+    QList<QJsonObject> all;
+    for (const QList<QJsonObject> &log : std::as_const(m_channelHistory))
+        all.append(log);
+    std::sort(all.begin(), all.end(), [](const QJsonObject &a, const QJsonObject &b) {
+        return a.value("ts").toDouble() < b.value("ts").toDouble();
+    });
+
+    constexpr qint64 kChunkBudget = 8ll * 1024 * 1024;
     QJsonArray entries;
-    for (const QList<QJsonObject> &log : std::as_const(m_channelHistory)) {
-        for (const QJsonObject &m : log)
-            entries.append(m);
+    qint64 budget = 0;
+    auto flush = [&] {
+        if (entries.isEmpty())
+            return;
+        connection->sendMessage({{"type", "history"}, {"entries", entries}});
+        entries = QJsonArray();
+        budget = 0;
+    };
+    for (const QJsonObject &m : std::as_const(all)) {
+        const qint64 cost = m.value("file").toString().size() +
+                            m.value("text").toString().size() + 256;
+        if (budget + cost > kChunkBudget)
+            flush();
+        entries.append(m);
+        budget += cost;
     }
+    flush();
+
     QJsonArray reactions;
     for (auto it = m_reactions.constBegin(); it != m_reactions.constEnd(); ++it) {
         for (auto e = it.value().constBegin(); e != it.value().constEnd(); ++e) {
@@ -1028,10 +1092,10 @@ void MeshNode::sendHistoryTo(FramedConnection *connection)
             }
         }
     }
-    if (entries.isEmpty() && reactions.isEmpty())
-        return;
-    connection->sendMessage(
-        {{"type", "history"}, {"entries", entries}, {"reactions", reactions}});
+    if (!reactions.isEmpty())
+        connection->sendMessage({{"type", "history"},
+                                 {"entries", QJsonArray()},
+                                 {"reactions", reactions}});
 }
 
 void MeshNode::sendAvatarTo(FramedConnection *connection)
@@ -1043,6 +1107,18 @@ void MeshNode::sendAvatarTo(FramedConnection *connection)
          {"id", QUuid::createUuid().toString(QUuid::WithoutBraces)},
          {"senderId", m_nodeId}, {"name", m_userName},
          {"png", QString::fromLatin1(m_avatarPng.toBase64())}});
+}
+
+void MeshNode::sendTyping(const QString &conversation, bool active)
+{
+    const QString id = QUuid::createUuid().toString(QUuid::WithoutBraces);
+    markSeen(id);
+    // Ephemeral: flooded but never stored in history.
+    const QJsonObject message{{"type", "typing"}, {"id", id},
+                              {"conversation", conversation},
+                              {"senderId", m_nodeId}, {"sender", m_userName},
+                              {"active", active}};
+    flood(message, nullptr, false);
 }
 
 void MeshNode::addChannel(const QString &channel)
@@ -1168,16 +1244,16 @@ void MeshNode::prune()
 
 void MeshNode::updateRosterAndStatus()
 {
-    QList<MemberInfo> members{{m_nodeId, m_userName, QString(), true}};
+    QList<MemberInfo> members{{m_nodeId, m_userName, QString(), true, true}};
     for (auto it = m_peers.constBegin(); it != m_peers.constEnd(); ++it)
-        members.append({it.key(), it.value()->remoteName, QString(), false});
+        members.append({it.key(), it.value()->remoteName, QString(), false, true});
     // Nodes we can see via discovery but have no link to yet.
     for (auto it = m_known.constBegin(); it != m_known.constEnd(); ++it) {
         if (!m_peers.contains(it.key()))
             members.append({it.key(), it->name,
                             it->udpPort == 0 ? QStringLiteral("(discovered)")
                                              : QString(),
-                            false});
+                            false, false});
     }
     emit rosterChanged(members);
     int reachableCount = m_peers.size();
@@ -1194,6 +1270,15 @@ void MeshNode::updateRosterAndStatus()
 
 void MeshNode::shutdown()
 {
+    // Clean exit: tell everyone we're leaving so they drop us immediately
+    // instead of waiting for the discovery timeout.
+    const QString id = QUuid::createUuid().toString(QUuid::WithoutBraces);
+    const QJsonObject bye{{"type", "bye"}, {"id", id},
+                          {"senderId", m_nodeId}, {"sender", m_userName}};
+    for (FramedConnection *peer : std::as_const(m_peers))
+        peer->sendMessage(bye);
+    floodUdp(bye);
+
     m_announceTimer.stop();
     m_pruneTimer.stop();
     m_udp.close();

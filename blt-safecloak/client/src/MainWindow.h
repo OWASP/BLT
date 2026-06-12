@@ -17,6 +17,7 @@ class QLabel;
 class QLineEdit;
 class QListWidget;
 class QPushButton;
+class QRadioButton;
 class QScrollArea;
 class QStackedWidget;
 class QSystemTrayIcon;
@@ -47,6 +48,8 @@ private:
     void onReaction(const QString &conversation, const QString &messageId,
                     const QString &emoji, const QString &reactorName, bool added);
     void onAvatar(const QString &peerId, const QByteArray &pngData);
+    void onTypingChanged(const QString &conversation, const QString &peerId,
+                         const QString &peerName, bool active);
     void logSystem(const QString &text);
     MessageRow *addMessageRow(const ChatMessage &message);
     void rebuildConversationView();
@@ -60,6 +63,9 @@ private:
     void refreshDmList();
     void promptAddChannel();
     void sendCurrentMessage();
+    void onComposerEdited(const QString &text);
+    void sendTypingState(bool active);
+    void refreshTypingLabel();
     void attachFile();
     void saveIncomingFile(const QString &fileName, const QByteArray &data);
     void openSettings();
@@ -79,6 +85,11 @@ private:
 
     // Setup widgets
     QLineEdit *m_nameEdit;
+    QRadioButton *m_meshModeRadio;
+    QRadioButton *m_serverModeRadio;
+    QLineEdit *m_serverUrlEdit;
+    QLineEdit *m_roomNameEdit;
+    QLineEdit *m_passphraseEdit;
     QLabel *m_setupError;
     QPushButton *m_updateButton;
     QLabel *m_updateStatus;
@@ -97,6 +108,7 @@ private:
     QScrollArea *m_messageScroll;
     QWidget *m_messageContainer;
     QVBoxLayout *m_messageLayout; // message rows + a trailing stretch
+    QLabel *m_typingLabel;
     QLineEdit *m_messageInput;
 
     SettingsDialog *m_settingsDialog = nullptr;
@@ -110,8 +122,11 @@ private:
     QHash<QString, QMap<QString, QStringList>> m_reactions;
     QHash<QString, QPixmap> m_avatars;          // senderId -> avatar
     QHash<QString, QString> m_dmNames;          // peerId -> display name
+    QHash<QString, QHash<QString, QString>> m_typing; // conversation -> peerId -> name
     QStringList m_openDms;                      // peerIds in sidebar order
     QSet<QString> m_unread;
     QString m_userName;
     QByteArray m_userAvatar;
+    QString m_typingConversation;
+    QTimer *m_typingStopTimer;
 };

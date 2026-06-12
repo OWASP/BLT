@@ -119,6 +119,10 @@ QPushButton#ghostButton:hover { color: #f1f5f9; }
 #messageView, #messageContainer {
     background-color: #0f172a; border: none;
 }
+#typingLabel {
+    background-color: #0f172a; color: #9ca3af; font-size: 12px;
+    padding: 0 18px;
+}
 #messageRow:hover { background-color: #131c2e; }
 #messageText { color: #f1f5f9; }
 #fileChip {
