@@ -135,6 +135,41 @@ int main(int argc, char *argv[])
     check(waitFor([&] { return meshReceived == "mesh hello"; }, 5000),
           "mesh message floods from node A to node B");
 
+    QString unauthorizedEdit;
+    QObject::connect(&nodeA, &ChatBackend::messageEdited,
+                     [&](const QString &, const QString &messageId,
+                         const QString &text) {
+                         if (messageId == lastBChat.id)
+                             unauthorizedEdit = text;
+                     });
+    nodeB.editMessage("#general", lastBChat.id, "peer takeover");
+    QElapsedTimer unauthorizedTimer;
+    unauthorizedTimer.start();
+    while (unauthorizedTimer.elapsed() < 500)
+        QCoreApplication::processEvents(QEventLoop::AllEvents, 50);
+    check(unauthorizedEdit.isEmpty(),
+          "mesh rejects edits from a node that did not author the message");
+
+    QString editedText;
+    QObject::connect(&nodeB, &ChatBackend::messageEdited,
+                     [&](const QString &, const QString &messageId,
+                         const QString &text) {
+                         if (messageId == lastBChat.id)
+                             editedText = text;
+                     });
+    nodeA.editMessage("#general", lastBChat.id, "mesh hello edited");
+    check(waitFor([&] { return editedText == "mesh hello edited"; }, 5000),
+          "mesh message edit reaches the peer");
+
+    QString deletedMessageId;
+    QObject::connect(&nodeB, &ChatBackend::messageDeleted,
+                     [&](const QString &, const QString &messageId) {
+                         deletedMessageId = messageId;
+                     });
+    nodeA.deleteMessage("#general", lastBChat.id);
+    check(waitFor([&] { return deletedMessageId == lastBChat.id; }, 5000),
+          "mesh message delete reaches the peer");
+
     nodeA.addChannel("#dev");
     check(waitFor([&] { return channelsB.contains("#dev"); }, 5000),
           "channel created by node A propagates to node B");

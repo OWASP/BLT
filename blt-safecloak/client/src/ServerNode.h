@@ -26,6 +26,9 @@ public:
                   const QString &mimeType, const QByteArray &data) override;
     void sendReaction(const QString &conversation, const QString &messageId,
                       const QString &emoji) override;
+    void editMessage(const QString &conversation, const QString &messageId,
+                     const QString &newText) override;
+    void deleteMessage(const QString &conversation, const QString &messageId) override;
     void setAvatar(const QByteArray &pngData) override;
     void sendTyping(const QString &conversation, bool active) override;
     void addChannel(const QString &channel) override;
@@ -54,6 +57,12 @@ private:
     void rememberPeer(const QString &peerId, const QString &name, bool online = true);
     void updateRosterAndStatus();
     void storeHistory(const QJsonObject &message);
+    void updateStoredMessage(const QString &messageId, const QString &text, bool deleted);
+    bool messageIsAuthoredBy(const QString &messageId, const QString &senderId) const;
+    void applyEdit(const QString &conversation, const QString &target,
+                   const QString &senderId, const QString &text);
+    void applyDelete(const QString &conversation, const QString &target,
+                     const QString &senderId);
     bool markSeen(const QString &messageId);
     QJsonObject makeMessage(const QString &type) const;
 
@@ -71,6 +80,7 @@ private:
     QHash<QString, Peer> m_peers;
     QHash<QString, QList<QJsonObject>> m_channelHistory;
     QHash<QString, QString> m_messageConversation;
+    QHash<QString, QString> m_messageSender;
     QHash<QString, QHash<QString, QHash<QString, QString>>> m_reactions;
     QByteArray m_avatarPng;
     QSet<QString> m_seenIds;

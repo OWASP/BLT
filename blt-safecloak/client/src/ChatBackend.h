@@ -29,6 +29,9 @@ struct ChatMessage {
     QString fileName;   // non-empty => has a file attachment
     QString fileMime;
     QByteArray fileData;
+    bool self = false;
+    bool edited = false;
+    bool deleted = false;
 
     bool hasFile() const { return !fileName.isEmpty(); }
 };
@@ -50,6 +53,10 @@ public:
     // Toggle an emoji reaction on a previously seen message.
     virtual void sendReaction(const QString &conversation, const QString &messageId,
                               const QString &emoji) = 0;
+    // Edit or delete a message authored by this node.
+    virtual void editMessage(const QString &conversation, const QString &messageId,
+                             const QString &newText) = 0;
+    virtual void deleteMessage(const QString &conversation, const QString &messageId) = 0;
     // Publish this node's avatar (PNG bytes; empty clears it).
     virtual void setAvatar(const QByteArray &pngData) = 0;
     // Tell peers we started/stopped typing in a conversation.
@@ -65,6 +72,9 @@ signals:
     // An emoji reaction was added or removed on a message.
     void reactionChanged(const QString &conversation, const QString &messageId,
                          const QString &emoji, const QString &reactorName, bool added);
+    void messageEdited(const QString &conversation, const QString &messageId,
+                       const QString &newText);
+    void messageDeleted(const QString &conversation, const QString &messageId);
     // A peer's avatar became available or changed (PNG bytes).
     void avatarChanged(const QString &peerId, const QByteArray &pngData);
     // A peer started (active=true) or stopped typing in a conversation.
@@ -77,6 +87,7 @@ signals:
     // without sudo, for the UI to run via pkexec when the user clicks "Allow".
     void firewallBlocking(const QString &displayCommand,
                           const QString &privilegedCommand);
+    void firewallHealthy();
     void channelsChanged(const QStringList &channels);
     void rosterChanged(const QList<MemberInfo> &members);
     // Short status line for the UI.

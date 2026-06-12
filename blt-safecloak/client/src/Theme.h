@@ -138,6 +138,11 @@ QPushButton#ghostButton:hover { color: #f1f5f9; }
     font-size: 13px; padding: 1px 4px;
 }
 #reactionAdd:hover { color: #f1f5f9; }
+#messageAction {
+    background: transparent; border: 1px solid #374151; border-radius: 6px;
+    color: #9ca3af; font-size: 11px; padding: 2px 7px;
+}
+#messageAction:hover { color: #f1f5f9; border-color: #ff4444; }
 #iconButton {
     background: transparent; border: none; font-size: 18px; padding: 2px 6px;
 }

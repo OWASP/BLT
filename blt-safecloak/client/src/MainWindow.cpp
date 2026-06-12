@@ -616,6 +616,8 @@ void MainWindow::attachBackend(ChatBackend *backend)
 
     connect(backend, &ChatBackend::messageArrived, this, &MainWindow::onMessage);
     connect(backend, &ChatBackend::reactionChanged, this, &MainWindow::onReaction);
+    connect(backend, &ChatBackend::messageEdited, this, &MainWindow::onMessageEdited);
+    connect(backend, &ChatBackend::messageDeleted, this, &MainWindow::onMessageDeleted);
     connect(backend, &ChatBackend::avatarChanged, this, &MainWindow::onAvatar);
     connect(backend, &ChatBackend::typingChanged, this, &MainWindow::onTypingChanged);
     connect(backend, &ChatBackend::systemMessage, this, &MainWindow::logSystem);
@@ -626,6 +628,7 @@ void MainWindow::attachBackend(ChatBackend *backend)
         logSystem("Status: " + status);
     });
     connect(backend, &ChatBackend::firewallBlocking, this, &MainWindow::showFirewallBanner);
+    connect(backend, &ChatBackend::firewallHealthy, this, &MainWindow::hideFirewallBanner);
     connect(backend, &ChatBackend::fatalError, this, [this](const QString &message) {
         leaveSession();
         m_setupError->setText(message);
@@ -659,6 +662,14 @@ void MainWindow::showFirewallBanner(const QString &displayCommand,
     m_firewallAllowButton->setEnabled(true);
     m_firewallAllowButton->setText("Allow through firewall");
     m_firewallBanner->show();
+}
+
+void MainWindow::hideFirewallBanner()
+{
+    if (m_firewallBanner)
+        m_firewallBanner->hide();
+    if (m_firewallAllowButton)
+        m_firewallAllowButton->show();
 }
 
 void MainWindow::allowFirewall()
@@ -752,6 +763,8 @@ MessageRow *MainWindow::addMessageRow(const ChatMessage &message)
                 if (m_backend)
                     m_backend->sendReaction(m_currentConversation, messageId, emoji);
             });
+    connect(row, &MessageRow::editRequested, this, &MainWindow::promptEditMessage);
+    connect(row, &MessageRow::deleteRequested, this, &MainWindow::confirmDeleteMessage);
     connect(row, &MessageRow::saveFileRequested, this,
             &MainWindow::saveIncomingFile);
     // Insert before the trailing stretch.
@@ -770,12 +783,13 @@ void MainWindow::rebuildConversationView()
             item->widget()->deleteLater();
         delete item;
     }
+    MessageRow *lastRow = nullptr;
     for (const ChatMessage &message : m_history.value(m_currentConversation))
-        addMessageRow(message);
+        lastRow = addMessageRow(message);
     // Scroll to the bottom once layout settles.
-    QTimer::singleShot(0, this, [this] {
-        m_messageScroll->verticalScrollBar()->setValue(
-            m_messageScroll->verticalScrollBar()->maximum());
+    QTimer::singleShot(0, this, [this, lastRow] {
+        if (lastRow)
+            m_messageScroll->ensureWidgetVisible(lastRow, 0, 24);
     });
 }
 
@@ -801,10 +815,10 @@ void MainWindow::onMessage(const ChatMessage &message)
     m_history[conversation].append(message);
 
     if (conversation == m_currentConversation) {
-        addMessageRow(message);
-        QTimer::singleShot(0, this, [this] {
-            m_messageScroll->verticalScrollBar()->setValue(
-                m_messageScroll->verticalScrollBar()->maximum());
+        MessageRow *row = addMessageRow(message);
+        QTimer::singleShot(0, this, [this, row] {
+            if (row)
+                m_messageScroll->ensureWidgetVisible(row, 0, 24);
         });
     } else {
         m_unread.insert(conversation);
@@ -812,7 +826,7 @@ void MainWindow::onMessage(const ChatMessage &message)
         refreshDmList();
     }
 
-    if (message.senderName != m_userName) {
+    if (!message.self) {
         const QString where = isDirectConversation(conversation)
                                   ? "sent you a message"
                                   : "in " + conversation;
@@ -838,6 +852,62 @@ void MainWindow::onReaction(const QString &conversation, const QString &messageI
     }
     if (auto *row = m_visibleRows.value(messageId))
         row->setReactions(m_reactions.value(messageId));
+}
+
+void MainWindow::onMessageEdited(const QString &conversation, const QString &messageId,
+                                 const QString &newText)
+{
+    QList<ChatMessage> &messages = m_history[conversation];
+    for (ChatMessage &message : messages) {
+        if (message.id == messageId) {
+            message.text = newText.left(16000);
+            message.edited = true;
+            break;
+        }
+    }
+    if (conversation == m_currentConversation)
+        rebuildConversationView();
+}
+
+void MainWindow::onMessageDeleted(const QString &conversation, const QString &messageId)
+{
+    QList<ChatMessage> &messages = m_history[conversation];
+    for (ChatMessage &message : messages) {
+        if (message.id == messageId) {
+            message.text.clear();
+            message.fileName.clear();
+            message.fileMime.clear();
+            message.fileData.clear();
+            message.deleted = true;
+            break;
+        }
+    }
+    m_reactions.remove(messageId);
+    if (conversation == m_currentConversation)
+        rebuildConversationView();
+}
+
+void MainWindow::promptEditMessage(const QString &messageId, const QString &currentText)
+{
+    if (!m_backend || messageId.isEmpty())
+        return;
+    bool ok = false;
+    const QString text = QInputDialog::getMultiLineText(
+        this, "Edit message", "Message:", currentText, &ok);
+    const QString trimmed = text.trimmed();
+    if (!ok || trimmed.isEmpty() || trimmed == currentText)
+        return;
+    m_backend->editMessage(m_currentConversation, messageId, trimmed);
+}
+
+void MainWindow::confirmDeleteMessage(const QString &messageId)
+{
+    if (!m_backend || messageId.isEmpty())
+        return;
+    const int result = QMessageBox::question(
+        this, "Delete message", "Delete this message for everyone?");
+    if (result == QMessageBox::Yes)
+        m_backend->deleteMessage(m_currentConversation, messageId);
 }
 
 void MainWindow::onAvatar(const QString &peerId, const QByteArray &pngData)

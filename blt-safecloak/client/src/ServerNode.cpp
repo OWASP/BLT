@@ -373,7 +373,32 @@ void ServerNode::sendReaction(const QString &conversation, const QString &messag
     message.insert("reactorId", m_nodeId);
     message.insert("reactorName", m_userName);
     message.insert("added", added);
-    markSeen(message.value("id").toString());
+    handlePlain(message);
+    sendEncrypted(message, false);
+}
+
+void ServerNode::editMessage(const QString &conversation, const QString &messageId,
+                             const QString &newText)
+{
+    const QString text = newText.trimmed().left(kMaxTextChars);
+    if (messageId.isEmpty() || text.isEmpty() ||
+        !messageIsAuthoredBy(messageId, m_nodeId))
+        return;
+    QJsonObject message = makeMessage("edit");
+    message.insert("conversation", conversation);
+    message.insert("target", messageId);
+    message.insert("text", text);
+    handlePlain(message);
+    sendEncrypted(message, false);
+}
+
+void ServerNode::deleteMessage(const QString &conversation, const QString &messageId)
+{
+    if (messageId.isEmpty() || !messageIsAuthoredBy(messageId, m_nodeId))
+        return;
+    QJsonObject message = makeMessage("delete");
+    message.insert("conversation", conversation);
+    message.insert("target", messageId);
     handlePlain(message);
     sendEncrypted(message, false);
 }
@@ -478,6 +503,15 @@ void ServerNode::handlePlain(const QJsonObject &message)
             m_reactions[target][emoji].remove(reactorId);
         emit reactionChanged(message.value("conversation").toString(), target,
                              emoji, reactorName, message.value("added").toBool());
+    } else if (type == "edit") {
+        const QString target = message.value("target").toString();
+        if (messageIsAuthoredBy(target, senderId))
+            applyEdit(message.value("conversation").toString(), target, senderId,
+                      boundedText(message, "text", kMaxTextChars));
+    } else if (type == "delete") {
+        const QString target = message.value("target").toString();
+        if (messageIsAuthoredBy(target, senderId))
+            applyDelete(message.value("conversation").toString(), target, senderId);
     } else if (type == "avatar") {
         const QByteArray avatar =
             boundedBase64(message, "png", 4 * kMaxAvatarBytes / 3 + 8,
@@ -539,7 +573,11 @@ void ServerNode::emitChat(const QJsonObject &message)
     out.fileMime = boundedText(message, "fileMime", kMaxMimeChars);
     if (message.contains("file"))
         out.fileData = boundedBase64(message, "file", kMaxBase64FileChars, kMaxFileBytes);
+    out.self = out.senderId == m_nodeId;
+    out.edited = message.value("edited").toBool();
+    out.deleted = message.value("deleted").toBool();
     m_messageConversation.insert(out.id, out.conversation);
+    m_messageSender.insert(out.id, out.senderId);
     emit messageArrived(out);
 }
 
@@ -558,7 +596,11 @@ void ServerNode::emitDm(const QJsonObject &message, const QString &conversationP
     out.fileMime = boundedText(message, "fileMime", kMaxMimeChars);
     if (message.contains("file"))
         out.fileData = boundedBase64(message, "file", kMaxBase64FileChars, kMaxFileBytes);
+    out.self = out.senderId == m_nodeId;
+    out.edited = message.value("edited").toBool();
+    out.deleted = message.value("deleted").toBool();
     m_messageConversation.insert(out.id, out.conversation);
+    m_messageSender.insert(out.id, out.senderId);
     emit messageArrived(out);
 }
 
@@ -588,6 +630,59 @@ void ServerNode::storeHistory(const QJsonObject &message)
     const QString channel = message.value("channel").toString();
     if (!channel.isEmpty())
         m_channelHistory[channel].append(message);
+}
+
+bool ServerNode::messageIsAuthoredBy(const QString &messageId, const QString &senderId) const
+{
+    return !messageId.isEmpty() && !senderId.isEmpty() &&
+           m_messageSender.value(messageId) == senderId;
+}
+
+void ServerNode::updateStoredMessage(const QString &messageId, const QString &text,
+                                     bool deleted)
+{
+    for (auto it = m_channelHistory.begin(); it != m_channelHistory.end(); ++it) {
+        QList<QJsonObject> &messages = it.value();
+        for (QJsonObject &message : messages) {
+            if (message.value("id").toString() != messageId)
+                continue;
+            if (deleted) {
+                message.insert("deleted", true);
+                message.insert("edited", false);
+                message.insert("text", QString());
+                message.remove("fileName");
+                message.remove("fileMime");
+                message.remove("file");
+            } else {
+                message.insert("text", text.left(kMaxTextChars));
+                message.insert("edited", true);
+            }
+            return;
+        }
+    }
+}
+
+void ServerNode::applyEdit(const QString &conversation, const QString &target,
+                           const QString &senderId, const QString &text)
+{
+    if (!messageIsAuthoredBy(target, senderId) || text.trimmed().isEmpty())
+        return;
+    const QString conv =
+        conversation.isEmpty() ? m_messageConversation.value(target) : conversation;
+    updateStoredMessage(target, text, false);
+    emit messageEdited(conv, target, text.left(kMaxTextChars));
+}
+
+void ServerNode::applyDelete(const QString &conversation, const QString &target,
+                             const QString &senderId)
+{
+    if (!messageIsAuthoredBy(target, senderId))
+        return;
+    const QString conv =
+        conversation.isEmpty() ? m_messageConversation.value(target) : conversation;
+    updateStoredMessage(target, QString(), true);
+    m_reactions.remove(target);
+    emit messageDeleted(conv, target);
 }
 
 bool ServerNode::markSeen(const QString &messageId)

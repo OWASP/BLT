@@ -457,10 +457,6 @@ void MeshNode::warnIfLocalFirewall()
         return;
     m_firewallFixCommand = fix.display;
     m_firewallPrivilegedCommand = fix.privileged;
-    emit systemMessage(
-        "\xE2\x9A\xA0 A firewall is active on this computer and may block peers. "
-        "Click \"Allow through firewall\" above, or run:  " + fix.display);
-    emit firewallBlocking(fix.display, fix.privileged);
 }
 
 // Called when a dial fails or times out. If this node has discovered peers but
@@ -469,8 +465,9 @@ void MeshNode::warnIfLocalFirewall()
 void MeshNode::noteDialFailure()
 {
     ++m_failedDials;
-    if (m_firewallHintShown || m_inboundEverAccepted || m_failedDials < 2 ||
-        m_known.isEmpty())
+    const int failureThreshold = qMax(4, qMax(1, m_known.size()) * 2);
+    if (m_firewallHintShown || m_inboundEverAccepted || m_peerTrafficSeen ||
+        !m_peers.isEmpty() || m_failedDials < failureThreshold || m_known.isEmpty())
         return;
     m_firewallHintShown = true;
     if (!m_firewallPrivilegedCommand.isEmpty()) {
@@ -746,6 +743,7 @@ void MeshNode::onIncomingConnection()
         }
         // An inbound connection proves this host's firewall is not blocking us.
         m_inboundEverAccepted = true;
+        emit firewallHealthy();
         auto *connection = new FramedConnection(ssl, this);
         m_handshaking.append(connection);
         connect(connection, &FramedConnection::messageReceived, this,
@@ -781,6 +779,7 @@ void MeshNode::adoptConnection(FramedConnection *connection)
     } else {
         m_peers.insert(nodeId, connection);
     }
+    emit firewallHealthy();
 
     connection->sendMessage(
         {{"type", "hello"}, {"nodeId", m_nodeId}, {"name", m_userName}});
@@ -804,6 +803,12 @@ void MeshNode::onPeerMessage(FramedConnection *connection, const QJsonObject &me
     if (!messageHasSafePayload(message)) {
         emit systemMessage("Dropped oversized or unsafe peer payload.");
         return;
+    }
+    if (type != "hello" && type != "channels-sync") {
+        if (!m_peerTrafficSeen) {
+            m_peerTrafficSeen = true;
+            emit firewallHealthy();
+        }
     }
 
     if (type == "hello") {
@@ -853,6 +858,25 @@ void MeshNode::onPeerMessage(FramedConnection *connection, const QJsonObject &me
                       message.value("reactorId").toString(),
                       message.value("reactorName").toString(),
                       message.value("added").toBool());
+    } else if (type == "edit") {
+        if (!markSeen(message.value("id").toString()))
+            return;
+        const QString target = message.value("target").toString();
+        const QString senderId = message.value("senderId").toString();
+        if (!messageIsAuthoredBy(target, senderId))
+            return;
+        flood(message, connection);
+        applyEdit(message.value("conversation").toString(), target, senderId,
+                  boundedText(message, "text", kMaxTextChars));
+    } else if (type == "delete") {
+        if (!markSeen(message.value("id").toString()))
+            return;
+        const QString target = message.value("target").toString();
+        const QString senderId = message.value("senderId").toString();
+        if (!messageIsAuthoredBy(target, senderId))
+            return;
+        flood(message, connection);
+        applyDelete(message.value("conversation").toString(), target, senderId);
     } else if (type == "avatar") {
         if (!markSeen(message.value("id").toString()))
             return;
@@ -1039,6 +1063,38 @@ void MeshNode::sendReaction(const QString &conversation, const QString &messageI
     applyReaction(conversation, messageId, emoji, m_nodeId, m_userName, added);
 }
 
+void MeshNode::editMessage(const QString &conversation, const QString &messageId,
+                           const QString &newText)
+{
+    const QString text = newText.trimmed().left(kMaxTextChars);
+    if (messageId.isEmpty() || text.isEmpty() ||
+        !messageIsAuthoredBy(messageId, m_nodeId))
+        return;
+    const QString id = QUuid::createUuid().toString(QUuid::WithoutBraces);
+    markSeen(id);
+    const QJsonObject message{{"type", "edit"}, {"id", id},
+                              {"conversation", conversation},
+                              {"target", messageId},
+                              {"senderId", m_nodeId}, {"sender", m_userName},
+                              {"text", text}};
+    flood(message, nullptr, false);
+    applyEdit(conversation, messageId, m_nodeId, text);
+}
+
+void MeshNode::deleteMessage(const QString &conversation, const QString &messageId)
+{
+    if (messageId.isEmpty() || !messageIsAuthoredBy(messageId, m_nodeId))
+        return;
+    const QString id = QUuid::createUuid().toString(QUuid::WithoutBraces);
+    markSeen(id);
+    const QJsonObject message{{"type", "delete"}, {"id", id},
+                              {"conversation", conversation},
+                              {"target", messageId},
+                              {"senderId", m_nodeId}, {"sender", m_userName}};
+    flood(message, nullptr, false);
+    applyDelete(conversation, messageId, m_nodeId);
+}
+
 void MeshNode::applyReaction(const QString &conversation, const QString &target,
                              const QString &emoji, const QString &reactorId,
                              const QString &reactorName, bool added)
@@ -1055,6 +1111,59 @@ void MeshNode::applyReaction(const QString &conversation, const QString &target,
     const QString conv =
         conversation.isEmpty() ? m_messageConversation.value(target) : conversation;
     emit reactionChanged(conv, target, emoji, reactorName, added);
+}
+
+bool MeshNode::messageIsAuthoredBy(const QString &messageId, const QString &senderId) const
+{
+    return !messageId.isEmpty() && !senderId.isEmpty() &&
+           m_messageSender.value(messageId) == senderId;
+}
+
+void MeshNode::updateStoredMessage(const QString &messageId, const QString &text,
+                                   bool deleted)
+{
+    for (auto it = m_channelHistory.begin(); it != m_channelHistory.end(); ++it) {
+        QList<QJsonObject> &messages = it.value();
+        for (QJsonObject &message : messages) {
+            if (message.value("id").toString() != messageId)
+                continue;
+            if (deleted) {
+                message.insert("deleted", true);
+                message.insert("edited", false);
+                message.insert("text", QString());
+                message.remove("fileName");
+                message.remove("fileMime");
+                message.remove("file");
+            } else {
+                message.insert("text", text.left(kMaxTextChars));
+                message.insert("edited", true);
+            }
+            return;
+        }
+    }
+}
+
+void MeshNode::applyEdit(const QString &conversation, const QString &target,
+                         const QString &senderId, const QString &text)
+{
+    if (!messageIsAuthoredBy(target, senderId) || text.trimmed().isEmpty())
+        return;
+    const QString conv =
+        conversation.isEmpty() ? m_messageConversation.value(target) : conversation;
+    updateStoredMessage(target, text, false);
+    emit messageEdited(conv, target, text.left(kMaxTextChars));
+}
+
+void MeshNode::applyDelete(const QString &conversation, const QString &target,
+                           const QString &senderId)
+{
+    if (!messageIsAuthoredBy(target, senderId))
+        return;
+    const QString conv =
+        conversation.isEmpty() ? m_messageConversation.value(target) : conversation;
+    updateStoredMessage(target, QString(), true);
+    m_reactions.remove(target);
+    emit messageDeleted(conv, target);
 }
 
 void MeshNode::setAvatar(const QByteArray &pngData)
@@ -1086,7 +1195,11 @@ void MeshNode::emitIncomingChat(const QJsonObject &m)
     cm.fileMime = boundedText(m, "fileMime", kMaxMimeChars);
     if (m.contains("file"))
         cm.fileData = boundedBase64(m, "file", kMaxBase64FileChars, kMaxFileBytes);
+    cm.self = cm.senderId == m_nodeId;
+    cm.edited = m.value("edited").toBool();
+    cm.deleted = m.value("deleted").toBool();
     m_messageConversation.insert(cm.id, cm.conversation);
+    m_messageSender.insert(cm.id, cm.senderId);
     emit messageArrived(cm);
 }
 
@@ -1105,7 +1218,11 @@ void MeshNode::emitIncomingDm(const QJsonObject &m, const QString &conversationP
     cm.fileMime = boundedText(m, "fileMime", kMaxMimeChars);
     if (m.contains("file"))
         cm.fileData = boundedBase64(m, "file", kMaxBase64FileChars, kMaxFileBytes);
+    cm.self = cm.senderId == m_nodeId;
+    cm.edited = m.value("edited").toBool();
+    cm.deleted = m.value("deleted").toBool();
     m_messageConversation.insert(cm.id, cm.conversation);
+    m_messageSender.insert(cm.id, cm.senderId);
     emit messageArrived(cm);
 }
 

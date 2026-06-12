@@ -78,11 +78,41 @@ MessageRow::MessageRow(const ChatMessage &message, const QString &nameColor,
         "<span style='color:" + nameColor + "; font-weight:700'>" +
         message.senderName.toHtmlEscaped() + "</span>"
         "&nbsp;&nbsp;<span style='color:#6b7280; font-size:11px'>" + time +
-        "</span>");
+        (message.edited ? " (edited)" : "") + "</span>");
     header->setTextFormat(Qt::RichText);
-    column->addWidget(header);
+    auto *headerRow = new QHBoxLayout;
+    headerRow->setContentsMargins(0, 0, 0, 0);
+    headerRow->setSpacing(6);
+    headerRow->addWidget(header);
+    headerRow->addStretch();
+    if (message.self && !message.deleted) {
+        if (!message.text.isEmpty()) {
+            auto *edit = new QPushButton("Edit");
+            edit->setObjectName("messageAction");
+            edit->setCursor(Qt::PointingHandCursor);
+            edit->setToolTip("Edit message");
+            connect(edit, &QPushButton::clicked, this, [this] {
+                emit editRequested(m_message.id, m_message.text);
+            });
+            headerRow->addWidget(edit);
+        }
+        auto *del = new QPushButton("Delete");
+        del->setObjectName("messageAction");
+        del->setCursor(Qt::PointingHandCursor);
+        del->setToolTip("Delete message");
+        connect(del, &QPushButton::clicked, this, [this] {
+            emit deleteRequested(m_message.id);
+        });
+        headerRow->addWidget(del);
+    }
+    column->addLayout(headerRow);
 
-    if (!message.text.isEmpty()) {
+    if (message.deleted) {
+        auto *body = new QLabel("<span style='color:#9ca3af'><i>Message deleted</i></span>");
+        body->setObjectName("messageText");
+        body->setTextFormat(Qt::RichText);
+        column->addWidget(body);
+    } else if (!message.text.isEmpty()) {
         auto *body = new QLabel(message.text.toHtmlEscaped());
         body->setObjectName("messageText");
         body->setWordWrap(true);
@@ -92,22 +122,25 @@ MessageRow::MessageRow(const ChatMessage &message, const QString &nameColor,
         column->addWidget(body);
     }
 
-    if (message.hasFile())
+    if (!message.deleted && message.hasFile())
         buildAttachment(this, column);
 
-    auto *reactionsRow = new QWidget;
-    m_reactionsBar = new QHBoxLayout(reactionsRow);
-    m_reactionsBar->setContentsMargins(0, 2, 0, 0);
-    m_reactionsBar->setSpacing(4);
-    auto *addReaction = new QPushButton("\xF0\x9F\x99\x82\x2B");
-    addReaction->setObjectName("reactionAdd");
-    addReaction->setCursor(Qt::PointingHandCursor);
-    addReaction->setToolTip("Add reaction");
-    connect(addReaction, &QPushButton::clicked, this,
-            &MessageRow::showReactionPicker);
-    m_reactionsBar->addWidget(addReaction);
-    m_reactionsBar->addStretch();
-    column->addWidget(reactionsRow);
+    m_reactionsBar = nullptr;
+    if (!message.deleted) {
+        auto *reactionsRow = new QWidget;
+        m_reactionsBar = new QHBoxLayout(reactionsRow);
+        m_reactionsBar->setContentsMargins(0, 2, 0, 0);
+        m_reactionsBar->setSpacing(4);
+        auto *addReaction = new QPushButton("\xF0\x9F\x99\x82\x2B");
+        addReaction->setObjectName("reactionAdd");
+        addReaction->setCursor(Qt::PointingHandCursor);
+        addReaction->setToolTip("Add reaction");
+        connect(addReaction, &QPushButton::clicked, this,
+                &MessageRow::showReactionPicker);
+        m_reactionsBar->addWidget(addReaction);
+        m_reactionsBar->addStretch();
+        column->addWidget(reactionsRow);
+    }
 
     outer->addLayout(column, 1);
 }
@@ -192,6 +225,8 @@ void MessageRow::setAvatar(const QPixmap &pixmap)
 
 void MessageRow::setReactions(const QMap<QString, QStringList> &reactions)
 {
+    if (!m_reactionsBar)
+        return;
     // Clear existing chips (keep the trailing "+" button and stretch).
     while (m_reactionsBar->count() > 2) {
         QLayoutItem *item = m_reactionsBar->takeAt(0);

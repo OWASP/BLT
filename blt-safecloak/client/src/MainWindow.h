@@ -47,6 +47,11 @@ private:
     void onMessage(const ChatMessage &message);
     void onReaction(const QString &conversation, const QString &messageId,
                     const QString &emoji, const QString &reactorName, bool added);
+    void onMessageEdited(const QString &conversation, const QString &messageId,
+                         const QString &newText);
+    void onMessageDeleted(const QString &conversation, const QString &messageId);
+    void promptEditMessage(const QString &messageId, const QString &currentText);
+    void confirmDeleteMessage(const QString &messageId);
     void onAvatar(const QString &peerId, const QByteArray &pngData);
     void onTypingChanged(const QString &conversation, const QString &peerId,
                          const QString &peerName, bool active);
@@ -73,6 +78,7 @@ private:
     void onAvatarChosen(const QByteArray &pngData);
     void showFirewallBanner(const QString &displayCommand,
                             const QString &privilegedCommand);
+    void hideFirewallBanner();
     void allowFirewall();
     void notifyIfInactive(const QString &title, const QString &body);
     QString senderColor(const QString &sender) const;

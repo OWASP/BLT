@@ -48,6 +48,9 @@ public:
                   const QString &mimeType, const QByteArray &data) override;
     void sendReaction(const QString &conversation, const QString &messageId,
                       const QString &emoji) override;
+    void editMessage(const QString &conversation, const QString &messageId,
+                     const QString &newText) override;
+    void deleteMessage(const QString &conversation, const QString &messageId) override;
     void setAvatar(const QByteArray &pngData) override;
     void sendTyping(const QString &conversation, bool active) override;
     void addChannel(const QString &channel) override;
@@ -93,6 +96,12 @@ private:
     void emitIncomingChat(const QJsonObject &m);
     void emitIncomingDm(const QJsonObject &m, const QString &conversationPeer);
     void storeChannelHistory(const QJsonObject &m);
+    void updateStoredMessage(const QString &messageId, const QString &text, bool deleted);
+    bool messageIsAuthoredBy(const QString &messageId, const QString &senderId) const;
+    void applyEdit(const QString &conversation, const QString &target,
+                   const QString &senderId, const QString &text);
+    void applyDelete(const QString &conversation, const QString &target,
+                     const QString &senderId);
     void applyReaction(const QString &conversation, const QString &target,
                        const QString &emoji, const QString &reactorId,
                        const QString &reactorName, bool added);
@@ -144,12 +153,14 @@ private:
     // messageId -> emoji -> (reactorId -> reactorName)
     QHash<QString, QHash<QString, QHash<QString, QString>>> m_reactions;
     QHash<QString, QString> m_messageConversation; // messageId -> conversation
+    QHash<QString, QString> m_messageSender;       // messageId -> senderId
 
     // Firewall diagnostics. A host firewall that drops inbound traffic is the
     // usual reason peers discover each other but can't form a TLS link.
     QString m_firewallFixCommand;        // terminal command (with sudo)
     QString m_firewallPrivilegedCommand; // command body for pkexec (no sudo)
     bool m_inboundEverAccepted = false;
+    bool m_peerTrafficSeen = false;
     int m_failedDials = 0;
     bool m_firewallHintShown = false;
 };

@@ -29,6 +29,8 @@ public:
 
 signals:
     void reactionToggled(const QString &messageId, const QString &emoji);
+    void editRequested(const QString &messageId, const QString &currentText);
+    void deleteRequested(const QString &messageId);
     void saveFileRequested(const QString &fileName, const QByteArray &data);
 
 private:
