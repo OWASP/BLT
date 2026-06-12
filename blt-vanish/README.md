@@ -636,7 +636,7 @@ This workflow tracks internal credential safety and orchestrates password streng
 * **Step B (Local Scoring):** The `CredentialAnalyzer` passes the mathematical properties of the credential through the baseline scoring model:
     $$CredentialRisk = 0.35S + 0.40R + 0.25E$$
 
-    *(Where $S$ represents strength weakness, $R$ represents reuse count likelihood, and $E$ represents exposure posture context)*.
+    *(Where $S$ represents strength weakness, $R$ represents reuse count likelihood, and $E$ represents exposure posture context. Note: The weights are starting placeholder configurations subject to calibration during Phase 2 implementation)*.
 
 * **Step C (Remediation Checklist Injection):** If the risk score crosses designated limits, a warning is triggered. The `RemediationPlanner` creates a corresponding tracking container called a `RemediationTask` with an initial state marked as `notStarted`.
 
