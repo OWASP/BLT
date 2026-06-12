@@ -189,6 +189,45 @@ int main(int argc, char *argv[])
     nodeC.shutdown();
     nodeD.shutdown();
 
+    // --- Same display name still means two distinct live members ---
+    MeshNode nodeE(identity, "same-name", nullptr, testAppTag);
+    MeshNode nodeF(identity, "same-name", nullptr, testAppTag);
+
+    QList<MemberInfo> rosterE, rosterF;
+    QObject::connect(&nodeE, &ChatBackend::rosterChanged,
+                     [&](const QList<MemberInfo> &m) { rosterE = m; });
+    QObject::connect(&nodeF, &ChatBackend::rosterChanged,
+                     [&](const QList<MemberInfo> &m) { rosterF = m; });
+    QObject::connect(&nodeE, &ChatBackend::fatalError,
+                     [](const QString &message) { qCritical("node-e: %s", qPrintable(message)); });
+    QObject::connect(&nodeF, &ChatBackend::fatalError,
+                     [](const QString &message) { qCritical("node-f: %s", qPrintable(message)); });
+
+    check(nodeE.start(), "same-name node E starts");
+    check(nodeF.start(), "same-name node F starts");
+
+    auto hasDistinctPeerWithSameName = [](const QList<MemberInfo> &roster) {
+        QString selfId;
+        bool sawPeer = false;
+        for (const MemberInfo &member : roster) {
+            if (member.self)
+                selfId = member.id;
+        }
+        for (const MemberInfo &member : roster) {
+            if (!member.self && member.name == "same-name" &&
+                !member.id.isEmpty() && member.id != selfId)
+                sawPeer = true;
+        }
+        return sawPeer;
+    };
+    check(waitFor([&] { return hasDistinctPeerWithSameName(rosterE); }, 15000),
+          "node E shows the peer even when both users have the same display name");
+    check(waitFor([&] { return hasDistinctPeerWithSameName(rosterF); }, 5000),
+          "node F shows the peer even when both users have the same display name");
+
+    nodeE.shutdown();
+    nodeF.shutdown();
+
     qInfo(failures == 0 ? "ALL TESTS PASSED" : "TESTS FAILED");
     return failures == 0 ? 0 : 1;
 }

@@ -18,6 +18,7 @@
 #include <QProcess>
 #include <QPushButton>
 #include <QScrollBar>
+#include <QSettings>
 #include <QStackedWidget>
 #include <QStyle>
 #include <QSystemTrayIcon>
@@ -35,6 +36,7 @@
 namespace {
 
 const QString kRepoUrl = QStringLiteral("https://gitlab.com/owasp-blt/blt-safecloak.git");
+const QString kDisplayNameSetting = QStringLiteral("profile/displayName");
 
 // Directory holding client/CMakeLists.txt to update from: the build-time
 // checkout when it still exists, otherwise a persistent clone managed by the
@@ -64,6 +66,13 @@ QString dmKey(const QString &peerId)
 QString dmPeerId(const QString &conversation)
 {
     return conversation.mid(1);
+}
+
+void saveDisplayName(const QString &name)
+{
+    const QString trimmed = name.trimmed();
+    if (!trimmed.isEmpty())
+        QSettings().setValue(kDisplayNameSetting, trimmed);
 }
 
 } // namespace
@@ -113,6 +122,7 @@ QWidget *MainWindow::buildSetupPage()
     m_nameEdit = new QLineEdit;
     m_nameEdit->setPlaceholderText("Display name");
     m_nameEdit->setMaxLength(32);
+    m_nameEdit->setText(QSettings().value(kDisplayNameSetting).toString());
 
     auto *meshHint = new QLabel("No host or join step. Peers discover each other automatically.");
     meshHint->setObjectName("modeHint");
@@ -160,6 +170,9 @@ QWidget *MainWindow::buildSetupPage()
 
     connect(startButton, &QPushButton::clicked, this, &MainWindow::startSession);
     connect(m_nameEdit, &QLineEdit::returnPressed, this, &MainWindow::startSession);
+    connect(m_nameEdit, &QLineEdit::textEdited, this, [](const QString &name) {
+        saveDisplayName(name);
+    });
     connect(m_updateButton, &QPushButton::clicked, this, &MainWindow::runQuickUpdate);
 
     return page;
@@ -180,6 +193,7 @@ void MainWindow::startSession()
     }
     m_setupError->hide();
     m_userName = name;
+    saveDisplayName(name);
 
     // Reset chat state.
     m_channels.clear();
@@ -245,6 +259,7 @@ void MainWindow::runUpdateStep(const QString &program, const QStringList &argume
 
 void MainWindow::runQuickUpdate()
 {
+    saveDisplayName(m_nameEdit->text());
     m_updateButton->setEnabled(false);
     const QString clientDir = updateClientDir();
 
@@ -576,8 +591,13 @@ void MainWindow::setChannels(const QStringList &channels)
 void MainWindow::setRoster(const QList<MemberInfo> &members)
 {
     m_memberList->clear();
+    QHash<QString, int> nameCounts;
+    for (const MemberInfo &member : members)
+        ++nameCounts[member.name];
     for (const MemberInfo &member : members) {
         QString label = "\xE2\x97\x8F " + member.name;
+        if (nameCounts.value(member.name) > 1 && !member.id.isEmpty())
+            label += " [" + member.id.left(6) + "]";
         if (!member.note.isEmpty())
             label += " " + member.note;
         if (member.self)

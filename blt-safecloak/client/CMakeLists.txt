@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(SafeCloak VERSION 0.4.7 LANGUAGES CXX)
+project(SafeCloak VERSION 0.4.9 LANGUAGES CXX)
 
 # Baked into the binaries: shown in the UI, and the quick-update button uses
 # the source dir to git pull + rebuild when running from a checkout.

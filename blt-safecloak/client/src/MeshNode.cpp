@@ -193,6 +193,9 @@ QList<QHostAddress> MeshNode::broadcastAddresses() const
 void MeshNode::writeDiscoveryDatagrams(const QByteArray &payload,
                                        const QList<QHostAddress> &extraTargets)
 {
+    if (m_udp.state() != QAbstractSocket::BoundState)
+        return;
+
     const QList<QHostAddress> broadcasts = broadcastAddresses();
     QList<QNetworkInterface> multicastIfaces;
     const auto interfaces = QNetworkInterface::allInterfaces();
@@ -206,6 +209,8 @@ void MeshNode::writeDiscoveryDatagrams(const QByteArray &payload,
     for (quint16 port = kDiscoveryPortBase;
          port < kDiscoveryPortBase + kDiscoveryPortRange; ++port) {
         for (const QNetworkInterface &iface : std::as_const(multicastIfaces)) {
+            if (m_udp.state() != QAbstractSocket::BoundState)
+                return;
             m_udp.setMulticastInterface(iface);
             m_udp.writeDatagram(payload, kMulticastGroup, port);
         }
@@ -224,6 +229,9 @@ void MeshNode::writeDiscoveryDatagrams(const QByteArray &payload,
 
 void MeshNode::sendLanBusPacket(const QJsonObject &message)
 {
+    if (m_lanBus.state() != QAbstractSocket::BoundState)
+        return;
+
     QJsonObject packet = selfPacketMetadata();
     packet.insert("kind", message.isEmpty() ? "lan-announce" : "lan-message");
     if (!message.isEmpty())
@@ -245,6 +253,9 @@ void MeshNode::sendLanBusPacket(const QJsonObject &message)
     }
 
     auto sendOnce = [this, payload, targets] {
+        if (m_lanBus.state() != QAbstractSocket::BoundState)
+            return;
+
         QList<QNetworkInterface> multicastIfaces;
         const auto interfaces = QNetworkInterface::allInterfaces();
         for (const QNetworkInterface &iface : interfaces) {
@@ -281,7 +292,13 @@ void MeshNode::onLanDatagram()
         const QString kind = packet.value("kind").toString();
         if (kind != "lan-announce" && kind != "lan-message")
             continue;
-        learnNodeFromPacket(packet, datagram.senderAddress(), kLanBusPort);
+        const bool changed =
+            learnNodeFromPacket(packet, datagram.senderAddress(), kLanBusPort);
+        if (changed) {
+            QTimer::singleShot(80, this, [this] {
+                sendLanBusPacket();
+            });
+        }
         if (kind == "lan-message") {
             const QJsonObject message = packet.value("message").toObject();
             if (!message.isEmpty())
@@ -339,6 +356,10 @@ void MeshNode::forgetStaleEndpointUsers(const QString &nodeId,
 void MeshNode::sendAnnounce()
 {
     writeDiscoveryDatagrams(announcePayload());
+    // Keep the LAN fallback as a first-class presence channel, not just a
+    // message path. This lets later-starting clients show already-open peers
+    // even when ordinary UDP discovery is filtered by the network.
+    sendLanBusPacket();
 }
 
 void MeshNode::onDatagram()
@@ -383,10 +404,12 @@ void MeshNode::onDatagram()
         forgetStaleEndpointUsers(nodeId, candidates,
                                  quint16(announce.value("port").toInt()),
                                  quint16(datagram.senderPort()));
+        const QString name = announce.value("name").toString();
         const bool endpointChanged =
             !isNew && (node.addresses != candidates ||
                        node.tcpPort != quint16(announce.value("port").toInt()));
-        node.name = announce.value("name").toString();
+        const bool nameChanged = !isNew && node.name != name;
+        node.name = name;
         node.address = candidates.first();
         node.addresses = candidates;
         node.tcpPort = quint16(announce.value("port").toInt());
@@ -428,18 +451,18 @@ void MeshNode::onDatagram()
                 replyWithAnnounce(target, quint16(datagram.senderPort()));
             }
         }
-        if (isNew)
+        if (isNew || endpointChanged || nameChanged)
             updateRosterAndStatus();
     }
 }
 
-void MeshNode::learnNodeFromPacket(const QJsonObject &packet,
+bool MeshNode::learnNodeFromPacket(const QJsonObject &packet,
                                    const QHostAddress &senderAddress,
                                    quint16 senderPort)
 {
     const QString nodeId = packet.value("nodeId").toString();
     if (nodeId.isEmpty() || nodeId == m_nodeId)
-        return;
+        return false;
 
     QList<QHostAddress> candidates;
     if (senderAddress.protocol() == QAbstractSocket::IPv4Protocol)
@@ -457,10 +480,16 @@ void MeshNode::learnNodeFromPacket(const QJsonObject &packet,
                              senderPort);
     KnownNode &node = m_known[nodeId];
     const bool isNew = node.lastSeenMs == 0;
-    node.name = packet.value("name").toString();
+    const QString name = packet.value("name").toString();
+    const quint16 tcpPort = quint16(packet.value("port").toInt());
+    const bool changed = isNew || node.name != name ||
+                         node.addresses != candidates ||
+                         node.tcpPort != tcpPort ||
+                         node.udpPort != senderPort;
+    node.name = name;
     node.address = candidates.first();
     node.addresses = candidates;
-    node.tcpPort = quint16(packet.value("port").toInt());
+    node.tcpPort = tcpPort;
     node.udpPort = senderPort;
     node.lastSeenMs = QDateTime::currentMSecsSinceEpoch();
     if (isNew)
@@ -470,7 +499,26 @@ void MeshNode::learnNodeFromPacket(const QJsonObject &packet,
         node.tcpPort > 0) {
         connectToPeer(nodeId, node);
     }
+    if (changed)
+        updateRosterAndStatus();
+    return changed;
+}
+
+void MeshNode::rememberMessageSender(const QString &nodeId, const QString &name)
+{
+    if (nodeId.isEmpty() || nodeId == m_nodeId)
+        return;
+
+    KnownNode &node = m_known[nodeId];
+    const bool isNew = node.lastSeenMs == 0;
+    const bool changed = isNew || (!name.isEmpty() && node.name != name);
+    if (!name.isEmpty())
+        node.name = name;
+    const qint64 now = QDateTime::currentMSecsSinceEpoch();
     if (isNew)
+        node.firstSeenMs = now;
+    node.lastSeenMs = now;
+    if (changed)
         updateRosterAndStatus();
 }
 
@@ -610,6 +658,8 @@ void MeshNode::onPeerMessage(FramedConnection *connection, const QJsonObject &me
     if (type == "chat") {
         if (!markSeen(message.value("id").toString()))
             return;
+        rememberMessageSender(message.value("senderId").toString(),
+                              message.value("sender").toString());
         mergeChannel(message.value("channel").toString(), false);
         flood(message, connection);
         emit chatMessage(message.value("channel").toString(),
@@ -619,6 +669,8 @@ void MeshNode::onPeerMessage(FramedConnection *connection, const QJsonObject &me
     } else if (type == "dm") {
         if (!markSeen(message.value("id").toString()))
             return;
+        rememberMessageSender(message.value("from").toString(),
+                              message.value("fromName").toString());
         const QString to = message.value("to").toString();
         if (to == m_nodeId) {
             emit directMessage(message.value("from").toString(),

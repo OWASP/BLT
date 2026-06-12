@@ -74,8 +74,9 @@ private:
     void onLanDatagram();
     void sendAnnounce();
     void onDatagram();
-    void learnNodeFromPacket(const QJsonObject &packet,
+    bool learnNodeFromPacket(const QJsonObject &packet,
                              const QHostAddress &senderAddress, quint16 senderPort);
+    void rememberMessageSender(const QString &nodeId, const QString &name);
     void onIncomingConnection();
     void adoptConnection(FramedConnection *connection);
     void onPeerMessage(FramedConnection *connection, const QJsonObject &message);
