@@ -19,6 +19,7 @@ constexpr int kAnnounceIntervalMs = 2000;
 constexpr int kNodeTimeoutMs = 15000;
 constexpr int kDialTimeoutMs = 8000;
 constexpr int kSeenCacheLimit = 4096;
+constexpr int kUdpRetryDelaysMs[] = {180, 650, 1400, 2600};
 const QString kDefaultAppTag = QStringLiteral("safecloak-chat");
 // Discovery goes out via multicast (looped back locally, so instances on the
 // same machine find each other) and via broadcast as a fallback for networks
@@ -206,12 +207,47 @@ void MeshNode::writeDiscoveryDatagrams(const QByteArray &payload,
 void MeshNode::replyWithAnnounce(const QHostAddress &target, quint16 targetPort)
 {
     const QByteArray payload = announcePayload();
+    QList<QHostAddress> targets{target};
+    writeDiscoveryDatagrams(payload, targets);
     m_udp.writeDatagram(payload, target, targetPort);
-    for (quint16 port = kDiscoveryPortBase;
-         port < kDiscoveryPortBase + kDiscoveryPortRange; ++port) {
-        if (port != targetPort)
-            m_udp.writeDatagram(payload, target, port);
+    for (int delay : kUdpRetryDelaysMs) {
+        QTimer::singleShot(delay, this, [this, payload, target, targetPort] {
+            QList<QHostAddress> targets{target};
+            writeDiscoveryDatagrams(payload, targets);
+            m_udp.writeDatagram(payload, target, targetPort);
+        });
     }
+}
+
+void MeshNode::forgetStaleEndpointUsers(const QString &nodeId,
+                                        const QList<QHostAddress> &addresses,
+                                        quint16 tcpPort, quint16 udpPort)
+{
+    bool changed = false;
+    for (auto it = m_known.begin(); it != m_known.end();) {
+        if (it.key() == nodeId) {
+            ++it;
+            continue;
+        }
+        bool sameEndpoint = tcpPort > 0 && it->tcpPort == tcpPort;
+        sameEndpoint = sameEndpoint || (udpPort > 0 && it->udpPort == udpPort);
+        for (const QHostAddress &address : addresses) {
+            if (it->addresses.contains(address)) {
+                sameEndpoint = sameEndpoint || it->tcpPort == tcpPort ||
+                               it->udpPort == udpPort;
+                break;
+            }
+        }
+        if (sameEndpoint && !m_peers.contains(it.key())) {
+            m_pendingDials.remove(it.key());
+            it = m_known.erase(it);
+            changed = true;
+            continue;
+        }
+        ++it;
+    }
+    if (changed)
+        updateRosterAndStatus();
 }
 
 void MeshNode::sendAnnounce()
@@ -258,6 +294,9 @@ void MeshNode::onDatagram()
         }
         if (candidates.isEmpty())
             candidates.append(datagram.senderAddress());
+        forgetStaleEndpointUsers(nodeId, candidates,
+                                 quint16(announce.value("port").toInt()),
+                                 quint16(datagram.senderPort()));
         const bool endpointChanged =
             !isNew && (node.addresses != candidates ||
                        node.tcpPort != quint16(announce.value("port").toInt()));
@@ -328,6 +367,8 @@ void MeshNode::learnNodeFromPacket(const QJsonObject &packet,
     if (candidates.isEmpty())
         candidates.append(senderAddress);
 
+    forgetStaleEndpointUsers(nodeId, candidates, quint16(packet.value("port").toInt()),
+                             senderPort);
     KnownNode &node = m_known[nodeId];
     const bool isNew = node.lastSeenMs == 0;
     node.name = packet.value("name").toString();
@@ -645,6 +686,21 @@ void MeshNode::floodUdp(const QJsonObject &message)
         if (!node.addresses.contains(node.address))
             m_udp.writeDatagram(payload, node.address, node.udpPort);
     }
+
+    for (int delay : kUdpRetryDelaysMs) {
+        QTimer::singleShot(delay, this, [this, payload, targets] {
+            writeDiscoveryDatagrams(payload, targets);
+            for (const KnownNode &node : std::as_const(m_known)) {
+                if (node.udpPort >= kDiscoveryPortBase &&
+                    node.udpPort < kDiscoveryPortBase + kDiscoveryPortRange)
+                    continue;
+                for (const QHostAddress &target : node.addresses)
+                    m_udp.writeDatagram(payload, target, node.udpPort);
+                if (!node.addresses.contains(node.address))
+                    m_udp.writeDatagram(payload, node.address, node.udpPort);
+            }
+        });
+    }
 }
 
 bool MeshNode::markSeen(const QString &messageId)
@@ -663,8 +719,8 @@ void MeshNode::prune()
     const qint64 now = QDateTime::currentMSecsSinceEpoch();
     bool changed = false;
     for (auto it = m_known.begin(); it != m_known.end();) {
-        if (now - it->lastSeenMs > kNodeTimeoutMs && !m_peers.contains(it.key()) &&
-            !m_pendingDials.contains(it.key())) {
+        if (now - it->lastSeenMs > kNodeTimeoutMs && !m_peers.contains(it.key())) {
+            m_pendingDials.remove(it.key());
             it = m_known.erase(it);
             changed = true;
             continue;

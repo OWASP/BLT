@@ -66,6 +66,9 @@ private:
     void writeDiscoveryDatagrams(const QByteArray &payload,
                                  const QList<QHostAddress> &extraTargets = {});
     void replyWithAnnounce(const QHostAddress &target, quint16 targetPort);
+    void forgetStaleEndpointUsers(const QString &nodeId,
+                                  const QList<QHostAddress> &addresses,
+                                  quint16 tcpPort, quint16 udpPort);
     void sendAnnounce();
     void onDatagram();
     void learnNodeFromPacket(const QJsonObject &packet,
