@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(SafeCloakChat VERSION 0.2.0 LANGUAGES CXX)
+project(SafeCloakChat VERSION 0.4.0 LANGUAGES CXX)
 
 # Baked into the binaries: shown in the UI, and the quick-update button uses
 # the source dir to git pull + rebuild when running from a checkout.
@@ -22,10 +22,6 @@ qt_add_executable(safecloak
     src/FramedConnection.h
     src/FramedConnection.cpp
     src/ChatBackend.h
-    src/ChatServer.h
-    src/ChatServer.cpp
-    src/ChatClient.h
-    src/ChatClient.cpp
     src/MeshNode.h
     src/MeshNode.cpp
     src/MainWindow.h
@@ -42,10 +38,6 @@ if(SAFECLOAK_BUILD_TESTS)
         src/FramedConnection.h
         src/FramedConnection.cpp
         src/ChatBackend.h
-        src/ChatServer.h
-        src/ChatServer.cpp
-        src/ChatClient.h
-        src/ChatClient.cpp
         src/MeshNode.h
         src/MeshNode.cpp
     )

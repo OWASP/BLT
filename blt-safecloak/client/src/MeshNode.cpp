@@ -7,6 +7,7 @@
 #include <QJsonDocument>
 #include <QNetworkDatagram>
 #include <QNetworkInterface>
+#include <QSslError>
 #include <QTimer>
 #include <QUuid>
 
@@ -16,7 +17,6 @@ constexpr int kAnnounceIntervalMs = 2000;
 // Generous: Wi-Fi access points drop multicast/broadcast intermittently, and
 // a node should not vanish from the roster over a few lost announcements.
 constexpr int kNodeTimeoutMs = 15000;
-constexpr int kDialFallbackMs = 6000;
 constexpr int kDialTimeoutMs = 8000;
 constexpr int kSeenCacheLimit = 4096;
 const QString kAppTag = QStringLiteral("safecloak-chat");
@@ -24,6 +24,28 @@ const QString kAppTag = QStringLiteral("safecloak-chat");
 // same machine find each other) and via broadcast as a fallback for networks
 // that filter multicast. Duplicate announcements are harmless.
 const QHostAddress kMulticastGroup(QStringLiteral("239.255.43.21"));
+
+QString localAddressSummary()
+{
+    QStringList addresses;
+    const auto interfaces = QNetworkInterface::allInterfaces();
+    for (const QNetworkInterface &iface : interfaces) {
+        if (!(iface.flags() & QNetworkInterface::IsUp) ||
+            !(iface.flags() & QNetworkInterface::IsRunning) ||
+            (iface.flags() & QNetworkInterface::IsLoopBack))
+            continue;
+        const auto entries = iface.addressEntries();
+        for (const QNetworkAddressEntry &entry : entries) {
+            const QHostAddress address = entry.ip();
+            if (address.protocol() == QAbstractSocket::IPv4Protocol &&
+                !addresses.contains(address.toString()))
+                addresses.append(address.toString());
+        }
+    }
+    if (addresses.isEmpty())
+        addresses.append(QHostAddress(QHostAddress::LocalHost).toString());
+    return addresses.join(", ");
+}
 
 } // namespace
 
@@ -83,7 +105,9 @@ bool MeshNode::start(const QHostAddress &bindAddress,
 
     emit channelsChanged(m_channels);
     updateRosterAndStatus();
-    emit systemMessage("Mesh mode active. Looking for peers on the local network...");
+    emit systemMessage("Mesh active. Local IP " + localAddressSummary() +
+                       "; UDP " + QString::number(m_udp.localPort()) +
+                       "; TCP " + QString::number(m_listener.serverPort()) + ".");
 
     sendAnnounce();
     m_announceTimer.start(kAnnounceIntervalMs);
@@ -163,6 +187,9 @@ void MeshNode::onDatagram()
         const qint64 now = QDateTime::currentMSecsSinceEpoch();
         KnownNode &node = m_known[nodeId];
         const bool isNew = node.lastSeenMs == 0;
+        const bool endpointChanged =
+            !isNew && (node.address != datagram.senderAddress() ||
+                       node.tcpPort != quint16(announce.value("port").toInt()));
         node.name = announce.value("name").toString();
         node.address = datagram.senderAddress();
         node.tcpPort = quint16(announce.value("port").toInt());
@@ -170,10 +197,20 @@ void MeshNode::onDatagram()
         if (isNew)
             node.firstSeenMs = now;
 
-        // Preferred direction: the node with the smaller id dials, so each
-        // pair normally gets a single link.
+        if (isNew || endpointChanged) {
+            emit systemMessage("Discovered " + node.name + " at " +
+                               node.address.toString() + ":" +
+                               QString::number(node.tcpPort) + " (UDP from " +
+                               datagram.senderAddress().toString() + ":" +
+                               QString::number(datagram.senderPort()) + ").");
+        }
+
+        // Dial immediately from both sides. Duplicate links are resolved
+        // deterministically in adoptConnection(), and dialing both ways avoids
+        // one-way discovery/timing failures where a peer is visible but not
+        // reachable in the roster.
         if (!m_peers.contains(nodeId) && !m_pendingDials.contains(nodeId) &&
-            m_nodeId < nodeId) {
+            node.tcpPort > 0) {
             connectToPeer(nodeId, node);
         }
         // While there is no link, keep introducing ourselves directly to the
@@ -194,8 +231,25 @@ void MeshNode::onDatagram()
 void MeshNode::connectToPeer(const QString &nodeId, const KnownNode &node)
 {
     m_pendingDials.insert(nodeId);
+    emit systemMessage("Dialing " + node.name + " at " + node.address.toString() +
+                       ":" + QString::number(node.tcpPort) + "...");
 
     auto *socket = new QSslSocket;
+    connect(socket, &QSslSocket::errorOccurred, this,
+            [this, nodeId, node, socket](QAbstractSocket::SocketError) {
+                m_pendingDials.remove(nodeId);
+                emit systemMessage("Dial to " + node.name + " failed: " +
+                                   socket->errorString() + ".");
+                updateRosterAndStatus();
+            });
+    connect(socket, &QSslSocket::sslErrors, this,
+            [this, node](const QList<QSslError> &errors) {
+                QStringList messages;
+                for (const QSslError &error : errors)
+                    messages.append(error.errorString());
+                emit systemMessage("TLS warning from " + node.name + ": " +
+                                   messages.join("; ") + ".");
+            });
     socket->setSslConfiguration(SslIdentity::clientConfiguration());
     auto *connection = new FramedConnection(socket, this);
     connection->remoteId = nodeId;
@@ -212,9 +266,11 @@ void MeshNode::connectToPeer(const QString &nodeId, const KnownNode &node)
     });
     // Abort dials that hang (filtered port, gone peer) well before the OS
     // connect timeout, so the retry loop in prune() can take another shot.
-    QTimer::singleShot(kDialTimeoutMs, connection, [connection] {
-        if (!connection->socket()->isEncrypted())
+    QTimer::singleShot(kDialTimeoutMs, connection, [this, connection] {
+        if (!connection->socket()->isEncrypted()) {
+            emit systemMessage("Dial timeout to " + connection->remoteName + ".");
             connection->socket()->abort(); // emits closed via errorOccurred
+        }
     });
 
     socket->connectToHostEncrypted(node.address.toString(), node.tcpPort);
@@ -252,6 +308,7 @@ void MeshNode::adoptConnection(FramedConnection *connection)
             const QString newDialer = connection->outbound ? m_nodeId : nodeId;
             const QString oldDialer = existing->outbound ? m_nodeId : nodeId;
             FramedConnection *loser = newDialer < oldDialer ? existing : connection;
+            loser->socket()->disconnect(this);
             loser->disconnect(this);
             loser->close();
             loser->deleteLater();
@@ -432,15 +489,10 @@ void MeshNode::prune()
             changed = true;
             continue;
         }
-        // Link establishment safety net: retry as the preferred dialer, and
-        // if the preferred dialer (the other side) has not connected to us
-        // within a grace period — e.g. it cannot receive our announcements —
-        // dial from this side instead. Duplicate links are resolved
-        // deterministically in adoptConnection().
+        // Link establishment safety net: if a dial failed or timed out, retry
+        // while the peer is still being announced.
         if (!m_peers.contains(it.key()) && !m_pendingDials.contains(it.key())) {
-            const bool preferredDialer = m_nodeId < it.key();
-            if (preferredDialer || now - it->firstSeenMs > kDialFallbackMs)
-                connectToPeer(it.key(), it.value());
+            connectToPeer(it.key(), it.value());
         }
         ++it;
     }
@@ -459,7 +511,10 @@ void MeshNode::updateRosterAndStatus()
             members.append({it.key(), it->name, "(discovered)", false});
     }
     emit rosterChanged(members);
-    emit statusChanged("Mesh · " + QString::number(m_peers.size()) + " peer(s) · TLS");
+    emit statusChanged("Mesh · " + QString::number(m_peers.size()) +
+                       " peer(s) · IP " + localAddressSummary() + " · UDP " +
+                       QString::number(m_udp.localPort()) + " · TCP " +
+                       QString::number(m_listener.serverPort()) + " · TLS");
 }
 
 void MeshNode::shutdown()

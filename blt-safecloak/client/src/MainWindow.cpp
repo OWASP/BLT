@@ -1,13 +1,13 @@
 #include "MainWindow.h"
 
-#include "ChatClient.h"
-#include "ChatServer.h"
 #include "MeshNode.h"
 #include "Theme.h"
 
 #include <QCoreApplication>
 #include <QDateTime>
 #include <QDir>
+#include <QFileInfo>
+#include <QStandardPaths>
 #include <QHBoxLayout>
 #include <QInputDialog>
 #include <QLabel>
@@ -16,9 +16,7 @@
 #include <QMessageBox>
 #include <QProcess>
 #include <QPushButton>
-#include <QRadioButton>
 #include <QScrollBar>
-#include <QSpinBox>
 #include <QStackedWidget>
 #include <QTextBrowser>
 #include <QThread>
@@ -33,11 +31,19 @@
 
 namespace {
 
-// The quick-update button only works when the binary was built from a local
-// checkout that still exists on this machine.
-bool updateSupported()
+const QString kRepoUrl = QStringLiteral("https://gitlab.com/owasp-blt/blt-safecloak.git");
+
+// Directory holding client/CMakeLists.txt to update from: the build-time
+// checkout when it still exists, otherwise a persistent clone managed by the
+// app in its data directory (used when the binary was installed without a
+// checkout, e.g. via install.sh).
+QString updateClientDir()
 {
-    return QDir(QStringLiteral(SAFECLOAK_SOURCE_DIR)).exists("CMakeLists.txt");
+    const QString baked = QStringLiteral(SAFECLOAK_SOURCE_DIR);
+    if (!baked.isEmpty() && QDir(baked).exists("CMakeLists.txt"))
+        return baked;
+    return QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) +
+           "/src/client";
 }
 
 const QString kDmPrefix = QStringLiteral("@");
@@ -88,7 +94,7 @@ QWidget *MainWindow::buildSetupPage()
     auto *title = new QLabel("<span style='color:#ff4444'>SafeCloak</span> Chat");
     title->setObjectName("appTitle");
     title->setAlignment(Qt::AlignHCenter);
-    auto *subtitle = new QLabel("Encrypted chat for your local network");
+    auto *subtitle = new QLabel("Encrypted mesh chat for your local network");
     subtitle->setObjectName("appSubtitle");
     subtitle->setAlignment(Qt::AlignHCenter);
     auto *versionLabel = new QLabel("v" SAFECLOAK_VERSION);
@@ -99,23 +105,8 @@ QWidget *MainWindow::buildSetupPage()
     m_nameEdit->setPlaceholderText("Display name");
     m_nameEdit->setMaxLength(32);
 
-    m_hostRadio = new QRadioButton("Host a server");
-    auto *hostHint = new QLabel("Run the room on this machine; others join you.");
-    hostHint->setObjectName("modeHint");
-    m_joinRadio = new QRadioButton("Join a server");
-    auto *joinHint = new QLabel("Connect to someone hosting on the network.");
-    joinHint->setObjectName("modeHint");
-    m_meshRadio = new QRadioButton("Mesh mode");
-    auto *meshHint = new QLabel("No server — discover peers automatically via broadcast.");
+    auto *meshHint = new QLabel("No host or join step. Peers discover each other automatically.");
     meshHint->setObjectName("modeHint");
-    m_hostRadio->setChecked(true);
-
-    m_hostEdit = new QLineEdit;
-    m_hostEdit->setPlaceholderText("Server address (e.g. 192.168.1.20)");
-    m_portSpin = new QSpinBox;
-    m_portSpin->setRange(1024, 65535);
-    m_portSpin->setValue(47800);
-    m_portSpin->setPrefix("Port  ");
 
     m_setupError = new QLabel;
     m_setupError->setWordWrap(true);
@@ -130,7 +121,6 @@ QWidget *MainWindow::buildSetupPage()
     m_updateButton->setObjectName("ghostButton");
     m_updateButton->setCursor(Qt::PointingHandCursor);
     m_updateButton->setToolTip("Pull the latest version, rebuild, and relaunch");
-    m_updateButton->setVisible(updateSupported());
     m_updateStatus = new QLabel;
     m_updateStatus->setObjectName("modeHint");
     m_updateStatus->setWordWrap(true);
@@ -146,15 +136,8 @@ QWidget *MainWindow::buildSetupPage()
     cardLayout->addSpacing(14);
     cardLayout->addWidget(m_nameEdit);
     cardLayout->addSpacing(8);
-    cardLayout->addWidget(m_hostRadio);
-    cardLayout->addWidget(hostHint);
-    cardLayout->addWidget(m_joinRadio);
-    cardLayout->addWidget(joinHint);
-    cardLayout->addWidget(m_meshRadio);
     cardLayout->addWidget(meshHint);
     cardLayout->addSpacing(8);
-    cardLayout->addWidget(m_hostEdit);
-    cardLayout->addWidget(m_portSpin);
     cardLayout->addWidget(m_setupError);
     cardLayout->addSpacing(10);
     cardLayout->addWidget(startButton);
@@ -166,20 +149,11 @@ QWidget *MainWindow::buildSetupPage()
     layout->addWidget(card, 0, Qt::AlignHCenter);
     layout->addStretch();
 
-    for (QRadioButton *radio : {m_hostRadio, m_joinRadio, m_meshRadio})
-        connect(radio, &QRadioButton::toggled, this, &MainWindow::updateSetupFields);
     connect(startButton, &QPushButton::clicked, this, &MainWindow::startSession);
     connect(m_nameEdit, &QLineEdit::returnPressed, this, &MainWindow::startSession);
     connect(m_updateButton, &QPushButton::clicked, this, &MainWindow::runQuickUpdate);
-    updateSetupFields();
 
     return page;
-}
-
-void MainWindow::updateSetupFields()
-{
-    m_hostEdit->setVisible(m_joinRadio->isChecked());
-    m_portSpin->setVisible(!m_meshRadio->isChecked());
 }
 
 void MainWindow::startSession()
@@ -209,27 +183,10 @@ void MainWindow::startSession()
     m_memberList->clear();
     m_messageView->clear();
 
-    if (m_hostRadio->isChecked()) {
-        auto *server = new ChatServer(m_identity, name, this);
-        attachBackend(server);
-        if (!server->start(quint16(m_portSpin->value())))
-            return; // fatalError already routed to the setup page
-    } else if (m_joinRadio->isChecked()) {
-        const QString host = m_hostEdit->text().trimmed();
-        if (host.isEmpty()) {
-            m_setupError->setText("Please enter the server address.");
-            m_setupError->show();
-            return;
-        }
-        auto *client = new ChatClient(name, this);
-        attachBackend(client);
-        client->connectToServer(host, quint16(m_portSpin->value()));
-    } else {
-        auto *mesh = new MeshNode(m_identity, name, this);
-        attachBackend(mesh);
-        if (!mesh->start())
-            return;
-    }
+    auto *mesh = new MeshNode(m_identity, name, this);
+    attachBackend(mesh);
+    if (!mesh->start())
+        return;
 
     if (m_backend) {
         m_modeBadge->setText(m_backend->modeName().toUpper());
@@ -279,25 +236,59 @@ void MainWindow::runUpdateStep(const QString &program, const QStringList &argume
 
 void MainWindow::runQuickUpdate()
 {
-    const QString sourceDir = QStringLiteral(SAFECLOAK_SOURCE_DIR);
-    const QString buildDir = sourceDir + "/build";
     m_updateButton->setEnabled(false);
+    const QString clientDir = updateClientDir();
 
-    setUpdateStatus("Pulling the latest version...");
-    runUpdateStep("git", {"pull", "--ff-only"}, sourceDir, [this, sourceDir, buildDir] {
-        setUpdateStatus("Configuring...");
+    if (QDir(clientDir).exists("CMakeLists.txt")) {
+        setUpdateStatus("Pulling the latest version...");
+        runUpdateStep("git", {"pull", "--ff-only"}, clientDir,
+                      [this, clientDir] { buildAndRelaunch(clientDir); });
+    } else {
+        // No checkout anywhere (binary installed without one): clone a fresh
+        // copy into the app data directory and update from there from now on.
+        const QString repoDir = QFileInfo(clientDir).absolutePath(); // .../src
+        QDir().mkpath(QFileInfo(repoDir).absolutePath());
+        setUpdateStatus("Downloading the latest version...");
+        runUpdateStep("git", {"clone", "--depth", "1", kRepoUrl, repoDir},
+                      QFileInfo(repoDir).absolutePath(),
+                      [this, clientDir] { buildAndRelaunch(clientDir); });
+    }
+}
+
+void MainWindow::buildAndRelaunch(const QString &clientDir)
+{
+    const QString buildDir = clientDir + "/build";
+    setUpdateStatus("Configuring...");
+    runUpdateStep("cmake",
+                  {"-S", clientDir, "-B", buildDir, "-DCMAKE_BUILD_TYPE=Release",
+                   "-DSAFECLOAK_BUILD_TESTS=OFF"},
+                  clientDir, [this, buildDir] {
+        setUpdateStatus("Rebuilding...");
         runUpdateStep("cmake",
-                      {"-S", sourceDir, "-B", buildDir, "-DCMAKE_BUILD_TYPE=Release"},
-                      sourceDir, [this, buildDir] {
-            setUpdateStatus("Rebuilding...");
-            runUpdateStep("cmake",
-                          {"--build", buildDir, "-j",
-                           QString::number(QThread::idealThreadCount())},
-                          buildDir, [this] {
-                setUpdateStatus("Relaunching...");
-                QProcess::startDetached(QCoreApplication::applicationFilePath(), {});
-                QCoreApplication::quit();
-            });
+                      {"--build", buildDir, "-j",
+                       QString::number(QThread::idealThreadCount())},
+                      buildDir, [this, buildDir] {
+            // When the running binary lives elsewhere (e.g. ~/.local/bin),
+            // install the fresh build over it; the running inode stays valid.
+            const QString built = buildDir + "/safecloak";
+            const QString appPath = QCoreApplication::applicationFilePath();
+            if (QFileInfo(built).canonicalFilePath() !=
+                QFileInfo(appPath).canonicalFilePath()) {
+                QFile::remove(appPath);
+                if (!QFile::copy(built, appPath)) {
+                    setUpdateStatus("Update failed: could not replace " + appPath, true);
+                    m_updateButton->setEnabled(true);
+                    return;
+                }
+                QFile::setPermissions(appPath,
+                                      QFile::ReadOwner | QFile::WriteOwner |
+                                      QFile::ExeOwner | QFile::ReadGroup |
+                                      QFile::ExeGroup | QFile::ReadOther |
+                                      QFile::ExeOther);
+            }
+            setUpdateStatus("Relaunching...");
+            QProcess::startDetached(appPath, {});
+            QCoreApplication::quit();
         });
     });
 }

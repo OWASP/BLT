@@ -13,8 +13,6 @@ class QLabel;
 class QLineEdit;
 class QListWidget;
 class QPushButton;
-class QRadioButton;
-class QSpinBox;
 class QStackedWidget;
 class QTextBrowser;
 
@@ -27,9 +25,9 @@ public:
 private:
     // Setup page
     QWidget *buildSetupPage();
-    void updateSetupFields();
     void startSession();
     void runQuickUpdate();
+    void buildAndRelaunch(const QString &clientDir);
     void runUpdateStep(const QString &program, const QStringList &arguments,
                        const QString &workingDir, std::function<void()> onSuccess);
     void setUpdateStatus(const QString &status, bool isError = false);
@@ -67,11 +65,6 @@ private:
 
     // Setup widgets
     QLineEdit *m_nameEdit;
-    QRadioButton *m_hostRadio;
-    QRadioButton *m_joinRadio;
-    QRadioButton *m_meshRadio;
-    QLineEdit *m_hostEdit;
-    QSpinBox *m_portSpin;
     QLabel *m_setupError;
     QPushButton *m_updateButton;
     QLabel *m_updateStatus;

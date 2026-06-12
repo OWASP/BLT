@@ -14,8 +14,8 @@ struct MemberInfo {
     bool self = false;
 };
 
-// Common interface for the three networking modes (host, client, mesh) so the
-// UI does not care which one is active.
+// Common interface for chat networking. The desktop app currently runs as a
+// mesh-only LAN node, but keeping the interface small keeps UI code decoupled.
 class ChatBackend : public QObject
 {
     Q_OBJECT
