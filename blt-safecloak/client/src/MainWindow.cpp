@@ -3,6 +3,7 @@
 #include "MeshNode.h"
 #include "Theme.h"
 
+#include <QApplication>
 #include <QCoreApplication>
 #include <QDateTime>
 #include <QDir>
@@ -18,6 +19,8 @@
 #include <QPushButton>
 #include <QScrollBar>
 #include <QStackedWidget>
+#include <QStyle>
+#include <QSystemTrayIcon>
 #include <QTextBrowser>
 #include <QThread>
 #include <QVBoxLayout>
@@ -69,6 +72,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {
     setWindowTitle("SafeCloak");
     resize(1060, 700);
+
+    m_trayIcon = new QSystemTrayIcon(this);
+    m_trayIcon->setIcon(style()->standardIcon(QStyle::SP_MessageBoxInformation));
+    m_trayIcon->setToolTip("SafeCloak");
+    if (QSystemTrayIcon::isSystemTrayAvailable())
+        m_trayIcon->show();
 
     m_stack = new QStackedWidget(this);
     m_stack->addWidget(buildSetupPage());
@@ -170,6 +179,7 @@ void MainWindow::startSession()
         return;
     }
     m_setupError->hide();
+    m_userName = name;
 
     // Reset chat state.
     m_channels.clear();
@@ -456,6 +466,7 @@ void MainWindow::leaveSession(const QString &)
         m_backend = nullptr;
     }
     m_stack->setCurrentIndex(0);
+    m_userName.clear();
 }
 
 // ------------------------------------------------------------------ messages
@@ -486,6 +497,8 @@ void MainWindow::appendChat(const QString &channel, const QString &sender,
                             const QString &text, qint64 timestampMs)
 {
     appendHtml(channel, messageHtml(sender, text, timestampMs));
+    if (sender != m_userName)
+        notifyIfInactive(sender + " in " + channel, text);
 }
 
 void MainWindow::onDirectMessage(const QString &peerId, const QString &peerName,
@@ -502,6 +515,23 @@ void MainWindow::onDirectMessage(const QString &peerId, const QString &peerName,
         refreshDmList();
     }
     appendHtml(dmKey(peerId), messageHtml(sender, text, timestampMs));
+    if (sender != m_userName)
+        notifyIfInactive(sender + " sent you a message", text);
+}
+
+void MainWindow::notifyIfInactive(const QString &title, const QString &body)
+{
+    if (isActiveWindow())
+        return;
+
+    QApplication::alert(this, 0);
+    if (!m_trayIcon || !QSystemTrayIcon::isSystemTrayAvailable())
+        return;
+
+    QString cleanBody = body.simplified();
+    if (cleanBody.size() > 180)
+        cleanBody = cleanBody.left(177) + "...";
+    m_trayIcon->showMessage(title, cleanBody, QSystemTrayIcon::Information, 6000);
 }
 
 void MainWindow::appendSystem(const QString &text)

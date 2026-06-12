@@ -30,6 +30,7 @@ public:
     // for them); falls back to an ephemeral port when all are taken.
     static constexpr quint16 kTcpPortBase = 45464;
     static constexpr quint16 kTcpPortRange = 10;
+    static constexpr quint16 kLanBusPort = 45453;
 
     MeshNode(const SslIdentity &identity, const QString &userName,
              QObject *parent = nullptr, const QString &appTag = QString());
@@ -69,6 +70,8 @@ private:
     void forgetStaleEndpointUsers(const QString &nodeId,
                                   const QList<QHostAddress> &addresses,
                                   quint16 tcpPort, quint16 udpPort);
+    void sendLanBusPacket(const QJsonObject &message = {});
+    void onLanDatagram();
     void sendAnnounce();
     void onDatagram();
     void learnNodeFromPacket(const QJsonObject &packet,
@@ -93,6 +96,7 @@ private:
 
     QSslServer m_listener;
     QUdpSocket m_udp;
+    QUdpSocket m_lanBus;
     QTimer m_announceTimer;
     QTimer m_pruneTimer;
     QList<QHostAddress> m_announceTargets;

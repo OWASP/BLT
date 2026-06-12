@@ -24,7 +24,8 @@ nodes, which forward but never display them.
 If a peer is visible but its TCP listener times out, SafeCloak keeps retrying
 the direct TLS link and broadcasts fallback message packets over the LAN
 discovery ports so nearby peers can still chat even when one direction cannot
-receive unicast replies.
+receive unicast replies. It also uses a fixed shared LAN chat port, UDP 45453,
+so every client has a stable place to receive names and messages.
 
 ## Building
 
@@ -88,9 +89,11 @@ QT_QPA_PLATFORM=offscreen ./build/safecloak-tests
   to 10 instances per host can participate. Announcements go out on every
   network interface (multicast + each interface's directed broadcast), so
   machines with docker bridges or VPNs still discover peers on the LAN.
+- LAN chat fallback uses UDP 45453 with shared binding so all clients know
+  where to send and receive message packets.
 - Mesh TLS listeners prefer TCP ports 45464–45473 (falling back to an
   ephemeral port). If peers see each other as "(discovered)" but never
-  connect, allow TCP 45464–45473 and UDP 45454–45463 through your firewall.
+  connect, allow TCP 45464–45473 and UDP 45453–45463 through your firewall.
 - The sidebar status shows your local IPs plus the active UDP and TCP ports.
   The message pane logs discovery, dial attempts, timeouts, and socket/TLS
   errors so you can see exactly where a peer link is failing.

@@ -14,6 +14,7 @@ class QLineEdit;
 class QListWidget;
 class QPushButton;
 class QStackedWidget;
+class QSystemTrayIcon;
 class QTextBrowser;
 
 class MainWindow : public QMainWindow
@@ -54,6 +55,7 @@ private:
     void refreshDmList();
     void promptAddChannel();
     void sendCurrentMessage();
+    void notifyIfInactive(const QString &title, const QString &body);
     QString senderColor(const QString &sender) const;
     QString messageHtml(const QString &sender, const QString &text,
                         qint64 timestampMs) const;
@@ -62,6 +64,7 @@ private:
     ChatBackend *m_backend = nullptr;
 
     QStackedWidget *m_stack;
+    QSystemTrayIcon *m_trayIcon;
 
     // Setup widgets
     QLineEdit *m_nameEdit;
@@ -85,4 +88,5 @@ private:
     QHash<QString, QString> m_dmNames;          // peerId -> display name
     QStringList m_openDms;                      // peerIds in sidebar order
     QSet<QString> m_unread;
+    QString m_userName;
 };

@@ -70,6 +70,7 @@ MeshNode::MeshNode(const SslIdentity &identity, const QString &userName,
     connect(&m_listener, &QSslServer::pendingConnectionAvailable, this,
             &MeshNode::onIncomingConnection);
     connect(&m_udp, &QUdpSocket::readyRead, this, &MeshNode::onDatagram);
+    connect(&m_lanBus, &QUdpSocket::readyRead, this, &MeshNode::onLanDatagram);
     connect(&m_announceTimer, &QTimer::timeout, this, &MeshNode::sendAnnounce);
     connect(&m_pruneTimer, &QTimer::timeout, this, &MeshNode::prune);
 }
@@ -100,6 +101,13 @@ bool MeshNode::start(const QHostAddress &bindAddress,
                         " all in use): " + m_udp.errorString());
         return false;
     }
+    if (!m_lanBus.bind(bindAddress, kLanBusPort,
+                       QUdpSocket::ShareAddress | QUdpSocket::ReuseAddressHint)) {
+        emit fatalError("Could not bind the LAN chat port " +
+                        QString::number(kLanBusPort) + ": " +
+                        m_lanBus.errorString());
+        return false;
+    }
     // Join the group on every multicast-capable interface — machines with
     // several interfaces (Wi-Fi + docker bridges + VPNs) would otherwise only
     // receive on whichever one the OS picked by default.
@@ -112,14 +120,24 @@ bool MeshNode::start(const QHostAddress &bindAddress,
             m_udp.joinMulticastGroup(kMulticastGroup, iface);
     }
     m_udp.setSocketOption(QAbstractSocket::MulticastLoopbackOption, 1);
+    m_lanBus.joinMulticastGroup(kMulticastGroup);
+    for (const QNetworkInterface &iface : interfaces) {
+        if ((iface.flags() & QNetworkInterface::IsUp) &&
+            (iface.flags() & QNetworkInterface::IsRunning) &&
+            (iface.flags() & QNetworkInterface::CanMulticast))
+            m_lanBus.joinMulticastGroup(kMulticastGroup, iface);
+    }
+    m_lanBus.setSocketOption(QAbstractSocket::MulticastLoopbackOption, 1);
 
     emit channelsChanged(m_channels);
     updateRosterAndStatus();
     emit systemMessage("Ready. Local IP " + localAddressSummary() +
                        "; UDP " + QString::number(m_udp.localPort()) +
+                       "; LAN " + QString::number(kLanBusPort) +
                        "; TCP " + QString::number(m_listener.serverPort()) + ".");
 
     sendAnnounce();
+    sendLanBusPacket();
     m_announceTimer.start(kAnnounceIntervalMs);
     m_pruneTimer.start(kNodeTimeoutMs / 2);
     return true;
@@ -204,6 +222,74 @@ void MeshNode::writeDiscoveryDatagrams(const QByteArray &payload,
     }
 }
 
+void MeshNode::sendLanBusPacket(const QJsonObject &message)
+{
+    QJsonObject packet = selfPacketMetadata();
+    packet.insert("kind", message.isEmpty() ? "lan-announce" : "lan-message");
+    if (!message.isEmpty())
+        packet.insert("message", message);
+    const QByteArray payload = QJsonDocument(packet).toJson(QJsonDocument::Compact);
+
+    QList<QHostAddress> targets = broadcastAddresses();
+    for (const KnownNode &node : std::as_const(m_known)) {
+        if (!targets.contains(node.address))
+            targets.append(node.address);
+        for (const QHostAddress &address : node.addresses) {
+            if (!targets.contains(address))
+                targets.append(address);
+        }
+    }
+    for (const QHostAddress &target : std::as_const(m_announceTargets)) {
+        if (!targets.contains(target))
+            targets.append(target);
+    }
+
+    auto sendOnce = [this, payload, targets] {
+        QList<QNetworkInterface> multicastIfaces;
+        const auto interfaces = QNetworkInterface::allInterfaces();
+        for (const QNetworkInterface &iface : interfaces) {
+            if ((iface.flags() & QNetworkInterface::IsUp) &&
+                (iface.flags() & QNetworkInterface::IsRunning) &&
+                !(iface.flags() & QNetworkInterface::IsLoopBack) &&
+                (iface.flags() & QNetworkInterface::CanMulticast))
+                multicastIfaces.append(iface);
+        }
+        for (const QNetworkInterface &iface : std::as_const(multicastIfaces)) {
+            m_lanBus.setMulticastInterface(iface);
+            m_lanBus.writeDatagram(payload, kMulticastGroup, kLanBusPort);
+        }
+        m_lanBus.writeDatagram(payload, QHostAddress::LocalHost, kLanBusPort);
+        for (const QHostAddress &target : std::as_const(targets))
+            m_lanBus.writeDatagram(payload, target, kLanBusPort);
+    };
+
+    sendOnce();
+    for (int delay : kUdpRetryDelaysMs)
+        QTimer::singleShot(delay, this, sendOnce);
+}
+
+void MeshNode::onLanDatagram()
+{
+    while (m_lanBus.hasPendingDatagrams()) {
+        const QNetworkDatagram datagram = m_lanBus.receiveDatagram();
+        const QJsonDocument doc = QJsonDocument::fromJson(datagram.data());
+        if (!doc.isObject())
+            continue;
+        const QJsonObject packet = doc.object();
+        if (packet.value("app").toString() != m_appTag)
+            continue;
+        const QString kind = packet.value("kind").toString();
+        if (kind != "lan-announce" && kind != "lan-message")
+            continue;
+        learnNodeFromPacket(packet, datagram.senderAddress(), kLanBusPort);
+        if (kind == "lan-message") {
+            const QJsonObject message = packet.value("message").toObject();
+            if (!message.isEmpty())
+                onPeerMessage(nullptr, message);
+        }
+    }
+}
+
 void MeshNode::replyWithAnnounce(const QHostAddress &target, quint16 targetPort)
 {
     const QByteArray payload = announcePayload();
@@ -217,6 +303,7 @@ void MeshNode::replyWithAnnounce(const QHostAddress &target, quint16 targetPort)
             m_udp.writeDatagram(payload, target, targetPort);
         });
     }
+    sendLanBusPacket();
 }
 
 void MeshNode::forgetStaleEndpointUsers(const QString &nodeId,
@@ -233,8 +320,7 @@ void MeshNode::forgetStaleEndpointUsers(const QString &nodeId,
         sameEndpoint = sameEndpoint || (udpPort > 0 && it->udpPort == udpPort);
         for (const QHostAddress &address : addresses) {
             if (it->addresses.contains(address)) {
-                sameEndpoint = sameEndpoint || it->tcpPort == tcpPort ||
-                               it->udpPort == udpPort;
+                sameEndpoint = true;
                 break;
             }
         }
@@ -637,6 +723,7 @@ void MeshNode::flood(const QJsonObject &message, FramedConnection *exclude)
         if (peer != exclude)
             peer->sendMessage(message);
     }
+    sendLanBusPacket(message);
     floodUdp(message);
 }
 
@@ -757,7 +844,8 @@ void MeshNode::updateRosterAndStatus()
     }
     emit statusChanged(QString::number(reachableCount) +
                        " reachable · IP " + localAddressSummary() + " · UDP " +
-                       QString::number(m_udp.localPort()) + " · TCP " +
+                       QString::number(m_udp.localPort()) + " · LAN " +
+                       QString::number(kLanBusPort) + " · TCP " +
                        QString::number(m_listener.serverPort()));
 }
 
@@ -766,6 +854,7 @@ void MeshNode::shutdown()
     m_announceTimer.stop();
     m_pruneTimer.stop();
     m_udp.close();
+    m_lanBus.close();
     m_listener.close();
     const auto peers = m_peers.values() + m_handshaking;
     m_peers.clear();
