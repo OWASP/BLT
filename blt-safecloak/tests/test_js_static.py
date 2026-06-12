@@ -165,8 +165,13 @@ def test_notes_js_uses_crypto_load_encrypted():
     assert 'Crypto.loadEncrypted(' in _read('notes.js')
 
 
-def test_notes_js_defines_esc_html():
-    assert 'function escHtml(' in _read('notes.js')
+def test_notes_js_uses_shared_esc_html():
+    """escHtml is consolidated in ui.js (PR #48): notes.js must use the shared
+    helper without redefining it, and ui.js must provide it."""
+    js = _read('notes.js')
+    assert 'escHtml(' in js
+    assert 'function escHtml(' not in js
+    assert 'function escHtml(' in _read('ui.js')
 
 
 def test_notes_js_defines_schedule_save():
@@ -218,12 +223,22 @@ def test_consent_js_defines_update_stats():
     assert 'function updateStats(' in _read('consent.js')
 
 
-def test_consent_js_defines_esc_html():
-    assert 'function escHtml(' in _read('consent.js')
+def test_consent_js_uses_shared_esc_html():
+    """escHtml is consolidated in ui.js (PR #48): consent.js must use the
+    shared helper without redefining it, and ui.js must provide it."""
+    js = _read('consent.js')
+    assert 'escHtml(' in js
+    assert 'function escHtml(' not in js
+    assert 'function escHtml(' in _read('ui.js')
 
 
-def test_consent_js_defines_capitalise():
-    assert 'function capitalise(' in _read('consent.js')
+def test_consent_js_uses_shared_capitalise():
+    """capitalise lives in ui.js alongside escHtml; consent.js must use the
+    shared helper without redefining it."""
+    js = _read('consent.js')
+    assert 'capitalise(' in js
+    assert 'function capitalise(' not in js
+    assert 'function capitalise(' in _read('ui.js')
 
 
 def test_consent_js_exports_public_api():

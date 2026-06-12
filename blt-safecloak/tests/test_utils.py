@@ -45,7 +45,8 @@ def test_html_response_no_origin():
 
     assert response.status_code == 200
     assert response.headers["Content-Type"] == "text/html; charset=utf-8"
-    assert response.headers["Access-Control-Allow-Origin"] == "*"
+    # Requests without an Origin header get no CORS grant.
+    assert "Access-Control-Allow-Origin" not in response.headers
     assert EXPECTED_SECURITY_HEADERS.items() <= response.headers.items()
     for header_name, expected_value in EXPECTED_SECURITY_HEADERS.items():
         assert response.headers[header_name] == expected_value
@@ -84,7 +85,8 @@ def test_json_response_no_origin():
 
     assert response.status_code == 200
     assert response.headers["Content-Type"] == "application/json; charset=utf-8"
-    assert response.headers["Access-Control-Allow-Origin"] == "*"
+    # Requests without an Origin header get no CORS grant.
+    assert "Access-Control-Allow-Origin" not in response.headers
     assert EXPECTED_SECURITY_HEADERS.items() <= response.headers.items()
     for header_name, expected_value in EXPECTED_SECURITY_HEADERS.items():
         assert response.headers[header_name] == expected_value
@@ -111,7 +113,8 @@ def test_cors_response_no_origin():
     response = cors_response()
 
     assert response.status_code == 204
-    assert response.headers["Access-Control-Allow-Origin"] == "*"
+    # Preflights without an Origin header get no CORS grant.
+    assert "Access-Control-Allow-Origin" not in response.headers
     assert response.headers["Access-Control-Allow-Methods"] == "GET, POST, OPTIONS"
     assert response.headers["Access-Control-Allow-Headers"] == "Content-Type"
     assert response.headers["Access-Control-Max-Age"] == "86400"
@@ -230,7 +233,8 @@ def test_on_fetch_unknown_path_returns_404_with_security_headers():
 
     assert response.status_code == 404
     assert response.headers["Content-Type"] == "text/plain; charset=utf-8"
-    assert response.headers["Access-Control-Allow-Origin"] == "*"
+    # No Origin header on the request, so no CORS grant on the response.
+    assert "Access-Control-Allow-Origin" not in response.headers
     assert EXPECTED_SECURITY_HEADERS.items() <= response.headers.items()
     for header_name, expected_value in EXPECTED_SECURITY_HEADERS.items():
         assert response.headers[header_name] == expected_value

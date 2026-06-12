@@ -101,9 +101,9 @@ def base_headers(content_type: str, origin: str | None = None) -> Dict[str, str]
         Dictionary of headers
     """
     headers = {'Content-Type': content_type, **security_headers()}
-    # If no origin provided, preserve previous permissive behavior.
+    # No Origin header means a same-origin or non-browser request: no CORS
+    # grant is needed, so none is emitted.
     if origin is None:
-        headers['Access-Control-Allow-Origin'] = '*'
         return headers
 
     # When an origin is provided, prefer allowlist resolution and ensure
@@ -178,10 +178,9 @@ def cors_response(origin: str | None = None, status: int = 204) -> Response:
         'Access-Control-Max-Age': '86400',
         'Vary': 'Origin',
     }
-    # Mirror base_headers behavior: if no origin provided, allow any origin
-    if origin is None:
-        headers['Access-Control-Allow-Origin'] = '*'
-    else:
+    # Mirror base_headers: a preflight without an Origin header (real browsers
+    # always send one) gets no CORS grant; otherwise honor the allowlist.
+    if origin is not None:
         allowed_origin = resolve_allowed_origin(origin)
         if allowed_origin:
             headers['Access-Control-Allow-Origin'] = allowed_origin
