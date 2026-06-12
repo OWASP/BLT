@@ -41,6 +41,12 @@ Or use the helper script: `./run.sh` builds and launches, `./run.sh clean`
 clears the build cache, `./run.sh rebuild` does both, and `./run.sh test`
 runs the headless tests.
 
+### Versioning
+
+Every desktop-client change must bump the version in `client/CMakeLists.txt`.
+The version is baked into the app UI and used by Quick update, so do this even
+for small UI, documentation, or networking fixes.
+
 To install without a checkout, the website serves a one-line installer that
 grabs the latest CI build (or compiles from source):
 
