@@ -3,6 +3,7 @@
 import logging
 from typing import Any, Dict
 
+from libs.api_key import require_scope, SCOPE_WRITE_JOBS
 from libs.db import get_db_safe
 from libs.db_errors import database_error_response
 from libs.user_context import get_request_user_id
@@ -114,6 +115,9 @@ async def handle_jobs(
             return await _job_detail_or_update(db, request, method, path_params["id"], user_id)
 
         if method == "POST":
+            err = require_scope(request, SCOPE_WRITE_JOBS)
+            if err:
+                return err
             body = await parse_json_body(request)
             if not body:
                 return error_response("Request body is required", status=400)
@@ -160,6 +164,10 @@ async def _job_detail_or_update(db: Any, request: Any, method: str, job_id_str: 
 
     if method != "PATCH":
         return error_response("Method Not Allowed", status=405, headers={"Allow": "GET, PATCH"})
+
+    err = require_scope(request, SCOPE_WRITE_JOBS)
+    if err:
+        return err
 
     body = await parse_json_body(request)
     if not body:

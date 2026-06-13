@@ -261,3 +261,67 @@ async def test_create_bug_rejects_blank_description(monkeypatch):
     assert payload["error"] is True
     assert payload["message"] == "Description is required"
     assert fake_db.insert_params is None
+
+@pytest.mark.asyncio
+async def test_post_bugs_blocked_when_api_key_lacks_write_scope(monkeypatch):
+    fake_db = FakeDB()
+
+    async def _fake_get_db_safe(_env):
+        return fake_db
+
+    monkeypatch.setattr(bugs_handler, "get_db_safe", _fake_get_db_safe)
+
+    request = MockRequest(
+        json.dumps({"url": "https://example.com/vuln", "description": "test"}),
+        method="POST",
+    )
+    request.api_key_scopes = ["read:bugs"]  # wrong scope
+
+    response = await bugs_handler.handle_bugs(
+        request=request, env=MockEnv(),
+        path_params={}, query_params={}, path="/bugs",
+    )
+    assert getattr(response, "status", None) == 403
+
+
+@pytest.mark.asyncio
+async def test_post_bugs_allowed_when_api_key_has_write_scope(monkeypatch):
+    fake_db = FakeDB()
+
+    async def _fake_get_db_safe(_env):
+        return fake_db
+
+    monkeypatch.setattr(bugs_handler, "get_db_safe", _fake_get_db_safe)
+
+    request = MockRequest(
+        json.dumps({"url": "https://example.com/vuln", "description": "test"}),
+        method="POST",
+    )
+    request.api_key_scopes = ["write:bugs"]  # correct scope
+
+    response = await bugs_handler.handle_bugs(
+        request=request, env=MockEnv(),
+        path_params={}, query_params={}, path="/bugs",
+    )
+    assert getattr(response, "status", None) != 403
+
+
+@pytest.mark.asyncio
+async def test_post_bugs_jwt_user_bypasses_scope_check(monkeypatch):
+    fake_db = FakeDB()
+
+    async def _fake_get_db_safe(_env):
+        return fake_db
+
+    monkeypatch.setattr(bugs_handler, "get_db_safe", _fake_get_db_safe)
+
+    request = MockRequest(
+        json.dumps({"url": "https://example.com/vuln", "description": "test"}),
+        method="POST",
+    )
+    
+    response = await bugs_handler.handle_bugs(
+        request=request, env=MockEnv(),
+        path_params={}, query_params={}, path="/bugs",
+    )
+    assert getattr(response, "status", None) != 403
