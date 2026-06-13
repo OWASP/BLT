@@ -115,6 +115,7 @@ def _accepted_api_keys(env: Any) -> list[str]:
 
 
 def _secret_seed(env: Any) -> str:
+    """Return the secret seed used to derive the user API key hash key."""
     return str(
         getattr(env, "USER_DATA_HASH_KEY", "")
         or getattr(env, "USER_DATA_ENCRYPTION_KEY", "")
@@ -145,6 +146,7 @@ def is_user_api_key_candidate(request: Any) -> bool:
 
 
 def _utc_timestamp() -> str:
+    """Return the current UTC time as a SQL-compatible timestamp string."""
     return time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime())
 
 
@@ -180,7 +182,11 @@ async def validate_api_key_request(request: Any, env: Any, db: Any = None) -> Op
         try:
             setattr(request, "user_id", int(key["user_id"]))
             setattr(request, "api_key_id", int(key["id"]))
-            setattr(request, "api_key_scopes", json.loads(key.get("scopes") or "[]"))  # adding scopes to request 
+            raw_scopes = key.get("scopes")
+            parsed_scopes = json.loads(raw_scopes) if isinstance(raw_scopes, str) else (raw_scopes or [])
+            if not isinstance(parsed_scopes, list) or any(not isinstance(s, str) for s in parsed_scopes):
+                raise ValueError("Invalid scopes payload")
+            setattr(request, "api_key_scopes", parsed_scopes)
 
         except Exception:
             return error_response("Invalid API key", status=401)
