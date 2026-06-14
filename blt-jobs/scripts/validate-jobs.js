@@ -13,6 +13,7 @@ const VALID_SOURCE_PLATFORMS = new Set([
   "github",
   "gitea",
   "forgejo",
+  "codeberg",
   "bitbucket",
   "generic-git",
   "manual",
