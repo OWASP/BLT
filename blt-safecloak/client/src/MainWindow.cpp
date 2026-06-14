@@ -51,6 +51,7 @@ const QString kServerUrlSetting = QStringLiteral("server/url");
 const QString kDefaultServerUrl =
     QStringLiteral("wss://safecloak.owaspblt.org/api/room/general/ws");
 const QString kRoomNameSetting = QStringLiteral("server/room");
+const QString kPassphraseSetting = QStringLiteral("server/passphrase");
 const QString kUseServerSetting = QStringLiteral("server/useServer");
 constexpr int kNetworkLogLimit = 2000;
 
@@ -216,6 +217,7 @@ QWidget *MainWindow::buildSetupPage()
     m_passphraseEdit->setPlaceholderText("Room passphrase");
     m_passphraseEdit->setMaxLength(256);
     m_passphraseEdit->setEchoMode(QLineEdit::Password);
+    m_passphraseEdit->setText(QSettings().value(kPassphraseSetting).toString());
 
     auto updateServerFields = [this] {
         const bool enabled = m_serverModeRadio->isChecked();
@@ -288,6 +290,11 @@ QWidget *MainWindow::buildSetupPage()
     connect(m_roomNameEdit, &QLineEdit::textEdited, this, [](const QString &room) {
         QSettings().setValue(kRoomNameSetting, room.trimmed());
     });
+    // Persisted so the room can be rejoined automatically after a restart.
+    connect(m_passphraseEdit, &QLineEdit::textEdited, this,
+            [](const QString &passphrase) {
+                QSettings().setValue(kPassphraseSetting, passphrase);
+            });
     connect(m_updateButton, &QPushButton::clicked, this, &MainWindow::runQuickUpdate);
 
     return page;
@@ -331,6 +338,9 @@ void MainWindow::startSession()
 
     QSettings().setValue(kUseServerSetting, m_serverModeRadio->isChecked());
     if (m_serverModeRadio->isChecked()) {
+        QSettings().setValue(kServerUrlSetting, m_serverUrlEdit->text().trimmed());
+        QSettings().setValue(kRoomNameSetting, m_roomNameEdit->text().trimmed());
+        QSettings().setValue(kPassphraseSetting, m_passphraseEdit->text());
         const QUrl url(m_serverUrlEdit->text().trimmed());
         auto *server = new ServerNode(name, url, m_roomNameEdit->text().trimmed(),
                                       m_passphraseEdit->text(), this);
