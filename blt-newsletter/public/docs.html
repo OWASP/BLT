@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BLT Newsletter - Admin Documentation</title>
+    <meta
+      name="description"
+      content="Learn how to use the BLT Newsletter Admin Dashboard"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+      integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <style>
+      * {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      }
+
+      body {
+        background-color: #f8fafc;
+        color: #0f172a;
+      }
+
+      .section {
+        background: white;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        padding: 2rem;
+        margin-bottom: 2rem;
+      }
+
+      .feature-card {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 1.5rem;
+        transition: all 200ms;
+      }
+
+      .feature-card:hover {
+        border-color: #dc2626;
+        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.1);
+        transform: translateY(-2px);
+      }
+
+      .feature-icon {
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 24px;
+        margin-bottom: 1rem;
+      }
+
+      code {
+        background: #f1f5f9;
+        border: 1px solid #e2e8f0;
+        border-radius: 4px;
+        padding: 2px 6px;
+        font-family: 'Courier New', monospace;
+        font-size: 13px;
+        color: #dc2626;
+      }
+
+      h1 {
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin-bottom: 1rem;
+        color: #0f172a;
+      }
+
+      h2 {
+        font-size: 1.875rem;
+        font-weight: 700;
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+        color: #0f172a;
+      }
+
+      h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+        color: #1e293b;
+      }
+
+      p {
+        line-height: 1.6;
+        color: #475569;
+        margin-bottom: 1rem;
+      }
+
+      ul {
+        list-style-position: inside;
+        margin-bottom: 1rem;
+        color: #475569;
+      }
+
+      li {
+        margin-bottom: 0.5rem;
+      }
+
+      .highlight {
+        background: #fef2f2;
+        border-left: 4px solid #dc2626;
+        padding: 1rem;
+        border-radius: 4px;
+        margin: 1rem 0;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white border-b border-gray-200">
+      <div class="max-w-4xl mx-auto px-6 py-8">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-3">
+            <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-red-600 text-white text-lg font-semibold">
+              <i class="fa-solid fa-bug"></i>
+            </div>
+            <h1 class="text-3xl font-bold">BLT Newsletter</h1>
+          </div>
+          <a href="/" class="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition">
+            <i class="fa-solid fa-home mr-2"></i>Home
+          </a>
+        </div>
+        <p class="text-gray-600">Admin Dashboard Documentation</p>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto px-6 py-12">
+      <!-- Introduction -->
+      <div class="section">
+        <h2 class="text-2xl font-bold mb-4">Welcome to BLT Newsletter Admin</h2>
+        <p>
+          The BLT Newsletter Admin Dashboard is your complete solution for managing newsletters, subscribers, and campaigns.
+          This guide will help you understand each feature and get the most out of the platform.
+        </p>
+        <div class="highlight">
+          <strong class="text-red-600">Access your dashboard:</strong> Login with your credentials to manage your newsletter operations.
+        </div>
+      </div>
+
+      <!-- Features Overview -->
+      <div class="mb-8">
+        <h2 class="text-2xl font-bold mb-6">Core Features</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Overview -->
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fa-solid fa-chart-line"></i>
+            </div>
+            <h3>Overview</h3>
+            <p class="text-sm">Monitor your newsletter health with key metrics including active users, new subscribers, and recent activity. Get a quick snapshot of your campaign performance and engagement.</p>
+          </div>
+
+          <!-- Users -->
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fa-solid fa-users"></i>
+            </div>
+            <h3>Users</h3>
+            <p class="text-sm">Manage your subscriber list with advanced filtering by status (Active, Bounced, Unsubscribed, Suppressed). Search users, view details, import new subscribers, and export your list.</p>
+          </div>
+
+          <!-- Issues -->
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fa-solid fa-file-lines"></i>
+            </div>
+            <h3>Issues</h3>
+            <p class="text-sm">Create and manage newsletter content with multiple status options. Draft, publish, schedule, and send issues. Track delivery metrics and engagement for each newsletter edition.</p>
+          </div>
+
+          <!-- Campaigns -->
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fa-solid fa-rocket"></i>
+            </div>
+            <h3>Campaigns</h3>
+            <p class="text-sm">View all active and completed campaigns with detailed delivery statistics, bounce rates, and performance metrics. Track campaign success and analyze subscriber engagement.</p>
+          </div>
+
+          <!-- Template -->
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fa-solid fa-layout"></i>
+            </div>
+            <h3>Template</h3>
+            <p class="text-sm">Manage your reusable newsletter template. Standardize your content delivery and ensure consistent branding across all editions with a professional, customizable template.</p>
+          </div>
+
+          <!-- Settings -->
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fa-solid fa-gear"></i>
+            </div>
+            <h3>Settings</h3>
+            <p class="text-sm">Configure email providers, set up sender identity, and manage critical system settings. Ensure proper delivery by configuring your SMTP and other essential parameters.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Detailed Guides -->
+      <div class="section">
+        <h2>Managing Users</h2>
+        <h3>Viewing Subscribers</h3>
+        <p>Navigate to the <strong>Users</strong> page to see all your subscribers. The page displays:</p>
+        <ul>
+          <li><strong>Name & Email:</strong> Complete contact information</li>
+          <li><strong>Status:</strong> Active, Bounced, Unsubscribed, or Suppressed</li>
+          <li><strong>Source:</strong> Where the subscriber came from</li>
+          <li><strong>Subscription Date:</strong> When they joined</li>
+        </ul>
+
+        <h3>Filtering & Searching</h3>
+        <p>Use the search bar to find users by name or email. Click status buttons to filter by subscriber type. The dashboard shows real-time counts for each category.</p>
+
+        <h3>Importing & Exporting</h3>
+        <p>Click the <strong>Import</strong> button to add new subscribers in bulk. Use <strong>Export</strong> to download your complete subscriber list as a CSV file for backup or analysis.</p>
+      </div>
+
+      <!-- Issues Management -->
+      <div class="section">
+        <h2>Creating Issues (Newsletters)</h2>
+        <h3>New Issue Workflow</h3>
+        <p>Click <strong>New issue</strong> to start creating a newsletter edition:</p>
+        <ul>
+          <li>Add a <strong>Subject</strong> - appears in subscriber inboxes</li>
+          <li>Write <strong>Body content</strong> using Markdown format</li>
+          <li>Preview your email in real-time as you edit</li>
+          <li>Save as draft or send immediately</li>
+        </ul>
+
+        <h3>Issue Status</h3>
+        <p>Each issue can have one of these statuses:</p>
+        <ul>
+          <li><strong>Draft:</strong> Saved but not sent. Continue editing anytime.</li>
+          <li><strong>Published:</strong> Released to all active subscribers</li>
+          <li><strong>Sent:</strong> Successfully delivered to the audience</li>
+          <li><strong>Scheduled:</strong> Queued for automatic delivery at a future date</li>
+        </ul>
+
+        <h3>Testing Before Send</h3>
+        <p>Use the <strong>Send test email</strong> button to preview your newsletter in your own inbox before sending to all subscribers. This ensures formatting and content appear correctly.</p>
+      </div>
+
+      <!-- Campaigns -->
+      <div class="section">
+        <h2>Tracking Campaigns</h2>
+        <p>The <strong>Campaigns</strong> page shows all newsletter sends with detailed metrics:</p>
+        <ul>
+          <li><strong>Sent:</strong> Total emails delivered</li>
+          <li><strong>Failed:</strong> Bounces and delivery errors</li>
+          <li><strong>Engagement:</strong> Open rates and click rates</li>
+          <li><strong>Status:</strong> Delivery progress and completion</li>
+        </ul>
+
+        <p>Click on any campaign to see detailed information including a list of failed deliveries, subscriber engagement details, and recommendations for improvement.</p>
+      </div>
+
+      <!-- Templates -->
+      <div class="section">
+        <h2>Using Templates</h2>
+        <p>The <strong>Template</strong> page displays your reusable newsletter template. This ensures consistent branding and structure across all issues.</p>
+        <p>The template includes:</p>
+        <ul>
+          <li>Header with your logo and branding</li>
+          <li>Standard sections for content organization</li>
+          <li>Footer with unsubscribe and contact information</li>
+          <li>Mobile-responsive design for all devices</li>
+        </ul>
+        <p>Use the <strong>Use template</strong> button when creating new issues to apply this design automatically.</p>
+      </div>
+
+      <!-- Settings & Configuration -->
+      <div class="section">
+        <h2>Settings & Configuration</h2>
+        <h3>Email Provider Setup</h3>
+        <p>Configure your email delivery service in Settings. Supported providers include major SMTP services that handle email delivery to your subscribers.</p>
+
+        <h3>Sender Identity</h3>
+        <p>Set up your sender email address and name. This appears in subscriber inboxes as the "From" address. Verify ownership of the email address for best deliverability.</p>
+
+        <h3>Danger Zone</h3>
+        <p>This section contains critical operations that cannot be undone:</p>
+        <ul>
+          <li><strong>Clear Analytics:</strong> Reset all campaign statistics and metrics</li>
+          <li><strong>Delete All Drafts:</strong> Remove all unsent newsletter drafts</li>
+        </ul>
+        <p class="text-red-600 font-semibold">Use these options with caution - they cannot be reversed.</p>
+      </div>
+
+      <!-- Tips & Best Practices -->
+      <div class="section">
+        <h2>Tips & Best Practices</h2>
+        <ul>
+          <li><strong>Always test first:</strong> Use "Send test email" before sending campaigns to your full audience</li>
+          <li><strong>Save drafts:</strong> Don't lose work - save as draft before sending</li>
+          <li><strong>Monitor metrics:</strong> Check campaign performance regularly to understand subscriber engagement</li>
+          <li><strong>Keep list clean:</strong> Regularly review bounced and unsubscribed users to maintain deliverability</li>
+          <li><strong>Use templates:</strong> Maintain consistent branding by using the template for all issues</li>
+          <li><strong>Regular backups:</strong> Export your subscriber list periodically for data safety</li>
+        </ul>
+      </div>
+
+      <!-- FAQ -->
+      <div class="section">
+        <h2>Frequently Asked Questions</h2>
+
+        <h3>How do I send a newsletter to all subscribers?</h3>
+        <p>Create a new issue, write your content, click "Send campaign", and confirm. The newsletter will be sent to all active subscribers.</p>
+
+        <h3>Can I schedule newsletters for later?</h3>
+        <p>Yes! When creating an issue, select "Scheduled" status and choose your desired send time. The system will automatically send it at the specified time.</p>
+
+        <h3>How often should I check the dashboard?</h3>
+        <p>We recommend checking the Overview page daily to monitor subscriber health and engagement. Check individual campaigns after sending to track performance.</p>
+
+        <h3>What does "Bounced" status mean?</h3>
+        <p>Bounced means the email could not be delivered to that address. This could be due to an invalid email, full mailbox, or server issues.</p>
+
+        <h3>Can I undo a sent campaign?</h3>
+        <p>No, once a campaign is sent, it cannot be recalled. Always use the test email feature before sending to your full audience.</p>
+
+        <h3>How do I contact support?</h3>
+        <p>For technical support, reach out to the BLT team directly. Most issues can be resolved through the admin dashboard settings.</p>
+      </div>
+
+      <!-- Call to Action -->
+      <div class="section text-center">
+        <h2>Ready to get started?</h2>
+        <p class="text-lg">Access your dashboard now and start managing your newsletter.</p>
+        <a href="/dashboard" class="inline-flex items-center justify-center mt-6 px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition">
+          <i class="fa-solid fa-arrow-right mr-2"></i>
+          Open Dashboard
+        </a>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-gray-200 bg-white mt-16">
+      <div class="max-w-4xl mx-auto px-6 py-8 text-center text-gray-600 text-sm">
+        <p>&copy; 2026 BLT Newsletter. All rights reserved. | <a href="/docs" class="text-red-600 hover:underline">Documentation</a></p>
+      </div>
+    </footer>
+  </body>
+</html>

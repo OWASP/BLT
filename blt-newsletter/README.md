@@ -1,6 +1,6 @@
 # BLT Newsletter
 
-A newsletter signup and management system for the OWASP Bug Logging Tool (BLT) platform, built as a static Cloudflare site with GitHub Actions for automated newsletter delivery.
+A newsletter signup and management system for the OWASP Bug Logging Tool (BLT) platform, built as a Python Cloudflare Worker with static assets and GitHub Actions for automated newsletter delivery.
 
 ## Features
 
@@ -12,12 +12,19 @@ A newsletter signup and management system for the OWASP Bug Logging Tool (BLT) p
 - 🔒 **Opt-in Subscription**: GDPR-compliant consent-based subscription
 - 📊 **Platform Stats**: Display key BLT metrics on the landing page
 - 📱 **Responsive Design**: Mobile-first, works on all device sizes
-- 🚀 **Cloudflare Hosting**: Static site served from the `public/` folder (no server required)
+- 🚀 **Cloudflare Worker Hosting**: Python Worker routes clean URLs to static assets from `public/`
 
 ## Architecture
 
-### Static Site (Cloudflare)
-The newsletter signup page is a static HTML site hosted on Cloudflare from the `public/` folder. When users subscribe:
+### Python Worker and Static Assets (Cloudflare)
+The site runs through a Python Cloudflare Worker in `src/entry.py`. The Worker serves static assets from `public/` and maps clean routes:
+
+- `/` -> `public/index.html`
+- `/dashboard` -> `public/dashboard.html`
+- `/login` -> `public/login.html`
+- `/docs` -> `public/docs.html`
+
+When users subscribe:
 1. The form submits to GitHub Issues API
 2. A new issue is created with label `newsletter-subscription`
 3. The issue contains the subscriber's email and name
@@ -32,7 +39,7 @@ Newsletters are sent via a manual GitHub Actions workflow:
 ## Tech Stack
 
 - **Frontend**: HTML, Tailwind CSS, Vanilla JavaScript
-- **Hosting**: Cloudflare static assets from `public/`
+- **Hosting**: Python Cloudflare Worker with static assets from `public/`
 - **Automation**: GitHub Actions
 - **Email Service**: SendGrid API
 - **Design System**: OWASP BLT-Design
@@ -41,9 +48,9 @@ Newsletters are sent via a manual GitHub Actions workflow:
 
 ### 1. Configure Cloudflare
 
-1. Create a Cloudflare Pages project or Worker for this repository
-2. Use `public` as the build output directory
-3. Deploy with `wrangler pages deploy public` or Cloudflare's connected Git deployment
+1. Create a Cloudflare Worker for this repository
+2. Keep `wrangler.toml` as the source of truth for the Worker entrypoint and static assets
+3. Deploy with `uv run pywrangler deploy`
 4. Add a `GITHUB_TOKEN` Cloudflare secret that can create issues in this repository
 
 ### 2. Configure GitHub Secrets
@@ -60,7 +67,7 @@ Add this secret in Cloudflare for the signup function:
 With Wrangler, set it with:
 
 ```bash
-wrangler pages secret put GITHUB_TOKEN
+uv run pywrangler secret put GITHUB_TOKEN
 ```
 
 ### 3. Enable Issues
@@ -136,14 +143,22 @@ The markdown is automatically converted to HTML and wrapped in a BLT-branded ema
 To test the site locally:
 
 ```bash
-# Use Python's http.server from the public folder
-python3 -m http.server 8000 --directory public
+# Install Worker development dependencies
+uv sync
 
-# Or use npx (if you have Node.js installed)
-npx http-server public
+# Start the local Cloudflare Worker
+uv run pywrangler dev --port 8787
 ```
 
-Visit `http://localhost:8000` to see the site.
+Visit `http://localhost:8787` to see the landing page. Admin pages are available at `/login`, `/dashboard`, and `/docs`.
+
+Run the local smoke checks with:
+
+```bash
+python3 -m unittest tests.test_worker_setup
+python3 -m py_compile src/entry.py tests/test_worker_setup.py
+uv run pywrangler types
+```
 
 ## Managing Subscribers
 
@@ -173,10 +188,10 @@ Update the stats section in `public/index.html`:
 
 ## Workflows
 
-### Deploy Static Site
+### Deploy Worker
 - **Trigger**: Push to main branch or manual dispatch
 - **File**: `.github/workflows/deploy-pages.yml`
-- **Purpose**: Deploys the `public/` static site artifact
+- **Purpose**: Deploys the Python Worker and `public/` static assets
 
 ### Send Newsletter
 - **Trigger**: Manual dispatch only
@@ -186,7 +201,7 @@ Update the stats section in `public/index.html`:
 ## Security Considerations
 
 - API keys are stored as GitHub secrets
-- The signup form uses a Cloudflare Function so the GitHub token is never exposed to the browser
+- The signup flow should keep GitHub tokens in Cloudflare secrets so credentials are never exposed to the browser
 - Email validation is performed client-side
 - GitHub API rate limits apply (5000 requests/hour for authenticated)
 - Subscribers are stored as public GitHub issues (emails are visible)

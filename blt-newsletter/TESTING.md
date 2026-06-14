@@ -1,21 +1,30 @@
 # BLT Newsletter - Testing Guide
 
-## Testing the Static Site
+## Testing the Python Worker Site
 
 ### Prerequisites
 - Modern web browser
 - Internet connection (for CDN resources)
-- Cloudflare Pages Functions or `wrangler pages dev public` for testing real subscriptions
+- Python Worker dependencies installed with `uv sync`
+- Local Worker running with `uv run pywrangler dev --port 8787`
 
 ### Test Cases
 
 #### 1. Page Load
-- Serve `public/` locally or visit the Cloudflare URL
+- Visit `http://localhost:8787/` or the deployed Cloudflare URL
 - Verify BLT branding appears correctly
 - Check that all styles load properly
 - Verify responsive design on different screen sizes
 
-#### 2. Form Validation - Valid Email
+#### 2. Worker Routes
+- Visit `/`
+- Visit `/login`
+- Visit `/dashboard`
+- Visit `/docs`
+
+Expected: Each route returns the matching HTML page without requiring a `.html` suffix.
+
+#### 3. Form Validation - Valid Email
 1. Fill in name (optional)
 2. Enter valid email: `test@example.com`
 3. Check consent checkbox
@@ -24,21 +33,21 @@
 
 Expected: Green success message
 
-#### 3. Form Validation - Invalid Email
+#### 4. Form Validation - Invalid Email
 1. Enter invalid email: `invalid-email`
 2. Check consent checkbox
 3. Click "Subscribe"
 
 Expected: Red error message about invalid email
 
-#### 4. Form Validation - Missing Consent
+#### 5. Form Validation - Missing Consent
 1. Enter valid email
 2. Don't check consent checkbox
 3. Try to submit
 
 Expected: Browser validation prevents submission
 
-#### 5. GitHub Issue Creation
+#### 6. GitHub Issue Creation
 1. Submit valid subscription
 2. Go to repository Issues
 3. Filter by label: `newsletter-subscription`
@@ -153,6 +162,7 @@ Test on different devices:
 - Wait for Cloudflare deployment to complete
 - Visit the Cloudflare URL
 - Verify site is live
+- Verify `/`, `/login`, `/dashboard`, and `/docs`
 
 ### 2. Check DNS/SSL
 - Verify HTTPS is enabled
@@ -164,7 +174,7 @@ Test on different devices:
 ### Form Not Submitting
 - Check browser console for errors
 - Verify the Cloudflare `GITHUB_TOKEN` secret is set
-- Check Cloudflare Function logs for `/api/subscribe`
+- Check Cloudflare Worker logs
 
 ### Newsletter Not Sending
 - Verify SendGrid secrets are set
@@ -173,7 +183,8 @@ Test on different devices:
 - Check SendGrid dashboard
 
 ### Page Not Loading
-- Check that Cloudflare is serving the `public/` directory
+- Check that `uv run pywrangler dev --port 8787` starts successfully
+- Check that `wrangler.toml` points `main` to `src/entry.py` and binds `public/` as `ASSETS`
 - Verify the source branch is correct
 - Check for deployment errors in Cloudflare
 
