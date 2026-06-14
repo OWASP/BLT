@@ -11,7 +11,7 @@ from urllib.parse import urlencode
 
 # Try to import Cloudflare Workers JS bindings
 try:
-    from js import fetch, Headers, Object
+    from js import fetch, Headers, Object # pyright: ignore[reportMissingImports]
     _WORKERS_RUNTIME = True
 except ImportError:
     _WORKERS_RUNTIME = False

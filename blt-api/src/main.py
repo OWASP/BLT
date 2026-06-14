@@ -169,6 +169,7 @@ _add_v2_route("GET", "/users/{id}/domains", handle_users)
 _add_v2_route("GET", "/users/{id}/followers", handle_users)
 _add_v2_route("GET", "/users/{id}/following", handle_users)
 
+_add_v2_route("GET", "/auth", handle_auth_page)
 _add_v2_route("POST", "/auth/signup", handle_signup)
 _add_v2_route("POST", "/auth/signin", handle_signin)
 _add_v2_route("GET", "/auth/verify-email", handle_verify_email)

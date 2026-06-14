@@ -17,7 +17,7 @@ from services.email_templates import (
 )
 
 try:
-    from js import fetch, Headers, Object
+    from js import fetch, Headers, Object # pyright: ignore[reportMissingImports]
     _WORKERS_RUNTIME = True
 except ImportError:
     fetch = None
@@ -112,6 +112,10 @@ class EmailService:
             self.logger.error("Exception sending email to %s: %s", to_email, exc)
             return 500, str(exc)
 
+    def _normalize_base_url(self, base_url: str) -> str:
+        """Strip trailing slashes and remove trailing /v2 suffix to get the clean browser base URL."""
+        return str(base_url).rstrip("/").removesuffix("/v2")
+
     async def send_verification_email(
         self,
         to_email: str,
@@ -120,7 +124,8 @@ class EmailService:
         base_url: str,
         expires_hours: int = 24,
     ) -> Tuple[int, str]:
-        verification_link = f"{base_url}/auth?verify_token={verification_token}"
+        clean_base = self._normalize_base_url(base_url)
+        verification_link = f"{clean_base}/auth?verify_token={verification_token}"
         subject = "Verify your OWASP BLT account"
         html_content = get_verification_email(username, verification_link, expires_hours)
         self.logger.info("Sending verification email to %s for user %s", to_email, username)
@@ -134,7 +139,8 @@ class EmailService:
         base_url: str,
         expires_hours: int = 1,
     ) -> Tuple[int, str]:
-        reset_link = f"{base_url}/auth/reset-password?token={reset_token}"
+        clean_base = self._normalize_base_url(base_url)
+        reset_link = f"{clean_base}/auth/reset-password?token={reset_token}"
         subject = "Reset your OWASP BLT password"
         html_content = get_password_reset_email(username, reset_link, expires_hours)
         return await self.send_email(to_email, subject, html_content, content_type="text/html")

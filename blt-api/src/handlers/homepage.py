@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any, Dict
 
 try:
-    from js import Response, Headers
+    from js import Response, Headers # pyright: ignore[reportMissingImports]
     _WORKERS_RUNTIME = True
 except ImportError:
     _WORKERS_RUNTIME = False
