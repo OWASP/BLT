@@ -1,0 +1,1658 @@
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BLT Newsletter Admin Dashboard</title>
+    <meta
+      name="description"
+      content="Admin dashboard for BLT Newsletter management platform"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+      integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <style>
+      * {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      }
+
+      :root {
+        --primary: #dc2626;
+        --primary-hover: #b91c1c;
+        --background-light: #f8fafc;
+        --surface-light: #ffffff;
+        --text-primary-light: #0f172a;
+        --text-secondary-light: #1e293b;
+        --text-muted-light: #64748b;
+        --border-light: #e2e8f0;
+
+        --background-dark: #0a0d12;
+        --surface-dark: #111318;
+        --elevated-dark: #1a1f2e;
+        --text-primary-dark: #f0f1f3;
+        --text-secondary-dark: #c9ccd1;
+        --text-muted-dark: #8a8e97;
+        --border-dark: rgba(255, 255, 255, 0.08);
+      }
+
+      html {
+        color-scheme: light;
+      }
+
+      html.dark {
+        color-scheme: dark;
+      }
+
+      body {
+        background-color: var(--background-light);
+        color: var(--text-primary-light);
+        transition: background-color 200ms, color 200ms;
+      }
+
+      html.dark body {
+        background-color: var(--background-dark);
+        color: var(--text-primary-dark);
+      }
+
+      .card {
+        background-color: var(--surface-light);
+        border-color: var(--border-light);
+        color: var(--text-primary-light);
+      }
+
+      html.dark .card {
+        background-color: var(--surface-dark);
+        border-color: var(--border-dark);
+        color: var(--text-primary-dark);
+      }
+
+      .page {
+        display: none;
+      }
+
+      .page.active {
+        display: block;
+      }
+
+      .sheet-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.3);
+        z-index: 40;
+      }
+
+      .sheet-overlay.active {
+        display: block;
+      }
+
+      html.dark .sheet-overlay {
+        background: rgba(0, 0, 0, 0.5);
+      }
+
+      .sheet {
+        position: fixed;
+        top: 0;
+        right: 0;
+        height: 100vh;
+        width: 100%;
+        max-width: 900px;
+        background-color: var(--surface-light);
+        border-left: 1px solid var(--border-light);
+        transform: translateX(100%);
+        transition: transform 300ms ease;
+        z-index: 50;
+        display: flex;
+        flex-direction: column;
+      }
+
+      html.dark .sheet {
+        background-color: var(--surface-dark);
+        border-left-color: var(--border-dark);
+      }
+
+      .sheet.active {
+        transform: translateX(0);
+      }
+
+      .modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 60;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .modal-overlay.active {
+        display: flex;
+      }
+
+      html.dark .modal-overlay {
+        background: rgba(0, 0, 0, 0.7);
+      }
+
+      .modal {
+        background-color: var(--surface-light);
+        border-radius: 12px;
+        max-width: 500px;
+        width: 90%;
+        max-height: 90vh;
+        overflow-y: auto;
+      }
+
+      html.dark .modal {
+        background-color: var(--surface-dark);
+      }
+
+      .toast-container {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        z-index: 100;
+      }
+
+      .toast {
+        background-color: var(--surface-light);
+        border: 1px solid var(--border-light);
+        border-radius: 8px;
+        padding: 14px 20px;
+        margin-top: 12px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        animation: slideIn 200ms ease;
+      }
+
+      html.dark .toast {
+        background-color: var(--elevated-dark);
+        border-color: var(--border-dark);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+      }
+
+      @keyframes slideIn {
+        from {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+
+      .skeleton {
+        background: linear-gradient(
+          90deg,
+          var(--border-light) 25%,
+          rgba(255, 255, 255, 0.2) 50%,
+          var(--border-light) 75%
+        );
+        background-size: 200% 100%;
+        animation: loading 1.5s infinite;
+      }
+
+      html.dark .skeleton {
+        background: linear-gradient(
+          90deg,
+          var(--border-dark) 25%,
+          rgba(255, 255, 255, 0.05) 50%,
+          var(--border-dark) 75%
+        );
+      }
+
+      @keyframes loading {
+        0% {
+          background-position: 200% 0;
+        }
+        100% {
+          background-position: -200% 0;
+        }
+      }
+
+      .sidebar {
+        background-color: var(--surface-light);
+        border-right-color: var(--border-light);
+        transition: background-color 200ms, border-color 200ms;
+      }
+
+      html.dark .sidebar {
+        background-color: var(--surface-dark);
+        border-right-color: var(--border-dark);
+      }
+
+      .sidebar-item {
+        position: relative;
+        color: var(--text-muted-light);
+        transition: background-color 200ms, color 200ms;
+      }
+
+      html.dark .sidebar-item {
+        color: var(--text-muted-dark);
+      }
+
+      .sidebar-item:hover {
+        background-color: #f1f5f9;
+      }
+
+      html.dark .sidebar-item:hover {
+        background-color: #1a1f2e;
+      }
+
+      .sidebar-item.active {
+        color: #dc2626;
+      }
+
+      .sidebar-item.active::before {
+        content: '';
+        position: absolute;
+        left: -20px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 3px;
+        height: 24px;
+        background: #dc2626;
+        border-radius: 0 2px 2px 0;
+      }
+
+      .status-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 500;
+      }
+
+      .status-active {
+        background: #ecfdf5;
+        color: #10b981;
+      }
+
+      html.dark .status-active {
+        background: rgba(16, 185, 129, 0.15);
+        color: #10b981;
+      }
+
+      .status-draft {
+        background: #f1f5f9;
+        color: #64748b;
+      }
+
+      html.dark .status-draft {
+        background: rgba(100, 116, 139, 0.15);
+        color: #94a3b8;
+      }
+
+      .status-bounced {
+        background: #fef2f2;
+        color: #dc2626;
+      }
+
+      html.dark .status-bounced {
+        background: rgba(220, 38, 38, 0.15);
+        color: #ef4444;
+      }
+
+      .status-suppressed {
+        background: #fef3c7;
+        color: #b45309;
+      }
+
+      html.dark .status-suppressed {
+        background: rgba(180, 83, 9, 0.15);
+        color: #fbbf24;
+      }
+
+      .status-unsubscribed {
+        background: #f1f5f9;
+        color: #64748b;
+      }
+
+      html.dark .status-unsubscribed {
+        background: rgba(100, 116, 139, 0.15);
+        color: #94a3b8;
+      }
+
+      .status-published {
+        background: #ecfdf5;
+        color: #10b981;
+      }
+
+      html.dark .status-published {
+        background: rgba(16, 185, 129, 0.15);
+        color: #10b981;
+      }
+
+      .status-scheduled {
+        background: #eff6ff;
+        color: #0284c7;
+      }
+
+      html.dark .status-scheduled {
+        background: rgba(2, 132, 199, 0.15);
+        color: #38bdf8;
+      }
+
+      .status-sent {
+        background: #ecfdf5;
+        color: #10b981;
+      }
+
+      html.dark .status-sent {
+        background: rgba(16, 185, 129, 0.15);
+        color: #10b981;
+      }
+
+      .status-sending {
+        background: #fef3c7;
+        color: #b45309;
+      }
+
+      html.dark .status-sending {
+        background: rgba(180, 83, 9, 0.15);
+        color: #fbbf24;
+      }
+
+      .btn-primary {
+        background: linear-gradient(to bottom, #ef4444, #dc2626);
+        color: white;
+        border-bottom: 1.5px solid #991b1b;
+        border-radius: 6px;
+        padding: 8px 16px;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 200ms ease;
+        box-shadow: 0 10px 24px -14px rgba(220, 38, 38, 0.8);
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-2px);
+      }
+
+      .close-button {
+        padding: 8px 16px;
+        font-size: 13px;
+        background-color: var(--surface-light);
+        color: var(--text-secondary-light);
+        border: 1px solid var(--border-light);
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 200ms ease;
+        font-weight: 500;
+      }
+
+      html.dark .close-button {
+        background-color: var(--elevated-dark);
+        color: var(--text-secondary-dark);
+        border-color: var(--border-dark);
+      }
+
+      .close-button:hover {
+        background-color: #f1f5f9;
+        border-color: #cbd5e1;
+      }
+
+      html.dark .close-button:hover {
+        background-color: #475569;
+        border-color: rgba(255, 255, 255, 0.15);
+      }
+
+      .btn-secondary {
+        background-color: var(--surface-light);
+        color: var(--text-secondary-light);
+        border: 1px solid var(--border-light);
+        border-radius: 6px;
+        padding: 8px 16px;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 200ms ease;
+      }
+
+      html.dark .btn-secondary {
+        background-color: var(--elevated-dark);
+        color: var(--text-secondary-dark);
+        border-color: var(--border-dark);
+      }
+
+      .btn-secondary:hover {
+        background-color: #f1f5f9;
+        border-color: #cbd5e1;
+      }
+
+      html.dark .btn-secondary:hover {
+        background-color: #475569;
+        border-color: rgba(255, 255, 255, 0.15);
+      }
+
+      .input-field {
+        background-color: var(--surface-light);
+        border: 1px solid var(--border-light);
+        border-radius: 6px;
+        padding: 8px 12px;
+        font-size: 13px;
+        color: var(--text-primary-light);
+        transition: background-color 200ms, border-color 200ms, color 200ms;
+      }
+
+      html.dark .input-field {
+        background-color: var(--elevated-dark);
+        border-color: var(--border-dark);
+        color: var(--text-primary-dark);
+      }
+
+      .input-field:focus {
+        outline: none;
+        border-color: #dc2626;
+        box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+      }
+
+      html.dark .input-field:focus {
+        box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
+      }
+
+      html.dark .input-field {
+        background-color: var(--elevated-dark);
+        border-color: var(--border-dark);
+        color: var(--text-primary-dark);
+      }
+
+      .input-field:focus {
+        outline: none;
+        border-color: #dc2626;
+        box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+      }
+
+      html.dark .input-field:focus {
+        box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      th {
+        background-color: transparent;
+        color: var(--text-muted-light);
+        font-size: 12px;
+        font-weight: 600;
+        text-align: left;
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border-light);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      html.dark th {
+        color: var(--text-muted-dark);
+        border-bottom-color: var(--border-dark);
+      }
+
+      td {
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--border-light);
+        font-size: 14px;
+      }
+
+      html.dark td {
+        border-bottom-color: var(--border-dark);
+      }
+
+      tr:hover {
+        background-color: #f8fafc;
+      }
+
+      html.dark tr:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+      }
+
+      .progress-bar {
+        width: 100%;
+        height: 6px;
+        background-color: var(--border-light);
+        border-radius: 3px;
+        overflow: hidden;
+      }
+
+      html.dark .progress-bar {
+        background-color: var(--border-dark);
+      }
+
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(to right, #10b981, #34d399);
+        transition: width 300ms ease;
+      }
+
+      @media (max-width: 768px) {
+        .sidebar {
+          display: none;
+          background-color: var(--surface-light);
+        }
+
+        html.dark .sidebar {
+          background-color: var(--surface-dark);
+        }
+
+        .sidebar.active {
+          display: flex;
+          position: fixed;
+          inset: 0;
+          background: rgba(0, 0, 0, 0.5);
+          z-index: 40;
+          flex-direction: column;
+        }
+
+        .sidebar-content {
+          width: 280px;
+          height: 100vh;
+          background-color: var(--surface-light);
+        }
+
+        html.dark .sidebar-content {
+          background-color: var(--surface-dark);
+        }
+
+        body.px-8 {
+          padding-left: 1rem;
+          padding-right: 1rem;
+        }
+
+        .card {
+          margin-bottom: 1rem;
+        }
+
+        .sheet {
+          max-width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body class="antialiased">
+    <!-- Dashboard Shell -->
+    <div id="dashboard-shell" class="flex h-screen overflow-hidden">
+      <!-- Sidebar -->
+      <aside class="sidebar w-64 border-r flex flex-col bg-white flex-none transition-colors" style="border-right-color: var(--border-light); background-color: var(--surface-light);">
+        <div class="sidebar-content p-6 flex flex-col h-full" style="color: var(--text-primary-light);">
+        <style>
+          html.dark .sidebar-content { color: var(--text-primary-dark); }
+        </style>
+          <div class="flex items-center gap-2 mb-8">
+            <div class="flex h-9 w-9 items-center justify-center rounded-lg border border-red-100 bg-white shadow-sm text-red-600 text-base">
+              <i class="fa-solid fa-bug"></i>
+            </div>
+            <div>
+              <span class="block text-xs font-semibold uppercase tracking-wide text-gray-400">OWASP BLT</span>
+              <span class="block text-sm font-semibold text-gray-900">Newsletter</span>
+            </div>
+          </div>
+
+          <nav class="flex-1 space-y-2">
+            <button onclick="navigateTo('overview')" class="sidebar-item active w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium transition hover:bg-gray-50">
+              <i class="fa-solid fa-gauge-high w-4 mr-3"></i>
+              Overview
+            </button>
+            <button onclick="navigateTo('users')" class="sidebar-item w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium transition hover:bg-gray-50">
+              <i class="fa-solid fa-users w-4 mr-3"></i>
+              Users
+            </button>
+            <button onclick="navigateTo('issues')" class="sidebar-item w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium transition hover:bg-gray-50">
+              <i class="fa-solid fa-newspaper w-4 mr-3"></i>
+              Issues
+            </button>
+            <button onclick="navigateTo('campaigns')" class="sidebar-item w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium transition hover:bg-gray-50">
+              <i class="fa-solid fa-paper-plane w-4 mr-3"></i>
+              Campaigns
+            </button>
+            <button onclick="navigateTo('template')" class="sidebar-item w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium transition hover:bg-gray-50">
+              <i class="fa-solid fa-layer-group w-4 mr-3"></i>
+              Template
+            </button>
+            <button onclick="navigateTo('settings')" class="sidebar-item w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium transition hover:bg-gray-50">
+              <i class="fa-solid fa-gear w-4 mr-3"></i>
+              Settings
+            </button>
+          </nav>
+
+          <div class="space-y-2 border-t pt-4" style="border-top-color: var(--border-light);">
+            <a href="/docs" class="w-full text-left px-4 py-2 rounded-lg text-sm transition hover:bg-gray-50" style="color: var(--text-muted-light);">
+              <i class="fa-solid fa-book w-4 mr-2"></i>
+              Docs
+            </a>
+            <button onclick="logout()" class="w-full text-left px-4 py-2 rounded-lg text-sm transition hover:bg-gray-50" style="color: var(--text-muted-light);">
+              <i class="fa-solid fa-sign-out-alt w-4 mr-2"></i>
+              Logout
+            </button>
+
+            <style>
+              html.dark .sidebar a, html.dark .sidebar button { color: var(--text-muted-dark); }
+              html.dark .sidebar a:hover, html.dark .sidebar button:hover { background-color: var(--elevated-dark); }
+            </style>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <div class="flex-1 flex flex-col overflow-hidden">
+        <!-- Topbar -->
+        <header class="border-b px-8 py-4 flex items-center justify-between flex-none transition-colors" style="border-bottom-color: var(--border-light); background-color: var(--surface-light);">
+          <div class="flex-1">
+            <h1 id="page-title" class="text-xl font-semibold" style="color: var(--text-primary-light);">Overview</h1>
+            <p id="page-desc" class="text-sm" style="color: var(--text-muted-light);">Monitor newsletter health and activity</p>
+          </div>
+          <div class="flex items-center gap-4">
+            <button onclick="toggleTheme()" class="p-2 rounded-lg transition" style="background-color: transparent; color: var(--text-muted-light);" onmouseover="this.style.backgroundColor='#f1f5f9'" onmouseout="this.style.backgroundColor='transparent'">
+              <i class="fa-solid fa-moon text-sm"></i>
+            </button>
+            <button class="w-10 h-10 rounded-full bg-red-600 text-white flex items-center justify-center text-sm font-semibold cursor-pointer">
+              AD
+            </button>
+          </div>
+        </header>
+
+        <style>
+          html.dark header {
+            background-color: var(--surface-dark);
+            border-bottom-color: var(--border-dark);
+          }
+          html.dark #page-title { color: var(--text-primary-dark); }
+          html.dark #page-desc { color: var(--text-muted-dark); }
+          html.dark header button { color: var(--text-muted-dark); }
+          html.dark header button:hover { background-color: var(--elevated-dark); }
+        </style>
+
+        <!-- Pages Container -->
+        <div class="flex-1 overflow-y-auto">
+          <!-- Overview Page -->
+          <div id="overview-page" class="page active p-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+              <!-- Metric Cards -->
+              <div class="card border rounded-lg p-6">
+                <p class="text-sm text-gray-600 font-medium">Active users</p>
+                <p class="text-3xl font-semibold mt-2">2,847</p>
+                <p class="text-xs text-gray-500 mt-1">↑ 12% this month</p>
+              </div>
+              <div class="card border rounded-lg p-6">
+                <p class="text-sm text-gray-600 font-medium">New subscribers</p>
+                <p class="text-3xl font-semibold mt-2">340</p>
+                <p class="text-xs text-gray-500 mt-1">This month</p>
+              </div>
+              <div class="card border rounded-lg p-6">
+                <p class="text-sm text-gray-600 font-medium">Published issues</p>
+                <p class="text-3xl font-semibold mt-2">24</p>
+                <p class="text-xs text-gray-500 mt-1">All time</p>
+              </div>
+              <div class="card border rounded-lg p-6">
+                <p class="text-sm text-gray-600 font-medium">Last campaign</p>
+                <p class="text-3xl font-semibold mt-2" style="color: #10b981;">Sent</p>
+                <p class="text-xs text-gray-500 mt-1">2 days ago • 1,248 recipients</p>
+              </div>
+              <div class="card border rounded-lg p-6">
+                <p class="text-sm text-gray-600 font-medium">Delivery success rate</p>
+                <div class="progress-bar mt-3 mb-2">
+                  <div class="progress-fill" style="width: 98.5%"></div>
+                </div>
+                <p class="text-sm font-semibold">98.5%</p>
+              </div>
+              <div class="card border rounded-lg p-6 cursor-pointer hover:border-red-600 transition" onclick="navigateTo('campaigns')">
+                <p class="text-sm text-gray-600 font-medium">Failed deliveries</p>
+                <p class="text-3xl font-semibold mt-2 text-red-600">38</p>
+                <p class="text-xs text-gray-500 mt-1">Needs attention →</p>
+              </div>
+            </div>
+
+            <!-- Recent Activity & Quick Actions -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div class="card border rounded-lg overflow-hidden">
+                <div class="px-6 py-4 border-b" style="border-bottom-color: var(--border-light);">
+                  <h3 class="font-semibold text-sm">Recent activity</h3>
+                </div>
+                <div class="overflow-x-auto">
+                  <table class="w-full text-sm">
+                    <thead>
+                      <tr style="background-color: var(--background-light); border-bottom: 1px solid var(--border-light);">
+                        <th class="px-6 py-3 text-left font-medium" style="color: var(--text-secondary-light);">Event</th>
+                        <th class="px-6 py-3 text-left font-medium" style="color: var(--text-secondary-light);">Details</th>
+                        <th class="px-6 py-3 text-right font-medium" style="color: var(--text-secondary-light);">Time</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr style="border-bottom: 1px solid var(--border-light);">
+                        <td class="px-6 py-3"><span class="inline-flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-blue-600"></span><span>Subscriber</span></span></td>
+                        <td class="px-6 py-3" style="color: var(--text-secondary-light);">Maria Chen subscribed</td>
+                        <td class="px-6 py-3 text-right text-xs" style="color: var(--text-muted-light);">2h ago</td>
+                      </tr>
+                      <tr style="border-bottom: 1px solid var(--border-light);">
+                        <td class="px-6 py-3"><span class="inline-flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-green-600"></span><span>Published</span></span></td>
+                        <td class="px-6 py-3" style="color: var(--text-secondary-light);">GSoC Updates released</td>
+                        <td class="px-6 py-3 text-right text-xs" style="color: var(--text-muted-light);">1d ago</td>
+                      </tr>
+                      <tr style="border-bottom: 1px solid var(--border-light);">
+                        <td class="px-6 py-3"><span class="inline-flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-green-600"></span><span>Completed</span></span></td>
+                        <td class="px-6 py-3" style="color: var(--text-secondary-light);">June Digest campaign sent</td>
+                        <td class="px-6 py-3 text-right text-xs" style="color: var(--text-muted-light);">2d ago</td>
+                      </tr>
+                      <tr>
+                        <td class="px-6 py-3"><span class="inline-flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-red-600"></span><span>Failed</span></span></td>
+                        <td class="px-6 py-3" style="color: var(--text-secondary-light);">12 bounces on June Digest</td>
+                        <td class="px-6 py-3 text-right text-xs" style="color: var(--text-muted-light);">2d ago</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <style>
+                  html.dark table thead tr { background-color: var(--elevated-dark); border-bottom-color: var(--border-dark); }
+                  html.dark table tbody tr { border-bottom-color: var(--border-dark); }
+                  html.dark table tbody tr td { color: var(--text-secondary-dark); }
+                  html.dark table tbody tr td .fa-solid { color: var(--text-muted-dark); }
+                </style>
+              </div>
+
+              <div class="card border rounded-lg p-6">
+                <h3 class="font-semibold mb-4">Quick actions</h3>
+                <div class="grid grid-cols-2 gap-3">
+                  <button class="btn-secondary text-left py-3" onclick="openIssueEditor()">
+                    <i class="fa-solid fa-plus text-red-600 mr-2"></i>
+                    <span>New issue</span>
+                  </button>
+                  <button class="btn-secondary text-left py-3" onclick="openTestEmailModal()">
+                    <i class="fa-solid fa-envelope text-red-600 mr-2"></i>
+                    <span>Send test email</span>
+                  </button>
+                  <button class="btn-secondary text-left py-3" onclick="openImportUsersModal()">
+                    <i class="fa-solid fa-file-import text-red-600 mr-2"></i>
+                    <span>Import users</span>
+                  </button>
+                  <button class="btn-secondary text-left py-3">
+                    <i class="fa-solid fa-archive text-red-600 mr-2"></i>
+                    <span>View archive</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Users Page -->
+          <div id="users-page" class="page p-8">
+            <div class="mb-6 flex gap-4 flex-col md:flex-row md:items-center md:justify-between">
+              <div class="flex-1">
+                <input type="text" placeholder="Search users by name or email..." class="input-field w-full" id="user-search" onkeyup="filterUsers()" />
+              </div>
+              <div class="flex gap-2 flex-wrap">
+                <button class="btn-secondary px-3" id="filter-all" onclick="filterByStatus('all')" style="background-color: #dc2626; color: white; border-color: #dc2626;">All</button>
+                <button class="btn-secondary px-3" onclick="filterByStatus('active')">Active</button>
+                <button class="btn-secondary px-3" onclick="filterByStatus('bounced')">Bounced</button>
+                <button class="btn-secondary px-3" onclick="filterByStatus('unsubscribed')">Unsubscribed</button>
+                <button class="btn-secondary px-3" onclick="filterByStatus('suppressed')">Suppressed</button>
+                <button class="btn-secondary px-3" onclick="openImportUsersModal()">Import</button>
+                <button class="btn-secondary px-3" onclick="showToast('Export started')">Export</button>
+              </div>
+            </div>
+
+            <div class="card border rounded-lg overflow-hidden">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width: 40px;"><input type="checkbox" /></th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Status</th>
+                    <th>Source</th>
+                    <th>Subscribed</th>
+                    <th>Last sent</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="users-table-body">
+                  <tr class="user-row" data-status="active">
+                    <td><input type="checkbox" /></td>
+                    <td class="font-medium">Aisha Khan</td>
+                    <td class="email-cell text-gray-600">aisha.khan@example.com</td>
+                    <td><span class="status-badge status-active">Active</span></td>
+                    <td class="text-gray-600">Landing page</td>
+                    <td class="text-gray-600 text-sm">Jun 2</td>
+                    <td class="text-gray-600 text-sm">Jun 12</td>
+                    <td>
+                      <button class="text-red-600 hover:bg-red-50 p-2 rounded text-sm" onclick="openUserDetails('Aisha Khan', 'aisha.khan@example.com', 'active')">
+                        <i class="fa-solid fa-ellipsis-h"></i>
+                      </button>
+                    </td>
+                  </tr>
+                  <tr class="user-row" data-status="active">
+                    <td><input type="checkbox" /></td>
+                    <td class="font-medium">Diego Morales</td>
+                    <td class="email-cell text-gray-600">diego.m@example.com</td>
+                    <td><span class="status-badge status-active">Active</span></td>
+                    <td class="text-gray-600">Import</td>
+                    <td class="text-gray-600 text-sm">May 28</td>
+                    <td class="text-gray-600 text-sm">Jun 12</td>
+                    <td>
+                      <button class="text-red-600 hover:bg-red-50 p-2 rounded text-sm" onclick="openUserDetails('Diego Morales', 'diego.m@example.com', 'active')">
+                        <i class="fa-solid fa-ellipsis-h"></i>
+                      </button>
+                    </td>
+                  </tr>
+                  <tr class="user-row" data-status="bounced">
+                    <td><input type="checkbox" /></td>
+                    <td class="font-medium">Priya Shah</td>
+                    <td class="email-cell text-gray-600">priya.shah@example.com</td>
+                    <td><span class="status-badge status-bounced">Bounced</span></td>
+                    <td class="text-gray-600">Landing page</td>
+                    <td class="text-gray-600 text-sm">May 19</td>
+                    <td class="text-gray-600 text-sm">Jun 5</td>
+                    <td>
+                      <button class="text-red-600 hover:bg-red-50 p-2 rounded text-sm" onclick="openUserDetails('Priya Shah', 'priya.shah@example.com', 'bounced')">
+                        <i class="fa-solid fa-ellipsis-h"></i>
+                      </button>
+                    </td>
+                  </tr>
+                  <tr class="user-row" data-status="unsubscribed">
+                    <td><input type="checkbox" /></td>
+                    <td class="font-medium">Chen Wei</td>
+                    <td class="email-cell text-gray-600">chen.wei@example.com</td>
+                    <td><span class="status-badge status-unsubscribed">Unsubscribed</span></td>
+                    <td class="text-gray-600">Archive footer</td>
+                    <td class="text-gray-600 text-sm">May 11</td>
+                    <td class="text-gray-600 text-sm">May 25</td>
+                    <td>
+                      <button class="text-red-600 hover:bg-red-50 p-2 rounded text-sm" onclick="openUserDetails('Chen Wei', 'chen.wei@example.com', 'unsubscribed')">
+                        <i class="fa-solid fa-ellipsis-h"></i>
+                      </button>
+                    </td>
+                  </tr>
+                  <tr class="user-row" data-status="suppressed">
+                    <td><input type="checkbox" /></td>
+                    <td class="font-medium">Sam Taylor</td>
+                    <td class="email-cell text-gray-600">sam.taylor@example.com</td>
+                    <td><span class="status-badge status-suppressed">Suppressed</span></td>
+                    <td class="text-gray-600">Admin action</td>
+                    <td class="text-gray-600 text-sm">Apr 30</td>
+                    <td class="text-gray-600 text-sm">May 10</td>
+                    <td>
+                      <button class="text-red-600 hover:bg-red-50 p-2 rounded text-sm" onclick="openUserDetails('Sam Taylor', 'sam.taylor@example.com', 'suppressed')">
+                        <i class="fa-solid fa-ellipsis-h"></i>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Issues Page -->
+          <div id="issues-page" class="page p-8">
+            <div class="mb-6 flex gap-4 flex-col md:flex-row md:items-center md:justify-between">
+              <div class="flex-1">
+                <input type="text" placeholder="Search issues..." class="input-field w-full" />
+              </div>
+              <button class="btn-primary" onclick="openIssueEditor()">
+                <i class="fa-solid fa-plus mr-2"></i>
+                New issue
+              </button>
+            </div>
+
+            <div class="flex gap-2 mb-6 overflow-x-auto pb-2">
+              <button class="btn-secondary px-3 flex-none" onclick="filterIssues('all')" id="issue-filter-all" style="background-color: #dc2626; color: white; border-color: #dc2626;">All</button>
+              <button class="btn-secondary px-3 flex-none" onclick="filterIssues('draft')">Draft</button>
+              <button class="btn-secondary px-3 flex-none" onclick="filterIssues('published')">Published</button>
+              <button class="btn-secondary px-3 flex-none" onclick="filterIssues('scheduled')">Scheduled</button>
+              <button class="btn-secondary px-3 flex-none" onclick="filterIssues('sent')">Sent</button>
+            </div>
+
+            <div class="card border rounded-lg overflow-hidden">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Title</th>
+                    <th>Slug</th>
+                    <th>Status</th>
+                    <th>Updated</th>
+                    <th>Published</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="issues-table-body">
+                  <tr class="issue-row cursor-pointer" data-status="published" onclick="openIssueEditor('BLT Monthly Digest — June 2026')">
+                    <td class="font-medium">BLT Monthly Digest — June 2026</td>
+                    <td class="font-mono text-xs text-gray-600">blt-digest-jun-2026</td>
+                    <td><span class="status-badge status-published">Published</span></td>
+                    <td class="text-gray-600 text-sm">2d ago</td>
+                    <td class="text-gray-600 text-sm">Jun 10</td>
+                    <td>
+                      <div class="relative group">
+                        <button class="text-red-600 hover:bg-red-50 p-2 rounded text-sm">
+                          <i class="fa-solid fa-ellipsis-h"></i>
+                        </button>
+                        <div class="hidden group-hover:block absolute right-0 bg-white border rounded-lg shadow-lg min-w-max z-10">
+                          <button class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Preview</button>
+                          <button class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Send test</button>
+                          <button class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Send campaign</button>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr class="issue-row cursor-pointer" data-status="draft" onclick="openIssueEditor('GSoC Contributor Updates')">
+                    <td class="font-medium">GSoC Contributor Updates</td>
+                    <td class="font-mono text-xs text-gray-600">gsoc-updates</td>
+                    <td><span class="status-badge status-draft">Draft</span></td>
+                    <td class="text-gray-600 text-sm">5d ago</td>
+                    <td class="text-gray-600 text-sm">—</td>
+                    <td>
+                      <div class="relative group">
+                        <button class="text-red-600 hover:bg-red-50 p-2 rounded text-sm">
+                          <i class="fa-solid fa-ellipsis-h"></i>
+                        </button>
+                        <div class="hidden group-hover:block absolute right-0 bg-white border rounded-lg shadow-lg min-w-max z-10">
+                          <button class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Preview</button>
+                          <button class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Publish</button>
+                          <button class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Delete</button>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr class="issue-row cursor-pointer" data-status="sent" onclick="openIssueEditor('Hackathons and Jobs Roundup')">
+                    <td class="font-medium">Hackathons and Jobs Roundup</td>
+                    <td class="font-mono text-xs text-gray-600">jobs-roundup</td>
+                    <td><span class="status-badge status-sent">Sent</span></td>
+                    <td class="text-gray-600 text-sm">14d ago</td>
+                    <td class="text-gray-600 text-sm">May 27</td>
+                    <td>
+                      <div class="relative group">
+                        <button class="text-red-600 hover:bg-red-50 p-2 rounded text-sm">
+                          <i class="fa-solid fa-ellipsis-h"></i>
+                        </button>
+                        <div class="hidden group-hover:block absolute right-0 bg-white border rounded-lg shadow-lg min-w-max z-10">
+                          <button class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Preview</button>
+                          <button class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Archive</button>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr class="issue-row cursor-pointer" data-status="scheduled" onclick="openIssueEditor('Security Notes and Platform Fixes')">
+                    <td class="font-medium">Security Notes and Platform Fixes</td>
+                    <td class="font-mono text-xs text-gray-600">security-notes</td>
+                    <td><span class="status-badge status-scheduled">Scheduled</span></td>
+                    <td class="text-gray-600 text-sm">3d ago</td>
+                    <td class="text-gray-600 text-sm">Jun 20</td>
+                    <td>
+                      <div class="relative group">
+                        <button class="text-red-600 hover:bg-red-50 p-2 rounded text-sm">
+                          <i class="fa-solid fa-ellipsis-h"></i>
+                        </button>
+                        <div class="hidden group-hover:block absolute right-0 bg-white border rounded-lg shadow-lg min-w-max z-10">
+                          <button class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Preview</button>
+                          <button class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Unschedule</button>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Campaigns Page -->
+          <div id="campaigns-page" class="page p-8">
+            <div class="mb-6 flex gap-4 flex-col md:flex-row md:items-center md:justify-between">
+              <div class="flex-1">
+                <input type="text" placeholder="Search campaigns..." class="input-field w-full" />
+              </div>
+            </div>
+
+            <div class="flex gap-2 mb-6 overflow-x-auto pb-2">
+              <button class="btn-secondary px-3 flex-none" id="campaign-filter-all" onclick="filterCampaigns('all')" style="background-color: #dc2626; color: white; border-color: #dc2626;">All</button>
+              <button class="btn-secondary px-3 flex-none" onclick="filterCampaigns('sending')">Sending</button>
+              <button class="btn-secondary px-3 flex-none" onclick="filterCampaigns('completed')">Completed</button>
+              <button class="btn-secondary px-3 flex-none" onclick="filterCampaigns('failed')">Failed</button>
+            </div>
+
+            <div class="card border rounded-lg overflow-hidden">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Campaign</th>
+                    <th>Status</th>
+                    <th>Progress</th>
+                    <th>Sent</th>
+                    <th>Failed</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="campaigns-table-body">
+                  <tr class="campaign-row" data-status="completed" onclick="openCampaignDetails('June Digest Send')">
+                    <td class="font-medium">June Digest Send</td>
+                    <td><span class="status-badge status-sent">Completed</span></td>
+                    <td>
+                      <div class="flex items-center gap-2">
+                        <div class="progress-bar flex-1">
+                          <div class="progress-fill" style="width: 100%"></div>
+                        </div>
+                        <span class="text-xs text-gray-600 font-medium">100%</span>
+                      </div>
+                    </td>
+                    <td class="text-gray-600">1,248</td>
+                    <td class="text-red-600 font-medium cursor-pointer">12</td>
+                    <td class="text-gray-600 text-sm">Jun 10</td>
+                    <td>
+                      <button class="text-red-600 hover:bg-red-50 p-2 rounded text-sm" onclick="openCampaignDetails('June Digest Send')">
+                        <i class="fa-solid fa-arrow-right"></i>
+                      </button>
+                    </td>
+                  </tr>
+                  <tr class="campaign-row" data-status="completed" onclick="openCampaignDetails('GSoC Test Send')">
+                    <td class="font-medium">GSoC Test Send</td>
+                    <td><span class="status-badge status-sent">Completed</span></td>
+                    <td>
+                      <div class="flex items-center gap-2">
+                        <div class="progress-bar flex-1">
+                          <div class="progress-fill" style="width: 100%"></div>
+                        </div>
+                        <span class="text-xs text-gray-600 font-medium">100%</span>
+                      </div>
+                    </td>
+                    <td class="text-gray-600">1</td>
+                    <td class="text-gray-600">0</td>
+                    <td class="text-gray-600 text-sm">Jun 5</td>
+                    <td>
+                      <button class="text-red-600 hover:bg-red-50 p-2 rounded text-sm" onclick="openCampaignDetails('GSoC Test Send')">
+                        <i class="fa-solid fa-arrow-right"></i>
+                      </button>
+                    </td>
+                  </tr>
+                  <tr class="campaign-row" data-status="completed" onclick="openCampaignDetails('Jobs Roundup')">
+                    <td class="font-medium">Jobs Roundup</td>
+                    <td><span class="status-badge status-sent">Completed</span></td>
+                    <td>
+                      <div class="flex items-center gap-2">
+                        <div class="progress-bar flex-1">
+                          <div class="progress-fill" style="width: 96.8%"></div>
+                        </div>
+                        <span class="text-xs text-gray-600 font-medium">96.8%</span>
+                      </div>
+                    </td>
+                    <td class="text-gray-600">950</td>
+                    <td class="text-red-600 font-medium cursor-pointer">31</td>
+                    <td class="text-gray-600 text-sm">May 27</td>
+                    <td>
+                      <button class="text-red-600 hover:bg-red-50 p-2 rounded text-sm" onclick="openCampaignDetails('Jobs Roundup')">
+                        <i class="fa-solid fa-arrow-right"></i>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Template Page -->
+          <div id="template-page" class="page p-8">
+            <div class="max-w-2xl">
+              <div class="card border rounded-lg p-8">
+                <div class="flex items-start gap-4">
+                  <div class="w-12 h-12 rounded-lg bg-red-50 flex items-center justify-center text-red-600 flex-none">
+                    <i class="fa-solid fa-layer-group"></i>
+                  </div>
+                  <div class="flex-1">
+                    <h3 class="font-semibold text-lg">Monthly BLT Digest</h3>
+                    <p class="text-gray-600 text-sm mt-1">A reusable structure for platform updates, contributor highlights, and shipped work.</p>
+                    <div class="mt-4 grid grid-cols-2 gap-3">
+                      <div class="bg-gray-50 rounded-lg p-3">
+                        <p class="text-xs uppercase tracking-wide text-gray-500 font-medium">Sections</p>
+                        <p class="text-sm mt-1">Intro, Shipped, Spotlight, Next</p>
+                      </div>
+                      <div class="bg-gray-50 rounded-lg p-3">
+                        <p class="text-xs uppercase tracking-wide text-gray-500 font-medium">Format</p>
+                        <p class="text-sm mt-1">Markdown + Email</p>
+                      </div>
+                    </div>
+                    <button class="btn-primary mt-6" onclick="useTemplate()">
+                      <i class="fa-solid fa-check mr-2"></i>
+                      Use template
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Settings Page -->
+          <div id="settings-page" class="page p-8">
+            <div class="max-w-2xl space-y-8">
+              <!-- Sender Identity -->
+              <div class="card border rounded-lg p-6">
+                <h3 class="font-semibold mb-4">Sender identity</h3>
+                <div class="space-y-4">
+                  <div>
+                    <label class="block text-sm font-medium mb-2">From name</label>
+                    <input type="text" class="input-field w-full" value="BLT Newsletter" />
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium mb-2">From email</label>
+                    <input type="email" class="input-field w-full" value="newsletter@owasp-blt.dev" />
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium mb-2">Reply-to email</label>
+                    <input type="email" class="input-field w-full" value="support@owasp-blt.dev" />
+                  </div>
+                  <button class="btn-primary" onclick="showToast('Settings saved')">Save changes</button>
+                </div>
+              </div>
+
+              <!-- Provider Status -->
+              <div class="card border rounded-lg p-6">
+                <h3 class="font-semibold mb-4">Provider status</h3>
+                <div class="space-y-3">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p class="font-medium">SendGrid</p>
+                      <p class="text-xs text-gray-600">Email delivery provider</p>
+                    </div>
+                    <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-50 text-green-700 text-xs font-medium">
+                      <span class="w-2 h-2 rounded-full bg-green-600"></span>
+                      Configured
+                    </span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p class="font-medium">Cloudflare D1</p>
+                      <p class="text-xs text-gray-600">Database</p>
+                    </div>
+                    <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-50 text-green-700 text-xs font-medium">
+                      <span class="w-2 h-2 rounded-full bg-green-600"></span>
+                      Connected
+                    </span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p class="font-medium">Cloudflare Queues</p>
+                      <p class="text-xs text-gray-600">Background jobs</p>
+                    </div>
+                    <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-50 text-green-700 text-xs font-medium">
+                      <span class="w-2 h-2 rounded-full bg-green-600"></span>
+                      Connected
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Danger Zone -->
+              <div class="card border border-red-200 bg-red-50 rounded-lg p-6">
+                <h3 class="font-semibold mb-4 text-red-700">Danger zone</h3>
+                <p class="text-sm text-red-600 mb-4">Destructive actions that cannot be undone</p>
+                <button class="border border-red-200 text-red-600 hover:bg-red-100 px-4 py-2 rounded-lg text-sm font-medium transition">
+                  Clear test data
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- User Details Sheet -->
+    <div id="user-details-sheet" class="sheet">
+      <div class="flex items-center justify-between p-6 border-b flex-none" style="border-bottom-color: var(--border-light);">
+        <h2 id="user-details-name" class="text-lg font-semibold">User Details</h2>
+        <button onclick="closeUserDetails()" class="text-gray-600 hover:bg-gray-100 p-2 rounded-lg">
+          <i class="fa-solid fa-times"></i>
+        </button>
+      </div>
+      <div class="flex-1 overflow-y-auto p-6 space-y-6">
+        <div>
+          <p class="text-xs uppercase tracking-wide font-semibold text-gray-500 mb-2">Status</p>
+          <span id="user-details-status" class="status-badge status-active">Active</span>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <p class="text-xs uppercase tracking-wide font-semibold text-gray-500 mb-2">Source</p>
+            <p id="user-details-source" class="text-sm">Landing page</p>
+          </div>
+          <div>
+            <p class="text-xs uppercase tracking-wide font-semibold text-gray-500 mb-2">Subscribed</p>
+            <p id="user-details-subscribed" class="text-sm">Jun 2, 2026</p>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <p class="text-xs uppercase tracking-wide font-semibold text-gray-500 mb-2">Last sent</p>
+            <p id="user-details-last-sent" class="text-sm">Jun 12, 2026</p>
+          </div>
+          <div>
+            <p class="text-xs uppercase tracking-wide font-semibold text-gray-500 mb-2">Bounce count</p>
+            <p id="user-details-bounces" class="text-sm">0</p>
+          </div>
+        </div>
+        <div>
+          <p class="text-xs uppercase tracking-wide font-semibold text-gray-500 mb-2">Recent delivery events</p>
+          <div class="space-y-2 mt-3">
+            <div class="border rounded-lg p-3" style="border-color: var(--border-light);">
+              <div class="flex items-center justify-between mb-1">
+                <p class="text-sm font-medium">June Digest Send</p>
+                <span class="status-badge status-sent" style="font-size: 11px;">Sent</span>
+              </div>
+              <p class="text-xs text-gray-600">Jun 12 • 2:45 PM</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="border-t p-6 space-y-3 flex-none" style="border-top-color: var(--border-light);">
+        <button class="btn-secondary w-full" onclick="showToast('User suppressed')">
+          <i class="fa-solid fa-ban mr-2"></i>
+          Suppress user
+        </button>
+        <button class="close-button w-full" onclick="closeUserDetails()">Close</button>
+      </div>
+    </div>
+
+    <!-- Issue Editor Sheet -->
+    <div id="issue-editor-sheet" class="sheet">
+      <div class="flex items-center justify-between p-6 border-b flex-none" style="border-bottom-color: var(--border-light);">
+        <h2 class="text-lg font-semibold">
+          <span id="issue-editor-title">New issue</span>
+          <span id="issue-editor-badge" class="status-badge status-draft ml-3" style="display: none;">Draft</span>
+        </h2>
+        <button onclick="closeIssueEditor()" class="text-gray-600 hover:bg-gray-100 p-2 rounded-lg">
+          <i class="fa-solid fa-times"></i>
+        </button>
+      </div>
+      <div class="flex-1 overflow-y-auto p-6 grid grid-cols-2 gap-6">
+        <div class="space-y-4 col-span-2 lg:col-span-1">
+          <div>
+            <label class="block text-sm font-medium mb-2">Title</label>
+            <input type="text" class="input-field w-full" placeholder="Issue title" id="issue-title" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-2">Slug</label>
+            <input type="text" class="input-field w-full" placeholder="issue-slug" id="issue-slug" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-2">Email subject</label>
+            <input type="text" class="input-field w-full" placeholder="Email subject line" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-2">Body (Markdown)</label>
+            <textarea class="input-field w-full h-32 font-mono text-xs" placeholder="Write your content here..." style="resize: none;"></textarea>
+          </div>
+        </div>
+        <div class="col-span-2 lg:col-span-1">
+          <p class="text-xs uppercase tracking-wide font-semibold mb-3" style="color: var(--text-muted-light);">Email preview</p>
+          <div class="border rounded-lg p-4" style="border-color: var(--border-light); background-color: var(--background-light);">
+            <div style="background-color: var(--surface-light); border-radius: 6px; padding: 20px; font-size: 14px; line-height: 1.6; color: var(--text-primary-light);">
+              <p style="margin: 0 0 16px; font-weight: 600; font-size: 16px; color: var(--text-primary-light);">Your email subject</p>
+              <p style="margin: 0; color: var(--text-secondary-light);">Email preview content will appear here based on your markdown input.</p>
+            </div>
+          </div>
+
+          <style>
+            html.dark [style*="background-color: var(--background-light)"] { background-color: var(--elevated-dark) !important; border-color: var(--border-dark) !important; }
+            html.dark .email-preview-inner { background-color: var(--surface-dark) !important; color: var(--text-primary-dark) !important; }
+            html.dark .email-preview-title { color: var(--text-primary-dark) !important; }
+            html.dark .email-preview-text { color: var(--text-secondary-dark) !important; }
+          </style>
+        </div>
+      </div>
+      <div class="border-t p-6 space-y-3 flex-none flex gap-3" style="border-top-color: var(--border-light);">
+        <button class="close-button flex-1" onclick="closeIssueEditor()">Close</button>
+        <button class="btn-primary flex-1" onclick="showToast('Draft saved')">Save draft</button>
+        <button class="btn-primary flex-1" onclick="openCampaignConfirmation()">Send campaign</button>
+      </div>
+    </div>
+
+    <!-- Campaign Details Sheet -->
+    <div id="campaign-details-sheet" class="sheet">
+      <div class="flex items-center justify-between p-6 border-b flex-none" style="border-bottom-color: var(--border-light);">
+        <h2 id="campaign-details-title" class="text-lg font-semibold">Campaign details</h2>
+        <button onclick="closeCampaignDetails()" class="text-gray-600 hover:bg-gray-100 p-2 rounded-lg">
+          <i class="fa-solid fa-times"></i>
+        </button>
+      </div>
+      <div class="flex-1 overflow-y-auto p-6 space-y-6">
+        <div class="grid grid-cols-3 gap-4">
+          <div class="rounded-lg p-4" style="background: #f8fafc;">
+            <p class="text-xs uppercase tracking-wide font-semibold text-gray-500 mb-2">Sent</p>
+            <p class="text-2xl font-semibold">1,248</p>
+          </div>
+          <div class="rounded-lg p-4" style="background: #fef2f2;">
+            <p class="text-xs uppercase tracking-wide font-semibold text-red-600 mb-2">Failed</p>
+            <p class="text-2xl font-semibold text-red-600">12</p>
+          </div>
+          <div class="rounded-lg p-4" style="background: #f8fafc;">
+            <p class="text-xs uppercase tracking-wide font-semibold text-gray-500 mb-2">Skipped</p>
+            <p class="text-2xl font-semibold">9</p>
+          </div>
+        </div>
+        <div>
+          <p class="text-sm font-medium mb-2">Delivery progress</p>
+          <div class="progress-bar">
+            <div class="progress-fill" style="width: 100%"></div>
+          </div>
+          <p class="text-xs text-gray-600 mt-1">1,248 / 1,269 delivered</p>
+        </div>
+        <div>
+          <p class="text-sm font-medium mb-3">Recent failed deliveries</p>
+          <div class="space-y-2 max-h-64 overflow-y-auto">
+            <div class="border rounded-lg p-3" style="border-color: var(--border-light);">
+              <p class="text-sm font-medium">marcus.johnson@example.com</p>
+              <p class="text-xs text-red-600">Hard bounce</p>
+              <p class="text-xs text-gray-600">Jun 10 • 2:15 PM</p>
+            </div>
+            <div class="border rounded-lg p-3" style="border-color: var(--border-light);">
+              <p class="text-sm font-medium">sofia.garcia@example.com</p>
+              <p class="text-xs text-red-600">Mailbox full</p>
+              <p class="text-xs text-gray-600">Jun 10 • 2:12 PM</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="border-t p-6 space-y-3 flex-none" style="border-top-color: var(--border-light);">
+        <button class="btn-secondary w-full">Retry failed deliveries</button>
+        <button class="close-button w-full" onclick="closeCampaignDetails()">Close</button>
+      </div>
+    </div>
+
+    <!-- Sheet Overlay -->
+    <div id="sheet-overlay" class="sheet-overlay" onclick="closeAllSheets()"></div>
+
+    <!-- Modals -->
+    <!-- Test Email Modal -->
+    <div id="test-email-modal" class="modal-overlay">
+      <div class="modal p-6">
+        <h2 class="text-lg font-semibold mb-2">Send test email</h2>
+        <p class="text-sm text-gray-600 mb-6">Send this issue to a single test recipient before launching a campaign.</p>
+        <div class="mb-6">
+          <label class="block text-sm font-medium mb-2">Recipient email</label>
+          <input type="email" placeholder="test@example.com" class="input-field w-full" />
+        </div>
+        <div class="flex gap-3">
+          <button class="btn-secondary flex-1" onclick="closeTestEmailModal()">Cancel</button>
+          <button class="btn-primary flex-1" onclick="showToast('Test email sent'); closeTestEmailModal();">Send test</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Campaign Confirmation Modal -->
+    <div id="campaign-confirmation-modal" class="modal-overlay">
+      <div class="modal p-6 max-w-md">
+        <h2 class="text-lg font-semibold mb-2">Send campaign?</h2>
+        <p class="text-sm text-gray-600 mb-4">This action will queue emails to all active subscribers. Sending cannot be undone.</p>
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+          <p class="text-sm"><span class="font-medium">Recipients:</span> All active users (2,847)</p>
+        </div>
+        <label class="flex items-center gap-2 mb-6 cursor-pointer">
+          <input type="checkbox" class="w-4 h-4 rounded" id="campaign-confirm-checkbox" onchange="updateCampaignButton()" />
+          <span class="text-sm text-gray-600">I understand this will queue emails to all active subscribers</span>
+        </label>
+        <div class="flex gap-3">
+          <button class="btn-secondary flex-1" onclick="closeCampaignConfirmation()">Cancel</button>
+          <button class="btn-primary flex-1" id="campaign-confirm-btn" disabled onclick="showToast('Campaign queued'); closeCampaignConfirmation();">
+            Queue campaign
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Import Users Modal -->
+    <div id="import-users-modal" class="modal-overlay">
+      <div class="modal p-6 max-w-md">
+        <h2 class="text-lg font-semibold mb-2">Import users</h2>
+        <p class="text-sm text-gray-600 mb-4">Upload a CSV file or paste user data to import subscribers.</p>
+        <div class="border-2 border-dashed rounded-lg p-6 mb-4 text-center" style="border-color: var(--border-light); cursor: pointer;">
+          <i class="fa-solid fa-cloud-arrow-up text-2xl text-gray-400 mb-2"></i>
+          <p class="text-sm font-medium mb-1">Drag and drop or click to select</p>
+          <p class="text-xs text-gray-600">CSV format (email, name, status)</p>
+        </div>
+        <label class="flex items-center gap-2 mb-6 cursor-pointer">
+          <input type="checkbox" class="w-4 h-4 rounded" checked />
+          <span class="text-sm text-gray-600">Run dry-run first</span>
+        </label>
+        <div class="flex gap-3">
+          <button class="btn-secondary flex-1" onclick="closeImportUsersModal()">Cancel</button>
+          <button class="btn-primary flex-1" onclick="showToast('Import started'); closeImportUsersModal();">Import</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script>
+      let currentPage = 'overview';
+      let currentStatusFilter = 'all';
+      let currentIssueFilter = 'all';
+      let currentCampaignFilter = 'all';
+
+      function navigateTo(page) {
+        // Hide all pages
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        
+        // Update sidebar active state
+        document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
+        event.target.closest('.sidebar-item')?.classList.add('active');
+        
+        // Show selected page
+        const pageEl = document.getElementById(page + '-page');
+        if (pageEl) {
+          pageEl.classList.add('active');
+        }
+        
+        // Update page title
+        const titles = {
+          overview: 'Overview',
+          users: 'Users',
+          issues: 'Issues',
+          campaigns: 'Campaigns',
+          template: 'Template',
+          settings: 'Settings'
+        };
+        
+        const descs = {
+          overview: 'Monitor newsletter health and activity',
+          users: 'Manage newsletter subscribers, consent state, delivery health, and subscription status',
+          issues: 'Create and manage newsletter content',
+          campaigns: 'Track sends and delivery health',
+          template: 'Browse and use email templates',
+          settings: 'Configure admin settings and integrations'
+        };
+        
+        document.getElementById('page-title').textContent = titles[page];
+        document.getElementById('page-desc').textContent = descs[page];
+        currentPage = page;
+      }
+
+      function logout() {
+        window.location.href = '/login';
+      }
+
+      function toggleTheme() {
+        document.documentElement.classList.toggle('dark');
+      }
+
+      function openIssueEditor(title = null) {
+        document.getElementById('sheet-overlay').classList.add('active');
+        document.getElementById('issue-editor-sheet').classList.add('active');
+        if (title) {
+          document.getElementById('issue-editor-title').textContent = title;
+          document.getElementById('issue-editor-badge').style.display = 'inline-block';
+        } else {
+          document.getElementById('issue-editor-title').textContent = 'New issue';
+          document.getElementById('issue-editor-badge').style.display = 'none';
+        }
+      }
+
+      function closeIssueEditor() {
+        document.getElementById('sheet-overlay').classList.remove('active');
+        document.getElementById('issue-editor-sheet').classList.remove('active');
+      }
+
+      function openUserDetails(name, email, status) {
+        document.getElementById('sheet-overlay').classList.add('active');
+        document.getElementById('user-details-sheet').classList.add('active');
+        document.getElementById('user-details-name').textContent = name;
+        document.getElementById('user-details-status').textContent = status.charAt(0).toUpperCase() + status.slice(1);
+        document.getElementById('user-details-status').className = 'status-badge status-' + status;
+      }
+
+      function closeUserDetails() {
+        document.getElementById('sheet-overlay').classList.remove('active');
+        document.getElementById('user-details-sheet').classList.remove('active');
+      }
+
+      function openCampaignDetails(title) {
+        document.getElementById('sheet-overlay').classList.add('active');
+        document.getElementById('campaign-details-sheet').classList.add('active');
+        document.getElementById('campaign-details-title').textContent = title;
+      }
+
+      function closeCampaignDetails() {
+        document.getElementById('sheet-overlay').classList.remove('active');
+        document.getElementById('campaign-details-sheet').classList.remove('active');
+      }
+
+      function closeAllSheets() {
+        document.getElementById('sheet-overlay').classList.remove('active');
+        document.querySelectorAll('.sheet').forEach(s => s.classList.remove('active'));
+      }
+
+      function openTestEmailModal() {
+        document.getElementById('test-email-modal').classList.add('active');
+      }
+
+      function closeTestEmailModal() {
+        document.getElementById('test-email-modal').classList.remove('active');
+      }
+
+      function openCampaignConfirmation() {
+        document.getElementById('campaign-confirmation-modal').classList.add('active');
+        document.getElementById('campaign-confirm-checkbox').checked = false;
+        updateCampaignButton();
+      }
+
+      function closeCampaignConfirmation() {
+        document.getElementById('campaign-confirmation-modal').classList.remove('active');
+      }
+
+      function updateCampaignButton() {
+        const btn = document.getElementById('campaign-confirm-btn');
+        const checkbox = document.getElementById('campaign-confirm-checkbox');
+        btn.disabled = !checkbox.checked;
+      }
+
+      function openImportUsersModal() {
+        document.getElementById('import-users-modal').classList.add('active');
+      }
+
+      function closeImportUsersModal() {
+        document.getElementById('import-users-modal').classList.remove('active');
+      }
+
+      function filterByStatus(status) {
+        currentStatusFilter = status;
+        const rows = document.querySelectorAll('.user-row');
+        rows.forEach(row => {
+          if (status === 'all' || row.dataset.status === status) {
+            row.style.display = '';
+          } else {
+            row.style.display = 'none';
+          }
+        });
+        
+        // Update filter buttons
+        document.querySelectorAll('#users-page .btn-secondary').forEach((btn, idx) => {
+          if ((idx === 0 && status === 'all') || btn.textContent.toLowerCase() === status) {
+            btn.style.backgroundColor = '#dc2626';
+            btn.style.color = 'white';
+            btn.style.borderColor = '#dc2626';
+          } else {
+            btn.style.backgroundColor = '';
+            btn.style.color = '';
+            btn.style.borderColor = '';
+          }
+        });
+      }
+
+      function filterUsers() {
+        const search = document.getElementById('user-search').value.toLowerCase();
+        const rows = document.querySelectorAll('.user-row');
+        rows.forEach(row => {
+          const name = row.cells[1]?.textContent.toLowerCase();
+          const email = row.cells[2]?.textContent.toLowerCase();
+          if (name?.includes(search) || email?.includes(search)) {
+            row.style.display = '';
+          } else {
+            row.style.display = 'none';
+          }
+        });
+      }
+
+      function filterIssues(status) {
+        currentIssueFilter = status;
+        const rows = document.querySelectorAll('.issue-row');
+        rows.forEach(row => {
+          if (status === 'all' || row.dataset.status === status) {
+            row.style.display = '';
+          } else {
+            row.style.display = 'none';
+          }
+        });
+      }
+
+      function filterCampaigns(status) {
+        currentCampaignFilter = status;
+        const rows = document.querySelectorAll('.campaign-row');
+        rows.forEach(row => {
+          if (status === 'all' || row.dataset.status === status) {
+            row.style.display = '';
+          } else {
+            row.style.display = 'none';
+          }
+        });
+      }
+
+      function useTemplate() {
+        openIssueEditor();
+        showToast('Template loaded - Monthly BLT Digest');
+      }
+
+      function showToast(message) {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.textContent = message;
+        container.appendChild(toast);
+        
+        setTimeout(() => {
+          toast.remove();
+        }, 3000);
+      }
+
+      // Close modals on Escape
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          closeAllSheets();
+          document.querySelectorAll('.modal-overlay.active').forEach(m => m.classList.remove('active'));
+        }
+      });
+
+      // Click outside to close
+      document.addEventListener('click', (e) => {
+        if (e.target.id === 'sheet-overlay') closeAllSheets();
+        if (e.target.classList.contains('modal-overlay')) e.target.classList.remove('active');
+      });
+    </script>
+  </body>
+</html>

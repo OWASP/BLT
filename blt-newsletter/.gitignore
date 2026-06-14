@@ -8,3 +8,13 @@ subscribers.json
 __pycache__/
 *.pyc
 *.pyo
+.wrangler/
+.venv/
+venv/
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.venv-workers/
+python_modules
+src/js-stubs/

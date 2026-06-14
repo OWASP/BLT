@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BLT Newsletter - Admin Login</title>
+    <meta
+      name="description"
+      content="Sign in to the BLT Newsletter admin workspace."
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+      integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <style>
+      * {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      }
+
+      body {
+        background:
+          radial-gradient(circle at top left, rgba(220, 38, 38, 0.12), transparent 30rem),
+          linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        color: #0f172a;
+      }
+
+      .login-card {
+        background: rgba(255, 255, 255, 0.94);
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        box-shadow: 0 24px 80px rgba(15, 23, 42, 0.12);
+      }
+
+      .input-field {
+        width: 100%;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        padding: 10px 12px;
+        font-size: 14px;
+        color: #0f172a;
+        transition: border-color 160ms ease, box-shadow 160ms ease;
+      }
+
+      .input-field:focus {
+        outline: none;
+        border-color: #dc2626;
+        box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+      }
+
+      .btn-primary {
+        width: 100%;
+        background: linear-gradient(to bottom, #ef4444, #dc2626);
+        color: white;
+        border-bottom: 1.5px solid #991b1b;
+        border-radius: 6px;
+        padding: 10px 16px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 160ms ease, box-shadow 160ms ease;
+        box-shadow: 0 18px 36px -20px rgba(220, 38, 38, 0.9);
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-1px);
+      }
+    </style>
+  </head>
+  <body class="antialiased">
+    <main id="login-page" class="min-h-screen flex items-center justify-center px-4 py-12">
+      <section class="w-full max-w-md">
+        <div class="mb-8 text-center">
+          <a
+            href="/"
+            class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg border border-red-100 bg-white text-lg text-red-600 shadow-sm"
+            aria-label="Back to BLT Newsletter home"
+          >
+            <i class="fa-solid fa-bug"></i>
+          </a>
+          <p class="text-xs font-semibold uppercase tracking-[0.18em] text-red-600">OWASP BLT</p>
+          <h1 class="mt-2 text-2xl font-bold text-gray-950">Newsletter Admin</h1>
+          <p class="mt-2 text-sm text-gray-600">Sign in to manage subscribers, issues, and campaigns.</p>
+        </div>
+
+        <form class="login-card p-8" onsubmit="login(); return false;">
+          <div class="mb-6">
+            <h2 class="text-lg font-semibold text-gray-950">Sign in</h2>
+            <p class="mt-1 text-sm text-gray-500">Protected admin workspace</p>
+          </div>
+
+          <div class="space-y-4">
+            <div>
+              <label for="login-email" class="mb-2 block text-sm font-medium text-gray-700">Email</label>
+              <input
+                id="login-email"
+                class="input-field"
+                type="email"
+                placeholder="admin@blt.dev"
+                autocomplete="email"
+                required
+              />
+            </div>
+
+            <div>
+              <label for="login-password" class="mb-2 block text-sm font-medium text-gray-700">Password</label>
+              <div class="relative">
+                <input
+                  id="login-password"
+                  class="input-field pr-10"
+                  type="password"
+                  placeholder="Password"
+                  autocomplete="current-password"
+                  required
+                />
+                <button
+                  class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 transition hover:text-gray-900"
+                  onclick="togglePasswordVisibility()"
+                  type="button"
+                  aria-label="Show or hide password"
+                >
+                  <i class="fa-solid fa-eye text-sm"></i>
+                </button>
+              </div>
+            </div>
+
+            <label class="flex cursor-pointer items-center gap-2 text-sm text-gray-600">
+              <input type="checkbox" class="h-4 w-4 rounded border-gray-300 text-red-600" />
+              Remember this session
+            </label>
+          </div>
+
+          <button class="btn-primary mt-6" onclick="login()" type="submit">
+            Sign in
+          </button>
+
+          <div class="mt-6 flex items-center justify-between text-sm">
+            <a href="/" class="font-medium text-gray-500 transition hover:text-gray-900">Home</a>
+            <a href="/docs" class="font-medium text-red-600 transition hover:text-red-700">Read docs</a>
+          </div>
+        </form>
+      </section>
+    </main>
+
+    <script>
+      function login() {
+        window.location.href = '/dashboard';
+      }
+
+      function togglePasswordVisibility() {
+        const input = document.getElementById('login-password');
+        input.type = input.type === 'password' ? 'text' : 'password';
+      }
+    </script>
+  </body>
+</html>
