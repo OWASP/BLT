@@ -476,7 +476,22 @@ void ServerNode::handlePlain(const QJsonObject &message)
         }
         if (changed)
             emit channelsChanged(m_channels);
-        sendHistoryTo(senderId);
+        // A broadcast hello (no "to") is a peer announcing themselves on a
+        // fresh connect or reconnect. Existing peers must answer with their own
+        // presence so the newcomer rebuilds its roster — otherwise it would not
+        // see anyone already in the room until they next spoke. The reply is
+        // directed at the newcomer and carries "to"; directed hellos are not
+        // answered again, so two peers can't ping-pong hellos forever.
+        if (message.value("to").toString().isEmpty()) {
+            sendHistoryTo(senderId);
+            QJsonArray channels;
+            for (const QString &channel : std::as_const(m_channels))
+                channels.append(channel);
+            QJsonObject reply = makeMessage("hello");
+            reply.insert("channels", channels);
+            reply.insert("to", senderId);
+            sendEncrypted(reply, false);
+        }
     } else if (type == "chat") {
         if (!m_channels.contains(message.value("channel").toString()))
             m_channels.append(message.value("channel").toString());
