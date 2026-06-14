@@ -259,7 +259,10 @@ int main(int argc, char *argv[])
     // Linux routes the whole 127.0.0.0/8 range to loopback, so binding one
     // node to 127.0.0.2 and the other to 127.0.0.3 simulates two hosts: the
     // announce carries a real sender address, the dial goes to that address,
-    // and the TLS handshake crosses the two endpoints.
+    // and the TLS handshake crosses the two endpoints. macOS only configures
+    // 127.0.0.1 by default, so those aliases are not available on GitLab's
+    // macOS runners unless they are added with elevated network setup.
+#ifdef Q_OS_LINUX
     const QHostAddress addrC("127.0.0.2");
     const QHostAddress addrD("127.0.0.3");
     MeshNode nodeC(identity, "node-c", nullptr, testAppTag);
@@ -307,6 +310,9 @@ int main(int argc, char *argv[])
 
     nodeC.shutdown();
     nodeD.shutdown();
+#else
+    qInfo("SKIP: cross-IP loopback mesh test requires Linux 127.0.0.0/8 aliases");
+#endif
 
     // --- History sync: a node that joins late gets the channel backlog ---
     MeshNode nodeG(identity, "node-g", nullptr, testAppTag);
