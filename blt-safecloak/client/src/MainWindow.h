@@ -58,6 +58,7 @@ private:
     void logSystem(const QString &text);
     MessageRow *addMessageRow(const ChatMessage &message);
     void rebuildConversationView();
+    void scrollToBottom();
     void setChannels(const QStringList &channels);
     void setRoster(const QList<MemberInfo> &members);
     // A conversation key is either a channel ("#general") or a direct chat
@@ -114,6 +115,9 @@ private:
     QScrollArea *m_messageScroll;
     QWidget *m_messageContainer;
     QVBoxLayout *m_messageLayout; // message rows + a trailing stretch
+    // True while the view is pinned to the newest message; cleared when the
+    // user scrolls up to read history so new arrivals don't yank them away.
+    bool m_stickToBottom = true;
     QLabel *m_typingLabel;
     QLineEdit *m_messageInput;
 

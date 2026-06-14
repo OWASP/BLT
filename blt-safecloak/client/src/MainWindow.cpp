@@ -580,6 +580,21 @@ QWidget *MainWindow::buildChatPage()
     m_messageLayout->addStretch();
     m_messageScroll->setWidget(m_messageContainer);
 
+    // Keep the newest message visible. A row added to the layout grows the
+    // scroll range asynchronously, so we can't reliably scroll the instant we
+    // insert it; instead, whenever the range grows while we're pinned to the
+    // bottom, jump to the new maximum. The user scrolling up clears the pin so
+    // we don't drag them back down while they read history.
+    QScrollBar *vbar = m_messageScroll->verticalScrollBar();
+    connect(vbar, &QScrollBar::rangeChanged, this, [this](int, int max) {
+        if (m_stickToBottom)
+            m_messageScroll->verticalScrollBar()->setValue(max);
+    });
+    connect(vbar, &QScrollBar::valueChanged, this, [this](int value) {
+        QScrollBar *bar = m_messageScroll->verticalScrollBar();
+        m_stickToBottom = value >= bar->maximum() - 4;
+    });
+
     auto *composer = new QWidget;
     composer->setObjectName("composerBar");
     auto *attachButton = new QPushButton("\xF0\x9F\x93\x8E");
@@ -821,13 +836,21 @@ void MainWindow::rebuildConversationView()
             item->widget()->deleteLater();
         delete item;
     }
-    MessageRow *lastRow = nullptr;
     for (const ChatMessage &message : m_history.value(m_currentConversation))
-        lastRow = addMessageRow(message);
-    // Scroll to the bottom once layout settles.
-    QTimer::singleShot(0, this, [this, lastRow] {
-        if (lastRow)
-            m_messageScroll->ensureWidgetVisible(lastRow, 0, 24);
+        addMessageRow(message);
+    // Switching into a conversation always lands at the newest message.
+    scrollToBottom();
+}
+
+void MainWindow::scrollToBottom()
+{
+    m_stickToBottom = true;
+    // The rangeChanged handler scrolls once the new rows expand the range, but
+    // when the range is unchanged (e.g. it already fit) no signal fires, so
+    // pin to the current maximum after layout settles too.
+    QTimer::singleShot(0, this, [this] {
+        QScrollBar *bar = m_messageScroll->verticalScrollBar();
+        bar->setValue(bar->maximum());
     });
 }
 
@@ -853,11 +876,12 @@ void MainWindow::onMessage(const ChatMessage &message)
     m_history[conversation].append(message);
 
     if (conversation == m_currentConversation) {
-        MessageRow *row = addMessageRow(message);
-        QTimer::singleShot(0, this, [this, row] {
-            if (row)
-                m_messageScroll->ensureWidgetVisible(row, 0, 24);
-        });
+        const bool wasAtBottom = m_stickToBottom;
+        addMessageRow(message);
+        // Follow new arrivals only when already reading the latest; the
+        // rangeChanged handler does the actual scrolling once the row lays out.
+        if (wasAtBottom)
+            scrollToBottom();
     } else {
         m_unread.insert(conversation);
         refreshChannelList();
