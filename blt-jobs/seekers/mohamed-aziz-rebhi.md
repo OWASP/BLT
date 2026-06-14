@@ -69,10 +69,3 @@ I am currently focused on strengthening my system design and problem-solving ski
 I am currently looking for internship opportunities in backend engineering or software engineering, especially roles involving APIs, distributed systems, and applied AI.
 
 I am particularly interested in environments where I can work on real production systems, contribute to meaningful engineering challenges, and continue growing in backend and infrastructure development. I am open to startups, mid-size companies, and large tech organizations.
-
----
-
-<!-- 
-Note: Once this issue is created, it will be automatically processed by our GitHub Actions workflow 
-and published as a markdown file in the seekers directory with the naming format: seekers/name.md
--->

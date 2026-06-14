@@ -7,14 +7,11 @@ const root = path.join(__dirname, "..");
 const apiBase = process.env.CI_API_V4_URL || "https://gitlab.com/api/v4";
 const projectId = encodeURIComponent(process.env.CI_PROJECT_ID || "owasp-blt/blt-jobs");
 const projectUrl = process.env.CI_PROJECT_URL || "https://gitlab.com/owasp-blt/blt-jobs";
-const token = process.env.GITLAB_TOKEN;
-
-if (!token) {
-  console.error("GITLAB_TOKEN is required.");
-  process.exit(1);
-}
 
 async function api(endpoint, options = {}) {
+  const token = process.env.GITLAB_TOKEN;
+  if (!token) throw new Error("GITLAB_TOKEN is required.");
+
   const response = await fetch(`${apiBase}/projects/${projectId}${endpoint}`, {
     ...options,
     headers: {
@@ -151,7 +148,16 @@ async function main() {
   console.log(`Processed ${processed.length} GitLab submission(s).`);
 }
 
-main().catch((error) => {
-  console.error(error.message);
-  process.exit(1);
-});
+if (require.main === module) {
+  main().catch((error) => {
+    console.error(error.message);
+    process.exit(1);
+  });
+}
+
+module.exports = {
+  createFromIssue,
+  extractJobId,
+  extractJobUrl,
+  labels,
+};

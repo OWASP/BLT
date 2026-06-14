@@ -66,10 +66,3 @@ Example:
 ## What I'm Looking For
 
 <!-- Describe the type of opportunities you're interested in, preferred work environment, salary expectations, etc. -->
-
-
----
-<!-- 
-Note: Once this issue is created, it will be automatically processed by our GitHub Actions workflow 
-and published as a markdown file in the seekers directory with the naming format: seekers/name.md
--->

@@ -51,6 +51,7 @@ Build secure systems.
   const data = JSON.parse(fs.readFileSync(jobsOutFile, "utf8"));
   assert.equal(data.count, 1);
   assert.equal(data.source.provider.id, "gitlab");
+  assert.equal(data.source.provider.icon_class, "fa-brands fa-gitlab");
 
   const job = data.jobs[0];
   assert.equal(job.source_platform, "gitlab");
@@ -101,6 +102,7 @@ I test software.
   const data = JSON.parse(fs.readFileSync(seekersOutFile, "utf8"));
   assert.equal(data.count, 1);
   assert.equal(data.source.provider.id, "gitlab");
+  assert.equal(data.source.provider.icon_class, "fa-brands fa-gitlab");
 
   const seeker = data.seekers[0];
   assert.equal(seeker.source_platform, "gitlab");
@@ -113,4 +115,59 @@ I test software.
   assert.equal(seeker.review_status, "published");
   assert.equal(seeker.contact_method, "email");
   assert.equal(seeker.public_contact_policy, "public_email");
+});
+
+test("buildAll forwards custom provider icon metadata to generated summaries", () => {
+  const root = tempDir();
+  const jobsDir = path.join(root, "jobs");
+  const seekersDir = path.join(root, "seekers");
+  const jobsOutFile = path.join(root, "public", "data", "jobs.json");
+  const seekersOutFile = path.join(root, "public", "data", "seekers.json");
+
+  buildAll({
+    jobsDir,
+    seekersDir,
+    jobsOutFile,
+    seekersOutFile,
+    providerId: "generic-git",
+    providerName: "Internal Forge",
+    iconClass: "fa-custom fa-internal-forge",
+    repositoryUrl: "https://git.example/jobs",
+    sourceRef: "main",
+  });
+
+  const jobsData = JSON.parse(fs.readFileSync(jobsOutFile, "utf8"));
+  const seekersData = JSON.parse(fs.readFileSync(seekersOutFile, "utf8"));
+  assert.equal(jobsData.source.provider.name, "Internal Forge");
+  assert.equal(jobsData.source.provider.icon_class, "fa-custom fa-internal-forge");
+  assert.equal(seekersData.source.provider.name, "Internal Forge");
+  assert.equal(seekersData.source.provider.icon_class, "fa-custom fa-internal-forge");
+});
+
+test("buildAll strips HTML template comments from public seeker JSON", () => {
+  const root = tempDir();
+  const jobsDir = path.join(root, "jobs");
+  const seekersDir = path.join(root, "seekers");
+  const jobsOutFile = path.join(root, "public", "data", "jobs.json");
+  const seekersOutFile = path.join(root, "public", "data", "seekers.json");
+
+  writeFile(
+    path.join(seekersDir, "jane-doe.md"),
+    `---
+name: "Jane Doe"
+created_at: "2026-01-03T00:00:00Z"
+---
+
+## About Me
+
+Visible profile text.
+
+<!-- Note: Once this issue is created, it will be automatically processed by our GitHub Actions workflow. -->
+`
+  );
+
+  buildAll({ jobsDir, seekersDir, jobsOutFile, seekersOutFile });
+
+  const data = JSON.parse(fs.readFileSync(seekersOutFile, "utf8"));
+  assert.equal(data.seekers[0].about, "## About Me\n\nVisible profile text.");
 });

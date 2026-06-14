@@ -22,6 +22,7 @@ function defaultOptions(options = {}) {
       createProviderConfig({
         providerId: options.providerId,
         providerName: options.providerName,
+        iconClass: options.iconClass,
         repositoryUrl: options.repositoryUrl,
         sourceRef: options.sourceRef,
       }),
@@ -58,6 +59,14 @@ function resolveExpiry(frontmatter) {
 
 function valueFrom(fm) {
   return (k, def = null) => (fm[k] !== undefined && fm[k] !== "" ? fm[k] : def);
+}
+
+function stripHtmlComments(value) {
+  return String(value || "")
+    .replace(/<!--[\s\S]*?-->/g, "")
+    .replace(/<!--[\s\S]*/g, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
 }
 
 function sourcePath(kind, filePath) {
@@ -130,7 +139,7 @@ function mdToJob(filePath, options = {}) {
   const { data: fm, content: body } = matter(content);
   const get = valueFrom(fm);
 
-  const description = (body || get("description") || "").trim();
+  const description = stripHtmlComments(body || get("description") || "");
   let salaryRange = get("salary_range") || null;
   if (!salaryRange && description) {
     salaryRange = extractSalary(description);
@@ -222,7 +231,7 @@ function mdToSeeker(filePath, options = {}) {
     public_contact_policy: inferSeekerContactPolicy(fm),
     created_at: get("created_at") || new Date().toISOString(),
     updated_at: get("updated_at") || null,
-    about: (body || "").trim(),
+    about: stripHtmlComments(body || ""),
     ...sourceFields(fm, provider, "seekers", filePath),
   };
 }
@@ -363,4 +372,5 @@ module.exports = {
   mdToSeeker,
   parseDate,
   resolveExpiry,
+  stripHtmlComments,
 };
