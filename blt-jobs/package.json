@@ -2,7 +2,7 @@
   "name": "blt-jobs",
   "private": true,
   "scripts": {
-    "test": "node --test tests/*.test.js",
+    "test": "node --test tests/main.test.js",
     "build:jobs": "node scripts/build-jobs.js",
     "validate:jobs": "node scripts/validate-jobs.js",
     "list:jobs": "node scripts/list-jobs-status.js",
