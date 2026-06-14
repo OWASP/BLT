@@ -10,8 +10,8 @@ import json
 # Try to import Cloudflare Workers JS bindings
 # Falls back to mock implementations for testing
 try:
-    from js import Response, Headers, JSON, Object
-    from workers import Response as WorkerResponse
+    from js import Response, Headers, JSON, Object # pyright: ignore[reportMissingImports]
+    from workers import Response as WorkerResponse # pyright: ignore[reportMissingImports]
     _WORKERS_RUNTIME = True
 except ImportError:
     _WORKERS_RUNTIME = False

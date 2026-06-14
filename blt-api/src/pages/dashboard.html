@@ -4185,6 +4185,56 @@
         });
       }
 
+      async function handleUrlVerification() {
+        var urlParams = new URLSearchParams(window.location.search);
+        var verifyToken = urlParams.get("verify_token");
+        if (!verifyToken) return;
+
+        openAuthModal("signin");
+        setModalMessage(
+          elements.authSigninMessage,
+          "Verifying email address…",
+          "info"
+        );
+
+        try {
+          var response = await fetch(
+            joinUrl(getActiveBaseUrl(), "/api/auth/verify-email") +
+              "?token=" +
+              encodeURIComponent(verifyToken),
+            {
+              headers: { Accept: "application/json" },
+              credentials: "include",
+            }
+          );
+          var data = await parseJsonResponse(response);
+          if (response.ok) {
+            setModalMessage(
+              elements.authSigninMessage,
+              data.message || "Email verified successfully. You can sign in now.",
+              "success"
+            );
+            // Clear the verify_token from the URL to prevent re-verification on refresh
+            if (window.history && window.history.replaceState) {
+              var cleanUrl = window.location.pathname + window.location.hash;
+              window.history.replaceState({}, document.title, cleanUrl);
+            }
+          } else {
+            setModalMessage(
+              elements.authSigninMessage,
+              data.message || "Failed to verify email address.",
+              "error"
+            );
+          }
+        } catch (error) {
+          setModalMessage(
+            elements.authSigninMessage,
+            "Network error: " + error.message,
+            "error"
+          );
+        }
+      }
+
       function init() {
         var resolvedBaseUrl = getDefaultBaseUrl();
         elements.baseUrlInput.value = resolvedBaseUrl;
@@ -4196,6 +4246,7 @@
         renderNav();
         selectEndpoint("auth-signup");
         loadHealth();
+        handleUrlVerification();
       }
 
       init();
