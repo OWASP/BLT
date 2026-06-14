@@ -309,7 +309,7 @@ const VideoChat = (() => {
       name: state.displayName,
       initials: state.displayInitials,
       micMuted: isLocalMicMutedState(),
-      camOff: screenSharing ? false : isLocalCamOffState(),
+      camOff: isLocalCamOffState(),
       handRaised: localHandRaised,
       walkie: walkieTalkieMode,
       floorHolder: walkieFloorHolder,
@@ -321,8 +321,15 @@ const VideoChat = (() => {
     return !hasAudioTrack || micMuted;
   }
 
+  function hasActiveVideoTrack(tile) {
+    if (!tile || !tile.video) return false;
+    const stream = tile.video.srcObject;
+    if (!stream) return false;
+    const tracks = stream.getVideoTracks();
+    return tracks.length > 0 && tracks.some((t) => t.readyState !== "ended");
+  }
+
   function isLocalCamOffState() {
-    if (screenSharing) return false;
     const hasVideoTrack = Boolean(localStream && localStream.getVideoTracks().length);
     return !hasVideoTrack || camOff;
   }
@@ -472,6 +479,7 @@ const VideoChat = (() => {
     const initials = profile.initials || makeInitials(displayName);
     const micIsMuted = isLocal ? isLocalMicMutedState() : Boolean(profile.micMuted);
     const cameraIsOff = isLocal ? isLocalCamOffState() : Boolean(profile.camOff);
+    const feedIsOff = !hasActiveVideoTrack(tile);
 
     if (tile.dot) {
       tile.dot.className = `status-dot ${isLocal || activeCalls.has(peerId) ? "online" : "connecting"}`;
@@ -493,7 +501,7 @@ const VideoChat = (() => {
       tile.avatarName.textContent = displayName;
     }
 
-    setAvatarVisibility(tile.avatar, cameraIsOff);
+    setAvatarVisibility(tile.avatar, feedIsOff);
     setTileStateIcon(tile.stateMic, "mic", micIsMuted);
     setTileStateIcon(tile.stateCam, "cam", cameraIsOff);
 
@@ -1185,6 +1193,9 @@ const VideoChat = (() => {
     if (screenBtn) screenBtn.classList.toggle("hidden", enabled);
 
     if (enabled) {
+      if (screenSharing) {
+        stopScreenShare();
+      }
       wasMicMutedBeforeWalkie = micMuted;
       wasCamOffBeforeWalkie = camOff;
       walkieFloorHolder = null;
@@ -1403,9 +1414,11 @@ const VideoChat = (() => {
           }
 
           // Replace track in all active calls with the fresh video track.
-          await updateTracksInCalls(freshVideo, "video");
-          const localVideo = $("local-video");
-          if (localVideo) localVideo.srcObject = ls;
+          if (!screenSharing) {
+            await updateTracksInCalls(freshVideo, "video");
+            const localVideo = $("local-video");
+            if (localVideo) localVideo.srcObject = ls;
+          }
         }
         return true;
       } catch (err) {
@@ -2366,7 +2379,9 @@ const VideoChat = (() => {
           t.stop();
           localStream.removeTrack(t);
         });
-        await updateTracksInCalls(null, "video");
+        if (!screenSharing) {
+          await updateTracksInCalls(null, "video");
+        }
       } else {
         // Turning ON: re-enable any still-present (but disabled) track first.
         // This handles the initial-load case where tracks were acquired with
@@ -2374,9 +2389,11 @@ const VideoChat = (() => {
         const existing = localStream.getVideoTracks();
         if (existing.length > 0) {
           existing.forEach((t) => (t.enabled = true));
-          await updateTracksInCalls(existing[existing.length - 1], "video");
-          const localVideo = $("local-video");
-          if (localVideo) localVideo.srcObject = localStream;
+          if (!screenSharing) {
+            await updateTracksInCalls(existing[existing.length - 1], "video");
+            const localVideo = $("local-video");
+            if (localVideo) localVideo.srcObject = localStream;
+          }
         } else {
           const ok = await startLocalMedia({ video: true, audio: false });
           if (!ok) {
@@ -3018,9 +3035,8 @@ const VideoChat = (() => {
       activeScreenStream = null;
     }
 
-    if (!localStream) return;
-    const videoTrack = localStream.getVideoTracks()[0];
-    if (videoTrack && activeCalls.size > 0) {
+    const videoTrack = (!camOff && localStream) ? localStream.getVideoTracks()[0] : null;
+    if (activeCalls.size > 0) {
       for (const call of activeCalls.values()) {
         // Use the cached sender reference so we reliably find the video sender
         // even when transitioning from a screen track (whose kind is also video)
@@ -3042,7 +3058,7 @@ const VideoChat = (() => {
     }
     const localVideo = $("local-video");
     if (localVideo) {
-      localVideo.srcObject = localStream;
+      localVideo.srcObject = camOff ? null : localStream;
     }
   }
 
