@@ -80,6 +80,12 @@ build-client-macos-arm64:
     - export OPENSSL_ROOT_DIR="$(brew --prefix openssl@3)"
     - cmake -S client -B client/build -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_PREFIX_PATH="$QT_PREFIX" -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT_DIR"
     - cmake --build client/build --parallel "$(sysctl -n hw.logicalcpu)"
+    # macOS defaults the soft file-descriptor limit to 256, which the mesh test
+    # exhausts: it brings up ~12 nodes, each opening UDP multicast sockets per
+    # interface plus TCP/TLS peer sockets, and Qt momentarily opens a socket on
+    # every QNetworkInterface::allInterfaces() probe. That surfaced as a flood of
+    # "QNetworkInterface: could not create IPv6 socket (Too many open files)".
+    - ulimit -n 4096
     - ./client/build/safecloak-tests
     - client/scripts/package-macos.sh client/build client/dist
   artifacts:
