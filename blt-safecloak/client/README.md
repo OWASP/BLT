@@ -73,9 +73,25 @@ cmake --build build -j
 ./build/safecloak
 ```
 
+On macOS with Homebrew:
+
+```sh
+brew install cmake qt openssl@3
+```
+
+```sh
+cd client
+cmake -B build -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_PREFIX_PATH="$(brew --prefix qt)" \
+  -DOPENSSL_ROOT_DIR="$(brew --prefix openssl@3)"
+cmake --build build --parallel "$(sysctl -n hw.logicalcpu)"
+open build/SafeCloak.app
+```
+
 Or use the helper script: `./run.sh` builds and launches, `./run.sh clean`
 clears the build cache, `./run.sh rebuild` does both, and `./run.sh test`
-runs the headless tests.
+runs the headless tests. On macOS it automatically uses Homebrew's Qt and
+OpenSSL prefixes when available.
 
 ### Versioning
 
@@ -84,7 +100,8 @@ The version is baked into the app UI and used by Quick update, so do this even
 for small UI, documentation, or networking fixes.
 
 To install without a checkout, the website serves a one-line installer that
-grabs the latest CI build (or compiles from source):
+auto-detects Linux or macOS, grabs the latest matching CI build when available,
+or compiles from source:
 
 ```sh
 curl -fsSL https://<site>/install.sh | bash

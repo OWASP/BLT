@@ -20,6 +20,7 @@ Privacy-focused peer-to-peer communication platform built on Cloudflare Workers.
 - [Testing](#testing)
 - [Deployment](#deployment)
 - [Routes](#routes)
+- [Changelog](#changelog)
 - [Repository Structure](#repository-structure)
 - [Security Notes](#security-notes)
 - [Contributing](#contributing)
@@ -292,6 +293,11 @@ Wrangler config is in `wrangler.toml`.
 - `/video-room` — secure in-call room
 - `/notes` — secure notes interface
 - `/consent` — consent management
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for release notes and backfilled major project
+history.
 
 ## Repository Structure
 

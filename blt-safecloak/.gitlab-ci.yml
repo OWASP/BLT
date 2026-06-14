@@ -49,10 +49,41 @@ build-client:
     - apt-get install -y -qq build-essential cmake qt6-base-dev libssl-dev libxkbcommon-dev libxkbcommon-x11-dev openssl ca-certificates
   script:
     - cmake -S client -B client/build -DCMAKE_BUILD_TYPE=Release
-    - cmake --build client/build -j$(nproc)
+    - cmake --build client/build --parallel $(nproc)
     - XDG_RUNTIME_DIR=/tmp QT_QPA_PLATFORM=offscreen ./client/build/safecloak-tests
   artifacts:
     name: safecloak-linux-x86_64
     paths:
       - client/build/safecloak
+    expire_in: 30 days
+
+# Builds the Qt 6 desktop client on macOS and publishes an app-bundle zip.
+# The latest main-branch artifact is what public/install.sh downloads:
+# https://gitlab.com/owasp-blt/blt-safecloak/-/jobs/artifacts/main/raw/client/dist/safecloak-macos-arm64.zip?job=build-client-macos-arm64
+build-client-macos-arm64:
+  stage: build
+  tags:
+    - saas-macos-medium-m1
+  image: macos-15-xcode-16
+  needs: []
+  timeout: 60 minutes
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"
+    - if: $CI_COMMIT_BRANCH == "main"
+  variables:
+    HOMEBREW_NO_AUTO_UPDATE: "1"
+    HOMEBREW_NO_INSTALL_CLEANUP: "1"
+  before_script:
+    - brew install cmake qt openssl@3
+  script:
+    - export QT_PREFIX="$(brew --prefix qt)"
+    - export OPENSSL_ROOT_DIR="$(brew --prefix openssl@3)"
+    - cmake -S client -B client/build -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_PREFIX_PATH="$QT_PREFIX" -DOPENSSL_ROOT_DIR="$OPENSSL_ROOT_DIR"
+    - cmake --build client/build --parallel "$(sysctl -n hw.logicalcpu)"
+    - ./client/build/safecloak-tests
+    - client/scripts/package-macos.sh client/build client/dist
+  artifacts:
+    name: safecloak-macos-arm64
+    paths:
+      - client/dist/safecloak-macos-arm64.zip
     expire_in: 30 days

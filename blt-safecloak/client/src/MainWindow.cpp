@@ -67,6 +67,46 @@ QString updateClientDir()
            "/src/client";
 }
 
+QString builtExecutablePath(const QString &buildDir)
+{
+#ifdef Q_OS_MACOS
+    const QString appExecutable = buildDir + "/SafeCloak.app/Contents/MacOS/SafeCloak";
+    if (QFileInfo::exists(appExecutable))
+        return appExecutable;
+#endif
+    return buildDir + "/safecloak";
+}
+
+#ifdef Q_OS_MACOS
+QString brewPrefix(const QString &formula)
+{
+    const QString brew = QStandardPaths::findExecutable("brew");
+    if (brew.isEmpty())
+        return {};
+
+    QProcess process;
+    process.start(brew, {"--prefix", formula});
+    if (!process.waitForFinished(3000) || process.exitCode() != 0)
+        return {};
+    return QString::fromUtf8(process.readAllStandardOutput()).trimmed();
+}
+#endif
+
+QStringList cmakeConfigureArgs(const QString &clientDir, const QString &buildDir)
+{
+    QStringList args{"-S", clientDir, "-B", buildDir, "-DCMAKE_BUILD_TYPE=Release",
+                     "-DSAFECLOAK_BUILD_TESTS=OFF"};
+#ifdef Q_OS_MACOS
+    const QString qtPrefix = brewPrefix("qt");
+    if (!qtPrefix.isEmpty())
+        args << "-DCMAKE_PREFIX_PATH=" + qtPrefix;
+    const QString opensslPrefix = brewPrefix("openssl@3");
+    if (!opensslPrefix.isEmpty())
+        args << "-DOPENSSL_ROOT_DIR=" + opensslPrefix;
+#endif
+    return args;
+}
+
 const QString kDmPrefix = QStringLiteral("@");
 
 bool isDirectConversation(const QString &conversation)
@@ -381,9 +421,7 @@ void MainWindow::buildAndRelaunch(const QString &clientDir)
 {
     const QString buildDir = clientDir + "/build";
     setUpdateStatus("Configuring...");
-    runUpdateStep("cmake",
-                  {"-S", clientDir, "-B", buildDir, "-DCMAKE_BUILD_TYPE=Release",
-                   "-DSAFECLOAK_BUILD_TESTS=OFF"},
+    runUpdateStep("cmake", cmakeConfigureArgs(clientDir, buildDir),
                   clientDir, [this, buildDir] {
         setUpdateStatus("Rebuilding...");
         runUpdateStep("cmake",
@@ -392,7 +430,7 @@ void MainWindow::buildAndRelaunch(const QString &clientDir)
                       buildDir, [this, buildDir] {
             // When the running binary lives elsewhere (e.g. ~/.local/bin),
             // install the fresh build over it; the running inode stays valid.
-            const QString built = buildDir + "/safecloak";
+            const QString built = builtExecutablePath(buildDir);
             const QString appPath = QCoreApplication::applicationFilePath();
             if (QFileInfo(built).canonicalFilePath() !=
                 QFileInfo(appPath).canonicalFilePath()) {
