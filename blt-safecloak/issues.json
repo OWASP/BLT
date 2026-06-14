@@ -1,0 +1,12 @@
+{
+  "issues": [
+    {
+      "id": 1,
+      "title": "Store room passphrase securely instead of plaintext QSettings",
+      "description": "The room passphrase is now persisted across restarts via QSettings, which writes it in plaintext (Linux ~/.config, macOS plist). For a privacy-focused app this is a meaningful exposure: anyone with read access to that file can decrypt the room's traffic. Replace plaintext storage with the OS keychain (libsecret/Keychain, e.g. Qt Keychain) and/or gate persistence behind an opt-in \"Remember passphrase\" checkbox (default off).",
+      "status": "todo",
+      "labels": ["security", "client"],
+      "created": "2026-06-14"
+    }
+  ]
+}
