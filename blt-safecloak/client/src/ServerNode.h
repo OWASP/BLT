@@ -51,6 +51,8 @@ private:
     void sendEncrypted(const QJsonObject &plain, bool showActivity = false);
     void sendHello();
     void sendHistoryTo(const QString &peerId);
+    void loadKnownPeers();
+    void persistKnownPeers() const;
     void handlePlain(const QJsonObject &message);
     void emitChat(const QJsonObject &message);
     void emitDm(const QJsonObject &message, const QString &conversationPeer);
@@ -70,6 +72,9 @@ private:
     QUrl m_url;
     QString m_roomName;
     QString m_nodeId;
+    // SHA-256 of server URL + room + passphrase; scopes the persisted roster so
+    // members are only recalled for the exact same encrypted room.
+    QString m_rosterStorageKey;
     RoomCrypto m_crypto;
     QTcpSocket *m_socket = nullptr;
     QByteArray m_readBuffer;

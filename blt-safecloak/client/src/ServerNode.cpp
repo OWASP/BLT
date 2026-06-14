@@ -5,12 +5,17 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QRandomGenerator>
+#include <QSettings>
 #include <QSslSocket>
 #include <QUuid>
 
 namespace {
 
 constexpr int kSeenCacheLimit = 4096;
+// How many past members to remember per room so a rejoin can show them as
+// offline. Bounded so the stored roster can't grow without limit.
+constexpr int kKnownPeerLimit = 256;
+const QString kKnownRosterGroup = QStringLiteral("server/knownRoster");
 constexpr quint64 kMaxWsPayload = 96ull * 1024 * 1024;
 constexpr int kMaxDisplayNameChars = 32;
 constexpr int kMaxTextChars = 16000;
@@ -89,6 +94,12 @@ ServerNode::ServerNode(const QString &userName, const QUrl &serverUrl,
       m_nodeId(QUuid::createUuid().toString(QUuid::WithoutBraces)),
       m_crypto(m_roomName, passphrase)
 {
+    const QByteArray material = m_url.toString().toUtf8() + '\n' +
+                                m_roomName.toUtf8() + '\n' + passphrase.toUtf8();
+    m_rosterStorageKey =
+        QString::fromLatin1(QCryptographicHash::hash(material, QCryptographicHash::Sha256)
+                                .toHex());
+    loadKnownPeers();
 }
 
 bool ServerNode::start()
@@ -552,6 +563,8 @@ void ServerNode::handlePlain(const QJsonObject &message)
     } else if (type == "bye") {
         if (m_peers.contains(senderId)) {
             m_peers[senderId].online = false;
+            m_peers[senderId].lastSeenMs = QDateTime::currentMSecsSinceEpoch();
+            persistKnownPeers();
             emit systemMessage(sender + " left");
             updateRosterAndStatus();
         }
@@ -623,21 +636,79 @@ void ServerNode::rememberPeer(const QString &peerId, const QString &name, bool o
 {
     if (peerId.isEmpty() || peerId == m_nodeId)
         return;
+    const bool isNew = !m_peers.contains(peerId);
     Peer &peer = m_peers[peerId];
+    const QString previousName = peer.name;
     peer.name = name.isEmpty() ? peer.name : name;
     peer.online = online;
     peer.lastSeenMs = QDateTime::currentMSecsSinceEpoch();
+    // Only touch persistent storage when the durable identity changes, not on
+    // every incoming frame.
+    if (isNew || peer.name != previousName)
+        persistKnownPeers();
     updateRosterAndStatus();
 }
 
 void ServerNode::updateRosterAndStatus()
 {
     QList<MemberInfo> members{{m_nodeId, m_userName, QString(), true, m_wsReady}};
-    for (auto it = m_peers.constBegin(); it != m_peers.constEnd(); ++it)
-        members.append({it.key(), it->name, QString(), false, it->online});
+    int onlineCount = 0;
+    for (auto it = m_peers.constBegin(); it != m_peers.constEnd(); ++it) {
+        members.append({it.key(), it->name,
+                        it->online ? QString() : QStringLiteral("(offline)"), false,
+                        it->online});
+        if (it->online)
+            ++onlineCount;
+    }
     emit rosterChanged(members);
-    emit statusChanged(QString::number(m_peers.size()) +
-                       " server peer(s) · encrypted room " + m_roomName);
+    emit statusChanged(QString::number(onlineCount) + " of " +
+                       QString::number(m_peers.size()) +
+                       " known peer(s) online · encrypted room " + m_roomName);
+}
+
+void ServerNode::loadKnownPeers()
+{
+    QSettings settings;
+    const QByteArray stored =
+        settings.value(kKnownRosterGroup + "/" + m_rosterStorageKey).toByteArray();
+    const QJsonDocument doc = QJsonDocument::fromJson(stored);
+    if (!doc.isArray())
+        return;
+    for (const auto &value : doc.array()) {
+        const QJsonObject entry = value.toObject();
+        const QString id = entry.value("id").toString();
+        if (id.isEmpty() || id == m_nodeId)
+            continue;
+        Peer &peer = m_peers[id];
+        peer.name = entry.value("name").toString().left(kMaxDisplayNameChars);
+        peer.lastSeenMs = qint64(entry.value("lastSeen").toDouble());
+        peer.online = false; // Recalled members start offline until they speak.
+    }
+}
+
+void ServerNode::persistKnownPeers() const
+{
+    // Keep the most recently seen members within the cap.
+    QList<QPair<QString, Peer>> ordered;
+    ordered.reserve(m_peers.size());
+    for (auto it = m_peers.constBegin(); it != m_peers.constEnd(); ++it)
+        ordered.append({it.key(), it.value()});
+    std::sort(ordered.begin(), ordered.end(),
+              [](const auto &a, const auto &b) {
+                  return a.second.lastSeenMs > b.second.lastSeenMs;
+              });
+    if (ordered.size() > kKnownPeerLimit)
+        ordered.erase(ordered.begin() + kKnownPeerLimit, ordered.end());
+
+    QJsonArray entries;
+    for (const auto &pair : std::as_const(ordered)) {
+        entries.append(QJsonObject{{"id", pair.first},
+                                   {"name", pair.second.name},
+                                   {"lastSeen", double(pair.second.lastSeenMs)}});
+    }
+    QSettings settings;
+    settings.setValue(kKnownRosterGroup + "/" + m_rosterStorageKey,
+                      QJsonDocument(entries).toJson(QJsonDocument::Compact));
 }
 
 void ServerNode::storeHistory(const QJsonObject &message)
