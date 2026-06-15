@@ -649,7 +649,12 @@ This workflow tracks internal credential safety and orchestrates password streng
 
 This service monitors historical data exposures using privacy-safe tracking keys.
 
-* **Step A (Identity Anonymization):** Using the HIBP k-anonymity model directly: `sha1(emailLowercase)`, send the first 5 hex characters as the prefix, and match the suffix locally — no salt involved.
+* **Step A (Identity Anonymization):** 
+  * **For password exposure checks:**
+    Using the HIBP k-anonymity model: `sha1(password)`, send the first 5 hex characters as the prefix to `api.pwnedpasswords.com/range/{prefix}`, and match the returned suffixes locally — the full password hash never leaves the device.
+
+  * **For email breach checks:**
+    Send the email address directly to `haveibeenpwned.com/api/v3/breachedaccount/{email}` authenticated via API key over HTTPS. No hashing or prefix model is used.
 
 * **Step B (K-Anonymity External Check):** The system passes anonymized search fragments to the external feed (such as Have I Been Pwned). The edge infrastructure queries breach databases using prefix lookups, ensuring your cleartext query credentials never traverse external paths.
 
