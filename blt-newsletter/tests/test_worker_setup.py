@@ -15,6 +15,7 @@ class WorkerSetupTests(unittest.TestCase):
         self.assertEqual(config["main"], "src/entry.py")
         self.assertIn("compatibility_flags", config)
         self.assertIn("python_workers", config["compatibility_flags"])
+        self.assertIn("disable_python_external_sdk", config["compatibility_flags"])
         self.assertEqual(config["assets"]["directory"], "public")
         self.assertEqual(config["assets"]["binding"], "ASSETS")
 
