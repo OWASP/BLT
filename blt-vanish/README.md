@@ -584,7 +584,7 @@ The edge network operates as a fast, stateless public metadata distributor.
 
 * **Security Isolations:** Workers are designed and implemented never to receive, process, or log user PII — enforced by only accepting anonymized public metadata as inputs.
 
-* **Contract Responsibility:** The edge layer utilizes Python type guards (`isSecurityAlertDTO`) to perform strict symmetric schema validation on requests and responses before passing data payloads down to the client device.
+* **Contract Responsibility:** The edge layer utilizes Python runtime validators (`is_security_alert_dto`) to perform strict symmetric schema validation on requests and responses before passing data payloads down to the client device.
 
 ### 3. The Backend Threat Intelligence Layer
 
