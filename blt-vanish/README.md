@@ -541,7 +541,7 @@ This roadmap maps the Community Bonding period and a 12-week development cadence
 
 ## Overview of Layers, Workflows, and UI Component Matrix
 
-### I. Detailed Layered Architecture & Processing Workflows
+## I. Detailed Layered Architecture & Processing Workflows
 
 The BLT-Vanish Web platform operates on a **zero-trust, zero-retention hybrid architecture** that cleanly splits execution responsibilities across three logical environments. This division ensures that no personally identifiable information (PII) or unencrypted credentials ever touch external infrastructure.
 
