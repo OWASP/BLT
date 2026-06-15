@@ -646,7 +646,7 @@ This workflow tracks internal credential safety and orchestrates password streng
 
 This service monitors historical data exposures using privacy-safe tracking keys.
 
-* **Step A (Identity Anonymization):** The application applies a local cryptographic salt to user email identifiers and computes a non-reversible hash: `accountHash = sha256(emailLowercase + salt)`.
+* **Step A (Identity Anonymization):** Using the HIBP k-anonymity model directly: `sha1(emailLowercase)`, send the first 5 hex characters as the prefix, and match the suffix locally — no salt involved.
 
 * **Step B (K-Anonymity External Check):** The system passes anonymized search fragments to the external feed (such as Have I Been Pwned). The edge infrastructure queries breach databases using prefix lookups, ensuring your cleartext query credentials never traverse external paths.
 
