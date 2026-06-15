@@ -633,11 +633,11 @@ This workflow tracks internal credential safety and orchestrates password streng
 
 * **Step A (Ingestion & Hash Derivative Processing):** The user saves or imports credential references. The `CredentialVaultService` immediately processes the plaintext inside runtime-volatile memory, computes entropy and character variance snapshots, hashes the material for pattern matching, and securely clears raw strings from device memory.
 
-* **Step C (Score Composition):** The client merges local heuristics and public intelligence values using the foundational Phase 1 risk composition model:
+* **Step B (Score Composition):** The client merges local heuristics and public intelligence values using the foundational Phase 1 risk composition model:
 
     $$Risk = w_1U + w_2M + w_3R$$
 
-    *(Where $U$ represents the URL lexical risk indicators, $M$ represents message indicators, and $R$ represents reputation intelligence signals.)*
+    *(Where $U$ represents the credential strength/entropy indicators, $M$ represents reuse/pattern indicators, and $R$ represents breach exposure signals.)*
 
     > **Weight Constraint (required for valid severity mapping):** Weights must satisfy $w_1 + w_2 + w_3 = 1$ with each $w_i \in [0, 1]$. This ensures $Risk \in [0, 1]$, which is a prerequisite for the threshold classifier in Step D to produce correct severity classifications. The starting placeholder values are subject to calibration during Phase 1 — see `docs/phase-1-benchmark.md` — but **any calibrated values must respect this constraint**.
 
