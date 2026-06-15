@@ -633,10 +633,13 @@ This workflow tracks internal credential safety and orchestrates password streng
 
 * **Step A (Ingestion & Hash Derivative Processing):** The user saves or imports credential references. The `CredentialVaultService` immediately processes the plaintext inside runtime-volatile memory, computes entropy and character variance snapshots, hashes the material for pattern matching, and securely clears raw strings from device memory.
 
-* **Step B (Local Scoring):** The `CredentialAnalyzer` passes the mathematical properties of the credential through the baseline scoring model:
-    $$CredentialRisk = 0.35S + 0.40R + 0.25E$$
+* **Step C (Score Composition):** The client merges local heuristics and public intelligence values using the foundational Phase 1 risk composition model:
 
-    *(Where $S$ represents strength weakness, $R$ represents reuse count likelihood, and $E$ represents exposure posture context. Note: The weights are starting placeholder configurations subject to calibration during Phase 2 implementation)*.
+    $$Risk = w_1U + w_2M + w_3R$$
+
+    *(Where $U$ represents the URL lexical risk indicators, $M$ represents message indicators, and $R$ represents reputation intelligence signals.)*
+
+    > **Weight Constraint (required for valid severity mapping):** Weights must satisfy $w_1 + w_2 + w_3 = 1$ with each $w_i \in [0, 1]$. This ensures $Risk \in [0, 1]$, which is a prerequisite for the threshold classifier in Step D to produce correct severity classifications. The starting placeholder values are subject to calibration during Phase 1 — see `docs/phase-1-benchmark.md` — but **any calibrated values must respect this constraint**.
 
 * **Step C (Remediation Checklist Injection):** If the risk score crosses designated limits, a warning is triggered. The `RemediationPlanner` creates a corresponding tracking container called a `RemediationTask` with an initial state marked as `notStarted`.
 
