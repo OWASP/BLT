@@ -582,7 +582,7 @@ The edge network operates as a fast, stateless public metadata distributor.
 
 * **Workflow Execution:** Workers respond to lookups sent by the client via endpoints like `/api/brokers`, `/api/health/:id`, `/api/reputation`, and `/api/templates/:templateId`. It handles data matching requests within a strict **1500ms timeout budget**.
 
-* **Security Isolations:** Workers are structurally incapable of recording, processing, or logging user PII. 
+* **Security Isolations:** Workers are designed and implemented never to receive, process, or log user PII — enforced by only accepting anonymized public metadata as inputs.
 
 * **Contract Responsibility:** The edge layer utilizes Python type guards (`isSecurityAlertDTO`) to perform strict symmetric schema validation on requests and responses before passing data payloads down to the client device.
 
