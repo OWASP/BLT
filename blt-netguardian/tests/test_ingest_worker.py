@@ -1,18 +1,14 @@
-"""Worker-level tests for /api/ng/ingest."""
+"""Worker-level tests for /api/ingest."""
 
 import json
-import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-
-from ingest.envelope import prepare_signed_envelope
-from ingest.canonicalize import body_digest_hex
+from envelope import prepare_signed_envelope
+from canonicalize import body_digest_hex
 from test_ingest_api import IngestFakeDB
 from test_worker_api import BLTWorker, FakeRequest, parse_json
 
@@ -38,7 +34,7 @@ def signed_envelope(fixture_data, secret):
 
 
 @pytest.mark.asyncio
-async def test_handle_ng_ingest_created(signed_envelope, secret, fixture_data):
+async def test_handle_ingest_created(signed_envelope, secret, fixture_data):
     body_bytes = json.dumps(signed_envelope, separators=(",", ":"), ensure_ascii=False).encode()
     db = IngestFakeDB()
     env = SimpleNamespace(
@@ -48,13 +44,13 @@ async def test_handle_ng_ingest_created(signed_envelope, secret, fixture_data):
     )
     worker = BLTWorker(env)
     request = FakeRequest(
-        "https://api.example.com/api/ng/ingest",
+        "https://api.example.com/api/ingest",
         method="POST",
         body_bytes=body_bytes,
         headers={"X-BLT-Body-Digest": f"sha256={body_digest_hex(body_bytes)}"},
     )
 
-    response = await worker.handle_ng_ingest(request)
+    response = await worker.handle_ingest(request)
     payload = parse_json(response)
 
     assert response.status == 201
@@ -63,12 +59,12 @@ async def test_handle_ng_ingest_created(signed_envelope, secret, fixture_data):
 
 
 @pytest.mark.asyncio
-async def test_handle_ng_ingest_no_db():
+async def test_handle_ingest_no_db():
     worker = BLTWorker(SimpleNamespace(DB=None))
     request = FakeRequest(
-        "https://api.example.com/api/ng/ingest",
+        "https://api.example.com/api/ingest",
         method="POST",
         payload={"version": "ztr-finding-1"},
     )
-    response = await worker.handle_ng_ingest(request)
+    response = await worker.handle_ingest(request)
     assert response.status == 503

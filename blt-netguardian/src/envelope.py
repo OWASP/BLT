@@ -6,14 +6,14 @@ import re
 from datetime import datetime, timedelta, timezone
 from typing import Any, Mapping, MutableMapping
 
-from .canonicalize import (
+from canonicalize import (
     body_digest_hex,
     canonicalize_envelope_for_signing,
     hmac_sha256_hex,
     payload_digest_hex,
     verify_hmac_sha256_hex,
 )
-from .errors import IngestError, IngestErrorCode
+from errors import IngestError, IngestErrorCode
 
 VERSION = "ztr-finding-1"
 ALG = "hmac-sha256"

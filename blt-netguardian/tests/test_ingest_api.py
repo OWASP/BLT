@@ -1,4 +1,4 @@
-"""Tests for POST /api/ng/ingest."""
+"""Tests for POST /api/ingest."""
 
 from __future__ import annotations
 
@@ -9,11 +9,11 @@ from types import SimpleNamespace
 
 import pytest
 
-from ingest.canonicalize import body_digest_hex
-from ingest.envelope import prepare_signed_envelope
-from ingest.errors import IngestErrorCode
-from ingest.ingest_service import process_ingest
-from ingest.store import IngestStore
+from canonicalize import body_digest_hex
+from envelope import prepare_signed_envelope
+from errors import IngestErrorCode
+from ingest_service import process_ingest
+from ingest_store import IngestStore
 from test_storage import FakeDB, FakePreparedStatement  # noqa: F401 — re-export for ingest fake
 
 FIXTURES = Path(__file__).parent / "fixtures" / "canonical_vectors.json"

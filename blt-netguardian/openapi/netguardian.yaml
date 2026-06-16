@@ -5,14 +5,14 @@ info:
   description: Week 1 stub — expand as routes land. CI drift check optional until Week 2.
 
 paths:
-  /health:
+  /api/health:
     get:
-      summary: Liveness
+      summary: NetGuardian liveness
       responses:
         "200":
           description: OK
 
-  /api/ng/ingest:
+  /api/ingest:
     post:
       summary: Ingest signed ztr-finding-1 envelope
       parameters:
@@ -42,14 +42,54 @@ paths:
         "429":
           description: Rate limited
 
-  /api/ng/findings:
+  /api/findings:
     get:
-      summary: List findings (org-scoped, Week 3+)
+      summary: List findings (org-scoped)
+      security:
+        - bearerOrgToken: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: severity
+          in: query
+          schema:
+            type: string
+        - name: cve_id
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+            maximum: 100
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [updated_at, created_at, severity, rule_id]
+            default: updated_at
+        - name: order
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
       responses:
         "200":
-          description: OK
+          description: Paginated findings for authenticated org
+        "401":
+          description: Missing or invalid org API token
 
-  /api/ng/findings/{id}:
+  /api/findings/{id}:
     get:
       summary: Finding detail (Week 4+)
       parameters:
@@ -65,6 +105,11 @@ paths:
           description: Forbidden
 
 components:
+  securitySchemes:
+    bearerOrgToken:
+      type: http
+      scheme: bearer
+      description: Org-scoped API token (NG_ORG_API_TOKENS)
   schemas:
     ZtrEnvelope:
       allOf:

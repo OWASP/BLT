@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
+REPO_ROOT = Path(__file__).resolve().parents[1]
 INGEST_MIGRATION = REPO_ROOT / "migrations" / "0002_ingest_core.sql"
 
 

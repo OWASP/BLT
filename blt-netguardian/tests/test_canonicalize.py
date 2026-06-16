@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from ingest.canonicalize import (
+from canonicalize import (
     body_digest_hex,
     canonicalize_envelope_for_signing,
     canonicalize_json,

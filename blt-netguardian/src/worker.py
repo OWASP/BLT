@@ -28,9 +28,11 @@ from utils.storage import JobStateStore, TaskQueueStore, TargetRegistryStore, Vu
 from scanners.coordinator import ScannerCoordinator
 from scanners.autonomous_discovery import AutonomousDiscovery
 from scanners.contact_notifier import ContactNotifier
-from ingest.errors import IngestError, IngestErrorCode
-from ingest.ingest_service import ingest_error_response, process_ingest
-from ingest.store import IngestStore
+from auth import AuthError
+from errors import IngestError, IngestErrorCode
+from findings_service import findings_error_response, list_findings_for_request
+from ingest_service import ingest_error_response, process_ingest
+from ingest_store import IngestStore
 
 
 class BLTWorker:
@@ -101,10 +103,12 @@ class BLTWorker:
                 response = await self.handle_task_list(request)
             elif path == 'api/vulnerabilities':
                 response = await self.handle_vulnerabilities(request)
-            elif path == 'api/ng/health':
-                response = self.handle_ng_health(request)
-            elif path == 'api/ng/ingest':
-                response = await self.handle_ng_ingest(request)
+            elif path == 'api/health':
+                response = self.handle_api_health(request)
+            elif path == 'api/ingest':
+                response = await self.handle_ingest(request)
+            elif path == 'api/findings':
+                response = await self.handle_findings(request)
             else:
                 response = self.json_response({'error': 'Not found'}, status=404)
             
@@ -533,8 +537,8 @@ class BLTWorker:
         except Exception as e:
             return self.internal_error_response('Failed to list tasks', e)
 
-    def handle_ng_health(self, request):
-        """NetGuardian ingest scaffold liveness (Week 1 Day 4)."""
+    def handle_api_health(self, request):
+        """GET /api/health — NetGuardian liveness."""
         if request.method != 'GET':
             return self.json_response({'error': 'Method not allowed'}, status=405)
         return self.json_response({
@@ -543,8 +547,8 @@ class BLTWorker:
             'ingest': 'ready',
         })
 
-    async def handle_ng_ingest(self, request):
-        """POST /api/ng/ingest — verify ztr-finding-1 envelope and persist to D1."""
+    async def handle_ingest(self, request):
+        """POST /api/ingest — verify ztr-finding-1 envelope and persist to D1."""
         if request.method != 'POST':
             return self.json_response({'error': 'Method not allowed'}, status=405)
 
@@ -598,6 +602,23 @@ class BLTWorker:
             result = ingest_error_response(exc)
 
         return self.json_response(result.body, status=result.status, headers=result.headers)
+
+    async def handle_findings(self, request):
+        """GET /api/findings — org-scoped list with filters and paging."""
+        if request.method != 'GET':
+            return self.json_response({'error': 'Method not allowed'}, status=405)
+
+        try:
+            result = await list_findings_for_request(
+                env=self.env,
+                db=getattr(self.env, 'DB', None),
+                headers=self.get_request_headers(request),
+                query_params=self.get_query_params(request),
+            )
+        except AuthError as exc:
+            result = findings_error_response(exc)
+
+        return self.json_response(result.body, status=result.status)
 
     async def _read_request_body(self, request) -> bytes:
         text = getattr(request, 'body', None)
@@ -660,10 +681,25 @@ class BLTWorker:
 
     def get_request_header(self, request, key: str) -> Optional[str]:
         """Safely read a request header from test doubles and worker requests."""
+        return self.get_request_headers(request).get(key)
+
+    def get_request_headers(self, request) -> Dict[str, str]:
+        """Return request headers as a plain dict."""
         headers = getattr(request, 'headers', None)
         if headers is None:
-            return None
-        return headers.get(key)
+            return {}
+        if isinstance(headers, dict):
+            return dict(headers)
+        try:
+            return {str(key): str(value) for key, value in headers.items()}
+        except AttributeError:
+            return {}
+
+    def get_query_params(self, request) -> Dict[str, str]:
+        """Parse query string into single-value parameters."""
+        query_string = request.url.split('?')[1] if '?' in request.url else ''
+        params = parse_qs(query_string, keep_blank_values=True)
+        return {key: values[0] for key, values in params.items() if values}
 
     def get_cors_headers(self, request) -> Dict[str, str]:
         """Build CORS headers using an explicit origin allowlist."""
@@ -702,7 +738,7 @@ class BLTWorker:
 
     def requires_authentication(self, path: str, method: str) -> bool:
         """Protect API routes; reads can be toggled with AUTHENTICATE_READ_ENDPOINTS."""
-        if path == 'api/ng/ingest':
+        if path in {'api/ingest', 'api/findings'}:
             return False
         if not path.startswith('api/'):
             return False
