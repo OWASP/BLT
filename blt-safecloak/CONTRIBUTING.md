@@ -3,7 +3,7 @@
 ## Getting Started
 
 1. Fork the repository
-2. Clone your fork: `git clone https://github.com/YOUR_USERNAME/BLT-SafeCloak.git`
+2. Clone your fork: `git clone https://gitlab.com/YOUR_USERNAME/blt-safecloak.git`
 3. Install dependencies: `npm install && npm run setup`
 4. Create a branch: `git checkout -b feature/your-feature-name`
 5. Make your changes

@@ -1573,7 +1573,7 @@ def test_video_js_walkie_lobby_opt_in_is_sticky():
 def test_video_room_has_github_footer_link():
     """Room page should have a footer link to the GitHub repository."""
     html = (ROOT / "src/pages/video-room.html").read_text(encoding="utf-8")
-    assert "https://github.com/OWASP-BLT/BLT-SafeCloak" in html
+    assert "https://gitlab.com/owasp-blt/blt-safecloak" in html
     assert "fa-brands fa-github" in html
 
 
