@@ -30,7 +30,7 @@ services:
       # Fallback LLM A: GPT-4o-mini
       OPENAI_API_KEY: "${OPENAI_API_KEY:-}"
       # Fallback LLM B: Ollama (used automatically when server is unavailable
-      # or LLM_PROVIDER=ollama is set)
+      # or LL47\\'M_PROVIDER=ollama is set)
       OLLAMA_BASE_URL: "http://ollama:11434"
       LLM_PROVIDER: "${LLM_PROVIDER:-gemini}"
     volumes:
