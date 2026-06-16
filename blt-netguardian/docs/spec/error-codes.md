@@ -13,4 +13,4 @@ JSON shape: `{ "error": "<code>", "message": "..." }`
 | `payload_too_large` | 413 |
 | `rate_limited` | 429 |
 
-Defined in `src/ingest/errors.py`.
+Defined in `src/errors.py`.

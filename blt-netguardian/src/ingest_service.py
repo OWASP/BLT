@@ -1,4 +1,4 @@
-"""POST /api/ng/ingest business logic."""
+"""POST /api/ingest business logic."""
 
 from __future__ import annotations
 
@@ -7,8 +7,8 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Mapping, Optional
 
-from .canonicalize import body_digest_hex
-from .envelope import (
+from canonicalize import body_digest_hex
+from envelope import (
     check_clock_skew,
     parse_issued_at_utc,
     validate_envelope_shape,
@@ -16,9 +16,9 @@ from .envelope import (
     verify_envelope_signature,
     verify_payload_digest_field,
 )
-from .errors import IngestError, IngestErrorCode
-from .secrets import lookup_sender_secret
-from .store import IngestStore
+from errors import IngestError, IngestErrorCode
+from ingest_store import IngestStore
+from secrets import lookup_sender_secret
 
 DEFAULT_MAX_BODY = 1_048_576
 DEFAULT_RPM = 60
