@@ -99,7 +99,7 @@ def test_index_html_title():
 
 def test_index_html_has_github_link():
     html = _read('index.html')
-    assert 'github.com/OWASP-BLT/BLT-SafeCloak' in html
+    assert 'gitlab.com/owasp-blt/blt-safecloak' in html
 
 
 def test_index_html_includes_ui_js():
@@ -288,4 +288,4 @@ def test_video_room_html_has_walkie_banner():
 
 def test_video_room_html_has_github_footer():
     html = _read('video-room.html')
-    assert 'github.com/OWASP-BLT/BLT-SafeCloak' in html
+    assert 'gitlab.com/owasp-blt/blt-safecloak' in html
