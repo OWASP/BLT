@@ -76,9 +76,6 @@ async def gitlab_webhook(
     from ..normalization.gitlab import normalize_gitlab_payload
     from ..state.queue import EventQueue
 
-    print("TOKEN RECEIVED =", repr(x_gitlab_token))
-    print("TOKEN EXPECTED =", repr(settings.gitlab_webhook_secret))
-    
     if not verify_gitlab_signature(x_gitlab_token, settings.gitlab_webhook_secret):
         raise HTTPException(status_code=401, detail="Invalid token")
 
