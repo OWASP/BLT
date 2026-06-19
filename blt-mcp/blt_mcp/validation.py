@@ -31,6 +31,108 @@ TOOL_SCHEMAS = {
         "properties": {
             "issue_id": {"type": str, "description": "The ID of the issue to summarize."}
         }
+    },
+    "auth_signup": {
+        "required": ["email", "password", "username"],
+        "properties": {
+            "email": {"type": str, "description": "The email of the user."},
+            "password": {"type": str, "description": "The password of the user."},
+            "username": {"type": str, "description": "The username of the user."},
+            "confirmed": {"type": bool, "description": "Must be set to true to execute this write operation."}
+        }
+    },
+    "auth_signin": {
+        "required": ["email", "password"],
+        "properties": {
+            "email": {"type": str, "description": "The email of the user."},
+            "password": {"type": str, "description": "The password of the user."}
+        }
+    },
+    "create_bug": {
+        "required": ["title", "description"],
+        "properties": {
+            "title": {"type": str, "description": "The title of the bug."},
+            "description": {"type": str, "description": "A detailed description of the bug."},
+            "repo_id": {"type": str, "description": "The ID of the repository."},
+            "labels": {"type": list, "item_type": str, "description": "Optional list of labels."},
+            "assignee": {"type": str, "description": "Optional username of the assignee."},
+            "confirmed": {"type": bool, "description": "Must be set to true to execute this write operation."}
+        }
+    },
+    "update_bug": {
+        "required": ["id"],
+        "properties": {
+            "id": {"type": str, "description": "The ID of the bug to update."},
+            "title": {"type": str, "description": "Optional new title of the bug."},
+            "description": {"type": str, "description": "Optional new description of the bug."},
+            "status": {"type": str, "description": "Optional new status of the bug."},
+            "confirmed": {"type": bool, "description": "Must be set to true to execute this write operation."}
+        }
+    },
+    "create_user": {
+        "required": ["username", "email", "password"],
+        "properties": {
+            "username": {"type": str, "description": "The username of the user."},
+            "email": {"type": str, "description": "The email of the user."},
+            "password": {"type": str, "description": "The password of the user."},
+            "profile_info": {"type": str, "description": "Optional profile information."},
+            "confirmed": {"type": bool, "description": "Must be set to true to execute this write operation."}
+        }
+    },
+    "create_job": {
+        "required": ["title", "description", "company"],
+        "properties": {
+            "title": {"type": str, "description": "The title of the job."},
+            "description": {"type": str, "description": "The description of the job."},
+            "company": {"type": str, "description": "The company name offering the job."},
+            "location": {"type": str, "description": "Optional location of the job."},
+            "confirmed": {"type": bool, "description": "Must be set to true to execute this write operation."}
+        }
+    },
+    "update_job": {
+        "required": ["id"],
+        "properties": {
+            "id": {"type": str, "description": "The ID of the job to update."},
+            "title": {"type": str, "description": "Optional new title of the job."},
+            "description": {"type": str, "description": "Optional new description of the job."},
+            "company": {"type": str, "description": "Optional new company name."},
+            "location": {"type": str, "description": "Optional new location."},
+            "confirmed": {"type": bool, "description": "Must be set to true to execute this write operation."}
+        }
+    },
+    "record_job_view": {
+        "required": ["id"],
+        "properties": {
+            "id": {"type": str, "description": "The ID of the job to record view for."},
+            "confirmed": {"type": bool, "description": "Must be set to true to execute this write operation."}
+        }
+    },
+    "create_hackathon": {
+        "required": ["name", "description"],
+        "properties": {
+            "name": {"type": str, "description": "The name of the hackathon."},
+            "description": {"type": str, "description": "The description of the hackathon."},
+            "start_date": {"type": str, "description": "Optional start date of the hackathon."},
+            "end_date": {"type": str, "description": "Optional end date of the hackathon."},
+            "confirmed": {"type": bool, "description": "Must be set to true to execute this write operation."}
+        }
+    },
+    "update_hackathon": {
+        "required": ["id"],
+        "properties": {
+            "id": {"type": str, "description": "The ID of the hackathon to update."},
+            "name": {"type": str, "description": "Optional new name of the hackathon."},
+            "description": {"type": str, "description": "Optional new description of the hackathon."},
+            "confirmed": {"type": bool, "description": "Must be set to true to execute this write operation."}
+        }
+    },
+    "register_hackathon_participant": {
+        "required": ["id", "user_id"],
+        "properties": {
+            "id": {"type": str, "description": "The ID of the hackathon."},
+            "user_id": {"type": str, "description": "The ID of the user to register."},
+            "confirmed": {"type": bool, "description": "Must be set to true to execute this write operation."}
+        }
     }
 }
 

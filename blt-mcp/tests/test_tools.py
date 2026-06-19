@@ -54,6 +54,17 @@ def test_tools_list():
         tool_names = [t["name"] for t in tools]
         assert "submit_issue" in tool_names
         assert "add_comment" in tool_names
+        assert "auth_signup" in tool_names
+        assert "auth_signin" in tool_names
+        assert "create_bug" in tool_names
+        assert "update_bug" in tool_names
+        assert "create_user" in tool_names
+        assert "create_job" in tool_names
+        assert "update_job" in tool_names
+        assert "record_job_view" in tool_names
+        assert "create_hackathon" in tool_names
+        assert "update_hackathon" in tool_names
+        assert "register_hackathon_participant" in tool_names
 
     finally:
         process.terminate()
@@ -170,6 +181,50 @@ def test_tool_schemas():
         properties = summary_tool["inputSchema"]["properties"]
         assert "issue_id" in properties
         assert summary_tool["inputSchema"]["required"] == ["issue_id"]
+
+        # Verify auth_signup schema
+        signup_tool = next(t for t in tools if t["name"] == "auth_signup")
+        assert signup_tool["inputSchema"]["required"] == ["email", "password", "username"]
+
+        # Verify auth_signin schema
+        signin_tool = next(t for t in tools if t["name"] == "auth_signin")
+        assert signin_tool["inputSchema"]["required"] == ["email", "password"]
+
+        # Verify create_bug schema
+        create_bug_tool = next(t for t in tools if t["name"] == "create_bug")
+        assert create_bug_tool["inputSchema"]["required"] == ["title", "description"]
+
+        # Verify update_bug schema
+        update_bug_tool = next(t for t in tools if t["name"] == "update_bug")
+        assert update_bug_tool["inputSchema"]["required"] == ["id"]
+
+        # Verify create_user schema
+        create_user_tool = next(t for t in tools if t["name"] == "create_user")
+        assert create_user_tool["inputSchema"]["required"] == ["username", "email", "password"]
+
+        # Verify create_job schema
+        create_job_tool = next(t for t in tools if t["name"] == "create_job")
+        assert create_job_tool["inputSchema"]["required"] == ["title", "description", "company"]
+
+        # Verify update_job schema
+        update_job_tool = next(t for t in tools if t["name"] == "update_job")
+        assert update_job_tool["inputSchema"]["required"] == ["id"]
+
+        # Verify record_job_view schema
+        record_job_view_tool = next(t for t in tools if t["name"] == "record_job_view")
+        assert record_job_view_tool["inputSchema"]["required"] == ["id"]
+
+        # Verify create_hackathon schema
+        create_hackathon_tool = next(t for t in tools if t["name"] == "create_hackathon")
+        assert create_hackathon_tool["inputSchema"]["required"] == ["name", "description"]
+
+        # Verify update_hackathon schema
+        update_hackathon_tool = next(t for t in tools if t["name"] == "update_hackathon")
+        assert update_hackathon_tool["inputSchema"]["required"] == ["id"]
+
+        # Verify register_hackathon_participant schema
+        register_participant_tool = next(t for t in tools if t["name"] == "register_hackathon_participant")
+        assert register_participant_tool["inputSchema"]["required"] == ["id", "user_id"]
 
     finally:
         process.terminate()
@@ -299,6 +354,25 @@ def test_tool_confirmation_flow():
         process.stdin.flush()
         
         response = read_jsonrpc_response(process, 2)
+        assert "result" in response
+        assert response["result"].get("isError") is True
+        assert "requires confirmation" in response["result"]["content"][0]["text"]
+
+        # 3. Call create_bug without confirmation
+        process.stdin.write(json.dumps({
+            "jsonrpc": "2.0", "id": 3,
+            "method": "tools/call",
+            "params": {
+                "name": "create_bug",
+                "arguments": {
+                    "title": "Valid title v2",
+                    "description": "Valid description v2"
+                }
+            }
+        }) + "\n")
+        process.stdin.flush()
+        
+        response = read_jsonrpc_response(process, 3)
         assert "result" in response
         assert response["result"].get("isError") is True
         assert "requires confirmation" in response["result"]["content"][0]["text"]

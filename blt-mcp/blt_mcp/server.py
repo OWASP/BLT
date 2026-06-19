@@ -1,73 +1,17 @@
-import asyncio
-import logging
 import sys
-import os
+import logging
 import json
-import io
 from typing import Any, Dict, List, Optional
-import httpx
-from contextlib import asynccontextmanager
-from dotenv import load_dotenv
-from mcp.server.fastmcp import FastMCP
+
+from blt_mcp.server_base import mcp, _fetch, http_client, logger
 from blt_mcp.validation import StdinWrapper, InterceptingStdinBuffer
 from blt_mcp.tools import generate_ai_metadata, summarize_issue_context_impl
 
-# Load environment variables from .env file
-load_dotenv()
+# Import v2 modular resources and tools to register them on the mcp instance
+import blt_mcp.v2_resources
+import blt_mcp.v2_tools
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    stream=sys.stderr
-)
-logger = logging.getLogger("blt-mcp")
-
-# API Configuration
-BLT_API_BASE = os.getenv("BLT_API_BASE", "https://api.owaspblt.org")
-BLT_API_KEY = os.getenv("BLT_API_KEY")
-
-if not BLT_API_KEY:
-    logger.warning("BLT_API_KEY not found in environment. Some tools may fail.")
-
-# Shared HTTPX client
-http_client: Optional[httpx.AsyncClient] = None
-
-@asynccontextmanager
-async def server_lifespan(server: FastMCP):
-    """Manage the lifecycle of the HTTP client."""
-    global http_client
-    http_client = httpx.AsyncClient(
-        base_url=BLT_API_BASE,
-        headers={"X-BLT-API-Key": BLT_API_KEY} if BLT_API_KEY else {},
-        timeout=30.0,
-        follow_redirects=True
-    )
-    try:
-        yield
-    finally:
-        logger.info("Closing HTTP client...")
-        if http_client:
-            await http_client.aclose()
-
-# Initialize FastMCP server
-mcp = FastMCP(
-    "blt-mcp",
-    dependencies=["click", "mcp"],
-    lifespan=server_lifespan
-)
-
-async def _fetch(path: str, context: Optional[str] = None) -> str:
-    try:
-        response = await http_client.get(path)
-        response.raise_for_status()
-        return response.text
-    except httpx.HTTPStatusError as e:
-        logger.error(f"Failed to fetch {context or path}: {e}")
-        raise RuntimeError(f"Failed to fetch {context or path}: {e}") from e
-    except httpx.RequestError as e:
-        logger.error(f"Failed to fetch {context or path}: {e}")
-        raise RuntimeError(f"Failed to fetch {context or path}: {e}") from e
+# --- Original V1 Resources ---
 
 @mcp.resource("blt://repos")
 async def list_repos() -> str:
@@ -98,6 +42,9 @@ async def get_issue(issue_id: str) -> str:
     """Get details for a specific BLT issue."""
     logger.info(f"Fetching details for issue: {issue_id}")
     return await _fetch(f"/bugs/{issue_id}", context=f"issue {issue_id}")
+
+
+# --- Original V1 Tools & Prompts ---
 
 @mcp.tool()
 async def submit_issue(
@@ -154,10 +101,7 @@ async def submit_issue(
             issue_id = response.text or "Unknown"
             
         return f"Successfully submitted issue: {title} (ID: {issue_id})"
-    except httpx.HTTPStatusError as e:
-        logger.error(f"Failed to submit issue: {e}")
-        raise RuntimeError(f"Failed to submit issue: {e}") from e
-    except httpx.RequestError as e:
+    except Exception as e:
         logger.error(f"Failed to submit issue: {e}")
         raise RuntimeError(f"Failed to submit issue: {e}") from e
 
@@ -198,10 +142,7 @@ async def add_comment(
         response = await http_client.post(f"/bugs/{issue_id}/comments", json=payload, headers=headers)
         response.raise_for_status()
         return f"Successfully added comment to issue {issue_id}"
-    except httpx.HTTPStatusError as e:
-        logger.error(f"Failed to add comment: {e}")
-        raise RuntimeError(f"Failed to add comment: {e}") from e
-    except httpx.RequestError as e:
+    except Exception as e:
         logger.error(f"Failed to add comment: {e}")
         raise RuntimeError(f"Failed to add comment: {e}") from e
 
@@ -219,8 +160,6 @@ async def summarize_issue_context(issue_id: str) -> str:
 def triage_vulnerability(description: str) -> str:
     """Create a prompt for triaging a vulnerability."""
     return f"Please triage the following vulnerability: {description}. Assess severity and suggest next steps."
-
-# Validation helper classes have been extracted to blt_mcp/validation.py
 
 def main() -> None:
     """Entry point for the BLT-MCP server."""

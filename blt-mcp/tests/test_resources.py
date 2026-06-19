@@ -55,6 +55,13 @@ def test_resources_list():
         resource_uris = [r["uri"] for r in resources]
         assert "blt://repos" in resource_uris
         assert "blt://issues" in resource_uris
+        assert "blt://v2/bugs" in resource_uris
+        assert "blt://v2/users" in resource_uris
+        assert "blt://v2/domains" in resource_uris
+        assert "blt://v2/organizations" in resource_uris
+        assert "blt://v2/jobs" in resource_uris
+        assert "blt://v2/jobs/stats" in resource_uris
+        assert "blt://v2/hackathons" in resource_uris
         
         # Check metadata
         for r in resources:
@@ -130,6 +137,26 @@ def test_resource_templates_list():
         
         assert "blt://repos/{repo_id}/issues" in template_uris
         assert "blt://issues/{issue_id}" in template_uris
+        assert "blt://v2/auth/verify-email/{token}" in template_uris
+        assert "blt://v2/bugs/{id}" in template_uris
+        assert "blt://v2/bugs/search/{query}" in template_uris
+        assert "blt://v2/users/{id}" in template_uris
+        assert "blt://v2/users/{id}/profile" in template_uris
+        assert "blt://v2/users/{id}/bugs" in template_uris
+        assert "blt://v2/users/{id}/domains" in template_uris
+        assert "blt://v2/users/{id}/followers" in template_uris
+        assert "blt://v2/users/{id}/following" in template_uris
+        assert "blt://v2/domains/{id}" in template_uris
+        assert "blt://v2/domains/{id}/tags" in template_uris
+        assert "blt://v2/organizations/{id}" in template_uris
+        assert "blt://v2/organizations/{id}/domains" in template_uris
+        assert "blt://v2/organizations/{id}/bugs" in template_uris
+        assert "blt://v2/organizations/{id}/managers" in template_uris
+        assert "blt://v2/organizations/{id}/tags" in template_uris
+        assert "blt://v2/organizations/{id}/integrations" in template_uris
+        assert "blt://v2/organizations/{id}/stats" in template_uris
+        assert "blt://v2/jobs/{id}" in template_uris
+        assert "blt://v2/hackathons/{slug}" in template_uris
 
     finally:
         process.terminate()
