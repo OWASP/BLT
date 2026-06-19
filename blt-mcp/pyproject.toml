@@ -17,11 +17,15 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest",
-    "pytest-asyncio"
+    "pytest-asyncio",
+    "mcp-vcr"
 ]
 
+[tool.setuptools]
+packages = ["blt_mcp"]
+
 [project.scripts]
-blt-mcp = "blt_mcp.server:main"
+blt-mcp = "blt_mcp.cli:cli"
 
 [build-system]
 requires = ["setuptools>=61.0"]
