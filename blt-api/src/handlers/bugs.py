@@ -314,37 +314,52 @@ async def handle_bugs(
                 else:
                     user_id = getattr(request_user, "id", None)
 
-            # Insert the new bug - use None for NULL values
-            result = await db.prepare('''
-                INSERT INTO bugs (
-                    url, description, markdown_description, label, views, verified,
-                    score, status, user_agent, ocr, screenshot, github_url,
-                    is_hidden, rewarded, reporter_ip_address, cve_id, cve_score,
-                    hunt, domain, user, closed_by
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ''').bind(
-                url,
-                description,
-                sanitized_body.get("markdown_description") if "markdown_description" in sanitized_body else None,
-                sanitized_body.get("label") if "label" in sanitized_body else None,
-                0,
-                0,
-                sanitized_body.get("score") if "score" in sanitized_body else None,
-                "open",
-                sanitized_body.get("user_agent") if "user_agent" in sanitized_body else None,
-                sanitized_body.get("ocr") if "ocr" in sanitized_body else None,
-                sanitized_body.get("screenshot") if "screenshot" in sanitized_body else None,
-                sanitized_body.get("github_url") if "github_url" in sanitized_body else None,
-                0,
-                0,
-                reporter_ip,
-                sanitized_body.get("cve_id") if "cve_id" in sanitized_body else None,
-                sanitized_body.get("cve_score") if "cve_score" in sanitized_body else None,
-                sanitized_body.get("hunt") if "hunt" in sanitized_body else None,
-                sanitized_body.get("domain") if "domain" in sanitized_body else None,
-                user_id,
-                None
-            ).run()
+            # Dynamically build the insert query to avoid passing None (which Pyodide maps to undefined and crashes D1).
+            insert_fields = {
+                "url": url,
+                "description": description,
+                "views": 0,
+                "verified": 0,
+                "status": "open",
+                "is_hidden": 0,
+                "rewarded": 0,
+            }
+
+            if "markdown_description" in sanitized_body and sanitized_body["markdown_description"] is not None:
+                insert_fields["markdown_description"] = sanitized_body["markdown_description"]
+            if "label" in sanitized_body and sanitized_body["label"] is not None:
+                insert_fields["label"] = sanitized_body["label"]
+            if "score" in sanitized_body and sanitized_body["score"] is not None:
+                insert_fields["score"] = sanitized_body["score"]
+            if "user_agent" in sanitized_body and sanitized_body["user_agent"] is not None:
+                insert_fields["user_agent"] = sanitized_body["user_agent"]
+            if "ocr" in sanitized_body and sanitized_body["ocr"] is not None:
+                insert_fields["ocr"] = sanitized_body["ocr"]
+            if "screenshot" in sanitized_body and sanitized_body["screenshot"] is not None:
+                insert_fields["screenshot"] = sanitized_body["screenshot"]
+            if "github_url" in sanitized_body and sanitized_body["github_url"] is not None:
+                insert_fields["github_url"] = sanitized_body["github_url"]
+            if reporter_ip is not None:
+                insert_fields["reporter_ip_address"] = reporter_ip
+            if "cve_id" in sanitized_body and sanitized_body["cve_id"] is not None:
+                insert_fields["cve_id"] = sanitized_body["cve_id"]
+            if "cve_score" in sanitized_body and sanitized_body["cve_score"] is not None:
+                insert_fields["cve_score"] = sanitized_body["cve_score"]
+            if "hunt" in sanitized_body and sanitized_body["hunt"] is not None:
+                insert_fields["hunt"] = sanitized_body["hunt"]
+            if "domain" in sanitized_body and sanitized_body["domain"] is not None:
+                insert_fields["domain"] = sanitized_body["domain"]
+            if user_id is not None:
+                insert_fields["user"] = user_id
+
+            columns = ", ".join(insert_fields.keys())
+            placeholders = ", ".join(["?"] * len(insert_fields))
+            values = list(insert_fields.values())
+
+            # Insert the new bug
+            result = await db.prepare(f'''
+                INSERT INTO bugs ({columns}) VALUES ({placeholders})
+            ''').bind(*values).run()
             
             # Get the last inserted row ID
             last_id_result = await db.prepare(
