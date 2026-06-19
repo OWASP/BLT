@@ -43,6 +43,14 @@ pub struct Hunt {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct LeaderboardEntry {
+    pub rank: u32,
+    pub name: String,
+    pub bacon_points: u32,
+    pub reputation: String,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Stats {
     pub total_issues: u32,
     pub active_repos: u32,
@@ -143,4 +151,13 @@ pub fn get_mock_stats() -> Stats {
         total_contributors: 154,
         bacon_points: 42900,
     }
+}
+
+pub fn get_mock_leaderboard() -> Vec<LeaderboardEntry> {
+    vec![
+        LeaderboardEntry { rank: 1, name: "NachiketRoy".to_string(), bacon_points: 15400, reputation: "Legend".to_string() },
+        LeaderboardEntry { rank: 2, name: "shivam".to_string(), bacon_points: 12100, reputation: "Master".to_string() },
+        LeaderboardEntry { rank: 3, name: "rosai".to_string(), bacon_points: 9800, reputation: "Expert".to_string() },
+        LeaderboardEntry { rank: 4, name: "Agent-03".to_string(), bacon_points: 5600, reputation: "AI Core".to_string() },
+    ]
 }
