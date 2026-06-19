@@ -308,3 +308,131 @@ pub async fn submit_issue_triage(api_base: &str, issue_id: &str, offline: bool) 
     resp.error_for_status()?;
     Ok(())
 }
+
+pub async fn add_comment(api_base: &str, issue_id: &str, text: &str, offline: bool) -> Result<(), Box<dyn std::error::Error>> {
+    if offline {
+        return Ok(());
+    }
+
+    let client = reqwest::Client::new();
+    let url = format!("{}/v2/bugs/{}/comments", api_base, issue_id);
+    
+    let mut payload = std::collections::HashMap::new();
+    payload.insert("text", text);
+
+    let mut req = client.post(&url).json(&payload);
+    if let Ok(api_key) = std::env::var("BLT_API_KEY") {
+        req = req.header("X-BLT-API-Key", api_key);
+    }
+
+    let resp = req.send().await?;
+    resp.error_for_status()?;
+    Ok(())
+}
+
+pub async fn submit_issue(api_base: &str, title: &str, repo: &str, severity: &str, description: &str, offline: bool) -> Result<(), Box<dyn std::error::Error>> {
+    if offline {
+        return Ok(());
+    }
+
+    let client = reqwest::Client::new();
+    let url = format!("{}/v2/bugs", api_base);
+    
+    let mut payload = std::collections::HashMap::new();
+    payload.insert("title", title);
+    payload.insert("repository", repo);
+    payload.insert("severity", severity);
+    payload.insert("description", description);
+
+    let mut req = client.post(&url).json(&payload);
+    if let Ok(api_key) = std::env::var("BLT_API_KEY") {
+        req = req.header("X-BLT-API-Key", api_key);
+    }
+
+    let resp = req.send().await?;
+    resp.error_for_status()?;
+    Ok(())
+}
+
+pub async fn get_leaderboard(api_base: &str, offline: bool) -> Result<Vec<mock_data::LeaderboardEntry>, Box<dyn std::error::Error>> {
+    if offline {
+        return Ok(mock_data::get_mock_leaderboard());
+    }
+
+    let client = reqwest::Client::new();
+    let url = format!("{}/v2/leaderboard", api_base);
+    
+    let mut req = client.get(&url);
+    if let Ok(api_key) = std::env::var("BLT_API_KEY") {
+        req = req.header("X-BLT-API-Key", api_key);
+    }
+
+    let resp = req.send().await?.error_for_status()?;
+    let root = resp.json::<serde_json::Value>().await?;
+
+    let raw_arr = if let Some(data) = root.get("data") {
+        data.as_array()
+    } else {
+        root.as_array()
+    };
+
+    let Some(arr) = raw_arr else {
+        return Ok(Vec::new());
+    };
+
+    let mut leaderboard = Vec::new();
+    for item in arr {
+        let rank = item.get("rank")
+            .and_then(|v| v.as_u64())
+            .unwrap_or(0) as u32;
+
+        let name = item.get("name")
+            .or_else(|| item.get("username"))
+            .and_then(|v| v.as_str())
+            .unwrap_or("Unknown")
+            .to_string();
+
+        let bacon_points = item.get("bacon_points")
+            .or_else(|| item.get("points"))
+            .and_then(|v| v.as_u64())
+            .unwrap_or(0) as u32;
+
+        let reputation = item.get("reputation")
+            .and_then(|v| v.as_str())
+            .unwrap_or("Contributor")
+            .to_string();
+
+        leaderboard.push(mock_data::LeaderboardEntry {
+            rank,
+            name,
+            bacon_points,
+            reputation,
+        });
+    }
+
+    Ok(leaderboard)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn test_offline_api_get_issues() {
+        let issues = get_issues("", true).await.unwrap();
+        assert!(!issues.is_empty(), "Should return mock data in offline mode");
+    }
+
+    #[tokio::test]
+    async fn test_offline_api_get_hunts() {
+        let hunts = get_hunts("", true).await.unwrap();
+        assert!(!hunts.is_empty(), "Should return mock data in offline mode");
+    }
+
+    #[tokio::test]
+    async fn test_offline_api_get_stats() {
+        let stats = get_stats("", true).await.unwrap();
+        assert!(stats.total_issues > 0, "Stats should have mock data");
+    }
+}
+

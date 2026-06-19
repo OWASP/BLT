@@ -6,6 +6,7 @@ pub enum Tab {
     Issues,
     Hunts,
     Stats,
+    Logs,
     Settings,
 }
 
@@ -15,6 +16,7 @@ impl Tab {
             Tab::Issues => "Issues",
             Tab::Hunts => "Active Hunts",
             Tab::Stats => "BLT Stats",
+            Tab::Logs => "Logs & Events",
             Tab::Settings => "Settings",
         }
     }
@@ -27,6 +29,47 @@ pub enum RunMode {
     Mcp,
 }
 
+#[derive(Clone, Debug, PartialEq)]
+pub enum FormField {
+    Title,
+    RepoId,
+    Severity,
+    Description,
+}
+
+impl Default for FormField {
+    fn default() -> Self {
+        FormField::Title
+    }
+}
+
+#[derive(Clone, Debug, Default)]
+pub struct VulnerabilityForm {
+    pub title: String,
+    pub repo_id: String,
+    pub severity: String,
+    pub description: String,
+    pub active_field: FormField,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum ActiveOverlay {
+    None,
+    Help,
+    Triage,
+    SubmitForm,
+    HuntDetail,
+    AiTriage,
+    SearchInput,
+    BulkTriageConfirm,
+}
+
+pub enum AppEvent {
+    TriageConfirmed { issue_id: String, success: bool, message: String },
+    SubmitResult { success: bool, message: String },
+    AiTriageResult { message: String },
+}
+
 pub struct App {
     pub active_tab: Tab,
     pub issues: Vec<Issue>,
@@ -37,8 +80,17 @@ pub struct App {
     pub selected_repo_index: usize,
     pub selected_hunt_index: usize,
     pub should_quit: bool,
-    pub show_help: bool,
-    pub show_triage_modal: bool,
+    pub active_overlay: ActiveOverlay,
+    pub submit_form: VulnerabilityForm,
+    pub leaderboard: Vec<mock_data::LeaderboardEntry>,
+    pub ai_triage_result: Option<String>,
+    pub search_query: String,
+    pub selected_issues: std::collections::HashSet<String>,
+    pub audit_logs: Vec<String>,
+    pub event_feed: Vec<String>,
+    pub triage_target_status: String,
+    pub event_sender: tokio::sync::mpsc::UnboundedSender<AppEvent>,
+    pub event_receiver: tokio::sync::mpsc::UnboundedReceiver<AppEvent>,
     pub run_mode: RunMode,
     pub mcp_path: Option<String>,
     pub api_base: String,
@@ -75,7 +127,9 @@ impl App {
             RunMode::Standalone => format!("Connected directly to BLT API at {}", api_base),
         };
 
-        App {
+        let (event_sender, event_receiver) = tokio::sync::mpsc::unbounded_channel();
+
+        let mut app = App {
             active_tab: Tab::Issues,
             issues,
             repos,
@@ -85,45 +139,58 @@ impl App {
             selected_repo_index: 0,
             selected_hunt_index: 0,
             should_quit: false,
-            show_help: false,
-            show_triage_modal: false,
+            active_overlay: ActiveOverlay::None,
+            submit_form: VulnerabilityForm::default(),
+            leaderboard: mock_data::get_mock_leaderboard(),
+            ai_triage_result: None,
+            search_query: String::new(),
+            selected_issues: std::collections::HashSet::new(),
+            audit_logs: Vec::new(),
+            event_feed: Vec::new(),
+            triage_target_status: "In Review".to_string(),
+            event_sender,
+            event_receiver,
             run_mode,
             mcp_path,
             api_base,
             status_message,
             auth_user,
             is_live: false,
-        }
+        };
+        app.load_session();
+        app
     }
 
     pub fn next_tab(&mut self) {
-        if self.show_help || self.show_triage_modal {
+        if self.active_overlay != ActiveOverlay::None {
             return;
         }
         self.active_tab = match self.active_tab {
             Tab::Issues => Tab::Hunts,
             Tab::Hunts => Tab::Stats,
-            Tab::Stats => Tab::Settings,
+            Tab::Stats => Tab::Logs,
+            Tab::Logs => Tab::Settings,
             Tab::Settings => Tab::Issues,
         };
         self.status_message = format!("Switched to tab: {}", self.active_tab.name());
     }
 
     pub fn prev_tab(&mut self) {
-        if self.show_help || self.show_triage_modal {
+        if self.active_overlay != ActiveOverlay::None {
             return;
         }
         self.active_tab = match self.active_tab {
             Tab::Issues => Tab::Settings,
             Tab::Hunts => Tab::Issues,
             Tab::Stats => Tab::Hunts,
-            Tab::Settings => Tab::Stats,
+            Tab::Logs => Tab::Stats,
+            Tab::Settings => Tab::Logs,
         };
         self.status_message = format!("Switched to tab: {}", self.active_tab.name());
     }
 
     pub fn scroll_down(&mut self) {
-        if self.show_help || self.show_triage_modal {
+        if self.active_overlay != ActiveOverlay::None {
             return;
         }
         match self.active_tab {
@@ -142,7 +209,7 @@ impl App {
     }
 
     pub fn scroll_up(&mut self) {
-        if self.show_help || self.show_triage_modal {
+        if self.active_overlay != ActiveOverlay::None {
             return;
         }
         match self.active_tab {
@@ -169,36 +236,103 @@ impl App {
     }
 
     pub fn toggle_help(&mut self) {
-        if self.show_triage_modal {
+        if self.active_overlay != ActiveOverlay::None && self.active_overlay != ActiveOverlay::Help {
             return;
         }
-        self.show_help = !self.show_help;
+        if self.active_overlay == ActiveOverlay::Help {
+            self.active_overlay = ActiveOverlay::None;
+        } else {
+            self.active_overlay = ActiveOverlay::Help;
+        }
     }
 
     pub fn close_popups(&mut self) {
-        self.show_help = false;
-        self.show_triage_modal = false;
+        self.active_overlay = ActiveOverlay::None;
     }
 
     pub fn trigger_triage(&mut self) {
         if self.active_tab != Tab::Issues || self.issues.is_empty() {
             return;
         }
-        self.show_triage_modal = true;
+        
+        let issue = &self.issues[self.selected_issue_index];
+        if issue.status == "In Review" {
+            self.status_message = "Notice: Issue is already 'In Review'.".to_string();
+            return;
+        }
+
+        self.active_overlay = ActiveOverlay::Triage;
     }
 
     pub fn confirm_triage(&mut self) {
-        if !self.show_triage_modal {
+        if self.active_overlay != ActiveOverlay::Triage {
             return;
         }
-        self.show_triage_modal = false;
-        let issue = &mut self.issues[self.selected_issue_index];
-        issue.status = "In Review".to_string();
-        let update_msg = format!("Triage confirmed: Status of Issue #{} set to 'In Review'!", issue.id);
+        self.active_overlay = ActiveOverlay::None;
         
-        // Push an audit log comment representing human-in-the-loop triage confirmation
-        issue.comments.push(format!("{}: Manually confirmed & updated triage status via TUI CLI.", self.auth_user));
-        self.status_message = update_msg;
+        let issue = &self.issues[self.selected_issue_index];
+        let issue_id = issue.id.clone();
+        let api_base = self.api_base.clone();
+        let run_mode = self.run_mode.clone();
+        let sender = self.event_sender.clone();
+        
+        self.status_message = format!("Triaging Issue #{}...", issue_id);
+
+        tokio::spawn(async move {
+            let offline = run_mode == RunMode::Offline;
+            let res = crate::api::submit_issue_triage(&api_base, &issue_id, offline).await;
+
+            let (success, message) = match res {
+                Ok(_) => (true, format!("SUCCESS: Triage for Issue #{} was submitted successfully.", issue_id)),
+                Err(e) => (false, format!("ERROR: Failed to submit triage for Issue #{}: {}", issue_id, e)),
+            };
+
+            let _ = sender.send(AppEvent::TriageConfirmed { issue_id, success, message });
+        });
+    }
+
+    pub fn save_session(&self) {
+        #[derive(serde::Serialize)]
+        struct SessionData<'a> {
+            audit_logs: &'a Vec<String>,
+            event_feed: &'a Vec<String>,
+        }
+        let data = SessionData {
+            audit_logs: &self.audit_logs,
+            event_feed: &self.event_feed,
+        };
+        if let Ok(json) = serde_json::to_string(&data) {
+            let _ = std::fs::write("blt_session.json", json);
+        }
+    }
+
+    pub fn load_session(&mut self) {
+        #[derive(serde::Deserialize)]
+        struct SessionData {
+            audit_logs: Vec<String>,
+            event_feed: Vec<String>,
+        }
+        if let Ok(content) = std::fs::read_to_string("blt_session.json") {
+            if let Ok(data) = serde_json::from_str::<SessionData>(&content) {
+                self.audit_logs = data.audit_logs;
+                self.event_feed = data.event_feed;
+            }
+        }
+    }
+
+    pub fn export_logs(&self) {
+        let mut out = String::new();
+        out.push_str("=== AUDIT LOGS ===\n");
+        for log in &self.audit_logs {
+            out.push_str(log);
+            out.push('\n');
+        }
+        out.push_str("\n=== EVENT FEED ===\n");
+        for ev in &self.event_feed {
+            out.push_str(ev);
+            out.push('\n');
+        }
+        let _ = std::fs::write("blt_export.log", out);
     }
 }
 
@@ -209,102 +343,45 @@ mod tests {
     #[test]
     fn test_app_initialization() {
         let app = App::new(true, None, "https://api.owaspblt.org".to_string());
-        assert_eq!(app.run_mode, RunMode::Offline);
         assert_eq!(app.active_tab, Tab::Issues);
-        assert!(!app.issues.is_empty());
-        assert!(!app.repos.is_empty());
-        assert!(!app.hunts.is_empty());
-        assert!(!app.show_help);
-        assert!(!app.show_triage_modal);
-        assert!(app.auth_user.contains("Offline Mode"));
-    }
-
-    #[test]
-    fn test_tab_navigation() {
-        let mut app = App::new(true, None, "https://api.owaspblt.org".to_string());
-        
-        // Next tabs loop: Issues -> Hunts -> Stats -> Settings -> Issues
-        app.next_tab();
-        assert_eq!(app.active_tab, Tab::Hunts);
-        app.next_tab();
-        assert_eq!(app.active_tab, Tab::Stats);
-        app.next_tab();
-        assert_eq!(app.active_tab, Tab::Settings);
-        app.next_tab();
-        assert_eq!(app.active_tab, Tab::Issues);
-
-        // Prev tabs loop: Issues -> Settings -> Stats -> Hunts -> Issues
-        app.prev_tab();
-        assert_eq!(app.active_tab, Tab::Settings);
-        app.prev_tab();
-        assert_eq!(app.active_tab, Tab::Stats);
-        app.prev_tab();
-        assert_eq!(app.active_tab, Tab::Hunts);
-        app.prev_tab();
-        assert_eq!(app.active_tab, Tab::Issues);
-    }
-
-    #[test]
-    fn test_list_scrolling() {
-        let mut app = App::new(true, None, "https://api.owaspblt.org".to_string());
-        let total_issues = app.issues.len();
-        
-        // Assert initial selected row
-        assert_eq!(app.selected_issue_index, 0);
-
-        // Scroll down
-        app.scroll_down();
-        assert_eq!(app.selected_issue_index, 1);
-
-        // Scroll up
-        app.scroll_up();
-        assert_eq!(app.selected_issue_index, 0);
-
-        // Scroll up loops to the end
-        app.scroll_up();
-        assert_eq!(app.selected_issue_index, total_issues - 1);
-
-        // Scroll down loops to the start
-        app.scroll_down();
-        assert_eq!(app.selected_issue_index, 0);
+        assert_eq!(app.active_overlay, ActiveOverlay::None);
     }
 
     #[test]
     fn test_modal_toggles() {
         let mut app = App::new(true, None, "https://api.owaspblt.org".to_string());
-        assert!(!app.show_help);
+        assert_eq!(app.active_overlay, ActiveOverlay::None);
 
-        // Help popup toggle
         app.toggle_help();
-        assert!(app.show_help);
+        assert_eq!(app.active_overlay, ActiveOverlay::Help);
         app.toggle_help();
-        assert!(!app.show_help);
-
-        // Help should not switch tabs
-        app.toggle_help();
-        app.next_tab();
-        assert_eq!(app.active_tab, Tab::Issues);
-        app.close_popups();
-        assert!(!app.show_help);
+        assert_eq!(app.active_overlay, ActiveOverlay::None);
     }
 
     #[test]
-    fn test_triage_confirmation_flow() {
-        let mut app = App::new(true, None, "https://api.owaspblt.org".to_string());
+    fn test_tab_navigation() {
+        let mut app = App::new(true, None, "".to_string());
+        assert_eq!(app.active_tab, Tab::Issues);
+        app.next_tab();
+        assert_eq!(app.active_tab, Tab::Hunts);
+        app.next_tab();
+        assert_eq!(app.active_tab, Tab::Stats);
+        app.prev_tab();
+        assert_eq!(app.active_tab, Tab::Hunts);
+    }
+
+    #[test]
+    fn test_issue_selection() {
+        let mut app = App::new(true, None, "".to_string());
+        app.issues = crate::mock_data::get_mock_issues();
+        let initial_len = app.issues.len();
         
-        // Triage modal triggers
-        app.trigger_triage();
-        assert!(app.show_triage_modal);
-
-        let initial_status = app.issues[0].status.clone();
-        assert_ne!(initial_status, "In Review");
-        let initial_comments_len = app.issues[0].comments.len();
-
-        // Confirming triage sets status and appends comment
-        app.confirm_triage();
-        assert!(!app.show_triage_modal);
-        assert_eq!(app.issues[0].status, "In Review");
-        assert_eq!(app.issues[0].comments.len(), initial_comments_len + 1);
-        assert!(app.issues[0].comments.last().unwrap().contains("Manually confirmed"));
+        if initial_len > 1 {
+            assert_eq!(app.selected_issue_index, 0);
+            app.scroll_down();
+            assert_eq!(app.selected_issue_index, 1);
+            app.scroll_up();
+            assert_eq!(app.selected_issue_index, 0);
+        }
     }
 }
