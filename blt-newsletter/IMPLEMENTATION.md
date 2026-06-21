@@ -1,264 +1,187 @@
-# BLT Newsletter - Implementation Summary
+# BLT Newsletter Implementation Summary
 
-## Overview
-This repository contains a newsletter signup and management system for the OWASP Bug Logging Tool (BLT) platform, implemented as a static Cloudflare site with GitHub Actions for automated newsletter distribution.
+## Current architecture
 
-## Architecture
+BLT Newsletter is now a Python Cloudflare Worker application with static assets, D1 persistence, admin auth, newsletter issue management, and SendGrid/Queue campaign foundations.
 
-### Static Site (Cloudflare)
-- **Static frontend** - runs as Cloudflare assets
-- **Cloudflare subscription function** - form submits to `/api/subscribe`, which creates GitHub issues
-- **Zero maintenance** - no servers to manage or scale
-- **Public folder hosting** - deploys the `public/` directory
+The previous public GitHub Issues subscriber storage and GitHub Actions sender model has been superseded by private D1 tables and Worker APIs.
 
-### Subscription Management (GitHub Issues)
-- Subscribers are stored as GitHub Issues
-- Each subscription creates an issue with label `newsletter-subscription`
-- Issue body contains subscriber email and name
-- Open issues = active subscribers
-- Closed issues = unsubscribed/removed
+## Runtime pieces
 
-### Newsletter Distribution (GitHub Actions)
-- Manual workflow trigger for sending newsletters
-- Reads subscriber list from issues
-- Sends emails via SendGrid API
-- Supports markdown newsletter templates
-- Automatic HTML conversion with BLT branding
+### Worker entrypoint
 
-## What Was Built
+- `src/entry.py`
+- Serves static assets from `public/`.
+- Handles public subscription/archive APIs.
+- Handles first-admin setup, login/logout, session checks, dashboard APIs, issue CRUD, test sends, campaign jobs, and queue consumption.
 
-### Frontend (Static HTML/CSS/JS)
-- **Newsletter Landing Page** (`public/index.html`):
-  - Responsive design using BLT-Design styling
-  - Hero section with BLT branding
-  - Feature highlights (Stats, New Features, Security, Community)
-  - Newsletter signup form with client-side validation
-  - BLT platform statistics display
-  - Mobile-first responsive layout
+### D1 schema
 
-- **Subscribe Function** (`functions/api/subscribe.js`):
-  - Validates subscription requests on Cloudflare
-  - Uses a Cloudflare `GITHUB_TOKEN` secret to create GitHub issues
-  - Keeps the GitHub token out of browser code
+- `migrations/0001_newsletter_schema.sql`
 
-### GitHub Actions Workflows
-- **Deploy static site** (`.github/workflows/deploy-pages.yml`):
-  - Triggered on push to main
-  - Uploads the `public/` static site artifact
-  - No build step required
+Tables:
 
-- **Send Newsletter** (`.github/workflows/send-newsletter.yml`):
-  - Manual trigger only
-  - Fetches subscribers from issues
-  - Sends newsletter via SendGrid
-  - Supports markdown content
-  - Logs delivery status
+- `newsletter_subscribers`
+- `newsletter_admins`
+- `newsletter_admin_sessions`
+- `newsletter_issues`
+- `newsletter_send_jobs`
+- `newsletter_delivery_events`
+- `newsletter_rate_limits`
 
-### Newsletter System
-- **Send Script** (`.github/scripts/send-newsletter.py`):
-  - Python script for email sending
-  - Reads subscribers from JSON
-  - Converts markdown to HTML
-  - Wraps content in BLT email template
-  - Batch sends with error handling
+### Admin auth
 
-- **Newsletter Templates** (`newsletters/`):
-  - Markdown files for newsletter content
-  - `latest.md` serves as template
-  - Easy to edit, no HTML required
+- `src/admin_auth.py`
+- PBKDF2 password hashes.
+- HMAC session token hashes.
+- HttpOnly/SameSite session cookie helpers.
 
-### Documentation
-- **README.md**: Complete setup and usage guide for Cloudflare static hosting
-- **TESTING.md**: Testing procedures for static site and Actions
-- **CONTRIBUTING.md**: Contribution guidelines
-- **newsletters/README.md**: Newsletter template guide
+### Subscription logic
 
-## Key Features
+- `src/newsletter_validation.py`
+- `src/newsletter_service.py`
 
-### Security
-✅ RFC 5322 compliant email validation (client-side)  
-✅ GitHub secrets for SendGrid API key  
-✅ SRI integrity for CDN resources  
-✅ GitHub token stays in Cloudflare secrets  
-✅ Public subscriber data (consider for your use case)  
+Implemented behavior:
 
-### Design
-✅ BLT-Design system integration  
-✅ Tailwind CSS with BLT color scheme  
-✅ Inter font family  
-✅ Red (#dc2626) primary color  
-✅ Responsive mobile-first layout  
+- normalize email
+- HMAC email hash for lookup
+- D1 subscriber insert
+- idempotent duplicate subscribe
+- reactivation after unsubscribe
+- privacy-safe unsubscribe response
 
-### Functionality
-✅ Client-side email validation  
-✅ GitHub Issues API integration  
-✅ Automated newsletter sending  
-✅ GDPR-compliant opt-in checkbox  
-✅ Real-time form feedback  
-✅ Loading states  
-✅ Error handling  
-✅ Markdown newsletter support  
+### Email and campaigns
 
-### Developer Experience
-✅ No server setup required  
-✅ Static hosting on Cloudflare  
-✅ Simple workflow for sending newsletters  
-✅ Clear documentation  
-✅ Version control for newsletter content  
+- `src/email_service.py`
+- `src/email_templates.py`
+- `src/email_campaigns.py`
 
-## How It Works
+Implemented behavior:
 
-### Subscription Flow
+- SendGrid Web API v3 payloads and sender wrapper.
+- BLT-branded newsletter HTML email renderer.
+- Lightweight Markdown rendering for email body.
+- Visible unsubscribe footer.
+- Campaign job and delivery-event record builders.
+- Queue message records with IDs only, no raw email.
 
-1. **User visits** the Cloudflare site
-2. **User fills form** with name (optional) and email (required)
-3. **User checks consent** checkbox to opt-in
-4. **Form validates** email using RFC 5322 regex
-5. **JavaScript submits** to `/api/subscribe`
-6. **Cloudflare Function creates** an issue with label `newsletter-subscription`
-7. **Success message** displayed to user
+### UI assets
 
-### Newsletter Flow
+- `public/index.html` — public landing/subscribe page.
+- `public/login.html` — admin login.
+- `public/signup.html` — one-time first-admin setup page.
+- `public/dashboard.html` — admin dashboard.
+- `public/docs.html` — docs/help page.
 
-1. **Admin creates** newsletter markdown file in `newsletters/`
-2. **Admin triggers** "Send Newsletter" workflow manually
-3. **Workflow fetches** all open issues with `newsletter-subscription` label
-4. **Script extracts** emails from issue bodies
-5. **Script reads** newsletter markdown file
-6. **Script converts** markdown to HTML
-7. **Script wraps** HTML in BLT email template
-8. **SendGrid sends** emails to all subscribers
-9. **Workflow logs** delivery results
+## Important routes
 
-## GitHub Integration
+Public:
 
-### Issues as Database
-- **Pros**:
-  - No external database needed
-  - Built-in with GitHub
-  - Easy to manage and export
-  - Version controlled
-  - Searchable and filterable
+```text
+GET  /
+POST /api/subscribe
+POST /api/unsubscribe
+GET  /api/issues
+GET  /api/issues/:slug
+```
 
-- **Cons**:
-  - Subscriber emails are public
-  - Limited to 5000 API requests/hour
-  - Not suitable for very large lists
+Setup/auth:
 
-### GitHub Actions
-- **Pros**:
-  - Free for public repositories
-  - Integrated with repository
-  - Easy to trigger
-  - Good logging
+```text
+GET  /signup
+GET  /login
+GET  /dashboard
+GET  /api/admin/setup/status
+POST /api/admin/setup
+POST /api/admin/login
+POST /api/admin/logout
+GET  /api/admin/me
+```
 
-- **Cons**:
-  - Manual trigger only (no scheduling without cron)
-  - Requires GitHub secrets setup
+Admin data:
 
-## SendGrid Integration
+```text
+GET  /api/admin/stats
+GET  /api/admin/subscribers
+GET  /api/admin/issues
+POST /api/admin/issues
+PATCH /api/admin/issues/:id
+```
 
-The workflow uses SendGrid for email delivery:
+Send/campaigns:
 
-1. **API Key** stored in GitHub secrets
-2. **From Email** must be verified in SendGrid
-3. **Batch Sending** for all subscribers
-4. **Error Handling** logs failed sends
-5. **HTML Templates** with BLT branding
+```text
+POST /api/admin/issues/:id/send-test
+POST /api/admin/issues/:id/send
+GET  /api/admin/jobs
+GET  /api/admin/jobs/:id
+POST /api/admin/jobs/:id/cancel
+```
 
-## Configuration Required
+Queue consumer:
 
-To use this system:
+```text
+async def queue(self, batch)
+```
 
-1. **Configure Cloudflare**: Set the output directory to `public`
-2. **Add Cloudflare Secret**:
-   - `GITHUB_TOKEN`
-3. **Add GitHub Secrets**:
-   - `SENDGRID_API_KEY`
-   - `SENDGRID_FROM_EMAIL`
-4. **Create Issue Label**: `newsletter-subscription`
-5. **Enable Issues**: Settings > General > Features
+## First-admin setup
 
-## Deployment
+Fresh D1 behavior:
 
-The site deploys automatically:
-1. Push to main branch
-2. Cloudflare builds from the repository
-3. Site goes live from the `public/` directory
+1. `/login` redirects to `/signup` when `newsletter_admins` is empty.
+2. Signup creates the first admin with a hashed password.
+3. Worker creates an HttpOnly session cookie.
+4. Browser opens `/dashboard`.
+5. `/signup` closes permanently for that D1 once any admin row exists.
 
-## Testing
+## SendGrid/Queue campaign flow
 
-### Static Site
-- Serve `public/` locally or visit the Cloudflare URL
-- Test form submission (creates real issue)
-- Verify responsive design
-- Check accessibility
+1. Admin creates a newsletter issue.
+2. Admin can send a test email via SendGrid.
+3. Admin queues a full campaign.
+4. Worker creates one `newsletter_send_jobs` row.
+5. Worker creates queued `newsletter_delivery_events` for active subscribers.
+6. If `NEWSLETTER_QUEUE` exists, Worker enqueues ID-only messages.
+7. Queue consumer loads D1 rows, renders email HTML, sends through SendGrid, and records sent/failed events.
 
-### Newsletter Workflow
-- Create test subscriber issue
-- Run "Send Newsletter" workflow
-- Check email receipt
-- Verify formatting
+## Current verification baseline
 
-## Removed Components
+```bash
+python3 -m unittest discover -s tests -v
+PYTHONPYCACHEPREFIX=/private/tmp/blt-newsletter-pycache python3 -m py_compile src/*.py scripts/*.py
+node --check /tmp/blt_newsletter_dashboard.js
+node --check /tmp/blt_newsletter_login.js
+node --check /tmp/blt_newsletter_signup.js
+git diff --check
+```
 
-The following legacy backend pieces are not required:
-- ❌ `server.js` - Node.js Express server
-- ❌ `package.json` - Node dependencies (backend)
-- ✅ `public/` directory - Cloudflare static asset root
-- ❌ `.env.example` - Secrets now in GitHub
-- ❌ `Dockerfile` - No server to containerize
-- ❌ `docker-compose.yml` - No services to orchestrate
+Wrangler smoke has verified:
 
-## Benefits of Cloudflare Static Hosting
+- `/api/admin/setup/status` responds locally.
+- unauthenticated `/api/admin/jobs` returns 401.
+- `/dashboard` HTML includes campaign/test-send dashboard wiring.
+- dashboard unauthenticated guard redirects to `/login` with no console errors.
 
-1. **Zero Cost**: Free hosting and Actions
-2. **Zero Maintenance**: No servers to manage
-3. **High Availability**: Cloudflare's infrastructure
-4. **Version Control**: All content in Git
-5. **Simple Workflow**: Markdown → Email
-6. **Scalable**: GitHub handles traffic
-7. **Secure**: Minimal Cloudflare Function keeps secrets server-side
+## Production configuration still required
 
-## Limitations
+Before production campaign sends:
 
-1. **Manual Sending**: No automated scheduled newsletters (can add cron)
-2. **Public Data**: Subscriber emails visible in issues
-3. **API Limits**: 5000 GitHub requests/hour
-4. **No Analytics**: No built-in subscriber analytics
-5. **Simple Unsubscribe**: Manual (close issue)
+- Replace placeholder D1 `database_id` in `wrangler.toml`.
+- Create the Cloudflare queue `blt-newsletter-send`.
+- Set Cloudflare secrets/vars:
+  - `EMAIL_HASH_SECRET`
+  - `ADMIN_SESSION_SECRET`
+  - `SENDGRID_API_KEY`
+  - `SENDGRID_FROM_EMAIL`
+  - optional `SENDGRID_FROM_NAME`
+  - optional `PUBLIC_BASE_URL`
 
-## Future Enhancements
+## Remaining hardening backlog
 
-Potential improvements:
-- Scheduled newsletter sending (cron trigger)
-- Private subscriber storage (separate repo)
-- Unsubscribe links in emails
-- Analytics dashboard
-- Multiple newsletter types
-- Subscriber preferences
-- A/B testing
-- Email templates editor
-
-## Code Quality
-
-- **No security vulnerabilities** (static site)
-- **No dependency vulnerabilities** (minimal deps)
-- **Clean code structure** with separation of concerns
-- **Comprehensive error handling** in send script
-- **Well-documented** with inline comments
-
-## License
-
-AGPL-3.0 - Same as OWASP BLT main project
-
-## Support
-
-For questions or issues:
-- GitHub Issues: https://github.com/OWASP-BLT/BLT-Newsletter/issues
-- OWASP BLT Discord: https://discord.gg/owasp-blt
-- Documentation: https://owasp-blt.github.io/documentation/
-
----
-
-**Built with ❤️ for the OWASP BLT community**
+- Signed GET-based unsubscribe/preference-center links.
+- SendGrid Event Webhook verification and suppression sync.
+- CSRF protection for cookie-auth admin POSTs.
+- Rate-limit enforcement on login/setup/subscribe.
+- Encrypted email-at-rest before production campaign scale.
+- Queue retry/dead-letter policy tuning.
+- Accessibility polish for hidden dashboard sheets/modals.
