@@ -397,7 +397,7 @@
                 class="fa-brands fa-github text-red-500 text-xs"
                 aria-hidden="true"
               ></i>
-              GitHub-native subscriptions
+              Private Worker-backed signup
             </span>
             <span
               class="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm text-gray-600 shadow-sm"
@@ -571,7 +571,7 @@
                   How
                 </p>
                 <p class="mt-1 text-sm font-semibold text-gray-900">
-                  GitHub-first delivery
+                  Worker-first delivery
                 </p>
               </div>
             </div>
@@ -725,11 +725,12 @@
             <p
               class="mt-2 text-[clamp(2rem,3vw,2.55rem)] font-semibold leading-[1.05] tracking-[-.04em] text-balance"
             >
-              Open, GitHub-native, and community-first.
+              Private, Worker-backed, and community-first.
             </p>
             <p class="mt-4 max-w-[42rem] text-base leading-[1.6] text-gray-600">
-              Signups flow through GitHub Issues, newsletters are authored in
-              Markdown, and delivery runs through GitHub Actions plus SendGrid.
+              Signups flow through the BLT Newsletter Worker into D1,
+              newsletters are authored in Markdown, and delivery runs through
+              SendGrid with async campaign tracking.
             </p>
           </div>
 
@@ -743,14 +744,14 @@
                 class="mb-4 flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-gray-50"
               >
                 <i
-                  class="fa-brands fa-github text-gray-700"
+                  class="fa-solid fa-database text-gray-700"
                   aria-hidden="true"
                 ></i>
               </div>
-              <h3 class="font-semibold text-gray-900">Subscribe via GitHub</h3>
+              <h3 class="font-semibold text-gray-900">Subscribe privately</h3>
               <p class="mt-2 text-sm leading-6 text-gray-600">
-                Drop an issue in the repo — the team processes signups and keeps
-                your data safe and transparent.
+                The Worker validates consent, stores the subscription in D1,
+                and keeps subscriber data out of public issue trackers.
               </p>
             </div>
             <div
@@ -787,8 +788,8 @@
                 Actions + SendGrid delivery
               </h3>
               <p class="mt-2 text-sm leading-6 text-gray-600">
-                GitHub Actions triggers the send pipeline; SendGrid handles
-                reliable delivery each month.
+                Admins queue campaigns from the dashboard; SendGrid handles
+                reliable delivery with visible status and retries.
               </p>
             </div>
             <div
@@ -952,7 +953,7 @@
           </h2>
           <p class="m-0 max-w-[31rem] text-sm leading-[1.6] text-gray-500">
             Subscribe, preview the format, or jump straight to the source on
-            GitHub.
+            GitLab.
           </p>
           <div
             class="mb-2 flex items-center justify-center gap-3 max-md:w-full max-md:flex-col max-md:px-4"
@@ -1072,10 +1073,7 @@
         }
       })();
 
-      // Newsletter form — subscription creates a GitLab issue
-      const GITLAB_PROJECT = "owasp-blt%2Fblt-newsletter";
-      const GITLAB_API = `https://gitlab.com/api/v4/projects/${GITLAB_PROJECT}/issues`;
-
+      // Newsletter form — subscription is stored by the Worker backend
       const form = document.getElementById("newsletter-form");
       const submitBtn = document.getElementById("submit-btn");
       const btnText = document.getElementById("btn-text");
@@ -1105,18 +1103,23 @@
         messageDiv.classList.add("hidden");
 
         try {
-          const issueTitle = `Newsletter Subscription: ${email}`;
-          const issueDescription = `New newsletter subscription request:\n\n- **Name:** ${name || "Not provided"}\n- **Email:** ${email}\n- **Subscribed:** ${new Date().toISOString()}\n\n---\n*This issue was automatically created by the newsletter signup form.*`;
-          const response = await fetch(GITLAB_API, {
+          const response = await fetch("/api/subscribe", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              title: issueTitle,
-              description: issueDescription,
-              labels: "newsletter-subscription",
+              name,
+              email,
+              consent: document.getElementById("consent").checked,
+              source: "landing_page",
             }),
           });
-          if (response.ok) {
+          let result = null;
+          try {
+            result = await response.json();
+          } catch (_jsonErr) {
+            result = null;
+          }
+          if (response.ok && (!result || result.success !== false)) {
             messageDiv.className =
               "mt-4 rounded-lg bg-green-50 border border-green-200 p-4 text-sm text-green-800";
             messageDiv.innerHTML =

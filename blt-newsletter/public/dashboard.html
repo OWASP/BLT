@@ -591,8 +591,8 @@
           html.dark .sidebar-content { color: var(--text-primary-dark); }
         </style>
           <div class="flex items-center gap-2 mb-8">
-            <div class="flex h-9 w-9 items-center justify-center rounded-lg border border-red-100 bg-white shadow-sm text-red-600 text-base">
-              <i class="fa-solid fa-bug"></i>
+            <div class="flex h-9 w-9 items-center justify-center rounded-lg border border-red-100 bg-white shadow-sm">
+              <img src="./static/images/logo.png" alt="BLT Logo" class="h-8 w-8" />
             </div>
             <div>
               <span class="block text-xs font-semibold uppercase tracking-wide text-gray-400">OWASP BLT</span>
@@ -607,7 +607,7 @@
             </button>
             <button onclick="navigateTo('users')" class="sidebar-item w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium transition hover:bg-gray-50">
               <i class="fa-solid fa-users w-4 mr-3"></i>
-              Users
+              Subscribers
             </button>
             <button onclick="navigateTo('issues')" class="sidebar-item w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium transition hover:bg-gray-50">
               <i class="fa-solid fa-newspaper w-4 mr-3"></i>
@@ -657,8 +657,8 @@
             <button onclick="toggleTheme()" class="p-2 rounded-lg transition" style="background-color: transparent; color: var(--text-muted-light);" onmouseover="this.style.backgroundColor='#f1f5f9'" onmouseout="this.style.backgroundColor='transparent'">
               <i class="fa-solid fa-moon text-sm"></i>
             </button>
-            <button class="w-10 h-10 rounded-full bg-red-600 text-white flex items-center justify-center text-sm font-semibold cursor-pointer">
-              AD
+            <button id="admin-avatar-initials" class="w-10 h-10 rounded-full bg-red-600 text-white flex items-center justify-center text-sm font-semibold cursor-pointer" title="Signed-in admin">
+              …
             </button>
           </div>
         </header>
@@ -681,36 +681,36 @@
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
               <!-- Metric Cards -->
               <div class="card border rounded-lg p-6">
-                <p class="text-sm text-gray-600 font-medium">Active users</p>
-                <p class="text-3xl font-semibold mt-2">2,847</p>
-                <p class="text-xs text-gray-500 mt-1">↑ 12% this month</p>
+                <p class="text-sm text-gray-600 font-medium">Active subscribers</p>
+                <p id="stat-active-subscribers" class="text-3xl font-semibold mt-2">—</p>
+                <p id="stat-total-subscribers-note" class="text-xs text-gray-500 mt-1">Loading D1 stats…</p>
               </div>
               <div class="card border rounded-lg p-6">
-                <p class="text-sm text-gray-600 font-medium">New subscribers</p>
-                <p class="text-3xl font-semibold mt-2">340</p>
-                <p class="text-xs text-gray-500 mt-1">This month</p>
+                <p class="text-sm text-gray-600 font-medium">Total subscribers</p>
+                <p id="stat-new-subscribers" class="text-3xl font-semibold mt-2">—</p>
+                <p id="stat-unsubscribed-note" class="text-xs text-gray-500 mt-1">Including active and unsubscribed</p>
               </div>
               <div class="card border rounded-lg p-6">
                 <p class="text-sm text-gray-600 font-medium">Published issues</p>
-                <p class="text-3xl font-semibold mt-2">24</p>
-                <p class="text-xs text-gray-500 mt-1">All time</p>
+                <p id="stat-published-issues" class="text-3xl font-semibold mt-2">—</p>
+                <p id="stat-total-issues-note" class="text-xs text-gray-500 mt-1">Loaded from D1</p>
               </div>
               <div class="card border rounded-lg p-6">
-                <p class="text-sm text-gray-600 font-medium">Last campaign</p>
-                <p class="text-3xl font-semibold mt-2" style="color: #10b981;">Sent</p>
-                <p class="text-xs text-gray-500 mt-1">2 days ago • 1,248 recipients</p>
+                <p class="text-sm text-gray-600 font-medium">Draft issues</p>
+                <p id="stat-draft-issues" class="text-3xl font-semibold mt-2">—</p>
+                <p class="text-xs text-gray-500 mt-1">Ready for editing</p>
               </div>
               <div class="card border rounded-lg p-6">
                 <p class="text-sm text-gray-600 font-medium">Delivery success rate</p>
                 <div class="progress-bar mt-3 mb-2">
-                  <div class="progress-fill" style="width: 98.5%"></div>
+                  <div id="stat-delivery-success-bar" class="progress-fill" style="width: 0%"></div>
                 </div>
-                <p class="text-sm font-semibold">98.5%</p>
+                <p id="stat-delivery-success-rate" class="text-sm font-semibold">Queue pending</p>
               </div>
               <div class="card border rounded-lg p-6 cursor-pointer hover:border-red-600 transition" onclick="navigateTo('campaigns')">
                 <p class="text-sm text-gray-600 font-medium">Failed deliveries</p>
-                <p class="text-3xl font-semibold mt-2 text-red-600">38</p>
-                <p class="text-xs text-gray-500 mt-1">Needs attention →</p>
+                <p id="stat-failed-deliveries" class="text-3xl font-semibold mt-2 text-red-600">0</p>
+                <p class="text-xs text-gray-500 mt-1">Delivery events wire in Slice 3 →</p>
               </div>
             </div>
 
@@ -729,26 +729,9 @@
                         <th class="px-6 py-3 text-right font-medium" style="color: var(--text-secondary-light);">Time</th>
                       </tr>
                     </thead>
-                    <tbody>
-                      <tr style="border-bottom: 1px solid var(--border-light);">
-                        <td class="px-6 py-3"><span class="inline-flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-blue-600"></span><span>Subscriber</span></span></td>
-                        <td class="px-6 py-3" style="color: var(--text-secondary-light);">Maria Chen subscribed</td>
-                        <td class="px-6 py-3 text-right text-xs" style="color: var(--text-muted-light);">2h ago</td>
-                      </tr>
-                      <tr style="border-bottom: 1px solid var(--border-light);">
-                        <td class="px-6 py-3"><span class="inline-flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-green-600"></span><span>Published</span></span></td>
-                        <td class="px-6 py-3" style="color: var(--text-secondary-light);">GSoC Updates released</td>
-                        <td class="px-6 py-3 text-right text-xs" style="color: var(--text-muted-light);">1d ago</td>
-                      </tr>
-                      <tr style="border-bottom: 1px solid var(--border-light);">
-                        <td class="px-6 py-3"><span class="inline-flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-green-600"></span><span>Completed</span></span></td>
-                        <td class="px-6 py-3" style="color: var(--text-secondary-light);">June Digest campaign sent</td>
-                        <td class="px-6 py-3 text-right text-xs" style="color: var(--text-muted-light);">2d ago</td>
-                      </tr>
+                    <tbody id="recent-activity-body">
                       <tr>
-                        <td class="px-6 py-3"><span class="inline-flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-red-600"></span><span>Failed</span></span></td>
-                        <td class="px-6 py-3" style="color: var(--text-secondary-light);">12 bounces on June Digest</td>
-                        <td class="px-6 py-3 text-right text-xs" style="color: var(--text-muted-light);">2d ago</td>
+                        <td class="px-6 py-3" colspan="3">Loading recent activity…</td>
                       </tr>
                     </tbody>
                   </table>
@@ -775,7 +758,7 @@
                   </button>
                   <button class="btn-secondary text-left py-3" onclick="openImportUsersModal()">
                     <i class="fa-solid fa-file-import text-red-600 mr-2"></i>
-                    <span>Import users</span>
+                    <span>Import subscribers</span>
                   </button>
                   <button class="btn-secondary text-left py-3">
                     <i class="fa-solid fa-archive text-red-600 mr-2"></i>
@@ -786,18 +769,18 @@
             </div>
           </div>
 
-          <!-- Users Page -->
+          <!-- Subscribers Page -->
           <div id="users-page" class="page p-8">
             <div class="mb-6 flex gap-4 flex-col md:flex-row md:items-center md:justify-between">
               <div class="flex-1">
-                <input type="text" placeholder="Search users by name or email..." class="input-field w-full" id="user-search" onkeyup="filterUsers()" />
+                <input type="text" placeholder="Search subscribers by name or email..." class="input-field w-full" id="user-search" onkeyup="filterUsers()" />
               </div>
               <div class="flex gap-2 flex-wrap">
-                <button class="btn-secondary px-3" id="filter-all" onclick="filterByStatus('all')" style="background-color: #dc2626; color: white; border-color: #dc2626;">All</button>
-                <button class="btn-secondary px-3" onclick="filterByStatus('active')">Active</button>
-                <button class="btn-secondary px-3" onclick="filterByStatus('bounced')">Bounced</button>
-                <button class="btn-secondary px-3" onclick="filterByStatus('unsubscribed')">Unsubscribed</button>
-                <button class="btn-secondary px-3" onclick="filterByStatus('suppressed')">Suppressed</button>
+                <button class="btn-secondary px-3" id="filter-all" data-status-filter="all" onclick="filterByStatus('all')" style="background-color: #dc2626; color: white; border-color: #dc2626;">All</button>
+                <button class="btn-secondary px-3" data-status-filter="active" onclick="filterByStatus('active')">Active</button>
+                <button class="btn-secondary px-3" data-status-filter="bounced" onclick="filterByStatus('bounced')">Bounced</button>
+                <button class="btn-secondary px-3" data-status-filter="unsubscribed" onclick="filterByStatus('unsubscribed')">Unsubscribed</button>
+                <button class="btn-secondary px-3" data-status-filter="suppressed" onclick="filterByStatus('suppressed')">Suppressed</button>
                 <button class="btn-secondary px-3" onclick="openImportUsersModal()">Import</button>
                 <button class="btn-secondary px-3" onclick="showToast('Export started')">Export</button>
               </div>
@@ -818,75 +801,8 @@
                   </tr>
                 </thead>
                 <tbody id="users-table-body">
-                  <tr class="user-row" data-status="active">
-                    <td><input type="checkbox" /></td>
-                    <td class="font-medium">Aisha Khan</td>
-                    <td class="email-cell text-gray-600">aisha.khan@example.com</td>
-                    <td><span class="status-badge status-active">Active</span></td>
-                    <td class="text-gray-600">Landing page</td>
-                    <td class="text-gray-600 text-sm">Jun 2</td>
-                    <td class="text-gray-600 text-sm">Jun 12</td>
-                    <td>
-                      <button class="text-red-600 hover:bg-red-50 p-2 rounded text-sm" onclick="openUserDetails('Aisha Khan', 'aisha.khan@example.com', 'active')">
-                        <i class="fa-solid fa-ellipsis-h"></i>
-                      </button>
-                    </td>
-                  </tr>
-                  <tr class="user-row" data-status="active">
-                    <td><input type="checkbox" /></td>
-                    <td class="font-medium">Diego Morales</td>
-                    <td class="email-cell text-gray-600">diego.m@example.com</td>
-                    <td><span class="status-badge status-active">Active</span></td>
-                    <td class="text-gray-600">Import</td>
-                    <td class="text-gray-600 text-sm">May 28</td>
-                    <td class="text-gray-600 text-sm">Jun 12</td>
-                    <td>
-                      <button class="text-red-600 hover:bg-red-50 p-2 rounded text-sm" onclick="openUserDetails('Diego Morales', 'diego.m@example.com', 'active')">
-                        <i class="fa-solid fa-ellipsis-h"></i>
-                      </button>
-                    </td>
-                  </tr>
-                  <tr class="user-row" data-status="bounced">
-                    <td><input type="checkbox" /></td>
-                    <td class="font-medium">Priya Shah</td>
-                    <td class="email-cell text-gray-600">priya.shah@example.com</td>
-                    <td><span class="status-badge status-bounced">Bounced</span></td>
-                    <td class="text-gray-600">Landing page</td>
-                    <td class="text-gray-600 text-sm">May 19</td>
-                    <td class="text-gray-600 text-sm">Jun 5</td>
-                    <td>
-                      <button class="text-red-600 hover:bg-red-50 p-2 rounded text-sm" onclick="openUserDetails('Priya Shah', 'priya.shah@example.com', 'bounced')">
-                        <i class="fa-solid fa-ellipsis-h"></i>
-                      </button>
-                    </td>
-                  </tr>
-                  <tr class="user-row" data-status="unsubscribed">
-                    <td><input type="checkbox" /></td>
-                    <td class="font-medium">Chen Wei</td>
-                    <td class="email-cell text-gray-600">chen.wei@example.com</td>
-                    <td><span class="status-badge status-unsubscribed">Unsubscribed</span></td>
-                    <td class="text-gray-600">Archive footer</td>
-                    <td class="text-gray-600 text-sm">May 11</td>
-                    <td class="text-gray-600 text-sm">May 25</td>
-                    <td>
-                      <button class="text-red-600 hover:bg-red-50 p-2 rounded text-sm" onclick="openUserDetails('Chen Wei', 'chen.wei@example.com', 'unsubscribed')">
-                        <i class="fa-solid fa-ellipsis-h"></i>
-                      </button>
-                    </td>
-                  </tr>
-                  <tr class="user-row" data-status="suppressed">
-                    <td><input type="checkbox" /></td>
-                    <td class="font-medium">Sam Taylor</td>
-                    <td class="email-cell text-gray-600">sam.taylor@example.com</td>
-                    <td><span class="status-badge status-suppressed">Suppressed</span></td>
-                    <td class="text-gray-600">Admin action</td>
-                    <td class="text-gray-600 text-sm">Apr 30</td>
-                    <td class="text-gray-600 text-sm">May 10</td>
-                    <td>
-                      <button class="text-red-600 hover:bg-red-50 p-2 rounded text-sm" onclick="openUserDetails('Sam Taylor', 'sam.taylor@example.com', 'suppressed')">
-                        <i class="fa-solid fa-ellipsis-h"></i>
-                      </button>
-                    </td>
+                  <tr>
+                    <td colspan="8">Loading subscribers from D1…</td>
                   </tr>
                 </tbody>
               </table>
@@ -897,7 +813,7 @@
           <div id="issues-page" class="page p-8">
             <div class="mb-6 flex gap-4 flex-col md:flex-row md:items-center md:justify-between">
               <div class="flex-1">
-                <input type="text" placeholder="Search issues..." class="input-field w-full" />
+                <input type="text" placeholder="Search issues..." class="input-field w-full" id="issue-search" onkeyup="filterIssues(currentIssueFilter)" />
               </div>
               <button class="btn-primary" onclick="openIssueEditor()">
                 <i class="fa-solid fa-plus mr-2"></i>
@@ -907,10 +823,10 @@
 
             <div class="flex gap-2 mb-6 overflow-x-auto pb-2">
               <button class="btn-secondary px-3 flex-none" onclick="filterIssues('all')" id="issue-filter-all" style="background-color: #dc2626; color: white; border-color: #dc2626;">All</button>
-              <button class="btn-secondary px-3 flex-none" onclick="filterIssues('draft')">Draft</button>
-              <button class="btn-secondary px-3 flex-none" onclick="filterIssues('published')">Published</button>
-              <button class="btn-secondary px-3 flex-none" onclick="filterIssues('scheduled')">Scheduled</button>
-              <button class="btn-secondary px-3 flex-none" onclick="filterIssues('sent')">Sent</button>
+              <button class="btn-secondary px-3 flex-none" data-issue-filter="draft" onclick="filterIssues('draft')">Draft</button>
+              <button class="btn-secondary px-3 flex-none" data-issue-filter="published" onclick="filterIssues('published')">Published</button>
+              <button class="btn-secondary px-3 flex-none" data-issue-filter="scheduled" onclick="filterIssues('scheduled')">Scheduled</button>
+              <button class="btn-secondary px-3 flex-none" data-issue-filter="sent" onclick="filterIssues('sent')">Sent</button>
             </div>
 
             <div class="card border rounded-lg overflow-hidden">
@@ -926,79 +842,8 @@
                   </tr>
                 </thead>
                 <tbody id="issues-table-body">
-                  <tr class="issue-row cursor-pointer" data-status="published" onclick="openIssueEditor('BLT Monthly Digest — June 2026')">
-                    <td class="font-medium">BLT Monthly Digest — June 2026</td>
-                    <td class="font-mono text-xs text-gray-600">blt-digest-jun-2026</td>
-                    <td><span class="status-badge status-published">Published</span></td>
-                    <td class="text-gray-600 text-sm">2d ago</td>
-                    <td class="text-gray-600 text-sm">Jun 10</td>
-                    <td>
-                      <div class="relative group">
-                        <button class="text-red-600 hover:bg-red-50 p-2 rounded text-sm">
-                          <i class="fa-solid fa-ellipsis-h"></i>
-                        </button>
-                        <div class="hidden group-hover:block absolute right-0 bg-white border rounded-lg shadow-lg min-w-max z-10">
-                          <button class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Preview</button>
-                          <button class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Send test</button>
-                          <button class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Send campaign</button>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr class="issue-row cursor-pointer" data-status="draft" onclick="openIssueEditor('GSoC Contributor Updates')">
-                    <td class="font-medium">GSoC Contributor Updates</td>
-                    <td class="font-mono text-xs text-gray-600">gsoc-updates</td>
-                    <td><span class="status-badge status-draft">Draft</span></td>
-                    <td class="text-gray-600 text-sm">5d ago</td>
-                    <td class="text-gray-600 text-sm">—</td>
-                    <td>
-                      <div class="relative group">
-                        <button class="text-red-600 hover:bg-red-50 p-2 rounded text-sm">
-                          <i class="fa-solid fa-ellipsis-h"></i>
-                        </button>
-                        <div class="hidden group-hover:block absolute right-0 bg-white border rounded-lg shadow-lg min-w-max z-10">
-                          <button class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Preview</button>
-                          <button class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Publish</button>
-                          <button class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Delete</button>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr class="issue-row cursor-pointer" data-status="sent" onclick="openIssueEditor('Hackathons and Jobs Roundup')">
-                    <td class="font-medium">Hackathons and Jobs Roundup</td>
-                    <td class="font-mono text-xs text-gray-600">jobs-roundup</td>
-                    <td><span class="status-badge status-sent">Sent</span></td>
-                    <td class="text-gray-600 text-sm">14d ago</td>
-                    <td class="text-gray-600 text-sm">May 27</td>
-                    <td>
-                      <div class="relative group">
-                        <button class="text-red-600 hover:bg-red-50 p-2 rounded text-sm">
-                          <i class="fa-solid fa-ellipsis-h"></i>
-                        </button>
-                        <div class="hidden group-hover:block absolute right-0 bg-white border rounded-lg shadow-lg min-w-max z-10">
-                          <button class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Preview</button>
-                          <button class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Archive</button>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr class="issue-row cursor-pointer" data-status="scheduled" onclick="openIssueEditor('Security Notes and Platform Fixes')">
-                    <td class="font-medium">Security Notes and Platform Fixes</td>
-                    <td class="font-mono text-xs text-gray-600">security-notes</td>
-                    <td><span class="status-badge status-scheduled">Scheduled</span></td>
-                    <td class="text-gray-600 text-sm">3d ago</td>
-                    <td class="text-gray-600 text-sm">Jun 20</td>
-                    <td>
-                      <div class="relative group">
-                        <button class="text-red-600 hover:bg-red-50 p-2 rounded text-sm">
-                          <i class="fa-solid fa-ellipsis-h"></i>
-                        </button>
-                        <div class="hidden group-hover:block absolute right-0 bg-white border rounded-lg shadow-lg min-w-max z-10">
-                          <button class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Preview</button>
-                          <button class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Unschedule</button>
-                        </div>
-                      </div>
-                    </td>
+                  <tr>
+                    <td colspan="6">Loading issues from D1…</td>
                   </tr>
                 </tbody>
               </table>
@@ -1034,65 +879,8 @@
                   </tr>
                 </thead>
                 <tbody id="campaigns-table-body">
-                  <tr class="campaign-row" data-status="completed" onclick="openCampaignDetails('June Digest Send')">
-                    <td class="font-medium">June Digest Send</td>
-                    <td><span class="status-badge status-sent">Completed</span></td>
-                    <td>
-                      <div class="flex items-center gap-2">
-                        <div class="progress-bar flex-1">
-                          <div class="progress-fill" style="width: 100%"></div>
-                        </div>
-                        <span class="text-xs text-gray-600 font-medium">100%</span>
-                      </div>
-                    </td>
-                    <td class="text-gray-600">1,248</td>
-                    <td class="text-red-600 font-medium cursor-pointer">12</td>
-                    <td class="text-gray-600 text-sm">Jun 10</td>
-                    <td>
-                      <button class="text-red-600 hover:bg-red-50 p-2 rounded text-sm" onclick="openCampaignDetails('June Digest Send')">
-                        <i class="fa-solid fa-arrow-right"></i>
-                      </button>
-                    </td>
-                  </tr>
-                  <tr class="campaign-row" data-status="completed" onclick="openCampaignDetails('GSoC Test Send')">
-                    <td class="font-medium">GSoC Test Send</td>
-                    <td><span class="status-badge status-sent">Completed</span></td>
-                    <td>
-                      <div class="flex items-center gap-2">
-                        <div class="progress-bar flex-1">
-                          <div class="progress-fill" style="width: 100%"></div>
-                        </div>
-                        <span class="text-xs text-gray-600 font-medium">100%</span>
-                      </div>
-                    </td>
-                    <td class="text-gray-600">1</td>
-                    <td class="text-gray-600">0</td>
-                    <td class="text-gray-600 text-sm">Jun 5</td>
-                    <td>
-                      <button class="text-red-600 hover:bg-red-50 p-2 rounded text-sm" onclick="openCampaignDetails('GSoC Test Send')">
-                        <i class="fa-solid fa-arrow-right"></i>
-                      </button>
-                    </td>
-                  </tr>
-                  <tr class="campaign-row" data-status="completed" onclick="openCampaignDetails('Jobs Roundup')">
-                    <td class="font-medium">Jobs Roundup</td>
-                    <td><span class="status-badge status-sent">Completed</span></td>
-                    <td>
-                      <div class="flex items-center gap-2">
-                        <div class="progress-bar flex-1">
-                          <div class="progress-fill" style="width: 96.8%"></div>
-                        </div>
-                        <span class="text-xs text-gray-600 font-medium">96.8%</span>
-                      </div>
-                    </td>
-                    <td class="text-gray-600">950</td>
-                    <td class="text-red-600 font-medium cursor-pointer">31</td>
-                    <td class="text-gray-600 text-sm">May 27</td>
-                    <td>
-                      <button class="text-red-600 hover:bg-red-50 p-2 rounded text-sm" onclick="openCampaignDetails('Jobs Roundup')">
-                        <i class="fa-solid fa-arrow-right"></i>
-                      </button>
-                    </td>
+                  <tr>
+                    <td colspan="7">Loading campaigns from D1…</td>
                   </tr>
                 </tbody>
               </table>
@@ -1204,10 +992,10 @@
       </div>
     </div>
 
-    <!-- User Details Sheet -->
+    <!-- Subscriber Details Sheet -->
     <div id="user-details-sheet" class="sheet">
       <div class="flex items-center justify-between p-6 border-b flex-none" style="border-bottom-color: var(--border-light);">
-        <h2 id="user-details-name" class="text-lg font-semibold">User Details</h2>
+        <h2 id="user-details-name" class="text-lg font-semibold">Subscriber Details</h2>
         <button onclick="closeUserDetails()" class="text-gray-600 hover:bg-gray-100 p-2 rounded-lg">
           <i class="fa-solid fa-times"></i>
         </button>
@@ -1251,9 +1039,9 @@
         </div>
       </div>
       <div class="border-t p-6 space-y-3 flex-none" style="border-top-color: var(--border-light);">
-        <button class="btn-secondary w-full" onclick="showToast('User suppressed')">
+        <button class="btn-secondary w-full" onclick="showToast('Subscriber suppressed')">
           <i class="fa-solid fa-ban mr-2"></i>
-          Suppress user
+          Suppress subscriber
         </button>
         <button class="close-button w-full" onclick="closeUserDetails()">Close</button>
       </div>
@@ -1282,11 +1070,15 @@
           </div>
           <div>
             <label class="block text-sm font-medium mb-2">Email subject</label>
-            <input type="text" class="input-field w-full" placeholder="Email subject line" />
+            <input type="text" class="input-field w-full" placeholder="Email subject line" id="issue-subject" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-2">Summary</label>
+            <input type="text" class="input-field w-full" placeholder="Short archive summary" id="issue-summary" />
           </div>
           <div>
             <label class="block text-sm font-medium mb-2">Body (Markdown)</label>
-            <textarea class="input-field w-full h-32 font-mono text-xs" placeholder="Write your content here..." style="resize: none;"></textarea>
+            <textarea class="input-field w-full h-32 font-mono text-xs" placeholder="Write your content here..." style="resize: none;" id="issue-markdown-body"></textarea>
           </div>
         </div>
         <div class="col-span-2 lg:col-span-1">
@@ -1308,7 +1100,7 @@
       </div>
       <div class="border-t p-6 space-y-3 flex-none flex gap-3" style="border-top-color: var(--border-light);">
         <button class="close-button flex-1" onclick="closeIssueEditor()">Close</button>
-        <button class="btn-primary flex-1" onclick="showToast('Draft saved')">Save draft</button>
+        <button class="btn-primary flex-1" onclick="saveIssueDraft()">Save draft</button>
         <button class="btn-primary flex-1" onclick="openCampaignConfirmation()">Send campaign</button>
       </div>
     </div>
@@ -1376,11 +1168,11 @@
         <p class="text-sm text-gray-600 mb-6">Send this issue to a single test recipient before launching a campaign.</p>
         <div class="mb-6">
           <label class="block text-sm font-medium mb-2">Recipient email</label>
-          <input type="email" placeholder="test@example.com" class="input-field w-full" />
+          <input type="email" placeholder="test@example.com" class="input-field w-full" id="test-email-recipient" />
         </div>
         <div class="flex gap-3">
           <button class="btn-secondary flex-1" onclick="closeTestEmailModal()">Cancel</button>
-          <button class="btn-primary flex-1" onclick="showToast('Test email sent'); closeTestEmailModal();">Send test</button>
+          <button class="btn-primary flex-1" onclick="sendTestEmail()">Send test</button>
         </div>
       </div>
     </div>
@@ -1391,7 +1183,7 @@
         <h2 class="text-lg font-semibold mb-2">Send campaign?</h2>
         <p class="text-sm text-gray-600 mb-4">This action will queue emails to all active subscribers. Sending cannot be undone.</p>
         <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-          <p class="text-sm"><span class="font-medium">Recipients:</span> All active users (2,847)</p>
+          <p class="text-sm"><span class="font-medium">Recipients:</span> All active subscribers (<span id="campaign-recipient-count">0</span>)</p>
         </div>
         <label class="flex items-center gap-2 mb-6 cursor-pointer">
           <input type="checkbox" class="w-4 h-4 rounded" id="campaign-confirm-checkbox" onchange="updateCampaignButton()" />
@@ -1399,7 +1191,7 @@
         </label>
         <div class="flex gap-3">
           <button class="btn-secondary flex-1" onclick="closeCampaignConfirmation()">Cancel</button>
-          <button class="btn-primary flex-1" id="campaign-confirm-btn" disabled onclick="showToast('Campaign queued'); closeCampaignConfirmation();">
+          <button class="btn-primary flex-1" id="campaign-confirm-btn" disabled onclick="queueCampaign()">
             Queue campaign
           </button>
         </div>
@@ -1409,8 +1201,8 @@
     <!-- Import Users Modal -->
     <div id="import-users-modal" class="modal-overlay">
       <div class="modal p-6 max-w-md">
-        <h2 class="text-lg font-semibold mb-2">Import users</h2>
-        <p class="text-sm text-gray-600 mb-4">Upload a CSV file or paste user data to import subscribers.</p>
+        <h2 class="text-lg font-semibold mb-2">Import subscribers</h2>
+        <p class="text-sm text-gray-600 mb-4">Upload a CSV file or paste subscriber data to import into D1.</p>
         <div class="border-2 border-dashed rounded-lg p-6 mb-4 text-center" style="border-color: var(--border-light); cursor: pointer;">
           <i class="fa-solid fa-cloud-arrow-up text-2xl text-gray-400 mb-2"></i>
           <p class="text-sm font-medium mb-1">Drag and drop or click to select</p>
@@ -1435,31 +1227,316 @@
       let currentStatusFilter = 'all';
       let currentIssueFilter = 'all';
       let currentCampaignFilter = 'all';
+      const dashboardState = {
+        admin: null,
+        stats: {},
+        subscribers: [],
+        issues: [],
+        jobs: [],
+        selectedIssueId: null,
+      };
+
+      document.addEventListener('DOMContentLoaded', initializeDashboard);
+
+      async function initializeDashboard() {
+        renderEmptyRow('users-table-body', 8, 'Loading subscribers from D1…');
+        renderEmptyRow('issues-table-body', 6, 'Loading issues from D1…');
+        renderEmptyRow('campaigns-table-body', 7, 'Loading campaigns from D1…');
+        renderEmptyRow('recent-activity-body', 3, 'Loading recent activity…');
+
+        try {
+          const profile = await adminFetch("/api/admin/me");
+          dashboardState.admin = profile.admin || null;
+          renderAdmin(profile.admin || {});
+        } catch (error) {
+          if (error.message !== 'redirecting') {
+            showToast(error.message || 'Could not verify admin session');
+          }
+          return;
+        }
+
+        await Promise.allSettled([
+          loadStats(),
+          loadSubscribers(),
+          loadIssues(),
+          loadJobs(),
+        ]);
+      }
+
+      async function adminFetch(url, options = {}) {
+        const response = await fetch(url, {
+          credentials: "same-origin",
+          headers: {
+            "Content-Type": "application/json",
+            ...(options.headers || {}),
+          },
+          ...options,
+        });
+
+        let payload = {};
+        try {
+          payload = await response.json();
+        } catch (error) {
+          payload = {};
+        }
+
+        if (response.status === 401) {
+          window.location.href = '/login';
+          throw new Error('redirecting');
+        }
+
+        if (!response.ok || payload.success === false) {
+          throw new Error(payload.error || 'Request failed.');
+        }
+
+        return payload;
+      }
+
+      async function loadStats() {
+        try {
+          const payload = await adminFetch("/api/admin/stats");
+          dashboardState.stats = payload.stats || {};
+          renderStats(dashboardState.stats);
+        } catch (error) {
+          showToast(error.message || 'Stats could not be loaded');
+        }
+      }
+
+      async function loadSubscribers() {
+        try {
+          const payload = await adminFetch("/api/admin/subscribers");
+          dashboardState.subscribers = Array.isArray(payload.subscribers) ? payload.subscribers : [];
+          renderSubscribers(dashboardState.subscribers);
+          renderRecentActivity();
+          filterByStatus(currentStatusFilter);
+        } catch (error) {
+          renderEmptyRow('users-table-body', 8, error.message || 'Subscribers could not be loaded.');
+          showToast(error.message || 'Subscribers could not be loaded');
+        }
+      }
+
+      async function loadIssues() {
+        try {
+          const payload = await adminFetch("/api/admin/issues");
+          dashboardState.issues = Array.isArray(payload.issues) ? payload.issues : [];
+          renderIssues(dashboardState.issues);
+          renderRecentActivity();
+          filterIssues(currentIssueFilter);
+        } catch (error) {
+          renderEmptyRow('issues-table-body', 6, error.message || 'Issues could not be loaded.');
+          showToast(error.message || 'Issues could not be loaded');
+        }
+      }
+
+      async function loadJobs() {
+        try {
+          const payload = await adminFetch("/api/admin/jobs");
+          dashboardState.jobs = Array.isArray(payload.jobs) ? payload.jobs : [];
+          renderCampaigns(dashboardState.jobs);
+          filterCampaigns(currentCampaignFilter);
+        } catch (error) {
+          renderEmptyRow('campaigns-table-body', 7, error.message || 'Campaigns could not be loaded.');
+          showToast(error.message || 'Campaigns could not be loaded');
+        }
+      }
+
+      function renderAdmin(admin) {
+        const fallback = 'AD';
+        const name = admin.name || admin.email || fallback;
+        const initials = name
+          .split(/\s+/)
+          .filter(Boolean)
+          .slice(0, 2)
+          .map(part => part[0]?.toUpperCase())
+          .join('') || fallback;
+        setText('admin-avatar-initials', initials);
+        const avatar = document.getElementById('admin-avatar-initials');
+        if (avatar) avatar.title = admin.email ? `Signed in as ${admin.email}` : 'Signed-in admin';
+      }
+
+      function renderStats(stats) {
+        const totalSubscribers = toNumber(stats.total_subscribers);
+        const activeSubscribers = toNumber(stats.active_subscribers);
+        const unsubscribedSubscribers = toNumber(stats.unsubscribed_subscribers);
+        const totalIssues = toNumber(stats.total_issues);
+        const publishedIssues = toNumber(stats.published_issues);
+        const draftIssues = toNumber(stats.draft_issues);
+
+        setText('stat-active-subscribers', formatNumber(activeSubscribers));
+        setText('stat-total-subscribers-note', `${formatNumber(totalSubscribers)} total subscribers`);
+        setText('stat-new-subscribers', formatNumber(totalSubscribers));
+        setText('stat-unsubscribed-note', `${formatNumber(unsubscribedSubscribers)} unsubscribed`);
+        setText('stat-published-issues', formatNumber(publishedIssues));
+        setText('stat-total-issues-note', `${formatNumber(totalIssues)} total issues`);
+        setText('stat-draft-issues', formatNumber(draftIssues));
+        setText('campaign-recipient-count', formatNumber(activeSubscribers));
+      }
+
+      function renderSubscribers(subscribers) {
+        const body = document.getElementById('users-table-body');
+        if (!body) return;
+
+        if (!subscribers.length) {
+          renderEmptyRow('users-table-body', 8, 'No subscribers yet. Public signups will appear here.');
+          return;
+        }
+
+        body.innerHTML = subscribers.map(subscriber => {
+          const id = escapeAttribute(subscriber.id || subscriber.email || '');
+          const status = normalizeStatus(subscriber.status || 'active');
+          const name = subscriber.name || '—';
+          return `
+                  <tr class="user-row" data-status="${escapeAttribute(status)}" data-search="${escapeAttribute(`${name} ${subscriber.email || ''}`.toLowerCase())}">
+                    <td><input type="checkbox" /></td>
+                    <td class="font-medium">${escapeHtml(name)}</td>
+                    <td class="email-cell text-gray-600">${escapeHtml(subscriber.email || '—')}</td>
+                    <td><span class="status-badge status-${escapeAttribute(status)}">${escapeHtml(titleCase(status))}</span></td>
+                    <td class="text-gray-600">${escapeHtml(formatSource(subscriber.source))}</td>
+                    <td class="text-gray-600 text-sm">${escapeHtml(formatDate(subscriber.subscribed_at))}</td>
+                    <td class="text-gray-600 text-sm">${escapeHtml(formatDate(subscriber.last_sent_at))}</td>
+                    <td>
+                      <button class="text-red-600 hover:bg-red-50 p-2 rounded text-sm" data-subscriber-id="${id}" aria-label="Open subscriber details">
+                        <i class="fa-solid fa-ellipsis-h"></i>
+                      </button>
+                    </td>
+                  </tr>`;
+        }).join('');
+      }
+
+      function renderIssues(issues) {
+        const body = document.getElementById('issues-table-body');
+        if (!body) return;
+
+        if (!issues.length) {
+          renderEmptyRow('issues-table-body', 6, 'No newsletter issues yet. Create a draft to start.');
+          return;
+        }
+
+        body.innerHTML = issues.map(issue => {
+          const id = escapeAttribute(issue.id || '');
+          const status = normalizeStatus(issue.status || 'draft');
+          const search = `${issue.title || ''} ${issue.slug || ''} ${issue.subject || ''}`.toLowerCase();
+          return `
+                  <tr class="issue-row cursor-pointer" data-status="${escapeAttribute(status)}" data-search="${escapeAttribute(search)}" data-issue-id="${id}">
+                    <td class="font-medium">${escapeHtml(issue.title || 'Untitled issue')}</td>
+                    <td class="font-mono text-xs text-gray-600">${escapeHtml(issue.slug || '—')}</td>
+                    <td><span class="status-badge status-${escapeAttribute(status)}">${escapeHtml(titleCase(status))}</span></td>
+                    <td class="text-gray-600 text-sm">${escapeHtml(formatDate(issue.updated_at || issue.created_at))}</td>
+                    <td class="text-gray-600 text-sm">${escapeHtml(formatDate(issue.published_at))}</td>
+                    <td>
+                      <button class="text-red-600 hover:bg-red-50 p-2 rounded text-sm" data-issue-id="${id}" aria-label="Edit issue">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                      </button>
+                    </td>
+                  </tr>`;
+        }).join('');
+      }
+
+      function renderCampaigns(jobs) {
+        const body = document.getElementById('campaigns-table-body');
+        if (!body) return;
+
+        if (!jobs.length) {
+          renderEmptyRow('campaigns-table-body', 7, 'No campaign jobs yet. Queue an issue to start sending.');
+          return;
+        }
+
+        body.innerHTML = jobs.map(job => {
+          const id = escapeAttribute(job.id || '');
+          const status = normalizeStatus(job.status || 'queued');
+          const total = toNumber(job.total_recipients);
+          const sent = toNumber(job.sent_count);
+          const failed = toNumber(job.failed_count);
+          const progress = campaignProgress(sent, failed, total);
+          const title = job.issue_title || job.issue_subject || job.issue_id || 'Newsletter campaign';
+          return `
+                  <tr class="campaign-row cursor-pointer" data-status="${escapeAttribute(status)}" data-job-id="${id}">
+                    <td class="font-medium">${escapeHtml(title)}</td>
+                    <td><span class="status-badge ${campaignStatusClass(status)}">${escapeHtml(titleCase(status))}</span></td>
+                    <td>
+                      <div class="flex items-center gap-2">
+                        <div class="progress-bar flex-1">
+                          <div class="progress-fill" style="width: ${progress}%"></div>
+                        </div>
+                        <span class="text-xs text-gray-600 font-medium">${progress}%</span>
+                      </div>
+                    </td>
+                    <td class="text-gray-600">${escapeHtml(formatNumber(sent))}</td>
+                    <td class="${failed ? 'text-red-600 font-medium' : 'text-gray-600'}">${escapeHtml(formatNumber(failed))}</td>
+                    <td class="text-gray-600 text-sm">${escapeHtml(formatDate(job.created_at))}</td>
+                    <td>
+                      <button class="text-red-600 hover:bg-red-50 p-2 rounded text-sm" data-job-id="${id}" aria-label="Open campaign details">
+                        <i class="fa-solid fa-arrow-right"></i>
+                      </button>
+                    </td>
+                  </tr>`;
+        }).join('');
+      }
+
+      function renderRecentActivity() {
+        const body = document.getElementById('recent-activity-body');
+        if (!body) return;
+
+        const activities = [];
+        dashboardState.subscribers.slice(0, 3).forEach(subscriber => {
+          activities.push({
+            type: 'Subscriber',
+            dot: 'bg-blue-600',
+            details: `${subscriber.email || 'Subscriber'} subscribed`,
+            time: subscriber.subscribed_at,
+          });
+        });
+        dashboardState.issues.slice(0, 3).forEach(issue => {
+          activities.push({
+            type: titleCase(issue.status || 'issue'),
+            dot: issue.status === 'published' ? 'bg-green-600' : 'bg-slate-400',
+            details: issue.title || issue.slug || 'Newsletter issue updated',
+            time: issue.updated_at || issue.created_at,
+          });
+        });
+
+        activities.sort((a, b) => String(b.time || '').localeCompare(String(a.time || '')));
+        if (!activities.length) {
+          renderEmptyRow('recent-activity-body', 3, 'No recent activity yet.');
+          return;
+        }
+
+        body.innerHTML = activities.slice(0, 5).map(activity => `
+                      <tr style="border-bottom: 1px solid var(--border-light);">
+                        <td class="px-6 py-3"><span class="inline-flex items-center gap-2"><span class="w-2 h-2 rounded-full ${activity.dot}"></span><span>${escapeHtml(activity.type)}</span></span></td>
+                        <td class="px-6 py-3" style="color: var(--text-secondary-light);">${escapeHtml(activity.details)}</td>
+                        <td class="px-6 py-3 text-right text-xs" style="color: var(--text-muted-light);">${escapeHtml(formatDate(activity.time))}</td>
+                      </tr>`).join('');
+      }
+
+      function renderEmptyRow(tableBodyId, colspan, message) {
+        const body = document.getElementById(tableBodyId);
+        if (!body) return;
+        body.innerHTML = `
+                  <tr>
+                    <td colspan="${colspan}" class="text-center text-gray-500 py-8">${escapeHtml(message)}</td>
+                  </tr>`;
+      }
 
       function navigateTo(page) {
-        // Hide all pages
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        
-        // Update sidebar active state
         document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
-        event.target.closest('.sidebar-item')?.classList.add('active');
-        
-        // Show selected page
-        const pageEl = document.getElementById(page + '-page');
-        if (pageEl) {
-          pageEl.classList.add('active');
+        if (typeof event !== 'undefined' && event.target) {
+          event.target.closest('.sidebar-item')?.classList.add('active');
         }
-        
-        // Update page title
+
+        const pageEl = document.getElementById(page + '-page');
+        if (pageEl) pageEl.classList.add('active');
+
         const titles = {
           overview: 'Overview',
-          users: 'Users',
+          users: 'Subscribers',
           issues: 'Issues',
           campaigns: 'Campaigns',
           template: 'Template',
           settings: 'Settings'
         };
-        
+
         const descs = {
           overview: 'Monitor newsletter health and activity',
           users: 'Manage newsletter subscribers, consent state, delivery health, and subscription status',
@@ -1468,30 +1545,46 @@
           template: 'Browse and use email templates',
           settings: 'Configure admin settings and integrations'
         };
-        
-        document.getElementById('page-title').textContent = titles[page];
-        document.getElementById('page-desc').textContent = descs[page];
+
+        setText('page-title', titles[page] || 'Overview');
+        setText('page-desc', descs[page] || 'Monitor newsletter health and activity');
         currentPage = page;
       }
 
-      function logout() {
-        window.location.href = '/login';
+      async function logout() {
+        try {
+          await fetch("/api/admin/logout", {
+            method: "POST",
+            credentials: "same-origin",
+          });
+        } finally {
+          window.location.href = '/login';
+        }
       }
 
       function toggleTheme() {
         document.documentElement.classList.toggle('dark');
       }
 
-      function openIssueEditor(title = null) {
+      function openIssueEditor(issueId = null) {
+        const issue = issueId ? dashboardState.issues.find(item => item.id === issueId) : null;
+        dashboardState.selectedIssueId = issue?.id || null;
         document.getElementById('sheet-overlay').classList.add('active');
         document.getElementById('issue-editor-sheet').classList.add('active');
-        if (title) {
-          document.getElementById('issue-editor-title').textContent = title;
-          document.getElementById('issue-editor-badge').style.display = 'inline-block';
-        } else {
-          document.getElementById('issue-editor-title').textContent = 'New issue';
-          document.getElementById('issue-editor-badge').style.display = 'none';
+
+        setText('issue-editor-title', issue ? issue.title || 'Edit issue' : 'New issue');
+        const badge = document.getElementById('issue-editor-badge');
+        if (badge) {
+          badge.style.display = issue ? 'inline-block' : 'none';
+          badge.textContent = titleCase(issue?.status || 'draft');
+          badge.className = `status-badge status-${normalizeStatus(issue?.status || 'draft')} ml-3`;
         }
+
+        setValue('issue-title', issue?.title || '');
+        setValue('issue-slug', issue?.slug || '');
+        setValue('issue-subject', issue?.subject || '');
+        setValue('issue-summary', issue?.summary || '');
+        setValue('issue-markdown-body', issue?.markdown_body || '');
       }
 
       function closeIssueEditor() {
@@ -1499,12 +1592,60 @@
         document.getElementById('issue-editor-sheet').classList.remove('active');
       }
 
-      function openUserDetails(name, email, status) {
+      async function saveIssueDraft() {
+        const payload = {
+          title: getValue('issue-title'),
+          slug: getValue('issue-slug'),
+          subject: getValue('issue-subject'),
+          summary: getValue('issue-summary'),
+          markdown_body: getValue('issue-markdown-body'),
+        };
+
+        if (!payload.title || !payload.slug || !payload.subject || !payload.markdown_body) {
+          showToast('Title, slug, subject, and body are required.');
+          return;
+        }
+
+        const isUpdate = Boolean(dashboardState.selectedIssueId);
+
+        try {
+          const response = isUpdate
+            ? await adminFetch(`/api/admin/issues/${encodeURIComponent(dashboardState.selectedIssueId)}`, {
+                method: "PATCH",
+                body: JSON.stringify(payload),
+              })
+            : await adminFetch("/api/admin/issues", {
+                method: "POST",
+                body: JSON.stringify(payload),
+              });
+          const savedIssue = response.issue;
+          if (savedIssue) {
+            const index = dashboardState.issues.findIndex(issue => issue.id === savedIssue.id);
+            if (index >= 0) dashboardState.issues[index] = savedIssue;
+            else dashboardState.issues.unshift(savedIssue);
+            renderIssues(dashboardState.issues);
+            renderRecentActivity();
+            filterIssues(currentIssueFilter);
+            dashboardState.selectedIssueId = savedIssue.id;
+          }
+          showToast(isUpdate ? 'Draft updated' : 'Draft saved');
+        } catch (error) {
+          showToast(error.message || 'Draft could not be saved');
+        }
+      }
+
+      function openUserDetails(subscriberId) {
+        const subscriber = dashboardState.subscribers.find(item => item.id === subscriberId) || {};
+        const status = normalizeStatus(subscriber.status || 'active');
         document.getElementById('sheet-overlay').classList.add('active');
         document.getElementById('user-details-sheet').classList.add('active');
-        document.getElementById('user-details-name').textContent = name;
-        document.getElementById('user-details-status').textContent = status.charAt(0).toUpperCase() + status.slice(1);
+        setText('user-details-name', subscriber.name || subscriber.email || 'Subscriber Details');
+        setText('user-details-status', titleCase(status));
         document.getElementById('user-details-status').className = 'status-badge status-' + status;
+        setText('user-details-source', formatSource(subscriber.source));
+        setText('user-details-subscribed', formatDate(subscriber.subscribed_at));
+        setText('user-details-last-sent', formatDate(subscriber.last_sent_at));
+        setText('user-details-bounces', formatNumber(toNumber(subscriber.bounce_count)));
       }
 
       function closeUserDetails() {
@@ -1512,7 +1653,9 @@
         document.getElementById('user-details-sheet').classList.remove('active');
       }
 
-      function openCampaignDetails(title) {
+      function openCampaignDetails(jobId) {
+        const job = dashboardState.jobs.find(item => item.id === jobId) || {};
+        const title = job.issue_title || job.issue_subject || job.issue_id || 'Campaign details';
         document.getElementById('sheet-overlay').classList.add('active');
         document.getElementById('campaign-details-sheet').classList.add('active');
         document.getElementById('campaign-details-title').textContent = title;
@@ -1529,6 +1672,10 @@
       }
 
       function openTestEmailModal() {
+        if (!getSelectedIssue()) {
+          showToast('Select an issue before sending a test email.');
+          return;
+        }
         document.getElementById('test-email-modal').classList.add('active');
       }
 
@@ -1537,6 +1684,11 @@
       }
 
       function openCampaignConfirmation() {
+        if (!getSelectedIssue()) {
+          showToast('Select an issue before queueing a campaign.');
+          return;
+        }
+        setText('campaign-recipient-count', formatNumber(toNumber(dashboardState.stats.active_subscribers)));
         document.getElementById('campaign-confirmation-modal').classList.add('active');
         document.getElementById('campaign-confirm-checkbox').checked = false;
         updateCampaignButton();
@@ -1552,6 +1704,60 @@
         btn.disabled = !checkbox.checked;
       }
 
+      async function sendTestEmail() {
+        const issue = getSelectedIssue();
+        if (!issue) {
+          showToast('Select an issue before sending a test email.');
+          return;
+        }
+
+        const email = getValue('test-email-recipient');
+        if (!email) {
+          showToast('Enter a test recipient email.');
+          return;
+        }
+
+        try {
+          await adminFetch(`/api/admin/issues/${encodeURIComponent(issue.id)}/send-test`, {
+            method: "POST",
+            body: JSON.stringify({ email }),
+          });
+          closeTestEmailModal();
+          showToast('Test email sent');
+        } catch (error) {
+          showToast(error.message || 'Test email could not be sent');
+        }
+      }
+
+      async function queueCampaign() {
+        const issue = getSelectedIssue();
+        if (!issue) {
+          showToast('Select an issue before queueing a campaign.');
+          return;
+        }
+
+        try {
+          const payload = await adminFetch(`/api/admin/issues/${encodeURIComponent(issue.id)}/send`, {
+            method: "POST",
+          });
+          if (payload.job) {
+            dashboardState.jobs.unshift({
+              ...payload.job,
+              issue_title: issue.title,
+              issue_subject: issue.subject,
+            });
+            renderCampaigns(dashboardState.jobs);
+            filterCampaigns(currentCampaignFilter);
+          } else {
+            await loadJobs();
+          }
+          closeCampaignConfirmation();
+          showToast(payload.queue_configured ? 'Campaign queued' : 'Campaign recorded without queue binding');
+        } catch (error) {
+          showToast(error.message || 'Campaign could not be queued');
+        }
+      }
+
       function openImportUsersModal() {
         document.getElementById('import-users-modal').classList.add('active');
       }
@@ -1562,52 +1768,41 @@
 
       function filterByStatus(status) {
         currentStatusFilter = status;
-        const rows = document.querySelectorAll('.user-row');
-        rows.forEach(row => {
-          if (status === 'all' || row.dataset.status === status) {
-            row.style.display = '';
-          } else {
-            row.style.display = 'none';
-          }
-        });
-        
-        // Update filter buttons
-        document.querySelectorAll('#users-page .btn-secondary').forEach((btn, idx) => {
-          if ((idx === 0 && status === 'all') || btn.textContent.toLowerCase() === status) {
-            btn.style.backgroundColor = '#dc2626';
-            btn.style.color = 'white';
-            btn.style.borderColor = '#dc2626';
-          } else {
-            btn.style.backgroundColor = '';
-            btn.style.color = '';
-            btn.style.borderColor = '';
-          }
+        applySubscriberFilters();
+        document.querySelectorAll('#users-page [data-status-filter]').forEach(btn => {
+          const isActive = btn.dataset.statusFilter === status;
+          btn.style.backgroundColor = isActive ? '#dc2626' : '';
+          btn.style.color = isActive ? 'white' : '';
+          btn.style.borderColor = isActive ? '#dc2626' : '';
         });
       }
 
       function filterUsers() {
-        const search = document.getElementById('user-search').value.toLowerCase();
-        const rows = document.querySelectorAll('.user-row');
-        rows.forEach(row => {
-          const name = row.cells[1]?.textContent.toLowerCase();
-          const email = row.cells[2]?.textContent.toLowerCase();
-          if (name?.includes(search) || email?.includes(search)) {
-            row.style.display = '';
-          } else {
-            row.style.display = 'none';
-          }
+        applySubscriberFilters();
+      }
+
+      function applySubscriberFilters() {
+        const search = (document.getElementById('user-search')?.value || '').toLowerCase();
+        document.querySelectorAll('.user-row').forEach(row => {
+          const matchesStatus = currentStatusFilter === 'all' || row.dataset.status === currentStatusFilter;
+          const matchesSearch = !search || (row.dataset.search || '').includes(search);
+          row.style.display = matchesStatus && matchesSearch ? '' : 'none';
         });
       }
 
       function filterIssues(status) {
         currentIssueFilter = status;
-        const rows = document.querySelectorAll('.issue-row');
-        rows.forEach(row => {
-          if (status === 'all' || row.dataset.status === status) {
-            row.style.display = '';
-          } else {
-            row.style.display = 'none';
-          }
+        const search = (document.getElementById('issue-search')?.value || '').toLowerCase();
+        document.querySelectorAll('.issue-row').forEach(row => {
+          const matchesStatus = status === 'all' || row.dataset.status === status;
+          const matchesSearch = !search || (row.dataset.search || '').includes(search);
+          row.style.display = matchesStatus && matchesSearch ? '' : 'none';
+        });
+        document.querySelectorAll('#issues-page [data-issue-filter]').forEach(btn => {
+          const isActive = btn.dataset.issueFilter === status;
+          btn.style.backgroundColor = isActive ? '#dc2626' : '';
+          btn.style.color = isActive ? 'white' : '';
+          btn.style.borderColor = isActive ? '#dc2626' : '';
         });
       }
 
@@ -1615,16 +1810,36 @@
         currentCampaignFilter = status;
         const rows = document.querySelectorAll('.campaign-row');
         rows.forEach(row => {
-          if (status === 'all' || row.dataset.status === status) {
-            row.style.display = '';
-          } else {
-            row.style.display = 'none';
-          }
+          row.style.display = status === 'all' || row.dataset.status === status || (status === 'sending' && ['queued', 'running', 'sending'].includes(row.dataset.status)) ? '' : 'none';
         });
+      }
+
+      function getSelectedIssue() {
+        if (!dashboardState.selectedIssueId) return null;
+        return dashboardState.issues.find(issue => issue.id === dashboardState.selectedIssueId) || null;
+      }
+
+      function campaignProgress(sent, failed, total) {
+        if (!total) return 0;
+        const progress = ((sent + failed) / total) * 100;
+        return Math.min(100, Math.round(progress * 10) / 10);
+      }
+
+      function campaignStatusClass(status) {
+        if (status === 'completed') return 'status-sent';
+        if (status === 'running' || status === 'sending' || status === 'queued') return 'status-sending';
+        if (status === 'failed') return 'status-bounced';
+        if (status === 'canceled') return 'status-unsubscribed';
+        return 'status-draft';
       }
 
       function useTemplate() {
         openIssueEditor();
+        setValue('issue-title', 'Monthly BLT Digest');
+        setValue('issue-slug', 'monthly-blt-digest');
+        setValue('issue-subject', 'Monthly BLT Digest');
+        setValue('issue-summary', 'Platform updates, contributor highlights, and shipped work.');
+        setValue('issue-markdown-body', '## Intro\n\n## Shipped\n\n## Contributor spotlight\n\n## Next');
         showToast('Template loaded - Monthly BLT Digest');
       }
 
@@ -1634,11 +1849,108 @@
         toast.className = 'toast';
         toast.textContent = message;
         container.appendChild(toast);
-        
+
         setTimeout(() => {
           toast.remove();
         }, 3000);
       }
+
+      function setText(id, value) {
+        const element = document.getElementById(id);
+        if (element) element.textContent = value;
+      }
+
+      function setValue(id, value) {
+        const element = document.getElementById(id);
+        if (element) element.value = value || '';
+      }
+
+      function getValue(id) {
+        return (document.getElementById(id)?.value || '').trim();
+      }
+
+      function toNumber(value) {
+        const number = Number(value || 0);
+        return Number.isFinite(number) ? number : 0;
+      }
+
+      function formatNumber(value) {
+        return toNumber(value).toLocaleString();
+      }
+
+      function hasValue(value) {
+        return value !== undefined && value !== null && value !== '' && value !== 'null';
+      }
+
+      function formatDate(value) {
+        if (!hasValue(value)) return '—';
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return String(value);
+        return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+      }
+
+      function formatSource(value) {
+        if (!hasValue(value)) return '—';
+        return String(value).replaceAll('_', ' ').replace(/\b\w/g, char => char.toUpperCase());
+      }
+
+      function normalizeStatus(value) {
+        return String(value || 'draft').toLowerCase().replace(/[^a-z0-9-]/g, '-');
+      }
+
+      function titleCase(value) {
+        return String(value || '').replaceAll('-', ' ').replace(/\b\w/g, char => char.toUpperCase());
+      }
+
+      function escapeHtml(value) {
+        return String(value ?? '').replace(/[&<>'"]/g, char => ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          "'": '&#39;',
+          '"': '&quot;',
+        }[char]));
+      }
+
+      function escapeAttribute(value) {
+        return escapeHtml(value).replace(/`/g, '&#96;');
+      }
+
+      function handleDashboardTableActions(event) {
+        const subscriberButton = event.target.closest('[data-subscriber-id]');
+        if (subscriberButton) {
+          event.stopPropagation();
+          openUserDetails(subscriberButton.dataset.subscriberId);
+          return;
+        }
+
+        const issueTarget = event.target.closest('[data-issue-id]');
+        if (issueTarget) {
+          event.stopPropagation();
+          openIssueEditor(issueTarget.dataset.issueId);
+          return;
+        }
+
+        const jobTarget = event.target.closest('[data-job-id]');
+        if (jobTarget) {
+          event.stopPropagation();
+          openCampaignDetails(jobTarget.dataset.jobId);
+        }
+      }
+
+      document.getElementById('users-table-body')?.addEventListener('click', handleDashboardTableActions);
+      document.getElementById('issues-table-body')?.addEventListener('click', handleDashboardTableActions);
+      document.getElementById('campaigns-table-body')?.addEventListener('click', handleDashboardTableActions);
+
+      document.getElementById('issue-title')?.addEventListener('input', (event) => {
+        const slugInput = document.getElementById('issue-slug');
+        if (!slugInput || dashboardState.selectedIssueId || slugInput.value.trim()) return;
+        slugInput.value = event.target.value
+          .toLowerCase()
+          .trim()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-+|-+$/g, '');
+      });
 
       // Close modals on Escape
       document.addEventListener('keydown', (e) => {

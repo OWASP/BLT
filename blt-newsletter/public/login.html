@@ -82,10 +82,10 @@
         <div class="mb-8 text-center">
           <a
             href="/"
-            class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg border border-red-100 bg-white text-lg text-red-600 shadow-sm"
+            class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg border border-red-100 bg-white shadow-sm"
             aria-label="Back to BLT Newsletter home"
           >
-            <i class="fa-solid fa-bug"></i>
+            <img src="./static/images/logo.png" alt="BLT Logo" class="h-10 w-10" />
           </a>
           <p class="text-xs font-semibold uppercase tracking-[0.18em] text-red-600">OWASP BLT</p>
           <h1 class="mt-2 text-2xl font-bold text-gray-950">Newsletter Admin</h1>
@@ -139,7 +139,9 @@
             </label>
           </div>
 
-          <button class="btn-primary mt-6" onclick="login()" type="submit">
+          <p id="login-error" class="mt-5 hidden rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"></p>
+
+          <button class="btn-primary mt-6" type="submit">
             Sign in
           </button>
 
@@ -152,8 +154,52 @@
     </main>
 
     <script>
-      function login() {
-        window.location.href = '/dashboard';
+      document.addEventListener('DOMContentLoaded', checkFirstAdminSetup);
+
+      async function checkFirstAdminSetup() {
+        try {
+          const response = await fetch("/api/admin/setup/status", {
+            credentials: "same-origin",
+          });
+          if (!response.ok) return;
+          const payload = await response.json();
+          if (payload.setup_required) {
+            window.location.href = '/signup';
+          }
+        } catch (error) {
+          // Keep login usable if setup status cannot be checked.
+        }
+      }
+
+      async function login() {
+        const errorEl = document.getElementById('login-error');
+        errorEl.classList.add('hidden');
+        errorEl.textContent = '';
+
+        try {
+          const response = await fetch("/api/admin/login", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "same-origin",
+            body: JSON.stringify({
+              email: document.getElementById('login-email').value,
+              password: document.getElementById('login-password').value,
+            }),
+          });
+
+          if (!response.ok) {
+            errorEl.textContent = 'Invalid email or password.';
+            errorEl.classList.remove('hidden');
+            return;
+          }
+
+          window.location.href = '/dashboard';
+        } catch (error) {
+          errorEl.textContent = 'Sign in failed. Please try again.';
+          errorEl.classList.remove('hidden');
+        }
       }
 
       function togglePasswordVisibility() {
