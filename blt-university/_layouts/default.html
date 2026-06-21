@@ -144,7 +144,9 @@
     
     {{ content }}
     
-    {% include footer.html %}
+    <div class="px-4">
+        {% include footer.html %}
+    </div>
     
     <script src="{{ '/assets/js/main.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
 </body>
