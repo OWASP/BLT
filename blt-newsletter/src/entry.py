@@ -28,15 +28,17 @@ try:
         build_send_job_record,
     )
     from .email_service import SendGridEmailService
-    from .email_templates import render_newsletter_issue_email
+    from .email_templates import render_newsletter_campaign_email
     from .newsletter_service import subscribe, unsubscribe
     from .newsletter_validation import email_hash, is_valid_email, normalize_email
-    from .newsletter_issue_schema import (
-        issue_insert_columns_and_params,
-        issue_order_expression,
-        issue_select_columns,
-        issue_slug_column,
-        map_issue_update_fields,
+    from .newsletter_campaign_schema import (
+        campaign_insert_columns_and_params,
+        campaign_order_expression,
+        campaign_select_columns,
+        campaign_slug_column,
+        campaign_table_name,
+        map_campaign_update_fields,
+        send_job_campaign_column,
     )
 except ImportError:  # pragma: no cover - used when the Worker loads src/ as its root.
     from admin_auth import (
@@ -55,15 +57,17 @@ except ImportError:  # pragma: no cover - used when the Worker loads src/ as its
         build_send_job_record,
     )
     from email_service import SendGridEmailService
-    from email_templates import render_newsletter_issue_email
+    from email_templates import render_newsletter_campaign_email
     from newsletter_service import subscribe, unsubscribe
     from newsletter_validation import email_hash, is_valid_email, normalize_email
-    from newsletter_issue_schema import (
-        issue_insert_columns_and_params,
-        issue_order_expression,
-        issue_select_columns,
-        issue_slug_column,
-        map_issue_update_fields,
+    from newsletter_campaign_schema import (
+        campaign_insert_columns_and_params,
+        campaign_order_expression,
+        campaign_select_columns,
+        campaign_slug_column,
+        campaign_table_name,
+        map_campaign_update_fields,
+        send_job_campaign_column,
     )
 
 
@@ -93,9 +97,9 @@ API_ROUTES = {
     "/api/admin/me",
     "/api/admin/stats",
     "/api/admin/subscribers",
-    "/api/admin/issues",
+    "/api/admin/campaigns",
     "/api/admin/jobs",
-    "/api/issues",
+    "/api/campaigns",
 }
 
 CORS_HEADERS = {
@@ -108,7 +112,7 @@ CORS_HEADERS = {
 ADMIN_SESSION_MAX_AGE_SECONDS = 8 * 60 * 60
 DEFAULT_EMAIL_HASH_SECRET = "development-email-hash-secret"
 DEFAULT_ADMIN_SESSION_SECRET = "development-admin-session-secret"
-ISSUE_STATUSES = {"draft", "published", "scheduled", "sent"}
+CAMPAIGN_STATUSES = {"draft", "published", "scheduled", "sent"}
 SLUG_PATTERN = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 
 
@@ -188,42 +192,42 @@ class Default(WorkerEntrypoint):
             job_id = unquote(job_action)
             return await self.handle_admin_job_detail(request, job_id)
 
-        if path == "/api/admin/issues":
+        if path == "/api/admin/campaigns":
             if request.method == "GET":
-                return await self.handle_admin_issues(request)
+                return await self.handle_admin_campaigns(request)
             if request.method == "POST":
-                return await self.handle_admin_create_issue(request)
+                return await self.handle_admin_create_campaign(request)
             return json_error("Method not allowed.", 405)
 
-        if path.startswith("/api/admin/issues/"):
-            issue_action = path[len("/api/admin/issues/") :]
-            if issue_action.endswith("/send-test"):
+        if path.startswith("/api/admin/campaigns/"):
+            campaign_action = path[len("/api/admin/campaigns/") :]
+            if campaign_action.endswith("/send-test"):
                 if request.method != "POST":
                     return json_error("Method not allowed.", 405)
-                issue_id = unquote(issue_action[: -len("/send-test")])
-                return await self.handle_admin_send_test(request, issue_id)
+                campaign_id = unquote(campaign_action[: -len("/send-test")])
+                return await self.handle_admin_send_test(request, campaign_id)
 
-            if issue_action.endswith("/send"):
+            if campaign_action.endswith("/publish"):
                 if request.method != "POST":
                     return json_error("Method not allowed.", 405)
-                issue_id = unquote(issue_action[: -len("/send")])
-                return await self.handle_admin_send_issue(request, issue_id)
+                campaign_id = unquote(campaign_action[: -len("/publish")])
+                return await self.handle_admin_publish_campaign(request, campaign_id)
 
             if request.method != "PATCH":
                 return json_error("Method not allowed.", 405)
-            issue_id = unquote(issue_action)
-            return await self.handle_admin_patch_issue(request, issue_id)
+            campaign_id = unquote(campaign_action)
+            return await self.handle_admin_patch_campaign(request, campaign_id)
 
-        if path == "/api/issues":
+        if path == "/api/campaigns":
             if request.method != "GET":
                 return json_error("Method not allowed.", 405)
-            return await self.handle_public_issues(request)
+            return await self.handle_public_campaigns(request)
 
-        if path.startswith("/api/issues/"):
+        if path.startswith("/api/campaigns/"):
             if request.method != "GET":
                 return json_error("Method not allowed.", 405)
-            slug = unquote(path[len("/api/issues/") :])
-            return await self.handle_public_issue_detail(request, slug)
+            slug = unquote(path[len("/api/campaigns/") :])
+            return await self.handle_public_campaign_detail(request, slug)
 
         if path == "/login":
             if request.method != "GET":
@@ -373,8 +377,8 @@ class Default(WorkerEntrypoint):
         )
 
     async def handle_public_unsubscribe_page(self, request, url):
-        subscriber_id = clean_issue_text(url.searchParams.get("subscriber_id"))
-        token = clean_issue_text(url.searchParams.get("token"))
+        subscriber_id = clean_text(url.searchParams.get("subscriber_id"))
+        token = clean_text(url.searchParams.get("token"))
         if not subscriber_id or not token:
             return html_response(
                 "Unsubscribe link invalid",
@@ -520,19 +524,19 @@ class Default(WorkerEntrypoint):
 
         return json_response({"success": True, "subscribers": subscribers})
 
-    async def handle_admin_issues(self, request):
+    async def handle_admin_campaigns(self, request):
         context, error_response = await self.require_admin(request)
         if error_response is not None:
             return error_response
 
         try:
-            issues = await context["store"].list_admin_issues()
+            campaigns = await context["store"].list_admin_campaigns()
         except Exception:
-            return json_error("Issues could not be loaded.", 500)
+            return json_error("Campaigns could not be loaded.", 500)
 
-        return json_response({"success": True, "issues": issues})
+        return json_response({"success": True, "campaigns": campaigns})
 
-    async def handle_admin_create_issue(self, request):
+    async def handle_admin_create_campaign(self, request):
         context, error_response = await self.require_admin(request)
         if error_response is not None:
             return error_response
@@ -541,24 +545,24 @@ class Default(WorkerEntrypoint):
         if payload is None:
             return json_error("Invalid JSON request body.", 400)
 
-        issue_data, validation_error = build_issue_create_record(payload, context["admin"]["id"])
+        campaign_data, validation_error = build_campaign_create_record(payload, context["admin"]["id"])
         if validation_error is not None:
             return json_error(validation_error, 400)
 
         try:
-            await context["store"].insert_issue(issue_data)
+            await context["store"].insert_campaign(campaign_data)
         except Exception:
-            return json_error("Issue could not be created.", 500)
+            return json_error("Campaign could not be created.", 500)
 
-        return json_response({"success": True, "issue": issue_data}, status=201)
+        return json_response({"success": True, "campaign": campaign_data}, status=201)
 
-    async def handle_admin_send_test(self, request, issue_id):
+    async def handle_admin_send_test(self, request, campaign_id):
         context, error_response = await self.require_admin(request)
         if error_response is not None:
             return error_response
 
-        if not issue_id:
-            return json_error("Issue id is required.", 400)
+        if not campaign_id:
+            return json_error("Campaign id is required.", 400)
 
         payload = await safe_json(request)
         if payload is None:
@@ -576,25 +580,25 @@ class Default(WorkerEntrypoint):
             )
 
         try:
-            issue = await context["store"].find_issue_by_id(issue_id)
+            campaign = await context["store"].find_campaign_by_id(campaign_id)
         except Exception:
-            return json_error("Issue could not be loaded.", 500)
+            return json_error("Campaign could not be loaded.", 500)
 
-        if not issue:
-            return json_error("Issue not found.", 404)
+        if not campaign:
+            return json_error("Campaign not found.", 404)
 
-        html = render_issue_email_html(
-            issue,
-            build_issue_archive_url(issue, request=request),
+        html = render_campaign_email_html(
+            campaign,
+            build_campaign_archive_url(campaign, request=request),
             build_unsubscribe_url(request=request),
         )
         service = SendGridEmailService(api_key, from_email, from_name)
         result = await service.send_email(
             to_email,
-            issue_email_subject(issue),
+            campaign_email_subject(campaign),
             html,
             custom_args={
-                "issue_id": issue_id,
+                "campaign_id": campaign_id,
                 "admin_id": context["admin"]["id"],
                 "message_type": "test",
             },
@@ -611,13 +615,13 @@ class Default(WorkerEntrypoint):
 
         return json_error(result.get("error") or "Test email could not be sent.", 502)
 
-    async def handle_admin_send_issue(self, request, issue_id):
+    async def handle_admin_publish_campaign(self, request, campaign_id):
         context, error_response = await self.require_admin(request)
         if error_response is not None:
             return error_response
 
-        if not issue_id:
-            return json_error("Issue id is required.", 400)
+        if not campaign_id:
+            return json_error("Campaign id is required.", 400)
 
         api_key, from_email, from_name = get_sendgrid_config(self.env)
         if not api_key or not from_email:
@@ -627,28 +631,28 @@ class Default(WorkerEntrypoint):
             )
 
         try:
-            issue = await context["store"].find_issue_by_id(issue_id)
-            if not issue:
-                return json_error("Issue not found.", 404)
+            campaign = await context["store"].find_campaign_by_id(campaign_id)
+            if not campaign:
+                return json_error("Campaign not found.", 404)
 
-            open_job = await context["store"].find_open_send_job_by_issue(issue_id)
+            open_job = await context["store"].find_open_send_job_by_campaign(campaign_id)
             if open_job:
-                return json_error("Campaign already queued for this issue.", 409)
+                return json_error("Campaign already queued.", 409)
 
             now = utc_timestamp()
-            if issue.get("status") != "published":
-                await context["store"].update_issue(
-                    issue_id,
+            if campaign.get("status") != "published":
+                await context["store"].update_campaign(
+                    campaign_id,
                     {
                         "status": "published",
-                        "published_at": issue.get("published_at") or now,
+                        "published_at": campaign.get("published_at") or now,
                         "updated_at": now,
                     },
                 )
-                issue = await context["store"].find_issue_by_id(issue_id)
+                campaign = await context["store"].find_campaign_by_id(campaign_id)
 
             subscribers = await context["store"].list_active_subscribers()
-            job = build_send_job_record(issue_id, len(subscribers), context["admin"]["id"])
+            job = build_send_job_record(campaign_id, len(subscribers), context["admin"]["id"])
             if not subscribers:
                 job["status"] = "completed"
                 job["completed_at"] = utc_timestamp()
@@ -663,13 +667,13 @@ class Default(WorkerEntrypoint):
                     job["id"],
                     subscriber.get("id"),
                     "queued",
-                    metadata={"issue_id": issue_id},
+                    metadata={"campaign_id": campaign_id},
                 )
                 await context["store"].insert_delivery_event(delivery_event)
                 if queue_configured:
                     message = build_queue_message(
                         job["id"],
-                        issue_id,
+                        campaign_id,
                         delivery_event["id"],
                         subscriber.get("id"),
                     )
@@ -741,63 +745,63 @@ class Default(WorkerEntrypoint):
 
         return json_response({"success": True, "job": job})
 
-    async def handle_admin_patch_issue(self, request, issue_id):
+    async def handle_admin_patch_campaign(self, request, campaign_id):
         context, error_response = await self.require_admin(request)
         if error_response is not None:
             return error_response
 
-        if not issue_id:
-            return json_error("Issue id is required.", 400)
+        if not campaign_id:
+            return json_error("Campaign id is required.", 400)
 
         payload = await safe_json(request)
         if payload is None:
             return json_error("Invalid JSON request body.", 400)
 
-        updates, validation_error = build_issue_updates(payload)
+        updates, validation_error = build_campaign_updates(payload)
         if validation_error is not None:
             return json_error(validation_error, 400)
 
         try:
-            existing = await context["store"].find_issue_by_id(issue_id)
+            existing = await context["store"].find_campaign_by_id(campaign_id)
             if not existing:
-                return json_error("Issue not found.", 404)
+                return json_error("Campaign not found.", 404)
 
-            await context["store"].update_issue(issue_id, updates)
-            issue = await context["store"].find_issue_by_id(issue_id)
+            await context["store"].update_campaign(campaign_id, updates)
+            campaign = await context["store"].find_campaign_by_id(campaign_id)
         except Exception:
-            return json_error("Issue could not be updated.", 500)
+            return json_error("Campaign could not be updated.", 500)
 
-        return json_response({"success": True, "issue": issue})
+        return json_response({"success": True, "campaign": campaign})
 
-    async def handle_public_issues(self, request):
+    async def handle_public_campaigns(self, request):
         db = get_db_binding(self.env)
         if db is None:
             return json_error("Newsletter archive is temporarily unavailable.", 503)
 
         try:
-            issues = await D1SubscriberStore(db).list_published_issues()
+            campaigns = await D1SubscriberStore(db).list_published_campaigns()
         except Exception:
             return json_error("Newsletter archive could not be loaded.", 500)
 
-        return json_response({"success": True, "issues": issues})
+        return json_response({"success": True, "campaigns": campaigns})
 
-    async def handle_public_issue_detail(self, request, slug):
+    async def handle_public_campaign_detail(self, request, slug):
         db = get_db_binding(self.env)
         if db is None:
             return json_error("Newsletter archive is temporarily unavailable.", 503)
 
         if not slug:
-            return json_error("Issue not found.", 404)
+            return json_error("Campaign not found.", 404)
 
         try:
-            issue = await D1SubscriberStore(db).find_published_issue_by_slug(slug)
+            campaign = await D1SubscriberStore(db).find_published_campaign_by_slug(slug)
         except Exception:
-            return json_error("Newsletter issue could not be loaded.", 500)
+            return json_error("Newsletter campaign could not be loaded.", 500)
 
-        if not issue:
-            return json_error("Issue not found.", 404)
+        if not campaign:
+            return json_error("Campaign not found.", 404)
 
-        return json_response({"success": True, "issue": issue})
+        return json_response({"success": True, "campaign": campaign})
 
     async def require_admin(self, request):
         db = get_db_binding(self.env)
@@ -840,10 +844,10 @@ class Default(WorkerEntrypoint):
     async def process_queue_message(self, store, message):
         body = get_queue_message_body(message)
         job_id = body.get("job_id") or ""
-        issue_id = body.get("issue_id") or ""
+        campaign_id = body.get("campaign_id") or body.get("issue_id") or ""
         subscriber_id = body.get("subscriber_id") or ""
 
-        if not job_id or not issue_id or not subscriber_id:
+        if not job_id or not campaign_id or not subscriber_id:
             await ack_queue_message(message)
             return
 
@@ -852,9 +856,9 @@ class Default(WorkerEntrypoint):
             await ack_queue_message(message)
             return
 
-        issue = await store.find_issue_by_id(issue_id)
+        campaign = await store.find_campaign_by_id(campaign_id)
         subscriber = await store.find_subscriber_by_id(subscriber_id)
-        if not issue or not subscriber:
+        if not campaign or not subscriber:
             await ack_queue_message(message)
             return
 
@@ -874,17 +878,17 @@ class Default(WorkerEntrypoint):
             await retry_queue_message(message)
             return
 
-        html = render_issue_email_html(
-            issue,
-            build_issue_archive_url(issue, env=self.env),
+        html = render_campaign_email_html(
+            campaign,
+            build_campaign_archive_url(campaign, env=self.env),
             build_unsubscribe_url(subscriber_id=subscriber_id, env=self.env),
         )
         service = SendGridEmailService(api_key, from_email, from_name)
         result = await service.send_email(
             subscriber["email"],
-            issue_email_subject(issue),
+            campaign_email_subject(campaign),
             html,
-            custom_args={"job_id": job_id, "issue_id": issue_id, "subscriber_id": subscriber_id},
+            custom_args={"job_id": job_id, "campaign_id": campaign_id, "subscriber_id": subscriber_id},
         )
 
         event_type = "sent" if result.get("success") else "failed"
@@ -925,7 +929,10 @@ class Default(WorkerEntrypoint):
 class D1SubscriberStore:
     def __init__(self, db):
         self.db = db
-        self._issue_columns = None
+        self._table_names = None
+        self._campaign_table = None
+        self._campaign_columns = None
+        self._send_job_columns = None
 
     async def find_by_hash(self, subscriber_hash):
         row = await self._first(
@@ -1139,16 +1146,17 @@ class D1SubscriberStore:
             """
         )
         stats = js_to_py(row) or {}
-        issue_stats = await self._first(
-            """
+        campaign_table = await self.campaign_table_name()
+        campaign_stats = await self._first(
+            f"""
             SELECT
-              COUNT(*) AS total_issues,
-              SUM(CASE WHEN status = 'published' THEN 1 ELSE 0 END) AS published_issues,
-              SUM(CASE WHEN status = 'draft' THEN 1 ELSE 0 END) AS draft_issues
-            FROM newsletter_issues
+              COUNT(*) AS total_campaigns,
+              SUM(CASE WHEN status = 'published' THEN 1 ELSE 0 END) AS published_campaigns,
+              SUM(CASE WHEN status = 'draft' THEN 1 ELSE 0 END) AS draft_campaigns
+            FROM {campaign_table}
             """
         )
-        stats.update(js_to_py(issue_stats) or {})
+        stats.update(js_to_py(campaign_stats) or {})
         return stats
 
     async def list_subscribers(self, limit=100):
@@ -1215,35 +1223,64 @@ class D1SubscriberStore:
             subscriber_id,
         )
 
-    async def issue_table_columns(self):
-        if self._issue_columns is not None:
-            return self._issue_columns
+    async def table_names(self):
+        if self._table_names is not None:
+            return self._table_names
 
-        rows = await self._all("SELECT name FROM pragma_table_info('newsletter_issues')")
-        self._issue_columns = [row.get("name") for row in rows if isinstance(row, dict) and row.get("name")]
-        return self._issue_columns
+        rows = await self._all("SELECT name FROM sqlite_master WHERE type = 'table'")
+        self._table_names = [row.get("name") for row in rows if isinstance(row, dict) and row.get("name")]
+        return self._table_names
 
-    async def list_admin_issues(self, limit=100):
-        columns = await self.issue_table_columns()
-        select_columns = ", ".join(issue_select_columns(columns))
+    async def campaign_table_name(self):
+        if self._campaign_table is not None:
+            return self._campaign_table
+
+        self._campaign_table = campaign_table_name(await self.table_names())
+        return self._campaign_table
+
+    async def campaign_table_columns(self):
+        if self._campaign_columns is not None:
+            return self._campaign_columns
+
+        table_name = await self.campaign_table_name()
+        rows = await self._all(f"SELECT name FROM pragma_table_info('{table_name}')")
+        self._campaign_columns = [row.get("name") for row in rows if isinstance(row, dict) and row.get("name")]
+        return self._campaign_columns
+
+    async def send_job_table_columns(self):
+        if self._send_job_columns is not None:
+            return self._send_job_columns
+
+        rows = await self._all("SELECT name FROM pragma_table_info('newsletter_send_jobs')")
+        self._send_job_columns = [row.get("name") for row in rows if isinstance(row, dict) and row.get("name")]
+        return self._send_job_columns
+
+    async def send_job_campaign_column(self):
+        return send_job_campaign_column(await self.send_job_table_columns())
+
+    async def list_admin_campaigns(self, limit=100):
+        table_name = await self.campaign_table_name()
+        columns = await self.campaign_table_columns()
+        select_columns = ", ".join(campaign_select_columns(columns))
         return await self._all(
             f"""
             SELECT {select_columns}
-            FROM newsletter_issues
+            FROM {table_name}
             ORDER BY created_at DESC
             LIMIT ?
             """,
             limit,
         )
 
-    async def list_published_issues(self, limit=50):
-        columns = await self.issue_table_columns()
-        select_columns = ", ".join(issue_select_columns(columns, include_created_by=False))
-        order_expression = issue_order_expression(columns)
+    async def list_published_campaigns(self, limit=50):
+        table_name = await self.campaign_table_name()
+        columns = await self.campaign_table_columns()
+        select_columns = ", ".join(campaign_select_columns(columns, include_created_by=False))
+        order_expression = campaign_order_expression(columns)
         return await self._all(
             f"""
             SELECT {select_columns}
-            FROM newsletter_issues
+            FROM {table_name}
             WHERE status = 'published'
             ORDER BY {order_expression} DESC
             LIMIT ?
@@ -1251,14 +1288,15 @@ class D1SubscriberStore:
             limit,
         )
 
-    async def find_published_issue_by_slug(self, slug):
-        columns = await self.issue_table_columns()
-        select_columns = ", ".join(issue_select_columns(columns, include_created_by=False))
-        slug_column = issue_slug_column(columns)
+    async def find_published_campaign_by_slug(self, slug):
+        table_name = await self.campaign_table_name()
+        columns = await self.campaign_table_columns()
+        select_columns = ", ".join(campaign_select_columns(columns, include_created_by=False))
+        slug_column = campaign_slug_column(columns)
         row = await self._first(
             f"""
             SELECT {select_columns}
-            FROM newsletter_issues
+            FROM {table_name}
             WHERE status = 'published'
               AND {slug_column} = ?
             LIMIT 1
@@ -1267,27 +1305,29 @@ class D1SubscriberStore:
         )
         return js_to_py(row)
 
-    async def find_issue_by_id(self, issue_id):
-        columns = await self.issue_table_columns()
-        select_columns = ", ".join(issue_select_columns(columns))
+    async def find_campaign_by_id(self, campaign_id):
+        table_name = await self.campaign_table_name()
+        columns = await self.campaign_table_columns()
+        select_columns = ", ".join(campaign_select_columns(columns))
         row = await self._first(
             f"""
             SELECT {select_columns}
-            FROM newsletter_issues
+            FROM {table_name}
             WHERE id = ?
             LIMIT 1
             """,
-            issue_id,
+            campaign_id,
         )
         return js_to_py(row)
 
-    async def insert_issue(self, record):
-        columns = await self.issue_table_columns()
-        insert_columns, params = issue_insert_columns_and_params(record, columns)
+    async def insert_campaign(self, record):
+        table_name = await self.campaign_table_name()
+        columns = await self.campaign_table_columns()
+        insert_columns, params = campaign_insert_columns_and_params(record, columns)
         placeholders = ", ".join("?" for _ in insert_columns)
         await self._run(
             f"""
-            INSERT INTO newsletter_issues (
+            INSERT INTO {table_name} (
               {", ".join(insert_columns)}
             )
             VALUES ({placeholders})
@@ -1296,16 +1336,17 @@ class D1SubscriberStore:
         )
 
     async def insert_send_job(self, record):
+        campaign_column = await self.send_job_campaign_column()
         await self._run(
-            """
+            f"""
             INSERT INTO newsletter_send_jobs (
-              id, issue_id, status, provider, total_recipients, sent_count,
+              id, {campaign_column}, status, provider, total_recipients, sent_count,
               failed_count, started_at, completed_at, created_at, metadata_json
             )
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             record["id"],
-            record["issue_id"],
+            record["campaign_id"],
             record["status"],
             record["provider"],
             record["total_recipients"],
@@ -1317,30 +1358,35 @@ class D1SubscriberStore:
             record["metadata_json"],
         )
 
-    async def find_open_send_job_by_issue(self, issue_id):
+    async def find_open_send_job_by_campaign(self, campaign_id):
+        campaign_column = await self.send_job_campaign_column()
         row = await self._first(
-            """
-            SELECT id, issue_id, status, provider, total_recipients, sent_count,
-                   failed_count, started_at, completed_at, created_at, metadata_json
+            f"""
+            SELECT id, {campaign_column} AS campaign_id, status, provider,
+                   total_recipients, sent_count, failed_count, started_at,
+                   completed_at, created_at, metadata_json
             FROM newsletter_send_jobs
-            WHERE issue_id = ?
+            WHERE {campaign_column} = ?
               AND status IN ('queued', 'running', 'sending')
             ORDER BY created_at DESC
             LIMIT 1
             """,
-            issue_id,
+            campaign_id,
         )
         return js_to_py(row)
 
     async def list_send_jobs(self, limit=100):
+        table_name = await self.campaign_table_name()
+        campaign_column = await self.send_job_campaign_column()
         return await self._all(
-            """
-            SELECT j.id, j.issue_id, i.title AS issue_title, i.subject AS issue_subject,
+            f"""
+            SELECT j.id, j.{campaign_column} AS campaign_id,
+                   c.title AS campaign_title, c.subject AS campaign_subject,
                    j.status, j.provider, j.total_recipients, j.sent_count,
                    j.failed_count, j.started_at, j.completed_at, j.created_at,
                    j.metadata_json
             FROM newsletter_send_jobs j
-            LEFT JOIN newsletter_issues i ON i.id = j.issue_id
+            LEFT JOIN {table_name} c ON c.id = j.{campaign_column}
             ORDER BY j.created_at DESC
             LIMIT ?
             """,
@@ -1348,14 +1394,17 @@ class D1SubscriberStore:
         )
 
     async def find_send_job_by_id(self, job_id):
+        table_name = await self.campaign_table_name()
+        campaign_column = await self.send_job_campaign_column()
         row = await self._first(
-            """
-            SELECT j.id, j.issue_id, i.title AS issue_title, i.subject AS issue_subject,
+            f"""
+            SELECT j.id, j.{campaign_column} AS campaign_id,
+                   c.title AS campaign_title, c.subject AS campaign_subject,
                    j.status, j.provider, j.total_recipients, j.sent_count,
                    j.failed_count, j.started_at, j.completed_at, j.created_at,
                    j.metadata_json
             FROM newsletter_send_jobs j
-            LEFT JOIN newsletter_issues i ON i.id = j.issue_id
+            LEFT JOIN {table_name} c ON c.id = j.{campaign_column}
             WHERE j.id = ?
             LIMIT 1
             """,
@@ -1445,9 +1494,10 @@ class D1SubscriberStore:
             job_id,
         )
 
-    async def update_issue(self, issue_id, updates):
-        columns = await self.issue_table_columns()
-        mapped_updates = map_issue_update_fields(updates, columns)
+    async def update_campaign(self, campaign_id, updates):
+        table_name = await self.campaign_table_name()
+        columns = await self.campaign_table_columns()
+        mapped_updates = map_campaign_update_fields(updates, columns)
         if not mapped_updates:
             return
 
@@ -1457,10 +1507,10 @@ class D1SubscriberStore:
             assignments.append(f"{column} = ?")
             params.append(value)
 
-        params.append(issue_id)
+        params.append(campaign_id)
         await self._run(
             f"""
-            UPDATE newsletter_issues
+            UPDATE {table_name}
             SET {", ".join(assignments)}
             WHERE id = ?
             """,
@@ -1529,8 +1579,8 @@ def new_admin_id():
     return "adm_" + uuid.uuid4().hex
 
 
-def new_issue_id():
-    return "issue_" + uuid.uuid4().hex
+def new_campaign_id():
+    return "cmp_" + uuid.uuid4().hex
 
 
 def get_email_hash_secret(env):
@@ -1612,23 +1662,23 @@ def build_admin_setup_record(payload, email_secret, now):
     }, None
 
 
-def clean_issue_text(value):
+def clean_text(value):
     if not isinstance(value, str):
         return ""
 
     return value.strip()
 
 
-def validate_issue_required_text(payload, field_name):
-    value = clean_issue_text(payload.get(field_name))
+def validate_campaign_required_text(payload, field_name):
+    value = clean_text(payload.get(field_name))
     if not value:
         return None, f"{field_name} is required."
 
     return value, None
 
 
-def validate_issue_slug(slug):
-    value = clean_issue_text(slug)
+def validate_campaign_slug(slug):
+    value = clean_text(slug)
     if not value:
         return None, "slug is required."
 
@@ -1638,26 +1688,26 @@ def validate_issue_slug(slug):
     return value, None
 
 
-def build_issue_create_record(payload, admin_id):
-    title, error = validate_issue_required_text(payload, "title")
+def build_campaign_create_record(payload, admin_id):
+    title, error = validate_campaign_required_text(payload, "title")
     if error:
         return None, error
 
-    slug, error = validate_issue_slug(payload.get("slug"))
+    slug, error = validate_campaign_slug(payload.get("slug"))
     if error:
         return None, error
 
-    subject, error = validate_issue_required_text(payload, "subject")
+    subject, error = validate_campaign_required_text(payload, "subject")
     if error:
         return None, error
 
-    markdown_body, error = validate_issue_required_text(payload, "markdown_body")
+    markdown_body, error = validate_campaign_required_text(payload, "markdown_body")
     if error:
         return None, error
 
     now = utc_timestamp()
     return {
-        "id": new_issue_id(),
+        "id": new_campaign_id(),
         "slug": slug,
         "title": title,
         "subject": subject,
@@ -1675,7 +1725,7 @@ def build_issue_create_record(payload, admin_id):
     }, None
 
 
-def build_issue_updates(payload):
+def build_campaign_updates(payload):
     allowed_fields = {
         "title",
         "slug",
@@ -1691,24 +1741,24 @@ def build_issue_updates(payload):
             continue
 
         if field_name == "slug":
-            value, error = validate_issue_slug(payload.get(field_name))
+            value, error = validate_campaign_slug(payload.get(field_name))
             if error:
                 return None, error
         elif field_name == "status":
-            value = clean_issue_text(payload.get(field_name))
-            if value not in ISSUE_STATUSES:
+            value = clean_text(payload.get(field_name))
+            if value not in CAMPAIGN_STATUSES:
                 return None, "status is invalid."
         elif field_name == "summary":
             value = clean_optional_text(payload.get(field_name))
         else:
-            value, error = validate_issue_required_text(payload, field_name)
+            value, error = validate_campaign_required_text(payload, field_name)
             if error:
                 return None, error
 
         updates[field_name] = value
 
     if not updates:
-        return None, "At least one issue field is required."
+        return None, "At least one campaign field is required."
 
     now = utc_timestamp()
     if updates.get("status") == "published":
@@ -1719,7 +1769,7 @@ def build_issue_updates(payload):
 
 
 def clean_optional_text(value):
-    cleaned = clean_issue_text(value)
+    cleaned = clean_text(value)
     return cleaned or ""
 
 
@@ -1851,23 +1901,23 @@ def clean_env_value(value):
     return text
 
 
-def issue_email_subject(issue):
-    return issue.get("subject") or issue.get("title") or "BLT Newsletter"
+def campaign_email_subject(campaign):
+    return campaign.get("subject") or campaign.get("title") or "BLT Newsletter"
 
 
-def render_issue_email_html(issue, archive_url, unsubscribe_url):
-    return render_newsletter_issue_email(
-        issue.get("title") or "BLT Newsletter",
-        issue.get("summary") or "",
-        issue.get("markdown_body") or "",
+def render_campaign_email_html(campaign, archive_url, unsubscribe_url):
+    return render_newsletter_campaign_email(
+        campaign.get("title") or "BLT Newsletter",
+        campaign.get("summary") or "",
+        campaign.get("markdown_body") or "",
         archive_url,
         unsubscribe_url,
     )
 
 
-def build_issue_archive_url(issue, request=None, env=None):
-    slug = issue.get("slug") or issue.get("id") or ""
-    path = "/api/issues/" + quote(slug, safe="")
+def build_campaign_archive_url(campaign, request=None, env=None):
+    slug = campaign.get("slug") or campaign.get("id") or ""
+    path = "/api/campaigns/" + quote(slug, safe="")
     if request is not None:
         return absolute_url_for(request, path)
 

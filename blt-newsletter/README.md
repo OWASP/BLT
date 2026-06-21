@@ -7,8 +7,8 @@ BLT Newsletter is the OWASP BLT newsletter platform. It runs as a Python Cloudfl
 - Public newsletter landing page and private D1-backed subscribe/unsubscribe API.
 - One-time first-admin setup UI at `/signup` for fresh D1 databases.
 - Admin login with HttpOnly session cookies.
-- Admin dashboard for subscribers, newsletter issues, campaigns, test sends, and delivery jobs.
-- Public archive API for published issues.
+- Admin dashboard for subscribers, newsletter campaigns, test sends, publishing, and delivery jobs.
+- Public archive API for published campaigns.
 - SendGrid Web API integration without the SendGrid package dependency.
 - Cloudflare Queue foundation for asynchronous campaign delivery.
 
@@ -30,7 +30,7 @@ D1
   ├─ newsletter_subscribers
   ├─ newsletter_admins
   ├─ newsletter_admin_sessions
-  ├─ newsletter_issues
+  ├─ newsletter_campaigns
   ├─ newsletter_send_jobs
   ├─ newsletter_delivery_events
   └─ newsletter_rate_limits
@@ -45,8 +45,8 @@ Public:
 - `GET /`
 - `POST /api/subscribe`
 - `POST /api/unsubscribe`
-- `GET /api/issues`
-- `GET /api/issues/:slug`
+- `GET /api/campaigns`
+- `GET /api/campaigns/:slug`
 
 Admin/setup:
 
@@ -60,11 +60,11 @@ Admin/setup:
 - `GET /api/admin/me`
 - `GET /api/admin/stats`
 - `GET /api/admin/subscribers`
-- `GET /api/admin/issues`
-- `POST /api/admin/issues`
-- `PATCH /api/admin/issues/:id`
-- `POST /api/admin/issues/:id/send-test`
-- `POST /api/admin/issues/:id/send`
+- `GET /api/admin/campaigns`
+- `POST /api/admin/campaigns`
+- `PATCH /api/admin/campaigns/:id`
+- `POST /api/admin/campaigns/:id/send-test`
+- `POST /api/admin/campaigns/:id/publish`
 - `GET /api/admin/jobs`
 - `GET /api/admin/jobs/:id`
 - `POST /api/admin/jobs/:id/cancel`
@@ -140,10 +140,10 @@ Then run Wrangler and test:
 - Public subscribe/unsubscribe from `/`.
 - First-admin setup from `/login` on a fresh D1.
 - Admin login/logout.
-- Dashboard subscriber/issue/job tables.
-- Draft issue create/update.
+- Dashboard subscriber/campaign/delivery-job tables.
+- Campaign draft create/update.
 - Test send behavior. Without SendGrid secrets, it should return a clear configuration error.
-- Campaign queue behavior. It should create a job and queued delivery events; queue delivery requires the `NEWSLETTER_QUEUE` binding.
+- Campaign publish behavior. It should create a job and queued delivery events; queue delivery requires the `NEWSLETTER_QUEUE` binding.
 
 See `TESTING.md` and `docs/plans/first-admin-setup-flow.md` for fuller QA steps.
 

@@ -3,12 +3,12 @@ import json
 import uuid
 
 
-def build_send_job_record(issue_id, total_recipients, created_by_admin_id):
+def build_send_job_record(campaign_id, total_recipients, created_by_admin_id):
     now = utc_timestamp()
     created_by = created_by_admin_id or ""
     return {
         "id": "job_" + uuid.uuid4().hex,
-        "issue_id": issue_id or "",
+        "campaign_id": campaign_id or "",
         "status": "queued",
         "provider": "sendgrid",
         "total_recipients": int(total_recipients or 0),
@@ -34,10 +34,10 @@ def build_delivery_event_record(job_id, subscriber_id, event_type, metadata=None
     }
 
 
-def build_queue_message(job_id, issue_id, delivery_event_id, subscriber_id):
+def build_queue_message(job_id, campaign_id, delivery_event_id, subscriber_id):
     return {
         "job_id": job_id or "",
-        "issue_id": issue_id or "",
+        "campaign_id": campaign_id or "",
         "delivery_event_id": delivery_event_id or "",
         "subscriber_id": subscriber_id or "",
     }

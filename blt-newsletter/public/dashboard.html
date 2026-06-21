@@ -609,13 +609,13 @@
               <i class="fa-solid fa-users w-4 mr-3"></i>
               Subscribers
             </button>
-            <button onclick="navigateTo('issues')" class="sidebar-item w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium transition hover:bg-gray-50">
-              <i class="fa-solid fa-newspaper w-4 mr-3"></i>
-              Issues
-            </button>
             <button onclick="navigateTo('campaigns')" class="sidebar-item w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium transition hover:bg-gray-50">
-              <i class="fa-solid fa-paper-plane w-4 mr-3"></i>
+              <i class="fa-solid fa-newspaper w-4 mr-3"></i>
               Campaigns
+            </button>
+            <button onclick="navigateTo('deliveries')" class="sidebar-item w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium transition hover:bg-gray-50">
+              <i class="fa-solid fa-paper-plane w-4 mr-3"></i>
+              Deliveries
             </button>
             <button onclick="navigateTo('template')" class="sidebar-item w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium transition hover:bg-gray-50">
               <i class="fa-solid fa-layer-group w-4 mr-3"></i>
@@ -691,13 +691,13 @@
                 <p id="stat-unsubscribed-note" class="text-xs text-gray-500 mt-1">Including active and unsubscribed</p>
               </div>
               <div class="card border rounded-lg p-6">
-                <p class="text-sm text-gray-600 font-medium">Published issues</p>
-                <p id="stat-published-issues" class="text-3xl font-semibold mt-2">—</p>
-                <p id="stat-total-issues-note" class="text-xs text-gray-500 mt-1">Loaded from D1</p>
+                <p class="text-sm text-gray-600 font-medium">Published campaigns</p>
+                <p id="stat-published-campaigns" class="text-3xl font-semibold mt-2">—</p>
+                <p id="stat-total-campaigns-note" class="text-xs text-gray-500 mt-1">Loaded from D1</p>
               </div>
               <div class="card border rounded-lg p-6">
-                <p class="text-sm text-gray-600 font-medium">Draft issues</p>
-                <p id="stat-draft-issues" class="text-3xl font-semibold mt-2">—</p>
+                <p class="text-sm text-gray-600 font-medium">Draft campaigns</p>
+                <p id="stat-draft-campaigns" class="text-3xl font-semibold mt-2">—</p>
                 <p class="text-xs text-gray-500 mt-1">Ready for editing</p>
               </div>
               <div class="card border rounded-lg p-6">
@@ -707,7 +707,7 @@
                 </div>
                 <p id="stat-delivery-success-rate" class="text-sm font-semibold">Queue pending</p>
               </div>
-              <div class="card border rounded-lg p-6 cursor-pointer hover:border-red-600 transition" onclick="navigateTo('campaigns')">
+              <div class="card border rounded-lg p-6 cursor-pointer hover:border-red-600 transition" onclick="navigateTo('deliveries')">
                 <p class="text-sm text-gray-600 font-medium">Failed deliveries</p>
                 <p id="stat-failed-deliveries" class="text-3xl font-semibold mt-2 text-red-600">0</p>
                 <p class="text-xs text-gray-500 mt-1">Delivery events wire in Slice 3 →</p>
@@ -748,9 +748,9 @@
               <div class="card border rounded-lg p-6">
                 <h3 class="font-semibold mb-4">Quick actions</h3>
                 <div class="grid grid-cols-2 gap-3">
-                  <button class="btn-secondary text-left py-3" onclick="openIssueEditor()">
+                  <button class="btn-secondary text-left py-3" onclick="openCampaignEditor()">
                     <i class="fa-solid fa-plus text-red-600 mr-2"></i>
-                    <span>New issue</span>
+                    <span>New campaign</span>
                   </button>
                   <button class="btn-secondary text-left py-3" onclick="openTestEmailModal()">
                     <i class="fa-solid fa-envelope text-red-600 mr-2"></i>
@@ -809,24 +809,24 @@
             </div>
           </div>
 
-          <!-- Issues Page -->
-          <div id="issues-page" class="page p-8">
+          <!-- Campaigns Page -->
+          <div id="campaigns-page" class="page p-8">
             <div class="mb-6 flex gap-4 flex-col md:flex-row md:items-center md:justify-between">
               <div class="flex-1">
-                <input type="text" placeholder="Search issues..." class="input-field w-full" id="issue-search" onkeyup="filterIssues(currentIssueFilter)" />
+                <input type="text" placeholder="Search campaigns..." class="input-field w-full" id="campaign-search" onkeyup="filterCampaigns(currentCampaignFilter)" />
               </div>
-              <button class="btn-primary" onclick="openIssueEditor()">
+              <button class="btn-primary" onclick="openCampaignEditor()">
                 <i class="fa-solid fa-plus mr-2"></i>
-                New issue
+                New campaign
               </button>
             </div>
 
             <div class="flex gap-2 mb-6 overflow-x-auto pb-2">
-              <button class="btn-secondary px-3 flex-none" onclick="filterIssues('all')" id="issue-filter-all" style="background-color: #dc2626; color: white; border-color: #dc2626;">All</button>
-              <button class="btn-secondary px-3 flex-none" data-issue-filter="draft" onclick="filterIssues('draft')">Draft</button>
-              <button class="btn-secondary px-3 flex-none" data-issue-filter="published" onclick="filterIssues('published')">Published</button>
-              <button class="btn-secondary px-3 flex-none" data-issue-filter="scheduled" onclick="filterIssues('scheduled')">Scheduled</button>
-              <button class="btn-secondary px-3 flex-none" data-issue-filter="sent" onclick="filterIssues('sent')">Sent</button>
+              <button class="btn-secondary px-3 flex-none" onclick="filterCampaigns('all')" id="campaign-filter-all" style="background-color: #dc2626; color: white; border-color: #dc2626;">All</button>
+              <button class="btn-secondary px-3 flex-none" data-campaign-filter="draft" onclick="filterCampaigns('draft')">Draft</button>
+              <button class="btn-secondary px-3 flex-none" data-campaign-filter="published" onclick="filterCampaigns('published')">Published</button>
+              <button class="btn-secondary px-3 flex-none" data-campaign-filter="scheduled" onclick="filterCampaigns('scheduled')">Scheduled</button>
+              <button class="btn-secondary px-3 flex-none" data-campaign-filter="sent" onclick="filterCampaigns('sent')">Sent</button>
             </div>
 
             <div class="card border rounded-lg overflow-hidden">
@@ -841,35 +841,35 @@
                     <th>Actions</th>
                   </tr>
                 </thead>
-                <tbody id="issues-table-body">
+                <tbody id="campaigns-table-body">
                   <tr>
-                    <td colspan="6">Loading issues from D1…</td>
+                    <td colspan="6">Loading campaigns from D1…</td>
                   </tr>
                 </tbody>
               </table>
             </div>
           </div>
 
-          <!-- Campaigns Page -->
-          <div id="campaigns-page" class="page p-8">
+          <!-- Deliveries Page -->
+          <div id="deliveries-page" class="page p-8">
             <div class="mb-6 flex gap-4 flex-col md:flex-row md:items-center md:justify-between">
               <div class="flex-1">
-                <input type="text" placeholder="Search campaigns..." class="input-field w-full" />
+                <input type="text" placeholder="Search delivery jobs..." class="input-field w-full" />
               </div>
             </div>
 
             <div class="flex gap-2 mb-6 overflow-x-auto pb-2">
-              <button class="btn-secondary px-3 flex-none" id="campaign-filter-all" onclick="filterCampaigns('all')" style="background-color: #dc2626; color: white; border-color: #dc2626;">All</button>
-              <button class="btn-secondary px-3 flex-none" onclick="filterCampaigns('sending')">Sending</button>
-              <button class="btn-secondary px-3 flex-none" onclick="filterCampaigns('completed')">Completed</button>
-              <button class="btn-secondary px-3 flex-none" onclick="filterCampaigns('failed')">Failed</button>
+              <button class="btn-secondary px-3 flex-none" id="delivery-filter-all" onclick="filterDeliveryJobs('all')" style="background-color: #dc2626; color: white; border-color: #dc2626;">All</button>
+              <button class="btn-secondary px-3 flex-none" onclick="filterDeliveryJobs('sending')">Sending</button>
+              <button class="btn-secondary px-3 flex-none" onclick="filterDeliveryJobs('completed')">Completed</button>
+              <button class="btn-secondary px-3 flex-none" onclick="filterDeliveryJobs('failed')">Failed</button>
             </div>
 
             <div class="card border rounded-lg overflow-hidden">
               <table>
                 <thead>
                   <tr>
-                    <th>Campaign</th>
+                    <th>Delivery job</th>
                     <th>Status</th>
                     <th>Progress</th>
                     <th>Sent</th>
@@ -878,9 +878,9 @@
                     <th>Actions</th>
                   </tr>
                 </thead>
-                <tbody id="campaigns-table-body">
+                <tbody id="deliveries-table-body">
                   <tr>
-                    <td colspan="7">Loading campaigns from D1…</td>
+                    <td colspan="7">Loading delivery jobs from D1…</td>
                   </tr>
                 </tbody>
               </table>
@@ -1047,14 +1047,14 @@
       </div>
     </div>
 
-    <!-- Issue Editor Sheet -->
-    <div id="issue-editor-sheet" class="sheet">
+    <!-- Campaign Editor Sheet -->
+    <div id="campaign-editor-sheet" class="sheet">
       <div class="flex items-center justify-between p-6 border-b flex-none" style="border-bottom-color: var(--border-light);">
         <h2 class="text-lg font-semibold">
-          <span id="issue-editor-title">New issue</span>
-          <span id="issue-editor-badge" class="status-badge status-draft ml-3" style="display: none;">Draft</span>
+          <span id="campaign-editor-title">New campaign</span>
+          <span id="campaign-editor-badge" class="status-badge status-draft ml-3" style="display: none;">Draft</span>
         </h2>
-        <button onclick="closeIssueEditor()" class="text-gray-600 hover:bg-gray-100 p-2 rounded-lg">
+        <button onclick="closeCampaignEditor()" class="text-gray-600 hover:bg-gray-100 p-2 rounded-lg">
           <i class="fa-solid fa-times"></i>
         </button>
       </div>
@@ -1062,23 +1062,23 @@
         <div class="space-y-4 col-span-2 lg:col-span-1">
           <div>
             <label class="block text-sm font-medium mb-2">Title</label>
-            <input type="text" class="input-field w-full" placeholder="Issue title" id="issue-title" />
+            <input type="text" class="input-field w-full" placeholder="Campaign title" id="campaign-title" />
           </div>
           <div>
             <label class="block text-sm font-medium mb-2">Slug</label>
-            <input type="text" class="input-field w-full" placeholder="issue-slug" id="issue-slug" />
+            <input type="text" class="input-field w-full" placeholder="campaign-slug" id="campaign-slug" />
           </div>
           <div>
             <label class="block text-sm font-medium mb-2">Email subject</label>
-            <input type="text" class="input-field w-full" placeholder="Email subject line" id="issue-subject" />
+            <input type="text" class="input-field w-full" placeholder="Email subject line" id="campaign-subject" />
           </div>
           <div>
             <label class="block text-sm font-medium mb-2">Summary</label>
-            <input type="text" class="input-field w-full" placeholder="Short archive summary" id="issue-summary" />
+            <input type="text" class="input-field w-full" placeholder="Short archive summary" id="campaign-summary" />
           </div>
           <div>
             <label class="block text-sm font-medium mb-2">Body (Markdown)</label>
-            <textarea class="input-field w-full h-32 font-mono text-xs" placeholder="Write your content here..." style="resize: none;" id="issue-markdown-body"></textarea>
+            <textarea class="input-field w-full h-32 font-mono text-xs" placeholder="Write your content here..." style="resize: none;" id="campaign-markdown-body"></textarea>
           </div>
         </div>
         <div class="col-span-2 lg:col-span-1">
@@ -1099,17 +1099,17 @@
         </div>
       </div>
       <div class="border-t p-6 space-y-3 flex-none flex gap-3" style="border-top-color: var(--border-light);">
-        <button class="close-button flex-1" onclick="closeIssueEditor()">Close</button>
-        <button class="btn-primary flex-1" onclick="saveIssueDraft()">Save draft</button>
-        <button class="btn-primary flex-1" onclick="openCampaignConfirmation()">Send campaign</button>
+        <button class="close-button flex-1" onclick="closeCampaignEditor()">Close</button>
+        <button class="btn-primary flex-1" onclick="saveCampaignDraft()">Save draft</button>
+        <button class="btn-primary flex-1" onclick="openCampaignConfirmation()">Publish campaign</button>
       </div>
     </div>
 
-    <!-- Campaign Details Sheet -->
-    <div id="campaign-details-sheet" class="sheet">
+    <!-- Delivery Details Sheet -->
+    <div id="delivery-details-sheet" class="sheet">
       <div class="flex items-center justify-between p-6 border-b flex-none" style="border-bottom-color: var(--border-light);">
-        <h2 id="campaign-details-title" class="text-lg font-semibold">Campaign details</h2>
-        <button onclick="closeCampaignDetails()" class="text-gray-600 hover:bg-gray-100 p-2 rounded-lg">
+        <h2 id="delivery-details-title" class="text-lg font-semibold">Delivery details</h2>
+        <button onclick="closeDeliveryDetails()" class="text-gray-600 hover:bg-gray-100 p-2 rounded-lg">
           <i class="fa-solid fa-times"></i>
         </button>
       </div>
@@ -1153,7 +1153,7 @@
       </div>
       <div class="border-t p-6 space-y-3 flex-none" style="border-top-color: var(--border-light);">
         <button class="btn-secondary w-full">Retry failed deliveries</button>
-        <button class="close-button w-full" onclick="closeCampaignDetails()">Close</button>
+        <button class="close-button w-full" onclick="closeDeliveryDetails()">Close</button>
       </div>
     </div>
 
@@ -1165,7 +1165,7 @@
     <div id="test-email-modal" class="modal-overlay">
       <div class="modal p-6">
         <h2 class="text-lg font-semibold mb-2">Send test email</h2>
-        <p class="text-sm text-gray-600 mb-6">Send this issue to a single test recipient before launching a campaign.</p>
+        <p class="text-sm text-gray-600 mb-6">Send this campaign to a single test recipient before launching a campaign.</p>
         <div class="mb-6">
           <label class="block text-sm font-medium mb-2">Recipient email</label>
           <input type="email" placeholder="test@example.com" class="input-field w-full" id="test-email-recipient" />
@@ -1180,19 +1180,19 @@
     <!-- Campaign Confirmation Modal -->
     <div id="campaign-confirmation-modal" class="modal-overlay">
       <div class="modal p-6 max-w-md">
-        <h2 class="text-lg font-semibold mb-2">Send campaign?</h2>
-        <p class="text-sm text-gray-600 mb-4">This action will queue emails to all active subscribers. Sending cannot be undone.</p>
+        <h2 class="text-lg font-semibold mb-2">Publish campaign?</h2>
+        <p class="text-sm text-gray-600 mb-4">This action will send emails to all active subscribers. Sending cannot be undone.</p>
         <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
           <p class="text-sm"><span class="font-medium">Recipients:</span> All active subscribers (<span id="campaign-recipient-count">0</span>)</p>
         </div>
         <label class="flex items-center gap-2 mb-6 cursor-pointer">
           <input type="checkbox" class="w-4 h-4 rounded" id="campaign-confirm-checkbox" onchange="updateCampaignButton()" />
-          <span class="text-sm text-gray-600">I understand this will queue emails to all active subscribers</span>
+          <span class="text-sm text-gray-600">I understand this will send emails to all active subscribers</span>
         </label>
         <div class="flex gap-3">
           <button class="btn-secondary flex-1" onclick="closeCampaignConfirmation()">Cancel</button>
-          <button class="btn-primary flex-1" id="campaign-confirm-btn" disabled onclick="queueCampaign()">
-            Queue campaign
+          <button class="btn-primary flex-1" id="campaign-confirm-btn" disabled onclick="publishCampaign()">
+            Publish campaign
           </button>
         </div>
       </div>
@@ -1225,23 +1225,23 @@
     <script>
       let currentPage = 'overview';
       let currentStatusFilter = 'all';
-      let currentIssueFilter = 'all';
       let currentCampaignFilter = 'all';
+      let currentDeliveryFilter = 'all';
       const dashboardState = {
         admin: null,
         stats: {},
         subscribers: [],
-        issues: [],
+        campaigns: [],
         jobs: [],
-        selectedIssueId: null,
+        selectedCampaignId: null,
       };
 
       document.addEventListener('DOMContentLoaded', initializeDashboard);
 
       async function initializeDashboard() {
         renderEmptyRow('users-table-body', 8, 'Loading subscribers from D1…');
-        renderEmptyRow('issues-table-body', 6, 'Loading issues from D1…');
-        renderEmptyRow('campaigns-table-body', 7, 'Loading campaigns from D1…');
+        renderEmptyRow('campaigns-table-body', 6, 'Loading campaigns from D1…');
+        renderEmptyRow('deliveries-table-body', 7, 'Loading delivery jobs from D1…');
         renderEmptyRow('recent-activity-body', 3, 'Loading recent activity…');
 
         try {
@@ -1258,7 +1258,7 @@
         await Promise.allSettled([
           loadStats(),
           loadSubscribers(),
-          loadIssues(),
+          loadCampaigns(),
           loadJobs(),
         ]);
       }
@@ -1315,16 +1315,16 @@
         }
       }
 
-      async function loadIssues() {
+      async function loadCampaigns() {
         try {
-          const payload = await adminFetch("/api/admin/issues");
-          dashboardState.issues = Array.isArray(payload.issues) ? payload.issues : [];
-          renderIssues(dashboardState.issues);
+          const payload = await adminFetch("/api/admin/campaigns");
+          dashboardState.campaigns = Array.isArray(payload.campaigns) ? payload.campaigns : [];
+          renderCampaigns(dashboardState.campaigns);
           renderRecentActivity();
-          filterIssues(currentIssueFilter);
+          filterCampaigns(currentCampaignFilter);
         } catch (error) {
-          renderEmptyRow('issues-table-body', 6, error.message || 'Issues could not be loaded.');
-          showToast(error.message || 'Issues could not be loaded');
+          renderEmptyRow('campaigns-table-body', 6, error.message || 'Campaigns could not be loaded.');
+          showToast(error.message || 'Campaigns could not be loaded');
         }
       }
 
@@ -1332,11 +1332,11 @@
         try {
           const payload = await adminFetch("/api/admin/jobs");
           dashboardState.jobs = Array.isArray(payload.jobs) ? payload.jobs : [];
-          renderCampaigns(dashboardState.jobs);
-          filterCampaigns(currentCampaignFilter);
+          renderDeliveryJobs(dashboardState.jobs);
+          filterDeliveryJobs(currentDeliveryFilter);
         } catch (error) {
-          renderEmptyRow('campaigns-table-body', 7, error.message || 'Campaigns could not be loaded.');
-          showToast(error.message || 'Campaigns could not be loaded');
+          renderEmptyRow('deliveries-table-body', 7, error.message || 'Delivery jobs could not be loaded.');
+          showToast(error.message || 'Delivery jobs could not be loaded');
         }
       }
 
@@ -1358,17 +1358,17 @@
         const totalSubscribers = toNumber(stats.total_subscribers);
         const activeSubscribers = toNumber(stats.active_subscribers);
         const unsubscribedSubscribers = toNumber(stats.unsubscribed_subscribers);
-        const totalIssues = toNumber(stats.total_issues);
-        const publishedIssues = toNumber(stats.published_issues);
-        const draftIssues = toNumber(stats.draft_issues);
+        const totalCampaigns = toNumber(stats.total_campaigns);
+        const publishedCampaigns = toNumber(stats.published_campaigns);
+        const draftCampaigns = toNumber(stats.draft_campaigns);
 
         setText('stat-active-subscribers', formatNumber(activeSubscribers));
         setText('stat-total-subscribers-note', `${formatNumber(totalSubscribers)} total subscribers`);
         setText('stat-new-subscribers', formatNumber(totalSubscribers));
         setText('stat-unsubscribed-note', `${formatNumber(unsubscribedSubscribers)} unsubscribed`);
-        setText('stat-published-issues', formatNumber(publishedIssues));
-        setText('stat-total-issues-note', `${formatNumber(totalIssues)} total issues`);
-        setText('stat-draft-issues', formatNumber(draftIssues));
+        setText('stat-published-campaigns', formatNumber(publishedCampaigns));
+        setText('stat-total-campaigns-note', `${formatNumber(totalCampaigns)} total campaigns`);
+        setText('stat-draft-campaigns', formatNumber(draftCampaigns));
         setText('campaign-recipient-count', formatNumber(activeSubscribers));
       }
 
@@ -1403,28 +1403,28 @@
         }).join('');
       }
 
-      function renderIssues(issues) {
-        const body = document.getElementById('issues-table-body');
+      function renderCampaigns(campaigns) {
+        const body = document.getElementById('campaigns-table-body');
         if (!body) return;
 
-        if (!issues.length) {
-          renderEmptyRow('issues-table-body', 6, 'No newsletter issues yet. Create a draft to start.');
+        if (!campaigns.length) {
+          renderEmptyRow('campaigns-table-body', 6, 'No newsletter campaigns yet. Create a draft to start.');
           return;
         }
 
-        body.innerHTML = issues.map(issue => {
-          const id = escapeAttribute(issue.id || '');
-          const status = normalizeStatus(issue.status || 'draft');
-          const search = `${issue.title || ''} ${issue.slug || ''} ${issue.subject || ''}`.toLowerCase();
+        body.innerHTML = campaigns.map(campaign => {
+          const id = escapeAttribute(campaign.id || '');
+          const status = normalizeStatus(campaign.status || 'draft');
+          const search = `${campaign.title || ''} ${campaign.slug || ''} ${campaign.subject || ''}`.toLowerCase();
           return `
-                  <tr class="issue-row cursor-pointer" data-status="${escapeAttribute(status)}" data-search="${escapeAttribute(search)}" data-issue-id="${id}">
-                    <td class="font-medium">${escapeHtml(issue.title || 'Untitled issue')}</td>
-                    <td class="font-mono text-xs text-gray-600">${escapeHtml(issue.slug || '—')}</td>
+                  <tr class="campaign-row cursor-pointer" data-status="${escapeAttribute(status)}" data-search="${escapeAttribute(search)}" data-campaign-id="${id}">
+                    <td class="font-medium">${escapeHtml(campaign.title || 'Untitled campaign')}</td>
+                    <td class="font-mono text-xs text-gray-600">${escapeHtml(campaign.slug || '—')}</td>
                     <td><span class="status-badge status-${escapeAttribute(status)}">${escapeHtml(titleCase(status))}</span></td>
-                    <td class="text-gray-600 text-sm">${escapeHtml(formatDate(issue.updated_at || issue.created_at))}</td>
-                    <td class="text-gray-600 text-sm">${escapeHtml(formatDate(issue.published_at))}</td>
+                    <td class="text-gray-600 text-sm">${escapeHtml(formatDate(campaign.updated_at || campaign.created_at))}</td>
+                    <td class="text-gray-600 text-sm">${escapeHtml(formatDate(campaign.published_at))}</td>
                     <td>
-                      <button class="text-red-600 hover:bg-red-50 p-2 rounded text-sm" data-issue-id="${id}" aria-label="Edit issue">
+                      <button class="text-red-600 hover:bg-red-50 p-2 rounded text-sm" data-campaign-id="${id}" aria-label="Edit campaign">
                         <i class="fa-solid fa-pen-to-square"></i>
                       </button>
                     </td>
@@ -1432,12 +1432,12 @@
         }).join('');
       }
 
-      function renderCampaigns(jobs) {
-        const body = document.getElementById('campaigns-table-body');
+      function renderDeliveryJobs(jobs) {
+        const body = document.getElementById('deliveries-table-body');
         if (!body) return;
 
         if (!jobs.length) {
-          renderEmptyRow('campaigns-table-body', 7, 'No campaign jobs yet. Queue an issue to start sending.');
+          renderEmptyRow('deliveries-table-body', 7, 'No delivery jobs yet. Publish a campaign to start sending.');
           return;
         }
 
@@ -1447,12 +1447,12 @@
           const total = toNumber(job.total_recipients);
           const sent = toNumber(job.sent_count);
           const failed = toNumber(job.failed_count);
-          const progress = campaignProgress(sent, failed, total);
-          const title = job.issue_title || job.issue_subject || job.issue_id || 'Newsletter campaign';
+          const progress = deliveryProgress(sent, failed, total);
+          const title = job.campaign_title || job.campaign_subject || job.campaign_id || 'Newsletter campaign';
           return `
-                  <tr class="campaign-row cursor-pointer" data-status="${escapeAttribute(status)}" data-job-id="${id}">
+                  <tr class="delivery-row cursor-pointer" data-status="${escapeAttribute(status)}" data-job-id="${id}">
                     <td class="font-medium">${escapeHtml(title)}</td>
-                    <td><span class="status-badge ${campaignStatusClass(status)}">${escapeHtml(titleCase(status))}</span></td>
+                    <td><span class="status-badge ${deliveryStatusClass(status)}">${escapeHtml(titleCase(status))}</span></td>
                     <td>
                       <div class="flex items-center gap-2">
                         <div class="progress-bar flex-1">
@@ -1465,7 +1465,7 @@
                     <td class="${failed ? 'text-red-600 font-medium' : 'text-gray-600'}">${escapeHtml(formatNumber(failed))}</td>
                     <td class="text-gray-600 text-sm">${escapeHtml(formatDate(job.created_at))}</td>
                     <td>
-                      <button class="text-red-600 hover:bg-red-50 p-2 rounded text-sm" data-job-id="${id}" aria-label="Open campaign details">
+                      <button class="text-red-600 hover:bg-red-50 p-2 rounded text-sm" data-job-id="${id}" aria-label="Open delivery details">
                         <i class="fa-solid fa-arrow-right"></i>
                       </button>
                     </td>
@@ -1486,12 +1486,12 @@
             time: subscriber.subscribed_at,
           });
         });
-        dashboardState.issues.slice(0, 3).forEach(issue => {
+        dashboardState.campaigns.slice(0, 3).forEach(campaign => {
           activities.push({
-            type: titleCase(issue.status || 'issue'),
-            dot: issue.status === 'published' ? 'bg-green-600' : 'bg-slate-400',
-            details: issue.title || issue.slug || 'Newsletter issue updated',
-            time: issue.updated_at || issue.created_at,
+            type: titleCase(campaign.status || 'campaign'),
+            dot: campaign.status === 'published' ? 'bg-green-600' : 'bg-slate-400',
+            details: campaign.title || campaign.slug || 'Newsletter campaign updated',
+            time: campaign.updated_at || campaign.created_at,
           });
         });
 
@@ -1531,8 +1531,8 @@
         const titles = {
           overview: 'Overview',
           users: 'Subscribers',
-          issues: 'Issues',
           campaigns: 'Campaigns',
+          deliveries: 'Deliveries',
           template: 'Template',
           settings: 'Settings'
         };
@@ -1540,8 +1540,8 @@
         const descs = {
           overview: 'Monitor newsletter health and activity',
           users: 'Manage newsletter subscribers, consent state, delivery health, and subscription status',
-          issues: 'Create and manage newsletter content',
-          campaigns: 'Track sends and delivery health',
+          campaigns: 'Create, edit, test, and publish newsletter campaigns',
+          deliveries: 'Track published campaign delivery jobs and health',
           template: 'Browse and use email templates',
           settings: 'Configure admin settings and integrations'
         };
@@ -1566,39 +1566,39 @@
         document.documentElement.classList.toggle('dark');
       }
 
-      function openIssueEditor(issueId = null) {
-        const issue = issueId ? dashboardState.issues.find(item => item.id === issueId) : null;
-        dashboardState.selectedIssueId = issue?.id || null;
+      function openCampaignEditor(campaignId = null) {
+        const campaign = campaignId ? dashboardState.campaigns.find(item => item.id === campaignId) : null;
+        dashboardState.selectedCampaignId = campaign?.id || null;
         document.getElementById('sheet-overlay').classList.add('active');
-        document.getElementById('issue-editor-sheet').classList.add('active');
+        document.getElementById('campaign-editor-sheet').classList.add('active');
 
-        setText('issue-editor-title', issue ? issue.title || 'Edit issue' : 'New issue');
-        const badge = document.getElementById('issue-editor-badge');
+        setText('campaign-editor-title', campaign ? campaign.title || 'Edit campaign' : 'New campaign');
+        const badge = document.getElementById('campaign-editor-badge');
         if (badge) {
-          badge.style.display = issue ? 'inline-block' : 'none';
-          badge.textContent = titleCase(issue?.status || 'draft');
-          badge.className = `status-badge status-${normalizeStatus(issue?.status || 'draft')} ml-3`;
+          badge.style.display = campaign ? 'inline-block' : 'none';
+          badge.textContent = titleCase(campaign?.status || 'draft');
+          badge.className = `status-badge status-${normalizeStatus(campaign?.status || 'draft')} ml-3`;
         }
 
-        setValue('issue-title', issue?.title || '');
-        setValue('issue-slug', issue?.slug || '');
-        setValue('issue-subject', issue?.subject || '');
-        setValue('issue-summary', issue?.summary || '');
-        setValue('issue-markdown-body', issue?.markdown_body || '');
+        setValue('campaign-title', campaign?.title || '');
+        setValue('campaign-slug', campaign?.slug || '');
+        setValue('campaign-subject', campaign?.subject || '');
+        setValue('campaign-summary', campaign?.summary || '');
+        setValue('campaign-markdown-body', campaign?.markdown_body || '');
       }
 
-      function closeIssueEditor() {
+      function closeCampaignEditor() {
         document.getElementById('sheet-overlay').classList.remove('active');
-        document.getElementById('issue-editor-sheet').classList.remove('active');
+        document.getElementById('campaign-editor-sheet').classList.remove('active');
       }
 
-      async function saveIssueDraft() {
+      async function saveCampaignDraft() {
         const payload = {
-          title: getValue('issue-title'),
-          slug: getValue('issue-slug'),
-          subject: getValue('issue-subject'),
-          summary: getValue('issue-summary'),
-          markdown_body: getValue('issue-markdown-body'),
+          title: getValue('campaign-title'),
+          slug: getValue('campaign-slug'),
+          subject: getValue('campaign-subject'),
+          summary: getValue('campaign-summary'),
+          markdown_body: getValue('campaign-markdown-body'),
         };
 
         if (!payload.title || !payload.slug || !payload.subject || !payload.markdown_body) {
@@ -1606,27 +1606,27 @@
           return;
         }
 
-        const isUpdate = Boolean(dashboardState.selectedIssueId);
+        const isUpdate = Boolean(dashboardState.selectedCampaignId);
 
         try {
           const response = isUpdate
-            ? await adminFetch(`/api/admin/issues/${encodeURIComponent(dashboardState.selectedIssueId)}`, {
+            ? await adminFetch(`/api/admin/campaigns/${encodeURIComponent(dashboardState.selectedCampaignId)}`, {
                 method: "PATCH",
                 body: JSON.stringify(payload),
               })
-            : await adminFetch("/api/admin/issues", {
+            : await adminFetch("/api/admin/campaigns", {
                 method: "POST",
                 body: JSON.stringify(payload),
               });
-          const savedIssue = response.issue;
-          if (savedIssue) {
-            const index = dashboardState.issues.findIndex(issue => issue.id === savedIssue.id);
-            if (index >= 0) dashboardState.issues[index] = savedIssue;
-            else dashboardState.issues.unshift(savedIssue);
-            renderIssues(dashboardState.issues);
+          const savedCampaign = response.campaign;
+          if (savedCampaign) {
+            const index = dashboardState.campaigns.findIndex(campaign => campaign.id === savedCampaign.id);
+            if (index >= 0) dashboardState.campaigns[index] = savedCampaign;
+            else dashboardState.campaigns.unshift(savedCampaign);
+            renderCampaigns(dashboardState.campaigns);
             renderRecentActivity();
-            filterIssues(currentIssueFilter);
-            dashboardState.selectedIssueId = savedIssue.id;
+            filterCampaigns(currentCampaignFilter);
+            dashboardState.selectedCampaignId = savedCampaign.id;
           }
           showToast(isUpdate ? 'Draft updated' : 'Draft saved');
         } catch (error) {
@@ -1653,17 +1653,17 @@
         document.getElementById('user-details-sheet').classList.remove('active');
       }
 
-      function openCampaignDetails(jobId) {
+      function openDeliveryDetails(jobId) {
         const job = dashboardState.jobs.find(item => item.id === jobId) || {};
-        const title = job.issue_title || job.issue_subject || job.issue_id || 'Campaign details';
+        const title = job.campaign_title || job.campaign_subject || job.campaign_id || 'Delivery details';
         document.getElementById('sheet-overlay').classList.add('active');
-        document.getElementById('campaign-details-sheet').classList.add('active');
-        document.getElementById('campaign-details-title').textContent = title;
+        document.getElementById('delivery-details-sheet').classList.add('active');
+        document.getElementById('delivery-details-title').textContent = title;
       }
 
-      function closeCampaignDetails() {
+      function closeDeliveryDetails() {
         document.getElementById('sheet-overlay').classList.remove('active');
-        document.getElementById('campaign-details-sheet').classList.remove('active');
+        document.getElementById('delivery-details-sheet').classList.remove('active');
       }
 
       function closeAllSheets() {
@@ -1672,8 +1672,8 @@
       }
 
       function openTestEmailModal() {
-        if (!getSelectedIssue()) {
-          showToast('Select an issue before sending a test email.');
+        if (!getSelectedCampaign()) {
+          showToast('Select a campaign before sending a test email.');
           return;
         }
         document.getElementById('test-email-modal').classList.add('active');
@@ -1684,8 +1684,8 @@
       }
 
       function openCampaignConfirmation() {
-        if (!getSelectedIssue()) {
-          showToast('Select an issue before queueing a campaign.');
+        if (!getSelectedCampaign()) {
+          showToast('Select a campaign before publishing a campaign.');
           return;
         }
         setText('campaign-recipient-count', formatNumber(toNumber(dashboardState.stats.active_subscribers)));
@@ -1705,9 +1705,9 @@
       }
 
       async function sendTestEmail() {
-        const issue = getSelectedIssue();
-        if (!issue) {
-          showToast('Select an issue before sending a test email.');
+        const campaign = getSelectedCampaign();
+        if (!campaign) {
+          showToast('Select a campaign before sending a test email.');
           return;
         }
 
@@ -1718,7 +1718,7 @@
         }
 
         try {
-          await adminFetch(`/api/admin/issues/${encodeURIComponent(issue.id)}/send-test`, {
+          await adminFetch(`/api/admin/campaigns/${encodeURIComponent(campaign.id)}/send-test`, {
             method: "POST",
             body: JSON.stringify({ email }),
           });
@@ -1729,32 +1729,32 @@
         }
       }
 
-      async function queueCampaign() {
-        const issue = getSelectedIssue();
-        if (!issue) {
-          showToast('Select an issue before queueing a campaign.');
+      async function publishCampaign() {
+        const campaign = getSelectedCampaign();
+        if (!campaign) {
+          showToast('Select a campaign before publishing a campaign.');
           return;
         }
 
         try {
-          const payload = await adminFetch(`/api/admin/issues/${encodeURIComponent(issue.id)}/send`, {
+          const payload = await adminFetch(`/api/admin/campaigns/${encodeURIComponent(campaign.id)}/publish`, {
             method: "POST",
           });
           if (payload.job) {
             dashboardState.jobs.unshift({
               ...payload.job,
-              issue_title: issue.title,
-              issue_subject: issue.subject,
+              campaign_title: campaign.title,
+              campaign_subject: campaign.subject,
             });
-            renderCampaigns(dashboardState.jobs);
-            filterCampaigns(currentCampaignFilter);
+            renderDeliveryJobs(dashboardState.jobs);
+            filterDeliveryJobs(currentDeliveryFilter);
           } else {
             await loadJobs();
           }
           closeCampaignConfirmation();
-          showToast(payload.queue_configured ? 'Campaign queued' : 'Campaign recorded without queue binding');
+          showToast(payload.queue_configured ? 'Campaign published' : 'Campaign published without queue binding');
         } catch (error) {
-          showToast(error.message || 'Campaign could not be queued');
+          showToast(error.message || 'Campaign could not be published');
         }
       }
 
@@ -1790,42 +1790,42 @@
         });
       }
 
-      function filterIssues(status) {
-        currentIssueFilter = status;
-        const search = (document.getElementById('issue-search')?.value || '').toLowerCase();
-        document.querySelectorAll('.issue-row').forEach(row => {
+      function filterCampaigns(status) {
+        currentCampaignFilter = status;
+        const search = (document.getElementById('campaign-search')?.value || '').toLowerCase();
+        document.querySelectorAll('.campaign-row').forEach(row => {
           const matchesStatus = status === 'all' || row.dataset.status === status;
           const matchesSearch = !search || (row.dataset.search || '').includes(search);
           row.style.display = matchesStatus && matchesSearch ? '' : 'none';
         });
-        document.querySelectorAll('#issues-page [data-issue-filter]').forEach(btn => {
-          const isActive = btn.dataset.issueFilter === status;
+        document.querySelectorAll('#campaigns-page [data-campaign-filter]').forEach(btn => {
+          const isActive = btn.dataset.campaignFilter === status;
           btn.style.backgroundColor = isActive ? '#dc2626' : '';
           btn.style.color = isActive ? 'white' : '';
           btn.style.borderColor = isActive ? '#dc2626' : '';
         });
       }
 
-      function filterCampaigns(status) {
-        currentCampaignFilter = status;
-        const rows = document.querySelectorAll('.campaign-row');
+      function filterDeliveryJobs(status) {
+        currentDeliveryFilter = status;
+        const rows = document.querySelectorAll('.delivery-row');
         rows.forEach(row => {
           row.style.display = status === 'all' || row.dataset.status === status || (status === 'sending' && ['queued', 'running', 'sending'].includes(row.dataset.status)) ? '' : 'none';
         });
       }
 
-      function getSelectedIssue() {
-        if (!dashboardState.selectedIssueId) return null;
-        return dashboardState.issues.find(issue => issue.id === dashboardState.selectedIssueId) || null;
+      function getSelectedCampaign() {
+        if (!dashboardState.selectedCampaignId) return null;
+        return dashboardState.campaigns.find(campaign => campaign.id === dashboardState.selectedCampaignId) || null;
       }
 
-      function campaignProgress(sent, failed, total) {
+      function deliveryProgress(sent, failed, total) {
         if (!total) return 0;
         const progress = ((sent + failed) / total) * 100;
         return Math.min(100, Math.round(progress * 10) / 10);
       }
 
-      function campaignStatusClass(status) {
+      function deliveryStatusClass(status) {
         if (status === 'completed') return 'status-sent';
         if (status === 'running' || status === 'sending' || status === 'queued') return 'status-sending';
         if (status === 'failed') return 'status-bounced';
@@ -1834,12 +1834,12 @@
       }
 
       function useTemplate() {
-        openIssueEditor();
-        setValue('issue-title', 'Monthly BLT Digest');
-        setValue('issue-slug', 'monthly-blt-digest');
-        setValue('issue-subject', 'Monthly BLT Digest');
-        setValue('issue-summary', 'Platform updates, contributor highlights, and shipped work.');
-        setValue('issue-markdown-body', '## Intro\n\n## Shipped\n\n## Contributor spotlight\n\n## Next');
+        openCampaignEditor();
+        setValue('campaign-title', 'Monthly BLT Digest');
+        setValue('campaign-slug', 'monthly-blt-digest');
+        setValue('campaign-subject', 'Monthly BLT Digest');
+        setValue('campaign-summary', 'Platform updates, contributor highlights, and shipped work.');
+        setValue('campaign-markdown-body', '## Intro\n\n## Shipped\n\n## Contributor spotlight\n\n## Next');
         showToast('Template loaded - Monthly BLT Digest');
       }
 
@@ -1924,27 +1924,27 @@
           return;
         }
 
-        const issueTarget = event.target.closest('[data-issue-id]');
-        if (issueTarget) {
+        const campaignTarget = event.target.closest('[data-campaign-id]');
+        if (campaignTarget) {
           event.stopPropagation();
-          openIssueEditor(issueTarget.dataset.issueId);
+          openCampaignEditor(campaignTarget.dataset.campaignId);
           return;
         }
 
         const jobTarget = event.target.closest('[data-job-id]');
         if (jobTarget) {
           event.stopPropagation();
-          openCampaignDetails(jobTarget.dataset.jobId);
+          openDeliveryDetails(jobTarget.dataset.jobId);
         }
       }
 
       document.getElementById('users-table-body')?.addEventListener('click', handleDashboardTableActions);
-      document.getElementById('issues-table-body')?.addEventListener('click', handleDashboardTableActions);
       document.getElementById('campaigns-table-body')?.addEventListener('click', handleDashboardTableActions);
+      document.getElementById('deliveries-table-body')?.addEventListener('click', handleDashboardTableActions);
 
-      document.getElementById('issue-title')?.addEventListener('input', (event) => {
-        const slugInput = document.getElementById('issue-slug');
-        if (!slugInput || dashboardState.selectedIssueId || slugInput.value.trim()) return;
+      document.getElementById('campaign-title')?.addEventListener('input', (event) => {
+        const slugInput = document.getElementById('campaign-slug');
+        if (!slugInput || dashboardState.selectedCampaignId || slugInput.value.trim()) return;
         slugInput.value = event.target.value
           .toLowerCase()
           .trim()

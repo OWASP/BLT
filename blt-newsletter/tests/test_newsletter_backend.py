@@ -60,7 +60,7 @@ class NewsletterBackendTests(unittest.TestCase):
             "newsletter_subscribers",
             "newsletter_admins",
             "newsletter_admin_sessions",
-            "newsletter_issues",
+            "newsletter_campaigns",
             "newsletter_send_jobs",
             "newsletter_delivery_events",
             "newsletter_rate_limits",

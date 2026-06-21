@@ -2,7 +2,7 @@
 
 ## Current architecture
 
-BLT Newsletter is now a Python Cloudflare Worker application with static assets, D1 persistence, admin auth, newsletter issue management, and SendGrid/Queue campaign foundations.
+BLT Newsletter is now a Python Cloudflare Worker application with static assets, D1 persistence, admin auth, newsletter campaign management, and SendGrid/Queue campaign foundations.
 
 The previous public GitHub Issues subscriber storage and GitHub Actions sender model has been superseded by private D1 tables and Worker APIs.
 
@@ -13,7 +13,7 @@ The previous public GitHub Issues subscriber storage and GitHub Actions sender m
 - `src/entry.py`
 - Serves static assets from `public/`.
 - Handles public subscription/archive APIs.
-- Handles first-admin setup, login/logout, session checks, dashboard APIs, issue CRUD, test sends, campaign jobs, and queue consumption.
+- Handles first-admin setup, login/logout, session checks, dashboard APIs, campaign draft/publish, test sends, campaign jobs, and queue consumption.
 
 ### D1 schema
 
@@ -24,7 +24,7 @@ Tables:
 - `newsletter_subscribers`
 - `newsletter_admins`
 - `newsletter_admin_sessions`
-- `newsletter_issues`
+- `newsletter_campaigns`
 - `newsletter_send_jobs`
 - `newsletter_delivery_events`
 - `newsletter_rate_limits`
@@ -81,8 +81,8 @@ Public:
 GET  /
 POST /api/subscribe
 POST /api/unsubscribe
-GET  /api/issues
-GET  /api/issues/:slug
+GET  /api/campaigns
+GET  /api/campaigns/:slug
 ```
 
 Setup/auth:
@@ -103,16 +103,16 @@ Admin data:
 ```text
 GET  /api/admin/stats
 GET  /api/admin/subscribers
-GET  /api/admin/issues
-POST /api/admin/issues
-PATCH /api/admin/issues/:id
+GET  /api/admin/campaigns
+POST /api/admin/campaigns
+PATCH /api/admin/campaigns/:id
 ```
 
-Send/campaigns:
+Publish/campaigns:
 
 ```text
-POST /api/admin/issues/:id/send-test
-POST /api/admin/issues/:id/send
+POST /api/admin/campaigns/:id/send-test
+POST /api/admin/campaigns/:id/publish
 GET  /api/admin/jobs
 GET  /api/admin/jobs/:id
 POST /api/admin/jobs/:id/cancel
@@ -136,10 +136,10 @@ Fresh D1 behavior:
 
 ## SendGrid/Queue campaign flow
 
-1. Admin creates a newsletter issue.
+1. Admin creates a newsletter campaign.
 2. Admin can send a test email via SendGrid.
-3. Admin queues a full campaign.
-4. Worker creates one `newsletter_send_jobs` row.
+3. Admin publishes the campaign.
+4. Worker creates one `newsletter_send_jobs` row for that campaign.
 5. Worker creates queued `newsletter_delivery_events` for active subscribers.
 6. If `NEWSLETTER_QUEUE` exists, Worker enqueues ID-only messages.
 7. Queue consumer loads D1 rows, renders email HTML, sends through SendGrid, and records sent/failed events.

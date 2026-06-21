@@ -24,11 +24,11 @@ POST /api/admin/logout
 GET  /api/admin/me
 GET  /api/admin/stats
 GET  /api/admin/subscribers
-GET  /api/admin/issues
-POST /api/admin/issues
-PATCH /api/admin/issues/:id
-GET  /api/issues
-GET  /api/issues/:slug
+GET  /api/admin/campaigns
+POST /api/admin/campaigns
+PATCH /api/admin/campaigns/:id
+GET  /api/campaigns
+GET  /api/campaigns/:slug
 ```
 
 ## Auth model
@@ -123,9 +123,9 @@ Results:
 
 ## Local D1 note
 
-The local D1 database had already applied an earlier version of `0001_newsletter_schema.sql`, and a local destructive reset was denied. To avoid altering local state destructively, issue create/update routes were not curl-tested against local D1 in this pass. The updated migration was validated separately in a temporary SQLite database and covered by unit/source tests.
+The local D1 database had already applied an earlier version of `0001_newsletter_schema.sql`, and a local destructive reset was denied. To avoid altering local state destructively, campaign create/update routes were not curl-tested against local D1 in this pass. The updated migration was validated separately in a temporary SQLite database and covered by unit/source tests.
 
-For a clean local end-to-end issue CRUD test, reset or recreate the local D1 state in a new environment, then re-run migrations before testing:
+For a clean local end-to-end campaign draft test, reset or recreate the local D1 state in a new environment, then re-run migrations before testing:
 
 ```bash
 wrangler d1 migrations apply blt-newsletter --local
@@ -133,7 +133,7 @@ wrangler d1 migrations apply blt-newsletter --local
 
 ## Known follow-ups
 
-- Wire dashboard Users/Issues/Campaigns data tables to these APIs.
+- Wire dashboard Subscribers/Campaigns/Deliveries data tables to these APIs.
 - Add CSRF protection if cookie-auth admin mutations become cross-origin or form-driven.
 - Add remote D1 ID and production secrets before deploy.
 - Start Slice 3: SendGrid service, send-test route, and queue-backed campaign delivery.

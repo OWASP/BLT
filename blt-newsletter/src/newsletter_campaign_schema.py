@@ -1,4 +1,4 @@
-def normalize_issue_columns(column_names):
+def normalize_column_names(column_names):
     names = set()
     for column in column_names or []:
         if isinstance(column, str):
@@ -14,8 +14,22 @@ def normalize_issue_columns(column_names):
     return names
 
 
-def issue_slug_column(column_names):
-    names = normalize_issue_columns(column_names)
+def normalize_table_names(table_names):
+    return normalize_column_names(table_names)
+
+
+def campaign_table_name(table_names):
+    names = normalize_table_names(table_names)
+    if "newsletter_campaigns" in names:
+        return "newsletter_campaigns"
+    if "newsletter_issues" in names:
+        return "newsletter_issues"
+
+    return "newsletter_campaigns"
+
+
+def campaign_slug_column(column_names):
+    names = normalize_column_names(column_names)
     if "slug" in names:
         return "slug"
     if "issue_slug" in names:
@@ -24,9 +38,9 @@ def issue_slug_column(column_names):
     return "slug"
 
 
-def issue_select_columns(column_names, include_created_by=True):
-    names = normalize_issue_columns(column_names)
-    slug_column = issue_slug_column(names)
+def campaign_select_columns(column_names, include_created_by=True):
+    names = normalize_column_names(column_names)
+    slug_column = campaign_slug_column(names)
     columns = [
         "id",
         "slug" if slug_column == "slug" else f"{slug_column} AS slug",
@@ -50,19 +64,19 @@ def issue_select_columns(column_names, include_created_by=True):
     return columns
 
 
-def issue_order_expression(column_names):
-    names = normalize_issue_columns(column_names)
+def campaign_order_expression(column_names):
+    names = normalize_column_names(column_names)
     if "published_at" in names:
         return "COALESCE(NULLIF(published_at, ''), created_at)"
 
     return "created_at"
 
 
-def issue_insert_columns_and_params(record, column_names):
-    names = normalize_issue_columns(column_names)
+def campaign_insert_columns_and_params(record, column_names):
+    names = normalize_column_names(column_names)
     insert_pairs = [
         ("id", "id"),
-        (issue_slug_column(names), "slug"),
+        (campaign_slug_column(names), "slug"),
         ("title", "title"),
         ("subject", "subject"),
         ("summary", "summary"),
@@ -89,14 +103,14 @@ def issue_insert_columns_and_params(record, column_names):
     return columns, params
 
 
-def map_issue_update_fields(updates, column_names):
-    names = normalize_issue_columns(column_names)
+def map_campaign_update_fields(updates, column_names):
+    names = normalize_column_names(column_names)
     mapped = {}
 
     for column, value in updates.items():
         target_column = column
         if column == "slug":
-            target_column = issue_slug_column(names)
+            target_column = campaign_slug_column(names)
 
         if target_column not in names:
             continue
@@ -104,3 +118,13 @@ def map_issue_update_fields(updates, column_names):
         mapped[target_column] = value
 
     return mapped
+
+
+def send_job_campaign_column(column_names):
+    names = normalize_column_names(column_names)
+    if "campaign_id" in names:
+        return "campaign_id"
+    if "issue_id" in names:
+        return "issue_id"
+
+    return "campaign_id"

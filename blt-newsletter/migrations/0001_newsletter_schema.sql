@@ -59,7 +59,7 @@ CREATE INDEX IF NOT EXISTS idx_newsletter_admin_sessions_admin_id
 CREATE INDEX IF NOT EXISTS idx_newsletter_admin_sessions_expires_at
   ON newsletter_admin_sessions (expires_at);
 
-CREATE TABLE IF NOT EXISTS newsletter_issues (
+CREATE TABLE IF NOT EXISTS newsletter_campaigns (
   id TEXT PRIMARY KEY,
   slug TEXT NOT NULL UNIQUE,
   title TEXT NOT NULL,
@@ -78,15 +78,15 @@ CREATE TABLE IF NOT EXISTS newsletter_issues (
   FOREIGN KEY (created_by_admin_id) REFERENCES newsletter_admins (id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_newsletter_issues_status
-  ON newsletter_issues (status);
+CREATE INDEX IF NOT EXISTS idx_newsletter_campaigns_status
+  ON newsletter_campaigns (status);
 
-CREATE INDEX IF NOT EXISTS idx_newsletter_issues_scheduled_for
-  ON newsletter_issues (scheduled_for);
+CREATE INDEX IF NOT EXISTS idx_newsletter_campaigns_scheduled_for
+  ON newsletter_campaigns (scheduled_for);
 
 CREATE TABLE IF NOT EXISTS newsletter_send_jobs (
   id TEXT PRIMARY KEY,
-  issue_id TEXT NOT NULL,
+  campaign_id TEXT NOT NULL,
   status TEXT NOT NULL DEFAULT 'queued',
   provider TEXT NOT NULL DEFAULT 'sendgrid',
   total_recipients INTEGER NOT NULL DEFAULT 0,
@@ -96,11 +96,11 @@ CREATE TABLE IF NOT EXISTS newsletter_send_jobs (
   completed_at TEXT,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
   metadata_json TEXT NOT NULL DEFAULT '{}',
-  FOREIGN KEY (issue_id) REFERENCES newsletter_issues (id)
+  FOREIGN KEY (campaign_id) REFERENCES newsletter_campaigns (id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_newsletter_send_jobs_issue_id
-  ON newsletter_send_jobs (issue_id);
+CREATE INDEX IF NOT EXISTS idx_newsletter_send_jobs_campaign_id
+  ON newsletter_send_jobs (campaign_id);
 
 CREATE INDEX IF NOT EXISTS idx_newsletter_send_jobs_status
   ON newsletter_send_jobs (status);

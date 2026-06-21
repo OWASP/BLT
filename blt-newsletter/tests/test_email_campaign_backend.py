@@ -24,9 +24,9 @@ class SendGridEmailServiceTests(unittest.TestCase):
         self.assertNotIn("bearer", json.dumps(payload).lower())
 
     def test_newsletter_template_escapes_dynamic_text_and_adds_unsubscribe_footer(self):
-        from src.email_templates import render_newsletter_issue_email
+        from src.email_templates import render_newsletter_campaign_email
 
-        html = render_newsletter_issue_email(
+        html = render_newsletter_campaign_email(
             title="<script>alert(1)</script>",
             summary="BLT updates & contributor news",
             markdown_body="# Hello\n\nA shipped update.",
@@ -45,9 +45,9 @@ class SendGridEmailServiceTests(unittest.TestCase):
     def test_campaign_records_are_d1_safe_and_queue_messages_do_not_include_raw_email(self):
         from src.email_campaigns import build_delivery_event_record, build_queue_message, build_send_job_record
 
-        job = build_send_job_record("issue_123", 2, "adm_1")
+        job = build_send_job_record("cmp_123", 2, "adm_1")
         event = build_delivery_event_record(job["id"], "sub_1", "queued")
-        message = build_queue_message(job["id"], "issue_123", event["id"], "sub_1")
+        message = build_queue_message(job["id"], "cmp_123", event["id"], "sub_1")
 
         for record in [job, event, message]:
             self.assertNotIn(None, record.values())
@@ -56,6 +56,8 @@ class SendGridEmailServiceTests(unittest.TestCase):
         self.assertEqual(job["provider"], "sendgrid")
         self.assertEqual(job["total_recipients"], 2)
         self.assertEqual(event["event_type"], "queued")
+        self.assertEqual(job["campaign_id"], "cmp_123")
+        self.assertEqual(message["campaign_id"], "cmp_123")
         self.assertNotIn("email", message)
         self.assertEqual(message["subscriber_id"], "sub_1")
 

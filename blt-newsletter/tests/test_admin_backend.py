@@ -79,7 +79,7 @@ class AdminAuthHelperTests(unittest.TestCase):
 
 
 class AdminWorkerRouteTests(unittest.TestCase):
-    def test_worker_declares_admin_and_issue_api_routes(self):
+    def test_worker_declares_admin_and_campaign_api_routes(self):
         entrypoint = (ROOT / "src" / "entry.py").read_text()
 
         for route in [
@@ -88,8 +88,8 @@ class AdminWorkerRouteTests(unittest.TestCase):
             '"/api/admin/me"',
             '"/api/admin/stats"',
             '"/api/admin/subscribers"',
-            '"/api/admin/issues"',
-            '"/api/issues"',
+            '"/api/admin/campaigns"',
+            '"/api/campaigns"',
         ]:
             self.assertIn(route, entrypoint)
 
@@ -98,19 +98,19 @@ class AdminWorkerRouteTests(unittest.TestCase):
         self.assertIn("handle_admin_me", entrypoint)
         self.assertIn("handle_admin_stats", entrypoint)
         self.assertIn("handle_admin_subscribers", entrypoint)
-        self.assertIn("handle_admin_issues", entrypoint)
-        self.assertIn("handle_public_issues", entrypoint)
-        self.assertIn("handle_public_issue_detail", entrypoint)
+        self.assertIn("handle_admin_campaigns", entrypoint)
+        self.assertIn("handle_public_campaigns", entrypoint)
+        self.assertIn("handle_public_campaign_detail", entrypoint)
 
     def test_worker_declares_sendgrid_campaign_and_job_routes(self):
         entrypoint = (ROOT / "src" / "entry.py").read_text()
 
         for route_or_handler in [
             "send-test",
-            '"/send"',
+            '"/publish"',
             '"/api/admin/jobs"',
             "handle_admin_send_test",
-            "handle_admin_send_issue",
+            "handle_admin_publish_campaign",
             "handle_admin_jobs",
             "handle_admin_job_detail",
             "handle_admin_cancel_job",
@@ -142,12 +142,12 @@ class AdminWorkerRouteTests(unittest.TestCase):
             "build_unsubscribe_token",
             "verify_unsubscribe_token",
             "mark_subscriber_unsubscribed_by_id",
-            "find_open_send_job_by_issue",
+            "find_open_send_job_by_campaign",
         ]:
             self.assertIn(expected, entrypoint)
 
         self.assertIn("Email sending is not configured", entrypoint)
-        self.assertIn("Campaign already queued for this issue.", entrypoint)
+        self.assertIn("Campaign already queued.", entrypoint)
         self.assertIn('"status": "published"', entrypoint)
         self.assertIn("published_at", entrypoint)
 
@@ -204,25 +204,25 @@ class AdminWorkerRouteTests(unittest.TestCase):
         self.assertIn('"last_login_at": now', entrypoint)
         self.assertNotIn('"password_hash": password', entrypoint)
 
-    def test_public_issues_route_source_only_returns_published_issues(self):
+    def test_public_campaigns_route_source_only_returns_published_campaigns(self):
         entrypoint = (ROOT / "src" / "entry.py").read_text()
 
-        self.assertIn('"/api/issues"', entrypoint)
+        self.assertIn('"/api/campaigns"', entrypoint)
         self.assertIn("WHERE status = 'published'", entrypoint)
         self.assertNotRegex(
             entrypoint,
-            r"handle_public_issues[\s\S]+WHERE status != 'deleted'",
+            r"handle_public_campaigns[\s\S]+WHERE status != 'deleted'",
         )
 
-    def test_migration_uses_slug_summary_and_published_at_for_issues(self):
+    def test_migration_uses_slug_summary_and_published_at_for_campaigns(self):
         migration = (ROOT / "migrations" / "0001_newsletter_schema.sql").read_text()
 
         self.assertIn("slug TEXT NOT NULL UNIQUE", migration)
         self.assertIn("summary TEXT", migration)
         self.assertIn("published_at TEXT", migration)
-        self.assertNotIn("issue_slug", migration)
+        self.assertNotIn("campaign_slug", migration)
 
-    def test_issue_create_record_is_d1_safe_without_none_values(self):
+    def test_campaign_create_record_is_d1_safe_without_none_values(self):
         entrypoint = (ROOT / "src" / "entry.py").read_text()
 
         self.assertIn('"summary": clean_optional_text(payload.get("summary")) or ""', entrypoint)
@@ -232,17 +232,20 @@ class AdminWorkerRouteTests(unittest.TestCase):
         self.assertIn('"sent_at": ""', entrypoint)
         self.assertIn("return cleaned or \"\"", entrypoint)
 
-    def test_d1_issue_store_uses_schema_compatibility_helpers(self):
+    def test_d1_campaign_store_uses_schema_compatibility_helpers(self):
         entrypoint = (ROOT / "src" / "entry.py").read_text()
 
         for expected in [
-            "issue_table_columns",
-            "issue_select_columns",
-            "issue_slug_column",
-            "issue_order_expression",
-            "issue_insert_columns_and_params",
-            "map_issue_update_fields",
-            "pragma_table_info('newsletter_issues')",
+            "campaign_table_columns",
+            "campaign_table_name",
+            "campaign_select_columns",
+            "campaign_slug_column",
+            "campaign_order_expression",
+            "campaign_insert_columns_and_params",
+            "map_campaign_update_fields",
+            "send_job_campaign_column",
+            "sqlite_master",
+            "pragma_table_info",
         ]:
             self.assertIn(expected, entrypoint)
 
@@ -359,60 +362,60 @@ class AdminFrontendWiringTests(unittest.TestCase):
             "/api/admin/me",
             "/api/admin/stats",
             "/api/admin/subscribers",
-            "/api/admin/issues",
+            "/api/admin/campaigns",
         ]:
             self.assertIn(f'adminFetch("{endpoint}"', page)
         self.assertIn('credentials: "same-origin"', page)
         self.assertIn("if (response.status === 401)", page)
         self.assertIn("window.location.href = '/login'", page)
 
-    def test_dashboard_renders_subscribers_and_issues_from_api_not_static_mock_rows(self):
+    def test_dashboard_renders_subscribers_and_campaigns_from_api_not_static_mock_rows(self):
         page = (ROOT / "public" / "dashboard.html").read_text()
 
         for element_id in [
             "admin-avatar-initials",
             "stat-active-subscribers",
             "stat-new-subscribers",
-            "stat-published-issues",
-            "stat-draft-issues",
+            "stat-published-campaigns",
+            "stat-draft-campaigns",
             "campaign-recipient-count",
             "users-table-body",
-            "issues-table-body",
+            "campaigns-table-body",
         ]:
             self.assertIn(f'id="{element_id}"', page)
 
         self.assertIn("function renderSubscribers(subscribers)", page)
-        self.assertIn("function renderIssues(issues)", page)
+        self.assertIn("function renderCampaigns(campaigns)", page)
         self.assertIn("function renderEmptyRow", page)
         self.assertNotIn("Aisha Khan", page)
         self.assertNotIn("BLT Monthly Digest — June 2026", page)
 
-    def test_dashboard_issue_editor_saves_drafts_to_issue_api(self):
+    def test_dashboard_campaign_editor_saves_drafts_to_campaign_api(self):
         page = (ROOT / "public" / "dashboard.html").read_text()
 
         for element_id in [
-            "issue-title",
-            "issue-slug",
-            "issue-subject",
-            "issue-summary",
-            "issue-markdown-body",
+            "campaign-title",
+            "campaign-slug",
+            "campaign-subject",
+            "campaign-summary",
+            "campaign-markdown-body",
         ]:
             self.assertIn(f'id="{element_id}"', page)
-        self.assertIn("async function saveIssueDraft()", page)
-        self.assertIn('adminFetch("/api/admin/issues", {', page)
+        self.assertIn("async function saveCampaignDraft()", page)
+        self.assertIn('adminFetch("/api/admin/campaigns", {', page)
         self.assertIn('method: "POST"', page)
         self.assertIn('method: "PATCH"', page)
-        self.assertIn("renderIssues(dashboardState.issues)", page)
+        self.assertIn("renderCampaigns(dashboardState.campaigns)", page)
 
     def test_dashboard_send_test_and_campaign_controls_call_backend_apis(self):
         page = (ROOT / "public" / "dashboard.html").read_text()
 
         self.assertIn("async function sendTestEmail()", page)
-        self.assertIn("async function queueCampaign()", page)
-        self.assertIn("function renderCampaigns(jobs)", page)
-        self.assertIn("adminFetch(`/api/admin/issues/${", page)
+        self.assertIn("async function publishCampaign()", page)
+        self.assertIn("function renderDeliveryJobs(jobs)", page)
+        self.assertIn("adminFetch(`/api/admin/campaigns/${", page)
         self.assertIn("/send-test`, {", page)
-        self.assertIn("/send`, {", page)
+        self.assertIn("/publish`, {", page)
         self.assertIn('adminFetch("/api/admin/jobs"', page)
         self.assertIn('id="test-email-recipient"', page)
         self.assertIn("campaign-recipient-count", page)
@@ -421,11 +424,11 @@ class AdminFrontendWiringTests(unittest.TestCase):
         page = (ROOT / "public" / "dashboard.html").read_text()
 
         self.assertIn("data-subscriber-id", page)
-        self.assertIn("data-issue-id", page)
+        self.assertIn("data-campaign-id", page)
         self.assertIn("data-job-id", page)
         self.assertIn("addEventListener('click', handleDashboardTableActions)", page)
         self.assertNotIn("onclick=\"openUserDetails('${id}')", page)
-        self.assertNotIn("onclick=\"openIssueEditor('${id}')", page)
+        self.assertNotIn("onclick=\"openCampaignEditor('${id}')", page)
         self.assertNotIn("onclick=\"openCampaignDetails('${id}')", page)
 
 

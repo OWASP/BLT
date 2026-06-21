@@ -37,8 +37,8 @@ Slice 3 adds the BLT-Newsletter email delivery foundation:
 
 Added in `src/entry.py`:
 
-- `POST /api/admin/issues/:id/send-test`
-- `POST /api/admin/issues/:id/send`
+- `POST /api/admin/campaigns/:id/send-test`
+- `POST /api/admin/campaigns/:id/publish`
 - `GET /api/admin/jobs`
 - `GET /api/admin/jobs/:id`
 - `POST /api/admin/jobs/:id/cancel`
@@ -67,15 +67,15 @@ Queue consumer:
 - loads campaign jobs from `/api/admin/jobs`
 - renders campaign rows from API state
 - opens campaign details from job state
-- sends test email through `/api/admin/issues/:id/send-test`
-- queues campaign sends through `/api/admin/issues/:id/send`
+- sends test email through `/api/admin/campaigns/:id/send-test`
+- publishes campaign sends through `/api/admin/campaigns/:id/publish`
 - keeps campaign recipient count based on active subscribers
 
 ## Queue behavior
 
 Campaign queue route:
 
-1. Loads issue.
+1. Loads campaign.
 2. Loads active subscribers.
 3. Creates one `newsletter_send_jobs` row.
 4. Creates one queued `newsletter_delivery_events` row per active subscriber.
@@ -84,13 +84,13 @@ Campaign queue route:
 ```json
 {
   "job_id": "job_...",
-  "issue_id": "issue_...",
+  "campaign_id": "cmp_...",
   "delivery_event_id": "evt_...",
   "subscriber_id": "sub_..."
 }
 ```
 
-The message intentionally excludes raw email and full issue HTML.
+The message intentionally excludes raw email and full campaign HTML.
 
 ## SendGrid configuration
 

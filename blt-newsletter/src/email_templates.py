@@ -1,7 +1,7 @@
 import html
 
 
-def render_newsletter_issue_email(title, summary, markdown_body, archive_url, unsubscribe_url):
+def render_newsletter_campaign_email(title, summary, markdown_body, archive_url, unsubscribe_url):
     safe_title = escape_text(title)
     safe_summary = escape_text(summary)
     body_html = render_markdown(markdown_body)
@@ -27,7 +27,7 @@ def render_newsletter_issue_email(title, summary, markdown_body, archive_url, un
         <section style="padding:28px;color:#0f172a;font-size:16px;line-height:1.65;">
           {body_html}
           <p style="margin:28px 0 0;">
-            <a href="{safe_archive_url}" style="color:#dc2626;font-weight:600;">Read this issue in the archive</a>
+            <a href="{safe_archive_url}" style="color:#dc2626;font-weight:600;">Read this newsletter in the archive</a>
           </p>
         </section>
         <footer style="padding:20px 28px;border-top:1px solid #e2e8f0;color:#64748b;font-size:12px;line-height:1.6;">

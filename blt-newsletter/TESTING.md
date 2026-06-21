@@ -104,23 +104,23 @@ After login:
 
 - Overview stats load from `/api/admin/stats`.
 - Subscribers table loads from `/api/admin/subscribers`.
-- Issues table loads from `/api/admin/issues`.
-- Campaign table loads from `/api/admin/jobs`.
+- Campaigns table loads from `/api/admin/campaigns`.
+- Deliveries table loads from `/api/admin/jobs`.
 - Browser console has no red errors.
 
-Manual issue test:
+Manual campaign test:
 
-1. Open Issues.
-2. Click New issue.
+1. Open Campaigns.
+2. Click New campaign.
 3. Fill title, slug, subject, summary, and Markdown body.
 4. Save draft.
-5. Refresh dashboard and confirm the issue remains.
+5. Refresh dashboard and confirm the campaign remains.
 
 ## SendGrid test-send flow
 
 Without SendGrid secrets:
 
-1. Open an issue in the dashboard.
+1. Open a campaign in the dashboard.
 2. Click Send test email.
 3. Enter a recipient.
 4. Submit.
@@ -129,21 +129,21 @@ Expected: clear configuration error asking for `SENDGRID_API_KEY` and `SENDGRID_
 
 With SendGrid secrets configured:
 
-- `POST /api/admin/issues/:id/send-test` should return success for a verified sender and valid recipient.
+- `POST /api/admin/campaigns/:id/send-test` should return success for a verified sender and valid recipient.
 - Confirm the email uses BLT branding and includes an unsubscribe footer.
 
-## Campaign queue flow
+## Campaign publish flow
 
 1. Ensure at least one active subscriber exists.
-2. Create or open a newsletter issue.
-3. Confirm Queue campaign.
+2. Create or open a newsletter campaign.
+3. Confirm Publish campaign.
 
 Expected:
 
-- `POST /api/admin/issues/:id/send` returns `202`.
+- `POST /api/admin/campaigns/:id/publish` returns `202`.
 - A `newsletter_send_jobs` row is created.
 - One queued `newsletter_delivery_events` row is created per active subscriber.
-- Dashboard Campaigns table shows the job.
+- Dashboard Deliveries table shows the job.
 - If `NEWSLETTER_QUEUE` is configured, queue messages contain IDs only, not raw emails.
 
 ## Runtime API expectations
@@ -155,10 +155,10 @@ curl -i http://localhost:8794/api/admin/me
 curl -i http://localhost:8794/api/admin/jobs
 ```
 
-Public archive should return only published issues:
+Public archive should return only published campaigns:
 
 ```bash
-curl -sS http://localhost:8794/api/issues
+curl -sS http://localhost:8794/api/campaigns
 ```
 
 ## Visual QA
@@ -175,7 +175,7 @@ Check desktop and mobile widths:
 
 - Confirm no API keys or session tokens appear in page source.
 - Confirm admin session cookie is HttpOnly.
-- Confirm public APIs never list draft issues.
+- Confirm public APIs never list draft campaigns.
 - Confirm queue payloads do not include raw emails.
 - Confirm setup closes after the first admin exists.
 
@@ -189,9 +189,9 @@ Run:
 wrangler d1 migrations apply blt-newsletter --local
 ```
 
-### Issue CRUD fails locally
+### Campaign creation fails locally
 
-If an old local migration was applied before the issue schema changed, your local D1 may be stale. Use a fresh local D1 when you are okay losing local test data.
+If an old local migration was applied before the campaign schema changed, your local D1 may be stale. Use a fresh local D1 when you are okay losing local test data.
 
 ### Test email fails
 
