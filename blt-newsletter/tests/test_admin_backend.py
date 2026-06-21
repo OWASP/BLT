@@ -232,6 +232,20 @@ class AdminWorkerRouteTests(unittest.TestCase):
         self.assertIn('"sent_at": ""', entrypoint)
         self.assertIn("return cleaned or \"\"", entrypoint)
 
+    def test_d1_issue_store_uses_schema_compatibility_helpers(self):
+        entrypoint = (ROOT / "src" / "entry.py").read_text()
+
+        for expected in [
+            "issue_table_columns",
+            "issue_select_columns",
+            "issue_slug_column",
+            "issue_order_expression",
+            "issue_insert_columns_and_params",
+            "map_issue_update_fields",
+            "pragma_table_info('newsletter_issues')",
+        ]:
+            self.assertIn(expected, entrypoint)
+
 
 class AdminSeedScriptTests(unittest.TestCase):
     def test_seed_script_imports_helpers_and_prints_insert_sql(self):

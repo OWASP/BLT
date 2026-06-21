@@ -31,6 +31,13 @@ try:
     from .email_templates import render_newsletter_issue_email
     from .newsletter_service import subscribe, unsubscribe
     from .newsletter_validation import email_hash, is_valid_email, normalize_email
+    from .newsletter_issue_schema import (
+        issue_insert_columns_and_params,
+        issue_order_expression,
+        issue_select_columns,
+        issue_slug_column,
+        map_issue_update_fields,
+    )
 except ImportError:  # pragma: no cover - used when the Worker loads src/ as its root.
     from admin_auth import (
         SESSION_COOKIE_NAME,
@@ -51,6 +58,13 @@ except ImportError:  # pragma: no cover - used when the Worker loads src/ as its
     from email_templates import render_newsletter_issue_email
     from newsletter_service import subscribe, unsubscribe
     from newsletter_validation import email_hash, is_valid_email, normalize_email
+    from newsletter_issue_schema import (
+        issue_insert_columns_and_params,
+        issue_order_expression,
+        issue_select_columns,
+        issue_slug_column,
+        map_issue_update_fields,
+    )
 
 
 ROUTES = {
@@ -911,6 +925,7 @@ class Default(WorkerEntrypoint):
 class D1SubscriberStore:
     def __init__(self, db):
         self.db = db
+        self._issue_columns = None
 
     async def find_by_hash(self, subscriber_hash):
         row = await self._first(
@@ -1200,12 +1215,20 @@ class D1SubscriberStore:
             subscriber_id,
         )
 
+    async def issue_table_columns(self):
+        if self._issue_columns is not None:
+            return self._issue_columns
+
+        rows = await self._all("SELECT name FROM pragma_table_info('newsletter_issues')")
+        self._issue_columns = [row.get("name") for row in rows if isinstance(row, dict) and row.get("name")]
+        return self._issue_columns
+
     async def list_admin_issues(self, limit=100):
+        columns = await self.issue_table_columns()
+        select_columns = ", ".join(issue_select_columns(columns))
         return await self._all(
-            """
-            SELECT id, slug, title, subject, summary, status, markdown_body,
-                   html_body, scheduled_for, published_at, sent_at,
-                   created_by_admin_id, created_at, updated_at, metadata_json
+            f"""
+            SELECT {select_columns}
             FROM newsletter_issues
             ORDER BY created_at DESC
             LIMIT ?
@@ -1214,28 +1237,30 @@ class D1SubscriberStore:
         )
 
     async def list_published_issues(self, limit=50):
+        columns = await self.issue_table_columns()
+        select_columns = ", ".join(issue_select_columns(columns, include_created_by=False))
+        order_expression = issue_order_expression(columns)
         return await self._all(
-            """
-            SELECT id, slug, title, subject, summary, status, markdown_body,
-                   html_body, scheduled_for, published_at, sent_at,
-                   created_at, updated_at, metadata_json
+            f"""
+            SELECT {select_columns}
             FROM newsletter_issues
             WHERE status = 'published'
-            ORDER BY COALESCE(published_at, created_at) DESC
+            ORDER BY {order_expression} DESC
             LIMIT ?
             """,
             limit,
         )
 
     async def find_published_issue_by_slug(self, slug):
+        columns = await self.issue_table_columns()
+        select_columns = ", ".join(issue_select_columns(columns, include_created_by=False))
+        slug_column = issue_slug_column(columns)
         row = await self._first(
-            """
-            SELECT id, slug, title, subject, summary, status, markdown_body,
-                   html_body, scheduled_for, published_at, sent_at,
-                   created_at, updated_at, metadata_json
+            f"""
+            SELECT {select_columns}
             FROM newsletter_issues
             WHERE status = 'published'
-              AND slug = ?
+              AND {slug_column} = ?
             LIMIT 1
             """,
             slug,
@@ -1243,11 +1268,11 @@ class D1SubscriberStore:
         return js_to_py(row)
 
     async def find_issue_by_id(self, issue_id):
+        columns = await self.issue_table_columns()
+        select_columns = ", ".join(issue_select_columns(columns))
         row = await self._first(
-            """
-            SELECT id, slug, title, subject, summary, status, markdown_body,
-                   html_body, scheduled_for, published_at, sent_at,
-                   created_by_admin_id, created_at, updated_at, metadata_json
+            f"""
+            SELECT {select_columns}
             FROM newsletter_issues
             WHERE id = ?
             LIMIT 1
@@ -1257,30 +1282,17 @@ class D1SubscriberStore:
         return js_to_py(row)
 
     async def insert_issue(self, record):
+        columns = await self.issue_table_columns()
+        insert_columns, params = issue_insert_columns_and_params(record, columns)
+        placeholders = ", ".join("?" for _ in insert_columns)
         await self._run(
-            """
+            f"""
             INSERT INTO newsletter_issues (
-              id, slug, title, subject, summary, status, markdown_body,
-              html_body, scheduled_for, published_at, sent_at,
-              created_by_admin_id, created_at, updated_at, metadata_json
+              {", ".join(insert_columns)}
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES ({placeholders})
             """,
-            record["id"],
-            record["slug"],
-            record["title"],
-            record["subject"],
-            record.get("summary"),
-            record["status"],
-            record["markdown_body"],
-            record.get("html_body"),
-            record.get("scheduled_for"),
-            record.get("published_at"),
-            record.get("sent_at"),
-            record.get("created_by_admin_id"),
-            record["created_at"],
-            record["updated_at"],
-            record["metadata_json"],
+            *params,
         )
 
     async def insert_send_job(self, record):
@@ -1434,9 +1446,14 @@ class D1SubscriberStore:
         )
 
     async def update_issue(self, issue_id, updates):
+        columns = await self.issue_table_columns()
+        mapped_updates = map_issue_update_fields(updates, columns)
+        if not mapped_updates:
+            return
+
         assignments = []
         params = []
-        for column, value in updates.items():
+        for column, value in mapped_updates.items():
             assignments.append(f"{column} = ?")
             params.append(value)
 
