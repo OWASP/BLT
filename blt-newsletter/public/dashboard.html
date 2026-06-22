@@ -36,47 +36,21 @@
         --text-secondary-light: #1e293b;
         --text-muted-light: #64748b;
         --border-light: #e2e8f0;
-
-        --background-dark: #0a0d12;
-        --surface-dark: #111318;
-        --elevated-dark: #1a1f2e;
-        --text-primary-dark: #f0f1f3;
-        --text-secondary-dark: #c9ccd1;
-        --text-muted-dark: #8a8e97;
-        --border-dark: rgba(255, 255, 255, 0.08);
       }
 
       html {
         color-scheme: light;
       }
-
-      html.dark {
-        color-scheme: dark;
-      }
-
       body {
         background-color: var(--background-light);
         color: var(--text-primary-light);
         transition: background-color 200ms, color 200ms;
       }
-
-      html.dark body {
-        background-color: var(--background-dark);
-        color: var(--text-primary-dark);
-      }
-
       .card {
         background-color: var(--surface-light);
         border-color: var(--border-light);
         color: var(--text-primary-light);
       }
-
-      html.dark .card {
-        background-color: var(--surface-dark);
-        border-color: var(--border-dark);
-        color: var(--text-primary-dark);
-      }
-
       .page {
         display: none;
       }
@@ -96,11 +70,6 @@
       .sheet-overlay.active {
         display: block;
       }
-
-      html.dark .sheet-overlay {
-        background: rgba(0, 0, 0, 0.5);
-      }
-
       .sheet {
         position: fixed;
         top: 0;
@@ -116,12 +85,6 @@
         display: flex;
         flex-direction: column;
       }
-
-      html.dark .sheet {
-        background-color: var(--surface-dark);
-        border-left-color: var(--border-dark);
-      }
-
       .sheet.active {
         transform: translateX(0);
       }
@@ -139,11 +102,6 @@
       .modal-overlay.active {
         display: flex;
       }
-
-      html.dark .modal-overlay {
-        background: rgba(0, 0, 0, 0.7);
-      }
-
       .modal {
         background-color: var(--surface-light);
         border-radius: 12px;
@@ -152,11 +110,6 @@
         max-height: 90vh;
         overflow-y: auto;
       }
-
-      html.dark .modal {
-        background-color: var(--surface-dark);
-      }
-
       .toast-container {
         position: fixed;
         bottom: 24px;
@@ -173,13 +126,6 @@
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
         animation: slideIn 200ms ease;
       }
-
-      html.dark .toast {
-        background-color: var(--elevated-dark);
-        border-color: var(--border-dark);
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
-      }
-
       @keyframes slideIn {
         from {
           transform: translateX(400px);
@@ -201,16 +147,6 @@
         background-size: 200% 100%;
         animation: loading 1.5s infinite;
       }
-
-      html.dark .skeleton {
-        background: linear-gradient(
-          90deg,
-          var(--border-dark) 25%,
-          rgba(255, 255, 255, 0.05) 50%,
-          var(--border-dark) 75%
-        );
-      }
-
       @keyframes loading {
         0% {
           background-position: 200% 0;
@@ -225,30 +161,14 @@
         border-right-color: var(--border-light);
         transition: background-color 200ms, border-color 200ms;
       }
-
-      html.dark .sidebar {
-        background-color: var(--surface-dark);
-        border-right-color: var(--border-dark);
-      }
-
       .sidebar-item {
         position: relative;
         color: var(--text-muted-light);
         transition: background-color 200ms, color 200ms;
       }
-
-      html.dark .sidebar-item {
-        color: var(--text-muted-dark);
-      }
-
       .sidebar-item:hover {
         background-color: #f1f5f9;
       }
-
-      html.dark .sidebar-item:hover {
-        background-color: #1a1f2e;
-      }
-
       .sidebar-item.active {
         color: #dc2626;
       }
@@ -278,92 +198,38 @@
         background: #ecfdf5;
         color: #10b981;
       }
-
-      html.dark .status-active {
-        background: rgba(16, 185, 129, 0.15);
-        color: #10b981;
-      }
-
       .status-draft {
         background: #f1f5f9;
         color: #64748b;
       }
-
-      html.dark .status-draft {
-        background: rgba(100, 116, 139, 0.15);
-        color: #94a3b8;
-      }
-
       .status-bounced {
         background: #fef2f2;
         color: #dc2626;
       }
-
-      html.dark .status-bounced {
-        background: rgba(220, 38, 38, 0.15);
-        color: #ef4444;
-      }
-
       .status-suppressed {
         background: #fef3c7;
         color: #b45309;
       }
-
-      html.dark .status-suppressed {
-        background: rgba(180, 83, 9, 0.15);
-        color: #fbbf24;
-      }
-
       .status-unsubscribed {
         background: #f1f5f9;
         color: #64748b;
       }
-
-      html.dark .status-unsubscribed {
-        background: rgba(100, 116, 139, 0.15);
-        color: #94a3b8;
-      }
-
       .status-published {
         background: #ecfdf5;
         color: #10b981;
       }
-
-      html.dark .status-published {
-        background: rgba(16, 185, 129, 0.15);
-        color: #10b981;
-      }
-
       .status-scheduled {
         background: #eff6ff;
         color: #0284c7;
       }
-
-      html.dark .status-scheduled {
-        background: rgba(2, 132, 199, 0.15);
-        color: #38bdf8;
-      }
-
       .status-sent {
         background: #ecfdf5;
         color: #10b981;
       }
-
-      html.dark .status-sent {
-        background: rgba(16, 185, 129, 0.15);
-        color: #10b981;
-      }
-
       .status-sending {
         background: #fef3c7;
         color: #b45309;
       }
-
-      html.dark .status-sending {
-        background: rgba(180, 83, 9, 0.15);
-        color: #fbbf24;
-      }
-
       .btn-primary {
         background: linear-gradient(to bottom, #ef4444, #dc2626);
         color: white;
@@ -392,23 +258,10 @@
         transition: all 200ms ease;
         font-weight: 500;
       }
-
-      html.dark .close-button {
-        background-color: var(--elevated-dark);
-        color: var(--text-secondary-dark);
-        border-color: var(--border-dark);
-      }
-
       .close-button:hover {
         background-color: #f1f5f9;
         border-color: #cbd5e1;
       }
-
-      html.dark .close-button:hover {
-        background-color: #475569;
-        border-color: rgba(255, 255, 255, 0.15);
-      }
-
       .btn-secondary {
         background-color: var(--surface-light);
         color: var(--text-secondary-light);
@@ -420,23 +273,10 @@
         cursor: pointer;
         transition: all 200ms ease;
       }
-
-      html.dark .btn-secondary {
-        background-color: var(--elevated-dark);
-        color: var(--text-secondary-dark);
-        border-color: var(--border-dark);
-      }
-
       .btn-secondary:hover {
         background-color: #f1f5f9;
         border-color: #cbd5e1;
       }
-
-      html.dark .btn-secondary:hover {
-        background-color: #475569;
-        border-color: rgba(255, 255, 255, 0.15);
-      }
-
       .input-field {
         background-color: var(--surface-light);
         border: 1px solid var(--border-light);
@@ -446,39 +286,16 @@
         color: var(--text-primary-light);
         transition: background-color 200ms, border-color 200ms, color 200ms;
       }
-
-      html.dark .input-field {
-        background-color: var(--elevated-dark);
-        border-color: var(--border-dark);
-        color: var(--text-primary-dark);
-      }
-
       .input-field:focus {
         outline: none;
         border-color: #dc2626;
         box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
       }
-
-      html.dark .input-field:focus {
-        box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
-      }
-
-      html.dark .input-field {
-        background-color: var(--elevated-dark);
-        border-color: var(--border-dark);
-        color: var(--text-primary-dark);
-      }
-
       .input-field:focus {
         outline: none;
         border-color: #dc2626;
         box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
       }
-
-      html.dark .input-field:focus {
-        box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2);
-      }
-
       table {
         width: 100%;
         border-collapse: collapse;
@@ -495,30 +312,14 @@
         text-transform: uppercase;
         letter-spacing: 0.05em;
       }
-
-      html.dark th {
-        color: var(--text-muted-dark);
-        border-bottom-color: var(--border-dark);
-      }
-
       td {
         padding: 14px 16px;
         border-bottom: 1px solid var(--border-light);
         font-size: 14px;
       }
-
-      html.dark td {
-        border-bottom-color: var(--border-dark);
-      }
-
       tr:hover {
         background-color: #f8fafc;
       }
-
-      html.dark tr:hover {
-        background-color: rgba(255, 255, 255, 0.05);
-      }
-
       .progress-bar {
         width: 100%;
         height: 6px;
@@ -526,11 +327,6 @@
         border-radius: 3px;
         overflow: hidden;
       }
-
-      html.dark .progress-bar {
-        background-color: var(--border-dark);
-      }
-
       .progress-fill {
         height: 100%;
         background: linear-gradient(to right, #10b981, #34d399);
@@ -542,11 +338,6 @@
           display: none;
           background-color: var(--surface-light);
         }
-
-        html.dark .sidebar {
-          background-color: var(--surface-dark);
-        }
-
         .sidebar.active {
           display: flex;
           position: fixed;
@@ -561,11 +352,6 @@
           height: 100vh;
           background-color: var(--surface-light);
         }
-
-        html.dark .sidebar-content {
-          background-color: var(--surface-dark);
-        }
-
         body.px-8 {
           padding-left: 1rem;
           padding-right: 1rem;
@@ -587,9 +373,6 @@
       <!-- Sidebar -->
       <aside class="sidebar w-64 border-r flex flex-col bg-white flex-none transition-colors" style="border-right-color: var(--border-light); background-color: var(--surface-light);">
         <div class="sidebar-content p-6 flex flex-col h-full" style="color: var(--text-primary-light);">
-        <style>
-          html.dark .sidebar-content { color: var(--text-primary-dark); }
-        </style>
           <div class="flex items-center gap-2 mb-8">
             <div class="flex h-9 w-9 items-center justify-center rounded-lg border border-red-100 bg-white shadow-sm">
               <img src="./static/images/logo.png" alt="BLT Logo" class="h-8 w-8" />
@@ -636,11 +419,6 @@
               <i class="fa-solid fa-sign-out-alt w-4 mr-2"></i>
               Logout
             </button>
-
-            <style>
-              html.dark .sidebar a, html.dark .sidebar button { color: var(--text-muted-dark); }
-              html.dark .sidebar a:hover, html.dark .sidebar button:hover { background-color: var(--elevated-dark); }
-            </style>
           </div>
         </div>
       </aside>
@@ -654,25 +432,11 @@
             <p id="page-desc" class="text-sm" style="color: var(--text-muted-light);">Monitor newsletter health and activity</p>
           </div>
           <div class="flex items-center gap-4">
-            <button onclick="toggleTheme()" class="p-2 rounded-lg transition" style="background-color: transparent; color: var(--text-muted-light);" onmouseover="this.style.backgroundColor='#f1f5f9'" onmouseout="this.style.backgroundColor='transparent'">
-              <i class="fa-solid fa-moon text-sm"></i>
-            </button>
             <button id="admin-avatar-initials" class="w-10 h-10 rounded-full bg-red-600 text-white flex items-center justify-center text-sm font-semibold cursor-pointer" title="Signed-in admin">
               …
             </button>
           </div>
         </header>
-
-        <style>
-          html.dark header {
-            background-color: var(--surface-dark);
-            border-bottom-color: var(--border-dark);
-          }
-          html.dark #page-title { color: var(--text-primary-dark); }
-          html.dark #page-desc { color: var(--text-muted-dark); }
-          html.dark header button { color: var(--text-muted-dark); }
-          html.dark header button:hover { background-color: var(--elevated-dark); }
-        </style>
 
         <!-- Pages Container -->
         <div class="flex-1 overflow-y-auto">
@@ -736,13 +500,6 @@
                     </tbody>
                   </table>
                 </div>
-
-                <style>
-                  html.dark table thead tr { background-color: var(--elevated-dark); border-bottom-color: var(--border-dark); }
-                  html.dark table tbody tr { border-bottom-color: var(--border-dark); }
-                  html.dark table tbody tr td { color: var(--text-secondary-dark); }
-                  html.dark table tbody tr td .fa-solid { color: var(--text-muted-dark); }
-                </style>
               </div>
 
               <div class="card border rounded-lg p-6">
@@ -1089,13 +846,6 @@
               <p style="margin: 0; color: var(--text-secondary-light);">Email preview content will appear here based on your markdown input.</p>
             </div>
           </div>
-
-          <style>
-            html.dark [style*="background-color: var(--background-light)"] { background-color: var(--elevated-dark) !important; border-color: var(--border-dark) !important; }
-            html.dark .email-preview-inner { background-color: var(--surface-dark) !important; color: var(--text-primary-dark) !important; }
-            html.dark .email-preview-title { color: var(--text-primary-dark) !important; }
-            html.dark .email-preview-text { color: var(--text-secondary-dark) !important; }
-          </style>
         </div>
       </div>
       <div class="border-t p-6 space-y-3 flex-none flex gap-3" style="border-top-color: var(--border-light);">
@@ -1609,10 +1359,6 @@
         } finally {
           window.location.href = '/login';
         }
-      }
-
-      function toggleTheme() {
-        document.documentElement.classList.toggle('dark');
       }
 
       function openCampaignEditor(campaignId = null) {

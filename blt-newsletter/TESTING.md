@@ -169,7 +169,6 @@ Check desktop and mobile widths:
 - Login and signup pages.
 - Dashboard sidebar/topbar.
 - Dashboard tables and right-side sheets.
-- Light/dark dashboard toggle.
 
 ## Security QA
 
