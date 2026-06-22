@@ -39,12 +39,14 @@ class WebSocketHub:
         await websocket.accept()
         async with self._lock:
             self._clients.add(websocket)
-        logger.info("ws connect", extra={"clients": len(self._clients)})
+            count = len(self._clients)
+        logger.info("ws connect", extra={"clients": count})
 
     async def disconnect(self, websocket: WebSocket) -> None:
         async with self._lock:
             self._clients.discard(websocket)
-        logger.info("ws disconnect", extra={"clients": len(self._clients)})
+            count = len(self._clients)
+        logger.info("ws disconnect", extra={"clients": count})
 
     @property
     def client_count(self) -> int:

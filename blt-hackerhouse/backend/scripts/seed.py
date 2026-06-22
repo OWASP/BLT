@@ -1,12 +1,13 @@
 """Seed the database with a handful of demo contributors and events.
 
 Usage:
-    python -m scripts.seed
+    APP_ENV=development python -m scripts.seed
 """
 
 from __future__ import annotations
 
 import asyncio
+import os
 from datetime import datetime, timezone, timedelta
 from uuid import uuid4
 
@@ -27,15 +28,27 @@ from src.storage import (
 logger = get_logger(__name__)
 
 
+# (gitlab_user_id, username, display_name, is_linked)
+# GitLab platform IDs are numeric; the identity resolver matches on these.
 DEMO_CONTRIBUTORS = [
-    ("rudra-rps", "Rudra Pratap Singh", True),
-    ("donnieb", "Donnie Brown", True),
-    ("alice", "Alice Example", False),
-    ("bob", "Bob Example", False),
+    (10001, "rudra-rps", "Rudra Pratap Singh", True),
+    (10002, "donnieb", "Donnie Brown", True),
+    (10003, "alice", "Alice Example", False),
+    (10004, "bob", "Bob Example", False),
 ]
 
 
+def _require_safe_env() -> None:
+    """Abort if not running in a non-production environment."""
+    env = os.getenv("APP_ENV", "production")
+    if env not in {"development", "test"}:
+        raise SystemExit(
+            f"seed.py must not run in {env!r}; set APP_ENV=development or APP_ENV=test"
+        )
+
+
 async def main() -> int:
+    _require_safe_env()
     configure_logging()
     db: Database = get_database()
     await db.connect()
@@ -45,13 +58,13 @@ async def main() -> int:
     avatar_q = AvatarStateQueries(db)
     event_q = EventQueries(db)
 
-    for username, display, linked in DEMO_CONTRIBUTORS:
+    for gitlab_id, username, display, linked in DEMO_CONTRIBUTORS:
         contributor = Contributor(
             id=uuid4(),
             display_name=display,
             usernames=[username],
             aliases=[display],
-            platform_ids={"gitlab_id": username},
+            platform_ids={"gitlab_id": gitlab_id},
             is_linked=linked,
             score=0,
         )
@@ -71,7 +84,7 @@ async def main() -> int:
         event = Event(
             source="gitlab",
             event_type="mr_opened",
-            actor_id=username,
+            actor_id=str(gitlab_id),
             actor_name=username,
             repository="OWASP-BLT/BLT",
             timestamp=now - timedelta(minutes=5),

@@ -175,7 +175,6 @@ async def status() -> StatusResponse:
     occupancy = await runner.room_occupancy()
     stats = await ContributorQueries(db).stats()
     events_min = await runner.events_last_minute()
-    blt_cursors = await _fetch_cursors(db)
 
     return StatusResponse(
         data=StatusData(

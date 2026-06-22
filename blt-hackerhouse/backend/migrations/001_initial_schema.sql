@@ -3,7 +3,25 @@
 
 PRAGMA foreign_keys = ON;
 
+-- Contributors table (VF09) -- declared before events so events.contributor_id
+-- FK targets a known table on stricter DDL validation paths.
+CREATE TABLE IF NOT EXISTS contributors (
+    id            TEXT    PRIMARY KEY,
+    display_name  TEXT    NOT NULL,
+    usernames     TEXT    NOT NULL DEFAULT '[]',
+    aliases       TEXT    NOT NULL DEFAULT '[]',
+    platform_ids  TEXT    NOT NULL DEFAULT '{}',
+    is_linked     INTEGER NOT NULL DEFAULT 0,
+    score         INTEGER NOT NULL DEFAULT 0,
+    created_at    TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at    TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_contributors_linked ON contributors(is_linked);
+
 -- Events table (VF09)
+-- Note: idempotency_key already has an implicit unique index from UNIQUE NOT NULL;
+-- do not create a separate idx_events_idempotency.
 CREATE TABLE IF NOT EXISTS events (
     id              TEXT    PRIMARY KEY,
     source          TEXT    NOT NULL CHECK(source IN ('gitlab', 'blt')),
@@ -19,25 +37,9 @@ CREATE TABLE IF NOT EXISTS events (
     created_at      TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX IF NOT EXISTS idx_events_idempotency ON events(idempotency_key);
 CREATE INDEX IF NOT EXISTS idx_events_contributor ON events(contributor_id);
 CREATE INDEX IF NOT EXISTS idx_events_timestamp   ON events(timestamp);
 CREATE INDEX IF NOT EXISTS idx_events_sequence    ON events(sequence_number);
-
--- Contributors table (VF09)
-CREATE TABLE IF NOT EXISTS contributors (
-    id            TEXT    PRIMARY KEY,
-    display_name  TEXT    NOT NULL,
-    usernames     TEXT    NOT NULL DEFAULT '[]',
-    aliases       TEXT    NOT NULL DEFAULT '[]',
-    platform_ids  TEXT    NOT NULL DEFAULT '{}',
-    is_linked     INTEGER NOT NULL DEFAULT 0,
-    score         INTEGER NOT NULL DEFAULT 0,
-    created_at    TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at    TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE INDEX IF NOT EXISTS idx_contributors_linked ON contributors(is_linked);
 
 -- Avatar state table (VF09)
 CREATE TABLE IF NOT EXISTS avatar_state (

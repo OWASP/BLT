@@ -23,8 +23,9 @@ async def websocket_endpoint(
     runner: PipelineRunner,
     token: str | None = None,
 ) -> None:
-    # Reject before accepting the handshake so unauthenticated clients get
-    # a proper 1008 close code and never receive a snapshot or broadcasts.
+    # Reject before accepting the handshake; Starlette will respond with
+    # HTTP 403 during the upgrade, so unauthenticated clients never receive
+    # a snapshot or broadcasts. No WebSocket close frame is sent at this stage.
     if not verify_token(token, settings.websocket_auth_token):
         await websocket.close(code=1008, reason="Unauthorized")
         return
