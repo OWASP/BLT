@@ -5,7 +5,13 @@ from urllib.parse import urlparse
 from workers import WorkerEntrypoint, Response
 from js import URL
 
-from services.templates import submit_page
+from services.templates import (
+    admin_onboard_page,
+    docs_decrypt,
+    docs_org_onboarding,
+    docs_security,
+    submit_page,
+)
 from services.email import send_email
 
 
@@ -70,6 +76,11 @@ EMAIL_RE = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
 # ----------------------------
 def _sendgrid_status(env):
     return "OK" if getattr(env, "SENDGRID_API_KEY", None) else "not configured"
+
+
+def _app_origin(env, url):
+    origin = getattr(env, "APP_ORIGIN", None) or getattr(url, "origin", "")
+    return str(origin).rstrip("/")
 
 
 # ----------------------------
@@ -195,6 +206,45 @@ class Default(WorkerEntrypoint):
             except Exception as e:
                 return Response.json(
                     {"error": f"Failed to load UI template: {e}"}, status=500
+                )
+
+        if request.method == "GET" and url.pathname == "/docs/security":
+            try:
+                return html_response(docs_security())
+            except Exception as e:
+                return Response.json(
+                    {"error": f"Failed to load security docs template: {e}"},
+                    status=500,
+                )
+
+        if request.method == "GET" and url.pathname == "/docs/org-onboarding":
+            try:
+                return html_response(docs_org_onboarding(_app_origin(env, url)))
+            except Exception as e:
+                return Response.json(
+                    {"error": f"Failed to load onboarding docs template: {e}"},
+                    status=500,
+                )
+
+        if request.method == "GET" and url.pathname == "/docs/decrypt":
+            try:
+                return html_response(docs_decrypt())
+            except Exception as e:
+                return Response.json(
+                    {"error": f"Failed to load decrypt docs template: {e}"},
+                    status=500,
+                )
+
+        if request.method == "GET" and url.pathname == "/admin/onboard":
+            try:
+                turnstile_site_key = getattr(env, "TURNSTILE_SITE_KEY", "")
+                return html_response(
+                    admin_onboard_page(turnstile_site_key=turnstile_site_key)
+                )
+            except Exception as e:
+                return Response.json(
+                    {"error": f"Failed to load admin onboarding template: {e}"},
+                    status=500,
                 )
 
         # ZIP-only submission
