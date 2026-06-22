@@ -59,6 +59,15 @@ CREATE INDEX IF NOT EXISTS idx_newsletter_admin_sessions_admin_id
 CREATE INDEX IF NOT EXISTS idx_newsletter_admin_sessions_expires_at
   ON newsletter_admin_sessions (expires_at);
 
+CREATE TABLE IF NOT EXISTS newsletter_settings (
+  setting_key TEXT PRIMARY KEY,
+  setting_value TEXT NOT NULL,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_by_admin_id TEXT,
+  metadata_json TEXT NOT NULL DEFAULT '{}',
+  FOREIGN KEY (updated_by_admin_id) REFERENCES newsletter_admins (id)
+);
+
 CREATE TABLE IF NOT EXISTS newsletter_campaigns (
   id TEXT PRIMARY KEY,
   slug TEXT NOT NULL UNIQUE,

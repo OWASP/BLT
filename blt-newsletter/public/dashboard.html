@@ -927,17 +927,17 @@
                 <div class="space-y-4">
                   <div>
                     <label class="block text-sm font-medium mb-2">From name</label>
-                    <input type="text" class="input-field w-full" value="BLT Newsletter" />
+                    <input id="settings-from-name" type="text" class="input-field w-full" value="" />
                   </div>
                   <div>
                     <label class="block text-sm font-medium mb-2">From email</label>
-                    <input type="email" class="input-field w-full" value="newsletter@owasp-blt.dev" />
+                    <input id="settings-from-email" type="email" class="input-field w-full" value="" />
                   </div>
                   <div>
                     <label class="block text-sm font-medium mb-2">Reply-to email</label>
-                    <input type="email" class="input-field w-full" value="support@owasp-blt.dev" />
+                    <input id="settings-reply-to-email" type="email" class="input-field w-full" value="" />
                   </div>
-                  <button class="btn-primary" onclick="showToast('Settings saved')">Save changes</button>
+                  <button id="settings-save-button" class="btn-primary" onclick="saveSettings()">Save changes</button>
                 </div>
               </div>
 
@@ -1226,6 +1226,7 @@
         subscribers: [],
         campaigns: [],
         jobs: [],
+        settings: {},
         selectedCampaignId: null,
         selectedDeliveryJobId: null,
       };
@@ -1254,6 +1255,7 @@
           loadSubscribers(),
           loadCampaigns(),
           loadJobs(),
+          loadSettings(),
         ]);
       }
 
@@ -1331,6 +1333,58 @@
         } catch (error) {
           renderEmptyRow('deliveries-table-body', 7, error.message || 'Delivery jobs could not be loaded.');
           showToast(error.message || 'Delivery jobs could not be loaded');
+        }
+      }
+
+      async function loadSettings() {
+        try {
+          const payload = await adminFetch("/api/admin/settings");
+          dashboardState.settings = payload.settings || {};
+          renderSettings(payload.settings || {});
+        } catch (error) {
+          showToast(error.message || 'Settings could not be loaded');
+        }
+      }
+
+      function renderSettings(settings) {
+        setValue('settings-from-name', settings.from_name || '');
+        setValue('settings-from-email', settings.from_email || '');
+        setValue('settings-reply-to-email', settings.reply_to_email || '');
+      }
+
+      async function saveSettings() {
+        const payload = {
+          from_name: getValue('settings-from-name'),
+          from_email: getValue('settings-from-email'),
+          reply_to_email: getValue('settings-reply-to-email'),
+        };
+
+        if (!payload.from_name || !payload.from_email) {
+          showToast('From name and from email are required.');
+          return;
+        }
+
+        const button = document.getElementById('settings-save-button');
+        if (button) {
+          button.disabled = true;
+          button.textContent = 'Saving...';
+        }
+
+        try {
+          const response = await adminFetch("/api/admin/settings", {
+            method: "PATCH",
+            body: JSON.stringify(payload),
+          });
+          dashboardState.settings = response.settings || {};
+          renderSettings(response.settings || {});
+          showToast('Settings saved');
+        } catch (error) {
+          showToast(error.message || 'Settings could not be saved');
+        } finally {
+          if (button) {
+            button.disabled = false;
+            button.textContent = 'Save changes';
+          }
         }
       }
 

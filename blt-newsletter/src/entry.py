@@ -96,6 +96,7 @@ API_ROUTES = {
     "/api/admin/logout",
     "/api/admin/me",
     "/api/admin/stats",
+    "/api/admin/settings",
     "/api/admin/subscribers",
     "/api/admin/campaigns",
     "/api/admin/jobs",
@@ -114,6 +115,7 @@ DEFAULT_EMAIL_HASH_SECRET = "development-email-hash-secret"
 DEFAULT_ADMIN_SESSION_SECRET = "development-admin-session-secret"
 CAMPAIGN_STATUSES = {"draft", "published", "scheduled", "sent"}
 SLUG_PATTERN = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+ADMIN_SETTING_KEYS = ("from_name", "from_email", "reply_to_email")
 
 
 class Default(WorkerEntrypoint):
@@ -168,6 +170,13 @@ class Default(WorkerEntrypoint):
             if request.method != "GET":
                 return json_error("Method not allowed.", 405)
             return await self.handle_admin_stats(request)
+
+        if path == "/api/admin/settings":
+            if request.method == "GET":
+                return await self.handle_admin_settings(request)
+            if request.method == "PATCH":
+                return await self.handle_admin_update_settings(request)
+            return json_error("Method not allowed.", 405)
 
         if path == "/api/admin/subscribers":
             if request.method != "GET":
@@ -517,6 +526,43 @@ class Default(WorkerEntrypoint):
             return json_error("Admin stats could not be loaded.", 500)
 
         return json_response({"success": True, "stats": stats or {}})
+
+    async def handle_admin_settings(self, request):
+        context, error_response = await self.require_admin(request)
+        if error_response is not None:
+            return error_response
+
+        try:
+            settings = await context["store"].list_settings(ADMIN_SETTING_KEYS)
+        except Exception:
+            return json_error("Settings could not be loaded.", 500)
+
+        return json_response({"success": True, "settings": admin_settings_with_defaults(settings, self.env)})
+
+    async def handle_admin_update_settings(self, request):
+        context, error_response = await self.require_admin(request)
+        if error_response is not None:
+            return error_response
+
+        payload = await safe_json(request)
+        if payload is None:
+            return json_error("Invalid JSON request body.", 400)
+
+        settings, validation_error = build_admin_settings_updates(payload)
+        if validation_error is not None:
+            return json_error(validation_error, 400)
+
+        try:
+            await context["store"].upsert_settings(
+                settings,
+                context["admin"]["id"],
+                utc_timestamp(),
+            )
+            settings = await context["store"].list_settings(ADMIN_SETTING_KEYS)
+        except Exception:
+            return json_error("Settings could not be saved.", 500)
+
+        return json_response({"success": True, "settings": admin_settings_with_defaults(settings, self.env)})
 
     async def handle_admin_subscribers(self, request):
         context, error_response = await self.require_admin(request)
@@ -1250,6 +1296,53 @@ class D1SubscriberStore:
         )
         stats.update(js_to_py(campaign_stats) or {})
         return stats
+
+    async def list_settings(self, keys=None):
+        if keys:
+            placeholders = ", ".join("?" for _ in keys)
+            rows = await self._all(
+                f"""
+                SELECT setting_key, setting_value
+                FROM newsletter_settings
+                WHERE setting_key IN ({placeholders})
+                """,
+                *keys,
+            )
+        else:
+            rows = await self._all(
+                """
+                SELECT setting_key, setting_value
+                FROM newsletter_settings
+                """
+            )
+
+        settings = {}
+        for row in rows:
+            if not isinstance(row, dict):
+                continue
+            key = row.get("setting_key")
+            if key:
+                settings[key] = row.get("setting_value") or ""
+        return settings
+
+    async def upsert_settings(self, settings, admin_id, updated_at):
+        for key, value in settings.items():
+            await self._run(
+                """
+                INSERT INTO newsletter_settings (
+                  setting_key, setting_value, updated_at, updated_by_admin_id, metadata_json
+                )
+                VALUES (?, ?, ?, ?, '{}')
+                ON CONFLICT(setting_key) DO UPDATE SET
+                  setting_value = excluded.setting_value,
+                  updated_at = excluded.updated_at,
+                  updated_by_admin_id = excluded.updated_by_admin_id
+                """,
+                key,
+                value,
+                updated_at,
+                admin_id,
+            )
 
     async def list_subscribers(self, limit=100):
         return await self._all(
@@ -1990,6 +2083,54 @@ def build_campaign_updates(payload):
 
     updates["updated_at"] = now
     return updates, None
+
+
+def default_admin_settings(env):
+    from_email = clean_env_value(get_env_value(env, "SENDGRID_FROM_EMAIL"))
+    return {
+        "from_name": clean_env_value(get_env_value(env, "SENDGRID_FROM_NAME")) or "OWASP BLT",
+        "from_email": from_email,
+        "reply_to_email": clean_env_value(get_env_value(env, "SENDGRID_REPLY_TO_EMAIL")) or from_email,
+    }
+
+
+def admin_settings_with_defaults(settings, env):
+    defaults = default_admin_settings(env)
+    merged = {}
+    source = settings if isinstance(settings, dict) else {}
+    for key in ADMIN_SETTING_KEYS:
+        if key not in source:
+            merged[key] = defaults.get(key, "")
+            continue
+
+        value = clean_text(source.get(key))
+        if value or key == "reply_to_email":
+            merged[key] = value
+        else:
+            merged[key] = defaults.get(key, "")
+    return merged
+
+
+def build_admin_settings_updates(payload):
+    from_name = clean_text(payload.get("from_name"))
+    if not from_name:
+        return None, "From name is required."
+
+    from_email = normalize_email(payload.get("from_email"))
+    if not is_valid_email(from_email):
+        return None, "A valid from email is required."
+
+    reply_to_email = clean_text(payload.get("reply_to_email"))
+    if reply_to_email:
+        reply_to_email = normalize_email(reply_to_email)
+        if not is_valid_email(reply_to_email):
+            return None, "A valid reply-to email is required."
+
+    return {
+        "from_name": from_name,
+        "from_email": from_email,
+        "reply_to_email": reply_to_email,
+    }, None
 
 
 def clean_optional_text(value):

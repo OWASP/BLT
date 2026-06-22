@@ -181,6 +181,69 @@ class AdminWorkerRouteTests(unittest.TestCase):
         self.assertIn("NEWSLETTER_QUEUE", entrypoint)
         self.assertIn("SENDGRID_API_KEY", entrypoint)
 
+    def test_worker_declares_admin_settings_routes_and_store_methods(self):
+        entrypoint = (ROOT / "src" / "entry.py").read_text()
+        migration = (ROOT / "migrations" / "0001_newsletter_schema.sql").read_text()
+
+        for expected in [
+            '"/api/admin/settings"',
+            "handle_admin_settings",
+            "handle_admin_update_settings",
+            "build_admin_settings_updates",
+            "list_settings",
+            "upsert_settings",
+        ]:
+            self.assertIn(expected, entrypoint)
+
+        self.assertIn("CREATE TABLE IF NOT EXISTS newsletter_settings", migration)
+        self.assertIn("setting_key TEXT PRIMARY KEY", migration)
+        self.assertIn("setting_value TEXT NOT NULL", migration)
+
+    def test_admin_update_settings_persists_sender_identity(self):
+        entry = self.load_entry_with_worker_fakes()
+
+        class FakeRequest:
+            async def json(self):
+                return {
+                    "from_name": "BLT Dispatch",
+                    "from_email": "newsletter@example.com",
+                    "reply_to_email": "support@example.com",
+                }
+
+        class FakeStore:
+            def __init__(self):
+                self.saved = None
+
+            async def upsert_settings(self, settings, admin_id, updated_at):
+                self.saved = (dict(settings), admin_id, updated_at)
+
+            async def list_settings(self, keys=None):
+                return self.saved[0] if self.saved else {}
+
+        store = FakeStore()
+        worker = entry.Default()
+        worker.env = {}
+
+        async def fake_require_admin(_request):
+            return {
+                "store": store,
+                "session": {"id": "session_1"},
+                "admin": {"id": "admin_1"},
+            }, None
+
+        worker.require_admin = fake_require_admin
+
+        response = asyncio.run(worker.handle_admin_update_settings(FakeRequest()))
+        payload = json.loads(response.body)
+
+        self.assertEqual(response.status, 200)
+        self.assertTrue(payload["success"])
+        self.assertEqual(payload["settings"]["from_name"], "BLT Dispatch")
+        self.assertEqual(payload["settings"]["from_email"], "newsletter@example.com")
+        self.assertEqual(payload["settings"]["reply_to_email"], "support@example.com")
+        self.assertEqual(store.saved[0]["from_name"], "BLT Dispatch")
+        self.assertEqual(store.saved[1], "admin_1")
+
     def test_worker_queue_handler_accepts_runtime_env_and_context_arguments(self):
         entry = self.load_entry_with_worker_fakes()
         signature = inspect.signature(entry.Default.queue)
@@ -612,6 +675,24 @@ class AdminFrontendWiringTests(unittest.TestCase):
         self.assertNotIn("marcus.johnson@example.com", page)
         self.assertNotIn("sofia.garcia@example.com", page)
         self.assertNotIn(">1,248<", page)
+
+    def test_dashboard_settings_save_calls_admin_settings_api(self):
+        page = (ROOT / "public" / "dashboard.html").read_text()
+
+        for element_id in [
+            "settings-from-name",
+            "settings-from-email",
+            "settings-reply-to-email",
+            "settings-save-button",
+        ]:
+            self.assertIn(f'id="{element_id}"', page)
+
+        self.assertIn("async function loadSettings()", page)
+        self.assertIn("async function saveSettings()", page)
+        self.assertIn('adminFetch("/api/admin/settings"', page)
+        self.assertIn('method: "PATCH"', page)
+        self.assertIn("renderSettings(payload.settings", page)
+        self.assertNotIn("onclick=\"showToast('Settings saved')\"", page)
 
     def test_dashboard_uses_data_attributes_for_api_ids_instead_of_inline_js_strings(self):
         page = (ROOT / "public" / "dashboard.html").read_text()
