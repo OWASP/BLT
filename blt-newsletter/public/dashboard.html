@@ -1117,42 +1117,35 @@
         <div class="grid grid-cols-3 gap-4">
           <div class="rounded-lg p-4" style="background: #f8fafc;">
             <p class="text-xs uppercase tracking-wide font-semibold text-gray-500 mb-2">Sent</p>
-            <p class="text-2xl font-semibold">1,248</p>
+            <p id="delivery-details-sent" class="text-2xl font-semibold">—</p>
           </div>
           <div class="rounded-lg p-4" style="background: #fef2f2;">
             <p class="text-xs uppercase tracking-wide font-semibold text-red-600 mb-2">Failed</p>
-            <p class="text-2xl font-semibold text-red-600">12</p>
+            <p id="delivery-details-failed" class="text-2xl font-semibold text-red-600">—</p>
           </div>
           <div class="rounded-lg p-4" style="background: #f8fafc;">
             <p class="text-xs uppercase tracking-wide font-semibold text-gray-500 mb-2">Skipped</p>
-            <p class="text-2xl font-semibold">9</p>
+            <p id="delivery-details-skipped" class="text-2xl font-semibold">—</p>
           </div>
         </div>
         <div>
           <p class="text-sm font-medium mb-2">Delivery progress</p>
           <div class="progress-bar">
-            <div class="progress-fill" style="width: 100%"></div>
+            <div id="delivery-details-progress-fill" class="progress-fill" style="width: 0%"></div>
           </div>
-          <p class="text-xs text-gray-600 mt-1">1,248 / 1,269 delivered</p>
+          <p id="delivery-details-progress-text" class="text-xs text-gray-600 mt-1">Select a delivery job to view progress.</p>
         </div>
         <div>
           <p class="text-sm font-medium mb-3">Recent failed deliveries</p>
-          <div class="space-y-2 max-h-64 overflow-y-auto">
-            <div class="border rounded-lg p-3" style="border-color: var(--border-light);">
-              <p class="text-sm font-medium">marcus.johnson@example.com</p>
-              <p class="text-xs text-red-600">Hard bounce</p>
-              <p class="text-xs text-gray-600">Jun 10 • 2:15 PM</p>
-            </div>
-            <div class="border rounded-lg p-3" style="border-color: var(--border-light);">
-              <p class="text-sm font-medium">sofia.garcia@example.com</p>
-              <p class="text-xs text-red-600">Mailbox full</p>
-              <p class="text-xs text-gray-600">Jun 10 • 2:12 PM</p>
+          <div id="delivery-details-failed-list" class="space-y-2 max-h-64 overflow-y-auto">
+            <div class="border rounded-lg p-3 text-sm text-gray-600" style="border-color: var(--border-light);">
+              Open a delivery job to load failed deliveries.
             </div>
           </div>
         </div>
       </div>
       <div class="border-t p-6 space-y-3 flex-none" style="border-top-color: var(--border-light);">
-        <button class="btn-secondary w-full">Retry failed deliveries</button>
+        <button id="retry-failed-deliveries-btn" class="btn-secondary w-full" onclick="retryFailedDeliveries()" disabled>Retry failed deliveries</button>
         <button class="close-button w-full" onclick="closeDeliveryDetails()">Close</button>
       </div>
     </div>
@@ -1234,6 +1227,7 @@
         campaigns: [],
         jobs: [],
         selectedCampaignId: null,
+        selectedDeliveryJobId: null,
       };
 
       document.addEventListener('DOMContentLoaded', initializeDashboard);
@@ -1447,7 +1441,8 @@
           const total = toNumber(job.total_recipients);
           const sent = toNumber(job.sent_count);
           const failed = toNumber(job.failed_count);
-          const progress = deliveryProgress(sent, failed, total);
+          const skipped = toNumber(job.skipped_count);
+          const progress = deliveryProgress(sent, failed, total, skipped);
           const title = job.campaign_title || job.campaign_subject || job.campaign_id || 'Newsletter campaign';
           return `
                   <tr class="delivery-row cursor-pointer" data-status="${escapeAttribute(status)}" data-job-id="${id}">
@@ -1653,15 +1648,126 @@
         document.getElementById('user-details-sheet').classList.remove('active');
       }
 
-      function openDeliveryDetails(jobId) {
+      async function openDeliveryDetails(jobId) {
         const job = dashboardState.jobs.find(item => item.id === jobId) || {};
         const title = job.campaign_title || job.campaign_subject || job.campaign_id || 'Delivery details';
+        dashboardState.selectedDeliveryJobId = jobId;
         document.getElementById('sheet-overlay').classList.add('active');
         document.getElementById('delivery-details-sheet').classList.add('active');
         document.getElementById('delivery-details-title').textContent = title;
+        renderDeliveryDetails(job, [], true);
+
+        try {
+          const payload = await adminFetch(`/api/admin/jobs/${encodeURIComponent(jobId)}`);
+          const detailJob = payload.job || job;
+          const index = dashboardState.jobs.findIndex(item => item.id === detailJob.id);
+          if (index >= 0) dashboardState.jobs[index] = detailJob;
+          const failedEvents = Array.isArray(payload.failed_events)
+            ? payload.failed_events
+            : (Array.isArray(payload.events) ? payload.events.filter(event => event.event_type === 'failed') : []);
+          renderDeliveryDetails(detailJob, failedEvents);
+          renderDeliveryJobs(dashboardState.jobs);
+          filterDeliveryJobs(currentDeliveryFilter);
+        } catch (error) {
+          renderDeliveryDetails(job, [], false, error.message || 'Delivery details could not be loaded.');
+          showToast(error.message || 'Delivery details could not be loaded');
+        }
+      }
+
+      function renderDeliveryDetails(job, failedEvents, isLoading = false, errorMessage = '') {
+        const title = job.campaign_title || job.campaign_subject || job.campaign_id || 'Delivery details';
+        const total = toNumber(job.total_recipients);
+        const sent = toNumber(job.sent_count);
+        const failed = toNumber(job.failed_count);
+        const skipped = toNumber(job.skipped_count);
+        const processed = sent + failed + skipped;
+        const progress = deliveryProgress(sent, failed, total, skipped);
+        const retryButton = document.getElementById('retry-failed-deliveries-btn');
+
+        setText('delivery-details-title', title);
+        setText('delivery-details-sent', isLoading ? '…' : formatNumber(sent));
+        setText('delivery-details-failed', isLoading ? '…' : formatNumber(failed));
+        setText('delivery-details-skipped', isLoading ? '…' : formatNumber(skipped));
+        setText(
+          'delivery-details-progress-text',
+          isLoading ? 'Loading delivery progress…' : `${formatNumber(processed)} / ${formatNumber(total)} processed`
+        );
+
+        const progressFill = document.getElementById('delivery-details-progress-fill');
+        if (progressFill) progressFill.style.width = `${progress}%`;
+
+        if (retryButton) {
+          retryButton.disabled = isLoading || failed <= 0;
+          retryButton.textContent = failed > 0 ? 'Retry failed deliveries' : 'No failed deliveries to retry';
+        }
+
+        renderFailedDeliveries(failedEvents, isLoading, errorMessage);
+      }
+
+      function renderFailedDeliveries(failedEvents, isLoading = false, errorMessage = '') {
+        const list = document.getElementById('delivery-details-failed-list');
+        if (!list) return;
+
+        if (isLoading) {
+          list.innerHTML = `<div class="border rounded-lg p-3 text-sm text-gray-600" style="border-color: var(--border-light);">Loading failed deliveries…</div>`;
+          return;
+        }
+
+        if (errorMessage) {
+          list.innerHTML = `<div class="border rounded-lg p-3 text-sm text-red-600" style="border-color: var(--border-light);">${escapeHtml(errorMessage)}</div>`;
+          return;
+        }
+
+        if (!failedEvents.length) {
+          list.innerHTML = `<div class="border rounded-lg p-3 text-sm text-gray-600" style="border-color: var(--border-light);">No failed deliveries for this job.</div>`;
+          return;
+        }
+
+        list.innerHTML = failedEvents.slice(0, 25).map(event => {
+          const recipient = event.subscriber_email || event.subscriber_name || event.subscriber_id || 'Subscriber';
+          return `
+            <div class="border rounded-lg p-3" style="border-color: var(--border-light);">
+              <p class="text-sm font-medium">${escapeHtml(recipient)}</p>
+              <p class="text-xs text-red-600">${escapeHtml(deliveryFailureReason(event))}</p>
+              <p class="text-xs text-gray-600">${escapeHtml(formatDateTime(event.occurred_at))}</p>
+            </div>`;
+        }).join('');
+      }
+
+      async function retryFailedDeliveries() {
+        const jobId = dashboardState.selectedDeliveryJobId;
+        if (!jobId) {
+          showToast('Open a delivery job before retrying failures.');
+          return;
+        }
+
+        const retryButton = document.getElementById('retry-failed-deliveries-btn');
+        if (retryButton) {
+          retryButton.disabled = true;
+          retryButton.textContent = 'Retrying…';
+        }
+
+        try {
+          const payload = await adminFetch(`/api/admin/jobs/${encodeURIComponent(jobId)}/retry-failed`, {
+            method: "POST",
+          });
+          if (payload.job) {
+            const index = dashboardState.jobs.findIndex(item => item.id === payload.job.id);
+            if (index >= 0) dashboardState.jobs[index] = payload.job;
+          }
+          renderDeliveryJobs(dashboardState.jobs);
+          filterDeliveryJobs(currentDeliveryFilter);
+          await openDeliveryDetails(jobId);
+          showToast(`Retry queued for ${formatNumber(payload.retried_count)} failed deliveries`);
+        } catch (error) {
+          showToast(error.message || 'Failed deliveries could not be retried');
+          const job = dashboardState.jobs.find(item => item.id === jobId) || {};
+          renderDeliveryDetails(job, []);
+        }
       }
 
       function closeDeliveryDetails() {
+        dashboardState.selectedDeliveryJobId = null;
         document.getElementById('sheet-overlay').classList.remove('active');
         document.getElementById('delivery-details-sheet').classList.remove('active');
       }
@@ -1819,9 +1925,9 @@
         return dashboardState.campaigns.find(campaign => campaign.id === dashboardState.selectedCampaignId) || null;
       }
 
-      function deliveryProgress(sent, failed, total) {
+      function deliveryProgress(sent, failed, total, skipped = 0) {
         if (!total) return 0;
-        const progress = ((sent + failed) / total) * 100;
+        const progress = ((sent + failed + skipped) / total) * 100;
         return Math.min(100, Math.round(progress * 10) / 10);
       }
 
@@ -1887,6 +1993,38 @@
         const date = new Date(value);
         if (Number.isNaN(date.getTime())) return String(value);
         return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+      }
+
+      function formatDateTime(value) {
+        if (!hasValue(value)) return '—';
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return String(value);
+        return date.toLocaleString(undefined, {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+          hour: 'numeric',
+          minute: '2-digit',
+        });
+      }
+
+      function deliveryFailureReason(event) {
+        const metadata = parseMetadata(event.metadata_json);
+        if (hasValue(metadata.sendgrid_status)) return `SendGrid status ${metadata.sendgrid_status}`;
+        if (metadata.reason) return formatSource(metadata.reason);
+        if (metadata.retryable === true || metadata.retryable === 'true') return 'Temporary failure';
+        return 'Delivery failed';
+      }
+
+      function parseMetadata(value) {
+        if (!hasValue(value)) return {};
+        if (typeof value === 'object') return value || {};
+        try {
+          const parsed = JSON.parse(value);
+          return parsed && typeof parsed === 'object' ? parsed : {};
+        } catch (_error) {
+          return {};
+        }
       }
 
       function formatSource(value) {

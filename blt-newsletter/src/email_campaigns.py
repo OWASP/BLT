@@ -14,6 +14,7 @@ def build_send_job_record(campaign_id, total_recipients, created_by_admin_id):
         "total_recipients": int(total_recipients or 0),
         "sent_count": 0,
         "failed_count": 0,
+        "skipped_count": 0,
         "started_at": "",
         "completed_at": "",
         "created_at": now,

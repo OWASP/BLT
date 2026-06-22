@@ -181,6 +181,12 @@ class Default(WorkerEntrypoint):
 
         if path.startswith("/api/admin/jobs/"):
             job_action = path[len("/api/admin/jobs/") :]
+            if job_action.endswith("/retry-failed"):
+                if request.method != "POST":
+                    return json_error("Method not allowed.", 405)
+                job_id = unquote(job_action[: -len("/retry-failed")])
+                return await self.handle_admin_retry_failed_job(request, job_id)
+
             if job_action.endswith("/cancel"):
                 if request.method != "POST":
                     return json_error("Method not allowed.", 405)
@@ -717,10 +723,95 @@ class Default(WorkerEntrypoint):
             if not job:
                 return json_error("Job not found.", 404)
             events = await context["store"].list_delivery_events_for_job(job_id)
+            failed_events = await context["store"].list_failed_delivery_events_for_job(job_id)
         except Exception:
             return json_error("Campaign job could not be loaded.", 500)
 
-        return json_response({"success": True, "job": job, "events": events})
+        return json_response({"success": True, "job": job, "events": events, "failed_events": failed_events})
+
+    async def handle_admin_retry_failed_job(self, request, job_id):
+        context, error_response = await self.require_admin(request)
+        if error_response is not None:
+            return error_response
+
+        if not job_id:
+            return json_error("Job id is required.", 400)
+
+        api_key, from_email, _from_name = get_sendgrid_config(self.env)
+        if not api_key or not from_email:
+            return json_error(
+                "Email sending is not configured. Set SENDGRID_API_KEY and SENDGRID_FROM_EMAIL.",
+                503,
+            )
+
+        queue = get_queue_binding(self.env)
+        if queue is None:
+            return json_error("Queue is not configured. Failed deliveries cannot be retried.", 503)
+
+        try:
+            job = await context["store"].find_send_job_by_id(job_id)
+            if not job:
+                return json_error("Job not found.", 404)
+
+            if job.get("status") == "canceled":
+                return json_error("Canceled jobs cannot be retried.", 409)
+
+            if job.get("status") in {"queued", "running"}:
+                return json_error("Failed deliveries are already being retried.", 409)
+
+            failed_events = await context["store"].list_retryable_failed_delivery_events_for_job(job_id)
+            if not failed_events:
+                return json_error("No failed deliveries are retryable.", 409)
+
+            retry_events = [
+                failed_event
+                for failed_event in failed_events
+                if failed_event.get("subscriber_id")
+            ]
+            if not retry_events:
+                return json_error("No failed deliveries are retryable.", 409)
+
+            queued_messages = len(retry_events)
+            claimed = await context["store"].mark_failed_deliveries_requeued(job_id, queued_messages)
+            if not claimed:
+                return json_error("Failed deliveries are already being retried.", 409)
+
+            for failed_event in retry_events:
+                subscriber_id = failed_event.get("subscriber_id") or ""
+                delivery_event = build_delivery_event_record(
+                    job_id,
+                    subscriber_id,
+                    "queued",
+                    metadata={
+                        "campaign_id": job.get("campaign_id") or "",
+                        "retry_of_event_id": failed_event.get("id") or "",
+                    },
+                )
+                await context["store"].insert_delivery_event(delivery_event)
+                sent = await send_queue_message(
+                    queue,
+                    build_queue_message(
+                        job_id,
+                        job.get("campaign_id") or "",
+                        delivery_event["id"],
+                        subscriber_id,
+                    ),
+                )
+                if not sent:
+                    raise RuntimeError("Queue send failed")
+
+            job = await context["store"].find_send_job_by_id(job_id)
+        except Exception:
+            return json_error("Failed deliveries could not be retried.", 500)
+
+        return json_response(
+            {
+                "success": True,
+                "job": job,
+                "retried_count": queued_messages,
+            },
+            status=202,
+        )
 
     async def handle_admin_cancel_job(self, request, job_id):
         context, error_response = await self.require_admin(request)
@@ -826,7 +917,7 @@ class Default(WorkerEntrypoint):
 
         return {"store": store, "session": session, "admin": safe_admin_summary(session)}, None
 
-    async def queue(self, batch):
+    async def queue(self, batch, env=None, ctx=None):
         db = get_db_binding(self.env)
         messages = get_queue_batch_messages(batch)
         if db is None:
@@ -870,6 +961,7 @@ class Default(WorkerEntrypoint):
                 metadata={"reason": "subscriber_not_active"},
             )
             await store.insert_delivery_event(skipped_event)
+            await store.increment_send_job_counts(job_id, skipped_delta=1)
             await ack_queue_message(message)
             return
 
@@ -1337,14 +1429,17 @@ class D1SubscriberStore:
 
     async def insert_send_job(self, record):
         campaign_column = await self.send_job_campaign_column()
-        await self._run(
-            f"""
-            INSERT INTO newsletter_send_jobs (
-              id, {campaign_column}, status, provider, total_recipients, sent_count,
-              failed_count, started_at, completed_at, created_at, metadata_json
-            )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """,
+        columns = await self.send_job_table_columns()
+        insert_columns = [
+            "id",
+            campaign_column,
+            "status",
+            "provider",
+            "total_recipients",
+            "sent_count",
+            "failed_count",
+        ]
+        params = [
             record["id"],
             record["campaign_id"],
             record["status"],
@@ -1352,18 +1447,38 @@ class D1SubscriberStore:
             record["total_recipients"],
             record["sent_count"],
             record["failed_count"],
-            record.get("started_at") or "",
-            record.get("completed_at") or "",
-            record["created_at"],
-            record["metadata_json"],
+        ]
+        if "skipped_count" in columns:
+            insert_columns.append("skipped_count")
+            params.append(record.get("skipped_count") or 0)
+        insert_columns.extend(["started_at", "completed_at", "created_at", "metadata_json"])
+        params.extend(
+            [
+                record.get("started_at") or "",
+                record.get("completed_at") or "",
+                record["created_at"],
+                record["metadata_json"],
+            ]
+        )
+        placeholders = ", ".join("?" for _ in insert_columns)
+        await self._run(
+            f"""
+            INSERT INTO newsletter_send_jobs (
+              {", ".join(insert_columns)}
+            )
+            VALUES ({placeholders})
+            """,
+            *params,
         )
 
     async def find_open_send_job_by_campaign(self, campaign_id):
         campaign_column = await self.send_job_campaign_column()
+        columns = await self.send_job_table_columns()
+        skipped_select = "skipped_count" if "skipped_count" in columns else "0 AS skipped_count"
         row = await self._first(
             f"""
             SELECT id, {campaign_column} AS campaign_id, status, provider,
-                   total_recipients, sent_count, failed_count, started_at,
+                   total_recipients, sent_count, failed_count, {skipped_select}, started_at,
                    completed_at, created_at, metadata_json
             FROM newsletter_send_jobs
             WHERE {campaign_column} = ?
@@ -1378,12 +1493,14 @@ class D1SubscriberStore:
     async def list_send_jobs(self, limit=100):
         table_name = await self.campaign_table_name()
         campaign_column = await self.send_job_campaign_column()
+        columns = await self.send_job_table_columns()
+        skipped_select = "j.skipped_count" if "skipped_count" in columns else "0 AS skipped_count"
         return await self._all(
             f"""
             SELECT j.id, j.{campaign_column} AS campaign_id,
                    c.title AS campaign_title, c.subject AS campaign_subject,
                    j.status, j.provider, j.total_recipients, j.sent_count,
-                   j.failed_count, j.started_at, j.completed_at, j.created_at,
+                   j.failed_count, {skipped_select}, j.started_at, j.completed_at, j.created_at,
                    j.metadata_json
             FROM newsletter_send_jobs j
             LEFT JOIN {table_name} c ON c.id = j.{campaign_column}
@@ -1396,12 +1513,14 @@ class D1SubscriberStore:
     async def find_send_job_by_id(self, job_id):
         table_name = await self.campaign_table_name()
         campaign_column = await self.send_job_campaign_column()
+        columns = await self.send_job_table_columns()
+        skipped_select = "j.skipped_count" if "skipped_count" in columns else "0 AS skipped_count"
         row = await self._first(
             f"""
             SELECT j.id, j.{campaign_column} AS campaign_id,
                    c.title AS campaign_title, c.subject AS campaign_subject,
                    j.status, j.provider, j.total_recipients, j.sent_count,
-                   j.failed_count, j.started_at, j.completed_at, j.created_at,
+                   j.failed_count, {skipped_select}, j.started_at, j.completed_at, j.created_at,
                    j.metadata_json
             FROM newsletter_send_jobs j
             LEFT JOIN {table_name} c ON c.id = j.{campaign_column}
@@ -1452,9 +1571,17 @@ class D1SubscriberStore:
         return await self._all(
             """
             SELECT id, job_id, subscriber_id, event_type, provider_message_id,
-                   occurred_at, metadata_json
-            FROM newsletter_delivery_events
-            WHERE job_id = ?
+                   occurred_at, metadata_json, subscriber_email, subscriber_name,
+                   subscriber_status
+            FROM (
+              SELECT e.id, e.job_id, e.subscriber_id, e.event_type,
+                     e.provider_message_id, e.occurred_at, e.metadata_json,
+                     s.email AS subscriber_email, s.name AS subscriber_name,
+                     s.status AS subscriber_status
+              FROM newsletter_delivery_events e
+              LEFT JOIN newsletter_subscribers s ON s.id = e.subscriber_id
+              WHERE e.job_id = ?
+            )
             ORDER BY occurred_at DESC
             LIMIT ?
             """,
@@ -1462,8 +1589,86 @@ class D1SubscriberStore:
             limit,
         )
 
-    async def increment_send_job_counts(self, job_id, sent_delta=0, failed_delta=0):
+    async def list_failed_delivery_events_for_job(self, job_id, limit=200):
+        return await self._latest_failed_delivery_events_for_job(job_id, limit=limit, active_only=False)
+
+    async def list_retryable_failed_delivery_events_for_job(self, job_id, limit=10000):
+        return await self._latest_failed_delivery_events_for_job(job_id, limit=limit, active_only=True)
+
+    async def _latest_failed_delivery_events_for_job(self, job_id, limit=200, active_only=False):
+        active_clause = "AND COALESCE(s.status, '') = 'active'" if active_only else ""
+        return await self._all(
+            f"""
+            WITH latest_events AS (
+              SELECT subscriber_id, MAX(occurred_at) AS occurred_at
+              FROM newsletter_delivery_events
+              WHERE job_id = ?
+                AND subscriber_id IS NOT NULL
+                AND subscriber_id != ''
+              GROUP BY subscriber_id
+            )
+            SELECT e.id, e.job_id, e.subscriber_id, e.event_type,
+                   e.provider_message_id, e.occurred_at, e.metadata_json,
+                   s.email AS subscriber_email, s.name AS subscriber_name,
+                   s.status AS subscriber_status
+            FROM newsletter_delivery_events e
+            JOIN latest_events latest
+              ON latest.subscriber_id = e.subscriber_id
+             AND latest.occurred_at = e.occurred_at
+            LEFT JOIN newsletter_subscribers s ON s.id = e.subscriber_id
+            WHERE e.job_id = ?
+              AND e.event_type = 'failed'
+              {active_clause}
+            ORDER BY e.occurred_at DESC
+            LIMIT ?
+            """,
+            job_id,
+            job_id,
+            limit,
+        )
+
+    async def increment_send_job_counts(self, job_id, sent_delta=0, failed_delta=0, skipped_delta=0):
         now = utc_timestamp()
+        columns = await self.send_job_table_columns()
+        sent_delta = int(sent_delta or 0)
+        failed_delta = int(failed_delta or 0)
+        skipped_delta = int(skipped_delta or 0)
+        if "skipped_count" in columns:
+            await self._run(
+                """
+                UPDATE newsletter_send_jobs
+                SET sent_count = sent_count + ?,
+                    failed_count = failed_count + ?,
+                    skipped_count = skipped_count + ?,
+                    started_at = CASE
+                      WHEN started_at IS NULL OR started_at = '' THEN ?
+                      ELSE started_at
+                    END,
+                    completed_at = CASE
+                      WHEN sent_count + ? + failed_count + ? + skipped_count + ? >= total_recipients THEN ?
+                      ELSE completed_at
+                    END,
+                    status = CASE
+                      WHEN sent_count + ? + failed_count + ? + skipped_count + ? >= total_recipients THEN 'completed'
+                      ELSE 'running'
+                    END
+                WHERE id = ?
+                """,
+                sent_delta,
+                failed_delta,
+                skipped_delta,
+                now,
+                sent_delta,
+                failed_delta,
+                skipped_delta,
+                now,
+                sent_delta,
+                failed_delta,
+                skipped_delta,
+                job_id,
+            )
+            return
+
         await self._run(
             """
             UPDATE newsletter_send_jobs
@@ -1483,16 +1688,35 @@ class D1SubscriberStore:
                 END
             WHERE id = ?
             """,
-            int(sent_delta or 0),
-            int(failed_delta or 0),
+            sent_delta,
+            failed_delta + skipped_delta,
             now,
-            int(sent_delta or 0),
-            int(failed_delta or 0),
+            sent_delta,
+            failed_delta + skipped_delta,
             now,
-            int(sent_delta or 0),
-            int(failed_delta or 0),
+            sent_delta,
+            failed_delta + skipped_delta,
             job_id,
         )
+
+    async def mark_failed_deliveries_requeued(self, job_id, retry_count):
+        retry_count = int(retry_count or 0)
+        if retry_count <= 0:
+            return
+
+        result = await self._run(
+            """
+            UPDATE newsletter_send_jobs
+            SET failed_count = MAX(failed_count - ?, 0),
+                status = 'queued',
+                completed_at = ''
+            WHERE id = ?
+              AND status NOT IN ('queued', 'running', 'canceled')
+            """,
+            retry_count,
+            job_id,
+        )
+        return d1_rows_changed(result) > 0
 
     async def update_campaign(self, campaign_id, updates):
         table_name = await self.campaign_table_name()
@@ -1858,6 +2082,22 @@ def js_to_py(value):
         return dict(value)
     except Exception:
         return value
+
+
+def d1_rows_changed(result):
+    data = js_to_py(result)
+    if not isinstance(data, dict):
+        return 0
+
+    maybe_meta = data.get("meta")
+    meta = maybe_meta if isinstance(maybe_meta, dict) else data
+    for key in ("changes", "rows_written", "rows_affected"):
+        try:
+            return int(meta.get(key) or 0)
+        except Exception:
+            pass
+
+    return 1 if meta.get("changed_db") else 0
 
 
 def get_env_value(env, name):

@@ -1,9 +1,15 @@
+import asyncio
 import importlib
+import inspect
+import json
 import os
 import re
+import sqlite3
 import subprocess
 import sys
+import types
 import unittest
+from unittest import mock
 from pathlib import Path
 
 from src.newsletter_validation import email_hash
@@ -79,6 +85,41 @@ class AdminAuthHelperTests(unittest.TestCase):
 
 
 class AdminWorkerRouteTests(unittest.TestCase):
+    def load_entry_with_worker_fakes(self):
+        class FakeHeaders(dict):
+            @classmethod
+            def new(cls, pairs):
+                return cls(pairs)
+
+        class FakeResponse:
+            @classmethod
+            def new(cls, body, status=200, headers=None):
+                return types.SimpleNamespace(body=body, status=status, headers=headers)
+
+        fake_js = types.ModuleType("js")
+        fake_js.Headers = FakeHeaders
+        fake_js.Request = type("Request", (), {})
+        fake_js.Response = FakeResponse
+        fake_js.URL = type("URL", (), {})
+
+        fake_workers = types.ModuleType("workers")
+        fake_workers.WorkerEntrypoint = type("WorkerEntrypoint", (), {})
+
+        original_entry = sys.modules.pop("src.entry", None)
+        try:
+            with mock.patch.dict(
+                sys.modules,
+                {
+                    "js": fake_js,
+                    "workers": fake_workers,
+                },
+            ):
+                return importlib.import_module("src.entry")
+        finally:
+            sys.modules.pop("src.entry", None)
+            if original_entry is not None:
+                sys.modules["src.entry"] = original_entry
+
     def test_worker_declares_admin_and_campaign_api_routes(self):
         entrypoint = (ROOT / "src" / "entry.py").read_text()
 
@@ -114,7 +155,9 @@ class AdminWorkerRouteTests(unittest.TestCase):
             "handle_admin_jobs",
             "handle_admin_job_detail",
             "handle_admin_cancel_job",
-            "async def queue(self, batch)",
+            "handle_admin_retry_failed_job",
+            '"/retry-failed"',
+            "async def queue(self, batch, env=None, ctx=None)",
         ]:
             self.assertIn(route_or_handler, entrypoint)
 
@@ -126,12 +169,121 @@ class AdminWorkerRouteTests(unittest.TestCase):
             "find_send_job_by_id",
             "insert_delivery_event",
             "list_delivery_events_for_job",
+            "list_failed_delivery_events_for_job",
+            "list_retryable_failed_delivery_events_for_job",
             "increment_send_job_counts",
+            "mark_failed_deliveries_requeued",
         ]:
             self.assertIn(f"async def {store_method}", entrypoint)
 
+        self.assertIn("def d1_rows_changed", entrypoint)
+
         self.assertIn("NEWSLETTER_QUEUE", entrypoint)
         self.assertIn("SENDGRID_API_KEY", entrypoint)
+
+    def test_worker_queue_handler_accepts_runtime_env_and_context_arguments(self):
+        entry = self.load_entry_with_worker_fakes()
+        signature = inspect.signature(entry.Default.queue)
+        parameters = list(signature.parameters.values())
+
+        self.assertEqual(
+            [parameter.name for parameter in parameters],
+            ["self", "batch", "env", "ctx"],
+        )
+        self.assertEqual(parameters[2].default, None)
+        self.assertEqual(parameters[3].default, None)
+
+        worker = entry.Default()
+        worker.env = {}
+
+        asyncio.run(worker.queue({"messages": []}, object(), object()))
+
+    def test_retry_failed_job_requeues_latest_failed_deliveries(self):
+        entry = self.load_entry_with_worker_fakes()
+
+        actions = []
+
+        class FakeQueue:
+            def __init__(self):
+                self.messages = []
+
+            async def send(self, payload):
+                actions.append("send")
+                self.messages.append(payload)
+
+        class FakeStore:
+            def __init__(self):
+                self.inserted_events = []
+                self.requeued = None
+
+            async def find_send_job_by_id(self, job_id):
+                failed_count = 2
+                if self.requeued:
+                    failed_count -= self.requeued[1]
+                return {
+                    "id": job_id,
+                    "campaign_id": "campaign_1",
+                    "status": "completed",
+                    "total_recipients": 4,
+                    "sent_count": 1,
+                    "failed_count": max(failed_count, 0),
+                    "skipped_count": 1,
+                }
+
+            async def list_retryable_failed_delivery_events_for_job(self, job_id):
+                return [
+                    {"id": "event_failed_1", "subscriber_id": "subscriber_1"},
+                    {"id": "event_failed_2", "subscriber_id": "subscriber_2"},
+                ]
+
+            async def insert_delivery_event(self, record):
+                actions.append("insert")
+                self.inserted_events.append(record)
+
+            async def mark_failed_deliveries_requeued(self, job_id, retry_count):
+                actions.append("mark")
+                self.requeued = (job_id, retry_count)
+                return True
+
+        queue = FakeQueue()
+        store = FakeStore()
+        worker = entry.Default()
+        worker.env = {
+            "SENDGRID_API_KEY": "test-key",
+            "SENDGRID_FROM_EMAIL": "sender@example.com",
+            "NEWSLETTER_QUEUE": queue,
+        }
+
+        async def fake_require_admin(_request):
+            return {"store": store, "session": {"id": "session_1"}, "admin": {}}, None
+
+        worker.require_admin = fake_require_admin
+
+        response = asyncio.run(
+            worker.handle_admin_retry_failed_job(types.SimpleNamespace(headers={}), "job_1")
+        )
+        payload = json.loads(response.body)
+
+        self.assertEqual(response.status, 202)
+        self.assertTrue(payload["success"])
+        self.assertEqual(payload["retried_count"], 2)
+        self.assertEqual(payload["job"]["failed_count"], 0)
+        self.assertEqual(store.requeued, ("job_1", 2))
+        self.assertEqual(actions[0], "mark")
+        self.assertEqual(actions.count("send"), 2)
+        self.assertEqual(len(store.inserted_events), 2)
+        self.assertEqual(len(queue.messages), 2)
+        self.assertEqual(queue.messages[0]["job_id"], "job_1")
+        self.assertEqual(queue.messages[0]["campaign_id"], "campaign_1")
+        self.assertEqual(queue.messages[0]["subscriber_id"], "subscriber_1")
+
+        first_event = store.inserted_events[0]
+        self.assertEqual(first_event["event_type"], "queued")
+        self.assertEqual(first_event["subscriber_id"], "subscriber_1")
+        self.assertEqual(
+            json.loads(first_event["metadata_json"])["retry_of_event_id"],
+            "event_failed_1",
+        )
 
     def test_unsubscribe_links_campaign_publish_and_duplicate_send_guards_are_present(self):
         entrypoint = (ROOT / "src" / "entry.py").read_text()
@@ -221,6 +373,24 @@ class AdminWorkerRouteTests(unittest.TestCase):
         self.assertIn("summary TEXT", migration)
         self.assertIn("published_at TEXT", migration)
         self.assertNotIn("campaign_slug", migration)
+
+    def test_send_jobs_track_skipped_deliveries_for_delivery_panel(self):
+        initial_migration = (ROOT / "migrations" / "0001_newsletter_schema.sql").read_text()
+        skipped_migration = (ROOT / "migrations" / "0002_send_job_skipped_count.sql").read_text()
+        entrypoint = (ROOT / "src" / "entry.py").read_text()
+
+        self.assertNotIn("skipped_count INTEGER NOT NULL DEFAULT 0", initial_migration)
+        self.assertIn("ADD COLUMN skipped_count INTEGER NOT NULL DEFAULT 0", skipped_migration)
+        self.assertIn("skipped_count", entrypoint)
+        self.assertIn("skipped_delta", entrypoint)
+
+    def test_all_d1_migrations_apply_to_empty_database(self):
+        connection = sqlite3.connect(":memory:")
+        try:
+            for migration in sorted((ROOT / "migrations").glob("*.sql")):
+                connection.executescript(migration.read_text())
+        finally:
+            connection.close()
 
     def test_campaign_create_record_is_d1_safe_without_none_values(self):
         entrypoint = (ROOT / "src" / "entry.py").read_text()
@@ -419,6 +589,29 @@ class AdminFrontendWiringTests(unittest.TestCase):
         self.assertIn('adminFetch("/api/admin/jobs"', page)
         self.assertIn('id="test-email-recipient"', page)
         self.assertIn("campaign-recipient-count", page)
+
+    def test_dashboard_delivery_details_uses_real_job_detail_data(self):
+        page = (ROOT / "public" / "dashboard.html").read_text()
+
+        for element_id in [
+            "delivery-details-sent",
+            "delivery-details-failed",
+            "delivery-details-skipped",
+            "delivery-details-progress-fill",
+            "delivery-details-progress-text",
+            "delivery-details-failed-list",
+            "retry-failed-deliveries-btn",
+        ]:
+            self.assertIn(f'id="{element_id}"', page)
+
+        self.assertIn("async function openDeliveryDetails(jobId)", page)
+        self.assertIn("function renderDeliveryDetails(job, failedEvents", page)
+        self.assertIn("async function retryFailedDeliveries()", page)
+        self.assertIn("adminFetch(`/api/admin/jobs/${encodeURIComponent(jobId)}`", page)
+        self.assertIn("/retry-failed`, {", page)
+        self.assertNotIn("marcus.johnson@example.com", page)
+        self.assertNotIn("sofia.garcia@example.com", page)
+        self.assertNotIn(">1,248<", page)
 
     def test_dashboard_uses_data_attributes_for_api_ids_instead_of_inline_js_strings(self):
         page = (ROOT / "public" / "dashboard.html").read_text()
