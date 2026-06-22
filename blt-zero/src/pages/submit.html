@@ -1,159 +1,137 @@
-<!doctype html>
-<html lang="en" class="dark">
-<head>
-  <meta charset="utf-8"/>
-  <title>BLT-Zero — Submit Encrypted Report</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          colors: {
-            primary: '#dc2626',
-            'primary-foreground': '#ffffff',
-            'dark-base': '#0f172a',
-            'dark-surface': '#1e293b',
-          }
-        }
-      }
-    }
-  </script>
-  <style>
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
-    .msg-ok { color: #10b981; white-space: pre-wrap; font-family: monospace; font-size: 0.875rem; }
-    .msg-error { color: #ef4444; white-space: pre-wrap; font-family: monospace; font-size: 0.875rem; }
-  </style>
-</head>
-<body class="bg-gray-50 text-gray-900 dark:bg-dark-base dark:text-gray-100 min-h-screen">
-  <section class="px-6 py-12">
-    <div class="mx-auto max-w-7xl">
-      
-      <div class="text-center mb-12">
-        <div class="mb-6 inline-flex items-center gap-1.5 rounded-full border border-gray-200 dark:border-gray-700 px-3 py-1 text-xs font-medium text-gray-600 dark:text-gray-400">
-          <span class="relative flex h-1.5 w-1.5">
-            <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-500 opacity-75"></span>
-            <span class="relative inline-flex h-1.5 w-1.5 rounded-full bg-green-500"></span>
-          </span>
-          Zero-trust Security
+<section class="px-4 py-12 sm:px-6 lg:py-16">
+  <div class="mx-auto max-w-6xl">
+    <div class="grid gap-8 lg:grid-cols-[0.84fr_1.16fr] lg:items-start">
+      <aside class="lg:sticky lg:top-24">
+        <div class="inline-flex items-center gap-2 rounded-full bg-white/50 py-[.15rem] pl-[.15rem] pr-3 text-sm font-medium text-gray-900 shadow-[0_10px_30px_-16px_rgba(220,38,38,.45),0_0_0_1px_rgba(0,0,0,.1)] backdrop-blur-[1px]">
+          <span class="flex-none rounded-full border border-gray-200 bg-gray-50 px-[.65rem] py-1 font-mono text-xs text-gray-600">Live</span>
+          <span>Encrypted report intake</span>
         </div>
 
-        <!-- SendGrid status indicator (ADDED) -->
-        <div class="text-xs text-gray-500 dark:text-gray-400 mb-3">
-          SendGrid: {{SENDGRID_STATUS}}
-        </div>
-
-        <h1 class="text-balance text-4xl font-bold tracking-tight sm:text-5xl">
-          Submit Encrypted Report
+        <h1 class="mt-7 max-w-xl text-balance text-5xl font-bold leading-[.96] text-gray-900 sm:text-6xl lg:text-7xl">
+          Submit encrypted report.
         </h1>
-        <p class="mx-auto mt-4 max-w-xl text-pretty text-base leading-relaxed text-gray-600 dark:text-gray-400">
-          This builds a password-protected ZIP in your browser and emails it directly to the organization's address you provide.
+        <p class="mt-5 max-w-xl text-pretty text-base leading-7 text-gray-600 sm:text-lg">
+          Build a password-protected ZIP locally in your browser and send it directly to the organization's security inbox.
         </p>
-      </div>
 
-      <div class="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-dark-surface p-6 mb-8 shadow-sm">
-        <div class="flex flex-wrap gap-2 mb-4">
-          <span class="inline-block rounded-full border border-gray-200 dark:border-gray-700 px-3 py-1 text-xs font-medium bg-gray-50 dark:bg-dark-base">Client-Side ZIP</span>
-          <span class="inline-block rounded-full border border-gray-200 dark:border-gray-700 px-3 py-1 text-xs font-medium bg-gray-50 dark:bg-dark-base">Direct Email Delivery</span>
-        </div>
-        <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">
-          The email body will explicitly include the decryption password generated during this phase.
-        </p>
-        <ul class="text-sm text-gray-600 dark:text-gray-400 space-y-1">
-          <li>• Max screenshots: <strong id="limitFiles" class="text-gray-900 dark:text-white">{{MAX_FILES}}</strong></li>
-          <li>• Total upload cap: <strong id="limitBytes" class="text-gray-900 dark:text-white">{{MAX_TOTAL}}</strong> bytes</li>
-        </ul>
-      </div>
-
-      <div class="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-dark-surface p-6 shadow-sm">
-        <form id="reportForm" novalidate>
-          <div class="space-y-4">
-
-            <!-- Reporter Email (ADDED) -->
-            <div>
-              <label for="reporter_email" class="block text-sm font-medium mb-2">Reporter Email (optional)</label>
-              <input
-                id="reporter_email"
-                type="email"
-                placeholder="you@example.com"
-                class="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-dark-base text-gray-900 dark:text-gray-50 focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
-              />
-            </div>
-            
-            <div>
-              <label for="org_email" class="block text-sm font-medium mb-2">Organization Email (recipient)</label>
-              <input 
-                id="org_email" 
-                type="email" 
-                required 
-                placeholder="security@example.com" 
-                class="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-dark-base text-gray-900 dark:text-gray-50 focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
-              />
-            </div>
-
-            <div>
-              <label for="url" class="block text-sm font-medium mb-2">Target URL</label>
-              <input 
-                id="url" 
-                type="url" 
-                required 
-                placeholder="https://target.example.com/path" 
-                class="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-dark-base text-gray-900 dark:text-gray-50 focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
-              />
-            </div>
-
-            <div>
-              <label for="description" class="block text-sm font-medium mb-2">Vulnerability Description</label>
-              <textarea 
-                id="description" 
-                rows="5" 
-                required 
-                placeholder="What you found, impact, and steps to reproduce..." 
-                class="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-dark-base text-gray-900 dark:text-gray-50 focus:outline-none focus:ring-2 focus:ring-primary transition-colors resize-y"
-              ></textarea>
-            </div>
-
-            <div>
-              <label for="markdown" class="block text-sm font-medium mb-2">Detailed Report (Markdown, optional)</label>
-              <textarea 
-                id="markdown" 
-                rows="7" 
-                placeholder="# PoC..." 
-                class="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-dark-base text-gray-900 dark:text-gray-50 focus:outline-none focus:ring-2 focus:ring-primary transition-colors font-mono text-sm resize-y"
-              ></textarea>
-            </div>
-
-            <div>
-              <label for="shots" class="block text-sm font-medium mb-2">Screenshots (images only)</label>
-              <input 
-                id="shots" 
-                type="file" 
-                accept="image/*" 
-                multiple 
-                class="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-dark-base text-gray-900 dark:text-gray-50 focus:outline-none focus:ring-2 focus:ring-primary file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary/90 cursor-pointer transition-colors"
-              />
-            </div>
-
-            <button 
-              type="submit" 
-              id="btn"
-              class="w-full px-6 py-3 rounded-lg bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-colors"
-            >
-              Encrypt & Submit
-            </button>
-
-            <div class="mt-4 p-4 rounded-lg bg-gray-50 dark:bg-dark-base border border-gray-200 dark:border-gray-700 hidden" id="msgContainer">
-              <pre id="msg"></pre>
-            </div>
-
+        <div class="mt-8 rounded-lg bg-white p-5 shadow-[inset_0_0_0_1px_rgba(17,24,39,.1),0_22px_60px_-45px_rgba(15,23,42,.75)]">
+          <div class="flex flex-wrap gap-2">
+            <span class="inline-flex items-center rounded-full border border-red-200 bg-red-50 px-3 py-1 font-mono text-xs font-medium uppercase tracking-[.14em] text-red-600">Client-side ZIP</span>
+            <span class="inline-flex items-center rounded-full border border-gray-200 bg-gray-50 px-3 py-1 font-mono text-xs font-medium uppercase tracking-[.14em] text-gray-600">Direct email</span>
           </div>
-        </form>
-      </div>
 
+          <div class="mt-5 grid gap-3 text-sm text-gray-600">
+            <div class="flex items-center justify-between gap-4 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+              <span>SendGrid</span>
+              <strong class="font-mono text-xs font-semibold text-gray-900">{{SENDGRID_STATUS}}</strong>
+            </div>
+            <div class="flex items-center justify-between gap-4 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+              <span>Max screenshots</span>
+              <strong id="limitFiles" class="font-mono text-xs font-semibold text-gray-900">{{MAX_FILES}}</strong>
+            </div>
+            <div class="flex items-center justify-between gap-4 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+              <span>Total upload cap</span>
+              <strong id="limitBytes" class="font-mono text-xs font-semibold text-gray-900">{{MAX_TOTAL}}</strong>
+            </div>
+          </div>
+
+          <p class="mt-5 text-sm leading-6 text-gray-500">
+            The email body includes the generated decryption password for the organization to store safely.
+          </p>
+        </div>
+      </aside>
+
+      <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-soft sm:p-6">
+        <div class="rounded-lg border border-gray-100 bg-gray-50 p-4 sm:p-6">
+          <div class="mb-6">
+            <h2 class="section-kicker relative ml-3 text-lg font-semibold tracking-tight text-red-500">Report details</h2>
+            <p class="mt-2 text-sm leading-6 text-gray-600">Keep descriptions specific enough for the receiving security team to reproduce and triage.</p>
+          </div>
+
+          <form id="reportForm" novalidate>
+            <div class="space-y-5">
+              <div>
+                <label for="reporter_email" class="mb-2 block text-sm font-medium text-gray-900">Reporter Email <span class="font-normal text-gray-500">(optional)</span></label>
+                <input
+                  id="reporter_email"
+                  type="email"
+                  placeholder="you@example.com"
+                  class="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition placeholder:text-gray-400 focus:border-red-300 focus:ring-4 focus:ring-red-100"
+                />
+              </div>
+
+              <div>
+                <label for="org_email" class="mb-2 block text-sm font-medium text-gray-900">Organization Email <span class="font-normal text-gray-500">(recipient)</span></label>
+                <input
+                  id="org_email"
+                  type="email"
+                  required
+                  placeholder="security@example.com"
+                  class="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition placeholder:text-gray-400 focus:border-red-300 focus:ring-4 focus:ring-red-100"
+                />
+              </div>
+
+              <div>
+                <label for="url" class="mb-2 block text-sm font-medium text-gray-900">Target URL</label>
+                <input
+                  id="url"
+                  type="url"
+                  required
+                  placeholder="https://target.example.com/path"
+                  class="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition placeholder:text-gray-400 focus:border-red-300 focus:ring-4 focus:ring-red-100"
+                />
+              </div>
+
+              <div>
+                <label for="description" class="mb-2 block text-sm font-medium text-gray-900">Vulnerability Description</label>
+                <textarea
+                  id="description"
+                  rows="5"
+                  required
+                  placeholder="What you found, impact, and steps to reproduce..."
+                  class="w-full resize-y rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm leading-6 text-gray-900 shadow-sm outline-none transition placeholder:text-gray-400 focus:border-red-300 focus:ring-4 focus:ring-red-100"
+                ></textarea>
+              </div>
+
+              <div>
+                <label for="markdown" class="mb-2 block text-sm font-medium text-gray-900">Detailed Report <span class="font-normal text-gray-500">(Markdown, optional)</span></label>
+                <textarea
+                  id="markdown"
+                  rows="7"
+                  placeholder="# PoC..."
+                  class="w-full resize-y rounded-lg border border-gray-200 bg-white px-4 py-3 font-mono text-sm leading-6 text-gray-900 shadow-sm outline-none transition placeholder:text-gray-400 focus:border-red-300 focus:ring-4 focus:ring-red-100"
+                ></textarea>
+              </div>
+
+              <div>
+                <label for="shots" class="mb-2 block text-sm font-medium text-gray-900">Screenshots <span class="font-normal text-gray-500">(images only)</span></label>
+                <input
+                  id="shots"
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  class="w-full cursor-pointer rounded-lg border border-dashed border-gray-300 bg-white px-4 py-3 text-sm text-gray-600 shadow-sm outline-none transition file:mr-4 file:rounded-md file:border-0 file:bg-gray-900 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:border-red-200 focus:border-red-300 focus:ring-4 focus:ring-red-100"
+                />
+              </div>
+
+              <button
+                type="submit"
+                id="btn"
+                class="inline-flex w-full items-center justify-center rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-6 py-3 text-sm font-semibold text-white shadow-button transition duration-200 hover:-translate-y-px disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
+              >
+                Encrypt & Submit
+              </button>
+
+              <div class="mt-4 hidden rounded-lg border border-gray-200 bg-white p-4 shadow-sm" id="msgContainer">
+                <pre id="msg" class="m-0 whitespace-pre-wrap font-mono text-sm leading-6"></pre>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
-  </section>
+  </div>
+</section>
 
 <script type="module">
 import * as zip from "https://unpkg.com/@zip.js/zip.js/index.js";
@@ -275,6 +253,3 @@ btn.textContent="Encrypt & Submit";
 
 });
 </script>
-
-</body>
-</html>

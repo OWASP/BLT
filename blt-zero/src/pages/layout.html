@@ -1,125 +1,208 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en" class="scroll-smooth">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{{TITLE}}</title>
-  <meta name="description" content="BLT-Zero — Zero-trust vulnerability reporting platform" />
-  <meta name="theme-color" content="#111827" />
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <meta name="description" content="BLT-Zero - zero-trust vulnerability reporting platform" />
+  <meta name="theme-color" content="#f9fafb" />
   <script>
-    tailwind.config = {
-      darkMode: 'class',
+    window.tailwind = window.tailwind || {};
+    window.tailwind.config = {
+      darkMode: "class",
       theme: {
         extend: {
           colors: {
-            primary: '#dc2626',
-            'primary-dark': '#b91c1c',
-            'neutral-border': '#e5e7eb',
-            'dark-base': '#111827',
-            'dark-surface': '#1F2937'
+            primary: "#dc2626",
+            "primary-foreground": "#ffffff",
+            "primary-dark": "#b91c1c",
+            ink: "#111827",
+            muted: "#6b7280",
+            line: "#e5e7eb",
+            panel: "#ffffff",
+            wash: "#f9fafb"
+          },
+          boxShadow: {
+            soft: "0 24px 70px -46px rgba(17, 24, 39, .65)",
+            button: "0 12px 26px -18px rgba(220, 38, 38, .85)"
           },
           fontFamily: {
-            sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-            mono: ['JetBrains Mono', 'monospace']
+            sans: ["Inter", "ui-sans-serif", "system-ui", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "sans-serif"],
+            mono: ["JetBrains Mono", "ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "monospace"]
           }
         }
       }
     };
   </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
   <style>
-    body { 
-      font-family: 'Inter', system-ui, sans-serif;
-    }
-    .dark body {
-      background-color: #111827;
-      color: #f9fafb;
-    }
+    html,
     body {
-      background-color: #f9fafb;
-      color: #111827;
+      overflow-x: hidden;
     }
+
+    body {
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top left, rgba(220, 38, 38, .08), transparent 28rem),
+        #f9fafb;
+      color: #111827;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .dot-field {
+      background-image: radial-gradient(rgba(17, 24, 39, .16) 1px, transparent 1px);
+      background-size: 18px 18px;
+      -webkit-mask-image: radial-gradient(circle at center, black 0, transparent 72%);
+      mask-image: radial-gradient(circle at center, black 0, transparent 72%);
+    }
+
+    .section-kicker::before {
+      content: "";
+      position: absolute;
+      top: .15rem;
+      left: -.65rem;
+      height: 1.2rem;
+      width: 3px;
+      border-radius: 0 2px 2px 0;
+      background: #ef4444;
+    }
+
     .text-balance { text-wrap: balance; }
     .text-pretty { text-wrap: pretty; }
+
+    .mobile-menu.open { display: flex; }
+    .mobile-toggle.active span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+    .mobile-toggle.active span:nth-child(2) { opacity: 0; }
+    .mobile-toggle.active span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+    .footer-panel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: .04;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 1) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+
+    input,
+    textarea {
+      color-scheme: light;
+    }
+
+    .msg-ok {
+      margin: 0;
+      color: #059669;
+      white-space: pre-wrap;
+      font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: .875rem;
+      line-height: 1.5rem;
+    }
+
+    .msg-error {
+      margin: 0;
+      color: #dc2626;
+      white-space: pre-wrap;
+      font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: .875rem;
+      line-height: 1.5rem;
+    }
   </style>
   {{TURNSTILE_SCRIPT}}
 </head>
-<body class="font-sans antialiased">
+<body class="font-sans antialiased selection:bg-red-100 selection:text-red-700">
+  <header class="sticky top-0 z-50 border-b border-black/5 bg-white/90 backdrop-blur-[18px]">
+    <nav class="mx-auto flex h-16 max-w-6xl items-center justify-between gap-6 px-6 max-md:px-4">
+      <a href="/" class="inline-flex items-center gap-2.5" aria-label="BLT-Zero home">
+        <img src="/logo.png" alt="BLT-Zero Logo" class="h-9 w-9 rounded-lg border border-red-100 bg-white p-1 shadow-sm" />
+        <span class="text-sm font-semibold tracking-tight text-gray-900">BLT-Zero</span>
+      </a>
 
-  <!-- NAVBAR -->
-  <header class="sticky top-0 z-50 border-b border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-dark-base/80 backdrop-blur-sm">
-    <nav class="mx-auto flex h-14 max-w-5xl items-center justify-between px-6">
-      <div class="flex items-center gap-2">
-        <img src="/logo.png" alt="BLT-Zero Logo" class="h-6 w-6" />
-        <span class="text-sm font-semibold tracking-tight text-gray-900 dark:text-gray-50">BLT-Zero</span>
+      <div class="hidden items-center gap-7 md:flex" aria-label="Primary navigation">
+        <a class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900" href="/">Submit</a>
+        <a class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900" href="/docs/security">Security</a>
+        <a class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900" href="/docs/org-onboarding">Onboarding</a>
+        <a class="text-sm leading-none text-gray-500 transition-colors duration-150 hover:text-gray-900" href="/docs/decrypt">Decrypt</a>
       </div>
-      <div class="flex items-center gap-1">
-        <button id="themeToggle" class="inline-flex h-9 w-9 items-center justify-center rounded-md hover:bg-gray-100 dark:hover:bg-dark-surface text-gray-700 dark:text-gray-300 transition-colors" aria-label="Toggle theme">
-          <svg id="sunIcon" class="hidden h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>
-          </svg>
-          <svg id="moonIcon" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
-          </svg>
-        </button>
-        <a href="https://github.com/OWASP-BLT/BLT-Zero" target="_blank" rel="noopener noreferrer"
-           class="inline-flex h-9 items-center justify-center gap-2 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-dark-base px-3 text-sm font-medium text-gray-700 dark:text-gray-300 transition-colors hover:bg-gray-100 dark:hover:bg-dark-surface">
-          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
-          <span class="hidden sm:inline">Contribute</span>
+
+      <div class="hidden items-center gap-3 md:flex">
+        <a href="/admin/onboard" class="rounded-md px-3 py-2 text-sm text-gray-600 transition-colors duration-150 hover:bg-gray-100 hover:text-gray-900">Admin</a>
+        <a href="https://github.com/OWASP-BLT/BLT-Zero" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center gap-2 rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-4 py-2 text-sm font-medium text-white shadow-button transition duration-200 hover:-translate-y-px">
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.21 11.39.6.11.79-.26.79-.58v-2.23c-3.34.73-4.03-1.42-4.03-1.42-.55-1.39-1.33-1.76-1.33-1.76-1.09-.74.08-.73.08-.73 1.2.08 1.84 1.24 1.84 1.24 1.07 1.83 2.81 1.3 3.49 1 .11-.78.42-1.31.76-1.61-2.66-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.12-.3-.54-1.52.12-3.18 0 0 1.01-.32 3.3 1.23A11.5 11.5 0 0 1 12 5.8c1.02.01 2.05.14 3.01.4 2.29-1.55 3.3-1.23 3.3-1.23.65 1.66.24 2.88.12 3.18.77.84 1.23 1.91 1.23 3.22 0 4.61-2.81 5.62-5.48 5.92.43.37.82 1.1.82 2.22v3.29c0 .32.19.69.8.58A12.01 12.01 0 0 0 24 12c0-6.63-5.37-12-12-12Z"/></svg>
+          <span>Contribute</span>
         </a>
       </div>
+
+      <button class="mobile-toggle hidden h-8 w-8 cursor-pointer flex-col items-center justify-center gap-[5px] border-0 bg-transparent max-md:flex" id="mobile-toggle" type="button" aria-label="Toggle menu" aria-expanded="false" aria-controls="mobile-menu">
+        <span class="block h-px w-5 bg-gray-600 transition duration-200"></span>
+        <span class="block h-px w-5 bg-gray-600 transition duration-200"></span>
+        <span class="block h-px w-5 bg-gray-600 transition duration-200"></span>
+      </button>
+    </nav>
+
+    <nav class="mobile-menu hidden flex-col gap-4 border-t border-gray-100 bg-white/95 px-6 py-4 backdrop-blur-md" id="mobile-menu" aria-label="Mobile navigation">
+      <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/">Submit</a>
+      <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/docs/security">Security</a>
+      <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/docs/org-onboarding">Onboarding</a>
+      <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/docs/decrypt">Decrypt</a>
+      <a class="text-sm text-gray-600 transition-colors hover:text-gray-900" href="/admin/onboard">Admin</a>
+      <a class="inline-flex items-center justify-center rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-5 py-3 text-sm font-medium text-white transition duration-200 hover:-translate-y-px" href="https://github.com/OWASP-BLT/BLT-Zero" target="_blank" rel="noopener noreferrer">Contribute</a>
     </nav>
   </header>
 
-  <main>
-    {{BODY}}
+  <main class="relative overflow-hidden">
+    <div class="dot-field pointer-events-none absolute inset-x-0 top-0 z-0 mx-auto h-[28rem] w-[min(88rem,100vw)] opacity-50" aria-hidden="true"></div>
+    <div class="relative z-10">
+      {{BODY}}
+    </div>
   </main>
 
-  <!-- FOOTER -->
-  <footer class="border-t border-gray-200 dark:border-gray-700 px-6 py-8 mt-20">
-    <div class="mx-auto flex max-w-5xl flex-col items-center justify-between gap-4 sm:flex-row">
-      <p class="text-xs text-gray-600 dark:text-gray-400">Built for the OWASP community.</p>
-      <a href="https://github.com/OWASP-BLT/BLT-Zero" target="_blank" rel="noopener noreferrer"
-         class="text-xs text-gray-600 dark:text-gray-400 underline-offset-4 transition-colors hover:text-gray-900 dark:hover:text-gray-50 hover:underline">
-        github.com/OWASP-BLT/BLT-Zero
-      </a>
+  <footer class="mt-16 px-4 pb-4">
+    <div class="footer-panel relative mx-auto max-w-6xl overflow-hidden rounded-lg bg-[#0e0d0c] px-6 py-8 text-white">
+      <div class="relative flex flex-col justify-between gap-8 md:flex-row md:items-end">
+        <div>
+          <p class="font-mono text-xs font-medium uppercase tracking-[.16em] text-red-300">OWASP BLT Project</p>
+          <h2 class="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">BLT-Zero</h2>
+          <p class="mt-3 max-w-xl text-sm leading-6 text-gray-400">Zero-trust vulnerability reporting for researchers and security teams.</p>
+        </div>
+        <div class="flex flex-wrap gap-4 text-sm text-gray-300">
+          <a class="transition-colors hover:text-white" href="/">Submit</a>
+          <a class="transition-colors hover:text-white" href="/docs/security">Security</a>
+          <a class="transition-colors hover:text-white" href="/docs/decrypt">Decrypt</a>
+          <a class="transition-colors hover:text-white" href="https://github.com/OWASP-BLT/BLT-Zero" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+      </div>
     </div>
   </footer>
 
-  <!-- Theme toggle script -->
   <script>
-    const html = document.documentElement;
-    const toggle = document.getElementById('themeToggle');
-    const sunIcon = document.getElementById('sunIcon');
-    const moonIcon = document.getElementById('moonIcon');
+    (function () {
+      var mobileToggle = document.getElementById("mobile-toggle");
+      var mobileMenu = document.getElementById("mobile-menu");
 
-    function updateIcons() {
-      const isDark = html.classList.contains('dark');
-      sunIcon.classList.toggle('hidden', !isDark);
-      moonIcon.classList.toggle('hidden', isDark);
-      document.querySelector('meta[name="theme-color"]')
-        ?.setAttribute('content', isDark ? '#111827' : '#f9fafb');
-    }
+      if (mobileToggle && mobileMenu) {
+        mobileToggle.addEventListener("click", function () {
+          var open = !mobileMenu.classList.contains("open");
+          mobileMenu.classList.toggle("open", open);
+          mobileToggle.classList.toggle("active", open);
+          mobileToggle.setAttribute("aria-expanded", String(open));
+        });
 
-    const stored = localStorage.getItem('theme');
-    if (stored === 'light') {
-      html.classList.remove('dark');
-    } else if (stored === 'dark') {
-      html.classList.add('dark');
-    } else if (!window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      html.classList.remove('dark');
-    }
-    updateIcons();
-
-    toggle.addEventListener('click', () => {
-      html.classList.toggle('dark');
-      localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
-      updateIcons();
-    });
+        mobileMenu.querySelectorAll("a").forEach(function (link) {
+          link.addEventListener("click", function () {
+            mobileMenu.classList.remove("open");
+            mobileToggle.classList.remove("active");
+            mobileToggle.setAttribute("aria-expanded", "false");
+          });
+        });
+      }
+    })();
   </script>
-
 </body>
 </html>

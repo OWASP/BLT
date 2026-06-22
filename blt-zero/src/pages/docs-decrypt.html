@@ -1,145 +1,96 @@
-<section class="px-6 py-12">
-  <div class="mx-auto max-w-4xl">
-    
-    <!-- Header -->
-    <div class="text-center mb-12">
-      <p class="text-sm font-medium uppercase tracking-wider text-primary mb-2">Documentation</p>
-      <h1 class="text-balance text-4xl font-bold tracking-tight">Decrypt Guide</h1>
+<section class="px-4 py-12 sm:px-6 lg:py-16">
+  <div class="mx-auto max-w-5xl">
+    <div class="mx-auto mb-10 max-w-3xl text-center">
+      <span class="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 py-1 font-mono text-xs font-medium uppercase tracking-[.16em] text-red-600">Documentation</span>
+      <h1 class="mt-5 text-balance text-4xl font-bold leading-tight text-gray-900 sm:text-5xl lg:text-6xl">Decrypt Guide</h1>
     </div>
 
-    <!-- Main Guide Card -->
-    <div class="rounded-lg border bg-white dark:bg-dark-surface p-8 space-y-6">
-      
-      <div>
-        <h2 class="text-xl font-semibold mb-4">How to Decrypt Vulnerability Reports</h2>
-        <p class="text-gray-600 dark:text-gray-400 mb-6">
-          When you receive an encrypted vulnerability report via email, follow these steps to decrypt it locally.
-        </p>
-      </div>
+    <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-soft sm:p-6">
+      <div class="rounded-lg border border-gray-100 bg-gray-50 p-6 sm:p-8">
+        <div class="mb-7">
+          <h2 class="section-kicker relative ml-3 text-xl font-semibold tracking-tight text-red-500">How to Decrypt Vulnerability Reports</h2>
+          <p class="mt-4 max-w-2xl text-gray-600">
+            When you receive an encrypted vulnerability report via email, follow these steps to decrypt it locally.
+          </p>
+        </div>
 
-      <!-- Steps -->
-      <ol class="space-y-6">
-        
-        <!-- Step 1 -->
-        <li class="flex gap-4">
-          <div class="flex-shrink-0">
-            <span class="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold text-sm">1</span>
-          </div>
-          <div class="flex-1">
-            <h3 class="text-lg font-semibold mb-2">Download the Encrypted Package</h3>
-            <p class="text-gray-600 dark:text-gray-400">
-              BLT-Zero will send you an email with a JSON attachment. Download the <code class="px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-sm font-mono">blt-zero-*.json</code> file to your local machine.
-            </p>
-          </div>
-        </li>
-
-        <!-- Step 2 -->
-        <li class="flex gap-4">
-          <div class="flex-shrink-0">
-            <span class="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold text-sm">2</span>
-          </div>
-          <div class="flex-1">
-            <h3 class="text-lg font-semibold mb-2">Ensure You Have Your Private Key</h3>
-            <p class="text-gray-600 dark:text-gray-400 mb-3">
-              You should have generated a private key during onboarding. The file is typically named <code class="px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-sm font-mono">private_key.jwk</code>.
-            </p>
-            <div class="rounded-lg bg-gray-100 dark:bg-gray-800 border border-primary/20 p-3">
-              <p class="text-sm text-accent-foreground">
-                <strong>Security Tip:</strong> Keep your private key secure and never share it. It's the only way to decrypt reports.
+        <ol class="space-y-5">
+          <li class="grid gap-4 rounded-lg bg-white p-5 shadow-[inset_0_0_0_1px_rgba(17,24,39,.08)] sm:grid-cols-[auto_1fr]">
+            <span class="flex h-9 w-9 items-center justify-center rounded-full bg-gray-900 font-mono text-sm font-semibold text-white">1</span>
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900">Download the Encrypted Package</h3>
+              <p class="mt-2 leading-7 text-gray-600">
+                BLT-Zero will send you an email with a JSON attachment. Download the <code class="rounded bg-gray-100 px-2 py-0.5 font-mono text-sm text-gray-900">blt-zero-*.json</code> file to your local machine.
               </p>
             </div>
-          </div>
-        </li>
+          </li>
 
-        <!-- Step 3 -->
-        <li class="flex gap-4">
-          <div class="flex-shrink-0">
-            <span class="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold text-sm">3</span>
-          </div>
-          <div class="flex-1">
-            <h3 class="text-lg font-semibold mb-2">Run the Decryption Script</h3>
-            <p class="text-gray-600 dark:text-gray-400 mb-3">
-              Navigate to your BLT-Zero repository and run:
-            </p>
-            <pre class="font-mono text-sm bg-gray-100 dark:bg-gray-800 p-4 rounded-lg overflow-x-auto">python tools/org_decrypt.py private_key.jwk package.json</pre>
-            <p class="text-sm text-gray-600 dark:text-gray-400 mt-3">
-              Replace <code class="px-1 py-0.5 rounded bg-gray-50 dark:bg-dark-base text-xs">package.json</code> with the path to your downloaded encrypted file.
-            </p>
-          </div>
-        </li>
+          <li class="grid gap-4 rounded-lg bg-white p-5 shadow-[inset_0_0_0_1px_rgba(17,24,39,.08)] sm:grid-cols-[auto_1fr]">
+            <span class="flex h-9 w-9 items-center justify-center rounded-full bg-gray-900 font-mono text-sm font-semibold text-white">2</span>
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900">Ensure You Have Your Private Key</h3>
+              <p class="mt-2 leading-7 text-gray-600">
+                You should have generated a private key during onboarding. The file is typically named <code class="rounded bg-gray-100 px-2 py-0.5 font-mono text-sm text-gray-900">private_key.jwk</code>.
+              </p>
+              <div class="mt-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm leading-6 text-gray-700">
+                <strong class="font-semibold text-gray-900">Security Tip:</strong> Keep your private key secure and never share it. It's the only way to decrypt reports.
+              </div>
+            </div>
+          </li>
 
-        <!-- Step 4 -->
-        <li class="flex gap-4">
-          <div class="flex-shrink-0">
-            <span class="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold text-sm">4</span>
-          </div>
-          <div class="flex-1">
-            <h3 class="text-lg font-semibold mb-2">Review the Decrypted Report</h3>
-            <p class="text-gray-600 dark:text-gray-400 mb-3">
-              The script will output a <code class="px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-sm font-mono">report.json</code> file containing:
-            </p>
-            <ul class="space-y-2 text-gray-600 dark:text-gray-400">
-              <li class="flex gap-2">
-                <span class="text-primary">•</span>
-                <span>Vulnerability description</span>
-              </li>
-              <li class="flex gap-2">
-                <span class="text-primary">•</span>
-                <span>Target URL and domain</span>
-              </li>
-              <li class="flex gap-2">
-                <span class="text-primary">•</span>
-                <span>Detailed markdown report (if provided)</span>
-              </li>
-              <li class="flex gap-2">
-                <span class="text-primary">•</span>
-                <span>Base64-encoded screenshots</span>
-              </li>
-              <li class="flex gap-2">
-                <span class="text-primary">•</span>
-                <span>Reporter's BLT username (if provided)</span>
-              </li>
-            </ul>
-          </div>
-        </li>
+          <li class="grid gap-4 rounded-lg bg-white p-5 shadow-[inset_0_0_0_1px_rgba(17,24,39,.08)] sm:grid-cols-[auto_1fr]">
+            <span class="flex h-9 w-9 items-center justify-center rounded-full bg-gray-900 font-mono text-sm font-semibold text-white">3</span>
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900">Run the Decryption Script</h3>
+              <p class="mt-2 leading-7 text-gray-600">Navigate to your BLT-Zero repository and run:</p>
+              <pre class="mt-3 overflow-x-auto rounded-lg bg-[#111827] p-4 font-mono text-sm text-gray-100">python tools/org_decrypt.py private_key.jwk package.json</pre>
+              <p class="mt-3 text-sm leading-6 text-gray-600">
+                Replace <code class="rounded bg-gray-100 px-1 py-0.5 font-mono text-xs text-gray-900">package.json</code> with the path to your downloaded encrypted file.
+              </p>
+            </div>
+          </li>
 
-      </ol>
-
+          <li class="grid gap-4 rounded-lg bg-white p-5 shadow-[inset_0_0_0_1px_rgba(17,24,39,.08)] sm:grid-cols-[auto_1fr]">
+            <span class="flex h-9 w-9 items-center justify-center rounded-full bg-gray-900 font-mono text-sm font-semibold text-white">4</span>
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900">Review the Decrypted Report</h3>
+              <p class="mt-2 leading-7 text-gray-600">
+                The script will output a <code class="rounded bg-gray-100 px-2 py-0.5 font-mono text-sm text-gray-900">report.json</code> file containing:
+              </p>
+              <ul class="mt-3 grid gap-2 text-gray-600 sm:grid-cols-2">
+                <li class="flex gap-2"><span class="text-red-500">•</span><span>Vulnerability description</span></li>
+                <li class="flex gap-2"><span class="text-red-500">•</span><span>Target URL and domain</span></li>
+                <li class="flex gap-2"><span class="text-red-500">•</span><span>Detailed markdown report (if provided)</span></li>
+                <li class="flex gap-2"><span class="text-red-500">•</span><span>Base64-encoded screenshots</span></li>
+                <li class="flex gap-2"><span class="text-red-500">•</span><span>Reporter's BLT username (if provided)</span></li>
+              </ul>
+            </div>
+          </li>
+        </ol>
+      </div>
     </div>
 
-    <!-- Prerequisites Card -->
-    <div class="mt-8 rounded-lg border bg-white dark:bg-dark-surface p-6">
-      <h3 class="text-lg font-semibold mb-4">Prerequisites</h3>
-      <ul class="space-y-2 text-gray-600 dark:text-gray-400">
-        <li class="flex gap-3">
-          <span class="text-primary">✓</span>
-          <span>Python 3.7 or higher</span>
-        </li>
-        <li class="flex gap-3">
-          <span class="text-primary">✓</span>
-          <span>Required packages: <code class="px-1 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-xs font-mono">cryptography</code>, <code class="px-1 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-xs font-mono">jwcrypto</code></span>
-        </li>
-        <li class="flex gap-3">
-          <span class="text-primary">✓</span>
-          <span>Install via: <code class="px-1 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-xs font-mono">pip install -r tools/requirements.txt</code></span>
-        </li>
+    <section class="mt-6 rounded-lg border border-gray-200 bg-white p-6 shadow-soft">
+      <h3 class="text-lg font-semibold tracking-tight text-gray-900">Prerequisites</h3>
+      <ul class="mt-4 grid gap-3 text-gray-600 md:grid-cols-3">
+        <li class="flex gap-3 rounded-lg border border-gray-200 bg-gray-50 p-4"><span class="text-red-500">✓</span><span>Python 3.7 or higher</span></li>
+        <li class="flex gap-3 rounded-lg border border-gray-200 bg-gray-50 p-4"><span class="text-red-500">✓</span><span>Required packages: <code class="rounded bg-white px-1 py-0.5 font-mono text-xs text-gray-900">cryptography</code>, <code class="rounded bg-white px-1 py-0.5 font-mono text-xs text-gray-900">jwcrypto</code></span></li>
+        <li class="flex gap-3 rounded-lg border border-gray-200 bg-gray-50 p-4"><span class="text-red-500">✓</span><span>Install via: <code class="rounded bg-white px-1 py-0.5 font-mono text-xs text-gray-900">pip install -r tools/requirements.txt</code></span></li>
       </ul>
-    </div>
+    </section>
 
-    <!-- Related Links -->
-    <div class="mt-8 flex flex-wrap gap-4 justify-center">
-      <a href="/docs/security" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-dark-base hover:bg-gray-100 dark:bg-gray-800 transition-colors text-sm font-medium">
+    <div class="mt-8 flex flex-wrap justify-center gap-3">
+      <a href="/docs/security" class="inline-flex items-center gap-2 rounded-md border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:border-gray-300 hover:bg-gray-50">
         Security Model
         <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
       </a>
-      <a href="/docs/org-onboarding" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-dark-base hover:bg-gray-100 dark:bg-gray-800 transition-colors text-sm font-medium">
+      <a href="/docs/org-onboarding" class="inline-flex items-center gap-2 rounded-md border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:border-gray-300 hover:bg-gray-50">
         Org Onboarding
         <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
       </a>
-      <a href="/" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm font-medium">
+      <a href="/" class="inline-flex items-center justify-center rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-4 py-2.5 text-sm font-medium text-white shadow-button transition hover:-translate-y-px">
         Submit Report
       </a>
     </div>
-
   </div>
 </section>
