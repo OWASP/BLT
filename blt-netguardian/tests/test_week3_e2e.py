@@ -15,12 +15,11 @@ from findings_service import list_findings_for_request
 from findings_store import FindingsStore
 from ingest_service import process_ingest
 from ingest_store import IngestStore
-from sqlite_db import open_ingest_db
+from netguardian_db import open_netguardian_db
 from test_worker_api import BLTWorker, FakeRequest, parse_json
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-MIGRATION = REPO_ROOT / "migrations" / "0002_ingest_core.sql"
-FIXTURES = Path(__file__).parent / "fixtures" / "canonical_vectors.json"
+FIXTURES = REPO_ROOT / "tests" / "fixtures" / "canonical_vectors.json"
 
 
 @pytest.fixture(scope="module")
@@ -52,7 +51,7 @@ def signed_envelope(fixture_data, secret):
 
 @pytest.fixture
 def sqlite_db():
-    db = open_ingest_db(MIGRATION.read_text())
+    db = open_netguardian_db(REPO_ROOT)
     yield db
     db.conn.close()
 

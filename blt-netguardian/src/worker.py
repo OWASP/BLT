@@ -30,7 +30,13 @@ from scanners.autonomous_discovery import AutonomousDiscovery
 from scanners.contact_notifier import ContactNotifier
 from auth import AuthError
 from errors import IngestError, IngestErrorCode
-from findings_service import findings_error_response, list_findings_for_request
+from findings_service import (
+    convert_to_issue_for_request,
+    export_csv_for_request,
+    findings_error_response,
+    get_finding_for_request,
+    list_findings_for_request,
+)
 from ingest_service import ingest_error_response, process_ingest
 from ingest_store import IngestStore
 
@@ -107,8 +113,8 @@ class BLTWorker:
                 response = self.handle_api_health(request)
             elif path == 'api/ingest':
                 response = await self.handle_ingest(request)
-            elif path == 'api/findings':
-                response = await self.handle_findings(request)
+            elif path == 'api/findings' or path.startswith('api/findings/'):
+                response = await self.handle_findings(request, path)
             else:
                 response = self.json_response({'error': 'Not found'}, status=404)
             
@@ -603,22 +609,67 @@ class BLTWorker:
 
         return self.json_response(result.body, status=result.status, headers=result.headers)
 
-    async def handle_findings(self, request):
-        """GET /api/findings — org-scoped list with filters and paging."""
-        if request.method != 'GET':
-            return self.json_response({'error': 'Method not allowed'}, status=405)
+    async def handle_findings(self, request, path: str = 'api/findings'):
+        """Findings triage: list, detail, CSV export, convert-to-issue."""
+        subpath = path[len('api/findings'):].lstrip('/')
+        parts = subpath.split('/') if subpath else []
 
         try:
-            result = await list_findings_for_request(
-                env=self.env,
-                db=getattr(self.env, 'DB', None),
-                headers=self.get_request_headers(request),
-                query_params=self.get_query_params(request),
-            )
+            if not parts:
+                if request.method != 'GET':
+                    return self.json_response({'error': 'Method not allowed'}, status=405)
+                result = await list_findings_for_request(
+                    env=self.env,
+                    db=getattr(self.env, 'DB', None),
+                    headers=self.get_request_headers(request),
+                    query_params=self.get_query_params(request),
+                )
+            elif parts == ['export.csv']:
+                if request.method != 'GET':
+                    return self.json_response({'error': 'Method not allowed'}, status=405)
+                result = await export_csv_for_request(
+                    env=self.env,
+                    db=getattr(self.env, 'DB', None),
+                    headers=self.get_request_headers(request),
+                    query_params=self.get_query_params(request),
+                )
+            elif len(parts) == 1:
+                if request.method != 'GET':
+                    return self.json_response({'error': 'Method not allowed'}, status=405)
+                result = await get_finding_for_request(
+                    env=self.env,
+                    db=getattr(self.env, 'DB', None),
+                    headers=self.get_request_headers(request),
+                    finding_id=parts[0],
+                    new_id=lambda label: self.generate_id(
+                        f'{label}-{parts[0]}-{datetime.now(timezone.utc).isoformat()}'
+                    ),
+                )
+            elif len(parts) == 2 and parts[1] == 'convert-to-issue':
+                if request.method != 'POST':
+                    return self.json_response({'error': 'Method not allowed'}, status=405)
+                result = await convert_to_issue_for_request(
+                    env=self.env,
+                    db=getattr(self.env, 'DB', None),
+                    headers=self.get_request_headers(request),
+                    finding_id=parts[0],
+                    new_id=lambda label: self.generate_id(
+                        f'{label}-{parts[0]}-{datetime.now(timezone.utc).isoformat()}'
+                    ),
+                )
+            else:
+                return self.json_response({'error': 'Not found'}, status=404)
         except AuthError as exc:
             result = findings_error_response(exc)
 
-        return self.json_response(result.body, status=result.status)
+        return self._findings_response(result)
+
+    def _findings_response(self, result):
+        if result.content_type.startswith('text/csv'):
+            headers = dict(result.headers or {})
+            headers['Content-Type'] = result.content_type
+            return Response(result.body['csv'], status=result.status, headers=headers)
+        return self.json_response(result.body, status=result.status, headers=result.headers)
 
     async def _read_request_body(self, request) -> bytes:
         text = getattr(request, 'body', None)
@@ -738,7 +789,7 @@ class BLTWorker:
 
     def requires_authentication(self, path: str, method: str) -> bool:
         """Protect API routes; reads can be toggled with AUTHENTICATE_READ_ENDPOINTS."""
-        if path in {'api/ingest', 'api/findings'}:
+        if path == 'api/ingest' or path.startswith('api/findings'):
             return False
         if not path.startswith('api/'):
             return False

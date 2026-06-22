@@ -17,6 +17,7 @@ from envelope import (
     verify_payload_digest_field,
 )
 from errors import IngestError, IngestErrorCode
+from findings_store import FindingsStore
 from ingest_store import IngestStore
 from secrets import lookup_sender_secret
 
@@ -134,6 +135,21 @@ async def process_ingest(
             raise IngestError(
                 IngestErrorCode.INVALID_ENVELOPE,
                 f"payload_plaintext missing required field: {field}",
+            )
+
+    fingerprint = payload.get("fingerprint")
+    if fingerprint and db is not None:
+        existing_fp = await FindingsStore(db).find_by_fingerprint(org_id, str(fingerprint))
+        if existing_fp:
+            return IngestResult(
+                status=200,
+                body={
+                    "status": "merged",
+                    "finding_id": existing_fp["id"],
+                    "replay": False,
+                    "dedupe": True,
+                },
+                headers={},
             )
 
     id_fn = new_id or (lambda prefix: __import__("hashlib").sha256(

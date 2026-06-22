@@ -1,24 +1,19 @@
-"""Apply NetGuardian D1 migration against SQLite (CI-friendly)."""
+"""Apply NetGuardian D1 migrations against SQLite (CI-friendly)."""
 
 import sqlite3
 from pathlib import Path
 
 import pytest
 
+from netguardian_db import open_netguardian_db
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
-INGEST_MIGRATION = REPO_ROOT / "migrations" / "0002_ingest_core.sql"
-
-
-def _apply_sql(conn: sqlite3.Connection, path: Path) -> None:
-    conn.executescript(path.read_text())
-    conn.commit()
 
 
 def test_ng_migration_applies_on_fresh_sqlite():
-    conn = sqlite3.connect(":memory:")
+    db = open_netguardian_db(REPO_ROOT)
+    conn = db.conn
     try:
-        conn.execute("PRAGMA foreign_keys=ON")
-        _apply_sql(conn, INGEST_MIGRATION)
         tables = {
             row[0]
             for row in conn.execute(
@@ -35,6 +30,12 @@ def test_ng_migration_applies_on_fresh_sqlite():
             "ng_metrics",
         ):
             assert name in tables
+
+        columns = {
+            row[1]
+            for row in conn.execute("PRAGMA table_info(findings)").fetchall()
+        }
+        assert "blt_issue_id" in columns
 
         conn.execute(
             """

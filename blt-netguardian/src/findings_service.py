@@ -1,12 +1,17 @@
-"""GET /api/findings business logic."""
+"""Findings triage API business logic."""
 
 from __future__ import annotations
 
+import csv
+import io
+import json
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from typing import Any, Mapping, Optional
 
 from auth import AuthError, require_org_auth
-from findings_store import ALLOWED_SORT_FIELDS, FindingsQuery, FindingsStore
+from findings_store import ALLOWED_SORT_FIELDS, CSV_COLUMNS, FindingsQuery, FindingsStore
+from payload_redact import redact_payload
 
 DEFAULT_LIMIT = 50
 MAX_LIMIT = 100
@@ -16,6 +21,8 @@ MAX_LIMIT = 100
 class FindingsListResult:
     status: int
     body: dict
+    headers: dict | None = None
+    content_type: str = "application/json"
 
 
 def _parse_int_param(raw: Optional[str], *, default: int, minimum: int, maximum: int) -> Optional[int]:
@@ -31,7 +38,6 @@ def _parse_int_param(raw: Optional[str], *, default: int, minimum: int, maximum:
 
 
 def parse_findings_query(params: Mapping[str, str]) -> tuple[Optional[FindingsQuery], Optional[str]]:
-    """Parse query string into FindingsQuery (org_id filled by caller)."""
     limit = _parse_int_param(params.get("limit"), default=DEFAULT_LIMIT, minimum=1, maximum=MAX_LIMIT)
     if limit is None:
         return None, "invalid limit parameter"
@@ -48,20 +54,20 @@ def parse_findings_query(params: Mapping[str, str]) -> tuple[Optional[FindingsQu
     if order not in {"asc", "desc"}:
         return None, "invalid order parameter; use asc or desc"
 
-    status = params.get("status") or None
-    severity = params.get("severity") or None
-    cve_id = params.get("cve_id") or None
-
     return FindingsQuery(
-        status=status,
-        severity=severity,
-        cve_id=cve_id,
+        status=params.get("status") or None,
+        severity=params.get("severity") or None,
+        cve_id=params.get("cve_id") or None,
         limit=limit,
         offset=offset,
         sort=sort,
         order=order,
         org_id="",
     ), None
+
+
+def _auth_or_error(env: Any, headers: Mapping[str, str]):
+    return require_org_auth(env, headers)
 
 
 async def list_findings_for_request(
@@ -72,7 +78,7 @@ async def list_findings_for_request(
     query_params: Mapping[str, str],
     store: Optional[FindingsStore] = None,
 ) -> FindingsListResult:
-    auth = require_org_auth(env, headers)
+    auth = _auth_or_error(env, headers)
 
     parsed, error = parse_findings_query(query_params)
     if error:
@@ -100,6 +106,187 @@ async def list_findings_for_request(
             "sort": parsed.sort,
             "order": parsed.order,
             "findings": items,
+        },
+    )
+
+
+async def get_finding_for_request(
+    *,
+    env: Any,
+    db: Any,
+    headers: Mapping[str, str],
+    finding_id: str,
+    store: Optional[FindingsStore] = None,
+    new_id: Any = None,
+    now: Optional[datetime] = None,
+) -> FindingsListResult:
+    auth = _auth_or_error(env, headers)
+    if db is None:
+        return FindingsListResult(
+            status=503,
+            body={"error": "service_unavailable", "message": "findings storage not configured"},
+        )
+
+    store = store or FindingsStore(db)
+    row = await store.get_finding_detail(auth.org_id, finding_id)
+    if row is None:
+        return FindingsListResult(status=404, body={"error": "not_found", "message": "finding not found"})
+
+    now = now or datetime.now(timezone.utc)
+    id_fn = new_id or (lambda prefix: __import__("hashlib").sha256(
+        f"{prefix}-{finding_id}-{now.timestamp()}".encode()
+    ).hexdigest()[:16])
+    await store.record_access(
+        log_id=id_fn("access-view"),
+        org_id=auth.org_id,
+        finding_id=finding_id,
+        actor=auth.org_id,
+        action="view_detail",
+        detail={"route": "GET /api/findings/{id}"},
+        created_at_unix=int(now.timestamp()),
+    )
+    access_logs = await store.list_access_logs(auth.org_id, finding_id, limit=5)
+
+    payload_raw: dict = {}
+    try:
+        payload_raw = json.loads(row.get("payload_json") or "{}")
+        if not isinstance(payload_raw, dict):
+            payload_raw = {}
+    except json.JSONDecodeError:
+        payload_raw = {}
+
+    finding = {
+        "id": row["id"],
+        "org_id": row["org_id"],
+        "envelope_id": row["envelope_id"],
+        "rule_id": row["rule_id"],
+        "severity": row["severity"],
+        "title": row["title"],
+        "target": row.get("target"),
+        "status": row["status"],
+        "fingerprint": row.get("fingerprint"),
+        "cve_id": row.get("cve_id"),
+        "cve_score": row.get("cve_score"),
+        "blt_issue_id": row.get("blt_issue_id"),
+        "created_at": row["created_at"],
+        "updated_at": row["updated_at"],
+    }
+
+    return FindingsListResult(
+        status=200,
+        body={
+            "finding": finding,
+            "payload_snippet": redact_payload(payload_raw),
+            "envelope": {
+                "sender_id": row.get("sender_id"),
+                "kid": row.get("kid"),
+                "received_at": row.get("envelope_received_at"),
+            },
+            "access": {
+                "view_logged": True,
+                "recent": access_logs,
+            },
+        },
+    )
+
+
+async def export_csv_for_request(
+    *,
+    env: Any,
+    db: Any,
+    headers: Mapping[str, str],
+    query_params: Mapping[str, str],
+    store: Optional[FindingsStore] = None,
+) -> FindingsListResult:
+    auth = _auth_or_error(env, headers)
+
+    parsed, error = parse_findings_query(query_params)
+    if error:
+        return FindingsListResult(status=400, body={"error": "invalid_query", "message": error})
+
+    assert parsed is not None
+    parsed.org_id = auth.org_id
+
+    if db is None:
+        return FindingsListResult(
+            status=503,
+            body={"error": "service_unavailable", "message": "findings storage not configured"},
+        )
+
+    store = store or FindingsStore(db)
+    rows = await store.export_findings(parsed)
+
+    buffer = io.StringIO()
+    writer = csv.DictWriter(buffer, fieldnames=CSV_COLUMNS, extrasaction="ignore")
+    writer.writeheader()
+    for row in rows:
+        writer.writerow({col: row.get(col, "") for col in CSV_COLUMNS})
+
+    return FindingsListResult(
+        status=200,
+        body={"csv": buffer.getvalue()},
+        content_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": 'attachment; filename="findings.csv"'},
+    )
+
+
+async def convert_to_issue_for_request(
+    *,
+    env: Any,
+    db: Any,
+    headers: Mapping[str, str],
+    finding_id: str,
+    store: Optional[FindingsStore] = None,
+    new_id: Any = None,
+    now: Optional[datetime] = None,
+) -> FindingsListResult:
+    auth = _auth_or_error(env, headers)
+    if db is None:
+        return FindingsListResult(
+            status=503,
+            body={"error": "service_unavailable", "message": "findings storage not configured"},
+        )
+
+    store = store or FindingsStore(db)
+    row = await store.get_finding_detail(auth.org_id, finding_id)
+    if row is None:
+        return FindingsListResult(status=404, body={"error": "not_found", "message": "finding not found"})
+
+    existing = row.get("blt_issue_id")
+    if existing:
+        return FindingsListResult(
+            status=200,
+            body={
+                "status": "existing",
+                "finding_id": finding_id,
+                "blt_issue_id": existing,
+            },
+        )
+
+    now = now or datetime.now(timezone.utc)
+    id_fn = new_id or (lambda prefix: __import__("hashlib").sha256(
+        f"{prefix}-{finding_id}-{now.timestamp()}".encode()
+    ).hexdigest()[:16])
+    blt_issue_id = id_fn("blt")
+    updated = int(now.timestamp())
+    await store.set_blt_issue_id(auth.org_id, finding_id, blt_issue_id, updated)
+    await store.record_access(
+        log_id=id_fn("access-convert"),
+        org_id=auth.org_id,
+        finding_id=finding_id,
+        actor=auth.org_id,
+        action="convert_to_issue",
+        detail={"blt_issue_id": blt_issue_id, "stub": True},
+        created_at_unix=updated,
+    )
+
+    return FindingsListResult(
+        status=201,
+        body={
+            "status": "created",
+            "finding_id": finding_id,
+            "blt_issue_id": blt_issue_id,
+            "stub": True,
         },
     )
 

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BLT-NetGuardian - Findings Triage</title>
+    <meta name="description" content="Org-scoped triage for signed NetGuardian findings: review, audit, export, and convert to BLT issues.">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: '#E10101',
+                        'neutral-border': '#E5E5E5',
+                        'dark-base': '#111827',
+                        'dark-surface': '#1F2937'
+                    },
+                    fontFamily: {
+                        sans: ['Manrope', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'monospace']
+                    },
+                    boxShadow: {
+                        card: '0 10px 30px rgba(17, 24, 39, 0.07)'
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body class="font-sans text-gray-900">
+    <div class="min-h-screen lg:flex">
+        <aside class="hidden lg:flex lg:w-72 lg:flex-col border-r border-neutral-border bg-white">
+            <div class="border-b border-neutral-border px-6 py-6">
+                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">OWASP BLT</p>
+                <div class="mt-2 flex items-center gap-3">
+                    <img src="assets/img/logo.png" alt="BLT-NetGuardian Logo" class="h-8 w-8 rounded-full">
+                    <div>
+                        <h1 class="text-lg font-extrabold text-dark-base">BLT-NetGuardian</h1>
+                        <p class="text-xs text-gray-500">Autonomous Security Scanner</p>
+                    </div>
+                </div>
+            </div>
+            <nav class="flex-1 space-y-8 overflow-y-auto px-4 py-6" aria-label="Primary navigation">
+                <div>
+                    <p class="px-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Platform</p>
+                    <div class="mt-3 space-y-1">
+                        <a href="index.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                            <i class="fa-solid fa-house" aria-hidden="true"></i>
+                            Autonomous Overview
+                        </a>
+                        <a href="triage.html" class="flex items-center gap-3 rounded-md bg-[#feeae9] px-3 py-2 text-sm font-semibold text-brand" aria-current="page">
+                            <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+                            Findings Triage
+                        </a>
+                        <a href="dashboard.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                            <i class="fa-solid fa-chart-line" aria-hidden="true"></i>
+                            Jobs Dashboard
+                        </a>
+                        <a href="vulnerabilities.html" class="flex items-center gap-3 rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                            <i class="fa-solid fa-bug" aria-hidden="true"></i>
+                            Vulnerability Feed
+                        </a>
+                    </div>
+                </div>
+            </nav>
+        </aside>
+
+        <div class="flex-1">
+            <header class="border-b border-neutral-border bg-white/90 px-5 py-4 backdrop-blur lg:px-8">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">Zero-Trust Ingest</p>
+                        <h2 class="text-2xl font-extrabold text-dark-base">Findings Triage</h2>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button id="show-auth" type="button" class="btn-outline hidden">
+                            <i class="fa-solid fa-key" aria-hidden="true"></i>
+                            Change token
+                        </button>
+                        <button id="refresh-btn" type="button" class="btn-outline">
+                            <i class="fa-solid fa-rotate" aria-hidden="true"></i>
+                            Refresh
+                        </button>
+                        <button id="export-csv" type="button" class="btn-primary">
+                            <i class="fa-solid fa-file-csv" aria-hidden="true"></i>
+                            Export CSV
+                        </button>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center gap-2 lg:hidden">
+                    <a href="index.html" class="rounded-md border border-neutral-border px-3 py-2 text-xs font-semibold text-gray-700">Overview</a>
+                    <a href="triage.html" class="rounded-md bg-[#feeae9] px-3 py-2 text-xs font-semibold text-brand">Triage</a>
+                    <a href="dashboard.html" class="rounded-md border border-neutral-border px-3 py-2 text-xs font-semibold text-gray-700">Dashboard</a>
+                </div>
+            </header>
+
+            <main class="space-y-6 px-5 py-6 lg:px-8">
+                <div id="dev-hint" class="hidden rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                    <strong>Local demo:</strong> run <code class="rounded bg-white px-1 font-mono text-xs">python3 local_dev/serve.py</code>
+                    from the repo root, then open
+                    <a href="http://localhost:8787/triage.html" class="font-semibold">http://localhost:8787/triage.html</a>.
+                    Token: <code class="font-mono text-xs">triage-token</code>
+                </div>
+
+                <section id="auth-section" class="rounded-2xl border border-neutral-border bg-white p-5 shadow-card lg:p-6">
+                    <div class="flex flex-wrap items-end gap-4">
+                        <div class="flex-1 min-w-[16rem]">
+                            <label class="block text-sm font-semibold text-gray-700" for="api-token">Org API token</label>
+                            <p class="mb-2 text-xs text-gray-500">Bearer token from <code class="font-mono">NG_ORG_API_TOKENS</code>. Stored only in this browser.</p>
+                            <div class="search-wrap">
+                                <i class="fa-solid fa-key search-icon" aria-hidden="true"></i>
+                                <input id="api-token" type="password" autocomplete="off" placeholder="org bearer token" class="input-field">
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button id="save-token" type="button" class="btn-primary">
+                                <i class="fa-solid fa-plug" aria-hidden="true"></i>
+                                Connect
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex flex-wrap items-center gap-4">
+                        <span id="conn-pill" class="inline-flex items-center gap-2 rounded-full border border-neutral-border bg-gray-50 px-3 py-1 text-xs font-semibold text-gray-600">
+                            <span class="h-2 w-2 rounded-full bg-gray-400"></span>
+                            Not connected
+                        </span>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <label class="text-xs font-semibold uppercase tracking-wide text-gray-500" for="filter-severity">Severity</label>
+                            <select id="filter-severity" class="select-field max-w-[10rem]">
+                                <option value="">All</option>
+                                <option value="critical">Critical</option>
+                                <option value="high">High</option>
+                                <option value="medium">Medium</option>
+                                <option value="low">Low</option>
+                                <option value="info">Info</option>
+                            </select>
+                            <label class="text-xs font-semibold uppercase tracking-wide text-gray-500" for="filter-status">Status</label>
+                            <select id="filter-status" class="select-field max-w-[10rem]">
+                                <option value="">All</option>
+                                <option value="open">Open</option>
+                                <option value="triaged">Triaged</option>
+                                <option value="resolved">Resolved</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="message" class="message" role="status"></div>
+                </section>
+
+                <div id="findings-section" class="grid gap-6 xl:grid-cols-[1.4fr_1fr]">
+                    <section class="overflow-hidden rounded-2xl border border-neutral-border bg-white shadow-card">
+                        <div class="flex items-center justify-between border-b border-neutral-border px-5 py-4">
+                            <h3 class="text-lg font-bold text-dark-base">Findings</h3>
+                            <span id="findings-count" class="text-xs font-semibold uppercase tracking-wide text-gray-500">—</span>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Severity</th>
+                                        <th>Title</th>
+                                        <th>Rule</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="findings-body">
+                                    <tr><td colspan="4" class="loading">Connect with an org token to load findings.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                    <section class="rounded-2xl border border-neutral-border bg-white p-5 shadow-card lg:p-6">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-lg font-bold text-dark-base">Detail</h3>
+                            <button id="convert-issue" type="button" class="btn-outline" disabled>
+                                <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+                                Convert to Issue
+                            </button>
+                        </div>
+                        <div id="detail-panel" class="mt-4 text-sm text-gray-500">
+                            Select a finding to view metadata, redacted payload, and audit trail.
+                        </div>
+                    </section>
+                </div>
+            </main>
+        </div>
+    </div>
+    <script src="assets/js/triage.js"></script>
+</body>
+</html>
