@@ -73,7 +73,7 @@ Admin/setup:
 
 ```bash
 cd BLT-Newsletter
-wrangler d1 migrations apply blt-newsletter --local
+./scripts/migrate.sh dev
 wrangler dev --local --port 8794
 ```
 
@@ -113,7 +113,11 @@ queue = "blt-newsletter-send"
 queue = "blt-newsletter-send"
 ```
 
-Before production deploy, replace the placeholder D1 `database_id` in `wrangler.toml`.
+Before production deploy, replace the placeholder D1 `database_id` in `wrangler.toml`, then apply remote migrations:
+
+```bash
+./scripts/migrate.sh prod
+```
 
 ## Required secrets / vars
 

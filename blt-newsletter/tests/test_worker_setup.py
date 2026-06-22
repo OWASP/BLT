@@ -1,4 +1,5 @@
 import re
+import stat
 import unittest
 from pathlib import Path
 
@@ -95,6 +96,18 @@ class WorkerSetupTests(unittest.TestCase):
         producer = config["queues"]["producers"][0]
         self.assertEqual(producer["binding"], "NEWSLETTER_QUEUE")
         self.assertEqual(producer["queue"], "blt-newsletter-send")
+
+    def test_migration_script_runs_dev_and_prod_d1_migrations(self):
+        script_path = ROOT / "scripts" / "migrate.sh"
+        self.assertTrue(script_path.exists())
+        mode = script_path.stat().st_mode
+        self.assertTrue(mode & stat.S_IXUSR)
+
+        script = script_path.read_text()
+        self.assertIn("wrangler d1 migrations apply blt-newsletter --local", script)
+        self.assertIn("wrangler d1 migrations apply blt-newsletter --remote", script)
+        self.assertIn("Usage:", script)
+        self.assertIn("dev|prod", script)
 
     def test_python_worker_declares_expected_routes(self):
         entrypoint_path = ROOT / "src" / "entry.py"

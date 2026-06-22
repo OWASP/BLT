@@ -32,7 +32,7 @@ git diff --check
 ## Local Worker smoke
 
 ```bash
-wrangler d1 migrations apply blt-newsletter --local
+./scripts/migrate.sh dev
 wrangler dev --local --port 8794
 ```
 
@@ -185,7 +185,7 @@ Check desktop and mobile widths:
 Run:
 
 ```bash
-wrangler d1 migrations apply blt-newsletter --local
+./scripts/migrate.sh dev
 ```
 
 ### Campaign creation fails locally
