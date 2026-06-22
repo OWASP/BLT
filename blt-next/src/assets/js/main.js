@@ -291,7 +291,7 @@ function setupEventHandlers() {
     document.querySelectorAll('[data-filter-group]').forEach(group => {
         const buttons = group.querySelectorAll('button');
         const activeClasses = ['bg-red-600', 'text-white'];
-        const idleClasses = ['border', 'border-[#E5E5E5]', 'dark:border-gray-700', 'text-gray-600', 'dark:text-gray-300'];
+        const idleClasses = ['border', 'border-[#E5E5E5]', 'dark:border-gray-700', 'text-gray-600', 'dark:text-gray-300', 'hover:border-red-600', 'hover:text-red-600', 'dark:hover:text-red-400'];
         buttons.forEach(btn => {
             btn.addEventListener('click', () => {
                 buttons.forEach(b => {
