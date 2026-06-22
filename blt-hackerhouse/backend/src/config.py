@@ -22,6 +22,9 @@ class Settings(BaseSettings):
     gitlab_webhook_secret: str = ""
     gitlab_api_token: str = ""
 
+    # --- WebSocket ---
+    websocket_auth_token: str = ""
+
     # --- BLT API ---
     blt_api_base_url: str = "https://api.owaspblt.org/v2"
     blt_api_key: str = ""

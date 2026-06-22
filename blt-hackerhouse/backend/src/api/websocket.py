@@ -7,6 +7,8 @@ import logging
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 from ..broadcast.hub import WebSocketHub
+from ..config import settings
+from ..core.security import verify_token
 from ..state.pipeline import PipelineRunner
 
 
@@ -19,7 +21,14 @@ async def websocket_endpoint(
     websocket: WebSocket,
     hub: WebSocketHub,
     runner: PipelineRunner,
+    token: str | None = None,
 ) -> None:
+    # Reject before accepting the handshake so unauthenticated clients get
+    # a proper 1008 close code and never receive a snapshot or broadcasts.
+    if not verify_token(token, settings.websocket_auth_token):
+        await websocket.close(code=1008, reason="Unauthorized")
+        return
+
     await hub.connect(websocket)
     try:
         snapshot = await runner.build_snapshot()

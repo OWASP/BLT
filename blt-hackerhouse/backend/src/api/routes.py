@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import time
 from typing import Any
@@ -174,7 +175,7 @@ async def status() -> StatusResponse:
     occupancy = await runner.room_occupancy()
     stats = await ContributorQueries(db).stats()
     events_min = await runner.events_last_minute()
-    blt_cursors = await asyncio_gather_cursors(db)
+    blt_cursors = await _fetch_cursors(db)
 
     return StatusResponse(
         data=StatusData(
@@ -267,11 +268,14 @@ async def state_snapshot() -> StateResponse:
 # helpers
 # ---------------------------------------------------------------------------
 
-async def asyncio_gather_cursors(db) -> dict[str, int]:
+async def _fetch_cursors(db) -> dict[str, int]:
     out: dict[str, int] = {}
     cursor_q = CursorQueries(db)
-    for src in ("blt_bugs", "blt_hunts"):
-        c = await cursor_q.get(src)
+    results = await asyncio.gather(
+        cursor_q.get("blt_bugs"),
+        cursor_q.get("blt_hunts"),
+    )
+    for src, c in zip(("blt_bugs", "blt_hunts"), results):
         if c is not None:
             out[src] = c[0]
     return out

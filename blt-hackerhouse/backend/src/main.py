@@ -96,8 +96,8 @@ def create_app() -> FastAPI:
     app.include_router(router)
 
     @app.websocket("/ws")
-    async def _ws(websocket: WebSocket) -> None:
-        await websocket_endpoint(websocket, app.state.hub, app.state.runner)
+    async def _ws(websocket: WebSocket, token: str | None = None) -> None:
+        await websocket_endpoint(websocket, app.state.hub, app.state.runner, token=token)
 
     return app
 
