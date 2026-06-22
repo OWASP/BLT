@@ -269,68 +269,62 @@ class UIComponents {
 // ===================================
 // Event Handlers
 // ===================================
+
+// Resolve the path to an auth page (login/signup) so the nav buttons work both
+// from the site root (index.html) and from pages inside /pages/.
+function authPagePath(page) {
+    const inPages = window.location.pathname.includes('/pages/');
+    return `${inPages ? '' : 'pages/'}${page}.html`;
+}
+
 function setupEventHandlers() {
-    // Login button (modal only for button elements)
-    const loginBtn = document.getElementById('loginBtn');
-    if (loginBtn && loginBtn.tagName.toLowerCase() === 'button') {
-        loginBtn.addEventListener('click', () => {
-            UIComponents.showModal(UIComponents.createLoginForm());
-
-            // Setup form submission
-            const form = document.getElementById('loginForm');
-            if (form) {
-                form.addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    const formData = new FormData(form);
-                    const email = formData.get('email');
-                    const password = formData.get('password');
-
-                    const result = await auth.login(email, password);
-                    if (result.success) {
-                        UIComponents.hideModal();
-                        UIComponents.showNotification('Logged in successfully!', 'success');
-                        updateUIForAuth();
-                    } else {
-                        UIComponents.showNotification(result.error, 'error');
-                    }
-                });
-            }
-        });
-    }
-
-    // Signup buttons (modal only for button elements)
-    const signupButtons = ['signupBtn', 'ctaSignupBtn'];
-    signupButtons.forEach(btnId => {
+    ['createProjectBtn', 'createProjectBtn2'].forEach(btnId => {
         const btn = document.getElementById(btnId);
-        if (btn && btn.tagName.toLowerCase() === 'button') {
+        if (btn) {
             btn.addEventListener('click', () => {
-                UIComponents.showModal(UIComponents.createSignupForm());
-
-                // Setup form submission
-                const form = document.getElementById('signupForm');
-                if (form) {
-                    form.addEventListener('submit', async (e) => {
-                        e.preventDefault();
-                        const formData = new FormData(form);
-                        const userData = {
-                            username: formData.get('username'),
-                            email: formData.get('email'),
-                            password: formData.get('password'),
-                        };
-
-                        const result = await auth.signup(userData);
-                        if (result.success) {
-                            UIComponents.hideModal();
-                            UIComponents.showNotification('Account created successfully!', 'success');
-                            updateUIForAuth();
-                        } else {
-                            UIComponents.showNotification(result.error, 'error');
-                        }
-                    });
-                }
+                UIComponents.showNotification('Bug bounty program creation is coming soon!', 'info');
             });
         }
     });
+
+    // Filter chip groups (leaderboard + projects): toggle the active chip.
+    document.querySelectorAll('[data-filter-group]').forEach(group => {
+        const buttons = group.querySelectorAll('button');
+        const activeClasses = ['bg-red-600', 'text-white'];
+        const idleClasses = ['border', 'border-[#E5E5E5]', 'dark:border-gray-700', 'text-gray-600', 'dark:text-gray-300'];
+        buttons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                buttons.forEach(b => {
+                    b.classList.remove(...activeClasses);
+                    b.classList.add(...idleClasses);
+                });
+                btn.classList.remove(...idleClasses);
+                btn.classList.add(...activeClasses);
+            });
+        });
+    });
+
+    // Leaderboard search: client-side filter of the currently rendered rows.
+    const leaderboardSearch = document.getElementById('leaderboardSearch');
+    if (leaderboardSearch) {
+        leaderboardSearch.addEventListener('input', () => {
+            const q = leaderboardSearch.value.trim().toLowerCase();
+            document.querySelectorAll('#leaderboard-body .leaderboard-row').forEach(row => {
+                row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+            });
+        });
+    }
+
+    // Projects search: client-side filter of the currently rendered cards.
+    const projectSearch = document.getElementById('projectSearch');
+    if (projectSearch) {
+        projectSearch.addEventListener('input', () => {
+            const q = projectSearch.value.trim().toLowerCase();
+            document.querySelectorAll('#projectsGrid > div').forEach(card => {
+                card.style.display = card.textContent.toLowerCase().includes(q) ? '' : 'none';
+            });
+        });
+    }
 
     // Theme Toggle
     const themeToggle = document.getElementById('themeToggle');
@@ -453,7 +447,7 @@ function updateUIForAuth() {
         // Update buttons/links to show user menu
         if (loginBtn) {
             loginBtn.textContent = user.username;
-            loginBtn.href = '/pages/profile.html';
+            loginBtn.href = authPagePath('profile');
             loginBtn.onclick = null;
         }
         if (signupBtn) {
@@ -472,12 +466,12 @@ function updateUIForAuth() {
         // Reset to default unauthenticated state
         if (loginBtn) {
             loginBtn.textContent = 'Login';
-            loginBtn.href = 'pages/login.html';
+            loginBtn.href = authPagePath('login');
             loginBtn.onclick = null;
         }
         if (signupBtn) {
             signupBtn.textContent = 'Sign Up';
-            signupBtn.href = 'pages/signup.html';
+            signupBtn.href = authPagePath('signup');
             signupBtn.classList.remove('btn-secondary');
             signupBtn.classList.add('btn-primary');
             signupBtn.onclick = null;

@@ -132,18 +132,67 @@ BUGS = [
 ]
 
 LEADERBOARD = [
-    {'rank': 1, 'username': 'redteam_ria', 'points': 12840, 'bugs': 84},
-    {'rank': 2, 'username': 'payload_paul', 'points': 11720, 'bugs': 73},
-    {'rank': 3, 'username': 'edge_case_emi', 'points': 10950, 'bugs': 68},
-    {'rank': 4, 'username': 'headers_hari', 'points': 9820, 'bugs': 61},
-    {'rank': 5, 'username': 'cipher_sam', 'points': 8750, 'bugs': 55},
+    {'rank': 1, 'username': 'redteam_ria', 'points': 12840, 'bugs': 84, 'rewards': '$1,840'},
+    {'rank': 2, 'username': 'payload_paul', 'points': 11720, 'bugs': 73, 'rewards': '$1,610'},
+    {'rank': 3, 'username': 'edge_case_emi', 'points': 10950, 'bugs': 68, 'rewards': '$1,470'},
+    {'rank': 4, 'username': 'headers_hari', 'points': 9820, 'bugs': 61, 'rewards': '$1,250'},
+    {'rank': 5, 'username': 'cipher_sam', 'points': 8750, 'bugs': 55, 'rewards': '$1,090'},
 ]
 
 PROJECTS = [
-    {'name': 'OWASP BLT', 'type': 'Open Source', 'reward': '$500+', 'bugs': 142},
-    {'name': 'API Gateway', 'type': 'Cloud Security', 'reward': '$1,000+', 'bugs': 67},
-    {'name': 'Mobile Portal', 'type': 'Web App', 'reward': '$750+', 'bugs': 53},
+    {
+        'name': 'OWASP BLT',
+        'type': 'Open Source',
+        'icon': 'fa-shield-halved',
+        'description': 'Help secure the OWASP BLT platform itself. All severity levels welcome across the web app and API surfaces.',
+        'status': 'Active',
+        'bugs': 142,
+        'reward': '$500',
+    },
+    {
+        'name': 'API Gateway',
+        'type': 'Cloud Security',
+        'icon': 'fa-cloud',
+        'description': 'Focus on authentication, rate limiting, and access control flaws in our public API gateway.',
+        'status': 'Active',
+        'bugs': 67,
+        'reward': '$1,000',
+    },
+    {
+        'name': 'Mobile Portal',
+        'type': 'Web App',
+        'icon': 'fa-mobile-screen',
+        'description': 'Security testing for the mobile-facing portal. XSS, CSRF, and session handling are high priority.',
+        'status': 'Active',
+        'bugs': 53,
+        'reward': '$750',
+    },
 ]
+
+# Avatar background palette, cycled by leaderboard position.
+AVATAR_COLORS = [
+    'bg-red-600 dark:bg-red-500 text-white',
+    'bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200',
+    'bg-orange-400 dark:bg-orange-600 text-white',
+    'bg-blue-500 text-white',
+    'bg-purple-500 text-white',
+]
+
+# Project status badge styles, keyed by status label.
+STATUS_BADGES = {
+    'Active': 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400',
+    'Critical Only': 'bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-400',
+}
+
+
+def avatar_initials(username):
+    """Derive up to two uppercase initials from a username for the avatar bubble."""
+    parts = [p for p in username.replace('-', '_').split('_') if p]
+    if not parts:
+        return username[:2].upper()
+    if len(parts) == 1:
+        return parts[0][:2].upper()
+    return (parts[0][0] + parts[1][0]).upper()
 
 # ===================================
 # Route Handlers
@@ -325,57 +374,70 @@ async def handle_bugs_list(request, env=None):
     return create_response({'bugs': BUGS}, origin=request.headers.get('Origin'))
 
 async def handle_leaderboard(request, env=None):
-    """Handle /api/leaderboard endpoint"""
-    rows = "".join([
-        f"""
-        <div class="leaderboard-row">
-            <div class="rank">{item['rank']}</div>
-            <div class="username">{item['username']}</div>
-            <div class="stat">{item['points']} pts</div>
-            <div class="stat">{item['bugs']} bugs</div>
-        </div>
-        """ for item in LEADERBOARD
-    ])
+    """Handle /api/leaderboard endpoint.
 
-    html = f"""
-    <div class="leaderboard-table">
-        <div class="leaderboard-row leaderboard-header">
-            <div>Rank</div>
-            <div>Researcher</div>
-            <div style="text-align: right;">Points</div>
-            <div style="text-align: right;">Bugs</div>
-        </div>
-        {rows}
-    </div>
+    Returns only the data rows. The page (leaderboard.html) already renders the
+    column header and table shell, and swaps this markup into #leaderboard-body
+    via HTMX, so the rows must match its Tailwind grid layout
+    (columns: rank / researcher / bugs / points / rewards).
     """
-    return handle_html_response(html, origin=request.headers.get('Origin'))
+    rows = ""
+    for idx, item in enumerate(LEADERBOARD):
+        color = AVATAR_COLORS[idx % len(AVATAR_COLORS)]
+        if item['rank'] == 1:
+            rank_cell = '<div class="text-center"><i class="fa-solid fa-crown text-yellow-400 text-sm" aria-hidden="true"></i></div>'
+        else:
+            rank_cell = f'<div class="text-center text-sm font-bold text-gray-400 dark:text-gray-500">{item["rank"]}</div>'
+
+        rows += f"""
+        <div class="leaderboard-row grid grid-cols-[44px_1fr_80px_80px_80px] items-center px-4 py-3.5 border-b border-[#E5E5E5] dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors">
+            {rank_cell}
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full {color} text-xs font-bold flex items-center justify-center shrink-0">{avatar_initials(item['username'])}</div>
+                <span class="text-sm font-medium text-gray-900 dark:text-gray-100">{item['username']}</span>
+            </div>
+            <div class="text-center text-sm font-semibold text-red-600 dark:text-red-400">{item['bugs']}</div>
+            <div class="text-center text-sm font-semibold text-red-600 dark:text-red-400">{item['points']:,}</div>
+            <div class="text-center text-sm text-gray-500 dark:text-gray-400">{item.get('rewards', 'N/A')}</div>
+        </div>
+        """
+    return handle_html_response(rows, origin=request.headers.get('Origin'))
 
 async def handle_projects(request, env=None):
-    """Handle /api/projects endpoint"""
-    cards = "".join([
-        f"""
-        <div class="project-card">
-            <div class="project-header">
-                <div class="project-logo">BT</div>
-                <div class="project-info">
-                    <div class="project-name">{p['name']}</div>
-                    <div class="project-type">{p['type']}</div>
+    """Handle /api/projects endpoint.
+
+    Returns project cards that match the Tailwind card layout in projects.html.
+    HTMX swaps this markup into the grid container (hx-swap="innerHTML"), so the
+    cards must use the same utility classes as the page's placeholder cards.
+    """
+    cards = ""
+    for p in PROJECTS:
+        status = p.get('status', 'Active')
+        badge = STATUS_BADGES.get(status, STATUS_BADGES['Active'])
+        cards += f"""
+        <div class="bg-white dark:bg-gray-800 border border-[#E5E5E5] dark:border-gray-700 rounded-lg p-5 hover:border-red-200 dark:hover:border-red-800 hover:shadow-sm transition-all cursor-pointer group">
+            <div class="flex items-start justify-between mb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-red-50 dark:bg-red-950 flex items-center justify-center">
+                        <i class="fa-solid {p.get('icon', 'fa-building')} text-red-600 dark:text-red-400 text-sm" aria-hidden="true"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-gray-900 dark:text-gray-100 text-sm group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">{p['name']}</h3>
+                        <p class="text-xs text-gray-400 dark:text-gray-500">{p['type']}</p>
+                    </div>
                 </div>
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium {badge}">{status}</span>
             </div>
-            <div class="project-reward">{p.get('reward', 'N/A')}</div>
-            <div class="project-stats">
-                <div class="stat">
-                    <div class="stat-value">{p.get('bugs', 0)}</div>
-                    <div class="stat-label">Bugs</div>
+            <p class="text-xs text-gray-500 dark:text-gray-400 leading-relaxed mb-4">{p.get('description', '')}</p>
+            <div class="flex items-center justify-between pt-4 border-t border-[#E5E5E5] dark:border-gray-700">
+                <div class="flex items-center gap-4">
+                    <div class="text-center"><div class="text-sm font-bold text-red-600 dark:text-red-400">{p.get('bugs', 0)}</div><div class="text-[10px] text-gray-400 dark:text-gray-500">Bugs Found</div></div>
+                    <div class="text-center"><div class="text-sm font-bold text-red-600 dark:text-red-400">{p.get('reward', 'N/A')}</div><div class="text-[10px] text-gray-400 dark:text-gray-500">Max Reward</div></div>
                 </div>
-                <div class="stat">
-                    <div class="stat-value">Active</div>
-                    <div class="stat-label">Status</div>
-                </div>
+                <a href="#" class="text-xs font-medium text-red-600 dark:text-red-400 hover:underline">View <i class="fa-solid fa-arrow-right text-[10px]" aria-hidden="true"></i></a>
             </div>
         </div>
-        """ for p in PROJECTS
-    ])
+        """
     return handle_html_response(cards, origin=request.headers.get('Origin'))
 
 # ===================================
