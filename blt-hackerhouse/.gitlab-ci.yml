@@ -1,0 +1,22 @@
+stages:
+  - test
+
+backend-tests:
+  stage: test
+  image: python:3.13
+
+  before_script:
+    - cd backend
+    - python -m pip install --upgrade pip
+    - pip install -e ".[dev]"
+
+  script:
+    - pytest -v
+
+  cache:
+    paths:
+      - backend/.cache/pip
+
+  artifacts:
+    when: always
+    expire_in: 1 week
