@@ -1,0 +1,14 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+coverage.xml
+*.egg-info/
+dist/
+build/
+scan-report.json
+.ruff_cache/
+week3-report.json
+
+shell-scan-report.json
