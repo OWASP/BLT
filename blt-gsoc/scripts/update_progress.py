@@ -2,9 +2,10 @@
 """Fill in the GSoC 2026 progress tracker data for one day.
 
 For every contributor in data/contributors.json, this script queries the
-GitLab events API for their commits and the Slack search API (on both
-workspaces) for messages on the given day (default: today, UTC), then saves
-the result into data/progress.json, which progress-tracker.html renders:
+GitLab API for their commits in OWASP-BLT project repositories and the Slack
+search API (on both workspaces) for messages on the given day (default: today,
+UTC), then saves the result into data/progress.json, which progress-tracker.html
+renders:
 
     {
         "updated": "2026-06-11T18:00:00+00:00",
@@ -19,7 +20,7 @@ the result into data/progress.json, which progress-tracker.html renders:
         }
     }
 
-- commits  : total commits pushed by the user that day (push events)
+- commits  : total commits authored by the user that day in their repo(s)
 - slack    : per workspace, true if the user sent a message that day
 - checkin  : true if the user sent a message in either workspace
 
@@ -68,36 +69,85 @@ def api_get(path, params):
         return json.load(response)
 
 
-def events_for_day(username, day):
-    """All events for a user on `day` (the API's after/before are exclusive)."""
-    events = []
+def day_window(day):
+    start = dt.datetime.combine(day, dt.time.min, tzinfo=dt.timezone.utc)
+    end = start + dt.timedelta(days=1)
+    return (
+        start.isoformat().replace("+00:00", "Z"),
+        end.isoformat().replace("+00:00", "Z"),
+    )
+
+
+def gitlab_project_paths(contributor):
+    repos = contributor.get("repos") or [contributor.get("repo") or contributor.get("project")]
+    return [f"OWASP-BLT/{repo}" for repo in repos if repo]
+
+
+def normalized_identity(value):
+    return "".join(ch for ch in str(value or "").lower() if ch.isalnum())
+
+
+def email_localpart(value):
+    return str(value or "").split("@", 1)[0]
+
+
+def commit_author_aliases(contributor):
+    aliases = {
+        contributor.get("name"),
+        contributor.get("github"),
+        contributor.get("gitlab"),
+        email_localpart(contributor.get("github")),
+        email_localpart(contributor.get("gitlab")),
+    }
+    aliases.update(contributor.get("commit_authors") or [])
+    return {normalized_identity(alias) for alias in aliases if alias}
+
+
+def commit_matches_contributor(commit, contributor):
+    aliases = commit_author_aliases(contributor)
+    commit_identities = {
+        commit.get("author_name"),
+        commit.get("committer_name"),
+        email_localpart(commit.get("author_email")),
+        email_localpart(commit.get("committer_email")),
+    }
+    return any(normalized_identity(identity) in aliases for identity in commit_identities if identity)
+
+
+def project_commits_for_day(project_path, day):
+    """All commits created in an OWASP-BLT project repository on `day`."""
+    start, end = day_window(day)
+    project_id = urllib.parse.quote(project_path, safe="")
+    commits = []
     page = 1
     while True:
         try:
             batch = api_get(
-                f"/users/{urllib.parse.quote(username)}/events",
+                f"/projects/{project_id}/repository/commits",
                 {
-                    "after": (day - dt.timedelta(days=1)).isoformat(),
-                    "before": (day + dt.timedelta(days=1)).isoformat(),
+                    "all": "true",
+                    "since": start,
+                    "until": end,
                     "per_page": 100,
                     "page": page,
                 },
             )
         except urllib.error.HTTPError as error:
-            print(f"  warning: GitLab API {error.code} for {username}", file=sys.stderr)
+            print(f"  warning: GitLab API {error.code} for {project_path}", file=sys.stderr)
             return []
-        events.extend(batch)
+        commits.extend(batch)
         if len(batch) < 100:
-            return events
+            return commits
         page += 1
 
 
-def commits_for_day(username, day):
-    commits = 0
-    for event in events_for_day(username, day):
-        if event.get("action_name", "").startswith("pushed"):
-            commits += (event.get("push_data") or {}).get("commit_count") or 0
-    return commits
+def commits_for_day(contributor, day):
+    return sum(
+        1
+        for project_path in gitlab_project_paths(contributor)
+        for commit in project_commits_for_day(project_path, day)
+        if commit_matches_contributor(commit, contributor)
+    )
 
 
 def slack_sent_message(token, username, day):
@@ -140,10 +190,9 @@ def slack_for_day(slack_info, day):
 
 
 def progress_for_day(contributor, day):
-    gitlab = contributor.get("gitlab") or contributor["github"]
     slack = slack_for_day(contributor.get("slack", ""), day)
     return {
-        "commits": commits_for_day(gitlab, day),
+        "commits": commits_for_day(contributor, day),
         "checkin": any(slack.values()),
         "slack": slack,
     }
