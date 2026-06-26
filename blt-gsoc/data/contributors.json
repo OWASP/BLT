@@ -1,13 +1,13 @@
 [
-    { "name": "Preetham Poojari",   "github": "Pritz395",       "gitlab": "Pritz395",       "slack": "", "project": "BLT-NetGuardian", "repo": "BLT-NetGuardian" },
-    { "name": "Sakshee Suman",      "github": "e-esakman",      "gitlab": "e-esakman",      "slack": "", "project": "BLT-University",  "repo": "BLT-University" },
-    { "name": "Md Kaif Ansari",     "github": "mdkaifansari04", "gitlab": "mdkaifansari04", "slack": "", "project": "BLT-Next",        "repo": "BLT-Next" },
-    { "name": "Ananya",             "github": "ananya-09",      "gitlab": "ananya-09",      "slack": "", "project": "BLT-Vanish",      "repo": "BLT-Vanish-Web" },
-    { "name": "Savio D'souza",      "github": "S3DFX-CYBER",    "gitlab": "S3DFX-CYBER",    "slack": "", "project": "BLT-Preflight",   "repo": "BLT-Preflight" },
+    { "name": "Preetham Poojari",   "github": "Pritz395",       "gitlab": "Pritz395",       "slack": "", "project": "BLT-NetGuardian", "repo": "BLT-NetGuardian", "commit_authors": ["preetham", "preethampujari395"] },
+    { "name": "Sakshee Suman",      "github": "e-esakman",      "gitlab": "e-esakman",      "slack": "", "project": "BLT-University",  "repo": "BLT-University", "commit_authors": ["Sakshee", "sumansakshee36"] },
+    { "name": "Md Kaif Ansari",     "github": "mdkaifansari04", "gitlab": "mdkaifansari04", "slack": "", "project": "BLT-Next",        "repo": "BLT-Next", "repos": ["BLT-Next", "blt-api", "blt-docs", "blt-hackathons", "blt-jobs", "blt-monitor", "blt-newsletter", "blt-zero"], "commit_authors": ["Md Kaif Ansari", "amdkaif843"] },
+    { "name": "Ananya",             "github": "ananya-09",      "gitlab": "ananya-09",      "slack": "", "project": "BLT-Vanish",      "repo": "blt-vanish" },
+    { "name": "Savio D'souza",      "github": "S3DFX-CYBER",    "gitlab": "saviodsouza8a",  "slack": "", "project": "BLT-Preflight",   "repo": "BLT-Preflight", "commit_authors": ["S3DFX", "saviodsouza8a"] },
     { "name": "Ojaswa",             "github": "ojaswa072",      "gitlab": "ojaswa072",      "slack": "", "project": "BLT-Toasty",      "repo": "BLT-Toasty" },
     { "name": "Nachiket Roy",       "github": "Nachiket-Roy",   "gitlab": "Nachiket_R",     "slack": "rosai", "project": "BLT-MCP",         "repo": "BLT-MCP" },
-    { "name": "Karuna Rapolu",      "github": "karunarapolu",   "gitlab": "karunarapolu",   "slack": "", "project": "BLT-SafeCloak",   "repo": "BLT-Safecloak" },
-    { "name": "Rudra Pratap Singh", "github": "Rudra-rps",      "gitlab": "Rudra-rps",      "slack": "", "project": "BLT-Hackerhouse", "repo": "BLT-Hackerhouse" },
+    { "name": "Karuna Rapolu",      "github": "karunarapolu",   "gitlab": "karunarapolu",   "slack": "", "project": "BLT-SafeCloak",   "repo": "BLT-Safecloak", "commit_authors": ["karunarapolu430"] },
+    { "name": "Rudra Pratap Singh", "github": "Rudra-rps",      "gitlab": "Rudra-rps",      "slack": "", "project": "BLT-Hackerhouse", "repo": "BLT-Hackerhouse", "commit_authors": ["Rudra", "rp_dex", "2005rudrapratapsingh"] },
     { "name": "Sidd190",            "github": "Sidd190",        "gitlab": "Sidd190",        "slack": "", "project": "BLT-Autopatch",   "repo": "BLT-Autopatch" },
-    { "name": "Jayant",             "github": "Jayant2908",     "gitlab": "Jayant2908",     "slack": "", "project": "BLT-MAYO",        "repo": "BLT-MAYO" }
+    { "name": "Jayant",             "github": "Jayant2908",     "gitlab": "Jayant2908",     "slack": "", "project": "BLT-MAYO",        "repo": "BLT-MAYO", "commit_authors": ["Jayant Malvi", "jayantmalvi0808"] }
 ]
