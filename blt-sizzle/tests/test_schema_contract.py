@@ -5,6 +5,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 MIGRATION = ROOT / "migrations" / "0004_app_refactor_auth_orgs.sql"
+LOGIN_ATTEMPT_MIGRATION = ROOT / "migrations" / "0005_auth_login_attempts.sql"
 
 
 class TestAppRefactorSchemaContract(unittest.TestCase):
@@ -25,6 +26,14 @@ class TestAppRefactorSchemaContract(unittest.TestCase):
         self.assertContainsSql("create table if not exists email_otps")
         for column in ["email", "otp_hash", "purpose", "attempts", "expires_at", "consumed_at"]:
             self.assertIn(column, self.normalized)
+
+    def test_login_attempts_table_exists_for_password_throttling(self):
+        self.assertTrue(LOGIN_ATTEMPT_MIGRATION.exists(), "0005 login attempts migration must exist")
+        sql = re.sub(r"\s+", " ", LOGIN_ATTEMPT_MIGRATION.read_text().lower())
+        self.assertIn("create table if not exists auth_login_attempts", sql)
+        for column in ["email", "success", "created_at"]:
+            self.assertIn(column, sql)
+        self.assertIn("idx_auth_login_attempts_email_created", sql)
 
     def test_generic_org_columns_are_added(self):
         for fragment in [

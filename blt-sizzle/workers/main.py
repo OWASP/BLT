@@ -15,9 +15,11 @@ from auth_utils import (
     generate_otp,
     generate_session_token,
     hash_otp,
+    hash_password,
     normalize_email,
     session_hash,
     verify_otp,
+    verify_password,
 )
 from email_service import SendGridEmailService, render_otp_email
 
@@ -107,7 +109,19 @@ async def handle_request(request, env):
         # Normalize API path too
         api_path = path
 
-        if api_path == "/api/auth/request-otp" and method == "POST":
+        if api_path == "/api/auth/signup" and method == "POST":
+            return await handle_auth_signup(request, env)
+
+        elif api_path == "/api/auth/login" and method == "POST":
+            return await handle_auth_password_login(request, env)
+
+        elif api_path == "/api/auth/verify-email" and method == "POST":
+            return await handle_auth_verify_email(request, env)
+
+        elif api_path == "/api/auth/resend-verification" and method == "POST":
+            return await handle_auth_resend_verification(request, env)
+
+        elif api_path == "/api/auth/request-otp" and method == "POST":
             return await handle_auth_request_otp(request, env)
 
         elif api_path == "/api/auth/verify-otp" and method == "POST":
@@ -204,11 +218,14 @@ async def handle_request(request, env):
                 return await env.ASSETS.fetch(request)
             return Response.new("Assets not found", {"status": 404})
         
-        elif path in ["/app", "/login", "/leaderboard", "/settings", "/check-ins", "/checkins"]:
+        elif path in ["/app", "/login", "/dashboard", "/profile", "/organizations", "/leaderboard", "/settings", "/check-ins", "/checkins"]:
             if hasattr(env, 'ASSETS'):
                 page_assets = {
                     "/app": "/pages/app.html",
                     "/login": "/pages/login.html",
+                    "/dashboard": "/pages/dashboard.html",
+                    "/profile": "/pages/profile.html",
+                    "/organizations": "/pages/organizations.html",
                     "/leaderboard": "/pages/leaderboard.html",
                     "/settings": "/pages/settings.html",
                     "/check-ins": "/pages/check-ins.html",
@@ -332,6 +349,20 @@ async def init_database(env):
 
         await env.sizzle_db.prepare("""
             CREATE INDEX IF NOT EXISTS idx_email_otps_email_purpose ON email_otps(email, purpose)
+        """).run()
+
+        await env.sizzle_db.prepare("""
+            CREATE TABLE IF NOT EXISTS auth_login_attempts (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                email TEXT NOT NULL,
+                success INTEGER NOT NULL DEFAULT 0,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        """).run()
+
+        await env.sizzle_db.prepare("""
+            CREATE INDEX IF NOT EXISTS idx_auth_login_attempts_email_created
+            ON auth_login_attempts(email, created_at)
         """).run()
 
         # OAuth CSRF states
@@ -804,6 +835,32 @@ def get_env_value(env, name, default=""):
     return getattr(env, name, default) or default
 
 
+def get_first_env_value(env, *names, default=""):
+    for name in names:
+        value = get_env_value(env, name)
+        if value:
+            return value
+    return default
+
+
+def get_email_config(env):
+    """Return email provider config, supporting current and legacy SendGrid env names."""
+    provider = get_env_value(env, "EMAIL_PROVIDER", "sendgrid").lower()
+    return {
+        "provider": provider,
+        "api_key": get_first_env_value(env, "EMAIL_API_KEY", "SENDGRID_API_KEY"),
+        "from_email": get_first_env_value(env, "EMAIL_FROM", "SENDGRID_FROM_EMAIL"),
+        "from_name": get_first_env_value(env, "EMAIL_FROM_NAME", "SENDGRID_FROM_NAME", default="BLT Sizzle"),
+    }
+
+
+def email_domain(email):
+    email = normalize_email(email)
+    if "@" not in email:
+        return ""
+    return email.rsplit("@", 1)[1]
+
+
 def get_auth_secret(env, name):
     secret = get_env_value(env, name) or get_env_value(env, "ENCRYPTION_KEY")
     if not secret:
@@ -849,6 +906,317 @@ async def safe_request_json(request):
         return None
 
 
+async def handle_auth_signup(request, env):
+    """Create an email/password account and send an email verification code."""
+    try:
+        data = await safe_request_json(request)
+        if not isinstance(data, dict):
+            return json_error("Invalid JSON body", 400)
+
+        email = normalize_email(data.get("email"))
+        password = str(data.get("password") or "")
+        displayName = str(data.get("displayName") or data.get("name") or "").strip()
+        if not is_valid_email(email):
+            return json_error("Valid email is required", 400)
+        if len(password) < 8:
+            return json_error("Password must be at least 8 characters", 400)
+        if len(displayName) < 2:
+            return json_error("Name must be at least 2 characters", 400)
+
+        existing_proxy = await env.sizzle_db.prepare("""
+            SELECT user_id FROM users WHERE email = ?
+        """).bind(email).first()
+        if existing_proxy:
+            return json_error("An account with this email already exists", 409)
+
+        encryption_key = get_auth_secret(env, "ENCRYPTION_KEY")
+        user_id = "usr_" + base64.urlsafe_b64encode(os.urandom(18)).decode("utf-8").rstrip("=")
+        encrypted_email = await encrypt_data(email, encryption_key)
+        encrypted_display_name = await encrypt_data(displayName, encryption_key)
+        password_digest = hash_password(password)
+        await env.sizzle_db.prepare("""
+            INSERT INTO users (user_id, email, email_hash, encrypted_email, encrypted_display_name, password_hash, email_verified, status, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, 0, 'active', CURRENT_TIMESTAMP)
+        """).bind(user_id, email, email_hash_value(email), encrypted_email, encrypted_display_name, password_digest).run()
+
+        verification_result = await send_email_verification_code(env, email)
+        if not verification_result.get("success"):
+            logger.warning(
+                "Signup verification email failed: status=%s retryable=%s recipient_domain=%s error=%s",
+                verification_result.get("status"),
+                verification_result.get("retryable"),
+                email_domain(email),
+                verification_result.get("error"),
+            )
+
+        return json_response({
+            "success": True,
+            "needsEmailVerification": True,
+            "verificationEmailSent": bool(verification_result.get("success")),
+            "message": "Account created. Verify your email, then log in.",
+            "user": {
+                "userId": user_id,
+                "email": email,
+                "displayName": displayName,
+                "emailVerified": False,
+            },
+        }, 201)
+    except Exception as e:
+        logger.error("Error signing up: %s", e, exc_info=True)
+        return json_error("Account could not be created", 500)
+
+
+async def handle_auth_password_login(request, env):
+    """Authenticate with email/password and create a hashed auth session."""
+    try:
+        data = await safe_request_json(request)
+        if not isinstance(data, dict):
+            return json_error("Invalid JSON body", 400)
+
+        email = normalize_email(data.get("email"))
+        password = str(data.get("password") or "")
+        if not is_valid_email(email) or not password:
+            return json_error("Invalid email or password", 401)
+
+        failed_attempts_proxy = await env.sizzle_db.prepare("""
+            SELECT COUNT(*) AS failed_count FROM auth_login_attempts
+            WHERE email = ? AND success = 0 AND created_at > datetime('now', '-15 minutes')
+        """).bind(email).first()
+        failed_attempts = failed_attempts_proxy.to_py() if hasattr(failed_attempts_proxy, "to_py") else (failed_attempts_proxy or {})
+        if int(failed_attempts.get("failed_count") or 0) >= 10:
+            return json_error("Too many login attempts. Please try again later.", 429)
+
+        user_proxy = await env.sizzle_db.prepare("""
+            SELECT user_id, email, password_hash, email_verified, encrypted_display_name
+            FROM users WHERE email = ? AND status = 'active'
+        """).bind(email).first()
+        user = user_proxy.to_py() if hasattr(user_proxy, "to_py") else user_proxy
+        if not isinstance(user, dict) or not user.get("password_hash") or not verify_password(password, user.get("password_hash")):
+            await env.sizzle_db.prepare("""
+                INSERT INTO auth_login_attempts (email, success) VALUES (?, 0)
+            """).bind(email).run()
+            return json_error("Invalid email or password", 401)
+
+        email_verified = bool(int(user.get("email_verified") or 0))
+        if not email_verified:
+            verification_result = await send_email_verification_code(env, email)
+            return json_response({
+                "authenticated": False,
+                "needsEmailVerification": True,
+                "verificationEmailSent": bool(verification_result.get("success")),
+                "message": "Email verification is required before login.",
+                "user": {
+                    "userId": user.get("user_id"),
+                    "email": email,
+                    "emailVerified": False,
+                },
+            }, 403)
+
+        encryption_key = get_auth_secret(env, "ENCRYPTION_KEY")
+        display_name = await decrypt_data(user.get("encrypted_display_name") or "", encryption_key)
+        session_secret = get_auth_secret(env, "SESSION_SECRET")
+        await env.sizzle_db.prepare("""
+            INSERT INTO auth_login_attempts (email, success) VALUES (?, 1)
+        """).bind(email).run()
+        token = generate_session_token()
+        token_hash = session_hash(token, session_secret)
+        await env.sizzle_db.prepare("""
+            INSERT INTO auth_sessions (session_hash, user_id, expires_at, last_seen_at)
+            VALUES (?, ?, datetime('now', '+30 days'), CURRENT_TIMESTAMP)
+        """).bind(token_hash, user.get("user_id")).run()
+        req_url = URL.new(request.url)
+        cookie = build_session_cookie(token, 30 * 24 * 60 * 60, secure=req_url.protocol == "https:")
+        return json_response({
+            "authenticated": True,
+            "needsEmailVerification": not email_verified,
+            "user": {
+                "userId": user.get("user_id"),
+                "email": email,
+                "displayName": display_name or email.split("@")[0],
+                "emailVerified": email_verified,
+            },
+        }, 200, {"Set-Cookie": cookie})
+    except Exception as e:
+        logger.error("Error logging in with password: %s", e, exc_info=True)
+        return json_error("Login failed", 500)
+
+
+async def handle_auth_verify_email(request, env):
+    """Verify a signup email using an email_verify OTP."""
+    try:
+        data = await safe_request_json(request)
+        if not isinstance(data, dict):
+            return json_error("Invalid JSON body", 400)
+
+        session_user_id = await get_session_user(request, env)
+        email = normalize_email(data.get("email"))
+        if session_user_id:
+            user_proxy = await env.sizzle_db.prepare("""
+                SELECT email FROM users WHERE user_id = ?
+            """).bind(session_user_id).first()
+            session_user = user_proxy.to_py() if hasattr(user_proxy, "to_py") else user_proxy
+            if isinstance(session_user, dict) and session_user.get("email"):
+                email = normalize_email(session_user.get("email"))
+
+        otp = str(data.get("otp") or "").strip()
+        if not is_valid_email(email) or not re.match(r"^\d{6}$", otp):
+            return json_error("Valid email and 6-digit code are required", 400)
+
+        otp_proxy = await env.sizzle_db.prepare("""
+            SELECT id, otp_hash, attempts FROM email_otps
+            WHERE email = ? AND purpose = 'email_verify' AND consumed_at IS NULL AND expires_at > datetime('now')
+            ORDER BY id DESC LIMIT 1
+        """).bind(email).first()
+        otp_row = otp_proxy.to_py() if hasattr(otp_proxy, "to_py") else otp_proxy
+        if not isinstance(otp_row, dict):
+            return json_error("Verification code is invalid or expired", 400)
+
+        attempts = int(otp_row.get("attempts") or 0)
+        if attempts >= 5:
+            return json_error("Too many verification attempts", 429)
+
+        otp_secret = get_auth_secret(env, "OTP_SECRET")
+        if not verify_otp(email, otp, "email_verify", otp_secret, otp_row.get("otp_hash")):
+            await env.sizzle_db.prepare("""
+                UPDATE email_otps SET attempts = attempts + 1 WHERE id = ? AND consumed_at IS NULL
+            """).bind(otp_row.get("id")).run()
+            return json_error("Verification code is invalid or expired", 400)
+
+        consume_result = await env.sizzle_db.prepare("""
+            UPDATE email_otps
+            SET consumed_at = CURRENT_TIMESTAMP
+            WHERE id = ? AND consumed_at IS NULL AND expires_at > datetime('now') AND attempts < 5
+        """).bind(otp_row.get("id")).run()
+        if d1_changes(consume_result) == 0:
+            return json_error("Verification code is invalid or expired", 400)
+
+        await env.sizzle_db.prepare("""
+            UPDATE users SET email_verified = 1, updated_at = CURRENT_TIMESTAMP WHERE email = ?
+        """).bind(email).run()
+        return json_response({"success": True, "emailVerified": True})
+    except Exception as e:
+        logger.error("Error verifying signup email: %s", e, exc_info=True)
+        return json_error("Email could not be verified", 500)
+
+
+async def handle_auth_resend_verification(request, env):
+    """Resend the email verification code for an unverified account."""
+    try:
+        data = await safe_request_json(request)
+        if not isinstance(data, dict):
+            data = {}
+
+        session_user_id = await get_session_user(request, env)
+        email = normalize_email(data.get("email"))
+        if session_user_id:
+            user_proxy = await env.sizzle_db.prepare("""
+                SELECT email, email_verified FROM users WHERE user_id = ? AND status = 'active'
+            """).bind(session_user_id).first()
+        else:
+            user_proxy = await env.sizzle_db.prepare("""
+                SELECT email, email_verified FROM users WHERE email = ? AND status = 'active'
+            """).bind(email).first()
+
+        user = user_proxy.to_py() if hasattr(user_proxy, "to_py") else user_proxy
+        if not isinstance(user, dict) or not is_valid_email(user.get("email")):
+            return json_error("Account not found", 404)
+        if bool(int(user.get("email_verified") or 0)):
+            return json_response({"success": True, "emailVerified": True, "message": "Email already verified"})
+
+        send_result = await send_email_verification_code(env, normalize_email(user.get("email")))
+        if not send_result.get("success"):
+            status = 429 if send_result.get("status") == 429 else 502
+            return json_error(send_result.get("error") or "Verification email could not be sent", status)
+        return json_response({"success": True, "message": "Verification code sent"})
+    except Exception as e:
+        logger.error("Error resending verification email: %s", e, exc_info=True)
+        return json_error("Verification email could not be sent", 500)
+
+
+async def send_email_verification_code(env, email):
+    return await send_email_otp_code(
+        env,
+        email,
+        purpose="email_verify",
+        subject="Verify your BLT Sizzle email",
+    )
+
+
+async def send_email_otp_code(env, email, purpose, subject):
+    email_config = get_email_config(env)
+    logger.info(
+        "OTP email config: provider=%s api_key_present=%s from_present=%s from_domain=%s recipient_domain=%s purpose=%s",
+        email_config["provider"],
+        bool(email_config["api_key"]),
+        bool(email_config["from_email"]),
+        email_domain(email_config["from_email"]),
+        email_domain(email),
+        purpose,
+    )
+    if email_config["provider"] != "sendgrid":
+        return {"success": False, "status": 503, "provider": email_config["provider"], "error": "Email service provider is not supported"}
+    if not email_config["api_key"] or not email_config["from_email"]:
+        return {"success": False, "status": 503, "provider": "sendgrid", "error": "Email service is not configured"}
+
+    otp_secret = get_auth_secret(env, "OTP_SECRET")
+    recent_proxy = await env.sizzle_db.prepare("""
+        SELECT COUNT(*) AS recent_count FROM email_otps
+        WHERE email = ? AND purpose = ? AND created_at > datetime('now', '-1 hour')
+    """).bind(email, purpose).first()
+    recent = recent_proxy.to_py() if hasattr(recent_proxy, "to_py") else (recent_proxy or {})
+    if int(recent.get("recent_count") or 0) >= 5:
+        return {"success": False, "status": 429, "provider": "sendgrid", "error": "Too many verification codes requested. Please try again later."}
+
+    latest_proxy = await env.sizzle_db.prepare("""
+        SELECT id FROM email_otps
+        WHERE email = ? AND purpose = ? AND created_at > datetime('now', '-1 minute')
+        ORDER BY id DESC LIMIT 1
+    """).bind(email, purpose).first()
+    if latest_proxy:
+        return {"success": False, "status": 429, "provider": "sendgrid", "error": "Please wait before requesting another verification code."}
+
+    otp = generate_otp()
+    otp_digest = hash_otp(email, otp, purpose, otp_secret)
+    await env.sizzle_db.prepare("""
+        UPDATE email_otps
+        SET consumed_at = CURRENT_TIMESTAMP
+        WHERE email = ? AND purpose = ? AND consumed_at IS NULL
+    """).bind(email, purpose).run()
+    await env.sizzle_db.prepare("""
+        INSERT INTO email_otps (email, otp_hash, purpose, attempts, expires_at)
+        VALUES (?, ?, ?, 0, datetime('now', '+10 minutes'))
+    """).bind(email, otp_digest, purpose).run()
+    otp_id_proxy = await env.sizzle_db.prepare("""
+        SELECT id FROM email_otps
+        WHERE email = ? AND purpose = ? AND consumed_at IS NULL
+        ORDER BY id DESC LIMIT 1
+    """).bind(email, purpose).first()
+    otp_id_row = otp_id_proxy.to_py() if hasattr(otp_id_proxy, "to_py") else otp_id_proxy
+    otp_id = otp_id_row.get("id") if isinstance(otp_id_row, dict) else None
+
+    service = SendGridEmailService(email_config["api_key"], email_config["from_email"], email_config["from_name"])
+    send_result = await service.send_email(
+        email,
+        subject,
+        render_otp_email(email, otp),
+        custom_args={"purpose": purpose, "app": "sizzle"},
+    )
+    logger.info(
+        "OTP email send result: provider=%s status=%s success=%s retryable=%s permanent_failure=%s message_id_present=%s recipient_domain=%s purpose=%s",
+        send_result.get("provider"),
+        send_result.get("status"),
+        send_result.get("success"),
+        send_result.get("retryable"),
+        send_result.get("permanent_failure"),
+        bool(send_result.get("provider_message_id")),
+        email_domain(email),
+        purpose,
+    )
+    if not send_result.get("success") and otp_id:
+        await env.sizzle_db.prepare("DELETE FROM email_otps WHERE id = ?").bind(otp_id).run()
+    return send_result
+
+
 async def handle_auth_request_otp(request, env):
     """Create and email a one-time verification code for email login/signup."""
     try:
@@ -860,10 +1228,24 @@ async def handle_auth_request_otp(request, env):
         if not is_valid_email(email):
             return json_error("Valid email is required", 400)
 
-        email_api_key = get_env_value(env, "EMAIL_API_KEY")
-        email_from = get_env_value(env, "EMAIL_FROM")
-        email_from_name = get_env_value(env, "EMAIL_FROM_NAME", "BLT Sizzle")
-        if not email_api_key or not email_from:
+        email_config = get_email_config(env)
+        logger.info(
+            "OTP email config: provider=%s api_key_present=%s from_present=%s from_domain=%s recipient_domain=%s",
+            email_config["provider"],
+            bool(email_config["api_key"]),
+            bool(email_config["from_email"]),
+            email_domain(email_config["from_email"]),
+            email_domain(email),
+        )
+        if email_config["provider"] != "sendgrid":
+            logger.warning("Unsupported email provider configured for OTP: %s", email_config["provider"])
+            return json_error("Email service provider is not supported", 503)
+        if not email_config["api_key"] or not email_config["from_email"]:
+            logger.warning(
+                "OTP email service missing config: api_key_present=%s from_present=%s",
+                bool(email_config["api_key"]),
+                bool(email_config["from_email"]),
+            )
             return json_error("Email service is not configured", 503)
 
         otp_secret = get_auth_secret(env, "OTP_SECRET")
@@ -904,14 +1286,37 @@ async def handle_auth_request_otp(request, env):
         """).bind(email).first()
         otp_id = (otp_id_proxy.to_py() if hasattr(otp_id_proxy, "to_py") else otp_id_proxy).get("id")
 
-        service = SendGridEmailService(email_api_key, email_from, email_from_name)
+        service = SendGridEmailService(
+            email_config["api_key"],
+            email_config["from_email"],
+            email_config["from_name"],
+        )
         send_result = await service.send_email(
             email,
             "Your BLT Sizzle verification code",
             render_otp_email(email, otp),
             custom_args={"purpose": "login_otp", "app": "sizzle"},
         )
+        logger.info(
+            "OTP email send result: provider=%s status=%s success=%s retryable=%s permanent_failure=%s message_id_present=%s recipient_domain=%s",
+            send_result.get("provider"),
+            send_result.get("status"),
+            send_result.get("success"),
+            send_result.get("retryable"),
+            send_result.get("permanent_failure"),
+            bool(send_result.get("provider_message_id")),
+            email_domain(email),
+        )
         if not send_result.get("success"):
+            logger.warning(
+                "OTP email send failed: provider=%s status=%s retryable=%s permanent_failure=%s recipient_domain=%s error=%s",
+                send_result.get("provider"),
+                send_result.get("status"),
+                send_result.get("retryable"),
+                send_result.get("permanent_failure"),
+                email_domain(email),
+                send_result.get("error"),
+            )
             if otp_id:
                 await env.sizzle_db.prepare("DELETE FROM email_otps WHERE id = ?").bind(otp_id).run()
             status = 503 if send_result.get("status") == 503 else 502
@@ -1268,7 +1673,7 @@ async def handle_auth_me(request, env):
             )
 
         user_proxy = await env.sizzle_db.prepare("""
-            SELECT user_id, email, encrypted_display_name, github_id
+            SELECT user_id, email, email_verified, encrypted_display_name, github_id
             FROM users WHERE user_id = ?
         """).bind(user_id).first()
 
@@ -1279,16 +1684,19 @@ async def handle_auth_me(request, env):
             )
 
         user = user_proxy.to_py()
-        encryption_key = getattr(env, 'ENCRYPTION_KEY', 'sizzle-dev-key-12345')
+        encryption_key = get_auth_secret(env, "ENCRYPTION_KEY")
         display_name = await decrypt_data(user.get('encrypted_display_name') or '', encryption_key)
         email = user.get('email') or ''
         fallback_display = email.split('@')[0] if email else user_id
+        email_verified = bool(int(user.get('email_verified') or 0))
 
         return Response.new(json.dumps({
             "authenticated": True,
             "userId": user_id,
             "email": email,
             "displayName": display_name or fallback_display,
+            "emailVerified": email_verified,
+            "needsEmailVerification": bool(email and not email_verified),
             "authProvider": "email" if email else "github",
             "githubLogin": user_id if user.get('github_id') else ""
         }), {"headers": {"Content-Type": "application/json"}})
