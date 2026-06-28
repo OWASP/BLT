@@ -154,6 +154,12 @@ class TestAppRefactorFrontendContracts(unittest.TestCase):
             self.assertIn(text, html)
         self.assertIn("organizationSheet", html)
         self.assertIn("createOrgModal", html)
+        self.assertIn("/api/orgs/discover", html)
+        self.assertIn("/api/orgs/${slug}/join", html)
+        self.assertIn("/api/orgs", html)
+        self.assertIn("loadOrganizations", html)
+        self.assertIn("escapeHtml", html)
+        self.assertNotIn("Phase 1 mock UI", html)
 
     def test_worker_routes_phase_one_pages(self):
         source = MAIN.read_text()

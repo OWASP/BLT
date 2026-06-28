@@ -149,11 +149,24 @@ async def handle_request(request, env):
         elif api_path == "/api/auth/logout" and method == "POST":
             return await handle_auth_logout(request, env)
 
+        elif api_path == "/api/orgs/discover" and method == "GET":
+            return await handle_discover_orgs(request, env)
+
         elif api_path == "/api/orgs" and method == "GET":
             return await handle_get_orgs(request, env)
 
         elif api_path == "/api/orgs" and method == "POST":
             return await handle_add_org(request, env)
+
+        elif api_path.startswith("/api/orgs/") and api_path.endswith("/join") and method == "POST":
+            org_slug = api_path[len("/api/orgs/"):-len("/join")]
+            if org_slug:
+                return await handle_join_org(request, env, org_slug)
+
+        elif api_path.startswith("/api/orgs/") and api_path.endswith("/requests") and method == "GET":
+            org_slug = api_path[len("/api/orgs/"):-len("/requests")]
+            if org_slug:
+                return await handle_get_org_requests(request, env, org_slug)
 
         elif api_path.startswith("/api/orgs/") and api_path.endswith("/settings") and method == "POST":
             org_name = api_path[len("/api/orgs/"):-len("/settings")]
@@ -187,6 +200,14 @@ async def handle_request(request, env):
             org_name = api_path[len("/api/orgs/"):-len("/members")]
             if org_name:
                 return await handle_get_org_members(request, env, org_name)
+
+        elif api_path.startswith("/api/orgs/") and "/members/" in api_path and api_path.endswith("/role") and method == "POST":
+            parts = api_path[len("/api/orgs/"):].split("/members/")
+            if len(parts) == 2:
+                org_name = parts[0]
+                target_user_id = parts[1][:-len("/role")]
+                if org_name and target_user_id:
+                    return await handle_update_org_member_role(request, env, org_name, target_user_id)
 
         elif api_path.startswith("/api/orgs/") and method == "DELETE":
             org_name = api_path[len("/api/orgs/"):]
@@ -388,6 +409,12 @@ async def init_database(env):
             CREATE TABLE IF NOT EXISTS organizations (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 github_org_name TEXT UNIQUE NOT NULL,
+                name TEXT,
+                slug TEXT UNIQUE,
+                description TEXT,
+                created_by_user_id TEXT,
+                default_timezone TEXT DEFAULT 'UTC',
+                checkin_enabled INTEGER DEFAULT 1,
                 encrypted_slack_webhook_url TEXT,
                 encrypted_org_key TEXT,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -405,6 +432,10 @@ async def init_database(env):
                 user_id TEXT NOT NULL,
                 org_id INTEGER NOT NULL,
                 status TEXT NOT NULL DEFAULT 'approved',
+                role TEXT NOT NULL DEFAULT 'member',
+                requested_at DATETIME,
+                approved_by_user_id TEXT,
+                approved_at DATETIME,
                 joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 PRIMARY KEY (user_id, org_id),
                 FOREIGN KEY (user_id) REFERENCES users(user_id),
@@ -1860,309 +1891,289 @@ async def get_access_token_for_request(request, env):
     return await decrypt_data(encrypted_token, encryption_key)
 
 
+def slugify_org(value):
+    slug = re.sub(r"[^a-z0-9]+", "-", str(value or "").strip().lower()).strip("-")
+    if not re.match(r"^[a-z0-9]+(?:-[a-z0-9]+)*$", slug or ""):
+        return ""
+    return slug[:80]
+
+
+async def get_verified_session_user(request, env):
+    user_id = await get_session_user(request, env)
+    if not user_id:
+        return None, json_error("Unauthorized", 401)
+    user_proxy = await env.sizzle_db.prepare("""
+        SELECT user_id, email_verified, status FROM users WHERE user_id = ?
+    """).bind(user_id).first()
+    user = user_proxy.to_py() if hasattr(user_proxy, "to_py") else user_proxy
+    if not isinstance(user, dict) or user.get("status") != "active":
+        return None, json_error("Unauthorized", 401)
+    if not bool(int(user.get("email_verified") or 0)):
+        return None, json_error("Email verification required", 403)
+    return user_id, None
+
+
+async def get_org_by_slug(env, slug):
+    slug = slugify_org(slug)
+    if not slug:
+        return None
+    org_proxy = await env.sizzle_db.prepare("""
+        SELECT id, COALESCE(NULLIF(slug, ''), github_org_name) AS slug,
+               COALESCE(NULLIF(name, ''), github_org_name) AS name,
+               description, created_by_user_id, checkin_enabled
+        FROM organizations
+        WHERE slug = ? OR github_org_name = ?
+        LIMIT 1
+    """).bind(slug, slug).first()
+    org = org_proxy.to_py() if hasattr(org_proxy, "to_py") else org_proxy
+    return org if isinstance(org, dict) else None
+
+
+async def require_org_admin(request, env, org_slug):
+    user_id, error = await get_verified_session_user(request, env)
+    if error:
+        return None, None, error
+    org = await get_org_by_slug(env, org_slug)
+    if not org:
+        return None, None, json_error("Organization not found", 404)
+    membership_proxy = await env.sizzle_db.prepare("""
+        SELECT role, status FROM user_organizations
+        WHERE user_id = ? AND org_id = ? AND status = 'approved' AND role IN ('owner', 'admin')
+    """).bind(user_id, org.get("id")).first()
+    membership = membership_proxy.to_py() if hasattr(membership_proxy, "to_py") else membership_proxy
+    if not isinstance(membership, dict):
+        return None, None, json_error("Admin access required", 403)
+    return user_id, org, None
+
+
+def org_row_to_api(row):
+    return {
+        "id": row.get("id"),
+        "slug": row.get("slug") or row.get("github_org_name"),
+        "name": row.get("name") or row.get("github_org_name"),
+        "description": row.get("description") or "",
+        "membershipStatus": row.get("status") or "not_joined",
+        "status": row.get("status") or "not_joined",
+        "role": row.get("role") or "member",
+        "checkinEnabled": bool(int(row.get("checkin_enabled") if row.get("checkin_enabled") is not None else 1)),
+    }
+
+
+async def handle_discover_orgs(request, env):
+    """Discover all Sizzle organizations with current user's membership/role state."""
+    try:
+        user_id, error = await get_verified_session_user(request, env)
+        if error:
+            return error
+        url = URL.new(request.url)
+        query = (url.searchParams.get("q") or "").strip().lower()
+        result_proxy = await env.sizzle_db.prepare("""
+            SELECT o.id, COALESCE(NULLIF(o.slug, ''), o.github_org_name) AS slug,
+                   COALESCE(NULLIF(o.name, ''), o.github_org_name) AS name,
+                   o.description, o.checkin_enabled, uo.status, uo.role
+            FROM organizations o
+            LEFT JOIN user_organizations uo ON o.id = uo.org_id AND uo.user_id = ?
+            ORDER BY name COLLATE NOCASE
+        """).bind(user_id).all()
+        result = result_proxy.to_py() if hasattr(result_proxy, 'to_py') else result_proxy
+        rows = result.get('results', []) if isinstance(result, dict) else []
+        orgs = [org_row_to_api(row) for row in rows]
+        if query:
+            orgs = [org for org in orgs if query in org["name"].lower() or query in org["slug"].lower()]
+        return json_response({"orgs": orgs})
+    except Exception as e:
+        logger.error("Error discovering orgs: %s", e, exc_info=True)
+        return json_error("Organizations could not be loaded", 500)
+
+
 async def handle_get_orgs(request, env):
-    """List organizations the authenticated user belongs to (approved + pending)"""
+    """List organizations the authenticated user belongs to, including roles/status."""
     try:
         user_id = await get_session_user(request, env)
         if not user_id:
-            return Response.new(json.dumps({"error": "Unauthorized"}),
-                              {"status": 401, "headers": {"Content-Type": "application/json"}})
-
+            return json_error("Unauthorized", 401)
         result_proxy = await env.sizzle_db.prepare("""
-            SELECT o.id, o.github_org_name, o.encrypted_slack_webhook_url,
-                   o.encrypted_org_key, uo.status
+            SELECT o.id, COALESCE(NULLIF(o.slug, ''), o.github_org_name) AS slug,
+                   COALESCE(NULLIF(o.name, ''), o.github_org_name) AS name,
+                   o.description, o.checkin_enabled, uo.status, uo.role
             FROM organizations o
             JOIN user_organizations uo ON o.id = uo.org_id
             WHERE uo.user_id = ?
-            ORDER BY o.github_org_name
+            ORDER BY name COLLATE NOCASE
         """).bind(user_id).all()
-
         result = result_proxy.to_py() if hasattr(result_proxy, 'to_py') else result_proxy
         rows = result.get('results', []) if isinstance(result, dict) else []
-
-        encryption_key = getattr(env, 'ENCRYPTION_KEY', 'sizzle-dev-key-12345')
-        orgs = []
-        for row in rows:
-            slack_url = await decrypt_data(row['encrypted_slack_webhook_url'] or '', encryption_key)
-            orgs.append({
-                "id": row['id'],
-                "name": row['github_org_name'],
-                "slackWebhookUrl": slack_url,
-                "hasOrgKey": bool(row.get('encrypted_org_key')),
-                "status": row.get('status', 'approved'),
-            })
-
-        return Response.new(json.dumps({"orgs": orgs}),
-                          {"headers": {"Content-Type": "application/json"}})
+        return json_response({"orgs": [org_row_to_api(row) for row in rows]})
     except Exception as e:
         logger.error("Error getting orgs: %s", e, exc_info=True)
-        return Response.new(json.dumps({"error": str(e)}),
-                          {"status": 500, "headers": {"Content-Type": "application/json"}})
+        return json_error("Organizations could not be loaded", 500)
 
 
 async def handle_add_org(request, env):
-    """Add the authenticated user to an organization (verifies GitHub membership)"""
+    """Create a generic organization. Creator becomes approved owner."""
     try:
-        user_id = await get_session_user(request, env)
-        if not user_id:
-            return Response.new(json.dumps({"error": "Unauthorized"}),
-                              {"status": 401, "headers": {"Content-Type": "application/json"}})
-
-        data = (await request.json()).to_py()
-        org_name = data.get('orgName', '').strip().lower()
-
-        if not org_name:
-            return Response.new(json.dumps({"error": "orgName is required"}),
-                              {"status": 400, "headers": {"Content-Type": "application/json"}})
-
-        # GitHub org names: alphanumeric + hyphens, 1-39 chars
-        if not re.match(r'^[a-zA-Z0-9][a-zA-Z0-9\-]{0,37}$', org_name):
-            return Response.new(json.dumps({"error": "Invalid organization name"}),
-                              {"status": 400, "headers": {"Content-Type": "application/json"}})
-
-        # Verify the user is actually a member of this org via GitHub API
-        access_token = await get_access_token_for_request(request, env)
-        if access_token:
-            try:
-                membership_res = await fetch(
-                    f"https://api.github.com/orgs/{org_name}/members/{user_id}",
-                    {
-                        "headers": {
-                            "Authorization": f"token {access_token}",
-                            "Accept": "application/json",
-                            "User-Agent": "BLT-Sizzle"
-                        }
-                    }
-                )
-                if membership_res.status == 404:
-                    return Response.new(
-                        json.dumps({"error": "You are not a member of this organization, or it does not exist"}),
-                        {"status": 403, "headers": {"Content-Type": "application/json"}}
-                    )
-            except Exception as e:
-                logger.error("GitHub membership check failed: %s", e)
-                # Continue: best-effort verification; org/user data is still isolated
-
-        # Upsert org record
+        user_id, error = await get_verified_session_user(request, env)
+        if error:
+            return error
+        data = await safe_request_json(request)
+        if not isinstance(data, dict):
+            return json_error("Invalid JSON body", 400)
+        org_name = str(data.get('name') or data.get('orgName') or '').strip()
+        description = str(data.get('description') or '').strip()[:500]
+        slug = slugify_org(data.get('slug') or org_name)
+        if not org_name or not slug:
+            return json_error("Valid organization name is required", 400)
+        existing = await get_org_by_slug(env, slug)
+        if existing:
+            return json_error("Organization already exists", 409)
         await env.sizzle_db.prepare("""
-            INSERT OR IGNORE INTO organizations (github_org_name) VALUES (?)
-        """).bind(org_name).run()
+            INSERT INTO organizations (github_org_name, name, slug, description, created_by_user_id, checkin_enabled, updated_at)
+            VALUES (?, ?, ?, ?, ?, 1, CURRENT_TIMESTAMP)
+        """).bind(slug, org_name, slug, description, user_id).run()
+        org = await get_org_by_slug(env, slug)
+        if not org:
+            return json_error("Organization could not be created", 500)
+        await env.sizzle_db.prepare("""
+            INSERT INTO user_organizations (user_id, org_id, status, role, requested_at, approved_by_user_id, approved_at, joined_at)
+            VALUES (?, ?, 'approved', 'owner', CURRENT_TIMESTAMP, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        """).bind(user_id, org.get('id'), user_id).run()
+        return json_response({"success": True, "org": {"id": org.get('id'), "slug": slug, "name": org_name, "status": "approved", "role": "owner"}}, 201)
+    except Exception as e:
+        logger.error("Error creating org: %s", e, exc_info=True)
+        return json_error("Organization could not be created", 500)
 
-        org_proxy = await env.sizzle_db.prepare(
-            "SELECT id FROM organizations WHERE github_org_name = ?"
-        ).bind(org_name).first()
 
-        if not org_proxy:
-            return Response.new(json.dumps({"error": "Failed to create organization record"}),
-                              {"status": 500, "headers": {"Content-Type": "application/json"}})
-
-        org_id = org_proxy.to_py()['id']
-
-        # First member becomes auto-approved; subsequent members need approval
-        existing_proxy = await env.sizzle_db.prepare("""
-            SELECT COUNT(*) AS cnt FROM user_organizations
-            WHERE org_id = ? AND status = 'approved'
-        """).bind(org_id).first()
-        existing = existing_proxy.to_py() if existing_proxy else {'cnt': 0}
-        is_first_member = existing.get('cnt', 0) == 0
-        new_status = 'approved' if is_first_member else 'pending'
-
-        # Check if already a member (any status)
+async def handle_join_org(request, env, org_slug):
+    """Create a pending member join request for an existing organization."""
+    try:
+        user_id, error = await get_verified_session_user(request, env)
+        if error:
+            return error
+        org = await get_org_by_slug(env, org_slug)
+        if not org:
+            return json_error("Organization not found", 404)
         already_proxy = await env.sizzle_db.prepare("""
-            SELECT status FROM user_organizations WHERE user_id = ? AND org_id = ?
-        """).bind(user_id, org_id).first()
-
-        if already_proxy:
-            current_status = already_proxy.to_py().get('status', 'pending')
-            if current_status == 'approved':
-                return Response.new(json.dumps({"success": True, "org": {"id": org_id, "name": org_name, "status": "approved"}}),
-                                  {"headers": {"Content-Type": "application/json"}})
-            # Re-request if previously pending/denied
-            return Response.new(json.dumps({"success": False, "error": "Your request to join is pending approval by an existing member"}),
-                              {"status": 202, "headers": {"Content-Type": "application/json"}})
-
+            SELECT status, role FROM user_organizations WHERE user_id = ? AND org_id = ?
+        """).bind(user_id, org.get('id')).first()
+        already = already_proxy.to_py() if hasattr(already_proxy, 'to_py') else already_proxy
+        if isinstance(already, dict):
+            return json_response({"success": True, "pending": already.get('status') == 'pending', "membershipStatus": already.get('status'), "role": already.get('role') or 'member'})
         await env.sizzle_db.prepare("""
-            INSERT INTO user_organizations (user_id, org_id, status, joined_at)
-            VALUES (?, ?, ?, CURRENT_TIMESTAMP)
-        """).bind(user_id, org_id, new_status).run()
-
-        if new_status == 'pending':
-            return Response.new(json.dumps({"success": True, "pending": True,
-                "message": "Join request sent — an existing member must approve you",
-                "org": {"id": org_id, "name": org_name, "status": "pending"}}),
-                {"headers": {"Content-Type": "application/json"}})
-
-        return Response.new(json.dumps({"success": True, "org": {"id": org_id, "name": org_name, "status": "approved"}}),
-                          {"headers": {"Content-Type": "application/json"}})
+            INSERT INTO user_organizations (user_id, org_id, status, role, requested_at, joined_at)
+            VALUES (?, ?, 'pending', 'member', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        """).bind(user_id, org.get('id')).run()
+        return json_response({"success": True, "pending": True, "membershipStatus": "pending", "role": "member", "message": "Request to join sent"}, 202)
     except Exception as e:
-        logger.error("Error adding org: %s", e, exc_info=True)
-        return Response.new(json.dumps({"error": str(e)}),
-                          {"status": 500, "headers": {"Content-Type": "application/json"}})
+        logger.error("Error joining org: %s", e, exc_info=True)
+        return json_error("Join request could not be sent", 500)
 
 
-async def handle_remove_org(request, env, org_name):
-    """Remove the authenticated user from an organization (any status)"""
+async def handle_get_org_requests(request, env, org_name):
     try:
-        user_id = await get_session_user(request, env)
-        if not user_id:
-            return Response.new(json.dumps({"error": "Unauthorized"}),
-                              {"status": 401, "headers": {"Content-Type": "application/json"}})
-
-        org_proxy = await env.sizzle_db.prepare(
-            "SELECT id FROM organizations WHERE github_org_name = ?"
-        ).bind(org_name).first()
-
-        if not org_proxy:
-            return Response.new(json.dumps({"error": "Organization not found"}),
-                              {"status": 404, "headers": {"Content-Type": "application/json"}})
-
-        org_id = org_proxy.to_py()['id']
-        await env.sizzle_db.prepare("""
-            DELETE FROM user_organizations WHERE user_id = ? AND org_id = ?
-        """).bind(user_id, org_id).run()
-
-        return Response.new(json.dumps({"success": True}),
-                          {"headers": {"Content-Type": "application/json"}})
+        admin_id, org, error = await require_org_admin(request, env, org_name)
+        if error:
+            return error
+        result_proxy = await env.sizzle_db.prepare("""
+            SELECT uo.user_id, u.email, u.encrypted_display_name, uo.status, uo.role, uo.requested_at
+            FROM user_organizations uo
+            JOIN users u ON u.user_id = uo.user_id
+            WHERE uo.org_id = ? AND uo.status = 'pending'
+            ORDER BY uo.requested_at ASC
+        """).bind(org.get('id')).all()
+        result = result_proxy.to_py() if hasattr(result_proxy, 'to_py') else result_proxy
+        return json_response({"requests": result.get('results', []) if isinstance(result, dict) else []})
     except Exception as e:
-        logger.error("Error removing org: %s", e, exc_info=True)
-        return Response.new(json.dumps({"error": str(e)}),
-                          {"status": 500, "headers": {"Content-Type": "application/json"}})
-
-
-async def handle_update_org_settings(request, env, org_name):
-    """Update org Slack webhook URL and/or org encryption key. Caller must be approved."""
-    try:
-        user_id = await get_session_user(request, env)
-        if not user_id:
-            return Response.new(json.dumps({"error": "Unauthorized"}),
-                              {"status": 401, "headers": {"Content-Type": "application/json"}})
-
-        data = (await request.json()).to_py()
-        slack_webhook_url = data.get('slackWebhookUrl', '')
-        org_key = data.get('orgKey', '')  # user-supplied org-level encryption passphrase
-
-        # Caller must be an APPROVED member
-        membership_proxy = await env.sizzle_db.prepare("""
-            SELECT o.id FROM organizations o
-            JOIN user_organizations uo ON o.id = uo.org_id
-            WHERE o.github_org_name = ? AND uo.user_id = ? AND uo.status = 'approved'
-        """).bind(org_name, user_id).first()
-
-        if not membership_proxy:
-            return Response.new(
-                json.dumps({"error": "Organization not found or you are not an approved member"}),
-                {"status": 403, "headers": {"Content-Type": "application/json"}}
-            )
-
-        org_id = membership_proxy.to_py()['id']
-        encryption_key = getattr(env, 'ENCRYPTION_KEY', 'sizzle-dev-key-12345')
-
-        updates = ["updated_at = CURRENT_TIMESTAMP"]
-        binds = []
-
-        if 'slackWebhookUrl' in data:
-            encrypted_slack = await encrypt_data(slack_webhook_url, encryption_key)
-            updates.append("encrypted_slack_webhook_url = ?")
-            binds.append(encrypted_slack)
-
-        if 'orgKey' in data:
-            if org_key:
-                encrypted_org_key = await encrypt_data(org_key, encryption_key)
-            else:
-                encrypted_org_key = ''  # clearing the key
-            updates.append("encrypted_org_key = ?")
-            binds.append(encrypted_org_key)
-
-        binds.append(org_id)
-        await env.sizzle_db.prepare(
-            f"UPDATE organizations SET {', '.join(updates)} WHERE id = ?"
-        ).bind(*binds).run()
-
-        return Response.new(json.dumps({"success": True}),
-                          {"headers": {"Content-Type": "application/json"}})
-    except Exception as e:
-        logger.error("Error updating org settings: %s", e, exc_info=True)
-        return Response.new(json.dumps({"error": str(e)}),
-                          {"status": 500, "headers": {"Content-Type": "application/json"}})
+        logger.error("Error getting org requests: %s", e, exc_info=True)
+        return json_error("Requests could not be loaded", 500)
 
 
 async def handle_get_org_members(request, env, org_name):
-    """List approved + pending members for an org. Caller must be approved."""
+    """List members for an organization. Admins see pending and approved users."""
     try:
-        user_id = await get_session_user(request, env)
-        if not user_id:
-            return Response.new(json.dumps({"error": "Unauthorized"}),
-                              {"status": 401, "headers": {"Content-Type": "application/json"}})
-
-        # Caller must be approved
-        org_proxy = await env.sizzle_db.prepare("""
-            SELECT o.id FROM organizations o
-            JOIN user_organizations uo ON o.id = uo.org_id
-            WHERE o.github_org_name = ? AND uo.user_id = ? AND uo.status = 'approved'
-        """).bind(org_name, user_id).first()
-
-        if not org_proxy:
-            return Response.new(json.dumps({"error": "Not found or not an approved member"}),
-                              {"status": 403, "headers": {"Content-Type": "application/json"}})
-
-        org_id = org_proxy.to_py()['id']
-
+        admin_id, org, error = await require_org_admin(request, env, org_name)
+        if error:
+            return error
         result_proxy = await env.sizzle_db.prepare("""
-            SELECT uo.user_id, uo.status, uo.joined_at
+            SELECT uo.user_id, u.email, uo.status, uo.role, uo.requested_at, uo.approved_at, uo.joined_at
             FROM user_organizations uo
+            JOIN users u ON u.user_id = uo.user_id
             WHERE uo.org_id = ?
-            ORDER BY uo.status DESC, uo.joined_at ASC
-        """).bind(org_id).all()
-
+            ORDER BY uo.status ASC, uo.role DESC, uo.joined_at ASC
+        """).bind(org.get('id')).all()
         result = result_proxy.to_py() if hasattr(result_proxy, 'to_py') else result_proxy
-        rows = result.get('results', []) if isinstance(result, dict) else []
-
-        return Response.new(json.dumps({"members": rows}),
-                          {"headers": {"Content-Type": "application/json"}})
+        return json_response({"members": result.get('results', []) if isinstance(result, dict) else []})
     except Exception as e:
         logger.error("Error getting org members: %s", e, exc_info=True)
-        return Response.new(json.dumps({"error": str(e)}),
-                          {"status": 500, "headers": {"Content-Type": "application/json"}})
+        return json_error("Members could not be loaded", 500)
 
 
 async def handle_approve_org_member(request, env, org_name, target_user_id):
-    """Approve a pending member. Caller must be an approved member."""
     try:
-        approver_id = await get_session_user(request, env)
-        if not approver_id:
-            return Response.new(json.dumps({"error": "Unauthorized"}),
-                              {"status": 401, "headers": {"Content-Type": "application/json"}})
-
-        # Approver must be approved
-        org_proxy = await env.sizzle_db.prepare("""
-            SELECT o.id FROM organizations o
-            JOIN user_organizations uo ON o.id = uo.org_id
-            WHERE o.github_org_name = ? AND uo.user_id = ? AND uo.status = 'approved'
-        """).bind(org_name, approver_id).first()
-
-        if not org_proxy:
-            return Response.new(json.dumps({"error": "Not found or not an approved member"}),
-                              {"status": 403, "headers": {"Content-Type": "application/json"}})
-
-        org_id = org_proxy.to_py()['id']
-
+        admin_id, org, error = await require_org_admin(request, env, org_name)
+        if error:
+            return error
         result = await env.sizzle_db.prepare("""
             UPDATE user_organizations
-            SET status = 'approved'
+            SET status = 'approved', role = 'member', approved_by_user_id = ?, approved_at = CURRENT_TIMESTAMP
             WHERE user_id = ? AND org_id = ? AND status = 'pending'
-        """).bind(target_user_id, org_id).run()
-
-        result_py = result.to_py() if hasattr(result, 'to_py') else {}
-        if result_py.get('changes', 1) == 0:
-            return Response.new(json.dumps({"error": "No pending request found for that user"}),
-                              {"status": 404, "headers": {"Content-Type": "application/json"}})
-
-        return Response.new(json.dumps({"success": True}),
-                          {"headers": {"Content-Type": "application/json"}})
+        """).bind(admin_id, target_user_id, org.get('id')).run()
+        if d1_changes(result) == 0:
+            return json_error("No pending request found for that user", 404)
+        return json_response({"success": True})
     except Exception as e:
         logger.error("Error approving org member: %s", e, exc_info=True)
-        return Response.new(json.dumps({"error": str(e)}),
-                          {"status": 500, "headers": {"Content-Type": "application/json"}})
+        return json_error("Member could not be approved", 500)
+
+
+async def handle_deny_org_member(request, env, org_name, target_user_id):
+    try:
+        admin_id, org, error = await require_org_admin(request, env, org_name)
+        if error:
+            return error
+        await env.sizzle_db.prepare("""
+            UPDATE user_organizations
+            SET status = 'rejected', approved_by_user_id = ?, approved_at = CURRENT_TIMESTAMP
+            WHERE user_id = ? AND org_id = ? AND status = 'pending'
+        """).bind(admin_id, target_user_id, org.get('id')).run()
+        return json_response({"success": True})
+    except Exception as e:
+        logger.error("Error denying org member: %s", e, exc_info=True)
+        return json_error("Member could not be rejected", 500)
+
+
+async def handle_update_org_member_role(request, env, org_name, target_user_id):
+    try:
+        admin_id, org, error = await require_org_admin(request, env, org_name)
+        if error:
+            return error
+        data = await safe_request_json(request)
+        if not isinstance(data, dict):
+            return json_error("Invalid JSON body", 400)
+        role = str(data.get('role') or '').strip().lower()
+        if role not in {'owner', 'admin', 'member'}:
+            return json_error("Invalid role", 400)
+        if role != 'owner':
+            owners_proxy = await env.sizzle_db.prepare("""
+                SELECT COUNT(*) AS owner_count FROM user_organizations
+                WHERE org_id = ? AND status = 'approved' AND role = 'owner'
+            """).bind(org.get('id')).first()
+            owners = owners_proxy.to_py() if hasattr(owners_proxy, 'to_py') else (owners_proxy or {})
+            target_proxy = await env.sizzle_db.prepare("""
+                SELECT role FROM user_organizations WHERE org_id = ? AND user_id = ?
+            """).bind(org.get('id'), target_user_id).first()
+            target = target_proxy.to_py() if hasattr(target_proxy, 'to_py') else target_proxy
+            if isinstance(target, dict) and target.get('role') == 'owner' and int(owners.get('owner_count') or 0) <= 1:
+                return json_error("Cannot remove the last owner", 400)
+        result = await env.sizzle_db.prepare("""
+            UPDATE user_organizations SET role = ?
+            WHERE user_id = ? AND org_id = ? AND status = 'approved'
+        """).bind(role, target_user_id, org.get('id')).run()
+        if d1_changes(result) == 0:
+            return json_error("Approved member not found", 404)
+        return json_response({"success": True, "role": role})
+    except Exception as e:
+        logger.error("Error updating org member role: %s", e, exc_info=True)
+        return json_error("Role could not be updated", 500)
 
 
 async def handle_get_org_checkins(request, env, org_name):
@@ -2236,38 +2247,6 @@ async def handle_get_org_checkins(request, env, org_name):
                           {"headers": {"Content-Type": "application/json"}})
     except Exception as e:
         logger.error("Error getting org check-ins: %s", e, exc_info=True)
-        return Response.new(json.dumps({"error": str(e)}),
-                          {"status": 500, "headers": {"Content-Type": "application/json"}})
-
-
-async def handle_deny_org_member(request, env, org_name, target_user_id):
-    """Deny/remove a pending member. Caller must be an approved member."""
-    try:
-        approver_id = await get_session_user(request, env)
-        if not approver_id:
-            return Response.new(json.dumps({"error": "Unauthorized"}),
-                              {"status": 401, "headers": {"Content-Type": "application/json"}})
-
-        org_proxy = await env.sizzle_db.prepare("""
-            SELECT o.id FROM organizations o
-            JOIN user_organizations uo ON o.id = uo.org_id
-            WHERE o.github_org_name = ? AND uo.user_id = ? AND uo.status = 'approved'
-        """).bind(org_name, approver_id).first()
-
-        if not org_proxy:
-            return Response.new(json.dumps({"error": "Not found or not an approved member"}),
-                              {"status": 403, "headers": {"Content-Type": "application/json"}})
-
-        org_id = org_proxy.to_py()['id']
-        await env.sizzle_db.prepare("""
-            DELETE FROM user_organizations
-            WHERE user_id = ? AND org_id = ? AND status = 'pending'
-        """).bind(target_user_id, org_id).run()
-
-        return Response.new(json.dumps({"success": True}),
-                          {"headers": {"Content-Type": "application/json"}})
-    except Exception as e:
-        logger.error("Error denying org member: %s", e, exc_info=True)
         return Response.new(json.dumps({"error": str(e)}),
                           {"status": 500, "headers": {"Content-Type": "application/json"}})
 

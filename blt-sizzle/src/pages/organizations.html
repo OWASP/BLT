@@ -16,21 +16,19 @@
     <span><strong>BLT Sizzle</strong><span>Daily check-ins</span></span>
   </a>
   <div>
-    <div class="sidebar-section-label">Workspace</div>
     <nav class="sidebar-nav" aria-label="BLT-Newsletter-inspired dashboard navigation">
       <a class="sidebar-item" href="/dashboard"><span>Overview</span></a><a class="sidebar-item" href="/app"><span>Daily Check-in</span></a><a class="sidebar-item active" href="/organizations"><span>Organizations</span></a><a class="sidebar-item" href="/organizations#requests"><span>Requests</span></a><a class="sidebar-item" href="/organizations#members"><span>Members</span></a><a class="sidebar-item" href="/check-ins"><span>Check-ins</span></a><a class="sidebar-item" href="/profile"><span>Profile</span></a><a class="sidebar-item" href="/settings"><span>Settings</span></a>
     </nav>
   </div>
-  <div class="sidebar-footer">
-    <span class="mock-note">Phase 1 mock UI</span>
-    <p>BLT-Newsletter-inspired shell for profile verification, organizations, check-ins, members, requests, and settings.</p>
-    <a href="/login">Sign in with email</a>
+  <div class="sidebar-footer" aria-label="Dashboard utilities">
+    <a class="sidebar-footer-link" href="https://gitlab.com/owasp-blt/blt-sizzle" target="_blank" rel="noopener noreferrer">Docs</a>
+    <a class="sidebar-footer-link" href="/login">Sign in</a>
   </div>
 </aside>
     <main class="main-panel">
       <header class="page-header">
         <div>
-          <div class="eyebrow">BLT-Newsletter-inspired · Phase 1 UI</div>
+          <div class="eyebrow">BLT-Newsletter-inspired · Phase 2B</div>
           <h1>Organizations</h1>
           <p class="page-description">Discover organizations in Sizzle, request to join, create a new organization, and manage roles.</p>
         </div>
@@ -38,27 +36,126 @@
       </header>
       
 <section class="grid grid-3">
-  <article class="card metric-card"><div class="metric-label">Approved orgs</div><div class="metric-value">3</div><div class="metric-hint">Ready for check-ins</div></article>
-  <article class="card metric-card"><div class="metric-label">Membership status</div><div class="metric-value">2</div><div class="metric-hint">Pending requests</div></article>
-  <article class="card metric-card"><div class="metric-label">Admin roles</div><div class="metric-value">1</div><div class="metric-hint">owner/admin responsibility</div></article>
+  <article class="card metric-card"><div class="metric-label">Approved orgs</div><div id="approvedOrgCount" class="metric-value">0</div><div class="metric-hint">Ready for check-ins</div></article>
+  <article class="card metric-card"><div class="metric-label">Membership status</div><div id="pendingOrgCount" class="metric-value">0</div><div class="metric-hint">Pending requests</div></article>
+  <article class="card metric-card"><div class="metric-label">Admin roles</div><div id="adminOrgCount" class="metric-value">0</div><div class="metric-hint">owner/admin responsibility</div></article>
 </section>
 <section class="card card-pad" style="margin-top:16px">
   <div class="page-header"><div><h2>Organizations listed in Sizzle</h2><p class="page-description">Browse organizations, request to join, or create a new organization if you are verified.</p></div><button class="btn btn-primary" onclick="openModal('createOrgModal')">Create organization</button></div>
-  <table class="table"><thead><tr><th>Organization</th><th>Membership status</th><th>Role</th><th>Action</th></tr></thead><tbody>
-    <tr><td>OWASP BLT</td><td><span class="status-badge status-approved">approved</span></td><td>owner</td><td><button class="btn btn-secondary" onclick="openSheet('organizationSheet')">Manage</button></td></tr>
-    <tr><td>GSoC Contributors</td><td><span class="status-badge status-pending">pending</span></td><td>member</td><td><button class="btn btn-secondary" data-toast="Join request is already pending">Pending</button></td></tr>
-    <tr><td>Security Research Lab</td><td><span class="status-badge status-neutral">not joined</span></td><td>member</td><td><button class="btn btn-primary" data-toast="Request to join queued in Phase 1 mock UI">Request to join</button></td></tr>
-  </tbody></table>
+  <table class="table"><thead><tr><th>Organization</th><th>Membership status</th><th>Role</th><th>Action</th></tr></thead><tbody id="organizationsTableBody"><tr><td colspan="4">Loading organizations…</td></tr></tbody></table>
 </section>
-<section id="requests" class="card card-pad" style="margin-top:16px"><h2>Requests</h2><p class="page-description">Admin review queue for approving or rejecting organization access.</p></section>
-<section id="members" class="card card-pad" style="margin-top:16px"><h2>Members</h2><p class="page-description">Role management for owner, admin, and member access.</p></section>
-<div class="sheet" id="organizationSheet"><button class="btn btn-secondary" data-close-sheet>Close</button><h2>OWASP BLT organization</h2><p class="page-description">Manage members, roles, check-in status, and organization settings.</p><div class="grid"><span class="status-badge status-approved">check-ins enabled</span><button class="btn btn-primary" data-toast="Member approved in mock UI">Approve selected member</button><button class="btn btn-secondary" data-toast="Role changed to admin in mock UI">Promote to admin</button></div></div>
-<div class="modal-overlay" id="createOrgModal"><div class="modal"><h2>Create organization</h2><p class="page-description">Verified users can create an organization and become owner.</p><label class="form-field"><span>Name</span><input class="input" placeholder="My organization" /></label><div style="margin-top:16px;display:flex;gap:10px"><button class="btn btn-primary" onclick="closeModal('createOrgModal'); mockSave('Organization created in Phase 1 mock UI')">Create organization</button><button class="btn btn-secondary" onclick="closeModal('createOrgModal')">Cancel</button></div></div></div>
+<section id="requests" class="card card-pad" style="margin-top:16px"><h2>Requests</h2><p class="page-description">Admin review queue for approving or rejecting organization access.</p><div id="requestsList" class="empty-state" style="margin-top:12px">Select an admin organization to load requests.</div></section>
+<section id="members" class="card card-pad" style="margin-top:16px"><h2>Members</h2><p class="page-description">Role management for owner, admin, and member access.</p><div id="membersList" class="empty-state" style="margin-top:12px">Select an admin organization to load members.</div></section>
+<div class="sheet" id="organizationSheet"><button class="btn btn-secondary" data-close-sheet>Close</button><h2 id="sheetOrgName">Organization</h2><p id="sheetOrgDescription" class="page-description">Manage members, roles, check-in status, and organization settings.</p><div class="grid"><span id="sheetCheckinStatus" class="status-badge status-approved">check-ins enabled</span><button class="btn btn-primary" onclick="loadRequestsForSelectedOrg()">Load join requests</button><button class="btn btn-secondary" onclick="loadMembersForSelectedOrg()">Load members</button></div></div>
+<div class="modal-overlay" id="createOrgModal"><div class="modal"><h2>Create organization</h2><p class="page-description">Verified users can create an organization and become owner.</p><form id="createOrgForm" class="grid"><label class="form-field"><span>Name</span><input id="createOrgName" class="input" placeholder="My organization" /></label><label class="form-field"><span>Description</span><textarea id="createOrgDescription" class="textarea" placeholder="What is this organization for?"></textarea></label><div style="display:flex;gap:10px"><button class="btn btn-primary" type="submit">Create organization</button><button class="btn btn-secondary" type="button" onclick="closeModal('createOrgModal')">Cancel</button></div></form></div></div>
 
     </main>
   </div>
   <div class="sheet-overlay" data-close-sheet></div>
   <div class="toast-container"></div>
   <script src="/scripts/sizzle-ui.js"></script>
+  <script>
+    let selectedOrgSlug = '';
+    let cachedOrgs = [];
+
+    function statusClass(status) {
+      if (status === 'approved') return 'status-approved';
+      if (status === 'pending') return 'status-pending';
+      if (status === 'rejected') return 'status-rejected';
+      return 'status-neutral';
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '').replace(/[&<>'"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]));
+    }
+
+    function escapeAttribute(value) {
+      return escapeHtml(value).replace(/`/g, '&#96;');
+    }
+
+    function renderOrganizations(orgs) {
+      cachedOrgs = orgs;
+      document.getElementById('approvedOrgCount').textContent = orgs.filter((org) => org.membershipStatus === 'approved').length;
+      document.getElementById('pendingOrgCount').textContent = orgs.filter((org) => org.membershipStatus === 'pending').length;
+      document.getElementById('adminOrgCount').textContent = orgs.filter((org) => ['owner', 'admin'].includes(org.role)).length;
+      const rows = orgs.map((org) => {
+        const slug = org.slug;
+        const safeSlug = escapeAttribute(slug);
+        const safeStatus = escapeHtml(org.membershipStatus || 'not_joined');
+        const safeRole = escapeHtml(org.role || 'member');
+        const action = org.membershipStatus === 'not_joined'
+          ? `<button class="btn btn-primary" onclick="requestJoin('${safeSlug}')">Request to join</button>`
+          : `<button class="btn btn-secondary" onclick="openOrganization('${safeSlug}')">${['owner', 'admin'].includes(org.role) ? 'Manage' : 'View'}</button>`;
+        return `<tr><td><strong>${escapeHtml(org.name)}</strong><div class="metric-hint">${escapeHtml(org.description || org.slug)}</div></td><td><span class="status-badge ${statusClass(org.membershipStatus)}">${safeStatus}</span></td><td>${safeRole}</td><td>${action}</td></tr>`;
+      }).join('');
+      document.getElementById('organizationsTableBody').innerHTML = rows || '<tr><td colspan="4">No organizations found. Create one to get started.</td></tr>';
+    }
+
+    async function loadOrganizations() {
+      const response = await fetch('/api/orgs/discover');
+      if (response.status === 401) { window.location.href = '/login'; return; }
+      if (response.status === 403) { window.location.href = '/profile'; return; }
+      const data = response.ok ? await response.json() : { orgs: [] };
+      renderOrganizations(data.orgs || []);
+    }
+
+    async function requestJoin(slug) {
+      const response = await fetch(`/api/orgs/${slug}/join`, { method: 'POST' });
+      const data = await response.json().catch(() => ({}));
+      showToast(response.ok || response.status === 202 ? 'Request to join sent.' : (data.error || 'Request failed.'));
+      await loadOrganizations();
+    }
+
+    function openOrganization(slug) {
+      selectedOrgSlug = slug;
+      const org = cachedOrgs.find((item) => item.slug === slug) || {};
+      document.getElementById('sheetOrgName').textContent = org.name || 'Organization';
+      document.getElementById('sheetOrgDescription').textContent = org.description || 'Manage members, roles, check-in status, and organization settings.';
+      document.getElementById('sheetCheckinStatus').textContent = org.checkinEnabled ? 'check-ins enabled' : 'check-ins disabled';
+      openSheet('organizationSheet');
+    }
+
+    async function loadRequestsForSelectedOrg() {
+      if (!selectedOrgSlug) return;
+      const response = await fetch(`/api/orgs/${selectedOrgSlug}/requests`);
+      const data = await response.json().catch(() => ({}));
+      const requests = data.requests || [];
+      document.getElementById('requestsList').innerHTML = requests.length ? requests.map((request) => {
+        const safeUserId = escapeAttribute(request.user_id);
+        return `<div class="card card-pad"><strong>${escapeHtml(request.email || request.user_id)}</strong><button class="btn btn-primary" onclick="approveMember('${safeUserId}')">Approve</button></div>`;
+      }).join('') : 'No pending requests.';
+    }
+
+    async function loadMembersForSelectedOrg() {
+      if (!selectedOrgSlug) return;
+      const response = await fetch(`/api/orgs/${selectedOrgSlug}/members`);
+      const data = await response.json().catch(() => ({}));
+      const members = data.members || [];
+      document.getElementById('membersList').innerHTML = members.length ? members.map((member) => `<div class="card card-pad"><strong>${escapeHtml(member.email || member.user_id)}</strong><span class="status-badge ${statusClass(member.status)}">${escapeHtml(member.status)}</span><span>${escapeHtml(member.role)}</span></div>`).join('') : 'No members yet.';
+    }
+
+    async function approveMember(userId) {
+      const response = await fetch(`/api/orgs/${selectedOrgSlug}/members/${userId}/approve`, { method: 'POST' });
+      showToast(response.ok ? 'Member approved.' : 'Could not approve member.');
+      await loadRequestsForSelectedOrg();
+      await loadMembersForSelectedOrg();
+    }
+
+    document.getElementById('createOrgForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const payload = { name: document.getElementById('createOrgName').value.trim(), description: document.getElementById('createOrgDescription').value.trim() };
+      const response = await fetch('/api/orgs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      const data = await response.json().catch(() => ({}));
+      if (response.ok) {
+        closeModal('createOrgModal');
+        showToast('Organization created.');
+        await loadOrganizations();
+      } else {
+        showToast(data.error || 'Organization could not be created.');
+      }
+    });
+
+    loadOrganizations().catch(() => showToast('Organizations could not be loaded.'));
+  </script>
 </body>
 </html>
