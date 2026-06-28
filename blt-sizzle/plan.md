@@ -455,7 +455,7 @@ Organization/admin dashboard.
 - [x] Task 1 auth/email foundation.
 - [x] Task 2 schema migration.
 - [x] Task 3 OTP backend.
-- [ ] Task 4 landing/login/app pages.
+- [x] Task 4 landing/login/app pages.
 - [ ] Task 5 generic organizations.
 - [ ] Task 6 session-secured check-ins.
 - [ ] Task 7 dashboard UI.

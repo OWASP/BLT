@@ -204,16 +204,18 @@ async def handle_request(request, env):
                 return await env.ASSETS.fetch(request)
             return Response.new("Assets not found", {"status": 404})
         
-        elif path in ["/leaderboard", "/settings", "/check-ins", "/checkins"]:
+        elif path in ["/app", "/login", "/leaderboard", "/settings", "/check-ins", "/checkins"]:
             if hasattr(env, 'ASSETS'):
-                # Handle both /check-ins and /checkins
-                normalized_asset_path = path
-                if normalized_asset_path == "/checkins":
-                    normalized_asset_path = "/check-ins"
-                
-                # Fetch from /pages/*.html but keep the response as 200 (no 307 redirect needed)
+                page_assets = {
+                    "/app": "/pages/app.html",
+                    "/login": "/pages/login.html",
+                    "/leaderboard": "/pages/leaderboard.html",
+                    "/settings": "/pages/settings.html",
+                    "/check-ins": "/pages/check-ins.html",
+                    "/checkins": "/pages/check-ins.html",
+                }
                 url_clone = URL.new(request.url)
-                url_clone.pathname = f"/pages{normalized_asset_path}.html"
+                url_clone.pathname = page_assets[path]
                 request_clone = Request.new(url_clone, request)
                 return await env.ASSETS.fetch(request_clone)
             return Response.new("Assets not found", {"status": 404})
