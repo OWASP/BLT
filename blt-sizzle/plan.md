@@ -1,464 +1,630 @@
-# BLT Sizzle App Refactor Implementation Plan
+# BLT Sizzle Two-Phase Product/UI Refactor Plan
 
-> **For Hermes:** Use subagent-driven-development skill to implement this plan task-by-task when work is split across agents. For direct implementation, follow strict TDD: write failing tests first, verify red, implement minimal code, verify green, then refactor.
+> **For Hermes:** Build this with strict TDD for backend/integration work and frontend contract tests for every UI route. Phase 1 is UI-first and mostly mock/local interaction. Phase 2 wires the UI to real Cloudflare Worker + D1 APIs.
 
-**Goal:** Refactor BLT Sizzle from a GitHub OAuth check-in prototype into a generic organization-based daily check-in app with first-class email OTP authentication, email verification, admin-managed organizations, and a new landing/dashboard UI.
+**Goal:** Finish BLT Sizzle as a generic organization daily check-in app with credential signup/login, email verification, profile verification, organization discovery/creation/management, join/check-in requests, member check-ins, and admin dashboards.
 
-**Architecture:** Keep the Cloudflare Python Worker + D1 + static HTML/Tailwind architecture, but decouple identity and organizations from GitHub. Add local-testable helper modules for auth, OTP, email, and HTML rendering. Backend APIs must derive identity from the HttpOnly session cookie, not from user-supplied `userId` fields. The home route becomes a public landing page; authenticated users use `/app` for check-in and `/dashboard` for organization/admin workflows.
+**Architecture:** Keep the current Cloudflare Python Worker + D1 + static HTML/Tailwind/vanilla JS architecture. Use the BLT-Newsletter dashboard as the dashboard inspiration: left sidebar, white/gray cards, red primary action color, metric cards, tables, status badges, slide-over sheets, modals, and toasts. Do UI first so the product flow can be reviewed before finishing backend integration.
 
-**Tech Stack:** Cloudflare Python Workers, D1 SQLite migrations, vanilla HTML/Tailwind/JS, SendGrid-style email service adapted from BLT-Newsletter, PBKDF2 password/session helpers adapted from BLT-Newsletter, unittest-based local tests.
-
----
-
-## Reference Inputs and Notes
-
-### Branch
-- Current working branch: `feat/app-refactor`.
-
-### Landing page inspiration
-- Source file: `/Users/mdkaifansari04/code/open-source/owasp/inspiration-lading-page.html`.
-- Use its style language, not its API-specific content:
-  - fixed translucent header
-  - red/white/gray palette
-  - dot-field hero background
-  - large bold hero typography
-  - pill status badge
-  - gradient red primary CTA
-  - compact feature cards
-  - black oversized footer panel
-- Adapt copy for Sizzle:
-  - hero: async daily check-ins for organizations
-  - CTA: Log in / verify email
-  - secondary CTA: See how it works
-  - feature cards: daily check-ins, org approvals, admin dashboard, reminders
-
-### Email service source
-- Source repo: `/Users/mdkaifansari04/code/open-source/owasp/BLT-Newsletter`.
-- Reuse/adapt:
-  - `src/email_service.py`: `SendGridEmailService`, `build_sendgrid_payload`, worker `fetch` fallback pattern.
-  - `src/admin_auth.py`: PBKDF2 password hashing, session token generation, session cookie helpers.
-- Sizzle email use case:
-  - email OTP verification during login/signup
-  - future reminders and admin/member notifications
-- Environment variables to support:
-  - `EMAIL_API_KEY`
-  - `EMAIL_FROM`
-  - `EMAIL_FROM_NAME` default `BLT Sizzle`
-  - `EMAIL_PROVIDER` default `sendgrid`
-  - `SESSION_SECRET`
-  - `OTP_SECRET`
-
-### Dashboard UI source
-- Source file: `/Users/mdkaifansari04/code/open-source/owasp/BLT-Newsletter/public/dashboard.html`.
-- Reuse/adapt UI concepts:
-  - sidebar shell
-  - overview metric cards
-  - page sections toggled with vanilla JS
-  - status badges
-  - slide-over/detail sheet pattern
-  - toast notifications
-- Adapt sections for Sizzle:
-  - Overview
-  - Today’s Check-ins
-  - Members
-  - Join Requests
-  - Organizations
-  - Settings
-
-### Existing Sizzle implementation to preserve where useful
-- Existing daily check-in fields: previous work, today plan, blockers, mood, goal accomplished.
-- Existing organization membership approval flow is a useful base, but needs roles and non-GitHub orgs.
-- Existing org check-in endpoint is a useful base, but should become admin/member scoped and date-filterable.
-- Existing scheduler/reminder logic should remain available, but email delivery should use the BLT-Newsletter-style email service.
-
-### Existing problems to fix before feature expansion
-- `src/pages/settings.html` contains duplicated trailing HTML/scripts and two closing `</html>` tags.
-- GitHub OAuth and GitHub org coupling must be removed.
-- Several endpoints trust `userId` from request body/query; this must stop once session auth is introduced.
-- Pending organizations are currently eligible to appear in the check-in selector; only approved memberships should be selectable.
-- README and tests are stale relative to the app direction.
-- `package.json` references `schema.sql`, but the repo uses migrations.
+**Tech Stack:** Cloudflare Python Workers, D1 migrations, vanilla HTML/Tailwind CDN, shared static dashboard shell/components, SendGrid-style email service, PBKDF2 password hashing, HttpOnly session cookies, unittest contract tests.
 
 ---
 
-## Target Product Behavior
+## Current State
 
-### Public visitor
-1. Visits `/` and sees the new landing page.
-2. Clicks login/signup CTA.
-3. Enters email.
-4. Receives OTP by email.
-5. Enters OTP.
-6. Gets a secure HttpOnly session cookie.
-7. Lands in `/app` or `/dashboard` depending on context.
+Already completed / in progress on branch `feat/app-refactor`:
 
-### Member
-1. Can belong to multiple organizations.
-2. Can request to join an organization.
-3. Can see pending/approved/rejected membership state.
-4. Can check in only for approved organizations.
-5. Chooses organization at check-in time.
-6. Can view own check-in history by organization.
-7. Can edit today’s check-in.
-
-### Organization admin
-1. Can create an organization.
-2. Creator becomes owner.
-3. Owner/admin can approve or reject join requests.
-4. Owner/admin can view daily check-ins for the organization.
-5. Owner/admin can see who checked in, who is missing, blockers, mood, and streaks.
-6. Owner can promote/demote admins and remove members.
-7. Multiple admins are supported.
-
----
-
-## Data Model Plan
-
-### New / changed tables
-
-#### users
-Target columns:
-- `id TEXT PRIMARY KEY`
-- `email TEXT UNIQUE NOT NULL`
-- `email_hash TEXT`
-- `display_name TEXT`
-- `password_hash TEXT` nullable for OTP-only login
-- `email_verified INTEGER DEFAULT 0`
-- `status TEXT DEFAULT 'active'`
-- `current_streak INTEGER DEFAULT 0`
-- `longest_streak INTEGER DEFAULT 0`
-- `last_check_in DATE`
-- `created_at DATETIME DEFAULT CURRENT_TIMESTAMP`
-- `updated_at DATETIME DEFAULT CURRENT_TIMESTAMP`
-
-Migration path:
-- Keep legacy `user_id` during transition if needed.
-- New APIs should use `id` and `email`.
-- Do not depend on `github_id`.
-
-#### auth_sessions
-- `id INTEGER PRIMARY KEY AUTOINCREMENT`
-- `session_hash TEXT UNIQUE NOT NULL`
-- `user_id TEXT NOT NULL`
-- `expires_at DATETIME NOT NULL`
-- `created_at DATETIME DEFAULT CURRENT_TIMESTAMP`
-- `last_seen_at DATETIME`
-
-#### email_otps
-- `id INTEGER PRIMARY KEY AUTOINCREMENT`
-- `email TEXT NOT NULL`
-- `otp_hash TEXT NOT NULL`
-- `purpose TEXT NOT NULL DEFAULT 'login'`
-- `attempts INTEGER DEFAULT 0`
-- `expires_at DATETIME NOT NULL`
-- `consumed_at DATETIME`
-- `created_at DATETIME DEFAULT CURRENT_TIMESTAMP`
-
-#### organizations
-Target columns:
-- `id INTEGER PRIMARY KEY AUTOINCREMENT`
-- `name TEXT NOT NULL`
-- `slug TEXT UNIQUE NOT NULL`
-- `description TEXT`
-- `created_by_user_id TEXT`
-- `default_timezone TEXT DEFAULT 'UTC'`
-- `checkin_enabled INTEGER DEFAULT 1`
-- `created_at DATETIME DEFAULT CURRENT_TIMESTAMP`
-- `updated_at DATETIME DEFAULT CURRENT_TIMESTAMP`
-
-Migration path:
-- Rename conceptually from `github_org_name` to `slug`.
-- Preserve old column until a full migration can safely rebuild the table if D1 cannot rename as desired.
-
-#### user_organizations
-Target columns:
-- `user_id TEXT NOT NULL`
-- `org_id INTEGER NOT NULL`
-- `role TEXT NOT NULL DEFAULT 'member'` (`owner`, `admin`, `member`)
-- `status TEXT NOT NULL DEFAULT 'pending'` (`pending`, `approved`, `rejected`, `removed`)
-- `requested_at DATETIME DEFAULT CURRENT_TIMESTAMP`
-- `approved_by_user_id TEXT`
-- `approved_at DATETIME`
-- `joined_at DATETIME`
-- primary key `(user_id, org_id)`
-
-#### checkins
-Target changes:
-- Require `org_id` for organization check-ins.
-- Keep optional personal check-ins only if intentionally supported.
-- Add/ensure `updated_at`.
-- Add unique index on `(org_id, user_id, checkin_date)`.
+- Public landing page exists at `/`.
+- Signup/login page exists at `/login`.
+- Current auth direction is now credential-based:
+  - first-time signup with name, email, password
+  - email verification code
+  - later login with email/password
+- Email service diagnostics were improved and support both `EMAIL_*` and legacy `SENDGRID_*` env names.
+- New auth/session foundations exist:
+  - `workers/auth_utils.py`
+  - `workers/email_service.py`
+  - `auth_sessions`
+  - `email_otps`
+  - `auth_login_attempts`
+- Existing visible pages still need a full UI pass:
+  - `src/pages/app.html`
+  - `src/pages/check-ins.html`
+  - `src/pages/settings.html`
+  - `src/pages/leaderboard.html`
+- Known backend debt still remains:
+  - some check-in/settings APIs still trust user-supplied `userId`
+  - legacy GitHub OAuth routes still exist during transition
+  - organization model is still partially GitHub-shaped internally
+  - settings page has duplicated trailing HTML/scripts
 
 ---
 
-## API Plan
+## Design Direction: BLT-Newsletter Dashboard Inspiration
 
-### Auth APIs
-- `POST /api/auth/request-otp`
-  - Body: `{ "email": "user@example.com" }`
-  - Normalizes email, creates OTP, stores hashed OTP, sends email.
-  - Response: `{ "success": true, "message": "Verification code sent" }`
-- `POST /api/auth/verify-otp`
-  - Body: `{ "email": "user@example.com", "otp": "123456" }`
-  - Verifies non-expired OTP, creates user if needed, marks email verified, creates session cookie.
-  - Response: `{ "authenticated": true, "user": { ... } }`
-- `GET /api/auth/me`
-  - Returns session user or 401.
-- `POST /api/auth/logout`
-  - Clears current session.
+Reference file:
 
-### Organization APIs
+- `/Users/mdkaifansari04/code/open-source/owasp/BLT-Newsletter/public/dashboard.html`
+
+Use these patterns:
+
+- App shell with persistent left sidebar.
+- Sidebar items with active red indicator bar.
+- Top header per page with title, short description, and primary action.
+- White cards on `#f8fafc` background.
+- Primary red `#dc2626`, hover/dark red `#b91c1c`.
+- Neutral border `#e2e8f0`.
+- Metric cards for overview numbers.
+- Status badges:
+  - verified / active / approved: green
+  - pending: amber
+  - rejected / blocked: red
+  - neutral/inactive: slate
+- Tables with compact rows and right-side actions.
+- Slide-over sheet for details/editing.
+- Modal for create/confirm actions.
+- Toast notifications for mock actions and later real API responses.
+- Keep the UI clean and production-like; avoid over-styled gradients except existing primary buttons where already used.
+
+Shared dashboard shell should be reused across app pages instead of every page inventing its own header/nav.
+
+---
+
+## Product Features We Are Building
+
+### 1. Account and Profile
+
+- User signs up with:
+  - name
+  - email
+  - password
+- Signup sends email verification code.
+- User cannot fully use protected app flows until email is verified.
+- User logs in later with email/password.
+- Sidebar has `Profile`.
+- Profile page includes:
+  - name
+  - email
+  - verification status
+  - resend verification code action
+  - verify email form/code entry
+  - session/account summary
+  - future notification preferences
+
+### 2. Organizations
+
+- Sizzle has multiple organizations.
+- Any verified user can create an organization.
+- Creator becomes owner.
+- A user can belong to multiple organizations.
+- User can browse/list organizations available in Sizzle.
+- User can request to join an organization.
+- User can see membership status:
+  - pending
+  - approved
+  - rejected
+  - removed
+- User can check in only for organizations where membership is approved and check-ins are enabled.
+
+### 3. Organization Administration
+
+- Organization owner/admin can manage organization.
+- Multiple admins per organization.
+- Roles:
+  - owner
+  - admin
+  - member
+- Admins can:
+  - approve/reject join requests
+  - view members
+  - promote/demote admins, except owner safety rules
+  - remove members
+  - edit organization settings
+  - enable/disable check-ins
+
+### 4. Daily Check-ins
+
+- User chooses organization before check-in.
+- Check-in fields:
+  - work completed / yesterday
+  - today plan
+  - blockers
+  - mood
+  - goal accomplished
+- One check-in per org/user/day, editable for today.
+- Check-in is attached to selected organization.
+- Admin dashboard shows today’s org check-ins.
+
+### 5. Dashboard / Reporting
+
+- Overview shows:
+  - organizations user belongs to
+  - pending requests
+  - checked-in today
+  - missing members for selected org
+  - blockers
+  - streak leader / participation rate
+- Admin org dashboard shows:
+  - today’s check-ins
+  - missing members
+  - blockers
+  - mood distribution
+  - pending join requests
+  - member list and roles
+
+---
+
+# Phase 1 — UI-First Product Shell and Mock Dashboard
+
+**Objective:** Build the full user-facing interface based on the final feature set before finishing backend integration. This phase is reviewable UI only, using static/mock data and small local JS interactions where needed.
+
+**Do not do in Phase 1:**
+
+- Do not rewrite all backend organization logic yet.
+- Do not finish session-secured check-in APIs yet.
+- Do not fully remove legacy backend routes yet.
+- Do not trust mock UI as production behavior.
+
+## Phase 1 Files
+
+Create / replace:
+
+- `src/pages/dashboard.html` — main dashboard shell inspired by BLT-Newsletter.
+- `src/pages/profile.html` — profile + email verification UI, or implement as a section in dashboard shell.
+- `src/pages/organizations.html` — org discovery/create/join/manage UI, or implement as a section in dashboard shell.
+- `src/pages/app.html` — member daily check-in UI in the new shell.
+- `src/pages/check-ins.html` — check-in history UI in the new shell.
+- `src/pages/settings.html` — either replace with profile/settings shell or redirect visually to profile/settings section.
+- `src/pages/leaderboard.html` — either replace with org insights/streaks UI or keep as a dashboard section.
+- `src/styles/sizzle-dashboard.css` — shared dashboard tokens/components if avoiding repeated inline CSS.
+- `src/scripts/sizzle-ui.js` — shared mock dashboard navigation, tabs, modals, sheets, toasts.
+- `tests/test_dashboard_ui_contract.py` or expand `tests/test_frontend_contract.py`.
+
+Modify:
+
+- `workers/main.py` static route mapping:
+  - `/dashboard`
+  - `/profile`
+  - `/organizations`
+  - keep `/app`, `/check-ins`, `/settings`, `/leaderboard`
+- `src/index.html` CTAs:
+  - primary app CTA should lead to `/login` or `/dashboard` depending auth later.
+- `src/pages/login.html` after verification/login should land at `/dashboard` instead of old scattered pages when Phase 1 shell is ready.
+
+## Phase 1 UI Routes
+
+### `/dashboard`
+
+Main signed-in home.
+
+Sidebar items:
+
+- Overview
+- Daily Check-in
+- Organizations
+- Requests
+- Members
+- Check-ins
+- Profile
+- Settings
+
+Overview cards:
+
+- Checked in today
+- Pending join requests
+- Active blockers
+- Organizations
+- Email verification status
+
+Mock panels:
+
+- Today’s organization activity
+- My pending organization requests
+- Admin action queue
+- Blockers needing attention
+
+### `/profile`
+
+Profile and email verification.
+
+Must include:
+
+- Display name card
+- Email card
+- Badge: Verified / Not verified
+- Verify email code form
+- Resend verification code button
+- Password/account area placeholder
+- Session/security note
+
+### `/organizations`
+
+Organization discovery and management.
+
+Must include:
+
+- Search/list all organizations in Sizzle.
+- Create organization modal.
+- My organizations tabs:
+  - approved
+  - pending
+  - owned/admin
+- Request to join button.
+- Membership status badges.
+- Organization detail slide-over:
+  - description
+  - members count
+  - check-in enabled status
+  - my role
+  - request/leave/manage actions
+
+### `/app`
+
+Daily check-in page using new dashboard shell.
+
+Must include:
+
+- Organization selector with approved organizations only.
+- Warning empty state if no approved organizations.
+- Link to organizations page to request access.
+- Check-in form card.
+- Today’s previous saved check-in preview.
+- Save draft / submit check-in UI states as mock.
+
+### `/check-ins`
+
+History page.
+
+Must include:
+
+- Filter by organization.
+- Date range controls.
+- Timeline/list of check-ins.
+- Status chips for blockers/mood/goal accomplished.
+- Detail sheet for one check-in.
+
+### `/settings`
+
+For Phase 1, simplify and align visually.
+
+Must include:
+
+- Notification settings mock.
+- Timezone.
+- Email reminders placeholder.
+- Slack/webhook legacy settings only if still intentionally supported.
+- No duplicated HTML/script blocks.
+
+### `/leaderboard`
+
+Reframe as team insights, not GitHub leaderboard.
+
+Must include:
+
+- Streak leaders.
+- Participation rate.
+- Most helpful blockers resolved.
+- Organization filter.
+- No “GitHub User” copy.
+
+## Phase 1 Contract Tests
+
+Add/extend frontend tests to assert:
+
+- Every protected page uses shared dashboard shell classes/tokens.
+- Sidebar contains `Overview`, `Daily Check-in`, `Organizations`, `Requests`, `Members`, `Check-ins`, `Profile`, `Settings`.
+- Profile page contains verification UI:
+  - `Verify email`
+  - `Resend verification code`
+  - `/api/auth/verify-email`
+  - `/api/auth/resend-verification`
+- Organizations page contains:
+  - `Create organization`
+  - `Request to join`
+  - `Membership status`
+  - `owner`, `admin`, `member`
+- App page contains approved-org selector and no client-supplied `userId` in mock UI plan.
+- Old pages do not contain:
+  - `Login with GitHub`
+  - `href="/api/auth/login"`
+  - `GitHub User`
+- Settings page has one `</html>` and one main script block after cleanup.
+- Route mapping includes `/dashboard`, `/profile`, `/organizations`.
+
+## Phase 1 Verification
+
+Run:
+
+```bash
+python -m unittest tests.test_frontend_contract -v
+python -m py_compile workers/*.py
+git diff --check
+```
+
+Manual browser/smoke:
+
+- `/dashboard` loads and sidebar switches sections.
+- `/profile` shows verification UI.
+- `/organizations` shows create/join/manage mock flows.
+- `/app` shows check-in UI with organization context.
+- `/check-ins`, `/settings`, `/leaderboard` are visually consistent.
+
+## Phase 1 Acceptance Criteria
+
+- The entire app feels like one dashboard product inspired by BLT-Newsletter.
+- User can review the intended final flows without backend integration being complete.
+- All primary feature areas are visible:
+  - profile verification
+  - organizations list
+  - create/manage organization
+  - request to join/check in
+  - check-in form
+  - admin/member dashboard
+- No visible primary UI still points users to GitHub OAuth.
+- Plan clearly marks backend integration as Phase 2.
+
+---
+
+# Phase 2 — Backend Integration and Production Behavior
+
+**Objective:** Wire Phase 1 UI to real APIs, enforce security, finish organization membership/admin flows, and make daily check-ins production-safe.
+
+## Phase 2 Backend Tasks
+
+### Task 2.1: Finalize auth/profile behavior
+
+Files:
+
+- `workers/main.py`
+- `tests/test_auth_routes_contract.py`
+- `tests/test_profile_contract.py` if split out
+
+Work:
+
+- Ensure signup creates unverified user and sends verification code.
+- Ensure unverified users cannot use protected app flows until verified, except profile verification/resend.
+- Ensure `/api/auth/me` includes:
+  - `emailVerified`
+  - `needsEmailVerification`
+  - `displayName`
+  - `roles` or org summary later
+- Add `POST /api/profile` for name/timezone settings if needed.
+- Add `POST /api/auth/resend-verification` and `POST /api/auth/verify-email` final runtime tests/contracts.
+
+### Task 2.2: Generic organizations backend
+
+Files:
+
+- `workers/main.py`
+- `migrations/0006_generic_organizations.sql` if needed
+- `tests/test_org_routes_contract.py`
+
+Endpoints:
+
+- `GET /api/orgs/discover`
 - `POST /api/orgs`
-  - Creates organization; creator becomes owner/admin approved.
 - `GET /api/orgs`
-  - Lists user memberships with roles/status.
+- `GET /api/orgs/:slug`
 - `POST /api/orgs/:slug/join`
-  - Creates pending join request.
+- `DELETE /api/orgs/:slug/membership`
+- `POST /api/orgs/:slug/settings`
+
+Rules:
+
+- Verified user can create organization.
+- Creator is `owner` and approved.
+- User can request join.
+- Membership defaults to pending unless user is creator.
+- Slug is unique and not GitHub-dependent.
+- Organization can enable/disable check-ins.
+
+### Task 2.3: Admin/member management backend
+
+Files:
+
+- `workers/main.py`
+- `tests/test_org_admin_contract.py`
+
+Endpoints:
+
 - `GET /api/orgs/:slug/members`
-  - Admin/member scoped. Admin sees pending and approved; member sees approved members if allowed.
+- `GET /api/orgs/:slug/requests`
 - `POST /api/orgs/:slug/members/:userId/approve`
 - `POST /api/orgs/:slug/members/:userId/reject`
 - `POST /api/orgs/:slug/members/:userId/role`
+- `DELETE /api/orgs/:slug/members/:userId`
 
-### Check-in APIs
+Rules:
+
+- Only owner/admin can approve/reject.
+- Only owner/admin can change roles.
+- Owner cannot remove last owner.
+- Multiple admins supported.
+- Member list must not expose sensitive data.
+
+### Task 2.4: Session-secured check-ins
+
+Files:
+
+- `workers/main.py`
+- `src/pages/app.html`
+- `src/pages/check-ins.html`
+- `tests/test_checkin_security_contract.py`
+
+Work:
+
+- Stop trusting request body/query `userId`.
+- Derive user from `sizzle_session` only.
+- Require email verified user.
+- Require approved membership in selected organization.
+- Require org check-ins enabled.
+- Upsert today’s check-in for `(org_id, user_id, checkin_date)`.
+- Support edit today’s check-in.
+- Return 401/403 correctly.
+
+Endpoints:
+
 - `POST /api/checkin`
-  - Uses session user, never body `userId`.
-  - Requires `orgSlug` for org check-in.
-  - Validates approved membership.
-  - Upserts today’s check-in for `(org_id, user_id, date)`.
-- `GET /api/checkins`
-  - Uses session user.
-  - Optional `orgSlug` filter.
+- `GET /api/checkins?orgSlug=...`
 - `GET /api/checkin/latest?orgSlug=...`
-  - Uses session user.
-- `GET /api/orgs/:slug/checkins?date=YYYY-MM-DD`
-  - Admin/member scoped org timeline.
-- `GET /api/orgs/:slug/dashboard?date=YYYY-MM-DD`
-  - Returns metrics: checked in count, missing count, blockers, mood distribution, streaks.
 
----
+### Task 2.5: Dashboard metrics API
 
-## UI Route Plan
+Files:
 
-### `/`
-Public landing page.
-- Inspired by `inspiration-lading-page.html`.
-- Contains CTA to `/login`.
-- No daily check-in form on home.
+- `workers/main.py`
+- `tests/test_dashboard_backend_contract.py`
 
-### `/login`
-Email OTP login/signup page.
-- Step 1: email form.
-- Step 2: OTP form.
-- Shows delivery and verification errors.
+Endpoints:
 
-### `/app`
-Member check-in page.
-- Existing check-in form moved here.
-- Shows approved org selector only.
-- Shows pending org notice/CTA to dashboard/settings.
-
-### `/check-ins`
-Member history page.
-- Uses session user only.
-- Filter by org.
-
-### `/dashboard`
-Organization/admin dashboard.
-- Inspired by BLT-Newsletter dashboard shell.
-- Sections: Overview, Today’s Check-ins, Members, Join Requests, Organizations, Settings.
-
----
-
-## Implementation Tasks
-
-### Task 1: Add local-testable auth and email foundation
-
-**Objective:** Create reusable helpers for password/session/OTP/email so later route work is safe and testable.
-
-**Files:**
-- Create: `workers/auth_utils.py`
-- Create: `workers/email_service.py`
-- Create: `tests/test_app_auth_email_foundation.py`
-
-**Steps:**
-1. Write failing tests for password hashing, session cookie, OTP hashing/verification, and SendGrid payload construction.
-2. Run: `python -m unittest tests.test_app_auth_email_foundation -v` and verify failure because modules do not exist.
-3. Implement helpers adapted from BLT-Newsletter.
-4. Re-run the targeted test and then existing syntax tests.
-
-### Task 2: Add migration for app refactor schema
-
-**Objective:** Add D1 migration for OTP sessions, org roles, and generic org metadata.
-
-**Files:**
-- Create: `migrations/0004_app_refactor_auth_orgs.sql`
-- Modify: `workers/main.py` `init_database` once route work begins
-- Test: `tests/test_schema_contract.py`
-
-**Steps:**
-1. Write schema contract tests checking required table/column names exist in migration SQL.
-2. Add migration SQL.
-3. Run schema contract tests.
-
-### Task 3: Add OTP request/verify backend APIs
-
-**Objective:** Replace the GitHub entrypoint with email OTP login while keeping old routes temporarily non-primary.
-
-**Files:**
-- Modify: `workers/main.py`
-- Test: `tests/test_auth_contract.py`
-
-**Steps:**
-1. Add tests for route strings and helper call behavior where possible without Cloudflare runtime.
-2. Add `/api/auth/request-otp` and `/api/auth/verify-otp` route dispatch.
-3. Store hashed OTP, enforce expiry/attempts, send email through `SendGridEmailService`.
-4. Create session from verified OTP.
-5. Update `/api/auth/me` to return email-based user.
-6. Keep `/api/auth/logout` but use new cookie/session store.
-
-### Task 4: Create landing page and login page
-
-**Objective:** Make `/` public landing and move app check-in to `/app`.
-
-**Files:**
-- Replace: `src/index.html`
-- Create: `src/pages/login.html`
-- Create: `src/pages/app.html` from current check-in page
-- Modify: `workers/main.py` static route mapping
-- Test: frontend static contract tests
-
-**Steps:**
-1. Write tests checking home contains landing hero and no check-in form.
-2. Write tests checking login contains email/OTP fields and APIs.
-3. Write tests checking app page contains check-in form and approved-org selector.
-4. Implement pages.
-
-### Task 5: Remove GitHub coupling from org model and UI
-
-**Objective:** Turn GitHub org membership into generic organization membership.
-
-**Files:**
-- Modify: `workers/main.py`
-- Modify: `src/pages/settings.html` or replace with dashboard org settings
-- Modify: `README.md`
-- Test: org contract tests
-
-**Steps:**
-1. Remove GitHub membership API verification from org join.
-2. Change copy from `GitHub organization` to `organization`.
-3. Add role/status semantics.
-4. First org creator is owner.
-5. Join requests are pending.
-
-### Task 6: Secure check-in APIs with session identity
-
-**Objective:** Stop trusting `userId` from request body/query.
-
-**Files:**
-- Modify: `workers/main.py`
-- Modify: `src/pages/app.html`
-- Modify: `src/pages/check-ins.html`
-- Test: check-in contract tests
-
-**Steps:**
-1. Tests verify `handle_checkin` requires session user.
-2. Tests/static checks verify frontend no longer sends `userId`.
-3. Backend uses `get_session_user` for check-in, latest, settings, history.
-4. Org selector includes only `status === 'approved'`.
-5. Check-in with unapproved org returns 403 instead of silently saving personal.
-
-### Task 7: Build dashboard UI from BLT-Newsletter pattern
-
-**Objective:** Replace scattered settings/admin workflows with a dashboard shell.
-
-**Files:**
-- Create: `src/pages/dashboard.html`
-- Modify: `workers/main.py` route mapping
-- Test: dashboard static contract tests
-
-**Sections:**
-- Overview metric cards
-- Today’s Check-ins
-- Members
-- Join Requests
-- Organizations
-- Settings
-
-### Task 8: Add org dashboard backend metrics
-
-**Objective:** Support admin dashboard with one call for daily status.
-
-**Files:**
-- Modify: `workers/main.py`
-- Test: backend route/static SQL contract tests
-
-**Endpoint:**
+- `GET /api/dashboard`
 - `GET /api/orgs/:slug/dashboard?date=YYYY-MM-DD`
 
-**Metrics:**
-- approved members count
-- checked in today count
+Metrics:
+
+- my organizations
+- pending requests
+- checked in today
 - missing members
-- blockers list/count
+- blockers
 - mood distribution
 - streak leaders
+- check-in participation percent
 
-### Task 9: Update docs and environment templates
+Rules:
 
-**Objective:** Keep setup accurate for contributors.
+- Member sees own/member-allowed org data.
+- Admin sees admin metrics for orgs they manage.
+- No cross-org data leaks.
 
-**Files:**
-- Modify: `README.md`
-- Modify: `.env.example`
-- Modify: `package.json` if needed
+### Task 2.6: Wire UI to APIs
 
-**Updates:**
-- Email OTP setup
-- SendGrid env vars
-- `SESSION_SECRET` / `OTP_SECRET`
-- D1 migration commands
-- New routes
-- Remove GitHub OAuth setup from primary docs
+Files:
 
-### Task 10: Final verification
+- `src/scripts/sizzle-ui.js`
+- all relevant `src/pages/*.html`
+- `tests/test_frontend_contract.py`
 
-**Commands:**
-- `python -m unittest discover tests -v`
-- `python -m py_compile workers/*.py`
-- `npm run dev` then manual smoke:
-  - `/` landing loads
-  - `/login` request OTP UI loads
-  - `/app` requires auth
-  - `/dashboard` requires auth
+Work:
+
+- Replace mock data with fetch calls.
+- Add loading/skeleton states.
+- Add empty/error states.
+- Add toasts for success/failure.
+- Ensure all protected pages redirect unauthenticated users to `/login`.
+- Ensure unverified users are routed to `/profile` verification flow.
+
+### Task 2.7: Clean legacy GitHub/OAuth surface
+
+Files:
+
+- `workers/main.py`
+- `wrangler.toml` / docs if needed
+- `README.md`
+- `.env.example`
+- tests
+
+Work:
+
+- Remove GitHub OAuth from primary product/docs.
+- Decide whether to fully delete legacy OAuth routes or keep hidden during migration.
+- Remove GitHub UI copy/icons from all primary pages.
+- Replace GitHub org naming in API response fields with generic `org.name`, `org.slug`.
+
+### Task 2.8: Dev/prod operations and docs
+
+Files:
+
+- `scripts/migrate.sh`
+- `package.json`
+- `README.md`
+- `.env.example`
+
+Work:
+
+- Add dev/prod migration script:
+  - `bash scripts/migrate.sh dev`
+  - `bash scripts/migrate.sh prod`
+- Add package scripts:
+  - `db:migrate:dev`
+  - `db:migrate:prod`
+- Document env setup:
+  - `EMAIL_API_KEY`
+  - `EMAIL_FROM`
+  - `EMAIL_FROM_NAME`
+  - `OTP_SECRET`
+  - `SESSION_SECRET`
+  - `ENCRYPTION_KEY`
+- Document SendGrid verification/debug steps.
+- Document local and production deployment flow.
+
+## Phase 2 Verification
+
+Run after each backend slice:
+
+```bash
+python -m unittest discover tests -v
+python -m py_compile workers/*.py
+git diff --check
+```
+
+Cloudflare smoke:
+
+```bash
+bash scripts/migrate.sh dev
+npx wrangler dev
+```
+
+Manual smoke:
+
+1. Create account.
+2. Verify email.
+3. Log in with credentials.
+4. Create organization.
+5. Request to join from another account.
+6. Approve request as admin.
+7. Submit check-in for approved org.
+8. Confirm admin dashboard shows today’s check-in and missing/blocker metrics.
+9. Confirm unapproved/unverified user cannot check in.
+
+## Phase 2 Acceptance Criteria
+
+- Signup/login/email verification is production-safe enough for MVP.
+- Profile verification is available from sidebar.
+- Verified users can create organizations.
+- Users can request to join organizations.
+- Admins can approve/reject/manage members.
+- Users can check in only for approved organizations.
+- Admin dashboard shows real D1-backed metrics.
+- Backend never trusts user-supplied `userId` for authenticated actions.
+- Old GitHub OAuth UI is gone from primary product surfaces.
+- README/dev/prod migration docs are accurate.
 
 ---
 
-## Acceptance Criteria
+## Final Two-Phase Definition of Done
 
-- Home route `/` is a public landing page.
-- Login uses email OTP verification through SendGrid-style email service.
-- No primary UI says “Login with GitHub”.
-- Users can belong to multiple organizations.
-- Users can request organization access.
-- Multiple admins per organization are supported through membership roles.
-- Check-ins are associated with exactly the selected approved organization.
-- Admins can review members and daily check-ins.
-- Backend does not trust `userId` from body/query for authenticated user actions.
-- Tests cover helper-level auth/email behavior and static route/page contracts.
+### Phase 1 is done when:
+
+- All pages are visually unified in the BLT-Newsletter-inspired dashboard shell.
+- Profile verification, organizations, check-in, requests, members, and dashboard views exist as reviewable UI.
+- Frontend contract tests pass.
+
+### Phase 2 is done when:
+
+- Every Phase 1 UI section is wired to real APIs.
+- Organization/check-in/admin flows are enforced server-side.
+- Dev/prod scripts and docs are complete.
+- Full tests and Wrangler smoke pass.
 
 ---
 
-## Implementation Status
+## Current Implementation Status
 
 - [x] Requirements and references audited.
-- [x] Task 1 auth/email foundation.
-- [x] Task 2 schema migration.
-- [x] Task 3 OTP backend.
-- [x] Task 4 landing/login/app pages.
-- [ ] Task 5 generic organizations.
-- [ ] Task 6 session-secured check-ins.
-- [ ] Task 7 dashboard UI.
-- [ ] Task 8 dashboard backend metrics.
-- [ ] Task 9 docs/env updates.
-- [ ] Task 10 final verification.
+- [x] Auth/email foundation.
+- [x] App-refactor schema foundation.
+- [x] Credential signup/login/email verification backend foundation.
+- [x] Public landing and `/login` foundation.
+- [x] Phase 1: UI-first dashboard shell and all pages (first reviewable mock UI pass complete; visual polish and browser/user review still open).
+- [ ] Phase 2: backend integration and production behavior.

@@ -2,7 +2,7 @@
 
 <div align="center">
 
-[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/OWASP-BLT/BLT-Sizzle)
+[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://gitlab.com/owasp-blt/blt-sizzle)
 [![License](https://img.shields.io/badge/license-OWASP%20BLT-blue.svg)](#-license)
 [![Cloudflare Workers](https://img.shields.io/badge/Cloudflare-Workers-orange.svg)](https://workers.cloudflare.com/)
 [![Python](https://img.shields.io/badge/Python-3.x-blue.svg)](https://www.python.org/)
@@ -52,7 +52,7 @@ Track progress, surface blockers, and keep your team aligned — without another
 
 ## 🚀 Quick Deploy
 
-[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/OWASP-BLT/BLT-Sizzle)
+[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://gitlab.com/owasp-blt/blt-sizzle)
 
 ---
 
@@ -322,9 +322,9 @@ Contributions are welcome! Please follow the OWASP Code of Conduct.
 ### Workflow
 
 1. Fork the repo and clone your fork
-2. Add upstream: `git remote add upstream https://github.com/OWASP-BLT/BLT-Sizzle.git`
+2. Add upstream: `git remote add upstream https://gitlab.com/owasp-blt/blt-sizzle.git`
 3. Create a branch: `git checkout -b feature/your-feature` or `fix/bug-description`
-4. Make changes, test thoroughly, then open a Pull Request
+4. Make changes, test thoroughly, then open a merge request
 
 ### Code style
 
@@ -402,8 +402,8 @@ npm run db:query "SELECT name FROM sqlite_master WHERE type='table'"
 
 ##  License
 
-This project is part of [OWASP BLT](https://github.com/OWASP-BLT) and follows the same license terms.
+This project is part of [OWASP BLT](https://gitlab.com/owasp-blt) and follows the same license terms.
 
 ---
 
-<div align="center">Made with ❤️ by <a href="https://github.com/OWASP-BLT">OWASP BLT</a></div>
+<div align="center">Made with ❤️ by <a href="https://gitlab.com/owasp-blt">OWASP BLT</a></div>
