@@ -22,6 +22,7 @@ from auth_utils import (
     verify_password,
 )
 from email_service import SendGridEmailService, render_otp_email
+from timezones import all_timezones, is_valid_timezone
 
 # Route logs to stdout so Cloudflare Workers captures them at the correct level
 # (stderr is always treated as "error" by the Workers runtime)
@@ -135,6 +136,15 @@ async def handle_request(request, env):
 
         elif api_path == "/api/auth/me" and method == "GET":
             return await handle_auth_me(request, env)
+
+        elif api_path == "/api/profile" and method == "GET":
+            return await handle_get_profile(request, env)
+
+        elif api_path == "/api/profile" and method == "POST":
+            return await handle_save_profile(request, env)
+
+        elif api_path == "/api/timezones" and method == "GET":
+            return await handle_get_timezones(request, env)
 
         elif api_path == "/api/auth/logout" and method == "POST":
             return await handle_auth_logout(request, env)
@@ -658,87 +668,175 @@ async def handle_get_latest_checkin(request, env):
                           {"status": 500, "headers": {"Content-Type": "application/json"}})
 
 
-async def handle_get_settings(request, env):
-    """Get user settings"""
+def normalize_notification_time(value):
+    value = str(value or "09:00").strip()
+    if not re.match(r"^\d{2}:\d{2}$", value):
+        raise ValueError("Invalid notification time")
+    hour, minute = [int(part) for part in value.split(":")]
+    if hour > 23 or minute > 59:
+        raise ValueError("Invalid notification time")
+    return f"{hour:02d}:{minute:02d}"
+
+
+def normalize_bool(value):
+    return 1 if value in (True, 1, "1", "true", "True", "on", "yes") else 0
+
+
+async def handle_get_timezones(request, env):
+    return json_response({"timezones": all_timezones(), "default": "UTC"})
+
+
+async def handle_get_profile(request, env):
+    """Return session-derived profile and verification state."""
     try:
-        url = URL.new(request.url)
-        user_id = url.searchParams.get('userId')
-        
+        user_id = await get_session_user(request, env)
         if not user_id:
-            return Response.new(json.dumps({"error": "User ID required"}), 
-                              {"status": 400, "headers": {"Content-Type": "application/json"}})
-        
+            return json_error("Unauthorized", 401)
+
         result_proxy = await env.sizzle_db.prepare("""
-            SELECT encrypted_email, notification_time, timezone, encrypted_slack_webhook_url,
+            SELECT user_id, email, encrypted_email, encrypted_display_name, email_verified,
+                   notification_time, timezone, email_notifications, status
+            FROM users
+            WHERE user_id = ?
+        """).bind(user_id).first()
+        if not result_proxy:
+            return json_error("Profile not found", 404)
+        result = result_proxy.to_py() if hasattr(result_proxy, 'to_py') else result_proxy
+
+        encryption_key = get_auth_secret(env, "ENCRYPTION_KEY")
+        email = result.get('email') or await decrypt_data(result.get('encrypted_email') or '', encryption_key)
+        display_name = await decrypt_data(result.get('encrypted_display_name') or '', encryption_key)
+        email_verified = bool(int(result.get('email_verified') or 0))
+        timezone = result.get('timezone') or 'UTC'
+        if not is_valid_timezone(timezone):
+            timezone = 'UTC'
+
+        return json_response({
+            "userId": user_id,
+            "email": email,
+            "displayName": display_name or (email.split('@')[0] if email else user_id),
+            "emailVerified": email_verified,
+            "needsEmailVerification": bool(email and not email_verified),
+            "timezone": timezone,
+            "notificationTime": result.get('notification_time') or '09:00',
+            "emailNotifications": int(result.get('email_notifications') or 0),
+            "status": result.get('status') or 'active',
+        })
+    except Exception as e:
+        logger.error("Error getting profile: %s", e, exc_info=True)
+        return json_error("Profile could not be loaded", 500)
+
+
+async def handle_save_profile(request, env):
+    """Save session-derived profile fields that are safe for users to edit."""
+    try:
+        user_id = await get_session_user(request, env)
+        if not user_id:
+            return json_error("Unauthorized", 401)
+
+        data = await safe_request_json(request)
+        if not isinstance(data, dict):
+            return json_error("Invalid JSON body", 400)
+
+        display_name = str(data.get('displayName') or data.get('name') or '').strip()
+        timezone = str(data.get('timezone') or 'UTC').strip()
+        if display_name and (len(display_name) < 2 or len(display_name) > 120):
+            return json_error("Name must be between 2 and 120 characters", 400)
+        if not is_valid_timezone(timezone):
+            return json_error("Invalid timezone", 400)
+
+        encryption_key = get_auth_secret(env, "ENCRYPTION_KEY")
+        encrypted_display_name = await encrypt_data(display_name, encryption_key) if display_name else None
+        if encrypted_display_name is None:
+            await env.sizzle_db.prepare("""
+                UPDATE users SET timezone = ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?
+            """).bind(timezone, user_id).run()
+        else:
+            await env.sizzle_db.prepare("""
+                UPDATE users
+                SET encrypted_display_name = ?, timezone = ?, updated_at = CURRENT_TIMESTAMP
+                WHERE user_id = ?
+            """).bind(encrypted_display_name, timezone, user_id).run()
+
+        return json_response({"success": True})
+    except Exception as e:
+        logger.error("Error saving profile: %s", e, exc_info=True)
+        return json_error("Profile could not be saved", 500)
+
+
+async def handle_get_settings(request, env):
+    """Get settings for the authenticated session user."""
+    try:
+        user_id = await get_session_user(request, env)
+        if not user_id:
+            return json_error("Unauthorized", 401)
+
+        result_proxy = await env.sizzle_db.prepare("""
+            SELECT email, encrypted_email, notification_time, timezone, encrypted_slack_webhook_url,
                    email_notifications
             FROM users
             WHERE user_id = ?
         """).bind(user_id).first()
 
         if not result_proxy:
-            return Response.new(json.dumps({}),
-                              {"headers": {"Content-Type": "application/json"}})
+            return json_error("Settings not found", 404)
 
         result = result_proxy.to_py() if hasattr(result_proxy, 'to_py') else result_proxy
+        encryption_key = get_auth_secret(env, "ENCRYPTION_KEY")
+        email = result.get('email') or await decrypt_data(result.get('encrypted_email') or '', encryption_key)
+        slack_url = await decrypt_data(result.get('encrypted_slack_webhook_url') or '', encryption_key)
+        timezone = result.get('timezone') or 'UTC'
+        if not is_valid_timezone(timezone):
+            timezone = 'UTC'
 
-        encryption_key = getattr(env, 'ENCRYPTION_KEY', 'sizzle-dev-key-12345')
-        email = await decrypt_data(result['encrypted_email'] or '', encryption_key)
-        slack_url = await decrypt_data(result['encrypted_slack_webhook_url'] or '', encryption_key)
-
-        return Response.new(json.dumps({
+        return json_response({
             "email": email,
-            "notificationTime": result['notification_time'],
-            "timezone": result['timezone'],
+            "notificationTime": result.get('notification_time') or '09:00',
+            "timezone": timezone,
             "slackWebhookUrl": slack_url,
-            "emailNotifications": result['email_notifications']
-        }), {"headers": {"Content-Type": "application/json"}})
-        
+            "emailNotifications": int(result.get('email_notifications') or 0),
+        })
     except Exception as e:
         logger.error("Error getting settings: %s", e, exc_info=True)
-        return Response.new(json.dumps({"error": str(e)}), 
-                          {"status": 500, "headers": {"Content-Type": "application/json"}})
+        return json_error("Settings could not be loaded", 500)
 
 
 async def handle_save_settings(request, env):
-    """Save user settings"""
+    """Save settings for the authenticated session user."""
     try:
-        data = (await request.json()).to_py()
-        user_id = data.get('userId')
-        
+        user_id = await get_session_user(request, env)
         if not user_id:
-            return Response.new(json.dumps({"error": "User ID required"}), 
-                              {"status": 400, "headers": {"Content-Type": "application/json"}})
-        
-        email = data.get('email', '')
-        notification_time = data.get('notificationTime', '09:00')
-        timezone = data.get('timezone', 'UTC')
-        slack_webhook_url = data.get('slackWebhookUrl', '')
-        email_notifications = data.get('emailNotifications', 0)
+            return json_error("Unauthorized", 401)
 
-        encryption_key = getattr(env, 'ENCRYPTION_KEY', 'sizzle-dev-key-12345')
-        encrypted_email = await encrypt_data(email, encryption_key)
+        data = await safe_request_json(request)
+        if not isinstance(data, dict):
+            return json_error("Invalid JSON body", 400)
+
+        try:
+            notification_time = normalize_notification_time(data.get('notificationTime', '09:00'))
+        except ValueError:
+            return json_error("Invalid notification time", 400)
+
+        timezone = str(data.get('timezone') or 'UTC').strip()
+        if not is_valid_timezone(timezone):
+            return json_error("Invalid timezone", 400)
+
+        slack_webhook_url = str(data.get('slackWebhookUrl') or '')
+        email_notifications = normalize_bool(data.get('emailNotifications', 0))
+        encryption_key = get_auth_secret(env, "ENCRYPTION_KEY")
         encrypted_slack_webhook_url = await encrypt_data(slack_webhook_url, encryption_key)
 
-        # Upsert user settings
         await env.sizzle_db.prepare("""
-            INSERT INTO users (user_id, encrypted_email, notification_time, timezone,
-                             encrypted_slack_webhook_url, email_notifications, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-            ON CONFLICT(user_id) DO UPDATE SET
-                encrypted_email = excluded.encrypted_email,
-                notification_time = excluded.notification_time,
-                timezone = excluded.timezone,
-                encrypted_slack_webhook_url = excluded.encrypted_slack_webhook_url,
-                email_notifications = excluded.email_notifications,
-                updated_at = CURRENT_TIMESTAMP
-        """).bind(user_id, encrypted_email, notification_time, timezone, encrypted_slack_webhook_url, email_notifications).run()
+            UPDATE users
+            SET notification_time = ?, timezone = ?, encrypted_slack_webhook_url = ?,
+                email_notifications = ?, updated_at = CURRENT_TIMESTAMP
+            WHERE user_id = ?
+        """).bind(notification_time, timezone, encrypted_slack_webhook_url, email_notifications, user_id).run()
 
-        return Response.new(json.dumps({"success": True}), {"headers": {"Content-Type": "application/json"}})
-        
+        return json_response({"success": True})
     except Exception as e:
         logger.error("Error saving settings: %s", e, exc_info=True)
-        return Response.new(json.dumps({"error": str(e)}), 
-                          {"status": 500, "headers": {"Content-Type": "application/json"}})
+        return json_error("Settings could not be saved", 500)
 
 
 async def handle_test_notification(request, env):
