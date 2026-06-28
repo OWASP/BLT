@@ -454,7 +454,7 @@ Organization/admin dashboard.
 - [x] Requirements and references audited.
 - [x] Task 1 auth/email foundation.
 - [x] Task 2 schema migration.
-- [ ] Task 3 OTP backend.
+- [x] Task 3 OTP backend.
 - [ ] Task 4 landing/login/app pages.
 - [ ] Task 5 generic organizations.
 - [ ] Task 6 session-secured check-ins.
