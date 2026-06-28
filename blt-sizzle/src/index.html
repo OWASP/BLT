@@ -1,158 +1,648 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" class="scroll-smooth">
-<head>
+  <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>BLT Sizzle | Daily check-ins for async organizations</title>
-    <meta name="description" content="BLT Sizzle helps organizations collect daily check-ins, approve members, track blockers, and give admins a production-ready view of team progress." />
+    <meta
+      name="description"
+      content="BLT Sizzle helps organizations collect daily check-ins, approve members, track blockers, and give admins a production-ready view of team progress."
+    />
     <script>
-        window.tailwind = window.tailwind || {};
-        window.tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        blt: { red: "#dc2626", redDark: "#b91c1c", ink: "#111827", bg: "#f8fafc", border: "#e2e8f0" }
-                    },
-                    fontFamily: {
-                        sans: ["Geist", "Inter", "ui-sans-serif", "system-ui", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "sans-serif"],
-                        mono: ["ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "monospace"]
-                    }
-                }
-            }
-        };
+      window.tailwind = window.tailwind || {};
+      window.tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              blt: {
+                red: "#dc2626",
+                redDark: "#b91c1c",
+                ink: "#111827",
+                bg: "#f8fafc",
+                border: "#e2e8f0",
+              },
+            },
+            fontFamily: {
+              sans: [
+                "Geist",
+                "Inter",
+                "ui-sans-serif",
+                "system-ui",
+                "-apple-system",
+                "BlinkMacSystemFont",
+                "Segoe UI",
+                "sans-serif",
+              ],
+              mono: [
+                "ui-monospace",
+                "SFMono-Regular",
+                "Menlo",
+                "Monaco",
+                "Consolas",
+                "monospace",
+              ],
+            },
+          },
+        },
+      };
     </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .dot-field{background-image:radial-gradient(rgba(17,24,39,.18) 1px,transparent 1px);background-size:18px 18px;mask-image:radial-gradient(circle at center,black 0,transparent 74%);-webkit-mask-image:radial-gradient(circle at center,black 0,transparent 74%)}
-        .feature-divider::before,.feature-divider::after{content:"";height:1px;flex:1}.feature-divider::before{background:linear-gradient(to right,transparent,#e5e7eb)}.feature-divider::after{background:linear-gradient(to left,transparent,#e5e7eb)}
-        .section-kicker.with-bar::before{content:"";position:absolute;top:.18rem;left:-.55rem;width:3px;height:1.25rem;border-radius:0 2px 2px 0;background:#ef4444}
-        .footer-panel::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.04;background-image:linear-gradient(rgba(255,255,255,1) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,1) 1px,transparent 1px);background-size:40px 40px}
-        .btn-primary{display:inline-flex;align-items:center;justify-content:center;border-radius:.5rem;border-bottom:1.5px solid #991b1b;background:linear-gradient(to bottom,#ef4444,#dc2626);padding:.85rem 1.15rem;font-weight:600;color:white;box-shadow:0 10px 24px -14px rgba(220,38,38,.8);transition:transform .2s ease}.btn-primary:hover{transform:translateY(-1px)}
-        .btn-secondary{display:inline-flex;align-items:center;justify-content:center;border-radius:.5rem;border:1px solid #e5e7eb;background:#fff;padding:.85rem 1.15rem;font-weight:600;color:#374151;transition:background .2s,border-color .2s}.btn-secondary:hover{background:#f9fafb;border-color:#d1d5db}
+      .dot-field {
+        background-image: radial-gradient(
+          rgba(17, 24, 39, 0.18) 1px,
+          transparent 1px
+        );
+        background-size: 18px 18px;
+        mask-image: radial-gradient(circle at center, black 0, transparent 74%);
+        -webkit-mask-image: radial-gradient(
+          circle at center,
+          black 0,
+          transparent 74%
+        );
+      }
+      .feature-divider::before,
+      .feature-divider::after {
+        content: "";
+        height: 1px;
+        flex: 1;
+      }
+      .feature-divider::before {
+        background: linear-gradient(to right, transparent, #e5e7eb);
+      }
+      .feature-divider::after {
+        background: linear-gradient(to left, transparent, #e5e7eb);
+      }
+      .section-kicker.with-bar::before {
+        content: "";
+        position: absolute;
+        top: 0.18rem;
+        left: -0.55rem;
+        width: 3px;
+        height: 1.25rem;
+        border-radius: 0 2px 2px 0;
+        background: #ef4444;
+      }
+      .footer-panel::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0.04;
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 1) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 1) 1px, transparent 1px);
+        background-size: 40px 40px;
+      }
+      .btn-primary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 0.5rem;
+        border-bottom: 1.5px solid #991b1b;
+        background: linear-gradient(to bottom, #ef4444, #dc2626);
+        padding: 0.85rem 1.15rem;
+        font-weight: 600;
+        color: white;
+        box-shadow: 0 10px 24px -14px rgba(220, 38, 38, 0.8);
+        transition: transform 0.2s ease;
+      }
+      .btn-primary:hover {
+        transform: translateY(-1px);
+      }
+      .btn-secondary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 0.5rem;
+        border: 1px solid #e5e7eb;
+        background: #fff;
+        padding: 0.85rem 1.15rem;
+        font-weight: 600;
+        color: #374151;
+        transition:
+          background 0.2s,
+          border-color 0.2s;
+      }
+      .btn-secondary:hover {
+        background: #f9fafb;
+        border-color: #d1d5db;
+      }
     </style>
-</head>
-<body class="min-h-screen overflow-x-hidden bg-gray-50 font-sans text-gray-900 antialiased selection:bg-red-100 selection:text-red-700">
-    <header class="fixed inset-x-0 top-0 z-50 border-b border-black/5 bg-white/90 backdrop-blur-[18px]">
-        <div class="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-4 max-md:px-4">
-            <a href="/" class="inline-flex items-center gap-2.5" aria-label="BLT Sizzle home">
-                <img src="/assets/images/owasp-blt-logo.svg" alt="OWASP BLT logo" class="h-9 w-9 rounded-lg border border-red-100 bg-white p-1 shadow-sm" />
-                <span class="text-sm font-semibold tracking-tight text-gray-900">BLT Sizzle</span>
-            </a>
-            <nav class="hidden items-center gap-7 md:flex" aria-label="Primary navigation">
-                <a class="text-sm text-gray-500 transition hover:text-gray-900" href="#workflow">Workflow</a>
-                <a class="text-sm text-gray-500 transition hover:text-gray-900" href="#organizations">Organizations</a>
-                <a class="text-sm text-gray-500 transition hover:text-gray-900" href="#dashboard">Dashboard</a>
-                <a class="text-sm text-gray-500 transition hover:text-gray-900" href="#production">Production</a>
-            </nav>
-            <div class="hidden items-center gap-3 md:flex">
-                <a class="rounded-md px-3 py-2 text-sm text-gray-600 transition hover:bg-gray-100 hover:text-gray-900" href="/login">Log in</a>
-                <a class="btn-primary px-4 py-2 text-sm" href="/login">Start check-in</a>
-            </div>
+  </head>
+  <body
+    class="min-h-screen overflow-x-hidden bg-gray-50 font-sans text-gray-900 antialiased selection:bg-red-100 selection:text-red-700"
+  >
+    <header
+      class="fixed inset-x-0 top-0 z-50 border-b border-black/5 bg-white/90 backdrop-blur-[18px]"
+    >
+      <div
+        class="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-4 max-md:px-4"
+      >
+        <a href="/" class="" aria-label="BLT Sizzle home">
+          <img src="/assets/logo.png" alt="Sizzle logo" class="h-12" />
+        </a>
+        <nav
+          class="hidden items-center gap-7 md:flex"
+          aria-label="Primary navigation"
+        >
+          <a
+            class="text-sm text-gray-500 transition hover:text-gray-900"
+            href="#workflow"
+            >Workflow</a
+          >
+          <a
+            class="text-sm text-gray-500 transition hover:text-gray-900"
+            href="#organizations"
+            >Organizations</a
+          >
+          <a
+            class="text-sm text-gray-500 transition hover:text-gray-900"
+            href="#dashboard"
+            >Dashboard</a
+          >
+          <a
+            class="text-sm text-gray-500 transition hover:text-gray-900"
+            href="#production"
+            >Production</a
+          >
+        </nav>
+        <div class="hidden items-center gap-3 md:flex">
+          <a
+            class="rounded-md px-3 py-2 text-sm text-gray-600 transition hover:bg-gray-100 hover:text-gray-900"
+            href="/login"
+            >Log in</a
+          >
+          <a class="btn-primary px-4 py-2 text-sm" href="/login"
+            >Start check-in</a
+          >
         </div>
+      </div>
     </header>
 
     <main>
-        <section class="relative flex min-h-[43rem] items-start justify-center px-4 pb-14 pt-52 max-md:min-h-[38rem] max-md:pt-36" aria-label="Hero">
-            <div class="dot-field pointer-events-none absolute inset-x-0 top-24 z-[1] mx-auto h-[36rem] w-[min(94rem,180vw)] opacity-70" aria-hidden="true"></div>
-            <div class="relative z-[2] flex w-full flex-col items-center text-center">
-                <a class="inline-flex max-w-[min(46rem,calc(100vw_-_2rem))] items-center gap-3 rounded-full bg-white/60 py-[.15rem] pl-[.15rem] pr-3 text-sm font-medium text-gray-900 shadow-[0_10px_30px_-16px_rgba(220,38,38,.45),0_0_0_1px_rgba(0,0,0,.1)] backdrop-blur" href="/login">
-                    <span class="flex-none rounded-full border border-red-200 bg-red-50 px-[.65rem] py-1 text-xs text-red-600">Email OTP</span>
-                    <span class="truncate">Organization check-ins, approvals, blockers, and admin visibility.</span>
-                </a>
-                <h1 class="mt-7 max-w-5xl text-[clamp(3.15rem,9.4vw,7rem)] font-bold leading-[.92] tracking-[-.055em] text-gray-900">
-                    Daily check-ins<br />for teams that <span class="text-red-600">build in public</span>.
-                </h1>
-                <p class="mt-6 max-w-[46rem] text-[clamp(1rem,1.55vw,1.22rem)] leading-[1.6] text-gray-700 text-balance">
-                    BLT Sizzle gives open-source organizations a lightweight daily rhythm: members submit progress, admins approve access, blockers surface early, and every update stays tied to the right organization.
-                </p>
-                <div class="mt-7 flex items-center justify-center gap-3 max-md:w-full max-md:flex-col max-md:px-4">
-                    <a class="btn-primary text-base" href="/login">Log in with email</a>
-                    <a class="btn-secondary text-base" href="#workflow">See the workflow</a>
-                </div>
-                <div class="mt-10 grid w-[min(54rem,calc(100%_-_2rem))] grid-cols-3 gap-3 text-left max-md:grid-cols-1">
-                    <div class="rounded-2xl border border-gray-200 bg-white/80 p-4 shadow-sm backdrop-blur"><p class="font-mono text-2xl font-semibold text-red-600">72%</p><p class="mt-1 text-xs font-medium uppercase tracking-[.16em] text-gray-400">checked in today</p></div>
-                    <div class="rounded-2xl border border-gray-200 bg-white/80 p-4 shadow-sm backdrop-blur"><p class="font-mono text-2xl font-semibold text-red-600">4</p><p class="mt-1 text-xs font-medium uppercase tracking-[.16em] text-gray-400">active blockers</p></div>
-                    <div class="rounded-2xl border border-gray-200 bg-white/80 p-4 shadow-sm backdrop-blur"><p class="font-mono text-2xl font-semibold text-red-600">3</p><p class="mt-1 text-xs font-medium uppercase tracking-[.16em] text-gray-400">pending members</p></div>
-                </div>
+      <section
+        class="relative flex min-h-[43rem] items-start justify-center px-4 pb-14 pt-52 max-md:min-h-[38rem] max-md:pt-36"
+        aria-label="Hero"
+      >
+        <div
+          class="dot-field pointer-events-none absolute inset-x-0 top-24 z-[1] mx-auto h-[36rem] w-[min(94rem,180vw)] opacity-70"
+          aria-hidden="true"
+        ></div>
+        <div
+          class="relative z-[2] flex w-full flex-col items-center text-center"
+        >
+          <a
+            class="inline-flex max-w-[min(46rem,calc(100vw_-_2rem))] items-center gap-3 rounded-full bg-white/60 py-[.15rem] pl-[.15rem] pr-3 text-sm font-medium text-gray-900 shadow-[0_10px_30px_-16px_rgba(220,38,38,.45),0_0_0_1px_rgba(0,0,0,.1)] backdrop-blur"
+            href="/login"
+          >
+            <span
+              class="flex-none rounded-full border border-red-200 bg-red-50 px-[.65rem] py-1 text-xs text-red-600"
+              >Email OTP</span
+            >
+            <span class="truncate"
+              >Organization check-ins, approvals, blockers, and admin
+              visibility.</span
+            >
+          </a>
+          <h1
+            class="mt-7 max-w-5xl text-[clamp(3.15rem,9.4vw,7rem)] font-bold leading-[.92] tracking-[-.055em] text-gray-900"
+          >
+            Async check-ins for
+            <span class="text-red-600">open-source</span> teams
+          </h1>
+          <p
+            class="mt-6 max-w-[46rem] text-[clamp(1rem,1.55vw,1.22rem)] leading-[1.6] text-gray-700 text-balance"
+          >
+            BLT Sizzle gives open-source organizations a lightweight daily
+            rhythm: members submit progress, admins approve access, blockers
+            surface early, and every update stays tied to the right
+            organization.
+          </p>
+          <div
+            class="mt-7 flex items-center justify-center gap-3 max-md:w-full max-md:flex-col max-md:px-4"
+          >
+            <a class="btn-primary text-base" href="/login">Log in with email</a>
+            <a class="btn-secondary text-base" href="#workflow"
+              >See the workflow</a
+            >
+          </div>
+          <div
+            class="mt-10 grid w-[min(54rem,calc(100%_-_2rem))] grid-cols-3 gap-3 text-left max-md:grid-cols-1"
+          >
+            <div
+              class="rounded-2xl border border-gray-200 bg-white/80 p-4 shadow-sm backdrop-blur"
+            >
+              <p class="font-mono text-2xl font-semibold text-red-600">72%</p>
+              <p
+                class="mt-1 text-xs font-medium uppercase tracking-[.16em] text-gray-400"
+              >
+                checked in today
+              </p>
             </div>
-        </section>
-
-        <div class="feature-divider mx-auto my-10 flex w-[min(72rem,calc(100%_-_2rem))] items-center gap-3 text-gray-500" aria-hidden="true"><span class="font-mono text-xs tracking-[.18em] text-red-500">SIZZLE</span></div>
-
-        <section id="workflow" class="w-full px-4 pb-24 pt-10">
-            <div class="mx-auto w-[min(64rem,calc(100%_-_1rem))]">
-                <div class="mx-auto mb-10 max-w-[42rem] text-center">
-                    <span class="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 py-1 font-mono text-xs font-medium uppercase tracking-[.16em] text-red-600">Workflow</span>
-                    <h2 class="mt-4 text-[clamp(2.25rem,4vw,3.1rem)] font-semibold leading-[1.05] tracking-[-.04em]">A simple rhythm for async teams.</h2>
-                    <p class="mx-auto mt-4 max-w-[38rem] text-base leading-[1.6] text-gray-600">Three steps keep teams aligned without turning daily progress into another meeting.</p>
-                </div>
-                <div class="grid grid-cols-3 gap-3 max-lg:grid-cols-2 max-md:grid-cols-1">
-                    <article class="rounded-xl bg-white p-6 shadow-[inset_0_0_0_1px_rgba(17,24,39,.1)]"><div class="flex h-12 w-12 items-center justify-center rounded-full border border-gray-200 bg-gray-50 font-mono text-sm font-semibold text-red-600">01</div><h3 class="mt-6 text-lg font-semibold">Join an organization</h3><p class="mt-3 text-sm leading-6 text-gray-600">Members request access. Owners and admins approve the people who should be part of each organization.</p></article>
-                    <article class="rounded-xl bg-white p-6 shadow-[inset_0_0_0_1px_rgba(17,24,39,.1)]"><div class="flex h-12 w-12 items-center justify-center rounded-full border border-gray-200 bg-gray-50 font-mono text-sm font-semibold text-red-600">02</div><h3 class="mt-6 text-lg font-semibold">Check in daily</h3><p class="mt-3 text-sm leading-6 text-gray-600">Share completed work, today’s plan, blockers, and mood for the organization you’re working with.</p></article>
-                    <article class="rounded-xl bg-white p-6 shadow-[inset_0_0_0_1px_rgba(17,24,39,.1)]"><div class="flex h-12 w-12 items-center justify-center rounded-full border border-gray-200 bg-gray-50 font-mono text-sm font-semibold text-red-600">03</div><h3 class="mt-6 text-lg font-semibold">Track momentum</h3><p class="mt-3 text-sm leading-6 text-gray-600">Admins review participation, blockers, streaks, and missing check-ins from a focused dashboard.</p></article>
-                </div>
+            <div
+              class="rounded-2xl border border-gray-200 bg-white/80 p-4 shadow-sm backdrop-blur"
+            >
+              <p class="font-mono text-2xl font-semibold text-red-600">4</p>
+              <p
+                class="mt-1 text-xs font-medium uppercase tracking-[.16em] text-gray-400"
+              >
+                active blockers
+              </p>
             </div>
-        </section>
-
-        <section id="organizations" class="w-full px-4 pb-24 pt-6">
-            <div class="mx-auto grid w-[min(72rem,calc(100%_-_1rem))] items-center gap-10 lg:grid-cols-[0.92fr_1.08fr]">
-                <div>
-                    <h2 class="section-kicker with-bar relative m-0 text-lg font-semibold leading-tight tracking-[-.01em] text-red-500">Organizations</h2>
-                    <p class="mt-2 text-[clamp(2rem,3vw,2.55rem)] font-semibold leading-[1.05] tracking-[-.04em]">Every check-in belongs to the right team.</p>
-                    <p class="mt-4 max-w-[38rem] text-base leading-[1.65] text-gray-600">Users can belong to multiple organizations and choose where each check-in goes. That keeps OWASP BLT, GSoC groups, and contributor teams separate without forcing separate accounts.</p>
-                </div>
-                <div class="grid gap-3 sm:grid-cols-2">
-                    <div class="rounded-2xl border border-gray-200 bg-white p-5"><p class="font-semibold">Multiple organizations</p><p class="mt-2 text-sm leading-6 text-gray-600">One user can contribute to several orgs and switch context at check-in time.</p></div>
-                    <div class="rounded-2xl border border-gray-200 bg-white p-5"><p class="font-semibold">Approval workflow</p><p class="mt-2 text-sm leading-6 text-gray-600">Pending requests stay separate until an admin approves membership.</p></div>
-                    <div class="rounded-2xl border border-gray-200 bg-white p-5"><p class="font-semibold">Multiple admins</p><p class="mt-2 text-sm leading-6 text-gray-600">Owners can share admin work across mentors, maintainers, or team leads.</p></div>
-                    <div class="rounded-2xl border border-gray-200 bg-white p-5"><p class="font-semibold">Org-specific history</p><p class="mt-2 text-sm leading-6 text-gray-600">Progress, blockers, and streaks are scoped to the organization.</p></div>
-                </div>
+            <div
+              class="rounded-2xl border border-gray-200 bg-white/80 p-4 shadow-sm backdrop-blur"
+            >
+              <p class="font-mono text-2xl font-semibold text-red-600">3</p>
+              <p
+                class="mt-1 text-xs font-medium uppercase tracking-[.16em] text-gray-400"
+              >
+                pending members
+              </p>
             </div>
-        </section>
+          </div>
+        </div>
+      </section>
 
-        <section id="dashboard" class="w-full px-4 pb-24 pt-6">
-            <div class="mx-auto grid w-[min(72rem,calc(100%_-_1rem))] items-center gap-10 lg:grid-cols-[0.88fr_1.12fr]">
-                <div>
-                    <h2 class="section-kicker with-bar relative m-0 text-lg font-semibold leading-tight tracking-[-.01em] text-red-500">Dashboard</h2>
-                    <p class="mt-2 text-[clamp(2rem,3vw,2.55rem)] font-semibold leading-[1.05] tracking-[-.04em]">Know who’s active, blocked, or missing.</p>
-                    <p class="mt-4 max-w-[36rem] text-base leading-[1.65] text-gray-600">The admin dashboard turns daily updates into an operational view: today’s check-ins, missing members, blocker trends, mood signals, and pending join requests.</p>
-                    <div class="mt-6 flex flex-wrap gap-3"><a class="btn-primary text-sm" href="/login">Open Sizzle</a><a class="btn-secondary text-sm" href="#production">Production checklist</a></div>
+      <div
+        class="feature-divider mx-auto my-10 flex w-[min(72rem,calc(100%_-_2rem))] items-center gap-3 text-gray-500"
+        aria-hidden="true"
+      >
+        <span class="font-mono text-xs tracking-[.18em] text-red-500"
+          >SIZZLE</span
+        >
+      </div>
+
+      <section id="workflow" class="w-full px-4 pb-24 pt-10">
+        <div class="mx-auto w-[min(64rem,calc(100%_-_1rem))]">
+          <div class="mx-auto mb-10 max-w-[42rem] text-center">
+            <span
+              class="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 py-1 font-mono text-xs font-medium uppercase tracking-[.16em] text-red-600"
+              >Workflow</span
+            >
+            <h2
+              class="mt-4 text-[clamp(2.25rem,4vw,3.1rem)] font-semibold leading-[1.05] tracking-[-.04em]"
+            >
+              A simple rhythm for async teams.
+            </h2>
+            <p
+              class="mx-auto mt-4 max-w-[38rem] text-base leading-[1.6] text-gray-600"
+            >
+              Three steps keep teams aligned without turning daily progress into
+              another meeting.
+            </p>
+          </div>
+          <div
+            class="grid grid-cols-3 gap-3 max-lg:grid-cols-2 max-md:grid-cols-1"
+          >
+            <article
+              class="rounded-xl bg-white p-6 shadow-[inset_0_0_0_1px_rgba(17,24,39,.1)]"
+            >
+              <div
+                class="flex h-12 w-12 items-center justify-center rounded-full border border-gray-200 bg-gray-50 font-mono text-sm font-semibold text-red-600"
+              >
+                01
+              </div>
+              <h3 class="mt-6 text-lg font-semibold">Join an organization</h3>
+              <p class="mt-3 text-sm leading-6 text-gray-600">
+                Members request access. Owners and admins approve the people who
+                should be part of each organization.
+              </p>
+            </article>
+            <article
+              class="rounded-xl bg-white p-6 shadow-[inset_0_0_0_1px_rgba(17,24,39,.1)]"
+            >
+              <div
+                class="flex h-12 w-12 items-center justify-center rounded-full border border-gray-200 bg-gray-50 font-mono text-sm font-semibold text-red-600"
+              >
+                02
+              </div>
+              <h3 class="mt-6 text-lg font-semibold">Check in daily</h3>
+              <p class="mt-3 text-sm leading-6 text-gray-600">
+                Share completed work, today’s plan, blockers, and mood for the
+                organization you’re working with.
+              </p>
+            </article>
+            <article
+              class="rounded-xl bg-white p-6 shadow-[inset_0_0_0_1px_rgba(17,24,39,.1)]"
+            >
+              <div
+                class="flex h-12 w-12 items-center justify-center rounded-full border border-gray-200 bg-gray-50 font-mono text-sm font-semibold text-red-600"
+              >
+                03
+              </div>
+              <h3 class="mt-6 text-lg font-semibold">Track momentum</h3>
+              <p class="mt-3 text-sm leading-6 text-gray-600">
+                Admins review participation, blockers, streaks, and missing
+                check-ins from a focused dashboard.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="organizations" class="w-full px-4 pb-24 pt-6">
+        <div
+          class="mx-auto grid w-[min(72rem,calc(100%_-_1rem))] items-center gap-10 lg:grid-cols-[0.92fr_1.08fr]"
+        >
+          <div>
+            <h2
+              class="section-kicker with-bar relative m-0 text-lg font-semibold leading-tight tracking-[-.01em] text-red-500"
+            >
+              Organizations
+            </h2>
+            <p
+              class="mt-2 text-[clamp(2rem,3vw,2.55rem)] font-semibold leading-[1.05] tracking-[-.04em]"
+            >
+              Every check-in belongs to the right team.
+            </p>
+            <p
+              class="mt-4 max-w-[38rem] text-base leading-[1.65] text-gray-600"
+            >
+              Users can belong to multiple organizations and choose where each
+              check-in goes. That keeps OWASP BLT, GSoC groups, and contributor
+              teams separate without forcing separate accounts.
+            </p>
+          </div>
+          <div class="grid gap-3 sm:grid-cols-2">
+            <div class="rounded-2xl border border-gray-200 bg-white p-5">
+              <p class="font-semibold">Multiple organizations</p>
+              <p class="mt-2 text-sm leading-6 text-gray-600">
+                One user can contribute to several orgs and switch context at
+                check-in time.
+              </p>
+            </div>
+            <div class="rounded-2xl border border-gray-200 bg-white p-5">
+              <p class="font-semibold">Approval workflow</p>
+              <p class="mt-2 text-sm leading-6 text-gray-600">
+                Pending requests stay separate until an admin approves
+                membership.
+              </p>
+            </div>
+            <div class="rounded-2xl border border-gray-200 bg-white p-5">
+              <p class="font-semibold">Multiple admins</p>
+              <p class="mt-2 text-sm leading-6 text-gray-600">
+                Owners can share admin work across mentors, maintainers, or team
+                leads.
+              </p>
+            </div>
+            <div class="rounded-2xl border border-gray-200 bg-white p-5">
+              <p class="font-semibold">Org-specific history</p>
+              <p class="mt-2 text-sm leading-6 text-gray-600">
+                Progress, blockers, and streaks are scoped to the organization.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="dashboard" class="w-full px-4 pb-24 pt-6">
+        <div
+          class="mx-auto grid w-[min(72rem,calc(100%_-_1rem))] items-center gap-10 lg:grid-cols-[0.88fr_1.12fr]"
+        >
+          <div>
+            <h2
+              class="section-kicker with-bar relative m-0 text-lg font-semibold leading-tight tracking-[-.01em] text-red-500"
+            >
+              Dashboard
+            </h2>
+            <p
+              class="mt-2 text-[clamp(2rem,3vw,2.55rem)] font-semibold leading-[1.05] tracking-[-.04em]"
+            >
+              Know who’s active, blocked, or missing.
+            </p>
+            <p
+              class="mt-4 max-w-[36rem] text-base leading-[1.65] text-gray-600"
+            >
+              The admin dashboard turns daily updates into an operational view:
+              today’s check-ins, missing members, blocker trends, mood signals,
+              and pending join requests.
+            </p>
+            <div class="mt-6 flex flex-wrap gap-3">
+              <a class="btn-primary text-sm" href="/login">Open Sizzle</a
+              ><a class="btn-secondary text-sm" href="#production"
+                >Production checklist</a
+              >
+            </div>
+          </div>
+          <div
+            class="rounded-3xl border border-gray-200 bg-white p-4 shadow-[0_22px_60px_-45px_rgba(15,23,42,.75)]"
+          >
+            <div
+              class="rounded-2xl border border-gray-100 bg-gray-50 p-4 font-mono text-xs text-gray-600"
+            >
+              <div class="mb-4 flex items-center justify-between">
+                <span class="font-sans text-sm font-semibold text-gray-900"
+                  >OWASP BLT · Today</span
+                ><span
+                  class="rounded-full bg-emerald-50 px-2 py-1 text-[.65rem] font-semibold text-emerald-700"
+                  >healthy</span
+                >
+              </div>
+              <div class="grid gap-2">
+                <div class="rounded-xl bg-white p-3 shadow-sm">
+                  <span class="text-red-600">18</span> checked in
+                  <span class="float-right text-emerald-700">72%</span>
                 </div>
-                <div class="rounded-3xl border border-gray-200 bg-white p-4 shadow-[0_22px_60px_-45px_rgba(15,23,42,.75)]">
-                    <div class="rounded-2xl border border-gray-100 bg-gray-50 p-4 font-mono text-xs text-gray-600">
-                        <div class="mb-4 flex items-center justify-between"><span class="font-sans text-sm font-semibold text-gray-900">OWASP BLT · Today</span><span class="rounded-full bg-emerald-50 px-2 py-1 text-[.65rem] font-semibold text-emerald-700">healthy</span></div>
-                        <div class="grid gap-2">
-                            <div class="rounded-xl bg-white p-3 shadow-sm"><span class="text-red-600">18</span> checked in <span class="float-right text-emerald-700">72%</span></div>
-                            <div class="rounded-xl bg-white p-3 shadow-sm"><span class="text-red-600">7</span> missing <span class="float-right text-gray-400">nudge</span></div>
-                            <div class="rounded-xl bg-white p-3 shadow-sm"><span class="text-red-600">4</span> blockers <span class="float-right text-amber-600">needs review</span></div>
-                            <div class="rounded-xl bg-white p-3 shadow-sm"><span class="text-red-600">3</span> pending members <span class="float-right text-gray-400">approve</span></div>
-                        </div>
-                        <pre class="mt-4 overflow-hidden rounded-xl bg-[#111827] p-4 text-left text-[.68rem] leading-5 text-gray-200"><code>{
+                <div class="rounded-xl bg-white p-3 shadow-sm">
+                  <span class="text-red-600">7</span> missing
+                  <span class="float-right text-gray-400">nudge</span>
+                </div>
+                <div class="rounded-xl bg-white p-3 shadow-sm">
+                  <span class="text-red-600">4</span> blockers
+                  <span class="float-right text-amber-600">needs review</span>
+                </div>
+                <div class="rounded-xl bg-white p-3 shadow-sm">
+                  <span class="text-red-600">3</span> pending members
+                  <span class="float-right text-gray-400">approve</span>
+                </div>
+              </div>
+              <pre
+                class="mt-4 overflow-hidden rounded-xl bg-[#111827] p-4 text-left text-[.68rem] leading-5 text-gray-200"
+              ><code>{
   "org": "owasp-blt",
   "checkedIn": 18,
   "blockers": 4,
   "missing": 7
 }</code></pre>
-                    </div>
-                </div>
             </div>
-        </section>
+          </div>
+        </div>
+      </section>
 
-        <section id="production" class="w-full px-4 pb-24 pt-6">
-            <div class="mx-auto w-[min(72rem,calc(100%_-_1rem))] rounded-3xl border border-gray-200 bg-white p-8 shadow-[0_22px_60px_-50px_rgba(15,23,42,.65)] md:p-10">
-                <span class="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 py-1 font-mono text-xs font-medium uppercase tracking-[.16em] text-red-600">Production-ready direction</span>
-                <div class="mt-5 grid gap-8 lg:grid-cols-[.9fr_1.1fr]">
-                    <div><h2 class="text-[clamp(2rem,3vw,2.55rem)] font-semibold leading-[1.05] tracking-[-.04em]">Built to become the real daily check-in app.</h2><p class="mt-4 text-base leading-[1.65] text-gray-600">The app is moving toward email OTP auth, secure sessions, D1 migrations, organization roles, and a dashboard that admins can actually use every day.</p></div>
-                    <div class="grid gap-3 sm:grid-cols-2"><div class="rounded-2xl bg-gray-50 p-4"><p class="font-semibold">Email OTP auth</p><p class="mt-1 text-sm text-gray-600">SendGrid-backed verification and HttpOnly sessions.</p></div><div class="rounded-2xl bg-gray-50 p-4"><p class="font-semibold">D1-backed orgs</p><p class="mt-1 text-sm text-gray-600">Membership states, roles, and org-scoped check-ins.</p></div><div class="rounded-2xl bg-gray-50 p-4"><p class="font-semibold">Admin controls</p><p class="mt-1 text-sm text-gray-600">Approve members and review daily activity.</p></div><div class="rounded-2xl bg-gray-50 p-4"><p class="font-semibold">Dev/prod setup</p><p class="mt-1 text-sm text-gray-600">Clean envs, migrations, and deployment scripts.</p></div></div>
-                </div>
+      <section id="production" class="w-full px-4 pb-24 pt-6">
+        <div
+          class="mx-auto w-[min(72rem,calc(100%_-_1rem))] rounded-3xl border border-gray-200 bg-white p-8 shadow-[0_22px_60px_-50px_rgba(15,23,42,.65)] md:p-10"
+        >
+          <span
+            class="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 py-1 font-mono text-xs font-medium uppercase tracking-[.16em] text-red-600"
+            >Production-ready direction</span
+          >
+          <div class="mt-5 grid gap-8 lg:grid-cols-[.9fr_1.1fr]">
+            <div>
+              <h2
+                class="text-[clamp(2rem,3vw,2.55rem)] font-semibold leading-[1.05] tracking-[-.04em]"
+              >
+                Built to become the real daily check-in app.
+              </h2>
+              <p class="mt-4 text-base leading-[1.65] text-gray-600">
+                The app is moving toward email OTP auth, secure sessions, D1
+                migrations, organization roles, and a dashboard that admins can
+                actually use every day.
+              </p>
             </div>
-        </section>
+            <div class="grid gap-3 sm:grid-cols-2">
+              <div class="rounded-2xl bg-gray-50 p-4">
+                <p class="font-semibold">Email OTP auth</p>
+                <p class="mt-1 text-sm text-gray-600">
+                  SendGrid-backed verification and HttpOnly sessions.
+                </p>
+              </div>
+              <div class="rounded-2xl bg-gray-50 p-4">
+                <p class="font-semibold">D1-backed orgs</p>
+                <p class="mt-1 text-sm text-gray-600">
+                  Membership states, roles, and org-scoped check-ins.
+                </p>
+              </div>
+              <div class="rounded-2xl bg-gray-50 p-4">
+                <p class="font-semibold">Admin controls</p>
+                <p class="mt-1 text-sm text-gray-600">
+                  Approve members and review daily activity.
+                </p>
+              </div>
+              <div class="rounded-2xl bg-gray-50 p-4">
+                <p class="font-semibold">Dev/prod setup</p>
+                <p class="mt-1 text-sm text-gray-600">
+                  Clean envs, migrations, and deployment scripts.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
-        <footer class="footer-panel relative mt-8 w-full overflow-hidden rounded-t-3xl border border-white/5 bg-[#0e0d0c] py-10 pb-12 text-white">
-            <h2 class="relative m-0 px-2 text-center text-[clamp(3rem,12vw,9rem)] font-light leading-[.9] text-white">Sizzle</h2>
-            <div class="relative mx-auto mt-3 h-[3px] w-16 rounded-full bg-red-600" aria-hidden="true"></div>
-            <p class="relative mx-auto mt-6 max-w-xl px-6 text-center text-sm leading-6 text-gray-300">Built for OWASP BLT contributors and useful for any async organization that wants daily progress with admin visibility.</p>
-        </footer>
+      <footer
+        class="w-[98%] mx-auto footer-panel relative mt-8 w-full overflow-hidden rounded-t-3xl border border-white/5 bg-[#0e0d0c] px-5 py-12 pb-14 text-white md:px-8 md:py-14"
+      >
+        <h2
+          class="relative m-0 text-center text-[clamp(2rem,11vw,8rem)] font-light leading-[.9] text-white"
+        >
+          sizzle.owaspblt.org
+        </h2>
+        <div
+          class="relative mx-auto mt-5 h-[3px] w-16 rounded-full bg-red-600"
+          aria-hidden="true"
+        ></div>
+        <nav
+          class="relative mx-auto mt-10 grid w-[min(72rem,100%)] grid-cols-2 gap-x-8 gap-y-9 text-left sm:grid-cols-4"
+          aria-label="Footer navigation"
+        >
+          <div>
+            <h3
+              class="font-mono text-[.68rem] font-semibold uppercase tracking-[.28em] text-gray-500"
+            >
+              DOCS
+            </h3>
+            <ul class="mt-3 space-y-2 font-mono text-sm text-gray-300">
+              <li>
+                <a class="transition hover:text-white" href="#dashboard"
+                  >Dashboard</a
+                >
+              </li>
+              <li>
+                <a class="transition hover:text-white" href="/api/debug/db"
+                  >Health</a
+                >
+              </li>
+            </ul>
+          </div>
+          <div>
+            <h3
+              class="font-mono text-[.68rem] font-semibold uppercase tracking-[.28em] text-gray-500"
+            >
+              SIZZLE
+            </h3>
+            <ul class="mt-3 space-y-2 font-mono text-sm text-gray-300">
+              <li>
+                <a class="transition hover:text-white" href="/app">Check in</a>
+              </li>
+              <li>
+                <a class="transition hover:text-white" href="/settings"
+                  >Settings</a
+                >
+              </li>
+              <li>
+                <a class="transition hover:text-white" href="/leaderboard"
+                  >Leaderboard</a
+                >
+              </li>
+            </ul>
+          </div>
+          <div>
+            <h3
+              class="font-mono text-[.68rem] font-semibold uppercase tracking-[.28em] text-gray-500"
+            >
+              PROJECT
+            </h3>
+            <ul class="mt-3 space-y-2 font-mono text-sm text-gray-300">
+              <li>
+                <a
+                  class="transition hover:text-white"
+                  href="https://gitlab.com/owasp-blt/blt-sizzle"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  >GitLab repo</a
+                >
+              </li>
+              <li>
+                <a
+                  class="transition hover:text-white"
+                  href="https://gitlab.com/owasp-blt"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  >OWASP BLT group</a
+                >
+              </li>
+            </ul>
+          </div>
+          <div>
+            <h3
+              class="font-mono text-[.68rem] font-semibold uppercase tracking-[.28em] text-gray-500"
+            >
+              OWASP
+            </h3>
+            <ul class="mt-3 space-y-2 font-mono text-sm text-gray-300">
+              <li>
+                <a
+                  class="transition hover:text-white"
+                  href="https://owaspblt.org"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  >OWASP BLT</a
+                >
+              </li>
+              <li>
+                <a
+                  class="transition hover:text-white"
+                  href="https://owasp.org/www-project-bug-logging-tool/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  >Foundation page</a
+                >
+              </li>
+              <li>
+                <a
+                  class="transition hover:text-white"
+                  href="https://owasp.org"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  >owasp.org</a
+                >
+              </li>
+            </ul>
+          </div>
+        </nav>
+      </footer>
     </main>
-</body>
+  </body>
 </html>

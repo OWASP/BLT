@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Profile | BLT Sizzle</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/styles/sizzle-dashboard.css" />
+</head>
+<body>
+  <div class="sizzle-shell">
+    
+<aside class="sizzle-sidebar">
+  <a class="brand" href="/dashboard" aria-label="BLT Sizzle dashboard">
+    <img src="/assets/logo.png" alt="Sizzle logo" />
+    <span><strong>BLT Sizzle</strong><span>Daily check-ins</span></span>
+  </a>
+  <div>
+    <div class="sidebar-section-label">Workspace</div>
+    <nav class="sidebar-nav" aria-label="BLT-Newsletter-inspired dashboard navigation">
+      <a class="sidebar-item" href="/dashboard"><span>Overview</span></a><a class="sidebar-item" href="/app"><span>Daily Check-in</span></a><a class="sidebar-item" href="/organizations"><span>Organizations</span></a><a class="sidebar-item" href="/organizations#requests"><span>Requests</span></a><a class="sidebar-item" href="/organizations#members"><span>Members</span></a><a class="sidebar-item" href="/check-ins"><span>Check-ins</span></a><a class="sidebar-item active" href="/profile"><span>Profile</span></a><a class="sidebar-item" href="/settings"><span>Settings</span></a>
+    </nav>
+  </div>
+  <div class="sidebar-footer">
+    <span class="mock-note">Phase 1 mock UI</span>
+    <p>BLT-Newsletter-inspired shell for profile verification, organizations, check-ins, members, requests, and settings.</p>
+    <a href="/login">Sign in with email</a>
+  </div>
+</aside>
+    <main class="main-panel">
+      <header class="page-header">
+        <div>
+          <div class="eyebrow">BLT-Newsletter-inspired · Phase 1 UI</div>
+          <h1>Profile</h1>
+          <p class="page-description">Verify your email, update account identity, and review account status before requesting organization access.</p>
+        </div>
+        <div><a class="btn btn-secondary" href="https://gitlab.com/owasp-blt/blt-sizzle" target="_blank" rel="noopener noreferrer" title="View on GitLab">View on GitLab</a></div>
+      </header>
+      
+<section class="grid grid-2">
+  <article class="card card-pad">
+    <div class="page-header"><div><h2>Profile</h2><p class="page-description">Manage the identity shown to organizations and admins.</p></div><span id="verification-status" class="status-badge status-unverified">Not verified</span></div>
+    <div class="grid">
+      <label class="form-field"><span>Name</span><input class="input" value="Kaif Ansari" /></label>
+      <label class="form-field"><span>Email</span><input class="input" value="kaif@example.com" /></label>
+      <button class="btn btn-primary" onclick="mockSave('Profile saved in Phase 1 mock UI')">Save profile</button>
+    </div>
+  </article>
+  <article class="card card-pad">
+    <h2>Verify email</h2>
+    <p class="page-description">Enter the code sent during signup or resend a new one from this Profile sidebar option.</p>
+    <form class="grid" style="margin-top:16px" onsubmit="event.preventDefault(); fetch('/api/auth/verify-email', {method:'POST'}); mockSave('Email verification will call /api/auth/verify-email in Phase 2');">
+      <label class="form-field"><span>Verification code</span><input class="input" inputmode="numeric" placeholder="123456" /></label>
+      <button class="btn btn-primary" type="submit">Verify email</button>
+      <button class="btn btn-secondary" type="button" onclick="fetch('/api/auth/resend-verification', {method:'POST'}); mockSave('Resend verification code requested')">Resend verification code</button>
+    </form>
+  </article>
+</section>
+<section class="card card-pad" style="margin-top:16px"><h2>Session and account</h2><p class="page-description">Phase 2 will show login sessions, password change controls, and email notification preferences here.</p></section>
+
+    </main>
+  </div>
+  <div class="sheet-overlay" data-close-sheet></div>
+  <div class="toast-container"></div>
+  <script src="/scripts/sizzle-ui.js"></script>
+</body>
+</html>

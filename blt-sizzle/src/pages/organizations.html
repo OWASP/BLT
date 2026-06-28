@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Organizations | BLT Sizzle</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/styles/sizzle-dashboard.css" />
+</head>
+<body>
+  <div class="sizzle-shell">
+    
+<aside class="sizzle-sidebar">
+  <a class="brand" href="/dashboard" aria-label="BLT Sizzle dashboard">
+    <img src="/assets/logo.png" alt="Sizzle logo" />
+    <span><strong>BLT Sizzle</strong><span>Daily check-ins</span></span>
+  </a>
+  <div>
+    <div class="sidebar-section-label">Workspace</div>
+    <nav class="sidebar-nav" aria-label="BLT-Newsletter-inspired dashboard navigation">
+      <a class="sidebar-item" href="/dashboard"><span>Overview</span></a><a class="sidebar-item" href="/app"><span>Daily Check-in</span></a><a class="sidebar-item active" href="/organizations"><span>Organizations</span></a><a class="sidebar-item" href="/organizations#requests"><span>Requests</span></a><a class="sidebar-item" href="/organizations#members"><span>Members</span></a><a class="sidebar-item" href="/check-ins"><span>Check-ins</span></a><a class="sidebar-item" href="/profile"><span>Profile</span></a><a class="sidebar-item" href="/settings"><span>Settings</span></a>
+    </nav>
+  </div>
+  <div class="sidebar-footer">
+    <span class="mock-note">Phase 1 mock UI</span>
+    <p>BLT-Newsletter-inspired shell for profile verification, organizations, check-ins, members, requests, and settings.</p>
+    <a href="/login">Sign in with email</a>
+  </div>
+</aside>
+    <main class="main-panel">
+      <header class="page-header">
+        <div>
+          <div class="eyebrow">BLT-Newsletter-inspired · Phase 1 UI</div>
+          <h1>Organizations</h1>
+          <p class="page-description">Discover organizations in Sizzle, request to join, create a new organization, and manage roles.</p>
+        </div>
+        <div><a class="btn btn-secondary" href="https://gitlab.com/owasp-blt/blt-sizzle" target="_blank" rel="noopener noreferrer" title="View on GitLab">View on GitLab</a></div>
+      </header>
+      
+<section class="grid grid-3">
+  <article class="card metric-card"><div class="metric-label">Approved orgs</div><div class="metric-value">3</div><div class="metric-hint">Ready for check-ins</div></article>
+  <article class="card metric-card"><div class="metric-label">Membership status</div><div class="metric-value">2</div><div class="metric-hint">Pending requests</div></article>
+  <article class="card metric-card"><div class="metric-label">Admin roles</div><div class="metric-value">1</div><div class="metric-hint">owner/admin responsibility</div></article>
+</section>
+<section class="card card-pad" style="margin-top:16px">
+  <div class="page-header"><div><h2>Organizations listed in Sizzle</h2><p class="page-description">Browse organizations, request to join, or create a new organization if you are verified.</p></div><button class="btn btn-primary" onclick="openModal('createOrgModal')">Create organization</button></div>
+  <table class="table"><thead><tr><th>Organization</th><th>Membership status</th><th>Role</th><th>Action</th></tr></thead><tbody>
+    <tr><td>OWASP BLT</td><td><span class="status-badge status-approved">approved</span></td><td>owner</td><td><button class="btn btn-secondary" onclick="openSheet('organizationSheet')">Manage</button></td></tr>
+    <tr><td>GSoC Contributors</td><td><span class="status-badge status-pending">pending</span></td><td>member</td><td><button class="btn btn-secondary" data-toast="Join request is already pending">Pending</button></td></tr>
+    <tr><td>Security Research Lab</td><td><span class="status-badge status-neutral">not joined</span></td><td>member</td><td><button class="btn btn-primary" data-toast="Request to join queued in Phase 1 mock UI">Request to join</button></td></tr>
+  </tbody></table>
+</section>
+<section id="requests" class="card card-pad" style="margin-top:16px"><h2>Requests</h2><p class="page-description">Admin review queue for approving or rejecting organization access.</p></section>
+<section id="members" class="card card-pad" style="margin-top:16px"><h2>Members</h2><p class="page-description">Role management for owner, admin, and member access.</p></section>
+<div class="sheet" id="organizationSheet"><button class="btn btn-secondary" data-close-sheet>Close</button><h2>OWASP BLT organization</h2><p class="page-description">Manage members, roles, check-in status, and organization settings.</p><div class="grid"><span class="status-badge status-approved">check-ins enabled</span><button class="btn btn-primary" data-toast="Member approved in mock UI">Approve selected member</button><button class="btn btn-secondary" data-toast="Role changed to admin in mock UI">Promote to admin</button></div></div>
+<div class="modal-overlay" id="createOrgModal"><div class="modal"><h2>Create organization</h2><p class="page-description">Verified users can create an organization and become owner.</p><label class="form-field"><span>Name</span><input class="input" placeholder="My organization" /></label><div style="margin-top:16px;display:flex;gap:10px"><button class="btn btn-primary" onclick="closeModal('createOrgModal'); mockSave('Organization created in Phase 1 mock UI')">Create organization</button><button class="btn btn-secondary" onclick="closeModal('createOrgModal')">Cancel</button></div></div></div>
+
+    </main>
+  </div>
+  <div class="sheet-overlay" data-close-sheet></div>
+  <div class="toast-container"></div>
+  <script src="/scripts/sizzle-ui.js"></script>
+</body>
+</html>

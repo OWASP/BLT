@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Overview Dashboard | BLT Sizzle</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/styles/sizzle-dashboard.css" />
+</head>
+<body>
+  <div class="sizzle-shell">
+    
+<aside class="sizzle-sidebar">
+  <a class="brand" href="/dashboard" aria-label="BLT Sizzle dashboard">
+    <img src="/assets/logo.png" alt="Sizzle logo" />
+    <span><strong>BLT Sizzle</strong><span>Daily check-ins</span></span>
+  </a>
+  <div>
+    <div class="sidebar-section-label">Workspace</div>
+    <nav class="sidebar-nav" aria-label="BLT-Newsletter-inspired dashboard navigation">
+      <a class="sidebar-item active" href="/dashboard"><span>Overview</span></a><a class="sidebar-item" href="/app"><span>Daily Check-in</span></a><a class="sidebar-item" href="/organizations"><span>Organizations</span></a><a class="sidebar-item" href="/organizations#requests"><span>Requests</span></a><a class="sidebar-item" href="/organizations#members"><span>Members</span></a><a class="sidebar-item" href="/check-ins"><span>Check-ins</span></a><a class="sidebar-item" href="/profile"><span>Profile</span></a><a class="sidebar-item" href="/settings"><span>Settings</span></a>
+    </nav>
+  </div>
+  <div class="sidebar-footer">
+    <span class="mock-note">Phase 1 mock UI</span>
+    <p>BLT-Newsletter-inspired shell for profile verification, organizations, check-ins, members, requests, and settings.</p>
+    <a href="/login">Sign in with email</a>
+  </div>
+</aside>
+    <main class="main-panel">
+      <header class="page-header">
+        <div>
+          <div class="eyebrow">BLT-Newsletter-inspired · Phase 1 UI</div>
+          <h1>Overview Dashboard</h1>
+          <p class="page-description">A reviewable Phase 1 dashboard for organization check-ins, pending requests, blockers, and admin visibility.</p>
+        </div>
+        <div><a class="btn btn-secondary" href="https://gitlab.com/owasp-blt/blt-sizzle" target="_blank" rel="noopener noreferrer" title="View on GitLab">View on GitLab</a></div>
+      </header>
+      
+<section class="grid grid-4">
+  <article class="card metric-card"><div class="metric-label">Checked in today</div><div class="metric-value">18</div><div class="metric-hint">72% participation across selected org</div></article>
+  <article class="card metric-card"><div class="metric-label">Pending requests</div><div class="metric-value">6</div><div class="metric-hint">Awaiting owner/admin review</div></article>
+  <article class="card metric-card"><div class="metric-label">Active blockers</div><div class="metric-value">4</div><div class="metric-hint">Need mentor attention</div></article>
+  <article class="card metric-card"><div class="metric-label">Organizations</div><div class="metric-value">3</div><div class="metric-hint">Approved memberships</div></article>
+</section>
+<section class="grid grid-2" style="margin-top:16px">
+  <article class="card card-pad">
+    <div class="page-header"><div><h2>Today’s organization activity</h2><p class="page-description">A mock overview of the admin dashboard we will wire in Phase 2.</p></div><button class="btn btn-primary" data-toast="Opening check-in review soon">Review check-ins</button></div>
+    <table class="table"><thead><tr><th>Member</th><th>Organization</th><th>Status</th><th>Blocker</th></tr></thead><tbody>
+      <tr><td>Aisha</td><td>OWASP BLT</td><td><span class="status-badge status-approved">checked in</span></td><td>Needs issue assignment</td></tr>
+      <tr><td>Marco</td><td>GSoC Contributors</td><td><span class="status-badge status-pending">missing</span></td><td>—</td></tr>
+      <tr><td>June</td><td>Security Research Lab</td><td><span class="status-badge status-blocked">blocked</span></td><td>Waiting on review</td></tr>
+    </tbody></table>
+  </article>
+  <article class="card card-pad">
+    <h2>Admin action queue</h2>
+    <div class="grid" style="margin-top:14px">
+      <div class="card card-pad"><strong>3 join requests</strong><p class="metric-hint">New contributors want access to OWASP BLT check-ins.</p></div>
+      <div class="card card-pad"><strong>2 unverified profiles</strong><p class="metric-hint">Members need to finish email verification from Profile.</p></div>
+      <div class="card card-pad"><strong>4 blockers</strong><p class="metric-hint">Blockers are grouped by organization for admin review.</p></div>
+    </div>
+  </article>
+</section>
+
+    </main>
+  </div>
+  <div class="sheet-overlay" data-close-sheet></div>
+  <div class="toast-container"></div>
+  <script src="/scripts/sizzle-ui.js"></script>
+</body>
+</html>

@@ -1,240 +1,53 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sizzle | Leaderboard</title>
-    <!-- Favicon -->
-    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    fontFamily: {
-                        outfit: ['Outfit', 'sans-serif'],
-                    },
-                    colors: {
-                        primary: {
-                            DEFAULT: '#E10101',
-                            dark: '#BC0000',
-                        },
-                        secondary: '#64748b',
-                        gray: {
-                            200: '#E5E5E5',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <!-- Theme Initialization -->
-    <script>
-        if (localStorage.getItem('theme') === 'dark' ||
-            (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
-    </script>
-    <style>
-        body {
-            font-family: 'Outfit', sans-serif;
-        }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Team Insights | BLT Sizzle</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/styles/sizzle-dashboard.css" />
 </head>
+<body>
+  <div class="sizzle-shell">
 
-<body
-    class="bg-gray-50 dark:bg-slate-900 min-h-screen flex flex-col items-center text-slate-900 dark:text-white transition-colors duration-300">
-    <!-- Header -->
-    <header
-        class="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border-b border-gray-200 dark:border-slate-700">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <nav class="flex items-center justify-between h-16">
-                <div class="flex items-center gap-2">
-                    <a href="/" class="flex items-center gap-2">
-                        <img src="/assets/images/owasp-blt-logo.svg" alt="OWASP BLT Logo" class="h-8 w-auto">
-                        <span class="font-bold text-xl tracking-tight hidden sm:block">SIZZLE</span>
-                    </a>
-                </div>
-
-                <div class="hidden md:flex items-center gap-8">
-                    <a href="/"
-                        class="text-slate-600 dark:text-slate-300 hover:text-primary transition-colors font-medium">Check-in</a>
-                    <a href="/leaderboard" class="text-primary font-bold">Leaderboard</a>
-                    <a href="/settings"
-                        class="text-slate-600 dark:text-slate-300 hover:text-primary transition-colors font-medium">Settings</a>
-                </div>
-
-                <div class="flex items-center gap-4">
-                    <button id="themeToggle"
-                        class="p-2 text-slate-500 hover:text-primary dark:text-slate-400 dark:hover:text-primary transition-colors">
-                        <svg id="sunIcon" class="hidden w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                            <path fill-rule="evenodd"
-                                d="M10 18a.8.8 0 01-.8-.8V16.7a.8.8 0 111.6 0v.5a.8.8 0 01-.8.8zm8-8a.8.8 0 01-.8.8h-.5a.8.8 0 110-1.6h.5a.8.8 0 01.8.8zM10 2a.8.8 0 01.8.8v.5a.8.8 0 11-1.6 0V2.8a.8.8 0 01.8-.8zm-8 8a.8.8 0 01.8-.8h.5a.8.8 0 110 1.6H2.8a.8.8 0 01-.8-.8zm14.5 4.5a.8.8 0 010 1.1l-.4.4a.8.8 0 11-1.1-1.1l.4-.4a.8.8 0 011.1 0zm-11-11a.8.8 0 010 1.1l-.4.4a.8.8 0 01-1.1-1.1l.4-.4a.8.8 0 011.1 0z"
-                                clip-rule="evenodd" />
-                        </svg>
-                        <svg id="moonIcon" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
-                        </svg>
-                    </button>
-                    <!-- Auth Controls -->
-                    <div id="authControls" class="hidden items-center gap-3">
-                        <span id="userDisplay" class="hidden text-sm font-medium text-slate-600 dark:text-slate-300 sm:block"></span>
-                        <button id="logoutBtn"
-                            class="hidden text-sm font-medium text-slate-500 hover:text-primary dark:text-slate-400 dark:hover:text-primary transition-colors">
-                            Sign out
-                        </button>
-                        <a id="loginBtn" href="/api/auth/login"
-                            class="hidden items-center gap-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-semibold px-4 py-2 rounded-xl hover:opacity-90 transition-opacity">
-                            Login with GitHub
-                        </a>
-                    </div>
-                    <!-- Mobile Menu Button -->
-                    <button class="md:hidden p-2 text-slate-600 dark:text-slate-300">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M4 6h16M4 12h16m-7 6h7"></path>
-                        </svg>
-                    </button>
-                </div>
-            </nav>
+<aside class="sizzle-sidebar">
+  <a class="brand" href="/dashboard" aria-label="BLT Sizzle dashboard">
+    <img src="/assets/logo.png" alt="Sizzle logo" />
+    <span><strong>BLT Sizzle</strong><span>Daily check-ins</span></span>
+  </a>
+  <div>
+    <div class="sidebar-section-label">Workspace</div>
+    <nav class="sidebar-nav" aria-label="BLT-Newsletter-inspired dashboard navigation">
+      <a class="sidebar-item" href="/dashboard"><span>Overview</span></a><a class="sidebar-item" href="/app"><span>Daily Check-in</span></a><a class="sidebar-item" href="/organizations"><span>Organizations</span></a><a class="sidebar-item" href="/organizations#requests"><span>Requests</span></a><a class="sidebar-item" href="/organizations#members"><span>Members</span></a><a class="sidebar-item active" href="/check-ins"><span>Check-ins</span></a><a class="sidebar-item" href="/profile"><span>Profile</span></a><a class="sidebar-item" href="/settings"><span>Settings</span></a>
+    </nav>
+  </div>
+  <div class="sidebar-footer">
+    <span class="mock-note">Phase 1 mock UI</span>
+    <p>BLT-Newsletter-inspired shell for profile verification, organizations, check-ins, members, requests, and settings.</p>
+    <a href="/login">Sign in with email</a>
+  </div>
+</aside>
+    <main class="main-panel">
+      <header class="page-header">
+        <div>
+          <div class="eyebrow">BLT-Newsletter-inspired · Phase 1 UI</div>
+          <h1>Team Insights</h1>
+          <p class="page-description">Organization participation, streaks, and blocker-resolution trends for admins and members.</p>
         </div>
-    </header>
+        <div><a class="btn btn-secondary" href="https://gitlab.com/owasp-blt/blt-sizzle" target="_blank" rel="noopener noreferrer" title="View on GitLab">View on GitLab</a></div>
+      </header>
 
-    <main class="pt-24 pb-12 px-4 w-full max-w-2xl">
-        <div
-            class="bg-white dark:bg-slate-800 rounded-3xl shadow-xl p-8 md:p-10 text-slate-800 dark:text-slate-100 animate-in fade-in duration-700 border border-gray-100 dark:border-slate-700">
-            <header class="mb-8 text-center">
-                <h1 class="text-4xl font-bold tracking-tight text-slate-900 dark:text-white mb-2">🏆 Sizzle Leaderboard
-                </h1>
-                <p class="text-slate-500 dark:text-slate-400 text-lg">Who's on fire? Track the top streaks!</p>
-            </header>
+<section class="grid grid-3">
+  <article class="card metric-card"><div class="metric-label">Streak leader</div><div class="metric-value">14</div><div class="metric-hint">days checked in</div></article>
+  <article class="card metric-card"><div class="metric-label">Participation</div><div class="metric-value">72%</div><div class="metric-hint">current organization</div></article>
+  <article class="card metric-card"><div class="metric-label">Resolved blockers</div><div class="metric-value">9</div><div class="metric-hint">this week</div></article>
+</section>
+<section class="card card-pad" style="margin-top:16px"><h2>Team insights</h2><p class="page-description">This replaces the old contribution leaderboard with organization participation and streak insights.</p><table class="table"><thead><tr><th>Member</th><th>Organization</th><th>Streak</th><th>Status</th></tr></thead><tbody><tr><td>Aisha</td><td>OWASP BLT</td><td>14</td><td><span class="status-badge status-approved">active</span></td></tr><tr><td>Marco</td><td>GSoC Contributors</td><td>9</td><td><span class="status-badge status-neutral">Member</span></td></tr></tbody></table></section>
 
-            <div id="leaderboardList" class="space-y-4">
-                <div class="flex justify-center p-12">
-                    <svg class="animate-spin h-8 w-8 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none"
-                        viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
-                        </circle>
-                        <path class="opacity-75" fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                        </path>
-                    </svg>
-                </div>
-            </div>
-        </div>
     </main>
-
-    <script>
-        // Theme Toggle Logic
-        const themeToggle = document.getElementById('themeToggle');
-        const sunIcon = document.getElementById('sunIcon');
-        const moonIcon = document.getElementById('moonIcon');
-
-        function updateThemeIcons() {
-            if (document.documentElement.classList.contains('dark')) {
-                sunIcon.classList.remove('hidden');
-                moonIcon.classList.add('hidden');
-            } else {
-                sunIcon.classList.add('hidden');
-                moonIcon.classList.remove('hidden');
-            }
-        }
-
-        updateThemeIcons();
-
-        themeToggle.addEventListener('click', () => {
-            const isDark = document.documentElement.classList.toggle('dark');
-            localStorage.setItem('theme', isDark ? 'dark' : 'light');
-            updateThemeIcons();
-        });
-
-        async function loadLeaderboard() {
-            const list = document.getElementById('leaderboardList');
-            try {
-                const response = await fetch('/api/leaderboard');
-                if (!response.ok) throw new Error('Failed to fetch');
-                const data = await response.json();
-
-                if (data.leaderboard && data.leaderboard.length > 0) {
-                    list.innerHTML = data.leaderboard.map((item, index) => {
-                        const isTop3 = index < 3;
-                        const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '';
-
-                        let bgClass = 'bg-slate-50 dark:bg-slate-900/50 border-slate-100 dark:border-slate-700';
-                        if (index === 0) bgClass = 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700/50';
-                        else if (index === 1) bgClass = 'bg-slate-50 dark:bg-slate-700/30 border-slate-200 dark:border-slate-600/50';
-                        else if (index === 2) bgClass = 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-700/50';
-
-                        return `
-                            <div class="flex items-center justify-between p-5 rounded-2xl border-2 ${bgClass} transition-transform hover:scale-[1.02] duration-200">
-                                <div class="flex items-center gap-4">
-                                    <span class="w-10 h-10 flex items-center justify-center rounded-full bg-white dark:bg-slate-800 shadow-sm font-bold text-lg ${isTop3 ? 'text-primary' : 'text-slate-400'}">
-                                        ${medal || (index + 1)}
-                                    </span>
-                                    <div class="flex flex-col">
-                                        <span class="font-bold text-slate-800 dark:text-slate-100 text-lg">${item.user_id}</span>
-                                        <span class="text-[10px] text-slate-400 uppercase tracking-widest font-bold">GitHub User</span>
-                                    </div>
-                                </div>
-                                <div class="flex flex-col items-end">
-                                    <span class="inline-flex items-center bg-white dark:bg-slate-800 px-3 py-1 rounded-full shadow-sm border border-primary/20 text-primary font-bold">
-                                        🔥 ${item.current_streak}
-                                    </span>
-                                    <span class="text-[10px] text-slate-400 mt-1 uppercase">Current Streak</span>
-                                </div>
-                            </div>
-                        `;
-                    }).join('');
-                } else {
-                    list.innerHTML = `
-                        <div class="text-center p-12 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700">
-                            <span class="text-4xl mb-4 block">🧘</span>
-                            <p class="text-slate-500 dark:text-slate-400 font-medium">No active streaks yet. Be the first to start one!</p>
-                        </div>
-                    `;
-                }
-            } catch (e) {
-                list.innerHTML = `
-                    <div class="text-center p-12 bg-rose-50 dark:bg-rose-900/20 rounded-2xl border-2 border-rose-100 dark:border-rose-900/50">
-                        <p class="text-rose-500 font-bold">Failed to load leaderboard. Please try again later.</p>
-                    </div>
-                `;
-            }
-        }
-        // Auth header — populate user info from session
-        (async () => {
-            const authControls = document.getElementById('authControls');
-            const userDisplay = document.getElementById('userDisplay');
-            const logoutBtn = document.getElementById('logoutBtn');
-
-            authControls.classList.remove('hidden');
-            authControls.classList.add('flex');
-
-            try {
-                const res = await fetch('/api/auth/me');
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data.authenticated) {
-                        userDisplay.textContent = data.displayName;
-                        userDisplay.classList.remove('hidden');
-                        logoutBtn.classList.remove('hidden');
-                        logoutBtn.addEventListener('click', async () => {
-                            await fetch('/api/auth/logout', { method: 'POST' });
-                            window.location.reload();
-                        });
-                    }
-                }
-            } catch (e) {}
-            loadLeaderboard();
-        })();
-    </script>
+  </div>
+  <div class="sheet-overlay" data-close-sheet></div>
+  <div class="toast-container"></div>
+  <script src="/scripts/sizzle-ui.js"></script>
 </body>
-
 </html>
