@@ -10,6 +10,7 @@ from datetime import datetime, timezone
 from typing import Any, Mapping, Optional
 
 from auth import AuthError, require_org_auth
+from blt_api_client import BltApiError, create_bug_from_finding, is_blt_api_configured
 from findings_store import ALLOWED_SORT_FIELDS, CSV_COLUMNS, FindingsQuery, FindingsStore
 from payload_redact import redact_payload
 
@@ -239,6 +240,7 @@ async def convert_to_issue_for_request(
     store: Optional[FindingsStore] = None,
     new_id: Any = None,
     now: Optional[datetime] = None,
+    fetch_impl: Any = None,
 ) -> FindingsListResult:
     auth = _auth_or_error(env, headers)
     if db is None:
@@ -267,7 +269,31 @@ async def convert_to_issue_for_request(
     id_fn = new_id or (lambda prefix: __import__("hashlib").sha256(
         f"{prefix}-{finding_id}-{now.timestamp()}".encode()
     ).hexdigest()[:16])
-    blt_issue_id = id_fn("blt")
+
+    use_stub = not is_blt_api_configured(env)
+    audit_detail: dict[str, Any] = {"finding_id": finding_id}
+
+    try:
+        if use_stub:
+            blt_issue_id = id_fn("blt")
+            audit_detail["blt_issue_id"] = blt_issue_id
+            audit_detail["stub"] = True
+        else:
+            blt_issue_id = await create_bug_from_finding(
+                env, row, fetch_impl=fetch_impl,
+            )
+            audit_detail["blt_issue_id"] = blt_issue_id
+            audit_detail["blt_api"] = True
+    except BltApiError as exc:
+        return FindingsListResult(
+            status=502,
+            body={
+                "error": "blt_api_error",
+                "message": str(exc),
+                "blt_status": exc.status,
+            },
+        )
+
     updated = int(now.timestamp())
     await store.set_blt_issue_id(auth.org_id, finding_id, blt_issue_id, updated)
     await store.record_access(
@@ -276,19 +302,19 @@ async def convert_to_issue_for_request(
         finding_id=finding_id,
         actor=auth.org_id,
         action="convert_to_issue",
-        detail={"blt_issue_id": blt_issue_id, "stub": True},
+        detail=audit_detail,
         created_at_unix=updated,
     )
 
-    return FindingsListResult(
-        status=201,
-        body={
-            "status": "created",
-            "finding_id": finding_id,
-            "blt_issue_id": blt_issue_id,
-            "stub": True,
-        },
-    )
+    body: dict[str, Any] = {
+        "status": "created",
+        "finding_id": finding_id,
+        "blt_issue_id": blt_issue_id,
+    }
+    if use_stub:
+        body["stub"] = True
+
+    return FindingsListResult(status=201, body=body)
 
 
 def findings_error_response(exc: AuthError) -> FindingsListResult:

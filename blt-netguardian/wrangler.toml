@@ -12,6 +12,9 @@ binding = "ASSETS"
 # Environment variables
 [vars]
 ENVIRONMENT = "production"
+# Set via wrangler secret (production/staging):
+#   BLT_API_BASE_URL = https://api.owaspblt.org/v2
+#   BLT_API_KEY      = <X-BLT-API-Key value>
 
 [observability]
 enabled = false

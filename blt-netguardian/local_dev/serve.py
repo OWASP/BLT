@@ -9,6 +9,13 @@ REAL `BLTWorker` logic backed by an in-memory SQLite stand-in for D1.
 Usage:
     python3 local_dev/serve.py
 Then open http://localhost:8787/triage.html and connect with token: triage-token
+
+Optional — real convert-to-issue via BLT-API stub (separate terminal):
+
+    python3 local_dev/blt_api_stub.py
+
+NetGuardian is preconfigured with BLT_API_BASE_URL=http://localhost:8788/v2
+Or point BLT_API_BASE_URL at a running BLT-API (wrangler dev --port 8788).
 """
 
 from __future__ import annotations
@@ -50,6 +57,8 @@ ENV = SimpleNamespace(
     NG_INGEST_RPM="6000",
     AUTHENTICATE_READ_ENDPOINTS="false",
     CORS_ALLOWED_ORIGINS=f"http://{HOST}:{PORT},http://127.0.0.1:{PORT}",
+    BLT_API_BASE_URL="http://localhost:8788/v2",
+    BLT_API_KEY="",
 )
 WORKER = BLTWorker(ENV)
 
@@ -213,6 +222,8 @@ def main() -> None:
     print(f"  Triage: http://{HOST}:{PORT}/triage.html")
     print(f"  Token:  {DEMO_TOKEN}   (org {DEMO_ORG})")
     print(f"  Seeded: {len(DEMO_FINDINGS)} demo findings")
+    blt_url = getattr(ENV, "BLT_API_BASE_URL", "") or "(stub convert)"
+    print(f"  BLT-API: {blt_url}  (run: python3 local_dev/blt_api_stub.py)")
     print("  Ctrl+C to stop.")
     print("=" * 64)
     try:
