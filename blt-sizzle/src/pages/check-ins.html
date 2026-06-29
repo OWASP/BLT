@@ -16,21 +16,19 @@
     <span><strong>BLT Sizzle</strong><span>Daily check-ins</span></span>
   </a>
   <div>
-    <div class="sidebar-section-label">Workspace</div>
     <nav class="sidebar-nav" aria-label="BLT-Newsletter-inspired dashboard navigation">
       <a class="sidebar-item" href="/dashboard"><span>Overview</span></a><a class="sidebar-item" href="/app"><span>Daily Check-in</span></a><a class="sidebar-item" href="/organizations"><span>Organizations</span></a><a class="sidebar-item" href="/organizations#requests"><span>Requests</span></a><a class="sidebar-item" href="/organizations#members"><span>Members</span></a><a class="sidebar-item active" href="/check-ins"><span>Check-ins</span></a><a class="sidebar-item" href="/profile"><span>Profile</span></a><a class="sidebar-item" href="/settings"><span>Settings</span></a>
     </nav>
   </div>
-  <div class="sidebar-footer">
-    <span class="mock-note">Phase 1 mock UI</span>
-    <p>BLT-Newsletter-inspired shell for profile verification, organizations, check-ins, members, requests, and settings.</p>
-    <a href="/login">Sign in with email</a>
+  <div class="sidebar-footer" aria-label="Dashboard utilities">
+    <a class="sidebar-footer-link" href="https://gitlab.com/owasp-blt/blt-sizzle" target="_blank" rel="noopener noreferrer">Docs</a>
+    <a class="sidebar-footer-link" href="/login">Sign in</a>
   </div>
 </aside>
     <main class="main-panel">
       <header class="page-header">
         <div>
-          <div class="eyebrow">BLT-Newsletter-inspired · Phase 1 UI</div>
+          <div class="eyebrow">BLT-Newsletter-inspired · Phase 2C</div>
           <h1>Check-ins</h1>
           <p class="page-description">Review previous check-ins by organization, date, blocker, and mood.</p>
         </div>
@@ -38,18 +36,56 @@
       </header>
 
 <section class="card card-pad">
-  <div class="page-header"><div><h2>Check-in history</h2><p class="page-description">Filter by organization, date range, blockers, and mood.</p></div><select class="select" style="max-width:220px"><option>OWASP BLT</option><option>All organizations</option></select></div>
-  <table class="table"><thead><tr><th>Date</th><th>Organization</th><th>Summary</th><th>Mood</th><th>Action</th></tr></thead><tbody>
-    <tr><td>Today</td><td>OWASP BLT</td><td>Finished login/signup flow and planning dashboard UI.</td><td><span class="status-badge status-approved">Focused</span></td><td><button class="btn btn-secondary" onclick="openSheet('checkinSheet')">View</button></td></tr>
-    <tr><td>Yesterday</td><td>GSoC Contributors</td><td>Reviewed org membership model.</td><td><span class="status-badge status-pending">Learning</span></td><td><button class="btn btn-secondary" onclick="openSheet('checkinSheet')">View</button></td></tr>
-  </tbody></table>
+  <div class="page-header"><div><h2>Check-in history</h2><p class="page-description">Filter by organization, date range, blockers, and mood.</p></div><select id="historyOrgFilter" class="select" style="max-width:220px"><option value="">All organizations</option></select></div>
+  <table class="table"><thead><tr><th>Date</th><th>Organization</th><th>Summary</th><th>Mood</th><th>Action</th></tr></thead><tbody id="checkinsTableBody"><tr><td colspan="5">Loading check-ins…</td></tr></tbody></table>
 </section>
-<div class="sheet" id="checkinSheet"><button class="btn btn-secondary" data-close-sheet>Close</button><h2>Check-in detail</h2><p class="page-description">Detailed check-in preview with blockers, plan, and admin notes.</p></div>
+<div class="sheet" id="checkinSheet"><button class="btn btn-secondary" data-close-sheet>Close</button><h2 id="sheetCheckinTitle">Check-in detail</h2><p id="sheetCheckinBody" class="page-description">Detailed check-in preview with blockers, plan, and admin notes.</p></div>
 
     </main>
   </div>
   <div class="sheet-overlay" data-close-sheet></div>
   <div class="toast-container"></div>
   <script src="/scripts/sizzle-ui.js"></script>
+  <script>
+    let cachedCheckins = [];
+
+    function escapeHtml(value) {
+      return String(value ?? '').replace(/[&<>'"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]));
+    }
+
+    async function loadOrgFilter() {
+      const response = await fetch('/api/orgs');
+      if (response.status === 401) { window.location.href = '/login'; return; }
+      const data = response.ok ? await response.json() : { orgs: [] };
+      const orgs = (data.orgs || []).filter((org) => org.status === 'approved' || org.membershipStatus === 'approved');
+      const select = document.getElementById('historyOrgFilter');
+      select.innerHTML = '<option value="">All organizations</option>' + orgs.map((org) => `<option value="${escapeHtml(org.slug || org.name)}">${escapeHtml(org.name || org.slug)}</option>`).join('');
+    }
+
+    function renderCheckins(checkins) {
+      cachedCheckins = checkins;
+      const rows = checkins.map((checkin, index) => `<tr><td>${escapeHtml(checkin.checkinDate || checkin.date)}</td><td>${escapeHtml(checkin.organization)}</td><td>${escapeHtml(checkin.todayPlan || checkin.previousWork || 'No summary')}</td><td><span class="status-badge status-approved">${escapeHtml(checkin.mood || 'Focused')}</span></td><td><button class="btn btn-secondary" onclick="openCheckin(${index})">View</button></td></tr>`).join('');
+      document.getElementById('checkinsTableBody').innerHTML = rows || '<tr><td colspan="5">No check-ins found yet.</td></tr>';
+    }
+
+    async function loadCheckins() {
+      const orgSlug = document.getElementById('historyOrgFilter').value;
+      const url = orgSlug ? `/api/checkins?orgSlug=${encodeURIComponent(orgSlug)}` : '/api/checkins';
+      const response = await fetch(url);
+      if (response.status === 401) { window.location.href = '/login'; return; }
+      const data = response.ok ? await response.json() : { checkins: [] };
+      renderCheckins(data.checkins || []);
+    }
+
+    function openCheckin(index) {
+      const checkin = cachedCheckins[index] || {};
+      document.getElementById('sheetCheckinTitle').textContent = `${checkin.organization || 'Organization'} · ${checkin.checkinDate || checkin.date || ''}`;
+      document.getElementById('sheetCheckinBody').innerHTML = `<strong>Completed</strong><p>${escapeHtml(checkin.previousWork || '—')}</p><strong>Plan</strong><p>${escapeHtml(checkin.todayPlan || '—')}</p><strong>Blockers</strong><p>${escapeHtml(checkin.blockers || 'No blockers')}</p>`;
+      openSheet('checkinSheet');
+    }
+
+    document.getElementById('historyOrgFilter').addEventListener('change', loadCheckins);
+    loadOrgFilter().then(loadCheckins).catch(() => showToast('Check-ins could not be loaded.'));
+  </script>
 </body>
 </html>

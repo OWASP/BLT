@@ -16,49 +16,39 @@
     <span><strong>BLT Sizzle</strong><span>Daily check-ins</span></span>
   </a>
   <div>
-    <div class="sidebar-section-label">Workspace</div>
     <nav class="sidebar-nav" aria-label="BLT-Newsletter-inspired dashboard navigation">
       <a class="sidebar-item active" href="/dashboard"><span>Overview</span></a><a class="sidebar-item" href="/app"><span>Daily Check-in</span></a><a class="sidebar-item" href="/organizations"><span>Organizations</span></a><a class="sidebar-item" href="/organizations#requests"><span>Requests</span></a><a class="sidebar-item" href="/organizations#members"><span>Members</span></a><a class="sidebar-item" href="/check-ins"><span>Check-ins</span></a><a class="sidebar-item" href="/profile"><span>Profile</span></a><a class="sidebar-item" href="/settings"><span>Settings</span></a>
     </nav>
   </div>
-  <div class="sidebar-footer">
-    <span class="mock-note">Phase 1 mock UI</span>
-    <p>BLT-Newsletter-inspired shell for profile verification, organizations, check-ins, members, requests, and settings.</p>
-    <a href="/login">Sign in with email</a>
+  <div class="sidebar-footer" aria-label="Dashboard utilities">
+    <a class="sidebar-footer-link" href="https://gitlab.com/owasp-blt/blt-sizzle" target="_blank" rel="noopener noreferrer">Docs</a>
+    <a class="sidebar-footer-link" href="/login">Sign in</a>
   </div>
 </aside>
     <main class="main-panel">
       <header class="page-header">
         <div>
-          <div class="eyebrow">BLT-Newsletter-inspired · Phase 1 UI</div>
+          <div class="eyebrow">BLT-Newsletter-inspired · Phase 2C</div>
           <h1>Overview Dashboard</h1>
-          <p class="page-description">A reviewable Phase 1 dashboard for organization check-ins, pending requests, blockers, and admin visibility.</p>
+          <p class="page-description">A functional dashboard for organization check-ins, pending requests, blockers, and admin visibility.</p>
         </div>
         <div><a class="btn btn-secondary" href="https://gitlab.com/owasp-blt/blt-sizzle" target="_blank" rel="noopener noreferrer" title="View on GitLab">View on GitLab</a></div>
       </header>
       
 <section class="grid grid-4">
-  <article class="card metric-card"><div class="metric-label">Checked in today</div><div class="metric-value">18</div><div class="metric-hint">72% participation across selected org</div></article>
-  <article class="card metric-card"><div class="metric-label">Pending requests</div><div class="metric-value">6</div><div class="metric-hint">Awaiting owner/admin review</div></article>
-  <article class="card metric-card"><div class="metric-label">Active blockers</div><div class="metric-value">4</div><div class="metric-hint">Need mentor attention</div></article>
-  <article class="card metric-card"><div class="metric-label">Organizations</div><div class="metric-value">3</div><div class="metric-hint">Approved memberships</div></article>
+  <article class="card metric-card"><div class="metric-label">Checked in today</div><div id="checkedInTodayMetric" class="metric-value">0</div><div id="participationHint" class="metric-hint">0% participation across selected orgs</div></article>
+  <article class="card metric-card"><div class="metric-label">Pending requests</div><div id="pendingRequestsMetric" class="metric-value">0</div><div class="metric-hint">Awaiting owner/admin review</div></article>
+  <article class="card metric-card"><div class="metric-label">Active blockers</div><div id="activeBlockersMetric" class="metric-value">0</div><div class="metric-hint">Need mentor attention</div></article>
+  <article class="card metric-card"><div class="metric-label">Organizations</div><div id="organizationsMetric" class="metric-value">0</div><div class="metric-hint">Approved memberships</div></article>
 </section>
 <section class="grid grid-2" style="margin-top:16px">
   <article class="card card-pad">
-    <div class="page-header"><div><h2>Today’s organization activity</h2><p class="page-description">A mock overview of the admin dashboard we will wire in Phase 2.</p></div><button class="btn btn-primary" data-toast="Opening check-in review soon">Review check-ins</button></div>
-    <table class="table"><thead><tr><th>Member</th><th>Organization</th><th>Status</th><th>Blocker</th></tr></thead><tbody>
-      <tr><td>Aisha</td><td>OWASP BLT</td><td><span class="status-badge status-approved">checked in</span></td><td>Needs issue assignment</td></tr>
-      <tr><td>Marco</td><td>GSoC Contributors</td><td><span class="status-badge status-pending">missing</span></td><td>—</td></tr>
-      <tr><td>June</td><td>Security Research Lab</td><td><span class="status-badge status-blocked">blocked</span></td><td>Waiting on review</td></tr>
-    </tbody></table>
+    <div class="page-header"><div><h2>Today’s organization activity</h2><p class="page-description">Live overview of check-in completion, missing updates, and blockers.</p></div><a class="btn btn-primary" href="/check-ins">Review check-ins</a></div>
+    <table class="table"><thead><tr><th>Member</th><th>Organization</th><th>Status</th><th>Blocker</th></tr></thead><tbody id="dashboardActivityBody"><tr><td colspan="4">Loading activity…</td></tr></tbody></table>
   </article>
   <article class="card card-pad">
     <h2>Admin action queue</h2>
-    <div class="grid" style="margin-top:14px">
-      <div class="card card-pad"><strong>3 join requests</strong><p class="metric-hint">New contributors want access to OWASP BLT check-ins.</p></div>
-      <div class="card card-pad"><strong>2 unverified profiles</strong><p class="metric-hint">Members need to finish email verification from Profile.</p></div>
-      <div class="card card-pad"><strong>4 blockers</strong><p class="metric-hint">Blockers are grouped by organization for admin review.</p></div>
-    </div>
+    <div id="adminQueue" class="grid" style="margin-top:14px"><div class="card card-pad"><strong>Loading…</strong><p class="metric-hint">Checking admin queues for approved organizations.</p></div></div>
   </article>
 </section>
 
@@ -67,5 +57,44 @@
   <div class="sheet-overlay" data-close-sheet></div>
   <div class="toast-container"></div>
   <script src="/scripts/sizzle-ui.js"></script>
+  <script>
+    function escapeHtml(value) {
+      return String(value ?? '').replace(/[&<>'"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[char]));
+    }
+
+    function statusClass(status) {
+      if (status === 'checked in') return 'status-approved';
+      if (status === 'blocked') return 'status-blocked';
+      if (status === 'missing') return 'status-pending';
+      return 'status-neutral';
+    }
+
+    function renderActivity(activity) {
+      const rows = activity.map((item) => `<tr><td>${escapeHtml(item.member)}</td><td>${escapeHtml(item.organization)}</td><td><span class="status-badge ${statusClass(item.status)}">${escapeHtml(item.status)}</span></td><td>${escapeHtml(item.blocker || '—')}</td></tr>`).join('');
+      document.getElementById('dashboardActivityBody').innerHTML = rows || '<tr><td colspan="4">No approved organization activity yet.</td></tr>';
+    }
+
+    function renderAdminQueue(queue) {
+      const cards = queue.map((item) => `<div class="card card-pad"><strong>${escapeHtml(item.value)} ${escapeHtml(item.label)}</strong><p class="metric-hint">${escapeHtml(item.hint)}</p></div>`).join('');
+      document.getElementById('adminQueue').innerHTML = cards || '<div class="card card-pad"><strong>No admin actions</strong><p class="metric-hint">You are not an admin or there is nothing pending.</p></div>';
+    }
+
+    async function loadDashboard() {
+      const response = await fetch('/api/dashboard');
+      if (response.status === 401) { window.location.href = '/login'; return; }
+      if (response.status === 403) { window.location.href = '/profile'; return; }
+      const data = response.ok ? await response.json() : { metrics: {}, activity: [], adminQueue: [] };
+      const metrics = data.metrics || {};
+      document.getElementById('checkedInTodayMetric').textContent = metrics.checkedInToday ?? 0;
+      document.getElementById('participationHint').textContent = `${metrics.participationRate ?? 0}% participation across selected orgs`;
+      document.getElementById('pendingRequestsMetric').textContent = metrics.pendingRequests ?? 0;
+      document.getElementById('activeBlockersMetric').textContent = metrics.activeBlockers ?? 0;
+      document.getElementById('organizationsMetric').textContent = metrics.organizations ?? 0;
+      renderActivity(data.activity || []);
+      renderAdminQueue(data.adminQueue || []);
+    }
+
+    loadDashboard().catch(() => showToast('Dashboard could not be loaded.'));
+  </script>
 </body>
 </html>

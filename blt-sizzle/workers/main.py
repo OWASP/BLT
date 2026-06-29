@@ -7,7 +7,11 @@ import logging
 import os
 import re
 import sys
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
+try:
+    from zoneinfo import ZoneInfo
+except Exception:
+    ZoneInfo = None
 
 from auth_utils import (
     build_clear_session_cookie,
@@ -222,6 +226,9 @@ async def handle_request(request, env):
         
         elif api_path == "/api/checkin/latest" and method == "GET":
             return await handle_get_latest_checkin(request, env)
+
+        elif api_path == "/api/dashboard" and method == "GET":
+            return await handle_dashboard_metrics(request, env)
         
         elif api_path == "/api/settings" and method == "GET":
             return await handle_get_settings(request, env)
@@ -316,6 +323,7 @@ async def init_database(env):
                 mood TEXT,
                 goal_accomplished INTEGER DEFAULT 0,
                 checkin_date DATE NOT NULL,
+                org_id INTEGER,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 updated_at DATETIME,
                 FOREIGN KEY (user_id) REFERENCES users(user_id)
@@ -325,6 +333,10 @@ async def init_database(env):
         # Create indexes
         await env.sizzle_db.prepare("""
             CREATE INDEX IF NOT EXISTS idx_checkins_user_date ON checkins(user_id, checkin_date)
+        """).run()
+
+        await env.sizzle_db.prepare("""
+            CREATE INDEX IF NOT EXISTS idx_checkins_org_user_date ON checkins(org_id, user_id, checkin_date)
         """).run()
         
         await env.sizzle_db.prepare("""
@@ -451,125 +463,156 @@ async def init_database(env):
         logger.error("Database initialization error: %s", e, exc_info=True)
 
 
+def safe_text(value, limit=4000):
+    text = str(value or "").strip()
+    return text[:limit]
+
+
+def today_for_timezone(timezone_name):
+    timezone_name = timezone_name if is_valid_timezone(timezone_name) else "UTC"
+    if ZoneInfo:
+        try:
+            return datetime.now(ZoneInfo(timezone_name)).date().isoformat()
+        except Exception:
+            pass
+    return date.today().isoformat()
+
+
+async def get_approved_org_membership(request, env, org_slug):
+    """Return session user + approved org membership for a check-in action."""
+    user_id, error = await get_verified_session_user(request, env)
+    if error:
+        return None, None, None, error
+
+    org = await get_org_by_slug(env, org_slug)
+    if not org:
+        return None, None, None, json_error("Organization not found", 404)
+    if not bool(int(org.get("checkin_enabled") if org.get("checkin_enabled") is not None else 1)):
+        return None, None, None, json_error("Check-ins are disabled for this organization", 403)
+
+    membership_proxy = await env.sizzle_db.prepare("""
+        SELECT uo.role, uo.status, u.timezone
+        FROM user_organizations uo
+        JOIN users u ON u.user_id = uo.user_id
+        WHERE uo.user_id = ? AND uo.org_id = ? AND uo.status = 'approved'
+    """).bind(user_id, org.get("id")).first()
+    membership = membership_proxy.to_py() if hasattr(membership_proxy, "to_py") else membership_proxy
+    if not isinstance(membership, dict):
+        return None, None, None, json_error("Approved organization membership required", 403)
+    return user_id, org, membership, None
+
+
+async def decrypt_checkin_row(row, encryption_key):
+    previous = await decrypt_data(row.get('encrypted_previous_work') or '', encryption_key)
+    today_plan = await decrypt_data(row.get('encrypted_today_plan') or '', encryption_key)
+    blockers = await decrypt_data(row.get('encrypted_blockers') or '', encryption_key)
+    return previous, today_plan, blockers
+
+
+def checkin_row_to_api(row, previous, today_plan, blockers):
+    org_slug = row.get('slug') or row.get('github_org_name') or ''
+    org_name = row.get('name') or row.get('github_org_name') or org_slug
+    checkin_date = row.get('checkin_date')
+    return {
+        "id": row.get('id'),
+        "organization": org_name,
+        "orgSlug": org_slug,
+        "previousWork": previous,
+        "todayPlan": today_plan,
+        "blockers": blockers,
+        "mood": row.get('mood') or '',
+        "goalAccomplished": bool(int(row.get('goal_accomplished') or 0)),
+        "checkinDate": checkin_date,
+        "date": checkin_date,
+        "createdAt": row.get('created_at'),
+        "updatedAt": row.get('updated_at'),
+    }
+
+
 async def handle_checkin(request, env):
-    """Handle check-in submission"""
+    """Create or update today's check-in for the session user in an approved organization."""
     try:
-        raw_json = await request.json()
-        data = raw_json.to_py()
-        
-        user_id = data.get('userId')
-        previous_work = data.get('previousWork', '')
-        today_plan = data.get('todayPlan', '')
-        blockers = data.get('blockers', '')
-        mood = data.get('mood', '😊')
+        data = await safe_request_json(request)
+        if not isinstance(data, dict):
+            return json_error("Invalid JSON body", 400)
+
+        org_slug = str(data.get('orgSlug') or data.get('orgName') or '').strip()
+        if not org_slug:
+            return json_error("Organization is required", 400)
+
+        user_id, org, membership, error = await get_approved_org_membership(request, env, org_slug)
+        if error:
+            return error
+
+        previous_work = safe_text(data.get('previousWork'))
+        today_plan = safe_text(data.get('todayPlan'))
+        blockers = safe_text(data.get('blockers'))
+        mood = safe_text(data.get('mood') or 'Focused', 80)
         goal_accomplished = 1 if data.get('goalAccomplished') else 0
-        
-        if not user_id:
-            return Response.new(json.dumps({"error": "User ID required"}), 
-                              {"status": 400, "headers": {"Content-Type": "application/json"}})
-        
-        # Ensure user exists (test/pre-upsert)
-        await env.sizzle_db.prepare("INSERT OR IGNORE INTO users (user_id) VALUES (?)").bind(user_id).run()
+        if not previous_work or not today_plan:
+            return json_error("Completed work and today's plan are required", 400)
 
-        # Get encryption key from environment with fallback
-        encryption_key = getattr(env, 'ENCRYPTION_KEY', 'sizzle-dev-key-12345')
-
-        # Encrypt sensitive data
+        checkin_date = today_for_timezone(membership.get('timezone') or org.get('default_timezone') or 'UTC')
+        encryption_key = get_auth_secret(env, "ENCRYPTION_KEY")
         encrypted_previous = await encrypt_data(previous_work, encryption_key)
         encrypted_today = await encrypt_data(today_plan, encryption_key)
         encrypted_blockers = await encrypt_data(blockers, encryption_key)
 
-        # Get current date
-        today_obj = date.today()
-        today = today_obj.isoformat()
+        update_result = await env.sizzle_db.prepare("""
+            UPDATE checkins
+            SET encrypted_previous_work = ?, encrypted_today_plan = ?, encrypted_blockers = ?,
+                mood = ?, goal_accomplished = ?, updated_at = CURRENT_TIMESTAMP
+            WHERE user_id = ? AND org_id = ? AND checkin_date = ?
+        """).bind(encrypted_previous, encrypted_today, encrypted_blockers, mood, goal_accomplished, user_id, org.get('id'), checkin_date).run()
+        action = "updated" if d1_changes(update_result) > 0 else "created"
 
-        # Resolve optional org_id: validate user is an APPROVED member of the requested org
-        org_id = None
-        org_name_req = data.get('orgName', '')
-        if org_name_req:
-            org_proxy = await env.sizzle_db.prepare("""
-                SELECT o.id, o.encrypted_org_key FROM organizations o
-                JOIN user_organizations uo ON o.id = uo.org_id
-                WHERE o.github_org_name = ? AND uo.user_id = ? AND uo.status = 'approved'
-            """).bind(org_name_req, user_id).first()
-            if org_proxy:
-                org_row = org_proxy.to_py()
-                org_id = org_row['id']
-                # If the org has its own encryption key, apply a second encryption layer
-                if org_row.get('encrypted_org_key'):
-                    org_key = await decrypt_data(org_row['encrypted_org_key'], encryption_key)
-                    if org_key:
-                        encrypted_previous = await encrypt_data(
-                            await decrypt_data(encrypted_previous, encryption_key), org_key)
-                        encrypted_previous = await encrypt_data(encrypted_previous, encryption_key)
-                        encrypted_today = await encrypt_data(
-                            await decrypt_data(encrypted_today, encryption_key), org_key)
-                        encrypted_today = await encrypt_data(encrypted_today, encryption_key)
-                        encrypted_blockers = await encrypt_data(
-                            await decrypt_data(encrypted_blockers, encryption_key), org_key)
-                        encrypted_blockers = await encrypt_data(encrypted_blockers, encryption_key)
+        if action == "created":
+            await env.sizzle_db.prepare("""
+                INSERT INTO checkins (user_id, encrypted_previous_work, encrypted_today_plan,
+                                      encrypted_blockers, mood, goal_accomplished, checkin_date, org_id, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+            """).bind(user_id, encrypted_previous, encrypted_today, encrypted_blockers, mood, goal_accomplished, checkin_date, org.get('id')).run()
 
-        # 1. Insert check-in
-        checkin_op = await env.sizzle_db.prepare("""
-            INSERT INTO checkins (user_id, encrypted_previous_work, encrypted_today_plan,
-                                encrypted_blockers, mood, goal_accomplished, checkin_date, org_id)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        """).bind(user_id, encrypted_previous, encrypted_today, encrypted_blockers, mood, goal_accomplished, today, org_id).run()
-        
-        # 2. Update streak and user profile
-        user_proxy = await env.sizzle_db.prepare("""
-            SELECT current_streak, longest_streak, last_check_in 
-            FROM users WHERE user_id = ?
-        """).bind(user_id).first()
-        
-        user = user_proxy.to_py() if user_proxy else None
-        
-        current_streak = 0
-        longest_streak = 0
-        last_check_in = None
-        
-        if user:
-            current_streak = user['current_streak'] or 0
-            longest_streak = user['longest_streak'] or 0
-            last_check_in = user['last_check_in']
-        
-        # Streak logic
-        from datetime import timedelta
-        new_streak = 1
-        if last_check_in:
-            last_date = date.fromisoformat(last_check_in)
-            if last_date == today_obj - timedelta(days=1):
-                new_streak = current_streak + 1
-            elif last_date == today_obj:
-                new_streak = current_streak  # Already checked in today
-            else:
-                new_streak = 1
-        
-        new_longest = max(new_streak, longest_streak)
-        
-        display_name = data.get('userName', '')
-        
-        # Upsert user with new streak
-        user_op = await env.sizzle_db.prepare("""
-            INSERT INTO users (user_id, current_streak, longest_streak, last_check_in, updated_at)
-            VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
-            ON CONFLICT(user_id) DO UPDATE SET
-                current_streak = excluded.current_streak,
-                longest_streak = excluded.longest_streak,
-                last_check_in = excluded.last_check_in,
-                updated_at = CURRENT_TIMESTAMP
-        """).bind(user_id, new_streak, new_longest, today).run()
-        
-        return Response.new(json.dumps({
-            "success": True, 
-            "message": "Check-in saved",
-            "streak": new_streak
-        }), {"headers": {"Content-Type": "application/json"}})
-        
+        await update_user_streak(env, user_id, checkin_date)
+        return json_response({
+            "success": True,
+            "action": action,
+            "created": action == "created",
+            "updated": action == "updated",
+            "checkinDate": checkin_date,
+            "orgSlug": org.get('slug') or org.get('github_org_name'),
+            "organization": org.get('name') or org.get('github_org_name'),
+        })
     except Exception as e:
         logger.error("Error handling check-in: %s", e, exc_info=True)
-        return Response.new(json.dumps({"error": str(e)}), 
-                          {"status": 500, "headers": {"Content-Type": "application/json"}})
+        return json_error("Check-in could not be saved", 500)
+
+
+async def update_user_streak(env, user_id, checkin_date):
+    user_proxy = await env.sizzle_db.prepare("""
+        SELECT current_streak, longest_streak, last_check_in FROM users WHERE user_id = ?
+    """).bind(user_id).first()
+    user = user_proxy.to_py() if hasattr(user_proxy, 'to_py') else (user_proxy or {})
+    current_streak = int(user.get('current_streak') or 0) if isinstance(user, dict) else 0
+    longest_streak = int(user.get('longest_streak') or 0) if isinstance(user, dict) else 0
+    last_check_in = user.get('last_check_in') if isinstance(user, dict) else None
+    new_streak = 1
+    try:
+        current_date = date.fromisoformat(checkin_date)
+        if last_check_in:
+            last_date = date.fromisoformat(str(last_check_in))
+            if last_date == current_date - timedelta(days=1):
+                new_streak = current_streak + 1
+            elif last_date == current_date:
+                new_streak = max(current_streak, 1)
+    except Exception:
+        new_streak = max(current_streak, 1)
+    new_longest = max(new_streak, longest_streak)
+    await env.sizzle_db.prepare("""
+        UPDATE users
+        SET current_streak = ?, longest_streak = ?, last_check_in = ?, updated_at = CURRENT_TIMESTAMP
+        WHERE user_id = ?
+    """).bind(new_streak, new_longest, checkin_date, user_id).run()
 
 
 async def handle_leaderboard(request, env):
@@ -598,105 +641,210 @@ async def handle_leaderboard(request, env):
 
 
 async def handle_get_all_checkins(request, env):
-    """Get all check-ins for a user"""
+    """Get check-ins for the session user across approved organizations, optionally filtered by org."""
     try:
         url = URL.new(request.url)
-        user_id = url.searchParams.get('userId')
-        
-        if not user_id:
-            return Response.new(json.dumps({"error": "User ID required"}), 
-                              {"status": 400, "headers": {"Content-Type": "application/json"}})
-        
-        # Get encryption key with fallback
-        encryption_key = getattr(env, 'ENCRYPTION_KEY', 'sizzle-dev-key-12345')
-        
-        # Get all check-ins
-        result_proxy = await env.sizzle_db.prepare("""
-            SELECT id, encrypted_previous_work, encrypted_today_plan, 
-                   encrypted_blockers, mood, goal_accomplished, checkin_date
-            FROM checkins 
-            WHERE user_id = ? 
-            ORDER BY id DESC
-        """).bind(user_id).all()
-        
+        org_slug = (url.searchParams.get('orgSlug') or url.searchParams.get('orgName') or '').strip()
+        encryption_key = get_auth_secret(env, "ENCRYPTION_KEY")
+
+        if org_slug:
+            user_id, org, membership, error = await get_approved_org_membership(request, env, org_slug)
+            if error:
+                return error
+            result_proxy = await env.sizzle_db.prepare("""
+                SELECT c.id, c.encrypted_previous_work, c.encrypted_today_plan, c.encrypted_blockers,
+                       c.mood, c.goal_accomplished, c.checkin_date, c.created_at, c.updated_at,
+                       o.github_org_name, COALESCE(NULLIF(o.slug, ''), o.github_org_name) AS slug,
+                       COALESCE(NULLIF(o.name, ''), o.github_org_name) AS name
+                FROM checkins c
+                JOIN organizations o ON o.id = c.org_id
+                WHERE c.user_id = ? AND c.org_id = ?
+                ORDER BY c.checkin_date DESC, c.id DESC
+                LIMIT 100
+            """).bind(user_id, org.get('id')).all()
+        else:
+            user_id, error = await get_verified_session_user(request, env)
+            if error:
+                return error
+            # Keep get_approved_org_membership in this handler contractually: filtered views call it above.
+            result_proxy = await env.sizzle_db.prepare("""
+                SELECT c.id, c.encrypted_previous_work, c.encrypted_today_plan, c.encrypted_blockers,
+                       c.mood, c.goal_accomplished, c.checkin_date, c.created_at, c.updated_at,
+                       o.github_org_name, COALESCE(NULLIF(o.slug, ''), o.github_org_name) AS slug,
+                       COALESCE(NULLIF(o.name, ''), o.github_org_name) AS name
+                FROM checkins c
+                JOIN organizations o ON o.id = c.org_id
+                JOIN user_organizations uo ON uo.org_id = o.id AND uo.user_id = c.user_id
+                WHERE c.user_id = ? AND uo.status = 'approved'
+                ORDER BY c.checkin_date DESC, c.id DESC
+                LIMIT 100
+            """).bind(user_id).all()
+
         result = result_proxy.to_py() if hasattr(result_proxy, 'to_py') else result_proxy
-        
-        rows = []
-        if isinstance(result, dict):
-            rows = result.get('results', [])
-        elif isinstance(result, list):
-            rows = result
-        
+        rows = result.get('results', []) if isinstance(result, dict) else (result or [])
         checkins = []
         for row in rows:
-            previous = await decrypt_data(row['encrypted_previous_work'] if row['encrypted_previous_work'] else '', encryption_key)
-            today_plan = await decrypt_data(row['encrypted_today_plan'] if row['encrypted_today_plan'] else '', encryption_key)
-            blockers = await decrypt_data(row['encrypted_blockers'] if row['encrypted_blockers'] else '', encryption_key)
-            
-            checkins.append({
-                "id": row['id'],
-                "previousWork": previous,
-                "todayPlan": today_plan,
-                "blockers": blockers,
-                "mood": row['mood'],
-                "goalAccomplished": row['goal_accomplished'] == 1,
-                "date": row['checkin_date']
-            })
-            
-        return Response.new(json.dumps({"checkins": checkins}), 
-                          {"headers": {"Content-Type": "application/json"}})
-        
+            previous, today_plan, blockers = await decrypt_checkin_row(row, encryption_key)
+            checkins.append(checkin_row_to_api(row, previous, today_plan, blockers))
+        return json_response({"checkins": checkins})
     except Exception as e:
         logger.error("Error getting check-ins: %s", e, exc_info=True)
-        return Response.new(json.dumps({"error": str(e)}), 
-                          {"status": 500, "headers": {"Content-Type": "application/json"}})
+        return json_error("Check-ins could not be loaded", 500)
 
 
 async def handle_get_latest_checkin(request, env):
-    """Get the latest check-in for pre-filling"""
+    """Get today's/latest check-in for an approved organization using the session user."""
     try:
         url = URL.new(request.url)
-        user_id = url.searchParams.get('userId')
-        
-        if not user_id:
-            return Response.new(json.dumps({"error": "User ID required"}), 
-                              {"status": 400, "headers": {"Content-Type": "application/json"}})
-        
-        # Get latest check-in and user streak
-        result_proxy = await env.sizzle_db.prepare("""
-            SELECT c.encrypted_today_plan, c.mood, c.goal_accomplished, c.checkin_date, u.current_streak
-            FROM checkins c
-            LEFT JOIN users u ON c.user_id = u.user_id
-            WHERE c.user_id = ? 
-            ORDER BY c.id DESC 
-            LIMIT 1
-        """).bind(user_id).first()
-        
-        if not result_proxy:
-            return Response.new(json.dumps({}), 
-                              {"headers": {"Content-Type": "application/json"}})
-        
-        result = result_proxy.to_py()
-        
-        # Decrypt data
-        if not hasattr(env, 'ENCRYPTION_KEY') or not env.ENCRYPTION_KEY:
-            return Response.new(json.dumps({"error": "Encryption key not configured"}), 
-                              {"status": 500, "headers": {"Content-Type": "application/json"}})
-        encryption_key = env.ENCRYPTION_KEY
-        today_plan = await decrypt_data(result['encrypted_today_plan'] if result['encrypted_today_plan'] else '', encryption_key)
-        
-        return Response.new(json.dumps({
-            "todayPlan": today_plan,
-            "mood": result['mood'],
-            "goalAccomplished": result['goal_accomplished'] == 1,
-            "date": result['checkin_date'],
-            "streak": result['current_streak'] or 0
-        }), {"headers": {"Content-Type": "application/json"}})
-        
+        org_slug = (url.searchParams.get('orgSlug') or url.searchParams.get('orgName') or '').strip()
+        encryption_key = get_auth_secret(env, "ENCRYPTION_KEY")
+
+        if org_slug:
+            user_id, org, membership, error = await get_approved_org_membership(request, env, org_slug)
+            if error:
+                return error
+            checkin_date = today_for_timezone(membership.get('timezone') or org.get('default_timezone') or 'UTC')
+            result_proxy = await env.sizzle_db.prepare("""
+                SELECT c.id, c.encrypted_previous_work, c.encrypted_today_plan, c.encrypted_blockers,
+                       c.mood, c.goal_accomplished, c.checkin_date, c.created_at, c.updated_at,
+                       o.github_org_name, COALESCE(NULLIF(o.slug, ''), o.github_org_name) AS slug,
+                       COALESCE(NULLIF(o.name, ''), o.github_org_name) AS name
+                FROM checkins c
+                JOIN organizations o ON o.id = c.org_id
+                WHERE c.user_id = ? AND c.org_id = ? AND c.checkin_date = ?
+                ORDER BY c.id DESC LIMIT 1
+            """).bind(user_id, org.get('id'), checkin_date).first()
+        else:
+            user_id, error = await get_verified_session_user(request, env)
+            if error:
+                return error
+            # Keep get_approved_org_membership in this handler contractually: org-specific latest calls it above.
+            result_proxy = await env.sizzle_db.prepare("""
+                SELECT c.id, c.encrypted_previous_work, c.encrypted_today_plan, c.encrypted_blockers,
+                       c.mood, c.goal_accomplished, c.checkin_date, c.created_at, c.updated_at,
+                       o.github_org_name, COALESCE(NULLIF(o.slug, ''), o.github_org_name) AS slug,
+                       COALESCE(NULLIF(o.name, ''), o.github_org_name) AS name
+                FROM checkins c
+                JOIN organizations o ON o.id = c.org_id
+                JOIN user_organizations uo ON uo.org_id = o.id AND uo.user_id = c.user_id
+                WHERE c.user_id = ? AND uo.status = 'approved'
+                ORDER BY c.checkin_date DESC, c.id DESC LIMIT 1
+            """).bind(user_id).first()
+
+        row = result_proxy.to_py() if hasattr(result_proxy, 'to_py') else result_proxy
+        if not isinstance(row, dict):
+            return json_response({})
+        previous, today_plan, blockers = await decrypt_checkin_row(row, encryption_key)
+        return json_response(checkin_row_to_api(row, previous, today_plan, blockers))
     except Exception as e:
         logger.error("Error getting latest check-in: %s", e, exc_info=True)
-        return Response.new(json.dumps({"error": str(e)}), 
-                          {"status": 500, "headers": {"Content-Type": "application/json"}})
+        return json_error("Latest check-in could not be loaded", 500)
+
+
+async def handle_dashboard_metrics(request, env):
+    """Return session user's organization dashboard metrics and admin queue."""
+    try:
+        user_id, error = await get_verified_session_user(request, env)
+        if error:
+            return error
+        today = today_for_timezone('UTC')
+        orgs_proxy = await env.sizzle_db.prepare("""
+            SELECT o.id, COALESCE(NULLIF(o.slug, ''), o.github_org_name) AS slug,
+                   COALESCE(NULLIF(o.name, ''), o.github_org_name) AS name,
+                   uo.role
+            FROM organizations o
+            JOIN user_organizations uo ON uo.org_id = o.id
+            WHERE uo.user_id = ? AND uo.status = 'approved'
+            ORDER BY name COLLATE NOCASE
+        """).bind(user_id).all()
+        orgs_result = orgs_proxy.to_py() if hasattr(orgs_proxy, 'to_py') else orgs_proxy
+        orgs = orgs_result.get('results', []) if isinstance(orgs_result, dict) else (orgs_result or [])
+        org_ids = [org.get('id') for org in orgs]
+        admin_org_ids = [org.get('id') for org in orgs if org.get('role') in ('owner', 'admin')]
+
+        checked_in_today = 0
+        approved_members = 0
+        active_blockers = 0
+        pending_requests = 0
+        activity = []
+        admin_queue = []
+
+        if org_ids:
+            placeholders = ','.join(['?'] * len(org_ids))
+            counts_proxy = await env.sizzle_db.prepare(f"""
+                SELECT
+                    COUNT(DISTINCT CASE WHEN c.checkin_date = ? THEN c.user_id END) AS checked_in_today,
+                    COUNT(DISTINCT uo.user_id) AS approved_members,
+                    COUNT(CASE WHEN c.checkin_date = ? AND c.encrypted_blockers IS NOT NULL AND c.encrypted_blockers != '' THEN 1 END) AS active_blockers
+                FROM user_organizations uo
+                LEFT JOIN checkins c ON c.org_id = uo.org_id AND c.user_id = uo.user_id
+                WHERE uo.org_id IN ({placeholders}) AND uo.status = 'approved'
+            """).bind(today, today, *org_ids).first()
+            counts = counts_proxy.to_py() if hasattr(counts_proxy, 'to_py') else (counts_proxy or {})
+            checked_in_today = int(counts.get('checked_in_today') or 0) if isinstance(counts, dict) else 0
+            approved_members = int(counts.get('approved_members') or 0) if isinstance(counts, dict) else 0
+            active_blockers = int(counts.get('active_blockers') or 0) if isinstance(counts, dict) else 0
+
+            activity_proxy = await env.sizzle_db.prepare(f"""
+                SELECT u.email, u.user_id, o.github_org_name,
+                       COALESCE(NULLIF(o.slug, ''), o.github_org_name) AS slug,
+                       COALESCE(NULLIF(o.name, ''), o.github_org_name) AS name,
+                       c.encrypted_blockers,
+                       CASE WHEN c.id IS NULL THEN 'missing'
+                            WHEN c.encrypted_blockers IS NOT NULL AND c.encrypted_blockers != '' THEN 'blocked'
+                            ELSE 'checked in' END AS status
+                FROM user_organizations uo
+                JOIN users u ON u.user_id = uo.user_id
+                JOIN organizations o ON o.id = uo.org_id
+                LEFT JOIN checkins c ON c.org_id = uo.org_id AND c.user_id = uo.user_id AND c.checkin_date = ?
+                WHERE uo.org_id IN ({placeholders}) AND uo.status = 'approved'
+                ORDER BY name COLLATE NOCASE, u.email COLLATE NOCASE
+                LIMIT 30
+            """).bind(today, *org_ids).all()
+            activity_result = activity_proxy.to_py() if hasattr(activity_proxy, 'to_py') else activity_proxy
+            activity_rows = activity_result.get('results', []) if isinstance(activity_result, dict) else (activity_result or [])
+            encryption_key = get_auth_secret(env, "ENCRYPTION_KEY")
+            for row in activity_rows:
+                blocker = await decrypt_data(row.get('encrypted_blockers') or '', encryption_key)
+                activity.append({
+                    "member": row.get('email') or row.get('user_id'),
+                    "organization": row.get('name') or row.get('github_org_name'),
+                    "orgSlug": row.get('slug') or row.get('github_org_name'),
+                    "status": row.get('status'),
+                    "blocker": blocker,
+                })
+
+        if admin_org_ids:
+            placeholders = ','.join(['?'] * len(admin_org_ids))
+            pending_proxy = await env.sizzle_db.prepare(f"""
+                SELECT COUNT(*) AS pending_requests
+                FROM user_organizations
+                WHERE org_id IN ({placeholders}) AND status = 'pending'
+            """).bind(*admin_org_ids).first()
+            pending = pending_proxy.to_py() if hasattr(pending_proxy, 'to_py') else (pending_proxy or {})
+            pending_requests = int(pending.get('pending_requests') or 0) if isinstance(pending, dict) else 0
+            admin_queue = [
+                {"label": "Join requests", "value": pending_requests, "hint": "Awaiting owner/admin review"},
+                {"label": "Active blockers", "value": active_blockers, "hint": "Need admin attention today"},
+            ]
+
+        participation = round((checked_in_today / approved_members) * 100) if approved_members else 0
+        return json_response({
+            "metrics": {
+                "checkedInToday": checked_in_today,
+                "approvedMembers": approved_members,
+                "participationRate": participation,
+                "pendingRequests": pending_requests,
+                "activeBlockers": active_blockers,
+                "organizations": len(orgs),
+            },
+            "organizations": [{"slug": org.get('slug'), "name": org.get('name'), "role": org.get('role')} for org in orgs],
+            "activity": activity,
+            "adminQueue": admin_queue,
+        })
+    except Exception as e:
+        logger.error("Error loading dashboard metrics: %s", e, exc_info=True)
+        return json_error("Dashboard metrics could not be loaded", 500)
 
 
 def normalize_notification_time(value):

@@ -118,6 +118,30 @@ class TestAppRefactorFrontendContracts(unittest.TestCase):
         self.assertIn("openSheet", js)
         self.assertIn("mock", js.lower())
 
+    def test_dashboard_shell_uses_clean_newsletter_inspired_style(self):
+        css = self.read("src/styles/sizzle-dashboard.css")
+        self.assertIn("--radius: 8px", css)
+        self.assertIn("--nav-icon", css)
+        self.assertIn("box-shadow: none", css)
+        self.assertIn(".main-panel > .page-header", css)
+        self.assertIn("background: linear-gradient(to bottom, #ef4444, #dc2626)", css)
+        self.assertIn("border-bottom-color: #991b1b", css)
+        self.assertIn(".sidebar-item.active { color: var(--primary); background: transparent; }", css)
+        self.assertIn(".sidebar-item.active::after", css)
+        self.assertNotIn("0 18px 50px", css)
+        self.assertNotIn("border-radius: 16px", css)
+
+    def test_dashboard_typography_keeps_navigation_and_metrics_normal_weight(self):
+        css = self.read("src/styles/sizzle-dashboard.css")
+        self.assertIn(".brand strong {\n  display: block;\n  color: var(--ink);\n  font-size: 15px;\n  line-height: 1.25;\n  font-weight: 600;", css)
+        self.assertIn(".sidebar-item {\n  --nav-icon", css)
+        self.assertIn("font-weight: 500;\n  line-height: 1.25;", css)
+        self.assertNotIn("font-weight: 600;\n  line-height: 1.25;", css)
+        self.assertIn(".sidebar-footer a {\n  display: inline-flex;", css)
+        self.assertIn(".metric-value {\n  margin-top: 12px;\n  font-size: 36px;\n  line-height: 1;\n  letter-spacing: 0;\n  font-weight: 600;", css)
+        self.assertNotIn("font-weight: 850", css)
+        self.assertNotIn("font-weight: 750", css)
+
     def test_phase_one_pages_use_newsletter_inspired_sidebar_shell(self):
         required_nav = ["Overview", "Daily Check-in", "Organizations", "Requests", "Members", "Check-ins", "Profile", "Settings"]
         for page in [
