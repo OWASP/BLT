@@ -37,6 +37,25 @@ class TestOrganizationRoutesContract(unittest.TestCase):
         self.assertIn("Email verification required", self.source)
         self.assertIn("^[a-z0-9]+(?:-[a-z0-9]+)*$", self.source)
 
+    def test_init_database_backfills_columns_for_existing_local_d1_tables(self):
+        start = self.source.index("async def init_database")
+        end = self.source.index("async def handle_checkin")
+        body = self.source[start:end]
+        self.assertIn("ensure_column", body)
+        for fragment in [
+            "ALTER TABLE users ADD COLUMN email_verified",
+            "ALTER TABLE users ADD COLUMN status",
+            "ALTER TABLE organizations ADD COLUMN slug",
+            "ALTER TABLE organizations ADD COLUMN name",
+            "ALTER TABLE organizations ADD COLUMN description",
+            "ALTER TABLE organizations ADD COLUMN created_by_user_id",
+            "ALTER TABLE organizations ADD COLUMN checkin_enabled",
+            "ALTER TABLE user_organizations ADD COLUMN role",
+            "ALTER TABLE user_organizations ADD COLUMN requested_at",
+            "ALTER TABLE checkins ADD COLUMN org_id",
+        ]:
+            self.assertIn(fragment, body)
+
     def test_create_org_sets_creator_as_owner_approved(self):
         start = self.source.index("async def handle_add_org")
         end = self.source.index("async def handle_join_org")

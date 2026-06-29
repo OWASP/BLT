@@ -34,11 +34,16 @@ logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 logger = logging.getLogger(__name__)
 
 
+def response_init(status=200, headers=None):
+    return to_js({
+        "status": status,
+        "headers": headers or {},
+    }, dict_converter=Object.fromEntries)
+
+
 def redirect(location, status=302):
     """Create a redirect Response with proper Headers object (supports relative URLs)"""
-    h = Headers.new()
-    h.set("Location", location)
-    return Response.new(None, {"status": status, "headers": h})
+    return Response.new(None, response_init(status, {"Location": location}))
 
 
 # Encryption utilities using Web Crypto API
@@ -282,6 +287,16 @@ async def handle_request(request, env):
     return Response.new("Not Found", {"status": 404})
 
 
+async def ensure_column(env, sql):
+    """Best-effort additive schema backfill for existing local/remote D1 databases."""
+    try:
+        await env.sizzle_db.prepare(sql).run()
+    except Exception as e:
+        message = str(e).lower()
+        if "duplicate column" not in message and "already exists" not in message:
+            logger.warning("Schema backfill failed for %s: %s", sql, e)
+
+
 async def init_database(env):
     """Initialize database tables"""
     try:
@@ -311,6 +326,15 @@ async def init_database(env):
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )
         """).run()
+
+        for sql in [
+            "ALTER TABLE users ADD COLUMN email TEXT",
+            "ALTER TABLE users ADD COLUMN email_hash TEXT",
+            "ALTER TABLE users ADD COLUMN password_hash TEXT",
+            "ALTER TABLE users ADD COLUMN email_verified INTEGER DEFAULT 0",
+            "ALTER TABLE users ADD COLUMN status TEXT DEFAULT 'active'",
+        ]:
+            await ensure_column(env, sql)
         
         # Create checkins table
         await env.sizzle_db.prepare("""
@@ -329,6 +353,12 @@ async def init_database(env):
                 FOREIGN KEY (user_id) REFERENCES users(user_id)
             )
         """).run()
+
+        for sql in [
+            "ALTER TABLE checkins ADD COLUMN org_id INTEGER",
+            "ALTER TABLE checkins ADD COLUMN updated_at DATETIME",
+        ]:
+            await ensure_column(env, sql)
         
         # Create indexes
         await env.sizzle_db.prepare("""
@@ -434,6 +464,27 @@ async def init_database(env):
             )
         """).run()
 
+        for sql in [
+            "ALTER TABLE organizations ADD COLUMN name TEXT",
+            "ALTER TABLE organizations ADD COLUMN slug TEXT",
+            "ALTER TABLE organizations ADD COLUMN description TEXT",
+            "ALTER TABLE organizations ADD COLUMN created_by_user_id TEXT",
+            "ALTER TABLE organizations ADD COLUMN default_timezone TEXT DEFAULT 'UTC'",
+            "ALTER TABLE organizations ADD COLUMN checkin_enabled INTEGER DEFAULT 1",
+        ]:
+            await ensure_column(env, sql)
+
+        await env.sizzle_db.prepare("""
+            UPDATE organizations
+            SET slug = COALESCE(NULLIF(slug, ''), github_org_name),
+                name = COALESCE(NULLIF(name, ''), github_org_name)
+            WHERE github_org_name IS NOT NULL
+        """).run()
+
+        await env.sizzle_db.prepare("""
+            CREATE INDEX IF NOT EXISTS idx_orgs_slug ON organizations(slug)
+        """).run()
+
         await env.sizzle_db.prepare("""
             CREATE INDEX IF NOT EXISTS idx_orgs_name ON organizations(github_org_name)
         """).run()
@@ -453,6 +504,29 @@ async def init_database(env):
                 FOREIGN KEY (user_id) REFERENCES users(user_id),
                 FOREIGN KEY (org_id) REFERENCES organizations(id)
             )
+        """).run()
+
+        for sql in [
+            "ALTER TABLE user_organizations ADD COLUMN role TEXT DEFAULT 'member'",
+            "ALTER TABLE user_organizations ADD COLUMN requested_at DATETIME",
+            "ALTER TABLE user_organizations ADD COLUMN approved_by_user_id TEXT",
+            "ALTER TABLE user_organizations ADD COLUMN approved_at DATETIME",
+        ]:
+            await ensure_column(env, sql)
+
+        await env.sizzle_db.prepare("""
+            UPDATE user_organizations
+            SET role = COALESCE(NULLIF(role, ''), 'member'),
+                requested_at = COALESCE(requested_at, joined_at, CURRENT_TIMESTAMP),
+                approved_at = CASE WHEN status = 'approved' THEN COALESCE(approved_at, joined_at, CURRENT_TIMESTAMP) ELSE approved_at END
+        """).run()
+
+        await env.sizzle_db.prepare("""
+            CREATE INDEX IF NOT EXISTS idx_user_orgs_role ON user_organizations(org_id, role)
+        """).run()
+
+        await env.sizzle_db.prepare("""
+            CREATE INDEX IF NOT EXISTS idx_user_orgs_status_role ON user_organizations(org_id, status, role)
         """).run()
 
         await env.sizzle_db.prepare("""
@@ -1168,7 +1242,10 @@ def json_response(data, status=200, extra_headers=None):
     headers = {"Content-Type": "application/json"}
     if extra_headers:
         headers.update(extra_headers)
-    return Response.new(json.dumps(data), {"status": status, "headers": headers})
+    return Response.new(json.dumps(data), to_js({
+        "status": status,
+        "headers": headers,
+    }, dict_converter=Object.fromEntries))
 
 
 def json_error(message, status=400):
