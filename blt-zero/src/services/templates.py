@@ -96,12 +96,32 @@ def docs_decrypt() -> str:
     return layout("BLT-Zero — Decrypt Guide", docs_decrypt_html, False)
 
 
-def admin_onboard_page() -> str:
+def admin_onboard_page(turnstile_site_key: str = "") -> str:
     """Generate the admin onboarding page."""
 
     admin_onboard_html = read_html_file("admin-onboard.html")
+    turnstile_enabled = bool(turnstile_site_key)
+    turnstile_widget = (
+        '<div class="cf-turnstile" data-sitekey="'
+        + esc(turnstile_site_key)
+        + '"></div>'
+        if turnstile_enabled
+        else ""
+    )
+    turnstile_status = (
+        "and Cloudflare Turnstile" if turnstile_enabled else "(Turnstile disabled)"
+    )
 
-    return layout("BLT-Zero — Org Admin Onboarding", admin_onboard_html,False)
+    body = replace_template(
+        admin_onboard_html,
+        {
+            "TURNSTILE_ENABLED": "true" if turnstile_enabled else "false",
+            "TURNSTILE_STATUS": turnstile_status,
+            "TURNSTILE_WIDGET": turnstile_widget,
+        },
+    )
+
+    return layout("BLT-Zero — Org Admin Onboarding", body, turnstile_enabled)
 
 
 def onboarding_email_body(app_origin: str, domain: str) -> str:

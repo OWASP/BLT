@@ -1,144 +1,138 @@
-
-<section class="px-6 py-12">
-  <div class="mx-auto max-w-4xl">
-    
-    <!-- Header -->
-    <div class="text-center mb-12">
-      <div class="mb-6 inline-flex items-center gap-1.5 rounded-full border border-yellow-500/20 bg-yellow-500/10 px-3 py-1 text-xs font-medium text-yellow-500">
-        <svg class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+<section class="px-4 py-12 sm:px-6 lg:py-16">
+  <div class="mx-auto max-w-5xl">
+    <div class="mx-auto mb-10 max-w-3xl text-center">
+      <span class="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 font-mono text-xs font-medium uppercase tracking-[.16em] text-amber-700">
+        <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/>
         </svg>
         Admin Only
-      </div>
-      <h1 class="text-balance text-4xl font-bold tracking-tight">Organization Admin Onboarding</h1>
-      <p class="mx-auto mt-4 max-w-xl text-pretty text-base leading-relaxed text-gray-600 dark:text-gray-400">
-        Register or update your organization's domain with BLT-Zero
+      </span>
+      <h1 class="mt-5 text-balance text-4xl font-bold leading-tight text-gray-900 sm:text-5xl lg:text-6xl">Organization Admin Onboarding</h1>
+      <p class="mx-auto mt-5 max-w-2xl text-pretty text-base leading-7 text-gray-600">
+        Register or update your organization's domain with BLT-Zero.
       </p>
     </div>
 
-    <!-- Info Card -->
-    <div class="rounded-lg border border-yellow-500/20 bg-yellow-500/5 p-6 mb-8">
-      <div class="flex gap-3">
-        <svg class="h-5 w-5 text-yellow-500 flex-shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>
-        </svg>
-        <div>
-          <p class="font-semibold text-gray-900 dark:text-gray-50 mb-2">Protected Page</p>
-          <p class="text-sm text-gray-600 dark:text-gray-400">
-            This page allows you to insert or update a domain entry in the database and send an onboarding email. 
-            Protected by ADMIN_TOKEN {{TURNSTILE_STATUS}}.
-          </p>
+    <div class="grid gap-6 lg:grid-cols-[.88fr_1.12fr] lg:items-start">
+      <aside class="space-y-6 lg:sticky lg:top-24">
+        <div class="rounded-lg border border-amber-200 bg-amber-50 p-5">
+          <div class="flex gap-3">
+            <svg class="mt-0.5 h-5 w-5 flex-none text-amber-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>
+            </svg>
+            <div>
+              <p class="font-semibold text-gray-900">Protected Page</p>
+              <p class="mt-2 text-sm leading-6 text-gray-700">
+                This page allows you to insert or update a domain entry in the database and send an onboarding email.
+                Protected by ADMIN_TOKEN {{TURNSTILE_STATUS}}.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="rounded-lg border border-gray-200 bg-white p-5 shadow-[inset_0_0_0_1px_rgba(17,24,39,.03)]">
+          <h3 class="text-lg font-semibold tracking-tight text-gray-900">Need Help?</h3>
+          <div class="mt-4 space-y-3 text-sm text-gray-600">
+            <p><a href="/docs/org-onboarding" class="font-medium text-red-600 underline-offset-4 hover:underline">Organization Onboarding Guide</a></p>
+            <p><a href="/docs/security" class="font-medium text-red-600 underline-offset-4 hover:underline">Security Model</a></p>
+            <p><a href="/docs/decrypt" class="font-medium text-red-600 underline-offset-4 hover:underline">Decrypt Reports</a></p>
+          </div>
+        </div>
+      </aside>
+
+      <div class="rounded-lg border border-gray-200 bg-white p-4 shadow-soft sm:p-6">
+        <div class="rounded-lg border border-gray-100 bg-gray-50 p-4 sm:p-6">
+          <div class="mb-6">
+            <h2 class="section-kicker relative ml-3 text-lg font-semibold tracking-tight text-red-500">Domain details</h2>
+            <p class="mt-2 text-sm leading-6 text-gray-600">Paste the generated public key and confirm where onboarding mail should be sent.</p>
+          </div>
+
+          <form id="a">
+            <div class="space-y-5">
+              <div>
+                <label for="token" class="mb-2 block text-sm font-medium text-gray-900">ADMIN TOKEN</label>
+                <input
+                  id="token"
+                  type="password"
+                  placeholder="paste ADMIN_TOKEN"
+                  required
+                  class="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 font-mono text-sm text-gray-900 shadow-sm outline-none transition placeholder:text-gray-400 focus:border-red-300 focus:ring-4 focus:ring-red-100"
+                />
+              </div>
+
+              <div class="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label for="domain" class="mb-2 block text-sm font-medium text-gray-900">Domain</label>
+                  <input
+                    id="domain"
+                    placeholder="example.com"
+                    required
+                    class="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition placeholder:text-gray-400 focus:border-red-300 focus:ring-4 focus:ring-red-100"
+                  />
+                </div>
+                <div>
+                  <label for="email" class="mb-2 block text-sm font-medium text-gray-900">Security Inbox Email</label>
+                  <input
+                    id="email"
+                    type="email"
+                    placeholder="security@example.com"
+                    required
+                    class="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition placeholder:text-gray-400 focus:border-red-300 focus:ring-4 focus:ring-red-100"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label for="jwk" class="mb-2 block text-sm font-medium text-gray-900">Public Key (JWK JSON)</label>
+                <textarea
+                  id="jwk"
+                  rows="8"
+                  placeholder='{"kty":"EC","crv":"P-256","x":"...","y":"..."}'
+                  required
+                  class="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 font-mono text-sm leading-6 text-gray-900 shadow-sm outline-none transition placeholder:text-gray-400 focus:border-red-300 focus:ring-4 focus:ring-red-100"
+                ></textarea>
+                <p class="mt-2 text-xs text-gray-500">
+                  Generate using <code class="rounded bg-white px-1 py-0.5 font-mono text-gray-900">python tools/org_keygen.py</code>
+                </p>
+              </div>
+
+              <div>
+                <label for="keyid" class="mb-2 block text-sm font-medium text-gray-900">Key ID</label>
+                <input
+                  id="keyid"
+                  placeholder="hex string (from keygen output)"
+                  required
+                  class="w-full rounded-lg border border-gray-200 bg-white px-4 py-3 font-mono text-sm text-gray-900 shadow-sm outline-none transition placeholder:text-gray-400 focus:border-red-300 focus:ring-4 focus:ring-red-100"
+                />
+              </div>
+
+              <div class="flex items-center gap-3 rounded-lg border border-gray-200 bg-white px-4 py-3">
+                <input
+                  type="checkbox"
+                  id="sendmail"
+                  checked
+                  class="h-4 w-4 rounded border-gray-300 text-red-600 focus:ring-2 focus:ring-red-500"
+                />
+                <label for="sendmail" class="cursor-pointer text-sm font-medium text-gray-900">
+                  Send onboarding email to organization inbox
+                </label>
+              </div>
+
+              {{TURNSTILE_WIDGET}}
+
+              <button
+                type="submit"
+                class="inline-flex w-full items-center justify-center rounded-md border-b-[1.5px] border-red-700 bg-gradient-to-b from-red-500 to-red-600 px-6 py-3 text-sm font-semibold text-white shadow-button transition duration-200 hover:-translate-y-px"
+              >
+                Onboard Domain
+              </button>
+
+              <p class="min-h-6 rounded-lg border border-gray-200 bg-white px-4 py-3 font-mono text-sm leading-6 text-gray-600" id="out"></p>
+            </div>
+          </form>
         </div>
       </div>
     </div>
-
-    <!-- Onboarding Form -->
-    <div class="rounded-lg border bg-white dark:bg-dark-surface p-8">
-      <form id="a">
-        <div class="space-y-5">
-          
-          <!-- Admin Token -->
-          <div>
-            <label class="block text-sm font-medium mb-2">ADMIN TOKEN</label>
-            <input 
-              id="token" 
-              type="password"
-              placeholder="paste ADMIN_TOKEN" 
-              required
-              class="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-dark-base text-gray-900 dark:text-gray-50 focus:outline-none focus:ring-2 focus:ring-primary font-mono"
-            />
-          </div>
-
-          <!-- Domain and Email -->
-          <div class="grid gap-4 md:grid-cols-2">
-            <div>
-              <label class="block text-sm font-medium mb-2">Domain</label>
-              <input 
-                id="domain" 
-                placeholder="example.com" 
-                required
-                class="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-dark-base text-gray-900 dark:text-gray-50 focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-            </div>
-            <div>
-              <label class="block text-sm font-medium mb-2">Security Inbox Email</label>
-              <input 
-                id="email" 
-                type="email"
-                placeholder="security@example.com" 
-                required
-                class="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-dark-base text-gray-900 dark:text-gray-50 focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-            </div>
-          </div>
-
-          <!-- Public Key JWK -->
-          <div>
-            <label class="block text-sm font-medium mb-2">Public Key (JWK JSON)</label>
-            <textarea 
-              id="jwk" 
-              rows="8" 
-              placeholder='{"kty":"EC","crv":"P-256","x":"...","y":"..."}'
-              required
-              class="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-dark-base text-gray-900 dark:text-gray-50 focus:outline-none focus:ring-2 focus:ring-primary font-mono text-sm"
-            ></textarea>
-            <p class="text-xs text-gray-600 dark:text-gray-400 mt-2">
-              Generate using <code class="px-1 py-0.5 rounded bg-gray-100 dark:bg-gray-800">python tools/org_keygen.py</code>
-            </p>
-          </div>
-
-          <!-- Key ID -->
-          <div>
-            <label class="block text-sm font-medium mb-2">Key ID</label>
-            <input 
-              id="keyid" 
-              placeholder="hex string (from keygen output)" 
-              required
-              class="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-dark-base text-gray-900 dark:text-gray-50 focus:outline-none focus:ring-2 focus:ring-primary font-mono"
-            />
-          </div>
-
-          <!-- Send Email Checkbox -->
-          <div class="flex items-center gap-3">
-            <input 
-              type="checkbox" 
-              id="sendmail" 
-              checked
-              class="h-4 w-4 rounded border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-dark-base text-primary focus:ring-2 focus:ring-primary"
-            />
-            <label for="sendmail" class="text-sm font-medium cursor-pointer">
-              Send onboarding email to organization inbox
-            </label>
-          </div>
-
-          <!-- Turnstile Widget -->
-          {{TURNSTILE_WIDGET}}
-
-          <!-- Submit Button -->
-          <button 
-            type="submit"
-            class="w-full px-6 py-3 rounded-lg bg-primary text-primary-foreground font-semibold hover:bg-primary/90 transition-colors"
-          >
-            Onboard Domain
-          </button>
-
-          <!-- Status Message -->
-          <p class="text-sm text-gray-600 dark:text-gray-400" id="out"></p>
-
-        </div>
-      </form>
-    </div>
-
-    <!-- Help Card -->
-    <div class="mt-8 rounded-lg border bg-white dark:bg-dark-surface p-6">
-      <h3 class="text-lg font-semibold mb-4">Need Help?</h3>
-      <div class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
-        <p>• First time onboarding? Check the <a href="/docs/org-onboarding" class="text-primary hover:underline">Organization Onboarding Guide</a></p>
-        <p>• Learn about our <a href="/docs/security" class="text-primary hover:underline">Security Model</a></p>
-        <p>• How to <a href="/docs/decrypt" class="text-primary hover:underline">Decrypt Reports</a></p>
-      </div>
-    </div>
-
   </div>
 </section>
 
@@ -154,15 +148,15 @@ document.getElementById("a").addEventListener("submit", async (e)=>{
   let turnstileToken = "";
   if (TURNSTILE_ENABLED){
     turnstileToken = document.querySelector('input[name="cf-turnstile-response"]')?.value || "";
-    if(!turnstileToken){ 
-      out.textContent="❌ Turnstile verification missing. Please complete the challenge."; 
-      return; 
+    if(!turnstileToken){
+      out.textContent="Turnstile verification missing. Please complete the challenge.";
+      return;
     }
   }
 
   try{
-    out.textContent="⏳ Processing...";
-    
+    out.textContent="Processing...";
+
     const resp = await fetch("/admin/onboard", {
       method:"POST",
       headers: {"content-type":"application/json"},
@@ -176,16 +170,16 @@ document.getElementById("a").addEventListener("submit", async (e)=>{
         send_onboarding_email: document.getElementById("sendmail").checked
       })
     });
-    
+
     const j = await resp.json().catch(()=>({}));
     if(!resp.ok) throw new Error(j?.error || "Onboard failed");
-    
-    out.textContent = "✅ Successfully onboarded: " + j.domain + (j.email_sent ? " (onboarding email sent)" : "");
-    
+
+    out.textContent = "Successfully onboarded: " + j.domain + (j.email_sent ? " (onboarding email sent)" : "");
+
     // Reset form on success
     document.getElementById("a").reset();
   }catch(err){
-    out.textContent = "❌ " + (err?.message || String(err));
+    out.textContent = (err?.message || String(err));
   }
 });
 </script>
