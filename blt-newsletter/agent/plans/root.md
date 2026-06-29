@@ -23,4 +23,4 @@ Start with Slice 1 only:
 7. Update the public form to use the Worker API.
 8. Remove GitHub Issues subscription copy from the public UI.
 
-Keep admin dashboard, issue CRUD/archive, SendGrid campaign delivery, and advanced backlog items in later slices unless maintainers explicitly expand Slice 1.
+Keep admin dashboard, campaign draft/archive, SendGrid campaign delivery, and advanced backlog items in later slices unless maintainers explicitly expand Slice 1.

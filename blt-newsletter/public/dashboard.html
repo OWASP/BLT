@@ -36,47 +36,21 @@
         --text-secondary-light: #1e293b;
         --text-muted-light: #64748b;
         --border-light: #e2e8f0;
-
-        --background-dark: #0a0d12;
-        --surface-dark: #111318;
-        --elevated-dark: #1a1f2e;
-        --text-primary-dark: #f0f1f3;
-        --text-secondary-dark: #c9ccd1;
-        --text-muted-dark: #8a8e97;
-        --border-dark: rgba(255, 255, 255, 0.08);
       }
 
       html {
         color-scheme: light;
       }
-
-      html.dark {
-        color-scheme: dark;
-      }
-
       body {
         background-color: var(--background-light);
         color: var(--text-primary-light);
         transition: background-color 200ms, color 200ms;
       }
-
-      html.dark body {
-        background-color: var(--background-dark);
-        color: var(--text-primary-dark);
-      }
-
       .card {
         background-color: var(--surface-light);
         border-color: var(--border-light);
         color: var(--text-primary-light);
       }
-
-      html.dark .card {
-        background-color: var(--surface-dark);
-        border-color: var(--border-dark);
-        color: var(--text-primary-dark);
-      }
-
       .page {
         display: none;
       }
@@ -96,11 +70,6 @@
       .sheet-overlay.active {
         display: block;
       }
-
-      html.dark .sheet-overlay {
-        background: rgba(0, 0, 0, 0.5);
-      }
-
       .sheet {
         position: fixed;
         top: 0;
@@ -116,12 +85,6 @@
         display: flex;
         flex-direction: column;
       }
-
-      html.dark .sheet {
-        background-color: var(--surface-dark);
-        border-left-color: var(--border-dark);
-      }
-
       .sheet.active {
         transform: translateX(0);
       }
@@ -139,11 +102,6 @@
       .modal-overlay.active {
         display: flex;
       }
-
-      html.dark .modal-overlay {
-        background: rgba(0, 0, 0, 0.7);
-      }
-
       .modal {
         background-color: var(--surface-light);
         border-radius: 12px;
@@ -152,11 +110,6 @@
         max-height: 90vh;
         overflow-y: auto;
       }
-
-      html.dark .modal {
-        background-color: var(--surface-dark);
-      }
-
       .toast-container {
         position: fixed;
         bottom: 24px;
@@ -173,13 +126,6 @@
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
         animation: slideIn 200ms ease;
       }
-
-      html.dark .toast {
-        background-color: var(--elevated-dark);
-        border-color: var(--border-dark);
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
-      }
-
       @keyframes slideIn {
         from {
           transform: translateX(400px);
@@ -201,16 +147,6 @@
         background-size: 200% 100%;
         animation: loading 1.5s infinite;
       }
-
-      html.dark .skeleton {
-        background: linear-gradient(
-          90deg,
-          var(--border-dark) 25%,
-          rgba(255, 255, 255, 0.05) 50%,
-          var(--border-dark) 75%
-        );
-      }
-
       @keyframes loading {
         0% {
           background-position: 200% 0;
@@ -225,30 +161,14 @@
         border-right-color: var(--border-light);
         transition: background-color 200ms, border-color 200ms;
       }
-
-      html.dark .sidebar {
-        background-color: var(--surface-dark);
-        border-right-color: var(--border-dark);
-      }
-
       .sidebar-item {
         position: relative;
         color: var(--text-muted-light);
         transition: background-color 200ms, color 200ms;
       }
-
-      html.dark .sidebar-item {
-        color: var(--text-muted-dark);
-      }
-
       .sidebar-item:hover {
         background-color: #f1f5f9;
       }
-
-      html.dark .sidebar-item:hover {
-        background-color: #1a1f2e;
-      }
-
       .sidebar-item.active {
         color: #dc2626;
       }
@@ -278,92 +198,38 @@
         background: #ecfdf5;
         color: #10b981;
       }
-
-      html.dark .status-active {
-        background: rgba(16, 185, 129, 0.15);
-        color: #10b981;
-      }
-
       .status-draft {
         background: #f1f5f9;
         color: #64748b;
       }
-
-      html.dark .status-draft {
-        background: rgba(100, 116, 139, 0.15);
-        color: #94a3b8;
-      }
-
       .status-bounced {
         background: #fef2f2;
         color: #dc2626;
       }
-
-      html.dark .status-bounced {
-        background: rgba(220, 38, 38, 0.15);
-        color: #ef4444;
-      }
-
       .status-suppressed {
         background: #fef3c7;
         color: #b45309;
       }
-
-      html.dark .status-suppressed {
-        background: rgba(180, 83, 9, 0.15);
-        color: #fbbf24;
-      }
-
       .status-unsubscribed {
         background: #f1f5f9;
         color: #64748b;
       }
-
-      html.dark .status-unsubscribed {
-        background: rgba(100, 116, 139, 0.15);
-        color: #94a3b8;
-      }
-
       .status-published {
         background: #ecfdf5;
         color: #10b981;
       }
-
-      html.dark .status-published {
-        background: rgba(16, 185, 129, 0.15);
-        color: #10b981;
-      }
-
       .status-scheduled {
         background: #eff6ff;
         color: #0284c7;
       }
-
-      html.dark .status-scheduled {
-        background: rgba(2, 132, 199, 0.15);
-        color: #38bdf8;
-      }
-
       .status-sent {
         background: #ecfdf5;
         color: #10b981;
       }
-
-      html.dark .status-sent {
-        background: rgba(16, 185, 129, 0.15);
-        color: #10b981;
-      }
-
       .status-sending {
         background: #fef3c7;
         color: #b45309;
       }
-
-      html.dark .status-sending {
-        background: rgba(180, 83, 9, 0.15);
-        color: #fbbf24;
-      }
-
       .btn-primary {
         background: linear-gradient(to bottom, #ef4444, #dc2626);
         color: white;
@@ -392,23 +258,10 @@
         transition: all 200ms ease;
         font-weight: 500;
       }
-
-      html.dark .close-button {
-        background-color: var(--elevated-dark);
-        color: var(--text-secondary-dark);
-        border-color: var(--border-dark);
-      }
-
       .close-button:hover {
         background-color: #f1f5f9;
         border-color: #cbd5e1;
       }
-
-      html.dark .close-button:hover {
-        background-color: #475569;
-        border-color: rgba(255, 255, 255, 0.15);
-      }
-
       .btn-secondary {
         background-color: var(--surface-light);
         color: var(--text-secondary-light);
@@ -420,23 +273,10 @@
         cursor: pointer;
         transition: all 200ms ease;
       }
-
-      html.dark .btn-secondary {
-        background-color: var(--elevated-dark);
-        color: var(--text-secondary-dark);
-        border-color: var(--border-dark);
-      }
-
       .btn-secondary:hover {
         background-color: #f1f5f9;
         border-color: #cbd5e1;
       }
-
-      html.dark .btn-secondary:hover {
-        background-color: #475569;
-        border-color: rgba(255, 255, 255, 0.15);
-      }
-
       .input-field {
         background-color: var(--surface-light);
         border: 1px solid var(--border-light);
@@ -446,39 +286,16 @@
         color: var(--text-primary-light);
         transition: background-color 200ms, border-color 200ms, color 200ms;
       }
-
-      html.dark .input-field {
-        background-color: var(--elevated-dark);
-        border-color: var(--border-dark);
-        color: var(--text-primary-dark);
-      }
-
       .input-field:focus {
         outline: none;
         border-color: #dc2626;
         box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
       }
-
-      html.dark .input-field:focus {
-        box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
-      }
-
-      html.dark .input-field {
-        background-color: var(--elevated-dark);
-        border-color: var(--border-dark);
-        color: var(--text-primary-dark);
-      }
-
       .input-field:focus {
         outline: none;
         border-color: #dc2626;
         box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
       }
-
-      html.dark .input-field:focus {
-        box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2);
-      }
-
       table {
         width: 100%;
         border-collapse: collapse;
@@ -495,30 +312,14 @@
         text-transform: uppercase;
         letter-spacing: 0.05em;
       }
-
-      html.dark th {
-        color: var(--text-muted-dark);
-        border-bottom-color: var(--border-dark);
-      }
-
       td {
         padding: 14px 16px;
         border-bottom: 1px solid var(--border-light);
         font-size: 14px;
       }
-
-      html.dark td {
-        border-bottom-color: var(--border-dark);
-      }
-
       tr:hover {
         background-color: #f8fafc;
       }
-
-      html.dark tr:hover {
-        background-color: rgba(255, 255, 255, 0.05);
-      }
-
       .progress-bar {
         width: 100%;
         height: 6px;
@@ -526,11 +327,6 @@
         border-radius: 3px;
         overflow: hidden;
       }
-
-      html.dark .progress-bar {
-        background-color: var(--border-dark);
-      }
-
       .progress-fill {
         height: 100%;
         background: linear-gradient(to right, #10b981, #34d399);
@@ -542,11 +338,6 @@
           display: none;
           background-color: var(--surface-light);
         }
-
-        html.dark .sidebar {
-          background-color: var(--surface-dark);
-        }
-
         .sidebar.active {
           display: flex;
           position: fixed;
@@ -561,11 +352,6 @@
           height: 100vh;
           background-color: var(--surface-light);
         }
-
-        html.dark .sidebar-content {
-          background-color: var(--surface-dark);
-        }
-
         body.px-8 {
           padding-left: 1rem;
           padding-right: 1rem;
@@ -587,12 +373,9 @@
       <!-- Sidebar -->
       <aside class="sidebar w-64 border-r flex flex-col bg-white flex-none transition-colors" style="border-right-color: var(--border-light); background-color: var(--surface-light);">
         <div class="sidebar-content p-6 flex flex-col h-full" style="color: var(--text-primary-light);">
-        <style>
-          html.dark .sidebar-content { color: var(--text-primary-dark); }
-        </style>
           <div class="flex items-center gap-2 mb-8">
-            <div class="flex h-9 w-9 items-center justify-center rounded-lg border border-red-100 bg-white shadow-sm text-red-600 text-base">
-              <i class="fa-solid fa-bug"></i>
+            <div class="flex h-9 w-9 items-center justify-center rounded-lg border border-red-100 bg-white shadow-sm">
+              <img src="./static/images/logo.png" alt="BLT Logo" class="h-8 w-8" />
             </div>
             <div>
               <span class="block text-xs font-semibold uppercase tracking-wide text-gray-400">OWASP BLT</span>
@@ -607,15 +390,15 @@
             </button>
             <button onclick="navigateTo('users')" class="sidebar-item w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium transition hover:bg-gray-50">
               <i class="fa-solid fa-users w-4 mr-3"></i>
-              Users
-            </button>
-            <button onclick="navigateTo('issues')" class="sidebar-item w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium transition hover:bg-gray-50">
-              <i class="fa-solid fa-newspaper w-4 mr-3"></i>
-              Issues
+              Subscribers
             </button>
             <button onclick="navigateTo('campaigns')" class="sidebar-item w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium transition hover:bg-gray-50">
-              <i class="fa-solid fa-paper-plane w-4 mr-3"></i>
+              <i class="fa-solid fa-newspaper w-4 mr-3"></i>
               Campaigns
+            </button>
+            <button onclick="navigateTo('deliveries')" class="sidebar-item w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium transition hover:bg-gray-50">
+              <i class="fa-solid fa-paper-plane w-4 mr-3"></i>
+              Deliveries
             </button>
             <button onclick="navigateTo('template')" class="sidebar-item w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium transition hover:bg-gray-50">
               <i class="fa-solid fa-layer-group w-4 mr-3"></i>
@@ -636,11 +419,6 @@
               <i class="fa-solid fa-sign-out-alt w-4 mr-2"></i>
               Logout
             </button>
-
-            <style>
-              html.dark .sidebar a, html.dark .sidebar button { color: var(--text-muted-dark); }
-              html.dark .sidebar a:hover, html.dark .sidebar button:hover { background-color: var(--elevated-dark); }
-            </style>
           </div>
         </div>
       </aside>
@@ -654,25 +432,11 @@
             <p id="page-desc" class="text-sm" style="color: var(--text-muted-light);">Monitor newsletter health and activity</p>
           </div>
           <div class="flex items-center gap-4">
-            <button onclick="toggleTheme()" class="p-2 rounded-lg transition" style="background-color: transparent; color: var(--text-muted-light);" onmouseover="this.style.backgroundColor='#f1f5f9'" onmouseout="this.style.backgroundColor='transparent'">
-              <i class="fa-solid fa-moon text-sm"></i>
-            </button>
-            <button class="w-10 h-10 rounded-full bg-red-600 text-white flex items-center justify-center text-sm font-semibold cursor-pointer">
-              AD
+            <button id="admin-avatar-initials" class="w-10 h-10 rounded-full bg-red-600 text-white flex items-center justify-center text-sm font-semibold cursor-pointer" title="Signed-in admin">
+              …
             </button>
           </div>
         </header>
-
-        <style>
-          html.dark header {
-            background-color: var(--surface-dark);
-            border-bottom-color: var(--border-dark);
-          }
-          html.dark #page-title { color: var(--text-primary-dark); }
-          html.dark #page-desc { color: var(--text-muted-dark); }
-          html.dark header button { color: var(--text-muted-dark); }
-          html.dark header button:hover { background-color: var(--elevated-dark); }
-        </style>
 
         <!-- Pages Container -->
         <div class="flex-1 overflow-y-auto">
@@ -681,36 +445,36 @@
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
               <!-- Metric Cards -->
               <div class="card border rounded-lg p-6">
-                <p class="text-sm text-gray-600 font-medium">Active users</p>
-                <p class="text-3xl font-semibold mt-2">2,847</p>
-                <p class="text-xs text-gray-500 mt-1">↑ 12% this month</p>
+                <p class="text-sm text-gray-600 font-medium">Active subscribers</p>
+                <p id="stat-active-subscribers" class="text-3xl font-semibold mt-2">—</p>
+                <p id="stat-total-subscribers-note" class="text-xs text-gray-500 mt-1">Loading D1 stats…</p>
               </div>
               <div class="card border rounded-lg p-6">
-                <p class="text-sm text-gray-600 font-medium">New subscribers</p>
-                <p class="text-3xl font-semibold mt-2">340</p>
-                <p class="text-xs text-gray-500 mt-1">This month</p>
+                <p class="text-sm text-gray-600 font-medium">Total subscribers</p>
+                <p id="stat-new-subscribers" class="text-3xl font-semibold mt-2">—</p>
+                <p id="stat-unsubscribed-note" class="text-xs text-gray-500 mt-1">Including active and unsubscribed</p>
               </div>
               <div class="card border rounded-lg p-6">
-                <p class="text-sm text-gray-600 font-medium">Published issues</p>
-                <p class="text-3xl font-semibold mt-2">24</p>
-                <p class="text-xs text-gray-500 mt-1">All time</p>
+                <p class="text-sm text-gray-600 font-medium">Published campaigns</p>
+                <p id="stat-published-campaigns" class="text-3xl font-semibold mt-2">—</p>
+                <p id="stat-total-campaigns-note" class="text-xs text-gray-500 mt-1">Loaded from D1</p>
               </div>
               <div class="card border rounded-lg p-6">
-                <p class="text-sm text-gray-600 font-medium">Last campaign</p>
-                <p class="text-3xl font-semibold mt-2" style="color: #10b981;">Sent</p>
-                <p class="text-xs text-gray-500 mt-1">2 days ago • 1,248 recipients</p>
+                <p class="text-sm text-gray-600 font-medium">Draft campaigns</p>
+                <p id="stat-draft-campaigns" class="text-3xl font-semibold mt-2">—</p>
+                <p class="text-xs text-gray-500 mt-1">Ready for editing</p>
               </div>
               <div class="card border rounded-lg p-6">
                 <p class="text-sm text-gray-600 font-medium">Delivery success rate</p>
                 <div class="progress-bar mt-3 mb-2">
-                  <div class="progress-fill" style="width: 98.5%"></div>
+                  <div id="stat-delivery-success-bar" class="progress-fill" style="width: 0%"></div>
                 </div>
-                <p class="text-sm font-semibold">98.5%</p>
+                <p id="stat-delivery-success-rate" class="text-sm font-semibold">Queue pending</p>
               </div>
-              <div class="card border rounded-lg p-6 cursor-pointer hover:border-red-600 transition" onclick="navigateTo('campaigns')">
+              <div class="card border rounded-lg p-6 cursor-pointer hover:border-red-600 transition" onclick="navigateTo('deliveries')">
                 <p class="text-sm text-gray-600 font-medium">Failed deliveries</p>
-                <p class="text-3xl font-semibold mt-2 text-red-600">38</p>
-                <p class="text-xs text-gray-500 mt-1">Needs attention →</p>
+                <p id="stat-failed-deliveries" class="text-3xl font-semibold mt-2 text-red-600">0</p>
+                <p class="text-xs text-gray-500 mt-1">Delivery events wire in Slice 3 →</p>
               </div>
             </div>
 
@@ -729,45 +493,21 @@
                         <th class="px-6 py-3 text-right font-medium" style="color: var(--text-secondary-light);">Time</th>
                       </tr>
                     </thead>
-                    <tbody>
-                      <tr style="border-bottom: 1px solid var(--border-light);">
-                        <td class="px-6 py-3"><span class="inline-flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-blue-600"></span><span>Subscriber</span></span></td>
-                        <td class="px-6 py-3" style="color: var(--text-secondary-light);">Maria Chen subscribed</td>
-                        <td class="px-6 py-3 text-right text-xs" style="color: var(--text-muted-light);">2h ago</td>
-                      </tr>
-                      <tr style="border-bottom: 1px solid var(--border-light);">
-                        <td class="px-6 py-3"><span class="inline-flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-green-600"></span><span>Published</span></span></td>
-                        <td class="px-6 py-3" style="color: var(--text-secondary-light);">GSoC Updates released</td>
-                        <td class="px-6 py-3 text-right text-xs" style="color: var(--text-muted-light);">1d ago</td>
-                      </tr>
-                      <tr style="border-bottom: 1px solid var(--border-light);">
-                        <td class="px-6 py-3"><span class="inline-flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-green-600"></span><span>Completed</span></span></td>
-                        <td class="px-6 py-3" style="color: var(--text-secondary-light);">June Digest campaign sent</td>
-                        <td class="px-6 py-3 text-right text-xs" style="color: var(--text-muted-light);">2d ago</td>
-                      </tr>
+                    <tbody id="recent-activity-body">
                       <tr>
-                        <td class="px-6 py-3"><span class="inline-flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-red-600"></span><span>Failed</span></span></td>
-                        <td class="px-6 py-3" style="color: var(--text-secondary-light);">12 bounces on June Digest</td>
-                        <td class="px-6 py-3 text-right text-xs" style="color: var(--text-muted-light);">2d ago</td>
+                        <td class="px-6 py-3" colspan="3">Loading recent activity…</td>
                       </tr>
                     </tbody>
                   </table>
                 </div>
-
-                <style>
-                  html.dark table thead tr { background-color: var(--elevated-dark); border-bottom-color: var(--border-dark); }
-                  html.dark table tbody tr { border-bottom-color: var(--border-dark); }
-                  html.dark table tbody tr td { color: var(--text-secondary-dark); }
-                  html.dark table tbody tr td .fa-solid { color: var(--text-muted-dark); }
-                </style>
               </div>
 
               <div class="card border rounded-lg p-6">
                 <h3 class="font-semibold mb-4">Quick actions</h3>
                 <div class="grid grid-cols-2 gap-3">
-                  <button class="btn-secondary text-left py-3" onclick="openIssueEditor()">
+                  <button class="btn-secondary text-left py-3" onclick="openCampaignEditor()">
                     <i class="fa-solid fa-plus text-red-600 mr-2"></i>
-                    <span>New issue</span>
+                    <span>New campaign</span>
                   </button>
                   <button class="btn-secondary text-left py-3" onclick="openTestEmailModal()">
                     <i class="fa-solid fa-envelope text-red-600 mr-2"></i>
@@ -775,7 +515,7 @@
                   </button>
                   <button class="btn-secondary text-left py-3" onclick="openImportUsersModal()">
                     <i class="fa-solid fa-file-import text-red-600 mr-2"></i>
-                    <span>Import users</span>
+                    <span>Import subscribers</span>
                   </button>
                   <button class="btn-secondary text-left py-3">
                     <i class="fa-solid fa-archive text-red-600 mr-2"></i>
@@ -786,18 +526,18 @@
             </div>
           </div>
 
-          <!-- Users Page -->
+          <!-- Subscribers Page -->
           <div id="users-page" class="page p-8">
             <div class="mb-6 flex gap-4 flex-col md:flex-row md:items-center md:justify-between">
               <div class="flex-1">
-                <input type="text" placeholder="Search users by name or email..." class="input-field w-full" id="user-search" onkeyup="filterUsers()" />
+                <input type="text" placeholder="Search subscribers by name or email..." class="input-field w-full" id="user-search" onkeyup="filterUsers()" />
               </div>
               <div class="flex gap-2 flex-wrap">
-                <button class="btn-secondary px-3" id="filter-all" onclick="filterByStatus('all')" style="background-color: #dc2626; color: white; border-color: #dc2626;">All</button>
-                <button class="btn-secondary px-3" onclick="filterByStatus('active')">Active</button>
-                <button class="btn-secondary px-3" onclick="filterByStatus('bounced')">Bounced</button>
-                <button class="btn-secondary px-3" onclick="filterByStatus('unsubscribed')">Unsubscribed</button>
-                <button class="btn-secondary px-3" onclick="filterByStatus('suppressed')">Suppressed</button>
+                <button class="btn-secondary px-3" id="filter-all" data-status-filter="all" onclick="filterByStatus('all')" style="background-color: #dc2626; color: white; border-color: #dc2626;">All</button>
+                <button class="btn-secondary px-3" data-status-filter="active" onclick="filterByStatus('active')">Active</button>
+                <button class="btn-secondary px-3" data-status-filter="bounced" onclick="filterByStatus('bounced')">Bounced</button>
+                <button class="btn-secondary px-3" data-status-filter="unsubscribed" onclick="filterByStatus('unsubscribed')">Unsubscribed</button>
+                <button class="btn-secondary px-3" data-status-filter="suppressed" onclick="filterByStatus('suppressed')">Suppressed</button>
                 <button class="btn-secondary px-3" onclick="openImportUsersModal()">Import</button>
                 <button class="btn-secondary px-3" onclick="showToast('Export started')">Export</button>
               </div>
@@ -818,99 +558,32 @@
                   </tr>
                 </thead>
                 <tbody id="users-table-body">
-                  <tr class="user-row" data-status="active">
-                    <td><input type="checkbox" /></td>
-                    <td class="font-medium">Aisha Khan</td>
-                    <td class="email-cell text-gray-600">aisha.khan@example.com</td>
-                    <td><span class="status-badge status-active">Active</span></td>
-                    <td class="text-gray-600">Landing page</td>
-                    <td class="text-gray-600 text-sm">Jun 2</td>
-                    <td class="text-gray-600 text-sm">Jun 12</td>
-                    <td>
-                      <button class="text-red-600 hover:bg-red-50 p-2 rounded text-sm" onclick="openUserDetails('Aisha Khan', 'aisha.khan@example.com', 'active')">
-                        <i class="fa-solid fa-ellipsis-h"></i>
-                      </button>
-                    </td>
-                  </tr>
-                  <tr class="user-row" data-status="active">
-                    <td><input type="checkbox" /></td>
-                    <td class="font-medium">Diego Morales</td>
-                    <td class="email-cell text-gray-600">diego.m@example.com</td>
-                    <td><span class="status-badge status-active">Active</span></td>
-                    <td class="text-gray-600">Import</td>
-                    <td class="text-gray-600 text-sm">May 28</td>
-                    <td class="text-gray-600 text-sm">Jun 12</td>
-                    <td>
-                      <button class="text-red-600 hover:bg-red-50 p-2 rounded text-sm" onclick="openUserDetails('Diego Morales', 'diego.m@example.com', 'active')">
-                        <i class="fa-solid fa-ellipsis-h"></i>
-                      </button>
-                    </td>
-                  </tr>
-                  <tr class="user-row" data-status="bounced">
-                    <td><input type="checkbox" /></td>
-                    <td class="font-medium">Priya Shah</td>
-                    <td class="email-cell text-gray-600">priya.shah@example.com</td>
-                    <td><span class="status-badge status-bounced">Bounced</span></td>
-                    <td class="text-gray-600">Landing page</td>
-                    <td class="text-gray-600 text-sm">May 19</td>
-                    <td class="text-gray-600 text-sm">Jun 5</td>
-                    <td>
-                      <button class="text-red-600 hover:bg-red-50 p-2 rounded text-sm" onclick="openUserDetails('Priya Shah', 'priya.shah@example.com', 'bounced')">
-                        <i class="fa-solid fa-ellipsis-h"></i>
-                      </button>
-                    </td>
-                  </tr>
-                  <tr class="user-row" data-status="unsubscribed">
-                    <td><input type="checkbox" /></td>
-                    <td class="font-medium">Chen Wei</td>
-                    <td class="email-cell text-gray-600">chen.wei@example.com</td>
-                    <td><span class="status-badge status-unsubscribed">Unsubscribed</span></td>
-                    <td class="text-gray-600">Archive footer</td>
-                    <td class="text-gray-600 text-sm">May 11</td>
-                    <td class="text-gray-600 text-sm">May 25</td>
-                    <td>
-                      <button class="text-red-600 hover:bg-red-50 p-2 rounded text-sm" onclick="openUserDetails('Chen Wei', 'chen.wei@example.com', 'unsubscribed')">
-                        <i class="fa-solid fa-ellipsis-h"></i>
-                      </button>
-                    </td>
-                  </tr>
-                  <tr class="user-row" data-status="suppressed">
-                    <td><input type="checkbox" /></td>
-                    <td class="font-medium">Sam Taylor</td>
-                    <td class="email-cell text-gray-600">sam.taylor@example.com</td>
-                    <td><span class="status-badge status-suppressed">Suppressed</span></td>
-                    <td class="text-gray-600">Admin action</td>
-                    <td class="text-gray-600 text-sm">Apr 30</td>
-                    <td class="text-gray-600 text-sm">May 10</td>
-                    <td>
-                      <button class="text-red-600 hover:bg-red-50 p-2 rounded text-sm" onclick="openUserDetails('Sam Taylor', 'sam.taylor@example.com', 'suppressed')">
-                        <i class="fa-solid fa-ellipsis-h"></i>
-                      </button>
-                    </td>
+                  <tr>
+                    <td colspan="8">Loading subscribers from D1…</td>
                   </tr>
                 </tbody>
               </table>
             </div>
           </div>
 
-          <!-- Issues Page -->
-          <div id="issues-page" class="page p-8">
+          <!-- Campaigns Page -->
+          <div id="campaigns-page" class="page p-8">
             <div class="mb-6 flex gap-4 flex-col md:flex-row md:items-center md:justify-between">
               <div class="flex-1">
-                <input type="text" placeholder="Search issues..." class="input-field w-full" />
+                <input type="text" placeholder="Search campaigns..." class="input-field w-full" id="campaign-search" onkeyup="filterCampaigns(currentCampaignFilter)" />
               </div>
-              <button class="btn-primary" onclick="openIssueEditor()">
+              <button class="btn-primary" onclick="openCampaignEditor()">
                 <i class="fa-solid fa-plus mr-2"></i>
-                New issue
+                New campaign
               </button>
             </div>
 
             <div class="flex gap-2 mb-6 overflow-x-auto pb-2">
-              <button class="btn-secondary px-3 flex-none" onclick="filterIssues('all')" id="issue-filter-all" style="background-color: #dc2626; color: white; border-color: #dc2626;">All</button>
-              <button class="btn-secondary px-3 flex-none" onclick="filterIssues('draft')">Draft</button>
-              <button class="btn-secondary px-3 flex-none" onclick="filterIssues('published')">Published</button>
-              <button class="btn-secondary px-3 flex-none" onclick="filterIssues('scheduled')">Scheduled</button>
-              <button class="btn-secondary px-3 flex-none" onclick="filterIssues('sent')">Sent</button>
+              <button class="btn-secondary px-3 flex-none" onclick="filterCampaigns('all')" id="campaign-filter-all" style="background-color: #dc2626; color: white; border-color: #dc2626;">All</button>
+              <button class="btn-secondary px-3 flex-none" data-campaign-filter="draft" onclick="filterCampaigns('draft')">Draft</button>
+              <button class="btn-secondary px-3 flex-none" data-campaign-filter="published" onclick="filterCampaigns('published')">Published</button>
+              <button class="btn-secondary px-3 flex-none" data-campaign-filter="scheduled" onclick="filterCampaigns('scheduled')">Scheduled</button>
+              <button class="btn-secondary px-3 flex-none" data-campaign-filter="sent" onclick="filterCampaigns('sent')">Sent</button>
             </div>
 
             <div class="card border rounded-lg overflow-hidden">
@@ -925,106 +598,35 @@
                     <th>Actions</th>
                   </tr>
                 </thead>
-                <tbody id="issues-table-body">
-                  <tr class="issue-row cursor-pointer" data-status="published" onclick="openIssueEditor('BLT Monthly Digest — June 2026')">
-                    <td class="font-medium">BLT Monthly Digest — June 2026</td>
-                    <td class="font-mono text-xs text-gray-600">blt-digest-jun-2026</td>
-                    <td><span class="status-badge status-published">Published</span></td>
-                    <td class="text-gray-600 text-sm">2d ago</td>
-                    <td class="text-gray-600 text-sm">Jun 10</td>
-                    <td>
-                      <div class="relative group">
-                        <button class="text-red-600 hover:bg-red-50 p-2 rounded text-sm">
-                          <i class="fa-solid fa-ellipsis-h"></i>
-                        </button>
-                        <div class="hidden group-hover:block absolute right-0 bg-white border rounded-lg shadow-lg min-w-max z-10">
-                          <button class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Preview</button>
-                          <button class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Send test</button>
-                          <button class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Send campaign</button>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr class="issue-row cursor-pointer" data-status="draft" onclick="openIssueEditor('GSoC Contributor Updates')">
-                    <td class="font-medium">GSoC Contributor Updates</td>
-                    <td class="font-mono text-xs text-gray-600">gsoc-updates</td>
-                    <td><span class="status-badge status-draft">Draft</span></td>
-                    <td class="text-gray-600 text-sm">5d ago</td>
-                    <td class="text-gray-600 text-sm">—</td>
-                    <td>
-                      <div class="relative group">
-                        <button class="text-red-600 hover:bg-red-50 p-2 rounded text-sm">
-                          <i class="fa-solid fa-ellipsis-h"></i>
-                        </button>
-                        <div class="hidden group-hover:block absolute right-0 bg-white border rounded-lg shadow-lg min-w-max z-10">
-                          <button class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Preview</button>
-                          <button class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Publish</button>
-                          <button class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Delete</button>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr class="issue-row cursor-pointer" data-status="sent" onclick="openIssueEditor('Hackathons and Jobs Roundup')">
-                    <td class="font-medium">Hackathons and Jobs Roundup</td>
-                    <td class="font-mono text-xs text-gray-600">jobs-roundup</td>
-                    <td><span class="status-badge status-sent">Sent</span></td>
-                    <td class="text-gray-600 text-sm">14d ago</td>
-                    <td class="text-gray-600 text-sm">May 27</td>
-                    <td>
-                      <div class="relative group">
-                        <button class="text-red-600 hover:bg-red-50 p-2 rounded text-sm">
-                          <i class="fa-solid fa-ellipsis-h"></i>
-                        </button>
-                        <div class="hidden group-hover:block absolute right-0 bg-white border rounded-lg shadow-lg min-w-max z-10">
-                          <button class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Preview</button>
-                          <button class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Archive</button>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr class="issue-row cursor-pointer" data-status="scheduled" onclick="openIssueEditor('Security Notes and Platform Fixes')">
-                    <td class="font-medium">Security Notes and Platform Fixes</td>
-                    <td class="font-mono text-xs text-gray-600">security-notes</td>
-                    <td><span class="status-badge status-scheduled">Scheduled</span></td>
-                    <td class="text-gray-600 text-sm">3d ago</td>
-                    <td class="text-gray-600 text-sm">Jun 20</td>
-                    <td>
-                      <div class="relative group">
-                        <button class="text-red-600 hover:bg-red-50 p-2 rounded text-sm">
-                          <i class="fa-solid fa-ellipsis-h"></i>
-                        </button>
-                        <div class="hidden group-hover:block absolute right-0 bg-white border rounded-lg shadow-lg min-w-max z-10">
-                          <button class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Preview</button>
-                          <button class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Unschedule</button>
-                        </div>
-                      </div>
-                    </td>
+                <tbody id="campaigns-table-body">
+                  <tr>
+                    <td colspan="6">Loading campaigns from D1…</td>
                   </tr>
                 </tbody>
               </table>
             </div>
           </div>
 
-          <!-- Campaigns Page -->
-          <div id="campaigns-page" class="page p-8">
+          <!-- Deliveries Page -->
+          <div id="deliveries-page" class="page p-8">
             <div class="mb-6 flex gap-4 flex-col md:flex-row md:items-center md:justify-between">
               <div class="flex-1">
-                <input type="text" placeholder="Search campaigns..." class="input-field w-full" />
+                <input type="text" placeholder="Search delivery jobs..." class="input-field w-full" />
               </div>
             </div>
 
             <div class="flex gap-2 mb-6 overflow-x-auto pb-2">
-              <button class="btn-secondary px-3 flex-none" id="campaign-filter-all" onclick="filterCampaigns('all')" style="background-color: #dc2626; color: white; border-color: #dc2626;">All</button>
-              <button class="btn-secondary px-3 flex-none" onclick="filterCampaigns('sending')">Sending</button>
-              <button class="btn-secondary px-3 flex-none" onclick="filterCampaigns('completed')">Completed</button>
-              <button class="btn-secondary px-3 flex-none" onclick="filterCampaigns('failed')">Failed</button>
+              <button class="btn-secondary px-3 flex-none" id="delivery-filter-all" onclick="filterDeliveryJobs('all')" style="background-color: #dc2626; color: white; border-color: #dc2626;">All</button>
+              <button class="btn-secondary px-3 flex-none" onclick="filterDeliveryJobs('sending')">Sending</button>
+              <button class="btn-secondary px-3 flex-none" onclick="filterDeliveryJobs('completed')">Completed</button>
+              <button class="btn-secondary px-3 flex-none" onclick="filterDeliveryJobs('failed')">Failed</button>
             </div>
 
             <div class="card border rounded-lg overflow-hidden">
               <table>
                 <thead>
                   <tr>
-                    <th>Campaign</th>
+                    <th>Delivery job</th>
                     <th>Status</th>
                     <th>Progress</th>
                     <th>Sent</th>
@@ -1033,66 +635,9 @@
                     <th>Actions</th>
                   </tr>
                 </thead>
-                <tbody id="campaigns-table-body">
-                  <tr class="campaign-row" data-status="completed" onclick="openCampaignDetails('June Digest Send')">
-                    <td class="font-medium">June Digest Send</td>
-                    <td><span class="status-badge status-sent">Completed</span></td>
-                    <td>
-                      <div class="flex items-center gap-2">
-                        <div class="progress-bar flex-1">
-                          <div class="progress-fill" style="width: 100%"></div>
-                        </div>
-                        <span class="text-xs text-gray-600 font-medium">100%</span>
-                      </div>
-                    </td>
-                    <td class="text-gray-600">1,248</td>
-                    <td class="text-red-600 font-medium cursor-pointer">12</td>
-                    <td class="text-gray-600 text-sm">Jun 10</td>
-                    <td>
-                      <button class="text-red-600 hover:bg-red-50 p-2 rounded text-sm" onclick="openCampaignDetails('June Digest Send')">
-                        <i class="fa-solid fa-arrow-right"></i>
-                      </button>
-                    </td>
-                  </tr>
-                  <tr class="campaign-row" data-status="completed" onclick="openCampaignDetails('GSoC Test Send')">
-                    <td class="font-medium">GSoC Test Send</td>
-                    <td><span class="status-badge status-sent">Completed</span></td>
-                    <td>
-                      <div class="flex items-center gap-2">
-                        <div class="progress-bar flex-1">
-                          <div class="progress-fill" style="width: 100%"></div>
-                        </div>
-                        <span class="text-xs text-gray-600 font-medium">100%</span>
-                      </div>
-                    </td>
-                    <td class="text-gray-600">1</td>
-                    <td class="text-gray-600">0</td>
-                    <td class="text-gray-600 text-sm">Jun 5</td>
-                    <td>
-                      <button class="text-red-600 hover:bg-red-50 p-2 rounded text-sm" onclick="openCampaignDetails('GSoC Test Send')">
-                        <i class="fa-solid fa-arrow-right"></i>
-                      </button>
-                    </td>
-                  </tr>
-                  <tr class="campaign-row" data-status="completed" onclick="openCampaignDetails('Jobs Roundup')">
-                    <td class="font-medium">Jobs Roundup</td>
-                    <td><span class="status-badge status-sent">Completed</span></td>
-                    <td>
-                      <div class="flex items-center gap-2">
-                        <div class="progress-bar flex-1">
-                          <div class="progress-fill" style="width: 96.8%"></div>
-                        </div>
-                        <span class="text-xs text-gray-600 font-medium">96.8%</span>
-                      </div>
-                    </td>
-                    <td class="text-gray-600">950</td>
-                    <td class="text-red-600 font-medium cursor-pointer">31</td>
-                    <td class="text-gray-600 text-sm">May 27</td>
-                    <td>
-                      <button class="text-red-600 hover:bg-red-50 p-2 rounded text-sm" onclick="openCampaignDetails('Jobs Roundup')">
-                        <i class="fa-solid fa-arrow-right"></i>
-                      </button>
-                    </td>
+                <tbody id="deliveries-table-body">
+                  <tr>
+                    <td colspan="7">Loading delivery jobs from D1…</td>
                   </tr>
                 </tbody>
               </table>
@@ -1139,17 +684,17 @@
                 <div class="space-y-4">
                   <div>
                     <label class="block text-sm font-medium mb-2">From name</label>
-                    <input type="text" class="input-field w-full" value="BLT Newsletter" />
+                    <input id="settings-from-name" type="text" class="input-field w-full" value="" />
                   </div>
                   <div>
                     <label class="block text-sm font-medium mb-2">From email</label>
-                    <input type="email" class="input-field w-full" value="newsletter@owasp-blt.dev" />
+                    <input id="settings-from-email" type="email" class="input-field w-full" value="" />
                   </div>
                   <div>
                     <label class="block text-sm font-medium mb-2">Reply-to email</label>
-                    <input type="email" class="input-field w-full" value="support@owasp-blt.dev" />
+                    <input id="settings-reply-to-email" type="email" class="input-field w-full" value="" />
                   </div>
-                  <button class="btn-primary" onclick="showToast('Settings saved')">Save changes</button>
+                  <button id="settings-save-button" class="btn-primary" onclick="saveSettings()">Save changes</button>
                 </div>
               </div>
 
@@ -1204,10 +749,10 @@
       </div>
     </div>
 
-    <!-- User Details Sheet -->
+    <!-- Subscriber Details Sheet -->
     <div id="user-details-sheet" class="sheet">
       <div class="flex items-center justify-between p-6 border-b flex-none" style="border-bottom-color: var(--border-light);">
-        <h2 id="user-details-name" class="text-lg font-semibold">User Details</h2>
+        <h2 id="user-details-name" class="text-lg font-semibold">Subscriber Details</h2>
         <button onclick="closeUserDetails()" class="text-gray-600 hover:bg-gray-100 p-2 rounded-lg">
           <i class="fa-solid fa-times"></i>
         </button>
@@ -1251,22 +796,22 @@
         </div>
       </div>
       <div class="border-t p-6 space-y-3 flex-none" style="border-top-color: var(--border-light);">
-        <button class="btn-secondary w-full" onclick="showToast('User suppressed')">
+        <button class="btn-secondary w-full" onclick="showToast('Subscriber suppressed')">
           <i class="fa-solid fa-ban mr-2"></i>
-          Suppress user
+          Suppress subscriber
         </button>
         <button class="close-button w-full" onclick="closeUserDetails()">Close</button>
       </div>
     </div>
 
-    <!-- Issue Editor Sheet -->
-    <div id="issue-editor-sheet" class="sheet">
+    <!-- Campaign Editor Sheet -->
+    <div id="campaign-editor-sheet" class="sheet">
       <div class="flex items-center justify-between p-6 border-b flex-none" style="border-bottom-color: var(--border-light);">
         <h2 class="text-lg font-semibold">
-          <span id="issue-editor-title">New issue</span>
-          <span id="issue-editor-badge" class="status-badge status-draft ml-3" style="display: none;">Draft</span>
+          <span id="campaign-editor-title">New campaign</span>
+          <span id="campaign-editor-badge" class="status-badge status-draft ml-3" style="display: none;">Draft</span>
         </h2>
-        <button onclick="closeIssueEditor()" class="text-gray-600 hover:bg-gray-100 p-2 rounded-lg">
+        <button onclick="closeCampaignEditor()" class="text-gray-600 hover:bg-gray-100 p-2 rounded-lg">
           <i class="fa-solid fa-times"></i>
         </button>
       </div>
@@ -1274,19 +819,23 @@
         <div class="space-y-4 col-span-2 lg:col-span-1">
           <div>
             <label class="block text-sm font-medium mb-2">Title</label>
-            <input type="text" class="input-field w-full" placeholder="Issue title" id="issue-title" />
+            <input type="text" class="input-field w-full" placeholder="Campaign title" id="campaign-title" />
           </div>
           <div>
             <label class="block text-sm font-medium mb-2">Slug</label>
-            <input type="text" class="input-field w-full" placeholder="issue-slug" id="issue-slug" />
+            <input type="text" class="input-field w-full" placeholder="campaign-slug" id="campaign-slug" />
           </div>
           <div>
             <label class="block text-sm font-medium mb-2">Email subject</label>
-            <input type="text" class="input-field w-full" placeholder="Email subject line" />
+            <input type="text" class="input-field w-full" placeholder="Email subject line" id="campaign-subject" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-2">Summary</label>
+            <input type="text" class="input-field w-full" placeholder="Short archive summary" id="campaign-summary" />
           </div>
           <div>
             <label class="block text-sm font-medium mb-2">Body (Markdown)</label>
-            <textarea class="input-field w-full h-32 font-mono text-xs" placeholder="Write your content here..." style="resize: none;"></textarea>
+            <textarea class="input-field w-full h-32 font-mono text-xs" placeholder="Write your content here..." style="resize: none;" id="campaign-markdown-body"></textarea>
           </div>
         </div>
         <div class="col-span-2 lg:col-span-1">
@@ -1297,27 +846,20 @@
               <p style="margin: 0; color: var(--text-secondary-light);">Email preview content will appear here based on your markdown input.</p>
             </div>
           </div>
-
-          <style>
-            html.dark [style*="background-color: var(--background-light)"] { background-color: var(--elevated-dark) !important; border-color: var(--border-dark) !important; }
-            html.dark .email-preview-inner { background-color: var(--surface-dark) !important; color: var(--text-primary-dark) !important; }
-            html.dark .email-preview-title { color: var(--text-primary-dark) !important; }
-            html.dark .email-preview-text { color: var(--text-secondary-dark) !important; }
-          </style>
         </div>
       </div>
       <div class="border-t p-6 space-y-3 flex-none flex gap-3" style="border-top-color: var(--border-light);">
-        <button class="close-button flex-1" onclick="closeIssueEditor()">Close</button>
-        <button class="btn-primary flex-1" onclick="showToast('Draft saved')">Save draft</button>
-        <button class="btn-primary flex-1" onclick="openCampaignConfirmation()">Send campaign</button>
+        <button class="close-button flex-1" onclick="closeCampaignEditor()">Close</button>
+        <button class="btn-primary flex-1" onclick="saveCampaignDraft()">Save draft</button>
+        <button class="btn-primary flex-1" onclick="openCampaignConfirmation()">Publish campaign</button>
       </div>
     </div>
 
-    <!-- Campaign Details Sheet -->
-    <div id="campaign-details-sheet" class="sheet">
+    <!-- Delivery Details Sheet -->
+    <div id="delivery-details-sheet" class="sheet">
       <div class="flex items-center justify-between p-6 border-b flex-none" style="border-bottom-color: var(--border-light);">
-        <h2 id="campaign-details-title" class="text-lg font-semibold">Campaign details</h2>
-        <button onclick="closeCampaignDetails()" class="text-gray-600 hover:bg-gray-100 p-2 rounded-lg">
+        <h2 id="delivery-details-title" class="text-lg font-semibold">Delivery details</h2>
+        <button onclick="closeDeliveryDetails()" class="text-gray-600 hover:bg-gray-100 p-2 rounded-lg">
           <i class="fa-solid fa-times"></i>
         </button>
       </div>
@@ -1325,43 +867,36 @@
         <div class="grid grid-cols-3 gap-4">
           <div class="rounded-lg p-4" style="background: #f8fafc;">
             <p class="text-xs uppercase tracking-wide font-semibold text-gray-500 mb-2">Sent</p>
-            <p class="text-2xl font-semibold">1,248</p>
+            <p id="delivery-details-sent" class="text-2xl font-semibold">—</p>
           </div>
           <div class="rounded-lg p-4" style="background: #fef2f2;">
             <p class="text-xs uppercase tracking-wide font-semibold text-red-600 mb-2">Failed</p>
-            <p class="text-2xl font-semibold text-red-600">12</p>
+            <p id="delivery-details-failed" class="text-2xl font-semibold text-red-600">—</p>
           </div>
           <div class="rounded-lg p-4" style="background: #f8fafc;">
             <p class="text-xs uppercase tracking-wide font-semibold text-gray-500 mb-2">Skipped</p>
-            <p class="text-2xl font-semibold">9</p>
+            <p id="delivery-details-skipped" class="text-2xl font-semibold">—</p>
           </div>
         </div>
         <div>
           <p class="text-sm font-medium mb-2">Delivery progress</p>
           <div class="progress-bar">
-            <div class="progress-fill" style="width: 100%"></div>
+            <div id="delivery-details-progress-fill" class="progress-fill" style="width: 0%"></div>
           </div>
-          <p class="text-xs text-gray-600 mt-1">1,248 / 1,269 delivered</p>
+          <p id="delivery-details-progress-text" class="text-xs text-gray-600 mt-1">Select a delivery job to view progress.</p>
         </div>
         <div>
           <p class="text-sm font-medium mb-3">Recent failed deliveries</p>
-          <div class="space-y-2 max-h-64 overflow-y-auto">
-            <div class="border rounded-lg p-3" style="border-color: var(--border-light);">
-              <p class="text-sm font-medium">marcus.johnson@example.com</p>
-              <p class="text-xs text-red-600">Hard bounce</p>
-              <p class="text-xs text-gray-600">Jun 10 • 2:15 PM</p>
-            </div>
-            <div class="border rounded-lg p-3" style="border-color: var(--border-light);">
-              <p class="text-sm font-medium">sofia.garcia@example.com</p>
-              <p class="text-xs text-red-600">Mailbox full</p>
-              <p class="text-xs text-gray-600">Jun 10 • 2:12 PM</p>
+          <div id="delivery-details-failed-list" class="space-y-2 max-h-64 overflow-y-auto">
+            <div class="border rounded-lg p-3 text-sm text-gray-600" style="border-color: var(--border-light);">
+              Open a delivery job to load failed deliveries.
             </div>
           </div>
         </div>
       </div>
       <div class="border-t p-6 space-y-3 flex-none" style="border-top-color: var(--border-light);">
-        <button class="btn-secondary w-full">Retry failed deliveries</button>
-        <button class="close-button w-full" onclick="closeCampaignDetails()">Close</button>
+        <button id="retry-failed-deliveries-btn" class="btn-secondary w-full" onclick="retryFailedDeliveries()" disabled>Retry failed deliveries</button>
+        <button class="close-button w-full" onclick="closeDeliveryDetails()">Close</button>
       </div>
     </div>
 
@@ -1373,14 +908,14 @@
     <div id="test-email-modal" class="modal-overlay">
       <div class="modal p-6">
         <h2 class="text-lg font-semibold mb-2">Send test email</h2>
-        <p class="text-sm text-gray-600 mb-6">Send this issue to a single test recipient before launching a campaign.</p>
+        <p class="text-sm text-gray-600 mb-6">Send this campaign to a single test recipient before launching a campaign.</p>
         <div class="mb-6">
           <label class="block text-sm font-medium mb-2">Recipient email</label>
-          <input type="email" placeholder="test@example.com" class="input-field w-full" />
+          <input type="email" placeholder="test@example.com" class="input-field w-full" id="test-email-recipient" />
         </div>
         <div class="flex gap-3">
           <button class="btn-secondary flex-1" onclick="closeTestEmailModal()">Cancel</button>
-          <button class="btn-primary flex-1" onclick="showToast('Test email sent'); closeTestEmailModal();">Send test</button>
+          <button class="btn-primary flex-1" onclick="sendTestEmail()">Send test</button>
         </div>
       </div>
     </div>
@@ -1388,19 +923,19 @@
     <!-- Campaign Confirmation Modal -->
     <div id="campaign-confirmation-modal" class="modal-overlay">
       <div class="modal p-6 max-w-md">
-        <h2 class="text-lg font-semibold mb-2">Send campaign?</h2>
-        <p class="text-sm text-gray-600 mb-4">This action will queue emails to all active subscribers. Sending cannot be undone.</p>
+        <h2 class="text-lg font-semibold mb-2">Publish campaign?</h2>
+        <p class="text-sm text-gray-600 mb-4">This action will send emails to all active subscribers. Sending cannot be undone.</p>
         <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-          <p class="text-sm"><span class="font-medium">Recipients:</span> All active users (2,847)</p>
+          <p class="text-sm"><span class="font-medium">Recipients:</span> All active subscribers (<span id="campaign-recipient-count">0</span>)</p>
         </div>
         <label class="flex items-center gap-2 mb-6 cursor-pointer">
           <input type="checkbox" class="w-4 h-4 rounded" id="campaign-confirm-checkbox" onchange="updateCampaignButton()" />
-          <span class="text-sm text-gray-600">I understand this will queue emails to all active subscribers</span>
+          <span class="text-sm text-gray-600">I understand this will send emails to all active subscribers</span>
         </label>
         <div class="flex gap-3">
           <button class="btn-secondary flex-1" onclick="closeCampaignConfirmation()">Cancel</button>
-          <button class="btn-primary flex-1" id="campaign-confirm-btn" disabled onclick="showToast('Campaign queued'); closeCampaignConfirmation();">
-            Queue campaign
+          <button class="btn-primary flex-1" id="campaign-confirm-btn" disabled onclick="publishCampaign()">
+            Publish campaign
           </button>
         </div>
       </div>
@@ -1409,8 +944,8 @@
     <!-- Import Users Modal -->
     <div id="import-users-modal" class="modal-overlay">
       <div class="modal p-6 max-w-md">
-        <h2 class="text-lg font-semibold mb-2">Import users</h2>
-        <p class="text-sm text-gray-600 mb-4">Upload a CSV file or paste user data to import subscribers.</p>
+        <h2 class="text-lg font-semibold mb-2">Import subscribers</h2>
+        <p class="text-sm text-gray-600 mb-4">Upload a CSV file or paste subscriber data to import into D1.</p>
         <div class="border-2 border-dashed rounded-lg p-6 mb-4 text-center" style="border-color: var(--border-light); cursor: pointer;">
           <i class="fa-solid fa-cloud-arrow-up text-2xl text-gray-400 mb-2"></i>
           <p class="text-sm font-medium mb-1">Drag and drop or click to select</p>
@@ -1433,78 +968,479 @@
     <script>
       let currentPage = 'overview';
       let currentStatusFilter = 'all';
-      let currentIssueFilter = 'all';
       let currentCampaignFilter = 'all';
+      let currentDeliveryFilter = 'all';
+      const dashboardState = {
+        admin: null,
+        stats: {},
+        subscribers: [],
+        campaigns: [],
+        jobs: [],
+        settings: {},
+        selectedCampaignId: null,
+        selectedDeliveryJobId: null,
+      };
+
+      document.addEventListener('DOMContentLoaded', initializeDashboard);
+
+      async function initializeDashboard() {
+        renderEmptyRow('users-table-body', 8, 'Loading subscribers from D1…');
+        renderEmptyRow('campaigns-table-body', 6, 'Loading campaigns from D1…');
+        renderEmptyRow('deliveries-table-body', 7, 'Loading delivery jobs from D1…');
+        renderEmptyRow('recent-activity-body', 3, 'Loading recent activity…');
+
+        try {
+          const profile = await adminFetch("/api/admin/me");
+          dashboardState.admin = profile.admin || null;
+          renderAdmin(profile.admin || {});
+        } catch (error) {
+          if (error.message !== 'redirecting') {
+            showToast(error.message || 'Could not verify admin session');
+          }
+          return;
+        }
+
+        await Promise.allSettled([
+          loadStats(),
+          loadSubscribers(),
+          loadCampaigns(),
+          loadJobs(),
+          loadSettings(),
+        ]);
+      }
+
+      async function adminFetch(url, options = {}) {
+        const response = await fetch(url, {
+          credentials: "same-origin",
+          headers: {
+            "Content-Type": "application/json",
+            ...(options.headers || {}),
+          },
+          ...options,
+        });
+
+        let payload = {};
+        try {
+          payload = await response.json();
+        } catch (error) {
+          payload = {};
+        }
+
+        if (response.status === 401) {
+          window.location.href = '/login';
+          throw new Error('redirecting');
+        }
+
+        if (!response.ok || payload.success === false) {
+          throw new Error(payload.error || 'Request failed.');
+        }
+
+        return payload;
+      }
+
+      async function loadStats() {
+        try {
+          const payload = await adminFetch("/api/admin/stats");
+          dashboardState.stats = payload.stats || {};
+          renderStats(dashboardState.stats);
+        } catch (error) {
+          showToast(error.message || 'Stats could not be loaded');
+        }
+      }
+
+      async function loadSubscribers() {
+        try {
+          const payload = await adminFetch("/api/admin/subscribers");
+          dashboardState.subscribers = Array.isArray(payload.subscribers) ? payload.subscribers : [];
+          renderSubscribers(dashboardState.subscribers);
+          renderRecentActivity();
+          filterByStatus(currentStatusFilter);
+        } catch (error) {
+          renderEmptyRow('users-table-body', 8, error.message || 'Subscribers could not be loaded.');
+          showToast(error.message || 'Subscribers could not be loaded');
+        }
+      }
+
+      async function loadCampaigns() {
+        try {
+          const payload = await adminFetch("/api/admin/campaigns");
+          dashboardState.campaigns = Array.isArray(payload.campaigns) ? payload.campaigns : [];
+          renderCampaigns(dashboardState.campaigns);
+          renderRecentActivity();
+          filterCampaigns(currentCampaignFilter);
+        } catch (error) {
+          renderEmptyRow('campaigns-table-body', 6, error.message || 'Campaigns could not be loaded.');
+          showToast(error.message || 'Campaigns could not be loaded');
+        }
+      }
+
+      async function loadJobs() {
+        try {
+          const payload = await adminFetch("/api/admin/jobs");
+          dashboardState.jobs = Array.isArray(payload.jobs) ? payload.jobs : [];
+          renderDeliveryJobs(dashboardState.jobs);
+          filterDeliveryJobs(currentDeliveryFilter);
+        } catch (error) {
+          renderEmptyRow('deliveries-table-body', 7, error.message || 'Delivery jobs could not be loaded.');
+          showToast(error.message || 'Delivery jobs could not be loaded');
+        }
+      }
+
+      async function loadSettings() {
+        try {
+          const payload = await adminFetch("/api/admin/settings");
+          dashboardState.settings = payload.settings || {};
+          renderSettings(payload.settings || {});
+        } catch (error) {
+          showToast(error.message || 'Settings could not be loaded');
+        }
+      }
+
+      function renderSettings(settings) {
+        setValue('settings-from-name', settings.from_name || '');
+        setValue('settings-from-email', settings.from_email || '');
+        setValue('settings-reply-to-email', settings.reply_to_email || '');
+      }
+
+      async function saveSettings() {
+        const payload = {
+          from_name: getValue('settings-from-name'),
+          from_email: getValue('settings-from-email'),
+          reply_to_email: getValue('settings-reply-to-email'),
+        };
+
+        if (!payload.from_name || !payload.from_email) {
+          showToast('From name and from email are required.');
+          return;
+        }
+
+        const button = document.getElementById('settings-save-button');
+        if (button) {
+          button.disabled = true;
+          button.textContent = 'Saving...';
+        }
+
+        try {
+          const response = await adminFetch("/api/admin/settings", {
+            method: "PATCH",
+            body: JSON.stringify(payload),
+          });
+          dashboardState.settings = response.settings || {};
+          renderSettings(response.settings || {});
+          showToast('Settings saved');
+        } catch (error) {
+          showToast(error.message || 'Settings could not be saved');
+        } finally {
+          if (button) {
+            button.disabled = false;
+            button.textContent = 'Save changes';
+          }
+        }
+      }
+
+      function renderAdmin(admin) {
+        const fallback = 'AD';
+        const name = admin.name || admin.email || fallback;
+        const initials = name
+          .split(/\s+/)
+          .filter(Boolean)
+          .slice(0, 2)
+          .map(part => part[0]?.toUpperCase())
+          .join('') || fallback;
+        setText('admin-avatar-initials', initials);
+        const avatar = document.getElementById('admin-avatar-initials');
+        if (avatar) avatar.title = admin.email ? `Signed in as ${admin.email}` : 'Signed-in admin';
+      }
+
+      function renderStats(stats) {
+        const totalSubscribers = toNumber(stats.total_subscribers);
+        const activeSubscribers = toNumber(stats.active_subscribers);
+        const unsubscribedSubscribers = toNumber(stats.unsubscribed_subscribers);
+        const totalCampaigns = toNumber(stats.total_campaigns);
+        const publishedCampaigns = toNumber(stats.published_campaigns);
+        const draftCampaigns = toNumber(stats.draft_campaigns);
+
+        setText('stat-active-subscribers', formatNumber(activeSubscribers));
+        setText('stat-total-subscribers-note', `${formatNumber(totalSubscribers)} total subscribers`);
+        setText('stat-new-subscribers', formatNumber(totalSubscribers));
+        setText('stat-unsubscribed-note', `${formatNumber(unsubscribedSubscribers)} unsubscribed`);
+        setText('stat-published-campaigns', formatNumber(publishedCampaigns));
+        setText('stat-total-campaigns-note', `${formatNumber(totalCampaigns)} total campaigns`);
+        setText('stat-draft-campaigns', formatNumber(draftCampaigns));
+        setText('campaign-recipient-count', formatNumber(activeSubscribers));
+      }
+
+      function renderSubscribers(subscribers) {
+        const body = document.getElementById('users-table-body');
+        if (!body) return;
+
+        if (!subscribers.length) {
+          renderEmptyRow('users-table-body', 8, 'No subscribers yet. Public signups will appear here.');
+          return;
+        }
+
+        body.innerHTML = subscribers.map(subscriber => {
+          const id = escapeAttribute(subscriber.id || subscriber.email || '');
+          const status = normalizeStatus(subscriber.status || 'active');
+          const name = subscriber.name || '—';
+          return `
+                  <tr class="user-row" data-status="${escapeAttribute(status)}" data-search="${escapeAttribute(`${name} ${subscriber.email || ''}`.toLowerCase())}">
+                    <td><input type="checkbox" /></td>
+                    <td class="font-medium">${escapeHtml(name)}</td>
+                    <td class="email-cell text-gray-600">${escapeHtml(subscriber.email || '—')}</td>
+                    <td><span class="status-badge status-${escapeAttribute(status)}">${escapeHtml(titleCase(status))}</span></td>
+                    <td class="text-gray-600">${escapeHtml(formatSource(subscriber.source))}</td>
+                    <td class="text-gray-600 text-sm">${escapeHtml(formatDate(subscriber.subscribed_at))}</td>
+                    <td class="text-gray-600 text-sm">${escapeHtml(formatDate(subscriber.last_sent_at))}</td>
+                    <td>
+                      <button class="text-red-600 hover:bg-red-50 p-2 rounded text-sm" data-subscriber-id="${id}" aria-label="Open subscriber details">
+                        <i class="fa-solid fa-ellipsis-h"></i>
+                      </button>
+                    </td>
+                  </tr>`;
+        }).join('');
+      }
+
+      function renderCampaigns(campaigns) {
+        const body = document.getElementById('campaigns-table-body');
+        if (!body) return;
+
+        if (!campaigns.length) {
+          renderEmptyRow('campaigns-table-body', 6, 'No newsletter campaigns yet. Create a draft to start.');
+          return;
+        }
+
+        body.innerHTML = campaigns.map(campaign => {
+          const id = escapeAttribute(campaign.id || '');
+          const status = normalizeStatus(campaign.status || 'draft');
+          const search = `${campaign.title || ''} ${campaign.slug || ''} ${campaign.subject || ''}`.toLowerCase();
+          return `
+                  <tr class="campaign-row cursor-pointer" data-status="${escapeAttribute(status)}" data-search="${escapeAttribute(search)}" data-campaign-id="${id}">
+                    <td class="font-medium">${escapeHtml(campaign.title || 'Untitled campaign')}</td>
+                    <td class="font-mono text-xs text-gray-600">${escapeHtml(campaign.slug || '—')}</td>
+                    <td><span class="status-badge status-${escapeAttribute(status)}">${escapeHtml(titleCase(status))}</span></td>
+                    <td class="text-gray-600 text-sm">${escapeHtml(formatDate(campaign.updated_at || campaign.created_at))}</td>
+                    <td class="text-gray-600 text-sm">${escapeHtml(formatDate(campaign.published_at))}</td>
+                    <td>
+                      <button class="text-red-600 hover:bg-red-50 p-2 rounded text-sm" data-campaign-id="${id}" aria-label="Edit campaign">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                      </button>
+                    </td>
+                  </tr>`;
+        }).join('');
+      }
+
+      function renderDeliveryJobs(jobs) {
+        const body = document.getElementById('deliveries-table-body');
+        if (!body) return;
+
+        if (!jobs.length) {
+          renderEmptyRow('deliveries-table-body', 7, 'No delivery jobs yet. Publish a campaign to start sending.');
+          return;
+        }
+
+        body.innerHTML = jobs.map(job => {
+          const id = escapeAttribute(job.id || '');
+          const status = normalizeStatus(job.status || 'queued');
+          const total = toNumber(job.total_recipients);
+          const sent = toNumber(job.sent_count);
+          const failed = toNumber(job.failed_count);
+          const skipped = toNumber(job.skipped_count);
+          const progress = deliveryProgress(sent, failed, total, skipped);
+          const title = job.campaign_title || job.campaign_subject || job.campaign_id || 'Newsletter campaign';
+          return `
+                  <tr class="delivery-row cursor-pointer" data-status="${escapeAttribute(status)}" data-job-id="${id}">
+                    <td class="font-medium">${escapeHtml(title)}</td>
+                    <td><span class="status-badge ${deliveryStatusClass(status)}">${escapeHtml(titleCase(status))}</span></td>
+                    <td>
+                      <div class="flex items-center gap-2">
+                        <div class="progress-bar flex-1">
+                          <div class="progress-fill" style="width: ${progress}%"></div>
+                        </div>
+                        <span class="text-xs text-gray-600 font-medium">${progress}%</span>
+                      </div>
+                    </td>
+                    <td class="text-gray-600">${escapeHtml(formatNumber(sent))}</td>
+                    <td class="${failed ? 'text-red-600 font-medium' : 'text-gray-600'}">${escapeHtml(formatNumber(failed))}</td>
+                    <td class="text-gray-600 text-sm">${escapeHtml(formatDate(job.created_at))}</td>
+                    <td>
+                      <button class="text-red-600 hover:bg-red-50 p-2 rounded text-sm" data-job-id="${id}" aria-label="Open delivery details">
+                        <i class="fa-solid fa-arrow-right"></i>
+                      </button>
+                    </td>
+                  </tr>`;
+        }).join('');
+      }
+
+      function renderRecentActivity() {
+        const body = document.getElementById('recent-activity-body');
+        if (!body) return;
+
+        const activities = [];
+        dashboardState.subscribers.slice(0, 3).forEach(subscriber => {
+          activities.push({
+            type: 'Subscriber',
+            dot: 'bg-blue-600',
+            details: `${subscriber.email || 'Subscriber'} subscribed`,
+            time: subscriber.subscribed_at,
+          });
+        });
+        dashboardState.campaigns.slice(0, 3).forEach(campaign => {
+          activities.push({
+            type: titleCase(campaign.status || 'campaign'),
+            dot: campaign.status === 'published' ? 'bg-green-600' : 'bg-slate-400',
+            details: campaign.title || campaign.slug || 'Newsletter campaign updated',
+            time: campaign.updated_at || campaign.created_at,
+          });
+        });
+
+        activities.sort((a, b) => String(b.time || '').localeCompare(String(a.time || '')));
+        if (!activities.length) {
+          renderEmptyRow('recent-activity-body', 3, 'No recent activity yet.');
+          return;
+        }
+
+        body.innerHTML = activities.slice(0, 5).map(activity => `
+                      <tr style="border-bottom: 1px solid var(--border-light);">
+                        <td class="px-6 py-3"><span class="inline-flex items-center gap-2"><span class="w-2 h-2 rounded-full ${activity.dot}"></span><span>${escapeHtml(activity.type)}</span></span></td>
+                        <td class="px-6 py-3" style="color: var(--text-secondary-light);">${escapeHtml(activity.details)}</td>
+                        <td class="px-6 py-3 text-right text-xs" style="color: var(--text-muted-light);">${escapeHtml(formatDate(activity.time))}</td>
+                      </tr>`).join('');
+      }
+
+      function renderEmptyRow(tableBodyId, colspan, message) {
+        const body = document.getElementById(tableBodyId);
+        if (!body) return;
+        body.innerHTML = `
+                  <tr>
+                    <td colspan="${colspan}" class="text-center text-gray-500 py-8">${escapeHtml(message)}</td>
+                  </tr>`;
+      }
 
       function navigateTo(page) {
-        // Hide all pages
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        
-        // Update sidebar active state
         document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
-        event.target.closest('.sidebar-item')?.classList.add('active');
-        
-        // Show selected page
-        const pageEl = document.getElementById(page + '-page');
-        if (pageEl) {
-          pageEl.classList.add('active');
+        if (typeof event !== 'undefined' && event.target) {
+          event.target.closest('.sidebar-item')?.classList.add('active');
         }
-        
-        // Update page title
+
+        const pageEl = document.getElementById(page + '-page');
+        if (pageEl) pageEl.classList.add('active');
+
         const titles = {
           overview: 'Overview',
-          users: 'Users',
-          issues: 'Issues',
+          users: 'Subscribers',
           campaigns: 'Campaigns',
+          deliveries: 'Deliveries',
           template: 'Template',
           settings: 'Settings'
         };
-        
+
         const descs = {
           overview: 'Monitor newsletter health and activity',
           users: 'Manage newsletter subscribers, consent state, delivery health, and subscription status',
-          issues: 'Create and manage newsletter content',
-          campaigns: 'Track sends and delivery health',
+          campaigns: 'Create, edit, test, and publish newsletter campaigns',
+          deliveries: 'Track published campaign delivery jobs and health',
           template: 'Browse and use email templates',
           settings: 'Configure admin settings and integrations'
         };
-        
-        document.getElementById('page-title').textContent = titles[page];
-        document.getElementById('page-desc').textContent = descs[page];
+
+        setText('page-title', titles[page] || 'Overview');
+        setText('page-desc', descs[page] || 'Monitor newsletter health and activity');
         currentPage = page;
       }
 
-      function logout() {
-        window.location.href = '/login';
-      }
-
-      function toggleTheme() {
-        document.documentElement.classList.toggle('dark');
-      }
-
-      function openIssueEditor(title = null) {
-        document.getElementById('sheet-overlay').classList.add('active');
-        document.getElementById('issue-editor-sheet').classList.add('active');
-        if (title) {
-          document.getElementById('issue-editor-title').textContent = title;
-          document.getElementById('issue-editor-badge').style.display = 'inline-block';
-        } else {
-          document.getElementById('issue-editor-title').textContent = 'New issue';
-          document.getElementById('issue-editor-badge').style.display = 'none';
+      async function logout() {
+        try {
+          await fetch("/api/admin/logout", {
+            method: "POST",
+            credentials: "same-origin",
+          });
+        } finally {
+          window.location.href = '/login';
         }
       }
 
-      function closeIssueEditor() {
-        document.getElementById('sheet-overlay').classList.remove('active');
-        document.getElementById('issue-editor-sheet').classList.remove('active');
+      function openCampaignEditor(campaignId = null) {
+        const campaign = campaignId ? dashboardState.campaigns.find(item => item.id === campaignId) : null;
+        dashboardState.selectedCampaignId = campaign?.id || null;
+        document.getElementById('sheet-overlay').classList.add('active');
+        document.getElementById('campaign-editor-sheet').classList.add('active');
+
+        setText('campaign-editor-title', campaign ? campaign.title || 'Edit campaign' : 'New campaign');
+        const badge = document.getElementById('campaign-editor-badge');
+        if (badge) {
+          badge.style.display = campaign ? 'inline-block' : 'none';
+          badge.textContent = titleCase(campaign?.status || 'draft');
+          badge.className = `status-badge status-${normalizeStatus(campaign?.status || 'draft')} ml-3`;
+        }
+
+        setValue('campaign-title', campaign?.title || '');
+        setValue('campaign-slug', campaign?.slug || '');
+        setValue('campaign-subject', campaign?.subject || '');
+        setValue('campaign-summary', campaign?.summary || '');
+        setValue('campaign-markdown-body', campaign?.markdown_body || '');
       }
 
-      function openUserDetails(name, email, status) {
+      function closeCampaignEditor() {
+        document.getElementById('sheet-overlay').classList.remove('active');
+        document.getElementById('campaign-editor-sheet').classList.remove('active');
+      }
+
+      async function saveCampaignDraft() {
+        const payload = {
+          title: getValue('campaign-title'),
+          slug: getValue('campaign-slug'),
+          subject: getValue('campaign-subject'),
+          summary: getValue('campaign-summary'),
+          markdown_body: getValue('campaign-markdown-body'),
+        };
+
+        if (!payload.title || !payload.slug || !payload.subject || !payload.markdown_body) {
+          showToast('Title, slug, subject, and body are required.');
+          return;
+        }
+
+        const isUpdate = Boolean(dashboardState.selectedCampaignId);
+
+        try {
+          const response = isUpdate
+            ? await adminFetch(`/api/admin/campaigns/${encodeURIComponent(dashboardState.selectedCampaignId)}`, {
+                method: "PATCH",
+                body: JSON.stringify(payload),
+              })
+            : await adminFetch("/api/admin/campaigns", {
+                method: "POST",
+                body: JSON.stringify(payload),
+              });
+          const savedCampaign = response.campaign;
+          if (savedCampaign) {
+            const index = dashboardState.campaigns.findIndex(campaign => campaign.id === savedCampaign.id);
+            if (index >= 0) dashboardState.campaigns[index] = savedCampaign;
+            else dashboardState.campaigns.unshift(savedCampaign);
+            renderCampaigns(dashboardState.campaigns);
+            renderRecentActivity();
+            filterCampaigns(currentCampaignFilter);
+            dashboardState.selectedCampaignId = savedCampaign.id;
+          }
+          showToast(isUpdate ? 'Draft updated' : 'Draft saved');
+        } catch (error) {
+          showToast(error.message || 'Draft could not be saved');
+        }
+      }
+
+      function openUserDetails(subscriberId) {
+        const subscriber = dashboardState.subscribers.find(item => item.id === subscriberId) || {};
+        const status = normalizeStatus(subscriber.status || 'active');
         document.getElementById('sheet-overlay').classList.add('active');
         document.getElementById('user-details-sheet').classList.add('active');
-        document.getElementById('user-details-name').textContent = name;
-        document.getElementById('user-details-status').textContent = status.charAt(0).toUpperCase() + status.slice(1);
+        setText('user-details-name', subscriber.name || subscriber.email || 'Subscriber Details');
+        setText('user-details-status', titleCase(status));
         document.getElementById('user-details-status').className = 'status-badge status-' + status;
+        setText('user-details-source', formatSource(subscriber.source));
+        setText('user-details-subscribed', formatDate(subscriber.subscribed_at));
+        setText('user-details-last-sent', formatDate(subscriber.last_sent_at));
+        setText('user-details-bounces', formatNumber(toNumber(subscriber.bounce_count)));
       }
 
       function closeUserDetails() {
@@ -1512,15 +1448,128 @@
         document.getElementById('user-details-sheet').classList.remove('active');
       }
 
-      function openCampaignDetails(title) {
+      async function openDeliveryDetails(jobId) {
+        const job = dashboardState.jobs.find(item => item.id === jobId) || {};
+        const title = job.campaign_title || job.campaign_subject || job.campaign_id || 'Delivery details';
+        dashboardState.selectedDeliveryJobId = jobId;
         document.getElementById('sheet-overlay').classList.add('active');
-        document.getElementById('campaign-details-sheet').classList.add('active');
-        document.getElementById('campaign-details-title').textContent = title;
+        document.getElementById('delivery-details-sheet').classList.add('active');
+        document.getElementById('delivery-details-title').textContent = title;
+        renderDeliveryDetails(job, [], true);
+
+        try {
+          const payload = await adminFetch(`/api/admin/jobs/${encodeURIComponent(jobId)}`);
+          const detailJob = payload.job || job;
+          const index = dashboardState.jobs.findIndex(item => item.id === detailJob.id);
+          if (index >= 0) dashboardState.jobs[index] = detailJob;
+          const failedEvents = Array.isArray(payload.failed_events)
+            ? payload.failed_events
+            : (Array.isArray(payload.events) ? payload.events.filter(event => event.event_type === 'failed') : []);
+          renderDeliveryDetails(detailJob, failedEvents);
+          renderDeliveryJobs(dashboardState.jobs);
+          filterDeliveryJobs(currentDeliveryFilter);
+        } catch (error) {
+          renderDeliveryDetails(job, [], false, error.message || 'Delivery details could not be loaded.');
+          showToast(error.message || 'Delivery details could not be loaded');
+        }
       }
 
-      function closeCampaignDetails() {
+      function renderDeliveryDetails(job, failedEvents, isLoading = false, errorMessage = '') {
+        const title = job.campaign_title || job.campaign_subject || job.campaign_id || 'Delivery details';
+        const total = toNumber(job.total_recipients);
+        const sent = toNumber(job.sent_count);
+        const failed = toNumber(job.failed_count);
+        const skipped = toNumber(job.skipped_count);
+        const processed = sent + failed + skipped;
+        const progress = deliveryProgress(sent, failed, total, skipped);
+        const retryButton = document.getElementById('retry-failed-deliveries-btn');
+
+        setText('delivery-details-title', title);
+        setText('delivery-details-sent', isLoading ? '…' : formatNumber(sent));
+        setText('delivery-details-failed', isLoading ? '…' : formatNumber(failed));
+        setText('delivery-details-skipped', isLoading ? '…' : formatNumber(skipped));
+        setText(
+          'delivery-details-progress-text',
+          isLoading ? 'Loading delivery progress…' : `${formatNumber(processed)} / ${formatNumber(total)} processed`
+        );
+
+        const progressFill = document.getElementById('delivery-details-progress-fill');
+        if (progressFill) progressFill.style.width = `${progress}%`;
+
+        if (retryButton) {
+          retryButton.disabled = isLoading || failed <= 0;
+          retryButton.textContent = failed > 0 ? 'Retry failed deliveries' : 'No failed deliveries to retry';
+        }
+
+        renderFailedDeliveries(failedEvents, isLoading, errorMessage);
+      }
+
+      function renderFailedDeliveries(failedEvents, isLoading = false, errorMessage = '') {
+        const list = document.getElementById('delivery-details-failed-list');
+        if (!list) return;
+
+        if (isLoading) {
+          list.innerHTML = `<div class="border rounded-lg p-3 text-sm text-gray-600" style="border-color: var(--border-light);">Loading failed deliveries…</div>`;
+          return;
+        }
+
+        if (errorMessage) {
+          list.innerHTML = `<div class="border rounded-lg p-3 text-sm text-red-600" style="border-color: var(--border-light);">${escapeHtml(errorMessage)}</div>`;
+          return;
+        }
+
+        if (!failedEvents.length) {
+          list.innerHTML = `<div class="border rounded-lg p-3 text-sm text-gray-600" style="border-color: var(--border-light);">No failed deliveries for this job.</div>`;
+          return;
+        }
+
+        list.innerHTML = failedEvents.slice(0, 25).map(event => {
+          const recipient = event.subscriber_email || event.subscriber_name || event.subscriber_id || 'Subscriber';
+          return `
+            <div class="border rounded-lg p-3" style="border-color: var(--border-light);">
+              <p class="text-sm font-medium">${escapeHtml(recipient)}</p>
+              <p class="text-xs text-red-600">${escapeHtml(deliveryFailureReason(event))}</p>
+              <p class="text-xs text-gray-600">${escapeHtml(formatDateTime(event.occurred_at))}</p>
+            </div>`;
+        }).join('');
+      }
+
+      async function retryFailedDeliveries() {
+        const jobId = dashboardState.selectedDeliveryJobId;
+        if (!jobId) {
+          showToast('Open a delivery job before retrying failures.');
+          return;
+        }
+
+        const retryButton = document.getElementById('retry-failed-deliveries-btn');
+        if (retryButton) {
+          retryButton.disabled = true;
+          retryButton.textContent = 'Retrying…';
+        }
+
+        try {
+          const payload = await adminFetch(`/api/admin/jobs/${encodeURIComponent(jobId)}/retry-failed`, {
+            method: "POST",
+          });
+          if (payload.job) {
+            const index = dashboardState.jobs.findIndex(item => item.id === payload.job.id);
+            if (index >= 0) dashboardState.jobs[index] = payload.job;
+          }
+          renderDeliveryJobs(dashboardState.jobs);
+          filterDeliveryJobs(currentDeliveryFilter);
+          await openDeliveryDetails(jobId);
+          showToast(`Retry queued for ${formatNumber(payload.retried_count)} failed deliveries`);
+        } catch (error) {
+          showToast(error.message || 'Failed deliveries could not be retried');
+          const job = dashboardState.jobs.find(item => item.id === jobId) || {};
+          renderDeliveryDetails(job, []);
+        }
+      }
+
+      function closeDeliveryDetails() {
+        dashboardState.selectedDeliveryJobId = null;
         document.getElementById('sheet-overlay').classList.remove('active');
-        document.getElementById('campaign-details-sheet').classList.remove('active');
+        document.getElementById('delivery-details-sheet').classList.remove('active');
       }
 
       function closeAllSheets() {
@@ -1529,6 +1578,10 @@
       }
 
       function openTestEmailModal() {
+        if (!getSelectedCampaign()) {
+          showToast('Select a campaign before sending a test email.');
+          return;
+        }
         document.getElementById('test-email-modal').classList.add('active');
       }
 
@@ -1537,6 +1590,11 @@
       }
 
       function openCampaignConfirmation() {
+        if (!getSelectedCampaign()) {
+          showToast('Select a campaign before publishing a campaign.');
+          return;
+        }
+        setText('campaign-recipient-count', formatNumber(toNumber(dashboardState.stats.active_subscribers)));
         document.getElementById('campaign-confirmation-modal').classList.add('active');
         document.getElementById('campaign-confirm-checkbox').checked = false;
         updateCampaignButton();
@@ -1552,6 +1610,60 @@
         btn.disabled = !checkbox.checked;
       }
 
+      async function sendTestEmail() {
+        const campaign = getSelectedCampaign();
+        if (!campaign) {
+          showToast('Select a campaign before sending a test email.');
+          return;
+        }
+
+        const email = getValue('test-email-recipient');
+        if (!email) {
+          showToast('Enter a test recipient email.');
+          return;
+        }
+
+        try {
+          await adminFetch(`/api/admin/campaigns/${encodeURIComponent(campaign.id)}/send-test`, {
+            method: "POST",
+            body: JSON.stringify({ email }),
+          });
+          closeTestEmailModal();
+          showToast('Test email sent');
+        } catch (error) {
+          showToast(error.message || 'Test email could not be sent');
+        }
+      }
+
+      async function publishCampaign() {
+        const campaign = getSelectedCampaign();
+        if (!campaign) {
+          showToast('Select a campaign before publishing a campaign.');
+          return;
+        }
+
+        try {
+          const payload = await adminFetch(`/api/admin/campaigns/${encodeURIComponent(campaign.id)}/publish`, {
+            method: "POST",
+          });
+          if (payload.job) {
+            dashboardState.jobs.unshift({
+              ...payload.job,
+              campaign_title: campaign.title,
+              campaign_subject: campaign.subject,
+            });
+            renderDeliveryJobs(dashboardState.jobs);
+            filterDeliveryJobs(currentDeliveryFilter);
+          } else {
+            await loadJobs();
+          }
+          closeCampaignConfirmation();
+          showToast(payload.queue_configured ? 'Campaign published' : 'Campaign published without queue binding');
+        } catch (error) {
+          showToast(error.message || 'Campaign could not be published');
+        }
+      }
+
       function openImportUsersModal() {
         document.getElementById('import-users-modal').classList.add('active');
       }
@@ -1562,69 +1674,78 @@
 
       function filterByStatus(status) {
         currentStatusFilter = status;
-        const rows = document.querySelectorAll('.user-row');
-        rows.forEach(row => {
-          if (status === 'all' || row.dataset.status === status) {
-            row.style.display = '';
-          } else {
-            row.style.display = 'none';
-          }
-        });
-        
-        // Update filter buttons
-        document.querySelectorAll('#users-page .btn-secondary').forEach((btn, idx) => {
-          if ((idx === 0 && status === 'all') || btn.textContent.toLowerCase() === status) {
-            btn.style.backgroundColor = '#dc2626';
-            btn.style.color = 'white';
-            btn.style.borderColor = '#dc2626';
-          } else {
-            btn.style.backgroundColor = '';
-            btn.style.color = '';
-            btn.style.borderColor = '';
-          }
+        applySubscriberFilters();
+        document.querySelectorAll('#users-page [data-status-filter]').forEach(btn => {
+          const isActive = btn.dataset.statusFilter === status;
+          btn.style.backgroundColor = isActive ? '#dc2626' : '';
+          btn.style.color = isActive ? 'white' : '';
+          btn.style.borderColor = isActive ? '#dc2626' : '';
         });
       }
 
       function filterUsers() {
-        const search = document.getElementById('user-search').value.toLowerCase();
-        const rows = document.querySelectorAll('.user-row');
-        rows.forEach(row => {
-          const name = row.cells[1]?.textContent.toLowerCase();
-          const email = row.cells[2]?.textContent.toLowerCase();
-          if (name?.includes(search) || email?.includes(search)) {
-            row.style.display = '';
-          } else {
-            row.style.display = 'none';
-          }
-        });
+        applySubscriberFilters();
       }
 
-      function filterIssues(status) {
-        currentIssueFilter = status;
-        const rows = document.querySelectorAll('.issue-row');
-        rows.forEach(row => {
-          if (status === 'all' || row.dataset.status === status) {
-            row.style.display = '';
-          } else {
-            row.style.display = 'none';
-          }
+      function applySubscriberFilters() {
+        const search = (document.getElementById('user-search')?.value || '').toLowerCase();
+        document.querySelectorAll('.user-row').forEach(row => {
+          const matchesStatus = currentStatusFilter === 'all' || row.dataset.status === currentStatusFilter;
+          const matchesSearch = !search || (row.dataset.search || '').includes(search);
+          row.style.display = matchesStatus && matchesSearch ? '' : 'none';
         });
       }
 
       function filterCampaigns(status) {
         currentCampaignFilter = status;
-        const rows = document.querySelectorAll('.campaign-row');
-        rows.forEach(row => {
-          if (status === 'all' || row.dataset.status === status) {
-            row.style.display = '';
-          } else {
-            row.style.display = 'none';
-          }
+        const search = (document.getElementById('campaign-search')?.value || '').toLowerCase();
+        document.querySelectorAll('.campaign-row').forEach(row => {
+          const matchesStatus = status === 'all' || row.dataset.status === status;
+          const matchesSearch = !search || (row.dataset.search || '').includes(search);
+          row.style.display = matchesStatus && matchesSearch ? '' : 'none';
+        });
+        document.querySelectorAll('#campaigns-page [data-campaign-filter]').forEach(btn => {
+          const isActive = btn.dataset.campaignFilter === status;
+          btn.style.backgroundColor = isActive ? '#dc2626' : '';
+          btn.style.color = isActive ? 'white' : '';
+          btn.style.borderColor = isActive ? '#dc2626' : '';
         });
       }
 
+      function filterDeliveryJobs(status) {
+        currentDeliveryFilter = status;
+        const rows = document.querySelectorAll('.delivery-row');
+        rows.forEach(row => {
+          row.style.display = status === 'all' || row.dataset.status === status || (status === 'sending' && ['queued', 'running', 'sending'].includes(row.dataset.status)) ? '' : 'none';
+        });
+      }
+
+      function getSelectedCampaign() {
+        if (!dashboardState.selectedCampaignId) return null;
+        return dashboardState.campaigns.find(campaign => campaign.id === dashboardState.selectedCampaignId) || null;
+      }
+
+      function deliveryProgress(sent, failed, total, skipped = 0) {
+        if (!total) return 0;
+        const progress = ((sent + failed + skipped) / total) * 100;
+        return Math.min(100, Math.round(progress * 10) / 10);
+      }
+
+      function deliveryStatusClass(status) {
+        if (status === 'completed') return 'status-sent';
+        if (status === 'running' || status === 'sending' || status === 'queued') return 'status-sending';
+        if (status === 'failed') return 'status-bounced';
+        if (status === 'canceled') return 'status-unsubscribed';
+        return 'status-draft';
+      }
+
       function useTemplate() {
-        openIssueEditor();
+        openCampaignEditor();
+        setValue('campaign-title', 'Monthly BLT Digest');
+        setValue('campaign-slug', 'monthly-blt-digest');
+        setValue('campaign-subject', 'Monthly BLT Digest');
+        setValue('campaign-summary', 'Platform updates, contributor highlights, and shipped work.');
+        setValue('campaign-markdown-body', '## Intro\n\n## Shipped\n\n## Contributor spotlight\n\n## Next');
         showToast('Template loaded - Monthly BLT Digest');
       }
 
@@ -1634,11 +1755,140 @@
         toast.className = 'toast';
         toast.textContent = message;
         container.appendChild(toast);
-        
+
         setTimeout(() => {
           toast.remove();
         }, 3000);
       }
+
+      function setText(id, value) {
+        const element = document.getElementById(id);
+        if (element) element.textContent = value;
+      }
+
+      function setValue(id, value) {
+        const element = document.getElementById(id);
+        if (element) element.value = value || '';
+      }
+
+      function getValue(id) {
+        return (document.getElementById(id)?.value || '').trim();
+      }
+
+      function toNumber(value) {
+        const number = Number(value || 0);
+        return Number.isFinite(number) ? number : 0;
+      }
+
+      function formatNumber(value) {
+        return toNumber(value).toLocaleString();
+      }
+
+      function hasValue(value) {
+        return value !== undefined && value !== null && value !== '' && value !== 'null';
+      }
+
+      function formatDate(value) {
+        if (!hasValue(value)) return '—';
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return String(value);
+        return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+      }
+
+      function formatDateTime(value) {
+        if (!hasValue(value)) return '—';
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return String(value);
+        return date.toLocaleString(undefined, {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+          hour: 'numeric',
+          minute: '2-digit',
+        });
+      }
+
+      function deliveryFailureReason(event) {
+        const metadata = parseMetadata(event.metadata_json);
+        if (hasValue(metadata.sendgrid_status)) return `SendGrid status ${metadata.sendgrid_status}`;
+        if (metadata.reason) return formatSource(metadata.reason);
+        if (metadata.retryable === true || metadata.retryable === 'true') return 'Temporary failure';
+        return 'Delivery failed';
+      }
+
+      function parseMetadata(value) {
+        if (!hasValue(value)) return {};
+        if (typeof value === 'object') return value || {};
+        try {
+          const parsed = JSON.parse(value);
+          return parsed && typeof parsed === 'object' ? parsed : {};
+        } catch (_error) {
+          return {};
+        }
+      }
+
+      function formatSource(value) {
+        if (!hasValue(value)) return '—';
+        return String(value).replaceAll('_', ' ').replace(/\b\w/g, char => char.toUpperCase());
+      }
+
+      function normalizeStatus(value) {
+        return String(value || 'draft').toLowerCase().replace(/[^a-z0-9-]/g, '-');
+      }
+
+      function titleCase(value) {
+        return String(value || '').replaceAll('-', ' ').replace(/\b\w/g, char => char.toUpperCase());
+      }
+
+      function escapeHtml(value) {
+        return String(value ?? '').replace(/[&<>'"]/g, char => ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          "'": '&#39;',
+          '"': '&quot;',
+        }[char]));
+      }
+
+      function escapeAttribute(value) {
+        return escapeHtml(value).replace(/`/g, '&#96;');
+      }
+
+      function handleDashboardTableActions(event) {
+        const subscriberButton = event.target.closest('[data-subscriber-id]');
+        if (subscriberButton) {
+          event.stopPropagation();
+          openUserDetails(subscriberButton.dataset.subscriberId);
+          return;
+        }
+
+        const campaignTarget = event.target.closest('[data-campaign-id]');
+        if (campaignTarget) {
+          event.stopPropagation();
+          openCampaignEditor(campaignTarget.dataset.campaignId);
+          return;
+        }
+
+        const jobTarget = event.target.closest('[data-job-id]');
+        if (jobTarget) {
+          event.stopPropagation();
+          openDeliveryDetails(jobTarget.dataset.jobId);
+        }
+      }
+
+      document.getElementById('users-table-body')?.addEventListener('click', handleDashboardTableActions);
+      document.getElementById('campaigns-table-body')?.addEventListener('click', handleDashboardTableActions);
+      document.getElementById('deliveries-table-body')?.addEventListener('click', handleDashboardTableActions);
+
+      document.getElementById('campaign-title')?.addEventListener('input', (event) => {
+        const slugInput = document.getElementById('campaign-slug');
+        if (!slugInput || dashboardState.selectedCampaignId || slugInput.value.trim()) return;
+        slugInput.value = event.target.value
+          .toLowerCase()
+          .trim()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-+|-+$/g, '');
+      });
 
       // Close modals on Escape
       document.addEventListener('keydown', (e) => {

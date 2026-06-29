@@ -1,198 +1,211 @@
-# BLT Newsletter - Testing Guide
+# BLT Newsletter Testing Guide
 
-## Testing the Python Worker Site
+## Automated checks
 
-### Prerequisites
-- Modern web browser
-- Internet connection (for CDN resources)
-- Python Worker dependencies installed with `uv sync`
-- Local Worker running with `uv run pywrangler dev --port 8787`
+Run these before opening an MR:
 
-### Test Cases
+```bash
+python3 -m unittest discover -s tests -v
+PYTHONPYCACHEPREFIX=/private/tmp/blt-newsletter-pycache python3 -m py_compile src/*.py scripts/*.py
+python3 - <<'PY'
+from html.parser import HTMLParser
+from pathlib import Path
+for path in sorted(Path('public').glob('*.html')):
+    parser = HTMLParser()
+    parser.feed(path.read_text())
+    print('html ok', path)
+PY
+python3 - <<'PY'
+from pathlib import Path
+for name in ['dashboard', 'login', 'signup']:
+    page = Path(f'public/{name}.html').read_text()
+    start = page.rindex('    <script>') + len('    <script>')
+    end = page.rindex('    </script>')
+    Path(f'/tmp/blt_newsletter_{name}.js').write_text(page[start:end])
+PY
+node --check /tmp/blt_newsletter_dashboard.js
+node --check /tmp/blt_newsletter_login.js
+node --check /tmp/blt_newsletter_signup.js
+git diff --check
+```
 
-#### 1. Page Load
-- Visit `http://localhost:8787/` or the deployed Cloudflare URL
-- Verify BLT branding appears correctly
-- Check that all styles load properly
-- Verify responsive design on different screen sizes
+## Local Worker smoke
 
-#### 2. Worker Routes
-- Visit `/`
-- Visit `/login`
-- Visit `/dashboard`
-- Visit `/docs`
+```bash
+./scripts/migrate.sh dev
+wrangler dev --local --port 8794
+```
 
-Expected: Each route returns the matching HTML page without requiring a `.html` suffix.
+Open:
 
-#### 3. Form Validation - Valid Email
-1. Fill in name (optional)
-2. Enter valid email: `test@example.com`
-3. Check consent checkbox
-4. Click "Subscribe to Newsletter"
-5. Verify success message appears
+```text
+http://localhost:8794/
+http://localhost:8794/login
+http://localhost:8794/dashboard
+```
 
-Expected: Green success message
+## Public subscribe flow
 
-#### 4. Form Validation - Invalid Email
-1. Enter invalid email: `invalid-email`
-2. Check consent checkbox
-3. Click "Subscribe"
+1. Open `/`.
+2. Enter a valid email and optional name.
+3. Check consent.
+4. Submit.
 
-Expected: Red error message about invalid email
+Expected:
 
-#### 5. Form Validation - Missing Consent
-1. Enter valid email
-2. Don't check consent checkbox
-3. Try to submit
+- First subscribe returns success.
+- Duplicate subscribe is idempotent.
+- Invalid email shows an error.
+- Missing consent shows an error.
 
-Expected: Browser validation prevents submission
+Curl checks:
 
-#### 6. GitHub Issue Creation
-1. Submit valid subscription
-2. Go to repository Issues
-3. Filter by label: `newsletter-subscription`
-4. Verify new issue was created with subscriber info
+```bash
+curl -sS -X POST http://localhost:8794/api/subscribe \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"manual-test@example.com","name":"Manual Test","consent":true}'
 
-Expected: Issue created with email and name
+curl -sS -X POST http://localhost:8794/api/unsubscribe \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"manual-test@example.com"}'
+```
 
-## Testing GitHub Actions
+## First-admin setup flow
 
-### Prerequisites
-- Repository with Actions enabled
-- SendGrid API key configured in secrets
-- At least one subscriber (open issue with label)
+Use a fresh local D1 for the full first-run flow.
 
-### Test Newsletter Workflow
+Expected with zero admins:
 
-#### 1. Manual Workflow Trigger
-1. Go to Actions > Send Newsletter
-2. Click "Run workflow"
-3. Enter subject: "Test Newsletter"
-4. Enter content file: `newsletters/latest.md`
-5. Click "Run workflow"
-6. Wait for completion
+1. `/login` redirects to `/signup`.
+2. `/api/admin/setup/status` returns `setup_required: true`.
+3. The signup form creates the first admin.
+4. Browser redirects to `/dashboard`.
+5. `/signup` is closed after that and redirects to `/login`.
 
-Expected: Workflow completes successfully
+Checks:
 
-#### 2. Check Workflow Logs
-1. Open the workflow run
-2. Expand "Get subscribers from issues"
-3. Verify subscriber count is correct
-4. Expand "Send newsletter via SendGrid"
-5. Check for successful sends
+```bash
+curl -i http://localhost:8794/api/admin/setup/status
+curl -i http://localhost:8794/login
+curl -i http://localhost:8794/signup
+```
 
-Expected: All subscribers receive email
+Expected after admin exists:
 
-#### 3. Verify Email Receipt
-1. Check inbox for test subscriber
-2. Verify email has correct subject
-3. Verify content matches newsletter file
-4. Verify BLT branding in email
+```text
+/api/admin/setup/status -> setup_required false
+/signup -> 302 /login
+POST /api/admin/setup -> 409 First admin is already configured.
+```
 
-Expected: Well-formatted email received
+## Admin dashboard flow
 
-### Test Subscriber Management
+After login:
 
-#### 1. Add Subscriber via Form
-- Submit form with test email
-- Check Issues for new entry
+- Overview stats load from `/api/admin/stats`.
+- Subscribers table loads from `/api/admin/subscribers`.
+- Campaigns table loads from `/api/admin/campaigns`.
+- Deliveries table loads from `/api/admin/jobs`.
+- Browser console has no red errors.
 
-#### 2. Remove Subscriber
-- Close a subscription issue
-- Run newsletter workflow
-- Verify closed issue subscriber doesn't receive email
+Manual campaign test:
 
-#### 3. Export Subscribers
-- Run workflow
-- Check logs for subscriber list
-- Verify all open issues are included
+1. Open Campaigns.
+2. Click New campaign.
+3. Fill title, slug, subject, summary, and Markdown body.
+4. Save draft.
+5. Refresh dashboard and confirm the campaign remains.
 
-## Visual Regression Testing
+## SendGrid test-send flow
 
-Compare with BLT-Design guidelines:
-- [ ] Uses BLT red color (#dc2626)
-- [ ] Uses Inter font family
-- [ ] Gradient background matches BLT style
-- [ ] Components have proper border radius
-- [ ] Shadows and hover states work correctly
-- [ ] Icons display correctly
+Without SendGrid secrets:
 
-## Browser Compatibility
+1. Open a campaign in the dashboard.
+2. Click Send test email.
+3. Enter a recipient.
+4. Submit.
 
-Test in the following browsers:
-- [ ] Chrome/Chromium
-- [ ] Firefox
-- [ ] Safari
-- [ ] Edge
+Expected: clear configuration error asking for `SENDGRID_API_KEY` and `SENDGRID_FROM_EMAIL`.
 
-## Mobile Testing
+With SendGrid secrets configured:
 
-Test on different devices:
-- [ ] iPhone (Safari)
-- [ ] Android (Chrome)
-- [ ] Tablet (iPad/Android)
+- `POST /api/admin/campaigns/:id/send-test` should return success for a verified sender and valid recipient.
+- Confirm the email uses BLT branding and includes an unsubscribe footer.
 
-## Accessibility Testing
+## Campaign publish flow
 
-- [ ] All form inputs have labels
-- [ ] Focus states are visible
-- [ ] Tab navigation works correctly
-- [ ] Screen reader compatible (test with VoiceOver/NVDA)
-- [ ] Color contrast meets WCAG guidelines
-- [ ] Alt text for all images
+1. Ensure at least one active subscriber exists.
+2. Create or open a newsletter campaign.
+3. Confirm Publish campaign.
 
-## Performance Testing
+Expected:
 
-- [ ] Page loads in under 3 seconds
-- [ ] No console errors
-- [ ] CDN resources load properly
-- [ ] Form submission is responsive
+- `POST /api/admin/campaigns/:id/publish` returns `202`.
+- A `newsletter_send_jobs` row is created.
+- One queued `newsletter_delivery_events` row is created per active subscriber.
+- Dashboard Deliveries table shows the job.
+- If `NEWSLETTER_QUEUE` is configured, queue messages contain IDs only, not raw emails.
 
-## Security Testing
+## Runtime API expectations
 
-- [ ] Email validation prevents injection
-- [ ] No sensitive data in client code
-- [ ] HTTPS enabled (in production)
-- [ ] No XSS vulnerabilities
+Unauthenticated admin APIs should return `401`:
 
-## Cloudflare Deployment
+```bash
+curl -i http://localhost:8794/api/admin/me
+curl -i http://localhost:8794/api/admin/jobs
+```
 
-### 1. Verify Deployment
-- Push to main branch
-- Wait for Cloudflare deployment to complete
-- Visit the Cloudflare URL
-- Verify site is live
-- Verify `/`, `/login`, `/dashboard`, and `/docs`
+Public archive should return only published campaigns:
 
-### 2. Check DNS/SSL
-- Verify HTTPS is enabled
-- Check custom domain (if configured)
-- Test SSL certificate validity
+```bash
+curl -sS http://localhost:8794/api/campaigns
+```
+
+## Visual QA
+
+Check desktop and mobile widths:
+
+- Landing page layout and subscribe form.
+- Login and signup pages.
+- Dashboard sidebar/topbar.
+- Dashboard tables and right-side sheets.
+
+## Security QA
+
+- Confirm no API keys or session tokens appear in page source.
+- Confirm admin session cookie is HttpOnly.
+- Confirm public APIs never list draft campaigns.
+- Confirm queue payloads do not include raw emails.
+- Confirm setup closes after the first admin exists.
 
 ## Troubleshooting
 
-### Form Not Submitting
-- Check browser console for errors
-- Verify the Cloudflare `GITHUB_TOKEN` secret is set
-- Check Cloudflare Worker logs
+### Setup page says migrations are missing
 
-### Newsletter Not Sending
-- Verify SendGrid secrets are set
-- Check workflow logs for errors
-- Verify subscriber issues exist
-- Check SendGrid dashboard
+Run:
 
-### Page Not Loading
-- Check that `uv run pywrangler dev --port 8787` starts successfully
-- Check that `wrangler.toml` points `main` to `src/entry.py` and binds `public/` as `ASSETS`
-- Verify the source branch is correct
-- Check for deployment errors in Cloudflare
+```bash
+./scripts/migrate.sh dev
+```
 
-## Automated Testing (Future)
+### Campaign creation fails locally
 
-Consider adding:
-- E2E tests with Playwright/Cypress
-- Unit tests for JavaScript functions
-- Visual regression tests
-- API integration tests
-- Load testing for high subscriber counts
+If an old local migration was applied before the campaign schema changed, your local D1 may be stale. Use a fresh local D1 when you are okay losing local test data.
+
+### Test email fails
+
+Check:
+
+- `SENDGRID_API_KEY`
+- `SENDGRID_FROM_EMAIL`
+- SendGrid sender verification
+- Worker logs
+
+### Campaign stays queued
+
+Check:
+
+- `NEWSLETTER_QUEUE` binding exists.
+- SendGrid secrets are configured.
+- The subscriber is still active.
+- Worker queue consumer logs.

@@ -6,4 +6,20 @@ compatibility_flags = ["python_workers", "disable_python_external_sdk"]
 [assets]
 directory = "public"
 binding = "ASSETS"
-run_worker_first = ["/", "/dashboard", "/dashboard/", "/login", "/login/", "/docs", "/docs/"]
+run_worker_first = ["/", "/dashboard", "/dashboard/", "/login", "/login/", "/signup", "/signup/", "/docs", "/docs/", "/api/*"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "blt-newsletter"
+database_id = "00000000-0000-0000-0000-000000000000" # Replace with the real D1 database id before production deploy.
+migrations_dir = "migrations"
+
+[[queues.producers]]
+binding = "NEWSLETTER_QUEUE"
+queue = "blt-newsletter-send"
+
+[[queues.consumers]]
+queue = "blt-newsletter-send"
+max_batch_size = 10
+max_batch_timeout = 30
+max_retries = 3

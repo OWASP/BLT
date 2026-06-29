@@ -1,254 +1,170 @@
 # BLT Newsletter
 
-A newsletter signup and management system for the OWASP Bug Logging Tool (BLT) platform, built as a Python Cloudflare Worker with static assets and GitHub Actions for automated newsletter delivery.
+BLT Newsletter is the OWASP BLT newsletter platform. It runs as a Python Cloudflare Worker with static assets, D1-backed subscriber/admin/campaign storage, a browser admin dashboard, and SendGrid delivery.
 
-## Features
+## What it does
 
-- 📧 **Newsletter Signup**: Clean, user-friendly signup form with BLT-Design styling
-- 🎨 **BLT-Design Integration**: Consistent look and feel with the OWASP BLT design system
-- 🤖 **GitHub Actions**: Automated newsletter sending via GitHub Actions workflow
-- 📬 **SendGrid Integration**: Reliable email delivery through SendGrid
-- ✉️ **Welcome Emails**: Automatic welcome emails sent to new subscribers
-- 🔒 **Opt-in Subscription**: GDPR-compliant consent-based subscription
-- 📊 **Platform Stats**: Display key BLT metrics on the landing page
-- 📱 **Responsive Design**: Mobile-first, works on all device sizes
-- 🚀 **Cloudflare Worker Hosting**: Python Worker routes clean URLs to static assets from `public/`
+- Public newsletter landing page and private D1-backed subscribe/unsubscribe API.
+- One-time first-admin setup UI at `/signup` for fresh D1 databases.
+- Admin login with HttpOnly session cookies.
+- Admin dashboard for subscribers, newsletter campaigns, test sends, publishing, and delivery jobs.
+- Public archive API for published campaigns.
+- SendGrid Web API integration without the SendGrid package dependency.
+- Cloudflare Queue foundation for asynchronous campaign delivery.
 
 ## Architecture
 
-### Python Worker and Static Assets (Cloudflare)
-The site runs through a Python Cloudflare Worker in `src/entry.py`. The Worker serves static assets from `public/` and maps clean routes:
+```text
+Browser
+  ├─ public landing page -> POST /api/subscribe
+  ├─ login/signup UI -> /api/admin/setup + /api/admin/login
+  └─ dashboard -> /api/admin/*
 
-- `/` -> `public/index.html`
-- `/dashboard` -> `public/dashboard.html`
-- `/login` -> `public/login.html`
-- `/docs` -> `public/docs.html`
+Python Cloudflare Worker (src/entry.py)
+  ├─ static assets from public/
+  ├─ D1 binding DB
+  ├─ optional Queue binding NEWSLETTER_QUEUE
+  └─ SendGrid Web API via src/email_service.py
 
-When users subscribe:
-1. The form submits to GitHub Issues API
-2. A new issue is created with label `newsletter-subscription`
-3. The issue contains the subscriber's email and name
+D1
+  ├─ newsletter_subscribers
+  ├─ newsletter_admins
+  ├─ newsletter_admin_sessions
+  ├─ newsletter_campaigns
+  ├─ newsletter_send_jobs
+  ├─ newsletter_delivery_events
+  └─ newsletter_rate_limits
+```
 
-### Newsletter Distribution (GitHub Actions)
-Newsletters are sent via a manual GitHub Actions workflow:
-1. The workflow reads all open issues with `newsletter-subscription` label
-2. Extracts subscriber emails from issue bodies
-3. Sends the newsletter using SendGrid API
-4. Supports markdown newsletter templates
+The old public issue-based subscriber storage model has been replaced by private D1 storage.
 
-## Tech Stack
+## Main routes
 
-- **Frontend**: HTML, Tailwind CSS, Vanilla JavaScript
-- **Hosting**: Python Cloudflare Worker with static assets from `public/`
-- **Automation**: GitHub Actions
-- **Email Service**: SendGrid API
-- **Design System**: OWASP BLT-Design
+Public:
 
-## Setup
+- `GET /`
+- `POST /api/subscribe`
+- `POST /api/unsubscribe`
+- `GET /api/campaigns`
+- `GET /api/campaigns/:slug`
 
-### 1. Configure Cloudflare
+Admin/setup:
 
-1. Create a Cloudflare Worker for this repository
-2. Keep `wrangler.toml` as the source of truth for the Worker entrypoint and static assets
-3. Deploy with `uv run pywrangler deploy`
-4. Add a `GITHUB_TOKEN` Cloudflare secret that can create issues in this repository
+- `GET /signup`
+- `GET /login`
+- `GET /dashboard`
+- `GET /api/admin/setup/status`
+- `POST /api/admin/setup`
+- `POST /api/admin/login`
+- `POST /api/admin/logout`
+- `GET /api/admin/me`
+- `GET /api/admin/stats`
+- `GET /api/admin/subscribers`
+- `GET /api/admin/campaigns`
+- `POST /api/admin/campaigns`
+- `PATCH /api/admin/campaigns/:id`
+- `POST /api/admin/campaigns/:id/send-test`
+- `POST /api/admin/campaigns/:id/publish`
+- `GET /api/admin/jobs`
+- `GET /api/admin/jobs/:id`
+- `POST /api/admin/jobs/:id/cancel`
 
-### 2. Configure GitHub Secrets
-
-Add the following secrets in **Settings** > **Secrets and variables** > **Actions**:
-
-- `SENDGRID_API_KEY`: Your SendGrid API key
-- `SENDGRID_FROM_EMAIL`: Verified sender email (e.g., `newsletter@blt.owasp.org`)
-
-Add this secret in Cloudflare for the signup function:
-
-- `GITHUB_TOKEN`: Fine-grained GitHub token with Issues read/write access for this repository
-
-With Wrangler, set it with:
+## Local development
 
 ```bash
-uv run pywrangler secret put GITHUB_TOKEN
+cd BLT-Newsletter
+./scripts/migrate.sh dev
+wrangler dev --local --port 8794
 ```
 
-### 3. Enable Issues
+Open:
 
-Make sure GitHub Issues are enabled for your repository in **Settings** > **General**.
-
-### 4. Create Newsletter Subscription Label
-
-Create a label called `newsletter-subscription` in your repository:
-1. Go to **Issues** > **Labels**
-2. Click **New label**
-3. Name: `newsletter-subscription`
-4. Color: Choose any color
-5. Click **Create label**
-
-## Usage
-
-### Receiving Subscriptions
-
-When someone subscribes via the website:
-1. A new issue is automatically created
-2. The issue has the `newsletter-subscription` label
-3. Issue title: "Newsletter Subscription: user@example.com"
-4. Issue body contains subscriber name and email
-
-### Sending Newsletters
-
-1. **Create your newsletter content**:
-   - Add a markdown file to the `newsletters/` directory
-   - Use `newsletters/latest.md` as a template
-
-2. **Run the workflow**:
-   - Go to **Actions** > **Send Newsletter**
-   - Click **Run workflow**
-   - Enter the email subject line
-   - Enter the newsletter content file path (e.g., `newsletters/february-2026.md`)
-   - Click **Run workflow**
-
-3. **Monitor the results**:
-   - Check the workflow logs for delivery status
-   - View summary in the workflow run
-
-## Getting SendGrid API Key
-
-1. Create a free account at [SendGrid](https://sendgrid.com/)
-2. Go to **Settings** > **API Keys**
-3. Click **Create API Key**
-4. Give it "Mail Send" permissions
-5. Copy the API key to GitHub secrets
-
-## Newsletter Content
-
-Newsletter files are markdown documents in the `newsletters/` directory. Example structure:
-
-```markdown
-# BLT Newsletter - Month Year
-
-## Platform Statistics
-- Stats here...
-
-## New Features
-- Feature 1
-- Feature 2
-
-## Community Highlights
-- Highlight 1
+```text
+http://localhost:8794/
+http://localhost:8794/login
 ```
 
-The markdown is automatically converted to HTML and wrapped in a BLT-branded email template.
+Fresh local D1 behavior:
 
-## Local Development
+1. `/login` redirects to `/signup`.
+2. Create the first admin in the browser.
+3. The Worker stores the admin, creates an HttpOnly cookie, and opens `/dashboard`.
+4. After one admin exists, `/signup` redirects to `/login` and the setup API returns `409`.
 
-To test the site locally:
+## Required Cloudflare resources
+
+D1 database:
+
+```toml
+[[d1_databases]]
+binding = "DB"
+database_name = "blt-newsletter"
+migrations_dir = "migrations"
+```
+
+Queue binding:
+
+```toml
+[[queues.producers]]
+binding = "NEWSLETTER_QUEUE"
+queue = "blt-newsletter-send"
+
+[[queues.consumers]]
+queue = "blt-newsletter-send"
+```
+
+Before production deploy, replace the placeholder D1 `database_id` in `wrangler.toml`, then apply remote migrations:
 
 ```bash
-# Install Worker development dependencies
-uv sync
-
-# Start the local Cloudflare Worker
-uv run pywrangler dev --port 8787
+./scripts/migrate.sh prod
 ```
 
-Visit `http://localhost:8787` to see the landing page. Admin pages are available at `/login`, `/dashboard`, and `/docs`.
+## Required secrets / vars
 
-Run the local smoke checks with:
+Set these as Cloudflare secrets or environment variables before production campaign sends:
+
+- `EMAIL_HASH_SECRET` — HMAC key for subscriber/admin email hashes.
+- `ADMIN_SESSION_SECRET` — HMAC key for admin session tokens.
+- `SENDGRID_API_KEY` — SendGrid Mail Send API key.
+- `SENDGRID_FROM_EMAIL` — verified sender email.
+- `SENDGRID_FROM_NAME` — optional sender display name.
+- `PUBLIC_BASE_URL` — optional public base URL used in email links.
+
+Local development has deterministic fallback secrets for tests only. Do not rely on fallback secrets in production.
+
+## Manual testing
 
 ```bash
-python3 -m unittest tests.test_worker_setup
-python3 -m py_compile src/entry.py tests/test_worker_setup.py
-uv run pywrangler types
+python3 -m unittest discover -s tests -v
+PYTHONPYCACHEPREFIX=/private/tmp/blt-newsletter-pycache python3 -m py_compile src/*.py scripts/*.py
 ```
 
-## Managing Subscribers
+Then run Wrangler and test:
 
-### View All Subscribers
-Go to **Issues** and filter by label `newsletter-subscription`.
+- Public subscribe/unsubscribe from `/`.
+- First-admin setup from `/login` on a fresh D1.
+- Admin login/logout.
+- Dashboard subscriber/campaign/delivery-job tables.
+- Campaign draft create/update.
+- Test send behavior. Without SendGrid secrets, it should return a clear configuration error.
+- Campaign publish behavior. It should create a job and queued delivery events; queue delivery requires the `NEWSLETTER_QUEUE` binding.
 
-### Remove a Subscriber
-Close the subscriber's issue to remove them from the mailing list.
+See `TESTING.md` and `docs/plans/first-admin-setup-flow.md` for fuller QA steps.
 
-### Export Subscribers
-Use the GitHub API or run the "Get subscribers" step from the Actions workflow manually.
+## Notes for contributors
 
-## Customization
-
-### Update Newsletter Template
-Edit `.github/scripts/send-newsletter.py` to modify the email template HTML.
-
-### Change Signup Form
-Edit `public/index.html` to modify the signup form appearance or behavior.
-
-### Modify Stats
-Update the stats section in `public/index.html`:
-```html
-<div class="mb-2 text-3xl font-bold text-red-600">5000+</div>
-<div class="text-sm text-slate-600">Bugs Reported</div>
-```
-
-## Workflows
-
-### Deploy Worker
-- **Trigger**: Push to main branch or manual dispatch
-- **File**: `.github/workflows/deploy-pages.yml`
-- **Purpose**: Deploys the Python Worker and `public/` static assets
-
-### Send Newsletter
-- **Trigger**: Manual dispatch only
-- **File**: `.github/workflows/send-newsletter.yml`
-- **Purpose**: Sends newsletter to all subscribers
-
-## Security Considerations
-
-- API keys are stored as GitHub secrets
-- The signup flow should keep GitHub tokens in Cloudflare secrets so credentials are never exposed to the browser
-- Email validation is performed client-side
-- GitHub API rate limits apply (5000 requests/hour for authenticated)
-- Subscribers are stored as public GitHub issues (emails are visible)
-- For private subscriber management, consider using GitHub Discussions or a private repository
-
-## Alternative: Private Subscriber Storage
-
-If you want to keep subscriber emails private:
-1. Create a private repository for subscriber data
-2. Modify the form to use GitHub API with a personal access token
-3. Store subscribers in repository files instead of issues
-
-## Troubleshooting
-
-### Form submissions not creating issues
-- Check if Issues are enabled in repository settings
-- Verify the repository name in the JavaScript matches your repo
-- Check browser console for errors
-
-### Newsletter not sending
-- Verify SendGrid API key is set correctly in secrets
-- Check SendGrid sender email is verified
-- Review workflow logs for detailed error messages
-
-### Subscribers not appearing
-- Ensure issues have the `newsletter-subscription` label
-- Check that issues are in "open" state
-
-## Contributing
-
-We welcome contributions! Please see the [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+- Use plain HTML, Tailwind CSS, and vanilla JavaScript for UI changes.
+- Use stdlib `unittest` for regression coverage.
+- Do not commit secrets, API keys, real cookies, or real SendGrid responses.
+- Keep subscriber storage private in D1; do not reintroduce public issue-based email storage.
+- Prefer small reviewable slices and run local Wrangler smoke tests for Worker runtime changes.
 
 ## License
 
-This project is licensed under the AGPL-3.0 License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the AGPL-3.0 License. See `LICENSE` for details.
 
-## Related Projects
+## Related projects
 
-- [OWASP BLT](https://github.com/OWASP-BLT/BLT) - Main bug logging platform
-- [BLT-Design](https://github.com/OWASP-BLT/BLT-Design) - Design system and components
-
-## Support
-
-- [OWASP BLT Documentation](https://owasp-blt.github.io/documentation/)
-- [GitHub Issues](https://github.com/OWASP-BLT/BLT-Newsletter/issues)
-- [OWASP BLT Discord](https://discord.gg/owasp-blt)
-
-## Acknowledgments
-
-Built with ❤️ by the OWASP BLT community
+- OWASP BLT: https://github.com/OWASP-BLT/BLT
+- BLT Design: https://github.com/OWASP-BLT/BLT-Design
+- BLT Newsletter canonical project: https://gitlab.com/owasp-blt/blt-newsletter

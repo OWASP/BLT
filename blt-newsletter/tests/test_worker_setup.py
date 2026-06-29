@@ -1,15 +1,83 @@
 import re
-import tomllib
+import stat
 import unittest
 from pathlib import Path
+
+try:
+    import tomllib
+except ModuleNotFoundError:
+    tomllib = None
 
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def load_toml(text):
+    if tomllib is not None:
+        return tomllib.loads(text)
+
+    config = {}
+    current = config
+    for raw_line in text.splitlines():
+        line = raw_line.split("#", 1)[0].strip()
+        if not line:
+            continue
+
+        if line.startswith("[[") and line.endswith("]]"):
+            table_name = line[2:-2].strip()
+            parent = config
+            parts = table_name.split(".")
+            for part in parts[:-1]:
+                parent = parent.setdefault(part, {})
+            current = {}
+            parent.setdefault(parts[-1], []).append(current)
+            continue
+
+        if line.startswith("[") and line.endswith("]"):
+            table_name = line[1:-1].strip()
+            current = config
+            for part in table_name.split("."):
+                current = current.setdefault(part, {})
+            continue
+
+        parts = [part.strip() for part in line.split("=", 1)]
+        if len(parts) != 2:
+            continue
+        key, value = parts
+        current[key] = parse_toml_value(value)
+
+    return config
+
+
+def parse_toml_value(value):
+    if value.startswith('"') and value.endswith('"'):
+        return value[1:-1]
+
+    if value.startswith("[") and value.endswith("]"):
+        items = []
+        for item in value[1:-1].split(","):
+            item = item.strip()
+            if item:
+                items.append(parse_toml_value(item))
+        return items
+
+    if value in {"true", "false"}:
+        return value == "true"
+
+    try:
+        return int(value)
+    except ValueError:
+        pass
+
+    try:
+        return float(value)
+    except ValueError:
+        return value
+
+
 class WorkerSetupTests(unittest.TestCase):
     def test_wrangler_configures_python_worker_with_assets_binding(self):
-        config = tomllib.loads((ROOT / "wrangler.toml").read_text())
+        config = load_toml((ROOT / "wrangler.toml").read_text())
 
         self.assertIn("main", config)
         self.assertEqual(config["main"], "src/entry.py")
@@ -18,6 +86,28 @@ class WorkerSetupTests(unittest.TestCase):
         self.assertIn("disable_python_external_sdk", config["compatibility_flags"])
         self.assertEqual(config["assets"]["directory"], "public")
         self.assertEqual(config["assets"]["binding"], "ASSETS")
+        self.assertIn("/api/*", config["assets"]["run_worker_first"])
+        self.assertIn("/signup", config["assets"]["run_worker_first"])
+        self.assertIn("/signup/", config["assets"]["run_worker_first"])
+        self.assertEqual(config["d1_databases"][0]["binding"], "DB")
+        self.assertEqual(config["d1_databases"][0]["database_name"], "blt-newsletter")
+        self.assertEqual(config["d1_databases"][0]["migrations_dir"], "migrations")
+        self.assertIn("queues", config)
+        producer = config["queues"]["producers"][0]
+        self.assertEqual(producer["binding"], "NEWSLETTER_QUEUE")
+        self.assertEqual(producer["queue"], "blt-newsletter-send")
+
+    def test_migration_script_runs_dev_and_prod_d1_migrations(self):
+        script_path = ROOT / "scripts" / "migrate.sh"
+        self.assertTrue(script_path.exists())
+        mode = script_path.stat().st_mode
+        self.assertTrue(mode & stat.S_IXUSR)
+
+        script = script_path.read_text()
+        self.assertIn("wrangler d1 migrations apply blt-newsletter --local", script)
+        self.assertIn("wrangler d1 migrations apply blt-newsletter --remote", script)
+        self.assertIn("Usage:", script)
+        self.assertIn("dev|prod", script)
 
     def test_python_worker_declares_expected_routes(self):
         entrypoint_path = ROOT / "src" / "entry.py"
@@ -28,6 +118,7 @@ class WorkerSetupTests(unittest.TestCase):
             '"/"': '"index.html"',
             '"/dashboard"': '"dashboard.html"',
             '"/login"': '"login.html"',
+            '"/signup"': '"signup.html"',
             '"/docs"': '"docs.html"',
         }
 
@@ -41,7 +132,8 @@ class WorkerSetupTests(unittest.TestCase):
         dashboard_page = (ROOT / "public" / "dashboard.html").read_text()
 
         self.assertIn('id="login-page"', login_page)
-        self.assertIn('onclick="login()"', login_page)
+        self.assertIn('onsubmit="login(); return false;"', login_page)
+        self.assertIn('type="submit"', login_page)
         self.assertNotIn('id="login-page"', dashboard_page)
         self.assertIn("window.location.href = '/login'", dashboard_page)
 
