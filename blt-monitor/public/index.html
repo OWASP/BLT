@@ -1,104 +1,214 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BLT Monitor</title>
+    <meta name="description" content="Track OWASP BLT websites, uptime, response times, and keyword checks from one light-mode monitor dashboard.">
+    <link rel="icon" href="https://api.owaspblt.org/logo.png">
+    <script>
+      window.tailwind = window.tailwind || {};
+      window.tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              blt: {
+                red: '#dc2626',
+                coral: '#ef4444',
+                ink: '#111827'
+              }
+            },
+            fontFamily: {
+              sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
+              mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace']
+            }
+          }
+        }
+      };
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous"/>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-      body { font-family: 'Segoe UI', system-ui, sans-serif; }
+      body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      .dot-field {
+        background-image: radial-gradient(rgba(17,24,39,.14) 1px, transparent 1px);
+        background-size: 18px 18px;
+        mask-image: radial-gradient(circle at center, black 0, transparent 72%);
+        -webkit-mask-image: radial-gradient(circle at center, black 0, transparent 72%);
+      }
+      .mobile-menu.open { display: flex; }
+      .mobile-toggle.active span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+      .mobile-toggle.active span:nth-child(2) { opacity: 0; }
+      .mobile-toggle.active span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
     </style>
 </head>
-<body class="bg-[#0a0f1e] text-[#e2e8f0] m-0 p-0">
+<body class="min-h-screen overflow-x-hidden bg-gray-50 text-gray-900 antialiased selection:bg-red-100 selection:text-red-700">
 
-<nav class="bg-[#0f172a] border-b border-slate-800 px-4 sm:px-6 py-3 sticky top-0 z-50">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 mt-3 mb-4 flex items-center justify-between">
-    <div class="flex items-center gap-2 font-bold text-lg">
-      <img src="https://api.owaspblt.org/logo.png" class="w-[30px]" alt="BLT"/>
-      <span class="text-[#e2e8f0]"><span class="text-red-500">BLT</span> Monitor</span>
-    </div>
-    <div class="flex items-center gap-3">
+<header class="sticky top-0 z-50 border-b border-gray-200 bg-white/90 backdrop-blur-xl">
+  <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
+    <a href="index.html" class="inline-flex items-center gap-2.5 no-underline" aria-label="BLT Monitor home">
+      <img src="https://api.owaspblt.org/logo.png" class="h-9 w-9 rounded-lg border border-red-100 bg-white p-1 shadow-sm" alt="BLT"/>
+      <span class="text-sm font-semibold text-gray-950"><span class="text-red-600">BLT</span> Monitor</span>
+    </a>
+
+    <nav class="hidden items-center gap-6 md:flex" aria-label="Primary navigation">
+      <a class="text-sm text-gray-500 transition-colors hover:text-gray-950" href="#monitors-list">Monitors</a>
+      <a class="text-sm text-gray-500 transition-colors hover:text-gray-950" href="https://owaspblt.org" target="_blank" rel="noopener noreferrer">OWASP BLT</a>
+    </nav>
+
+    <div class="hidden items-center gap-2 md:flex">
       <a href="https://gitlab.com/owasp-blt/blt-monitor" target="_blank" rel="noopener noreferrer"
-         class="flex items-center gap-1.5 text-sm bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg transition-colors font-medium">
+         class="inline-flex items-center gap-2 rounded-md border border-red-700 bg-red-600 px-3 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-red-700">
         <i class="fa-brands fa-gitlab"></i>
         <span>GitLab</span>
       </a>
     </div>
+
+    <button class="mobile-toggle flex h-9 w-9 flex-col items-center justify-center gap-[5px] rounded-md border border-gray-200 bg-white md:hidden" id="mobile-toggle" type="button" aria-label="Toggle menu" aria-expanded="false" aria-controls="mobile-menu">
+      <span class="block h-px w-5 bg-gray-700 transition"></span>
+      <span class="block h-px w-5 bg-gray-700 transition"></span>
+      <span class="block h-px w-5 bg-gray-700 transition"></span>
+    </button>
   </div>
-</nav>
 
-<div class="max-w-7xl mx-auto p-4 sm:p-6 my-2 sm:my-6">
+  <nav class="mobile-menu hidden flex-col gap-3 border-t border-gray-100 bg-white px-4 py-4 md:hidden" id="mobile-menu" aria-label="Mobile navigation">
+    <a class="text-sm text-gray-600" href="#monitors-list">Monitors</a>
+    <a class="text-sm text-gray-600" href="https://owaspblt.org" target="_blank" rel="noopener noreferrer">OWASP BLT</a>
+    <a class="inline-flex items-center justify-center gap-2 rounded-md border border-red-700 bg-red-600 px-4 py-2 text-sm font-medium text-white" href="https://gitlab.com/owasp-blt/blt-monitor" target="_blank" rel="noopener noreferrer">
+      <i class="fa-brands fa-gitlab"></i>
+      <span>GitLab</span>
+    </a>
+  </nav>
+</header>
 
-  <!-- Header Card -->
-  <div class="bg-[#0f172a] border border-slate-800 rounded-2xl p-5 sm:p-7 mb-6 relative overflow-hidden">
-    <!-- subtle red glow top-left -->
-    <div class="absolute -top-10 -left-10 w-48 h-48 bg-red-600/10 rounded-full blur-3xl pointer-events-none"></div>
-    <h1 class="text-2xl sm:text-3xl font-bold flex items-center gap-2.5 mb-1.5 relative z-10">
-      <i class="fa-solid fa-globe text-red-500"></i>
-      <span>Website Monitors</span>
-    </h1>
-    <p class="text-slate-400 text-sm sm:text-base mb-4 relative z-10">Monitor multiple websites and view their uptime status at a glance</p>
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4 relative z-10">
-      <div class="bg-slate-900/70 border border-slate-700 rounded-lg px-3 py-2">
-        <div class="text-xs text-slate-500">Loaded</div>
-        <div id="loaded-count" class="font-bold text-slate-200">0</div>
+<main>
+  <section class="relative overflow-hidden border-b border-gray-200 bg-white px-4 py-10 sm:px-6">
+    <div class="dot-field pointer-events-none absolute inset-x-0 top-0 mx-auto h-72 w-[min(70rem,140vw)] opacity-70" aria-hidden="true"></div>
+    <div class="relative mx-auto max-w-7xl">
+      <div class="grid gap-8 lg:grid-cols-[1fr_28rem] lg:items-end">
+        <div class="max-w-3xl">
+          <span class="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-semibold text-red-700">
+            <i class="fa-solid fa-signal"></i>
+            Live Website Monitoring
+          </span>
+          <h1 class="mt-5 text-4xl font-semibold leading-tight text-gray-950 sm:text-5xl">
+            OWASP BLT service monitor
+          </h1>
+          <p class="mt-4 max-w-2xl text-base leading-7 text-gray-600">
+            Track uptime, keyword checks, response times, and recent history across the BLT network.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
+            <div class="flex items-center gap-2 text-xs font-medium text-gray-500">
+              <i class="fa-solid fa-layer-group text-gray-400"></i>
+              Loaded
+            </div>
+            <div id="loaded-count" class="mt-2 text-3xl font-semibold text-gray-950">0</div>
+          </div>
+          <button type="button" data-status-filter="up"
+                  class="status-filter-button rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-left transition hover:border-emerald-300 hover:bg-emerald-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  aria-pressed="false">
+            <div class="flex items-center gap-2 text-xs font-medium text-emerald-700">
+              <i class="fa-solid fa-circle-check"></i>
+              Up
+            </div>
+            <div id="up-count" class="mt-2 text-3xl font-semibold text-emerald-800">0</div>
+          </button>
+          <button type="button" data-status-filter="down"
+                  class="status-filter-button rounded-lg border border-red-200 bg-red-50 p-4 text-left transition hover:border-red-300 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500"
+                  aria-pressed="false">
+            <div class="flex items-center gap-2 text-xs font-medium text-red-700">
+              <i class="fa-solid fa-circle-xmark"></i>
+              Down
+            </div>
+            <div id="down-count" class="mt-2 text-3xl font-semibold text-red-800">0</div>
+          </button>
+          <div class="rounded-lg border border-amber-200 bg-amber-50 p-4">
+            <div class="flex items-center gap-2 text-xs font-medium text-amber-700">
+              <i class="fa-solid fa-triangle-exclamation"></i>
+              Warning
+            </div>
+            <div id="warning-count" class="mt-2 text-3xl font-semibold text-amber-800">0</div>
+          </div>
+        </div>
       </div>
-      <button type="button" data-status-filter="up"
-              class="status-filter-button text-left bg-green-900/30 border border-green-800 rounded-lg px-3 py-2 hover:bg-green-900/50 focus:outline-none focus:ring-2 focus:ring-green-500"
-              aria-pressed="false">
-        <div class="text-xs text-green-400">Up</div>
-        <div id="up-count" class="font-bold text-green-300">0</div>
-      </button>
-      <button type="button" data-status-filter="down"
-              class="status-filter-button text-left bg-red-900/30 border border-red-800 rounded-lg px-3 py-2 hover:bg-red-900/50 focus:outline-none focus:ring-2 focus:ring-red-500"
-              aria-pressed="false">
-        <div class="text-xs text-red-400">Down</div>
-        <div id="down-count" class="font-bold text-red-300">0</div>
-      </button>
-      <div class="bg-yellow-900/30 border border-yellow-800 rounded-lg px-3 py-2">
-        <div class="text-xs text-yellow-400">Warning</div>
-        <div id="warning-count" class="font-bold text-yellow-300">0</div>
+
+      <div class="mt-8 grid gap-3 rounded-lg border border-gray-200 bg-white p-3 shadow-sm sm:grid-cols-[1fr_12rem_13rem]">
+        <label class="relative">
+          <span class="sr-only">Search monitors</span>
+          <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400"></i>
+          <input id="monitor-search" type="search" placeholder="Search monitors..."
+                 class="h-11 w-full rounded-md border border-gray-200 bg-gray-50 py-2 pl-9 pr-3 text-sm text-gray-900 placeholder:text-gray-400 transition focus:border-red-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-100">
+        </label>
+        <label>
+          <span class="sr-only">Filter by status</span>
+          <select id="status-filter" class="h-11 w-full rounded-md border border-gray-200 bg-gray-50 px-3 text-sm text-gray-800 transition focus:border-red-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-100">
+            <option value="all">All statuses</option>
+            <option value="up">Up</option>
+            <option value="down">Down</option>
+            <option value="warning">Warning</option>
+            <option value="unknown">Unknown</option>
+            <option value="disabled">Disabled</option>
+          </select>
+        </label>
+        <label>
+          <span class="sr-only">Sort monitors</span>
+          <select id="sort-order" class="h-11 w-full rounded-md border border-gray-200 bg-gray-50 px-3 text-sm text-gray-800 transition focus:border-red-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-100">
+            <option value="configured">Configured order</option>
+            <option value="status">Status</option>
+            <option value="name">Name</option>
+            <option value="response">Response time</option>
+          </select>
+        </label>
       </div>
     </div>
-    <div class="grid sm:grid-cols-[1fr_auto_auto] gap-2 relative z-10">
-      <label class="relative">
-        <span class="sr-only">Search monitors</span>
-        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
-        <input id="monitor-search" type="search" placeholder="Search monitors..."
-               class="w-full bg-slate-900 border border-slate-700 rounded-lg py-2 pl-9 pr-3 text-sm text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-red-500">
-      </label>
-      <label>
-        <span class="sr-only">Filter by status</span>
-        <select id="status-filter" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-red-500">
-          <option value="all">All statuses</option>
-          <option value="up">Up</option>
-          <option value="down">Down</option>
-          <option value="warning">Warning</option>
-          <option value="unknown">Unknown</option>
-          <option value="disabled">Disabled</option>
-        </select>
-      </label>
-      <label>
-        <span class="sr-only">Sort monitors</span>
-        <select id="sort-order" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-red-500">
-          <option value="configured">Configured order</option>
-          <option value="status">Status</option>
-          <option value="name">Name</option>
-          <option value="response">Response time</option>
-        </select>
-      </label>
+  </section>
+
+  <section class="px-4 py-6 sm:px-6">
+    <div class="mx-auto max-w-7xl">
+      <div id="monitors-list" class="grid gap-3">
+        <!-- Monitor cards will be inserted here -->
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="border-t border-gray-200 bg-white px-4 py-6 sm:px-6">
+  <div class="mx-auto flex max-w-7xl flex-col gap-3 text-sm text-gray-500 sm:flex-row sm:items-center sm:justify-between">
+    <span>api.owaspblt.org monitoring fleet</span>
+    <div class="flex flex-wrap gap-4">
+      <a class="hover:text-gray-950" href="https://gitlab.com/owasp-blt/blt-monitor" target="_blank" rel="noopener noreferrer">Source</a>
+      <a class="hover:text-gray-950" href="https://owasp.org/www-project-bug-logging-tool/" target="_blank" rel="noopener noreferrer">OWASP Project</a>
     </div>
   </div>
-
-  <!-- Monitor Cards -->
-  <div id="monitors-list" class="space-y-3">
-    <!-- Monitor cards will be inserted here -->
-  </div>
-</div>
+</footer>
 
 <script>
+  (function () {
+    var mobileToggle = document.getElementById("mobile-toggle");
+    var mobileMenu = document.getElementById("mobile-menu");
+
+    if (mobileToggle && mobileMenu) {
+      mobileToggle.addEventListener("click", function () {
+        var open = !mobileMenu.classList.contains("open");
+        mobileMenu.classList.toggle("open", open);
+        mobileToggle.classList.toggle("active", open);
+        mobileToggle.setAttribute("aria-expanded", String(open));
+      });
+
+      mobileMenu.querySelectorAll("a").forEach(function (link) {
+        link.addEventListener("click", function () {
+          mobileMenu.classList.remove("open");
+          mobileToggle.classList.remove("active");
+          mobileToggle.setAttribute("aria-expanded", "false");
+        });
+      });
+    }
+  })();
+
   // sanitizeId: stable ID for routing + KV keys (must match monitor.html)
   function sanitizeId(id) {
     const cleaned = String(id || '').toLowerCase().replace(/[^a-z0-9-_]/g, '');
@@ -219,7 +329,7 @@
     .catch(err => {
       console.error('Failed to load monitors configuration:', err);
       document.getElementById('monitors-list').innerHTML =
-        '<div class="bg-red-900/30 text-red-300 border border-red-800 rounded-xl p-4 text-center">Failed to load monitors configuration</div>';
+        '<div class="rounded-lg border border-red-200 bg-red-50 p-4 text-center text-sm font-medium text-red-700">Failed to load monitors configuration</div>';
     });
 
   function createMonitorCard(monitor, safeId, domSafeId, rows, lastRow, index) {
@@ -230,12 +340,13 @@
     card.setAttribute('role', 'link');
     card.setAttribute('aria-label', `View details for ${monitor.name}`);
 
-    let statusBadgeClass = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-slate-800 text-slate-400 border border-slate-700';
+    let statusBadgeClass = 'inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600';
     let statusIcon = '<i class="fa-solid fa-question"></i> Unknown';
     let responseTime = '--';
     let lastCheck = 'Never';
     let status = 'unknown';
-    let cardBorderClass = 'border-slate-800';
+    let cardBorderClass = 'border-gray-200';
+    let cardAccentClass = 'bg-gray-400';
     let responseMs = Number.MAX_SAFE_INTEGER;
 
     if (monitor.enabled === false) {
@@ -247,16 +358,19 @@
       status = (isSuccess && keywordFound) ? 'up' : (isSuccess ? 'warning' : 'down');
 
       if (status === 'up') {
-        cardBorderClass = 'border-green-600 ring-1 ring-green-600/60';
-        statusBadgeClass = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-900/50 text-green-300 border border-green-800';
+        cardBorderClass = 'border-emerald-200';
+        cardAccentClass = 'bg-emerald-500';
+        statusBadgeClass = 'inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700';
         statusIcon = '<i class="fa-solid fa-circle-check"></i> Up';
       } else if (status === 'warning') {
-        cardBorderClass = 'border-yellow-700 ring-1 ring-yellow-700/50';
-        statusBadgeClass = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-900/50 text-yellow-300 border border-yellow-800';
+        cardBorderClass = 'border-amber-200';
+        cardAccentClass = 'bg-amber-500';
+        statusBadgeClass = 'inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700';
         statusIcon = '<i class="fa-solid fa-triangle-exclamation"></i> Warning';
       } else if (status === 'down') {
-        cardBorderClass = 'border-red-600 ring-1 ring-red-600/60';
-        statusBadgeClass = 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-red-900/50 text-red-300 border border-red-800';
+        cardBorderClass = 'border-red-200';
+        cardAccentClass = 'bg-red-600';
+        statusBadgeClass = 'inline-flex items-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-medium text-red-700';
         statusIcon = '<i class="fa-solid fa-circle-xmark"></i> Down';
       }
 
@@ -264,12 +378,12 @@
       responseMs = isNaN(ms) ? Number.MAX_SAFE_INTEGER : ms;
       responseTime = isNaN(ms) ? '--' : ms.toLocaleString() + ' ms';
 
-      //guard against invalid date before calling timeAgo
+      // guard against invalid date before calling timeAgo
       const checkDate = new Date(lastRow[0]);
       lastCheck = isNaN(checkDate.getTime()) ? 'Unknown' : timeAgo(checkDate);
     }
 
-    card.className = `block bg-[#0f172a] border ${cardBorderClass} rounded-xl p-4 sm:p-5 cursor-pointer focus:outline-none focus:ring-1 focus:ring-red-500`;
+    card.className = `group relative overflow-hidden rounded-lg border ${cardBorderClass} bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-red-200 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-red-500`;
     card.dataset.index = index;
     card.dataset.name = String(monitor.name || '').toLowerCase();
     card.dataset.search = `${monitor.name || ''} ${monitor.url || ''} ${monitor.keyword || ''}`.toLowerCase();
@@ -279,39 +393,41 @@
     const canvasId = `chart-${domSafeId}`;
 
     card.innerHTML = `
-      <div class="flex items-start gap-4">
-        <div class="flex-1 min-w-0">
-          <div class="flex items-center gap-2 mb-1">
-            <h2 class="text-base sm:text-lg font-bold text-[#e2e8f0] truncate">${escapeHTML(monitor.name)}</h2>
+      <span class="absolute inset-y-0 left-0 w-1 ${cardAccentClass}" aria-hidden="true"></span>
+      <div class="grid gap-4 pl-2 md:grid-cols-[minmax(0,1fr)_12rem] md:items-center">
+        <div class="min-w-0">
+          <div class="flex flex-wrap items-center gap-2">
+            <h2 class="max-w-full truncate text-base font-semibold text-gray-950">${escapeHTML(monitor.name)}</h2>
             <span class="${statusBadgeClass}">${statusIcon}</span>
           </div>
-          <div class="flex items-center gap-1.5 text-sm text-slate-500 mt-1">
-            <i class="fa-solid fa-link flex-shrink-0 text-slate-600"></i>
+          <div class="mt-2 flex min-w-0 items-center gap-2 text-sm text-gray-500">
+            <i class="fa-solid fa-link flex-none text-gray-400"></i>
             <a href="${escapeHTML(safeUrl(monitor.url))}" target="_blank" rel="noopener noreferrer"
                onclick="event.stopPropagation()" onkeydown="event.stopPropagation()"
-               class="truncate max-w-[300px] hover:text-red-400 hover:underline"
+               class="truncate hover:text-red-600 hover:underline"
                title="${escapeHTML(monitor.url)}">${escapeHTML(monitor.url)}</a>
           </div>
-          <div class="flex items-center gap-2 flex-wrap mt-2.5">
+          <div class="mt-3 flex flex-wrap items-center gap-2">
             <a href="${escapeHTML(safeUrl(monitor.url))}" target="_blank" rel="noopener noreferrer"
                onclick="event.stopPropagation()" onkeydown="event.stopPropagation()"
-               class="flex-shrink-0 inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-white bg-red-600 hover:bg-red-700 text-xs font-medium transition-colors"
+               class="inline-flex items-center gap-1.5 rounded-md border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs font-medium text-gray-700 transition hover:border-gray-300 hover:bg-white"
                title="Open in new window">
-              <i class="fa-solid fa-arrow-up-right-from-square"></i> Open
+              <i class="fa-solid fa-arrow-up-right-from-square text-red-500"></i> Open
             </a>
-            <span class="flex items-center gap-1 bg-teal-900/40 text-teal-300 px-2.5 py-0.5 rounded-full text-xs border border-teal-800/60">
+            <span class="inline-flex items-center gap-1.5 rounded-full border border-cyan-200 bg-cyan-50 px-2.5 py-1 text-xs font-medium text-cyan-700">
               <i class="fa-solid fa-clock"></i> ${responseTime}
             </span>
-            <span class="flex items-center gap-1 bg-orange-900/40 text-orange-300 px-2.5 py-0.5 rounded-full text-xs border border-orange-800/60">
+            <span class="inline-flex items-center gap-1.5 rounded-full border border-orange-200 bg-orange-50 px-2.5 py-1 text-xs font-medium text-orange-700">
               <i class="fa-solid fa-calendar"></i> ${lastCheck}
             </span>
             ${monitor.keyword ? `
-            <span class="flex items-center gap-1 text-xs text-slate-500">
-              <i class="fa-solid fa-magnifying-glass"></i> keyword: <strong class="text-slate-300">${escapeHTML(monitor.keyword)}</strong>
+            <span class="inline-flex min-w-0 items-center gap-1.5 rounded-full border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs font-medium text-gray-600">
+              <i class="fa-solid fa-magnifying-glass text-gray-400"></i>
+              <span class="truncate">keyword: <strong class="text-gray-900">${escapeHTML(monitor.keyword)}</strong></span>
             </span>` : ''}
           </div>
         </div>
-        <div class="w-40 sm:w-48 h-16 sm:h-20 flex-shrink-0">
+        <div class="h-20 min-w-0 rounded-md border border-gray-100 bg-gray-50 p-2">
           <canvas id="${canvasId}"></canvas>
         </div>
       </div>
@@ -333,8 +449,8 @@
     const recentRows = rows.slice(-20).filter(r => !isNaN(parseInt(r[1])));
     const data = recentRows.map(r => parseInt(r[1]));
     const bgColors = recentRows.map(r =>
-      (r[2] === 'success' && r[3] === 'found') ? '#4CAF50' :
-      (r[2] === 'success' ? '#FFC107' : '#f44336')
+      (r[2] === 'success' && r[3] === 'found') ? '#10b981' :
+      (r[2] === 'success' ? '#f59e0b' : '#dc2626')
     );
 
     if (data.length === 0) return;
@@ -346,11 +462,11 @@
         datasets: [{
           data,
           fill: true,
-          borderColor: '#2dd4bf',
-          backgroundColor: 'rgba(45, 212, 191, 0.12)',
+          borderColor: '#dc2626',
+          backgroundColor: 'rgba(220, 38, 38, 0.08)',
           pointBackgroundColor: bgColors,
-          pointBorderColor: 'rgba(0,0,0,0.4)',
-          pointBorderWidth: 1,
+          pointBorderColor: '#ffffff',
+          pointBorderWidth: 2,
           pointRadius: 3,
           pointHoverRadius: 5,
           tension: 0.4,

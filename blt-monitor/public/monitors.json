@@ -334,5 +334,19 @@
     "url": "https://zero.owaspblt.org",
     "keyword": "BLT",
     "enabled": true
+  },
+  {
+    "id": "repo_blt_monitor",
+    "name": "BLT Monitor Repo",
+    "url": "https://gitlab.com/owasp-blt/blt-monitor",
+    "keyword": "blt-monitor",
+    "enabled": true
+  },
+  {
+    "id": "repo_blt_zero",
+    "name": "BLT Zero Repo",
+    "url": "https://gitlab.com/owasp-blt/blt-zero",
+    "keyword": "blt-zero",
+    "enabled": true
   }
 ]
