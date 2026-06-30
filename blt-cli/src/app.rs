@@ -61,6 +61,9 @@ pub enum ActiveOverlay {
     SearchInput,
     BulkTriageConfirm,
     CommandPalette,
+    AgentStatus,
+    PromptPreview,
+    EasterEgg,
 }
 
 pub enum AppEvent {
@@ -100,6 +103,9 @@ pub struct App {
     pub mcp_client: Option<std::sync::Arc<tokio::sync::Mutex<crate::mcp_client::McpSubprocessClient>>>,
     pub security_health: Option<crate::scanner::SecurityHealth>,
     pub command_input: String,
+    pub konami_index: usize,
+    pub agent_status_data: String,
+    pub prompt_preview_data: String,
 }
 
 impl App {
@@ -162,6 +168,9 @@ impl App {
             mcp_client: None,
             security_health: None,
             command_input: String::new(),
+            konami_index: 0,
+            agent_status_data: "Agent Status: Idle\nConnected: true\nUptime: 2m\nMemory: 24MB".to_string(),
+            prompt_preview_data: "Loading prompt preview...".to_string(),
         };
         app.load_session();
         app
@@ -249,6 +258,29 @@ impl App {
             self.active_overlay = ActiveOverlay::None;
         } else {
             self.active_overlay = ActiveOverlay::Help;
+        }
+    }
+
+    pub fn toggle_agent_status(&mut self) {
+        if self.active_overlay != ActiveOverlay::None && self.active_overlay != ActiveOverlay::AgentStatus {
+            return;
+        }
+        if self.active_overlay == ActiveOverlay::AgentStatus {
+            self.active_overlay = ActiveOverlay::None;
+        } else {
+            self.active_overlay = ActiveOverlay::AgentStatus;
+        }
+    }
+
+    pub fn toggle_prompt_preview(&mut self) {
+        if self.active_overlay != ActiveOverlay::None && self.active_overlay != ActiveOverlay::PromptPreview {
+            return;
+        }
+        if self.active_overlay == ActiveOverlay::PromptPreview {
+            self.active_overlay = ActiveOverlay::None;
+        } else {
+            self.active_overlay = ActiveOverlay::PromptPreview;
+            self.prompt_preview_data = "Mock Prompt Preview:\n\nPlease triage the following vulnerability: ...".to_string();
         }
     }
 
